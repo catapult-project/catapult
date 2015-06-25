@@ -106,7 +106,7 @@ class TraceViewerProject(project_module.Project):
 
     # Ignore drive html due to embedded external script resources.
     self.non_module_html_files.appendRel(self.src_path,
-      'extras/drive/index.html')
+      'ui/extras/drive/index.html')
 
     rjsmin_doc_files = _FindAllFilesRecursive(
         [os.path.join(self.rjsmin_path, 'docs', 'apidoc')])
