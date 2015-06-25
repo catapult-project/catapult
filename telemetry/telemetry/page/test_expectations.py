@@ -71,19 +71,29 @@ class TestExpectations(object):
     self._Expect('skip', url_pattern, conditions, bug)
 
   def _Expect(self, expectation, url_pattern, conditions=None, bug=None):
-    self.expectations.append(_Expectation(expectation, self, url_pattern,
-      conditions, bug))
+    self.expectations.append(self.CreateExpectation(expectation, url_pattern,
+                                                    conditions, bug))
+
+  def CreateExpectation(self, expectation, url_pattern, conditions=None,
+                        bug=None):
+    return _Expectation(expectation, self, url_pattern, conditions, bug)
 
   # TODO(kbr): generalize TestExpectations to work with SharedState
   # and UserStory. crbug.com/495870
   def GetExpectationForPage(self, shared_page_state, page):
     for e in self.expectations:
-      matches_url = fnmatch.fnmatch(page.url, e.url_pattern)
-      matches_name = page.name and fnmatch.fnmatch(page.name, e.name_pattern)
-      if matches_url or matches_name:
-        if self.ModifiersApply(shared_page_state, e):
-          return e.expectation
+      if self.ExpectationAppliesToPage(e, shared_page_state, page):
+        return e.expectation
     return 'pass'
+
+  def ExpectationAppliesToPage(self, expectation, shared_page_state, page):
+    matches_url = fnmatch.fnmatch(page.url, expectation.url_pattern)
+    matches_name = page.name and fnmatch.fnmatch(page.name,
+                                                 expectation.name_pattern)
+    if matches_url or matches_name:
+      if self.ModifiersApply(shared_page_state, expectation):
+        return True
+    return False
 
   def _GetGpuVendorString(self, gpu_info):
     if gpu_info:
