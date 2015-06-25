@@ -3,13 +3,13 @@
  * found in the LICENSE file.
  */
 
-.gpu-state-snapshot-view {
+.tr-ui-e-chrome-gpu-state-snapshot-view {
   background: url('./images/checkerboard.png');
   display: -webkit-flex;
   overflow: auto;
 }
 
-.gpu-state-snapshot-view img {
+.tr-ui-e-chrome-gpu-state-snapshot-view img {
   display: block;
   margin: 16px auto 16px auto;
 }
