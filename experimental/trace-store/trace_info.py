@@ -6,7 +6,7 @@
 from google.appengine.ext import ndb
 
 class TraceInfo(ndb.Model):
-  prod = ndb.StringProperty(indexed=False)
-  ver = ndb.StringProperty(indexed=False)
-  remote_addr = ndb.StringProperty(indexed=False)
-  date = ndb.DateTimeProperty(auto_now_add=True, indexed=False)
+  prod = ndb.StringProperty(indexed=True)
+  ver = ndb.StringProperty(indexed=True)
+  remote_addr = ndb.StringProperty(indexed=True)
+  date = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
