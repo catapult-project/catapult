@@ -21,8 +21,8 @@ def GetPreferredTryMasters(project, change):
 
 def _CommonChecks(input_api, output_api):
   results = []
-  results.extend(input_api.canned_checks.CheckOwners(
-      input_api, output_api, source_file_filter=None))
+  results.extend(input_api.canned_checks.PanProjectChecks(
+      input_api, output_api, project_name='catapult'))
   return results
 
 
