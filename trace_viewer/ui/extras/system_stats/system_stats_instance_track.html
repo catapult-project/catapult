@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/system_stats/system_stats_instance_track.css">
+<link rel="stylesheet"
+      href="/ui/extras/system_stats/system_stats_instance_track.css">
 
 <link rel="import" href="/base/sorted_array_utils.html">
 <link rel="import" href="/ui/tracks/stacked_bars_track.html">
@@ -16,7 +17,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.system_stats', function() {
+tr.exportTo('tr.ui.e.system_stats', function() {
   var EventPresenter = tr.ui.b.EventPresenter;
 
   var palette = tr.ui.b.getColorPalette();
@@ -51,7 +52,7 @@ tr.exportTo('tr.e.system_stats', function() {
    */
 
   var SystemStatsInstanceTrack = tr.ui.b.define(
-      'system-stats-instance-track', tr.ui.tracks.StackedBarsTrack);
+      'tr-ui-e-system-stats-instance-track', tr.ui.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
@@ -59,7 +60,7 @@ tr.exportTo('tr.e.system_stats', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('system-stats-instance-track');
+      this.classList.add('tr-ui-e-system-stats-instance-track');
       this.objectInstance_ = null;
     },
 

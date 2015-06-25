@@ -3,11 +3,11 @@
  * found in the LICENSE file.
  */
 
-.system-stats-instance-track {
+.tr-ui-e-system-stats-instance-track {
   height: 500px;
 }
 
-.system-stats-instance-track ul {
+.tr-ui-e-system-stats-instance-track ul {
   list-style: none;
   list-style-position: outside;
   margin: 0;

@@ -5,25 +5,27 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/system_stats/system_stats_snapshot_view.css">
+<link rel="stylesheet"
+    href="/ui/extras/system_stats/system_stats_snapshot_view.css">
+
 <link rel="import" href="/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/base/units/util.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.system_stats', function() {
+tr.exportTo('tr.ui.e.system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
-  var SystemStatsSnapshotView = tr.ui.b.define('system-stats-snapshot-view',
-      tr.ui.analysis.ObjectSnapshotView);
+  var SystemStatsSnapshotView = tr.ui.b.define(
+      'tr-ui-e-system-stats-snapshot-view', tr.ui.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('system-stats-snapshot-view');
+      this.classList.add('tr-ui-e-system-stats-snapshot-view');
     },
 
     updateContents: function() {

@@ -3,12 +3,12 @@
  * found in the LICENSE file.
  */
 
-.subhead {
+.tr-ui-e-system-stats-snapshot-view .subhead {
   font-size: small;
   padding-bottom: 10px;
 }
 
-.system-stats-snapshot-view ul {
+.tr-ui-e-system-stats-snapshot-view ul {
   background-position: 0 5px;
   background-repeat: no-repeat;
   cursor: pointer;
@@ -18,7 +18,7 @@
   padding-left: 15px;
 }
 
-.system-stats-snapshot-view li {
+.tr-ui-e-system-stats-snapshot-view li {
   background-position: 0 5px;
   background-repeat: no-repeat;
   cursor: pointer;

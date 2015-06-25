@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/system_stats/system_stats.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/extras/system_stats/system_stats.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var SystemStatsInstanceTrack = tr.e.system_stats.SystemStatsInstanceTrack;
+tr.b.unittest.testSuite(function() {
+  var SystemStatsInstanceTrack = tr.ui.e.system_stats.SystemStatsInstanceTrack;
   var Viewport = tr.ui.TimelineViewport;
 
   var createObjects = function() {
