@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/interval_tree.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/base/task.html">
+<link rel="import" href="/base/units/time.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/auditor.html">
@@ -122,6 +123,7 @@ tr.exportTo('tr', function() {
     this.instantEvents = [];
     this.flowEvents = [];
     this.clockSyncRecords = [];
+    this.intrinsicTimeUnit_ = undefined;
 
     this.stackFrames = {};
     this.samples = [];
@@ -703,6 +705,24 @@ tr.exportTo('tr', function() {
 
       console.warn(data.message);
       this.reportedImportWarnings_[data.type] = true;
+    },
+
+    /**
+     * Returns a time unit that is used to format values and determines the
+     * precision of the timestamp values.
+     */
+    get intrinsicTimeUnit() {
+      if (this.intrinsicTimeUnit_ === undefined)
+        return tr.b.units.Time.supportedUnits.ms;
+      return this.intrinsicTimeUnit_;
+    },
+
+    set intrinsicTimeUnit(value) {
+      if (this.intrinsicTimeUnit_ === value)
+        return;
+      if (this.intrinsicTimeUnit_ !== undefined)
+        throw new Error('Intrinsic time unit already set');
+      this.intrinsicTimeUnit_ = value;
     },
 
     get hasImportWarnings() {

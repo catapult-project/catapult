@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/units/time.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/full_config.html">
 <link rel="import" href="/model/annotation.html">
@@ -408,6 +409,23 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(m.getAnnotationByGUID(a1.guid));
     assert.equal(m.getAnnotationByGUID(a2.guid), a2);
     assert.equal(m.getAllAnnotations().length, 1);
+  });
+
+  test('model_intrinsicTimeUnit', function() {
+    var unit = tr.b.units.Time.supportedUnits;
+    var m = new tr.Model();
+
+    // by default it should be milliseconds
+    assert.equal(m.intrinsicTimeUnit, unit.ms);
+
+    m.intrinsicTimeUnit = unit.ns;
+    assert.equal(m.intrinsicTimeUnit, unit.ns);
+    // should be able to set to the same
+    m.intrinsicTimeUnit = unit.ns;
+    assert.equal(m.intrinsicTimeUnit, unit.ns);
+    // should not be able to change it after fixing it
+    assert.throw(function() { m.intrinsicTimeUnit = unit.ms; });
+    assert.equal(m.intrinsicTimeUnit, unit.ns);
   });
 });
 </script>
