@@ -8,9 +8,9 @@ import sys
 
 from telemetry import benchmark
 from telemetry.core import browser_options
+from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core import wpr_modes
-from telemetry.util import classes_util
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page_set
@@ -61,17 +61,30 @@ class RecorderPageTest(page_test.PageTest):
     else:
       super(RecorderPageTest, self).RunNavigateSteps(page, tab)
 
+
+def _GetSubclasses(base_dir, cls):
+  """ Return all subclasses of |cls| in |base_dir|.
+  Args:
+    cls: a class
+  Returns:
+
+  """
+  return discover.DiscoverClasses(base_dir, base_dir, cls,
+                                  index_by_class_name=True)
+
+
 def _MaybeGetInstanceOfClass(target, base_dir, cls):
   if isinstance(target, cls):
     return target
-  return classes_util.MaybeGetInstanceOfClass(target, base_dir, base_dir, cls)
+  classes = _GetSubclasses(base_dir, cls)
+  return classes[target]() if target in classes else None
+
 
 def _PrintAllBenchmarks(base_dir, output_stream):
   # TODO: reuse the logic of finding supported benchmarks in benchmark_runner.py
   # so this only prints out benchmarks that are supported by the recording
   # platform.
-  classes = classes_util.DiscoverClassesByClassName(
-      base_dir, base_dir, benchmark.Benchmark)
+  classes = _GetSubclasses(base_dir, benchmark.Benchmark)
   output_stream.write('Available benchmarks\' names:\n\n')
   for k in classes:
     output_stream.write('%s\n' % k)
@@ -81,8 +94,7 @@ def _PrintAllUserStories(base_dir, output_stream):
   output_stream.write('Available page sets\' names:\n\n')
   # TODO: actually print all user stories once record_wpr support general
   # user stories recording.
-  classes = classes_util.DiscoverClassesByClassName(
-      base_dir, base_dir, page_set.PageSet)
+  classes = _GetSubclasses(base_dir, page_set.PageSet)
   for k in classes:
     output_stream.write('%s\n' % k)
 
@@ -93,8 +105,8 @@ class WprRecorder(object):
     self._record_page_test = RecorderPageTest()
     self._options = self._CreateOptions()
 
-    self._benchmark = _MaybeGetInstanceOfClass(
-        target, base_dir, benchmark.Benchmark)
+    self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
+                                               benchmark.Benchmark)
     self._parser = self._options.CreateParser(usage='See %prog --help')
     self._AddCommandLineArgs()
     self._ParseArgs(args)
@@ -153,8 +165,7 @@ class WprRecorder(object):
   def _GetPageSet(self, base_dir, target):
     if self._benchmark is not None:
       return self._benchmark.CreatePageSet(self._options)
-    ps = _MaybeGetInstanceOfClass(
-        target, base_dir, page_set.PageSet)
+    ps = _MaybeGetInstanceOfClass(target, base_dir, page_set.PageSet)
     if ps is None:
       self._parser.print_usage()
       sys.exit(1)

@@ -7,7 +7,7 @@ import os
 import unittest
 
 from telemetry.core import browser_credentials
-from telemetry.util import classes_util
+from telemetry.core import discover
 from telemetry import page
 from telemetry import story as story_module
 from telemetry.wpr import archive_info
@@ -128,9 +128,9 @@ class StorySetSmokeTest(unittest.TestCase):
     """
     # We can't test page sets that aren't directly constructable since we
     # don't know what arguments to put for the constructor.
-    story_sets = classes_util.DiscoverClasses(story_sets_dir, top_level_dir,
-                                            story_module.StorySet,
-                                            directly_constructable=True)
+    story_sets = discover.DiscoverClasses(story_sets_dir, top_level_dir,
+                                          story_module.StorySet,
+                                          directly_constructable=True).values()
     for story_set_class in story_sets:
       story_set = story_set_class()
       logging.info('Testing %s', story_set.file_path)

@@ -5,7 +5,7 @@ import logging as real_logging
 import os
 import sys
 
-from telemetry.util import classes_util
+from telemetry.core import discover
 from telemetry.core.platform import network_controller
 from telemetry.core.platform import platform_backend as platform_backend_module
 from telemetry.core.platform import tracing_controller
@@ -38,8 +38,9 @@ def GetHostPlatform():
 
 def _IterAllPlatformBackendClasses():
   platform_dir = os.path.dirname(os.path.realpath(__file__))
-  return classes_util.DiscoverClasses(platform_dir, util.GetTelemetryDir(),
-                                      platform_backend_module.PlatformBackend)
+  return discover.DiscoverClasses(
+      platform_dir, util.GetTelemetryDir(),
+      platform_backend_module.PlatformBackend).itervalues()
 
 
 def GetPlatformForDevice(device, finder_options, logging=real_logging):
