@@ -20,6 +20,10 @@ tr.exportTo('tr.model', function() {
    */
   function Attribute(units) {
     this.units = units;
+
+    // AttributeInfo(s) about the attribute (e.g. information about how it was
+    // calculated).
+    this.infos = [];
   }
 
   Attribute.fromDictIfPossible = function(dict, opt_model) {
@@ -228,11 +232,36 @@ tr.exportTo('tr.model', function() {
 
   UnknownAttribute.prototype.__proto__ = Attribute.prototype;
 
+  /**
+   * @constructor
+   */
+  function AttributeInfo(type, message) {
+    this.type = type;
+    this.message = message;
+  }
+
+  /**
+   * The type of AttributeInfo.
+   * @enum
+   */
+  var AttributeInfoType = {
+    // Generic information (e.g. how the attribute was calculated).
+    INFORMATION: 0,
+
+    // Warning (e.g. inconsistent attribute values provided).
+    WARNING: 1,
+
+    // Attribute source (e.g. attribute refers to an older dump's attribute).
+    LINK: 2
+  };
+
   return {
     Attribute: Attribute,
     ScalarAttribute: ScalarAttribute,
     StringAttribute: StringAttribute,
-    UnknownAttribute: UnknownAttribute
+    UnknownAttribute: UnknownAttribute,
+    AttributeInfo: AttributeInfo,
+    AttributeInfoType: AttributeInfoType
   };
 });
 </script>

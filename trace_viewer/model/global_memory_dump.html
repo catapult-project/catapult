@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/base/units/size_in_bytes.html">
+<link rel="import" href="/model/attribute.html">
 <link rel="import" href="/model/container_memory_dump.html">
 <link rel="import" href="/model/memory_allocator_dump.html">
 
@@ -96,6 +97,7 @@ tr.exportTo('tr.model', function() {
       var sizeAttribute = dump.getValidSizeAttributeOrUndefined(
           SIZE_ATTRIBUTE_NAME, this.model);
       var size = 0;
+      var infos = [];
       var checkDependentSizeIsConsistent = function() { /* no-op */ };
       if (sizeAttribute !== undefined) {
         size = sizeAttribute.value;
@@ -104,13 +106,17 @@ tr.exportTo('tr.model', function() {
             dependentName) {
           if (size >= dependentSize)
             return;
+          var messageSuffix = ' (' + tr.b.units.SizeInBytes.format(size) +
+              ') is less than ' + dependentName + ' (' +
+                tr.b.units.SizeInBytes.format(dependentSize) + ').';
           this.model.importWarning({
             type: 'memory_dump_parse_error',
-            message: 'provided size of memory allocator dump \'' +
-                dump.fullName + '\' (' + tr.b.units.tsString(size) + ')' +
-                ' is less than ' + dependentName +
-                ' (' + tr.b.units.tsString(dependentSize) + ').'
+            message: 'Size provided by memory allocator dump \'' +
+                dump.fullName + '\'' + messageSuffix
           });
+          infos.push(new tr.model.AttributeInfo(
+              tr.model.AttributeInfoType.WARNING,
+              'Size provided by this memory allocator dump' + messageSuffix));
         }.bind(this);
       }
 
@@ -118,27 +124,71 @@ tr.exportTo('tr.model', function() {
       // descendants and ensures that double-counting due to ownership within a
       // subsystem is avoided.
       var aggregatedChildrenSize = 0;
-      function aggregateDescendantDump(descendantDump) {
-        // Don't count this descendant dump if it owns another descendant of
-        // the current dump (would cause double-counting).
-        var ownedDumpLink = descendantDump.owns;
-        if (ownedDumpLink !== undefined &&
-            ownedDumpLink.target.isDescendantOf(dump))
-          return;
+      // Owned child dump name -> (Owner child dump name -> overlapping size).
+      var allOverlaps = {};
+      dump.children.forEach(function(childDump) {
+        function aggregateDescendantDump(descendantDump) {
+          // Don't count this descendant dump if it owns another descendant of
+          // the current dump (would cause double-counting).
+          var ownedDumpLink = descendantDump.owns;
+          if (ownedDumpLink !== undefined &&
+              ownedDumpLink.target.isDescendantOf(dump)) {
+            // If the target owned dump is a descendant of a *different* child
+            // of the the current dump (i.e. not childDump), then we remember
+            // the ownership so that we could explain why the size of the
+            // current dump is not equal to the sum of its children.
+            var ownedDescendantDump = ownedDumpLink.target;
+            var ownedChildDump = ownedDescendantDump;
+            while (ownedChildDump.parent !== dump)
+              ownedChildDump = ownedChildDump.parent;
+            if (childDump !== ownedChildDump) {
+              var overlap = getDependencySize(descendantDump);
+              if (overlap > 0) {
+                // Owner child dump -> total overlapping size.
+                var ownedChildOverlaps = allOverlaps[ownedChildDump.name];
+                if (ownedChildOverlaps === undefined)
+                  allOverlaps[ownedChildDump.name] = ownedChildOverlaps = {};
+                var previousTotalOverlap =
+                    ownedChildOverlaps[childDump.name] || 0;
+                var updatedTotalOverlap = previousTotalOverlap + overlap;
+                ownedChildOverlaps[childDump.name] = updatedTotalOverlap;
+              }
+            }
+            return;
+          }
 
-        // If this descendant dump is a leaf node, add its size to the
-        // aggregated size.
-        if (descendantDump.children.length === 0) {
-          aggregatedChildrenSize += getDependencySize(descendantDump);
-          return;
+          // If this descendant dump is a leaf node, add its size to the
+          // aggregated size.
+          if (descendantDump.children.length === 0) {
+            aggregatedChildrenSize += getDependencySize(descendantDump);
+            return;
+          }
+
+          // If this descendant dump is an intermediate node, recurse down into
+          // its children. Note that the dump's size is NOT added because it is
+          // an aggregate of its children (would cause double-counting).
+          descendantDump.children.forEach(aggregateDescendantDump);
         }
+        aggregateDescendantDump(childDump);
+      });
+      // If the size of the dump is not equal to the sum of its children, add
+      // infos to its children explaining the difference.
+      dump.children.forEach(function(childDump) {
+        var childOverlaps = allOverlaps[childDump.name];
+        if (childOverlaps === undefined)
+          return;
 
-        // If this descendant dump is an intermediate node, recurse down into
-        // its children. Note that the dump's size is NOT added because it is
-        // an aggregate of its children (would cause double-counting).
-        descendantDump.children.forEach(aggregateDescendantDump);
-      }
-      dump.children.forEach(aggregateDescendantDump);
+        var message = tr.b.dictionaryValues(tr.b.mapItems(childOverlaps,
+            function(ownerChildName, overlap) {
+          return 'This memory allocator dump overlaps with its sibling \'' +
+              ownerChildName + '\' (' +
+              tr.b.units.SizeInBytes.format(overlap) + ').';
+        })).join(' ');
+
+        childDump.attributes[SIZE_ATTRIBUTE_NAME].infos.push(
+            new tr.model.AttributeInfo(
+                tr.model.AttributeInfoType.INFORMATION, message));
+      });
       checkDependentSizeIsConsistent(
           aggregatedChildrenSize, 'the aggregated size of its children');
 
@@ -165,8 +215,9 @@ tr.exportTo('tr.model', function() {
       // together and/or its largest owner.
       size = Math.max(size, aggregatedChildrenSize, largestOwnerSize);
 
-      dump.attributes[SIZE_ATTRIBUTE_NAME] =
-          new tr.model.ScalarAttribute('bytes', size);
+      var sizeAttribute = new tr.model.ScalarAttribute('bytes', size);
+      sizeAttribute.infos = infos;
+      dump.attributes[SIZE_ATTRIBUTE_NAME] = sizeAttribute;
 
       // Add a virtual child to make up for extra size of the dump with
       // respect to its children (if applicable).

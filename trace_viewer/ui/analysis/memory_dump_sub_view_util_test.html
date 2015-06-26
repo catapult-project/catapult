@@ -24,6 +24,8 @@ tr.b.unittest.testSuite(function() {
       tr.ui.analysis.aggregateTableRowCellsRecursively;
   var StringAttribute = tr.model.StringAttribute;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var AttributeInfo = tr.model.AttributeInfo;
+  var AttributeInfoType = tr.model.AttributeInfoType;
 
   function checkPercent(string, expectedPercent) {
     assert.equal(Number(string.slice(0, -1)), expectedPercent);
@@ -221,17 +223,20 @@ tr.b.unittest.testSuite(function() {
     assert.equal(columns[3].name, 'page_size');
   });
 
+  test('checkMemoryColumn_fields', function() {
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
+    assert.equal(c.title, 'Test Column');
+    assert.isUndefined(c.width);
+  });
+
   test('checkMemoryColumn_attr', function() {
     var c = new MemoryColumn(
         'test_column', 'Test Column', 'ms', fieldGetter('x'));
 
-    // Undefined cell.
-    var row = {};
-    assert.isUndefined(c.attr(row));
-
-    // Undefined attribute inside cell.
-    var row = {x: new MemoryCell(undefined)};
-    assert.isUndefined(c.attr(row));
+    // Undefined cell or attribute inside cell.
+    assert.isUndefined(c.attr({}));
+    assert.isUndefined(c.attr({x: new MemoryCell(undefined)}));
 
     // Defined attribute inside cell.
     var attr = new ScalarAttribute('hPa', 1013.25);
@@ -239,19 +244,115 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(c.attr(row), attr);
   });
 
-  test('checkMemoryColumn_value', function() {
+  test('checkMemoryColumn_value_undefinedColor', function() {
     var c = new MemoryColumn(
         'test_column', 'Test Column', 'ms', fieldGetter('x'));
-    assert.equal(c.title, 'Test Column');
-    assert.isUndefined(c.width);
 
-    // Undefined cell.
-    var row = {};
-    assert.equal(c.value(row), '');
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
 
     // Defined cell.
-    var row = {x: buildScalarCell('ms', 123)};
-    assert.equal(c.value(row), '123');
+    var value = c.value({x: buildScalarCell('ms', 123)});
+    assert.equal(value, '123');
+
+    // Attribute with infos.
+    var cell = buildStringCell('ms', 'a couple');
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, '');
+    assert.equal(value.childNodes[0].textContent, 'a couple');
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Test');
+    this.addHTMLOutput(value);
+  });
+
+  test('checkMemoryColumn_value_colorString', function() {
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
+    c.color = '#009999';
+
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
+
+    // Defined cell.
+    var value = c.value({x: buildScalarCell('ms', 123)});
+    assert.equal(value.textContent, '123');
+    assert.equal(value.style.color, 'rgb(0, 153, 153)');
+    this.addHTMLOutput(value);
+
+    // Attribute with infos.
+    var cell = buildStringCell('ms', 'a couple');
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, 'rgb(0, 153, 153)');
+    assert.equal(value.childNodes[0].textContent, 'a couple');
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Test');
+    this.addHTMLOutput(value);
+  });
+
+  test('checkMemoryColumn_value_colorFunction', function() {
+    var c = new MemoryColumn(
+        'test_column', 'Test Column', 'ms', fieldGetter('x'));
+    c.color = function(attr) {
+      return attr.value < 0 ? 'green' : undefined;
+    };
+
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
+
+    // Defined cell.
+    var value = c.value({x: buildScalarCell('ms', 123)});
+    assert.equal(value, '123');
+
+    var value = c.value({x: buildScalarCell('ms', -123)});
+    assert.equal(value.textContent, '-123');
+    assert.equal(value.style.color, 'green');
+    this.addHTMLOutput(value);
+
+    // Attribute with infos.
+    var cell = buildStringCell('ms', 42);
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, '');
+    assert.equal(value.childNodes[0].textContent, '42');
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Test');
+    this.addHTMLOutput(value);
+
+    var cell = buildStringCell('ms', -273.15);
+    cell.attr.infos = [
+      new AttributeInfo(
+          AttributeInfoType.INFORMATION, 'This value is absolutely cool')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 2);
+    assert.equal(value.style.color, 'green');
+    assert.equal(value.childNodes[0].textContent, '-273.15');
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9432));
+    assert.equal(value.childNodes[1].title, 'This value is absolutely cool');
+    this.addHTMLOutput(value);
   });
 
   test('checkMemoryColumn_cmp', function() {
@@ -330,19 +431,119 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(c.matchesNameCondition(/test$/));
   });
 
-  test('checkScalarMemoryColumn_value', function() {
+  test('checkScalarMemoryColumn_value_undefinedColor', function() {
     var c = new ScalarMemoryColumn(
         'test_column', 'Test Column', 'bytes', fieldGetter('x'));
-    assert.equal(c.title, 'Test Column');
-    assert.isUndefined(c.width);
 
-    // Undefined cell.
-    var row = {};
-    assert.equal(c.value(row), '');
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
 
     // Defined cell.
-    var row = {x: buildScalarCell('bytes', 1024)};
-    assert.equal(c.value(row).numBytes, 1024);
+    var value = c.value({x: buildScalarCell('bytes', 1024)});
+    assert.equal(value.numBytes, 1024);
+    this.addHTMLOutput(value);
+
+    // Attribute with infos.
+    var cell = buildScalarCell('bytes', 2048);
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, '');
+    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Test');
+    this.addHTMLOutput(value);
+  });
+
+  test('checkScalarMemoryColumn_value_colorString', function() {
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+    c.color = '#009999';
+
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
+
+    // Defined cell.
+    var value = c.value({x: buildScalarCell('bytes', 1024)});
+    assert.lengthOf(value.childNodes, 1);
+    assert.equal(value.childNodes[0].numBytes, 1024);
+    assert.equal(value.style.color, 'rgb(0, 153, 153)');
+    this.addHTMLOutput(value);
+
+    // Attribute with infos.
+    var cell = buildScalarCell('bytes', 2048);
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Rumor')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, 'rgb(0, 153, 153)');
+    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Rumor');
+    this.addHTMLOutput(value);
+  });
+
+  test('checkScalarMemoryColumn_value_colorFunction', function() {
+    var c = new ScalarMemoryColumn(
+        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+    c.color = function(attr) {
+      return attr.value < 0 ? 'green' : undefined;
+    };
+
+    // Undefined cell or attribute inside cell.
+    assert.equal(c.value({}), '');
+    assert.equal(c.value({x: new MemoryCell(undefined)}), '');
+
+    // Defined cell.
+    var value = c.value({x: buildScalarCell('bytes', 1024)});
+    assert.equal(value.numBytes, 1024);
+    this.addHTMLOutput(value);
+
+    var value = c.value({x: buildScalarCell('bytes', -1024)});
+    assert.lengthOf(value.childNodes, 1);
+    assert.equal(value.childNodes[0].numBytes, -1024);
+    assert.equal(value.style.color, 'green');
+    this.addHTMLOutput(value);
+
+    // Attribute with infos.
+    var cell = buildScalarCell('bytes', 2048);
+    cell.attr.infos = [
+      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
+      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 3);
+    assert.equal(value.style.color, '');
+    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
+    assert.equal(value.childNodes[1].title, 'This value is too cool');
+    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
+    assert.equal(value.childNodes[2].title, 'Source: Test');
+    this.addHTMLOutput(value);
+
+    var cell = buildScalarCell('bytes', -2048);
+    cell.attr.infos = [
+      new AttributeInfo(
+          AttributeInfoType.INFORMATION, 'This value is impossibly cool')
+    ];
+    var value = c.value({x: cell});
+    assert.lengthOf(value.childNodes, 2);
+    assert.equal(value.style.color, 'green');
+    assert.equal(value.childNodes[0].numBytes, -2048);
+    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9432));
+    assert.equal(value.childNodes[1].title, 'This value is impossibly cool');
+    this.addHTMLOutput(value);
   });
 
   test('checkScalarMemoryColumn_cmp', function() {

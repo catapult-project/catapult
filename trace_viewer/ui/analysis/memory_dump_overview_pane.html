@@ -69,14 +69,6 @@ found in the LICENSE file.
 
     var LINK_SYMBOL = String.fromCharCode(9903);
 
-    function wrapValueInColorSpan(value, color) {
-      var wrap = document.createElement('span');
-      wrap.style.color = color;
-      wrap.style.display = 'flex';
-      wrap.appendChild(tr.ui.b.asHTMLOrTextNode(value));
-      return wrap;
-    }
-
     Polymer({
       // TODO(petrcermak): Consider sharing more code between
       // tr-ui-a-memory-dump-overview-pane and tr-c-memory-dump-process pane
@@ -147,10 +139,15 @@ found in the LICENSE file.
             var byteStat =
                 processMemoryDump.getMostRecentTotalVmRegionStat(byteStatName);
             if (byteStat !== undefined) {
-              var cell = new tr.ui.analysis.MemoryCell(
-                  new tr.model.ScalarAttribute('bytes', byteStat));
+              var attr = new tr.model.ScalarAttribute('bytes', byteStat);
+              if (!processMemoryDump.hasOwnVmRegions) {
+                attr.infos.push(new tr.model.AttributeInfo(
+                    tr.model.AttributeInfoType.LINK,
+                     'Older value (process did not dump memory maps).'));
+                attr.isOlderValue = true;
+              }
+              var cell = new tr.ui.analysis.MemoryCell(attr);
               cell.buildDetailsPane = buildVMRegionsPane;
-              cell.isOlderValue = !processMemoryDump.hasOwnVmRegions;
               usedMemorySizes[columnTitle] = cell;
             }
           }
@@ -239,39 +236,23 @@ found in the LICENSE file.
         if (tracingColumn !== undefined) {
           var tracingColumnColor = tr.ui.b.getColorPalette()[
               tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
-          tracingColumn.title =
-              wrapValueInColorSpan('tracing', tracingColumnColor);
-          var oldValueCallback = tracingColumn.value;
-          tracingColumn.value = function(row) {
-            var oldValue = oldValueCallback.call(this, row);
-            return wrapValueInColorSpan(oldValue, tracingColumnColor);
-          };
+          tracingColumn.title = tr.ui.b.createSpan(
+              {textContent: 'tracing', color: tracingColumnColor});
+          tracingColumn.color = tracingColumnColor;
         }
 
         // Make the used memory size columns blue.
         // TODO(petrcermak): Find a less hacky way to do this.
         usedMemorySizeColumns.forEach(function(column) {
-          column.title = wrapValueInColorSpan(column.title, 'blue');
-          var oldValueCallback = column.value;
-          column.value = function(row) {
-            var oldValue = oldValueCallback.call(this, row);
-            var cell = this.cell(row);
-            var isOlderValue = cell !== undefined && cell.isOlderValue;
-            var columnColorName = 'used_memory_column';
-            if (isOlderValue)
-              columnColorName = 'older_used_memory_column';
-            var columnColor = tr.ui.b.getColorPalette()[
-                tr.ui.b.getColorIdForReservedName(columnColorName)];
-            var wrap = wrapValueInColorSpan(oldValue, columnColor);
-            if (isOlderValue) {
-              var linkEl = document.createElement('span');
-              linkEl.textContent = LINK_SYMBOL;
-              linkEl.title = 'Older value (process did not dump memory maps)';
-              linkEl.style.paddingLeft = '4px';
-              linkEl.style.cursor = 'help';
-              wrap.appendChild(linkEl);
-            }
-            return wrap;
+          var olderUsedMemoryColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('older_used_memory_column')];
+          var usedMemoryColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('used_memory_column')];
+          column.title = tr.ui.b.createSpan(
+              {textContent: column.title, color: usedMemoryColumnColor});
+          column.color = function(attr) {
+            return attr.isOlderValue ?
+                olderUsedMemoryColumnColor : usedMemoryColumnColor;
           }
         });
 

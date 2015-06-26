@@ -22,6 +22,8 @@ tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var AttributeInfo = tr.model.AttributeInfo;
+  var AttributeInfoType = tr.model.AttributeInfoType;
 
   function buildArgPusher(array) {
     return function(arg) { array.push(arg); };
@@ -347,6 +349,10 @@ tr.b.unittest.testSuite(function() {
    *   name: Expected name of the MAD.
    *   expected_size: Expected value of the 'size' attribute of the MAD (no
    *       'size' attribute expected if undefined).
+   *   expected_size_infos: List of expected 'size' attribute infos (zero infos
+   *       expected if undefined). The items in the list are object with two
+   *       fields: 'type' (expected value of the info type), and 'message'
+   *       (regular expression over the info message).
    *   children: List of tree recipes for child MADs (no children expected if
    *       undefined).
    *
@@ -395,11 +401,37 @@ tr.b.unittest.testSuite(function() {
         // Check that 'size' was calculated correctly.
         assertSizeAttribute(dump, 'size', treeRecipe['expected_size']);
 
+        // Check that 'size' infos were added correctly.
+        var actualInfos = [];
+        var expectedInfos = [];
+        if (dump.attributes['size'] !== undefined)
+          actualInfos = dump.attributes['size'].infos;
+        if (treeRecipe['expected_size_infos'] !== undefined)
+          expectedInfos = treeRecipe['expected_size_infos'];
+        assert.lengthOf(actualInfos, expectedInfos.length,
+            'expected the \'size\' attribute of memory allocator dump \'' +
+            dump.fullName + '\' in ' +
+            dump.containerMemoryDump.userFriendlyName + ' to have ' +
+            expectedInfos.length + ' infos but got ' + actualInfos.length);
+        for (var k = 0; k < actualInfos.length; k++) {
+          var actualInfo = actualInfos[k];
+          var expectedInfo = expectedInfos[k];
+          assert.equal(actualInfo.type, expectedInfo.type,
+              'expected info ' + k + ' of the \'size\' attribute ' +
+              'of memory allocator dump \'' + dump.fullName + '\' in ' +
+              dump.containerMemoryDump.userFriendlyName + ' to have type ' +
+              expectedInfo.type + ' but got ' + actualInfo.type);
+          assert.match(actualInfo.message, expectedInfo.message,
+              'invalid message of info ' + k + ' of the \'size\' attribute ' +
+              'of memory allocator dump \'' + dump.fullName + '\' in ' +
+              dump.containerMemoryDump.userFriendlyName);
+        }
+
         // Check children recursively.
         var actualChildren = dump.children;
         var expectedChildren = treeRecipe.children || [];
         assert.lengthOf(actualChildren, expectedChildren.length,
-            'expected memory allocator dump \'' + dump.fullName + '\' of ' +
+            'expected memory allocator dump \'' + dump.fullName + '\' in ' +
             dump.containerMemoryDump.userFriendlyName + ' to have ' +
             expectedChildren.length + ' children but got ' +
             actualChildren.length);
@@ -412,6 +444,14 @@ tr.b.unittest.testSuite(function() {
       for (var j = 0; j < memoryAllocatorDumps.length; j++)
         checkDumpTree(memoryAllocatorDumps[j], treeRecipes[j], undefined, '');
     }
+  }
+
+  function informationInfo(regex) {
+    return {type: AttributeInfoType.INFORMATION, message: regex};
+  }
+
+  function warningInfo(regex) {
+    return {type: AttributeInfoType.WARNING, message: regex};
   }
 
   // Check that the checkDumpTrees testing helper method above actually
@@ -538,6 +578,78 @@ tr.b.unittest.testSuite(function() {
         ]
       ]);
     }, /expected.*'size'.*value.*\b50\b.*got.*\b49\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidInfoCount', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    // This attribute should have an info.
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 50));
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              warningInfo(/[some_message]/)
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*\'size'.*'v8'.*\b1 infos\b.*\bgot\b.*\b0\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidInfoType', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    var attr = new ScalarAttribute('bytes', 50);
+    attr.infos.push(new AttributeInfo(
+        AttributeInfoType.INFORMATION, 'message text!'));
+    v8Dump.addAttribute('size', attr);
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              warningInfo(/^message text!$/)  // This should be informationInfo.
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*\binfo 0\b.*'size'.*'v8'.*\btype 1\b.*\bgot\b.*\b0\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidInfoMessage', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    var attr = new ScalarAttribute('bytes', 50);
+    attr.infos.push(new AttributeInfo(AttributeInfoType.INFORMATION, 'one'));
+    v8Dump.addAttribute('size', attr);
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              informationInfo(/two/)  // This should be /one/.
+            ]
+          }
+        ]
+      ]);
+    }, /invalid message.*\binfo 0\b.*'size'.*'v8'/);
   });
 
   /**
@@ -1516,7 +1628,10 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_size': 20
+            'expected_size': 20,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1539,7 +1654,10 @@ tr.b.unittest.testSuite(function() {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1611,7 +1729,10 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1639,7 +1760,10 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'v8/heaps',
             'guid': 1,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1663,7 +1787,10 @@ tr.b.unittest.testSuite(function() {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b15\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1692,7 +1819,10 @@ tr.b.unittest.testSuite(function() {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b15\.0 B\b/)
+            ]
           },
           {
             'name': 'v8/objects',
@@ -1715,6 +1845,9 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent1',
             'size': 10,
             'expected_size': 10,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'parent2'.*\b5\.0 B\b/)
+            ],
             'children': [
               {
                 'name': '<unspecified>',
@@ -1733,6 +1866,9 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent2',
             'size': 8,
             'expected_size': 8,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'parent3'.*\b3\.0 B\b/)
+            ],
             'children': [
               {
                 'name': '<unspecified>',
@@ -1771,8 +1907,7 @@ tr.b.unittest.testSuite(function() {
     ]
   ]);
 
-  // Example taken from
-  // https://docs.google.com/document/d/1GvzDP-tTLmJ0myRhUAfTYWs3ZUFilUICg8psNHyccwQ/edit?usp=sharing.
+  // Example taken from https://goo.gl/fKg0dt.
   calculationTest('documentationExample', [
     [  // GMD, Global (shared) memory.
       {
@@ -1821,6 +1956,9 @@ tr.b.unittest.testSuite(function() {
             'name': 'heaps',
             'guid': 100,
             'expected_size': 12,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b9\.0 B\b/)
+            ],
             'children': [
               {
                 'name': '1',
@@ -1878,12 +2016,18 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent',
             'size': 17,  // Invalid: child has larger size.
             'expected_size': 20,
+            'expected_size_infos': [
+              warningInfo(/\bless than\b.*\bchildren\b.*\b20\.0 B\b/)
+            ],
             'children': [
               {
                 'name': 'child',
                 'guid': 1,
                 'size': 10,  // Invalid: owner has larger size.
-                'expected_size': 20
+                'expected_size': 20,
+                'expected_size_infos': [
+                  warningInfo(/\bless than\b.*\blargest owner\b.*\b20\.0 B\b/)
+                ]
               }
             ]
           }
@@ -1894,6 +2038,64 @@ tr.b.unittest.testSuite(function() {
         'owns': 1,
         'size': 20,
         'expected_size': 20
+      }
+    ]
+  ]);
+
+  calculationTest('multipleInfos', [
+    [
+      {
+        'name': 'root',
+        'expected_size': 10,
+        'children': [
+          {
+            'name': 'parent1',
+            'size': 5,
+            'expected_size': 10,
+            'expected_size_infos': [
+              warningInfo(/\bless than\b.*\bchildren\b.*\b10.0 B\b/),
+              informationInfo(/\boverlaps\b.*'parent2'.*\b17\.0 B\b.*\boverlaps\b.*'parent3'.*\b7.0 B\b/)  // @suppress longLineCheck
+            ],
+            'children': [
+              {
+                'name': 'child',
+                'guid': 3,
+                'size': 10,
+                'expected_size': 10
+              }
+            ]
+          },
+          {
+            'name': 'parent2',
+            // NOTE(petrcermak): The expected size here is a little strange
+            // because the children both own the same dump (namely
+            // root/parent1/child). It would, therefore, probably make more
+            // sense for the calculated size to be 9. Since this is an unlikely
+            // case and would complicate the (already complex) size
+            // calculation, we will now keep the algorithm as is.
+            'expected_size': 17,
+            'children': [
+              {
+                'name': 'child1',
+                'owns': 3,
+                'size': 9,
+                'expected_size': 9
+              },
+              {
+                'name': 'child2',
+                'owns': 3,
+                'size': 8,
+                'expected_size': 8
+              }
+            ]
+          },
+          {
+            'name': 'parent3',
+            'size': 7,
+            'expected_size': 7,
+            'owns': 3
+          }
+        ]
       }
     ]
   ]);

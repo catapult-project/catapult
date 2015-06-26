@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(mallocColumn.value(rows[0]), '');
     assert.equal(v8Column.value(rows[0]), '');
     assert.equal(oilpanColumn.value(rows[0]), '');
-    assert.equal(tracingColumn.value(rows[0]).textContent, '');
+    assert.equal(tracingColumn.value(rows[0]), '');
 
     assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
     assert.equal(totalColumn.value(rows[1]).children[0].numBytes, 19398656);
@@ -124,14 +124,14 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tracingColumn.value(rows[1]).children[0].numBytes, 1048576);
 
     assert.equal(titleColumn.value(rows[2]).label, 'Process 3');
-    assert.equal(totalColumn.value(rows[2]).textContent, '');
-    assert.equal(proportionalColumn.value(rows[2]).textContent, '');
-    assert.equal(privateDirtyColumn.value(rows[2]).textContent, '');
-    assert.equal(swappedColumn.value(rows[2]).textContent, '');
+    assert.equal(totalColumn.value(rows[2]), '');
+    assert.equal(proportionalColumn.value(rows[2]), '');
+    assert.equal(privateDirtyColumn.value(rows[2]), '');
+    assert.equal(swappedColumn.value(rows[2]), '');
     assert.equal(mallocColumn.value(rows[2]), '');
     assert.equal(v8Column.value(rows[2]).numBytes, 1073741824);
     assert.equal(oilpanColumn.value(rows[2]).numBytes, 2147483648);
-    assert.equal(tracingColumn.value(rows[2]).textContent, '');
+    assert.equal(tracingColumn.value(rows[2]), '');
 
     // Check the footer row.
     assert.equal(titleColumn.value(footerRows[0]), 'Total');
