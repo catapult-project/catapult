@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import logging
+import os
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+import urllib2
+import zipfile
+
+# URL on omahaproxy.appspot.com which lists cloud storage buckets.
+OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=stable'
+
+# URL in cloud storage to download Chrome zip from.
+CLOUDSTORAGE_URL = ('https://commondatastorage.googleapis.com/chrome-unsigned'
+                    '/desktop-W15K3Y/%s/%s/chrome-%s.zip')
+
+# Mapping of sys.platform -> platform-specific names and paths.
+PLATFORM_MAPPING = {
+    'linux2': {
+        'omaha': 'linux',
+        'gs': 'precise64',
+        'chromepath': 'chrome-precise64/chrome',
+    },
+    'win32': {
+        'omaha': 'win',
+        'gs': 'win',
+        'chromepath': 'chrome-win\\chrome.exe',
+    },
+    'darwin': {
+        'omaha': 'mac',
+        'gs': 'mac',
+        'chromepath': 'chrome-mac/Google Chrome.app/Contents',
+    },
+}
+
+def DownloadChromeStable():
+  omaha_platform = PLATFORM_MAPPING[sys.platform]['omaha']
+  omaha_url = OMAHA_URL % omaha_platform
+  response = urllib2.urlopen(omaha_url)
+  bucket = response.readlines()[1].split(',')[2]
+  cs_dir = PLATFORM_MAPPING[sys.platform]['gs']
+  cs_url = CLOUDSTORAGE_URL % (bucket, cs_dir, cs_dir)
+  tmpdir = tempfile.mkdtemp()
+  zip_path = os.path.join(tmpdir, 'chrome.zip')
+  with open(zip_path, 'wb') as local_file:
+    local_file.write(urllib2.urlopen(cs_url).read())
+  zf = zipfile.ZipFile(zip_path)
+  zf.extractall(path=tmpdir)
+  return tmpdir
+
+
+def main():
+  tmpdir = DownloadChromeStable()
+  server_path = os.path.join(os.path.dirname(
+      os.path.abspath(__file__)), os.pardir, os.pardir, 'run_dev_server')
+  server_process = subprocess.Popen(
+      [server_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  time.sleep(5)
+
+  chrome_path = os.path.join(
+      tmpdir, PLATFORM_MAPPING[sys.platform]['chromepath'])
+  os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
+  chrome_command = [
+      chrome_path,
+      '--no-sandbox',
+      '--no-experiments',
+      '--no-first-run',
+      '--noerrdialogs',
+      'http://localhost:8003/base/tests.html?headless=true&testTypeToRun=all',
+  ]
+  chrome_process = subprocess.Popen(
+      chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  server_out, server_err = server_process.communicate()
+  chrome_process.kill()
+  shutil.rmtree(tmpdir)
+  if server_process.returncode != 0:
+    logging.error('Tests failed!')
+    logging.error('Server stderr:')
+    logging.error(server_err)
+    logging.error('Server stdout:')
+    logging.error(server_out)
+  else:
+    print server_out
+  sys.exit(server_process.returncode)
+
+
+
+if __name__ == "__main__":
+    main()
