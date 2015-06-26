@@ -61,10 +61,7 @@ class Oobe(web_contents.WebContents):
     else:
       self._NavigateIFrameLogin(username, password)
 
-    # TODO(resetswitch): Move UI specifics out of this util. crbug/486904
-    self.WaitForJavaScriptExpression("""
-        document.getElementById('oauth-enrollment').classList.contains(
-            'oauth-enroll-state-success')""", 30)
+    self.WaitForJavaScriptExpression('Oobe.isEnrollmentSuccessfulForTest()', 30)
     self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
   def NavigateGaiaLogin(self, username, password):

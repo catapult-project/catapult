@@ -79,6 +79,31 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
                              password=password):
       self.assertTrue(util.WaitFor(self._IsCryptohomeMounted, 10))
 
+  @decorators.Disabled
+  def testEnterpriseEnroll(self):
+    """Tests enterprise enrollment. Credentials are expected to be found in a
+    credentials.txt file, with a single line of format username:password.
+    The account must be from an enterprise domain and have device enrollment
+    permission. This test is disabled by default because ununrollment requires
+    wiping the device."""
+    if self._is_guest:
+      return
+
+    # Read username and password from credentials.txt. The file is of the
+    # format username:password
+    username = ''
+    password = ''
+    with open('credentials.txt') as f:
+      username, password = f.read().rstrip().split(':')
+
+    # Enroll the device.
+    with self._CreateBrowser(auto_login=False) as browser:
+      browser.oobe.NavigateEnterpriseEnrollment(username, password)
+
+    # Check for the existence of the device policy file.
+    self.assertTrue(util.WaitFor(lambda: self._cri.FileExistsOnDevice(
+        '/home/.shadow/install_attributes.pb'), 15))
+
 
 class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
   def _IsScreenLocked(self, browser):
