@@ -5,8 +5,12 @@
 import unittest
 
 from telemetry.core import browser_options
+from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.unittest_util import system_stub
+
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock # pylint: disable=import-error
 
 
 class FakeAndroidPlatform(object):
@@ -24,10 +28,14 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
     # Mock out what's needed for testing with exact APKs
     self._android_browser_finder_stub = system_stub.Override(
-        android_browser_finder, ['adb_commands', 'os'])
+        android_browser_finder, ['os'])
+    self._patcher = mock.patch('pylib.utils.apk_helper.GetPackageName')
+    self._get_package_name_mock = self._patcher.start()
+
 
   def tearDown(self):
     self._android_browser_finder_stub.Restore()
+    self._patcher.stop()
 
   def testNoPlatformReturnsEmptyList(self):
     fake_platform = None
@@ -50,8 +58,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/content-shell.apk')
     self.finder_options.browser_executable = '/foo/content-shell.apk'
-    self._android_browser_finder_stub.adb_commands.apk_package_name = \
-        'org.chromium.content_shell_apk'
+    self._get_package_name_mock.return_value = 'org.chromium.content_shell_apk'
 
     fake_platform = FakeAndroidPlatform(can_launch=True)
     expected_types = set(
@@ -66,8 +73,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/content-shell.apk')
     self.finder_options.browser_executable = '/foo/content-shell.apk'
-    self._android_browser_finder_stub.adb_commands.apk_package_name = \
-        'org.unknown.app'
+    self._get_package_name_mock.return_value = 'org.unknown.app'
 
     fake_platform = FakeAndroidPlatform(can_launch=True)
     self.assertRaises(Exception,

@@ -97,7 +97,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     browser_startup_args = self.GetBrowserStartupArgs()
     with android_command_line_backend.SetUpCommandLineFlags(
-        self._adb, self._backend_settings, browser_startup_args):
+        self._adb.device(), self._backend_settings, browser_startup_args):
       self._adb.device().StartActivity(
           intent.Intent(package=self._backend_settings.package,
                         activity=self._backend_settings.activity,
