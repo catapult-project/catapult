@@ -222,7 +222,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           function(data) {
             this.isRecording_ = false;
             buttons.querySelector('#monitor-checkbox').disabled = false;
-            this.setActiveTrace('trace.json', data, false);
+            this.setActiveTrace('trace.json.gz', data, false);
           }.bind(this),
           function(err) {
             this.isRecording_ = false;
@@ -280,7 +280,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
               this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
-            this.setActiveTrace('trace.json', data, true);
+            this.setActiveTrace('trace.json.gz', data, true);
           }.bind(this),
           function(err) {
             if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
@@ -419,18 +419,32 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       var filename;
       var defaultName = this.activeTrace_.filename;
-      var custom = prompt('Filename? (.json appended) Or leave blank:');
+      var fileExtension = '.json';
+      var fileRegex = /\.json$/;
+      if (/[.]gz$/.test(defaultName)) {
+        fileExtension += '.gz';
+        fileRegex = /\.json\.gz$/;
+      } else if (/[.]zip$/.test(defaultName)) {
+        fileExtension = '.zip';
+        fileRegex = /\.zip$/;
+      }
+
+      var custom = prompt('Filename? (' + fileExtension +
+                          ' appended) Or leave blank:');
       if (custom === null)
         return undefined;
 
+      var name;
       if (custom) {
-        filename = defaultName.replace(/\.json$/, ' ' + custom) + '.json';
+        name = ' ' + custom;
       } else {
         var date = new Date();
         var dateText = ' ' + date.toDateString() +
                        ' ' + date.toLocaleTimeString();
-        filename = defaultName.replace(/\.json$/, dateText + '.json');
+        name = dateText;
       }
+
+      filename = defaultName.replace(fileRegex, name) + fileExtension;
 
       return filename
               .replace(illegalRe, '.')
@@ -508,7 +522,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.uploadOverlay_.buttons.removeChild(
           this.uploadOverlay_.buttons.firstChild);
       this.uploadOverlay_.buttons.firstChild.textContent = 'Close';
-      chrome.send('doUpload', [this.activeTrace_.data]);
+      var data_base64 = btoa(this.activeTrace_.data);
+      chrome.send('doUploadBase64', [data_base64]);
     },
 
     hideUploadOverlay_: function() {

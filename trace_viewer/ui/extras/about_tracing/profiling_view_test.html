@@ -174,8 +174,8 @@ tr.b.unittest.testSuite(function() {
       dataSent = data;
     };
     okButton.click();
-    assert.equal(commandSent, 'doUpload');
-    assert.equal(dataSent[0], view.activeTrace_.data);
+    assert.equal(commandSent, 'doUploadBase64');
+    assert.equal(dataSent[0], btoa(view.activeTrace_.data));
 
     assert.isTrue(view.uploadOverlay_.visible);
     overlay = view.uploadOverlay_;
