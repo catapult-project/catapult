@@ -17,5 +17,6 @@
     {"name": "ns3", "ph": "E", "pid": 1, "tid": 1, "ts": 3.016},
     {"name": "ns4", "ph": "B", "pid": 1, "tid": 1, "ts": 3.017},
     {"name": "ns4", "ph": "E", "pid": 1, "tid": 1, "ts": 3.021}
-  ]
+  ],
+  "displayTimeUnit": "ns"
 }
