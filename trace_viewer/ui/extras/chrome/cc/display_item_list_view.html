@@ -5,32 +5,32 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/chrome/cc/display_item_view.css">
+<link rel="stylesheet" href="/ui/extras/chrome/cc/display_item_list_view.css">
 
+<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/extras/chrome/cc/display_item_list.html">
-<link rel="import" href="/extras/chrome/cc/display_item_debugger.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/ui/analysis/object_snapshot_view.html">
-<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/ui/extras/chrome/cc/display_item_debugger.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   /*
    * Displays a display item snapshot in a human readable form.
    * @constructor
    */
   var DisplayItemSnapshotView = tr.ui.b.define(
-      'display-item-snapshot-view',
+      'tr-ui-e-chrome-cc-display-item-list-view',
       tr.ui.analysis.ObjectSnapshotView);
 
   DisplayItemSnapshotView.prototype = {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('display-item-view');
-      this.displayItemDebugger_ = new tr.e.cc.DisplayItemDebugger();
+      this.classList.add('tr-ui-e-chrome-cc-display-item-list-view');
+      this.displayItemDebugger_ = new tr.ui.e.chrome.cc.DisplayItemDebugger();
       this.appendChild(this.displayItemDebugger_);
     },
 

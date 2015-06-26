@@ -16,50 +16,53 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/utils.html">
 
-<template id="display-item-debugger-template">
+<template id="tr-ui-e-chrome-cc-display-item-debugger-template">
   <style>
-  * /deep/ display-item-debugger {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger {
     -webkit-flex: 1 1 auto;
     display: -webkit-flex;
   }
 
-  * /deep/ display-item-debugger > left-panel {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     min-width: 300px;
     overflow-y: auto;
   }
 
-  * /deep/ display-item-debugger > left-panel > display-item-info {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info {
     -webkit-flex: 1 1 auto;
     padding-top: 2px;
   }
 
-  * /deep/ display-item-debugger > left-panel > display-item-info .title {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info .title {
     font-weight: bold;
     margin-left: 5px;
     margin-right: 5px;
   }
 
-  * /deep/ display-item-debugger > left-panel > display-item-info .export {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info .export {
     margin: 5px;
   }
 
-  * /deep/ display-item-debugger > x-drag-handle {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > x-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
-  * /deep/ display-item-debugger > right-panel {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel {
     -webkit-flex: 1 1 auto;
     display: -webkit-flex;
   }
 
-  * /deep/ display-item-debugger > left-panel >
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
       display-item-info > header {
     border-bottom: 1px solid #555;
   }
 
-  * /deep/ display-item-debugger > left-panel >
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
       display-item-info > .x-list-view > div {
     border-bottom: 1px solid #555;
     padding-top: 3px;
@@ -67,33 +70,36 @@ found in the LICENSE file.
     padding-left: 5px;
   }
 
-  * /deep/ display-item-debugger > left-panel > display-item-info >
-      .x-list-view > div:hover {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+      display-item-info > .x-list-view > div:hover {
     background-color: #f0f0f0;
     cursor: pointer;
   }
 
   /*************************************************/
 
-  * /deep/ display-item-debugger > right-panel >
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
       picture-ops-list-view.hasPictureOps {
     display: block;
   }
 
-  * /deep/ display-item-debugger > right-panel > x-drag-handle.hasPictureOps {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        x-drag-handle.hasPictureOps {
     display: block;
   }
 
-  * /deep/ display-item-debugger > right-panel > picture-ops-list-view {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        picture-ops-list-view {
     display: none;
     overflow-y: auto;
   }
 
-  * /deep/ display-item-debugger > right-panel > x-drag-handle {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        x-drag-handle {
     display: none;
   }
 
-  * /deep/ raster-area {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger raster-area {
     -webkit-flex: 1 1 auto;
     background-color: #ddd;
     min-height: 200px;
@@ -127,7 +133,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -136,14 +142,15 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var DisplayItemDebugger = tr.ui.b.define('display-item-debugger');
+  var DisplayItemDebugger = tr.ui.b.define(
+      'tr-ui-e-chrome-cc-display-item-debugger');
 
   DisplayItemDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.ui.b.instantiateTemplate('#display-item-debugger-template',
-          THIS_DOC);
+      var node = tr.ui.b.instantiateTemplate(
+          '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
       this.appendChild(node);
 

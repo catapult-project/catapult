@@ -5,7 +5,6 @@
 {
   'variables': {
     'tracing_css_files': [
-      'trace_viewer/extras/chrome/cc/display_item_view.css',
       'trace_viewer/extras/chrome/cc/layer_picker.css',
       'trace_viewer/extras/chrome/cc/layer_tree_host_impl_view.css',
       'trace_viewer/extras/chrome/cc/layer_view.css',
@@ -24,6 +23,7 @@
       'trace_viewer/ui/base/sunburst_chart.css',
       'trace_viewer/ui/base/tool_button.css',
       'trace_viewer/ui/extras/about_tracing/common.css',
+      'trace_viewer/ui/extras/chrome/cc/display_item_list_view.css',
       'trace_viewer/ui/extras/chrome/gpu/state_view.css',
       'trace_viewer/ui/extras/system_stats/system_stats_instance_track.css',
       'trace_viewer/ui/extras/system_stats/system_stats_snapshot_view.css',
@@ -90,9 +90,7 @@
       'trace_viewer/extras/chrome/cc/cc.html',
       'trace_viewer/extras/chrome/cc/constants.html',
       'trace_viewer/extras/chrome/cc/debug_colors.html',
-      'trace_viewer/extras/chrome/cc/display_item_debugger.html',
       'trace_viewer/extras/chrome/cc/display_item_list.html',
-      'trace_viewer/extras/chrome/cc/display_item_view.html',
       'trace_viewer/extras/chrome/cc/input_latency_async_slice.html',
       'trace_viewer/extras/chrome/cc/layer_impl.html',
       'trace_viewer/extras/chrome/cc/layer_picker.html',
@@ -336,6 +334,8 @@
       'trace_viewer/ui/extras/about_tracing/tracing_controller_client.html',
       'trace_viewer/ui/extras/about_tracing/xhr_based_tracing_controller_client.html',
       'trace_viewer/ui/extras/analysis/sampling_summary.html',
+      'trace_viewer/ui/extras/chrome/cc/display_item_debugger.html',
+      'trace_viewer/ui/extras/chrome/cc/display_item_list_view.html',
       'trace_viewer/ui/extras/chrome/gpu/gpu.html',
       'trace_viewer/ui/extras/chrome/gpu/state_view.html',
       'trace_viewer/ui/extras/highlighter/vsync_highlighter.html',
