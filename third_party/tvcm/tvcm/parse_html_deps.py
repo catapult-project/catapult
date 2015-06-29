@@ -120,9 +120,6 @@ class HTMLModuleParserResults(object):
     imports = soup.findAll('link', rel='import')
     for imp in imports:
       path = imp.extract().get('href')
-      assert path, 'Link import cannot be None'
-      if path.startswith(os.path.sep) and not os.path.isfile(path):
-        path = path[1:]
       results_js.append('loadHTML("%s");' % path)
 
     # Turn all script links into load()
@@ -130,8 +127,6 @@ class HTMLModuleParserResults(object):
     for script in scripts_external:
       path = script.get('src')
       if path:
-        if path.startswith(os.path.sep) and not os.path.isfile(path):
-          path = path[1:]
         results_js.append('load("%s");' % path)
         if script.contents:
           assert not script.contents[0], (

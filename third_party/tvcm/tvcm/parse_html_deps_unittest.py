@@ -264,7 +264,7 @@ class ParseTests(unittest.TestCase):
     html = """
         <link rel="import" href="/base/math.html">
         <script></script>
-        <script src="/base/base/computer.js"></script>
+        <script src="/base/subject/computer.js"></script>
         <link rel="import" href="/base/physics.html">
 
         <script>
@@ -279,9 +279,9 @@ class ParseTests(unittest.TestCase):
          </script>
         """
     parser = parse_html_deps.HTMLModuleParserResults(html)
-    exepected_js = """loadHTML("base/math.html");
-loadHTML("base/physics.html");
-load("base/base/computer.js");
+    exepected_js = """loadHTML("/base/math.html");
+loadHTML("/base/physics.html");
+load("/base/subject/computer.js");
 var html_lines = [
                 '<script>',
                 '< /script>',
