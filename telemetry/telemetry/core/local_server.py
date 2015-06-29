@@ -9,8 +9,8 @@ import re
 import subprocess
 import sys
 
-from telemetry.core import forwarders
 from telemetry.core import util
+from telemetry.internal import forwarders
 
 NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
 

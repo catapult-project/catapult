@@ -4,9 +4,9 @@
 
 import weakref
 
-from telemetry.core.forwarders import do_nothing_forwarder
 from telemetry.core.platform import network_controller_backend
 from telemetry.core.platform import tracing_controller_backend
+from telemetry.internal.forwarders import do_nothing_forwarder
 
 
 # pylint: disable=W0613

@@ -12,7 +12,6 @@ import tempfile
 
 from catapult_base import support_binaries
 from telemetry.core import exceptions
-from telemetry.core.forwarders import android_forwarder
 from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
@@ -27,6 +26,7 @@ from telemetry.core import util
 from telemetry.core import video
 from telemetry import decorators
 from telemetry.internal.backends import adb_commands
+from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import external_modules
 

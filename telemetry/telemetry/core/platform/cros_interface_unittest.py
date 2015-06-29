@@ -10,10 +10,10 @@ import socket
 import tempfile
 import unittest
 
-from telemetry.core import forwarders
-from telemetry.core.forwarders import cros_forwarder
 from telemetry.core.platform import cros_interface
 from telemetry import decorators
+from telemetry.internal import forwarders
+from telemetry.internal.forwarders import cros_forwarder
 from telemetry.unittest_util import options_for_unittests
 
 

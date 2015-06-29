@@ -6,11 +6,11 @@ import logging
 import os
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
+from telemetry.internal import forwarders
 
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):

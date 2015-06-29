@@ -7,8 +7,8 @@ import logging
 import socket
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core import util
+from telemetry.internal import forwarders
 
 
 class Error(Exception):

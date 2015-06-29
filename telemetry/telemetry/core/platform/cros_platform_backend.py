@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.forwarders import cros_forwarder
 from telemetry.core import platform
 from telemetry.core.platform import cros_device
 from telemetry.core.platform import cros_interface
@@ -10,6 +9,7 @@ from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core.platform.power_monitor import cros_power_monitor
 from telemetry.core.platform import ps_util
 from telemetry.core import util
+from telemetry.internal.forwarders import cros_forwarder
 
 
 class CrosPlatformBackend(

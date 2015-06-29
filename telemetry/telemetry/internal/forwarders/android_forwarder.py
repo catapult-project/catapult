@@ -10,10 +10,10 @@ import struct
 import subprocess
 
 from catapult_base import support_binaries
-from telemetry.core import forwarders
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.backends import adb_commands
+from telemetry.internal import forwarders
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:

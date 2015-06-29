@@ -5,8 +5,8 @@
 import unittest
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
-from telemetry.core.forwarders import do_nothing_forwarder
+from telemetry.internal import forwarders
+from telemetry.internal.forwarders import do_nothing_forwarder
 
 
 class TestDoNothingForwarder(do_nothing_forwarder.DoNothingForwarder):

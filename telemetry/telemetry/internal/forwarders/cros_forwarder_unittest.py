@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core import forwarders
-from telemetry.core.forwarders import cros_forwarder
+from telemetry.internal import forwarders
+from telemetry.internal.forwarders import cros_forwarder
 
 # pylint: disable=W0212
 class ForwardingArgsTest(unittest.TestCase):

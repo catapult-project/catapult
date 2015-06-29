@@ -6,7 +6,6 @@ import logging
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core.platform import android_platform_backend as \
   android_platform_backend_module
 from telemetry.core import util
@@ -14,6 +13,7 @@ from telemetry.internal.backends import adb_commands
 from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal import forwarders
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import intent  # pylint: disable=F0401

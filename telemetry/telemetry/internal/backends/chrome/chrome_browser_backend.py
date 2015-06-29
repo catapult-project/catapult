@@ -8,7 +8,6 @@ import re
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.core import web_contents
@@ -19,6 +18,7 @@ from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import system_info_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
+from telemetry.internal import forwarders
 from telemetry.unittest_util import options_for_unittests
 
 

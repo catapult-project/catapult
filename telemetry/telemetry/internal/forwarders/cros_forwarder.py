@@ -5,9 +5,9 @@
 import logging
 import subprocess
 
-from telemetry.core import forwarders
-from telemetry.core.forwarders import do_nothing_forwarder
 from telemetry.core import util
+from telemetry.internal import forwarders
+from telemetry.internal.forwarders import do_nothing_forwarder
 
 
 class CrOsForwarderFactory(forwarders.ForwarderFactory):
