@@ -138,9 +138,6 @@ def GenerateJSToFile(f,
   polymer_script = loader.LoadRawScript('components/polymer/polymer.min.js')
   f.write(polymer_script.contents)
 
-  f.write('\n')
-  f.write("window._TV_IS_COMPILED = true;\n")
-
   if not minify:
     flatten_to_file = f
   else:
