@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/chrome/cc/layer_view.css">
+<link rel="stylesheet" href="/ui/extras/chrome/cc/layer_view.css">
 
 <link rel="import" href="/extras/chrome/cc/constants.html">
 <link rel="import" href="/extras/chrome/cc/layer_tree_quad_stack_view.html">
@@ -22,13 +22,13 @@ found in the LICENSE file.
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   var constants = tr.e.cc.constants;
 
   /**
    * @constructor
    */
-  var LayerView = tr.ui.b.define('layer-view');
+  var LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -36,7 +36,8 @@ tr.exportTo('tr.e.cc', function() {
     decorate: function() {
       this.layerTreeQuadStackView_ = new tr.e.cc.LayerTreeQuadStackView();
       this.dragBar_ = new tr.ui.b.DragHandle();
-      this.analysisEl_ = document.createElement('layer-view-analysis');
+      this.analysisEl_ =
+          document.createElement('tr-ui-e-chrome-cc-layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
 

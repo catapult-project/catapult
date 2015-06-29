@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-* /deep/ layer-view {
+* /deep/ tr-ui-e-chrome-cc-layer-view {
   -webkit-flex-direction: column;
   display:  -webkit-flex;
   left: 0;
@@ -11,7 +11,7 @@
   top: 0;
 }
 
-* /deep/ layer-view > layer-tree-quad-stack-view {
+* /deep/ tr-ui-e-chrome-cc-layer-view > layer-tree-quad-stack-view {
   -webkit-flex: 1 1 100%;
   -webkit-flex-direction: column;
   min-height: 0;
@@ -19,41 +19,43 @@
   width: 100%;
 }
 
-* /deep/ layer-view > layer-view-analysis {
+* /deep/tr-ui-e-chrome-cc- layer-view > tr-ui-e-chrome-cc-layer-view-analysis {
   height: 150px; /* fixed height given by drag control */
   overflow-y: auto;
 }
 
-* /deep/ layer-view > layer-view-analysis * {
+* /deep/ tr-ui-e-chrome-cc-layer-view >
+      tr-ui-e-chrome-cc-layer-view-analysis * {
   -webkit-user-select: text;
 }
 
-* /deep/ .labeled-option-group {
+* /deep/ tr-ui-e-chrome-cc-layer-view .labeled-option-group {
   -webkit-flex: 0 0 auto;
   -webkit-flex-direction: column;
   -webkit-align-items: left;
   display: -webkit-flex;
 }
 
-* /deep/ .labeled-option {
+* /deep/ tr-ui-e-chrome-cc-layer-view .labeled-option {
   border-top: 5px solid white;
   border-bottom: 5px solid white;
 }
 
-* /deep/ .edit-categories {
+* /deep/ tr-ui-e-chrome-cc-layer-view .edit-categories {
   padding-left: 6px;
 }
 
-* /deep/ .edit-categories:after {
+* /deep/ tr-ui-e-chrome-cc-layer-view .edit-categories:after {
   padding-left: 15px;
   font-size: 125%;
 }
 
-* /deep/ .labeled-option-group:not(.categories-expanded)
-    .edit-categories:after {
+* /deep/ tr-ui-e-chrome-cc-layer-view
+    .labeled-option-group:not(.categories-expanded) .edit-categories:after {
   content: '\25B8'; /* Right triangle */
 }
 
-* /deep/ .labeled-option-group.categories-expanded .edit-categories:after {
+* /deep/ tr-ui-e-chrome-cc-layer-view .labeled-option-group.categories-expanded
+    .edit-categories:after {
   content: '\25BE'; /* Down triangle */
 }
