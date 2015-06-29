@@ -2062,7 +2062,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
-  test('importOldFlowEventBindtoParent', function() {
+  test('importOldInputFlowEventBindtoParent', function() {
     // Old trace format without event.bp, but event.cat contains input
     var events = [
       { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
@@ -2082,6 +2082,35 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     assert.equal(f0.title, 'flow');
     assert.equal(f0.category, 'input');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importOldIPCFlowEventBindtoParent', function() {
+    // Old trace format without event.bp, but event.cat contains ipc.flow
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'disabled-by-default-ipc.flow', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'disabled-by-default-ipc.flow', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'disabled-by-default-ipc.flow');
     assert.equal(f0.id, 72);
     assert.equal(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);

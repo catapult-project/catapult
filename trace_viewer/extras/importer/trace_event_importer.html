@@ -1204,14 +1204,23 @@ tr.exportTo('tr.e.importer', function() {
 
           if (event.ph === 'f') {
             if (event.bp === undefined) {
-              // Hack: input latency flow events used to be issued without
-              // bp='e' letter in old traces. But, we still want their flow
-              // events to parse "properly." This adjusts their binding point
-              // so that they parse.
+              // Hack: input latency flow events used to be issued
+              // without bp='e' letter in old traces. But, we still want their
+              // flow events to parse "properly." This adjusts their binding
+              // point so that they parse.
               //
               // TODO(nduca): Removal of this hack is tracked in
               // https://github.com/google/trace-viewer/issues/991.
               if (event.cat.indexOf('input') > -1)
+                bindToParent = true;
+              // Hack: ipc flow events used to be issued
+              // without bp='e' letter in old traces. But, we still want their
+              // flow events to parse "properly." This adjusts their binding
+              // point so that they parse.
+              //
+              // TODO: Removal of this hack is tracked in
+              // https://github.com/google/trace-viewer/issues/991.
+              else if (event.cat.indexOf('ipc.flow') > -1)
                 bindToParent = true;
             } else {
               if (event.bp !== 'e') {
