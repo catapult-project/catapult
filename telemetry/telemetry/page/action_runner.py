@@ -8,6 +8,7 @@ import urlparse
 
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
+from telemetry.internal.actions.load_media import LoadMediaAction
 from telemetry.internal.actions.loop import LoopAction
 from telemetry.internal.actions.mouse_click import MouseClickAction
 from telemetry.internal.actions.navigate import NavigateAction
@@ -533,6 +534,27 @@ class ActionRunner(object):
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
+
+  def LoadMedia(self, selector=None, event_timeout_in_seconds=0,
+                event_to_await='canplaythrough'):
+    """Invokes load() on media elements and awaits an event.
+
+    Args:
+      selector: A CSS selector describing the element. If none is
+          specified, play the first media element on the page. If the
+          selector matches more than 1 media element, all of them will
+          be played.
+      event_timeout_in_seconds: Maximum waiting time for the event to be fired.
+          0 means do not wait.
+      event_to_await: Which event to await. For example: 'canplaythrough' or
+          'loadedmetadata'.
+
+    Raises:
+      TimeoutException: If the maximum waiting time is exceeded.
+    """
+    self._RunAction(LoadMediaAction(
+        selector=selector, timeout_in_seconds=event_timeout_in_seconds,
+        event_to_await=event_to_await))
 
   def PlayMedia(self, selector=None,
                 playing_event_timeout_in_seconds=0,
