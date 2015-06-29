@@ -5,7 +5,6 @@
 {
   'variables': {
     'tracing_css_files': [
-      'trace_viewer/extras/chrome/cc/picture_view.css',
       'trace_viewer/ui/analysis/analysis_results.css',
       'trace_viewer/ui/base/common.css',
       'trace_viewer/ui/base/drag_handle.css',
@@ -24,6 +23,7 @@
       'trace_viewer/ui/extras/chrome/cc/picture_ops_chart_summary_view.css',
       'trace_viewer/ui/extras/chrome/cc/picture_ops_chart_view.css',
       'trace_viewer/ui/extras/chrome/cc/picture_ops_list_view.css',
+      'trace_viewer/ui/extras/chrome/cc/picture_view.css',
       'trace_viewer/ui/extras/chrome/gpu/state_view.css',
       'trace_viewer/ui/extras/system_stats/system_stats_instance_track.css',
       'trace_viewer/ui/extras/system_stats/system_stats_snapshot_view.css',
@@ -97,7 +97,6 @@
       'trace_viewer/extras/chrome/cc/layer_tree_impl.html',
       'trace_viewer/extras/chrome/cc/picture.html',
       'trace_viewer/extras/chrome/cc/picture_as_image_data.html',
-      'trace_viewer/extras/chrome/cc/picture_view.html',
       'trace_viewer/extras/chrome/cc/raster_task.html',
       'trace_viewer/extras/chrome/cc/raster_task_selection.html',
       'trace_viewer/extras/chrome/cc/raster_task_view.html',
@@ -336,6 +335,7 @@
       'trace_viewer/ui/extras/chrome/cc/picture_ops_chart_summary_view.html',
       'trace_viewer/ui/extras/chrome/cc/picture_ops_chart_view.html',
       'trace_viewer/ui/extras/chrome/cc/picture_ops_list_view.html',
+      'trace_viewer/ui/extras/chrome/cc/picture_view.html',
       'trace_viewer/ui/extras/chrome/gpu/gpu.html',
       'trace_viewer/ui/extras/chrome/gpu/state_view.html',
       'trace_viewer/ui/extras/highlighter/vsync_highlighter.html',
