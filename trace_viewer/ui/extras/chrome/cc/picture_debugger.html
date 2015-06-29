@@ -18,53 +18,55 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/utils.html">
 
-<template id="picture-debugger-template">
+<template id="tr-ui-e-chrome-cc-picture-debugger-template">
   <style>
-  * /deep/ picture-debugger {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger {
     -webkit-flex: 1 1 auto;
     -webkit-flex-direction: row;
     display: -webkit-flex;
   }
 
-  * /deep/ picture-debugger > tr-ui-a-generic-object-view {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > tr-ui-a-generic-object-view {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     width: 400px;
   }
 
-  * /deep/ picture-debugger > left-panel {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel {
     -webkit-flex-direction: column;
     display: -webkit-flex;
     min-width: 300px;
   }
 
-  * /deep/ picture-debugger > left-panel > picture-info {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel > picture-info {
     -webkit-flex: 0 0 auto;
     padding-top: 2px;
   }
 
-  * /deep/ picture-debugger > left-panel > picture-info .title {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel >
+        picture-info .title {
     font-weight: bold;
     margin-left: 5px;
     margin-right: 5px;
   }
 
-  * /deep/ picture-debugger > x-drag-handle {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > x-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
-  * /deep/ picture-debugger .filename {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger .filename {
     -webkit-user-select: text;
     margin-left: 5px;
   }
 
-  * /deep/ picture-debugger > right-panel {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > right-panel {
     -webkit-flex: 1 1 auto;
     -webkit-flex-direction: column;
     display: -webkit-flex;
   }
 
-  * /deep/ picture-debugger > right-panel > picture-ops-chart-view {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > right-panel >
+        picture-ops-chart-view {
     min-height: 150px;
     min-width : 0;
     overflow-x: auto;
@@ -73,7 +75,7 @@ found in the LICENSE file.
 
   /*************************************************/
 
-  * /deep/ raster-area {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger raster-area {
     background-color: #ddd;
     min-height: 200px;
     min-width: 200px;
@@ -103,7 +105,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
@@ -112,14 +114,14 @@ tr.exportTo('tr.e.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tr.ui.b.define('picture-debugger');
+  var PictureDebugger = tr.ui.b.define('tr-ui-e-chrome-cc-picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = tr.ui.b.instantiateTemplate('#picture-debugger-template',
-          THIS_DOC);
+      var node = tr.ui.b.instantiateTemplate(
+          '#tr-ui-e-chrome-cc-picture-debugger-template', THIS_DOC);
 
       this.appendChild(node);
 

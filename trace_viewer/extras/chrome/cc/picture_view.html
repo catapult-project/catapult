@@ -7,11 +7,11 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/extras/chrome/cc/picture_view.css">
 
+<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/extras/chrome/cc/picture.html">
-<link rel="import" href="/extras/chrome/cc/picture_debugger.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/ui/analysis/object_snapshot_view.html">
-<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/ui/extras/chrome/cc/picture_debugger.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.exportTo('tr.e.cc', function() {
 
     decorate: function() {
       this.classList.add('picture-snapshot-view');
-      this.pictureDebugger_ = new tr.e.cc.PictureDebugger();
+      this.pictureDebugger_ = new tr.ui.e.chrome.cc.PictureDebugger();
       this.appendChild(this.pictureDebugger_);
     },
 
