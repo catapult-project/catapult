@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/chrome/cc/picture_ops_list_view.css">
+<link rel="stylesheet" href="/ui/extras/chrome/cc/picture_ops_list_view.css">
 
 <link rel="import" href="/extras/chrome/cc/constants.html">
 <link rel="import" href="/extras/chrome/cc/selection.html">
@@ -16,7 +16,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
   var ANNOTATION = 'Comment';
   var BEGIN_ANNOTATION = 'BeginCommentGroup';
@@ -30,7 +30,8 @@ tr.exportTo('tr.e.cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = tr.ui.b.define('picture-ops-list-view');
+  var PictureOpsListView =
+      tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,

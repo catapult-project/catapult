@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="stylesheet"
-    href="/extras/chrome/cc/picture_ops_chart_summary_view.css">
+    href="/ui/extras/chrome/cc/picture_ops_chart_summary_view.css">
 
 <link rel="import" href="/ui/base/ui.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   var OPS_TIMING_ITERATIONS = 3;
   var CHART_PADDING_LEFT = 65;
   var CHART_PADDING_RIGHT = 40;
@@ -36,7 +36,7 @@ tr.exportTo('tr.e.cc', function() {
    * @constructor
    */
   var PictureOpsChartSummaryView = tr.ui.b.define(
-      'picture-ops-chart-summary-view');
+      'tr-ui-e-chrome-cc-picture-ops-chart-summary-view');
 
   PictureOpsChartSummaryView.prototype = {
     __proto__: HTMLUnknownElement.prototype,

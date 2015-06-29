@@ -6,9 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/chrome/cc/picture.html">
-<link rel="import" href="/extras/chrome/cc/picture_ops_chart_summary_view.html">
-<link rel="import" href="/extras/chrome/cc/picture_ops_chart_view.html">
-<link rel="import" href="/extras/chrome/cc/picture_ops_list_view.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/ui/base/drag_handle.html">
 <link rel="import" href="/ui/base/info_bar.html">
@@ -17,6 +14,10 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/utils.html">
+<link rel="import"
+      href="/ui/extras/chrome/cc/picture_ops_chart_summary_view.html">
+<link rel="import" href="/ui/extras/chrome/cc/picture_ops_chart_view.html">
+<link rel="import" href="/ui/extras/chrome/cc/picture_ops_list_view.html">
 
 <template id="tr-ui-e-chrome-cc-picture-debugger-template">
   <style>
@@ -66,7 +67,7 @@ found in the LICENSE file.
   }
 
   * /deep/ tr-ui-e-chrome-cc-picture-debugger > right-panel >
-        picture-ops-chart-view {
+        tr-ui-e-chrome-cc-picture-ops-chart-view {
     min-height: 150px;
     min-width : 0;
     overflow-x: auto;
@@ -97,7 +98,8 @@ found in the LICENSE file.
     </picture-info>
   </left-panel>
   <right-panel>
-    <picture-ops-chart-view></picture-ops-chart-view>
+    <tr-ui-e-chrome-cc-picture-ops-chart-view>
+    </tr-ui-e-chrome-cc-picture-ops-chart-view>
     <raster-area><canvas></canvas></raster-area>
   </right-panel>
 </template>
@@ -136,8 +138,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.filename_ = this.querySelector('.filename');
 
-      this.drawOpsChartSummaryView_ = new tr.e.cc.PictureOpsChartSummaryView();
-      this.drawOpsChartView_ = new tr.e.cc.PictureOpsChartView();
+      this.drawOpsChartSummaryView_ =
+          new tr.ui.e.chrome.cc.PictureOpsChartSummaryView();
+      this.drawOpsChartView_ = new tr.ui.e.chrome.cc.PictureOpsChartView();
       this.drawOpsChartView_.addEventListener(
           'selection-changed', this.onChartBarClicked_.bind(this));
 
@@ -161,7 +164,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       pictureInfo.appendChild(overdrawCheckbox);
       pictureInfo.appendChild(chartCheckbox);
 
-      this.drawOpsView_ = new tr.e.cc.PictureOpsListView();
+      this.drawOpsView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
@@ -176,7 +179,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var rightPanel = this.querySelector('right-panel');
       rightPanel.replaceChild(
           this.drawOpsChartView_,
-          rightPanel.querySelector('picture-ops-chart-view'));
+          rightPanel.querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       this.rasterArea_.appendChild(this.infoBar_);
