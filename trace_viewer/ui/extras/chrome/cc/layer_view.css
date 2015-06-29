@@ -11,7 +11,8 @@
   top: 0;
 }
 
-* /deep/ tr-ui-e-chrome-cc-layer-view > layer-tree-quad-stack-view {
+* /deep/ tr-ui-e-chrome-cc-layer-view >
+      tr-ui-e-chrome-cc-layer-tree-quad-stack-view {
   -webkit-flex: 1 1 100%;
   -webkit-flex-direction: column;
   min-height: 0;

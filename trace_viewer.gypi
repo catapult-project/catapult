@@ -5,7 +5,6 @@
 {
   'variables': {
     'tracing_css_files': [
-      'trace_viewer/extras/chrome/cc/layer_tree_host_impl_view.css',
       'trace_viewer/extras/chrome/cc/picture_ops_chart_summary_view.css',
       'trace_viewer/extras/chrome/cc/picture_ops_chart_view.css',
       'trace_viewer/extras/chrome/cc/picture_ops_list_view.css',
@@ -23,6 +22,7 @@
       'trace_viewer/ui/extras/about_tracing/common.css',
       'trace_viewer/ui/extras/chrome/cc/display_item_list_view.css',
       'trace_viewer/ui/extras/chrome/cc/layer_picker.css',
+      'trace_viewer/ui/extras/chrome/cc/layer_tree_host_impl_view.css',
       'trace_viewer/ui/extras/chrome/cc/layer_view.css',
       'trace_viewer/ui/extras/chrome/gpu/state_view.css',
       'trace_viewer/ui/extras/system_stats/system_stats_instance_track.css',
@@ -94,9 +94,7 @@
       'trace_viewer/extras/chrome/cc/input_latency_async_slice.html',
       'trace_viewer/extras/chrome/cc/layer_impl.html',
       'trace_viewer/extras/chrome/cc/layer_tree_host_impl.html',
-      'trace_viewer/extras/chrome/cc/layer_tree_host_impl_view.html',
       'trace_viewer/extras/chrome/cc/layer_tree_impl.html',
-      'trace_viewer/extras/chrome/cc/layer_tree_quad_stack_view.html',
       'trace_viewer/extras/chrome/cc/picture.html',
       'trace_viewer/extras/chrome/cc/picture_as_image_data.html',
       'trace_viewer/extras/chrome/cc/picture_debugger.html',
@@ -335,6 +333,8 @@
       'trace_viewer/ui/extras/chrome/cc/display_item_debugger.html',
       'trace_viewer/ui/extras/chrome/cc/display_item_list_view.html',
       'trace_viewer/ui/extras/chrome/cc/layer_picker.html',
+      'trace_viewer/ui/extras/chrome/cc/layer_tree_host_impl_view.html',
+      'trace_viewer/ui/extras/chrome/cc/layer_tree_quad_stack_view.html',
       'trace_viewer/ui/extras/chrome/cc/layer_view.html',
       'trace_viewer/ui/extras/chrome/gpu/gpu.html',
       'trace_viewer/ui/extras/chrome/gpu/state_view.html',
@@ -403,7 +403,7 @@
       'trace_viewer/ui/units/time_stamp_span.html',
     ],
     'tracing_img_files': [
-      'trace_viewer/extras/chrome/cc/images/input-event.png',
+      'trace_viewer/ui/extras/chrome/cc/images/input-event.png',
       'trace_viewer/ui/extras/chrome/gpu/images/checkerboard.png',
       'trace_viewer/ui/extras/tcmalloc/images/collapse.png',
       'trace_viewer/ui/extras/tcmalloc/images/expand.png',

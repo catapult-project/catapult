@@ -28,7 +28,8 @@ tr.exportTo('tr.e.cc', function() {
 
     decorate: function() {
       this.classList.add('tile-snapshot-view');
-      this.layerTreeView_ = new tr.e.cc.LayerTreeHostImplSnapshotView();
+      this.layerTreeView_ =
+          new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
       this.appendChild(this.layerTreeView_);
     },
 

@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/extras/chrome/cc/layer_tree_host_impl_view.css">
+<link rel="stylesheet"
+      href="/ui/extras/chrome/cc/layer_tree_host_impl_view.css">
 
 <link rel="import" href="/extras/chrome/cc/layer_tree_host_impl.html">
 <link rel="import" href="/ui/extras/chrome/cc/layer_picker.html">
@@ -17,20 +18,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   /*
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
   var LayerTreeHostImplSnapshotView = tr.ui.b.define(
-      'layer-tree-host-impl-snapshot-view',
+      'tr-ui-e-chrome-cc-layer-tree-host-impl-snapshot-view',
       tr.ui.analysis.ObjectSnapshotView);
 
   LayerTreeHostImplSnapshotView.prototype = {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('lthi-s-view');
+      this.classList.add('tr-ui-e-chrome-cc-lthi-s-view');
 
       this.selection_ = undefined;
 
