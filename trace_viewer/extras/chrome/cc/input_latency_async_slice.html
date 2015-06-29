@@ -23,13 +23,130 @@ tr.exportTo('tr.e.cc', function() {
   var MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
   var COMPOSITOR_THREAD_NAME = 'Compositor';
 
+  var INPUT_EVENT_TYPE_NAMES = {
+    CHAR: 'Char',
+    CONTEXT_MENU: 'ContextMenu',
+    FLING_CANCEL: 'GestureFlingCancel',
+    FLING_START: 'GestureFlingStart',
+    KEY_DOWN: 'KeyDown',
+    KEY_DOWN_RAW: 'RawKeyDown',
+    KEY_UP: 'KeyUp',
+    LATENCY_SCROLL_UPDATE: 'ScrollUpdate',
+    MOUSE_DOWN: 'MouseDown',
+    MOUSE_ENTER: 'MouseEnter',
+    MOUSE_LEAVE: 'MouseLeave',
+    MOUSE_MOVE: 'MouseMove',
+    MOUSE_UP: 'MouseUp',
+    MOUSE_WHEEL: 'MouseWheel',
+    PINCH_BEGIN: 'GesturePinchBegin',
+    PINCH_END: 'GesturePinchEnd',
+    PINCH_UPDATE: 'GesturePinchUpdate',
+    SCROLL_BEGIN: 'GestureScrollBegin',
+    SCROLL_END: 'GestureScrollEnd',
+    SCROLL_UPDATE: 'GestureScrollUpdate',
+    SHOW_PRESS: 'GestureShowPress',
+    TAP: 'GestureTap',
+    TAP_CANCEL: 'GestureTapCancel',
+    TAP_DOWN: 'GestureTapDown',
+    TOUCH_CANCEL: 'TouchCancel',
+    TOUCH_END: 'TouchEnd',
+    TOUCH_MOVE: 'TouchMove',
+    TOUCH_START: 'TouchStart'
+  };
+
   function InputLatencyAsyncSlice() {
     AsyncSlice.apply(this, arguments);
     this.associatedEvents_ = new Selection();
+    this.typeName_ = undefined;
+    if (!this.isLegacyEvent)
+      this.determineModernTypeName_();
   }
 
   InputLatencyAsyncSlice.prototype = {
     __proto__: AsyncSlice.prototype,
+
+    // Legacy InputLatencyAsyncSlices involve a top-level slice titled
+    // "InputLatency" containing a subSlice whose title starts with
+    // "InputLatency:". Modern InputLatencyAsyncSlices involve a single
+    // top-level slice whose title starts with "InputLatency::".
+    // Legacy subSlices are not available at construction time, so
+    // determineLegacyTypeName_() must be called at get time.
+    // So this returns false for the legacy subSlice events titled like
+    // "InputLatency:Foo" even though they are technically legacy events.
+    get isLegacyEvent() {
+      return this.title === 'InputLatency';
+    },
+
+    get typeName() {
+      if (!this.typeName_)
+        this.determineLegacyTypeName_();
+      return this.typeName_;
+    },
+
+    checkTypeName_: function() {
+      var found = false;
+      for (var type_name in INPUT_EVENT_TYPE_NAMES) {
+        if (this.typeName === INPUT_EVENT_TYPE_NAMES[type_name]) {
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+        throw 'Unrecognized InputLatencyAsyncSlice.typeName: ' + this.typeName;
+    },
+
+    determineModernTypeName_: function() {
+      // This method works both on modern events titled like
+      // "InputLatency::Foo" and also on the legacy subSlices titled like
+      // "InputLatency:Foo". Modern events' titles contain 2 colons, whereas the
+      // legacy subSlices events contain 1 colon.
+
+      var lastColonIndex = this.title.lastIndexOf(':');
+      if (lastColonIndex < 0)
+        return;
+
+      var characterAfterLastColonIndex = lastColonIndex + 1;
+      this.typeName_ = this.title.slice(characterAfterLastColonIndex);
+
+      // Check that the determined typeName is known.
+      this.checkTypeName_();
+    },
+
+    determineLegacyTypeName_: function() {
+      // Iterate over all descendent subSlices.
+      this.iterateAllDescendents(function(subSlice) {
+
+        // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
+        var subSliceIsAInputLatencyAsyncSlice = (
+            subSlice instanceof InputLatencyAsyncSlice);
+        if (!subSliceIsAInputLatencyAsyncSlice)
+          return;
+
+        // If |subSlice| does not have a typeName, then ignore it.
+        if (!subSlice.typeName)
+          return;
+
+        // If |this| already has a typeName and |subSlice| has a different
+        // typeName, then explode!
+        if (this.typeName_ && subSlice.typeName_) {
+          var subSliceHasDifferentTypeName = (
+              this.typeName_ !== subSlice.typeName_);
+          if (subSliceHasDifferentTypeName)
+            throw 'InputLatencyAsyncSlice.determineTypeName_() multiple types';
+        }
+
+        // The typeName of |this| top-level event is whatever the typeName of
+        // |subSlice| is. Set |this.typeName_| to the subSlice's typeName.
+        this.typeName_ = subSlice.typeName_;
+      }, this);
+
+      // If typeName could not be determined, then explode!
+      if (!this.typeName_)
+        throw 'InputLatencyAsyncSlice.determineTypeName_() failed';
+
+      // Check that the determined typeName is known.
+      this.checkTypeName_();
+    },
 
     getRendererHelper: function(flowPath) {
       var traceModel = this.startThread.parent.model;
@@ -298,7 +415,8 @@ tr.exportTo('tr.e.cc', function() {
     });
 
   return {
-    InputLatencyAsyncSlice: InputLatencyAsyncSlice
+    InputLatencyAsyncSlice: InputLatencyAsyncSlice,
+    INPUT_EVENT_TYPE_NAMES: INPUT_EVENT_TYPE_NAMES
   };
 });
 </script>

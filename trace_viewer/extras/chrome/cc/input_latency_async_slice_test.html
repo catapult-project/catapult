@@ -35,6 +35,9 @@ tr.b.unittest.testSuite(function() {
         }
       }
     });
+    assert.throws(function() {
+      sOuter.typeName;
+    });
 
     var sInner = newAsyncSliceEx({
       title: 'InputLatency:GestureScrollUpdate',
@@ -50,6 +53,8 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(sOuter instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.isTrue(sInner instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.equal(sOuter.inputLatency, 10);
+    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInner.typeName);
+    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sOuter.typeName);
   });
 
   test('matchByType_newStyle', function() {
@@ -70,27 +75,27 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.equal(sInfo.inputLatency, 10);
+    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInfo.typeName);
   });
 
-  test('matchByCategory', function() {
-    var sInfo = newAsyncSliceEx({
-      title: 'InputLatency::BadTypeName',
-      cat: 'benchmark,latencyInfo',
-      start: 2,
-      end: 10,
-      id: '0x100',
-      isTopLevel: true,
-      args: {
-        data: {
-          INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT: {'time' : 0},
-          INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time' : 0},
-          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+  test('unknownTypeCrashes', function() {
+    assert.throws(function() {
+      newAsyncSliceEx({
+        title: 'InputLatency::BadTypeName',
+        cat: 'benchmark,latencyInfo',
+        start: 2,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        args: {
+          data: {
+            INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT: {'time' : 0},
+            INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time' : 0},
+            INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+          }
         }
-      }
+      });
     });
-
-    assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
-    assert.equal(sInfo.inputLatency, 10);
   });
 
   test('testGetAssociatedEventsGeneral', function() {
@@ -328,6 +333,8 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       }));
+      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
+                   m.as0.typeName);
 
       m.as1 = mainBrowserThread.asyncSliceGroup.push(newAsyncSliceEx({
         title: 'InputLatency::GestureScrollUpdate',
@@ -341,6 +348,8 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       }));
+      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
+                   m.as1.typeName);
 
       m.as2 = compositorThread.asyncSliceGroup.push(newAsyncSliceEx({
         title: 'Latency::ScrollUpdate',
@@ -356,7 +365,8 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: compositorThread
       }));
-
+      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.LATENCY_SCROLL_UPDATE,
+                   m.as2.typeName);
     });
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
