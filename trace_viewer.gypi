@@ -323,6 +323,7 @@
       'trace_viewer/ui/extras/about_tracing/tracing_controller_client.html',
       'trace_viewer/ui/extras/about_tracing/xhr_based_tracing_controller_client.html',
       'trace_viewer/ui/extras/analysis/sampling_summary.html',
+      'trace_viewer/ui/extras/chrome/cc/cc.html',
       'trace_viewer/ui/extras/chrome/cc/display_item_debugger.html',
       'trace_viewer/ui/extras/chrome/cc/display_item_list_view.html',
       'trace_viewer/ui/extras/chrome/cc/layer_picker.html',
