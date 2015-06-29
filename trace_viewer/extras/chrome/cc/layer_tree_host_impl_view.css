@@ -9,7 +9,7 @@
   display: -webkit-flex;
 }
 
-* /deep/ .lthi-s-view > layer-picker {
+* /deep/ .lthi-s-view > tr-ui-e-chrome-cc-layer-picker {
   -webkit-flex: 1 1 auto;
 }
 
