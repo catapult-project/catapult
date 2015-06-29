@@ -56,18 +56,30 @@ tr.b.unittest.testSuite(function() {
     var selectionController = new tr.c.SelectionController(timelineView);
     var m = timelineView.model;
 
+    // Setting empty brushing state doesn't cause change event. This behavior
+    // is triggered when the user tries to search for something when no trace
+    // has been loaded yet in chrome://tracing.
+    var bs0 = new tr.ui.b.BrushingState();
+    assert.isFalse(doesCauseChangeToFire(
+        selectionController,
+        function() {
+          selectionController.currentBrushingState = bs0;
+        }));
+    assert.isFalse(bs0.isAppliedToModel);
+    assert.strictEqual(selectionController.currentBrushingState, bs0);
+
     // Setting causes change.
-    var bs = new tr.ui.b.BrushingState();
-    bs.selection = new Selection([m.sA]);
+    var bs1 = new tr.ui.b.BrushingState();
+    bs1.selection = new Selection([m.sA]);
     assert.isTrue(doesCauseChangeToFire(
         selectionController,
         function() {
-          selectionController.currentBrushingState = bs;
+          selectionController.currentBrushingState = bs1;
         }));
-    assert.isTrue(bs.isAppliedToModel);
+    assert.isTrue(bs1.isAppliedToModel);
 
     // Setting value equivalent doesn't cause change event.
-    var bs2 = bs.clone();
+    var bs2 = bs1.clone();
     assert.isFalse(doesCauseChangeToFire(
         selectionController,
         function() {

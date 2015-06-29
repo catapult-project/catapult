@@ -139,10 +139,11 @@ tr.exportTo('tr.c', function() {
       var hasValueChanged = !this.currentBrushingState_.equals(
           newBrushingState);
 
-      if (newBrushingState !== this.currentBrushingState_ &&
-          hasValueChanged == false) {
-        this.currentBrushingState_.transferModelOwnershipToClone(
-            newBrushingState);
+      if (newBrushingState !== this.currentBrushingState_ && !hasValueChanged) {
+        if (this.currentBrushingState_.isAppliedToModel) {
+          this.currentBrushingState_.transferModelOwnershipToClone(
+              newBrushingState);
+        }
         this.currentBrushingState_ = newBrushingState;
         return;
       }
