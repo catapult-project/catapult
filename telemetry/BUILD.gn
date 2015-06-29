@@ -4,6 +4,6 @@
 
 executable("bitmaptools") {
   sources = [
-    "telemetry/core/bitmaptools.cc",
+    "telemetry/internal/image_processing/bitmaptools.cc",
   ]
 }

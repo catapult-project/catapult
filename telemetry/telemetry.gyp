@@ -8,7 +8,7 @@
       'target_name': 'bitmaptools',
       'type': 'executable',
       'sources': [
-        'telemetry/core/bitmaptools.cc',
+        'telemetry/internal/image_processing/bitmaptools.cc',
       ],
       'toolsets': ['host'],
     },
