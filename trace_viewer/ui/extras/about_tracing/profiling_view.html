@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/base64.html">
 <link rel="import"
       href="/ui/extras/about_tracing/record_and_capture_controller.html">
 <link rel="import"
@@ -522,8 +523,16 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.uploadOverlay_.buttons.removeChild(
           this.uploadOverlay_.buttons.firstChild);
       this.uploadOverlay_.buttons.firstChild.textContent = 'Close';
-      var data_base64 = btoa(this.activeTrace_.data);
-      chrome.send('doUploadBase64', [data_base64]);
+
+      var filename = this.activeTrace_.filename;
+      var isBinary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
+      if (isBinary) {
+        var data_base64 = tr.b.Base64.EncodeArrayBufferToString(
+            this.activeTrace_.data);
+        chrome.send('doUploadBase64', [data_base64]);
+      } else {
+        chrome.send('doUpload', [this.activeTrace_.data]);
+      }
     },
 
     hideUploadOverlay_: function() {
