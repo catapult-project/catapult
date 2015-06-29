@@ -10,8 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/ui/units/time_duration_span.html">
 <link rel="import" href="/ui/base/table.html">
 
-<polymer-element name="tr-e-cc-raster-task-view"
-    constructor="RasterTaskView">
+<polymer-element name="tr-ui-e-chrome-cc-raster-task-view"
+      constructor="RasterTaskView">
   <template>
     <style>
     :host {
@@ -22,12 +22,14 @@ found in the LICENSE file.
       flex: 0 0 auto;
     }
     </style>
+
     <div id="heading">
       Rasterization costs in
       <tr-ui-a-analysis-link id="link"></tr-ui-a-analysis-link>
     </div>
     <tr-ui-b-table id="content"></tr-ui-b-table>
   </template>
+
   <script>
   'use strict';
   Polymer({
