@@ -16,6 +16,6 @@ def main():
 
   from closure_linter import fixjsstyle
 
-  os.chdir(project.trace_viewer_path)
+  os.chdir(project.tracing_src_path)
 
   fixjsstyle.main()

@@ -9,19 +9,19 @@ api_version: 1
 handlers:
 
 - url: /base
-  static_dir: trace_viewer/base
+  static_dir: tracing/tracing/base
   secure: always
 
 - url: /core
-  static_dir: trace_viewer/core
+  static_dir: tracing/tracing/core
   secure: always
 
 - url: /extras
-  static_dir: trace_viewer/extras
+  static_dir: tracing/tracing/extras
   secure: always
 
 - url: /ui
-  static_dir: trace_viewer/ui
+  static_dir: tracing/tracing/ui
   secure: always
 
 - url: /components
@@ -29,7 +29,7 @@ handlers:
   secure: always
 
 - url: /trace_viewer
-  static_dir: trace_viewer
+  static_dir: tracing/tracing
   secure: always
 
 - url: /gl-matrix-min.js
@@ -48,6 +48,6 @@ handlers:
   secure: always
 
 - url: /.*
-  static_files: trace_viewer/ui/extras/drive/index.html
-  upload: trace_viewer/ui/extras/drive/index.html
+  static_files: tracing/tracing/ui/extras/drive/index.html
+  upload: tracing/tracing/ui/extras/drive/index.html
   secure: always

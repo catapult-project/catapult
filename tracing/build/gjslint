@@ -14,5 +14,5 @@ if __name__ == '__main__':
   import tracing
   from hooks import gjslint
   sys.exit(gjslint.Main([
-    os.path.join(top_dir, 'trace_viewer'),
+    os.path.join(top_dir, 'tracing', 'tracing'),
   ]))

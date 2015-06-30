@@ -46,10 +46,10 @@ class TracingProject(project_module.Project):
   tracing_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
-  trace_viewer_path = os.path.abspath(os.path.join(
-      tracing_path, 'trace_viewer'))
+  tracing_src_path = os.path.abspath(os.path.join(
+      tracing_path, 'tracing', 'tracing'))
 
-  extras_path = os.path.join(trace_viewer_path, 'extras')
+  extras_path = os.path.join(tracing_src_path, 'extras')
 
   tracing_third_party_path = os.path.abspath(os.path.join(
       tracing_path, 'third_party'))
@@ -75,7 +75,7 @@ class TracingProject(project_module.Project):
 
   def __init__(self, *args, **kwargs):
     super(TracingProject, self).__init__(*args, **kwargs)
-    self.source_paths.append(self.trace_viewer_path)
+    self.source_paths.append(self.tracing_src_path)
     self.source_paths.append(self.tracing_third_party_path)
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
@@ -101,7 +101,7 @@ class TracingProject(project_module.Project):
     ])
 
     # Ignore drive html due to embedded external script resources.
-    self.non_module_html_files.appendRel(self.trace_viewer_path,
+    self.non_module_html_files.appendRel(self.tracing_src_path,
       'ui/extras/drive/index.html')
 
     rjsmin_doc_files = _FindAllFilesRecursive(
@@ -119,7 +119,7 @@ class TracingProject(project_module.Project):
     self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
 
   def FindAllTestModuleResources(self):
-    all_filenames = _FindAllFilesRecursive([self.trace_viewer_path])
+    all_filenames = _FindAllFilesRecursive([self.tracing_src_path])
     test_module_filenames = [x for x in all_filenames if
                              _IsFilenameATest(self.loader, x)]
     test_module_filenames.sort()
