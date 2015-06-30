@@ -31,7 +31,7 @@ function onTraceViewerImportFail() {
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var viewer = new tr.TraceViewer('../test_data/big_trace.json');
+  var viewer = new tr.TraceViewer('../tracing/test_data/big_trace.json');
   viewer.id = 'trace-viewer';
   viewer.tabIndex = 1;
   document.body.appendChild(viewer);

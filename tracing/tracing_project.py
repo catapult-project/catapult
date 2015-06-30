@@ -43,12 +43,9 @@ def _IsFilenameATest(loader, x):
   return False
 
 class TracingProject(project_module.Project):
-  tracing_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..'))
-
-  tracing_src_path = os.path.abspath(os.path.join(
-      tracing_path, 'tracing', 'tracing'))
-
+  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  tracing_root_path = os.path.abspath(os.path.join(tracing_path, 'tracing'))
+  tracing_src_path = os.path.abspath(os.path.join(tracing_root_path, 'tracing'))
   extras_path = os.path.join(tracing_src_path, 'extras')
 
   tracing_third_party_path = os.path.abspath(os.path.join(
@@ -60,12 +57,10 @@ class TracingProject(project_module.Project):
       tracing_third_party_path, 'gl-matrix', 'dist'))
 
   d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
-
   chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
-
   mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
 
-  test_data_path = os.path.join(tracing_path, 'test_data')
+  test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_path, 'skp_data')
 
   rjsmin_path = os.path.abspath(os.path.join(
@@ -85,7 +80,7 @@ class TracingProject(project_module.Project):
 
     self.non_module_html_files.extendRel(self.tracing_path, [
       'bin/index.html',
-      'test_data/android_systrace.html',
+      'tracing/test_data/android_systrace.html',
     ])
     for config_name in self.GetConfigNames():
       self.non_module_html_files.appendRel(self.tracing_path,

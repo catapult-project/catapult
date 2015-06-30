@@ -91,6 +91,9 @@ class _InputAPI(object):
     if affected_file.absolute_path.startswith(test_data_path):
       return True
 
+    if affected_file.filename.startswith('.gitignore'):
+      return True
+
     return False
 
   def IsThirdParty(self, affected_file):

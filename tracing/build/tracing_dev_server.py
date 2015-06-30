@@ -90,7 +90,7 @@ def Main(args):
   parser = argparse.ArgumentParser(description='Run tracing development server')
   parser.add_argument(
       '-d', '--data-dir',
-      default=os.path.abspath(os.path.join(_ROOT_PATH, 'test_data')))
+      default=os.path.abspath(os.path.join(_ROOT_PATH, 'tracing', 'test_data')))
   parser.add_argument('-p', '--port', default=8003, type=int)
   args = parser.parse_args()
 
