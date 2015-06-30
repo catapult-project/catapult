@@ -7,8 +7,8 @@ import logging
 import StringIO
 import unittest
 
-from telemetry.core import browser_options
 from telemetry.internal.backends.remote import trybot_browser_finder
+from telemetry.internal.browser import browser_options
 from telemetry.unittest_util import simple_mock
 from telemetry.unittest_util import system_stub
 

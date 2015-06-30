@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from telemetry.core import browser_credentials
+from telemetry.internal.browser import browser_credentials
 
 
 SIMPLE_CREDENTIALS_STRING = """

@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core import browser_options
 from telemetry.core.platform import desktop_device
 from telemetry.internal.backends.chrome import desktop_browser_finder
+from telemetry.internal.browser import browser_options
 from telemetry.unittest_util import system_stub
 
 

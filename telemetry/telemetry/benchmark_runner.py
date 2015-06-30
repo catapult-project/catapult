@@ -15,11 +15,11 @@ import os
 import sys
 
 from telemetry import benchmark
-from telemetry.core import browser_finder
-from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry import decorators
+from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_options
 
 
 def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):

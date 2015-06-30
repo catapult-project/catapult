@@ -5,7 +5,7 @@ import optparse
 import os
 import unittest
 
-from telemetry.core import browser_options
+from telemetry.internal.browser import browser_options
 
 
 class BrowserOptionsTest(unittest.TestCase):

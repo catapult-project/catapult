@@ -3,13 +3,13 @@
 # found in the LICENSE file.
 import sys
 
-from telemetry.core import browser_finder
-from telemetry.core import browser_finder_exceptions
-from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import device_finder
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_finder_exceptions
+from telemetry.internal.browser import browser_options
 from telemetry.unittest_util import browser_test_case
 from telemetry.unittest_util import options_for_unittests
 

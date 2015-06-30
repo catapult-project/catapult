@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import browser
 from telemetry.internal.backends.chrome import cros_browser_backend
+from telemetry.internal.browser import browser
 
 
 class CrOSBrowserWithOOBE(browser.Browser):

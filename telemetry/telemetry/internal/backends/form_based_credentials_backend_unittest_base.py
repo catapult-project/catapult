@@ -7,8 +7,8 @@ import os
 import unittest
 
 from telemetry import benchmark
-from telemetry.core import browser_finder
 from telemetry.core import util
+from telemetry.internal.browser import browser_finder
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import simple_mock
 

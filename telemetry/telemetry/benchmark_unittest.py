@@ -7,7 +7,7 @@ import unittest
 
 from telemetry import android
 from telemetry import benchmark
-from telemetry.core import browser_options
+from telemetry.internal.browser import browser_options
 from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import page_test

@@ -7,10 +7,10 @@ import logging
 import sys
 
 from telemetry import benchmark
-from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core import wpr_modes
+from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page_set

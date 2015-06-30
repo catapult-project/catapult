@@ -8,19 +8,19 @@ import sys
 import zipfile
 
 from catapult_base import cloud_storage
-from telemetry.core import browser_finder
-from telemetry.core import browser_finder_exceptions
-from telemetry.core import browser_info as browser_info_module
 from telemetry.core import exceptions
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
-from telemetry import story
+from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_finder_exceptions
+from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
 from telemetry.page import action_runner as action_runner_module
 from telemetry.page import page_test
+from telemetry import story
 from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 

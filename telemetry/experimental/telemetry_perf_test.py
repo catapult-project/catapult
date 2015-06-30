@@ -9,8 +9,8 @@ import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
 
-from telemetry.core import browser_finder
-from telemetry.core import browser_options
+from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_options
 
 
 def Main(args):
