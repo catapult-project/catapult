@@ -70,19 +70,19 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
   def testGotToBlank(self):
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
+    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     measurement = PageTestForBlank()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
     self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html?foo=1')
+    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html?foo=1')
     measurement = PageTestQueryParams()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
     self.assertEquals(0, len(all_results.failures))
 
   def testFailure(self):
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
+    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     measurement = PageTestThatFails()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
     self.assertEquals(1, len(all_results.failures))

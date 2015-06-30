@@ -72,7 +72,7 @@ class MockBenchmark(benchmark.Benchmark):
   def AddBenchmarkCommandLineArgs(cls, group):
     group.add_option('', '--mock-benchmark-url', action='store', type='string')
 
-  def CreatePageSet(self, options):
+  def CreateStorySet(self, options):
     kwargs = {}
     if options.mock_benchmark_url:
       kwargs['url'] = options.mock_benchmark_url

@@ -120,7 +120,7 @@ class WprRecorder(object):
       page_set_base_dir = self._options.page_set_base_dir
     else:
       page_set_base_dir = base_dir
-    self._page_set = self._GetPageSet(page_set_base_dir, target)
+    self._page_set = self._GetStorySet(page_set_base_dir, target)
 
   @property
   def options(self):
@@ -162,9 +162,9 @@ class WprRecorder(object):
     if self._benchmark is not None:
       self._benchmark.ProcessCommandLineArgs(self._parser, self._options)
 
-  def _GetPageSet(self, base_dir, target):
+  def _GetStorySet(self, base_dir, target):
     if self._benchmark is not None:
-      return self._benchmark.CreatePageSet(self._options)
+      return self._benchmark.CreateStorySet(self._options)
     ps = _MaybeGetInstanceOfClass(target, base_dir, page_set.PageSet)
     if ps is None:
       self._parser.print_usage()

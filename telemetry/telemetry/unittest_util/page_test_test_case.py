@@ -35,7 +35,7 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 class PageTestTestCase(unittest.TestCase):
   """A base class to simplify writing unit tests for PageTest subclasses."""
 
-  def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
+  def CreateStorySetFromFileInUnittestDataDir(self, test_filename):
     ps = self.CreateEmptyPageSet()
     page = BasicTestPage('file://' + test_filename, ps, base_dir=ps.base_dir)
     ps.AddStory(page)
@@ -72,7 +72,7 @@ class PageTestTestCase(unittest.TestCase):
     return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
+    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     start_tracing_called = [False]
     stop_tracing_called = [False]
 

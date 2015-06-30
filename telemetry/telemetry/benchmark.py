@@ -11,7 +11,6 @@ from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import exception_formatter
 from telemetry import page
-from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.web_perf import timeline_based_measurement
@@ -242,24 +241,17 @@ class Benchmark(command_line.Command):
     self.SetupTraceRerunOptions(options, opts)
     return timeline_based_measurement.TimelineBasedMeasurement(opts)
 
-  def CreatePageSet(self, options):  # pylint: disable=unused-argument
-    """Get the page set this test will run on.
-
-    By default, it will create a page set from the this test's page_set
-    attribute. Override to generate a custom page set.
-    """
-    if not hasattr(self, 'page_set'):
-      raise NotImplementedError('This test has no "page_set" attribute.')
-    if not issubclass(self.page_set, page_set.PageSet):
-      raise TypeError('"%s" is not a PageSet.' % self.page_set.__name__)
-    return self.page_set()
-
   def CreateStorySet(self, options):
     """Creates the instance of StorySet used to run the benchmark.
 
     Can be overridden by subclasses.
     """
-    return self.CreatePageSet(options)
+    del options  # unused
+    # TODO(aiolos, nednguyen, eakufner): replace class attribute page_set with
+    # story_set.
+    if not hasattr(self, 'page_set'):
+      raise NotImplementedError('This test has no "page_set" attribute.')
+    return self.page_set()
 
   @classmethod
   def CreateExpectations(cls):
