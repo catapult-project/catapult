@@ -6,16 +6,16 @@ import os
 
 from telemetry.page import page as page_module
 from telemetry import decorators
-from telemetry import story
+from telemetry import story as story_module
 
-PUBLIC_BUCKET = story.PUBLIC_BUCKET
-PARTNER_BUCKET = story.PARTNER_BUCKET
-INTERNAL_BUCKET = story.INTERNAL_BUCKET
+PUBLIC_BUCKET = story_module.PUBLIC_BUCKET
+PARTNER_BUCKET = story_module.PARTNER_BUCKET
+INTERNAL_BUCKET = story_module.INTERNAL_BUCKET
 
 @decorators.Deprecated(
     2015, 6, 30, 'Please use the StorySet class instead (crbug.com/439512). '
     'Instructions for conversion can be found in: https://goo.gl/JsaEez')
-class PageSet(story.StorySet):
+class PageSet(story_module.StorySet):
   """
   This class contains all Chromium-specific configurations necessary to run a
   Telemetry benchmark.
@@ -34,9 +34,17 @@ class PageSet(story.StorySet):
 
   @property
   def pages(self):
-    return self.user_stories
+    return self.stories
 
-  def AddUserStory(self, user_story):
-    assert isinstance(user_story, page_module.Page)
-    assert user_story.page_set is self
-    super(PageSet, self).AddUserStory(user_story)
+  def AddStory(self, story):
+    assert isinstance(story, page_module.Page)
+    assert story.page_set is self
+    super(PageSet, self).AddStory(story)
+
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use AddStory instead. The user story concept is '
+    'being renamed to story.')
+  def AddUserStory(self, story):
+    assert isinstance(story, page_module.Page)
+    assert story.page_set is self
+    super(PageSet, self).AddStory(story)

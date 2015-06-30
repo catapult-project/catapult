@@ -37,7 +37,7 @@ class MockPageSet(page_set_module.PageSet):
   def __init__(self, url=''):
     super(MockPageSet, self).__init__(
         archive_data_file='data/archive_files/test.json')
-    self.AddUserStory(MockPage(self, url))
+    self.AddStory(MockPage(self, url))
 
 
 class MockPageTest(page_test.PageTest):

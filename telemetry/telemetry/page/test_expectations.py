@@ -79,7 +79,7 @@ class TestExpectations(object):
     return _Expectation(expectation, self, url_pattern, conditions, bug)
 
   # TODO(kbr): generalize TestExpectations to work with SharedState
-  # and UserStory. crbug.com/495870
+  # and Story. crbug.com/495870
   def GetExpectationForPage(self, shared_page_state, page):
     for e in self.expectations:
       if self.ExpectationAppliesToPage(e, shared_page_state, page):

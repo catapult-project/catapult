@@ -115,7 +115,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
                        'chromeos')  # crbug.com/483212
   def testSmoothGestureAdjusted(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(ScrollingPage(
+    ps.AddStory(ScrollingPage(
       'file://scrollable_page.html', ps, base_dir=ps.base_dir))
     models = []
     tab_ids = []

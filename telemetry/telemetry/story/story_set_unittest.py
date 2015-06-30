@@ -6,18 +6,16 @@ import os
 import unittest
 
 from telemetry import story
-from telemetry.story import shared_state
-from telemetry import user_story
 
 
 # pylint: disable=abstract-method
-class SharedStateBar(shared_state.SharedState):
+class SharedStateBar(story.SharedState):
   pass
 
 
-class UserStoryFoo(user_story.UserStory):
+class StoryFoo(story.Story):
   def __init__(self, name='', labels=None):
-    super(UserStoryFoo, self).__init__(
+    super(StoryFoo, self).__init__(
         SharedStateBar, name, labels)
 
 
@@ -68,15 +66,15 @@ class StorySetTest(unittest.TestCase):
 
   def testRemoveWithEmptySetRaises(self):
     story_set = story.StorySet()
-    foo_story = UserStoryFoo()
+    foo_story = StoryFoo()
     with self.assertRaises(ValueError):
-      story_set.RemoveUserStory(foo_story)
+      story_set.RemoveStory(foo_story)
 
   def testBasicAddRemove(self):
     story_set = story.StorySet()
-    foo_story = UserStoryFoo()
-    story_set.AddUserStory(foo_story)
-    self.assertEqual([foo_story], story_set.user_stories)
+    foo_story = StoryFoo()
+    story_set.AddStory(foo_story)
+    self.assertEqual([foo_story], story_set.stories)
 
-    story_set.RemoveUserStory(foo_story)
-    self.assertEqual([], story_set.user_stories)
+    story_set.RemoveStory(foo_story)
+    self.assertEqual([], story_set.stories)

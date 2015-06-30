@@ -60,7 +60,7 @@ class Value(object):
       tir_label: The string label of the TimelineInteractionRecord with
           which this value is associated.
     """
-    # TODO(eakuefner): Check user story here after migration (crbug.com/442036)
+    # TODO(eakuefner): Check story here after migration (crbug.com/442036)
     if not isinstance(name, basestring):
       raise ValueError('name field of Value must be string.')
     if not isinstance(units, basestring):

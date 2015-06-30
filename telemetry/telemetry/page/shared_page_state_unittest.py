@@ -11,7 +11,7 @@ from telemetry.page import page
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
-from telemetry import story
+from telemetry import story as story_module
 from telemetry.unittest_util import options_for_unittests
 
 
@@ -70,13 +70,13 @@ class SharedPageStateTests(unittest.TestCase):
 
   def assertUserAgentSetCorrectly(
       self, shared_page_state_class, expected_user_agent):
-    us = page.Page(
+    story = page.Page(
         'http://www.google.com',
         shared_page_state_class=shared_page_state_class)
     test = DummyTest()
-    story_set = story.StorySet()
-    story_set.AddUserStory(us)
-    us.shared_state_class(test, self.options, story_set)
+    story_set = story_module.StorySet()
+    story_set.AddStory(story)
+    story.shared_state_class(test, self.options, story_set)
     browser_options = self.options.browser_options
     actual_user_agent = browser_options.browser_user_agent_type
     self.assertEqual(expected_user_agent, actual_user_agent)

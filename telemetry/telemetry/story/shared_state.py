@@ -4,14 +4,14 @@
 
 
 class SharedState(object):
-  """A class that manages the test state across multiple user stories.
+  """A class that manages the test state across multiple stories.
   It's styled on unittest.TestCase for handling test setup & teardown logic.
 
   """
 
   def __init__(self, test, options, story_set):
     """ This method is styled on unittest.TestCase.setUpClass.
-    Override to do any action before running user stories that
+    Override to do any action before running stories that
     share this same state.
     Args:
       test: a page_test.PageTest instance.
@@ -23,20 +23,20 @@ class SharedState(object):
 
   @property
   def platform(self):
-    """ Override to return the platform which user stories that share this same
+    """ Override to return the platform which stories that share this same
     state will be run on.
     """
     raise NotImplementedError()
 
-  def WillRunUserStory(self, user_story):
-    """ Override to do any action before running each one of all user stories
+  def WillRunStory(self, story):
+    """ Override to do any action before running each one of all stories
     that share this same state.
     This method is styled on unittest.TestCase.setUp.
     """
     raise NotImplementedError()
 
-  def DidRunUserStory(self, results):
-    """ Override to do any action after running each of all user stories that
+  def DidRunStory(self, results):
+    """ Override to do any action after running each of all stories that
     share this same state.
     This method is styled on unittest.TestCase.tearDown.
     """
@@ -44,19 +44,19 @@ class SharedState(object):
 
   def GetTestExpectationAndSkipValue(self, expectations):
     """ Return test expectation and skip value instance in case expectation
-    is 'skip'. This is run after WillRunUserStory and before RunUserStory.
+    is 'skip'. This is run after WillRunStory and before RunStory.
     """
     raise NotImplementedError()
 
-  def RunUserStory(self, results):
-    """ Override to do any action before running each one of all user stories
+  def RunStory(self, results):
+    """ Override to do any action before running each one of all stories
     that share this same state.
     This method is styled on unittest.TestCase.run.
     """
     raise NotImplementedError()
 
   def TearDownState(self):
-    """ Override to do any action after running multiple user stories that
+    """ Override to do any action after running multiple stories that
     share this same state.
     This method is styled on unittest.TestCase.tearDownClass.
     """

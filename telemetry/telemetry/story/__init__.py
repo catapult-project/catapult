@@ -4,6 +4,7 @@
 
 from catapult_base import cloud_storage
 from telemetry.story.shared_state import SharedState
+from telemetry.story.story import Story
 from telemetry.story.story_filter import StoryFilter
 from telemetry.story.story_set import StorySet
 

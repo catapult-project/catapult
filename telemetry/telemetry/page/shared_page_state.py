@@ -16,11 +16,11 @@ from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry import decorators
+from telemetry import story
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
 from telemetry.page import action_runner as action_runner_module
 from telemetry.page import page_test
-from telemetry.story import shared_state
 from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 
@@ -36,7 +36,7 @@ def _PrepareFinderOptions(finder_options, test, device_type):
     profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
                                            finder_options)
 
-class SharedPageState(shared_state.SharedState):
+class SharedPageState(story.SharedState):
   """
   This class contains all specific logic necessary to run a Chrome browser
   benchmark.
@@ -92,7 +92,7 @@ class SharedPageState(shared_state.SharedState):
       sys.exit(0)
     return possible_browser
 
-  def DidRunUserStory(self, results):
+  def DidRunStory(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
     # We might hang while trying to close the connection, and need to guarantee
@@ -136,7 +136,7 @@ class SharedPageState(shared_state.SharedState):
         archive_path, wpr_mode, browser_options.netsim,
         browser_options.extra_wpr_args, make_javascript_deterministic)
 
-  def WillRunUserStory(self, page):
+  def WillRunStory(self, page):
     if self._ShouldDownloadPregeneratedProfileArchive():
       self._DownloadPregeneratedProfileArchive()
 
@@ -146,7 +146,7 @@ class SharedPageState(shared_state.SharedState):
       self._StopBrowser()
     started_browser = not self.browser
     self._PrepareWpr(self.platform.network_controller,
-                     page_set.WprFilePathForUserStory(page),
+                     page_set.WprFilePathForStory(page),
                      page.make_javascript_deterministic)
     if self.browser:
       # Set new credential path for browser.
@@ -266,7 +266,7 @@ class SharedPageState(shared_state.SharedState):
     self._test.RunNavigateSteps(self._current_page, self._current_tab)
     self._test.DidNavigateToPage(self._current_page, self._current_tab)
 
-  def RunUserStory(self, results):
+  def RunStory(self, results):
     try:
       self._PreparePage()
       self._ImplicitPageNavigation()

@@ -144,7 +144,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
   def testRunActions(self):
     ps = self.CreateEmptyPageSet()
     page = PageWithAction('file://blank.html', ps)
-    ps.AddUserStory(page)
+    ps.AddStory(page)
     measurement = PageTestWithAction()
     self.RunMeasurement(measurement, ps, options=self._options)
     self.assertTrue(page.run_test_action_called)

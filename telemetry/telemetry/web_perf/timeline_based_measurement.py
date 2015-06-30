@@ -15,6 +15,7 @@ from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf import smooth_gesture_util
+from telemetry import decorators
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
 # timeline. But, depending on the amount of instrumentation that is enabled,
@@ -165,8 +166,8 @@ class TimelineBasedMeasurement(object):
   """Collects multiple metrics based on their interaction records.
 
   A timeline based measurement shifts the burden of what metrics to collect onto
-  the user story under test. Instead of the measurement
-  having a fixed set of values it collects, the user story being tested
+  the story under test. Instead of the measurement
+  having a fixed set of values it collects, the story being tested
   issues (via javascript) an Interaction record into the user timing API that
   describing what is happening at that time, as well as a standardized set
   of flags describing the semantics of the work being done. The
@@ -175,7 +176,7 @@ class TimelineBasedMeasurement(object):
   Telemetry's various timeline-producing APIs, tracing especially.
 
   It then passes the recorded timeline to different TimelineBasedMetrics based
-  on those flags. As an example, this allows a single user story run to produce
+  on those flags. As an example, this allows a single story run to produce
   load timing data, smoothness data, critical jank information and overall cpu
   usage information.
 
@@ -194,8 +195,7 @@ class TimelineBasedMeasurement(object):
     self._tbm_options = options
     self._results_wrapper_class = results_wrapper_class
 
-  def WillRunUserStory(self, tracing_controller,
-                       synthetic_delay_categories=None):
+  def WillRunStory(self, tracing_controller, synthetic_delay_categories=None):
     """Configure and start tracing.
 
     Args:
@@ -233,6 +233,13 @@ class TimelineBasedMeasurement(object):
     options.enable_platform_display_trace = True
     tracing_controller.Start(options, category_filter)
 
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use WillRunStory instead. The user story concept is '
+    'being renamed to story.')
+  def WillRunUserStory(self, tracing_controller,
+                       synthetic_delay_categories=None):
+    self.WillRunStory(tracing_controller, synthetic_delay_categories)
+
   def Measure(self, tracing_controller, results):
     """Collect all possible metrics and added them to results."""
     trace_result = tracing_controller.Stop()
@@ -246,6 +253,12 @@ class TimelineBasedMeasurement(object):
           self._results_wrapper_class)
       meta_metrics.AddResults(results)
 
-  def DidRunUserStory(self, tracing_controller):
+  def DidRunStory(self, tracing_controller):
     if tracing_controller.is_tracing_running:
       tracing_controller.Stop()
+
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use DidRunStory instead. The user story concept is '
+    'being renamed to story.')
+  def DidRunUserStory(self, tracing_controller):
+    self.DidRunStory(tracing_controller)

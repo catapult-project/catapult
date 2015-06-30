@@ -4,11 +4,11 @@
 from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform
-from telemetry.story import shared_state
+from telemetry import story as story_module
 from telemetry.web_perf import timeline_based_measurement
 
 
-class SharedAndroidState(shared_state.SharedState):
+class SharedAndroidState(story_module.SharedState):
   """Manage test state/transitions across multiple android.AndroidStory's.
 
   WARNING: the class is not ready for public consumption.
@@ -32,7 +32,7 @@ class SharedAndroidState(shared_state.SharedState):
     self._test = test
     self._finder_options = finder_options
     self._android_app = None
-    self._current_user_story = None
+    self._current_story = None
     self._android_platform = platform.GetPlatformForDevice(
         android_device.GetDevice(finder_options), finder_options)
     assert self._android_platform, 'Unable to create android platform.'
@@ -47,25 +47,25 @@ class SharedAndroidState(shared_state.SharedState):
   def platform(self):
     return self._android_platform
 
-  def WillRunUserStory(self, user_story):
+  def WillRunStory(self, story):
     assert not self._android_app
-    self._current_user_story = user_story
+    self._current_story = story
     self._android_app = self._android_platform.LaunchAndroidApplication(
-        user_story.start_intent, user_story.is_app_ready_predicate)
-    self._test.WillRunUserStory(self._android_platform.tracing_controller)
+        story.start_intent, story.is_app_ready_predicate)
+    self._test.WillRunStory(self._android_platform.tracing_controller)
 
-  def RunUserStory(self, results):
-    self._current_user_story.Run(self)
+  def RunStory(self, results):
+    self._current_story.Run(self)
     self._test.Measure(self._android_platform.tracing_controller, results)
 
-  def DidRunUserStory(self, results):
-    self._test.DidRunUserStory(self._android_platform.tracing_controller)
+  def DidRunStory(self, results):
+    self._test.DidRunStory(self._android_platform.tracing_controller)
     if self._android_app:
       self._android_app.Close()
       self._android_app = None
 
   def GetTestExpectationAndSkipValue(self, expectations):
-    """This does not apply to android app user stories."""
+    """This does not apply to android app stories."""
     return 'pass', None
 
   def TearDownState(self):

@@ -60,7 +60,7 @@ class Benchmark(command_line.Command):
     """Creates a new Benchmark.
 
     Args:
-      max_failures: The number of user story run's failures before bailing
+      max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
     self._max_failures = max_failures
@@ -143,7 +143,7 @@ class Benchmark(command_line.Command):
       value: a value.Value instance (except failure.FailureValue,
         skip.SkipValue or trace.TraceValue which will always be added).
       is_first_result: True if |value| is the first result for its
-          corresponding user story.
+          corresponding story.
 
     Returns:
       True if |value| should be added to the test results.
@@ -178,19 +178,19 @@ class Benchmark(command_line.Command):
       pt._enabled_strings = self._enabled_strings
 
     expectations = self.CreateExpectations()
-    us = self.CreateStorySet(finder_options)
+    stories = self.CreateStorySet(finder_options)
     if isinstance(pt, page_test.PageTest):
-      if any(not isinstance(p, page.Page) for p in us.user_stories):
+      if any(not isinstance(p, page.Page) for p in stories.stories):
         raise Exception(
             'PageTest must be used with StorySet containing only '
-            'telemetry.page.Page user stories.')
+            'telemetry.page.Page stories.')
 
     benchmark_metadata = self.GetMetadata()
     with results_options.CreateResults(
         benchmark_metadata, finder_options,
         self.ValueCanBeAddedPredicate) as results:
       try:
-        story_runner.Run(pt, us, expectations, finder_options, results,
+        story_runner.Run(pt, stories, expectations, finder_options, results,
                               max_failures=self._max_failures)
         return_code = min(254, len(results.failures))
       except Exception:

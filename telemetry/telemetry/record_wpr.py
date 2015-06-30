@@ -92,8 +92,8 @@ def _PrintAllBenchmarks(base_dir, output_stream):
 
 def _PrintAllUserStories(base_dir, output_stream):
   output_stream.write('Available page sets\' names:\n\n')
-  # TODO: actually print all user stories once record_wpr support general
-  # user stories recording.
+  # TODO: actually print all stories once record_wpr support general
+  # stories recording.
   classes = _GetSubclasses(base_dir, page_set.PageSet)
   for k in classes:
     output_stream.write('%s\n' % k)
@@ -190,21 +190,21 @@ class WprRecorder(object):
 
 
 # TODO(nednguyen): use benchmark.Environment instead of base_dir for discovering
-# benchmark & user story classes.
+# benchmark & story classes.
 def Main(base_dir):
 
   parser = argparse.ArgumentParser(
-      usage='Record a benchmark or a user story (page set).')
+      usage='Record a benchmark or a story (page set).')
   parser.add_argument(
       'benchmark', type=str,
       help=('benchmark name. This argument is optional. If both benchmark name '
-            'and user story name are specified, this takes precedence as the '
+            'and story name are specified, this takes precedence as the '
             'target of the recording.'),
       nargs='?')
   parser.add_argument('--story', dest='story', type=str,
-                      help='user story (page set) name')
+                      help='story (page set) name')
   parser.add_argument('--list-stories', dest='list_stories',
-                      action='store_true', help='list all user story names.')
+                      action='store_true', help='list all story names.')
   parser.add_argument('--list-benchmarks', dest='list_benchmarks',
                       action='store_true', help='list all benchmark names.')
   parser.add_argument('--upload', action='store_true',
@@ -222,7 +222,7 @@ def Main(base_dir):
     return 0
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference
-  # between recording a benchmark vs recording a user story better based on
+  # between recording a benchmark vs recording a story better based on
   # the distinction between args.benchmark & args.story
   wpr_recorder = WprRecorder(base_dir, target, extra_args)
   results = wpr_recorder.CreateResults()

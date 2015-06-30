@@ -12,9 +12,7 @@ from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
-from telemetry.story import shared_state
 from telemetry import story as story_module
-from telemetry import user_story
 from telemetry.web_perf import timeline_based_measurement
 
 
@@ -27,7 +25,7 @@ class TestBenchmark(benchmark.Benchmark):
   def __init__(self, story):
     super(TestBenchmark, self).__init__()
     self._story_set = story_module.StorySet()
-    self._story_set.AddUserStory(story)
+    self._story_set.AddStory(story)
 
   def CreatePageTest(self, _):
     return DummyPageTest()
@@ -38,26 +36,26 @@ class TestBenchmark(benchmark.Benchmark):
 
 class BenchmarkTest(unittest.TestCase):
 
-  def testPageTestWithIncompatibleUserStory(self):
-    b = TestBenchmark(user_story.UserStory(
+  def testPageTestWithIncompatibleStory(self):
+    b = TestBenchmark(story_module.Story(
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
-        Exception, 'containing only telemetry.page.Page user stories'):
+        Exception, 'containing only telemetry.page.Page stories'):
       b.Run(browser_options.BrowserFinderOptions())
 
-    state_class = shared_state.SharedState
-    b = TestBenchmark(user_story.UserStory(
+    state_class = story_module.SharedState
+    b = TestBenchmark(story_module.Story(
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
-        Exception, 'containing only telemetry.page.Page user stories'):
+        Exception, 'containing only telemetry.page.Page stories'):
       b.Run(browser_options.BrowserFinderOptions())
 
     b = TestBenchmark(android.AndroidStory(start_intent=None))
     with self.assertRaisesRegexp(
-        Exception, 'containing only telemetry.page.Page user stories'):
+        Exception, 'containing only telemetry.page.Page stories'):
       b.Run(browser_options.BrowserFinderOptions())
 
-  def testPageTestWithCompatibleUserStory(self):
+  def testPageTestWithCompatibleStory(self):
     original_run_fn = story_runner.Run
     was_run = [False]
     def RunStub(*_arg, **_kwargs):

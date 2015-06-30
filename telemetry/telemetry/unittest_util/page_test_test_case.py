@@ -38,7 +38,7 @@ class PageTestTestCase(unittest.TestCase):
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
     ps = self.CreateEmptyPageSet()
     page = BasicTestPage('file://' + test_filename, ps, base_dir=ps.base_dir)
-    ps.AddUserStory(page)
+    ps.AddStory(page)
     return ps
 
   def CreateEmptyPageSet(self):

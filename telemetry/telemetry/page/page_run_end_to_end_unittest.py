@@ -336,7 +336,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
-    ps.AddUserStory(page)
+    ps.AddStory(page)
 
     class TestMultiTabs(page_test.PageTest):
       def TabForPage(self, _, browser):
@@ -460,7 +460,7 @@ class PageRunEndToEndTests(unittest.TestCase):
       def ValidateAndMeasurePage(self, _):
         pass
 
-    ps.AddUserStory(page_module.Page(
+    ps.AddStory(page_module.Page(
         url='file://blank.html', page_set=ps,
         base_dir=util.GetUnittestDataDir(),
         shared_page_state_class=UnrunnableSharedState))
@@ -526,7 +526,7 @@ class PageRunEndToEndTests(unittest.TestCase):
 
     ps = page_set.PageSet()
     for _ in range(5):
-      ps.AddUserStory(
+      ps.AddStory(
           TestPage('file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
     expectations = test_expectations.TestExpectations()
     options = options_for_unittests.GetCopy()

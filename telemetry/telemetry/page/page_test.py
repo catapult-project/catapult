@@ -174,7 +174,7 @@ class PageTest(object):
     except exceptions.DevtoolsTargetCrashException as e:
       logging.error('Tab may have crashed: %s' % str(e))
       browser.tabs.New()
-      # See comment in shared_page_state.WillRunUserStory for why this waiting
+      # See comment in shared_page_state.WillRunStory for why this waiting
       # is needed.
       browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
       return browser.tabs[0]

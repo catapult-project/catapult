@@ -19,9 +19,9 @@ from telemetry.value import trace
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
     ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddUserStory(page_module.Page("http://www.bar.com/", ps, ps.base_dir))
-    ps.AddUserStory(page_module.Page("http://www.baz.com/", ps, ps.base_dir))
-    ps.AddUserStory(page_module.Page("http://www.foo.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.bar.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.baz.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.foo.com/", ps, ps.base_dir))
     self.page_set = ps
 
   @property
@@ -55,7 +55,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[1])
 
     self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertEqual(self.pages[0], results.all_page_runs[0].user_story)
+    self.assertEqual(self.pages[0], results.all_page_runs[0].story)
     self.assertEqual(set([self.pages[0], self.pages[1]]),
                      results.pages_that_succeeded)
 
@@ -239,8 +239,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 class PageTestResultsFilterTest(unittest.TestCase):
   def setUp(self):
     ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddUserStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-    ps.AddUserStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+    ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
+    ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
     self.page_set = ps
 
   @property

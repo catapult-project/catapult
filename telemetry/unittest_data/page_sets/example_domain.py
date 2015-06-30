@@ -13,5 +13,5 @@ class ExampleDomainPageSet(page_set.PageSet):
       user_agent_type='desktop',
       bucket=page_set.PUBLIC_BUCKET)
 
-    self.AddUserStory(page.Page('http://www.example.com', self))
-    self.AddUserStory(page.Page('https://www.example.com', self))
+    self.AddStory(page.Page('http://www.example.com', self))
+    self.AddStory(page.Page('https://www.example.com', self))

@@ -51,7 +51,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('android', 'mac', 'chromeos')
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+    ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
@@ -72,7 +72,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
   @decorators.Enabled('android')
   def testGPUTimesTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+    ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
     cat_filter = tracing_category_filter.TracingCategoryFilter(
@@ -100,7 +100,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('android', 'win', 'mac', 'chromeos')
   def testMainthreadJankTimelineBasedMeasurement(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+    ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_jank=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
@@ -124,7 +124,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
   def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
     ps = self.CreateEmptyPageSet()
-    ps.AddUserStory(TestTimelinebasedMeasurementPage(
+    ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_scroll_gesture=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())

@@ -37,15 +37,15 @@ class StorySetSmokeTest(unittest.TestCase):
 
     wpr_archive_info = archive_info.WprArchiveInfo.FromFile(
         archive_data_file_path, story_set.bucket)
-    for story in story_set.user_stories:
+    for story in story_set.stories:
       if isinstance(story, page.Page) and story.url.startswith('http'):
-        self.assertTrue(wpr_archive_info.WprFilePathForUserStory(story),
+        self.assertTrue(wpr_archive_info.WprFilePathForStory(story),
                         msg='No archive found for %s in %s' % (
                             story.url, story_set.archive_data_file))
 
   def CheckCredentials(self, story_set):
     """Verify that all pages in story_set use proper credentials"""
-    for story in story_set.user_stories:
+    for story in story_set.stories:
       if not isinstance(story, page.Page):
         continue
       credentials = browser_credentials.BrowserCredentials()
@@ -65,7 +65,7 @@ class StorySetSmokeTest(unittest.TestCase):
        types.
     """
     self.CheckAttributesOfStorySetBasicAttributes(story_set)
-    for story in story_set.user_stories:
+    for story in story_set.stories:
       self.CheckAttributesOfStoryBasicAttributes(story)
 
   def CheckAttributesOfStorySetBasicAttributes(self, story_set):
@@ -110,7 +110,7 @@ class StorySetSmokeTest(unittest.TestCase):
   def CheckSharedStates(self, story_set):
     if not story_set.allow_mixed_story_states:
       shared_state_class = (
-          story_set.user_stories[0].shared_state_class)
+          story_set.stories[0].shared_state_class)
       for story in story_set:
         self.assertIs(
             shared_state_class,

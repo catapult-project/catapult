@@ -12,9 +12,9 @@ from telemetry import value
 class TestBase(unittest.TestCase):
   def setUp(self):
     ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddUserStory(page_module.Page("http://www.bar.com/", ps, ps.base_dir))
-    ps.AddUserStory(page_module.Page("http://www.baz.com/", ps, ps.base_dir))
-    ps.AddUserStory(page_module.Page("http://www.foo.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.bar.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.baz.com/", ps, ps.base_dir))
+    ps.AddStory(page_module.Page("http://www.foo.com/", ps, ps.base_dir))
     self.page_set = ps
 
   @property

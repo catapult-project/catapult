@@ -16,9 +16,9 @@ class TestPageSet(unittest.TestCase):
     directory_path = tempfile.mkdtemp()
     try:
       ps = page_set.PageSet(serving_dirs=['a/b'], base_dir=directory_path)
-      ps.AddUserStory(page.Page('file://c/test.html', ps, ps.base_dir))
-      ps.AddUserStory(page.Page('file://c/test.js', ps, ps.base_dir))
-      ps.AddUserStory(page.Page('file://d/e/../test.html', ps, ps.base_dir))
+      ps.AddStory(page.Page('file://c/test.html', ps, ps.base_dir))
+      ps.AddStory(page.Page('file://c/test.js', ps, ps.base_dir))
+      ps.AddStory(page.Page('file://d/e/../test.html', ps, ps.base_dir))
     finally:
       os.rmdir(directory_path)
 

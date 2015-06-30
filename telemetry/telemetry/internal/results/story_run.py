@@ -6,21 +6,21 @@ from telemetry.value import failure
 from telemetry.value import skip
 
 
-class UserStoryRun(object):
-  def __init__(self, user_story):
-    self._user_story = user_story
+class StoryRun(object):
+  def __init__(self, story):
+    self._story = story
     self._values = []
 
   def AddValue(self, value):
     self._values.append(value)
 
   @property
-  def user_story(self):
-    return self._user_story
+  def story(self):
+    return self._story
 
   @property
   def values(self):
-    """The values that correspond to this user_story run."""
+    """The values that correspond to this story run."""
     return self._values
 
   @property

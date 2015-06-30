@@ -97,7 +97,7 @@ class ProjectConfig(object):
   """Contains information about the benchmark runtime environment.
 
   Attributes:
-    top_level_dir: A dir that contains benchmark, page test, and/or user story
+    top_level_dir: A dir that contains benchmark, page test, and/or story
         set dirs and associated artifacts.
     benchmark_dirs: A list of dirs containing benchmarks.
     benchmark_aliases: A dict of name:alias string pairs to be matched against

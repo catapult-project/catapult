@@ -9,10 +9,10 @@ import urlparse
 from catapult_base import cloud_storage
 from telemetry.internal.util import path
 from telemetry.page import shared_page_state
-from telemetry import user_story
+from telemetry import story
 
 
-class Page(user_story.UserStory):
+class Page(story.Story):
   def __init__(self, url, page_set=None, base_dir=None, name='',
                credentials_path=None,
                credentials_bucket=cloud_storage.PUBLIC_BUCKET, labels=None,

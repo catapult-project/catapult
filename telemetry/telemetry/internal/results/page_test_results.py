@@ -12,7 +12,7 @@ import traceback
 
 from catapult_base import cloud_storage
 from telemetry.internal.results import progress_reporter as reporter_module
-from telemetry.internal.results import user_story_run
+from telemetry.internal.results import story_run
 from telemetry import value as value_module
 from telemetry.value import failure
 from telemetry.value import skip
@@ -38,7 +38,7 @@ class PageTestResults(object):
       value_can_be_added_predicate: A function that takes two arguments:
           a value.Value instance (except failure.FailureValue, skip.SkipValue
           or trace.TraceValue) and a boolean (True when the value is part of
-          the first result for the user story). It returns True if the value
+          the first result for the story). It returns True if the value
           can be added to the test results and False otherwise.
     """
     # TODO(chrishenry): Figure out if trace_tag is still necessary.
@@ -56,7 +56,7 @@ class PageTestResults(object):
 
     self._current_page_run = None
     self._all_page_runs = []
-    self._all_user_stories = set()
+    self._all_stories = set()
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
     self._serialized_trace_file_ids_to_paths = {}
@@ -96,7 +96,7 @@ class PageTestResults(object):
   @property
   def current_page(self):
     assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.user_story
+    return self._current_page_run.story
 
   @property
   def current_page_run(self):
@@ -110,7 +110,7 @@ class PageTestResults(object):
   @property
   def pages_that_succeeded(self):
     """Returns the set of pages that succeeded."""
-    pages = set(run.user_story for run in self.all_page_runs)
+    pages = set(run.story for run in self.all_page_runs)
     pages.difference_update(self.pages_that_failed)
     return pages
 
@@ -120,7 +120,7 @@ class PageTestResults(object):
     failed_pages = set()
     for run in self.all_page_runs:
       if run.failed:
-        failed_pages.add(run.user_story)
+        failed_pages.add(run.story)
     return failed_pages
 
   @property
@@ -152,7 +152,7 @@ class PageTestResults(object):
 
   def WillRunPage(self, page):
     assert not self._current_page_run, 'Did not call DidRunPage.'
-    self._current_page_run = user_story_run.UserStoryRun(page)
+    self._current_page_run = story_run.StoryRun(page)
     self._progress_reporter.WillRunPage(self)
 
   def DidRunPage(self, page):  # pylint: disable=W0613
@@ -163,14 +163,14 @@ class PageTestResults(object):
     assert self._current_page_run, 'Did not call WillRunPage.'
     self._progress_reporter.DidRunPage(self)
     self._all_page_runs.append(self._current_page_run)
-    self._all_user_stories.add(self._current_page_run.user_story)
+    self._all_stories.add(self._current_page_run.story)
     self._current_page_run = None
 
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
     self._ValidateValue(value)
     is_first_result = (
-      self._current_page_run.user_story not in self._all_user_stories)
+      self._current_page_run.story not in self._all_stories)
     if not (isinstance(value, skip.SkipValue) or
             isinstance(value, failure.FailureValue) or
             isinstance(value, trace.TraceValue) or

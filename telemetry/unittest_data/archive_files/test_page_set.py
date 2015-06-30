@@ -30,6 +30,6 @@ class TestPageSet(page_set.PageSet):
       def RunGetActionRunner(self, action_runner):
         return action_runner
 
-    self.AddUserStory(Google(self))
-    self.AddUserStory(InternalPage(self))
-    self.AddUserStory(ExternalPage(self))
+    self.AddStory(Google(self))
+    self.AddStory(InternalPage(self))
+    self.AddStory(ExternalPage(self))

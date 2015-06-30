@@ -5,15 +5,16 @@
 import inspect
 import os
 
-from telemetry import user_story as user_story_module
+from telemetry.story import story as story_module
 from telemetry.wpr import archive_info
+from telemetry import decorators
 
 
 class StorySet(object):
-  """A collection of user story.
+  """A collection of stories.
 
-  A typical usage of StorySet would be to subclass it and then calling
-  AddUserStory for each UserStory.
+  A typical usage of StorySet would be to subclass it and then call
+  AddStory for each Story.
   """
 
   def __init__(self, archive_data_file='', cloud_storage_bucket=None,
@@ -31,7 +32,7 @@ class StorySet(object):
           containing hash files for non-wpr archive data stored in cloud
           storage.
     """
-    self.user_stories = []
+    self.stories = []
     self._archive_data_file = archive_data_file
     self._wpr_archive_info = None
     archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
@@ -48,12 +49,12 @@ class StorySet(object):
 
   @property
   def allow_mixed_story_states(self):
-    """True iff UserStories are allowed to have different StoryState classes.
+    """True iff Stories are allowed to have different StoryState classes.
 
     There are no checks in place for determining if SharedStates are
-    being assigned correctly to all UserStorys in a given StorySet. The
+    being assigned correctly to all Stories in a given StorySet. The
     majority of test cases should not need the ability to have multiple
-    ShareduserStoryStates, and usually implies you should be writing multiple
+    SharedStates, which usually implies you should be writing multiple
     benchmarks instead. We provide errors to avoid accidentally assigning
     or defaulting to the wrong SharedState.
     Override at your own risk. Here be dragons.
@@ -75,9 +76,9 @@ class StorySet(object):
   @property
   def serving_dirs(self):
     all_serving_dirs = self._serving_dirs.copy()
-    for user_story in self.user_stories:
-      if user_story.serving_dir:
-        all_serving_dirs.add(user_story.serving_dir)
+    for story in self.stories:
+      if story.serving_dir:
+        all_serving_dirs.add(story.serving_dir)
     return all_serving_dirs
 
   @property
@@ -96,22 +97,34 @@ class StorySet(object):
           os.path.join(self.base_dir, self.archive_data_file), self.bucket)
     return self._wpr_archive_info
 
-  def AddUserStory(self, user_story):
-    assert isinstance(user_story, user_story_module.UserStory)
-    self.user_stories.append(user_story)
+  def AddStory(self, story):
+    assert isinstance(story, story_module.Story)
+    self.stories.append(story)
 
-  def RemoveUserStory(self, user_story):
-    """Removes a UserStory.
+  def RemoveStory(self, story):
+    """Removes a Story.
 
-    Allows the user stories to be filtered.
+    Allows the stories to be filtered.
     """
-    self.user_stories.remove(user_story)
+    self.stories.remove(story)
+
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use AddStory instead. The user story concept is '
+    'being renamed to story.')
+  def AddUserStory(self, story):
+    self.AddStory(story)
+
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use RemoveStory instead. The user story concept is '
+    'being renamed to story.')
+  def RemoveUserStory(self, story):
+    self.RemoveStory(story)
 
   @classmethod
   def Name(cls):
     """Returns the string name of this StorySet.
-    Note that this should be a classmethod so benchmark_runner script can match
-    user story class with its name specified in the run command:
+    Note that this should be a classmethod so the benchmark_runner script can
+    match the story class with its name specified in the run command:
     'Run <User story test name> <User story class name>'
     """
     return cls.__module__.split('.')[-1]
@@ -119,37 +132,43 @@ class StorySet(object):
   @classmethod
   def Description(cls):
     """Return a string explaining in human-understandable terms what this
-    user story represents.
-    Note that this should be a classmethod so benchmark_runner script can
-    display user stories' names along their descriptions in the list command.
+    story represents.
+    Note that this should be a classmethod so the benchmark_runner script can
+    display stories' names along with their descriptions in the list command.
     """
     if cls.__doc__:
       return cls.__doc__.splitlines()[0]
     else:
       return ''
 
-  def WprFilePathForUserStory(self, story):
+  def WprFilePathForStory(self, story):
     """Convenient function to retrieve WPR archive file path.
 
     Args:
-      user_story: The UserStory to lookup.
+      story: The Story to look up.
 
     Returns:
-      The WPR archive file path for the given UserStory, if found.
-      Otherwise, return None.
+      The WPR archive file path for the given Story, if found.
+      Otherwise, None.
     """
     if not self.wpr_archive_info:
       return None
-    return self.wpr_archive_info.WprFilePathForUserStory(story)
+    return self.wpr_archive_info.WprFilePathForStory(story)
+
+  @decorators.Deprecated(
+    2015, 7, 19, 'Please use WprFilePathForStory instead. The user story '
+    'concept is being renamed to story.')
+  def WprFilePathForUserStory(self, story):
+    return self.WprFilePathForStory(story)
 
   def __iter__(self):
-    return self.user_stories.__iter__()
+    return self.stories.__iter__()
 
   def __len__(self):
-    return len(self.user_stories)
+    return len(self.stories)
 
   def __getitem__(self, key):
-    return self.user_stories[key]
+    return self.stories[key]
 
   def __setitem__(self, key, value):
-    self.user_stories[key] = value
+    self.stories[key] = value
