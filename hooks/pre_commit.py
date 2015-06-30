@@ -78,6 +78,9 @@ class _InputAPI(object):
     if affected_file.filename.endswith('.svg'):
       return True
 
+    if affected_file.filename.endswith('.skp'):
+      return True
+
     if (affected_file.filename.endswith('.gypi') or
         affected_file.filename.endswith('.gyp') or
         affected_file.filename.endswith('.gn')):

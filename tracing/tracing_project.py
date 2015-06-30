@@ -61,7 +61,7 @@ class TracingProject(project_module.Project):
   mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
 
   test_data_path = os.path.join(tracing_root_path, 'test_data')
-  skp_data_path = os.path.join(tracing_path, 'skp_data')
+  skp_data_path = os.path.join(tracing_root_path, 'skp_data')
 
   rjsmin_path = os.path.abspath(os.path.join(
       tracing_third_party_path, 'tvcm', 'third_party', 'rjsmin'))

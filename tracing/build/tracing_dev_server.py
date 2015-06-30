@@ -11,9 +11,6 @@ import sys
 from tracing import tracing_project
 import tvcm
 
-_ROOT_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..'))
-
 def getFilesIn(basedir):
   data_files = []
   for dirpath, dirnames, filenames in os.walk(basedir, followlinks=True):
@@ -44,8 +41,7 @@ def do_GET_json_examples(request):
   request.wfile.write(files_as_json)
 
 def do_GET_json_examples_skp(request):
-  skp_data_path = os.path.abspath(os.path.join(_ROOT_PATH, 'skp_data'))
-  data_files = getFilesIn(skp_data_path)
+  data_files = getFilesIn(request.server.skp_data_dir)
   files_as_json = json.dumps(data_files)
 
   request.send_response(200)
@@ -87,17 +83,21 @@ def do_POST_report_test_completion(request):
   request.server.RequestShutdown(exit_code=(0 if 'ALL_PASSED' in msg else 1))
 
 def Main(args):
+  project = tracing_project.TracingProject()
+
   parser = argparse.ArgumentParser(description='Run tracing development server')
   parser.add_argument(
       '-d', '--data-dir',
-      default=os.path.abspath(os.path.join(_ROOT_PATH, 'tracing', 'test_data')))
+      default=os.path.abspath(os.path.join(project.test_data_path)))
+  parser.add_argument(
+      '-s', '--skp-data-dir',
+      default=os.path.abspath(os.path.join(project.skp_data_path)))
   parser.add_argument('-p', '--port', default=8003, type=int)
   args = parser.parse_args()
 
-  project = tracing_project.TracingProject()
-
   server = tvcm.DevServer(port=args.port, project=project)
   server.data_dir = os.path.abspath(args.data_dir)
+  server.skp_data_dir = os.path.abspath(args.skp_data_dir)
   project.source_paths.append(server.data_dir)
 
   server.AddPathHandler('/json/examples', do_GET_json_examples)
