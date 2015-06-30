@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   var Thread = tr.model.Thread;
 
   test('sampleStackTrace', function() {
-    var thread = new Thread({}, 1);
+    var thread = tr.c.test_utils.newFakeThread();
 
     var model = new tr.Model();
     var fABC = tr.c.test_utils.newStackTrace(model, 'cat', ['a', 'b', 'c']);

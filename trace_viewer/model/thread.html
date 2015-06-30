@@ -65,6 +65,10 @@ tr.exportTo('tr.model', function() {
       return this.guid_;
     },
 
+    get model() {
+      return this.parent.model;
+    },
+
     get stableId() {
       return this.parent.stableId + '.' + this.tid;
     },

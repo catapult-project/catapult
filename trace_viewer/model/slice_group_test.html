@@ -20,9 +20,10 @@ tr.b.unittest.testSuite(function() {
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newThreadSlice = tr.c.test_utils.newThreadSlice;
   var newModel = tr.c.test_utils.newModel;
+  var newFakeThread = tr.c.test_utils.newFakeThread;
 
   test('basicBeginEnd', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     assert.equal(group.openSliceCount, 0);
     var sliceA = group.beginSlice('', 'a', 1, {a: 1});
     assert.equal(group.openSliceCount, 1);
@@ -36,7 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderBasic', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var sA = group.pushSlice(newSliceNamed('a', 1, 2));
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
 
@@ -53,7 +54,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderBasic2', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
 
@@ -70,7 +71,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderNestedExactly', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var sB = group.pushSlice(newSliceNamed('b', 1, 4));
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
 
@@ -93,7 +94,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderInstantEvents', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
     var sB = group.pushSlice(newSliceNamed('b', 2, 0));
 
@@ -107,7 +108,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderTwoInstantEvents', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
     var sB = group.pushSlice(newSliceNamed('b', 1, 0));
 
@@ -126,7 +127,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOutOfOrderAddition', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ][   b   ]
@@ -142,7 +143,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]
@@ -169,7 +170,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnNestedZeroLength', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a    ]
@@ -194,7 +195,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnGroup1', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]   [  c   ]
@@ -221,7 +222,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnGroup2', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]   [  d   ]
@@ -251,7 +252,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findNextSliceAfterBasic', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     // Pattern being tested:
     // [        a         ] [   d    ]
     // [b]    [   c   ]                 where b is dur=0
@@ -270,7 +271,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderTolerateFPInaccuracy', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [  a  ]
@@ -301,7 +302,7 @@ tr.b.unittest.testSuite(function() {
       __proto__: Slice.prototype
     };
 
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread, TestSlice);
     var b = new SliceGroup(thread, TestSlice);
     a.beginSlice('', 'one', 1);
@@ -325,7 +326,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nestedMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
@@ -346,7 +347,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 2);
@@ -371,7 +372,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitTwoMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 3);
@@ -406,7 +407,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitTwiceMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 2);
@@ -441,7 +442,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
@@ -466,7 +467,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitTwoMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
@@ -501,7 +502,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitTwiceMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
@@ -544,7 +545,7 @@ tr.b.unittest.testSuite(function() {
   //     |    one     | three |     two     |
   //          | three |       | three |
   test('splitTwiceMerge', function() {
-    var thread = {};
+    var thread = newFakeThread();
     var a = new SliceGroup(thread);
     var b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
@@ -579,7 +580,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('bounds', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     group.updateBounds();
     assert.isUndefined(group.bounds.min);
     assert.isUndefined(group.bounds.max);
@@ -592,7 +593,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithPartial', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     group.beginSlice('', 'a', 7);
     group.updateBounds();
     assert.equal(group.bounds.min, 7);
@@ -600,7 +601,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithTwoPartials', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     group.beginSlice('', 'a', 0);
     group.beginSlice('', 'a', 1);
     group.updateBounds();
@@ -609,7 +610,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithBothPartialAndRegular', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     group.updateBounds();
     assert.isUndefined(group.bounds.min);
     assert.isUndefined(group.bounds.max);
@@ -622,7 +623,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloserBasic', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     assert.equal(0, group.openSliceCount);
 
     group.pushSlice(newSliceNamed('a', 1, 0.5));
@@ -650,7 +651,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloserWithSubTasks', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     assert.equal(0, group.openSliceCount);
 
     group.beginSlice('', 'a', 1);
@@ -675,7 +676,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloseCompleteSlice', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     group.pushCompleteSlice('', 'a', 1, undefined);
     group.pushCompleteSlice('', 'b', 2, 3);
@@ -704,7 +705,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getSlicesOfName', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var expected = [];
 
     for (var i = 0; i < 10; i++) {
@@ -718,7 +719,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterSlicesInTimeRange', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
     var expected = [];
 
     for (var i = 0; i < 10; i++) {

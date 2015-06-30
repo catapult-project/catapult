@@ -55,6 +55,9 @@ tr.exportTo('tr.model', function() {
     this.topLevelSlices = [];
     this.haveTopLevelSlicesBeenBuilt = false;
     this.name_ = opt_name;
+
+    if (this.model === undefined)
+      throw new Error('SliceGroup must have model defined.');
   }
 
   SliceGroup.prototype = {
@@ -69,7 +72,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get model() {
-      return this.parentContainer_.parent.model;
+      return this.parentContainer_.model;
     },
 
     get stableId() {

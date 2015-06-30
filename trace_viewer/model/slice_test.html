@@ -17,9 +17,10 @@ tr.b.unittest.testSuite(function() {
   var newSlice = tr.c.test_utils.newSlice;
   var newSliceEx = tr.c.test_utils.newSliceEx;
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newFakeThread = tr.c.test_utils.newFakeThread;
 
   test('findDescendentSlice', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
         { title: 'sA', start: 0.0, duration: 10.0 }));
@@ -36,7 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateAllDescendents', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
         { title: 'sA', start: 0.0, duration: 10.0 }));
@@ -52,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mostTopLevelSlice', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
         { title: 'sA', start: 0.0, duration: 10.0 }));
@@ -69,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateAllAncestors', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
         { title: 'sA', start: 0.0, duration: 10.0 }));
@@ -86,7 +87,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateAllSubsequentSlices', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // [     A     ]
     // [ B ][ D ][F]
@@ -113,7 +114,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('ancestorAndSubsequentSlices', function() {
-    var group = new SliceGroup({});
+    var group = new SliceGroup(newFakeThread());
 
     // [     A     ]
     // [ B ][ D ][F]

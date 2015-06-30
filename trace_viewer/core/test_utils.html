@@ -296,6 +296,11 @@ tr.exportTo('tr.c.test_utils', function() {
     return new tr.Model([], io);
   }
 
+  function newFakeThread() {
+    var process = {model: {}};
+    return new tr.model.Thread(process);
+  }
+
   return {
     getStartAndDurationFromDict: getStartAndDurationFromDict,
     newAsyncSlice: newAsyncSlice,
@@ -307,6 +312,7 @@ tr.exportTo('tr.c.test_utils', function() {
     newCounterSeries: newCounterSeries,
     newFlowEventEx: newFlowEventEx,
     newSlice: newSlice,
+    newFakeThread: newFakeThread,
     newThreadSlice: newThreadSlice,
     newSliceNamed: newSliceNamed,
     newSliceEx: newSliceEx,
