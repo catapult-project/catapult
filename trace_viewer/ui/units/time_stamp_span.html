@@ -4,9 +4,11 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/base/units/time.html">
 <link rel="import" href="/base/units/time_stamp.html">
+
 <script>
 'use strict';
 tr.exportTo('tr.ui.units', function() {
@@ -55,7 +57,7 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     updateContent_: function() {
-      var content = tr.b.units.Time.currentDisplayUnit.format(this.timestamp_);
+      var content = tr.b.units.TimeStamp.format(this.timestamp_);
       this.shadowRoot.textContent = content;
     }
   });

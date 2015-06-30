@@ -4,13 +4,15 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/iteration_helpers.html">
+
+<link rel="import" href="/base/units/time.html">
+
 <script>
 'use strict';
 
 tr.exportTo('tr.b.units', function() {
   /**
-   * Float wrapper, representing a time stamps, capable of pretty-printing.
+   * Float wrapper, representing a time stamp, capable of pretty-printing.
    */
   function TimeStamp(timestamp) {
     this.timestamp = timestamp;
@@ -18,8 +20,12 @@ tr.exportTo('tr.b.units', function() {
 
   TimeStamp.prototype = {
     toString: function() {
-      return this.timestamp.toFixed(4) + ' ms';
+      return TimeStamp.format(this.timestamp);
     }
+  };
+
+  TimeStamp.format = function(timestamp) {
+    return tr.b.units.Time.currentDisplayUnit.format(timestamp);
   };
 
   return {
