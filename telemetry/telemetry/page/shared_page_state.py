@@ -52,7 +52,17 @@ class SharedPageState(story.SharedState):
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)
     else:
       self._test = test
-    device_type = self._device_type or story_set.user_agent_type
+    device_type = self._device_type
+    # TODO(aiolos, nednguyen): Remove this logic of pulling out user_agent_type
+    # from story_set once all page_set are converted to story_set
+    # (crbug.com/439512).
+    def _IsPageSetInstance(s):
+      # This is needed to avoid importing telemetry.page.page_set which will
+      # cause cyclic import.
+      return 'PageSet' == s.__class__.__name__ or 'PageSet' in (
+          list(c.__name__ for c in s.__class__.__bases__))
+    if not device_type and _IsPageSetInstance(story_set):
+      device_type = story_set.user_agent_type
     _PrepareFinderOptions(finder_options, self._test, device_type)
     self.browser = None
     self._finder_options = finder_options

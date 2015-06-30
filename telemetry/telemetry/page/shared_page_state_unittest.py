@@ -90,3 +90,24 @@ class SharedPageStateTests(unittest.TestCase):
         shared_page_state.SharedTabletPageState, 'tablet')
     self.assertUserAgentSetCorrectly(
         shared_page_state.Shared10InchTabletPageState, 'tablet_10_inch')
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedPageState, None)
+
+  def testSetPageStatesUserAgentThroughPageSetAttribute(self):
+    ps = page_set.PageSet(user_agent_type='mobile')
+    story = page.Page(
+        'http://www.google.com',
+        shared_page_state_class=shared_page_state.SharedPageState)
+    test = DummyTest()
+    story.shared_state_class(test, self.options, ps)
+    actual_user_agent = self.options.browser_options.browser_user_agent_type
+    self.assertEqual('mobile', actual_user_agent)
+
+    class DummyPageSet(page_set.PageSet):
+      def __init__(self):
+        super(DummyPageSet, self).__init__(user_agent_type='desktop')
+
+    ps = DummyPageSet()
+    story.shared_state_class(test, self.options, ps)
+    actual_user_agent = self.options.browser_options.browser_user_agent_type
+    self.assertEqual('desktop', actual_user_agent)
