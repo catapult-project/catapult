@@ -109,9 +109,9 @@ class SharedPageState(story.SharedState):
     # the page will get cleaned up to avoid future tests failing in weird ways.
     try:
       if self._current_tab and self._current_tab.IsAlive():
+        self._test.CleanUpAfterPage(self._current_page, self._current_tab)
         self._current_tab.CloseConnections()
     finally:
-      self._test.CleanUpAfterPage(self._current_page, self._current_tab)
       if self._current_page.credentials and self._did_login_for_current_page:
         self.browser.credentials.LoginNoLongerNeeded(
             self._current_tab, self._current_page.credentials)
