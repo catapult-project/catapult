@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import sys
 
 def RunChecks(depot_tools_input_api, depot_tools_output_api):
@@ -9,11 +8,20 @@ def RunChecks(depot_tools_input_api, depot_tools_output_api):
   input_api = tv_input_api.TvInputAPI(depot_tools_input_api)
 
   results = []
-  from build import presubmit_checks
-  results += presubmit_checks.RunChecks(input_api)
+  from tracing.build import check_gypi
+  err = check_gypi.GypiCheck()
+  if err:
+    results += [err]
+
+  from tracing.build import check_modules
+  err = check_modules.CheckModules()
+  if err:
+    results += [err]
+
+  from tracing.build import js_checks
+  results += js_checks.RunChecks(input_api)
 
   return map(depot_tools_output_api.PresubmitError, results)
-
 
 def CheckChange(input_api, output_api):
   original_sys_path = sys.path

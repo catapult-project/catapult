@@ -44,7 +44,8 @@ class CSSChecker(object):
         rules = filter(lambda r: ': ' in r, semis)
         props = map(lambda r: r[0:r.find(':')], rules)
         if props != sorted(props):
-          errors.append('    %s;\nExpected: %s' % (';\n    '.join(rules), ','.join(list(sorted(props)))))
+          errors.append('    %s;\nExpected: %s' % (
+                        ';\n    '.join(rules), ','.join(list(sorted(props)))))
       return errors
 
     def braces_have_space_before_and_nothing_after(line):

@@ -66,7 +66,7 @@ class JSChecker(object):
 
     try:
       base_path = os.path.abspath(os.path.join(
-          os.path.dirname(__file__), '..'))
+          os.path.dirname(__file__), '..', '..'))
       closure_linter_path = os.path.join(
           base_path, 'tracing', 'third_party', 'closure_linter')
       gflags_path = os.path.join(

@@ -57,7 +57,7 @@ class _AffectedFile(object):
     return self._depot_tools_affected_file.ChangedContents()
 
 
-class _InputAPI(object):
+class TvInputAPI(object):
   """Thin wrapper around InputAPI class from depot_tools.
 
   See tools/depot_tools/presubmit_support.py in the Chromium tree.
@@ -111,26 +111,3 @@ class _InputAPI(object):
 
   def IsThirdParty(self, affected_file):
     return affected_file.filename.startswith('tracing/third_party')
-
-
-def RunChecks(depot_tools_input_api, depot_tools_output_api):
-  input_api = _InputAPI(depot_tools_input_api)
-  results = []
-
-  from hooks import pre_commit_checks
-  results += pre_commit_checks.RunChecks(input_api)
-
-  from tracing.build import check_gypi
-  err = check_gypi.GypiCheck()
-  if err:
-    results += [err]
-
-  from tracing.build import check_modules
-  err = check_modules.CheckModules()
-  if err:
-    results += [err]
-
-  from hooks import js_checks
-  results += js_checks.RunChecks(input_api)
-
-  return map(depot_tools_output_api.PresubmitError, results)
