@@ -56,6 +56,7 @@ class TracingProject(project_module.Project):
   glmatrix_path = os.path.abspath(os.path.join(
       tracing_third_party_path, 'gl-matrix', 'dist'))
 
+  ui_path = os.path.abspath(os.path.join(tracing_src_path, 'ui'))
   d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
   chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
   mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
@@ -113,6 +114,18 @@ class TracingProject(project_module.Project):
                          for x in rcssmin_doc_files
                          if x.endswith('.html')]
     self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
+
+  # TODO(nedn): remove this once we can make d8_unittest run all the unittest
+  # files.
+  def FindAllD8RunnableFiles(self):
+    file_paths = []
+    for f in _FindAllFilesRecursive([self.tracing_src_path]):
+      # Ignore all files in ui/ dir.
+      if f.startswith(self.ui_path):
+        continue
+      if f.endswith('.html') or f.endswith('.js'):
+        file_paths.append(f)
+    return file_paths
 
   def FindAllTestModuleResources(self):
     all_filenames = _FindAllFilesRecursive([self.tracing_src_path])
