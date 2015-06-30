@@ -52,6 +52,13 @@ tr.exportTo('tr.b.units', function() {
 
       this.currentDisplayUnit_ = value;
       this.dispatchEvent(new Event('display-unit-changed'));
+    },
+
+    timestampFromUs: function(us) {
+      return us / 1000;
+    },
+    maybeTimestampFromUs: function(us) {
+      return us === undefined ? undefined : us / 1000;
     }
   };
 

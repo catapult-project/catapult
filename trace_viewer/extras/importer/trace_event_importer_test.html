@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/units/time.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
 
@@ -3376,6 +3377,15 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         annotations[2] instanceof tr.model.CommentBoxAnnotation);
     assert.equal(annotations[2].text, 'test');
     assert.deepEqual(annotations[2].location, location1);
+  });
+
+  test('importDisplayTimeUnit', function() {
+    var eventData = {
+      traceEvents: [],
+      displayTimeUnit: 'ns'
+    };
+    var m = new tr.Model(JSON.stringify(eventData), false);
+    assert.equal(m.intrinsicTimeUnit, tr.b.units.Time.supportedUnits.ns);
   });
 
   // TODO(nduca): one slice, two threads
