@@ -4,7 +4,7 @@
 
 import os
 
-from trace_viewer.build import check_common
+from tracing.build import check_common
 
 GYPI_FILE = 'trace_viewer.gypi'
 

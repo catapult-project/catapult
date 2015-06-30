@@ -6,7 +6,7 @@ import unittest
 import tempfile
 import shutil
 
-from trace_viewer.build import generate_about_tracing_contents
+from tracing.build import generate_about_tracing_contents
 
 class GenerateAboutTracingContentsUnittTest(unittest.TestCase):
   def test_smokeTest(self):

@@ -9,7 +9,7 @@ The dot file contains a text-based representation of a directed graph that
 explains why given module names were included in a trace_viewer config.
 
 Example usage:
-$ ./why_imported core.analysis.analysis_view > ~/analysis_view.dot
+$ ./why_imported ui.analysis.analysis_view > ~/analysis_view.dot
 
 This can then be converted to a graphical representation with the dot tool:
 $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
@@ -18,11 +18,11 @@ $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
 import sys
 import optparse
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 
 def Main(args):
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
 
   parser = optparse.OptionParser(
       usage='%prog <options> moduleNames', epilog=__doc__)
@@ -31,7 +31,7 @@ def Main(args):
   options, args = parser.parse_args(args)
 
   if options.config:
-    names = ['trace_viewer',
+    names = ['tracing',
              project.GetModuleNameForConfigName(options.config)]
     load_sequence = project.CalcLoadSequenceForModuleNames(names)
   else:

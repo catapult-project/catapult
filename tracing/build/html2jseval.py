@@ -8,10 +8,9 @@ import sys
 top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(top_dir)
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 from tvcm import parse_html_deps
-
 
 def Main(args):
   file_name = args[0]

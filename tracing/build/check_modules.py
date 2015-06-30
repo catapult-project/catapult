@@ -4,10 +4,10 @@
 
 import os
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 def CheckModules():
-  p = trace_viewer_project.TraceViewerProject()
+  p = tracing_project.TracingProject()
   try:
     p.CalcLoadSequenceForAllModules()
   except Exception, ex:

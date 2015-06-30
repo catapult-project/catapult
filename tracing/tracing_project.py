@@ -1,10 +1,10 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import sys
 import os
 import re
-
 
 from tvcm import project as project_module
 
@@ -42,70 +42,66 @@ def _IsFilenameATest(loader, x):
   # TODO(nduca): Add content test?
   return False
 
-class TraceViewerProject(project_module.Project):
-  trace_viewer_path = os.path.abspath(os.path.join(
+class TracingProject(project_module.Project):
+  tracing_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
-  src_path = os.path.abspath(os.path.join(
-      trace_viewer_path, 'trace_viewer'))
+  trace_viewer_path = os.path.abspath(os.path.join(
+      tracing_path, 'trace_viewer'))
 
-  extras_path = os.path.join(src_path, 'extras')
+  extras_path = os.path.join(trace_viewer_path, 'extras')
 
-  trace_viewer_third_party_path = os.path.abspath(os.path.join(
-      trace_viewer_path, 'third_party'))
+  tracing_third_party_path = os.path.abspath(os.path.join(
+      tracing_path, 'third_party'))
 
-  jszip_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'jszip'))
+  jszip_path = os.path.abspath(os.path.join(tracing_third_party_path, 'jszip'))
 
   glmatrix_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'gl-matrix', 'dist'))
+      tracing_third_party_path, 'gl-matrix', 'dist'))
 
-  d3_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'd3'))
+  d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
 
-  chai_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'chai'))
+  chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
 
-  mocha_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'mocha'))
+  mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
 
-  test_data_path = os.path.join(trace_viewer_path, 'test_data')
-  skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
+  test_data_path = os.path.join(tracing_path, 'test_data')
+  skp_data_path = os.path.join(tracing_path, 'skp_data')
 
   rjsmin_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'tvcm', 'third_party', 'rjsmin'))
+      tracing_third_party_path, 'tvcm', 'third_party', 'rjsmin'))
   rcssmin_path = os.path.abspath(os.path.join(
-      trace_viewer_third_party_path, 'tvcm', 'third_party', 'rcssmin'))
+      tracing_third_party_path, 'tvcm', 'third_party', 'rcssmin'))
 
   def __init__(self, *args, **kwargs):
-    super(TraceViewerProject, self).__init__(*args, **kwargs)
-    self.source_paths.append(self.src_path)
-    self.source_paths.append(self.trace_viewer_third_party_path)
+    super(TracingProject, self).__init__(*args, **kwargs)
+    self.source_paths.append(self.trace_viewer_path)
+    self.source_paths.append(self.tracing_third_party_path)
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
     self.source_paths.append(self.d3_path)
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
 
-    self.non_module_html_files.extendRel(self.trace_viewer_path, [
+    self.non_module_html_files.extendRel(self.tracing_path, [
       'bin/index.html',
       'test_data/android_systrace.html',
     ])
     for config_name in self.GetConfigNames():
-      self.non_module_html_files.appendRel(self.trace_viewer_path,
+      self.non_module_html_files.appendRel(self.tracing_path,
         'bin/trace_viewer_%s.html' % config_name)
 
     # Igore the old viewer if it still exists.
-    self.non_module_html_files.appendRel(self.trace_viewer_path,
+    self.non_module_html_files.appendRel(self.tracing_path,
       'bin/trace_viewer.html')
 
-    self.non_module_html_files.extendRel(self.trace_viewer_third_party_path, [
+    self.non_module_html_files.extendRel(self.tracing_third_party_path, [
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
     ])
 
     # Ignore drive html due to embedded external script resources.
-    self.non_module_html_files.appendRel(self.src_path,
+    self.non_module_html_files.appendRel(self.trace_viewer_path,
       'ui/extras/drive/index.html')
 
     rjsmin_doc_files = _FindAllFilesRecursive(
@@ -123,7 +119,7 @@ class TraceViewerProject(project_module.Project):
     self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
 
   def FindAllTestModuleResources(self):
-    all_filenames = _FindAllFilesRecursive([self.src_path])
+    all_filenames = _FindAllFilesRecursive([self.trace_viewer_path])
     test_module_filenames = [x for x in all_filenames if
                              _IsFilenameATest(self.loader, x)]
     test_module_filenames.sort()

@@ -2,15 +2,17 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import argparse
 import json
 import os
 import sys
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 import tvcm
 
-_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+_ROOT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def getFilesIn(basedir):
   data_files = []
@@ -92,7 +94,7 @@ def Main(args):
   parser.add_argument('-p', '--port', default=8003, type=int)
   args = parser.parse_args()
 
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
 
   server = tvcm.DevServer(port=args.port, project=project)
   server.data_dir = os.path.abspath(args.data_dir)
@@ -102,7 +104,7 @@ def Main(args):
   server.AddPathHandler('/tr/json/tests', do_GET_json_tests)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
-  server.AddSourcePathMapping(project.trace_viewer_path)
+  server.AddSourcePathMapping(project.tracing_path)
   server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
   server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
 

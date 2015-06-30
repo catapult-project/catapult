@@ -8,7 +8,7 @@ import os
 import sys
 
 import tvcm
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
@@ -25,7 +25,7 @@ def main(args):
     return 1
 
   filenames = ["ui/extras/about_tracing/about_tracing.html"]
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
   load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
 
   olddir = os.getcwd()

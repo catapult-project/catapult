@@ -63,11 +63,11 @@ def _CheckCopyrightThirdParty(input_api):
       input_api.IsThirdParty(f)
       for f in input_api.AffectedFiles(include_deletes=False))
   if has_third_party_change:
-    trace_viewer_root = os.path.abspath(
+    tracing_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..'))
-    trace_viewer_third_party = os.path.join(trace_viewer_root, 'third_party')
+    tracing_third_party = os.path.join(tracing_root, 'third_party')
     has_invalid_license = checklicenses.check_licenses(
-        trace_viewer_root, trace_viewer_third_party)
+        tracing_root, tracing_third_party)
     if has_invalid_license:
       results.append(
           'License check encountered invalid licenses in third_party/.')

@@ -8,15 +8,15 @@
 import os
 import sys
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 def Main(paths_to_lint):
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
   new_paths = [
     os.path.abspath(os.path.join(
-      project.trace_viewer_third_party_path, 'python_gflags')),
+      project.tracing_third_party_path, 'python_gflags')),
     os.path.abspath(os.path.join(
-      project.trace_viewer_third_party_path, 'closure_linter'))
+      project.tracing_third_party_path, 'closure_linter'))
   ]
   sys.path += new_paths
   try:

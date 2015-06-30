@@ -4,7 +4,7 @@
 
 import os
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 
 FILE_GROUPS = ["tracing_css_files",
@@ -44,17 +44,16 @@ Correct listing:
     return ''
 
 def GetKnownFiles():
-  p = trace_viewer_project.TraceViewerProject()
+  p = tracing_project.TracingProject()
   m = p.loader.LoadModule(module_name='ui.extras.about_tracing.about_tracing')
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 
-  return list(set([os.path.relpath(f, p.trace_viewer_path)
+  return list(set([os.path.relpath(f, p.tracing_path)
                    for f in absolute_filenames]))
 
 def CheckCommon(file_name, listed_files):
-  project = trace_viewer_project.TraceViewerProject()
-  build_dir = os.path.join(project.src_path, 'build')
+  project = tracing_project.TracingProject()
 
   known_files = GetKnownFiles()
   u = set(listed_files).union(set(known_files))

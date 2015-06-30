@@ -13,9 +13,8 @@ import StringIO
 import sys
 import tempfile
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 from tvcm import generate
-
 
 def Main(args):
   parser = optparse.OptionParser(
@@ -23,7 +22,7 @@ def Main(args):
     epilog="""Takes the provided trace file and produces a standalone html
 file that contains both the trace and the trace viewer.""")
 
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
   project.AddConfigNameOptionToParser(parser)
 
   parser.add_option(
@@ -72,13 +71,13 @@ class ViewerDataScript(generate.ExtraScript):
 def WriteHTMLForTraceDataToFile(trace_data_list,
                                 title, output_file,
                                 config_name=None):
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
 
   if config_name == None:
     config_name = project.GetDefaultConfigName()
 
   modules = [
-    'build.trace2html',
+    'trace2html',
     'extras.importer.gzip_importer', # Must have this regardless of config.
     project.GetModuleNameForConfigName(config_name)
   ]

@@ -5,7 +5,7 @@
 
 import sys
 
-from trace_viewer.build import vulcanize_trace_viewer
+from tracing.build import vulcanize_trace_viewer
 
 
 if __name__ == '__main__':

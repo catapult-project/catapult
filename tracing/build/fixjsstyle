@@ -9,5 +9,5 @@ import sys
 if __name__ == '__main__':
   top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
   sys.path.append(top_dir)
-  from trace_viewer.build import generate_about_tracing_contents
-  sys.exit(generate_about_tracing_contents.main(sys.argv))
+  from tracing.build import fixjsstyle
+  sys.exit(fixjsstyle.main())

@@ -6,8 +6,8 @@ import collections
 import os
 import re
 
-from trace_viewer.build import check_common
-from trace_viewer import trace_viewer_project
+from tracing.build import check_common
+from tracing import tracing_project
 
 class _Token(object):
   def __init__(self, data, id=None):
@@ -112,9 +112,9 @@ def _UpdateBuildFile(filename, build_file_class):
 
 
 def UpdateGypi():
-  tvp = trace_viewer_project.TraceViewerProject()
+  tvp = tracing_project.TracingProject()
   _UpdateBuildFile(
-      os.path.join(tvp.trace_viewer_path, 'trace_viewer.gypi'), GypiFile)
+      os.path.join(tvp.tracing_path, 'trace_viewer.gypi'), GypiFile)
 
 
 def Update():

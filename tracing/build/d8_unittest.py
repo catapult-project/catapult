@@ -5,8 +5,8 @@
 import os
 import unittest
 
-from trace_viewer.build import d8_runner
-from trace_viewer.build import check_common
+from tracing.build import d8_runner
+from tracing.build import check_common
 
 
 class D8RunnerUnittest(unittest.TestCase):

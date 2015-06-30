@@ -6,7 +6,7 @@ import unittest
 import tempfile
 import os
 
-from trace_viewer.build import trace2html
+from tracing.build import trace2html
 
 class Trace2HTMLTests(unittest.TestCase):
   def test_writeHTMLForTracesToFile(self):

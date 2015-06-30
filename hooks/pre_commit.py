@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 
 class _AffectedFile(object):
@@ -87,7 +87,7 @@ class _InputAPI(object):
       return True
 
     # Is test data?
-    test_data_path = trace_viewer_project.TraceViewerProject.test_data_path
+    test_data_path = tracing_project.TracingProject.test_data_path
     if affected_file.absolute_path.startswith(test_data_path):
       return True
 
@@ -104,12 +104,12 @@ def RunChecks(depot_tools_input_api, depot_tools_output_api):
   from hooks import pre_commit_checks
   results += pre_commit_checks.RunChecks(input_api)
 
-  from trace_viewer.build import check_gypi
+  from tracing.build import check_gypi
   err = check_gypi.GypiCheck()
   if err:
     results += [err]
 
-  from trace_viewer.build import check_modules
+  from tracing.build import check_modules
   err = check_modules.CheckModules()
   if err:
     results += [err]

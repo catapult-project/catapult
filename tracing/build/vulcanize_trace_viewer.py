@@ -9,7 +9,7 @@ import StringIO
 import sys
 import tempfile
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 from tvcm import generate
 
 
@@ -20,7 +20,7 @@ def Main(args):
     epilog="""Produces a standalone html import that contains the
 trace viewer.""")
 
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
   project.AddConfigNameOptionToParser(parser)
 
   parser.add_option('--no-min', dest='no_min', default=False,
@@ -28,25 +28,26 @@ trace viewer.""")
                     help='skip minification')
   parser.add_option('--report-sizes', dest='report_sizes', default=False,
                     action='store_true',
-                    help='Explain what makes trace_viewer big.')
+                    help='Explain what makes tracing big.')
   parser.add_option('--report-deps', dest='report_deps', default=False,
                     action='store_true',
                     help='Print a dot-formatted deps graph.')
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
-           'given, $TRACE_VIEWER/bin/trace_viewer.html is used.')
+           'given, $TRACING/bin/trace_viewer.html is used.')
 
   options, args = parser.parse_args(args)
   if len(args) != 0:
     parser.error('No arguments needed.')
 
-  trace_viewer_dir = os.path.relpath(os.path.join(os.path.dirname(__file__), '..', '..'))
+  tracing_dir = os.path.relpath(
+      os.path.join(os.path.dirname(__file__), '..', '..'))
   if options.output:
     output_filename = options.output
   else:
     output_filename = os.path.join(
-        trace_viewer_dir, 'bin/trace_viewer_%s.html' % options.config_name)
+        tracing_dir, 'bin/trace_viewer_%s.html' % options.config_name)
 
   with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(
@@ -67,14 +68,15 @@ def WriteTraceViewer(output_file,
                      output_html_head_and_body=True,
                      extra_search_paths=None,
                      extra_module_names_to_load=None):
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
   if extra_search_paths:
     for p in extra_search_paths:
       project.source_paths.append(p)
   if config_name == None:
     config_name = project.GetDefaultConfigName()
 
-  module_names = ['trace_viewer', project.GetModuleNameForConfigName(config_name)]
+  module_names = ['trace_viewer',
+                  project.GetModuleNameForConfigName(config_name)]
   if extra_module_names_to_load:
     module_names += extra_module_names_to_load
   load_sequence = project.CalcLoadSequenceForModuleNames(

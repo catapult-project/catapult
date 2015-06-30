@@ -1,12 +1,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import cProfile, pstats, StringIO
 import inspect
 import optparse
 import sys
 
-from trace_viewer import trace_viewer_project
+from tracing import tracing_project
 
 class Bench(object):
   def SetUp(self):
@@ -18,17 +19,17 @@ class Bench(object):
 
 class CalcDepsBench(Bench):
   def Run(self):
-    project = trace_viewer_project.TraceViewerProject()
+    project = tracing_project.TracingProject()
     load_sequence = project.CalcLoadSequenceForAllModules()
 
 class FindAllModuleFilenamesBench(Bench):
   def Run(self):
-    project = trace_viewer_project.TraceViewerProject()
+    project = tracing_project.TracingProject()
     filenames = project.FindAllModuleFilenames()
 
 class DoGenerate(Bench):
   def SetUp():
-    self.project = trace_viewer_project.TraceViewerProject()
+    self.project = tracing_project.TracingProject()
     self.load_sequence = project.CalcLoadSequenceForAllModules()
 
   def Run(self):
@@ -43,7 +44,7 @@ def Main(args):
   options, args = parser.parse_args(args)
 
   benches = [g for g in globals().values()
-             if g != Bench and inspect.isclass(g) and Bench in inspect.getmro(g)]
+            if g != Bench and inspect.isclass(g) and Bench in inspect.getmro(g)]
   if len(args) != 1:
     sys.stderr.write('\n'.join([b.__name__ for b in benches]))
     return 1

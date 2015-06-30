@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from trace_viewer.build import check_common
+from tracing.build import check_common
 
 class CheckCommonUnittTest(unittest.TestCase):
   def test_filesSortedTest(self):

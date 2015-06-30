@@ -4,20 +4,18 @@
 import os
 import sys
 
-from trace_viewer import trace_viewer_project
-
-
+from tracing import tracing_project
 
 def main():
-  project = trace_viewer_project.TraceViewerProject()
+  project = tracing_project.TracingProject()
 
   sys.path.append(os.path.join(
-      project.trace_viewer_third_party_path, 'python_gflags'))
+      project.tracing_third_party_path, 'python_gflags'))
   sys.path.append(os.path.join(
-      project.trace_viewer_third_party_path, 'closure_linter'))
+      project.tracing_third_party_path, 'closure_linter'))
 
   from closure_linter import fixjsstyle
 
-  os.chdir(project.src_path)
+  os.chdir(project.trace_viewer_path)
 
   fixjsstyle.main()
