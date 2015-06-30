@@ -5,6 +5,12 @@
 import collections
 import os
 import re
+import sys
+
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
 
 from tracing.build import check_common
 from tracing import tracing_project
@@ -114,7 +120,7 @@ def _UpdateBuildFile(filename, build_file_class):
 def UpdateGypi():
   tvp = tracing_project.TracingProject()
   _UpdateBuildFile(
-      os.path.join(tvp.tracing_path, 'trace_viewer.gypi'), GypiFile)
+      os.path.join(tvp.tracing_root_path, 'trace_viewer.gypi'), GypiFile)
 
 
 def Update():

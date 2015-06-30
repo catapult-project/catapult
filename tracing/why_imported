@@ -20,7 +20,6 @@ import optparse
 
 from tracing import tracing_project
 
-
 def Main(args):
   project = tracing_project.TracingProject()
 

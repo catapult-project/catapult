@@ -5,8 +5,7 @@
 
 import sys
 
-from tracing.build import trace2html
-
+from build import vulcanize_trace_viewer
 
 if __name__ == '__main__':
-  sys.exit(trace2html.Main(sys.argv[1:]))
+  sys.exit(vulcanize_trace_viewer.Main(sys.argv[1:]))

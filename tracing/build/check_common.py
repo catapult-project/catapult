@@ -2,7 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import os
+
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
 
 from tracing import tracing_project
 
@@ -49,7 +55,7 @@ def GetKnownFiles():
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 
-  return list(set([os.path.relpath(f, p.tracing_path)
+  return list(set([os.path.relpath(f, p.tracing_root_path)
                    for f in absolute_filenames]))
 
 def CheckCommon(file_name, listed_files):

@@ -95,8 +95,14 @@ class _InputAPI(object):
       return True
 
     if (affected_file.filename.startswith('.gitignore') or
+        affected_file.filename.startswith('tracing/.allow-devtools-save') or
+        affected_file.filename.startswith('tracing/AUTHORS') or
+        affected_file.filename.startswith('tracing/LICENSE') or
+        affected_file.filename.startswith('tracing/OWNERS') or
+        affected_file.filename.startswith('tracing/bower.json') or
+        affected_file.filename.startswith('tracing/.gitignore') or
         affected_file.filename.startswith('tracing/.bowerrc') or
-        affected_file.filename.startswith('README.md') or
+        affected_file.filename.startswith('tracing/README.md') or
         affected_file.filename.startswith(
             'tracing/examples/string_convert.js')):
       return True

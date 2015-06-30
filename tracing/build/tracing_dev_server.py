@@ -8,6 +8,11 @@ import json
 import os
 import sys
 
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
+
 from tracing import tracing_project
 import tvcm
 
@@ -104,7 +109,7 @@ def Main(args):
   server.AddPathHandler('/tr/json/tests', do_GET_json_tests)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
-  server.AddSourcePathMapping(project.tracing_path)
+  server.AddSourcePathMapping(project.tracing_root_path)
   server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
   server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
 

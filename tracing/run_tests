@@ -4,6 +4,11 @@
 # found in the LICENSE file.
 
 import sys
+import os
+
+hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if hooks_path not in sys.path:
+  sys.path.append(hooks_path)
 
 from hooks import install
 

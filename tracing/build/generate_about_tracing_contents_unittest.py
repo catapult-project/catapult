@@ -5,6 +5,12 @@ import base64
 import unittest
 import tempfile
 import shutil
+import sys
+
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
 
 from tracing.build import generate_about_tracing_contents
 

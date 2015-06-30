@@ -4,10 +4,9 @@
 # found in the LICENSE file.
 
 import sys
+import os
 
-from hooks import install
-from tracing.build import tracing_dev_server
+from build import trace2html
 
 if __name__ == '__main__':
-  install.InstallHooks()
-  sys.exit(tracing_dev_server.Main(sys.argv[1:]))
+  sys.exit(trace2html.Main(sys.argv[1:]))

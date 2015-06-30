@@ -2,7 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import os
+
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
 
 from tracing import tracing_project
 
