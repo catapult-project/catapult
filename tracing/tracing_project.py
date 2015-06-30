@@ -49,7 +49,7 @@ class TracingProject(project_module.Project):
   extras_path = os.path.join(tracing_src_path, 'extras')
 
   tracing_third_party_path = os.path.abspath(os.path.join(
-      tracing_path, 'third_party'))
+      tracing_root_path, 'third_party'))
 
   jszip_path = os.path.abspath(os.path.join(tracing_third_party_path, 'jszip'))
 
@@ -71,6 +71,7 @@ class TracingProject(project_module.Project):
   def __init__(self, *args, **kwargs):
     super(TracingProject, self).__init__(*args, **kwargs)
     self.source_paths.append(self.tracing_src_path)
+    self.source_paths.append(self.tracing_root_path)
     self.source_paths.append(self.tracing_third_party_path)
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
@@ -78,16 +79,16 @@ class TracingProject(project_module.Project):
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
 
-    self.non_module_html_files.extendRel(self.tracing_path, [
+    self.non_module_html_files.extendRel(self.tracing_root_path, [
       'bin/index.html',
-      'tracing/test_data/android_systrace.html',
+      'test_data/android_systrace.html',
     ])
     for config_name in self.GetConfigNames():
-      self.non_module_html_files.appendRel(self.tracing_path,
+      self.non_module_html_files.appendRel(self.tracing_root_path,
         'bin/trace_viewer_%s.html' % config_name)
 
-    # Igore the old viewer if it still exists.
-    self.non_module_html_files.appendRel(self.tracing_path,
+    # Ignore the old viewer if it still exists.
+    self.non_module_html_files.appendRel(self.tracing_root_path,
       'bin/trace_viewer.html')
 
     self.non_module_html_files.extendRel(self.tracing_third_party_path, [

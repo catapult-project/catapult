@@ -35,7 +35,7 @@ trace viewer.""")
   parser.add_option(
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
-           'given, $TRACING/bin/trace_viewer.html is used.')
+           'given, $TRACING/tracing/bin/trace_viewer.html is used.')
 
   options, args = parser.parse_args(args)
   if len(args) != 0:
@@ -47,7 +47,7 @@ trace viewer.""")
     output_filename = options.output
   else:
     output_filename = os.path.join(
-        tracing_dir, 'bin/trace_viewer_%s.html' % options.config_name)
+        tracing_dir, 'tracing/bin/trace_viewer_%s.html' % options.config_name)
 
   with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(

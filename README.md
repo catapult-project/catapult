@@ -4,7 +4,7 @@
 -->
 [![Build Status](https://travis-ci.org/google/trace-viewer.svg?branch=master)](https://travis-ci.org/google/trace-viewer)
 
-![Trace Viewer Logo](https://raw.githubusercontent.com/google/trace-viewer/master/images/trace-viewer-circle-blue.png)
+![Trace Viewer Logo](https://raw.githubusercontent.com/google/trace-viewer/master/tracing/images/trace-viewer-circle-blue.png)
 
 Trace-Viewer is the javascript frontend for Chrome [about:tracing](http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool) and [Android
 systrace](http://developer.android.com/tools/help/systrace.html).

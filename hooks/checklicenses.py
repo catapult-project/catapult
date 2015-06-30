@@ -38,7 +38,7 @@ WHITELISTED_LICENSES = [
 
 
 PATH_SPECIFIC_WHITELISTED_LICENSES = {
-    'third_party/devscripts': [
+    'tracing/third_party/devscripts': [
         'GPL (v2 or later)',
     ],
 }
@@ -59,6 +59,7 @@ def check_licenses(base_directory, target_directory=None):
   logging.info('')
 
   licensecheck_path = os.path.abspath(os.path.join(base_directory,
+                                                   'tracing',
                                                    'third_party',
                                                    'devscripts',
                                                    'licensecheck.pl'))

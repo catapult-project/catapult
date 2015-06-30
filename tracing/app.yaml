@@ -25,7 +25,7 @@ handlers:
   secure: always
 
 - url: /components
-  static_dir: third_party/components
+  static_dir: tracing/third_party/components
   secure: always
 
 - url: /trace_viewer
@@ -33,18 +33,18 @@ handlers:
   secure: always
 
 - url: /gl-matrix-min.js
-  static_files: third_party/gl-matrix/dist/gl-matrix-min.js
-  upload: third_party/gl-matrix/dist/gl-matrix-min.js
+  static_files: tracing/third_party/gl-matrix/dist/gl-matrix-min.js
+  upload: tracing/third_party/gl-matrix/dist/gl-matrix-min.js
   secure: always
 
 - url: /jszip.min.js
-  static_files: third_party/jszip/jszip.min.js
-  upload: third_party/jszip/jszip.min.js
+  static_files: tracing/third_party/jszip/jszip.min.js
+  upload: tracing/third_party/jszip/jszip.min.js
   secure: always
 
 - url: /d3.min.js
-  static_files: third_party/d3/d3.min.js
-  upload: third_party/d3/d3.min.js
+  static_files: tracing/third_party/d3/d3.min.js
+  upload: tracing/third_party/d3/d3.min.js
   secure: always
 
 - url: /.*

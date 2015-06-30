@@ -7,7 +7,7 @@ import sys
 
 def _SetupTVCMPath():
   tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', 'third_party', 'tvcm'))
+                                           'third_party', 'tvcm'))
   if tvcm_path not in sys.path:
     sys.path.append(tvcm_path)
 

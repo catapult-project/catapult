@@ -65,12 +65,12 @@ def _CheckCopyrightThirdParty(input_api):
   if has_third_party_change:
     tracing_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..'))
-    tracing_third_party = os.path.join(tracing_root, 'third_party')
+    tracing_third_party = os.path.join(tracing_root, 'tracing', 'third_party')
     has_invalid_license = checklicenses.check_licenses(
         tracing_root, tracing_third_party)
     if has_invalid_license:
       results.append(
-          'License check encountered invalid licenses in third_party/.')
+          'License check encountered invalid licenses in tracing/third_party/.')
   return results
 
 def _CheckCopyrightNonThirdParty(input_api):

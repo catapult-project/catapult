@@ -17,7 +17,7 @@ from tvcm import parse_html_deps
 
 _V8_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__),
-    os.path.pardir, os.path.pardir, 'third_party', 'v8'))
+    os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
 
 _HTML_JS_EVAL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html2jseval.py'))

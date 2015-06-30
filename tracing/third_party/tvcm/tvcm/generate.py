@@ -20,9 +20,6 @@ from tvcm import module as module_module
 from tvcm import html_generation_controller
 
 
-srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                      "..", "..", "..", "src"))
-
 html_warning_message = """
 
 

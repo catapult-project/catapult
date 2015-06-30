@@ -94,13 +94,17 @@ class _InputAPI(object):
     if affected_file.absolute_path.startswith(test_data_path):
       return True
 
-    if affected_file.filename.startswith('.gitignore'):
+    if (affected_file.filename.startswith('.gitignore') or
+        affected_file.filename.startswith('tracing/.bowerrc') or
+        affected_file.filename.startswith('README.md') or
+        affected_file.filename.startswith(
+            'tracing/examples/string_convert.js')):
       return True
 
     return False
 
   def IsThirdParty(self, affected_file):
-    return affected_file.filename.startswith('third_party')
+    return affected_file.filename.startswith('tracing/third_party')
 
 
 def RunChecks(depot_tools_input_api, depot_tools_output_api):
