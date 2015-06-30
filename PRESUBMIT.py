@@ -22,7 +22,7 @@ def GetPreferredTryMasters(project, change):
 def _CommonChecks(input_api, output_api):
   results = []
   results.extend(input_api.canned_checks.PanProjectChecks(
-      input_api, output_api, project_name='catapult'))
+      input_api, output_api))
   return results
 
 
