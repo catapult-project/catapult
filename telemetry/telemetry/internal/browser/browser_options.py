@@ -224,7 +224,7 @@ class BrowserOptions(object):
 
     # The amount of time Telemetry should wait for the browser to start.
     # This property is not exposed as a command line option.
-    self._browser_startup_timeout = 30
+    self._browser_startup_timeout = 60
 
     self.disable_background_networking = True
     self.no_proxy_server = False
