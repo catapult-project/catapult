@@ -440,7 +440,7 @@ doit &
         interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
         if not os.path.exists(interface_conf_file):
           interface_conf_dir = os.path.dirname(interface_conf_file)
-          if not interface_conf_dir:
+          if not os.path.exists(interface_conf_dir):
             subprocess.call(['/usr/bin/sudo', '/bin/mkdir', interface_conf_dir])
             subprocess.call(
                 ['/usr/bin/sudo', '/bin/chmod', '755', interface_conf_dir])
