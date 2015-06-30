@@ -7,6 +7,7 @@ import logging
 import sys
 
 from telemetry import benchmark
+from telemetry import story
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -120,7 +121,7 @@ class WprRecorder(object):
       page_set_base_dir = self._options.page_set_base_dir
     else:
       page_set_base_dir = base_dir
-    self._page_set = self._GetStorySet(page_set_base_dir, target)
+    self._story_set = self._GetStorySet(page_set_base_dir, target)
 
   @property
   def options(self):
@@ -165,18 +166,18 @@ class WprRecorder(object):
   def _GetStorySet(self, base_dir, target):
     if self._benchmark is not None:
       return self._benchmark.CreateStorySet(self._options)
-    ps = _MaybeGetInstanceOfClass(target, base_dir, page_set.PageSet)
-    if ps is None:
+    story_set = _MaybeGetInstanceOfClass(target, base_dir, story.StorySet)
+    if story_set is None:
       self._parser.print_usage()
       sys.exit(1)
-    return ps
+    return story_set
 
   def Record(self, results):
-    assert self._page_set.wpr_archive_info, (
+    assert self._story_set.wpr_archive_info, (
       'Pageset archive_data_file path must be specified.')
-    self._page_set.wpr_archive_info.AddNewTemporaryRecording()
+    self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
-    story_runner.Run(self._record_page_test, self._page_set,
+    story_runner.Run(self._record_page_test, self._story_set,
         test_expectations.TestExpectations(), self._options, results)
 
   def HandleResults(self, results, upload_to_cloud_storage):
@@ -184,7 +185,7 @@ class WprRecorder(object):
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
-    self._page_set.wpr_archive_info.AddRecordedUserStories(
+    self._story_set.wpr_archive_info.AddRecordedStories(
         results.pages_that_succeeded,
         upload_to_cloud_storage)
 
