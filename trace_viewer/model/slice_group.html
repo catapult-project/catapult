@@ -374,11 +374,13 @@ tr.exportTo('tr.model', function() {
       });
     },
     createSubSlicesImpl_: function() {
+      var precisionUnit = this.model.intrinsicTimeUnit;
+
       function addSliceIfBounds(root, child) {
         // Because we know that the start time of child is >= the start time
         // of all other slices seen so far, we can just check the last slice
         // of each row for bounding.
-        if (root.bounds(child)) {
+        if (root.bounds(child, precisionUnit)) {
           if (root.subSlices && root.subSlices.length > 0) {
             if (addSliceIfBounds(root.subSlices[root.subSlices.length - 1],
                                  child))

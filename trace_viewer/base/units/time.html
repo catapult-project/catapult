@@ -16,6 +16,10 @@ found in the LICENSE file.
 tr.exportTo('tr.b.units', function() {
   var ms = {
     suffix: 'ms',
+    // compares a < b with adjustments to precision errors
+    roundedLess: function(a, b) {
+      return Math.round(a * 1000) < Math.round(b * 1000);
+    },
     format: function(ts) {
       var tsRounded = Math.round(ts * 1000.0) / 1000.0;
       var n = new Number(tsRounded);
@@ -25,6 +29,10 @@ tr.exportTo('tr.b.units', function() {
 
   var ns = {
     suffix: 'ns',
+    // compares a < b with adjustments to precision errors
+    roundedLess: function(a, b) {
+      return Math.round(a * 1000000) < Math.round(b * 1000000);
+    },
     format: function(ts) {
       var tsRounded = Math.round(ts * 1000000.0);
       var n = new Number(tsRounded);

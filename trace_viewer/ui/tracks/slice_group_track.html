@@ -63,6 +63,8 @@ tr.exportTo('tr.ui.tracks', function() {
      * slices that are non overlapping.
      */
     buildSubRows_: function(slices) {
+      var precisionUnit = this.group.model.intrinsicTimeUnit;
+
       // This function works by walking through slices by start time.
       //
       // The basic idea here is to insert each slice as deep into the subrow
@@ -135,7 +137,7 @@ tr.exportTo('tr.ui.tracks', function() {
             this.badSlices_.push(slice);
             inserted = true;
           }
-          if (insertedSlice.bounds(slice)) {
+          if (insertedSlice.bounds(slice, precisionUnit)) {
             // Insert it into subRow j + 1.
             while (subRows.length <= j + 1)
               subRows.push([]);
