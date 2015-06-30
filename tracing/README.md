@@ -13,7 +13,7 @@ It provides rich analysis and visualization capabilities for many types of trace
 files. Its particularly good at viewing linux kernel traces (aka [ftrace](https://www.kernel.org/doc/Documentation/trace/ftrace.txt)) and Chrome's
 [trace_event format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview). Trace viewer can be [embedded](https://github.com/google/trace-viewer/wiki/Embedding) as a component in your own code, or used from a plain checkout to turn trace files into standalone, emailable HTML files from the commandline:
 
-    trace2html my_trace.json --output=my_trace.html && open my_trace.html
+    ./tracing/trace2html my_trace.json --output=my_trace.html && open my_trace.html
 
 Its easy to [extend trace viewer](https://github.com/google/trace-viewer/wiki/ExtendingAndCustomizing) to support your favorite trace format, or add domain specific visualizations to the UI to simplify drilling down into complex data.
 
