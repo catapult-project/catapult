@@ -47,7 +47,7 @@ _REL_PATH_D8_BLACK_LIST_FILES = {
   "tracing/base/deep_utils_test.html",
   "tracing/base/event_target.html",
   "tracing/base/event_target_test.html",
-  "tracing/base/events.html",
+  "tracing/base/event.html",
   "tracing/base/extension_registry.html",
   "tracing/base/extension_registry_base.html",
   "tracing/base/extension_registry_basic.html",
