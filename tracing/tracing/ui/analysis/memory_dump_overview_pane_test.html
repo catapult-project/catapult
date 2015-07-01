@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/deep_utils.html">
 <link rel="import" href="/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import" href="/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/test_utils.html">
 
 <script>
@@ -183,9 +184,13 @@ tr.b.unittest.testSuite(function() {
 
   test('memory', function() {
     var processMemoryDumps = createProcessMemoryDumps();
+    var containerEl = document.createElement('div');
+    containerEl.selectionController = new tr.c.SelectionController(undefined);
 
     function simulateView(dumps, expectSelectionEventFires, callback) {
       var view = document.createElement('tr-ui-a-memory-dump-overview-pane');
+      containerEl.textContent = '';
+      containerEl.appendChild(view);
 
       var didFireSelectedDumpChanged = false;
       view.addEventListener('selected-memory-cell-changed', function(e) {

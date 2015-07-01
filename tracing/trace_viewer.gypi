@@ -315,6 +315,7 @@
       'tracing/ui/base/ui.html',
       'tracing/ui/base/ui_state.html',
       'tracing/ui/base/utils.html',
+      'tracing/ui/base/view_specific_brushing_state.html',
       'tracing/ui/extras/about_tracing/about_tracing.html',
       'tracing/ui/extras/about_tracing/inspector_connection.html',
       'tracing/ui/extras/about_tracing/inspector_tracing_controller_client.html',

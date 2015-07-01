@@ -247,7 +247,47 @@ tr.exportTo('tr.c', function() {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.analysisViewRelatedEvents = selection;
       this.currentBrushingState = newBrushingState;
+    },
+
+    getViewSpecificBrushingState: function(viewId) {
+      return this.currentBrushingState.viewSpecificBrushingStates[viewId];
+    },
+
+    changeViewSpecificBrushingState: function(viewId, newState) {
+      var oldStates = this.currentBrushingState_.viewSpecificBrushingStates;
+      var newStates = {};
+      for (var id in oldStates)
+        newStates[id] = oldStates[id];
+      if (newState === undefined)
+        delete newStates[viewId];
+      else
+        newStates[viewId] = newState;
+
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.viewSpecificBrushingStates = newStates;
+      this.currentBrushingState = newBrushingState;
     }
+  };
+
+  SelectionController.getControllerForElement = function(element) {
+    var currentElement = element;
+    while (currentElement) {
+      if (currentElement.selectionController)
+        return currentElement.selectionController;
+
+      // Walk up the DOM.
+      if (currentElement.parentElement) {
+        currentElement = currentElement.parentElement;
+        continue;
+      }
+
+      // Possibly inside a shadow DOM.
+      var currentNode = currentElement;
+      while (currentNode.parentNode)
+        currentNode = currentNode.parentNode;
+      currentElement = currentNode.host;
+    }
+    return undefined;
   };
 
   return {

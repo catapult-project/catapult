@@ -22,6 +22,7 @@ tr.exportTo('tr.ui.b', function() {
     this.findMatches_ = new Selection();
     this.analysisViewRelatedEvents_ = new Selection();
     this.appliedToModel_ = undefined;
+    this.viewSpecificBrushingStates_ = {};
   }
   BrushingState.prototype = {
     get guid() {
@@ -33,6 +34,7 @@ tr.exportTo('tr.ui.b', function() {
       that.selection_ = this.selection_;
       that.findMatches_ = this.findMatches_;
       that.analysisViewRelatedEvents_ = this.analysisViewRelatedEvents_;
+      that.viewSpecificBrushingStates_ = this.viewSpecificBrushingStates_;
 
       return that;
     },
@@ -46,6 +48,10 @@ tr.exportTo('tr.ui.b', function() {
           that.analysisViewRelatedEvents_)) {
         return false;
       }
+      // We currently do not take the view-specific brushing states into
+      // account. If we did, every change of the view-specific brushing state
+      // of any view would cause a redraw of the whole UI (see the
+      // SelectionController.currentBrushingState setter).
       return true;
     },
 
@@ -105,6 +111,14 @@ tr.exportTo('tr.ui.b', function() {
     get hasHighlight_() {
       return this.findMatches_.length > 0 ||
           this.analysisViewRelatedEvents_.length > 0;
+    },
+
+    get viewSpecificBrushingStates() {
+      return this.viewSpecificBrushingStates_;
+    },
+
+    set viewSpecificBrushingStates(viewSpecificBrushingStates) {
+      this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
     },
 
     applyToModelSelectionState: function(model) {

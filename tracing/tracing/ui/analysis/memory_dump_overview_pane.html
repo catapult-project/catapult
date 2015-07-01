@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/color_legend.html">
 <link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import"
@@ -16,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/units/size_in_bytes_span.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/base/view_specific_brushing_state.html">
 <link rel="import" href="/model/attribute.html">
 
 <polymer-element name="tr-ui-a-memory-dump-overview-pane">
@@ -43,6 +43,9 @@ found in the LICENSE file.
         align-self: stretch;
       }
     </style>
+    <tr-ui-b-view-specific-brushing-state id="state"
+        view-id="analysis.memory_dump_overview_pane">
+    </tr-ui-b-view-specific-brushing-state>
     <div id="label">Overview</div>
     <tr-ui-b-table id="table">
     </tr-ui-b-table>
@@ -60,12 +63,6 @@ found in the LICENSE file.
         importance: 1
       }
     ];
-
-    // TODO(petrcermak): Using tr.b.SessionSettings is a temporary solution
-    // until we figure out how to persist analysis tab state (tracking bug:
-    // https://github.com/google/trace-viewer/issues/706).
-    var SETTINGS_KEY = 'selected_cell';
-    var SETTINGS_NAMESPACE = 'analysis.memory_dump_overview_pane';
 
     var LINK_SYMBOL = String.fromCharCode(9903);
 
@@ -276,16 +273,13 @@ found in the LICENSE file.
           selectedColumnName = selectedColumn.name;
         }
 
-        tr.b.SessionSettings.set(
-            SETTINGS_KEY,
-            {rowTitle: selectedRowTitle, columnName: selectedColumnName},
-            SETTINGS_NAMESPACE);
+        this.$.state.set(
+            {rowTitle: selectedRowTitle, columnName: selectedColumnName});
       },
 
       restoreSelection_: function() {
-        var settings = tr.b.SessionSettings.get(
-            SETTINGS_KEY, {}, SETTINGS_NAMESPACE);
-        if (settings.rowTitle === undefined ||
+        var settings = this.$.state.get();
+        if (settings === undefined || settings.rowTitle === undefined ||
             settings.columnName === undefined)
           return;
 
