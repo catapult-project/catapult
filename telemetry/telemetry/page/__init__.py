@@ -6,10 +6,11 @@ import logging
 import os
 import urlparse
 
+from telemetry import decorators
+from telemetry import story
 from catapult_base import cloud_storage
 from telemetry.internal.util import path
 from telemetry.page import shared_page_state
-from telemetry import story
 
 
 class Page(story.Story):
@@ -91,6 +92,12 @@ class Page(story.Story):
       d['name'] = self._name
     return d
 
+  @property
+  def story_set(self):
+    return self._page_set
+
+
+  # TODO(nednguyen, aiolos): deprecate this property.
   @property
   def page_set(self):
     return self._page_set
