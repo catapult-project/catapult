@@ -12,18 +12,30 @@ found in the LICENSE file.
   <template>
     <style>
     :host {
+      display: flex;
       background-color: #f8f8f8;
       border: 1px solid rgba(0, 0, 0, 0.5);
       color: rgba(0,0,0,0.8);
-      text-align: center;
+      justify-content: center;
+      align-self: stretch;
+      min-width: 23px;
     }
+
     :host(:hover) {
       background-color: rgba(255, 255, 255, 1.0);
       border-color: rgba(0, 0, 0, 0.8);
       box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
       color: rgba(0, 0, 0, 1);
     }
+
+    #aligner {
+      display: flex;
+      flex: 0 0 auto;
+      align-self: center;
+    }
     </style>
-    <content></content>
+    <div id="aligner">
+      <content></content>
+    </div>
   </template>
 </polymer-element>

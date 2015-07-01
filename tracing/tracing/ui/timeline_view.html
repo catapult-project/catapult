@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/ui/base/hotkey_controller.html">
-<link rel="import" href="/ui/base/mouse_mode_icon.html">
 <link rel="import" href="/ui/base/toolbar_button.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/ui/base/favicons.html">
@@ -27,16 +26,30 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/dropdown.html">
 <link rel="import" href="/ui/base/drag_handle.html">
 <link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/timeline_view_metadata_overlay.html">
+<link rel="import" href="/ui/timeline_view_help_overlay.html">
 
 <template id="timeline-view-template">
   <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
   <div class="control">
     <div class="bar">
-      <div id="left-controls" class="controls"></div>
+      <div id="left-controls"></div>
       <div class="title">^_^</div>
-      <div id="right-controls" class="controls"></div>
+      <div id="right-controls">
+        <tr-ui-b-toolbar-button id="view-metadata-button">
+          M
+        </tr-ui-b-toolbar-button>
+        <tr-ui-b-dropdown id="view-options-dropdown"></tr-ui-b-dropdown>
+        <tr-ui-find-control id="view-find-control"></tr-ui-find-control>
+        <tr-ui-b-toolbar-button id="view-console-button">
+          &#187;
+        </tr-ui-b-toolbar-button>
+        <tr-ui-b-toolbar-button id="view-help-button">
+          ?
+        </tr-ui-b-toolbar-button>
+      </div>
     </div>
-    <div id="collapsing-controls" class="controls"></div>
+    <div id="collapsing-controls"></div>
   </div>
   <middle-container>
     <track-view-container></track-view-container>
@@ -44,176 +57,6 @@ found in the LICENSE file.
   </middle-container>
   <x-drag-handle></x-drag-handle>
   <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
-</template>
-
-<template id="help-btn-template">
-  <tr-ui-b-toolbar-button class="view-help-button">
-    ?
-  </tr-ui-b-toolbar-button>
-  <div class="view-help-text">
-    <div class="column left">
-      <h2>Navigation</h2>
-      <div class='pair'>
-        <div class='command'>w/s</div>
-        <div class='action'>Zoom in/out (+shift: faster)</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>a/d</div>
-        <div class='action'>Pan left/right (+shift: faster)</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>&rarr;/shift-TAB</div>
-        <div class='action'>Select previous event</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>&larr;/TAB</div>
-        <div class='action'>Select next event</div>
-      </div>
-
-      <h2>Mouse Controls</h2>
-      <div class='pair'>
-        <div class='command'>click</div>
-        <div class='action'>Select event</div>
-      </div>
-      <div class='pair'>
-        <div class='command'>alt-mousewheel</div>
-        <div class='action'>Zoom in/out</div>
-      </div>
-
-      <h3>
-        <tr-ui-b-mouse-mode-icon modeName="SELECTION"></tr-ui-b-mouse-mode-icon>
-        Select mode
-      </h3>
-      <div class='pair'>
-        <div class='command'>drag</div>
-        <div class='action'>Box select</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>double click</div>
-        <div class='action'>Select all events with same title</div>
-      </div>
-
-      <h3>
-        <tr-ui-b-mouse-mode-icon modeName="PANSCAN"></tr-ui-b-mouse-mode-icon>
-        Pan mode
-      </h3>
-      <div class='pair'>
-        <div class='command'>drag</div>
-        <div class='action'>Pan the view</div>
-      </div>
-
-      <h3>
-        <tr-ui-b-mouse-mode-icon modeName="ZOOM"></tr-ui-b-mouse-mode-icon>
-        Zoom mode
-      </h3>
-      <div class='pair'>
-        <div class='command'>drag</div>
-        <div class='action'>Zoom in/out by dragging up/down</div>
-      </div>
-
-      <h3>
-        <tr-ui-b-mouse-mode-icon modeName="TIMING"></tr-ui-b-mouse-mode-icon>
-        Timing mode
-      </h3>
-      <div class='pair'>
-        <div class='command'>drag</div>
-        <div class='action'>Create or move markers</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>double click</div>
-        <div class='action'>Set marker range to slice</div>
-      </div>
-    </div>
-
-    <div class="column right">
-      <h2>General</h2>
-      <div class='pair'>
-        <div class='command'>1-4</div>
-        <div class='action'>Switch mouse mode</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>shift</div>
-        <div class='action'>Hold for temporary select</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>space</div>
-        <div class='action'>Hold for temporary pan</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'><span class='mod'></span></div>
-        <div class='action'>Hold for temporary zoom</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>/</div>
-        <div class='action'>Search</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>enter</div>
-        <div class='action'>Step through search results</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>f</div>
-        <div class='action'>Zoom into selection</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>z/0</div>
-        <div class='action'>Reset zoom and pan</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>g/G</div>
-        <div class='action'>Toggle 60hz grid</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>v</div>
-        <div class='action'>Highlight VSync</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>h</div>
-        <div class='action'>Toggle low/high details</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>m</div>
-        <div class='action'>Mark current selection</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>`</div>
-        <div class='action'>Show or hide the scripting console</div>
-      </div>
-
-      <div class='pair'>
-        <div class='command'>?</div>
-        <div class='action'>Show help</div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<template id="metadata-btn-template">
-  <div class="button view-metadata-button view-info-button">Metadata</div>
-  <div class="info-button-text metadata-dialog-text"></div>
-</template>
-
-<template id="console-btn-template">
-  <tr-ui-b-toolbar-button class="view-console-button">
-    &#187;
-  </tr-ui-b-toolbar-button>
 </template>
 
 <script>
@@ -253,7 +96,7 @@ tr.exportTo('tr.ui', function() {
 
       this.selectionController_ = new tr.c.SelectionController(this);
 
-      this.findCtl_ = new TracingFindControl();
+      this.findCtl_ = this.querySelector('#view-find-control');
       this.findCtl_.controller = new tr.ui.FindController(
           this.selectionController_);
 
@@ -273,7 +116,7 @@ tr.exportTo('tr.ui', function() {
       }
 
 
-      this.optionsDropdown_ = document.createElement('tr-ui-b-dropdown');
+      this.optionsDropdown_ = this.querySelector('#view-options-dropdown');
       this.optionsDropdown_.iconElement.textContent = 'View Options';
 
       this.showFlowEvents_ = false;
@@ -288,12 +131,10 @@ tr.exportTo('tr.ui', function() {
           'Highlight VSync');
       this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
 
-      this.rightControls.appendChild(this.createMetadataButton_());
+      this.initMetadataButton_();
+      this.initConsoleButton_();
+      this.initHelpButton_();
 
-      this.rightControls.appendChild(this.optionsDropdown_);
-      this.rightControls.appendChild(this.findCtl_);
-      this.rightControls.appendChild(this.createConsoleButton_());
-      this.rightControls.appendChild(this.createHelpButton_());
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.querySelector('x-drag-handle');
@@ -373,37 +214,24 @@ tr.exportTo('tr.ui', function() {
       this.trackView_.viewport.highlightVSync = highlightVSync;
     },
 
-    createHelpButton_: function() {
-      var node = tr.ui.b.instantiateTemplate('#help-btn-template', THIS_DOC);
-      var showEl = node.querySelector('.view-help-button');
-      var helpTextEl = node.querySelector('.view-help-text');
-
-      var dlg = new tr.ui.b.Overlay();
-      dlg.title = 'chrome://tracing Help';
-      dlg.classList.add('view-help-overlay');
-      dlg.appendChild(node);
+    initHelpButton_: function() {
+      var helpButtonEl = this.querySelector('#view-help-button');
 
       function onClick(e) {
-        dlg.visible = !dlg.visible;
-
-        var mod = tr.isMac ? 'cmd ' : 'ctrl';
-        var spans = helpTextEl.querySelectorAll('span.mod');
-        for (var i = 0; i < spans.length; i++) {
-          spans[i].textContent = mod;
-        }
+        var dlg = new tr.ui.b.Overlay();
+        dlg.title = 'chrome://tracing Help';
+        dlg.appendChild(
+            document.createElement('tr-ui-timeline-view-help-overlay'));
+        dlg.visible = true;
 
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
-        return false;
       }
-      showEl.addEventListener('click', onClick.bind(this));
-
-      return showEl;
+      helpButtonEl.addEventListener('click', onClick.bind(this));
     },
 
-    createConsoleButton_: function() {
-      var node = tr.ui.b.instantiateTemplate('#console-btn-template', THIS_DOC);
-      var toggleEl = node.querySelector('.view-console-button');
+    initConsoleButton_: function() {
+      var toggleEl = this.querySelector('#view-console-button');
 
       function onClick(e) {
         this.scriptingCtl_.toggleVisibility();
@@ -411,50 +239,34 @@ tr.exportTo('tr.ui', function() {
         return false;
       }
       toggleEl.addEventListener('click', onClick.bind(this));
-
-      return toggleEl;
     },
 
-    createMetadataButton_: function() {
-      var node =
-          tr.ui.b.instantiateTemplate('#metadata-btn-template', THIS_DOC);
-      var showEl = node.querySelector('.view-metadata-button');
-      var textEl = node.querySelector('.info-button-text');
-
-      var dlg = new tr.ui.b.Overlay();
-      dlg.title = 'Metadata for trace';
-      dlg.classList.add('view-metadata-overlay');
-      dlg.appendChild(node);
+    initMetadataButton_: function() {
+      var showEl = this.querySelector('#view-metadata-button');
 
       function onClick(e) {
+        var dlg = new tr.ui.b.Overlay();
+        dlg.title = 'Metadata for trace';
+
+        var metadataOverlay = document.createElement(
+            'tr-ui-timeline-view-metadata-overlay');
+        metadataOverlay.metadata = this.model.metadata;
+
+        dlg.appendChild(metadataOverlay);
         dlg.visible = true;
-
-        var metadataStrings = [];
-
-        var model = this.model;
-        for (var data in model.metadata) {
-          var meta = model.metadata[data];
-          var name = JSON.stringify(meta.name);
-          var value = JSON.stringify(meta.value, undefined, ' ');
-
-          metadataStrings.push(name + ': ' + value);
-        }
-        textEl.textContent = metadataStrings.join('\n');
 
         e.stopPropagation();
         return false;
       }
       showEl.addEventListener('click', onClick.bind(this));
 
-      function updateVisibility() {
-        showEl.style.display =
-            (this.model && this.model.metadata.length) ? '' : 'none';
-      }
-      var updateVisibility_ = updateVisibility.bind(this);
-      updateVisibility_();
-      this.addEventListener('modelChange', updateVisibility_);
+      this.updateMetadataButtonVisibility_();
+    },
 
-      return showEl;
+    updateMetadataButtonVisibility_: function() {
+      var showEl = this.querySelector('#view-metadata-button');
+      showEl.style.display =
+          (this.model && this.model.metadata.length) ? '' : 'none';
     },
 
     get leftControls() {
@@ -533,6 +345,7 @@ tr.exportTo('tr.ui', function() {
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
+        this.updateMetadataButtonVisibility_();
         tr.b.dispatchSimpleEvent(this, 'modelChange');
         this.selectionController_.modelDidChange();
         this.onViewportChanged_();
@@ -604,7 +417,7 @@ tr.exportTo('tr.ui', function() {
         useCapture: false,
         thisArg: this,
         callback: function(e) {
-          this.querySelector('.view-help-button').click();
+          this.querySelector('#view-help-button').click();
           e.stopPropagation();
         }
       }));

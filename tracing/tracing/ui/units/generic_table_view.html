@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/base/units/generic_table.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/ui/units/array_of_numbers_span.html">
 
 <polymer-element name="tr-ui-u-generic-table-view">
@@ -112,6 +113,12 @@ tr.exportTo('tr.ui.units', function() {
 
       if (fieldValue === undefined)
         return '-';
+
+      if (fieldValue instanceof Object) {
+        var gov = document.createElement('tr-ui-a-generic-object-view');
+        gov.object = fieldValue;
+        return gov;
+      }
 
       // TODO(nduca): Use units objects if applicable.
       return fieldValue;

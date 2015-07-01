@@ -120,6 +120,20 @@ tr.b.unittest.testSuite(function() {
     assert.equal(table.items.length, 1);
   });
 
+  test('valueIsObject', function() {
+    var table = document.createElement('tr-ui-u-generic-table-view');
+    table.items = new tr.b.units.GenericTable([
+      {
+        a: {x: 1, y: 'string'}
+      },
+      {
+        a: 'something'
+      }
+    ]);
+    this.addHTMLOutput(table);
+    assert.equal(table.items.length, 2);
+  });
+
   test('mixedTypeTable', function() {
     var table = document.createElement('tr-ui-u-generic-table-view');
     table.items = [
