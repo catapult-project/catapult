@@ -22,10 +22,26 @@ tr.exportTo('tr.ui.analysis', function() {
     this.cpuSelfTime_ = undefined;
     this.cpuDuration_ = undefined;
 
+    this.maxDuration_ = undefined;
+    this.maxCpuDuration_ = undefined;
+    this.maxSelfTime_ = undefined;
+    this.maxCpuSelfTime_ = undefined;
+
     this.untotallableArgs_ = [];
     this.totalledArgs_ = undefined;
   };
   MultiEventSummary.prototype = {
+
+    set title(title) {
+      if (title == 'Totals')
+        this.totalsRow = true;
+      this.title_ = title;
+    },
+
+    get title() {
+      return this.title_;
+    },
+
     get duration() {
       if (this.duration_ === undefined) {
         this.duration_ = tr.b.Statistics.sum(
@@ -109,6 +125,51 @@ tr.exportTo('tr.ui.analysis', function() {
       this.updateArgsIfNeeded_();
       return this.totalledArgs_;
     },
+
+
+    get maxDuration() {
+      if (this.maxDuration_ === undefined) {
+        this.maxDuration_ = tr.b.Statistics.max(
+            this.events_, function(event) {
+                return event.duration;
+            });
+      }
+      return this.maxDuration_;
+    },
+
+
+    get maxCpuDuration() {
+      if (this.maxCpuDuration_ === undefined) {
+        this.maxCpuDuration_ = tr.b.Statistics.max(
+            this.events_, function(event) {
+                return event.cpuDuration;
+            });
+      }
+      return this.maxCpuDuration_;
+    },
+
+
+    get maxSelfTime() {
+      if (this.maxSelfTime_ === undefined) {
+        this.maxSelfTime_ = tr.b.Statistics.max(
+            this.events_, function(event) {
+                return event.selfTime;
+            });
+      }
+      return this.maxSelfTime_;
+    },
+
+
+    get maxCpuSelfTime() {
+      if (this.maxCpuSelfTime_ === undefined) {
+        this.maxCpuSelfTime_ = tr.b.Statistics.max(
+            this.events_, function(event) {
+                return event.cpuSelfTime;
+            });
+      }
+      return this.maxCpuSelfTime_;
+    },
+
 
     updateArgsIfNeeded_: function() {
       if (this.totalledArgs_ !== undefined)

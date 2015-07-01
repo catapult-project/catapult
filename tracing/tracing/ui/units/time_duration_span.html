@@ -17,10 +17,12 @@ found in the LICENSE file.
 // identical to the ones defined in time_stamp_span. Consider sharing more
 // code between the two files.
 tr.exportTo('tr.ui.units', function() {
-  function createTimeSpan(duration) {
+  function createTimeSpan(duration, total) {
     if (duration === undefined)
       return '';
     var span = document.createElement('tr-ui-u-time-duration-span');
+    if (total)
+      span.percentage = duration / total;
     span.duration = duration;
     return span;
   }
@@ -42,15 +44,33 @@ tr.exportTo('tr.ui.units', function() {
   <template>
     <style>
     :host {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
+      display: block;
+      position: relative;
+      text-align:right;
+    }
+    #content {
+      font-family: Consolas, Menlo, monospace;
+      font-size: 90%;
+      text-align: right;
+      position: relative;
+    }
+    #sparkline {
+      width: 0%;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      display: block;
+      height: 100%;
+      background-color: hsl(216, 100%, 94.5%);
+      border-left: 1px solid hsl(216, 100%, 89%);
+      box-sizing: border-box;
     }
     #warning {
       margin-left: 4px;
       font-size: 66%;
     }
     </style>
+    <span id="sparkline"></span>
     <span id="content"></span>
     <span id="warning" style="display:none">&#9888;</span>
   </template>
@@ -61,6 +81,8 @@ tr.exportTo('tr.ui.units', function() {
     ready: function() {
       this.warning_ = undefined;
       this.duration_ = undefined;
+      this.percentage_ = undefined;
+      this.displaySparkline_ = undefined;
     },
 
     get duration() {
@@ -75,7 +97,17 @@ tr.exportTo('tr.ui.units', function() {
       this.updateContent_();
     },
 
+    set percentage(percentage) {
+      this.percentage_ = percentage;
+    },
+
+    updateSparkline_: function() {
+      if (this.percentage_)
+        this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
+    },
+
     updateContent_: function() {
+      this.updateSparkline_();
       var content = tr.b.units.TimeDuration.format(this.duration_);
       this.$.content.textContent = content;
     },

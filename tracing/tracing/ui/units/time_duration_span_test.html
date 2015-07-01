@@ -28,6 +28,13 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(timeSpan);
   });
 
+  test('instantiateWithPercentage', function() {
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.percentage = 0.5;
+    timeSpan.duration = 40;
+    this.addHTMLOutput(timeSpan);
+  });
+
   test('warningAndNonWarningHaveSimilarHeights', function() {
     var spanA = document.createElement('tr-ui-u-time-duration-span');
     spanA.duration = 400;
@@ -61,5 +68,21 @@ tr.b.unittest.testSuite(function() {
       Time.reset();
     }
   });
+
+
+  test('displaySparkline', function() {
+    var div = document.createElement('div');
+    div.style.width = '100px';
+
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.percentage = 0.5;
+    timeSpan.duration = 40;
+    div.appendChild(timeSpan);
+
+    this.addHTMLOutput(div);
+    var width = getComputedStyle(timeSpan.$.sparkline).width;
+    assert.equal(parseInt(width), 50);
+  });
+
 });
 </script>

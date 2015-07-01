@@ -40,7 +40,7 @@ found in the LICENSE file.
       this.eventsByTitle_ = undefined;
     },
 
-    updateTableColumns_: function(rows) {
+    updateTableColumns_: function(rows, maxValues) {
       var hasCpuData = false;
       var hasAlerts = false;
       rows.forEach(function(row) {
@@ -74,9 +74,10 @@ found in the LICENSE file.
       });
       if (this.eventsHaveDuration_) {
         columns.push({
-          title: 'Wall Duration (ms)',
+          title: 'Wall Duration',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeSpan(row.duration,
+              maxValues.duration, { sparkline: !row.totalsRow });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -87,9 +88,10 @@ found in the LICENSE file.
 
       if (this.eventsHaveDuration_ && hasCpuData) {
         columns.push({
-          title: 'CPU Duration (ms)',
+          title: 'CPU Duration',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.cpuDuration);
+            return tr.ui.units.createTimeSpan(row.cpuDuration,
+              maxValues.cpuDuration, { sparkline: !row.totalsRow });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -100,9 +102,10 @@ found in the LICENSE file.
 
       if (this.eventsHaveSubRows_ && this.eventsHaveDuration_) {
         columns.push({
-          title: 'Self time (ms)',
+          title: 'Self time',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.selfTime);
+            return tr.ui.units.createTimeSpan(row.selfTime,
+              maxValues.selfTime, { sparkline: !row.totalsRow });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -113,9 +116,10 @@ found in the LICENSE file.
 
       if (this.eventsHaveSubRows_ && this.eventsHaveDuration_ && hasCpuData) {
         columns.push({
-          title: 'CPU Self Time (ms)',
+          title: 'CPU Self Time',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.cpuSelfTime);
+            return tr.ui.units.createTimeSpan(row.cpuSelfTime,
+              maxValues.cpuSelfTime, { sparkline: !row.totalsRow });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -246,20 +250,41 @@ found in the LICENSE file.
           eventsByTitle,
           function(title, eventsOfSingleTitle) {
             allEvents.push.apply(allEvents, eventsOfSingleTitle);
-            var row = new tr.ui.analysis.MultiEventSummary(title,
-                                                          eventsOfSingleTitle);
+            var row = new tr.ui.analysis.MultiEventSummary(
+              title, eventsOfSingleTitle);
             rows.push(row);
           });
 
       this.updateTableColumns_(rows);
       this.$.table.tableRows = rows;
 
+      var maxValues = {
+        duration: undefined,
+        selfTime: undefined,
+        cpuSelfTime: undefined,
+        cpuDuration: undefined
+      };
+
+      if (this.eventsHaveDuration) {
+        for (var column in maxValues) {
+          maxValues[column] = tr.b.Statistics.max(rows, function(event) {
+                  return event[column];
+          });
+        }
+      }
+
       var footerRows = [];
 
       if (this.showTotals_) {
-        footerRows.push(
-            new tr.ui.analysis.MultiEventSummary('Totals', allEvents));
+        var multiEventSummary = new tr.ui.analysis.MultiEventSummary(
+          'Totals', allEvents);
+        footerRows.push(multiEventSummary);
       }
+
+
+      this.updateTableColumns_(rows, maxValues);
+      this.$.table.tableRows = rows;
+
       // TODO(selection bounds).
 
       // TODO(sorting)
