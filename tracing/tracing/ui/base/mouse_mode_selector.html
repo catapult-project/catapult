@@ -392,12 +392,22 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onKeyDown_: function(e) {
+      // Keys dispatched to INPUT elements still bubble, even when they're
+      // handled. So, skip any events that targeted the input element.
+      if (e.path[0].tagName == 'INPUT')
+        return;
+
       if (e.keyCode === ' '.charCodeAt(0))
         this.spacePressed_ = true;
       this.updateAlternativeModeState_(e);
     },
 
     onKeyUp_: function(e) {
+      // Keys dispatched to INPUT elements still bubble, even when they're
+      // handled. So, skip any events that targeted the input element.
+      if (e.path[0].tagName == 'INPUT')
+        return;
+
       if (e.keyCode === ' '.charCodeAt(0))
         this.spacePressed_ = false;
 
