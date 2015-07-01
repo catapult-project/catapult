@@ -90,7 +90,6 @@ _REL_PATH_D8_BLACK_LIST_FILES = {
   "tracing/base/units/time_stamp.html",
   "tracing/base/units/time_stamp_test.html",
   "tracing/base/units/time_test.html",
-  "tracing/base/units/util.html",
   "tracing/base/unittest.html",
   "tracing/base/unittest/constants.html",
   "tracing/base/unittest/html_test_results.html",
