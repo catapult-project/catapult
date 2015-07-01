@@ -25,6 +25,8 @@ tr.b.unittest.testSuite(function() {
   var AttributeInfo = tr.model.AttributeInfo;
   var AttributeInfoType = tr.model.AttributeInfoType;
 
+  var SIZE_DELTA = 0.0001;
+
   function buildArgPusher(array) {
     return function(arg) { array.push(arg); };
   }
@@ -42,7 +44,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function assertDefinedAttribute(dump, attributeName, expectedType,
-      expectedUnits, expectedValue) {
+      expectedUnits, expectedValue, opt_delta) {
     var attribute = dump.attributes[attributeName];
     var errorMessagePrefix = 'expected attribute \'' + attributeName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
@@ -53,9 +55,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(attribute.units, expectedUnits,
         errorMessagePrefix + 'have units \'' + expectedUnits + '\' but got \'' +
         attribute.units + '\'');
-    assert.equal(attribute.value, expectedValue,
-        errorMessagePrefix + 'have value \'' + expectedValue + '\' but got \'' +
-        attribute.value + '\'');
+
+    var valueErrorMessage = errorMessagePrefix + 'have value \'' +
+        expectedValue + '\' but got \'' + attribute.value + '\'';
+    if (opt_delta !== undefined) {
+      assert.closeTo(
+          attribute.value, expectedValue, opt_delta, valueErrorMessage);
+    } else {
+      assert.equal(attribute.value, expectedValue, valueErrorMessage);
+    }
   }
 
   function assertSizeAttribute(dump, sizeName, expectedValue) {
@@ -63,7 +71,7 @@ tr.b.unittest.testSuite(function() {
       assertUndefinedAttribute(dump, sizeName);
     } else {
       assertDefinedAttribute(
-          dump, sizeName, ScalarAttribute, 'bytes', expectedValue);
+          dump, sizeName, ScalarAttribute, 'bytes', expectedValue, SIZE_DELTA);
     }
   }
 
@@ -353,6 +361,9 @@ tr.b.unittest.testSuite(function() {
    *       expected if undefined). The items in the list are object with two
    *       fields: 'type' (expected value of the info type), and 'message'
    *       (regular expression over the info message).
+   *   expected_effective_size: Expected value of the 'effective_size'
+   *       attribute of the MAD (no 'effective_size' attribute expected if
+   *       undefined).
    *   children: List of tree recipes for child MADs (no children expected if
    *       undefined).
    *
@@ -400,6 +411,10 @@ tr.b.unittest.testSuite(function() {
 
         // Check that 'size' was calculated correctly.
         assertSizeAttribute(dump, 'size', treeRecipe['expected_size']);
+
+        // Check that 'effective_size' was calculated correctly.
+        assertSizeAttribute(
+            dump, 'effective_size', treeRecipe['expected_effective_size']);
 
         // Check that 'size' infos were added correctly.
         var actualInfos = [];
@@ -515,7 +530,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidParentLink', function() {
-    // Invalid parent link.
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var rootDump = new MemoryAllocatorDump(gmd, 'root');
@@ -549,7 +563,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidSize', function() {
-    // Invalid parent link.
     var containerDumps = createContainerDumps(1);
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
@@ -578,6 +591,37 @@ tr.b.unittest.testSuite(function() {
         ]
       ]);
     }, /expected.*'size'.*value.*\b50\b.*got.*\b49\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidEffectiveSize', function() {
+    var containerDumps = createContainerDumps(1);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+    var rootDump = new MemoryAllocatorDump(pmd, 'root');
+    rootDump.addAttribute('effective_size', new ScalarAttribute('bytes', 99));
+    var parentDump = new MemoryAllocatorDump(pmd, 'root/parent');
+    parentDump.addAttribute('effective_size', new ScalarAttribute('bytes', 50));
+    rootDump.children.push(parentDump);
+    parentDump.parent = rootDump;
+    pmd.memoryAllocatorDumps = [rootDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        undefined,
+        [
+          {
+            'name': 'root',
+            'expected_effective_size': 100,  // This should be 99.
+            'children': [
+              {
+                'name': 'parent',
+                'expected_effective_size': 50
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*'effective_size'.*value.*\b100\b.*got.*\b99\b/);
   });
 
   test('testSanityCheck_checkDumpTrees_invalidInfoCount', function() {
@@ -654,9 +698,9 @@ tr.b.unittest.testSuite(function() {
 
   /**
    * Build container memory dumps from tree recipes, let the resulting
-   * GlobalMemoryDump calculate sizes, and then check that the augmented
-   * container memory dumps have the expected structure with correct sizes (as
-   * described by the same tree recipes).
+   * GlobalMemoryDump calculate sizes and effective sizes, and then check that
+   * the augmented container memory dumps have the expected structure with
+   * correct sizes and effective sizes (as described by the same tree recipes).
    *
    * See the documentation for buildDumpTrees and checkDumpTrees for more
    * details about the structure of tree recipes.
@@ -665,6 +709,7 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = buildDumpTrees(allTreeRecipes);
     var gmd = containerDumps[0];
     gmd.calculateSizes();
+    gmd.calculateEffectiveSizes();
     checkDumpTrees(containerDumps, allTreeRecipes);
   }
 
@@ -763,7 +808,7 @@ tr.b.unittest.testSuite(function() {
     ]);
   });
 
-  test('traverseAllocatorDumpsInDepthFirstPostOrder_oneTreeWithoutOwners',
+  test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithoutOwners',
       function() {
     var containerDumps = buildDumpTrees([
       [  // GMD.
@@ -787,6 +832,7 @@ tr.b.unittest.testSuite(function() {
     ]);
     var gmd = containerDumps[0];
 
+    // Post-order.
     var visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
@@ -796,9 +842,20 @@ tr.b.unittest.testSuite(function() {
       gmd.getMemoryAllocatorDumpByFullName('root/parent'),
       gmd.getMemoryAllocatorDumpByFullName('root')
     ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('root'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child2')
+    ]);
   });
 
-  test('traverseAllocatorDumpsInDepthFirstPostOrder_oneTreeWithOwners',
+  test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithOwners',
       function() {
     var containerDumps = buildDumpTrees([
       [],  // GMD.
@@ -830,6 +887,7 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
 
+    // Post-order.
     var visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
@@ -840,17 +898,33 @@ tr.b.unittest.testSuite(function() {
       pmd.getMemoryAllocatorDumpByFullName('root/parent'),
       pmd.getMemoryAllocatorDumpByFullName('root')
     ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      pmd.getMemoryAllocatorDumpByFullName('root'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child3')
+    ]);
   });
 
-  test('traverseAllocatorDumpsInDepthFirstPostOrder_multipleTrees', function() {
+  test('traverseAllocatorDumpsInDepthFirstOrder_multipleTrees', function() {
     var containerDumps = buildDumpTrees([
       [  // GMD.
         {
           'name': 'shared',
           'children': [
             {
-              'name': 'pool',
+              'name': 'pool1',
               'guid': 1
+            },
+            {
+              'name': 'pool2',
+              'owns': 3
             }
           ]
         }
@@ -881,8 +955,12 @@ tr.b.unittest.testSuite(function() {
           'name': 'v8',
           'children': [
             {
-              'name': 'isolate',
+              'name': 'isolate1',
               'owns': 2
+            },
+            {
+              'name': 'isolate2',
+              'guid': 3
             }
           ]
         }
@@ -891,19 +969,40 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
 
+    // Post-order.
     var visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
     assert.deepEqual(visitedAllocatorDumps, [
-      pmd.getMemoryAllocatorDumpByFullName('v8/isolate'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate1'),
       pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/small'),
       pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/large'),
       pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps'),
-      gmd.getMemoryAllocatorDumpByFullName('shared/pool'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool1'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool2'),
       gmd.getMemoryAllocatorDumpByFullName('shared'),
       pmd.getMemoryAllocatorDumpByFullName('oilpan/objects'),
       pmd.getMemoryAllocatorDumpByFullName('oilpan'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate2'),
       pmd.getMemoryAllocatorDumpByFullName('v8')
+    ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('shared'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool1'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/objects'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/small'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/large'),
+      pmd.getMemoryAllocatorDumpByFullName('v8'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate1'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate2'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool2')
     ]);
   });
 
@@ -936,9 +1035,16 @@ tr.b.unittest.testSuite(function() {
     ]);
     var gmd = containerDumps[0];
 
+    // Post-order.
     assert.throws(function() {
       gmd.traverseAllocatorDumpsInDepthFirstPostOrder(function() {});
     }, /contains.*cycle/);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, []);
   });
 
   // Just check that the method doesn't crash upon encountering empty and/or
@@ -954,7 +1060,8 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'shared',
         'size': 1024,
-        'expected_size': 1024
+        'expected_size': 1024,
+        'expected_effective_size': 1024
       }
     ],
     [  // PMD.
@@ -969,18 +1076,21 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'shared',
         'size': 0,
-        'expected_size': 0
+        'expected_size': 0,
+        'expected_effective_size': 0
       }
     ],
     [  // PMD1.
       {
         'name': 'gpu',
         'expected_size': 0,
+        'expected_effective_size': 0,
         'children': [
           {
             'name': 'zero',
             'size': 0,
-            'expected_size': 0
+            'expected_size': 0,
+            'expected_effective_size': 0
           }
         ]
       }
@@ -989,11 +1099,13 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'gpu',
         'expected_size': 0,
+        'expected_effective_size': 0,
         'children': [
           {
             'name': 'zero',
             'size': 0,
-            'expected_size': 0
+            'expected_size': 0,
+            'expected_effective_size': 0
           },
           {
             'name': 'undefined'
@@ -1024,16 +1136,19 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'expected_size': 384,
+        'expected_effective_size': 384,
         'children': [
           {
             'name': 'child1',
             'size': 128,
-            'expected_size': 128
+            'expected_size': 128,
+            'expected_effective_size': 128
           },
           {
             'name': 'child2',
             'size': 256,
-            'expected_size': 256
+            'expected_size': 256,
+            'expected_effective_size': 256
           }
         ]
       }
@@ -1046,6 +1161,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 0,
         'expected_size': 0,
+        'expected_effective_size': 0,
         'children': [
           {
             'name': 'child1'
@@ -1064,11 +1180,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 2048,
         'expected_size': 2048,
+        'expected_effective_size': 2048,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 2048
+            'expected_size': 2048,
+            'expected_effective_size': 2048
           },
           {
             'name': 'child1'
@@ -1087,6 +1205,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 4096,
         'expected_size': 4096,
+        'expected_effective_size': 4096,
         'children': [
           {
             'name': 'child1'
@@ -1094,7 +1213,8 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'child2',
             'size': 4096,
-            'expected_size': 4096
+            'expected_size': 4096,
+            'expected_effective_size': 4096
           }
         ]
       }
@@ -1107,11 +1227,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 6144,
         'expected_size': 6144,
+        'expected_effective_size': 6144,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 2048
+            'expected_size': 2048,
+            'expected_effective_size': 2048
           },
           {
             'name': 'child1'
@@ -1119,7 +1241,8 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'child2',
             'size': 4096,
-            'expected_size': 4096
+            'expected_size': 4096,
+            'expected_effective_size': 4096
           }
         ]
       }
@@ -1132,16 +1255,19 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 100,
         'expected_size': 100,
+        'expected_effective_size': 100,
         'children': [
           {
             'name': 'child1',
             'size': 70,
-            'expected_size': 70
+            'expected_size': 70,
+            'expected_effective_size': 70
           },
           {
             'name': 'child2',
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           }
         ]
       }
@@ -1154,21 +1280,25 @@ tr.b.unittest.testSuite(function() {
         'name': 'parent',
         'size': 150,
         'expected_size': 150,
+        'expected_effective_size': 150,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 50
+            'expected_size': 50,
+            'expected_effective_size': 50
           },
           {
             'name': 'child1',
             'size': 70,
-            'expected_size': 70
+            'expected_size': 70,
+            'expected_effective_size': 70
           },
           {
             'name': 'child2',
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           }
         ]
       }
@@ -1180,11 +1310,13 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'parent',
         'expected_size': 49,
+        'expected_effective_size': 49,
         'children': [
           {
             'name': 'child1',
             'size': 49,
-            'expected_size': 49
+            'expected_size': 49,
+            'expected_effective_size': 49
           },
           {
             'name': 'child2'
@@ -1200,26 +1332,31 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'expected_size': 36,
+        'expected_effective_size': 36,
         'children': [
           {
             'name': 'isolate1',
             'size': 10,
             'expected_size': 10,
+            'expected_effective_size': 10,
             'children': [
               {
                 'skip_build': true,
                 'name': '<unspecified>',
-                'expected_size': 3
+                'expected_size': 3,
+                'expected_effective_size': 3
               },
               {
                 'name': 'objects',
                 'size': 3,
-                'expected_size': 3
+                'expected_size': 3,
+                'expected_effective_size': 3
               },
               {
                 'name': 'heaps',
                 'size': 4,
-                'expected_size': 4
+                'expected_size': 4,
+                'expected_effective_size': 4
               }
             ]
           },
@@ -1227,27 +1364,32 @@ tr.b.unittest.testSuite(function() {
             'name': 'isolate2',
             'size': 12,
             'expected_size': 12,
+            'expected_effective_size': 12,
             'children': [
               {
                 'name': 'objects',
                 'size': 5,
-                'expected_size': 5
+                'expected_size': 5,
+                'expected_effective_size': 5
               },
               {
                 'name': 'heaps',
                 'size': 7,
-                'expected_size': 7
+                'expected_size': 7,
+                'expected_effective_size': 7
               }
             ]
           },
           {
             'name': 'isolate3',
             'expected_size': 14,
+            'expected_effective_size': 14,
             'children': [
               {
                 'name': 'objects',
                 'size': 14,
-                'expected_size': 14
+                'expected_size': 14,
+                'expected_effective_size': 14
               },
               {
                 'name': 'heaps'
@@ -1287,6 +1429,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'size': 15,
         'expected_size': 15,
+        'expected_effective_size': 15,
         'guid': 7
       }
     ],
@@ -1309,6 +1452,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'expected_size': 9,
+        'expected_effective_size': 0,
         'guid': 7
       }
     ],
@@ -1317,6 +1461,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'tile',
         'size': 5,
         'expected_size': 5,
+        'expected_effective_size': 2.5,
         'owns': 7
       }
     ],
@@ -1325,6 +1470,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'chunk',
         'size': 9,
         'expected_size': 9,
+        'expected_effective_size': 6.5,
         'owns': 7
       }
     ]
@@ -1335,6 +1481,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'expected_size': 16,
+        'expected_effective_size': 0,
         'guid': 7
       }
     ],
@@ -1343,6 +1490,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'tile',
         'size': 16,
         'expected_size': 16,
+        'expected_effective_size': 16,
         'owns': 7
       }
     ],
@@ -1360,6 +1508,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'size': 20,
         'expected_size': 20,
+        'expected_effective_size': 2,
         'guid': 7
       }
     ],
@@ -1374,6 +1523,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'chunk',
         'size': 18,
         'expected_size': 18,
+        'expected_effective_size': 18,
         'owns': 7
       }
     ]
@@ -1385,6 +1535,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'size': 60,
         'expected_size': 60,
+        'expected_effective_size': 31,
         'guid': 7
       }
     ],
@@ -1393,6 +1544,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'tile',
         'size': 29,
         'expected_size': 29,
+        'expected_effective_size': 19.5,
         'owns': 7
       }
     ],
@@ -1401,6 +1553,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'chunk',
         'size': 19,
         'expected_size': 19,
+        'expected_effective_size': 9.5,
         'owns': 7
       }
     ]
@@ -1411,6 +1564,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'bitmap',
         'expected_size': 50,
+        'expected_effective_size': 0,
         'guid': 7
       }
     ],
@@ -1418,6 +1572,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'expected_size': 50,
+        'expected_effective_size': 0,
         'owns': 7,
         'guid': 0
       },
@@ -1425,7 +1580,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'object1',
         'size': 30,
         'owns': 0,
-        'expected_size': 30
+        'expected_size': 30,
+        'expected_effective_size': 9
       },
       {
         'name': 'object2',
@@ -1435,7 +1591,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'object3',
         'size': 50,
         'owns': 0,
-        'expected_size': 50
+        'expected_size': 50,
+        'expected_effective_size': 21
       }
     ],
     [  // PMD2.
@@ -1443,6 +1600,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'chunk',
         'size': 40,
         'expected_size': 40,
+        'expected_effective_size': 20,
         'owns': 7
       }
     ]
@@ -1454,16 +1612,19 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'guid': 7,
         'expected_size': 48,
+        'expected_effective_size': 17,
         'children': [
           {
             'name': 'subbitmap1',
             'size': 32,
-            'expected_size': 32
+            'expected_size': 32,
+            'expected_effective_size': 17 * (32 / 48)
           },
           {
             'name': 'subbitmap2',
             'size': 16,
-            'expected_size': 16
+            'expected_size': 16,
+            'expected_effective_size': 17 * (16 / 48)
           }
         ]
       }
@@ -1472,18 +1633,21 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'expected_size': 31,
+        'expected_effective_size': 0,
         'guid': 8,
         'owns': 7,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 7
+            'expected_size': 7,
+            'expected_effective_size': 0
           },
           {
             'name': 'subtile',
             'size': 24,
-            'expected_size': 24
+            'expected_size': 24,
+            'expected_effective_size': 0
           }
         ]
       },
@@ -1491,7 +1655,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 8,
         'size': 31,
-        'expected_size': 31
+        'expected_size': 31,
+        'expected_effective_size': 31
       }
     ]
   ]);
@@ -1502,16 +1667,19 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'size': 96,
         'expected_size': 96,
+        'expected_effective_size': 32,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 32
+            'expected_size': 32,
+            'expected_effective_size': 32
           },
           {
             'name': 'subbitmap',
             'guid': 2,
-            'expected_size': 64
+            'expected_size': 64,
+            'expected_effective_size': 0
           }
         ]
       }
@@ -1520,12 +1688,14 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'expected_size': 64,
+        'expected_effective_size': 0,
         'children': [
           {
             'name': 'subtile',
             'guid': 1,
             'owns': 2,
-            'expected_size': 64
+            'expected_size': 64,
+            'expected_effective_size': 0
           }
         ]
       },
@@ -1533,7 +1703,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 1,
         'size': 64,
-        'expected_size': 64
+        'expected_size': 64,
+        'expected_effective_size': 64
       }
     ]
   ]);
@@ -1544,16 +1715,19 @@ tr.b.unittest.testSuite(function() {
         'name': 'bitmap',
         'size': 96,
         'expected_size': 96,
+        'expected_effective_size': 32,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 32
+            'expected_size': 32,
+            'expected_effective_size': 32
           },
           {
             'name': 'subbitmap',
             'guid': 2,
-            'expected_size': 64
+            'expected_size': 64,
+            'expected_effective_size': 0
           }
         ]
       }
@@ -1562,12 +1736,14 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'tile',
         'expected_size': 64,
+        'expected_effective_size': 0,
         'owns': 2,
         'children': [
           {
             'name': 'subtile',
             'guid': 1,
-            'expected_size': 64
+            'expected_size': 64,
+            'expected_effective_size': 0
           }
         ]
       },
@@ -1575,7 +1751,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'cc',
         'owns': 1,
         'size': 64,
-        'expected_size': 64
+        'expected_size': 64,
+        'expected_effective_size': 64
       }
     ]
   ]);
@@ -1603,12 +1780,14 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'expected_size': 10,
+        'expected_effective_size': 10,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 10,
-            'expected_size': 10
+            'expected_size': 10,
+            'expected_effective_size': 10
           },
           {
             'name': 'v8/objects',
@@ -1624,6 +1803,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'expected_size': 20,
+        'expected_effective_size': 20,
         'children': [
           {
             'name': 'v8/heaps',
@@ -1631,13 +1811,15 @@ tr.b.unittest.testSuite(function() {
             'expected_size': 20,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
-            ]
+            ],
+            'expected_effective_size': 0
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 20,
-            'expected_size': 20
+            'expected_size': 20,
+            'expected_effective_size': 20
           }
         ]
       }
@@ -1649,6 +1831,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'expected_size': 30,
+        'expected_effective_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
@@ -1657,13 +1840,15 @@ tr.b.unittest.testSuite(function() {
             'expected_size': 30,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
-            ]
+            ],
+            'expected_effective_size': 10
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 20,
-            'expected_size': 20
+            'expected_size': 20,
+            'expected_effective_size': 20
           }
         ]
       }
@@ -1676,12 +1861,14 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 30,
         'expected_size': 30,
+        'expected_effective_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           },
           {
             'name': 'v8/objects',
@@ -1698,17 +1885,20 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 40,
         'expected_size': 40,
+        'expected_effective_size': 40,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 10
+            'expected_size': 10,
+            'expected_effective_size': 10
           },
           {
             'name': 'v8/heaps',
             'guid': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           },
           {
             'name': 'v8/objects',
@@ -1725,6 +1915,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 30,
         'expected_size': 30,
+        'expected_effective_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
@@ -1732,13 +1923,15 @@ tr.b.unittest.testSuite(function() {
             'expected_size': 30,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
-            ]
+            ],
+            'expected_effective_size': 0
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           }
         ]
       }
@@ -1751,11 +1944,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 40,
         'expected_size': 40,
+        'expected_effective_size': 40,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 10
+            'expected_size': 10,
+            'expected_effective_size': 10
           },
           {
             'name': 'v8/heaps',
@@ -1763,13 +1958,15 @@ tr.b.unittest.testSuite(function() {
             'expected_size': 30,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
-            ]
+            ],
+            'expected_effective_size': 0
           },
           {
             'name': 'v8/objects',
             'owns': 1,
             'size': 30,
-            'expected_size': 30
+            'expected_size': 30,
+            'expected_effective_size': 30
           }
         ]
       }
@@ -1782,6 +1979,7 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 30,
         'expected_size': 30,
+        'expected_effective_size': 30,
         'children': [
           {
             'name': 'v8/heaps',
@@ -1789,14 +1987,16 @@ tr.b.unittest.testSuite(function() {
             'size': 30,
             'expected_size': 30,
             'expected_size_infos': [
-              informationInfo(/\boverlaps\b.*'objects'.*\b15\.0 B\b/)
-            ]
+              informationInfo(/\boverlaps\b.*'objects'.*\b14\.0 B\b/)
+            ],
+            'expected_effective_size': 16
           },
           {
             'name': 'v8/objects',
             'owns': 1,
-            'size': 15,
-            'expected_size': 15
+            'size': 14,
+            'expected_size': 14,
+            'expected_effective_size': 14
           }
         ]
       }
@@ -1809,11 +2009,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'v8',
         'size': 35,
         'expected_size': 35,
+        'expected_effective_size': 35,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 5
+            'expected_size': 5,
+            'expected_effective_size': 5
           },
           {
             'name': 'v8/heaps',
@@ -1821,14 +2023,16 @@ tr.b.unittest.testSuite(function() {
             'size': 30,
             'expected_size': 30,
             'expected_size_infos': [
-              informationInfo(/\boverlaps\b.*'objects'.*\b15\.0 B\b/)
-            ]
+              informationInfo(/\boverlaps\b.*'objects'.*\b14\.0 B\b/)
+            ],
+            'expected_effective_size': 16
           },
           {
             'name': 'v8/objects',
             'owns': 1,
-            'size': 15,
-            'expected_size': 15
+            'size': 14,
+            'expected_size': 14,
+            'expected_effective_size': 14
           }
         ]
       }
@@ -1840,11 +2044,13 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'root',
         'expected_size': 17,
+        'expected_effective_size': 17,
         'children': [
           {
             'name': 'parent1',
             'size': 10,
             'expected_size': 10,
+            'expected_effective_size': 5,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'parent2'.*\b5\.0 B\b/)
             ],
@@ -1852,13 +2058,15 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_size': 2
+                'expected_size': 2,
+                'expected_effective_size': 2
               },
               {
                 'name': 'child',
                 'guid': 1,
                 'size': 8,
-                'expected_size': 8
+                'expected_size': 8,
+                'expected_effective_size': 3
               }
             ]
           },
@@ -1866,6 +2074,7 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent2',
             'size': 8,
             'expected_size': 8,
+            'expected_effective_size': 5,
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'parent3'.*\b3\.0 B\b/)
             ],
@@ -1873,14 +2082,16 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_size': 3
+                'expected_size': 3,
+                'expected_effective_size': 3
               },
               {
                 'name': 'child',
                 'guid': 2,
                 'owns': 1,
                 'size': 5,
-                'expected_size': 5
+                'expected_size': 5,
+                'expected_effective_size': 2
               }
             ]
           },
@@ -1888,19 +2099,551 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent3',
             'size': 7,
             'expected_size': 7,
+            'expected_effective_size': 7,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_size': 4
+                'expected_size': 4,
+                'expected_effective_size': 4
               },
               {
                 'name': 'child',
                 'owns': 2,
                 'size': 3,
-                'expected_size': 3
+                'expected_size': 3,
+                'expected_effective_size': 3
               }
             ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_nested', [
+    [
+      {
+        'name': 'system',
+        'expected_size': 7,
+        'expected_effective_size': 7,
+        'children': [
+          {
+            'name': 'subsystem-A',
+            'owns': 15,
+            'expected_size': 5,
+            'expected_effective_size': 5,
+            'children': [
+              {
+                'name': 'objects',
+                'owns': 30,
+                'size': 3,
+                'expected_size': 3,
+                'expected_effective_size': 3
+              },
+              {
+                'name': 'heaps',
+                'guid': 30,
+                'size': 5,
+                'expected_size': 5,
+                'expected_size_infos': [
+                  informationInfo(/\boverlaps\b.*'objects'.*\b3\.0 B\b/)
+                ],
+                'expected_effective_size': 2
+              }
+            ]
+          },
+          {
+            'name': 'subsystem-B',
+            'guid': 15,
+            'expected_size': 7,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'subsystem-A'.*\b5\.0 B\b/)
+            ],
+            'expected_effective_size': 2,
+            'children': [
+              {
+                'name': 'objects',
+                'owns': 40,
+                'size': 7,
+                'expected_size': 7,
+                'expected_effective_size': 2
+              },
+              {
+                'name': 'heaps',
+                'guid': 40,
+                'expected_size': 7,
+                'expected_size_infos': [
+                  informationInfo(/\boverlaps\b.*'objects'.*\b7\.0 B\b/)
+                ],
+                'expected_effective_size': 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_equal', [
+    [  // GMD (both importances undefined and equal sizes).
+      {
+        'name': 'owned',
+        'guid': 1,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 4
+      },
+      {
+        'name': 'owner1',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 3
+      },
+      {
+        'name': 'owner2',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 3
+      }
+    ],
+    [  // PMD1 (only one importance defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 2,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 5
+      },
+      {
+        'name': 'owner1',
+        'owns': 2,
+        'importance': 0,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 10 / 2 + 5
+      },
+      {
+        'name': 'owner2',
+        'owns': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 10 / 2
+      }
+    ],
+    [  // PMD2 (all importances defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 3,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 5
+      },
+      {
+        'name': 'owner1',
+        'owns': 3,
+        'importance': 3,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 8 / 3
+      },
+      {
+        'name': 'owner2',
+        'owns': 3,
+        'importance': 3,
+        'size': 9,
+        'expected_size': 9,
+        'expected_effective_size': 8 / 3 + 1 / 2
+      },
+      {
+        'name': 'owner3',
+        'owns': 3,
+        'importance': 3,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 8 / 3 + 1 / 2 + 1
+      }
+    ]
+  ]);
+
+  calculationTest('importance_notEqual', [
+    [  // GMD (one importance undefined and equal sizes).
+      {
+        'name': 'owned',
+        'guid': 1,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 4
+      },
+      {
+        'name': 'owner1',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 0
+      },
+      {
+        'name': 'owner2',
+        'owns': 1,
+        'importance': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 6
+      }
+    ],
+    [  // PMD1 (one importance undefined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 2,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 4
+      },
+      {
+        'name': 'owner1',
+        'owns': 2,
+        'importance': -1,
+        'size': 16,
+        'expected_size': 16,
+        'expected_effective_size': 6
+      },
+      {
+        'name': 'owner2',
+        'owns': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 10
+      }
+    ],
+    [  // PMD2 (all importances defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 3,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 5
+      },
+      {
+        'name': 'owner1',
+        'owns': 3,
+        'importance': 4,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 8
+      },
+      {
+        'name': 'owner2',
+        'owns': 3,
+        'importance': 3,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 0
+      },
+      {
+        'name': 'owner3',
+        'owns': 3,
+        'importance': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2
+      }
+    ]
+  ]);
+
+  // Example taken from GlobalMemoryDump.calculateDumpOwnershipCoefficient_()
+  // documentation.
+  calculationTest('importance_manyOwners', [
+    [  // GMD.
+      {
+        'name': 'owned',
+        'guid': 4,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'owner1',
+        'owns': 4,
+        'importance': 2,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 6 / 2
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'some_parent',
+        'expected_size': 7,
+        'expected_effective_size': 6 / 2 + 1,
+        'children': [
+          {
+            'name': 'owner2',
+            'owns': 4,
+            'importance': 2,
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 6 / 2 + 1
+          }
+        ]
+      }
+    ],
+    [  // PMD3.
+      {
+        'name': 'owner3',
+        'owns': 4,
+        'importance': 1,
+        'size': 5,
+        'expected_size': 5,
+        'expected_effective_size': 0
+      },
+      {
+        'name': 'owner4',
+        'owns': 4,
+        'importance': 0,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 1
+      }
+    ]
+  ]);
+
+  calculationTest('importance_chainOwnerships', [
+    [  // GMD.
+      {
+        'name': 'owned',
+        'guid': 5,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'owner1',
+        'owns': 5,
+        'importance': 2,
+        'guid': 6,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 2
+      },
+      {
+        'name': 'subowner1',
+        'owns': 6,
+        'size': 4,
+        'expected_size': 4,
+        'expected_effective_size': 4
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'owner2',
+        'owns': 5,
+        'importance': 1,
+        'guid': 8,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 2 - 2 / 4
+      },
+      {
+        'name': 'subowner2',
+        'owns': 8,
+        'size': 2,
+        'expected_size': 2,
+        'expected_effective_size': 2 / 4
+      }
+    ]
+  ]);
+
+  calculationTest('importance_nested', [
+    [
+      {
+        'name': 'grey',
+        'guid': 15,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 6
+      },
+      {
+        'name': 'blue',
+        'guid': 18,
+        'owns': 15,
+        'importance': 1,
+        'size': 14,
+        'expected_size': 14,
+        'expected_effective_size': 1
+      },
+      {
+        'name': 'purple',
+        'owns': 15,
+        'importance': 2,
+        'size': 7,
+        'expected_size': 7,
+        'expected_effective_size': 7
+      },
+      {
+        'name': 'yellow',
+        'owns': 21,
+        'importance': 3,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 3
+      },
+      {
+        'name': 'red',
+        'guid': 21,
+        'owns': 18,
+        'size': 12,
+        'expected_size': 12,
+        'expected_effective_size': 1
+      },
+      {
+        'name': 'green',
+        'owns': 21,
+        'importance': 3,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 2
+      }
+    ]
+  ]);
+
+  calculationTest('importance_singleRefinement', [
+    [
+      {
+        'name': 'v8',
+        'expected_size': 13,
+        'expected_effective_size': 13,
+        'children': [
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 11,
+            'expected_size': 11,
+            'expected_effective_size': 11,
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 4,
+                'expected_effective_size': 4
+              },
+              {
+                'name': 'object1',
+                'owns': 2,
+                'size': 7,
+                'expected_size': 7,
+                'expected_effective_size': 7
+              }
+            ]
+          },
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 13,
+            'expected_size': 13,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b11\.0 B\b/)
+            ],
+            'expected_effective_size': 2,
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 3,
+                'expected_effective_size': 1
+              },
+              {
+                'name': 'heap1',
+                'guid': 2,
+                'size': 10,
+                'expected_size': 10,
+                'expected_effective_size': 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_sharedRefinement', [
+    [  // GMD.
+      {
+        'name': 'shared_bitmap',
+        'guid': 0,
+        'size': 23,
+        'expected_size': 23,
+        'expected_effective_size': 5,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 13,
+            'expected_effective_size': 13 * 5 / (13 + 3)
+          },
+          {
+            'name': 'bitmap0x7',
+            'guid': 999,
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 3 * 5 / (13 + 3)
+          }
+        ]
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile_manager',
+        'owns': 0,
+        'importance': 2,
+        'size': 12,
+        'expected_size': 12,
+        'expected_effective_size': 5 + 2,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 5,
+            'expected_effective_size': 5
+          },
+          {
+            'name': 'tile42',
+            'owns': 999,
+            'importance': 1,
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 2
+          }
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'gpu',
+        'owns': 0,
+        'importance': 1,
+        'size': 16,
+        'expected_size': 16,
+        'expected_effective_size': 6 + 5,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 11,
+            'expected_effective_size': 6
+          },
+          {
+            'name': 'chunk-3.14',
+            'owns': 999,
+            'importance': 2,
+            'size': 5,
+            'expected_size': 5,
+            'expected_effective_size': 5
           }
         ]
       }
@@ -1913,7 +2656,8 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'unknown',
         'guid': 2,
-        'expected_size': 16
+        'expected_size': 16,
+        'expected_effective_size': 0
       }
     ],
     [  // PMD1, Browser process.
@@ -1921,23 +2665,27 @@ tr.b.unittest.testSuite(function() {
         'name': 'sharedbitmap',
         'size': 17,
         'expected_size': 17,
+        'expected_effective_size': 9,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 1
+            'expected_size': 1,
+            'expected_effective_size': 1
           },
           {
             'name': '0x7',
             'size': 16,
             'expected_size': 16,
+            'expected_effective_size': 8,
             'owns': 2,
             'importance': 1,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_size': 16
+                'expected_size': 16,
+                'expected_effective_size': 8
               },
               {
                 'name': 'y'
@@ -1951,6 +2699,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'v8',
         'expected_size': 13,
+        'expected_effective_size': 13,
         'children': [
           {
             'name': 'heaps',
@@ -1959,16 +2708,20 @@ tr.b.unittest.testSuite(function() {
             'expected_size_infos': [
               informationInfo(/\boverlaps\b.*'objects'.*\b9\.0 B\b/)
             ],
+            'expected_effective_size': 3,
             'children': [
               {
                 'name': '1',
                 'size': 8,
                 'expected_size': 8,
-                'owns': 2
+                'expected_effective_size': 2,
+                'owns': 2,
+                'importance': 2
               },
               {
                 'name': '2',
                 'expected_size': 4,
+                'expected_effective_size': 1,
                 'size': 4
               }
             ]
@@ -1977,18 +2730,20 @@ tr.b.unittest.testSuite(function() {
             'name': 'objects',
             'size': 10,
             'expected_size': 10,
+            'expected_effective_size': 10,
             'children': [
               {
                 'name': '<unspecified>',
                 'skip_build': true,
-                'expected_size': 1
+                'expected_size': 1,
+                'expected_effective_size': 1
               },
               {
                 'name': 'strings',
                 'size': 9,
                 'expected_size': 9,
-                'owns': 100,
-                'importance': 2
+                'expected_effective_size': 9,
+                'owns': 100
               }
             ]
           }
@@ -2006,11 +2761,13 @@ tr.b.unittest.testSuite(function() {
         'name': 'root1',
         'size': 24,
         'expected_size': 24,
+        'expected_effective_size': 4,
         'children': [
           {
             'name': '<unspecified>',
             'skip_build': true,
-            'expected_size': 4
+            'expected_size': 4,
+            'expected_effective_size': 4
           },
           {
             'name': 'parent',
@@ -2019,6 +2776,7 @@ tr.b.unittest.testSuite(function() {
             'expected_size_infos': [
               warningInfo(/\bless than\b.*\bchildren\b.*\b20\.0 B\b/)
             ],
+            'expected_effective_size': 0,
             'children': [
               {
                 'name': 'child',
@@ -2027,7 +2785,8 @@ tr.b.unittest.testSuite(function() {
                 'expected_size': 20,
                 'expected_size_infos': [
                   warningInfo(/\bless than\b.*\blargest owner\b.*\b20\.0 B\b/)
-                ]
+                ],
+                'expected_effective_size': 0
               }
             ]
           }
@@ -2037,7 +2796,8 @@ tr.b.unittest.testSuite(function() {
         'name': 'root2',
         'owns': 1,
         'size': 20,
-        'expected_size': 20
+        'expected_size': 20,
+        'expected_effective_size': 20
       }
     ]
   ]);
@@ -2047,6 +2807,7 @@ tr.b.unittest.testSuite(function() {
       {
         'name': 'root',
         'expected_size': 10,
+        'expected_effective_size': 10,
         'children': [
           {
             'name': 'parent1',
@@ -2056,12 +2817,14 @@ tr.b.unittest.testSuite(function() {
               warningInfo(/\bless than\b.*\bchildren\b.*\b10.0 B\b/),
               informationInfo(/\boverlaps\b.*'parent2'.*\b17\.0 B\b.*\boverlaps\b.*'parent3'.*\b7.0 B\b/)  // @suppress longLineCheck
             ],
+            'expected_effective_size': 1,
             'children': [
               {
                 'name': 'child',
                 'guid': 3,
                 'size': 10,
-                'expected_size': 10
+                'expected_size': 10,
+                'expected_effective_size': 1
               }
             ]
           },
@@ -2074,18 +2837,21 @@ tr.b.unittest.testSuite(function() {
             // case and would complicate the (already complex) size
             // calculation, we will now keep the algorithm as is.
             'expected_size': 17,
+            'expected_effective_size': 14 / 3 + 2,
             'children': [
               {
                 'name': 'child1',
                 'owns': 3,
                 'size': 9,
-                'expected_size': 9
+                'expected_size': 9,
+                'expected_effective_size': 7 / 3 + 1 / 2 + 1
               },
               {
                 'name': 'child2',
                 'owns': 3,
                 'size': 8,
-                'expected_size': 8
+                'expected_size': 8,
+                'expected_effective_size': 7 / 3 + 1 / 2
               }
             ]
           },
@@ -2093,6 +2859,7 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent3',
             'size': 7,
             'expected_size': 7,
+            'expected_effective_size': 7 / 3,
             'owns': 3
           }
         ]
@@ -2113,7 +2880,7 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': 'owner_child',
                 'owns': 9,
-                'size': 10
+                'size': 7
               },
               {
                 'name': 'owned_child',
@@ -2129,14 +2896,17 @@ tr.b.unittest.testSuite(function() {
 
     var rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
     assertSizeAttribute(rootDump, 'size', 20);
+    assertSizeAttribute(rootDump, 'effective_size', 20);
 
     var ownerChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owner_child');
-    assertSizeAttribute(ownerChildDump, 'size', 10);
+    assertSizeAttribute(ownerChildDump, 'size', 7);
+    assertSizeAttribute(ownerChildDump, 'effective_size', 7);
 
     var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owned_child');
     assertSizeAttribute(ownedChildDump, 'size', 20);
+    assertSizeAttribute(ownedChildDump, 'effective_size', 13);
   });
 });
 </script>
