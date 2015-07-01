@@ -14,7 +14,7 @@ found in the LICENSE file.
       href="/ui/extras/about_tracing/xhr_based_tracing_controller_client.html">
 <link rel="import" href="/trace_viewer.html">
 <link rel="import" href="/ui/base/info_bar_group.html">
-<link rel="import" href="/ui/base/key_event_manager.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
 <link rel="import" href="/ui/base/overlay.html">
 <link rel="import" href="/ui/base/utils.html">
 
@@ -122,8 +122,15 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.timelineView_.leftControls.appendChild(buttons);
       this.initButtons_(buttons);
 
-      tr.ui.b.KeyEventManager.instance.addListener(
-          'keypress', this.onKeypress_, this);
+      this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: 'r'.charCodeAt(0),
+        callback: function(e) {
+          this.beginRecording();
+          event.stopPropagation();
+        },
+        thisArg: this
+      }));
 
       this.initDragAndDrop_();
 
@@ -314,19 +321,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       buttons.querySelector('#record-button').disabled = is_monitoring;
       buttons.querySelector('#capture-button').disabled = !is_monitoring;
       buttons.querySelector('#monitor-checkbox').checked = is_monitoring;
-    },
-
-    onKeypress_: function(event) {
-      if (document.activeElement.nodeName === 'INPUT')
-        return;
-
-      if (!this.isRecording &&
-          event.keyCode === 'r'.charCodeAt(0)) {
-        this.beginRecording();
-        event.preventDefault();
-        event.stopPropagation();
-        return true;
-      }
     },
 
     get timelineView() {

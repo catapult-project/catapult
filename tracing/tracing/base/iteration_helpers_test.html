@@ -130,5 +130,22 @@ tr.b.unittest.testSuite(function() {
     var object = {'hasItems': true};
     assert.strictEqual(tr.b.identity(object), object);
   });
+
+  test('findFirstKeyInDictMatching', function() {
+    var dict = {a: 1, b: 2, c: 3};
+
+    var that = this;
+    var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
+      assert.equal(this, that);
+      return value == 2;
+    }, this);
+    assert.equal(k, 'b');
+
+    var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
+      assert.equal(this, that);
+      return false;
+    }, this);
+    assert.equal(k, undefined);
+  });
 });
 </script>

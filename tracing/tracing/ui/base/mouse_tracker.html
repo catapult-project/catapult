@@ -90,14 +90,19 @@ tr.exportTo('tr.ui.b', function() {
 
   };
 
-  function trackMouseMovesUntilMouseUp(mouseMoveHandler, opt_mouseUpHandler) {
+  function trackMouseMovesUntilMouseUp(mouseMoveHandler,
+                                       opt_mouseUpHandler, opt_keyUpHandler) {
     function cleanupAndDispatchToMouseUp(e) {
       document.removeEventListener('mousemove', mouseMoveHandler);
+      if (opt_keyUpHandler)
+        document.removeEventListener('keyup', opt_keyUpHandler);
       document.removeEventListener('mouseup', cleanupAndDispatchToMouseUp);
       if (opt_mouseUpHandler)
         opt_mouseUpHandler(e);
     }
     document.addEventListener('mousemove', mouseMoveHandler);
+    if (opt_keyUpHandler)
+      document.addEventListener('keyup', opt_keyUpHandler);
     document.addEventListener('mouseup', cleanupAndDispatchToMouseUp);
   }
 

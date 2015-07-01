@@ -24,6 +24,9 @@ var g_timelineViewEl;
     '#timeline-view {',
     '  width: 100%;',
     '  height: 100%;',
+    '}',
+    '#timeline-view:focus {',
+    '  outline: none;',
     '}'
   ];
   styleEl.textContent = lines.join('\n');
@@ -51,10 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
       function() {
         g_timelineViewEl.model = m;
         g_timelineViewEl.updateDocumentFavicon();
-        g_timelineViewEl.tabIndex = 1;
+        g_timelineViewEl.globalMode = true;
         g_timelineViewEl.viewTitle = document.title;
-        if (g_timelineViewEl.timeline)
-          g_timelineViewEl.timeline.focusElement = g_timelineViewEl;
       },
       function(err) {
         var overlay = new tr.ui.b.Overlay();

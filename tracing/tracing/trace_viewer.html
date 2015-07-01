@@ -70,8 +70,6 @@ tr.exportTo('tr', function() {
       function onModelLoaded() {
         that.model = model;
         that.viewTitle = url;
-        if (that.timeline)
-          that.timeline.focusElement = that;
       }
 
       function onImportFail() {

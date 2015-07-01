@@ -19,3 +19,7 @@ body > x-profiling-view {
   min-height: 0;
 }
 
+body > x-profiling-view > x-timeline-view:focus {
+  outline: 0
+}
+

@@ -8,10 +8,6 @@
   cursor: default;
 }
 
-.timeline-track-view .tool-button {
-  cursor: pointer;
-}
-
 .timeline-track-view {
   -webkit-box-orient: vertical;
   display: -webkit-box;

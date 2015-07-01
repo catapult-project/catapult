@@ -8,7 +8,10 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/ui/base/common.css">
 <link rel="stylesheet" href="/ui/timeline_view.css">
 
+<link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/settings.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/mouse_mode_icon.html">
 <link rel="import" href="/ui/base/toolbar_button.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/ui/base/favicons.html">
@@ -26,6 +29,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/utils.html">
 
 <template id="timeline-view-template">
+  <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
   <div class="control">
     <div class="bar">
       <div id="left-controls" class="controls"></div>
@@ -80,7 +84,7 @@ found in the LICENSE file.
       </div>
 
       <h3>
-        <span class='mouse-mode-icon select-mode'></span>
+        <tr-ui-b-mouse-mode-icon modeName="SELECTION"></tr-ui-b-mouse-mode-icon>
         Select mode
       </h3>
       <div class='pair'>
@@ -94,7 +98,7 @@ found in the LICENSE file.
       </div>
 
       <h3>
-        <span class='mouse-mode-icon pan-mode'></span>
+        <tr-ui-b-mouse-mode-icon modeName="PANSCAN"></tr-ui-b-mouse-mode-icon>
         Pan mode
       </h3>
       <div class='pair'>
@@ -103,7 +107,7 @@ found in the LICENSE file.
       </div>
 
       <h3>
-        <span class='mouse-mode-icon zoom-mode'></span>
+        <tr-ui-b-mouse-mode-icon modeName="ZOOM"></tr-ui-b-mouse-mode-icon>
         Zoom mode
       </h3>
       <div class='pair'>
@@ -112,7 +116,7 @@ found in the LICENSE file.
       </div>
 
       <h3>
-        <span class='mouse-mode-icon timing-mode'></span>
+        <tr-ui-b-mouse-mode-icon modeName="TIMING"></tr-ui-b-mouse-mode-icon>
         Timing mode
       </h3>
       <div class='pair'>
@@ -237,6 +241,8 @@ tr.exportTo('tr.ui', function() {
           tr.ui.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
       this.appendChild(node);
 
+      this.tabIndex = 0; // Let the timeline able to receive key events.
+
       this.titleEl_ = this.querySelector('.title');
       this.leftControlsEl_ = this.querySelector('#left-controls');
       this.rightControlsEl_ = this.querySelector('#right-controls');
@@ -246,17 +252,10 @@ tr.exportTo('tr.ui', function() {
       this.trackViewContainer_ = this.querySelector('track-view-container');
 
       this.selectionController_ = new tr.c.SelectionController(this);
-      this.selectionController_.historyEnabled = true;
 
       this.findCtl_ = new TracingFindControl();
       this.findCtl_.controller = new tr.ui.FindController(
           this.selectionController_);
-      this.findCtl_.addEventListener('keydown', function(e) {
-        if (e.keyCode === 27) { // ESC
-          this.focus();
-          e.preventDefault();
-        }
-      }.bind(this));
 
       this.scriptingCtl_ = new TracingScriptingControl();
       this.scriptingCtl_.controller = new tr.c.ScriptingController(
@@ -312,10 +311,23 @@ tr.exportTo('tr.ui', function() {
 
       // Bookkeeping.
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
-      document.addEventListener('keydown', this.onKeyDown_.bind(this), true);
-      document.addEventListener('keypress', this.onKeypress_.bind(this), true);
+      this.bindKeyListeners_();
 
       this.dragEl_.target = this.analysisEl_;
+    },
+
+    get globalMode() {
+      return this.hotkeyController.globalMode;
+    },
+
+    set globalMode(globalMode) {
+      globalMode = !!globalMode;
+      this.selectionController_.historyEnabled = globalMode;
+      this.hotkeyController.globalMode = globalMode;
+    },
+
+    get hotkeyController() {
+      return this.querySelector('#hkc');
     },
 
     updateDocumentFavicon: function() {
@@ -503,8 +515,6 @@ tr.exportTo('tr.ui', function() {
 
         this.trackView.selectionController = this.selectionController_;
 
-        this.trackView_.focusElement =
-            this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.trackViewContainer_.appendChild(this.trackView_);
         this.trackView_.viewport.addEventListener(
             'change', this.onViewportChanged_);
@@ -544,90 +554,71 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * Sets the element whose focus state will determine whether
-     * to respond to keybaord input.
+     * Deprecated. Kept around because third_party code occasionally calls
+     * this to set up embedding.
      */
     set focusElement(value) {
-      this.focusElement_ = value;
-      if (this.trackView_)
-        this.trackView_.focusElement = value;
+      throw new Error('This is deprecated. Please set globalMode to true.');
     },
 
-    /**
-     * @return {Element} The element whose focused state determines
-     * whether to respond to keyboard inputs.
-     * Defaults to the parent element.
-     */
-    get focusElement() {
-      if (this.focusElement_)
-        return this.focusElement_;
-      return this.parentElement;
-    },
-
-    get listenToKeys_() {
-      if (!tr.ui.b.isElementAttachedToDocument(this))
-        return;
-      if (document.activeElement.type === 'textarea')
-        return false;
-      if (this.sidePanelContainer_.activePanel &&
-          this.sidePanelContainer_.activePanel.listeningToKeys)
-        return false;
-      if (!this.focusElement_)
-        return true;
-      if (this.focusElement.tabIndex >= 0)
-        return document.activeElement == this.focusElement;
-      return true;
-    },
-
-    onKeyDown_: function(e) {
-      if (!this.listenToKeys_)
-        return;
-    },
-
-    onKeypress_: function(e) {
-      if (!this.listenToKeys_)
-        return;
+    bindKeyListeners_: function() {
+      var hkc = this.hotkeyController;
 
       // Shortcuts that *can* steal focus from the console and the filter text
       // box.
-      switch (e.keyCode) {
-        case '`'.charCodeAt(0):
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '`'.charCodeAt(0),
+        useCapture: true,
+        thisArg: this,
+        callback: function(e) {
           this.scriptingCtl_.toggleVisibility();
           if (!this.scriptingCtl_.hasFocus)
             this.focus();
-          e.preventDefault();
-          break;
-      }
-
-      if (this.scriptingCtl_.hasFocus)
-        return;
+          e.stopPropagation();
+        }
+      }));
 
       // Shortcuts that *can* steal focus from the filter text box.
-      switch (e.keyCode) {
-        case '/'.charCodeAt(0):
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '/'.charCodeAt(0),
+        useCapture: true,
+        thisArg: this,
+        callback: function(e) {
+          if (this.scriptingCtl_.hasFocus)
+            return;
           if (this.findCtl_.hasFocus)
             this.focus();
           else
             this.findCtl_.focus();
           e.preventDefault();
-          break;
-        case '?'.charCodeAt(0):
+          e.stopPropagation();
+        }
+      }));
+
+      // Shortcuts that *can't* steal focus.
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '?'.charCodeAt(0),
+        useCapture: false,
+        thisArg: this,
+        callback: function(e) {
           this.querySelector('.view-help-button').click();
-          e.preventDefault();
-          break;
-      }
+          e.stopPropagation();
+        }
+      }));
 
-      if (this.findCtl_.hasFocus)
-        return;
-
-      // Shortcuts that *can't* steal focus from the filter text box or the
-      // console.
-      switch (e.keyCode) {
-        case 'v'.charCodeAt(0):
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: 'v'.charCodeAt(0),
+        useCapture: false,
+        thisArg: this,
+        callback: function(e) {
           this.toggleHighlightVSync_();
-          e.preventDefault();
-          break;
-      }
+          e.stopPropagation();
+        }
+      }));
     },
 
     onViewportChanged_: function(e) {

@@ -7,94 +7,70 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/events.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/ui/base/key_event_manager.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
 <link rel="import" href="/ui/base/mouse_tracker.html">
 <link rel="import" href="/ui/base/ui.html">
 <link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/base/mouse_modes.html">
+<link rel="import" href="/ui/base/mouse_mode_icon.html">
 
-<link rel="stylesheet" href="/ui/base/mouse_mode_selector.css">
-<link rel="stylesheet" href="/ui/base/tool_button.css">
+<polymer-element name="tr-ui-b-mouse-mode-selector">
+  <template>
+    <style>
+    :host {
 
-<template id="mouse-mode-selector-template">
-  <div class="drag-handle"></div>
-  <div class="buttons">
-  </div>
-</template>
+      -webkit-user-drag: element;
+      -webkit-user-select: none;
 
+      background: #DDD;
+      border: 1px solid #BBB;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      left: calc(100% - 120px);
+      position: absolute;
+      top: 100px;
+      user-select: none;
+      width: 29px;
+      z-index: 20;
+    }
+
+    .drag-handle {
+      background: url(../images/ui-states.png) 2px 3px no-repeat;
+      background-repeat: no-repeat;
+      border-bottom: 1px solid #BCBCBC;
+      cursor: move;
+      display: block;
+      height: 13px;
+      width: 27px;
+    }
+
+    .tool-button {
+      background-position: center center;
+      background-repeat: no-repeat;
+      border-bottom: 1px solid #BCBCBC;
+      border-top: 1px solid #F1F1F1;
+      cursor: pointer;
+    }
+
+    .buttons > .tool-button:last-child {
+      border-bottom: none;
+    }
+
+    </style>
+    <div class="drag-handle"></div>
+    <div class="buttons">
+    </div>
+  </template>
+</polymer-element>
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
+  var MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
+  var MOUSE_SELECTOR_MODE_INFOS = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS;
 
-  var THIS_DOC = document.currentScript.ownerDocument;
 
   var MIN_MOUSE_SELECTION_DISTANCE = 4;
-
-  var MOUSE_SELECTOR_MODE = {};
-  MOUSE_SELECTOR_MODE.SELECTION = 0x1;
-  MOUSE_SELECTOR_MODE.PANSCAN = 0x2;
-  MOUSE_SELECTOR_MODE.ZOOM = 0x4;
-  MOUSE_SELECTOR_MODE.TIMING = 0x8;
-  MOUSE_SELECTOR_MODE.ROTATE = 0x10;
-  MOUSE_SELECTOR_MODE.ALL_MODES = 0x1F;
-
-  var allModeInfo = {};
-  allModeInfo[MOUSE_SELECTOR_MODE.PANSCAN] = {
-    title: 'pan',
-    className: 'pan-scan-mode-button',
-    eventNames: {
-      enter: 'enterpan',
-      begin: 'beginpan',
-      update: 'updatepan',
-      end: 'endpan',
-      exit: 'exitpan'
-    }
-  };
-  allModeInfo[MOUSE_SELECTOR_MODE.SELECTION] = {
-    title: 'selection',
-    className: 'selection-mode-button',
-    eventNames: {
-      enter: 'enterselection',
-      begin: 'beginselection',
-      update: 'updateselection',
-      end: 'endselection',
-      exit: 'exitselection'
-    }
-  };
-
-  allModeInfo[MOUSE_SELECTOR_MODE.ZOOM] = {
-    title: 'zoom',
-    className: 'zoom-mode-button',
-    eventNames: {
-      enter: 'enterzoom',
-      begin: 'beginzoom',
-      update: 'updatezoom',
-      end: 'endzoom',
-      exit: 'exitzoom'
-    }
-  };
-  allModeInfo[MOUSE_SELECTOR_MODE.TIMING] = {
-    title: 'timing',
-    className: 'timing-mode-button',
-    eventNames: {
-      enter: 'entertiming',
-      begin: 'begintiming',
-      update: 'updatetiming',
-      end: 'endtiming',
-      exit: 'exittiming'
-    }
-  };
-  allModeInfo[MOUSE_SELECTOR_MODE.ROTATE] = {
-    title: 'rotate',
-    className: 'rotate-mode-button',
-    eventNames: {
-      enter: 'enterrotate',
-      begin: 'beginrotate',
-      update: 'updaterotate',
-      end: 'endrotate',
-      exit: 'exitrotate'
-    }
-  };
 
   var MODIFIER = {
     SHIFT: 0x1,
@@ -106,26 +82,12 @@ tr.exportTo('tr.ui.b', function() {
    * Provides a panel for switching the interaction mode of the mouse.
    * It handles the user interaction and dispatches events for the various
    * modes.
-   *
-   * @constructor
-   * @extends {HTMLDivElement}
    */
-  var MouseModeSelector = tr.ui.b.define('div');
-
-  MouseModeSelector.prototype = {
+  Polymer('tr-ui-b-mouse-mode-selector', {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function(opt_targetElement) {
-      this.classList.add('mouse-mode-selector');
-
-      var node = tr.ui.b.instantiateTemplate('#mouse-mode-selector-template',
-                                          THIS_DOC);
-      this.appendChild(node);
-
-      this.buttonsEl_ = this.querySelector('.buttons');
-      this.dragHandleEl_ = this.querySelector('.drag-handle');
-
-      this.supportedModeMask = MOUSE_SELECTOR_MODE.ALL_MODES;
+    created: function() {
+      this.supportedModeMask_ = MOUSE_SELECTOR_MODE.ALL_MODES;
 
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
@@ -134,33 +96,45 @@ tr.exportTo('tr.ui.b', function() {
       this.mousePos_ = {x: 0, y: 0};
       this.mouseDownPos_ = {x: 0, y: 0};
 
-      this.dragHandleEl_.addEventListener('mousedown',
-          this.onDragHandleMouseDown_.bind(this));
-
       this.onMouseDown_ = this.onMouseDown_.bind(this);
       this.onMouseMove_ = this.onMouseMove_.bind(this);
       this.onMouseUp_ = this.onMouseUp_.bind(this);
 
-      this.buttonsEl_.addEventListener('mouseup', this.onButtonMouseUp_);
-      this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
-      this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
-
-      tr.ui.b.KeyEventManager.instance.addListener(
-          'keydown', this.onKeyDown_, this);
-      tr.ui.b.KeyEventManager.instance.addListener(
-          'keyup', this.onKeyUp_, this);
-      this.keyCodeCondition = undefined;
+      this.onKeyDown_ = this.onKeyDown_.bind(this);
+      this.onKeyUp_ = this.onKeyUp_.bind(this);
 
       this.mode_ = undefined;
       this.modeToKeyCodeMap_ = {};
       this.modifierToModeMap_ = {};
 
-      this.targetElement = opt_targetElement;
-      this.spacePressed_ = false;
+      this.targetElement_ = undefined;
       this.modeBeforeAlternativeModeActivated_ = null;
 
       this.isInteracting_ = false;
       this.isClick_ = false;
+    },
+
+    ready: function() {
+      this.buttonsEl_ = this.shadowRoot.querySelector('.buttons');
+      this.dragHandleEl_ = this.shadowRoot.querySelector('.drag-handle');
+      this.supportedModeMask = MOUSE_SELECTOR_MODE.ALL_MODES;
+
+      this.dragHandleEl_.addEventListener('mousedown',
+          this.onDragHandleMouseDown_.bind(this));
+
+      this.buttonsEl_.addEventListener('mouseup', this.onButtonMouseUp_);
+      this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
+      this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
+    },
+
+    attached: function() {
+      document.addEventListener('keydown', this.onKeyDown_);
+      document.addEventListener('keyup', this.onKeyUp_);
+    },
+
+    detached: function() {
+      document.removeEventListener('keydown', this.onKeyDown_);
+      document.removeEventListener('keyup', this.onKeyUp_);
     },
 
     get targetElement() {
@@ -195,7 +169,7 @@ tr.exportTo('tr.ui.b', function() {
       var mode = tr.b.Settings.get(this.settingsKey_ + '.mode', undefined);
       // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
       // settings to the best of our abilities.
-      if (allModeInfo[mode] === undefined)
+      if (MOUSE_SELECTOR_MODE_INFOS[mode] === undefined)
         mode = undefined;
 
       // Restoring settings against unsupported modes should just go back to the
@@ -225,11 +199,6 @@ tr.exportTo('tr.ui.b', function() {
         throw new Error('supportedModeMask must include current mode.');
 
       function createButtonForMode(mode) {
-        var button = document.createElement('div');
-        button.mode = mode;
-        button.title = allModeInfo[mode].title;
-        button.classList.add('tool-button');
-        button.classList.add(allModeInfo[mode].className);
         return button;
       }
 
@@ -241,8 +210,22 @@ tr.exportTo('tr.ui.b', function() {
         var mode = MOUSE_SELECTOR_MODE[modeName];
         if ((this.supportedModeMask_ & mode) === 0)
           continue;
-        this.buttonsEl_.appendChild(createButtonForMode(mode));
+
+        var button = document.createElement('tr-ui-b-mouse-mode-icon');
+        button.mode = mode;
+        button.classList.add('tool-button');
+
+        this.buttonsEl_.appendChild(button);
       }
+    },
+
+    getButtonForMode_: function(mode) {
+      for (var i = 0; i < this.buttonsEl_.children.length; i++) {
+        var buttonEl = this.buttonsEl_.children[i];
+        if (buttonEl.mode === mode)
+          return buttonEl;
+      }
+      return undefined;
     },
 
     get mode() {
@@ -255,7 +238,7 @@ tr.exportTo('tr.ui.b', function() {
           throw new Error('Mode must be a number');
         if ((newMode & this.supportedModeMask_) === 0)
           throw new Error('Cannot switch to this mode, it is not supported');
-        if (allModeInfo[newMode] === undefined)
+        if (MOUSE_SELECTOR_MODE_INFOS[newMode] === undefined)
           throw new Error('Unrecognized mode');
       }
 
@@ -265,43 +248,43 @@ tr.exportTo('tr.ui.b', function() {
         return;
 
       if (this.currentMode_) {
-        modeInfo = allModeInfo[this.currentMode_];
-        var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
+        var buttonEl = this.getButtonForMode_(this.currentMode_);
         if (buttonEl)
-          buttonEl.classList.remove('active');
+          buttonEl.active = false;
 
         // End event.
         if (this.isInteracting_) {
 
           var mouseEvent = this.createEvent_(
-              allModeInfo[this.mode].eventNames.end);
+              MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.end);
           this.dispatchEvent(mouseEvent);
         }
 
         // Exit event.
+        modeInfo = MOUSE_SELECTOR_MODE_INFOS[this.currentMode_];
         tr.b.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
       }
 
       this.currentMode_ = newMode;
 
       if (this.currentMode_) {
-        modeInfo = allModeInfo[this.currentMode_];
-        var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
+        var buttonEl = this.getButtonForMode_(this.currentMode_);
         if (buttonEl)
-          buttonEl.classList.add('active');
+          buttonEl.active = true;
 
         // Entering a new mode resets mouse down pos.
         this.mouseDownPos_.x = this.mousePos_.x;
         this.mouseDownPos_.y = this.mousePos_.y;
 
         // Enter event.
+        modeInfo = MOUSE_SELECTOR_MODE_INFOS[this.currentMode_];
         if (!this.isInAlternativeMode_)
           tr.b.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
 
         // Begin event.
         if (this.isInteracting_) {
           var mouseEvent = this.createEvent_(
-              allModeInfo[this.mode].eventNames.begin);
+              MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin);
           this.dispatchEvent(mouseEvent);
         }
 
@@ -320,16 +303,9 @@ tr.exportTo('tr.ui.b', function() {
       if (!this.buttonsEl_)
         return;
 
-      var modeInfo = allModeInfo[mode];
-      var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
-      if (buttonEl) {
-        buttonEl.title =
-            modeInfo.title + ' (' + String.fromCharCode(keyCode) + ')';
-      }
-    },
-
-    setKeyCodeCondition: function(callback) {
-      this.keyCodeCondition = callback;
+      var buttonEl = this.getButtonForMode_(mode);
+      if (buttonEl)
+        buttonEl.acceleratorKey = String.fromCharCode(keyCode);
     },
 
     setCurrentMousePosFromEvent_: function(e) {
@@ -365,7 +341,7 @@ tr.exportTo('tr.ui.b', function() {
         return;
       this.setCurrentMousePosFromEvent_(e);
       var mouseEvent = this.createEvent_(
-          allModeInfo[this.mode].eventNames.begin, e);
+          MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin, e);
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
@@ -376,7 +352,7 @@ tr.exportTo('tr.ui.b', function() {
       this.setCurrentMousePosFromEvent_(e);
 
       var mouseEvent = this.createEvent_(
-          allModeInfo[this.mode].eventNames.update, e);
+          MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.update, e);
       this.dispatchEvent(mouseEvent);
 
       if (this.isInteracting_)
@@ -388,7 +364,7 @@ tr.exportTo('tr.ui.b', function() {
         return;
 
       var mouseEvent = this.createEvent_(
-          allModeInfo[this.mode].eventNames.end, e);
+          MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.end, e);
       mouseEvent.isClick = this.isClick_;
       this.dispatchEvent(mouseEvent);
 
@@ -424,12 +400,6 @@ tr.exportTo('tr.ui.b', function() {
     onKeyUp_: function(e) {
       if (e.keyCode === ' '.charCodeAt(0))
         this.spacePressed_ = false;
-
-      if (this.keyCodeCondition != undefined && !this.keyCodeCondition()) {
-        // If keyCodeCondition is false when the FindControl is active,
-        // ignore the keyUp event.
-        return;
-      }
 
       var didHandleKey = false;
       tr.b.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
@@ -566,7 +536,8 @@ tr.exportTo('tr.ui.b', function() {
       if (!this.isClick_)
         return;
 
-      var eventNames = allModeInfo[MOUSE_SELECTOR_MODE.SELECTION].eventNames;
+      var modeInfo = MOUSE_SELECTOR_MODE_INFOS[MOUSE_SELECTOR_MODE.SELECTION];
+      var eventNames = modeInfo.eventNames;
 
       var mouseEvent = this.createEvent_(eventNames.begin);
       this.dispatchEvent(mouseEvent);
@@ -574,12 +545,10 @@ tr.exportTo('tr.ui.b', function() {
       mouseEvent = this.createEvent_(eventNames.end);
       this.dispatchEvent(mouseEvent);
     }
-  };
+  });
 
   return {
     MIN_MOUSE_SELECTION_DISTANCE: MIN_MOUSE_SELECTION_DISTANCE,
-    MouseModeSelector: MouseModeSelector,
-    MOUSE_SELECTOR_MODE: MOUSE_SELECTOR_MODE,
     MODIFIER: MODIFIER
   };
 });

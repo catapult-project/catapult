@@ -166,17 +166,14 @@ tr-ui-b-toolbar-button {
   text-align: left;
   width: 200px;
 }
-.view-help-text .mouse-mode-icon {
+.view-help-text tr-ui-b-mouse-mode-icon {
   border: 1px solid #888;
   border-radius: 3px;
   box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
   display: inline-block;
-  height: 26px;
   margin-right: 1px;
   position: relative;
   top: 4px;
-  width: 27px;
-  zoom: 0.75;
 }
 .view-help-text .mouse-mode-icon.pan-mode {
   background-position: -1px -11px;

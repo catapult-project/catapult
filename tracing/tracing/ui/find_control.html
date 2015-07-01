@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/ui/base/hotkey_controller.html">
 <link rel="import" href="/ui/find_controller.html">
 <link rel="import" href="/ui/timeline_track_view.html">
-<link rel="import" href="/ui/base/toolbar_button.html">
 
 <polymer-element name="tr-ui-find-control" constructor="TracingFindControl">
   <template>
@@ -66,7 +66,6 @@ found in the LICENSE file.
 
     <input type='text' id='filter'
         on-input="{{ filterTextChanged }}"
-        on-keypress="{{ filterKeyPress }}"
         on-keydown="{{ filterKeyDown }}"
         on-blur="{{ filterBlur }}"
         on-focus="{{ filterFocus }}"
@@ -86,20 +85,19 @@ found in the LICENSE file.
 
   Polymer({
     filterKeyDown: function(e) {
-      if (e.keyCode === 27)
+      if (e.keyCode === 27) {
+        var hkc = tr.b.getHotkeyControllerForElement(this);
+        if (hkc) {
+          hkc.childRequestsBlur(this);
+        } else {
+          this.blur();
+        }
+        e.preventDefault();
+        e.stopPropagation();
         return;
-
-      e.stopPropagation();
-      if (e.keyCode !== 13) //
-        return;
-
-      e.shiftKey ? this.findPrevious() : this.findNext();
-    },
-
-    filterKeyPress: function(e) {
-      if (e.keyCode === 27)
-        return;
-      e.stopPropagation();
+      } else if (e.keyCode !== 13) {
+        e.shiftKey ? this.findPrevious() : this.findNext();
+      }
     },
 
     filterBlur: function(e) {

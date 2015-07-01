@@ -633,7 +633,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new tr.ui.b.MouseModeSelector(this.canvas_);
+      this.mouseModeSelector_ = document.createElement(
+          'tr-ui-b-mouse-mode-selector');
+      this.mouseModeSelector_.targetElement = this.canvas_;
       this.mouseModeSelector_.supportedModeMask =
           tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION |
           tr.ui.b.MOUSE_SELECTOR_MODE.PANSCAN |

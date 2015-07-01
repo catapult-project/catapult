@@ -14,9 +14,10 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/timing_tool.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/timeline_display_transform_animations.html">
-<link rel="import" href="/ui/base/timing_tool.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/model_track.html">
 <link rel="import" href="/ui/tracks/ruler_track.html">
@@ -126,19 +127,29 @@ tr.exportTo('tr.ui', function() {
 
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
 
-      this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
-      this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
-      this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
+      this.onDblClick_ = this.onDblClick_.bind(this);
+      this.addEventListener('dblclick', this.onDblClick_);
 
-      this.bindEventListener_(this, 'dblclick', this.onDblClick_, this);
-      this.bindEventListener_(this, 'mousewheel', this.onMouseWheel_, this);
-      this.bindEventListener_(this, 'mousedown', this.onMouseDown_, this);
+      this.onMouseWheel_ = this.onMouseWheel_.bind(this);
+      this.addEventListener('mousewheel', this.onMouseWheel_);
 
+      this.onMouseDown_ = this.onMouseDown_.bind(this);
+      this.addEventListener('mousedown', this.onMouseDown_);
+
+      this.onMouseMove_ = this.onMouseMove_.bind(this);
       this.addEventListener('mousemove', this.onMouseMove_);
 
+      this.onTouchStart_ = this.onTouchStart_.bind(this);
       this.addEventListener('touchstart', this.onTouchStart_);
+
+      this.onTouchMove_ = this.onTouchMove_.bind(this);
       this.addEventListener('touchmove', this.onTouchMove_);
+
+      this.onTouchEnd_ = this.onTouchEnd_.bind(this);
       this.addEventListener('touchend', this.onTouchEnd_);
+
+
+      this.addHotKeys_();
 
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
       this.lastMouseViewPos_ = {x: 0, y: 0};
@@ -151,23 +162,10 @@ tr.exportTo('tr.ui', function() {
       this.isZooming_ = false;
     },
 
-    /**
-     * Wraps the standard addEventListener but automatically binds the provided
-     * func to the provided target, tracking the resulting closure. When detach
-     * is called, these listeners will be automatically removed.
-     */
-    bindEventListener_: function(object, event, func, target) {
-      if (!this.boundListeners_)
-        this.boundListeners_ = [];
-      var boundFunc = func.bind(target);
-      this.boundListeners_.push({object: object,
-        event: event,
-        boundFunc: boundFunc});
-      object.addEventListener(event, boundFunc);
-    },
-
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new tr.ui.b.MouseModeSelector(this);
+      this.mouseModeSelector_ = document.createElement(
+          'tr-ui-b-mouse-mode-selector');
+      this.mouseModeSelector_.targetElement = this;
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -212,12 +210,6 @@ tr.exportTo('tr.ui', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.ZOOM, '3'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
-      this.mouseModeSelector_.setKeyCodeCondition(function() {
-        // Return false when FindControl is active so that MouseMode keyboard
-        // shortcuts are ignored.
-        return this.listenToKeys_;
-      }.bind(this));
-
       this.mouseModeSelector_.setModifierForAlternateMode(
           m.SELECTION, tr.ui.b.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
@@ -259,11 +251,6 @@ tr.exportTo('tr.ui', function() {
       this.modelTrack_.detach();
       this.upperModelTrack_.detach();
 
-      for (var i = 0; i < this.boundListeners_.length; i++) {
-        var binding = this.boundListeners_[i];
-        binding.object.removeEventListener(binding.event, binding.boundFunc);
-      }
-      this.boundListeners_ = undefined;
       this.viewport_.detach();
     },
 
@@ -342,45 +329,7 @@ tr.exportTo('tr.ui', function() {
       return firstT;
     },
 
-    /**
-     * @return {Element} The element whose focused state determines
-     * whether to respond to keyboard inputs.
-     * Defaults to the parent element.
-     */
-    get focusElement() {
-      if (this.focusElement_)
-        return this.focusElement_;
-      return this.parentElement;
-    },
-
-    /**
-     * Sets the element whose focus state will determine whether
-     * to respond to keyboard input.
-     */
-    set focusElement(value) {
-      this.focusElement_ = value;
-    },
-
-    get listenToKeys_() {
-      if (!this.viewport_.isAttachedToDocumentOrInTestMode)
-        return false;
-      if (document.activeElement instanceof TracingFindControl)
-        return false;
-      if (document.activeElement instanceof TracingScriptingControl)
-        return false;
-      if (!this.focusElement_)
-        return true;
-      if (this.focusElement.tabIndex >= 0) {
-        if (document.activeElement == this.focusElement)
-          return true;
-        return tr.ui.b.elementIsChildOf(document.activeElement,
-                                        this.focusElement);
-      }
-      return true;
-    },
-
     onMouseMove_: function(e) {
-
       // Zooming requires the delta since the last mousemove so we need to avoid
       // tracking it when the zoom interaction is active.
       if (this.isZooming_)
@@ -404,120 +353,186 @@ tr.exportTo('tr.ui', function() {
       this.focusElements_();
     },
 
-    onKeypress_: function(e) {
-      var vp = this.viewport_;
-      if (!this.listenToKeys_)
-        return;
-      if (document.activeElement.nodeName == 'INPUT')
-        return;
-      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
-      var curMouseV, curCenterW;
-      switch (e.keyCode) {
+    addHotKeys_: function() {
+      var hkc = document.createElement('tv-ui-b-hotkey-controller');
+      this.appendChild(hkc);
+      this.hotkeyController_ = hkc;
 
-        case 119:  // w
-        case 44:   // ,
-          this.zoomBy_(1.5, true);
-          break;
-        case 115:  // s
-        case 111:  // o
-          this.zoomBy_(1 / 1.5, true);
-          break;
-        case 103:  // g
-          this.onGridToggle_(true);
-          break;
-        case 71:  // G
-          this.onGridToggle_(false);
-          break;
-        case 87:  // W
-        case 60:  // <
-          this.zoomBy_(10, true);
-          break;
-        case 83:  // S
-        case 79:  // O
-          this.zoomBy_(1 / 10, true);
-          break;
-        case 97:  // a
-          this.queueSmoothPan_(viewWidth * 0.3, 0);
-          break;
-        case 100:  // d
-        case 101:  // e
-          this.queueSmoothPan_(viewWidth * -0.3, 0);
-          break;
-        case 65:  // A
-          this.queueSmoothPan_(viewWidth * 0.5, 0);
-          break;
-        case 68:  // D
-          this.queueSmoothPan_(viewWidth * -0.5, 0);
-          break;
-        case 48:  // 0
-          this.setInitialViewport_();
-          break;
-        case 102:  // f
-          this.zoomToSelection();
-          break;
-        case 'm'.charCodeAt(0):
-          this.setCurrentSelectionAsInterestRange_();
-          break;
-        case 104:  // h
-          this.toggleHighDetails_();
-          break;
-      }
+      this.addKeyDownHotKeys_();
+      this.addKeyPressHotKeys_();
     },
 
-    // Not all keys send a keypress.
-    onKeydown_: function(e) {
-      if (!this.listenToKeys_)
-        return;
-      var sel;
-      var vp = this.viewport_;
-      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
+    addKeyPressHotKeys_: function() {
+      var hkc = this.hotkeyController_;
 
-      switch (e.keyCode) {
-        case 37:   // left arrow
-          sel = this.selectionController_.selection.getShiftedSelection(
+      var addBinding = function(dict) {
+        dict.eventType = 'keypress';
+        dict.useCapture = false;
+        dict.thisArg = this;
+        var binding = new tr.ui.b.HotKey(dict);
+        hkc.addHotKey(binding);
+      }.bind(this);
+
+      addBinding({
+        keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0)],
+        callback: function(e) {
+          this.zoomBy_(1.5, true);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCodes: ['s'.charCodeAt(0), 'o'.charCodeAt(0)],
+        callback: function(e) {
+          this.zoomBy_(1 / 1.5, true);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'g'.charCodeAt(0),
+        callback: function(e) {
+          this.onGridToggle_(true);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'G'.charCodeAt(0),
+        callback: function(e) {
+          this.onGridToggle_(false);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0)],
+        callback: function(e) {
+          this.zoomBy_(10, true);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCodes: ['S'.charCodeAt(0), 'O'.charCodeAt(0)],
+        callback: function(e) {
+          this.zoomBy_(1 / 10, true);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'a'.charCodeAt(0),
+        callback: function(e) {
+          this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCodes: ['d'.charCodeAt(0), 'e'.charCodeAt(0)],
+        callback: function(e) {
+          this.queueSmoothPan_(this.viewWidth_ * -0.3, 0);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'A'.charCodeAt(0),
+        callback: function(e) {
+          this.queueSmoothPan_(viewWidth * 0.5, 0);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'D'.charCodeAt(0),
+        callback: function(e) {
+          this.queueSmoothPan_(viewWidth * -0.5, 0);
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: '0'.charCodeAt(0),
+        callback: function(e) {
+          this.setInitialViewport_();
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'f'.charCodeAt(0),
+        callback: function(e) {
+          this.zoomToSelection();
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'm'.charCodeAt(0),
+        callback: function(e) {
+          this.setCurrentSelectionAsInterestRange_();
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 'h'.charCodeAt(0),
+        callback: function(e) {
+          this.toggleHighDetails_();
+          e.stopPropagation();
+        }
+      });
+    },
+
+    get viewWidth_() {
+      return this.modelTrackContainer_.canvas.clientWidth;
+    },
+
+    addKeyDownHotKeys_: function() {
+      var hkc = this.hotkeyController_;
+
+      var addBinding = function(dict) {
+        dict.eventType = 'keypress';
+        dict.useCapture = false;
+        dict.thisArg = this;
+        var binding = new tr.ui.b.HotKey(dict);
+        hkc.addHotKey(binding);
+      }.bind(this);
+
+      addBinding({
+        keyCode: 37, // Left arrow.
+        callback: function(e) {
+          var sel = this.selectionController_.selection.getShiftedSelection(
               this.viewport, -1);
 
           if (sel) {
             this.selectionController.changeSelectionFromTimeline(sel);
             this.panToSelection();
-            e.preventDefault();
           } else {
-            this.queueSmoothPan_(viewWidth * 0.3, 0);
+            this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
           }
-          break;
-        case 39:   // right arrow
-          sel = this.selectionController_.selection.getShiftedSelection(
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
+        keyCode: 39, // Right arrow.
+        callback: function(e) {
+          var sel = this.selectionController_.selection.getShiftedSelection(
               this.viewport, 1);
           if (sel) {
             this.selectionController.changeSelectionFromTimeline(sel);
             this.panToSelection();
-            e.preventDefault();
           } else {
-            this.queueSmoothPan_(-viewWidth * 0.3, 0);
+            this.queueSmoothPan_(-this.viewWidth_ * 0.3, 0);
           }
-          break;
-        case 9:    // TAB
-          if (this.focusElement.tabIndex == -1) {
-            if (e.shiftKey)
-              this.selectPrevious_(e);
-            else
-              this.selectNext_(e);
-            e.preventDefault();
-          }
-          break;
-      }
-    },
-
-    onKeyup_: function(e) {
-      if (!this.listenToKeys_)
-        return;
-      if (!e.shiftKey) {
-        if (this.dragBeginEvent_) {
-          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-              this.dragBoxXEnd_, this.dragBoxYEnd_);
+          e.preventDefault();
+          e.stopPropagation();
         }
-      }
-
+      });
     },
 
     onDblClick_: function(e) {
@@ -593,6 +608,13 @@ tr.exportTo('tr.ui', function() {
             this.viewport_.currentDisplayTransform.scaleX);
         this.timelineView_.setFindCtlText(
             state.toUserFriendlyString(this.viewport_));
+      }.bind(this),
+      undefined, // Mouse up handler.
+      function onKeyUpDuringDrag() {
+        if (this.dragBeginEvent_) {
+          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+              this.dragBoxXEnd_, this.dragBoxYEnd_);
+        }
       }.bind(this));
     },
 
@@ -616,7 +638,6 @@ tr.exportTo('tr.ui', function() {
 
       smooth = !!smooth;
       var vp = this.viewport_;
-      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var pixelRatio = window.devicePixelRatio || 1;
 
       var goalFocalPointXView = this.lastMouseViewPos_.x * pixelRatio;
@@ -632,7 +653,7 @@ tr.exportTo('tr.ui', function() {
         tempDisplayTransform.set(vp.currentDisplayTransform);
         tempDisplayTransform.scaleX = tempDisplayTransform.scaleX * scale;
         tempDisplayTransform.xPanWorldPosToViewPos(
-            goalFocalPointXWorld, goalFocalPointXView, viewWidth);
+            goalFocalPointXWorld, goalFocalPointXView, this.viewWidth_);
         vp.setDisplayTransformImmediately(tempDisplayTransform);
       }
     },
@@ -672,7 +693,7 @@ tr.exportTo('tr.ui', function() {
 
       var bounds = this.selectionController.selectionOfInterest.bounds;
       var worldCenter = bounds.center;
-      var viewWidth = this.modelTrackContainer_.canvas.width;
+      var viewWidth = this.viewWidth_;
 
       var dt = this.viewport_.currentDisplayTransform;
       if (false && !bounds.range) {
@@ -868,10 +889,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     focusElements_: function() {
-      if (document.activeElement)
-        document.activeElement.blur();
-      if (this.focusElement.tabIndex >= 0)
-        this.focusElement.focus();
+      this.hotkeyController_.childRequestsGeneralFocus(this);
     },
 
     storeInitialInteractionPositionsAndFocus_: function(e) {
@@ -896,7 +914,7 @@ tr.exportTo('tr.ui', function() {
       if (!this.isPanningAndScanning_)
         return;
 
-      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
+      var viewWidth = this.viewWidth_;
 
       var pixelRatio = window.devicePixelRatio || 1;
       var xDeltaView = pixelRatio * (this.lastMouseViewPos_.x -
@@ -1058,7 +1076,7 @@ tr.exportTo('tr.ui', function() {
       var currentSpan = this.computeTouchSpan_(currentPositions);
 
       var vp = this.viewport_;
-      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
+      var viewWidth = this.viewWidth_;
       var pixelRatio = window.devicePixelRatio || 1;
 
       var xDelta = pixelRatio * (newCenter.x - currentCenter.x);

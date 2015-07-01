@@ -33,8 +33,6 @@ tr.b.unittest.testSuite(function() {
     var timeline = new tr.ui.TimelineTrackView();
     var vp = new tr.ui.TimelineViewport(timeline);
     timeline.model = model;
-    timeline.focusElement = timeline;
-    timeline.tabIndex = 0;
     timeline.style.maxHeight = '600px';
     this.addHTMLOutput(timeline);
 

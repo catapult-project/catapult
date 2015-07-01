@@ -178,6 +178,15 @@ tr.exportTo('tr.b', function() {
     return ary[i];
   }
 
+  function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
+    var func = opt_func || identity;
+    for (var key in dict) {
+      if (func.call(opt_this, key, dict[key]))
+        return key;
+    }
+    return undefined;
+  }
+
   return {
     asArray: asArray,
     concatenateArrays: concatenateArrays,
@@ -193,7 +202,8 @@ tr.exportTo('tr.b', function() {
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
     identity: identity,
     findFirstIndexInArray: findFirstIndexInArray,
-    findFirstInArray: findFirstInArray
+    findFirstInArray: findFirstInArray,
+    findFirstKeyInDictMatching: findFirstKeyInDictMatching
   };
 });
 </script>
