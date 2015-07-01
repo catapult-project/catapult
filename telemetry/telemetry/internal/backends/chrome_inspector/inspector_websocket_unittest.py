@@ -47,7 +47,7 @@ def _DoNothingHandler(_elapsed_time):
 class InspectorWebsocketUnittest(unittest.TestCase):
 
   def setUp(self):
-    self._mock_timer = simple_mock.MockTimer(inspector_websocket)
+    self._mock_timer = simple_mock.MockTimer()
 
   def tearDown(self):
     self._mock_timer.Restore()
