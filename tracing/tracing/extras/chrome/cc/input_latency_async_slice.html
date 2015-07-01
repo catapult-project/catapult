@@ -51,7 +51,8 @@ tr.exportTo('tr.e.cc', function() {
     TOUCH_CANCEL: 'TouchCancel',
     TOUCH_END: 'TouchEnd',
     TOUCH_MOVE: 'TouchMove',
-    TOUCH_START: 'TouchStart'
+    TOUCH_START: 'TouchStart',
+    UNKNOWN: 'UNKNOWN'
   };
 
   function InputLatencyAsyncSlice() {
@@ -84,6 +85,8 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     checkTypeName_: function() {
+      if (!this.typeName_)
+        throw 'Unable to determine typeName';
       var found = false;
       for (var type_name in INPUT_EVENT_TYPE_NAMES) {
         if (this.typeName === INPUT_EVENT_TYPE_NAMES[type_name]) {
@@ -92,7 +95,7 @@ tr.exportTo('tr.e.cc', function() {
         }
       }
       if (!found)
-        throw 'Unrecognized InputLatencyAsyncSlice.typeName: ' + this.typeName;
+        this.typeName_ = INPUT_EVENT_TYPE_NAMES.UNKNOWN;
     },
 
     determineModernTypeName_: function() {
@@ -131,8 +134,10 @@ tr.exportTo('tr.e.cc', function() {
         if (this.typeName_ && subSlice.typeName_) {
           var subSliceHasDifferentTypeName = (
               this.typeName_ !== subSlice.typeName_);
-          if (subSliceHasDifferentTypeName)
-            throw 'InputLatencyAsyncSlice.determineTypeName_() multiple types';
+          if (subSliceHasDifferentTypeName) {
+            throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() ' +
+              ' found multiple typeNames';
+          }
         }
 
         // The typeName of |this| top-level event is whatever the typeName of
@@ -142,7 +147,7 @@ tr.exportTo('tr.e.cc', function() {
 
       // If typeName could not be determined, then explode!
       if (!this.typeName_)
-        throw 'InputLatencyAsyncSlice.determineTypeName_() failed';
+        throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() failed';
 
       // Check that the determined typeName is known.
       this.checkTypeName_();
@@ -378,6 +383,7 @@ tr.exportTo('tr.e.cc', function() {
 
   var eventTypeNames = [
     'Char',
+    'ContextMenu',
     'GestureFlingCancel',
     'GestureFlingStart',
     'GestureScrollBegin',
@@ -387,13 +393,20 @@ tr.exportTo('tr.e.cc', function() {
     'GestureTap',
     'GestureTapCancel',
     'GestureTapDown',
+    'GesturePinchBegin',
+    'GesturePinchEnd',
+    'GesturePinchUpdate',
+    'KeyDown',
     'KeyUp',
     'MouseDown',
+    'MouseEnter',
+    'MouseLeave',
     'MouseMove',
     'MouseUp',
     'MouseWheel',
     'RawKeyDown',
     'ScrollUpdate',
+    'TouchCancel',
     'TouchEnd',
     'TouchMove',
     'TouchStart'
