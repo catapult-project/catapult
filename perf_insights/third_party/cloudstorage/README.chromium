@@ -1,0 +1,12 @@
+Name: Google Cloud Storage Client Library
+URL: https://github.com/GoogleCloudPlatform/appengine-gcs-client
+License: Apache 2.0
+
+Description:
+The Google Cloud Storage client library is a client-side library that is not
+dependent on any specific version of App Engine for production use.
+
+Modifications:
+
+
+Full license is in the COPYING file.
