@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/unittest.html">
+<link rel="import" href="/base/unittest/test_runner.html">
+<link rel="import" href="/base/unittest/text_test_results.html">
+<script>
+'use strict';
+
+(function() {
+  if (!tr.b.isHeadless)
+    throw new Error('d8_tests.html only works in headless mode');
+
+
+  function loadAndRunTests() {
+    var loader = new tr.b.unittest.SuiteLoader(suiteNamesToLoad);
+    return loader.allSuitesLoadedPromise.then(
+      function() {
+        return beginRunningTests(loader);
+      },
+      function(err) {
+        tr.showPanic('Module loading failure', err);
+      });
+  }
+
+
+  function beginRunningTests(loader) {
+    var results = new tr.b.unittest.TextTestResults();
+    var runner = new tr.b.unittest.TestRunner(results, loader.getAllTests());
+    return runner.beginRunning();
+  }
+
+
+  loadAndRunTests().then(
+    function() {
+      console.log('\\o/ All tests passed. You are AWESOME!');
+      quit(0);
+    },
+    function() {
+      console.log('/o\\ There were issues, sorry to say...');
+      quit(255);
+    });
+})();
+</script>

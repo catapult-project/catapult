@@ -74,7 +74,7 @@ class D8RunnerUnittest(unittest.TestCase):
       ('error.js:7: Error: Throw ERROR\n'
        "    throw new Error('Throw ERROR');"), exception_message)
     self.assertIn('maybeRaiseException (error.js:7:11)', exception_message)
-    self.assertIn('headless_global.maybeRaiseExceptionInFoo (foo.html:13:5)',
+    self.assertIn('global.maybeRaiseExceptionInFoo (foo.html:13:7)',
                   exception_message)
     self.assertIn('at %s:14:1' % file_path, exception_message)
 
@@ -99,7 +99,7 @@ class D8RunnerUnittest(unittest.TestCase):
        "    throw new Error('Throw ERROR');"), exception_message)
 
     self.assertIn('maybeRaiseException (error.js:7:11)', exception_message)
-    self.assertIn('headless_global.maybeRaiseExceptionInFoo (foo.html:13:5)',
+    self.assertIn('global.maybeRaiseExceptionInFoo (foo.html:13:7)',
                   exception_message)
     self.assertIn('at error_stack_test.js:14:1', exception_message)
     self.assertIn('at eval (%s:5:1)' % file_path, exception_message)

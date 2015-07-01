@@ -26,13 +26,14 @@ found in the LICENSE file.
 <script>
   'use strict';
   var u = 100;
-
-  /**
-   * Define this method of headless_global so top level file can call this.
-   */
-  headless_global.maybeRaiseExceptionInFoo = function() {
-    maybeRaiseException();
-  };
+  (function(global) {
+    /**
+     * Define this method of headless_global so top level file can call this.
+     */
+    global.maybeRaiseExceptionInFoo = function() {
+      maybeRaiseException();
+    };
+  })(this);
   print('File foo.html\'s second script is loaded');
   x = x + 1;
   print('x = ' + x);

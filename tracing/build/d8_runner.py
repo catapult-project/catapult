@@ -86,7 +86,7 @@ def ExecuteFile(file_path, search_path=None, js_args=None):
         f.write('\nloadHTML("%s");' % os.path.abspath(file_path))
       else:
         f.write('\nload("%s");' % os.path.abspath(file_path))
-    return ExecuteFileWithD8(temp_boostrap_file, js_args)
+    return _ExecuteFileWithD8(temp_boostrap_file, js_args)
   finally:
     shutil.rmtree(temp_dir)
 
@@ -109,7 +109,7 @@ def ExcecuteJsString(js_string, search_path=None, js_args=None,
     shutil.rmtree(temp_dir)
 
 
-def ExecuteFileWithD8(js_file_path, js_args):
+def _ExecuteFileWithD8(js_file_path, js_args):
   """ Execute the js_files with v8 engine and return the output of the program.
 
   Args:
