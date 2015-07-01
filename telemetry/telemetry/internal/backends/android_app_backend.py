@@ -4,8 +4,8 @@
 
 import re
 
-from telemetry.core import android_process
 from telemetry.core import util
+from telemetry.internal.app import android_process
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import app_backend
