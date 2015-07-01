@@ -23,7 +23,7 @@ _HTML_JS_EVAL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html2jseval.py'))
 
 _BOOTSTRAP_JS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'bootstrap.js'))
+    os.path.join(os.path.dirname(__file__), 'd8_bootstrap.js'))
 
 _BOOTSTRAP_JS_CONTENT = None
 def _GetBootStrapJsContent(search_path):
