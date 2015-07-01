@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core import profile_types
+from telemetry.internal.browser import profile_types
 
 
 class ProfileTypesTest(unittest.TestCase):

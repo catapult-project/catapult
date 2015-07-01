@@ -4,9 +4,9 @@
 
 from telemetry.core import platform
 from telemetry.core.platform import profiling_controller_backend
-from telemetry.core import web_contents
 from telemetry import decorators
 from telemetry.internal.backends import app_backend
+from telemetry.internal.browser import web_contents
 
 
 class ExtensionsNotSupportedException(Exception):

@@ -5,7 +5,7 @@
 import sys
 import unittest
 
-from telemetry.core import webpagereplay
+from telemetry.internal.util import webpagereplay
 
 
 # pylint: disable=W0212

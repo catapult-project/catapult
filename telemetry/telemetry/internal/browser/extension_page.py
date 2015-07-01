@@ -4,7 +4,7 @@
 
 import re
 
-from telemetry.core import web_contents
+from telemetry.internal.browser import web_contents
 
 
 def UrlToExtensionId(url):

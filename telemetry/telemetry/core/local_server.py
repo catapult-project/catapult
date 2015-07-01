@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# TODO(aiolos): this should be moved to catapult/base after the repo move.
+# It is used by tracing in tvcm/browser_controller.
 import collections
 import json
 import os

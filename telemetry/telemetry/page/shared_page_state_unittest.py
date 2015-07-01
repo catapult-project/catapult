@@ -5,7 +5,6 @@
 import tempfile
 import unittest
 
-from telemetry.core import wpr_modes
 from telemetry.internal import story_runner
 from telemetry.page import page
 from telemetry.page import page_set
@@ -13,6 +12,7 @@ from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.unittest_util import options_for_unittests
+from telemetry.util import wpr_modes
 
 
 def SetUpPageRunnerArguments(options):

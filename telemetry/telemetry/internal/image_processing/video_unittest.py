@@ -8,8 +8,8 @@ import unittest
 
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.core import video
 from telemetry import decorators
+from telemetry.internal.image_processing import video
 from telemetry.util import image_util
 
 

@@ -4,7 +4,7 @@
 
 from __future__ import division
 
-from telemetry.core import _bitmap
+from telemetry.internal.image_processing import _bitmap
 
 
 def Channels(bitmap):

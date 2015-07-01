@@ -6,7 +6,7 @@ import logging
 
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core import web_contents
+from telemetry.internal.browser import web_contents
 
 
 class Oobe(web_contents.WebContents):

@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 
 from telemetry.core import exceptions
-from telemetry.core import tab
 from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import inspector_backend_list
+from telemetry.internal.browser import tab
 
 
 class TabUnexpectedResponseException(exceptions.Error):

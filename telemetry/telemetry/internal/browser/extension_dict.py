@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import extension_to_load
+from telemetry.internal.browser import extension_to_load
 
 
 class ExtensionDict(object):

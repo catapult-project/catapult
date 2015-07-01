@@ -10,13 +10,13 @@ from telemetry import benchmark
 from telemetry import story
 from telemetry.core import discover
 from telemetry.core import util
-from telemetry.core import wpr_modes
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
+from telemetry.util import wpr_modes
 
 
 class RecorderPageTest(page_test.PageTest):

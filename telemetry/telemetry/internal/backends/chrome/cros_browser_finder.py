@@ -9,11 +9,11 @@ import logging
 from telemetry.core import platform as platform_module
 from telemetry.core.platform import cros_device
 from telemetry.core.platform import cros_interface
-from telemetry.core import possible_browser
 from telemetry.internal.backends.chrome import cros_browser_backend
 from telemetry.internal.backends.chrome import cros_browser_with_oobe
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import browser_finder_exceptions
+from telemetry.internal.browser import possible_browser
 
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):

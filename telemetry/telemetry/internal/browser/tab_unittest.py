@@ -9,8 +9,8 @@ from telemetry.core import exceptions
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry.core import util
-from telemetry.core import video
 from telemetry import decorators
+from telemetry.internal.image_processing import video
 from telemetry.timeline import model
 from telemetry.unittest_util import tab_test_case
 from telemetry.util import image_util

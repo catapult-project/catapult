@@ -23,10 +23,10 @@ from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.core import util
-from telemetry.core import video
 from telemetry import decorators
 from telemetry.internal.backends import adb_commands
 from telemetry.internal.forwarders import android_forwarder
+from telemetry.internal.image_processing import video
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import external_modules
 

@@ -4,9 +4,9 @@
 
 import os
 
-from telemetry.core import webpagereplay
-from telemetry.core import wpr_modes
 from telemetry.internal import forwarders
+from telemetry.internal.util import webpagereplay
+from telemetry.util import wpr_modes
 
 class ArchiveDoesNotExistError(Exception):
   """Raised when the archive path does not exist for replay mode."""

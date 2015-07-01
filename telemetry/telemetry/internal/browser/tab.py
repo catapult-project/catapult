@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import video
-from telemetry.core import web_contents
+from telemetry.internal.browser import web_contents
+from telemetry.internal.image_processing import video
 
 DEFAULT_TAB_TIMEOUT = 60
 

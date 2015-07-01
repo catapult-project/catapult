@@ -5,7 +5,7 @@
 import optparse
 import re
 
-from telemetry.core import command_line
+from telemetry.internal.util import command_line
 
 
 class _StoryMatcher(object):

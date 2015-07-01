@@ -7,8 +7,8 @@ import inspect
 import os
 import re
 
-from telemetry.core import camel_case
 from telemetry import decorators
+from telemetry.internal.util import camel_case
 from telemetry.internal.util import classes as classes_module
 
 

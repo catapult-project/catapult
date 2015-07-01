@@ -10,12 +10,12 @@ import time
 
 from catapult_base import cloud_storage
 from telemetry.core import exceptions
-from telemetry.core import wpr_modes
 from telemetry.internal.actions import page_action
 from telemetry.internal.results import results_options
 from telemetry.internal.util import exception_formatter
 from telemetry.page import page_test
 from telemetry import story as story_module
+from telemetry.util import wpr_modes
 from telemetry.value import failure
 from telemetry.value import skip
 

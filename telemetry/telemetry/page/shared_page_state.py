@@ -11,7 +11,6 @@ from catapult_base import cloud_storage
 from telemetry.core import exceptions
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
-from telemetry.core import wpr_modes
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
@@ -21,6 +20,7 @@ from telemetry.internal.util import file_handle
 from telemetry.page import action_runner as action_runner_module
 from telemetry.page import page_test
 from telemetry import story
+from telemetry.util import wpr_modes
 from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 

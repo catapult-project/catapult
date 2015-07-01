@@ -12,10 +12,10 @@ import unittest
 
 from telemetry import benchmark
 from telemetry.core import exceptions
-from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import user_agent
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import exception_formatter

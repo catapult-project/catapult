@@ -6,14 +6,14 @@ import os
 
 from telemetry.core import app
 from telemetry.core import exceptions
-from telemetry.core import extension_dict
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
 from telemetry.core.platform import profiling_controller
-from telemetry.core import tab_list
 from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.browser import browser_credentials
+from telemetry.internal.browser import extension_dict
+from telemetry.internal.browser import tab_list
 
 
 class Browser(app.App):

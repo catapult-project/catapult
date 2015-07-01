@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.core import user_agent
+from telemetry.internal.browser import user_agent
 from telemetry.unittest_util import tab_test_case
 
 

@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import camel_case
 from telemetry.core import system_info
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
+from telemetry.internal.util import camel_case
 
 
 class SystemInfoBackend(object):

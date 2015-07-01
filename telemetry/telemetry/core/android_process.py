@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 from telemetry.core import util
-from telemetry.core import web_contents
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
+from telemetry.internal.browser import web_contents
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:

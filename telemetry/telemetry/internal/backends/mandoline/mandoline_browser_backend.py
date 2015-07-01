@@ -6,10 +6,10 @@ import re
 
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core import wpr_modes
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
+from telemetry.util import wpr_modes
 
 
 class MandolineBrowserBackend(browser_backend.BrowserBackend):
