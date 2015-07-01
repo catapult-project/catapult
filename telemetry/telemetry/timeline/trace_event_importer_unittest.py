@@ -1017,3 +1017,49 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     trace_data = trace_data_module.TraceData(events)
     m = timeline_model.TimelineModel(trace_data)
     self.assertEqual(0, len(m.flow_events))
+
+  def testImportMemoryDumpEvents(self):
+    events = [
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 123,
+       'id': '1234ABCD'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 134,
+       'id': '1234ABCD'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 245,
+       'id': '1234ABDF'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 256,
+       'id': '1234ABDF'},
+    ]
+
+    expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
+    trace_data = trace_data_module.TraceData(events)
+    m = timeline_model.TimelineModel(trace_data)
+    memory_dump_events = list(m.IterMemoryDumpEvents())
+    self.assertEqual(len(expected), len(memory_dump_events))
+    for event, test_values in zip(memory_dump_events, expected):
+      dump_id, start, duration = test_values
+      self.assertEquals(dump_id, event.dump_id)
+      self.assertAlmostEqual(start / 1000.0, event.start)
+      self.assertAlmostEqual(duration / 1000.0, event.duration)
+
+  def testImportOutOfOrderMemoryDumpEvents(self):
+    events = [
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 245,
+       'id': '1234ABDF'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 134,
+       'id': '1234ABCD'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 256,
+       'id': '1234ABDF'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 123,
+       'id': '1234ABCD'},
+    ]
+
+    expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
+    trace_data = trace_data_module.TraceData(events)
+    m = timeline_model.TimelineModel(trace_data)
+    memory_dump_events = list(m.IterMemoryDumpEvents())
+    self.assertEqual(len(expected), len(memory_dump_events))
+    for event, test_values in zip(memory_dump_events, expected):
+      dump_id, start, duration = test_values
+      self.assertEquals(dump_id, event.dump_id)
+      self.assertAlmostEqual(start / 1000.0, event.start)
+      self.assertAlmostEqual(duration / 1000.0, event.duration)

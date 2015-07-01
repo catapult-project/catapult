@@ -11,6 +11,7 @@ from telemetry.value import trace
 from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import layout
+from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -40,7 +41,8 @@ def _GetAllTimelineBasedMetrics():
           responsiveness_metric.ResponsivenessMetric(),
           layout.LayoutMetric(),
           gpu_timeline.GPUTimelineMetric(),
-          blob_timeline.BlobTimelineMetric())
+          blob_timeline.BlobTimelineMetric(),
+          memory_timeline.MemoryTimelineMetric())
 
 
 class InvalidInteractions(Exception):
