@@ -89,7 +89,12 @@ function loadHTML(file_path) {
 
   file_path = _stripStartingSlashIfNeeded(file_path);
 
-  var stripped_js = os.system('python', ['<%html2jseval-path%>', file_path]);
+  try {
+    var stripped_js = os.system('python', ['<%html2jseval-path%>', file_path]);
+  } catch (err) {
+    throw new Error('Error in loading ' + file_path + ': ' + err);
+  }
+
   // Add "//@ sourceURL=|file_path|" to the end of generated js to preserve
   // the line numbers
   stripped_js = stripped_js + '\n//@ sourceURL=' + file_path;
@@ -99,7 +104,11 @@ function loadHTML(file_path) {
 // Override d8's load() so that it strips out the starting '/' if needed.
 var __actual_load = load;
 load = function(file_path) {
-  __actual_load(_stripStartingSlashIfNeeded(file_path));
+  try {
+    __actual_load(_stripStartingSlashIfNeeded(file_path));
+  } catch (err) {
+    throw new Error('Error in loading ' + file_path + ': ' + err);
+  }
 };
 
 var headless_global = this;

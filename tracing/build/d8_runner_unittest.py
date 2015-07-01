@@ -104,6 +104,29 @@ class D8RunnerUnittest(unittest.TestCase):
     self.assertIn('at error_stack_test.js:14:1', exception_message)
     self.assertIn('at eval (%s:5:1)' % file_path, exception_message)
 
+  def testStackTraceOfErroWhenLoadingHTML(self):
+    file_path = self.GetTestFilePath('load_error.html')
+    with self.assertRaises(RuntimeError) as context:
+      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+
+    # Assert error stack trace contain src files' info.
+    exception_message = context.exception.message
+
+    self.assertIn('Error in loading does_not_exist.html', exception_message)
+    self.assertIn('at eval (load_error_2.html:6:3)', exception_message)
+    self.assertIn('at eval (%s:1:1)' % file_path, exception_message)
+
+  def testStackTraceOfErroWhenLoadingJS(self):
+    file_path = self.GetTestFilePath('load_js_error.html')
+    with self.assertRaises(RuntimeError) as context:
+      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+
+    # Assert error stack trace contain src files' info.
+    exception_message = context.exception.message
+
+    self.assertIn('Error in loading does_not_exist.js', exception_message)
+    self.assertIn('at eval (load_js_error_2.html:5:3)', exception_message)
+    self.assertIn('at eval (%s:1:1)' % file_path, exception_message)
 
   def testConsolePolyfill(self):
     self.assertEquals(
