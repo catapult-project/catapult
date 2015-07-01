@@ -91,7 +91,7 @@ def ExecuteFile(file_path, search_path=None, js_args=None):
     shutil.rmtree(temp_dir)
 
 
-def ExcecuteJsString(js_string, search_path, js_args=None,
+def ExcecuteJsString(js_string, search_path=None, js_args=None,
                      original_file_name=None):
 
   try:
@@ -104,7 +104,7 @@ def ExcecuteJsString(js_string, search_path, js_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    return _ExcecuteJsFile(temp_file, search_path, js_args)
+    return ExecuteFile(temp_file, search_path, js_args)
   finally:
     shutil.rmtree(temp_dir)
 

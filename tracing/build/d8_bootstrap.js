@@ -9,6 +9,32 @@
 
 
 /**
+ * Polyfills console's methods.
+ */
+var console = {
+  log: function() {
+    var args = Array.prototype.slice.call(arguments);
+    print(args.join(' '));
+  },
+
+  info: function() {
+    var args = Array.prototype.slice.call(arguments);
+    print('Info:', args.join(' '));
+  },
+
+  error: function() {
+    var args = Array.prototype.slice.call(arguments);
+    print('Error:', args.join(' '));
+  },
+
+  warn: function() {
+    var args = Array.prototype.slice.call(arguments);
+    print('Warning:', args.join(' '));
+  }
+};
+
+
+/**
  * Defines the <%search-path%> for looking up relative path loading.
  * d8_runner.py will replace this with the actual search path.
  */

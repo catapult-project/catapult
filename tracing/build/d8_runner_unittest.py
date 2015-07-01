@@ -103,3 +103,18 @@ class D8RunnerUnittest(unittest.TestCase):
                   exception_message)
     self.assertIn('at error_stack_test.js:14:1', exception_message)
     self.assertIn('at eval (%s:5:1)' % file_path, exception_message)
+
+
+  def testConsolePolyfill(self):
+    self.assertEquals(
+        d8_runner.ExcecuteJsString('console.log("hello", "world");'),
+        'hello world\n')
+    self.assertEquals(
+        d8_runner.ExcecuteJsString('console.info("hello", "world");'),
+        'Info: hello world\n')
+    self.assertEquals(
+        d8_runner.ExcecuteJsString('console.warn("hello", "world");'),
+        'Warning: hello world\n')
+    self.assertEquals(
+        d8_runner.ExcecuteJsString('console.error("hello", "world");'),
+        'Error: hello world\n')
