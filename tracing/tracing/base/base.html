@@ -17,9 +17,9 @@ var global = this;
 
 /** Platform, package, object property, and Event support. */
 this.tr = (function() {
-  if (window.tr) {
+  if (global.tr) {
     console.warn('Base was multiply initialized. First init wins.');
-    return window.tr;
+    return global.tr;
   }
 
   /**
@@ -141,12 +141,19 @@ this.tr = (function() {
    * Initialization which must be deferred until run-time.
    */
   function initialize() {
-    tr.doc = document;
+    if (global.version && global.version()) {
+      tr.isD8 = true;
+    } else if (global.process && global.process.versions.node) {
+      tr.isNode = true;
+    } else {
+      tr.doc = document;
 
-    tr.isMac = /Mac/.test(navigator.platform);
-    tr.isWindows = /Win/.test(navigator.platform);
-    tr.isChromeOS = /CrOS/.test(navigator.userAgent);
-    tr.isLinux = /Linux/.test(navigator.userAgent);
+      tr.isMac = /Mac/.test(navigator.platform);
+      tr.isWindows = /Win/.test(navigator.platform);
+      tr.isChromeOS = /CrOS/.test(navigator.userAgent);
+      tr.isLinux = /Linux/.test(navigator.userAgent);
+    }
+    tr.isHeadless = tr.isD8 || tr.isNode;
   }
 
   return {
