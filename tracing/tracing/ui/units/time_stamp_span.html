@@ -12,10 +12,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.ui.units', function() {
-  function createTimeStampSpan(timestamp) {
+  function createTimeStampSpan(timestamp, opt_config) {
     if (timestamp === undefined)
       return '';
-    var span = document.createElement('tr-ui-u-time-stamp-span');
+    var config = opt_config || {};
+    var ownerDocument = config.ownerDocument || document;
+    var span = ownerDocument.createElement('tr-ui-u-time-stamp-span');
     span.timestamp = timestamp;
     return span;
   }

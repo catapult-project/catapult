@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/base/table.html">
-<link rel="import" href="/base/units/util.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 
 <polymer-element name="tr-ui-a-multi-process-memory-dump-sub-view"
     extends="tr-ui-a-sub-view">
@@ -38,6 +38,7 @@ found in the LICENSE file.
       selection = tr.b.asArray(selection).sort(
           tr.b.Range.compareByMinTimes);
 
+      var ownerDocument = this.ownerDocument;
       var table = this.$.content;
       table.tableColumns = [
         {
@@ -50,7 +51,8 @@ found in the LICENSE file.
             var spanEl = document.createElement('span');
             spanEl.textContent = 'Process memory dump at ';
             linkEl.appendChild(spanEl);
-            linkEl.appendChild(tr.ui.units.createTimeStampSpan(row.start));
+            linkEl.appendChild(tr.ui.units.createTimeStampSpan(
+                row.start, {ownerDocument: ownerDocument}));
             return linkEl;
           }
         }

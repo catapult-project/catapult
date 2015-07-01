@@ -72,7 +72,6 @@
       'tracing/base/units/time.html',
       'tracing/base/units/time_duration.html',
       'tracing/base/units/time_stamp.html',
-      'tracing/base/units/util.html',
       'tracing/base/utils.html',
       'tracing/core/auditor.html',
       'tracing/core/constants.html',

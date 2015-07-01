@@ -44,6 +44,8 @@ found in the LICENSE file.
     },
 
     updateColumns_: function(hadCpuDurations) {
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+
       var columns = [
         {
           title: 'Layer',
@@ -84,7 +86,8 @@ found in the LICENSE file.
         {
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeDurationSpan(
+                row.duration, timeSpanConfig);
           },
           cmp: function(a, b) { return a.duration - b.duration; }
         }
@@ -94,7 +97,8 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.duration);
+            return tr.ui.units.createTimeDurationSpan(
+                row.duration, timeSpanConfig);
           },
           cmp: function(a, b) { return a.cpuDuration - b.cpuDuration; }
         });

@@ -11,8 +11,9 @@ found in the LICENSE file.
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
-<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 
 <polymer-element name="tr-ui-a-single-thread-time-slice-sub-view"
     extends="tr-ui-a-sub-view">
@@ -59,10 +60,18 @@ found in the LICENSE file.
         <td><b><span id="state"></span></b></td>
       </tr>
       <tr>
-        <td>Start:</td><td id="start"></td>
+        <td>Start:</td>
+        <td>
+          <tr-ui-u-time-stamp-span id="start">
+          </tr-ui-u-time-stamp-span>
+        </td>
       </tr>
       <tr>
-        <td>Duration:</td><td id="duration"></td>
+        <td>Duration:</td>
+        <td>
+          <tr-ui-u-time-duration-span id="duration">
+          </tr-ui-u-time-duration-span>
+        </td>
       </tr>
 
       <tr>
@@ -112,10 +121,8 @@ found in the LICENSE file.
       shadowRoot.querySelector('#thread-name').textContent =
           thread.userFriendlyName;
 
-      shadowRoot.querySelector('#start').textContent =
-          tr.b.units.tsString(timeSlice.start);
-      shadowRoot.querySelector('#duration').textContent =
-          tr.b.units.tsString(timeSlice.duration);
+      shadowRoot.querySelector('#start').timestamp = timeSlice.start;
+      shadowRoot.querySelector('#duration').duration = timeSlice.duration;
       var onCpuEl = shadowRoot.querySelector('#on-cpu');
       onCpuEl.textContent = '';
       var runningInsteadEl = shadowRoot.querySelector('#running-instead');

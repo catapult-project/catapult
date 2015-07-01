@@ -68,7 +68,8 @@ found in the LICENSE file.
 
       rows.push({
           title: 'Sample time',
-          value: tr.ui.units.createTimeStampSpan(sample.start)
+          value: tr.ui.units.createTimeStampSpan(
+              sample.start, {ownerDocument: this.ownerDocument})
       });
 
       var sfEl = document.createElement('tr-ui-a-stack-frame');

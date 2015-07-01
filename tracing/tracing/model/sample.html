@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/model/timed_event.html">
 
 <script>
@@ -48,8 +49,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get userFriendlyName() {
-      return 'Sample ' + ' at ' +
-          tr.b.units.tsString(this.start);
+      return 'Sample at ' + tr.b.units.TimeStamp.format(this.start);
     }
   };
 

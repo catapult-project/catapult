@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/model/timed_event.html">
-<link rel="import" href="/base/units/util.html">
 
 <script>
 'use strict';
@@ -64,7 +64,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Slice ' + this.title + ' at ' +
-          tr.b.units.tsString(this.start);
+          tr.b.units.TimeStamp.format(this.start);
     },
 
     findDescendentSlice: function(targetTitle) {

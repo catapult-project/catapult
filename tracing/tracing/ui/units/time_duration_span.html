@@ -17,12 +17,14 @@ found in the LICENSE file.
 // identical to the ones defined in time_stamp_span. Consider sharing more
 // code between the two files.
 tr.exportTo('tr.ui.units', function() {
-  function createTimeSpan(duration, total) {
+  function createTimeDurationSpan(duration, opt_config) {
     if (duration === undefined)
       return '';
-    var span = document.createElement('tr-ui-u-time-duration-span');
-    if (total)
-      span.percentage = duration / total;
+    var config = opt_config || {};
+    var ownerDocument = config.ownerDocument || document;
+    var span = ownerDocument.createElement('tr-ui-u-time-duration-span');
+    if (config.total)
+      span.percentage = duration / config.total;
     span.duration = duration;
     return span;
   }
@@ -35,7 +37,7 @@ tr.exportTo('tr.ui.units', function() {
   });
 
   return {
-    createTimeSpan: createTimeSpan
+    createTimeDurationSpan: createTimeDurationSpan
   };
 });
 </script>

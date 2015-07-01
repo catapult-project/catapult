@@ -5,10 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/base/units/util.html">
-<link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/base/utils.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
 <polymer-element name="tr-ui-a-single-cpu-slice-sub-view"
     extends="tr-ui-a-sub-view">
   <template>
@@ -50,10 +52,18 @@ found in the LICENSE file.
         <td>Running thread:</td><td id="thread-name"></td>
       </tr>
       <tr>
-        <td>Start:</td><td id="start"></td>
+        <td>Start:</td>
+        <td>
+          <tr-ui-u-time-stamp-span id="start">
+          </tr-ui-u-time-stamp-span>
+        </td>
       </tr>
       <tr>
-        <td>Duration:</td><td id="duration"></td>
+        <td>Duration:</td>
+        <td>
+          <tr-ui-u-time-duration-span id="duration">
+          </tr-ui-u-time-duration-span>
+        </td>
       </tr>
       <tr>
         <td>Active slices:</td><td id="running-thread"></td>
@@ -102,11 +112,9 @@ found in the LICENSE file.
         shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
       }
 
-      shadowRoot.querySelector('#start').textContent =
-          tr.b.units.tsString(cpuSlice.start);
+      shadowRoot.querySelector('#start').timestamp = cpuSlice.start;
+      shadowRoot.querySelector('#duration').duration = cpuSlice.duration;
 
-      shadowRoot.querySelector('#duration').textContent =
-          tr.b.units.tsString(cpuSlice.duration);
       var runningThreadEl = shadowRoot.querySelector('#running-thread');
 
       var timeSlice = cpuSlice.getAssociatedTimeslice();

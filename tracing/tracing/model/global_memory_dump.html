@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/units/size_in_bytes.html">
+<link rel="import" href="/base/units/time_stamp.html">
 <link rel="import" href="/model/attribute.html">
 <link rel="import" href="/model/container_memory_dump.html">
 <link rel="import" href="/model/memory_allocator_dump.html">
@@ -34,7 +35,7 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
-      return 'Global memory dump at ' + tr.b.units.tsString(this.start);
+      return 'Global memory dump at ' + tr.b.units.TimeStamp.format(this.start);
     },
 
     calculateGraphAttributes: function() {

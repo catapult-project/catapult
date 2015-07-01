@@ -6,10 +6,14 @@ found in the LICENSE file.
 -->
 <link rel="stylesheet" href="/ui/analysis/analysis_results.css">
 
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/ui.html">
-<link rel="import" href="/base/units/util.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
 
 <script>
 'use strict';
@@ -45,22 +49,18 @@ tr.exportTo('tr.ui.analysis', function() {
       return el;
     },
 
-    appendElement_: function(parent, tagName, opt_text) {
+    appendElement_: function(parent, tagName, opt_value) {
       var n = parent.ownerDocument.createElement(tagName);
       parent.appendChild(n);
-      if (opt_text != undefined)
-        n.textContent = opt_text;
+      if (opt_value !== undefined) {
+        n.appendChild(
+            tr.ui.b.asHTMLOrTextNode(opt_value, parent.ownerDocument));
+      }
       return n;
     },
 
-    appendText_: function(parent, text) {
-      var textElement = parent.ownerDocument.createTextNode(text);
-      parent.appendChild(textNode);
-      return textNode;
-    },
-
-    appendTableCell_: function(table, row, cellnum, text, opt_warning) {
-      var td = this.appendElement_(row, 'td', text);
+    appendTableCell_: function(table, row, cellnum, value, opt_warning) {
+      var td = this.appendElement_(row, 'td', value);
       td.className = table.className + '-col-' + cellnum;
       if (opt_warning) {
         var span = document.createElement('span');
@@ -74,20 +74,20 @@ tr.exportTo('tr.ui.analysis', function() {
     /**
      * Creates and append a table cell at the end of the given row.
      */
-    appendTableCell: function(table, row, text) {
-      return this.appendTableCell_(table, row, row.children.length, text);
+    appendTableCell: function(table, row, value) {
+      return this.appendTableCell_(table, row, row.children.length, value);
     },
 
-    appendTableCellWithTooltip_: function(table, row, cellnum, text, tooltip) {
+    appendTableCellWithTooltip_: function(table, row, cellnum, value, tooltip) {
       if (tooltip) {
         var td = this.appendElement_(row, 'td');
         td.className = table.className + '-col-' + cellnum;
-        var span = this.appendElement_(td, 'span', text);
+        var span = this.appendElement_(td, 'span', value);
         span.className = 'tooltip';
         span.title = tooltip;
         return td;
       } else {
-        return this.appendTableCell_(table, row, cellnum, text);
+        return this.appendTableCell_(table, row, cellnum, value);
       }
     },
 
@@ -221,7 +221,8 @@ tr.exportTo('tr.ui.analysis', function() {
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
       this.appendTableCell_(
-          table, row, 1, tr.b.units.tsString(time), opt_warning);
+          table, row, 1, tr.ui.units.createTimeStampSpan(
+              time, {ownerDocument: this.ownerDocument}), opt_warning);
     },
 
     /**
@@ -236,6 +237,8 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     appendDetailsRow: function(table, start, duration, selfTime, args,
         opt_selectionGenerator, opt_cpuDuration, opt_inFoot) {
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+
       if (opt_inFoot) {
         // If inFoot is true, then we're reporting Totals.
         var row = this.appendFootRow(table);
@@ -246,26 +249,30 @@ tr.exportTo('tr.ui.analysis', function() {
 
         if (opt_selectionGenerator) {
           var labelEl = this.appendTableCell(table, row,
-                                             tr.b.units.tsString(start));
+              tr.ui.units.createTimeStampSpan(start, timeSpanConfig));
           labelEl.textContent = '';
           labelEl.appendChild(this.createSelectionChangingLink(
-                                      tr.b.units.tsString(start),
-                                      opt_selectionGenerator, ''));
+              tr.b.units.TimeStamp.format(start), opt_selectionGenerator, ''));
         } else {
-          this.appendTableCell(table, row, tr.b.units.tsString(start));
+          this.appendTableCell(table, row,
+              tr.ui.units.createTimeDurationSpan(start, timeSpanConfig));
         }
       }
-      if (duration !== null)
-        this.appendTableCell(table, row, tr.b.units.tsString(duration));
-
-      if (opt_cpuDuration)
+      if (duration !== null) {
         this.appendTableCell(table, row,
-                             opt_cpuDuration != '' ?
-                             tr.b.units.tsString(opt_cpuDuration) :
-                             '');
+            tr.ui.units.createTimeDurationSpan(duration, timeSpanConfig));
+      }
 
-      if (selfTime !== null)
-        this.appendTableCell(table, row, tr.b.units.tsString(selfTime));
+      if (opt_cpuDuration) {
+        this.appendTableCell(table, row, opt_cpuDuration != '' ?
+            tr.ui.units.createTimeDurationSpan(
+                opt_cpuDuration, timeSpanConfig) : '');
+      }
+
+      if (selfTime !== null) {
+        this.appendTableCell(table, row,
+            tr.ui.units.createTimeDurationSpan(selfTime, timeSpanConfig));
+      }
 
       var argsCell = this.appendTableCell(table, row, '');
       var n = 0;
@@ -301,26 +308,27 @@ tr.exportTo('tr.ui.analysis', function() {
                             opt_selfTime, opt_cpuSelfTime, opt_occurrences,
                             opt_percentage, opt_statistics,
                             opt_selectionGenerator, opt_inFoot) {
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
 
       var tooltip = undefined;
       if (opt_statistics) {
         var stddevRounded = Math.round(opt_statistics.avg_stddev * 1000) / 1000;
 
         tooltip = 'Min Duration:\u0009' +
-                  tr.b.units.tsString(opt_statistics.min) +
+                  tr.b.units.TimeDuration.format(opt_statistics.min) +
                   ' \u000DMax Duration:\u0009' +
-                  tr.b.units.tsString(opt_statistics.max) +
+                  tr.b.units.TimeDuration.format(opt_statistics.max) +
                   ' \u000DAvg Duration:\u0009' +
-                  tr.b.units.tsString(opt_statistics.avg) +
+                  tr.b.units.TimeDuration.format(opt_statistics.avg) +
                   ' (\u03C3 = ' + stddevRounded + ')';
 
         if (opt_statistics.start) {
           tooltip += '\u000DStart Time:\u0009' +
-              tr.b.units.tsString(opt_statistics.start);
+              tr.b.units.TimeStamp.format(opt_statistics.start);
         }
         if (opt_statistics.end) {
           tooltip += '\u000DEnd Time:\u0009' +
-              tr.b.units.tsString(opt_statistics.end);
+              tr.b.units.TimeStamp.format(opt_statistics.end);
         }
         if (opt_statistics.frequency && opt_statistics.frequency_stddev) {
           var fR = Math.round(opt_statistics.frequency * 1000) / 1000;
@@ -357,7 +365,8 @@ tr.exportTo('tr.ui.analysis', function() {
                 '[' + opt_duration.join(', ') + ']', tooltip);
           } else {
             this.appendTableCellWithTooltip_(table, row, cellNum,
-                tr.b.units.tsString(opt_duration), tooltip);
+                tr.ui.units.createTimeDurationSpan(
+                    opt_duration, timeSpanConfig), tooltip);
           }
         } else {
           this.appendTableCell_(table, row, cellNum, '');
@@ -368,7 +377,8 @@ tr.exportTo('tr.ui.analysis', function() {
       if (opt_cpuDuration !== null) {
         if (opt_cpuDuration != '') {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tr.b.units.tsString(opt_cpuDuration), tooltip);
+              tr.ui.units.createTimeDurationSpan(
+                  opt_cpuDuration, timeSpanConfig), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -378,7 +388,8 @@ tr.exportTo('tr.ui.analysis', function() {
       if (opt_selfTime !== null) {
         if (opt_selfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tr.b.units.tsString(opt_selfTime), tooltip);
+              tr.ui.units.createTimeDurationSpan(
+                  opt_selfTime, timeSpanConfig), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -388,7 +399,8 @@ tr.exportTo('tr.ui.analysis', function() {
       if (opt_cpuSelfTime !== null) {
         if (opt_cpuSelfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tr.b.units.tsString(opt_cpuSelfTime), tooltip);
+              tr.ui.units.createTimeDurationSpan(
+                  opt_cpuSelfTime, timeSpanConfig), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }

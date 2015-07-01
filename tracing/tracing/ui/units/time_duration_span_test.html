@@ -10,17 +10,36 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('createTimeDurationSpan', function() {
+    // Default owner document.
+    var timeStamp = tr.ui.units.createTimeDurationSpan(3.14);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-DURATION-SPAN');
+    assert.strictEqual(timeStamp.duration, 3.14);
+    assert.strictEqual(timeStamp.ownerDocument, document);
+
+    // Custom owner document.
+    var config = {ownerDocument: THIS_DOC};
+    var timeStamp = tr.ui.units.createTimeDurationSpan(-273.15, config);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-DURATION-SPAN');
+    assert.strictEqual(timeStamp.duration, -273.15);
+    assert.strictEqual(timeStamp.ownerDocument, THIS_DOC);
+  });
+
   test('instantiate', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = 73;
     this.addHTMLOutput(timeSpan);
   });
+
   test('instantiateWitHObject', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = new tr.b.units.TimeDuration(73);
     this.addHTMLOutput(timeSpan);
     assert.equal(timeSpan.duration, 73);
   });
+
   test('instantiateWithWarning', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = 400;

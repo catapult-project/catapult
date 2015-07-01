@@ -5,13 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/units/util.html">
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/ui/side_panel/side_panel.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/core/selection.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/pie_chart.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
 
 <polymer-element name="tr-ui-e-s-time-summary-side-panel"
     extends="tr-ui-side-panel">
@@ -212,7 +213,7 @@ found in the LICENSE file.
           data.push({
             label: resultsForGroup.name,
             value: value,
-            valueText: tr.b.units.tsString(value),
+            valueText: tr.b.units.TimeDuration.format(value),
             resultsForGroup: resultsForGroup
           });
         }
@@ -349,8 +350,8 @@ found in the LICENSE file.
         summaryText.appendChild(tr.ui.b.createSpan({
           textContent: 'Total ' + this.groupingUnit_ + ': ',
           bold: true}));
-        summaryText.appendChild(tr.ui.b.createSpan({
-          textContent: tr.b.units.tsString(getValueFromGroup(allGroup))}));
+        summaryText.appendChild(tr.ui.units.createTimeDurationSpan(
+            getValueFromGroup(allGroup), {ownerDocument: this.ownerDocument}));
         resultArea.appendChild(summaryText);
 
         // If needed, add in the idle time.
@@ -365,7 +366,7 @@ found in the LICENSE file.
           extraData.push({
             label: 'CPU Idle',
             value: idleTime,
-            valueText: tr.b.units.tsString(idleTime)
+            valueText: tr.b.units.TimeDuration.format(idleTime)
           });
           extraValue += idleTime;
         }

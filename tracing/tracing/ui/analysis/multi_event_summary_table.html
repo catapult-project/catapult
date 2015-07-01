@@ -52,6 +52,7 @@ found in the LICENSE file.
           hasAlerts = true;
       });
 
+      var ownerDocument = this.ownerDocument;
 
       var columns = [];
 
@@ -76,8 +77,11 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.duration,
-              maxValues.duration, { sparkline: !row.totalsRow });
+            return tr.ui.units.createTimeDurationSpan(row.duration, {
+              total: maxValues.duration,
+              ownerDocument: ownerDocument,
+              sparkline: !row.totalsRow
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -90,8 +94,11 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.cpuDuration,
-              maxValues.cpuDuration, { sparkline: !row.totalsRow });
+            return tr.ui.units.createTimeDurationSpan(row.cpuDuration, {
+              total: maxValues.cpuDuration,
+              ownerDocument: ownerDocument,
+              sparkline: !row.totalsRow
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -104,8 +111,11 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.selfTime,
-              maxValues.selfTime, { sparkline: !row.totalsRow });
+            return tr.ui.units.createTimeDurationSpan(row.selfTime, {
+              total: maxValues.selfTime,
+              ownerDocument: ownerDocument,
+              sparkline: !row.totalsRow
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -118,8 +128,11 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time',
           value: function(row) {
-            return tr.ui.units.createTimeSpan(row.cpuSelfTime,
-              maxValues.cpuSelfTime, { sparkline: !row.totalsRow });
+            return tr.ui.units.createTimeDurationSpan(row.cpuSelfTime, {
+              total: maxValues.cpuSelfTime,
+              ownerDocument: ownerDocument,
+              sparkline: !row.totalsRow
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {

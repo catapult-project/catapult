@@ -69,15 +69,17 @@ found in the LICENSE file.
       else
         hasRange = false;
 
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+
       rows.push({
         title: 'Selection start',
-        value: hasRange ?
-            tr.ui.units.createTimeStampSpan(selection.bounds.min) : '<empty>'
+        value: hasRange ? tr.ui.units.createTimeStampSpan(
+            selection.bounds.min, timeSpanConfig) : '<empty>'
       });
       rows.push({
         title: 'Selection extent',
-        value: hasRange ?
-            tr.ui.units.createTimeSpan(selection.bounds.range) : '<empty>'
+        value: hasRange ? tr.ui.units.createTimeDurationSpan(
+            selection.bounds.range, timeSpanConfig) : '<empty>'
       });
 
       this.$.table.tableRows = rows;

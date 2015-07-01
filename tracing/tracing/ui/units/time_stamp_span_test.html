@@ -10,11 +10,29 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('createTimeStampSpan', function() {
+    // Default owner document.
+    var timeStamp = tr.ui.units.createTimeStampSpan(3.14);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
+    assert.strictEqual(timeStamp.timestamp, 3.14);
+    assert.strictEqual(timeStamp.ownerDocument, document);
+
+    // Custom owner document.
+    var config = {ownerDocument: THIS_DOC};
+    var timeStamp = tr.ui.units.createTimeStampSpan(-273.15, config);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
+    assert.strictEqual(timeStamp.timestamp, -273.15);
+    assert.strictEqual(timeStamp.ownerDocument, THIS_DOC);
+  });
+
   test('instantiate', function() {
     var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
     timeStamp.timestamp = 73;
     this.addHTMLOutput(timeStamp);
   });
+
   test('instantiateWithObject', function() {
     var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
     timeStamp.timestamp = new tr.b.units.TimeStamp(73);

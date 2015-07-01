@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/task.html">
+<link rel="import" href="/base/units/time_duration.html">
 <link rel="import" href="/core/filter.html">
 <link rel="import" href="/core/selection.html">
 <link rel="import" href="/ui/base/hotkey_controller.html">
@@ -817,7 +818,7 @@ tr.exportTo('tr.ui', function() {
       var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
-      this.dragBox_.textContent = tr.b.units.tsString((hiWX - loWX));
+      this.dragBox_.textContent = tr.b.units.TimeDuration.format(hiWX - loWX);
 
       var e = new tr.b.Event('selectionChanging');
       e.loWX = loWX;
