@@ -95,6 +95,7 @@ class TvInputAPI(object):
       return True
 
     if (affected_file.filename.startswith('.gitignore') or
+        affected_file.filename.startswith('codereview.settings') or
         affected_file.filename.startswith('tracing/.allow-devtools-save') or
         affected_file.filename.startswith('tracing/AUTHORS') or
         affected_file.filename.startswith('tracing/LICENSE') or
