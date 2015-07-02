@@ -1,29 +1,164 @@
-/* Copyright (c) 2013, Brandon Jones, Colin MacKenzie IV. All rights reserved.
+/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-  * Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation 
-    and/or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE. */
 
 describe("vec3", function() {
+    var mat3 = require("../../src/gl-matrix/mat3.js");
+    var mat4 = require("../../src/gl-matrix/mat4.js");
+    var vec3 = require("../../src/gl-matrix/vec3.js");
+
     var out, vecA, vecB, result;
 
     beforeEach(function() { vecA = [1, 2, 3]; vecB = [4, 5, 6]; out = [0, 0, 0]; });
+    
+    describe('rotateX', function(){
+     	describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [0, 1, 0]; vecB = [0, 0, 0]; result = vec3.rotateX(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -1, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [2, 7, 0]; vecB = [2, 5, 0]; result = vec3.rotateX(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([2, 3, 0]); });
+    		});
+    	});
+    
+    	describe('rotateY', function(){
+    		describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [1, 0, 0]; vecB = [0, 0, 0]; result = vec3.rotateY(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([-1, 0, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [-2, 3, 10]; vecB = [-4, 3, 10]; result = vec3.rotateY(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([-6, 3, 10]); });
+    		});
+    	});
+    
+    	describe('rotateZ', function(){
+    		describe('rotation around world origin [0, 0, 0]', function(){
+    			  beforeEach(function(){ vecA = [0, 1, 0]; vecB = [0, 0, 0]; result = vec3.rotateZ(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -1, 0]); });
+    		});
+    		describe('rotation around an arbitrary origin', function(){
+    			  beforeEach(function(){ vecA = [0, 6, -5]; vecB = [0, 0, -5]; result = vec3.rotateZ(out, vecA, vecB, Math.PI); });
+    			  it("should return the rotated vector", function(){ expect(result).toBeEqualish([0, -6, -5]); });
+    		});
+    	});
+    
+    describe('transformMat4', function() {
+        var matr;
+        describe("with an identity", function() {
+            beforeEach(function() { matr = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] });
+
+            beforeEach(function() { result = vec3.transformMat4(out, vecA, matr); });
+
+            it("should produce the input", function() {
+                expect(out).toBeEqualish([1, 2, 3]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a lookAt", function() {
+            beforeEach(function() { matr = mat4.lookAt(mat4.create(), [5, 6, 7], [2, 6, 7], [0, 1, 0]); });
+
+            beforeEach(function() { result = vec3.transformMat4(out, vecA, matr); });
+
+            it("should rotate and translate the input", function() {
+                expect(out).toBeEqualish([ 4, -4, -4 ]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a perspective matrix (#92)", function() {
+            it("should transform a point from perspective(pi/2, 4/3, 1, 100)", function() {
+                matr = [0.750, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, -1.02, -1,
+                        0, 0, -2.02, 0];
+                result = vec3.transformMat4([], [10, 20, 30], matr);
+                expect(result).toBeEqualish([-0.25, -0.666666, 1.087333]);
+            });
+        });
+
+    });
+
+    describe('transformMat3', function() {
+        var matr;
+        describe("with an identity", function() {
+            beforeEach(function() { matr = [1, 0, 0, 0, 1, 0, 0, 0, 1 ] });
+
+            beforeEach(function() { result = vec3.transformMat3(out, vecA, matr); });
+
+            it("should produce the input", function() {
+                expect(out).toBeEqualish([1, 2, 3]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with 90deg about X", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [0,1,0], [1,0,0,0,0,1,0,-1,0]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,0,1]);
+            });
+        });
+
+        describe("with 90deg about Y", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [1,0,0], [0,0,-1,0,1,0,1,0,0]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,0,-1]);
+            });
+        });
+
+        describe("with 90deg about Z", function() {
+            beforeEach(function() {
+                result = vec3.transformMat3(out, [1,0,0], [0,1,0,-1,0,0,0,0,1]);
+            });
+
+            it("should produce correct output", function() {
+                expect(out).toBeEqualish([0,1,0]);
+            });
+        });
+
+        describe("with a lookAt normal matrix", function() {
+            beforeEach(function() {
+                matr = mat4.lookAt(mat4.create(), [5, 6, 7], [2, 6, 7], [0, 1, 0]);
+                var n = mat3.create();
+                matr = mat3.transpose(n, mat3.invert(n, mat3.fromMat4(n, matr)));
+            });
+
+            beforeEach(function() { result = vec3.transformMat3(out, [1,0,0], matr); });
+
+            it("should rotate the input", function() {
+                expect(out).toBeEqualish([ 0,0,1 ]);
+            });
+
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+    });
 
     describe("create", function() {
         beforeEach(function() { result = vec3.create(); });
@@ -241,6 +376,33 @@ describe("vec3", function() {
         });
     });
 
+    describe("scaleAndAdd", function() {
+        describe("with a separate output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(out, vecA, vecB, 0.5); });
+            
+            it("should place values into out", function() { expect(out).toBeEqualish([3, 4.5, 6]); });
+            it("should return out", function() { expect(result).toBe(out); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([4, 5, 6]); });
+        });
+
+        describe("when vecA is the output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(vecA, vecA, vecB, 0.5); });
+            
+            it("should place values into vecA", function() { expect(vecA).toBeEqualish([3, 4.5, 6]); });
+            it("should return vecA", function() { expect(result).toBe(vecA); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([4, 5, 6]); });
+        });
+
+        describe("when vecB is the output vector", function() {
+            beforeEach(function() { result = vec3.scaleAndAdd(vecB, vecA, vecB, 0.5); });
+            
+            it("should place values into vecB", function() { expect(vecB).toBeEqualish([3, 4.5, 6]); });
+            it("should return vecB", function() { expect(result).toBe(vecB); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+        });
+    });
+
     describe("distance", function() {
         it("should have an alias called 'dist'", function() { expect(vec3.dist).toEqual(vec3.distance); });
 
@@ -371,6 +533,22 @@ describe("vec3", function() {
         });
     });
 
+    describe("random", function() {
+        describe("with no scale", function() {
+            beforeEach(function() { result = vec3.random(out); });
+            
+            it("should result in a unit length vector", function() { expect(vec3.length(out)).toBeCloseTo(1.0); });
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a scale", function() {
+            beforeEach(function() { result = vec3.random(out, 5.0); });
+            
+            it("should result in a unit length vector", function() { expect(vec3.length(out)).toBeCloseTo(5.0); });
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+    });
+
     describe("forEach", function() {
         var vecArray;
 
@@ -465,6 +643,14 @@ describe("vec3", function() {
             });
             it("should return vecArray", function() { expect(result).toBe(vecArray); });
         });
+    });
+
+    describe("angle", function() {
+        beforeEach(function() { result = vec3.angle(vecA, vecB); });
+        
+        it("should return the angle", function() { expect(result).toBeEqualish(0.225726); });
+        it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3]); });
+        it("should not modify vecB", function() { expect(vecB).toBeEqualish([4, 5, 6]); });
     });
 
     describe("str", function() {

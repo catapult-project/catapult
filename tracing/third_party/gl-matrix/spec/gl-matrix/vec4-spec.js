@@ -1,26 +1,27 @@
-/* Copyright (c) 2013, Brandon Jones, Colin MacKenzie IV. All rights reserved.
+/* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-  * Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation 
-    and/or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE. */
 
 describe("vec4", function() {
+    var vec3 = require("../../src/gl-matrix/vec3.js");
+    var vec4 = require("../../src/gl-matrix/vec4.js");
+
     var out, vecA, vecB, result;
 
     beforeEach(function() { vecA = [1, 2, 3, 4]; vecB = [5, 6, 7, 8]; out = [0, 0, 0, 0]; });
@@ -241,6 +242,33 @@ describe("vec4", function() {
         });
     });
 
+    describe("scaleAndAdd", function() {
+        describe("with a separate output vector", function() {
+            beforeEach(function() { result = vec4.scaleAndAdd(out, vecA, vecB, 0.5); });
+            
+            it("should place values into out", function() { expect(out).toBeEqualish([3.5, 5, 6.5, 8]); });
+            it("should return out", function() { expect(result).toBe(out); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3, 4]); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([5, 6, 7, 8]); });
+        });
+
+        describe("when vecA is the output vector", function() {
+            beforeEach(function() { result = vec4.scaleAndAdd(vecA, vecA, vecB, 0.5); });
+            
+            it("should place values into vecA", function() { expect(vecA).toBeEqualish([3.5, 5, 6.5, 8]); });
+            it("should return vecA", function() { expect(result).toBe(vecA); });
+            it("should not modify vecB", function() { expect(vecB).toBeEqualish([5, 6, 7, 8]); });
+        });
+
+        describe("when vecB is the output vector", function() {
+            beforeEach(function() { result = vec4.scaleAndAdd(vecB, vecA, vecB, 0.5); });
+            
+            it("should place values into vecB", function() { expect(vecB).toBeEqualish([3.5, 5, 6.5, 8]); });
+            it("should return vecB", function() { expect(result).toBe(vecB); });
+            it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3, 4]); });
+        });
+    });
+
     describe("distance", function() {
         it("should have an alias called 'dist'", function() { expect(vec4.dist).toEqual(vec4.distance); });
 
@@ -341,6 +369,22 @@ describe("vec4", function() {
             it("should place values into vecB", function() { expect(vecB).toBeEqualish([3, 4, 5, 6]); });
             it("should return vecB", function() { expect(result).toBe(vecB); });
             it("should not modify vecA", function() { expect(vecA).toBeEqualish([1, 2, 3, 4]); });
+        });
+    });
+
+    describe("random", function() {
+        describe("with no scale", function() {
+            beforeEach(function() { result = vec4.random(out); });
+            
+            it("should result in a unit length vector", function() { expect(vec4.length(out)).toBeCloseTo(1.0); });
+            it("should return out", function() { expect(result).toBe(out); });
+        });
+
+        describe("with a scale", function() {
+            beforeEach(function() { result = vec4.random(out, 5.0); });
+            
+            it("should result in a unit length vector", function() { expect(vec4.length(out)).toBeCloseTo(5.0); });
+            it("should return out", function() { expect(result).toBe(out); });
         });
     });
 
