@@ -7,15 +7,26 @@ import unittest
 from telemetry.timeline import memory_dump_event
 
 
-def TestDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None):
-  def hexify(byte_stats):
-    return {k: hex(v) for k, v in byte_stats.iteritems()}
+def TestDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
+                  allocators=None):
+  def vm_region(mapped_file, byte_stats):
+    return {
+        'mf': mapped_file,
+        'bs': {k: hex(v) for k, v in byte_stats.iteritems()}}
 
-  event = {'ph': 'v', 'id': dump_id, 'pid': pid, 'ts': start * 1000}
+  def attrs(sizes):
+    return {'attrs': {k: {'value': hex(v)} for k, v in sizes.iteritems()}}
+
+  if allocators is None:
+    allocators = {}
+
+  event = {'ph': 'v', 'id': dump_id, 'pid': pid, 'ts': start * 1000,
+           'args': {'dumps': {'allocators': {
+               name: attrs(sizes) for name, sizes in allocators.iteritems()}}}}
   if mmaps:
-    vm_regions = [{'mf': mapped_file, 'bs': hexify(byte_stats)}
-                  for mapped_file, byte_stats in mmaps.iteritems()]
-    event['args'] = {'dumps': {'process_mmaps': {'vm_regions': vm_regions}}}
+    event['args']['dumps']['process_mmaps'] = {
+        'vm_regions': [vm_region(mapped_file, byte_stats)
+                       for mapped_file, byte_stats in mmaps.iteritems()]}
   return event
 
 
@@ -54,7 +65,7 @@ class ProcessMemoryDumpUnitTest(unittest.TestCase):
 
 
 class MemoryDumpEventUnitTest(unittest.TestCase):
-  def testMemoryDumpEvent_timing(self):
+  def testDumpEventsTiming(self):
     memory_dump = memory_dump_event.MemoryDumpEvent([
         TestDumpEvent(pid=3, start=8),
         TestDumpEvent(pid=1, start=4),
@@ -71,19 +82,19 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     self.assertAlmostEquals(9.0,
                             memory_dump.duration)
 
-  def testMemoryDumpEvent_GetStatsSummary(self):
+  def testGetStatsSummary(self):
     ALL = [2 ** x for x in range(7)]
     (JAVA_HEAP_1, JAVA_HEAP_2, ASHMEM_1, ASHMEM_2, NATIVE,
      DIRTY_1, DIRTY_2) = ALL
 
     memory_dump = memory_dump_event.MemoryDumpEvent([
         TestDumpEvent(pid=1, mmaps={
-            '/dev/ashmem/dalvik-thing': {'pss': JAVA_HEAP_1}}),
+            '/dev/ashmem/dalvik-alloc space': {'pss': JAVA_HEAP_1}}),
         TestDumpEvent(pid=2, mmaps={
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_1, 'pd': DIRTY_1}}),
         TestDumpEvent(pid=3, mmaps={
             '[heap] native': {'pss': NATIVE, 'pd': DIRTY_2},
-            '/dev/ashmem/dalvik-thing': {'pss': JAVA_HEAP_2}}),
+            '/dev/ashmem/dalvik-zygote space': {'pss': JAVA_HEAP_2}}),
         TestDumpEvent(pid=4, mmaps={
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_2}})])
 
@@ -94,3 +105,25 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                        'ashmem': ASHMEM_1 + ASHMEM_2,
                        'native_heap': NATIVE},
                       memory_dump.GetStatsSummary())
+
+  def testGetStatsSummaryDiscountsTracing(self):
+    ALL = [2 ** x for x in range(5)]
+    (HEAP, DIRTY, MALLOC, TRACING_1, TRACING_2) = ALL
+
+    memory_dump = memory_dump_event.MemoryDumpEvent([
+        TestDumpEvent(
+            mmaps={'/dev/ashmem/libc malloc': {'pss': HEAP + TRACING_2,
+                                               'pd': DIRTY + TRACING_2}},
+            allocators={
+                'tracing': {'size': TRACING_1, 'resident_size': TRACING_2},
+                'malloc': {'size': MALLOC + TRACING_1}})])
+
+    self.assertEquals({'overall_pss': HEAP,
+                       'private_dirty': DIRTY,
+                       'java_heap': 0,
+                       'ashmem': 0,
+                       'native_heap': HEAP},
+                      memory_dump.GetStatsSummary())
+    self.assertEquals({'tracing': TRACING_1,
+                       'malloc': MALLOC},
+                      memory_dump.GetAllocatorStats())

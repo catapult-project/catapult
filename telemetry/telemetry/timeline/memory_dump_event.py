@@ -53,19 +53,20 @@ class MmapCategory(object):
 
 ROOT_CATEGORY = MmapCategory('/', None, [
   MmapCategory('Android', r'^\/dev\/ashmem(?!\/libc malloc)', [
-    MmapCategory('Java runtime', r'^\/dev\/ashmem\/dalvik-.*$', [
-      MmapCategory('Spaces', r'\bspace', [
-        MmapCategory('Normal', r'(alloc)|(main)'),
-        MmapCategory('Large', r'large.object'),
-        MmapCategory('Zygote', r'zygote'),
-        MmapCategory('Non-moving', r'non.moving')
+    MmapCategory('Java runtime', r'^\/dev\/ashmem\/dalvik-', [
+      MmapCategory('Spaces', r'\/dalvik-(alloc|main|large'
+                             r' object|non moving|zygote) space', [
+        MmapCategory('Normal', r'\/dalvik-(alloc|main)'),
+        MmapCategory('Large', r'\/dalvik-large object'),
+        MmapCategory('Zygote', r'\/dalvik-zygote'),
+        MmapCategory('Non-moving', r'\/dalvik-non moving')
       ]),
-      MmapCategory('Linear Alloc', r'LinearAlloc'),
-      MmapCategory('Indirect Reference Table', r'indirect.ref'),
-      MmapCategory('Cache', 'jit-code-cache'),
+      MmapCategory('Linear Alloc', r'\/dalvik-LinearAlloc'),
+      MmapCategory('Indirect Reference Table', r'\/dalvik-indirect.ref'),
+      MmapCategory('Cache', '\/dalvik-jit-code-cache'),
       MmapCategory('Accounting', None)
     ]),
-    MmapCategory('Cursor', r'CursorWindow'),
+    MmapCategory('Cursor', r'\/CursorWindow'),
     MmapCategory('Ashmem', None)
   ]),
   MmapCategory('Native heap',
@@ -101,13 +102,15 @@ BUCKET_ATTRS = {
   'swapped': 'sw'}
 
 
-# Map names of summary statistics a specific value within a memory category.
+# Map of {memory_key: (category_path, discount_tracing), ...}.
+# When discount_tracing is True, we have to discount the resident_size of the
+# tracing allocator to get the correct value for that key.
 STATS_SUMMARY = {
-  'overall_pss': '/.proportional_resident',
-  'private_dirty' : '/.private_dirty_resident',
-  'java_heap': '/Android/Java runtime.proportional_resident',
-  'ashmem': '/Android/Ashmem.proportional_resident',
-  'native_heap': '/Native heap.proportional_resident'}
+  'overall_pss': ('/.proportional_resident', True),
+  'private_dirty' : ('/.private_dirty_resident', True),
+  'java_heap': ('/Android/Java runtime/Spaces.proportional_resident', False),
+  'ashmem': ('/Android/Ashmem.proportional_resident', False),
+  'native_heap': ('/Native heap.proportional_resident', True)}
 
 
 class MemoryBucket(object):
@@ -146,6 +149,29 @@ class ProcessMemoryDump(object):
     self.dump_id = event['id']
     self.pid = event['pid']
     self.start_offset_ms = event['ts'] / 1000.0
+
+    try:
+      allocators_dict = event['args']['dumps']['allocators']
+    except KeyError:
+      allocators_dict = {}
+    # populate keys that should always be present
+    self._allocators = {'malloc': {'size': 0},
+                        'tracing': {'size': 0, 'resident_size': 0}}
+    for allocator_name, size_values in allocators_dict.iteritems():
+      name_parts = allocator_name.split('/')
+      # we want to skip allocated_objects, since they are already counted by
+      # outer allocator names; but malloc is special, because the size of outer
+      # allocators is only inherited from its allocated_objects.
+      if name_parts[-1] == 'allocated_objects' and name_parts[0] != 'malloc':
+        continue
+      allocator_name = name_parts[0]
+      allocator = self._allocators.setdefault(allocator_name, {})
+      for size_key, size_value in size_values['attrs'].iteritems():
+        allocator[size_key] = (allocator.get(size_key, 0)
+                               + int(size_value['value'], 16))
+    # we need to discount tracing from malloc size.
+    self._allocators['malloc']['size'] -= self._allocators['tracing']['size']
+
     self._buckets = {}
     try:
       vm_regions = event['args']['dumps']['process_mmaps']['vm_regions']
@@ -184,20 +210,29 @@ class ProcessMemoryDump(object):
       self._buckets[path] = MemoryBucket()
     return self._buckets[path]
 
-  def GetMemoryValue(self, value_path):
+  def GetMemoryValue(self, category_path, discount_tracing=False):
     """Return a specific value from within a MemoryBucket.
 
-    value_path: A string composed of a path in the classification tree,
+    category_path: A string composed of a path in the classification tree,
         followed by a '.', followed by a specific bucket value, e.g.
         '/Android/Java runtime/Cache.private_dirty_resident'.
+    discount_tracing: A boolean indicating whether the returned value should
+        be discounted by the resident size of the tracing allocator.
     """
-    path, name = value_path.rsplit('.', 1)
-    return self.GetMemoryBucket(path).GetValue(name)
+    path, name = category_path.rsplit('.', 1)
+    value = self.GetMemoryBucket(path).GetValue(name)
+    if discount_tracing:
+      value -= self._allocators['tracing']['resident_size']
+    return value
 
   def GetStatsSummary(self):
     """Get a summary of the memory usage for this process."""
-    return {key: self.GetMemoryValue(value_path)
-            for key, value_path in STATS_SUMMARY.iteritems()}
+    return {key: self.GetMemoryValue(*value)
+            for key, value in STATS_SUMMARY.iteritems()}
+
+  def GetAllocatorStats(self):
+    return {name: allocator.get('size', 0)
+            for name, allocator in self._allocators.iteritems()}
 
 
 class MemoryDumpEvent(timeline_event.TimelineEvent):
@@ -227,8 +262,8 @@ class MemoryDumpEvent(timeline_event.TimelineEvent):
     self.dump_id = dump_ids.pop()
 
     # We should have exactly one process dump for each pid.
-    all_pids = set(dump.pid for dump in self.process_dumps)
-    assert len(self.process_dumps) == len(all_pids)
+    self.pids = set(dump.pid for dump in self.process_dumps)
+    assert len(self.process_dumps) == len(self.pids)
 
     # Either all processes have mmaps or none of them do.
     has_mmaps = set(dump.has_mmaps for dump in self.process_dumps)
@@ -255,10 +290,16 @@ class MemoryDumpEvent(timeline_event.TimelineEvent):
     values = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values)
 
+  def _AggregateProcessStats(self, get_stats):
+    result = {}
+    for dump in self.process_dumps:
+      for key, value in get_stats(dump).iteritems():
+        result[key] = result.get(key, 0) + value
+    return result
+
   def GetStatsSummary(self):
     """Get a summary of the memory usage for this dump."""
-    summary = dict.fromkeys(STATS_SUMMARY.iterkeys(), 0)
-    for dump in self.process_dumps:
-      for key, value in dump.GetStatsSummary().iteritems():
-        summary[key] += value
-    return summary
+    return self._AggregateProcessStats(lambda dump: dump.GetStatsSummary())
+
+  def GetAllocatorStats(self):
+    return self._AggregateProcessStats(lambda dump: dump.GetAllocatorStats())
