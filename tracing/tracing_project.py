@@ -97,6 +97,16 @@ class TracingProject(project_module.Project):
       'gl-matrix/jsdoc-template/static/index.html',
     ])
 
+    self.non_module_html_files.extendRel(self.tracing_root_path, [
+      'build/test_data/error_stack_test.html',
+      'build/test_data/foo.html',
+      'build/test_data/load_error.html',
+      'build/test_data/load_error_2.html',
+      'build/test_data/load_js_error.html',
+      'build/test_data/load_js_error_2.html',
+      'build/test_data/load_simple_html.html'
+    ]);
+
     # Ignore drive html due to embedded external script resources.
     self.non_module_html_files.appendRel(self.tracing_src_path,
       'ui/extras/drive/index.html')

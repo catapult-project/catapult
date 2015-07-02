@@ -127,7 +127,7 @@ class HTMLModuleParserResults(object):
     for script in scripts_external:
       path = script.get('src')
       if path:
-        results_js.append('load("%s");' % path)
+        results_js.append('loadScript("%s");' % path)
         if script.contents:
           assert not script.contents[0], (
               'Script with source cannot have script content: %s' %

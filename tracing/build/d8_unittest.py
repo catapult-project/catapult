@@ -9,12 +9,12 @@ from tracing.build import d8_compatible_files
 from tracing.build import d8_runner
 
 
-def _GenerateD8TestMethod(test_file_path, search_path):
+def _GenerateD8TestMethod(test_file_path, source_paths):
   def runTest(self):
     exepect_fail = d8_compatible_files.IsTestExpectedToFail(
         test_file_path)
     try:
-      d8_runner.ExecuteFile(test_file_path, search_path)
+      d8_runner.ExecuteFile(test_file_path, source_paths)
       if exepect_fail:
         self.fail('d8_runner succesfully excecutes %s. You should update '
                   'the d8 compatibiliy list in d8_compatible_files.py' %
@@ -27,12 +27,12 @@ def _GenerateD8TestMethod(test_file_path, search_path):
   return runTest
 
 
-def _CreateTestCaseInstanceForTestName(file_path, src_path):
+def _CreateTestCaseInstanceForTestName(file_path, source_paths):
   class D8TestCase(unittest.TestCase):
     pass
-  test_method = _GenerateD8TestMethod(file_path, src_path)
+  test_method = _GenerateD8TestMethod(file_path, source_paths)
   test_name = ('D8 Compatibility Check: %s' %
-               os.path.relpath(file_path, src_path))
+               os.path.relpath(file_path))
   setattr(D8TestCase, test_name, test_method)
   return D8TestCase(test_name)
 
@@ -42,9 +42,9 @@ def load_tests(loader, standard_tests, pattern):
   suite = unittest.TestSuite()
 
   project = tracing_project.TracingProject()
-  src_path = project.tracing_src_path
+  source_paths = list(project.source_paths)
   d8_runnable_files = project.FindAllD8RunnableFiles()
 
   for file_path in d8_runnable_files:
-    suite.addTest(_CreateTestCaseInstanceForTestName(file_path, src_path))
+    suite.addTest(_CreateTestCaseInstanceForTestName(file_path, source_paths))
   return suite

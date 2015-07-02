@@ -32,13 +32,15 @@
     }
   };
 
+  if (os.chdir) {
+    os.chdir = function() {
+      throw new Error('Dont do this');
+    }
+  }
 
-  /**
-   * Defines the <%search-path%> for looking up relative path loading.
-   * d8_runner.py will replace this with the actual search path.
-   */
-  os.chdir('<%search-path%>');
-
+  // Bring in path utils.
+  load('<%path_utils_js_path%>');
+  PathUtils.currentWorkingDirectory = '<%current_working_directory%>';
 
   /**
    * Strips the starting '/' in file_path if |file_path| is meant to be a
@@ -53,19 +55,33 @@
     if (file_path.substring(0, 1) !== '/') {
       return file_path;
     }
-    try {
-      // Try a dummy read to check whether file_path exists.
-      // TODO(nednguyen): find a more efficient way to check whether some file
-      // path exists in d8.
-      read(file_path);
+    if (PathUtils.exists(file_path))
       return file_path;
-    } catch (err) {
-      return file_path.substring(1);
-    }
+    return file_path.substring(1);
   }
 
-  function _hrefToAbsolutePath(href) {
-    return _stripStartingSlashIfNeeded(href);
+  var sourcePaths = JSON.parse('<%source_paths%>');
+
+  function hrefToAbsolutePath(href) {
+    var pathPart;
+    if (!PathUtils.isAbs(href)) {
+      throw new Error('Found a non absolute import and thats not supported: ' +
+                      href);
+    } else {
+      pathPart = href.substring(1);
+    }
+
+    candidates = [];
+    for (var i = 0; i < sourcePaths.length; i++) {
+      var candidate = PathUtils.join(sourcePaths[i], pathPart);
+      if (PathUtils.exists(candidate))
+        candidates.push(candidate);
+    }
+    if (candidates.length > 1)
+      throw new Error('Multiple candidates found for ' + href);
+    if (candidates.length === 0)
+      throw new Error(href + ' not found!');
+    return candidates[0];
   }
 
   var loadedModulesByFilePath = {};
@@ -90,8 +106,17 @@
     // TODO(nednguyen): Use a javascript html parser instead of relying on
     // python file for parsing HTML.
     // (https://github.com/google/trace-viewer/issues/1030)
-    var absPath = _hrefToAbsolutePath(href);
+    var absPath = hrefToAbsolutePath(href);
+    global.loadHTMLFile(absPath, href);
+  };
 
+  global.loadScript = function(href) {
+    var absPath = hrefToAbsolutePath(href);
+    global.loadFile(absPath, href);
+  };
+
+  global.loadHTMLFile = function(absPath, opt_href) {
+    var href = opt_href || absPath;
     if (loadedModulesByFilePath[absPath])
       return;
     loadedModulesByFilePath[absPath] = true;
@@ -107,16 +132,15 @@
     // the line numbers
     stripped_js = stripped_js + '\n//@ sourceURL=' + href;
     eval(stripped_js);
-  }
-
-  // Override d8's load() so that it strips out the starting '/' if needed.
-  var actual_load = global.load;
-  global.load = function(file_path) {
-    try {
-      actual_load(_stripStartingSlashIfNeeded(file_path));
-    } catch (err) {
-      throw new Error('Error in loading ' + file_path + ': ' + err);
-    }
   };
 
+  global.loadFile = function(absPath, opt_href) {
+    var href = opt_href || absPath;
+    var relPath = PathUtils.relPath(absPath);
+    try {
+      load(relPath);
+    } catch (err) {
+      throw new Error('Error in loading ' + href + ': ' + err);
+    }
+  };
 })(this);

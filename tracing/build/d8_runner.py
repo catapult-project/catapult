@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import StringIO
 import sys
+import json
 import tempfile
 
 from tvcm import parse_html_deps
@@ -25,16 +26,34 @@ _HTML_JS_EVAL_PATH = os.path.abspath(
 _BOOTSTRAP_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'd8_bootstrap.js'))
 
+_PATH_UTILS_JS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'path_utils.js'))
+
 _BOOTSTRAP_JS_CONTENT = None
-def _GetBootStrapJsContent(search_path):
+def _ValidateSourcePaths(source_paths):
+  if source_paths is None:
+    return
+  for x in source_paths:
+    assert os.path.exists(x)
+    assert os.path.isdir(x)
+    assert os.path.isabs(x)
+
+def _GetBootStrapJsContent(source_paths):
   global _BOOTSTRAP_JS_CONTENT
   if not _BOOTSTRAP_JS_CONTENT:
     with open(_BOOTSTRAP_JS_DIR, 'r') as f:
       bootstrap_js_content = f.read()
       _BOOTSTRAP_JS_CONTENT = bootstrap_js_content.replace(
           '<%html2jseval-path%>', _HTML_JS_EVAL_PATH)
-  return _BOOTSTRAP_JS_CONTENT.replace('<%search-path%>',
-                                       os.path.abspath(search_path))
+
+
+  bsc = _BOOTSTRAP_JS_CONTENT
+
+  source_path_string = json.dumps(source_paths)
+  bsc = bsc.replace('<%source_paths%>', source_path_string)
+  bsc = bsc.replace('<%current_working_directory%>', os.getcwd())
+  bsc = bsc.replace('<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
+  return bsc
 
 
 def _IsValidJsOrHTMLFile(parser, js_file_arg):
@@ -56,43 +75,47 @@ def _GetD8BinaryPathForPlatform():
         'd8 binary for this platform and architecture is not yet supported')
 
 
-def ExecuteFile(file_path, search_path=None, js_args=None):
+def ExecuteFile(file_path, source_paths=None, js_args=None):
   """ Execute javascript program in |file_path|.
 
   Args:
     file_path: string file_path that contains path the .js or .html file to be
       executed.
-    search_path: the string absolute path of the root directory. All the imports
-      in the .js or .html files must be relative to this |search_path|.
+    source_paths: the list of absolute paths containing code. All the imports
     js_args: a list of string arguments to sent to the js program.
 
   Returns:
     The string output from running the js program.
   """
   assert os.path.isfile(file_path)
+  _ValidateSourcePaths(source_paths)
+
   _, extension = os.path.splitext(file_path)
   if not extension in ('.html', '.js'):
     raise ValueError('Can only execute .js or .html file. File %s has '
                      'unsupported file type: %s' % (file_path, extension))
-  if not search_path:
-    search_path = os.path.dirname(file_path)
+  if source_paths is None:
+    source_paths = [os.path.dirname(file_path)]
+
+  abs_file_path = os.path.abspath(file_path)
 
   try:
     temp_dir = tempfile.mkdtemp()
     temp_boostrap_file = os.path.join(temp_dir, '_tmp_boostrap.js')
     with open(temp_boostrap_file, 'w') as f:
-      f.write(_GetBootStrapJsContent(search_path))
+      f.write(_GetBootStrapJsContent(source_paths))
       if extension == '.html':
-        f.write('\nloadHTML("%s");' % os.path.abspath(file_path))
+        f.write('\nloadHTMLFile("%s");' % abs_file_path)
       else:
-        f.write('\nload("%s");' % os.path.abspath(file_path))
+        f.write('\nloadFile("%s");' % abs_file_path)
     return _ExecuteFileWithD8(temp_boostrap_file, js_args)
   finally:
     shutil.rmtree(temp_dir)
 
 
-def ExcecuteJsString(js_string, search_path=None, js_args=None,
+def ExcecuteJsString(js_string, source_paths=None, js_args=None,
                      original_file_name=None):
+  _ValidateSourcePaths(source_paths)
 
   try:
     temp_dir = tempfile.mkdtemp()
@@ -104,7 +127,7 @@ def ExcecuteJsString(js_string, search_path=None, js_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    return ExecuteFile(temp_file, search_path, js_args)
+    return ExecuteFile(temp_file, source_paths, js_args)
   finally:
     shutil.rmtree(temp_dir)
 
@@ -136,10 +159,12 @@ def main():
                       type=lambda f: _IsValidJsOrHTMLFile(parser, f))
   parser.add_argument('--js_args', help='arguments for the js program',
                       nargs='+')
-  parser.add_argument('--search_path', help='search path for the js program',
-                      type=str)
+  parser.add_argument('--source_paths', help='search path for the js program',
+                      nargs='+', type=str)
 
   args = parser.parse_args()
-  print ExecuteFile(args.file_name, search_path=args.search_path,
+
+  args.source_paths = [os.path.abspath(x) for x in args.source_paths]
+  print ExecuteFile(args.file_name, source_paths=args.source_paths,
                     js_args=args.js_args)
   return 0

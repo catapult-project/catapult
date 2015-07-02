@@ -281,7 +281,7 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParserResults(html)
     exepected_js = """loadHTML("/base/math.html");
 loadHTML("/base/physics.html");
-load("/base/subject/computer.js");
+loadScript("/base/subject/computer.js");
 var html_lines = [
                 '<script>',
                 '< /script>',

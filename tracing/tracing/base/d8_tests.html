@@ -12,8 +12,9 @@ found in the LICENSE file.
 'use strict';
 
 (function() {
-  if (!tr.b.isHeadless)
+  if (!tr.isHeadless) {
     throw new Error('d8_tests.html only works in headless mode');
+  }
 
 
   function loadAndRunTests() {

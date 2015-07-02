@@ -11,14 +11,14 @@ found in the LICENSE file.
 }
 </style>
 
-<script src="bar.js"></script>
+<script src="/bar.js"></script>
 
 <script>
   'use strict';
   print('File load_error2.html is loaded');
 
   // The import below should raise a loading exception for d8.
-  loadHTML('does_not_exist.html');
+  loadHTML('/does_not_exist.html');
 </script>
 
 

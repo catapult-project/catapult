@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import os
+import re
+import sys
 import unittest
 
 from tracing.build import d8_runner
@@ -18,17 +20,43 @@ class D8RunnerUnittest(unittest.TestCase):
   def GetTestFilePath(self, file_name):
     return os.path.join(self.test_data_dir, file_name)
 
+  def AssertHasNamedFrame(self, func_name, file_and_linum,
+                            exception_message):
+    m = re.search('at %s.+\(.*%s.*\)' % (func_name, file_and_linum),
+                  exception_message)
+    if not m:
+      sys.stderr.write('\n=============================================\n')
+      msg = "Expected to find %s and %s" % (func_name, file_and_linum)
+      sys.stderr.write('%s\n' % msg)
+      sys.stderr.write('=========== Begin Exception Message =========\n')
+      sys.stderr.write(exception_message);
+      sys.stderr.write('=========== End Exception Message =========\n\n')
+      self.assertTrue(False, msg)
+
+  def AssertHasFrame(self, file_and_linum,
+                     exception_message):
+    m = re.search('at .*%s.*' % file_and_linum,
+                  exception_message)
+    if not m:
+      sys.stderr.write('\n=============================================\n')
+      msg = "Expected to find %s" % file_and_linum
+      sys.stderr.write('%s\n' % msg)
+      sys.stderr.write('=========== Begin Exception Message =========\n')
+      sys.stderr.write(exception_message);
+      sys.stderr.write('=========== End Exception Message =========\n\n')
+      self.assertTrue(False, msg)
+
   def testSimpleJsExecution(self):
     file_path = self.GetTestFilePath('print_file_content.js')
     dummy_test_path = self.GetTestFilePath('dummy_test_file')
-    output = d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir,
+    output = d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir],
                                    js_args=[dummy_test_path])
     self.assertTrue(
         'This is file contains only data for testing.\n1 2 3 4' in output)
 
   def testJsFileLoadHtmlFile(self):
     file_path = self.GetTestFilePath('load_simple_html.js')
-    output = d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+    output = d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
     expected_output = ('File foo.html is loaded\n'
                        'x = 1\n'
                        "File foo.html's second script is loaded\n"
@@ -38,7 +66,7 @@ class D8RunnerUnittest(unittest.TestCase):
 
   def testJsFileLoadJsFile(self):
     file_path = self.GetTestFilePath('load_simple_js.js')
-    output = d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+    output = d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
     expected_output = ('bar.js is loaded\n'
                        'load_simple_js.js is loaded\n')
     self.assertEquals(output, expected_output)
@@ -46,7 +74,7 @@ class D8RunnerUnittest(unittest.TestCase):
   def testHTMLFileLoadHTMLFile(self):
     file_path = self.GetTestFilePath('load_simple_html.html')
     output = d8_runner.ExecuteFile(
-        file_path, search_path=self.test_data_dir)
+        file_path, source_paths=[self.test_data_dir])
     expected_output = ('File foo.html is loaded\n'
                        'x = 1\n'
                        "File foo.html's second script is loaded\n"
@@ -66,17 +94,18 @@ class D8RunnerUnittest(unittest.TestCase):
     # Finally, we call maybeRaiseExceptionInFoo() error_stack_test.js
     # Exception log should capture these method calls' stack trace.
     with self.assertRaises(RuntimeError) as context:
-      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
 
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
     self.assertIn(
       ('error.js:7: Error: Throw ERROR\n'
        "    throw new Error('Throw ERROR');"), exception_message)
-    self.assertIn('maybeRaiseException (error.js:7:11)', exception_message)
-    self.assertIn('global.maybeRaiseExceptionInFoo (foo.html:13:7)',
-                  exception_message)
-    self.assertIn('at %s:14:1' % file_path, exception_message)
+    self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
+                               exception_message)
+    self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:13',
+                        exception_message)
+    self.AssertHasFrame('error_stack_test.js:14', exception_message)
 
   def testErrorStackTraceHTML(self):
     file_path = self.GetTestFilePath('error_stack_test.html')
@@ -90,7 +119,7 @@ class D8RunnerUnittest(unittest.TestCase):
     # Finally, we call maybeRaiseExceptionInFoo() error_stack_test.js
     # Exception log should capture these method calls' stack trace.
     with self.assertRaises(RuntimeError) as context:
-      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
 
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
@@ -98,35 +127,39 @@ class D8RunnerUnittest(unittest.TestCase):
       ('error.js:7: Error: Throw ERROR\n'
        "    throw new Error('Throw ERROR');"), exception_message)
 
-    self.assertIn('maybeRaiseException (error.js:7:11)', exception_message)
-    self.assertIn('global.maybeRaiseExceptionInFoo (foo.html:13:7)',
-                  exception_message)
-    self.assertIn('at error_stack_test.js:14:1', exception_message)
-    self.assertIn('at eval (%s:5:1)' % file_path, exception_message)
+    self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
+                             exception_message)
+    self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:13',
+                             exception_message)
+    self.AssertHasFrame('error_stack_test.js:14', exception_message)
+    self.AssertHasNamedFrame('eval', 'error_stack_test.html:5',
+                             exception_message)
 
   def testStackTraceOfErroWhenLoadingHTML(self):
     file_path = self.GetTestFilePath('load_error.html')
     with self.assertRaises(RuntimeError) as context:
-      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
 
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
 
-    self.assertIn('Error in loading does_not_exist.html', exception_message)
-    self.assertIn('at eval (load_error_2.html:6:3)', exception_message)
-    self.assertIn('at eval (%s:1:1)' % file_path, exception_message)
+    self.assertIn('Error: /does_not_exist.html not found', exception_message)
+    self.AssertHasNamedFrame('eval', 'load_error_2.html:6', exception_message)
+    self.AssertHasNamedFrame('eval', 'load_error.html:1', exception_message)
 
   def testStackTraceOfErroWhenLoadingJS(self):
     file_path = self.GetTestFilePath('load_js_error.html')
     with self.assertRaises(RuntimeError) as context:
-      d8_runner.ExecuteFile(file_path, search_path=self.test_data_dir)
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
 
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
 
-    self.assertIn('Error in loading does_not_exist.js', exception_message)
-    self.assertIn('at eval (load_js_error_2.html:5:3)', exception_message)
-    self.assertIn('at eval (%s:1:1)' % file_path, exception_message)
+    self.assertIn('Error: /does_not_exist.js not found', exception_message)
+    self.AssertHasNamedFrame('eval', 'load_js_error_2.html:5',
+                             exception_message)
+    self.AssertHasNamedFrame('eval', 'load_js_error.html:1',
+                             exception_message)
 
   def testConsolePolyfill(self):
     self.assertEquals(
