@@ -221,18 +221,18 @@ found in the LICENSE file.
       </div>
     </div>
   </template>
-</polymer-element>
 
-<script>
-'use strict';
+  <script>
+  'use strict';
 
-Polymer('tr-ui-timeline-view-help-overlay', {
-  ready: function() {
-    var mod = tr.isMac ? 'cmd ' : 'ctrl';
-    var spans = this.shadowRoot.querySelectorAll('span.mod');
-    for (var i = 0; i < spans.length; i++) {
-      spans[i].textContent = mod;
+  Polymer('tr-ui-timeline-view-help-overlay', {
+    ready: function() {
+      var mod = tr.isMac ? 'cmd ' : 'ctrl';
+      var spans = this.shadowRoot.querySelectorAll('span.mod');
+      for (var i = 0; i < spans.length; i++) {
+        spans[i].textContent = mod;
+      }
     }
-  }
-});
-</script>
+  });
+  </script>
+</polymer-element>
