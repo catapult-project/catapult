@@ -83,6 +83,26 @@ class D8RunnerUnittest(unittest.TestCase):
                       'File load_simple_html.html is loaded\n')
     self.assertEquals(output, expected_output)
 
+  def testQuit0Handling(self):
+    file_path = self.GetTestFilePath('quit_0_test.js')
+    res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
+    self.assertEquals(res.returncode, 0)
+
+  def testQuit1Handling(self):
+    file_path = self.GetTestFilePath('quit_1_test.js')
+    res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
+    self.assertEquals(res.returncode, 1)
+
+  def testQuit1Handling(self):
+    file_path = self.GetTestFilePath('quit_42_test.js')
+    res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
+    self.assertEquals(res.returncode, 42)
+
+  def testQuit274Handling(self):
+    file_path = self.GetTestFilePath('quit_274_test.js')
+    res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
+    self.assertEquals(res.returncode, 238)
+
   def testErrorStackTraceJs(self):
     file_path = self.GetTestFilePath('error_stack_test.js')
     # error_stack_test.js imports load_simple_html.html
@@ -106,7 +126,6 @@ class D8RunnerUnittest(unittest.TestCase):
     self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:13',
                         exception_message)
     self.AssertHasFrame('error_stack_test.js:14', exception_message)
-
   def testErrorStackTraceHTML(self):
     file_path = self.GetTestFilePath('error_stack_test.html')
     # error_stack_test.html imports error_stack_test.js

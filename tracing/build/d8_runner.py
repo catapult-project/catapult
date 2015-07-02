@@ -74,6 +74,10 @@ def _GetD8BinaryPathForPlatform():
     raise NotImplementedError(
         'd8 binary for this platform and architecture is not yet supported')
 
+class RunResult(object):
+  def __init__(self, returncode, stdout):
+    self.returncode = returncode
+    self.stdout = stdout
 
 def ExecuteFile(file_path, source_paths=None, js_args=None):
   """ Execute javascript program in |file_path|.
@@ -85,7 +89,18 @@ def ExecuteFile(file_path, source_paths=None, js_args=None):
     js_args: a list of string arguments to sent to the js program.
 
   Returns:
-    The string output from running the js program.
+     The string output from running the js program.
+  """
+  res = RunFile(file_path, source_paths, js_args)
+  return res.stdout
+
+def RunFile(file_path, source_paths=None, js_args=None):
+  """ Runs javascript program in |file_path|.
+
+  Args are same as ExecuteFile.
+
+  Returns:
+     A RunResult containing the program's output.
   """
   assert os.path.isfile(file_path)
   _ValidateSourcePaths(source_paths)
@@ -108,12 +123,17 @@ def ExecuteFile(file_path, source_paths=None, js_args=None):
         f.write('\nloadHTMLFile("%s");' % abs_file_path)
       else:
         f.write('\nloadFile("%s");' % abs_file_path)
-    return _ExecuteFileWithD8(temp_boostrap_file, js_args)
+    return _RunFileWithD8(temp_boostrap_file, js_args)
   finally:
     shutil.rmtree(temp_dir)
 
 
 def ExcecuteJsString(js_string, source_paths=None, js_args=None,
+                     original_file_name=None):
+  res = RunJsString(js_string, source_paths, js_args, original_file_name)
+  return res.stdout
+
+def RunJsString(js_string, source_paths=None, js_args=None,
                      original_file_name=None):
   _ValidateSourcePaths(source_paths)
 
@@ -127,12 +147,12 @@ def ExcecuteJsString(js_string, source_paths=None, js_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    return ExecuteFile(temp_file, source_paths, js_args)
+    return RunFile(temp_file, source_paths, js_args)
   finally:
     shutil.rmtree(temp_dir)
 
 
-def _ExecuteFileWithD8(js_file_path, js_args):
+def _RunFileWithD8(js_file_path, js_args):
   """ Execute the js_files with v8 engine and return the output of the program.
 
   Args:
@@ -143,13 +163,25 @@ def _ExecuteFileWithD8(js_file_path, js_args):
   args.append(os.path.abspath(js_file_path))
   if js_args:
     args += ['--js_arguments'] + js_args
-  sp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  sp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   out, err = sp.communicate()
-  if sp.returncode != 0:
+  assert err is None
+
+  # d8 uses returncode 1 to indicate an uncaught exception, but
+  # _RunFileWithD8 needs to distingiush between that and quit(1).
+  #
+  # To fix this, d8_bootstrap.js monkeypatches D8's quit function to
+  # adds 1 to an intentioned nonzero quit. So, now, we have to undo this
+  # logic here in order to raise/return the right thing.
+  returncode = sp.returncode
+  if returncode == 0:
+    return RunResult(0, out)
+  elif returncode == 1:
     raise RuntimeError(
-        "Exception raised when executing %s with args '%s':\n%s\n%s" %
-        (js_file_path, js_args, out, err))
-  return out
+        "Exception raised when executing %s:\n%s" %
+        (js_file_path, out))
+  else:
+    return RunResult(returncode - 1, out)
 
 
 def main():

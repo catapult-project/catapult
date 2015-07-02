@@ -22,7 +22,9 @@ def Main(args):
   cmd = """
   loadHTML('/base/d8_tests.html');
   """
-  print d8_runner.ExcecuteJsString(cmd, list(project.source_paths))
+  res = d8_runner.RunJsString(cmd, list(project.source_paths))
+  print res.output
+  return res.returncode
 
 if __name__ == '__main__':
   install.InstallHooks()
