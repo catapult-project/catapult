@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
 import csv
 import logging
 
@@ -24,6 +25,8 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     super(DumpsysPowerMonitor, self).__init__(platform_backend)
     self._battery = battery
     self._browser = None
+    self._fuel_gauge_found = self._battery.SupportsFuelGauge()
+    self._starting_fuel_gauge = None
 
   def CanMonitorPower(self):
     result = self._platform.RunCommand('dumpsys batterystats -c')
@@ -41,14 +44,28 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._battery.DisableBatteryUpdates()
+    if self._fuel_gauge_found:
+      self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
+    self._battery.TieredSetCharging(False)
+
+    def _ReenableChargingIfNeeded():
+      if not self._battery.GetCharging():
+        self._battery.self._battery.TieredSetCharging(True)
+
+    atexit.register(_ReenableChargingIfNeeded)
 
   def StopMonitoringPower(self):
+    self._battery.TieredSetCharging(True)
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None
     cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
-    self._battery.EnableBatteryUpdates()
+
+    fuel_gauge_delta = None
+    if self._fuel_gauge_found:
+      fuel_gauge_delta = (
+          self._starting_fuel_gauge - self._battery.GetFuelGaugeChargeCounter())
+
     power_data = self._battery.GetPackagePowerData(package)
     battery_info = self._battery.GetBatteryInfo()
     voltage = battery_info.get('voltage')
@@ -60,7 +77,8 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     else:
       voltage = float(voltage) / 1000
       logging.info('Device voltage at %s', voltage)
-    power_results = self.ProcessPowerData(power_data, voltage, package)
+    power_results = self.ProcessPowerData(
+        power_data, voltage, package, fuel_gauge_delta)
     if power_results['energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
                       % (package, self._battery.GetPowerData()))
@@ -68,7 +86,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         cpu_stats, power_results)
 
   @staticmethod
-  def ProcessPowerData(power_data, voltage, package):
+  def ProcessPowerData(power_data, voltage, package, fuel_gauge_delta):
     power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
     if not power_data:
       logging.warning('Unable to find power data for %s in dumpsys output. '
@@ -77,4 +95,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
       return power_results
     consumption_mwh = sum(power_data['data']) * voltage
     power_results['energy_consumption_mwh'] = consumption_mwh
+    if fuel_gauge_delta is not None:
+      power_results['fuel_gauge_energy_consumption_mwh'] = (
+          fuel_gauge_delta * voltage)
     return power_results
