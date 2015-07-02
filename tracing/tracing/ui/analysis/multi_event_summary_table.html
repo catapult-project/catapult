@@ -78,9 +78,8 @@ found in the LICENSE file.
           title: 'Wall Duration',
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.duration, {
-              total: maxValues.duration,
-              ownerDocument: ownerDocument,
-              sparkline: !row.totalsRow
+              total: row.totalsRow ? undefined : maxValues.duration,
+              ownerDocument: ownerDocument
             });
           },
           width: '<upated further down>',
@@ -95,9 +94,8 @@ found in the LICENSE file.
           title: 'CPU Duration',
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.cpuDuration, {
-              total: maxValues.cpuDuration,
-              ownerDocument: ownerDocument,
-              sparkline: !row.totalsRow
+              total: row.totalsRow ? undefined : maxValues.cpuDuration,
+              ownerDocument: ownerDocument
             });
           },
           width: '<upated further down>',
@@ -112,9 +110,8 @@ found in the LICENSE file.
           title: 'Self time',
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.selfTime, {
-              total: maxValues.selfTime,
-              ownerDocument: ownerDocument,
-              sparkline: !row.totalsRow
+              total: row.totalsRow ? undefined : maxValues.selfTime,
+              ownerDocument: ownerDocument
             });
           },
           width: '<upated further down>',
@@ -129,9 +126,8 @@ found in the LICENSE file.
           title: 'CPU Self Time',
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.cpuSelfTime, {
-              total: maxValues.cpuSelfTime,
-              ownerDocument: ownerDocument,
-              sparkline: !row.totalsRow
+              total: row.totalsRow ? undefined : maxValues.cpuSelfTime,
+              ownerDocument: ownerDocument
             });
           },
           width: '<upated further down>',

@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(timeSpan);
   });
 
-  test('instantiateWitHObject', function() {
+  test('instantiateWithObject', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration = new tr.b.units.TimeDuration(73);
     this.addHTMLOutput(timeSpan);
@@ -94,13 +94,31 @@ tr.b.unittest.testSuite(function() {
     div.style.width = '100px';
 
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
-    timeSpan.percentage = 0.5;
     timeSpan.duration = 40;
     div.appendChild(timeSpan);
 
     this.addHTMLOutput(div);
-    var width = getComputedStyle(timeSpan.$.sparkline).width;
-    assert.equal(parseInt(width), 50);
+
+    function checkSparkline(expectedDisplay, expectedWidth) {
+      var computedStyle = getComputedStyle(timeSpan.$.sparkline);
+      assert.equal(computedStyle.display, expectedDisplay);
+      assert.equal(parseInt(computedStyle.width), expectedWidth);
+    }
+
+    // No percentage set.
+    checkSparkline('none', 0);
+
+    // Zero percentage set.
+    timeSpan.percentage = 0;
+    checkSparkline('block', 1);
+
+    // Undefined percentage set.
+    timeSpan.percentage = undefined;
+    checkSparkline('none', 0);
+
+    // Undefined percentage set.
+    timeSpan.percentage = 0.5;
+    checkSparkline('block', 50);
   });
 
 });

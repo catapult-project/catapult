@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.units', function() {
       position: absolute;
       bottom: 0;
       right: 0;
-      display: block;
+      display: none;
       height: 100%;
       background-color: hsl(216, 100%, 94.5%);
       border-left: 1px solid hsl(216, 100%, 89%);
@@ -84,7 +84,6 @@ tr.exportTo('tr.ui.units', function() {
       this.warning_ = undefined;
       this.duration_ = undefined;
       this.percentage_ = undefined;
-      this.displaySparkline_ = undefined;
     },
 
     get duration() {
@@ -99,17 +98,26 @@ tr.exportTo('tr.ui.units', function() {
       this.updateContent_();
     },
 
+    get percentage() {
+      return this.percentage_;
+    },
+
     set percentage(percentage) {
       this.percentage_ = percentage;
+      this.updateSparkline_();
     },
 
     updateSparkline_: function() {
-      if (this.percentage_)
+      if (this.percentage_ === undefined) {
+        this.$.sparkline.style.display = 'none';
+        this.$.sparkline.style.width = '0';
+      } else {
+        this.$.sparkline.style.display = 'block';
         this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
+      }
     },
 
     updateContent_: function() {
-      this.updateSparkline_();
       var content = tr.b.units.TimeDuration.format(this.duration_);
       this.$.content.textContent = content;
     },
