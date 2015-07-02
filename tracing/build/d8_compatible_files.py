@@ -65,6 +65,7 @@ _REL_PATH_D8_BLACK_LIST_FILES = {
   "tracing/base/statistics_test.html",
   "tracing/base/task_test.html",
   "tracing/base/tests.html",
+  "tracing/base/d8_tests.html",
   "tracing/base/units/size_in_bytes_test.html",
   "tracing/base/units/time_duration_test.html",
   "tracing/base/units/time_stamp_test.html",
