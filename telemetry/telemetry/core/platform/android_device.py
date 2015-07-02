@@ -10,12 +10,7 @@ import sys
 from telemetry.core.platform import device
 from telemetry.core.platform.profiler import monsoon
 from telemetry.core import util
-
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import constants  # pylint: disable=import-error
-from pylib.device import adb_wrapper  # pylint: disable=import-error
-from pylib.device import device_blacklist # pylint: disable=import-error
-from pylib.device import device_errors  # pylint: disable=import-error
+from telemetry.internal.backends import adb_commands
 
 
 class AndroidDevice(device.Device):
@@ -31,9 +26,6 @@ class AndroidDevice(device.Device):
   def __init__(self, device_id, enable_performance_mode=True):
     super(AndroidDevice, self).__init__(
         name='Android device %s' % device_id, guid=device_id)
-    if device_id in device_blacklist.ReadBlacklist():
-      logging.warning(
-          'Device instance with device id %s is unhealthy.' % device_id)
     self._device_id = device_id
     self._enable_performance_mode = enable_performance_mode
 
@@ -51,13 +43,8 @@ class AndroidDevice(device.Device):
     return self._enable_performance_mode
 
 
-def _GetAttachedDevicesSerials():
-  return [adb.GetDeviceSerial() for adb in adb_wrapper.AdbWrapper.Devices()]
-
-
 def GetDeviceSerials():
-  device_serials = _GetAttachedDevicesSerials()
-
+  device_serials = adb_commands.GetAttachedDevices()
   # The monsoon provides power for the device, so for devices with no
   # real battery, we need to turn them on after the monsoon enables voltage
   # output to the device.
@@ -78,11 +65,10 @@ The Monsoon's power output has been enabled. Please now ensure that:
 
 Waiting for device...
 """)
-      util.WaitFor(_GetAttachedDevicesSerials, 600)
-      device_serials = _GetAttachedDevicesSerials()
+      util.WaitFor(adb_commands.GetAttachedDevices, 600)
+      device_serials = adb_commands.GetAttachedDevices()
     except IOError:
       return []
-
   return device_serials
 
 
@@ -112,8 +98,10 @@ def GetDevice(finder_options):
 
 def CanDiscoverDevices():
   """Returns true if devices are discoverable via adb."""
-  adb_path = constants.GetAdbPath()
-  if os.path.isabs(adb_path) and not os.path.exists(adb_path):
+  if not adb_commands.IsAndroidSupported():
+    logging.info(
+        'Android build commands unavailable on this machine. '
+        'Have you installed Android build dependencies?')
     return False
   try:
     with open(os.devnull, 'w') as devnull:
@@ -126,17 +114,17 @@ def CanDiscoverDevices():
                    'Consider running adb as root:')
       logging.warn('  adb kill-server')
       logging.warn('  sudo `which adb` devices\n\n')
+    return True
   except OSError:
     pass
-  if sys.platform.startswith('linux'):
+  chromium_adb_path = os.path.join(
+      util.GetChromiumSrcDir(), 'third_party', 'android_tools', 'sdk',
+      'platform-tools', 'adb')
+  if sys.platform.startswith('linux') and os.path.exists(chromium_adb_path):
     os.environ['PATH'] = os.pathsep.join(
-        [os.path.dirname(adb_path), os.environ['PATH']])
-  try:
-    _GetAttachedDevicesSerials()
+        [os.path.dirname(chromium_adb_path), os.environ['PATH']])
     return True
-  except (device_errors.CommandFailedError, device_errors.CommandTimeoutError,
-          OSError):
-    return False
+  return False
 
 
 def FindAllAvailableDevices(_):
