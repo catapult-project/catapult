@@ -346,7 +346,6 @@ tr.exportTo('tr.ui', function() {
       // Do things that are selection specific
       if (modelInstanceChanged) {
         this.updateMetadataButtonVisibility_();
-        tr.b.dispatchSimpleEvent(this, 'modelChange');
         this.selectionController_.modelDidChange();
         this.onViewportChanged_();
       }

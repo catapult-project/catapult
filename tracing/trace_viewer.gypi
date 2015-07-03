@@ -57,7 +57,6 @@
       'tracing/base/interval_tree.html',
       'tracing/base/iteration_helpers.html',
       'tracing/base/math.html',
-      'tracing/base/properties.html',
       'tracing/base/quad.html',
       'tracing/base/raf.html',
       'tracing/base/range.html',

@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/ui/timeline_track_view.css">
 
 <link rel="import" href="/base/event.html">
-<link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/base/units/time_duration.html">
@@ -275,8 +274,6 @@ tr.exportTo('tr.ui', function() {
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
         this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
-
-      tr.b.setPropertyAndDispatchChange(this, 'model', model);
     },
 
     get hasVisibleContent() {

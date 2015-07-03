@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/utils.html">
-<link rel="import" href="/base/properties.html">
 <link rel="import" href="/base/event.html">
 <link rel="import" href="/ui/base/ui.html">
 <link rel="import" href="/ui/base/utils.html">
@@ -156,7 +155,7 @@ tr.exportTo('tr.ui.b', function() {
       this.onDocumentClick_ = this.onDocumentClick_.bind(this);
       this.onClose_ = this.onClose_.bind(this);
 
-      this.addEventListener('visibleChange',
+      this.addEventListener('visible-change',
           tr.ui.b.Overlay.prototype.onVisibleChange_.bind(this), true);
 
       // Setup the shadow root
@@ -209,7 +208,9 @@ tr.exportTo('tr.ui.b', function() {
       if (this.visible_ === newValue)
         return;
 
-      tr.b.setPropertyAndDispatchChange(this, 'visible', newValue);
+      this.visible_ = newValue;
+      var e = new tr.b.Event('visible-change');
+      this.dispatchEvent(e);
     },
 
     onVisibleChange_: function() {
