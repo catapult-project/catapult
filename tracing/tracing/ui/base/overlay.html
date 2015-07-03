@@ -124,11 +124,10 @@ found in the LICENSE file.
  *
  */
 tr.exportTo('tr.ui.b', function() {
-  var THIS_DOC;
-  if (document)
-    THIS_DOC = document.currentScript.ownerDocument;
-  else
-    THIS_DOC = undefined;
+  if (tr.isHeadless)
+    return {};
+
+  var THIS_DOC = document.currentScript.ownerDocument;
 
   /**
    * Creates a new overlay element. It will not be visible until shown.

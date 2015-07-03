@@ -45,9 +45,12 @@ found in the LICENSE file.
 
       // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
       // the frame viewer that needs this feature, so ~shrug~.
-      if (window.RasterTaskView !== undefined) { // May not have been imported.
-        if (tr.e.cc.RasterTaskSelection.supports(selection)) {
-          var ltvSelection = new tr.e.cc.RasterTaskSelection(selection);
+      // We check for its presence so that we do not have a hard dependency
+      // on frame viewer.
+      if (tr.isExported('tr.ui.e.chrome.cc.RasterTaskSelection')) {
+        if (tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection)) {
+          var ltvSelection = new tr.ui.e.chrome.cc.RasterTaskSelection(
+              selection);
 
           var ltv = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
           ltv.objectSnapshot = ltvSelection.containingSnapshot;

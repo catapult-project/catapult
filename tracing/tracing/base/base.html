@@ -44,6 +44,20 @@ this.tr = (function() {
     return cur;
   };
 
+  function isExported(name) {
+    var parts = name.split('.');
+    var cur = global;
+
+    for (var part; parts.length && (part = parts.shift());) {
+      if (part in cur) {
+        cur = cur[part];
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
   function isDefined(name) {
     var parts = name.split('.');
 
@@ -167,6 +181,7 @@ this.tr = (function() {
     initialize: initialize,
 
     exportTo: exportTo,
+    isExported: isExported,
     isDefined: isDefined,
 
     showPanic: showPanic,

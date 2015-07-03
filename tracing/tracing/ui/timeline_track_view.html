@@ -495,7 +495,7 @@ tr.exportTo('tr.ui', function() {
       var hkc = this.hotkeyController_;
 
       var addBinding = function(dict) {
-        dict.eventType = 'keypress';
+        dict.eventType = 'keydown';
         dict.useCapture = false;
         dict.thisArg = this;
         var binding = new tr.ui.b.HotKey(dict);
@@ -505,8 +505,8 @@ tr.exportTo('tr.ui', function() {
       addBinding({
         keyCode: 37, // Left arrow.
         callback: function(e) {
-          var sel = this.selectionController_.selection.getShiftedSelection(
-              this.viewport, -1);
+          var curSel = this.selectionController_.selection;
+          var sel = this.viewport.getShiftedSelection(curSel, -1);
 
           if (sel) {
             this.selectionController.changeSelectionFromTimeline(sel);
@@ -522,8 +522,8 @@ tr.exportTo('tr.ui', function() {
       addBinding({
         keyCode: 39, // Right arrow.
         callback: function(e) {
-          var sel = this.selectionController_.selection.getShiftedSelection(
-              this.viewport, 1);
+          var curSel = this.selectionController_.selection;
+          var sel = this.viewport.getShiftedSelection(curSel, 1);
           if (sel) {
             this.selectionController.changeSelectionFromTimeline(sel);
             this.panToSelection();

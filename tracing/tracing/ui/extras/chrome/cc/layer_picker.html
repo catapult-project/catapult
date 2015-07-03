@@ -9,13 +9,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/chrome/cc/constants.html">
 <link rel="import" href="/extras/chrome/cc/layer_tree_host_impl.html">
-<link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/extras/chrome/cc/util.html">
 <link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/model/event.html">
 <link rel="import" href="/ui/base/drag_handle.html">
 <link rel="import" href="/ui/base/list_view.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/extras/chrome/cc/selection.html">
 
 <script>
 'use strict';
@@ -285,7 +285,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       if (selectedRenderPass) {
-        this.selection_ = new tr.e.cc.RenderPassSelection(
+        this.selection_ = new tr.ui.e.chrome.cc.RenderPassSelection(
             selectedRenderPass, selectedRenderPassId);
       } else {
         this.selection_ = undefined;
@@ -298,7 +298,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         selectedLayer = this.itemList_.selectedElement.layer;
 
       if (selectedLayer)
-        this.selection_ = new tr.e.cc.LayerSelection(selectedLayer);
+        this.selection_ = new tr.ui.e.chrome.cc.LayerSelection(selectedLayer);
       else
         this.selection_ = undefined;
     },

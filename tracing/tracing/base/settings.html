@@ -23,9 +23,16 @@ tr.exportTo('tr.b', function() {
     return Settings;
   };
 
-  document.head.addEventListener('tr-unittest-will-run', function() {
-    Settings.setAlternativeStorageInstance(global.sessionStorage);
-  });
+  if (tr.b.unittest && tr.b.unittest.TestRunner) {
+    tr.b.unittest.TestRunner.addEventListener(
+        'tr-unittest-will-run',
+        function() {
+          if (tr.isHeadless)
+            Settings.setAlternativeStorageInstance(new HeadlessStorage());
+          else
+            Settings.setAlternativeStorageInstance(global.sessionStorage);
+        });
+  }
 
   function SessionSettings() {
     return SessionSettings;
@@ -131,8 +138,64 @@ tr.exportTo('tr.b', function() {
     input_class.NAMESPACE = 'trace-viewer';
   };
 
-  AddStaticStorageFunctionsToClass_(Settings, localStorage);
-  AddStaticStorageFunctionsToClass_(SessionSettings, sessionStorage);
+  function HeadlessStorage() {
+    this.length = 0;
+    this.hasItem_ = {};
+    this.items_ = {};
+    this.itemsAsArray_ = undefined;
+  }
+  HeadlessStorage.prototype = {
+    key: function(index) {
+      return this.itemsAsArray[index];
+    },
+    get itemsAsArray() {
+      if (this.itemsAsArray_ !== undefined)
+        return this.itemsAsArray_;
+
+      var itemsAsArray = [];
+      for (var k in this.items_)
+        itemsAsArray.push(this.items_[k]);
+      this.itemsAsArray_ = itemsAsArray;
+      return this.itemsAsArray_;
+    },
+
+    getItem: function(key) {
+      if (!this.hasItem_[key])
+        return null;
+      return this.items_[key];
+    },
+
+    removeItem: function(key) {
+      if (!this.hasItem_[key])
+        throw new Error('Not present');
+      var value = this.items_[key];
+      delete this.hasItem_[key];
+      delete this.items_[key];
+      this.length--;
+      this.itemsAsArray_ = undefined;
+      return value;
+    },
+
+    setItem: function(key, value) {
+      if (this.hasItem_[key]) {
+        this.items_[key] = value;
+        return;
+      }
+      this.items_[key] = value;
+      this.hasItem_[key] = true;
+      this.length++;
+      this.itemsAsArray_ = undefined;
+      return value;
+    }
+  };
+
+  if (tr.isHeadless) {
+    AddStaticStorageFunctionsToClass_(Settings, new HeadlessStorage());
+    AddStaticStorageFunctionsToClass_(SessionSettings, new HeadlessStorage());
+  } else {
+    AddStaticStorageFunctionsToClass_(Settings, localStorage);
+    AddStaticStorageFunctionsToClass_(SessionSettings, sessionStorage);
+  }
 
   return {
     Settings: Settings,

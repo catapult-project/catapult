@@ -76,6 +76,10 @@ tr.exportTo('tr.b.unittest', function() {
 
         try {
           loadHTML(testRelpath);
+        } catch (e) {
+          e.message = 'While loading ' + moduleName + ', ' + e.message;
+          e.stack = 'While loading ' + moduleName + ', ' + e.stack;
+          throw e;
         } finally {
           this.currentlyExecutingModuleInfo_ = undefined;
         }

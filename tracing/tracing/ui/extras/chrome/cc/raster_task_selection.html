@@ -7,19 +7,19 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/extras/chrome/cc/raster_task.html">
-<link rel="import" href="/extras/chrome/cc/selection.html">
 <link rel="import" href="/ui/analysis/single_event_sub_view.html">
+<link rel="import" href="/ui/extras/chrome/cc/selection.html">
 <link rel="import" href="/ui/extras/chrome/cc/raster_task_view.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.cc', function() {
+tr.exportTo('tr.ui.e.chrome.cc', function() {
   /**
    * @constructor
    */
   function RasterTaskSelection(selection) {
-    tr.e.cc.Selection.call(this);
+    tr.ui.e.chrome.cc.Selection.call(this);
     var whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok)
       throw new Error('Fail: ' + whySupported.why);
@@ -67,7 +67,7 @@ tr.exportTo('tr.e.cc', function() {
   };
 
   RasterTaskSelection.prototype = {
-    __proto__: tr.e.cc.Selection.prototype,
+    __proto__: tr.ui.e.chrome.cc.Selection.prototype,
 
     get specicifity() {
       return 3;
@@ -107,7 +107,7 @@ tr.exportTo('tr.e.cc', function() {
       if (sel.length == 1)
         analysis = document.createElement('tr-ui-a-single-event-sub-view');
       else
-        analysis = new RasterTaskView();
+        analysis = document.createElement('tr-ui-e-chrome-cc-raster-task-view');
       analysis.selection = sel;
       return analysis;
     },

@@ -44,6 +44,7 @@ def load_tests(loader, standard_tests, pattern):
   project = tracing_project.TracingProject()
   source_paths = list(project.source_paths)
   d8_runnable_files = project.FindAllD8RunnableFiles()
+  d8_runnable_files.sort()
 
   for file_path in d8_runnable_files:
     suite.addTest(_CreateTestCaseInstanceForTestName(file_path, source_paths))

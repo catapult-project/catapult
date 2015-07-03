@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
 
     var view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
-    view.selection = new tr.e.cc.LayerSelection(layer);
+    view.selection = new tr.ui.e.chrome.cc.LayerSelection(layer);
     view.howToShowTiles = 'none';
     view.showInvalidations = false;
     view.showContents = false;

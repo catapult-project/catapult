@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/scripting_control.html">
+<link rel="import" href="/ui/scripting_control.html">
 <link rel="import" href="/core/test_utils.html">
 
 <script>
@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var ctl = new TracingScriptingControl();
+    var ctl = document.createElement('tr-ui-scripting-control');
     this.addHTMLOutput(ctl);
     ctl.toggleVisibility();
   });

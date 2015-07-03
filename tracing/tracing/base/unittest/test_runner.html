@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/base/raf.html">
+<link rel="import" href="/base/event_target.html">
 <script>
 'use strict';
 
@@ -44,10 +45,8 @@ tr.exportTo('tr.b.unittest', function() {
       global.sessionStorage.clear();
     }
 
-    if (global.document) {
-      var e = new Event('tr-unittest-will-run');
-      global.document.head.dispatchEvent(e);
-    }
+    var e = new Event('tr-unittest-will-run');
+    TestRunner.dispatchEvent(e);
   }
 
   function uninstallGlobalTestHooks() {
@@ -233,6 +232,8 @@ tr.exportTo('tr.b.unittest', function() {
       this.runCompletedResolver_ = undefined;
     }
   };
+
+  tr.b.EventTarget.decorate(TestRunner);
 
   return {
     TestRunner: TestRunner

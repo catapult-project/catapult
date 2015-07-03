@@ -79,6 +79,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
   TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 'usingGpuMemory';
 
+  var cc = tr.ui.e.chrome.cc;
+
   function createTileRectsSelectorBaseOptions() {
     return [{label: 'None', value: 'none'},
             {label: 'Coverage Rects', value: 'coverage'}];
@@ -691,7 +693,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       abq.borderColor = 'rgba(205,255,0,0.75)';
       abq.borderWidth = 3.0;
       abq.stackingGroupId = layerQuad.stackingGroupId;
-      abq.selectionToSetIfClicked = new tr.e.cc.AnimationRectSelection(
+      abq.selectionToSetIfClicked = new cc.AnimationRectSelection(
           layer, rect);
       quads.push(abq);
     },
@@ -710,7 +712,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, 'Invalidation rect (' + rect.reason + ')', rect, rect);
         quads.push(iq);
       }
@@ -725,7 +727,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
           iq.borderColor = 'rgba(0, 255, 0, 1)';
           iq.stackingGroupId = layerQuad.stackingGroupId;
-          iq.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
               layer, 'Invalidation rect', rect, rect);
           quads.push(iq);
         }
@@ -741,7 +743,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         iq.backgroundColor = 'rgba(240, 230, 140, 0.3)';
         iq.borderColor = 'rgba(240, 230, 140, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, 'Unrecorded area', rect, rect);
         quads.push(iq);
       }
@@ -763,7 +765,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           iq.borderColor = borderColor.toString();
           iq.borderWidth = 4.0;
           iq.stackingGroupId = stackingGroupId;
-          iq.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
               layer, label, rect, rect);
           quads.push(iq);
         }
@@ -821,7 +823,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           label = 'coverageRect';
         else
           label = 'checkerboard coverageRect';
-        quad.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, label, rect, layer.tileCoverageRects[ct]);
 
         quads.push(quad);
@@ -847,7 +849,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         quad.borderWidth = 2;
         var label;
         label = 'Layout rect';
-        quad.selectionToSetIfClicked = new tr.e.cc.LayerRectSelection(
+        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, label, rect);
 
         quads.push(quad);
@@ -955,7 +957,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         };
         if (heatmapType !== TILE_HEATMAP_TYPE.NONE)
           data[heatmapType] = heatmapResult[i].value;
-        quad.selectionToSetIfClicked = new tr.e.cc.TileSelection(tile, data);
+        quad.selectionToSetIfClicked = new cc.TileSelection(tile, data);
         quads.push(quad);
       }
     },
@@ -1039,7 +1041,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           layerQuad.borderColor = 'rgba(0,0,0,0.75)';
         }
         layerQuad.stackingGroupId = nextStackingGroupId++;
-        layerQuad.selectionToSetIfClicked = new tr.e.cc.LayerSelection(layer);
+        layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         layerQuad.layer = layer;
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
