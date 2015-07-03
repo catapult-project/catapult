@@ -113,8 +113,7 @@
           //   check if d has no fractional digits
           str.charAt(idx | 0) || (map = '=', idx % 1);
           // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8.
-          output += map.charAt(63 & block >> 8 - idx % 1 * 8);
-      ) {
+          output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
         charCode = str.charCodeAt(idx += 3 / 4);
         if (charCode > 0xFF) {
           throw new InvalidCharacterError(
@@ -146,8 +145,7 @@
               // And if not first of each 4 characters,
               // convert the first 8 bits to one ascii character.
               bc++ % 4) ? output += String.fromCharCode(
-                    255 & bs >> (-2 * bc & 6)) : 0;
-      ) {
+                    255 & bs >> (-2 * bc & 6)) : 0) {
         // Try to find character in table (0-63, not found => -1).
         buffer = chars.indexOf(buffer);
       }
