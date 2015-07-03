@@ -588,7 +588,7 @@ tr.exportTo('tr.ui', function() {
           return;
 
         var relativePosition = this.extractRelativeMousePosition_(e);
-        var loc = tr.ui.b.Location.fromViewCoordinates(
+        var loc = tr.model.Location.fromViewCoordinates(
             this.viewport_, relativePosition.x, relativePosition.y);
         // Not all points on the timeline represents a valid location.
         // ex. process header tracks, letter dot tracks.
