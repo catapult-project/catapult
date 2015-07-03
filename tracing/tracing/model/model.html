@@ -409,6 +409,8 @@ tr.exportTo('tr', function() {
      * during the import process.
      */
     importTracesWithProgressDialog: function(traces, opt_options) {
+      if (tr.b.isHeadless)
+        throw new Error('Cannot use this method in headless mode!');
       var options = ImportOptions.fromArguments(arguments, 1);
 
       var overlay = tr.ui.b.Overlay();

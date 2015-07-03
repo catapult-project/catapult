@@ -94,6 +94,11 @@ this.tr = (function() {
   }
 
   function showPanic(panicTitle, panicDetails) {
+    if (tr.isHeadless) {
+      if (panicDetails instanceof Error)
+        throw panicDetails;
+      throw new Error('Panic: ' + panicTitle + ':\n' + panicDetails);
+    }
 
     if (panicDetails instanceof Error)
       panicDetails = panicDetails.stack;
@@ -146,6 +151,8 @@ this.tr = (function() {
     } else if (global.process && global.process.versions.node) {
       tr.isNode = true;
     } else {
+      tr.isD8 = false;
+      tr.isNode = false;
       tr.doc = document;
 
       tr.isMac = /Mac/.test(navigator.platform);

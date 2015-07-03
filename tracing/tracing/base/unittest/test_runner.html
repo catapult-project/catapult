@@ -10,8 +10,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b.unittest', function() {
   var realTvOnAnimationFrameError;
-  var realWindowOnError;
-  var realWindowHistoryPushState;
+  var realGlobalOnError;
+  var realGlobalHistoryPushState;
 
   function installGlobalTestHooks(runner) {
     realTvOnAnimationFrameError = tr.b.onAnimationFrameError;
@@ -19,37 +19,50 @@ tr.exportTo('tr.b.unittest', function() {
       runner.results.addErrorForCurrentTest(error);
     }
 
-    realWindowOnError = window.onerror;
-    window.onerror = function(errorMsg, url, lineNumber) {
-      runner.results.addErrorForCurrentTest(
-          errorMsg + ' at ' + url + ':' + lineNumber);
-      if (realWindowOnError)
-        return realWindowOnError(errorMsg, url, lineNumber);
-      return false;
+    if (global.onerror) {
+      realGlobalOnError = global.onerror;
+      global.onerror = function(errorMsg, url, lineNumber) {
+        runner.results.addErrorForCurrentTest(
+            errorMsg + ' at ' + url + ':' + lineNumber);
+        if (realGlobalOnError)
+          return realGlobalOnError(errorMsg, url, lineNumber);
+        return false;
+      }
     }
 
-    realWindowHistoryPushState = window.history.pushState;
-    window.history.pushState = function() {
-    };
+    if (global.history) {
+      realGlobalHistoryPushState = global.history.pushState;
+      global.history.pushState = function() {
+      };
+    }
 
     tr.b.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
 
-    global.sessionStorage.clear();
-    var e = new Event('tr-unittest-will-run');
-    document.head.dispatchEvent(e);
+    if (global.sessionStorage) {
+      global.sessionStorage.clear();
+    }
+
+    if (global.document) {
+      var e = new Event('tr-unittest-will-run');
+      global.document.head.dispatchEvent(e);
+    }
   }
 
   function uninstallGlobalTestHooks() {
-    window.onerror = realWindowOnError;
-    realWindowOnError = undefined;
+    if (global.onerror) {
+      global.onerror = realGlobalOnError;
+      realGlobalOnError = undefined;
+    }
 
     tr.b.onAnimationFrameError = realTvOnAnimationFrameError;
     realTvOnAnimationFrameError = undefined;
 
-    window.history.pushState = realWindowHistoryPushState;
-    realWindowHistoryPushState = undefined;
+    if (global.history) {
+      global.history.pushState = realGlobalHistoryPushState;
+      realGlobalHistoryPushState = undefined;
+    }
 
     tr.b.unittest.addHTMLOutputForCurrentTest = undefined;
   }
@@ -131,19 +144,29 @@ tr.exportTo('tr.b.unittest', function() {
 
       this.runCurrentTestCase_().then(
           function pass(result) {
-            this.tearDownCurrentTestCase_(true);
-            if (result)
-              this.results_.setReturnValueFromCurrentTest(result);
-            this.results_.didCurrentTestEnd();
-            this.currentTestCase_ = undefined;
-            this.scheduleRunOneTestCase_();
+            try {
+              this.tearDownCurrentTestCase_(true);
+              if (result)
+                this.results_.setReturnValueFromCurrentTest(result);
+              this.results_.didCurrentTestEnd();
+              this.currentTestCase_ = undefined;
+              this.scheduleRunOneTestCase_();
+            } catch (e) {
+              this.hadInternalError_(e);
+              throw e;
+            }
           }.bind(this),
           function fail(error) {
-            this.results_.addErrorForCurrentTest(error);
-            this.tearDownCurrentTestCase_(false);
-            this.results_.didCurrentTestEnd();
-            this.currentTestCase_ = undefined;
-            this.scheduleRunOneTestCase_();
+            try {
+              this.results_.addErrorForCurrentTest(error);
+              this.tearDownCurrentTestCase_(false);
+              this.results_.didCurrentTestEnd();
+              this.currentTestCase_ = undefined;
+              this.scheduleRunOneTestCase_();
+            } catch (e) {
+              this.hadInternalError_(e);
+              throw e;
+            }
           }.bind(this));
     },
 
@@ -180,6 +203,18 @@ tr.exportTo('tr.b.unittest', function() {
           resolve(maybePromise);
         }
       }.bind(this));
+    },
+
+    hadInternalError_: function(outerE) {
+      try {
+        this.results.didRunTests();
+      } catch (e) {
+        console.log('Had another error during hadInternalError_!');
+        console.log(e.stack);
+      }
+
+      this.runCompletedResolver_.reject(outerE);
+      this.runCompletedResolver_ = undefined;
     },
 
     tearDownCurrentTestCase_: function() {

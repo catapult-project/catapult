@@ -125,13 +125,15 @@ class TracingProject(project_module.Project):
                          if x.endswith('.html')]
     self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
 
+  def IsD8CompatibleFile(self, filename):
+    return not filename.startswith(self.ui_path)
+
   # TODO(nedn): remove this once we can make d8_unittest run all the unittest
   # files.
   def FindAllD8RunnableFiles(self):
     file_paths = []
     for f in _FindAllFilesRecursive([self.tracing_src_path]):
-      # Ignore all files in ui/ dir.
-      if f.startswith(self.ui_path):
+      if not self.IsD8CompatibleFile(f):
         continue
       if f.endswith('.html') or f.endswith('.js'):
         file_paths.append(f)
@@ -146,6 +148,11 @@ class TracingProject(project_module.Project):
     # Find the equivalent resources.
     return [self.loader.FindResourceGivenAbsolutePath(x)
             for x in test_module_filenames]
+
+  def FindAllD8TestModuleResources(self):
+    all_test_module_resources = self.FindAllTestModuleResources()
+    return [x for x in all_test_module_resources
+            if self.IsD8CompatibleFile(x.absolute_path)]
 
   def GetConfigNames(self):
     config_files = [

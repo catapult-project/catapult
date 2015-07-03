@@ -15,16 +15,14 @@ tr.exportTo('tr.b.unittest', function() {
    * @constructor
    */
   function TextTestResults() {
-    this.bufferParts_ = [];
     this.numTestsThatPassed_ = 0;
     this.numTestsThatFailed_ = 0;
     this.currentTestCaseHadErrors_ = false;
-    this.curHTMLOutput_ = [];
   }
 
   TextTestResults.prototype = {
-    get buffer() {
-      return this.bufferParts_.join('');
+    get numTestsThatRan() {
+      return this.numTestsThatPassed_ + this.numTestsThatFailed_;
     },
 
     get numTestsThatFailed() {
@@ -36,41 +34,53 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     willRunTest: function(testCase) {
+      this.write_(testCase.name + ' (' + testCase.suite.name + ') ... ');
       this.currentTestCaseHadErrors_ = false;
     },
 
     addErrorForCurrentTest: function(error) {
       var normalizedException = tr.b.normalizeException(error);
-      this.writeToBuffer('Exception: ' + normalizedException.message + '\n' +
-          normalizedException.stack + '\n');
+      this.write_(normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;
     },
 
     addHTMLOutputForCurrentTest: function(element) {
       this.curHTMLOutput_.push(element);
-      document.body.appendChild(element);
     },
 
     setReturnValueFromCurrentTest: function(returnValue) {
-      this.writeToBuffer('[RESULT] ' + JSON.stringify(returnValue) + '\n');
+      this.write_('[RESULT] ' + JSON.stringify(returnValue) + '\n');
     },
 
     didCurrentTestEnd: function() {
-      for (var i = 0; i < this.curHTMLOutput_.length; i++)
-        document.body.removeChild(this.curHTMLOutput_[i]);
-      this.curHTMLOutput_ = [];
-
-      if (this.currentTestCaseHadErrors_)
+      if (this.currentTestCaseHadErrors_) {
         this.numTestsThatFailed_ += 1;
-      else
+        this.write_('FAIL\n');
+      } else {
         this.numTestsThatPassed_ += 1;
+        this.write_('ok\n');
+      }
     },
 
     didRunTests: function() {
+      this.write_('\n------------------------------------------------------' +
+               '----------------\n');
+      if (this.numTestsThatRan === 1)
+        this.write_('Ran 1 test\n');
+      else
+        this.write_('Ran ' + this.numTestsThatRan + ' tests\n');
+
+      if (this.numTestsThatFailed > 0) {
+        this.write_('\nFAILED (errors=' + this.numTestsThatFailed + ')');
+      } else {
+        this.write_('\nOK');
+      }
     },
 
-    writeToBuffer: function(msg) {
-      this.bufferParts_.push(msg);
+    write_: function(msg) {
+      if (!tr.isD8)
+        throw new Error('Unsupported');
+      global.write(msg);
     }
   };
 

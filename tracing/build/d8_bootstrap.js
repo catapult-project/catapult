@@ -5,7 +5,14 @@
 /**
  * @fileoverview Boostrap for loading javascript/html files using d8_runner.
  */
-(function(global) {
+(function(global, v8arguments) {
+  // Save the argv in a predictable and stable location.
+  global.sys = {
+    argv: []
+  };
+  for (var i = 0; i < v8arguments.length; i++)
+    sys.argv.push(v8arguments[i]);
+
   /* There are four ways a program can finish running in D8:
    * - a) Intentioned exit triggered via quit(0)
    * - b) Intentioned exit triggered via quit(n)
@@ -185,4 +192,4 @@
       throw new Error('Error in loading ' + href + ': ' + err);
     }
   };
-})(this);
+})(this, arguments);

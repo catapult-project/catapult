@@ -19,11 +19,17 @@ from tracing.build import d8_runner
 
 def Main(args):
   project = tracing_project.TracingProject()
+  d8_test_module_resources = project.FindAllD8TestModuleResources()
+  d8_test_module_filenames = [x.unix_style_relative_path
+                              for x in d8_test_module_resources]
+
   cmd = """
   loadHTML('/base/d8_tests.html');
   """
-  res = d8_runner.RunJsString(cmd, list(project.source_paths))
-  print res.output
+  res = d8_runner.RunJsString(cmd,
+                              source_paths=list(project.source_paths),
+                              js_args=d8_test_module_filenames)
+  print res.stdout
   return res.returncode
 
 if __name__ == '__main__':

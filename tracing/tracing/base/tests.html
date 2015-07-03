@@ -84,20 +84,55 @@ found in the LICENSE file.
       return state;
     }
 
+    function getSuiteRelpathsToLoad(state) {
+      if (state.testSuiteName) {
+        return new Promise(function(resolve) {
+          var parts = state.testSuiteName.split('.');
+          var testSuiteRelPath = '/' + parts.join('/') + '.html';
+
+          var suiteRelpathsToLoad = [testSuiteRelPath];
+          resolve(suiteRelpathsToLoad);
+        });
+      }
+      return tr.ui.b.getAsync('/tr/json/tests').then(
+        function(data) {
+          var testMetadata = JSON.parse(data);
+          if (testMetadata.hasOwnProperty('test_module_names')) {
+            tr.showPanic(
+                'out of date webserver',
+                '>_< your devserver needs a restart kthxbai');
+            throw new Error('Failed to load');
+          }
+          var suiteRelpathsToLoad = testMetadata.test_relpaths.map(function(x) {
+            return '/' + x;
+          });
+          return suiteRelpathsToLoad;
+        },
+        function(e) {
+          throw e;
+        });
+    }
+
     function loadAndRunTests() {
       var state = stateFromSearchString(
           window.location.search.substring(1));
       updateTitle(state);
 
-      var suiteNamesToLoad;
-      if (state.testSuiteName) {
-        suiteNamesToLoad = [];
-        suiteNamesToLoad.push(state.testSuiteName);
-      }
 
       showLoadingOverlay();
-      var loader = new tr.b.unittest.SuiteLoader(suiteNamesToLoad);
-      return loader.allSuitesLoadedPromise.then(
+
+      var loader;
+      var p = getSuiteRelpathsToLoad(state);
+      p = p.then(
+        function(suiteRelpathsToLoad) {
+          loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
+          return loader.allSuitesLoadedPromise;
+        },
+        function(e) {
+          hideLoadingOverlay();
+          throw e;
+        });
+      p = p.then(
         function() {
           hideLoadingOverlay();
           Polymer.whenReady(function() {
@@ -109,6 +144,7 @@ found in the LICENSE file.
           tr.showPanic('Module loading failure', err);
           throw err;
         });
+      return p;
     }
 
     function showLoadingOverlay() {
@@ -164,7 +200,10 @@ found in the LICENSE file.
 
     function runTests(loader, state) {
       var runner = new tr.b.unittest.InteractiveTestRunner();
-      runner.testLinks = loader.testLinks;
+      runner.testLinks = [
+        {linkPath: '/examples/skia_debugger.html', title: 'Skia Debugger'},
+        {linkPath: '/examples/trace_viewer.html', title: 'Trace File Viewer'}
+      ];
       runner.allTests = loader.getAllTests();
       document.body.appendChild(runner);
 

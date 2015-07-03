@@ -61,8 +61,7 @@ def do_GET_json_tests(self):
   test_relpaths = [x.unix_style_relative_path
                    for x in test_module_resources]
 
-  tests = {'test_relpaths': test_relpaths,
-           'test_links': self.server.test_links}
+  tests = {'test_relpaths': test_relpaths}
   tests_as_json = json.dumps(tests);
 
   self.send_response(200)
@@ -110,8 +109,6 @@ def Main(args):
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
   server.AddSourcePathMapping(project.tracing_root_path)
-  server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
-  server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
 
   server.AddPathHandler('/test_automation/notify_test_result',
                         do_POST_report_test_results, supports_post=True)

@@ -26,17 +26,30 @@ tr.exportTo('tr.b', function() {
     if (rafScheduled)
       return;
     rafScheduled = true;
-    if (window.requestAnimationFrame) {
-      window.requestAnimationFrame(processRequests);
-    } else {
-      var delta = Date.now() - window.performance.now();
-      window.webkitRequestAnimationFrame(function(domTimeStamp) {
-        processRequests(domTimeStamp - delta);
+    if (tr.isHeadless) {
+      Promise.resolve().then(function() {
+        processRequests(0);
+      }, function(e) {
+        console.log(e.stack);
+        throw e;
       });
+    } else {
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(processRequests);
+      } else {
+        var delta = Date.now() - window.performance.now();
+        window.webkitRequestAnimationFrame(function(domTimeStamp) {
+          processRequests(domTimeStamp - delta);
+        });
+      }
     }
   }
 
   function onAnimationFrameError(e, opt_stack) {
+    console.log(e.stack);
+    if (tr.isHeadless)
+      throw e;
+
     if (opt_stack)
       console.log(opt_stack);
 
@@ -61,6 +74,7 @@ tr.exportTo('tr.b', function() {
 
     rafScheduled = false;
 
+
     var currentPreAFs = pendingPreAFs;
     currentRAFDispatchList = pendingRAFs;
     pendingPreAFs = [];
@@ -80,7 +94,7 @@ tr.exportTo('tr.b', function() {
         // Check timer after running at least one idle task to avoid buggy
         // window.performance.now() on some platforms from blocking the idle
         // task queue.
-        if (window.performance.now() >= rafCompletionDeadline)
+        if (tr.isHeadless || window.performance.now() >= rafCompletionDeadline)
           break;
       }
     }

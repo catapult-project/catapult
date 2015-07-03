@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/event.html">
 <link rel="import" href="/base/event_target.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/unittest/test_suite.html">
@@ -14,82 +15,105 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.unittest', function() {
-  function TestLink(linkPath, title) {
-    this.linkPath = linkPath;
-    this.title = title;
+  function HTMLImportsModuleLoader() {
   }
+  HTMLImportsModuleLoader.prototype = {
+    loadModule: function(testRelpath, moduleName) {
+      return new Promise(function(resolve, reject) {
+        var importEl = document.createElement('link');
+        importEl.moduleName = moduleName;
+        importEl.setAttribute('rel', 'import');
+        importEl.setAttribute('href', testRelpath);
+        tr.doc.head.appendChild(importEl);
 
-  function SuiteLoader(opt_suiteNamesToLoad) {
+        importEl.addEventListener('load', function() {
+          resolve({testRelpath: testRelpath,
+                   moduleName: moduleName});
+        });
+        importEl.addEventListener('error', function(e) {
+          reject('Error loading &#60;link rel="import" href="' +
+                 testRelpath + '"');
+        });
+      });
+    },
+
+    getCurrentlyExecutingModuleName: function() {
+      if (!document.currentScript)
+        throw new Error('Cannot call testSuite except during load.');
+      var linkDoc = document.currentScript.ownerDocument;
+      var url = linkDoc.URL;
+      var name = this.guessModuleNameFromURL_(url);
+      return name;
+    },
+
+    guessModuleNameFromURL_: function(url) {
+      var m = /.+?:\/\/.+?(\/.+)/.exec(url);
+      if (!m)
+        throw new Error('Guessing module name failed');
+      var path = m[1];
+      if (path[0] != '/')
+        throw new Error('malformed path');
+      if (path.substring(path.length - 5) != '.html')
+        throw new Error('Cannot define testSuites outside html imports');
+      var parts = path.substring(1, path.length - 5).split('/');
+      return parts.join('.');
+    }
+  };
+
+  function D8ModuleLoader() {
+    this.currentlyExecutingModuleInfo_ = undefined;
+  }
+  D8ModuleLoader.prototype = {
+    loadModule: function(testRelpath, moduleName) {
+      return Promise.resolve().then(function() {
+        var moduleInfo = {
+            testRelpath: testRelpath,
+            moduleName: moduleName
+        };
+        if (this.currentlyExecutingModuleInfo_ !== undefined)
+          throw new Error('WAT');
+        this.currentlyExecutingModuleInfo_ = moduleInfo;
+
+        try {
+          loadHTML(testRelpath);
+        } finally {
+          this.currentlyExecutingModuleInfo_ = undefined;
+        }
+
+        return moduleInfo;
+      }.bind(this));
+    },
+
+    getCurrentlyExecutingModuleName: function() {
+      if (this.currentlyExecutingModuleInfo_ === undefined)
+        throw new Error('No currently loading module');
+      return this.currentlyExecutingModuleInfo_.moduleName;
+    }
+  };
+
+
+  function SuiteLoader(suiteRelpathsToLoad) {
     tr.b.EventTarget.call(this);
 
-    this.testSuiteGUIDs_ = {};
+    this.currentModuleLoader_ = undefined;
     this.testSuites = [];
-    this.testLinks = [];
 
-    if (opt_suiteNamesToLoad) {
-      var tmp = opt_suiteNamesToLoad.map(function(n) {
-        var parts = n.split('.');
-        return parts.join('/') + '.html';
-      });
-      this.allSuitesLoadedPromise = this.beginLoadingModules_(
-          tmp);
+    if (tr.isHeadless) {
+      if (!tr.isD8)
+        throw new Error('No module loader exists fro this platform');
+      this.currentModuleLoader_ = new D8ModuleLoader();
     } else {
-      var p;
-      p = tr.ui.b.getAsync('/tr/json/tests');
-      p = p.then(
-          function(data) {
-            var testMetadata = JSON.parse(data);
-            if (testMetadata.hasOwnProperty('test_module_names')) {
-              tr.showPanic(
-                  'out of date webserver',
-                  '>_< your devserver needs a restart kthxbai');
-            }
-            var testRelpaths = testMetadata.test_relpaths;
-            return this.beginLoadingModules_(testRelpaths, testMetadata);
-          }.bind(this));
-      this.allSuitesLoadedPromise = p;
+      this.currentModuleLoader_ = new HTMLImportsModuleLoader();
     }
-  }
 
-  function loadModule(relpath) {
-    return new Promise(function(resolve, reject) {
-      var href = '/' + relpath;
-      var moduleName = relpath.split('/').slice(-1)[0];
-
-      var importEl = document.createElement('link');
-      importEl.moduleName = moduleName;
-      importEl.setAttribute('rel', 'import');
-      importEl.setAttribute('href', href);
-      tr.doc.head.appendChild(importEl);
-
-      importEl.addEventListener('load', function() {
-        resolve(importEl);
-      });
-      importEl.addEventListener('error', function(e) {
-        reject('Error loading &#60;link rel="import" href="' + href + '"');
-      });
-    });
-  }
-
-  function loadModules(moduleNames) {
-    var promises = moduleNames.map(function(moduleName) {
-      return loadModule(moduleName);
-    });
-
+    this.allSuitesLoadedPromise = this.beginLoadingModules_(
+        suiteRelpathsToLoad);
   }
 
   SuiteLoader.prototype = {
     __proto__: tr.b.EventTarget.prototype,
 
-    beginLoadingModules_: function(testRelpaths, opt_testMetadata) {
-      if (opt_testMetadata) {
-        var testMetadata = opt_testMetadata;
-        for (var i = 0; i < testMetadata.test_links.length; i++) {
-          var tl = testMetadata.test_links[i];
-          this.testLinks.push(new TestLink(tl['path'],
-                                           tl['title']));
-        }
-      }
+    beginLoadingModules_: function(testRelpaths) {
 
       // Hooks!
       this.bindGlobalHooks_();
@@ -97,12 +121,11 @@ tr.exportTo('tr.b.unittest', function() {
       // Load the modules.
       var modulePromises = [];
       for (var i = 0; i < testRelpaths.length; i++) {
-        var p = loadModule(testRelpaths[i]);
-        p = p.then(
-            function(importEl) {
-              this.didImportElementGetLoaded_(importEl);
-            }.bind(this));
-            p.x = 7;
+
+        var testRelpath = testRelpaths[i];
+        var moduleName = testRelpath.split('/').slice(-1)[0];
+
+        var p = this.currentModuleLoader_.loadModule(testRelpath, moduleName);
         modulePromises.push(p);
       }
 
@@ -157,36 +180,38 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     bindGlobalHooks_: function() {
-      this.oldWindowOnError_ = window.onerror;
-      window.onerror = function(errorMsg, url, lineNumber) {
+      if (global._currentSuiteLoader !== undefined)
+        throw new Error('A suite loader exists already');
+      global._currentSuiteLoader = this;
+
+      this.oldGlobalOnError_ = global.onerror;
+      global.onerror = function(errorMsg, url, lineNumber) {
         this.scriptErrorPromiseResolver_.reject(
             new Error(errorMsg + '\n' + url + ':' + lineNumber));
-        if (this.oldWindowOnError_)
-          return this.oldWindowOnError_(errorMsg, url, lineNumber);
+        if (this.oldGlobalOnError_)
+          return this.oldGlobalOnError_(errorMsg, url, lineNumber);
         return false;
       }.bind(this);
     },
 
     unbindGlobalHooks_: function() {
-      window.onerror = this.oldWindowOnError_;
-      this.oldWindowOnError_ = undefined;
+      global._currentSuiteLoader = undefined;
+
+      global.onerror = this.oldGlobalOnError_;
+      this.oldGlobalOnError_ = undefined;
     },
 
-    didImportElementGetLoaded_: function(importEl) {
-      // The global tr.testSute function stashes test suites
-      // onto the _tr array.
-      var importDoc = importEl.import;
-      var suites = allTestSuitesByModuleURL[importDoc.URL];
-      suites.forEach(function(testSuite) {
-        if (this.testSuiteGUIDs_[testSuite.guid])
-          return;
-        this.testSuiteGUIDs_[testSuite.guid] = true;
-        this.testSuites.push(testSuite);
+    constructAndRegisterTestSuite: function(suiteConstructor) {
+      var name = this.currentModuleLoader_.getCurrentlyExecutingModuleName();
 
-        var e = new Event('suite-loaded');
-        e.testSuite = testSuite;
-        this.dispatchEvent(e);
-      }, this);
+      var testSuite = new tr.b.unittest.TestSuite(
+        name, suiteConstructor);
+
+      this.testSuites.push(testSuite);
+
+      var e = new tr.b.Event('suite-loaded');
+      e.testSuite = testSuite;
+      this.dispatchEvent(e);
     },
 
     getAllTests: function() {
@@ -211,40 +236,8 @@ tr.exportTo('tr.b.unittest', function() {
     }
   };
 
-  var allTestSuitesByModuleURL = [];
-
-  function _guessModuleNameFromURL(url) {
-    var m = /.+?:\/\/.+?(\/.+)/.exec(url);
-    if (!m)
-      throw new Error('Guessing module name failed');
-    var path = m[1];
-    if (path[0] != '/')
-      throw new Error('malformed path');
-    if (path.substring(path.length - 5) != '.html')
-      throw new Error('Cannot define testSuites outside html imports');
-    var parts = path.substring(1, path.length - 5).split('/');
-    return parts.join('.');
-  }
-
-  function testSuite(suiteConstructor) {
-    var linkDoc = document.currentScript.ownerDocument;
-    var url = linkDoc.URL;
-    var name = _guessModuleNameFromURL(url);
-    if (!document.currentScript)
-      throw new Error('Cannot call testSuite except during load.');
-
-    var testSuite = new tr.b.unittest.TestSuite(
-      name, suiteConstructor);
-
-
-    if (allTestSuitesByModuleURL[url] === undefined)
-      allTestSuitesByModuleURL[url] = [];
-    allTestSuitesByModuleURL[url].push(testSuite);
-  }
-
   return {
-    SuiteLoader: SuiteLoader,
-    testSuite: testSuite
+    SuiteLoader: SuiteLoader
   };
 });
 </script>

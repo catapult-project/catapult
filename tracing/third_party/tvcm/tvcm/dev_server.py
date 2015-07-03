@@ -162,7 +162,6 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       port = self.server_address[1]
     self._port = port
     self._path_handlers = []
-    self._test_links = []
     if project:
       self._project = project
     else:
@@ -189,16 +188,8 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def AddSourcePathMapping(self, file_system_path):
     self._project.AddSourcePath(file_system_path)
 
-  def AddTestLink(self, path, title):
-    self._test_links.append({'path': path,
-                             'title': title})
-
   def RequestShutdown(self, exit_code):
     self._shutdown_request = exit_code
-
-  @property
-  def test_links(self):
-    return self._test_links
 
   @property
   def project(self):

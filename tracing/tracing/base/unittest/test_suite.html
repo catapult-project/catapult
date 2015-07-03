@@ -108,8 +108,15 @@ tr.exportTo('tr.b.unittest', function() {
     }
   };
 
+  function testSuite(suiteConstructor) {
+    if (!global._currentSuiteLoader)
+      throw new Error('testSuites can only be defined during suite loading');
+    global._currentSuiteLoader.constructAndRegisterTestSuite(suiteConstructor);
+  }
+
   return {
-    TestSuite: TestSuite
+    TestSuite: TestSuite,
+    testSuite: testSuite
   };
 });
 </script>

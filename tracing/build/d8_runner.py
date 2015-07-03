@@ -161,8 +161,11 @@ def _RunFileWithD8(js_file_path, js_args):
   """
   args = [_GetD8BinaryPathForPlatform()]
   args.append(os.path.abspath(js_file_path))
+  full_js_args = [args[0]]
   if js_args:
-    args += ['--js_arguments'] + js_args
+    full_js_args += js_args
+
+  args += ['--js_arguments'] + full_js_args
   sp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   out, err = sp.communicate()
   assert err is None
@@ -197,6 +200,7 @@ def main():
   args = parser.parse_args()
 
   args.source_paths = [os.path.abspath(x) for x in args.source_paths]
-  print ExecuteFile(args.file_name, source_paths=args.source_paths,
-                    js_args=args.js_args)
-  return 0
+  res = RunFile(args.file_name, source_paths=args.source_paths,
+                js_args=args.js_args)
+  print res.stdout
+  return res.returncode
