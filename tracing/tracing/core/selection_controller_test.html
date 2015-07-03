@@ -52,17 +52,6 @@ tr.b.unittest.testSuite(function() {
     return didFire;
   }
 
-  function addChildDiv(element) {
-    var child = element.ownerDocument.createElement('div');
-    element.appendChild(child);
-    return child;
-  }
-
-  function addShadowChildDiv(element) {
-    var shadowRoot = element.createShadowRoot();
-    return addChildDiv(shadowRoot);
-  }
-
   test('simpleStateChanges', function() {
     var timelineView = newSimpleFakeTimelineView();
     var selectionController = new tr.c.SelectionController(timelineView);
@@ -135,60 +124,77 @@ tr.b.unittest.testSuite(function() {
     assert.equal(selectionController.currentBrushingState.selection.length, 0);
   });
 
-  test('getHotkeyControllerForElement_none', function() {
-    var element = document.createElement('div');
+  function addChildDiv(element) {
+    var child = element.ownerDocument.createElement('div');
+    element.appendChild(child);
+    return child;
+  }
 
-    assert.isUndefined(
-        tr.c.SelectionController.getControllerForElement(element));
-  });
+  function addShadowChildDiv(element) {
+    var shadowRoot = element.createShadowRoot();
+    return addChildDiv(shadowRoot);
+  }
 
-  test('getHotkeyControllerForElement_self', function() {
-    var controller = new tr.c.SelectionController(undefined);
-    var element = document.createElement('div');
-    element.selectionController = controller;
+  if (!tr.isHeadless) {
+    test('getControllerForElement_none', function() {
+      var element = document.createElement('div');
 
-    assert.strictEqual(
-        tr.c.SelectionController.getControllerForElement(element), controller);
-  });
+      assert.isUndefined(
+          tr.c.SelectionController.getControllerForElement(element));
+    });
 
-  test('getHotkeyControllerForElement_ancestor', function() {
-    var controller = new tr.c.SelectionController(undefined);
-    var ancestor = document.createElement('div');
-    ancestor.selectionController = controller;
+    test('getControllerForElement_self', function() {
+      var controller = new tr.c.SelectionController(undefined);
+      var element = document.createElement('div');
+      element.selectionController = controller;
 
-    var element = addChildDiv(addChildDiv(addChildDiv(ancestor)));
-    assert.strictEqual(
-        tr.c.SelectionController.getControllerForElement(element), controller);
-  });
+      assert.strictEqual(
+          tr.c.SelectionController.getControllerForElement(element),
+          controller);
+    });
 
-  test('getHotkeyControllerForElement_host', function() {
-    var controller = new tr.c.SelectionController(undefined);
-    var host = document.createElement('div');
-    host.selectionController = controller;
+    test('getControllerForElement_ancestor', function() {
+      var controller = new tr.c.SelectionController(undefined);
+      var ancestor = document.createElement('div');
+      ancestor.selectionController = controller;
 
-    var element = addShadowChildDiv(host);
-    assert.strictEqual(
-        tr.c.SelectionController.getControllerForElement(element), controller);
-  });
+      var element = addChildDiv(addChildDiv(addChildDiv(ancestor)));
+      assert.strictEqual(
+          tr.c.SelectionController.getControllerForElement(element),
+          controller);
+    });
 
-  test('getHotkeyControllerForElement_hierarchy', function() {
-    var controller1 = new tr.c.SelectionController(undefined);
-    var root = document.createElement('div');
-    root.selectionController = controller1;
+    test('getControllerForElement_host', function() {
+      var controller = new tr.c.SelectionController(undefined);
+      var host = document.createElement('div');
+      host.selectionController = controller;
 
-    var controller2 = new tr.c.SelectionController(undefined);
-    var child = addChildDiv(root);
-    child.selectionController = controller2;
+      var element = addShadowChildDiv(host);
+      assert.strictEqual(
+          tr.c.SelectionController.getControllerForElement(element),
+          controller);
+    });
 
-    var controller3 = new tr.c.SelectionController(undefined);
-    var shadowChild = addShadowChildDiv(child);
-    shadowChild.selectionController = controller3;
+    test('getControllerForElement_hierarchy', function() {
+      var controller1 = new tr.c.SelectionController(undefined);
+      var root = document.createElement('div');
+      root.selectionController = controller1;
 
-    var element = addChildDiv(addChildDiv(addShadowChildDiv(
-        addChildDiv(addChildDiv(addShadowChildDiv(
-            addChildDiv(shadowChild)))))));
-    assert.strictEqual(
-        tr.c.SelectionController.getControllerForElement(element), controller3);
-  });
+      var controller2 = new tr.c.SelectionController(undefined);
+      var child = addChildDiv(root);
+      child.selectionController = controller2;
+
+      var controller3 = new tr.c.SelectionController(undefined);
+      var shadowChild = addShadowChildDiv(child);
+      shadowChild.selectionController = controller3;
+
+      var element = addChildDiv(addChildDiv(addShadowChildDiv(
+          addChildDiv(addChildDiv(addShadowChildDiv(
+              addChildDiv(shadowChild)))))));
+      assert.strictEqual(
+          tr.c.SelectionController.getControllerForElement(element),
+          controller3);
+    });
+  }
 });
 </script>

@@ -14,7 +14,7 @@ tr.b.unittest.testSuite(function() {
     var listenerCallCount = 0;
     function listener() { listenerCallCount++; }
 
-    var div = document.createElement('div');
+    var div = new tr.b.EventTarget();
     tr.b.EventTargetHelper.decorate(div);
 
     assert.isFalse(div.hasEventListener('foo'));

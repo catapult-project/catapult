@@ -39,6 +39,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addErrorForCurrentTest: function(error) {
+      if (!this.currentTestCaseHadErrors_)
+        this.write_('FAIL\n');
       var normalizedException = tr.b.normalizeException(error);
       this.write_(normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;
@@ -55,7 +57,6 @@ tr.exportTo('tr.b.unittest', function() {
     didCurrentTestEnd: function() {
       if (this.currentTestCaseHadErrors_) {
         this.numTestsThatFailed_ += 1;
-        this.write_('FAIL\n');
       } else {
         this.numTestsThatPassed_ += 1;
         this.write_('ok\n');

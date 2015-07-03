@@ -24,7 +24,7 @@ tr.exportTo('tr.c', function() {
     typeInfos.forEach(function(typeInfo) {
       this.addScriptObject(typeInfo.metadata.name, typeInfo.constructor);
       // Also make the object available to the DevTools inspector.
-      window[typeInfo.metadata.name] = typeInfo.constructor;
+      global[typeInfo.metadata.name] = typeInfo.constructor;
     }.bind(this));
   }
 

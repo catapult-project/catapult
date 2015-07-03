@@ -10,12 +10,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.ui.b', function() {
+tr.exportTo('tr.b', function() {
+  function guessBinary(url) {
+    return /[.]gz$/.test(url) || /[.]zip$/.test(url);
+  }
   function get(url, async) {
     var req = new XMLHttpRequest();
-    var isBinary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.open('GET', url, async);
+    var isBinary = guessBinary(url);
     if (isBinary && async)
       req.responseType = 'arraybuffer';
 
@@ -46,11 +49,25 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function getAsync(url) {
-    return get(url, true);
+    if (!tr.isHeadless)
+      return get(url, true);
+    var filename = global.hrefToAbsolutePath(url);
+    var isBinary = guessBinary(url);
+    return Promise.resolve().then(function() {
+      if (isBinary)
+        return readbuffer(filename);
+      return read(filename);
+    });
   }
 
   function getSync(url) {
-    return get(url, false);
+    if (!tr.isHeadless)
+      return get(url, false);
+    var filename = global.hrefToAbsolutePath(url);
+    var isBinary = guessBinary(url);
+    if (isBinary)
+      return readbuffer(filename);
+    return read(filename);
   }
 
   return {

@@ -270,6 +270,8 @@ tr.exportTo('tr.c', function() {
   };
 
   SelectionController.getControllerForElement = function(element) {
+    if (tr.isHeadless)
+      throw new Error('Unsupported');
     var currentElement = element;
     while (currentElement) {
       if (currentElement.selectionController)

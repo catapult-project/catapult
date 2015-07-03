@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/extras/rail/rail_score.html">
 <link rel="import" href="/ui/extras/deep_reports/scalar_value.html">
-<link rel="import" href="/ui/base/xhr.html">
+<link rel="import" href="/base/xhr.html">
 
 <script>
 'use strict';
@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.e.deep_reports', function() {
   }
 
   function loadModelFromFileAsync(filename) {
-    return tr.ui.b.getAsync(filename).then(function(trace) {
+    return tr.b.getAsync(filename).then(function(trace) {
       var io = new tr.ImportOptions();
       io.shiftWorldToZero = true;
       io.pruneEmptyContainers = false;

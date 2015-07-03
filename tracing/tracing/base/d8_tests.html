@@ -34,7 +34,11 @@ found in the LICENSE file.
 
     p = p.then(
       function didAllSuitesLoad() {
-        var tests = loader.getAllTests();
+        var tests = loader.getAllTests().filter(function(testCase) {
+          if (testCase instanceof tr.b.unittest.PerfTestCase)
+            return false;
+          return true;
+        });
         if (tests.length === 0) {
           printSpacer();
           console.log('FAILED: No tests to run.');

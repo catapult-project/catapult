@@ -61,6 +61,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importXMLHttpRequest', function() {
+    if (tr.isHeadless)
+      return;
     var req = new XMLHttpRequest();
     var url = '/test_data/simple_trace_gz.gz';
     req.open('GET', url, false);

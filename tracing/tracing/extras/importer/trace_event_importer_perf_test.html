@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/xhr.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
 <link rel="import" href="/model/model.html">
@@ -21,20 +22,10 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var TEST_FILES_PATHS = ['/test_data/simple_trace.json',
                           '/test_data/lthi_cats.json.gz'];
 
-  function getSynchronous(url) {
-    var req = new XMLHttpRequest();
-    req.open('GET', url, false);
-    // Without the mime type specified like this, the file's bytes are not
-    // retrieved correctly.
-    req.overrideMimeType('text/plain; charset=x-user-defined');
-    req.send(null);
-    return req.responseText;
-  }
-
   function getEvents(url) {
     if (url in eventStrings)
       return eventStrings[url];
-    eventStrings[url] = getSynchronous(url);
+    eventStrings[url] = tr.b.getSync(url);
     return eventStrings[url];
   }
 

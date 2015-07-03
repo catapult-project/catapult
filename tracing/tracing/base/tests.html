@@ -94,7 +94,7 @@ found in the LICENSE file.
           resolve(suiteRelpathsToLoad);
         });
       }
-      return tr.ui.b.getAsync('/tr/json/tests').then(
+      return tr.b.getAsync('/tr/json/tests').then(
         function(data) {
           var testMetadata = JSON.parse(data);
           if (testMetadata.hasOwnProperty('test_module_names')) {

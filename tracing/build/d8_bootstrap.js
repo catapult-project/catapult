@@ -178,7 +178,7 @@
 
   var sourcePaths = JSON.parse('<%source_paths%>');
 
-  function hrefToAbsolutePath(href) {
+  global.hrefToAbsolutePath = function(href) {
     var pathPart;
     if (!PathUtils.isAbs(href)) {
       throw new Error('Found a non absolute import and thats not supported: ' +
@@ -222,12 +222,12 @@
     // TODO(nednguyen): Use a javascript html parser instead of relying on
     // python file for parsing HTML.
     // (https://github.com/google/trace-viewer/issues/1030)
-    var absPath = hrefToAbsolutePath(href);
+    var absPath = global.hrefToAbsolutePath(href);
     global.loadHTMLFile(absPath, href);
   };
 
   global.loadScript = function(href) {
-    var absPath = hrefToAbsolutePath(href);
+    var absPath = global.hrefToAbsolutePath(href);
     global.loadFile(absPath, href);
   };
 

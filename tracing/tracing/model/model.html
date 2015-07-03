@@ -410,7 +410,7 @@ tr.exportTo('tr', function() {
      * during the import process.
      */
     importTracesWithProgressDialog: function(traces, opt_options) {
-      if (tr.b.isHeadless)
+      if (tr.isHeadless)
         throw new Error('Cannot use this method in headless mode!');
       var options = ImportOptions.fromArguments(arguments, 1);
 

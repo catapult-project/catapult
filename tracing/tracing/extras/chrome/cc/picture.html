@@ -284,11 +284,7 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   PictureSnapshot.HasSkiaBenchmarking = function() {
-    if (!window.chrome)
-      return false;
-    if (!window.chrome.skiaBenchmarking)
-      return false;
-    return true;
+    return tr.isExported('chrome.skiaBenchmarking');
   }
 
   PictureSnapshot.CanRasterize = function() {
@@ -324,23 +320,24 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   PictureSnapshot.HowToEnablePictureDebugging = function() {
+    if (tr.isHeadless)
+      return 'Pictures only work in chrome';
+
     var usualReason = [
       'For pictures to show up, you need to have Chrome running with ',
       '--enable-skia-benchmarking. Please restart chrome with this flag ',
       'and try again.'
     ].join('');
 
-    if (!window.chrome)
+    if (!tr.isExported('global.chrome.skiaBenchmarking'))
       return usualReason;
-    if (!window.chrome.skiaBenchmarking)
-      return usualReason;
-    if (!window.chrome.skiaBenchmarking.rasterize)
+    if (!global.chrome.skiaBenchmarking.rasterize)
       return 'Your chrome is old';
-    if (!window.chrome.skiaBenchmarking.getOps)
+    if (!global.chrome.skiaBenchmarking.getOps)
       return 'Your chrome is old: skiaBenchmarking.getOps not found';
-    if (!window.chrome.skiaBenchmarking.getOpTimings)
+    if (!global.chrome.skiaBenchmarking.getOpTimings)
       return 'Your chrome is old: skiaBenchmarking.getOpTimings not found';
-    if (!window.chrome.skiaBenchmarking.getInfo)
+    if (!global.chrome.skiaBenchmarking.getInfo)
       return 'Your chrome is old: skiaBenchmarking.getInfo not found';
     return 'Rasterizing is on';
   }

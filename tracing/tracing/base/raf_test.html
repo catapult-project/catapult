@@ -9,6 +9,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  if (tr.isHeadless)
+    return;
+
   var fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
     var oldNow = window.performance.now;

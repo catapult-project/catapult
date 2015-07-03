@@ -60,7 +60,7 @@ tr.exportTo('tr.e.audits', function() {
 
       // ChromeAuditor is disabled when used directly inside about://tracing,
       // for now.
-      if (window.profilingView)
+      if (tr.isExported('profilingView'))
         return;
 
       if (tr.e.rail.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
@@ -78,7 +78,7 @@ tr.exportTo('tr.e.audits', function() {
 
     createAlertsForIR_: function(ir) {
       var allAlerts = [];
-      ir.associatedEvents.forEach(function(slice) {
+      ir.associatedEvents.forEach(function(event) {
         if (!(event instanceof tr.model.Slice))
           return;
         var slice = event;

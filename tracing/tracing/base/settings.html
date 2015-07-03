@@ -62,8 +62,7 @@ tr.exportTo('tr.b', function() {
       try {
         return JSON.parse(rawVal).value;
       } catch (e) {
-        input_class.storage_.removeItem(
-            input_class.namespace_(key, opt_namespace));
+        input_class.storage_.removeItem(key);
         return opt_default;
       }
     };
@@ -130,7 +129,7 @@ tr.exportTo('tr.b', function() {
     };
 
     input_class.getAlternativeStorageInstance = function() {
-      if (input_class.storage_ === localStorage)
+      if (!tr.isHeadless && input_class.storage_ === localStorage)
         return undefined;
       return input_class.storage_;
     };
@@ -148,13 +147,13 @@ tr.exportTo('tr.b', function() {
     key: function(index) {
       return this.itemsAsArray[index];
     },
+
     get itemsAsArray() {
       if (this.itemsAsArray_ !== undefined)
         return this.itemsAsArray_;
-
       var itemsAsArray = [];
       for (var k in this.items_)
-        itemsAsArray.push(this.items_[k]);
+        itemsAsArray.push(k);
       this.itemsAsArray_ = itemsAsArray;
       return this.itemsAsArray_;
     },
@@ -167,7 +166,7 @@ tr.exportTo('tr.b', function() {
 
     removeItem: function(key) {
       if (!this.hasItem_[key])
-        throw new Error('Not present');
+        return;
       var value = this.items_[key];
       delete this.hasItem_[key];
       delete this.items_[key];

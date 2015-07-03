@@ -45,10 +45,10 @@ tr.b.unittest.testSuite(function() {
   test('scriptingControllerModifyGlobalContext', function() {
     var selectionController = new FakeSelectionController();
     var controller = new tr.c.ScriptingController(selectionController);
-    window._x = 1;
+    global._x = 1;
     controller.executeCommand('_x = 2');
-    assert.equal(window._x, 2);
-    delete window._x;
+    assert.equal(global._x, 2);
+    delete global._x;
   });
 
   test('scriptingControllerPersistentContext', function() {

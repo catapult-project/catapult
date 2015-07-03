@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo');
     settings.set('key_b', 'bar');
     settings.set('key_c', 'baz');
-    assert.deepEqual(settings.keys(), ['key_a', 'key_b', 'key_c']);
+    assert.sameMembers(settings.keys(), ['key_a', 'key_b', 'key_c']);
   });
 
   test('keysPrefix', function() {
@@ -102,9 +102,9 @@ tr.b.unittest.testSuite(function() {
     settings.set('key_a', 'foo', 'prefix2');
     settings.set('key_b', 'bar', 'prefix2');
     settings.set('key_C', 'baz', 'prefix2');
-    assert.deepEqual(settings.keys('prefix1'), ['key_a', 'key_b', 'key_c']);
-    assert.deepEqual(settings.keys('prefix2'), ['key_C', 'key_a', 'key_b']);
-    assert.deepEqual(
+    assert.sameMembers(settings.keys('prefix1'), ['key_a', 'key_b', 'key_c']);
+    assert.sameMembers(settings.keys('prefix2'), ['key_C', 'key_a', 'key_b']);
+    assert.sameMembers(
         settings.keys(),
         ['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
          'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b']);
