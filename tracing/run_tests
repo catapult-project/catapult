@@ -26,10 +26,6 @@ class bcolors(object):
     UNDERLINE = '\033[4m'
 
 
-def PrintWithColor(message, color):
-  print color + message + bcolors.ENDC
-
-
 def _RunPyTests():
   return subprocess.call([_RUN_PY_TESTS_DIR])
 
@@ -39,6 +35,11 @@ def _RunD8Tests():
 
 
 def _RunDevServer(chrome_command):
+  if (sys.platform.startswith('linux') and os.getenv('DISPLAY') is None):
+    logging.warning(
+      'Browser found but cannot run browser tests because you do not have a '
+      'DISPLAY environment set.')
+    return 0
   args = [
     chrome_command, '--no-sandbox', '--no-experiments', '--no-first-run',
     '--noerrdialogs',
@@ -98,7 +99,7 @@ if __name__ == '__main__':
              bcolors.ENDC + u'\U0001F631')
   else:
     print (bcolors.OKGREEN +
-           'Woho! All the tests have passed. You are awesome!' +
+           'Woho! All the tests have passed. You are awesome! ' +
            bcolors.ENDC + u'\U0001F601')
 
   if run_py_tests_exit_code:
