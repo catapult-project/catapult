@@ -676,7 +676,7 @@ tr.exportTo('tr.ui.b', function() {
           res.push(quad);
       }
       this.stackTransformAndProcessQuads_(1, handleQuad, false);
-      var e = new Event('selectionchange');
+      var e = new tr.b.Event('selectionchange');
       e.quads = res;
       this.dispatchEvent(e);
     }

@@ -45,7 +45,7 @@ tr.exportTo('tr.b.unittest', function() {
       global.sessionStorage.clear();
     }
 
-    var e = new Event('tr-unittest-will-run');
+    var e = new tr.b.Event('tr-unittest-will-run');
     TestRunner.dispatchEvent(e);
   }
 

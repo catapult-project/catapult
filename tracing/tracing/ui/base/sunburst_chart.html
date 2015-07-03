@@ -208,7 +208,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.showBreadcrumbs_(d);
 
-      var e = new Event('node-selected');
+      var e = new tr.b.Event('node-selected');
       e.node = d;
       this.dispatchEvent(e);
     },
@@ -236,7 +236,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.selectedNodeID = d.id;
 
-      var e = new Event('node-clicked');
+      var e = new tr.b.Event('node-clicked');
       e.node = d;
       this.dispatchEvent(e);
     },
@@ -262,7 +262,7 @@ tr.exportTo('tr.ui.b', function() {
             return sequenceArray.indexOf(d) >= 0 ? 0.7 : 1.0;
           });
 
-      var e = new Event('node-highlighted');
+      var e = new tr.b.Event('node-highlighted');
       e.node = d;
       this.dispatchEvent(e);
 

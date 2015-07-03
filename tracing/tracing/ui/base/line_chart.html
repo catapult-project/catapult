@@ -213,7 +213,7 @@ tr.exportTo('tr.ui.b', function() {
       e.preventDefault();
       e.stopPropagation();
 
-      var event = new Event('item-mousedown');
+      var event = new tr.b.Event('item-mousedown');
       event.data = this.data_[index];
       event.index = index;
       event.buttons = e.buttons;
@@ -227,7 +227,7 @@ tr.exportTo('tr.ui.b', function() {
         e.stopPropagation();
       }
 
-      var event = new Event('item-mousemove');
+      var event = new tr.b.Event('item-mousemove');
       event.data = this.data_[index];
       event.index = index;
       event.button = button;
@@ -239,7 +239,7 @@ tr.exportTo('tr.ui.b', function() {
       e.preventDefault();
       e.stopPropagation();
 
-      var event = new Event('item-mouseup');
+      var event = new tr.b.Event('item-mouseup');
       event.data = this.data_[index];
       event.index = index;
       event.button = button;

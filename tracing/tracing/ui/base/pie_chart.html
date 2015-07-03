@@ -185,7 +185,7 @@ tr.exportTo('tr.ui.b', function() {
         .attr('d', pathsArc)
         .on('click', function(d, i) {
             var origData = this.data_[i];
-            var event = new Event('item-click');
+            var event = new tr.b.Event('item-click');
             event.data = origData;
             event.index = i;
             this.dispatchEvent(event);

@@ -22,6 +22,7 @@ def Main(args):
   d8_test_module_resources = project.FindAllD8TestModuleResources()
   d8_test_module_filenames = [x.unix_style_relative_path
                               for x in d8_test_module_resources]
+  d8_test_module_filenames.sort()
 
   cmd = """
   loadHTML('/base/d8_tests.html');

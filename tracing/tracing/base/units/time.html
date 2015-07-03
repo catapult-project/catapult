@@ -59,7 +59,7 @@ tr.exportTo('tr.b.units', function() {
         return;
 
       this.currentDisplayUnit_ = value;
-      this.dispatchEvent(new Event('display-unit-changed'));
+      this.dispatchEvent(new tr.b.Event('display-unit-changed'));
     },
 
     timestampFromUs: function(us) {

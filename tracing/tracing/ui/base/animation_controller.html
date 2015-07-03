@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       if (oldTargetState) {
-        var e = new Event('didtick');
+        var e = new tr.b.Event('didtick');
         e.oldTargetState = oldTargetState;
         this.dispatchEvent(e, false, false);
       }

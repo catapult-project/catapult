@@ -82,7 +82,7 @@ found in the LICENSE file.
         this.$.table.addEventListener('selection-changed',
             function(tableEvent) {
           tableEvent.stopPropagation();
-          var paneEvent = new Event('selected-memory-cell-changed');
+          var paneEvent = new tr.b.Event('selected-memory-cell-changed');
           this.dispatchEvent(paneEvent);
           this.storeSelection_();
         }.bind(this));
