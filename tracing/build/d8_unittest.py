@@ -15,10 +15,6 @@ def _GenerateD8TestMethod(test_file_path, source_paths):
         test_file_path)
     try:
       d8_runner.ExecuteFile(test_file_path, source_paths)
-      if exepect_fail:
-        self.fail('d8_runner succesfully excecutes %s. You should update '
-                  'the d8 compatibiliy list in d8_compatible_files.py' %
-                  test_file_path)
     except RuntimeError as e:
       print test_file_path
       if not exepect_fail:
