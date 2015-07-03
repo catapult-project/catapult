@@ -19,25 +19,7 @@ before_install:
   - unzip -q /tmp/chrome.zip -d /tmp
 
 script:
-# Run first the python tests.
- - ./tracing/run_tests
-
-# Run the d8 tests.
- - ./tracing/run_d8_tests
-
-# Then the interactive tests in headless mode.
- - (sleep 5 &&
-    /tmp/chrome-precise64/chrome
-    --no-sandbox --no-experiments --no-first-run --noerrdialogs
-    "http://localhost:8003/base/tests.html?headless=true&testTypeToRun=all")&
-
-# The individual test results will be communicated back to the server together
-# final test outcome ("all passed" or not), which will determine the exit code
-# of the dev server.
- - ./tracing/run_dev_server
-
-# Kill Chrome.
- - kill %1 && true
+ - ./tracing/run_tests --chrome_path=/tmp/chrome-precise64/chrome
 
 # Vulcanize trace_viewer in full & chrome mode & report total size
  - ./tracing/vulcanize_trace_viewer --config=chrome
