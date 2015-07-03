@@ -22,6 +22,9 @@ script:
 # Run first the python tests.
  - ./tracing/run_tests
 
+# Run the d8 tests.
+ - ./tracing/run_d8_tests
+
 # Then the interactive tests in headless mode.
  - (sleep 5 &&
     /tmp/chrome-precise64/chrome

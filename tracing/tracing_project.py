@@ -128,17 +128,6 @@ class TracingProject(project_module.Project):
   def IsD8CompatibleFile(self, filename):
     return not filename.startswith(self.ui_path)
 
-  # TODO(nedn): remove this once we can make d8_unittest run all the unittest
-  # files.
-  def FindAllD8RunnableFiles(self):
-    file_paths = []
-    for f in _FindAllFilesRecursive([self.tracing_src_path]):
-      if not self.IsD8CompatibleFile(f):
-        continue
-      if f.endswith('.html') or f.endswith('.js'):
-        file_paths.append(f)
-    return file_paths
-
   def FindAllTestModuleResources(self):
     all_filenames = _FindAllFilesRecursive([self.tracing_src_path])
     test_module_filenames = [x for x in all_filenames if
