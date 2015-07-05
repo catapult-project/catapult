@@ -14,54 +14,39 @@ from telemetry.internal.backends import app_backend
 class AndroidAppBackend(app_backend.AppBackend):
 
   def __init__(self, android_platform_backend, start_intent,
-               is_app_ready_predicate=None, app_has_webviews=True):
+               is_app_ready_predicate=None):
     super(AndroidAppBackend, self).__init__(
         start_intent.package, android_platform_backend)
     self._default_process_name = start_intent.package
     self._start_intent = start_intent
     self._is_app_ready_predicate = is_app_ready_predicate
     self._is_running = False
-    self._app_has_webviews = app_has_webviews
     self._existing_processes_by_pid = {}
 
   @property
   def _adb(self):
     return self.platform_backend.adb
 
-  def _LaunchAndWaitForApplication(self):
-    """Launch the app and wait for it to be ready."""
-    def is_app_ready():
-      return self._is_app_ready_predicate(self.app)
-
-    # When "is_app_ready_predicate" is provided, we use it to wait for the
-    # app to become ready, otherwise "blocking=True" is used as a fall back.
-    # TODO(slamm): check if the wait for "ps" check is really needed, or
-    # whether the "blocking=True" fall back is sufficient.
-    has_ready_predicate = self._is_app_ready_predicate is not None
-    self._adb.device().StartActivity(self._start_intent,
-                                     blocking=not has_ready_predicate)
-    if has_ready_predicate:
-      util.WaitFor(is_app_ready, timeout=60)
+  def _IsAppReady(self):
+    if self._is_app_ready_predicate is None:
+      return True
+    return self._is_app_ready_predicate(self.app)
 
   def Start(self):
     """Start an Android app and wait for it to finish launching.
 
-    If the app has webviews, the app is launched with the suitable
-    command line arguments.
-
     AppStory derivations can customize the wait-for-ready-state to wait
     for a more specific event if needed.
     """
-    if self._app_has_webviews:
-      webview_startup_args = self.GetWebviewStartupArgs()
-      backend_settings = (
-          android_browser_backend_settings.WebviewBackendSettings(
-              'android-webview'))
-      with android_command_line_backend.SetUpCommandLineFlags(
-          self._adb, backend_settings, webview_startup_args):
-        self._LaunchAndWaitForApplication()
-    else:
-      self._LaunchAndWaitForApplication()
+    webview_startup_args = self.GetWebviewStartupArgs()
+    backend_settings = android_browser_backend_settings.WebviewBackendSettings(
+        'android-webview')
+    with android_command_line_backend.SetUpCommandLineFlags(
+        self._adb, backend_settings, webview_startup_args):
+      # TODO(slamm): check if can use "blocking=True" instead of needing to
+      # sleep. If "blocking=True" does not work, switch sleep to "ps" check.
+      self._adb.device().StartActivity(self._start_intent, blocking=False)
+      util.WaitFor(self._IsAppReady, timeout=60)
     self._is_running = True
 
   def Close(self):
@@ -99,14 +84,12 @@ class AndroidAppBackend(app_backend.AppBackend):
     return self.GetProcesses(lambda n: n == process_name).pop()
 
   def GetWebViews(self):
-    assert self._app_has_webviews
     webviews = set()
     for process in self.GetProcesses():
       webviews.update(process.GetWebViews())
     return webviews
 
   def GetWebviewStartupArgs(self):
-    assert self._app_has_webviews
     args = []
 
     # Turn on GPU benchmarking extension for all runs. The only side effect of
