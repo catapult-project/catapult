@@ -94,13 +94,13 @@ if __name__ == '__main__':
   exit_code = (run_py_tests_exit_code | run_dev_server_exit_code |
                run_d8_tests_exit_code)
   if exit_code:
-      print (bcolors.FAIL +
-             'Oooops! Looks like some of your tests have failed. ' +
-             bcolors.ENDC + u'\U0001F631')
+    print (bcolors.FAIL +
+           'Oooops! Looks like some of your tests have failed.' +
+           bcolors.ENDC), u'\U0001F631'.encode('utf-8')
   else:
     print (bcolors.OKGREEN +
-           'Woho! All the tests have passed. You are awesome! ' +
-           bcolors.ENDC + u'\U0001F601')
+           'Woho! All the tests have passed. You are awesome!' +
+           bcolors.ENDC), u'\U0001F601'.encode('utf-8')
 
   if run_py_tests_exit_code:
     sys.stderr.write(
