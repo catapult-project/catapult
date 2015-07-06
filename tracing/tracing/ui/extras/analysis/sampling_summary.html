@@ -473,7 +473,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
       // A node has samples associated with it, if it's a leaf node.
       var selection = new tr.m.EventSet();
       if (node.leaf_node_id !== undefined) {
-        selection.addSelection(this.stackFrameIdToSamples_[node.leaf_node_id]);
+        selection.addEventSet(this.stackFrameIdToSamples_[node.leaf_node_id]);
       }
       else if (node.children === undefined ||
                node.children.length === 0) {
@@ -481,7 +481,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
       }
       else {
         for (var i = 0; i < node.children.length; ++i)
-          selection.addSelection(this.getSamplesFromNode_(node.children[i]));
+          selection.addEventSet(this.getSamplesFromNode_(node.children[i]));
       }
       return selection;
     },

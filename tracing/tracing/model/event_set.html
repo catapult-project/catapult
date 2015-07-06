@@ -100,23 +100,23 @@ tr.exportTo('tr.m', function() {
       return this.pushed_guids_[event.guid];
     },
 
-    addSelection: function(selection) {
-      for (var i = 0; i < selection.length; i++)
-        this.push(selection[i]);
+    addEventSet: function(eventSet) {
+      for (var i = 0; i < eventSet.length; i++)
+        this.push(eventSet[i]);
     },
 
-    subSelection: function(index, count) {
+    subEventSet: function(index, count) {
       count = count || 1;
 
-      var selection = new EventSet();
-      selection.bounds_dirty_ = true;
+      var eventSet = new EventSet();
+      eventSet.bounds_dirty_ = true;
       if (index < 0 || index + count > this.length_)
         throw new Error('Index out of bounds');
 
       for (var i = index; i < index + count; i++)
-        selection.push(this[i]);
+        eventSet.push(this[i]);
 
-      return selection;
+      return eventSet;
     },
 
     equals: function(that) {

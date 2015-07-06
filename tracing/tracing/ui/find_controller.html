@@ -135,7 +135,7 @@ tr.exportTo('tr.ui', function() {
         return;
 
       this.selectionController_.findFocusChangedTo(
-          this.filterHits.subSelection(this.currentHitIndex_, 1));
+          this.filterHits.subEventSet(this.currentHitIndex_, 1));
     },
 
     findNext: function() {
