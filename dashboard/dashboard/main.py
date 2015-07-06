@@ -1,3 +1,7 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 """URL endpoint for the main page which lists recent anomalies and bugs."""
 
 __author__ = 'sullivan@google.com (Annie Sullivan)'

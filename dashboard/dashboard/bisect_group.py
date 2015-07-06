@@ -1,3 +1,7 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 """This module provides functionality for bisecting a group of anomalies.
 
 This involves choosing an appropriate platform, command, metric and revision

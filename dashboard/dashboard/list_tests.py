@@ -1,3 +1,7 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 """Functions for making lists of tests, and an AJAX endpoint to list tests.
 
 This module contains functions for listing:
