@@ -93,7 +93,13 @@ def _GetOutputStream(output_format, output_dir):
   assert output_format in _OUTPUT_FILENAME_LOOKUP, (
       'No known filename for the \'%s\' output format' % output_format)
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
-  return open(output_file, 'w+')
+
+  # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
+  if output_format == 'html':
+    open(output_file, 'a').close() # Create file if it doesn't exist.
+    return open(output_file, 'r+')
+  else:
+    return open(output_file, 'w+')
 
 
 def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
