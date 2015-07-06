@@ -49,11 +49,20 @@ tr.exportTo('tr.model', function() {
     return value;
   }
 
+  function ownershipToUserFriendlyString(dump, importance) {
+    return dump.quantifiedName + ' (sharing importance ' +
+        optional(importance, 0) + ')';
+  }
+
   GlobalMemoryDump.prototype = {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
       return 'Global memory dump at ' + tr.b.units.TimeStamp.format(this.start);
+    },
+
+    get containerName() {
+      return 'global space';
     },
 
     calculateGraphAttributes: function() {
@@ -608,8 +617,26 @@ tr.exportTo('tr.model', function() {
               childDump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME].value;
         });
       }
-      dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] =
-            new tr.model.ScalarAttribute('bytes', effectiveSize);
+      var attribute = new tr.model.ScalarAttribute('bytes', effectiveSize);
+      dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] = attribute;
+
+      // Add attribute infos regarding ownership (if applicable).
+      if (dump.ownedBy.length > 0) {
+        var message = 'This memory allocator dump is shared by ' +
+            dump.ownedBy.map(function(ownershipLink) {
+              return ownershipToUserFriendlyString(
+                  ownershipLink.source, ownershipLink.importance);
+            }).join(', ') + '.';
+        attribute.infos.push(new tr.model.AttributeInfo(
+            tr.model.AttributeInfoType.MEMORY_OWNED, message));
+      }
+      if (dump.owns !== undefined) {
+        var message = 'This memory allocator dump shares ' +
+            ownershipToUserFriendlyString(
+                dump.owns.target, dump.owns.importance) + '.';
+        attribute.infos.push(new tr.model.AttributeInfo(
+            tr.model.AttributeInfoType.MEMORY_OWNER, message));
+      }
     },
 
     aggregateAttributes: function() {

@@ -26,6 +26,17 @@ tr.b.unittest.testSuite(function() {
     return childDump;
   }
 
+  test('memoryAllocatorDump_instantiate', function() {
+    var containerDump = new ContainerMemoryDump(42);
+    containerDump.containerName = 'super dump';
+    var dump = new MemoryAllocatorDump(containerDump, 'v8/objects/object7');
+
+    assert.equal(dump.name, 'object7');
+    assert.equal(dump.fullName, 'v8/objects/object7');
+    assert.strictEqual(dump.containerMemoryDump, containerDump);
+    assert.equal(dump.quantifiedName, '\'v8/objects/object7\' in super dump');
+  });
+
   test('memoryAllocatorDumps_aggregateAttributes', function() {
     var md = new ContainerMemoryDump(42);
 

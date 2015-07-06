@@ -251,7 +251,15 @@ tr.exportTo('tr.model', function() {
     WARNING: 1,
 
     // Attribute source (e.g. attribute refers to an older dump's attribute).
-    LINK: 2
+    LINK: 2,
+
+    // Corresponding memory allocator dump owns another MAD.
+    // TODO(petrcermak): Figure out if there's a better place to store this.
+    MEMORY_OWNER: 3,
+
+    // Corresponding memory allocator dump is owned by another MAD.
+    // TODO(petrcermak): Figure out if there's a better place to store this.
+    MEMORY_OWNED: 4
   };
 
   return {

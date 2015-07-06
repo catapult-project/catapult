@@ -43,6 +43,11 @@ tr.exportTo('tr.model', function() {
       return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);
     },
 
+    get quantifiedName() {
+      return '\'' + this.fullName + '\' in ' +
+          this.containerMemoryDump.containerName;
+    },
+
     isDescendantOf: function(otherDump) {
       var dump = this;
       while (dump !== undefined) {

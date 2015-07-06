@@ -170,6 +170,16 @@ tr.exportTo('tr.ui.analysis', function() {
           symbol: String.fromCharCode(9903)  // Link symbol.
           /* Don't modify the color. */
         };
+      case tr.model.AttributeInfoType.MEMORY_OWNER:
+        return {
+          symbol: String.fromCharCode(8702),  // Right arrow.
+          color: 'green'
+        };
+      case tr.model.AttributeInfoType.MEMORY_OWNED:
+        return {
+          symbol: String.fromCharCode(8701),  // Left arrow.
+          color: 'green'
+        };
       default:
         return {
           symbol: String.fromCharCode(9432),  // Circled small letter 'i'.
