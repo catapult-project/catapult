@@ -41,10 +41,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
       module_name = re.sub(r'[/\\]', '.', os.path.splitext(module_rel_path)[0])
 
       # Import the module.
-      try:
-        module = __import__(module_name, fromlist=[True])
-      except ImportError:
-        continue
+      module = __import__(module_name, fromlist=[True])
       modules.append(module)
   return modules
 
