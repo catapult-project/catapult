@@ -94,8 +94,7 @@ class FailureValue(value_module.Value):
     assert False, 'Should not be called.'
 
   @classmethod
-  def MergeLikeValuesFromDifferentPages(cls, values,
-                                        group_by_name_suffix=False):
+  def MergeLikeValuesFromDifferentPages(cls, values):
     assert False, 'Should not be called.'
 
 def GetStringFromExcInfo(exc_info):

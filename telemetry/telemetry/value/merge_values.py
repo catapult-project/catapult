@@ -32,7 +32,7 @@ def MergeLikeValuesFromSamePage(all_values):
       lambda v0, merge_group: v0.MergeLikeValuesFromSamePage(merge_group))
 
 
-def MergeLikeValuesFromDifferentPages(all_values, group_by_name_suffix=False):
+def MergeLikeValuesFromDifferentPages(all_values):
   """Merges values that measure the same thing on different pages.
 
   After using MergeLikeValuesFromSamePage, one still ends up with values from
@@ -46,10 +46,6 @@ def MergeLikeValuesFromDifferentPages(all_values, group_by_name_suffix=False):
        ListOfScalarValues(None, 'x', [1, 2])
        ListOfScalarValues(None, 'y', [30, 40])
 
-  If group_by_name_suffix is True, then x.z and y.z are considered to be the
-  same value and are grouped together. If false, then x.z and y.z are
-  considered different.
-
   The workhorse of this code is Value.MergeLikeValuesFromDifferentPages.
 
   Not all values that go into this function will come out: not every value can
@@ -60,16 +56,11 @@ def MergeLikeValuesFromDifferentPages(all_values, group_by_name_suffix=False):
   the Value.IsMergableWith test. If this is not obeyed, the results
   will be undefined.
   """
-  if group_by_name_suffix:
-    def key(value):
-      return value.name_suffix
-  else:
-    key = lambda x: x.name
+  key = lambda x: x.name
   return _MergeLikeValuesCommon(
       all_values,
       key,
-      lambda v0, merge_group: v0.MergeLikeValuesFromDifferentPages(
-          merge_group, group_by_name_suffix=group_by_name_suffix))
+      lambda v0, merge_group: v0.MergeLikeValuesFromDifferentPages(merge_group))
 
 
 def _MergeLikeValuesCommon(all_values, key_func, merge_func):

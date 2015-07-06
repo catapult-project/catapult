@@ -121,8 +121,7 @@ class HistogramValue(value_module.Value):
         important=v0.important, tir_label=v0.tir_label)
 
   @classmethod
-  def MergeLikeValuesFromDifferentPages(cls, values,
-                                        group_by_name_suffix=False):
+  def MergeLikeValuesFromDifferentPages(cls, values):
     # Histograms cannot be merged across pages, at least for now. It should be
     # theoretically possible, just requires more work. Instead, return None.
     # This signals to the merging code that the data is unmergable and it will

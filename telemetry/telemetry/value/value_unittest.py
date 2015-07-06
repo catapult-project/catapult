@@ -27,8 +27,7 @@ class ValueForTest(value.Value):
     pass
 
   @classmethod
-  def MergeLikeValuesFromDifferentPages(cls, values,
-                                        group_by_name_suffix=False):
+  def MergeLikeValuesFromDifferentPages(cls, values):
     pass
 
   def GetBuildbotDataType(self, output_context):

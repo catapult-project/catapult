@@ -110,20 +110,3 @@ class MergeValueTest(TestBase):
     self.assertTrue(
         isinstance(merged_values[0], list_of_scalar_values.ListOfScalarValues))
     self.assertEquals([1], merged_values[0].values)
-
-  def testDifferentPageMergeBasicIgnoreTraceName(self):
-    page0 = self.pages[0]
-    page1 = self.pages[1]
-
-    all_values = [scalar.ScalarValue(page0, 'x.score', 'units', 1),
-                  scalar.ScalarValue(page1, 'y.score', 'units', 2)]
-    # Sort the results so that their order is predictable for the subsequent
-    # assertions.
-    merged_values = merge_values.MergeLikeValuesFromDifferentPages(
-        all_values,
-        group_by_name_suffix=True)
-    self.assertEquals(1, len(merged_values))
-
-    self.assertEquals((None, 'score'),
-                      (merged_values[0].page, merged_values[0].name))
-    self.assertEquals([1, 2], merged_values[0].values)

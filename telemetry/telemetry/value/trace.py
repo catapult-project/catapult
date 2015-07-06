@@ -107,8 +107,7 @@ class TraceValue(value_module.Value):
     return values[0]
 
   @classmethod
-  def MergeLikeValuesFromDifferentPages(cls, values,
-                                        group_by_name_suffix=False):
+  def MergeLikeValuesFromDifferentPages(cls, values):
     return None
 
   def AsDict(self):

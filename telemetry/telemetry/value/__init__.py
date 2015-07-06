@@ -111,8 +111,7 @@ class Value(object):
     raise NotImplementedError()
 
   @classmethod
-  def MergeLikeValuesFromDifferentPages(cls, values,
-                                        group_by_name_suffix=False):
+  def MergeLikeValuesFromDifferentPages(cls, values):
     """Combines the provided values into a single compound value.
 
     When a full pageset runs, a single value_name will usually end up getting
@@ -128,10 +127,6 @@ class Value(object):
     Some results are so specific to a page that they make no sense when
     aggregated across pages. If merging values of this type across pages is
     non-sensical, this method may return None.
-
-    If group_by_name_suffix is True, then x.z and y.z are considered to be the
-    same value and are grouped together. If false, then x.z and y.z are
-    considered different.
     """
     raise NotImplementedError()
 
