@@ -5,16 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var ObjectInstance = tr.model.ObjectInstance;
 
   test('instantiate_analysisWithObjects', function() {
@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     objects.idWasDeleted('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 45);
 
     var track = {};
-    var selection = new Selection();
+    var selection = new EventSet();
     selection.push(i10);
     selection.push(s10);
     selection.push(s25);

@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/single_thread_time_slice_sub_view.html">
 <link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_thread_time_slice_sub_view.html">
 
 <script>
 'use strict';
@@ -41,7 +42,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     selection.push(thread.timeSlices[0]);
     view.selection = selection;
     this.addHTMLOutput(view);
@@ -71,7 +72,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     selection.push(thread.timeSlices[1]);
     view.selection = selection;
     this.addHTMLOutput(view);

@@ -5,17 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/sample.html">
 <link rel="import" href="/model/stack_frame.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/tracks/sample_track.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Selection = tr.c.Selection;
   var SampleTrack = tr.ui.tracks.SampleTrack;
   var Sample = tr.model.Sample;
   var StackFrame = tr.model.StackFrame;

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/object_collection.html">
 <link rel="import" href="/model/selection_state.html">
 <link rel="import" href="/ui/timeline_viewport.html">
@@ -17,7 +17,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() { // @suppress longLineCheck
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var ObjectInstanceTrack = tr.ui.tracks.ObjectInstanceTrack;
   var Viewport = tr.ui.TimelineViewport;
 
@@ -68,20 +68,20 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     track.objectInstances = frames;
 
     // Hit outside range
-    var selection = new Selection();
+    var selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         8, 8.1, 0.1, selection);
     assert.equal(selection.length, 0);
 
     // Hit the first snapshot, via pixel-nearness.
-    selection = new Selection();
+    selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
     assert.equal(selection.length, 1);
     assert.instanceOf(selection[0], tr.model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
-    selection = new Selection();
+    selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
     assert.equal(selection.length, 1);

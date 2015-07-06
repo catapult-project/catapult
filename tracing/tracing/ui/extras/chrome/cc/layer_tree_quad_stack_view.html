@@ -5,17 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/color.html">
+<link rel="import" href="/base/quad.html">
+<link rel="import" href="/base/raf.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/extras/chrome/cc/debug_colors.html">
 <link rel="import" href="/extras/chrome/cc/picture.html">
 <link rel="import" href="/extras/chrome/cc/render_pass.html">
 <link rel="import" href="/extras/chrome/cc/tile.html">
-<link rel="import" href="/extras/chrome/cc/debug_colors.html">
 <link rel="import" href="/extras/chrome/cc/util.html">
-<link rel="import" href="/base/color.html">
-<link rel="import" href="/base/raf.html">
-<link rel="import" href="/base/quad.html">
-<link rel="import" href="/base/range.html">
-<link rel="import" href="/ui/base/quad_stack_view.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/info_bar.html">
+<link rel="import" href="/ui/base/quad_stack_view.html">
 <link rel="import" href="/ui/base/utils.html">
 
 <style>
@@ -1177,8 +1178,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     onWhatRasterizedLinkClicked_: function() {
       var tasks = this.getWhatRasterized_();
-      var event = new tr.c.RequestSelectionChangeEvent();
-      event.selection = new tr.c.Selection(tasks);
+      var event = new tr.m.RequestSelectionChangeEvent();
+      event.selection = new tr.m.EventSet(tasks);
       this.dispatchEvent(event);
     }
   };

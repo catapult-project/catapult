@@ -4,16 +4,16 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/model/async_slice.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/async_slice.html">
+<link rel="import" href="/model/event_set.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
   var AsyncSlice = tr.model.AsyncSlice;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
 
   var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
   var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
@@ -57,7 +57,7 @@ tr.exportTo('tr.e.cc', function() {
 
   function InputLatencyAsyncSlice() {
     AsyncSlice.apply(this, arguments);
-    this.associatedEvents_ = new Selection();
+    this.associatedEvents_ = new EventSet();
     this.typeName_ = undefined;
     if (!this.isLegacyEvent)
       this.determineModernTypeName_();

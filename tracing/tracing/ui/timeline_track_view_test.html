@@ -7,14 +7,15 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Task = tr.b.Task;
 
@@ -62,7 +63,7 @@ tr.b.unittest.testSuite(function() {
 
     var expected = [t1asg.slices[0],
                     t1.sliceGroup.slices[0]];
-    var result = new tr.c.Selection();
+    var result = new tr.m.EventSet;
     var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
@@ -72,7 +73,7 @@ tr.b.unittest.testSuite(function() {
 
     var expected = [t1asg.slices[1],
                     t1.sliceGroup.slices[1]];
-    var result = new tr.c.Selection();
+    var result = new tr.m.EventSet();
     var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);

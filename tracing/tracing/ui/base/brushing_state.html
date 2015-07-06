@@ -6,21 +6,21 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/guid.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/selection_state.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
 
   function BrushingState() {
     this.guid_ = tr.b.GUID.allocate();
-    this.selection_ = new Selection();
-    this.findMatches_ = new Selection();
-    this.analysisViewRelatedEvents_ = new Selection();
+    this.selection_ = new EventSet();
+    this.findMatches_ = new EventSet();
+    this.analysisViewRelatedEvents_ = new EventSet();
     this.appliedToModel_ = undefined;
     this.viewSpecificBrushingStates_ = {};
   }
@@ -76,7 +76,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.appliedToModel_)
         throw new Error('Cannot mutate this state right now');
       if (selection === undefined)
-        selection = new Selection();
+        selection = new EventSet();
       this.selection_ = selection;
     },
 
@@ -88,7 +88,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.appliedToModel_)
         throw new Error('Cannot mutate this state right now');
       if (findMatches === undefined)
-        findMatches = new Selection();
+        findMatches = new EventSet();
       this.findMatches_ = findMatches;
     },
 
@@ -100,7 +100,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.appliedToModel_)
         throw new Error('Cannot mutate this state right now');
       if (analysisViewRelatedEvents === undefined)
-        analysisViewRelatedEvents = new Selection();
+        analysisViewRelatedEvents = new EventSet();
       this.analysisViewRelatedEvents_ = analysisViewRelatedEvents;
     },
 

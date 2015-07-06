@@ -7,10 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/event_target.html">
 <link rel="import" href="/base/task.html">
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/ui/base/brushing_state.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/base/ui_state.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/selection_state.html">
 
 <script>
@@ -18,7 +18,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.c', function() {
   var BrushingState = tr.ui.b.BrushingState;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
@@ -202,8 +202,8 @@ tr.exportTo('tr.c', function() {
       }
 
       var newBrushingState = this.currentBrushingState_.clone();
-      newBrushingState.selection = new Selection();
-      newBrushingState.findMatches = new Selection();
+      newBrushingState.selection = new EventSet();
+      newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
 
       this.onUserInitiatedSelectionChange_();
@@ -221,7 +221,7 @@ tr.exportTo('tr.c', function() {
     changeSelectionFromTimeline: function(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
-      newBrushingState.findMatches = new Selection();
+      newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
 
       this.onUserInitiatedSelectionChange_();
@@ -230,14 +230,14 @@ tr.exportTo('tr.c', function() {
     showScriptControlSelection: function(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
-      newBrushingState.findMatches = new Selection();
+      newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
     },
 
     changeSelectionFromRequestSelectionChangeEvent: function(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
-      newBrushingState.findMatches = new Selection();
+      newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
 
       this.onUserInitiatedSelectionChange_();

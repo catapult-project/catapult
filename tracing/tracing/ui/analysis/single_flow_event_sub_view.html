@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/single_event_sub_view.html">
@@ -28,7 +29,7 @@ found in the LICENSE file.
       function createLinkTo(slice) {
         var linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
-            return new tr.c.Selection(slice);
+            return new tr.m.EventSet(slice);
         });
         linkEl.textContent = slice.userFriendlyName;
         return linkEl;

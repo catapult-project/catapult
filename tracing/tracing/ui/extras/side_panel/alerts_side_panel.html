@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/statistics.html">
 <link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/ui/side_panel/side_panel.html">
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/base/statistics.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/line_chart.html">
 
@@ -70,8 +70,8 @@ found in the LICENSE file.
         return alert.title === alertTypeString;
       });
 
-      var event = new tr.c.RequestSelectionChangeEvent();
-      event.selection = new tr.c.Selection(alertsOfType);
+      var event = new tr.m.RequestSelectionChangeEvent();
+      event.selection = new tr.m.EventSet(alertsOfType);
       this.dispatchEvent(event);
     },
 

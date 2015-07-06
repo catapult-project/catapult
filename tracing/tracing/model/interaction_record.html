@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/timed_event.html">
 
 <script>
@@ -18,7 +19,7 @@ tr.exportTo('tr.model', function() {
     this.colorId = colorId;
     this.duration = duration;
     this.args = {};
-    this.associatedEvents = new tr.c.Selection();
+    this.associatedEvents = new tr.m.EventSet();
   }
   InteractionRecord.prototype = {
     __proto__: tr.model.TimedEvent.prototype,

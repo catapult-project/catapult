@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/core/selection.html">
 
 <script>
 'use strict';
@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
     var subView = document.createElement('tr-ui-a-sub-view');
 
     assert.throw(function() {
-      subView.selection = new tr.c.Selection();
+      subView.selection = new tr.m.EventSet();
     }, 'Not implemented!');
 
     assert.throw(function() {

@@ -6,8 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/task.html">
-<link rel="import" href="/ui/find_controller.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/find_controller.html">
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_view.html">
 
@@ -25,8 +26,8 @@ tr.b.unittest.testSuite(function() {
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tr.c.Selection();
-    this.findMatches = new tr.c.Selection();
+    this.selection = new tr.m.EventSet();
+    this.findMatches = new tr.m.EventSet();
   }
 
   FakeSelectionController.prototype = {
@@ -46,7 +47,7 @@ tr.b.unittest.testSuite(function() {
 
     findTextChangedTo: function(selection) {
       this.findMatches = selection;
-      this.selection = new tr.c.Selection();
+      this.selection = new tr.m.EventSet();
     },
 
     findFocusChangedTo: function(selection) {
@@ -54,8 +55,8 @@ tr.b.unittest.testSuite(function() {
     },
 
     findTextCleared: function(selection) {
-      this.selection = new tr.c.Selection();
-      this.findMatches = new tr.c.Selection();
+      this.selection = new tr.m.EventSet();
+      this.findMatches = new tr.m.EventSet();
     }
   };
 
@@ -84,8 +85,8 @@ tr.b.unittest.testSuite(function() {
     var selectionController = new FakeSelectionController();
     var controller = new tr.ui.FindController(selectionController);
 
-    selectionController.selection = new tr.c.Selection();
-    selectionController.findMatches = new tr.c.Selection();
+    selectionController.selection = new tr.m.EventSet();
+    selectionController.findMatches = new tr.m.EventSet();
     controller.findNext();
     assertArrayShallowEquals([], selectionController.selection);
     assertArrayShallowEquals([], selectionController.findMatches);

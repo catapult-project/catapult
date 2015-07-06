@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/units/time_duration_span.html">
@@ -122,7 +123,7 @@ found in the LICENSE file.
         runningThreadEl.parentElement.style.display = 'none';
       } else {
         var threadLink = document.createElement('tr-ui-a-analysis-link');
-        threadLink.selection = new tr.c.Selection(timeSlice);
+        threadLink.selection = new tr.m.EventSet(timeSlice);
         threadLink.textContent = 'Click to select';
         runningThreadEl.parentElement.style.display = '';
         runningThreadEl.textContent = '';

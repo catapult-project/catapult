@@ -5,17 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/multi_event_summary.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
-  var Selection = tr.c.Selection;
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('summaryRowNoCpu', function() {

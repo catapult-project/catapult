@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/extras/chrome/cc/raster_task.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/single_event_sub_view.html">
 <link rel="import" href="/ui/extras/chrome/cc/selection.html">
 <link rel="import" href="/ui/extras/chrome/cc/raster_task_view.html">
@@ -32,7 +33,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     });
   }
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tr.c.Selection))
+    if (!(selection instanceof tr.m.EventSet))
       return {ok: false, why: 'Must be selection'};
 
     if (selection.length === 0)
@@ -98,7 +99,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = new tr.c.Selection();
+      var sel = new tr.m.EventSet();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });

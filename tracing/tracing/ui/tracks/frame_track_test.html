@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/frame.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
@@ -17,7 +18,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Frame = tr.model.Frame;
   var FrameTrack = tr.ui.tracks.FrameTrack;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
@@ -84,7 +85,7 @@ tr.b.unittest.testSuite(function() {
     var track = FrameTrack(viewport);
     track.frames = frames;
 
-    var selection = new Selection();
+    var selection = new EventSet();
     track.items[0].addToSelection(selection);
 
     // select both frame, but not its component slice

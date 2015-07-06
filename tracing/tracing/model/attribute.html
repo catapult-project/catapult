@@ -166,7 +166,6 @@ tr.exportTo('tr.model', function() {
   };
 
   var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
-  options.mandatoryBaseType = Attribute;
   tr.b.decorateExtensionRegistry(Attribute, options);
 
   Attribute.addEventListener('will-register', function(e) {

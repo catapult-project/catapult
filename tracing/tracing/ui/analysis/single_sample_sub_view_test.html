@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/base/deep_utils.html">
-<link rel="import" href="/ui/analysis/single_sample_sub_view.html">
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_sample_sub_view.html">
+<link rel="import" href="/ui/base/deep_utils.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var StubAnalysisResults = tr.ui.analysis.StubAnalysisResults;
   var newSampleNamed = tr.c.test_utils.newSampleNamed;
 
@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     var t53track = {};
     t53track.thread = t53;
 
-    var selection = new Selection();
+    var selection = new EventSet();
 
     assert.equal(selection.length, 0);
     selection.push(t53.samples[0]);

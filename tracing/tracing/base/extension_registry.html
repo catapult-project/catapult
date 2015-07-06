@@ -35,9 +35,9 @@ found in the LICENSE file.
  * subtype has been registered. To provide one, set the defaultConstructor
  * option on the registry options.
  *
- * If you want to enforce that a registry only manages types of a given subtype,
- * then set mandatoryBaseType field on the registry.
- *
+ * TODO: Extension registry used to make reference to mandatoryBaseType but it
+ * was never enforced. We may want to add it back in the future in order to
+ * enforce the types that can be put into a given registry.
  */
 tr.exportTo('tr.b', function() {
 

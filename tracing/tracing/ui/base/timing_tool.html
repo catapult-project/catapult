@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/constants.html">
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/base/range.html">
+<link rel="import" href="/core/constants.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/slice.html">
 <link rel="import" href="/ui/base/ui.html">
 
@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.b', function() {
       var worldX = this.getWorldXFromEvent_(e);
       var mouseY = e.clientY;
 
-      var selection = new tr.c.Selection();
+      var selection = new tr.m.EventSet();
 
       // Look at the track under mouse position first for better performance.
       modelTrackContainer.addClosestEventToSelection(

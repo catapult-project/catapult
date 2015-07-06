@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/tab_view.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
 
@@ -98,7 +99,7 @@ using custom elements specialized for different event types.
         this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
         this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
 
-        this.lastSeenSelection_ = new tr.c.Selection();
+        this.lastSeenSelection_ = new tr.m.EventSet();
       },
 
       set tallMode(value) {

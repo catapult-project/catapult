@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/base.html">
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/ui/base/table.html">
@@ -64,7 +65,7 @@ found in the LICENSE file.
 
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-            return new tr.c.Selection(row.events);
+            return new tr.m.EventSet(row.events);
           }, row.title);
           return linkEl;
         },

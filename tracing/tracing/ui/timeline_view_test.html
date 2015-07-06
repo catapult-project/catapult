@@ -7,8 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/ui/timeline_view.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/timeline_view.html">
 
 <script>
 'use strict';
@@ -134,7 +135,7 @@ tr.b.unittest.testSuite(function() {
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     var filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
     var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);

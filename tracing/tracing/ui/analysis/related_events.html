@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/flow_classifier.html">
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/table.html">
 
 <polymer-element name="tr-ui-a-related-events">
   <template>
@@ -91,7 +91,7 @@ found in the LICENSE file.
       var addToEventGroups = function(type, flowEvent) {
         this.eventGroups_.push({
           type: type,
-          selection: new tr.c.Selection(flowEvent),
+          selection: new tr.m.EventSet(flowEvent),
           name: flowEvent.title
         });
       };
@@ -126,7 +126,7 @@ found in the LICENSE file.
       var precedingEventsSelection = undefined;
       var followingEventsSelection = undefined;
       if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
-        precedingEventsSelection = new tr.c.Selection();
+        precedingEventsSelection = new tr.m.EventSet();
         this.recursivelyAddConnectedEvents_(precedingEventsSelection, slice,
             function(event) { return event.inFlowEvents; });
         this.eventGroups_.push({
@@ -136,7 +136,7 @@ found in the LICENSE file.
         });
       }
       if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
-        followingEventsSelection = new tr.c.Selection();
+        followingEventsSelection = new tr.m.EventSet();
         this.recursivelyAddConnectedEvents_(followingEventsSelection, slice,
             function(event) { return event.outFlowEvents; });
         this.eventGroups_.push({
@@ -146,7 +146,7 @@ found in the LICENSE file.
         });
       }
       if (precedingEventsSelection && followingEventsSelection) {
-        var allEventsSelection = new tr.c.Selection();
+        var allEventsSelection = new tr.m.EventSet();
         for (var i = 0; i < precedingEventsSelection.length; ++i)
           allEventsSelection.push(precedingEventsSelection[i]);
         for (var i = 0; i < followingEventsSelection.length; ++i)
@@ -160,7 +160,7 @@ found in the LICENSE file.
     },
 
     addConnectedEventsForSelection_: function(selection) {
-      var allEventsSelection = new tr.c.Selection();
+      var allEventsSelection = new tr.m.EventSet();
       selection.forEach(function(slice) {
         this.recursivelyAddConnectedEvents_(allEventsSelection, slice,
             function(event) {
@@ -201,9 +201,9 @@ found in the LICENSE file.
     addAncestorsAndDescendentsForSlice_: function(slice) {
       if (!slice.iterateAllAncestors || !slice.iterateAllDescendents)
         return;
-      var ancestorsSelection = new tr.c.Selection(slice);
-      var descendentsSelection = new tr.c.Selection(slice);
-      var allSlicesSelection = new tr.c.Selection(slice);
+      var ancestorsSelection = new tr.m.EventSet(slice);
+      var descendentsSelection = new tr.m.EventSet(slice);
+      var allSlicesSelection = new tr.m.EventSet(slice);
       slice.iterateAllAncestors(function(otherSlice) {
         ancestorsSelection.push(otherSlice);
       });
@@ -238,7 +238,7 @@ found in the LICENSE file.
     },
 
     addAncestorsAndDescendentsForSelection_: function(selection) {
-      var allSlicesSelection = new tr.c.Selection();
+      var allSlicesSelection = new tr.m.EventSet();
       selection.forEach(function(slice) {
         allSlicesSelection.push(slice);
         if (slice.iterateAllAncestors && slice.iterateAllDescendents) {

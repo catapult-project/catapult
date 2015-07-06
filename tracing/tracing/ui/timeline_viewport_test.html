@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/location.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/ui/timeline_track_view.html">
@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
     viewport.rebuildEventToTrackMap();
 
 
-    var sel = new tr.c.Selection();
+    var sel = new tr.m.EventSet();
     sel.push(t1.sliceGroup.slices[0]);
 
     var shifted = track.viewport.getShiftedSelection(sel, 1);

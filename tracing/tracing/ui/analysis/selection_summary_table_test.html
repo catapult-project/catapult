@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/base/deep_utils.html">
-<link rel="import" href="/ui/analysis/selection_summary_table.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/selection_summary_table.html">
+<link rel="import" href="/ui/base/deep_utils.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('noSelection', function() {
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   test('emptySelection', function() {
     var summaryTable =
         document.createElement('tr-ui-a-selection-summary-table');
-    var selection = new Selection();
+    var selection = new EventSet();
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2}));
 
-    var selection = new Selection();
+    var selection = new EventSet();
     selection.push(tsg.slices[0]);
     selection.push(tsg.slices[1]);
 

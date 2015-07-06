@@ -5,16 +5,17 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/base/units/size_in_bytes.html">
 <link rel="import" href="/base/units/time_duration.html">
 <link rel="import" href="/base/units/time_stamp.html">
-<link rel="import" href="/base/units/size_in_bytes.html">
 <link rel="import" href="/base/utils.html">
-<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
 <link rel="import" href="/ui/units/time_duration_span.html">
 <link rel="import" href="/ui/units/time_stamp_span.html">
-<link rel="import" href="/ui/units/size_in_bytes_span.html">
 
 <polymer-element name="tr-ui-a-generic-object-view"
     is="HTMLUnknownElement">
@@ -147,14 +148,14 @@ found in the LICENSE file.
 
       if (object instanceof tr.model.ObjectSnapshot) {
         var link = document.createElement('tr-ui-a-analysis-link');
-        link.selection = new tr.c.Selection(object);
+        link.selection = new tr.m.EventSet(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
       if (object instanceof tr.model.ObjectInstance) {
         var link = document.createElement('tr-ui-a-analysis-link');
-        link.selection = new tr.c.Selection(object);
+        link.selection = new tr.m.EventSet(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }

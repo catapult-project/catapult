@@ -6,11 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/base.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
 <link rel="import" href="/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/ui/units/time_duration_span.html">
 <link rel="import" href="/ui/units/time_stamp_span.html">
-<link rel="import" href="/ui/analysis/generic_object_view.html">
 
 <polymer-element name='tr-ui-a-multi-event-details-table'>
   <template>
@@ -157,7 +158,7 @@ found in the LICENSE file.
 
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-              return new tr.c.Selection(row.event);
+              return new tr.m.EventSet(row.event);
           });
           linkEl.appendChild(tr.ui.units.createTimeStampSpan(
               row.start, timeSpanConfig));

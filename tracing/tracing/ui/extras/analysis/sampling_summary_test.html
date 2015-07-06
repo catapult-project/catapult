@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/extras/analysis/sampling_summary.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/analysis/sampling_summary.html">
 
 <script>
 'use strict';
@@ -19,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection() {
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
@@ -107,7 +108,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('processOnlySamples', function() {
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';

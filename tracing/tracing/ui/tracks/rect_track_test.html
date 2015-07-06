@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/slice.html">
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/base/draw_helpers.html">
@@ -15,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var RectTrack = tr.ui.tracks.RectTrack;
   var Rect = tr.ui.tracks.Rect;
   var Slice = tr.model.Slice;
@@ -148,7 +149,7 @@ tr.b.unittest.testSuite(function() {
       new Slice('', 'b', 1, 7, {}, 0.5),
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
-    var selection = new Selection();
+    var selection = new EventSet();
     track.addAllEventsMatchingFilterToSelection(
         new tr.c.TitleOrCategoryFilter('b'), selection);
 
@@ -186,25 +187,25 @@ tr.b.unittest.testSuite(function() {
     dt.xSetWorldBounds(0, wW, vW * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var x = (1.5 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
     assert.equal(track.rects[0].modelItem, selection[0]);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     x = (2.1 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
     assert.equal(0, selection.length);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     x = (6.8 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
     assert.equal(track.rects[1].modelItem, selection[0]);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     x = (9.9 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
@@ -300,44 +301,44 @@ tr.b.unittest.testSuite(function() {
       new Slice('', 'b', 1, 7, {}, 0.5),
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addAllEventsMatchingFilterToSelection(
         new tr.c.TitleOrCategoryFilter('b'), sel);
     var ret;
 
     // Select to the right of B.
-    var selRight = new Selection();
+    var selRight = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(sel[0], 1, selRight);
     assert.isTrue(ret);
     assert.equal(track.rects[2].modelItem, selRight[0]);
 
     // Select to the right of the 2nd b.
-    var selRight2 = new Selection();
+    var selRight2 = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(sel[0], 2, selRight2);
     assert.isTrue(ret);
     assert.equal(track.rects[3].modelItem, selRight2[0]);
 
     // Select to 2 to the right of the 2nd b.
-    var selRightOfRight = new Selection();
+    var selRightOfRight = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
         selRight[0], 1, selRightOfRight);
     assert.isTrue(ret);
     assert.equal(track.rects[3].modelItem, selRightOfRight[0]);
 
     // Select to the right of the rightmost slice.
-    var selNone = new Selection();
+    var selNone = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
         selRightOfRight[0], 1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
 
     // Select A and then select left.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addAllEventsMatchingFilterToSelection(
         new tr.c.TitleOrCategoryFilter('a'), sel);
     var ret;
 
-    selNone = new Selection();
+    selNone = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(sel[0], -1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
@@ -353,53 +354,53 @@ tr.b.unittest.testSuite(function() {
     ];
 
     // Before with not range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(0, 0, 0, 0, sel);
     assert.equal(0, sel.length);
 
     // Before with negative range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(1.5, -10, 0, 0, sel);
     assert.equal(0, sel.length);
 
     // Before first slice.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(0.5, 1, 0, 0, sel);
     assert.equal(1, sel.length);
     assert.equal(track.rects[0].modelItem, sel[0]);
 
     // Within first slice closer to start.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
     assert.equal(track.rects[0].modelItem, sel[0]);
 
     // Between slices with good range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(2.08, 3, 0, 0, sel);
     assert.equal(track.rects[1].modelItem, sel[0]);
 
     // Between slices with bad range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(2.05, 0.03, 0, 0, sel);
     assert.equal(0, sel.length);
 
     // Within slice closer to end.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(6, 100, 0, 0, sel);
     assert.equal(track.rects[1].modelItem, sel[0]);
 
     // Within slice with bad range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(1.8, 0.1, 0, 0, sel);
     assert.equal(0, sel.length);
 
     // After last slice with good range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(8.5, 1, 0, 0, sel);
     assert.equal(track.rects[3].modelItem, sel[0]);
 
     // After last slice with bad range.
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(10, 1, 0, 0, sel);
     assert.equal(0, sel.length);
   });

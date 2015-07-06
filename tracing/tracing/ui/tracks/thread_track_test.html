@@ -6,10 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/instant_event.html">
-<link rel="import" href="/ui/tracks/thread_track.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/tracks/thread_track.html">
 
 <script>
 'use strict';
@@ -17,7 +18,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var HighlightInstantEvent = tr.model.ThreadHighlightInstantEvent;
   var Process = tr.model.Process;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var StackFrame = tr.model.StackFrame;
   var Sample = tr.model.Sample;
   var Thread = tr.model.Thread;
@@ -56,13 +57,13 @@ tr.b.unittest.testSuite(function() {
     dt.xSetWorldBounds(0, wW, vW);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var x = (1.5 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
     assert.equal(t1.sliceGroup.slices[0], selection[0]);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     track.addIntersectingEventsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);

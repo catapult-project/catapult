@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -19,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
-    link.selection = new tr.c.Selection(s10);
+    link.selection = new tr.m.EventSet(s10);
     this.addHTMLOutput(link);
 
     var didRSC = false;
@@ -39,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     function selectionGenerator() {
-      return new tr.c.Selection(s10);
+      return new tr.m.EventSet(s10);
     }
     selectionGenerator.userFriendlyName = 'hello world';
     link.selection = selectionGenerator;

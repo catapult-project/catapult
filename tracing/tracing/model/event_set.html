@@ -9,15 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/base/iteration_helpers.html">
-<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/event_registry.html">
 
 <script>
 'use strict';
 
-/**
- * @fileoverview Code for the viewport.
- */
-tr.exportTo('tr.c', function() {
+tr.exportTo('tr.m', function() {
 
   var EventRegistry = tr.model.EventRegistry;
 
@@ -25,14 +22,14 @@ tr.exportTo('tr.c', function() {
       undefined, 'requestSelectionChange', true, false);
 
   /**
-   * Represents a selection within a  and its associated set of tracks.
+   * Represents a event set within a  and its associated set of tracks.
    * @constructor
    */
-  function Selection(opt_events) {
+  function EventSet(opt_events) {
     // sunburst_zoom_level is used by sunburst chart to remember
-    // zoom level across selection changes.
+    // zoom level across event set changes.
     // TODO(gholap): get rid of this eventually when
-    //               selections support frames.
+    //               event sets support frames.
     this.sunburst_zoom_level = undefined;
 
     this.bounds_dirty_ = true;
@@ -50,7 +47,7 @@ tr.exportTo('tr.c', function() {
       }
     }
   }
-  Selection.prototype = {
+  EventSet.prototype = {
     __proto__: Object.prototype,
 
     get bounds() {
@@ -111,7 +108,7 @@ tr.exportTo('tr.c', function() {
     subSelection: function(index, count) {
       count = count || 1;
 
-      var selection = new Selection();
+      var selection = new EventSet();
       selection.bounds_dirty_ = true;
       if (index < 0 || index + count > this.length_)
         throw new Error('Index out of bounds');
@@ -137,7 +134,7 @@ tr.exportTo('tr.c', function() {
       var events = {};
       var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
       allTypeInfos.forEach(function(eventTypeInfo) {
-        events[eventTypeInfo.metadata.name] = new Selection();
+        events[eventTypeInfo.metadata.name] = new EventSet();
         if (this.sunburst_zoom_level !== undefined)
           events[eventTypeInfo.metadata.name].sunburst_zoom_level =
               this.sunburst_zoom_level;
@@ -194,7 +191,7 @@ tr.exportTo('tr.c', function() {
 
     get userFriendlyName() {
       if (this.length === 0) {
-        throw new Error('Empty selection');
+        throw new Error('Empty event set');
       }
 
       var eventsByBaseType = this.getEventsOrganizedByBaseType(true);
@@ -215,7 +212,7 @@ tr.exportTo('tr.c', function() {
     },
 
     filter: function(fn, opt_this) {
-      var res = new Selection();
+      var res = new EventSet();
 
       this.forEach(function(slice) {
         if (fn.call(this, slice))
@@ -253,7 +250,7 @@ tr.exportTo('tr.c', function() {
   };
 
   return {
-    Selection: Selection,
+    EventSet: EventSet,
     RequestSelectionChangeEvent: RequestSelectionChangeEvent
   };
 });

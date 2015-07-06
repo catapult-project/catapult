@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/single_object_snapshot_sub_view.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_object_snapshot_sub_view.html">
 
 <script>
 'use strict';
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     var s10 = i10.addSnapshot(10, {foo: 1});
     i10.updateBounds();
 
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     selection.push(s10);
 
     var view =

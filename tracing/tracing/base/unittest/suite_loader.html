@@ -24,7 +24,6 @@ tr.exportTo('tr.b.unittest', function() {
         importEl.moduleName = moduleName;
         importEl.setAttribute('rel', 'import');
         importEl.setAttribute('href', testRelpath);
-        tr.doc.head.appendChild(importEl);
 
         importEl.addEventListener('load', function() {
           resolve({testRelpath: testRelpath,
@@ -34,6 +33,8 @@ tr.exportTo('tr.b.unittest', function() {
           reject('Error loading &#60;link rel="import" href="' +
                  testRelpath + '"');
         });
+
+        tr.doc.head.appendChild(importEl);
       });
     },
 
@@ -118,14 +119,12 @@ tr.exportTo('tr.b.unittest', function() {
     __proto__: tr.b.EventTarget.prototype,
 
     beginLoadingModules_: function(testRelpaths) {
-
       // Hooks!
       this.bindGlobalHooks_();
 
       // Load the modules.
       var modulePromises = [];
       for (var i = 0; i < testRelpaths.length; i++) {
-
         var testRelpath = testRelpaths[i];
         var moduleName = testRelpath.split('/').slice(-1)[0];
 

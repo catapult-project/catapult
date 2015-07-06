@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/task.html">
+<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/core/selection_controller.html">
+<link rel="import" href="/model/event_set.html">
 
 <script>
 'use strict';
@@ -17,7 +17,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Task = tr.b.Task;
 
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
 
     // Setting causes change.
     var bs1 = new tr.ui.b.BrushingState();
-    bs1.selection = new Selection([m.sA]);
+    bs1.selection = new EventSet([m.sA]);
     assert.isTrue(doesCauseChangeToFire(
         selectionController,
         function() {
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
 
     // Setting to something different unapplies the old bs.
     var bs3 = new tr.ui.b.BrushingState();
-    bs3.findMatches = new Selection([m.sA, m.sB]);
+    bs3.findMatches = new EventSet([m.sA, m.sB]);
     selectionController.currentBrushingState = bs3;
     assert.isTrue(bs3.isAppliedToModel);
     assert.isFalse(bs2.isAppliedToModel);
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
     var m1 = timelineView.model;
 
     var bs1 = new tr.ui.b.BrushingState();
-    bs1.selection = new Selection([m1.sA]);
+    bs1.selection = new EventSet([m1.sA]);
 
     // Change the model.
     var m2 = tr.c.test_utils.newModel(function(m) {

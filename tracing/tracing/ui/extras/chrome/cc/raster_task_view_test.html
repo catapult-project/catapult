@@ -4,16 +4,18 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/base/utils.html">
+
 <link rel="import" href="/base/event_target.html">
-<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/base/utils.html">
 <link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/ui/extras/chrome/cc/layer_tree_host_impl_view.html">
 <link rel="import" href="/ui/extras/chrome/cc/raster_task_selection.html">
 <link rel="import" href="/ui/extras/chrome/cc/raster_task_view.html">
-<link rel="import" href="/ui/extras/chrome/cc/layer_tree_host_impl_view.html">
 
 <script src="/extras/chrome/cc/layer_tree_host_impl_test_data.js"></script>
 
@@ -28,7 +30,7 @@ tr.b.unittest.testSuite(function() {
       return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';
     });
 
-    var selection = new tr.c.Selection();
+    var selection = new tr.m.EventSet();
     selection.model = m;
 
     selection.push(rasterTasks[0]);

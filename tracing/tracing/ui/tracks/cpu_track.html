@@ -5,11 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/tracks/container_track.html">
-<link rel="import" href="/ui/tracks/slice_track.html">
 <link rel="import" href="/core/filter.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/container_track.html">
+<link rel="import" href="/ui/tracks/slice_track.html">
 
 <script>
 'use strict';
@@ -120,7 +121,7 @@ tr.exportTo('tr.ui.tracks', function() {
             sampleTitle;
         samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
-          var selection = new tr.c.Selection();
+          var selection = new tr.m.EventSet();
           for (var i = 0; i < samplesTrack.slices.length; i++) {
             selection.push(samplesTrack.slices[i]);
           }

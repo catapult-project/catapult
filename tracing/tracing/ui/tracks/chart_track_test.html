@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/model/event.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/tracks/chart_axis.html">
 <link rel="import" href="/ui/tracks/chart_point.html">
 <link rel="import" href="/ui/tracks/chart_series.html">
@@ -19,7 +19,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var Viewport = tr.ui.TimelineViewport;
   var Event = tr.model.Event;
   var SelectionState = tr.model.SelectionState;
@@ -171,7 +171,7 @@ tr.b.unittest.testSuite(function() {
   test('checkaddIntersectingEventsInRangeToSelectionInWorldSpace', function() {
     var track = buildTrack();
 
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -1.1, -0.7, 0.01, sel);
     assert.lengthOf(sel, 3);
@@ -184,13 +184,13 @@ tr.b.unittest.testSuite(function() {
     var track = buildTrack();
 
     // Fail to find a near item to the left in any series.
-    var sel = new Selection();
+    var sel = new EventSet();
     assert.isFalse(track.addEventNearToProvidedEventToSelection(
         track.series[0].points[0].modelItem, -1, sel));
     assert.lengthOf(sel, 0);
 
     // Succeed at finding a near item to the right of one series.
-    var sel = new Selection();
+    var sel = new EventSet();
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         track.series[1].points[1].modelItem, 1, sel));
     assert.lengthOf(sel, 1);
@@ -200,7 +200,7 @@ tr.b.unittest.testSuite(function() {
   test('checkAddClosestEventToSelection', function() {
     var track = buildTrack();
 
-    var sel = new Selection();
+    var sel = new EventSet();
     track.addClosestEventToSelection(-0.8, 0.4, 0.5, 1.5, sel);
     assert.lengthOf(sel, 2);
     assert.equal(sel[0], track.series[0].points[2].modelItem);

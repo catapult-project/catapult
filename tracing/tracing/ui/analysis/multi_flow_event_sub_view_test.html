@@ -5,17 +5,17 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
 
   test('analyzeSelectionWithSingleEvent', function() {
     var model = new Model();
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     model.flowEvents.push(fe1);
     model.flowEvents.push(fe2);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     selection.push(fe1);
     selection.push(fe2);
     assert.equal(selection.length, 2);

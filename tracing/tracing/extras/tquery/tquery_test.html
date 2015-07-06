@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/extras/tquery/tquery.html">
+<link rel="import" href="/model/event_set.html">
 
 <script>
 'use strict';
@@ -50,7 +51,7 @@ tr.exportTo('tr.e.tquery', function() {
       }
     },
     showScriptControlSelection: function(selection) {
-      this.selection = new tr.c.Selection();
+      this.selection = new tr.m.EventSet();
       this.highlight = selection;
     }
   };

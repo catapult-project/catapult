@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/event_target.html">
 <link rel="import" href="/core/scripting_controller.html">
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
 
 <script>
 'use strict';
@@ -20,8 +21,8 @@ tr.b.unittest.testSuite(function() {
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tr.c.Selection();
-    this.highlight = new tr.c.Selection();
+    this.selection = new tr.m.EventSet();
+    this.highlight = new tr.m.EventSet();
   }
   FakeSelectionController.prototype = {
     __proto__: tr.b.EventTarget.prototype

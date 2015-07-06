@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/ui/analysis/stub_analysis_results.html">
-<link rel="import" href="/core/test_utils.html">
-<link rel="import" href="/core/selection.html">
-<link rel="import" href="/model/model.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var Counter = tr.model.Counter;
   var CounterSeries = tr.model.CounterSeries;
 
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var StubAnalysisResults = tr.ui.analysis.StubAnalysisResults;
 
   function createSeries(ctr) {
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
     var ctr = new Counter(null, 0, 'foo', 'ctr[0]');
     createSeries(ctr);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var t1track = {};
 
     selection.push(ctr.getSeries(0).samples[1]);
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     var ctr2 = new Counter(null, 0, '', 'ctr2');
     createSeries(ctr2);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var t1track = {};
 
     selection.push(ctr1.getSeries(0).samples[1]);
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
     series.addCounterSample(0, 0);
     series.addCounterSample(10, 10);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var t1track = {};
     selection.push(ctr.getSeries(0).samples[1]);
 
@@ -145,7 +145,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr2.numSamples, 4);
     assert.equal(ctr2.numSeries, 2);
 
-    var selection = new Selection();
+    var selection = new EventSet();
     var t1track = {};
     var t2track = {};
 

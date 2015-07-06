@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/base/statistics.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/pie_chart.html">
 <link rel="import" href="/ui/base/sortable_table.html">
@@ -132,7 +132,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var RequestSelectionChangeEvent = tr.c.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tr.m.RequestSelectionChangeEvent;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
   /**
@@ -333,7 +333,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
       var sample = selection[i];
       var id = sample.leafStackFrame.id;
       if (!stackFrameIdToSamples[id])
-        stackFrameIdToSamples[id] = new tr.c.Selection();
+        stackFrameIdToSamples[id] = new tr.m.EventSet();
       stackFrameIdToSamples[id].push(sample);
     }
     return stackFrameIdToSamples;
@@ -471,7 +471,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
 
     getSamplesFromNode_: function(node) {
       // A node has samples associated with it, if it's a leaf node.
-      var selection = new tr.c.Selection();
+      var selection = new tr.m.EventSet();
       if (node.leaf_node_id !== undefined) {
         selection.addSelection(this.stackFrameIdToSamples_[node.leaf_node_id]);
       }

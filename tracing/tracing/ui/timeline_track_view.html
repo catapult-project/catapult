@@ -13,18 +13,18 @@ found in the LICENSE file.
 <link rel="import" href="/base/task.html">
 <link rel="import" href="/base/units/time_duration.html">
 <link rel="import" href="/core/filter.html">
-<link rel="import" href="/core/selection.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/x_marker_annotation.html">
 <link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/ui/base/timing_tool.html">
+<link rel="import" href="/ui/base/ui.html">
 <link rel="import" href="/ui/timeline_viewport.html">
 <link rel="import" href="/ui/timeline_display_transform_animations.html">
 <link rel="import" href="/ui/tracks/drawing_container.html">
 <link rel="import" href="/ui/tracks/model_track.html">
 <link rel="import" href="/ui/tracks/ruler_track.html">
-<link rel="import" href="/model/event.html">
-<link rel="import" href="/model/x_marker_annotation.html">
-<link rel="import" href="/ui/base/ui.html">
-<link rel="import" href="/ui/base/mouse_mode_selector.html">
 
 <script>
 'use strict';
@@ -44,7 +44,7 @@ found in the LICENSE file.
  *
  */
 tr.exportTo('tr.ui', function() {
-  var Selection = tr.c.Selection;
+  var EventSet = tr.m.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
@@ -542,7 +542,7 @@ tr.exportTo('tr.ui', function() {
       if (!curSelection.length || !curSelection[0].title)
         return;
 
-      var selection = new Selection();
+      var selection = new EventSet();
       var filter = new tr.c.ExactTitleFilter(curSelection[0].title);
       this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
                                                               selection);
@@ -1001,7 +1001,7 @@ tr.exportTo('tr.ui', function() {
       var hiVX = hiX - worldOffset;
 
       // Figure out what has been selected.
-      var selection = new Selection();
+      var selection = new EventSet();
       this.modelTrack_.addIntersectingEventsInRangeToSelection(
           loVX, hiVX, loY, hiY, selection);
 
