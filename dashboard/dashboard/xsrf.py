@@ -1,3 +1,7 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 """Decorator that validates XSRF tokens."""
 
 import os
@@ -41,7 +45,8 @@ def TokenRequired(handler_method):
 
   def CheckToken(self, *args, **kwargs):
     user = users.get_current_user()
-    if not user or not _ValidateToken(self.request.get('xsrf_token'), user):
+    token = str(self.request.get('xsrf_token'))
+    if not user or not _ValidateToken(token, user):
       self.abort(403)
     handler_method(self, *args, **kwargs)
 
