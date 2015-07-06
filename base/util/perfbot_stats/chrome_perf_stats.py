@@ -89,7 +89,7 @@ def _SummarizeSuccessRates(success_rates):
   for day, results in success_rates.iteritems():
     success_rate_sum = 0
     success_rate_count = 0
-    for builder, rates in results.iteritems():
+    for rates in results.values():
       if rates['count'] == 0:
         continue
       success_rate_sum += (
@@ -130,7 +130,7 @@ def UploadToPerfDashboard(success_rates):
     }
     url = 'https://chromeperf.appspot.com/add_point'
     data = urllib.urlencode({'data': json.dumps(dashboard_data)})
-    content = urllib2.urlopen(url=url, data=data).read()
+    urllib2.urlopen(url=url, data=data).read()
 
 
 def CalculateSuccessRates(year, month, days, builders):

@@ -99,7 +99,7 @@ def GetNamespace():
   return 'externally_visible'
 
 
-def _DatastorePreHook(service, call, request, unused_response):
+def _DatastorePreHook(service, call, request, _):
   """Adds a filter which checks whether to return internal data for queries.
 
   If the user is not privileged, we don't want to return any entities that
@@ -111,7 +111,7 @@ def _DatastorePreHook(service, call, request, unused_response):
     call: String representing function to call. One of 'Put', Get', 'Delete',
         or 'RunQuery'.
     request: Request protobuf.
-    unused_response: Response protobuf (not used).
+    _: Response protobuf (not used).
   """
   assert service == 'datastore_v3'
   if call != 'RunQuery':

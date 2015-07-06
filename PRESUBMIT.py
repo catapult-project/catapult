@@ -9,13 +9,13 @@ for more details about the presubmit API built into depot_tools.
 """
 
 
-def GetPreferredTryMasters(project, change):
+def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
   return {
-    'tryserver.client.catapult': {
-      'Catapult Linux Tryserver': set(['defaulttests']),
-      'Catapult Mac Tryserver': set(['defaulttests']),
-      'Catapult Windows Tryserver': set(['defaulttests']),
-    }
+      'tryserver.client.catapult': {
+          'Catapult Linux Tryserver': {'defaulttests'},
+          'Catapult Mac Tryserver': {'defaulttests'},
+          'Catapult Windows Tryserver': {'defaulttests'},
+      }
   }
 
 

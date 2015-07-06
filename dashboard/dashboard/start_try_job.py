@@ -207,7 +207,7 @@ def _PrefillInfo(test_path):
   info['internal_only'] = suite.internal_only
   info['use_archive'] = _CanDownloadBuilds(suite.master_name)
 
-  info['all_bots'] = _GetAvailableBisectBots(suite.master_name)
+  info['all_bots'] = _BISECT_BOTS
   info['bisect_bot'] = GuessBisectBot(suite.bot.string_id())
 
   user = users.get_current_user()
@@ -348,11 +348,6 @@ def _GetPerfTryConfig(
   config_python_string = 'config = %s\n' % json.dumps(
       config_dict, sort_keys=True, indent=2, separators=(',', ': '))
   return {'config': config_python_string}
-
-
-def _GetAvailableBisectBots(master_name):
-  """Get all available bisect bots for the given Perf Master."""
-  return _BISECT_BOTS
 
 
 def _CanDownloadBuilds(master_name):
@@ -603,7 +598,7 @@ def PerformBisect(bisect_job):
       base_config, config, _BISECT_CONFIG_PATH)
 
   # Check if bisect is for internal only tests.
-  bisect_internal = _IsBisectInternalOnly(bisect_job)
+  bisect_internal = False
 
   # Upload the patch to Rietveld.
   server = rietveld_service.RietveldService(bisect_internal)
@@ -628,7 +623,7 @@ def PerformBisect(bisect_job):
     issue_url = '%s/%s' % (server.Config().server_url.strip('/bots'), issue_id)
 
   # Tell Rietveld to try the patch.
-  master = _GetTryServerMaster(bisect_job)
+  master = 'tryserver.chromium.perf'
   trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
   if trypatch_success:
     # Create TryJob entity.  update_bug_from_rietveld and auto_bisect
@@ -642,16 +637,6 @@ def PerformBisect(bisect_job):
       LogBisectResult(bug_id, bug_comment)
     return {'issue_id': issue_id, 'issue_url': issue_url}
   return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
-
-
-def _IsBisectInternalOnly(bisect_job):
-  """Checks if the bisect is for an internal-only test."""
-  return False
-
-
-def _GetTryServerMaster(bisect_job):
-  """Returns the try server master to be used for bisecting."""
-  return 'tryserver.chromium.perf'
 
 
 def _PerformPerfTryJob(perf_job):

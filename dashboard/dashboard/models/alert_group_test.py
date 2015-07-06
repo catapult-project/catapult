@@ -201,10 +201,10 @@ class StoppageAlertGroupingTest(testing_common.TestCase):
 
   def testStoppageAlertGroup_GroupAssignedUponCreation(self):
     """In CreateStoppageAlert, a group should be found and and assigned."""
-    foo, bar = self._AddStoppageAlerts()
-    self.assertIsNotNone(foo.group)
-    self.assertIsNotNone(bar.group)
-    self.assertEqual('StoppageAlert', foo.group.get().alert_kind)
+    foo_alert, bar_alert = self._AddStoppageAlerts()
+    self.assertIsNotNone(foo_alert.group)
+    self.assertIsNotNone(bar_alert.group)
+    self.assertEqual('StoppageAlert', foo_alert.group.get().alert_kind)
 
 
 class GroupAlertsTest(testing_common.TestCase):

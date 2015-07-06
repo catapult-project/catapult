@@ -18,9 +18,6 @@ class AlertTest(testing_common.TestCase):
   def _AddDataForTests(self):
     testing_common.AddDataToMockDataStore(
         ['SuperGPU'], ['Bot1', 'Bot2', 'Bot3'], {'foo': {'bar': {}}})
-    self.test_key_1 = utils.TestKey('SuperGPU/Bot1/foo/bar')
-    self.test_key_2 = utils.TestKey('SuperGPU/Bot2/foo/bar')
-    self.test_key_3 = utils.TestKey('SuperGPU/Bot3/foo/bar')
 
   def testGetBotNamesFromAlerts_EmptyList_ReturnsEmptySet(self):
     """Tests that an empty set is returned when nothing is passed."""
@@ -29,8 +26,9 @@ class AlertTest(testing_common.TestCase):
   def testGetBotNamesFromAlerts_RemovesDuplicates(self):
     """Tests that duplicates are removed from the result."""
     self._AddDataForTests()
-    anomaly.Anomaly(test=self.test_key_1).put()
-    anomaly.Anomaly(test=self.test_key_1).put()
+    test_key_1 = utils.TestKey('SuperGPU/Bot1/foo/bar')
+    anomaly.Anomaly(test=test_key_1).put()
+    anomaly.Anomaly(test=test_key_1).put()
     anomalies = anomaly.Anomaly.query().fetch()
     bot_names = alert.GetBotNamesFromAlerts(anomalies)
     self.assertEqual(2, len(anomalies))
@@ -39,9 +37,12 @@ class AlertTest(testing_common.TestCase):
   def testGetBotNamesFromAlerts_TypicalCase(self):
     """Tests that we can get the name of the bots for a list of anomalies."""
     self._AddDataForTests()
-    anomaly.Anomaly(test=self.test_key_1).put()
-    anomaly.Anomaly(test=self.test_key_2).put()
-    anomaly.Anomaly(test=self.test_key_3).put()
+    test_key_1 = utils.TestKey('SuperGPU/Bot1/foo/bar')
+    test_key_2 = utils.TestKey('SuperGPU/Bot2/foo/bar')
+    test_key_3 = utils.TestKey('SuperGPU/Bot3/foo/bar')
+    anomaly.Anomaly(test=test_key_1).put()
+    anomaly.Anomaly(test=test_key_2).put()
+    anomaly.Anomaly(test=test_key_3).put()
     anomalies = anomaly.Anomaly.query().fetch()
     bot_names = alert.GetBotNamesFromAlerts(anomalies)
     self.assertEqual({'Bot1', 'Bot2', 'Bot3'}, bot_names)
