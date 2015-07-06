@@ -230,7 +230,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           function(data) {
             this.isRecording_ = false;
             buttons.querySelector('#monitor-checkbox').disabled = false;
-            this.setActiveTrace('trace.json.gz', data, false);
+            var traceName = tr.ui.e.about_tracing.defaultTraceName(
+                this.tracingControllerClient_);
+            this.setActiveTrace(traceName, data, false);
           }.bind(this),
           function(err) {
             this.isRecording_ = false;
@@ -288,7 +290,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
               this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
-            this.setActiveTrace('trace.json.gz', data, true);
+            var traceName = tr.ui.e.about_tracing.defaultTraceName(
+                this.tracingControllerClient_);
+            this.setActiveTrace(traceName, data, true);
           }.bind(this),
           function(err) {
             if (err instanceof tr.ui.e.about_tracing.UserCancelledError)

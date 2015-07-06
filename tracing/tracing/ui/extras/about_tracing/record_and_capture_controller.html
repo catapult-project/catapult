@@ -211,6 +211,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     return tracingControllerClient.endRecording();
   }
 
+  function defaultTraceName(tracingControllerClient) {
+    return tracingControllerClient.defaultTraceName();
+  }
+
   function UserCancelledError() {
     Error.apply(this, arguments);
   }
@@ -224,7 +228,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     endMonitoring: endMonitoring,
     captureMonitoring: captureMonitoring,
     getMonitoringStatus: getMonitoringStatus,
-    UserCancelledError: UserCancelledError
+    UserCancelledError: UserCancelledError,
+    defaultTraceName: defaultTraceName
   };
 });
 </script>
