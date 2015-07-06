@@ -6,8 +6,8 @@ import os
 import unittest
 
 PERF_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from telemetry.internal.testing import system_stub_test_module
 from telemetry.unittest_util import system_stub
-from unittest_data import system_stub_test_module
 
 class CloudStorageTest(unittest.TestCase):
   SUCCESS_FILE_HASH = 'success'.zfill(40)

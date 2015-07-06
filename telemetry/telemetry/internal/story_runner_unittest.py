@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import StringIO
 import sys
 import unittest
@@ -9,6 +10,7 @@ import unittest
 from catapult_base import cloud_storage
 from telemetry import benchmark
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -448,6 +450,9 @@ class StoryRunnerTest(unittest.TestCase):
   def testUpdateAndCheckArchives(self):
     usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
     wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
+    archive_data_dir = os.path.join(
+        util.GetTelemetryDir(),
+        'telemetry', 'internal', 'testing', 'archive_files')
     try:
       story_set = story_module.StorySet()
       story_set.AddStory(page_module.Page(
@@ -473,7 +478,7 @@ class StoryRunnerTest(unittest.TestCase):
           story_set.stories)
 
       story_set = story_module.StorySet(
-          archive_data_file='../../unittest_data/archive_files/test.json',
+          archive_data_file=os.path.join(archive_data_dir, 'test.json'),
           cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
       story_set.AddStory(page_module.Page(
           'http://www.testurl.com', story_set, story_set.base_dir))
@@ -492,7 +497,8 @@ class StoryRunnerTest(unittest.TestCase):
           story_set.stories)
 
       story_set = story_module.StorySet(
-          archive_data_file='../../unittest_data/test_missing_wpr_file.json',
+          archive_data_file=
+              os.path.join(archive_data_dir, 'test_missing_wpr_file.json'),
           cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
       story_set.AddStory(page_module.Page(
           'http://www.testurl.com', story_set, story_set.base_dir))

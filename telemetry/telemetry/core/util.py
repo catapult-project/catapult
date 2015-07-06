@@ -32,7 +32,8 @@ def GetTelemetryThirdPartyDir():
 
 
 def GetUnittestDataDir():
-  return os.path.join(GetTelemetryDir(), 'unittest_data')
+  return os.path.join(GetTelemetryDir(),
+                      'telemetry', 'internal', 'testing')
 
 
 def GetChromiumSrcDir():

@@ -20,7 +20,7 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
 
     # Document_count > 1 indicates that WebCore::Document loaded in Chrome
     # is leaking! The baseline should exactly match the numbers on:
-    # unittest_data/dom_counter_sample.html
+    # internal/testing/dom_counter_sample.html
     # Please contact kouhei@, hajimehoshi@ when rebaselining.
     counts = self._tab.dom_stats
     self.assertEqual(counts['document_count'], 1,
