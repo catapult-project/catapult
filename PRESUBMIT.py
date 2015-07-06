@@ -1,4 +1,4 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -29,6 +29,7 @@ def _CommonChecks(input_api, output_api):
 def CheckChangeOnUpload(input_api, output_api):
   results = []
   results.extend(_CommonChecks(input_api, output_api))
+  results.extend(_RunPylint(input_api, output_api))
   return results
 
 
@@ -36,3 +37,8 @@ def CheckChangeOnCommit(input_api, output_api):
   results = []
   results.extend(_CommonChecks(input_api, output_api))
   return results
+
+
+def _RunPylint(input_api, output_api):
+  tests = input_api.canned_checks.GetPylint(input_api, output_api)
+  return input_api.RunTests(tests)
