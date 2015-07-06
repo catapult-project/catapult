@@ -10,6 +10,7 @@
     "third_party/trace-viewer/",
     "third_party/typ/",
     "third_party/pexpect/",
+    "third_party/ply/",
     "third_party/webpagereplay/",
     "tools/telemetry/",
     "third_party/chromite/ssh_keys/"
