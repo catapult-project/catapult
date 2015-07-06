@@ -19,8 +19,8 @@ import zipfile
 
 from catapult_base import cloud_storage
 from telemetry.core import exceptions
+from telemetry.core import os_version as os_version_module
 from telemetry.core.platform import desktop_platform_backend
-from telemetry.core.platform import platform_backend
 from telemetry.core.platform.power_monitor import msr_power_monitor
 from telemetry.core import util
 from telemetry import decorators
@@ -229,13 +229,13 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     os_version = platform.uname()[3]
 
     if os_version.startswith('5.1.'):
-      return platform_backend.XP
+      return os_version_module.XP
     if os_version.startswith('6.0.'):
-      return platform_backend.VISTA
+      return os_version_module.VISTA
     if os_version.startswith('6.1.'):
-      return platform_backend.WIN7
+      return os_version_module.WIN7
     if os_version.startswith('6.2.'):
-      return platform_backend.WIN8
+      return os_version_module.WIN8
 
     raise NotImplementedError('Unknown win version %s.' % os_version)
 
@@ -289,7 +289,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return performance_info
 
   def IsCurrentProcessElevated(self):
-    if self.GetOSVersionName() < platform_backend.VISTA:
+    if self.GetOSVersionName() < os_version_module.VISTA:
       # TOKEN_QUERY is not defined before Vista. All processes are elevated.
       return True
 

@@ -6,24 +6,21 @@ import os
 import unittest
 
 from telemetry.core import platform as platform_module
-from telemetry.core.platform import platform_backend
+from telemetry.core import os_version
 from telemetry import decorators
 
 
 class MacPlatformBackendTest(unittest.TestCase):
   def testVersionCamparison(self):
-    self.assertGreater(platform_backend.YOSEMITE,
-                       platform_backend.MAVERICKS)
-    self.assertGreater(platform_backend.MAVERICKS,
-                       platform_backend.SNOWLEOPARD)
-    self.assertGreater(platform_backend.LION,
-                       platform_backend.LEOPARD)
-    self.assertEqual(platform_backend.YOSEMITE, 'yosemite')
-    self.assertEqual(platform_backend.MAVERICKS, 'mavericks')
-    self.assertEqual('%s2' % platform_backend.MAVERICKS, 'mavericks2')
-    self.assertEqual(''.join([platform_backend.MAVERICKS, '2']),
+    self.assertGreater(os_version.YOSEMITE, os_version.MAVERICKS)
+    self.assertGreater(os_version.MAVERICKS, os_version.SNOWLEOPARD)
+    self.assertGreater(os_version.LION, os_version.LEOPARD)
+    self.assertEqual(os_version.YOSEMITE, 'yosemite')
+    self.assertEqual(os_version.MAVERICKS, 'mavericks')
+    self.assertEqual('%s2' % os_version.MAVERICKS, 'mavericks2')
+    self.assertEqual(''.join([os_version.MAVERICKS, '2']),
                      'mavericks2')
-    self.assertEqual(platform_backend.LION.upper(), 'LION')
+    self.assertEqual(os_version.LION.upper(), 'LION')
 
   @decorators.Enabled('mac')
   def testGetCPUStats(self):
@@ -34,5 +31,5 @@ class MacPlatformBackendTest(unittest.TestCase):
     cpu_stats = backend.GetCpuStats(os.getpid())
     self.assertGreater(cpu_stats['CpuProcessTime'], 0)
     self.assertTrue(cpu_stats.has_key('ContextSwitches'))
-    if backend.GetOSVersionName() >= platform_backend.MAVERICKS:
+    if backend.GetOSVersionName() >= os_version.MAVERICKS:
       self.assertTrue(cpu_stats.has_key('IdleWakeupCount'))

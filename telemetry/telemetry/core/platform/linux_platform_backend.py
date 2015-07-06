@@ -11,7 +11,7 @@ import sys
 from catapult_base import cloud_storage
 from catapult_base import support_binaries
 from telemetry.core.platform import linux_based_platform_backend
-from telemetry.core.platform import platform_backend
+from telemetry.core import os_version
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform.power_monitor import msr_power_monitor
 from telemetry.core import util
@@ -66,7 +66,7 @@ class LinuxPlatformBackend(
           version = 0
       if codename and version:
         break
-    return platform_backend.OSVersion(codename, version)
+    return os_version.OSVersion(codename, version)
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
