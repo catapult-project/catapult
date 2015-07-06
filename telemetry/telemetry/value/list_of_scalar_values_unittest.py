@@ -4,8 +4,8 @@
 import os
 import unittest
 
+from telemetry import story
 from telemetry import page as page_module
-from telemetry.page import page_set
 from telemetry import value
 from telemetry.value import list_of_scalar_values
 from telemetry.value import none_values
@@ -13,15 +13,18 @@ from telemetry.value import none_values
 
 class TestBase(unittest.TestCase):
   def setUp(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
-    ps.AddStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
-    ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-    self.page_set = ps
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page_module.Page('http://www.bar.com/', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page_module.Page('http://www.baz.com/', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page_module.Page('http://www.foo.com/', story_set, story_set.base_dir))
+    self.story_set = story_set
 
   @property
   def pages(self):
-    return self.page_set.pages
+    return self.story_set.stories
 
 class ValueTest(TestBase):
   def testListSamePageMergingWithSamePageConcatenatePolicy(self):

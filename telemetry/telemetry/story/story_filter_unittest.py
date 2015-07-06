@@ -4,23 +4,23 @@
 
 import unittest
 
+from telemetry import story
 from telemetry.page import page
-from telemetry.page import page_set
 from telemetry.story import story_filter as story_filter_module
 
 
 class FilterTest(unittest.TestCase):
 
   def setUp(self):
-    ps = page_set.PageSet()
+    story_set = story.StorySet()
     self.p1 = page.Page(
-      url='file://your/smile/widen.html', page_set=ps,
+      url='file://your/smile/widen.html', page_set=story_set,
       name='MayYour.smile_widen', labels=['label1', 'label2'])
     self.p2 = page.Page(
-      url='file://share_a/smile/too.html', page_set=ps,
+      url='file://share_a/smile/too.html', page_set=story_set,
       name='ShareA.smiles_too', labels=['label1'])
     self.p3 = page.Page(
-      url='file://share_a/smile/too.html', page_set=ps,
+      url='file://share_a/smile/too.html', page_set=story_set,
       labels=['label2'])
     self.pages = [self.p1, self.p2, self.p3]
 

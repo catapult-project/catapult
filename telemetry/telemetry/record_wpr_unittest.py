@@ -6,10 +6,10 @@ import os
 import sys
 
 from telemetry import benchmark
+from telemetry import story
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.page import page as page_module
-from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry import record_wpr
 from telemetry.unittest_util import tab_test_case
@@ -17,9 +17,9 @@ from telemetry.util import wpr_modes
 
 
 class MockPage(page_module.Page):
-  def __init__(self, page_set, url):
+  def __init__(self, story_set, url):
     super(MockPage, self).__init__(url=url,
-                                   page_set=page_set,
+                                   page_set=story_set,
                                    base_dir=util.GetUnittestDataDir())
     self.func_calls = []
 
@@ -33,9 +33,9 @@ class MockPage(page_module.Page):
   def RunSmoothness(self, _):
     self.func_calls.append('RunSmoothness')
 
-class MockPageSet(page_set_module.PageSet):
+class MockStorySet(story.StorySet):
   def __init__(self, url=''):
-    super(MockPageSet, self).__init__(
+    super(MockStorySet, self).__init__(
         archive_data_file='data/archive_files/test.json')
     self.AddStory(MockPage(self, url))
 
@@ -66,7 +66,7 @@ class MockPageTest(page_test.PageTest):
 
 class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
-  mock_page_set = None
+  mock_story_set = None
 
   @classmethod
   def AddBenchmarkCommandLineArgs(cls, group):
@@ -76,8 +76,8 @@ class MockBenchmark(benchmark.Benchmark):
     kwargs = {}
     if options.mock_benchmark_url:
       kwargs['url'] = options.mock_benchmark_url
-    self.mock_page_set = MockPageSet(**kwargs)
-    return self.mock_page_set
+    self.mock_story_set = MockStorySet(**kwargs)
+    return self.mock_story_set
 
 
 class RecordWprUnitTests(tab_test_case.TabTestCase):
@@ -95,7 +95,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   # PageTest to use. In this case, we will record every available action.
   def testRunPage_AllActions(self):
     record_page_test = record_wpr.RecorderPageTest()
-    page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
+    page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
 
     record_page_test.RunNavigateSteps(page, self._tab)
     self.assertTrue('RunNavigateSteps' in page.func_calls)
@@ -105,13 +105,13 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   def testRunPage_OnlyRunBenchmarkAction(self):
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
-    page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
+    page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
     record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
 
   def testRunPage_CallBenchmarksPageTestsFunctions(self):
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
-    page = MockPage(page_set=MockPageSet(url=self._url), url=self._url)
+    page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
     record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
     self.assertEqual(1, len(record_page_test.page_test.func_calls))
     self.assertEqual('ValidateAndMeasurePage',
@@ -121,12 +121,12 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   def testWprRecorderWithPageSet(self):
     flags = ['--browser', self._browser.browser_type,
              '--device', self._device]
-    mock_page_set = MockPageSet(url=self._url)
+    mock_story_set = MockStorySet(url=self._url)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
-                                          mock_page_set, flags)
+                                          mock_story_set, flags)
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_page_set.pages), results.pages_that_succeeded)
+    self.assertEqual(set(mock_story_set.stories), results.pages_that_succeeded)
 
   def testWprRecorderWithBenchmark(self):
     flags = ['--mock-benchmark-url', self._url,
@@ -137,7 +137,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
                                           flags)
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_benchmark.mock_page_set.pages),
+    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
                      results.pages_that_succeeded)
 
   def testPageSetBaseDirFlag(self):
@@ -152,7 +152,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
         'non-existent-dummy-dir', mock_benchmark, flags)
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_benchmark.mock_page_set.pages),
+    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
                      results.pages_that_succeeded)
 
   def testCommandLineFlags(self):

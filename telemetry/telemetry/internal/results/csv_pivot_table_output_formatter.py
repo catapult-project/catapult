@@ -12,7 +12,7 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
   """Output the results as CSV suitable for reading into a spreadsheet.
 
   This will write a header row, and one row for each value. Each value row
-  contains the value and unit, identifies the value (page_set, page, name), and
+  contains the value and unit, identifies the value (story_set, page, name), and
   (optionally) data from --output-trace-tag. This format matches what
   spreadsheet programs expect as input for a "pivot table".
 
@@ -24,7 +24,7 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
   This class only processes scalar values.
   """
 
-  FIELDS = ['page_set', 'page', 'name', 'value', 'units', 'run_index']
+  FIELDS = ['story_set', 'page', 'name', 'value', 'units', 'run_index']
 
   def __init__(self, output_stream, trace_tag=''):
     super(CsvPivotTableOutputFormatter, self).__init__(output_stream)
@@ -46,7 +46,7 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
       run_index = page_test_results.all_page_runs.index(run)
       page_dict = {
           'page': run.story.display_name,
-          'page_set': run.story.page_set.Name(),
+          'story_set': run.story.page_set.Name(),
           'run_index': run_index,
       }
       for value in run.values:

@@ -5,8 +5,8 @@
 import os
 import unittest
 
+from telemetry import story
 from telemetry.page import page
-from telemetry.page import page_set
 
 
 class TestPage(unittest.TestCase):
@@ -42,88 +42,101 @@ class TestPage(unittest.TestCase):
                     (os.altsep and apage.file_path_url.endswith(os.altsep)))
 
   def testSort(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
-    ps.AddStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page('http://www.foo.com/', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page.Page('http://www.bar.com/', story_set, story_set.base_dir))
 
-    pages = [ps.pages[0], ps.pages[1]]
+    pages = [story_set.stories[0], story_set.stories[1]]
     pages.sort()
-    self.assertEquals([ps.pages[1], ps.pages[0]],
+    self.assertEquals([story_set.stories[1], story_set.stories[0]],
                       pages)
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     base_dir = os.path.dirname(__file__)
     file_path = os.path.join(os.path.dirname(base_dir), 'otherdir', 'file.html')
-    ps = page_set.PageSet(base_dir=base_dir,
+    story_set = story.StorySet(base_dir=base_dir,
                           serving_dirs=[os.path.join('..', 'somedir', '')])
-    ps.AddStory(page.Page('file://../otherdir/file.html', ps, ps.base_dir))
-    self.assertPathEqual(ps[0].file_path, file_path)
+    story_set.AddStory(
+        page.Page('file://../otherdir/file.html', story_set,
+                  story_set.base_dir))
+    self.assertPathEqual(story_set[0].file_path, file_path)
 
   def testDisplayUrlForHttp(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
-    ps.AddStory(page.Page('http://www.bar.com/', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page('http://www.foo.com/', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page.Page('http://www.bar.com/', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'http://www.foo.com/')
-    self.assertEquals(ps[1].display_name, 'http://www.bar.com/')
+    self.assertEquals(story_set[0].display_name, 'http://www.foo.com/')
+    self.assertEquals(story_set[1].display_name, 'http://www.bar.com/')
 
   def testDisplayUrlForHttps(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('http://www.foo.com/', ps, ps.base_dir))
-    ps.AddStory(page.Page('https://www.bar.com/', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page('http://www.foo.com/', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page.Page('https://www.bar.com/', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'http://www.foo.com/')
-    self.assertEquals(ps[1].display_name, 'https://www.bar.com/')
+    self.assertEquals(story_set[0].display_name, 'http://www.foo.com/')
+    self.assertEquals(story_set[1].display_name, 'https://www.bar.com/')
 
   def testDisplayUrlForFile(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/foo.html', ps, ps.base_dir))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/bar.html', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/foo.html', story_set, story_set.base_dir))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/bar.html', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'foo.html')
-    self.assertEquals(ps[1].display_name, 'bar.html')
+    self.assertEquals(story_set[0].display_name, 'foo.html')
+    self.assertEquals(story_set[1].display_name, 'bar.html')
 
   def testDisplayUrlForFilesDifferingBySuffix(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/foo.html', ps, ps.base_dir))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/foo1.html', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/foo.html', story_set, story_set.base_dir))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/foo1.html', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'foo.html')
-    self.assertEquals(ps[1].display_name, 'foo1.html')
+    self.assertEquals(story_set[0].display_name, 'foo.html')
+    self.assertEquals(story_set[1].display_name, 'foo1.html')
 
   def testDisplayUrlForFileOfDifferentPaths(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('file://../../somedir/foo.html', ps, ps.base_dir))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/bar.html', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page(
+            'file://../../somedir/foo.html', story_set, story_set.base_dir))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/bar.html', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'somedir/foo.html')
-    self.assertEquals(ps[1].display_name, 'otherdir/bar.html')
+    self.assertEquals(story_set[0].display_name, 'somedir/foo.html')
+    self.assertEquals(story_set[1].display_name, 'otherdir/bar.html')
 
   def testDisplayUrlForFileDirectories(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
-    ps.AddStory(page.Page('file://../../otherdir/bar', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page('file://../../otherdir/foo', story_set, story_set.base_dir))
+    story_set.AddStory(
+        page.Page('file://../../otherdir/bar', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'foo')
-    self.assertEquals(ps[1].display_name, 'bar')
+    self.assertEquals(story_set[0].display_name, 'foo')
+    self.assertEquals(story_set[1].display_name, 'bar')
 
   def testDisplayUrlForSingleFile(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page(
-        'file://../../otherdir/foo.html', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(page.Page(
+        'file://../../otherdir/foo.html', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'foo.html')
+    self.assertEquals(story_set[0].display_name, 'foo.html')
 
   def testDisplayUrlForSingleDirectory(self):
-    ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    ps.AddStory(page.Page('file://../../otherdir/foo', ps, ps.base_dir))
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set.AddStory(
+        page.Page('file://../../otherdir/foo', story_set, story_set.base_dir))
 
-    self.assertEquals(ps[0].display_name, 'foo')
+    self.assertEquals(story_set[0].display_name, 'foo')
 
   def testPagesHaveDifferentIds(self):
     p0 = page.Page("http://example.com")

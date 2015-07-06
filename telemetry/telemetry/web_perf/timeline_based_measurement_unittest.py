@@ -5,9 +5,9 @@
 import os
 import unittest
 
+from telemetry import story
 from telemetry.internal.results import page_test_results
 from telemetry.page import page as page_module
-from telemetry.page import page_set
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
 from telemetry.value import scalar
@@ -46,7 +46,7 @@ class TimelineBasedMetricTestData(object):
     self._foo_thread.name = 'CrFoo'
 
     self._results = page_test_results.PageTestResults()
-    self._ps = None
+    self._story_set = None
     self._threads_to_records_map = None
 
   @property
@@ -80,17 +80,17 @@ class TimelineBasedMetricTestData(object):
     self._model.FinalizeImport()
     self._threads_to_records_map = (
       tbm_module._GetRendererThreadsToInteractionRecordsMap(self._model))
-    self._ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-    self._ps.AddStory(page_module.Page(
-        'http://www.bar.com/', self._ps, self._ps.base_dir))
-    self._results.WillRunPage(self._ps.pages[0])
+    self._story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    self._story_set.AddStory(page_module.Page(
+        'http://www.bar.com/', self._story_set, self._story_set.base_dir))
+    self._results.WillRunPage(self._story_set.stories[0])
 
   def AddResults(self):
     for thread, records in self._threads_to_records_map.iteritems():
       metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
         self._model, thread, records)
       metric.AddResults(self._results)
-    self._results.DidRunPage(self._ps.pages[0])
+    self._results.DidRunPage(self._story_set.stories[0])
 
 
 class TimelineBasedMetricsTests(unittest.TestCase):

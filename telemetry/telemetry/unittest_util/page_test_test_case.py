@@ -7,20 +7,20 @@
 import unittest
 
 from telemetry import benchmark
+from telemetry import story
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
-from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.unittest_util import options_for_unittests
 
 
 class BasicTestPage(page_module.Page):
-  def __init__(self, url, page_set, base_dir):
-    super(BasicTestPage, self).__init__(url, page_set, base_dir)
+  def __init__(self, url, story_set, base_dir):
+    super(BasicTestPage, self).__init__(url, story_set, base_dir)
 
   def RunPageInteractions(self, action_runner):
     with action_runner.CreateGestureInteraction('ScrollAction'):
@@ -43,7 +43,7 @@ class PageTestTestCase(unittest.TestCase):
 
   def CreateEmptyPageSet(self):
     base_dir = util.GetUnittestDataDir()
-    ps = page_set_module.PageSet(base_dir=base_dir)
+    ps = story.StorySet(base_dir=base_dir)
     return ps
 
   def RunMeasurement(self, measurement, ps,

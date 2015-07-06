@@ -7,8 +7,8 @@ import os
 import unittest
 
 from telemetry import decorators
+from telemetry import story
 from telemetry.page import page as page_module
-from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.unittest_util import options_for_unittests
 from telemetry.unittest_util import page_test_test_case
@@ -55,8 +55,8 @@ class PageTestWithAction(page_test.PageTest):
 
 
 class PageWithAction(page_module.Page):
-  def __init__(self, url, ps):
-    super(PageWithAction, self).__init__(url, ps, ps.base_dir)
+  def __init__(self, url, story_set):
+    super(PageWithAction, self).__init__(url, story_set, story_set.base_dir)
     self.run_test_action_called = False
 
   def RunPageInteractions(self, _):
@@ -70,21 +70,24 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
   def testGotToBlank(self):
-    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
+    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     measurement = PageTestForBlank()
-    all_results = self.RunMeasurement(measurement, ps, options=self._options)
+    all_results = self.RunMeasurement(
+        measurement, story_set, options=self._options)
     self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
-    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html?foo=1')
+    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html?foo=1')
     measurement = PageTestQueryParams()
-    all_results = self.RunMeasurement(measurement, ps, options=self._options)
+    all_results = self.RunMeasurement(
+        measurement, story_set, options=self._options)
     self.assertEquals(0, len(all_results.failures))
 
   def testFailure(self):
-    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
+    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     measurement = PageTestThatFails()
-    all_results = self.RunMeasurement(measurement, ps, options=self._options)
+    all_results = self.RunMeasurement(
+        measurement, story_set, options=self._options)
     self.assertEquals(1, len(all_results.failures))
 
   # This test is disabled because it runs against live sites, and needs to be
@@ -102,37 +105,40 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
 }
 """)
     try:
-      ps = page_set.PageSet()
+      story_set = story.StorySet.PageSet()
       measurement = PageTestForReplay()
 
       # First record an archive with only www.google.com.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', ps.bucket, json.loads(archive_info_template %
+      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
+          '', '', story_set.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
-      ps.pages = [page_module.Page(google_url, ps)]
-      all_results = self.RunMeasurement(measurement, ps, options=self._options)
+      story_set.pages = [page_module.Page(google_url, story_set)]
+      all_results = self.RunMeasurement(
+          measurement, story_set, options=self._options)
       self.assertEquals(0, len(all_results.failures))
 
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', ps.bucket, json.loads(archive_info_template %
+      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
+          '', '', story_set.bucket, json.loads(archive_info_template %
                                         (test_archive, foo_url)))
-      ps.pages = [page_module.Page(foo_url, ps)]
-      all_results = self.RunMeasurement(measurement, ps, options=self._options)
+      story_set.pages = [page_module.Page(foo_url, story_set)]
+      all_results = self.RunMeasurement(
+          measurement, story_set, options=self._options)
       self.assertEquals(1, len(all_results.failures))
 
       # pylint: disable=protected-access
-      ps._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', ps.bucket, json.loads(archive_info_template %
+      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
+          '', '', story_set.bucket, json.loads(archive_info_template %
                                         (test_archive, google_url)))
-      ps.pages = [page_module.Page(google_url, ps)]
-      all_results = self.RunMeasurement(measurement, ps, options=self._options)
+      story_set.pages = [page_module.Page(google_url, story_set)]
+      all_results = self.RunMeasurement(
+          measurement, story_set, options=self._options)
       self.assertEquals(0, len(all_results.failures))
 
       self.assertTrue(os.path.isfile(test_archive))
@@ -142,11 +148,11 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
         os.remove(test_archive)
 
   def testRunActions(self):
-    ps = self.CreateEmptyPageSet()
-    page = PageWithAction('file://blank.html', ps)
-    ps.AddStory(page)
+    story_set = self.CreateEmptyPageSet()
+    page = PageWithAction('file://blank.html', story_set)
+    story_set.AddStory(page)
     measurement = PageTestWithAction()
-    self.RunMeasurement(measurement, ps, options=self._options)
+    self.RunMeasurement(measurement, story_set, options=self._options)
     self.assertTrue(page.run_test_action_called)
 
 

@@ -13,7 +13,6 @@ from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
-from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.util import wpr_modes
@@ -95,7 +94,7 @@ def _PrintAllUserStories(base_dir, output_stream):
   output_stream.write('Available page sets\' names:\n\n')
   # TODO: actually print all stories once record_wpr support general
   # stories recording.
-  classes = _GetSubclasses(base_dir, page_set.PageSet)
+  classes = _GetSubclasses(base_dir, story.StorySet)
   for k in classes:
     output_stream.write('%s\n' % k)
 

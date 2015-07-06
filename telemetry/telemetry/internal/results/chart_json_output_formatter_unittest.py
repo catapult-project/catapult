@@ -8,16 +8,16 @@ import StringIO
 import unittest
 
 from telemetry import benchmark
+from telemetry import story
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.page import page_set
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 
 
-def _MakePageSet():
-  ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
+def _MakeStorySet():
+  ps = story.StorySet(base_dir=os.path.dirname(__file__))
   ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
   ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
   return ps
@@ -25,7 +25,7 @@ def _MakePageSet():
 class ChartJsonTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
-    self._page_set = _MakePageSet()
+    self._story_set = _MakeStorySet()
     self._benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     self._formatter = chart_json_output_formatter.ChartJsonOutputFormatter(
@@ -36,17 +36,17 @@ class ChartJsonTest(unittest.TestCase):
 
     self._output.truncate(0)
 
-    results.WillRunPage(self._page_set[0])
+    results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.DidRunPage(self._page_set[0])
+    results.DidRunPage(self._story_set[0])
 
     self._formatter.Format(results)
     d = json.loads(self._output.getvalue())
     self.assertIn('foo', d['charts'])
 
   def testAsChartDictSerializable(self):
-    v0 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3)
+    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3)
     page_specific_values = [v0]
     summary_values = []
 
@@ -81,8 +81,8 @@ class ChartJsonTest(unittest.TestCase):
     self.assertEquals('', d['benchmark_description'])
 
   def testAsChartDictPageSpecificValuesSamePage(self):
-    v0 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3)
-    v1 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 4)
+    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3)
+    v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4)
     page_specific_values = [v0, v1]
     summary_values = []
 
@@ -95,8 +95,8 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithTraceName(self):
-    v0 = scalar.ScalarValue(self._page_set[0], 'foo.bar', 'seconds', 3)
-    v1 = scalar.ScalarValue(self._page_set[1], 'foo.bar', 'seconds', 4)
+    v0 = scalar.ScalarValue(self._story_set[0], 'foo.bar', 'seconds', 3)
+    v1 = scalar.ScalarValue(self._story_set[1], 'foo.bar', 'seconds', 4)
     page_specific_values = [v0, v1]
     summary_values = []
 
@@ -111,8 +111,8 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue('bar' in d['charts']['foo'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithoutTraceName(self):
-    v0 = scalar.ScalarValue(self._page_set[0], 'foo', 'seconds', 3)
-    v1 = scalar.ScalarValue(self._page_set[1], 'foo', 'seconds', 4)
+    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3)
+    v1 = scalar.ScalarValue(self._story_set[1], 'foo', 'seconds', 4)
     page_specific_values = [v0, v1]
     summary_values = []
 

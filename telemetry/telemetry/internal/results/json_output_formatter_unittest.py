@@ -8,21 +8,23 @@ import StringIO
 import tempfile
 import unittest
 
+from telemetry import story
 from telemetry import benchmark
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.page import page_set
 from telemetry.timeline import trace_data
 from telemetry.value import scalar
 from telemetry.value import trace
 
 
-def _MakePageSet():
-  ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-  ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
-  return ps
+def _MakeStorySet():
+  story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+  story_set.AddStory(
+      page_module.Page('http://www.foo.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.bar.com/', story_set, story_set.base_dir))
+  return story_set
 
 def _HasPage(pages, page):
   return pages.get(page.id, None) != None
@@ -33,7 +35,7 @@ def _HasValueNamed(values, name):
 class JsonOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
-    self._page_set = _MakePageSet()
+    self._story_set = _MakeStorySet()
     self._formatter = json_output_formatter.JsonOutputFormatter(
         self._output,
         benchmark.BenchmarkMetadata('benchmark_name'))
@@ -43,10 +45,10 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
     self._output.truncate(0)
 
-    results.WillRunPage(self._page_set[0])
+    results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.DidRunPage(self._page_set[0])
+    results.DidRunPage(self._story_set[0])
 
     self._formatter.Format(results)
     json.loads(self._output.getvalue())
@@ -61,32 +63,32 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
   def testAsDictWithOnePage(self):
     results = page_test_results.PageTestResults()
-    results.WillRunPage(self._page_set[0])
+    results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.DidRunPage(self._page_set[0])
+    results.DidRunPage(self._story_set[0])
 
     d = json_output_formatter.ResultsAsDict(results,
         self._formatter.benchmark_metadata)
 
-    self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
+    self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
 
   def testAsDictWithTraceValue(self):
     tempdir = tempfile.mkdtemp()
     try:
       results = page_test_results.PageTestResults()
-      results.WillRunPage(self._page_set[0])
+      results.WillRunPage(self._story_set[0])
       v0 = trace.TraceValue(
           results.current_page,
           trace_data.TraceData({'event': 'test'}))
       results.AddValue(v0)
-      results.DidRunPage(self._page_set[0])
+      results.DidRunPage(self._story_set[0])
       results._SerializeTracesToDirPath(tempdir)
       d = json_output_formatter.ResultsAsDict(results,
           self._formatter.benchmark_metadata)
 
-      self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
+      self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
       self.assertTrue(_HasValueNamed(d['per_page_values'], 'trace'))
       self.assertEquals(len(d['files']), 1)
       output_trace_path = d['files'].values()[0]
@@ -99,21 +101,21 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
   def testAsDictWithTwoPages(self):
     results = page_test_results.PageTestResults()
-    results.WillRunPage(self._page_set[0])
+    results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3)
     results.AddValue(v0)
-    results.DidRunPage(self._page_set[0])
+    results.DidRunPage(self._story_set[0])
 
-    results.WillRunPage(self._page_set[1])
+    results.WillRunPage(self._story_set[1])
     v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4)
     results.AddValue(v1)
-    results.DidRunPage(self._page_set[1])
+    results.DidRunPage(self._story_set[1])
 
     d = json_output_formatter.ResultsAsDict(results,
         self._formatter.benchmark_metadata)
 
-    self.assertTrue(_HasPage(d['pages'], self._page_set[0]))
-    self.assertTrue(_HasPage(d['pages'], self._page_set[1]))
+    self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
+    self.assertTrue(_HasPage(d['pages'], self._story_set[1]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'bar'))
 

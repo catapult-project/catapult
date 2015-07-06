@@ -7,7 +7,6 @@ import unittest
 
 from telemetry.internal import story_runner
 from telemetry.page import page
-from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
@@ -50,7 +49,7 @@ class SharedPageStateTests(unittest.TestCase):
   def TestUseLiveSitesFlag(self, expected_wpr_mode):
     with tempfile.NamedTemporaryFile() as f:
       run_state = shared_page_state.SharedPageState(
-          DummyTest(), self.options, page_set.PageSet())
+          DummyTest(), self.options, story_module.StorySet())
       fake_network_controller = FakeNetworkController()
       run_state._PrepareWpr(fake_network_controller, f.name, None)
       self.assertEquals(fake_network_controller.wpr_mode, expected_wpr_mode)
@@ -65,7 +64,8 @@ class SharedPageStateTests(unittest.TestCase):
 
   def testConstructorCallsSetOptions(self):
     test = DummyTest()
-    shared_page_state.SharedPageState(test, self.options, page_set.PageSet())
+    shared_page_state.SharedPageState(
+        test, self.options, story_module.StorySet())
     self.assertEqual(test.options, self.options)
 
   def assertUserAgentSetCorrectly(
@@ -92,22 +92,3 @@ class SharedPageStateTests(unittest.TestCase):
         shared_page_state.Shared10InchTabletPageState, 'tablet_10_inch')
     self.assertUserAgentSetCorrectly(
         shared_page_state.SharedPageState, None)
-
-  def testSetPageStatesUserAgentThroughPageSetAttribute(self):
-    ps = page_set.PageSet(user_agent_type='mobile')
-    story = page.Page(
-        'http://www.google.com',
-        shared_page_state_class=shared_page_state.SharedPageState)
-    test = DummyTest()
-    story.shared_state_class(test, self.options, ps)
-    actual_user_agent = self.options.browser_options.browser_user_agent_type
-    self.assertEqual('mobile', actual_user_agent)
-
-    class DummyPageSet(page_set.PageSet):
-      def __init__(self):
-        super(DummyPageSet, self).__init__(user_agent_type='desktop')
-
-    ps = DummyPageSet()
-    story.shared_state_class(test, self.options, ps)
-    actual_user_agent = self.options.browser_options.browser_user_agent_type
-    self.assertEqual('desktop', actual_user_agent)

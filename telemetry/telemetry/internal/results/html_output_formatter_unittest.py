@@ -7,19 +7,22 @@ import StringIO
 import unittest
 
 from telemetry import benchmark
+from telemetry import story
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.page import page_set
 from telemetry.value import scalar
 
 
-def _MakePageSet():
-  ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-  ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
-  return ps
+def _MakeStorySet():
+  story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+  story_set.AddStory(
+      page_module.Page('http://www.foo.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.bar.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.baz.com/', story_set, story_set.base_dir))
+  return story_set
 
 
 class DeterministicHtmlOutputFormatter(
@@ -45,20 +48,20 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     self.maxDiff = 100000
 
   def test_basic_summary(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
     output_file = StringIOFile()
 
     # Run the first time and verify the results are written to the HTML file.
     results = page_test_results.PageTestResults()
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[0], 'a', 'seconds', 3))
-    results.DidRunPage(test_page_set.pages[0])
+        test_story_set.stories[0], 'a', 'seconds', 3))
+    results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_page_set.pages[1])
+    results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[1], 'a', 'seconds', 7))
-    results.DidRunPage(test_page_set.pages[1])
+        test_story_set.stories[1], 'a', 'seconds', 7))
+    results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
         output_file, FakeMetadataForTest(), False, False, 'browser_type')
@@ -99,15 +102,15 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     # Run the second time and verify the results are appended to the HTML file.
     output_file.seek(0)
     results = page_test_results.PageTestResults()
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[0], 'a', 'seconds', 4))
-    results.DidRunPage(test_page_set.pages[0])
+        test_story_set.stories[0], 'a', 'seconds', 4))
+    results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_page_set.pages[1])
+    results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[1], 'a', 'seconds', 8))
-    results.DidRunPage(test_page_set.pages[1])
+        test_story_set.stories[1], 'a', 'seconds', 8))
+    results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
         output_file, FakeMetadataForTest(), False, False, 'browser_type')
@@ -181,15 +184,15 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     # Now reset the results and verify the old ones are gone.
     output_file.seek(0)
     results = page_test_results.PageTestResults()
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[0], 'a', 'seconds', 5))
-    results.DidRunPage(test_page_set.pages[0])
+        test_story_set.stories[0], 'a', 'seconds', 5))
+    results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_page_set.pages[1])
+    results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_page_set.pages[1], 'a', 'seconds', 9))
-    results.DidRunPage(test_page_set.pages[1])
+        test_story_set.stories[1], 'a', 'seconds', 9))
+    results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
        output_file, FakeMetadataForTest(), True, False, 'browser_type')

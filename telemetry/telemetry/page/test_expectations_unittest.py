@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 import unittest
 
+from telemetry import story
 from telemetry.core import system_info
 from telemetry.page import page as page_module
-from telemetry.page import page_set
 from telemetry.page import test_expectations
 
 VENDOR_NVIDIA = 0x10DE
@@ -91,15 +91,15 @@ class TestExpectationsTest(unittest.TestCase):
 
   # Pages with no expectations should always return 'pass'
   def testNoExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page0.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page0.html', story_set)
     self.assertExpectationEquals('pass', page, StubPlatform('win'))
 
   # Pages with expectations for an OS should only return them when running on
   # that OS
   def testOSExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page1.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page1.html', story_set)
     self.assertExpectationEquals('fail', page, StubPlatform('win'))
     self.assertExpectationEquals('fail', page, StubPlatform('mac'))
     self.assertExpectationEquals('pass', page, StubPlatform('linux'))
@@ -107,34 +107,34 @@ class TestExpectationsTest(unittest.TestCase):
   # Pages with expectations for an OS version should only return them when
   # running on that OS version
   def testOSVersionExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page2.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page2.html', story_set)
     self.assertExpectationEquals('fail', page, StubPlatform('win', 'vista'))
     self.assertExpectationEquals('pass', page, StubPlatform('win', 'win7'))
 
   # Pages with non-conditional expectations should always return that
   # expectation regardless of OS or OS version
   def testConditionlessExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page3.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page3.html', story_set)
     self.assertExpectationEquals('fail', page, StubPlatform('win'))
     self.assertExpectationEquals('fail', page, StubPlatform('mac', 'lion'))
     self.assertExpectationEquals('fail', page, StubPlatform('linux'))
 
   # Expectations with wildcard characters should return for matching patterns
   def testWildcardExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page4.html', ps)
-    page_js = page_module.Page('http://test.com/page4.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page4.html', story_set)
+    page_js = page_module.Page('http://test.com/page4.html', story_set)
     self.assertExpectationEquals('fail', page, StubPlatform('win'))
     self.assertExpectationEquals('fail', page_js, StubPlatform('win'))
 
   # Expectations with absolute paths should match the entire path
   def testAbsoluteExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page5.html', ps)
-    page_org = page_module.Page('http://test.org/page5.html', ps)
-    page_https = page_module.Page('https://test.com/page5.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page5.html', story_set)
+    page_org = page_module.Page('http://test.org/page5.html', story_set)
+    page_https = page_module.Page('https://test.com/page5.html', story_set)
     self.assertExpectationEquals('fail', page, StubPlatform('win'))
     self.assertExpectationEquals('pass', page_org, StubPlatform('win'))
     self.assertExpectationEquals('pass', page_https, StubPlatform('win'))
@@ -142,8 +142,8 @@ class TestExpectationsTest(unittest.TestCase):
   # Pages with expectations for a GPU should only return them when running with
   # that GPU
   def testGpuExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page6.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page6.html', story_set)
     self.assertExpectationEquals('fail', page, gpu=VENDOR_NVIDIA)
     self.assertExpectationEquals('fail', page, gpu=VENDOR_INTEL)
     self.assertExpectationEquals('pass', page, gpu=VENDOR_AMD)
@@ -151,8 +151,8 @@ class TestExpectationsTest(unittest.TestCase):
   # Pages with expectations for a GPU should only return them when running with
   # that GPU
   def testGpuDeviceIdExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page7.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page7.html', story_set)
     self.assertExpectationEquals('fail', page, gpu=VENDOR_NVIDIA, device=0x1001)
     self.assertExpectationEquals('fail', page, gpu=VENDOR_NVIDIA, device=0x1002)
     self.assertExpectationEquals('pass', page, gpu=VENDOR_NVIDIA, device=0x1003)
@@ -161,8 +161,8 @@ class TestExpectationsTest(unittest.TestCase):
   # Pages with multiple expectations should only return them when all criteria
   # is met
   def testMultipleExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page8.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page8.html', story_set)
     self.assertExpectationEquals('fail', page,
         StubPlatform('win'), VENDOR_AMD, 0x1001)
     self.assertExpectationEquals('fail', page,
@@ -176,8 +176,8 @@ class TestExpectationsTest(unittest.TestCase):
 
   # Pages with expectations based on GPU vendor string.
   def testGpuVendorStringExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page9.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page9.html', story_set)
     self.assertExpectationEquals('fail', page,
                                  vendor_string=VENDOR_STRING_IMAGINATION,
                                  device_string=DEVICE_STRING_SGX)
@@ -190,8 +190,8 @@ class TestExpectationsTest(unittest.TestCase):
 
   # Pages with expectations based on GPU vendor and renderer string pairs.
   def testGpuDeviceStringExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page10.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page10.html', story_set)
     self.assertExpectationEquals('fail', page,
                                  vendor_string=VENDOR_STRING_IMAGINATION,
                                  device_string=DEVICE_STRING_SGX)
@@ -204,39 +204,39 @@ class TestExpectationsTest(unittest.TestCase):
 
   # Pages with user-defined expectations.
   def testUserDefinedExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page15.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page15.html', story_set)
     self.assertExpectationEquals('fail', page, gpu=VENDOR_AMD)
-    page = page_module.Page('http://test.com/page16.html', ps)
+    page = page_module.Page('http://test.com/page16.html', story_set)
     self.assertExpectationEquals('pass', page, gpu=VENDOR_AMD)
 
   # Expectations can be set against page names as well as urls
   def testPageNameExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page11.html', ps,
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page11.html', story_set,
                             name='Pages.page_11')
     self.assertExpectationEquals('fail', page)
 
   # Verify version-specific Mac expectations.
   def testMacVersionExpectations(self):
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page12.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page12.html', story_set)
     self.assertExpectationEquals('fail', page,
                                  StubPlatform('mac', 'mountainlion'))
     self.assertExpectationEquals('pass', page,
                                  StubPlatform('mac', 'mavericks'))
     self.assertExpectationEquals('pass', page,
                                  StubPlatform('mac', 'yosemite'))
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page13.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page13.html', story_set)
     self.assertExpectationEquals('pass', page,
                                  StubPlatform('mac', 'mountainlion'))
     self.assertExpectationEquals('fail', page,
                                  StubPlatform('mac', 'mavericks'))
     self.assertExpectationEquals('pass', page,
                                  StubPlatform('mac', 'yosemite'))
-    ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page14.html', ps)
+    story_set = story.StorySet()
+    page = page_module.Page('http://test.com/page14.html', story_set)
     self.assertExpectationEquals('pass', page,
                                  StubPlatform('mac', 'mountainlion'))
     self.assertExpectationEquals('pass', page,

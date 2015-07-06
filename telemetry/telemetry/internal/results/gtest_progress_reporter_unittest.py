@@ -5,24 +5,28 @@
 import os
 import traceback
 
+from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.page import page_set
 from telemetry.unittest_util import simple_mock
 from telemetry.unittest_util import stream
 from telemetry.value import failure
 from telemetry.value import skip
 
 
-def _MakePageSet():
-  ps = page_set.PageSet(base_dir=os.path.dirname(__file__))
-  ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.baz.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.roz.com/', ps, ps.base_dir))
-  return ps
+def _MakeStorySet():
+  story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+  story_set.AddStory(
+      page_module.Page('http://www.foo.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.bar.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.baz.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.roz.com/', story_set, story_set.base_dir))
+  return story_set
 
 
 class GTestProgressReporterTest(
@@ -40,13 +44,13 @@ class GTestProgressReporterTest(
     self._mock_timer.Restore()
 
   def testSingleSuccessPage(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
 
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     self._mock_timer.SetTime(0.007)
-    results.DidRunPage(test_page_set.pages[0])
+    results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
@@ -55,14 +59,14 @@ class GTestProgressReporterTest(
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testSingleFailedPage(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
 
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     exc_info = self.CreateException()
-    results.AddValue(failure.FailureValue(test_page_set.pages[0], exc_info))
-    results.DidRunPage(test_page_set.pages[0])
+    results.AddValue(failure.FailureValue(test_story_set.stories[0], exc_info))
+    results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
     exception_trace = ''.join(traceback.format_exception(*exc_info))
@@ -76,14 +80,14 @@ class GTestProgressReporterTest(
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testSingleSkippedPage(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     self._mock_timer.SetTime(0.007)
-    results.AddValue(skip.SkipValue(test_page_set.pages[0],
+    results.AddValue(skip.SkipValue(test_story_set.stories[0],
         'Page skipped for testing reason'))
-    results.DidRunPage(test_page_set.pages[0])
+    results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'
@@ -94,28 +98,28 @@ class GTestProgressReporterTest(
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testPassAndFailedPages(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
     exc_info = self.CreateException()
 
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     self._mock_timer.SetTime(0.007)
-    results.DidRunPage(test_page_set.pages[0])
+    results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_page_set.pages[1])
+    results.WillRunPage(test_story_set.stories[1])
     self._mock_timer.SetTime(0.009)
-    results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
-    results.DidRunPage(test_page_set.pages[1])
+    results.AddValue(failure.FailureValue(test_story_set.stories[1], exc_info))
+    results.DidRunPage(test_story_set.stories[1])
 
-    results.WillRunPage(test_page_set.pages[2])
+    results.WillRunPage(test_story_set.stories[2])
     self._mock_timer.SetTime(0.015)
-    results.AddValue(failure.FailureValue(test_page_set.pages[2], exc_info))
-    results.DidRunPage(test_page_set.pages[2])
+    results.AddValue(failure.FailureValue(test_story_set.stories[2], exc_info))
+    results.DidRunPage(test_story_set.stories[2])
 
-    results.WillRunPage(test_page_set.pages[3])
+    results.WillRunPage(test_story_set.stories[3])
     self._mock_timer.SetTime(0.020)
-    results.DidRunPage(test_page_set.pages[3])
+    results.DidRunPage(test_story_set.stories[3])
 
     results.PrintSummary()
     exception_trace = ''.join(traceback.format_exception(*exc_info))
@@ -137,23 +141,23 @@ class GTestProgressReporterTest(
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testStreamingResults(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
     exc_info = self.CreateException()
 
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     self._mock_timer.SetTime(0.007)
-    results.DidRunPage(test_page_set.pages[0])
+    results.DidRunPage(test_story_set.stories[0])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n')
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
-    results.WillRunPage(test_page_set.pages[1])
+    results.WillRunPage(test_story_set.stories[1])
     self._mock_timer.SetTime(0.009)
     exception_trace = ''.join(traceback.format_exception(*exc_info))
-    results.AddValue(failure.FailureValue(test_page_set.pages[1], exc_info))
-    results.DidRunPage(test_page_set.pages[1])
+    results.AddValue(failure.FailureValue(test_story_set.stories[1], exc_info))
+    results.DidRunPage(test_story_set.stories[1])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] http://www.bar.com/\n'
@@ -161,16 +165,16 @@ class GTestProgressReporterTest(
                 '[  FAILED  ] http://www.bar.com/ (2 ms)\n' % exception_trace)
 
   def testOutputSkipInformation(self):
-    test_page_set = _MakePageSet()
+    test_story_set = _MakeStorySet()
     self._reporter = gtest_progress_reporter.GTestProgressReporter(
         self._output_stream, output_skipped_tests_summary=True)
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
-    results.WillRunPage(test_page_set.pages[0])
+    results.WillRunPage(test_story_set.stories[0])
     self._mock_timer.SetTime(0.007)
-    results.AddValue(skip.SkipValue(test_page_set.pages[0],
+    results.AddValue(skip.SkipValue(test_story_set.stories[0],
         'Page skipped for testing reason'))
-    results.DidRunPage(test_page_set.pages[0])
+    results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
     expected = ('[ RUN      ] http://www.foo.com/\n'

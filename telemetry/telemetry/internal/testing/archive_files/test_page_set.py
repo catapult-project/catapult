@@ -2,16 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.internal.testing.pages.external_page import ExternalPage
+from telemetry import story
 from telemetry.page import page
-from telemetry.page import page_set
+from telemetry.internal.testing.pages.external_page import ExternalPage
 
 
 class InternalPage(page.Page):
-  def __init__(self, ps):
-    super(InternalPage, self).__init__('file://bar.html', page_set=ps)
+  def __init__(self, story_set):
+    super(InternalPage, self).__init__('file://bar.html', story=story_set)
 
-class TestPageSet(page_set.PageSet):
+class TestPageSet(story.StorySet):
   """A pageset for testing purpose"""
 
   def __init__(self):
@@ -19,13 +19,14 @@ class TestPageSet(page_set.PageSet):
       archive_data_file='data/archive_files/test.json',
       credentials_path='data/credential',
       user_agent_type='desktop',
-      bucket=page_set.PUBLIC_BUCKET)
+      bucket=story.PUBLIC_BUCKET)
 
     #top google property; a google tab is often open
     class Google(page.Page):
-      def __init__(self, ps):
+      def __init__(self, story_set):
         # pylint: disable=bad-super-call
-        super(Google, self).__init__('https://www.google.com', page_set=ps)
+        super(Google, self).__init__('https://www.google.com',
+                                     page_set=story_set)
 
       def RunGetActionRunner(self, action_runner):
         return action_runner
