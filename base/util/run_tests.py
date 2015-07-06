@@ -8,7 +8,9 @@ import os
 import sys
 import unittest
 
+
 def main():
+  sys.path.append(os.path.dirname(__file__))
   suite = unittest.TestLoader().discover(
       os.path.dirname(__file__), pattern = '*_unittest.py')
   result = unittest.TextTestRunner(verbosity=2).run(suite)
@@ -16,6 +18,7 @@ def main():
     sys.exit(0)
   else:
     sys.exit(1)
+
 
 if __name__ == '__main__':
   main()

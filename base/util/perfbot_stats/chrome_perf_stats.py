@@ -13,6 +13,7 @@ The API documentation for chrome-infra-stats is at:
 https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
+
 import calendar
 import datetime
 import json
@@ -28,6 +29,7 @@ BUILDER_STATS_URL = ('https://chrome-infra-stats.appspot.com/_ah/api/stats/v1/'
 
 USAGE = ('Usage: chrome_perf_stats.py <year> <month> <day>. If date is not '
          'specified, yesterday will be used.')
+
 
 def main():
   if len(sys.argv) == 2 and sys.argv[0] == '--help':
@@ -67,6 +69,7 @@ def main():
   success_rates = CalculateSuccessRates(year, month, days, builders)
   UploadToPerfDashboard(success_rates)
 
+
 def _UpdateSuccessRatesWithResult(
     success_rates, results, date_dict_str, builder):
   count = int(results['count'])
@@ -95,6 +98,7 @@ def _SummarizeSuccessRates(success_rates):
     overall_success_rates.append(
         [day, float(success_rate_sum) / float(success_rate_count)])
   return overall_success_rates
+
 
 def UploadToPerfDashboard(success_rates):
   for success_rate in success_rates:
