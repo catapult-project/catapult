@@ -82,6 +82,7 @@ class TracingProject(project_module.Project):
     self.source_paths.append(self.d3_path)
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
+    self.source_paths.append(self.parse5_path)
 
     self.non_module_html_files.extendRel(self.tracing_root_path, [
       'bin/index.html',

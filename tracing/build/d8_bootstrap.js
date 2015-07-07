@@ -154,6 +154,10 @@
 
   })();
 
+  // Bring in html_to_js_generator.
+  global.path_to_js_parser = '<%js_parser_path%>';
+  load('<%html_to_js_generator_js_path%>');
+
   // Bring in path utils.
   load('<%path_utils_js_path%>');
   PathUtils.currentWorkingDirectory = '<%current_working_directory%>';
@@ -219,9 +223,6 @@
    * @param {string} file_path path to the HTML file to be loaded.
    */
   global.loadHTML = function(href) {
-    // TODO(nednguyen): Use a javascript html parser instead of relying on
-    // python file for parsing HTML.
-    // (https://github.com/google/trace-viewer/issues/1030)
     var absPath = global.hrefToAbsolutePath(href);
     global.loadHTMLFile(absPath, href);
   };
@@ -237,13 +238,17 @@
       return;
     loadedModulesByFilePath[absPath] = true;
 
+    try {
+      var html_content = read(absPath);
+    } catch (err) {
+      throw new Error('Error in loading html file ' + href +
+          ': File does not exist');
+    }
 
     try {
-      var stripped_js = os.system('python', ['<%html2jseval-path%>', absPath]);
+      var stripped_js = generateJsFromHTML(html_content);
     } catch (err) {
-      if (!PathUtils.exists(absPath))
-        throw new Error('Error in loading ' + href + ': File does not exist');
-      throw new Error('Error in loading ' + href + ': ' + err);
+      throw new Error('Error in loading html file ' + href + ': ' + err);
     }
 
     // Add "//@ sourceURL=|file_path|" to the end of generated js to preserve
@@ -258,7 +263,7 @@
     try {
       load(relPath);
     } catch (err) {
-      throw new Error('Error in loading ' + href + ': ' + err);
+      throw new Error('Error in loading script file ' + href + ': ' + err);
     }
   };
 })(this, arguments);

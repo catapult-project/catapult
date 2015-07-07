@@ -28,6 +28,14 @@ _BOOTSTRAP_JS_DIR = os.path.abspath(
 _PATH_UTILS_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
+_HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'html_to_js_generator.js'))
+
+_JS_PARSER_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__),
+                 os.pardir, 'third_party', 'parse5', 'parse5.js'))
+
+
 _BOOTSTRAP_JS_CONTENT = None
 
 
@@ -54,6 +62,9 @@ def _GetBootStrapJsContent(source_paths):
   bsc = bsc.replace('<%source_paths%>', source_path_string)
   bsc = bsc.replace('<%current_working_directory%>', os.getcwd())
   bsc = bsc.replace('<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
+  bsc = bsc.replace('<%html_to_js_generator_js_path%>',
+                    _HTML_TO_JS_GENERATOR_JS_DIR)
+  bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
   return bsc
 
 
