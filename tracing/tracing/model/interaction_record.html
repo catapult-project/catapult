@@ -19,7 +19,7 @@ tr.exportTo('tr.model', function() {
     this.colorId = colorId;
     this.duration = duration;
     this.args = {};
-    this.associatedEvents = new tr.m.EventSet();
+    this.associatedEvents = new tr.model.EventSet();
   }
   InteractionRecord.prototype = {
     __proto__: tr.model.TimedEvent.prototype,

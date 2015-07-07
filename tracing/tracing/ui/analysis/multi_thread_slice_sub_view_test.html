@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
                     type: tr.model.ThreadSlice}));
     t53.sliceGroup.createSubSlices();
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() {
       });
     });
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(m.sA);
     selection.push(m.sB);
     selection.push(m.sC);

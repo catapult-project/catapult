@@ -132,7 +132,7 @@ found in the LICENSE file.
       var lthi = tr.e.cc.getTileFromRasterTaskSlice(
           this.selection_[0]).containingSnapshot;
       this.$.link.setSelectionAndContent(function() {
-          return new tr.m.EventSet(lthi);
+          return new tr.model.EventSet(lthi);
       }, lthi.userFriendlyName);
 
       // Get costs by layer.

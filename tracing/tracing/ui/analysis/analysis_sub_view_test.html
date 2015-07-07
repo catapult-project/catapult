@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
     var subView = document.createElement('tr-ui-a-sub-view');
 
     assert.throw(function() {
-      subView.selection = new tr.m.EventSet();
+      subView.selection = new tr.model.EventSet();
     }, 'Not implemented!');
 
     assert.throw(function() {

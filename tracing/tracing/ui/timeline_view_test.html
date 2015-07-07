@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() {
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     var filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
     var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);

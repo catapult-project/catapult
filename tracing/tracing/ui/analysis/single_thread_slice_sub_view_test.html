@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
         newSliceEx({title: 'a', start: 0.0, duration: 0.5}));
     t53.sliceGroup.createSubSlices();
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(t53.sliceGroup.slices[0]);
 
     var viewEl = document.createElement('tr-ui-a-single-thread-slice-sub-view');
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
       });
     });
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(m.sA);
 
     var viewEl = document.createElement('tr-ui-a-single-thread-slice-sub-view');

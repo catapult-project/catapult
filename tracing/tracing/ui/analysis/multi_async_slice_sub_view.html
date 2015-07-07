@@ -35,7 +35,7 @@ found in the LICENSE file.
     get relatedEventsToHighlight() {
       if (!this.$.content.selection)
         return undefined;
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       this.$.content.selection.forEach(function(asyncEvent) {
         if (!asyncEvent.associatedEvents)
           return;

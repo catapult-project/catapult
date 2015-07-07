@@ -29,7 +29,7 @@ found in the LICENSE file.
       function createLinkTo(slice) {
         var linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
-            return new tr.m.EventSet(slice);
+            return new tr.model.EventSet(slice);
         });
         linkEl.textContent = slice.userFriendlyName;
         return linkEl;

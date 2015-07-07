@@ -151,14 +151,14 @@ found in the LICENSE file.
 
       if (object instanceof tr.model.ObjectSnapshot) {
         var link = document.createElement('tr-ui-a-analysis-link');
-        link.selection = new tr.m.EventSet(object);
+        link.selection = new tr.model.EventSet(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
       if (object instanceof tr.model.ObjectInstance) {
         var link = document.createElement('tr-ui-a-analysis-link');
-        link.selection = new tr.m.EventSet(object);
+        link.selection = new tr.model.EventSet(object);
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }

@@ -65,7 +65,7 @@ found in the LICENSE file.
 
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-            return new tr.m.EventSet(row.events);
+            return new tr.model.EventSet(row.events);
           }, row.title);
           return linkEl;
         },

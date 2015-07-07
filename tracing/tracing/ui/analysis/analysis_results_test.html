@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
     var r = tr.ui.analysis.AnalysisResults();
     var track = {};
     var linkEl = r.createSelectionChangingLink('hello', function() {
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       selection.push({guid: 1});
       return selection;
     });

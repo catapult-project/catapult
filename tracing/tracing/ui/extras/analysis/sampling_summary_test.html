@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection() {
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';
@@ -108,7 +108,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('processOnlySamples', function() {
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     var model = new tr.Model();
     var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
     thread.name = 'The Thread';

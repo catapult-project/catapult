@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(thread.timeSlices[0]);
     view.selection = selection;
     this.addHTMLOutput(view);
@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(thread.timeSlices[1]);
     view.selection = selection;
     this.addHTMLOutput(view);

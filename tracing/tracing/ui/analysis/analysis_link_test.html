@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     {}, '0x1000', 'cat', 'name', 10);
     var s10 = i10.addSnapshot(10, {foo: 1});
 
-    link.selection = new tr.m.EventSet(s10);
+    link.selection = new tr.model.EventSet(s10);
     this.addHTMLOutput(link);
 
     var didRSC = false;
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     function selectionGenerator() {
-      return new tr.m.EventSet(s10);
+      return new tr.model.EventSet(s10);
     }
     selectionGenerator.userFriendlyName = 'hello world';
     link.selection = selectionGenerator;

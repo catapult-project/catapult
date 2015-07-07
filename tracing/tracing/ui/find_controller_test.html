@@ -26,8 +26,8 @@ tr.b.unittest.testSuite(function() {
 
     this.viewport = undefined;
     this.model = undefined;
-    this.selection = new tr.m.EventSet();
-    this.findMatches = new tr.m.EventSet();
+    this.selection = new tr.model.EventSet();
+    this.findMatches = new tr.model.EventSet();
   }
 
   FakeSelectionController.prototype = {
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
 
     findTextChangedTo: function(selection) {
       this.findMatches = selection;
-      this.selection = new tr.m.EventSet();
+      this.selection = new tr.model.EventSet();
     },
 
     findFocusChangedTo: function(selection) {
@@ -55,8 +55,8 @@ tr.b.unittest.testSuite(function() {
     },
 
     findTextCleared: function(selection) {
-      this.selection = new tr.m.EventSet();
-      this.findMatches = new tr.m.EventSet();
+      this.selection = new tr.model.EventSet();
+      this.findMatches = new tr.model.EventSet();
     }
   };
 
@@ -85,8 +85,8 @@ tr.b.unittest.testSuite(function() {
     var selectionController = new FakeSelectionController();
     var controller = new tr.ui.FindController(selectionController);
 
-    selectionController.selection = new tr.m.EventSet();
-    selectionController.findMatches = new tr.m.EventSet();
+    selectionController.selection = new tr.model.EventSet();
+    selectionController.findMatches = new tr.model.EventSet();
     controller.findNext();
     assertArrayShallowEquals([], selectionController.selection);
     assertArrayShallowEquals([], selectionController.findMatches);

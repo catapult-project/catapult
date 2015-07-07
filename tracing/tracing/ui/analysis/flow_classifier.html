@@ -51,7 +51,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get inFlowEvents() {
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN)
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get outFlowEvents() {
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_OUT)
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get internalFlowEvents() {
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN_OUT)
