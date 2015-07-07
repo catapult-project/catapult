@@ -62,6 +62,17 @@ tr.exportTo('tr.e.importer.battor', function() {
      * Imports the data in this.events_ into model_.
      */
     importEvents: function(isSecondaryImport) {
+      var ctr = this.model_.kernel.getOrCreateCounter(null, 'Power');
+
+      // Fail if the model already has a Power counter.
+      if (ctr.numSeries > 0) {
+        this.model_.importWarning({
+          type: 'import_error',
+          message: 'Power counter exists, can not import BattOr power trace.'
+        });
+        return;
+      }
+
       // Create series and import power samples into it.
       var name = 'power';
       var series = new tr.model.CounterSeries('value',
@@ -89,12 +100,8 @@ tr.exportTo('tr.e.importer.battor', function() {
         return;
       }
 
-      // Add a counter for power to the GUI.
-      var ctr = this.model_.kernel.getOrCreateCounter(null, 'Power');
-      if (ctr.numSeries === 0) {
-        ctr.addSeries(series);
-      }
-
+      // Add the series to the counter and shift time based on the clock sync.
+      ctr.addSeries(series);
       ctr.shiftTimestampsForward(shiftTs);
     },
 
