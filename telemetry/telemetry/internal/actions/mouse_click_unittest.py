@@ -4,7 +4,7 @@
 
 from telemetry.core import exceptions
 from telemetry.internal.actions import mouse_click
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class MouseClickActionTest(tab_test_case.TabTestCase):

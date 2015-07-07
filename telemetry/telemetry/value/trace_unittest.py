@@ -9,8 +9,8 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
+from telemetry.testing import system_stub
 from telemetry.timeline import trace_data
-from telemetry.unittest_util import system_stub
 from telemetry.value import trace
 
 

@@ -10,7 +10,7 @@ from telemetry.core import util
 from telemetry.internal.backends import codepen_credentials_backend
 from telemetry.internal.backends import facebook_credentials_backend
 from telemetry.internal.backends import google_credentials_backend
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 
 class CredentialsError(Exception):

@@ -25,8 +25,8 @@ from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry.page import test_expectations
-from telemetry.unittest_util import options_for_unittests
-from telemetry.unittest_util import system_stub
+from telemetry.testing import options_for_unittests
+from telemetry.testing import system_stub
 
 
 # pylint: disable=bad-super-call

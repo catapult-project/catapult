@@ -17,7 +17,7 @@ if __name__ == '__main__':
   else:
     env['PYTHONPATH'] = telemetry_dir
 
-  path_to_run_tests = os.path.join(telemetry_dir, 'telemetry', 'unittest_util',
+  path_to_run_tests = os.path.join(telemetry_dir, 'telemetry', 'testing',
                                    'run_tests.py')
   argv = ['--top-level-dir', telemetry_dir] + sys.argv[1:]
   sys.exit(subprocess.call([sys.executable, path_to_run_tests] + argv, env=env))

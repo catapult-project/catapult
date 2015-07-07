@@ -10,7 +10,7 @@ from telemetry.page import page
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 from telemetry.util import wpr_modes
 
 

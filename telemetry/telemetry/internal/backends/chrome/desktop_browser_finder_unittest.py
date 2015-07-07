@@ -6,7 +6,7 @@ import unittest
 from telemetry.core.platform import desktop_device
 from telemetry.internal.backends.chrome import desktop_browser_finder
 from telemetry.internal.browser import browser_options
-from telemetry.unittest_util import system_stub
+from telemetry.testing import system_stub
 
 
 # This file verifies the logic for finding a browser instance on all platforms

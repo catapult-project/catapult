@@ -7,9 +7,9 @@ import unittest
 
 from telemetry.core.platform.profiler import vtune_profiler
 from telemetry import decorators
-from telemetry.unittest_util import options_for_unittests
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import options_for_unittests
+from telemetry.testing import simple_mock
+from telemetry.testing import tab_test_case
 
 
 class MockPopen(object):

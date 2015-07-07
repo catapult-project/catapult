@@ -4,7 +4,7 @@
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_network
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class InspectorNetworkTabTest(tab_test_case.TabTestCase):

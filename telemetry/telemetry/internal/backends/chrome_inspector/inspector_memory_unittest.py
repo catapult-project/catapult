@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):

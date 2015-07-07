@@ -17,8 +17,8 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
-from telemetry.unittest_util import browser_test_case
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import browser_test_case
+from telemetry.testing import options_for_unittests
 
 
 class BrowserTest(browser_test_case.BrowserTestCase):

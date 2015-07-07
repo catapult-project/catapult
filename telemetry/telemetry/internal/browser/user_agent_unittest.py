@@ -4,7 +4,7 @@
 
 from telemetry import decorators
 from telemetry.internal.browser import user_agent
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class MobileUserAgentTest(tab_test_case.TabTestCase):

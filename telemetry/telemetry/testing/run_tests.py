@@ -10,8 +10,8 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_options
 from telemetry.internal.util import command_line
-from telemetry.unittest_util import browser_test_case
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import browser_test_case
+from telemetry.testing import options_for_unittests
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'typ')
 

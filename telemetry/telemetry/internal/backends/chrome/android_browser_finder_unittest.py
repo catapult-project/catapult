@@ -7,7 +7,7 @@ import unittest
 from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.browser import browser_options
-from telemetry.unittest_util import system_stub
+from telemetry.testing import system_stub
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
 import mock # pylint: disable=import-error

@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 
 from telemetry.core.platform.profiler import trace_profiler
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class TestTraceProfiler(tab_test_case.TabTestCase):

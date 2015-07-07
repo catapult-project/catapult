@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 current_browser_options = None
 current_browser = None

@@ -18,7 +18,7 @@ from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 from telemetry.internal.browser import web_contents
 from telemetry.internal import forwarders
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 from telemetry.util import wpr_modes
 
 

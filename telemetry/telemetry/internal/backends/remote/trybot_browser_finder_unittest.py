@@ -9,8 +9,8 @@ import unittest
 
 from telemetry.internal.backends.remote import trybot_browser_finder
 from telemetry.internal.browser import browser_options
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import system_stub
+from telemetry.testing import simple_mock
+from telemetry.testing import system_stub
 
 
 class TrybotBrowserFinderTest(unittest.TestCase):

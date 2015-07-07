@@ -5,7 +5,7 @@
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.actions import loop
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 AUDIO_1_LOOP_CHECK = 'window.__hasEventCompleted("#audio_1", "loop");'
 VIDEO_1_LOOP_CHECK = 'window.__hasEventCompleted("#video_1", "loop");'

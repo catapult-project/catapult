@@ -12,8 +12,8 @@ import unittest
 from telemetry.core.platform.profiler import android_profiling_helper
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import simple_mock
+from telemetry.testing import tab_test_case
 
 
 def _GetLibrariesMappedIntoProcesses(device, pids):

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import exceptions
-from telemetry.unittest_util import browser_test_case
+from telemetry.testing import browser_test_case
 
 
 class TabTestCase(browser_test_case.BrowserTestCase):

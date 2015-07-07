@@ -4,7 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.page import action_runner as action_runner_module
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class PinchActionTest(tab_test_case.TabTestCase):

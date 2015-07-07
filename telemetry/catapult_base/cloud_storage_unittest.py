@@ -6,7 +6,7 @@ import os
 import unittest
 
 from catapult_base import cloud_storage
-from telemetry.unittest_util import system_stub
+from telemetry.testing import system_stub
 
 
 def _FakeFindGsutil():

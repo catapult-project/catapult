@@ -4,12 +4,12 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
+from telemetry.core import util
 from telemetry import decorators
-from telemetry.unittest_util import options_for_unittests
-from telemetry.unittest_util import system_stub
+from telemetry.testing import options_for_unittests
+from telemetry.testing import system_stub
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
 import mock # pylint: disable=F0401

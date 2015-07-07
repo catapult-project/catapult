@@ -7,7 +7,7 @@ import time
 import unittest
 
 from telemetry.internal.util import exception_formatter
-from telemetry.unittest_util import progress_reporter
+from telemetry.testing import progress_reporter
 
 
 def _FormatTestName(test):

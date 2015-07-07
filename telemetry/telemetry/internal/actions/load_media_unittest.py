@@ -5,7 +5,7 @@
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.actions.load_media import LoadMediaAction
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 
 class LoadMediaActionTest(tab_test_case.TabTestCase):

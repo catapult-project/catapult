@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.core import util
-from telemetry.unittest_util import run_tests
+from telemetry.testing import run_tests
 
 
 class MockArgs(object):
@@ -44,7 +44,7 @@ class RunTestsUnitTest(unittest.TestCase):
     host = runner.host
     runner.top_level_dir = util.GetTelemetryDir()
     runner.args.tests = [host.join(util.GetTelemetryDir(),
-        'telemetry', 'unittest_util', 'disabled_cases.py')]
+        'telemetry', 'testing', 'disabled_cases.py')]
     possible_browser = MockPossibleBrowser(
         browser_type, os_name, os_version_name, supports_tab_control)
     runner.classifier = run_tests.GetClassifier(MockArgs(), possible_browser)

@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.core import util
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 
 class ProgressReporter(object):

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry import decorators
-from telemetry.unittest_util import browser_test_case
+from telemetry.testing import browser_test_case
 
 
 class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):

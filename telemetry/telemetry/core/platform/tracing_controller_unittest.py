@@ -5,7 +5,7 @@
 from telemetry.core.platform import tracing_category_filter
 from telemetry.core.platform import tracing_options
 from telemetry import decorators
-from telemetry.unittest_util import tab_test_case
+from telemetry.testing import tab_test_case
 
 class TracingControllerTest(tab_test_case.TabTestCase):
 

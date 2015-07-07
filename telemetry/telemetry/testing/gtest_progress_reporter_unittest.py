@@ -6,9 +6,9 @@ import sys
 import unittest
 
 from telemetry.core import exceptions
-from telemetry.unittest_util import gtest_progress_reporter
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import stream
+from telemetry.testing import gtest_progress_reporter
+from telemetry.testing import simple_mock
+from telemetry.testing import stream
 
 
 try:

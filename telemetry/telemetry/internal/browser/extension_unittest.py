@@ -11,7 +11,7 @@ import unittest
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import extension_to_load
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 
 class ExtensionTest(unittest.TestCase):

@@ -9,9 +9,9 @@ from telemetry.core.platform import tracing_options
 from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
+from telemetry.testing import simple_mock
+from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import tab_test_case
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
 import mock  # pylint:disable=import-error

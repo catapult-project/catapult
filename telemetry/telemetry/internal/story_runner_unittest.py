@@ -19,8 +19,8 @@ from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry import story as story_module
-from telemetry.unittest_util import options_for_unittests
-from telemetry.unittest_util import system_stub
+from telemetry.testing import options_for_unittests
+from telemetry.testing import system_stub
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module

@@ -14,7 +14,7 @@ from telemetry.core.platform import cros_interface
 from telemetry import decorators
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import cros_forwarder
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 
 class CrOSInterfaceTest(unittest.TestCase):

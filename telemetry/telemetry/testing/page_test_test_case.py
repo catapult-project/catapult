@@ -15,7 +15,7 @@ from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
-from telemetry.unittest_util import options_for_unittests
+from telemetry.testing import options_for_unittests
 
 
 class BasicTestPage(page_module.Page):

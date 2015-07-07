@@ -10,8 +10,8 @@ from telemetry import decorators
 from telemetry import story
 from telemetry.page import page as page_module
 from telemetry.page import page_test
-from telemetry.unittest_util import options_for_unittests
-from telemetry.unittest_util import page_test_test_case
+from telemetry.testing import options_for_unittests
+from telemetry.testing import page_test_test_case
 from telemetry.util import wpr_modes
 from telemetry.wpr import archive_info
 

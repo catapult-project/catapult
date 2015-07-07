@@ -7,7 +7,7 @@ import unittest
 from telemetry.core.platform import android_device
 from telemetry.core.platform import android_platform_backend
 from telemetry.internal.browser import browser_options
-from telemetry.unittest_util import system_stub
+from telemetry.testing import system_stub
 
 
 class AndroidDeviceTest(unittest.TestCase):

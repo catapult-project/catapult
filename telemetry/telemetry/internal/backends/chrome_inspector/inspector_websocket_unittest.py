@@ -7,7 +7,7 @@ import unittest
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
-from telemetry.unittest_util import simple_mock
+from telemetry.testing import simple_mock
 
 
 class FakeSocket(object):

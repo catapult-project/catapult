@@ -9,7 +9,7 @@ import unittest
 
 from catapult_base import cloud_storage
 from telemetry.page import page
-from telemetry.unittest_util import system_stub
+from telemetry.testing import system_stub
 from telemetry.wpr import archive_info
 
 

@@ -10,8 +10,8 @@ from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.unittest_util import simple_mock
-from telemetry.unittest_util import stream
+from telemetry.testing import simple_mock
+from telemetry.testing import stream
 from telemetry.value import failure
 from telemetry.value import skip
 
