@@ -2,21 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import base64
-import codecs
-import httplib
-import optparse
-import json
 import os
-import re
 import sys
 import subprocess
 import tempfile
-import urllib
 import StringIO
 
-from tvcm import js_utils
-from tvcm import module as module_module
 from tvcm import html_generation_controller
 
 
@@ -52,6 +43,7 @@ css_warning_message = """
  */
 """
 
+
 def _AssertIsUTF8(f):
   if isinstance(f, StringIO.StringIO):
     return
@@ -64,10 +56,10 @@ def _MinifyJS(input_js):
   rjsmin_path = os.path.abspath(
       os.path.join(tvcm_path, 'third_party', 'rjsmin', 'rjsmin.py'))
 
-  with tempfile.NamedTemporaryFile() as f:
+  with tempfile.NamedTemporaryFile() as _:
     args = [
-      'python',
-      rjsmin_path
+        'python',
+        rjsmin_path
     ]
     p = subprocess.Popen(args,
                          stdin=subprocess.PIPE,
@@ -97,22 +89,23 @@ def GenerateJS(load_sequence,
 
   return f.getvalue()
 
+
 def pt_parts(self):
   sl = ['unicode and 8-bit string parts of above page template']
   for x in self.buflist:
-      if type(x) == type(''):
-          maxcode = 0
-          for c in x:
-              maxcode = max(ord(c), maxcode)
-      # show only unicode objects and non-ascii strings
-      if type(x) == type('') and maxcode > 127:
-          t = '****NonAsciiStr: '
-      elif type(x) == type(u''):
-          t = '*****UnicodeStr: '
-      else:
-          t = None
-      if t:
-          sl.append(t + repr(x))
+    if type(x) == type(''):
+      maxcode = 0
+      for c in x:
+          maxcode = max(ord(c), maxcode)
+    # show only unicode objects and non-ascii strings
+    if type(x) == type('') and maxcode > 127:
+      t = '****NonAsciiStr: '
+    elif type(x) == type(u''):
+      t = '*****UnicodeStr: '
+    else:
+      t = None
+    if t:
+      sl.append(t + repr(x))
   s = '\n'.join(sl)
   return s
 
@@ -124,7 +117,7 @@ def GenerateJSToFile(f,
                      minify=False,
                      report_sizes=False):
   _AssertIsUTF8(f)
-  if use_include_tags_for_scripts and dir_for_include_tag_root == None:
+  if use_include_tags_for_scripts and dir_for_include_tag_root is None:
     raise Exception('Must provide dir_for_include_tag_root')
 
   f.write(js_warning_message)
@@ -178,7 +171,7 @@ def GenerateJSToFile(f,
 
 class ExtraScript(object):
   def __init__(self, script_id=None, text_content=None, content_type=None):
-    if script_id != None:
+    if script_id is not None:
       assert script_id[0] != '#'
     self.script_id = script_id
     self.text_content = text_content
@@ -207,7 +200,7 @@ def _MinifyCSS(css_text):
   rcssmin_path = os.path.abspath(
       os.path.join(tvcm_path, 'third_party', 'rcssmin', 'rcssmin.py'))
 
-  with tempfile.NamedTemporaryFile() as f:
+  with tempfile.NamedTemporaryFile() as _:
     rcssmin_args = ['python', rcssmin_path]
     p = subprocess.Popen(rcssmin_args,
                          stdin=subprocess.PIPE,
@@ -249,15 +242,18 @@ def GenerateStandaloneHTMLToFile(output_file,
       output_file.write("""  <title>%s</title>
   """ % title)
   else:
-    assert title == None
+    assert title is None
 
   loader = load_sequence[0].loader
 
   written_style_sheets = set()
 
-  class HTMLGenerationController(html_generation_controller.HTMLGenerationController):
+  class HTMLGenerationController(
+      html_generation_controller.HTMLGenerationController):
+
     def __init__(self, module):
       self.module = module
+
     def GetHTMLForStylesheetHRef(self, href):
       resource = self.module.HRefToResource(
           href, '<link rel="stylesheet" href="%s">' % href)
@@ -270,7 +266,7 @@ def GenerateStandaloneHTMLToFile(output_file,
       text = style_sheet.contents_with_inlined_images
       if minify:
         text = _MinifyCSS(text)
-      return "<style>\n%s\n</style>" % text
+      return '<style>\n%s\n</style>' % text
 
   for module in load_sequence:
     ctl = HTMLGenerationController(module)

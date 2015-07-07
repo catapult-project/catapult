@@ -10,12 +10,11 @@ from tvcm import fake_fs
 from tvcm import generate
 from tvcm import html_generation_controller
 from tvcm import html_module
-from tvcm import module
 from tvcm import parse_html_deps
 from tvcm import project as project_module
 from tvcm import resource
 from tvcm import resource_loader as resource_loader
-from tvcm import strip_js_comments
+
 
 class ResourceWithFakeContents(resource.Resource):
   def __init__(self, toplevel_dir, absolute_path, fake_contents):
@@ -29,16 +28,17 @@ class ResourceWithFakeContents(resource.Resource):
 
   @property
   def contents(self):
-    if self._fake_contents == None:
+    if self._fake_contents is None:
       raise Exception('File not found')
     return self._fake_contents
+
 
 class FakeLoader(object):
   def __init__(self, source_paths, initial_filenames_and_contents=None):
     self._source_paths = source_paths
     self._file_contents = {}
     if initial_filenames_and_contents:
-      for k,v in initial_filenames_and_contents.iteritems():
+      for k, v in initial_filenames_and_contents.iteritems():
         self._file_contents[k] = v
 
   def FindResourceGivenAbsolutePath(self, absolute_path):
@@ -53,8 +53,9 @@ class FakeLoader(object):
     candidate_paths.sort(lambda x, y: len(x) - len(y))
     longest_candidate = candidate_paths[-1]
 
-    return ResourceWithFakeContents(longest_candidate, absolute_path,
-                                    self._file_contents.get(absolute_path, None))
+    return ResourceWithFakeContents(
+        longest_candidate, absolute_path,
+        self._file_contents.get(absolute_path, None))
 
   def FindResourceGivenRelativePath(self, relative_path):
     absolute_path = None
@@ -68,14 +69,14 @@ class FakeLoader(object):
 
 class ParseTests(unittest.TestCase):
   def testMissingDocType(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults("")
+    parse_results = parse_html_deps.HTMLModuleParserResults('')
 
     file_contents = {}
 
     def DoIt():
-      html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                        "a.b.start",
-                        "/tmp/a/b/",
+      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                        'a.b.start',
+                        '/tmp/a/b/',
                         is_component=False,
                         parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
@@ -90,14 +91,14 @@ class ParseTests(unittest.TestCase):
 'i am just some raw script';
 """
 
-    metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
+    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                                 'a.b.start',
+                                 '/tmp/a/b/',
                                  is_component=False,
                                  parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
-    self.assertEquals(['a/foo.js'], metadata.dependent_raw_script_relative_paths)
-
+    self.assertEquals(
+        ['a/foo.js'], metadata.dependent_raw_script_relative_paths)
 
   def testExternalScriptReferenceToModuleOutsideScriptPath(self):
     parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
@@ -108,9 +109,9 @@ class ParseTests(unittest.TestCase):
     file_contents['/foo.js'] = ''
 
     def DoIt():
-      html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                        "a.b.start",
-                        "/tmp/a/b/",
+      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                        'a.b.start',
+                        '/tmp/a/b/',
                         is_component=False,
                         parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
@@ -123,9 +124,9 @@ class ParseTests(unittest.TestCase):
     file_contents = {}
 
     def DoIt():
-      html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                        "a.b.start",
-                        "/tmp/a/b/",
+      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                        'a.b.start',
+                        '/tmp/a/b/',
                         is_component=False,
                         parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
@@ -138,12 +139,13 @@ console.log('Logging without strict mode is no fun.');
       """)
 
     file_contents = {}
+
     def DoIt():
-      metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                   "a.b.start",
-                                   "/tmp/a/b/",
-                                   is_component=False,
-                                   parser_results=parse_results)
+      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                        'a.b.start',
+                        '/tmp/a/b/',
+                        is_component=False,
+                        parser_results=parse_results)
     self.assertRaises(Exception, DoIt)
 
   def testValidImportOfModule(self):
@@ -155,9 +157,9 @@ console.log('Logging without strict mode is no fun.');
     file_contents['/tmp/a/foo.html'] = """
 """
 
-    metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
+    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                                 'a.b.start',
+                                 '/tmp/a/b/',
                                  is_component=False,
                                  parser_results=parse_results)
     self.assertEquals(['a.foo'], metadata.dependent_module_names)
@@ -170,9 +172,9 @@ console.log('Logging without strict mode is no fun.');
     file_contents = {}
     file_contents['/tmp/a/foo.css'] = """
 """
-    metadata = html_module.Parse(FakeLoader(["/tmp"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
+    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
+                                 'a.b.start',
+                                 '/tmp/a/b/',
                                  is_component=False,
                                  parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
@@ -232,7 +234,8 @@ console.log('/raw/raw_script.js was written');
 """
 
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/', '/components/', '/raw/'])
+      project = project_module.Project(
+          ['/tvcm/', '/tmp/', '/components/', '/raw/'])
       loader = resource_loader.ResourceLoader(project)
       a_b_start_module = loader.LoadModule(module_name='a.b.start')
       load_sequence = project.CalcLoadSequenceForModules([a_b_start_module])
@@ -242,7 +245,6 @@ console.log('/raw/raw_script.js was written');
       self.assertEquals(['tvcm',
                          'widget',
                          'a.b.start'], load_sequence_names)
-
 
       # Check module_deps on a_b_start_module
       def HasDependentModule(module, name):
@@ -257,8 +259,8 @@ console.log('/raw/raw_script.js was written');
       assert '/raw/raw_script.js' in js
 
       # Check HTML generation.
-      html = generate.GenerateStandaloneHTMLAsString(load_sequence, title='',
-                                                     flattened_js_url="/blah.js")
+      html = generate.GenerateStandaloneHTMLAsString(
+          load_sequence, title='', flattened_js_url='/blah.js')
       assert '<polymer-element name="start">' in html
       assert 'inline script for widget.html' not in html
       assert 'common.css' in html
@@ -325,7 +327,6 @@ console.log('/raw/raw_script.js was written');
 """.rstrip()
       self.assertEquals(expected_js, js)
 
-
   def testInlineStylesheetURLs(self):
     file_contents = {}
     file_contents['/tmp/a/b/my_component.html'] = """
@@ -352,6 +353,7 @@ console.log('/raw/raw_script.js was written');
       ctl = html_generation_controller.HTMLGenerationController()
       my_component.AppendHTMLContentsToFile(f, ctl)
       html = f.getvalue().rstrip()
+      # FIXME: This is apparently not used.
       expected_html = """
 .some-rule {
     background-image: url(data:image/jpg;base64,anBnZGF0YQ==);

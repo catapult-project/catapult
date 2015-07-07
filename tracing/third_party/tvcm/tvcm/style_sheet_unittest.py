@@ -1,16 +1,18 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import base64
 import unittest
 
-from tvcm import style_sheet
 from tvcm import project as project_module
 from tvcm import resource_loader
 from tvcm import fake_fs
 from tvcm import module
 
+
 class StyleSheetUnittest(unittest.TestCase):
+
   def testImages(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/src/foo/x.css', """
@@ -35,8 +37,6 @@ class StyleSheetUnittest(unittest.TestCase):
     background-image: url(data:image/jpeg;base64,%s);
 }
 """ % base64.standard_b64encode('hello world'), inlined)
-
-
 
   def testURLResolveFails(self):
     fs = fake_fs.FakeFS()

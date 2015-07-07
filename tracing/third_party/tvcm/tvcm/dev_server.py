@@ -2,27 +2,24 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import base64
+
 import json
-import optparse
 import os
 import socket
 import sys
-import time
 import traceback
 
 from tvcm import project as project_module
-from tvcm import generate
-from tvcm import resource_loader
 
 import SocketServer
 import SimpleHTTPServer
-import StringIO
 import BaseHTTPServer
 
 TEST_DATA_PREFIX = '/test_data'
 
+
 class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+
   def __init__(self, *args, **kwargs):
     SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
 
@@ -42,14 +39,13 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       return
     return SimpleHTTPServer.SimpleHTTPRequestHandler.do_POST(self)
 
-
   def do_path_handler(self, method):
     handler = self.server.GetPathHandler(self.path, method)
     if handler:
       try:
         handler(self)
       except Exception, ex:
-        send_500(self, "While parsing %s" % self.path, ex, path=self.path)
+        send_500(self, 'While parsing %s' % self.path, ex, path=self.path)
       return True
     return False
 
@@ -57,8 +53,8 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     return SimpleHTTPServer.SimpleHTTPRequestHandler.send_head(self)
 
   def translate_path(self, path):
-    path = path.split('?',1)[0]
-    path = path.split('#',1)[0]
+    path = path.split('?', 1)[0]
+    path = path.split('#', 1)[0]
 
     if path.startswith(TEST_DATA_PREFIX):
       path = path[len(TEST_DATA_PREFIX):]
@@ -70,16 +66,16 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         return candidate
     return ''
 
-  def log_error(self, format, *args):
+  def log_error(self, log_format, *args):
     if self.server._quiet:
       return
     if self.path == '/favicon.ico':
       return
-    self.log_message("While processing %s: ", self.path)
-    SimpleHTTPServer.SimpleHTTPRequestHandler.log_error(self, format, *args)
+    self.log_message('While processing %s: ', self.path)
+    SimpleHTTPServer.SimpleHTTPRequestHandler.log_error(self, log_format, *args)
 
   def log_request(self, code='-', size='-'):
-    # Dont spam the console unless it is important.
+    # Don't spam the console unless it is important.
     pass
 
   def finish(self):
@@ -90,14 +86,14 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         # the local error ECONNABORTED.
         pass
 
+
 def send_500(self, msg, ex, log_error=True, path=None):
-  if path == None:
+  if path is None:
     is_html_output = False
   else:
-    path = path.split('?',1)[0]
-    path = path.split('#',1)[0]
+    path = path.split('?', 1)[0]
+    path = path.split('#', 1)[0]
     is_html_output = path.endswith('.html')
-
 
   if is_html_output:
     msg = """<!DOCTYPE html>
@@ -117,8 +113,8 @@ def send_500(self, msg, ex, log_error=True, path=None):
 """ % (json.dumps(traceback.format_exc()), json.dumps(ex.message))
     ctype = 'text/html'
   else:
-    msg = json.dumps({"details": traceback.format_exc(),
-                      "message": ex.message});
+    msg = json.dumps({'details': traceback.format_exc(),
+                      'message': ex.message})
     ctype = 'application/json'
 
   if log_error:
@@ -130,6 +126,7 @@ def send_500(self, msg, ex, log_error=True, path=None):
   self.end_headers()
   self.wfile.write(msg)
   return
+
 
 class PathHandler(object):
   def __init__(self, path, handler, supports_get, supports_post):
@@ -147,12 +144,15 @@ class PathHandler(object):
       return True
     return False
 
+
 def do_GET_root(request):
   request.send_response(301)
-  request.send_header("Location", request.server.default_path)
+  request.send_header('Location', request.server.default_path)
   request.end_headers()
 
+
 class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+
   def __init__(self, port, quiet=False, project=None):
     BaseHTTPServer.HTTPServer.__init__(
         self, ('localhost', port), DevServerHandler)
@@ -170,14 +170,15 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
     self.default_path = '/base/tests.html'
-    # Redirect old tests.html places to the new location until folks have gotten used to its new
-    # location.
+    # Redirect old tests.html places to the new location until folks have
+    # gotten used to its new location.
     self.AddPathHandler('/tvcm/tests.html', do_GET_root)
     self.AddPathHandler('/tests.html', do_GET_root)
 
-
-  def AddPathHandler(self, path, handler, supports_get=True, supports_post=False):
-    self._path_handlers.append(PathHandler(path, handler, supports_get, supports_post))
+  def AddPathHandler(self, path, handler,
+                     supports_get=True, supports_post=False):
+    self._path_handlers.append(
+        PathHandler(path, handler, supports_get, supports_post))
 
   def GetPathHandler(self, path, method):
     for h in self._path_handlers:
@@ -207,9 +208,9 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def data_dir(self):
     return self._data_dir
 
-  def serve_forever(self):
+  def serve_forever(self):  # pylint: disable=arguments-differ
     if not self._quiet:
-      sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
+      sys.stderr.write('Now running on http://localhost:%i\n' % self._port)
     try:
       self.timeout = 0.5
       while True:

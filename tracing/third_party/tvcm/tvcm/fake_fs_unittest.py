@@ -1,12 +1,15 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import unittest
+
 import os
+import unittest
 
 from tvcm import fake_fs
 
+
 class FakeFSUnittest(unittest.TestCase):
+
   def testBasic(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/blah/x', 'foobar')
@@ -15,7 +18,6 @@ class FakeFSUnittest(unittest.TestCase):
       self.assertEquals(
           'foobar',
           open('/blah/x', 'r').read())
-
 
   def testWithableOpen(self):
     fs = fake_fs.FakeFS()
@@ -47,5 +49,4 @@ class FakeFSUnittest(unittest.TestCase):
       r = gen.next()
       self.assertEquals(('/x/w2/w3', [], ['z3.txt']), r)
 
-      self.assertRaises(StopIteration,
-                        lambda: gen.next())
+      self.assertRaises(StopIteration, gen.next)

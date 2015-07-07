@@ -2,17 +2,19 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Tests for the module module, which contains Module and related classes."""
 
 import unittest
 
 from tvcm import fake_fs
 from tvcm import module
-from tvcm import strip_js_comments
 from tvcm import resource_loader
 from tvcm import project as project_module
 
+
 class ModuleIntegrationTests(unittest.TestCase):
+
   def test_module(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/src/x.html', """
@@ -59,11 +61,11 @@ class ModuleIntegrationTests(unittest.TestCase):
     fs.AddFile('/x/tvcm/foo.html', """
 <!DOCTYPE html>
 });
-""");
+""")
     project = project_module.Project(['/x'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
-      my_module = loader.LoadModule(module_name = 'src.my_module')
+      my_module = loader.LoadModule(module_name='src.my_module')
       dep_names = [x.name for x in my_module.dependent_modules]
       self.assertEquals(['tvcm.foo'], dep_names)
 
@@ -76,21 +78,19 @@ class ModuleIntegrationTests(unittest.TestCase):
     fs.AddFile('/x/tvcm/foo.html', """
 <!DOCTYPE html>
 <link rel="import" href="missing.html">
-""");
+""")
     project = project_module.Project(['/x'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       exc = None
       try:
-        my_module = loader.LoadModule(module_name = 'src.my_module')
-        assertFalse('Expected an exception')
+        loader.LoadModule(module_name='src.my_module')
+        assert False, 'Expected an exception'
       except module.DepsException, e:
         exc = e
       self.assertEquals(
-        ['src.my_module', 'tvcm.foo'],
-        exc.context)
-
-
+          ['src.my_module', 'tvcm.foo'],
+          exc.context)
 
   def testGetAllDependentFilenamesRecursive(self):
     fs = fake_fs.FakeFS()
@@ -108,8 +108,8 @@ class ModuleIntegrationTests(unittest.TestCase):
     fs.AddFile('/x/y/z/foo.jpeg', '')
     fs.AddFile('/x/y/z/foo2.html', """
 <!DOCTYPE html>
-""");
-    fs.AddFile('/x/raw/bar.js', 'hello');
+""")
+    fs.AddFile('/x/raw/bar.js', 'hello')
     project = project_module.Project(['/x/y', '/x/raw/'])
     loader = resource_loader.ResourceLoader(project)
     with fs:
@@ -117,10 +117,12 @@ class ModuleIntegrationTests(unittest.TestCase):
       self.assertEquals(1, len(my_module.dependent_raw_scripts))
 
       dependent_filenames = my_module.GetAllDependentFilenamesRecursive()
-      self.assertEquals([
-        '/x/y/z/foo.html',
-        '/x/raw/bar.js',
-        '/x/y/z/foo.css',
-        '/x/y/z/foo.jpeg',
-        '/x/y/z/foo2.html'
-      ], dependent_filenames)
+      self.assertEquals(
+          [
+              '/x/y/z/foo.html',
+              '/x/raw/bar.js',
+              '/x/y/z/foo.css',
+              '/x/y/z/foo.jpeg',
+              '/x/y/z/foo2.html'
+          ],
+          dependent_filenames)

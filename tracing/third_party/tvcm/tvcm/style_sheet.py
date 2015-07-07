@@ -1,11 +1,14 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import base64
 import os
 import re
 
+
 class Image(object):
+
   def __init__(self, resource):
     self.resource = resource
     self.aliases = []
@@ -56,25 +59,25 @@ class ParsedStyleSheet(object):
 
     # I'm assuming we only have url()'s associated with images
     return re.sub('url\((?P<quote>"|\'|)(?P<url>[^"\'()]*)(?P=quote)\)',
-                  lambda m: InlineUrl(m),
-                  self.contents)
-
+                  InlineUrl, self.contents)
 
   def AppendDirectlyDependentFilenamesTo(self, dependent_filenames):
     for i in self.images:
       dependent_filenames.append(i.resource.absolute_path)
-
 
   def _Load(self, containing_dirname):
     if self.contents.find('@import') != -1:
       raise Exception('@imports are not supported')
 
     matches = re.findall(
-      'url\((?:["|\']?)([^"\'()]*)(?:["|\']?)\)',
-      self.contents)
+        'url\((?:["|\']?)([^"\'()]*)(?:["|\']?)\)',
+        self.contents)
 
     def resolve_url(url):
       if os.path.isabs(url):
+        # FIXME: module is used here, but tvcm.module is never imported.
+        # However, tvcm.module cannot be imported since tvcm.module may import
+        # style_sheet, leading to an import loop.
         raise module.DepsException('URL references must be relative')
       # URLS are relative to this module's directory
       abs_path = os.path.abspath(os.path.join(containing_dirname, url))

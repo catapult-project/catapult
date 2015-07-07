@@ -1,14 +1,18 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """ResourceFinder is a helper class for finding resources given their name."""
 
+import codecs
 import os
+
 from tvcm import module
 from tvcm import style_sheet as style_sheet_module
 from tvcm import resource as resource_module
 from tvcm import html_module
 from tvcm import strip_js_comments
+
 
 class ResourceLoader(object):
   """Manges loading modules and their dependencies from files.
@@ -16,7 +20,6 @@ class ResourceLoader(object):
   Modules handle parsing and the construction of their individual dependency
   pointers. The loader deals with bookkeeping of what has been loaded, and
   mapping names to file resources.
-
   """
   def __init__(self, project):
     self.project = project
@@ -68,8 +71,8 @@ class ResourceLoader(object):
         return resource_module.Resource(script_path, absolute_path, binary)
     return None
 
-
-  def _FindResourceGivenNameAndSuffix(self, requested_name, extension, return_resource=False):
+  def _FindResourceGivenNameAndSuffix(
+      self, requested_name, extension, return_resource=False):
     """Searches for a file and reads its contents.
 
     Args:
@@ -91,10 +94,13 @@ class ResourceLoader(object):
 
   def FindModuleResource(self, requested_module_name):
     """Finds a module javascript file and returns a Resource, or none."""
-    js_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.js', return_resource=True)
-    html_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.html', return_resource=True)
+    js_resource = self._FindResourceGivenNameAndSuffix(
+        requested_module_name, '.js', return_resource=True)
+    html_resource = self._FindResourceGivenNameAndSuffix(
+        requested_module_name, '.html', return_resource=True)
     if js_resource and html_resource:
-      if html_module.IsHTMLResourceTheModuleGivenConflictingResourceNames(js_resource, html_resource):
+      if html_module.IsHTMLResourceTheModuleGivenConflictingResourceNames(
+          js_resource, html_resource):
         return html_resource
       return js_resource
     elif js_resource:
@@ -102,7 +108,8 @@ class ResourceLoader(object):
     return html_resource
 
   def LoadModule(self, module_name=None, module_filename=None):
-    assert bool(module_name) ^ bool(module_filename), 'Must provide module_name or module_filename.'
+    assert bool(module_name) ^ bool(module_filename), (
+        'Must provide either module_name or module_filename.')
     if module_filename:
       resource = self.FindResource(module_filename)
       if not resource:
@@ -110,13 +117,13 @@ class ResourceLoader(object):
             module_filename, repr(self.source_paths)))
       module_name = resource.name
     else:
-      resource = None # Will be set if we end up needing to load.
+      resource = None  # Will be set if we end up needing to load.
 
     if module_name in self.loaded_modules:
       assert self.loaded_modules[module_name].contents
       return self.loaded_modules[module_name]
 
-    if not resource: # happens when module_name was given
+    if not resource:  # happens when module_name was given
       resource = self.FindModuleResource(module_name)
       if not resource:
         raise module.DepsException('No resource for module "%s"' % module_name)
@@ -136,15 +143,18 @@ class ResourceLoader(object):
   def LoadRawScript(self, relative_raw_script_path):
     resource = None
     for source_path in self.source_paths:
-      possible_absolute_path = os.path.join(source_path, relative_raw_script_path)
+      possible_absolute_path = os.path.join(
+          source_path, relative_raw_script_path)
       if os.path.exists(possible_absolute_path):
         resource = resource_module.Resource(source_path, possible_absolute_path)
         break
     if not resource:
-      raise module.DepsException('Could not find a file for raw script %s in %s' % (
-        relative_raw_script_path, self.source_paths))
-    assert relative_raw_script_path == resource.unix_style_relative_path, \
-        'Expected %s == %s' % (relative_raw_script_path, resource.unix_style_relative_path)
+      raise module.DepsException(
+          'Could not find a file for raw script %s in %s' %
+          (relative_raw_script_path, self.source_paths))
+    assert relative_raw_script_path == resource.unix_style_relative_path, (
+        'Expected %s == %s' % (relative_raw_script_path,
+                               resource.unix_style_relative_path))
 
     if resource.absolute_path in self.loaded_raw_scripts:
       return self.loaded_raw_scripts[resource.absolute_path]
@@ -157,9 +167,11 @@ class ResourceLoader(object):
     if name in self.loaded_style_sheets:
       return self.loaded_style_sheets[name]
 
-    resource = self._FindResourceGivenNameAndSuffix(name, '.css', return_resource=True)
+    resource = self._FindResourceGivenNameAndSuffix(
+        name, '.css', return_resource=True)
     if not resource:
-      raise module.DepsException('Could not find a file for stylesheet %s' % name)
+      raise module.DepsException(
+          'Could not find a file for stylesheet %s' % name)
 
     style_sheet = style_sheet_module.StyleSheet(self, name, resource)
     style_sheet.load()
@@ -171,13 +183,11 @@ class ResourceLoader(object):
       return self.loaded_images[abs_path]
 
     if not os.path.exists(abs_path):
-      raise module.DepsException(
-        """url('%s') did not exist""" % abs_path)
+      raise module.DepsException("url('%s') did not exist" % abs_path)
 
-    res =  self.FindResourceGivenAbsolutePath(abs_path, binary=True)
-    if res == None:
-      raise module.DepsException(
-          """url('%s') was not in search path""" % abs_path)
+    res = self.FindResourceGivenAbsolutePath(abs_path, binary=True)
+    if res is None:
+      raise module.DepsException("url('%s') was not in search path" % abs_path)
 
     image = style_sheet_module.Image(res)
     self.loaded_images[abs_path] = image

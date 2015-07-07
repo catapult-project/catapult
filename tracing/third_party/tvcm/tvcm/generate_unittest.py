@@ -1,15 +1,16 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import unittest
-import StringIO
 
 from tvcm import generate
 from tvcm import fake_fs
 from tvcm import project as project_module
-from tvcm import resource_loader
+
 
 class GenerateTests(unittest.TestCase):
+
   def setUp(self):
     self.fs = fake_fs.FakeFS()
     self.fs.AddFile('/x/foo/my_module.html', """
@@ -37,7 +38,7 @@ class GenerateTests(unittest.TestCase):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
           ['foo/my_module.html'])
-      res = generate.GenerateJS(load_sequence)
+      generate.GenerateJS(load_sequence)
 
   def testHTMLGeneration(self):
     with self.fs:
@@ -45,7 +46,6 @@ class GenerateTests(unittest.TestCase):
           ['foo/my_module.html'])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
-
 
   def testExtraScriptWithWriteContentsFunc(self):
     with self.fs:

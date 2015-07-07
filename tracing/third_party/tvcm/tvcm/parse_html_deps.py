@@ -2,14 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
 import os
 import sys
-from HTMLParser import HTMLParser
 
 from tvcm import module
 from tvcm import strip_js_comments
 from tvcm import html_generation_controller
+
 
 def _InitBeautifulSoup():
   tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -17,6 +16,8 @@ def _InitBeautifulSoup():
   if bs_path in sys.path:
     return
   sys.path.insert(0, bs_path)
+
+
 _InitBeautifulSoup()
 import BeautifulSoup
 import polymer_soup
@@ -68,6 +69,7 @@ def _IsDoctype(x):
     return False
   return x == 'DOCTYPE html' or x == 'DOCTYPE HTML'
 
+
 class HTMLModuleParserResults(object):
   def __init__(self, html):
     self._soup = polymer_soup.PolymerSoup(html)
@@ -109,7 +111,7 @@ class HTMLModuleParserResults(object):
   def YieldHTMLInPieces(self, controller, minify=False):
     yield self.GenerateHTML(controller, minify)
 
-  # TODO(nednguyen): Remove this hack when we can use js to parse HTML.
+  # TODO(nednguyen): Remove this hack when we can use JS to parse HTML.
   # (https://github.com/google/trace-viewer/issues/1030)
   def GenerateJSForHeadlessImport(self):
     soup = polymer_soup.PolymerSoup(str(self._soup))
@@ -141,28 +143,28 @@ class HTMLModuleParserResults(object):
   def GenerateHTML(self, controller, minify=False):
     soup = polymer_soup.PolymerSoup(str(self._soup))
 
-    # Remove decl
+    # Remove declaration.
     for x in soup.contents:
-     if isinstance(x, BeautifulSoup.Declaration):
-      if _IsDoctype(x):
-        x.extract()
+      if isinstance(x, BeautifulSoup.Declaration):
+        if _IsDoctype(x):
+          x.extract()
 
-    # Remove all imports
+    # Remove all imports.
     imports = soup.findAll('link', rel='import')
     for imp in imports:
       imp.extract()
 
-    # Remove all script links
+    # Remove all script links.
     scripts_external = soup.findAll('script', src=True)
     for script in scripts_external:
       script.extract()
 
-    # Remove all inline script
+    # Remove all in-line scripts.
     scripts_external = soup.findAll('script', src=None)
     for script in scripts_external:
       script.extract()
 
-    # Process all inline styles
+    # Process all in-line styles.
     inline_styles = soup.findAll('style')
     for style in inline_styles:
       html = controller.GetHTMLForInlineStylesheet(str(style.string))
@@ -173,7 +175,7 @@ class HTMLModuleParserResults(object):
       else:
         style.extract()
 
-    # Rewrite all external stylesheet hrefs or remove, as needed
+    # Rewrite all external stylesheet hrefs or remove, as needed.
     stylesheet_links = soup.findAll('link', rel='stylesheet')
     for stylesheet_link in stylesheet_links:
       html = controller.GetHTMLForStylesheetHRef(stylesheet_link['href'])
@@ -187,7 +189,7 @@ class HTMLModuleParserResults(object):
     # Remove comments if minifying.
     if minify:
       comments = soup.findAll(
-          text=lambda text:isinstance(text, BeautifulSoup.Comment))
+          text=lambda text: isinstance(text, BeautifulSoup.Comment))
       for comment in comments:
         comment.extract()
 
@@ -196,9 +198,12 @@ class HTMLModuleParserResults(object):
 
   @property
   def html_contents_without_links_and_script(self):
-    return self.GenerateHTML(html_generation_controller.HTMLGenerationController())
+    return self.GenerateHTML(
+        html_generation_controller.HTMLGenerationController())
+
 
 class _Tag(object):
+
   def __init__(self, tag, attrs):
     self.tag = tag
     self.attrs = attrs
@@ -207,7 +212,9 @@ class _Tag(object):
     attr_string = ' '.join(['%s="%s"' % (x[0], x[1]) for x in self.attrs])
     return '<%s %s>' % (self.tag, attr_string)
 
+
 class HTMLModuleParser():
+
   def Parse(self, html):
     if html is None:
       html = ''

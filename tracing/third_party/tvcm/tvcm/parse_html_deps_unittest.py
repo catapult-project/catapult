@@ -3,20 +3,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import re
 import unittest
-import HTMLParser
 
 from tvcm import parse_html_deps
-from tvcm import module as module_module
 from tvcm import html_generation_controller
 
 
 class ParseTests(unittest.TestCase):
   def test_parse_empty(self):
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse("")
+    module = parser.Parse('')
     self.assertEquals([], module.scripts_external)
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
@@ -42,13 +39,14 @@ class ParseTests(unittest.TestCase):
               </html>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(['polymer.min.js', 'foo.js'], module.scripts_external);
+    self.assertEquals(['polymer.min.js', 'foo.js'], module.scripts_external)
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertTrue(module.has_decl)
-    self.assertTrue('DOCTYPE html' not in module.html_contents_without_links_and_script)
-
+    self.assertNotIn(
+        'DOCTYPE html',
+        module.html_contents_without_links_and_script)
 
   def test_parse_link_rel_import(self):
     html = """<!DOCTYPE html>
@@ -61,12 +59,11 @@ class ParseTests(unittest.TestCase):
               </html>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals([], module.scripts_external);
+    self.assertEquals([], module.scripts_external)
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals(['x-foo.html'], module.imports)
     self.assertTrue(module.has_decl)
-
 
   def test_parse_script_inline(self):
     html = """<polymer-element name="tk-element-proto">
@@ -80,21 +77,23 @@ class ParseTests(unittest.TestCase):
 
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals([], module.scripts_external);
+    self.assertEquals([], module.scripts_external)
     self.assertEquals(1, len(module.inline_scripts))
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
     self.assertFalse(module.has_decl)
 
     script0 = module.inline_scripts[0]
-    val = re.sub(r"\s+", '', script0.contents)
+    val = re.sub(r'\s+', '', script0.contents)
     inner_script = """tvcm.require("foo");tvcm.require('bar');"""
     self.assertEquals(inner_script, val)
 
     self.assertEquals(1, len(script0.open_tags))
     self.assertEquals('polymer-element', script0.open_tags[0].tag)
 
-    assert 'tvcm.require("foo");' not in module.html_contents_without_links_and_script
+    self.assertNotIn(
+        'tvcm.require("foo");',
+        module.html_contents_without_links_and_script)
 
   def test_parse_script_src_sripping(self):
     html = """
@@ -102,7 +101,6 @@ class ParseTests(unittest.TestCase):
 """
     module = parse_html_deps.HTMLModuleParser().Parse(html)
     self.assertEquals('', module.html_contents_without_links_and_script)
-
 
   def test_parse_link_rel_stylesheet(self):
     html = """<polymer-element name="hi">
@@ -112,7 +110,7 @@ class ParseTests(unittest.TestCase):
               </polymer-element>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals([], module.scripts_external);
+    self.assertEquals([], module.scripts_external)
     self.assertEquals([], module.inline_scripts)
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
@@ -120,8 +118,8 @@ class ParseTests(unittest.TestCase):
 
     class Ctl(html_generation_controller.HTMLGenerationController):
       def GetHTMLForStylesheetHRef(self, href):
-        if href == "frameworkstyles.css":
-          return "<style>FRAMEWORK</style>"
+        if href == 'frameworkstyles.css':
+          return '<style>FRAMEWORK</style>'
         return None
 
     gen_html = module.GenerateHTML(Ctl())
@@ -131,7 +129,6 @@ class ParseTests(unittest.TestCase):
 </template>
 </polymer-element>"""
     self.assertEquals(ghtm, gen_html)
-
 
   def test_parse_inline_style(self):
     html = """<style>
@@ -212,24 +209,24 @@ class ParseTests(unittest.TestCase):
   def test_br_does_not_raise(self):
     html = """<div><br/></div>"""
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse(html)
+    parser.Parse(html)
 
   def test_p_does_not_raises(self):
     html = """<div></p></div>"""
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse(html)
+    parser.Parse(html)
 
   def test_link_endlink_does_not_raise(self):
     html = """<link rel="stylesheet" href="foo.css"></link>"""
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse(html)
+    parser.Parse(html)
 
   def test_link_script_does_not_raise(self):
     html = """<link rel="stylesheet" href="foo.css">
               <script>
               </script>"""
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse(html)
+    parser.Parse(html)
 
   def test_script_with_script_inside_as_js(self):
     html = """<script>
@@ -239,7 +236,7 @@ class ParseTests(unittest.TestCase):
               ];
               </script>"""
     parser = parse_html_deps.HTMLModuleParser()
-    module = parser.Parse(html)
+    parser.Parse(html)
 
   def test_invalid_script_escaping_raises(self):
     html = """<script>
@@ -249,8 +246,9 @@ class ParseTests(unittest.TestCase):
               ];
               </script>"""
     parser = parse_html_deps.HTMLModuleParser()
+
     def DoIt():
-      module = parser.Parse(html)
+      parser.Parse(html)
     self.assertRaises(Exception, DoIt)
 
   def test_script_with_cdata(self):
