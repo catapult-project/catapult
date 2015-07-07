@@ -24,6 +24,10 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   Returns:
     list of modules.
   """
+  # start_dir and top_level_dir must be consistent with each other.
+  start_dir = os.path.realpath(start_dir)
+  top_level_dir = os.path.realpath(top_level_dir)
+
   modules = []
   for dir_path, _, filenames in os.walk(start_dir):
     for filename in filenames:
