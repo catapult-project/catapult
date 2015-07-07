@@ -1,12 +1,15 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import unittest
 import StringIO
 
 from tracing.build.update_gypi import BuildFile, GypiFile
 
+
 class UpdateGypiTests(unittest.TestCase):
+
   def setUp(self):
     self.file_groups = ['group1', 'group2']
 

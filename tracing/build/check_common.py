@@ -17,6 +17,7 @@ FILE_GROUPS = ["tracing_css_files",
                "tracing_js_html_files",
                "tracing_img_files"]
 
+
 def GetFileGroupFromFileName(filename):
    extension = os.path.splitext(filename)[1]
    return {
@@ -25,6 +26,7 @@ def GetFileGroupFromFileName(filename):
      '.js': 'tracing_js_html_files',
      '.png': 'tracing_img_files'
    }[extension]
+
 
 def CheckListedFilesSorted(src_file, group_name, listed_files):
   sorted_files = sorted(listed_files)
@@ -49,6 +51,7 @@ Correct listing:
   else:
     return ''
 
+
 def GetKnownFiles():
   p = tracing_project.TracingProject()
   m = p.loader.LoadModule(module_name='ui.extras.about_tracing.about_tracing')
@@ -57,6 +60,7 @@ def GetKnownFiles():
 
   return list(set([os.path.relpath(f, p.tracing_root_path)
                    for f in absolute_filenames]))
+
 
 def CheckCommon(file_name, listed_files):
   project = tracing_project.TracingProject()

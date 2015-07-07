@@ -14,25 +14,35 @@ if tracing_path not in sys.path:
 
 from tracing import tracing_project
 
+
 class Bench(object):
+
   def SetUp(self):
     pass
+
   def Run(self):
     pass
+
   def TearDown(self):
     pass
 
+
 class CalcDepsBench(Bench):
+
   def Run(self):
     project = tracing_project.TracingProject()
     load_sequence = project.CalcLoadSequenceForAllModules()
 
+
 class FindAllModuleFilenamesBench(Bench):
+
   def Run(self):
     project = tracing_project.TracingProject()
     filenames = project.FindAllModuleFilenames()
 
+
 class DoGenerate(Bench):
+
   def SetUp():
     self.project = tracing_project.TracingProject()
     self.load_sequence = project.CalcLoadSequenceForAllModules()
@@ -76,6 +86,7 @@ def Main(args):
     return 0
   finally:
     bench.TearDown()
+
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))

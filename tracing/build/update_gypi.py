@@ -15,7 +15,9 @@ if tracing_path not in sys.path:
 from tracing.build import check_common
 from tracing import tracing_project
 
+
 class _Token(object):
+
   def __init__(self, data, id=None):
     self.data = data
     if id:
@@ -25,6 +27,7 @@ class _Token(object):
 
 
 class BuildFile(object):
+
   def __init__(self, text, file_groups):
     self._file_groups = file_groups
     self._tokens = [token for token in self._Tokenize(text)]
@@ -71,6 +74,7 @@ class BuildFile(object):
 
 
 class GypiFile(BuildFile):
+
   def _ProcessMatch(self, match):
     min_index = match.start(2)
     end_index = match.end(2)

@@ -21,7 +21,9 @@ if tracing_path not in sys.path:
 from tracing import tracing_project
 from tvcm import generate
 
+
 def Main(args):
+
   parser = optparse.OptionParser(
     usage="%prog <options> trace_file1 [trace_file2 ...]",
     epilog="""Takes the provided trace file and produces a standalone html
@@ -58,6 +60,7 @@ file that contains both the trace and the trace viewer.""")
 
 
 class ViewerDataScript(generate.ExtraScript):
+
   def __init__(self, trace_data_string, mime_type):
     super(ViewerDataScript, self).__init__()
     self._trace_data_string = trace_data_string

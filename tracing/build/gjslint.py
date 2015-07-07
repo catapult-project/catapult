@@ -2,13 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Copyright (c) 2014 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
 import os
 import sys
 
 from tracing import tracing_project
+
 
 def Main(paths_to_lint):
   project = tracing_project.TracingProject()
@@ -24,6 +22,7 @@ def Main(paths_to_lint):
   finally:
     for p in new_paths:
       sys.path.remove(p)
+
 
 def _MainImpl(paths_to_lint):
   from closure_linter import gjslint

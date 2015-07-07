@@ -16,6 +16,7 @@ if tracing_path not in sys.path:
 
 from tracing import tracing_project
 
+
 def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
   parser.add_option("--outdir", dest="out_dir",
@@ -51,7 +52,6 @@ def main(args):
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
     o.close()
-
 
     o = codecs.open(os.path.join(options.out_dir, "about_tracing.js"), 'w',
                     encoding='utf-8')

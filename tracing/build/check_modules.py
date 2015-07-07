@@ -12,6 +12,7 @@ if tracing_path not in sys.path:
 
 from tracing import tracing_project
 
+
 def CheckModules():
   p = tracing_project.TracingProject()
   try:
@@ -19,6 +20,7 @@ def CheckModules():
   except Exception, ex:
     return str(ex)
   return []
+
 
 if __name__ == '__main__':
   print GypCheck()

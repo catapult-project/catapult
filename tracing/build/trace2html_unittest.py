@@ -9,6 +9,7 @@ import os
 from tracing.build import trace2html
 
 class Trace2HTMLTests(unittest.TestCase):
+
   def test_writeHTMLForTracesToFile(self):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.html') as raw_tmpfile:
       with codecs.open(raw_tmpfile.name, 'w', encoding='utf-8') as tmpfile:

@@ -12,12 +12,14 @@ from tracing import tracing_project
 
 from tvcm import parse_html_deps
 
+
 def Main(args):
   file_name = args[0]
   with open(file_name, 'r') as f:
     contents = f.read()
   res = parse_html_deps.HTMLModuleParser().Parse(contents)
   print res.GenerateJSForHeadlessImport()
+
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))

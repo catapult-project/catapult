@@ -1,9 +1,12 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import re
 
+
 class CSSChecker(object):
+
   def __init__(self, input_api, output_api, file_filter=None):
     self.input_api = input_api
     self.output_api = output_api

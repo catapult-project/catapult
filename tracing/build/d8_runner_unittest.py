@@ -12,6 +12,7 @@ from tracing.build import check_common
 
 
 class D8RunnerUnittest(unittest.TestCase):
+
   @classmethod
   def setUpClass(cls):
     cls.test_data_dir = os.path.abspath(

@@ -1,11 +1,14 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import unittest
 
 from tracing.build import check_common
 
+
 class CheckCommonUnittTest(unittest.TestCase):
+
   def test_filesSortedTest(self):
     error = check_common.CheckListedFilesSorted('foo.gyp', 'tracing_pdf_files',
                                                 ['/dir/file.pdf',

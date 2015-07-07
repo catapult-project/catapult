@@ -15,7 +15,6 @@ import tempfile
 
 from tvcm import parse_html_deps
 
-
 _V8_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__),
     os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
@@ -30,6 +29,8 @@ _PATH_UTILS_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
 _BOOTSTRAP_JS_CONTENT = None
+
+
 def _ValidateSourcePaths(source_paths):
   if source_paths is None:
     return
@@ -38,6 +39,7 @@ def _ValidateSourcePaths(source_paths):
     assert os.path.isdir(x)
     assert os.path.isabs(x)
 
+
 def _GetBootStrapJsContent(source_paths):
   global _BOOTSTRAP_JS_CONTENT
   if not _BOOTSTRAP_JS_CONTENT:
@@ -45,7 +47,6 @@ def _GetBootStrapJsContent(source_paths):
       bootstrap_js_content = f.read()
       _BOOTSTRAP_JS_CONTENT = bootstrap_js_content.replace(
           '<%html2jseval-path%>', _HTML_JS_EVAL_PATH)
-
 
   bsc = _BOOTSTRAP_JS_CONTENT
 
@@ -74,10 +75,12 @@ def _GetD8BinaryPathForPlatform():
     raise NotImplementedError(
         'd8 binary for this platform and architecture is not yet supported')
 
+
 class RunResult(object):
   def __init__(self, returncode, stdout):
     self.returncode = returncode
     self.stdout = stdout
+
 
 def ExecuteFile(file_path, source_paths=None, js_args=None):
   """ Execute javascript program in |file_path|.
@@ -93,6 +96,7 @@ def ExecuteFile(file_path, source_paths=None, js_args=None):
   """
   res = RunFile(file_path, source_paths, js_args)
   return res.stdout
+
 
 def RunFile(file_path, source_paths=None, js_args=None):
   """ Runs javascript program in |file_path|.
@@ -132,6 +136,7 @@ def ExcecuteJsString(js_string, source_paths=None, js_args=None,
                      original_file_name=None):
   res = RunJsString(js_string, source_paths, js_args, original_file_name)
   return res.stdout
+
 
 def RunJsString(js_string, source_paths=None, js_args=None,
                      original_file_name=None):
