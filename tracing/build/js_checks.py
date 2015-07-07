@@ -6,6 +6,7 @@ import os
 import sys
 import re
 
+from tracing import tracing_project
 
 class JSChecker(object):
 
@@ -130,7 +131,7 @@ class JSChecker(object):
       affected_files = []
 
     def ShouldCheck(f):
-      if self.input_api.IsIgnoredFile(f):
+      if tracing_project.TracingProject.IsIgnoredFile(f):
         return False
       if f.LocalPath().endswith('.js'):
         return True

@@ -182,3 +182,46 @@ class TracingProject(project_module.Project):
 
   def GetModuleNameForConfigName(self, config_name):
     return 'extras.%s_config' % config_name
+
+  @classmethod
+  def IsIgnoredFile(cls, affected_file):
+    if affected_file.LocalPath().endswith('.png'):
+      return True
+
+    if affected_file.LocalPath().endswith('.svg'):
+      return True
+
+    if affected_file.LocalPath().endswith('.skp'):
+      return True
+
+    if (affected_file.LocalPath().endswith('.gypi') or
+        affected_file.LocalPath().endswith('.gyp') or
+        affected_file.LocalPath().endswith('.gn')):
+      return True
+
+    if TracingProject.IsThirdParty(affected_file):
+      return True
+
+    # Is test data?
+    if affected_file.AbsoluteLocalPath().startswith(cls.test_data_path):
+      return True
+
+    if (affected_file.LocalPath().startswith('.gitignore') or
+        affected_file.LocalPath().startswith('codereview.settings') or
+        affected_file.LocalPath().startswith('tracing/.allow-devtools-save') or
+        affected_file.LocalPath().startswith('tracing/AUTHORS') or
+        affected_file.LocalPath().startswith('tracing/LICENSE') or
+        affected_file.LocalPath().startswith('tracing/OWNERS') or
+        affected_file.LocalPath().startswith('tracing/bower.json') or
+        affected_file.LocalPath().startswith('tracing/.gitignore') or
+        affected_file.LocalPath().startswith('tracing/.bowerrc') or
+        affected_file.LocalPath().startswith('tracing/README.md') or
+        affected_file.LocalPath().startswith(
+            'tracing/examples/string_convert.js')):
+      return True
+
+    return False
+
+  @staticmethod
+  def IsThirdParty(affected_file):
+    return affected_file.LocalPath().startswith('tracing/third_party')

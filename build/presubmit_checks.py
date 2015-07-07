@@ -8,6 +8,8 @@ import time
 
 import checklicenses
 
+from tracing import tracing_project
+
 def _FormatError(msg, files):
   return ('%s in these files:\n' % msg +
       '\n'.join(['  ' + x for x in files])
@@ -42,10 +44,10 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
     if all(callable_rule(extension, line) for line in f.NewContents()):
       continue  # No violation found in full text: can skip considering diff.
 
-    if input_api.IsIgnoredFile(f):
+    if tracing_project.TracingProject.IsIgnoredFile(f):
       continue
 
-    for line_num, line in f.changed_lines:
+    for line_num, line in f.ChangedContents():
       if not callable_rule(extension, line):
         errors.append(error_formatter(f.LocalPath(), line_num, line))
 
@@ -60,7 +62,7 @@ def CheckCopyright(input_api):
 def _CheckCopyrightThirdParty(input_api):
   results = []
   has_third_party_change = any(
-      input_api.IsThirdParty(f)
+      tracing_project.TracingProject.IsThirdParty(f)
       for f in input_api.AffectedFiles(include_deletes=False))
   if has_third_party_change:
     tracing_root = os.path.abspath(
@@ -110,7 +112,7 @@ def _CheckCopyrightNonThirdParty(input_api):
   html_license_re = re.compile(html_license_header, re.MULTILINE)
 
   sources = list(s for s in input_api.AffectedFiles(include_deletes=False)
-                 if not input_api.IsThirdParty(s))
+                 if not tracing_project.TracingProject.IsThirdParty(s))
 
   html_sources = [f for f in sources
                   if os.path.splitext(f.LocalPath())[1] == '.html']
@@ -125,7 +127,7 @@ def _CheckCopyrightNonThirdParty(input_api):
 def _Check(input_api, license_re, sources):
   bad_files = []
   for f in sources:
-    if input_api.IsIgnoredFile(f):
+    if tracing_project.TracingProject.IsIgnoredFile(f):
       continue
     contents = '\n'.join(f.NewContents())
     if not license_re.search(contents):
