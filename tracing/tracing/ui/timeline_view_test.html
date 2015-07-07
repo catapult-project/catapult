@@ -18,6 +18,16 @@ tr.b.unittest.testSuite(function() {
   var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var Task = tr.b.Task;
 
+  function setupTimeline() {
+    var container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+
+    var view = document.createElement('tr-ui-timeline-view');
+    view.appendChild(container);
+    view.trackViewContainer_ = container;
+    return view;
+  }
+
   var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
     var withError = opt_withError !== undefined ? opt_withError : true;
     var withMetadata = opt_withMetadata !== undefined ?
@@ -92,7 +102,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var model11 = createFullyPopulatedModel(true, true);
 
-    var view = new tr.ui.TimelineView();
+    var view = setupTimeline();
     view.style.height = '400px';
     view.style.border = '1px solid black';
     view.model = model11;
@@ -112,7 +122,7 @@ tr.b.unittest.testSuite(function() {
     var model00 = createFullyPopulatedModel(false, false);
     var model11 = createFullyPopulatedModel(true, true);
 
-    var view = new tr.ui.TimelineView();
+    var view = setupTimeline();
     view.style.height = '400px';
     view.model = model00;
     view.model = undefined;
@@ -124,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     var model = createFullyPopulatedModel(false, false);
 
     // Create a view with am model.
-    var view = new tr.ui.TimelineView();
+    var view = setupTimeline();
     view.style.height = '400px';
     view.model = model;
     var sc = view.selectionController;

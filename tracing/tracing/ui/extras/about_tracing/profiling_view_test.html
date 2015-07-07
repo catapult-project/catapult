@@ -98,35 +98,33 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
 
     return new Promise(function(resolve, reject) {
-      var buttons = view.querySelector('x-timeline-view-buttons');
-      assert.isFalse(buttons.querySelector('#monitor-checkbox').checked);
+      assert.isFalse(view.monitorCheckbox_.checked);
 
       function beginMonitoring() {
         // Since we don't fall back to TracingController when testing,
         // we cannot rely on TracingController to invoke a callback to change
         // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
         view.onMonitoringStateChanged_(true);
-        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
+        assert.isTrue(view.monitorCheckbox_.checked);
         setTimeout(captureMonitoring, 60);
       }
 
       function captureMonitoring() {
-        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
-        buttons.querySelector('#capture-button').click();
+        assert.isTrue(view.monitorCheckbox_.checked);
+        view.captureButton_.click();
         setTimeout(endMonitoring, 60);
       }
+
       function endMonitoring() {
-        assert.isTrue(buttons.querySelector('#monitor-checkbox').checked);
-        buttons.querySelector('#monitor-checkbox').click();
-        assert.isFalse(buttons.querySelector('#monitor-checkbox').checked);
+        assert.isTrue(view.monitorCheckbox_.checked);
+        view.monitorCheckbox_.click();
+        assert.isFalse(view.monitorCheckbox_.checked);
       }
 
       var monitoringPromise = view.beginMonitoring();
       setTimeout(beginMonitoring, 60);
 
-      monitoringPromise.then(
-          resolve,
-          reject);
+      monitoringPromise.then(resolve, reject);
     });
   });
 
@@ -138,8 +136,7 @@ tr.b.unittest.testSuite(function() {
     });
     var view = new ProfilingView(mock);
     this.addHTMLOutput(view);
-    var buttons = view.querySelector('x-timeline-view-buttons');
-    var uploadButton = buttons.querySelector('#upload-button');
+    var uploadButton = view.uploadButton_;
     assert.isNotNull(uploadButton);
     assert.isTrue(uploadButton.disabled);
     assert.isNull(view.uploadOverlay_);
@@ -201,8 +198,7 @@ tr.b.unittest.testSuite(function() {
     });
     var view = new ProfilingView(mock);
     this.addHTMLOutput(view);
-    var buttons = view.querySelector('x-timeline-view-buttons');
-    var uploadButton = buttons.querySelector('#upload-button');
+    var uploadButton = view.uploadButton_;
     assert.isNotNull(uploadButton);
     assert.isTrue(uploadButton.disabled);
     assert.isNull(view.uploadOverlay_);

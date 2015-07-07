@@ -11,10 +11,10 @@ found in the LICENSE file.
 
 <script src="/components/webcomponentsjs/webcomponents.js"></script>
 
-<link rel="import" href="/components/polymer/polymer.html">
-<link rel="import" href="/trace_viewer.html">
-<link rel="import" href="/extras/full_config.html">
 <link rel="import" href="/base/xhr.html">
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/ui/timeline_view.html">
 
 <style>
   html,
@@ -29,23 +29,25 @@ found in the LICENSE file.
     padding: 0;
   }
 
-  body > x-timeline-view {
+  body > tr-ui-timeline-view {
     -webkit-flex: 1 1 auto;
     min-height: 0;
   }
-  body > x-timeline-view:focus {
+  body > tr-ui-timeline-view:focus {
     outline: none;
   }
 </style>
 </head>
 <body>
-  <x-timeline-view>
-  </x-timeline-view>
+  <tr-ui-timeline-view>
+    <track-view-container id='track_view_container'></track-view-container>
+  </tr-ui-timeline-view>
 
   <script>
   'use strict';
 
   var timelineViewEl;
+  var selectEl;
 
   function loadTraces(filenames, onTracesLoaded) {
     var traces = [];
@@ -88,17 +90,15 @@ found in the LICENSE file.
   }
 
   function onSelectionChange() {
-    var select = document.querySelector('#trace-file');
-    window.location.hash = '#' + select[select.selectedIndex].value;
+    window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
   }
 
   function onHashChange() {
     var file = window.location.hash.substr(1);
-    var select = document.querySelector('#trace-file');
-    if (select[select.selectedIndex].value != file) {
-      for (var i = 0; i < select.children.length; i++) {
-        if (select.children[i].value == file) {
-          select.selectedIndex = i;
+    if (selectEl[selectEl.selectedIndex].value != file) {
+      for (var i = 0; i < selectEl.children.length; i++) {
+        if (selectEl.children[i].value === file) {
+          selectEl.selectedIndex = i;
           break;
         }
       }
@@ -121,24 +121,19 @@ found in the LICENSE file.
   }
 
   function reload() {
-    var file = window.location.hash.substr(1);
-    var filenames = [file];
-    loadTraces(filenames, createViewFromTraces);
+    loadTraces([window.location.hash.substr(1)], createViewFromTraces);
   }
 
   window.addEventListener('hashchange', onHashChange);
 
   function onLoad() {
-    timelineViewEl = document.querySelector('x-timeline-view');
-    tr.ui.b.decorate(timelineViewEl, tr.TraceViewer);
+    timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
 
-    var selectEl = document.createElement('select');
-    selectEl.id = 'trace-file';
+    selectEl = document.createElement('select');
     timelineViewEl.leftControls.appendChild(selectEl);
 
     getAsync('/json/examples', function(data) {
-      var select = document.querySelector('#trace-file');
       var files = JSON.parse(data);
       files = files.map(function(rest) {
         return '/test_data/' + rest;
@@ -148,14 +143,14 @@ found in the LICENSE file.
         var opt = document.createElement('option');
         opt.value = files[i];
         opt.textContent = cleanFilename(files[i]);
-        select.appendChild(opt);
+        selectEl.appendChild(opt);
       }
-      select.selectedIndex = 0;
-      select.onchange = onSelectionChange;
+      selectEl.selectedIndex = 0;
+      selectEl.onchange = onSelectionChange;
 
       if (!window.location.hash) {
         // This will trigger an onHashChange so no need to reload directly.
-        window.location.hash = '#' + select[select.selectedIndex].value;
+        window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
       } else {
         onHashChange();
       }

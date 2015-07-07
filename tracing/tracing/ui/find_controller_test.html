@@ -214,7 +214,15 @@ tr.b.unittest.testSuite(function() {
       model.t1 = t1;
     });
 
-    var timeline = new tr.ui.TimelineView();
+    var container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+
+    var timeline = document.createElement('tr-ui-timeline-view');
+    timeline.appendChild(container);
+
+    // This is for testing only, have to make sure things link up right.
+    timeline.trackViewContainer_ = container;
+
     timeline.model = model;
 
     var selectionController = timeline.selectionController;

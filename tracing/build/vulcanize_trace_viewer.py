@@ -80,8 +80,7 @@ def WriteTraceViewer(output_file,
   if config_name == None:
     config_name = project.GetDefaultConfigName()
 
-  module_names = ['trace_viewer',
-                  project.GetModuleNameForConfigName(config_name)]
+  module_names = [project.GetModuleNameForConfigName(config_name)]
   if extra_module_names_to_load:
     module_names += extra_module_names_to_load
   load_sequence = project.CalcLoadSequenceForModuleNames(
