@@ -129,9 +129,9 @@ class JSChecker(object):
     def ShouldCheck(f):
       if self.input_api.IsIgnoredFile(f):
         return False
-      if f.filename.endswith('.js'):
+      if f.LocalPath().endswith('.js'):
         return True
-      if f.filename.endswith('.html'):
+      if f.LocalPath().endswith('.html'):
         return True
       return False
 
@@ -139,7 +139,7 @@ class JSChecker(object):
     for f in affected_js_files:
       error_lines = []
 
-      for i, line in enumerate(f.contents_as_lines, start=1):
+      for i, line in enumerate(f.NewContents(), start=1):
         error_lines += filter(None, [
             self.ConstCheck(i, line),
         ])
@@ -149,7 +149,7 @@ class JSChecker(object):
       flags.FLAGS.strict = True
       error_handler = ErrorHandlerImpl()
       js_checker = checker.JavaScriptStyleChecker(error_handler)
-      js_checker.Check(f.absolute_path)
+      js_checker.Check(f.AbsoluteLocalPath())
 
       for error in error_handler.GetErrors():
         highlight = self.error_highlight(
@@ -165,9 +165,9 @@ class JSChecker(object):
       if error_lines:
         error_lines = [
             'Found JavaScript style violations in %s:' %
-            f.filename] + error_lines
+            f.LocalPath()] + error_lines
         results.append(self._makeErrorOrWarning(
-            '\n'.join(error_lines), f.filename))
+            '\n'.join(error_lines), f.LocalPath()))
 
     return results
 

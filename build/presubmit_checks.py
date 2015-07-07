@@ -38,8 +38,8 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
     # to the SCM to determine the changed region can be quite expensive on
     # Win32.  Assuming that most files will be kept problem-free, we can
     # skip the SCM operations most of the time.
-    extension = str(f.filename).rsplit('.', 1)[-1]
-    if all(callable_rule(extension, line) for line in f.contents_as_lines):
+    extension = str(f.LocalPath()).rsplit('.', 1)[-1]
+    if all(callable_rule(extension, line) for line in f.NewContents()):
       continue  # No violation found in full text: can skip considering diff.
 
     if input_api.IsIgnoredFile(f):
@@ -47,7 +47,7 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
 
     for line_num, line in f.changed_lines:
       if not callable_rule(extension, line):
-        errors.append(error_formatter(f.filename, line_num, line))
+        errors.append(error_formatter(f.LocalPath(), line_num, line))
 
   return errors
 
@@ -113,9 +113,9 @@ def _CheckCopyrightNonThirdParty(input_api):
                  if not input_api.IsThirdParty(s))
 
   html_sources = [f for f in sources
-                  if os.path.splitext(f.filename)[1] == '.html']
+                  if os.path.splitext(f.LocalPath())[1] == '.html']
   non_html_sources = [f for f in sources
-                      if os.path.splitext(f.filename)[1] != '.html']
+                      if os.path.splitext(f.LocalPath())[1] != '.html']
 
   results = []
   results += _Check(input_api, html_license_re, html_sources)
@@ -127,9 +127,9 @@ def _Check(input_api, license_re, sources):
   for f in sources:
     if input_api.IsIgnoredFile(f):
       continue
-    contents = f.contents
+    contents = '\n'.join(f.NewContents())
     if not license_re.search(contents):
-      bad_files.append(f.filename)
+      bad_files.append(f.LocalPath())
   if bad_files:
     return [_FormatError(
         'License must match:\n%s\n' % license_re.pattern +
