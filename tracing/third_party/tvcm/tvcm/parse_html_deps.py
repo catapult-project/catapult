@@ -111,35 +111,6 @@ class HTMLModuleParserResults(object):
   def YieldHTMLInPieces(self, controller, minify=False):
     yield self.GenerateHTML(controller, minify)
 
-  # TODO(nednguyen): Remove this hack when we can use JS to parse HTML.
-  # (https://github.com/google/trace-viewer/issues/1030)
-  def GenerateJSForHeadlessImport(self):
-    soup = polymer_soup.PolymerSoup(str(self._soup))
-
-    results_js = []
-
-    # Turn all imports into loadHTML()
-    imports = soup.findAll('link', rel='import')
-    for imp in imports:
-      path = imp.extract().get('href')
-      results_js.append('loadHTML("%s");' % path)
-
-    # Turn all script links into load()
-    scripts_external = soup.findAll('script')
-    for script in scripts_external:
-      path = script.get('src')
-      if path:
-        results_js.append('loadScript("%s");' % path)
-        if script.contents:
-          assert not script.contents[0], (
-              'Script with source cannot have script content: %s' %
-              script.contents[0])
-      elif script.contents:
-        results_js.append(script.contents[0].strip())
-
-    # We are done.
-    return str('\n'.join(results_js))
-
   def GenerateHTML(self, controller, minify=False):
     soup = polymer_soup.PolymerSoup(str(self._soup))
 
