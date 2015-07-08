@@ -151,6 +151,9 @@ class Options(object):
 
     self._overhead_level = overhead_level
     self._extra_category_filters = []
+    self._tracing_options = tracing_options.TracingOptions()
+    self._tracing_options.enable_chrome_trace = True
+    self._tracing_options.enable_platform_display_trace = True
 
   def ExtendTraceCategoryFilters(self, filters):
     self._extra_category_filters.extend(filters)
@@ -162,6 +165,14 @@ class Options(object):
   @property
   def overhead_level(self):
     return self._overhead_level
+
+  @property
+  def tracing_options(self):
+    return self._tracing_options
+
+  @tracing_options.setter
+  def tracing_options(self, value):
+    self._tracing_options = value
 
 
 class TimelineBasedMeasurement(object):
@@ -230,10 +241,8 @@ class TimelineBasedMeasurement(object):
     # TODO(slamm): Move synthetic_delay_categories to the TBM options.
     for delay in synthetic_delay_categories or []:
       category_filter.AddSyntheticDelay(delay)
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    options.enable_platform_display_trace = True
-    tracing_controller.Start(options, category_filter)
+
+    tracing_controller.Start(self._tbm_options.tracing_options, category_filter)
 
   @decorators.Deprecated(
     2015, 7, 19, 'Please use WillRunStory instead. The user story concept is '

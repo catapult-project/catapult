@@ -6,7 +6,6 @@ import logging
 import socket
 import time
 
-from telemetry.core.platform import tracing_options
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
@@ -59,18 +58,12 @@ class TracingBackend(object):
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
 
-    # Map telemetry's tracing record_mode to the DevTools API string.
-    # (The keys happen to be the same as the values.)
-    m = {tracing_options.RECORD_UNTIL_FULL: 'record-until-full',
-         tracing_options.RECORD_AS_MUCH_AS_POSSIBLE:
-         'record-as-much-as-possible'}
-    # DevTools started supporting RECORD_AS_MUCH_AS_POSSIBLE in Chrome 2118.
-    # However, we send it for earlier versions as well because Chrome ignores
-    # the unknown value and falls back to RECORD_UNTIL_FULL.
     req = {
-        'method': 'Tracing.start',
-        'params': {'options': m[trace_options.record_mode]}
-        }
+      'method': 'Tracing.start',
+      'params': {
+        'options': trace_options.GetTraceOptionsStringForChromeDevtool()
+      }
+    }
     if custom_categories:
       req['params']['categories'] = custom_categories
     self._inspector_websocket.SyncRequest(req, timeout)
