@@ -14,5 +14,6 @@ from hooks import install
 from tracing.build import tracing_dev_server
 
 if __name__ == '__main__':
-  install.InstallHooks()
+  # TODO(sullivan): Make this run on the command line but not the buildbots.
+  #install.InstallHooks()
   sys.exit(tracing_dev_server.Main(sys.argv[1:]))
