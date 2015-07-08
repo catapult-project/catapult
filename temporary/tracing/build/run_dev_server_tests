@@ -32,14 +32,14 @@ PLATFORM_MAPPING = {
     'win32': {
         'omaha': 'win',
         'cs_dir': 'win',
-        'cs_filename', 'win',
+        'cs_filename': 'win',
         'chromepath': 'chrome-win\\chrome.exe',
     },
     'darwin': {
         'omaha': 'mac',
         'cs_dir': 'mac64',
         'cs_filename': 'mac',
-        'chromepath': 'chrome-mac/Google Chrome.app/Contents',
+        'chromepath': 'chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome',
     },
 }
 
@@ -49,7 +49,9 @@ def DownloadChromeStable():
   response = urllib2.urlopen(omaha_url)
   bucket = response.readlines()[1].split(',')[2]
   cs_url = CLOUDSTORAGE_URL % (
-      bucket, PLATFORM_MAPPING['cs_dir'], PLATFORM_MAPPING['cs_filename'])
+      bucket,
+      PLATFORM_MAPPING[sys.platform]['cs_dir'],
+      PLATFORM_MAPPING[sys.platform]['cs_filename'])
   tmpdir = tempfile.mkdtemp()
   zip_path = os.path.join(tmpdir, 'chrome.zip')
   print 'GOT OMAHA_URL', omaha_url
@@ -71,6 +73,7 @@ def main():
 
   chrome_path = os.path.join(
       tmpdir, PLATFORM_MAPPING[sys.platform]['chromepath'])
+  print "CHROME PATH:", chrome_path
   os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
   chrome_command = [
       chrome_path,
