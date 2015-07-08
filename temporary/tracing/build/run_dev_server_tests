@@ -59,7 +59,7 @@ def DownloadChromeStable():
 def main():
   tmpdir = DownloadChromeStable()
   server_path = os.path.join(os.path.dirname(
-      os.path.abspath(__file__)), os.pardir, os.pardir, 'run_dev_server')
+      os.path.abspath(__file__)), os.pardir, 'run_dev_server')
   server_process = subprocess.Popen(
       [server_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   time.sleep(5)
