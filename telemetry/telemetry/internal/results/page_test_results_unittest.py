@@ -187,6 +187,30 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals(
         [value1, value2, value3], results.all_page_specific_values)
 
+  def testFindValues(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    v0 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3)
+    results.AddValue(v0)
+    v1 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 4)
+    results.AddValue(v1)
+    results.DidRunPage(self.pages[1])
+
+    values = results.FindValues(lambda v: v.value == 3)
+    self.assertEquals([v0], values)
+
+  def testValueWithTIRLabel(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    v0 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3, tir_label='foo')
+    results.AddValue(v0)
+    v1 = scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3, tir_label='bar')
+    results.AddValue(v1)
+    results.DidRunPage(self.pages[0])
+
+    values = results.FindAllPageSpecificValuesFromIRNamed('foo', 'a')
+    self.assertEquals([v0], values)
+
   def testTraceValue(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])

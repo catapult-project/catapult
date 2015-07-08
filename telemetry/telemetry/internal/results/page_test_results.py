@@ -208,26 +208,32 @@ class PageTestResults(object):
     for output_formatter in self._output_formatters:
       output_formatter.Format(self)
 
-  def FindPageSpecificValuesForPage(self, page, value_name):
+  def FindValues(self, predicate):
+    """Finds all values matching the specified predicate.
+
+    Args:
+      predicate: A function that takes a Value and returns a bool.
+    Returns:
+      A list of values matching |predicate|.
+    """
     values = []
     for value in self.all_page_specific_values:
-      if value.page == page and value.name == value_name:
+      if predicate(value):
         values.append(value)
     return values
+
+  def FindPageSpecificValuesForPage(self, page, value_name):
+    return self.FindValues(lambda v: v.page == page and v.name == value_name)
 
   def FindAllPageSpecificValuesNamed(self, value_name):
-    values = []
-    for value in self.all_page_specific_values:
-      if value.name == value_name:
-        values.append(value)
-    return values
+    return self.FindValues(lambda v: v.name == value_name)
+
+  def FindAllPageSpecificValuesFromIRNamed(self, tir_label, value_name):
+    return self.FindValues(lambda v: v.name == value_name
+                           and v.tir_label == tir_label)
 
   def FindAllTraceValues(self):
-    values = []
-    for value in self.all_page_specific_values:
-      if isinstance(value, trace.TraceValue):
-        values.append(value)
-    return values
+    return self.FindValues(lambda v: isinstance(v, trace.TraceValue))
 
   def _SerializeTracesToDirPath(self, dir_path):
     """ Serialize all trace values to files in dir_path and return a list of
