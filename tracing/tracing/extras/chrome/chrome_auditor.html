@@ -25,7 +25,8 @@ tr.exportTo('tr.e.audits', function() {
    * @constructor
    */
   function ChromeAuditor(model) {
-    this.model = model;
+    Auditor.call(this, model);
+
     if (tr.e.audits.ChromeModelHelper.supportsModel(this.model)) {
       var modelHelper = new tr.e.audits.ChromeModelHelper(this.model);
 
