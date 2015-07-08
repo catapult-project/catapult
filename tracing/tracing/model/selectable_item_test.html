@@ -9,24 +9,16 @@ found in the LICENSE file.
 <link rel="import" href="/model/event.html">
 <link rel="import" href="/model/selectable_item.html">
 <link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/tracks/event_to_track_map.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var Event = tr.model.Event;
+  var EventToTrackMap = tr.ui.tracks.EventToTrackMap;
   var SelectableItem = tr.model.SelectableItem;
   var SelectionState = tr.model.SelectionState;
-  var Event = tr.model.Event;
-
-  function buildEventToTrackMap() {
-    var eventToTrackMap = {
-      map: {},
-      addEvent: function(event, track) {
-        this.map[event.guid] = track;
-      }
-    };
-    return eventToTrackMap;
-  };
 
   test('checkModelItem', function() {
     var selectableItem1 = new SelectableItem(undefined);
@@ -68,20 +60,20 @@ tr.b.unittest.testSuite(function() {
 
   test('checkAddToTrackMap_undefinedModelItem', function() {
     var selectableItem = new SelectableItem(undefined);
-    var eventToTrackMap = buildEventToTrackMap();
+    var eventToTrackMap = new EventToTrackMap();
     var track = {};
     selectableItem.addToTrackMap(eventToTrackMap, track);
-    assert.lengthOf(Object.keys(eventToTrackMap.map), 0);
+    assert.lengthOf(Object.keys(eventToTrackMap), 0);
   });
 
   test('checkAddToTrackMap_definedModelItem', function() {
     var event = new Event();
     var selectableItem = new SelectableItem(event);
-    var eventToTrackMap = buildEventToTrackMap();
+    var eventToTrackMap = new EventToTrackMap();
     var track = {};
     selectableItem.addToTrackMap(eventToTrackMap, track);
-    assert.lengthOf(Object.keys(eventToTrackMap.map), 1);
-    assert.equal(eventToTrackMap.map[event.guid], track);
+    assert.lengthOf(Object.keys(eventToTrackMap), 1);
+    assert.equal(eventToTrackMap[event.guid], track);
   });
 });
 </script>

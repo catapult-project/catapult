@@ -14,20 +14,22 @@ found in the LICENSE file.
 <link rel="import" href="/ui/tracks/chart_point.html">
 <link rel="import" href="/ui/tracks/chart_series.html">
 <link rel="import" href="/ui/tracks/chart_track.html">
+<link rel="import" href="/ui/tracks/event_to_track_map.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var Viewport = tr.ui.TimelineViewport;
-  var Event = tr.model.Event;
-  var SelectionState = tr.model.SelectionState;
-  var ChartTrack = tr.ui.tracks.ChartTrack;
-  var ChartSeries = tr.ui.tracks.ChartSeries;
-  var ChartSeriesType = tr.ui.tracks.ChartSeriesType;
   var ChartAxis = tr.ui.tracks.ChartAxis;
   var ChartPoint = tr.ui.tracks.ChartPoint;
+  var ChartSeries = tr.ui.tracks.ChartSeries;
+  var ChartSeriesType = tr.ui.tracks.ChartSeriesType;
+  var ChartTrack = tr.ui.tracks.ChartTrack;
+  var Event = tr.model.Event;
+  var EventSet = tr.model.EventSet;
+  var EventToTrackMap = tr.ui.tracks.EventToTrackMap;
+  var SelectionState = tr.model.SelectionState;
+  var Viewport = tr.ui.TimelineViewport;
 
   function buildPoint(x, y) {
     var event = new Event();
@@ -95,16 +97,6 @@ tr.b.unittest.testSuite(function() {
     return track;
   }
 
-  function buildEventToTrackMap() {
-    var eventToTrackMap = {
-      map: {},
-      addEvent: function(event, track) {
-        this.map[event.guid] = track;
-      }
-    };
-    return eventToTrackMap;
-  }
-
   test('instantiate_lowDetailsWithoutSelection', function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
@@ -163,9 +155,9 @@ tr.b.unittest.testSuite(function() {
 
   test('checkAddEventsToTrackMap', function() {
     var track = buildTrack();
-    var eventToTrackMap = buildEventToTrackMap();
+    var eventToTrackMap = new EventToTrackMap();
     track.addEventsToTrackMap(eventToTrackMap);
-    assert.lengthOf(Object.keys(eventToTrackMap.map), 23);
+    assert.lengthOf(Object.keys(eventToTrackMap), 23);
   });
 
   test('checkaddIntersectingEventsInRangeToSelectionInWorldSpace', function() {
