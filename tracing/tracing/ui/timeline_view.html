@@ -369,7 +369,8 @@ found in the LICENSE file.
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tr.ui.TimelineTrackView(this);
+        this.trackView_ = document.createElement('tr-ui-timeline-track-view');
+        this.trackView_.timelineView = this;
 
         this.trackView.selectionController = this.selectionController_;
 

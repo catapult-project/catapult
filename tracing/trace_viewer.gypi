@@ -6,7 +6,6 @@
   'variables': {
     'tracing_css_files': [
       'tracing/ui/analysis/analysis_results.css',
-      'tracing/ui/base/common.css',
       'tracing/ui/base/drag_handle.css',
       'tracing/ui/base/line_chart.css',
       'tracing/ui/base/list_view.css',
@@ -28,7 +27,6 @@
       'tracing/ui/extras/tcmalloc/heap_instance_track.css',
       'tracing/ui/extras/tcmalloc/tcmalloc_instance_view.css',
       'tracing/ui/extras/tcmalloc/tcmalloc_snapshot_view.css',
-      'tracing/ui/timeline_track_view.css',
       'tracing/ui/tracks/drawing_container.css',
       'tracing/ui/tracks/heading_track.css',
       'tracing/ui/tracks/object_instance_track.css',

@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
     timeline.style.maxHeight = '600px';
     this.addHTMLOutput(timeline);
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     t1asg.slices.push(
         tr.c.test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     var expected = [t1asg.slices[0],
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isFalse(timeline.hasVisibleContent);
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
     series.addCounterSample(0, 1);
     ctr.addSeries(series);
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
     var c1 = model.kernel.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
@@ -126,7 +126,7 @@ tr.b.unittest.testSuite(function() {
     var p1 = model.getOrCreateProcess(1);
     p1.getOrCreateCounter('', 'a');
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
@@ -138,7 +138,7 @@ tr.b.unittest.testSuite(function() {
     var t1 = p1.getOrCreateThread(2);
     t1.sliceGroup.pushSlice(tr.c.test_utils.newSlice(0, 1));
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
     var model = new tr.Model(events);
-    var trackView = new tr.ui.TimelineTrackView();
+    var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
 
@@ -172,7 +172,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
     var model = new tr.Model(events);
-    var trackView = new tr.ui.TimelineTrackView();
+    var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();
@@ -189,7 +189,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
     var model = new tr.Model(events);
-    var trackView = new tr.ui.TimelineTrackView();
+    var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();
