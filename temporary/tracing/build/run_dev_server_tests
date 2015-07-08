@@ -62,8 +62,24 @@ def DownloadChromeStable():
   zf.extractall(path=tmpdir)
   return tmpdir
 
+def StartXvfb():
+  xvfb_command = [
+    'Xvfb',
+    ':99',
+  ]
+  xvfb_process = subprocess.Popen(
+      xvfb_command, stdout=open(os.devnull), stderr=open(os.devnull))
+  time.sleep(0.2)
+  returncode = xvfb_process.poll()
+  if returncode is None:
+    os.environ['DISPLAY'] = ':99'
+  else:
+    logging.error('Xvfb did not start, returncode: %s', returncode)
+
 
 def main():
+  StartXvfb()
+
   tmpdir = DownloadChromeStable()
   server_path = os.path.join(os.path.dirname(
       os.path.abspath(__file__)), os.pardir, 'run_dev_server')
