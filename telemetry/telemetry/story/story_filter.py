@@ -46,8 +46,6 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     group = optparse.OptionGroup(parser, 'User story filtering options')
     group.add_option('--story-filter',
         help='Use only stories whose names match the given filter regexp.')
-    group.add_option('--page-filter', dest='story_filter',
-        help='Deprecated. Use --story-filter instead.')
     group.add_option('--story-filter-exclude',
         help='Exclude stories whose names match the given filter regexp.')
     group.add_option('--story-label-filter',
