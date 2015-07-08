@@ -56,11 +56,15 @@ found in the LICENSE file.
       cursor: default;
     }
     </style>
-    <tr-ui-b-toolbar-button id="outer">
+    <tr-ui-b-toolbar-button id="outer"
+        on-keydown="{{ onOuterKeyDown_ }}"
+        on-click="{{ onOuterClick_ }}">
       <div id="icon">&#9881;</div>
       <div id="state">&#9662;</div>
     </tr-ui-b-toolbar-button>
-    <dialog id="dialog">
+    <dialog id="dialog"
+        on-click="{{ onDialogClick_ }}"
+        on-cancel="{{ onDialogCancel_ }}">
       <div id="dialog-frame">
         <content></content>
       </div>
@@ -71,15 +75,19 @@ found in the LICENSE file.
 
   Polymer({
     ready: function() {
-
-      this.$.outer.addEventListener('click', this.onOuterClick_.bind(this));
-      this.$.dialog.addEventListener('click', this.onDialogClick_.bind(this));
-
-      this.$.dialog.addEventListener('cancel', this.onDialogCancel_.bind(this));
+      this.$.outer.tabIndex = 0;
     },
 
     get iconElement() {
       return this.$.icon;
+    },
+
+    onOuterKeyDown_: function(e) {
+      if (e.keyCode === ' '.charCodeAt(0)) {
+        this.toggle_();
+        e.preventDefault();
+        e.stopPropagation();
+      }
     },
 
     onOuterClick_: function(e) {
@@ -93,6 +101,10 @@ found in the LICENSE file.
         return;
 
       e.preventDefault();
+      this.toggle_();
+    },
+
+    toggle_: function() {
       if (!this.isOpen)
         this.show();
       else
@@ -119,16 +131,10 @@ found in the LICENSE file.
     onDialogClick_: function(e) {
       if (!this.isOpen)
         return;
-      var dr = this.$.dialog.getBoundingClientRect();
-      var inside = true;
-      inside &= e.clientX >= dr.left;
-      inside &= e.clientX < dr.right;
-      inside &= e.clientY >= dr.top;
-      inside &= e.clientY < dr.bottom;
-      if (!inside) {
-        e.preventDefault();
-        this.close();
-      }
+      if (e.srcElement !== this.$.dialog)
+        return;
+      e.preventDefault();
+      this.close();
     },
 
     onDialogCancel_: function(e) {
@@ -141,6 +147,7 @@ found in the LICENSE file.
         return;
       this.$.dialog.close();
       this.$.outer.classList.remove('open');
+      this.$.outer.focus();
     },
 
     get isOpen() {
