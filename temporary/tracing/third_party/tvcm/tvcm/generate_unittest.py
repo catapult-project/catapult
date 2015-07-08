@@ -43,7 +43,7 @@ class GenerateTests(unittest.TestCase):
   def testHTMLGeneration(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.join('foo', 'my_module.html'))
+          [os.path.join('foo', 'my_module.html')])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
 
