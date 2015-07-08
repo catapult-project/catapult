@@ -25,17 +25,20 @@ CLOUDSTORAGE_URL = ('https://commondatastorage.googleapis.com/chrome-unsigned'
 PLATFORM_MAPPING = {
     'linux2': {
         'omaha': 'linux',
-        'gs': 'precise64',
+        'cs_dir': 'precise64',
+        'cs_filename': 'precise64',
         'chromepath': 'chrome-precise64/chrome',
     },
     'win32': {
         'omaha': 'win',
-        'gs': 'win',
+        'cs_dir': 'win',
+        'cs_filename', 'win',
         'chromepath': 'chrome-win\\chrome.exe',
     },
     'darwin': {
         'omaha': 'mac',
-        'gs': 'mac',
+        'cs_dir': 'mac64',
+        'cs_filename': 'mac',
         'chromepath': 'chrome-mac/Google Chrome.app/Contents',
     },
 }
@@ -45,10 +48,12 @@ def DownloadChromeStable():
   omaha_url = OMAHA_URL % omaha_platform
   response = urllib2.urlopen(omaha_url)
   bucket = response.readlines()[1].split(',')[2]
-  cs_dir = PLATFORM_MAPPING[sys.platform]['gs']
-  cs_url = CLOUDSTORAGE_URL % (bucket, cs_dir, cs_dir)
+  cs_url = CLOUDSTORAGE_URL % (
+      bucket, PLATFORM_MAPPING['cs_dir'], PLATFORM_MAPPING['cs_filename'])
   tmpdir = tempfile.mkdtemp()
   zip_path = os.path.join(tmpdir, 'chrome.zip')
+  print 'GOT OMAHA_URL', omaha_url
+  print 'OPENING CS URL:', cs_url
   with open(zip_path, 'wb') as local_file:
     local_file.write(urllib2.urlopen(cs_url).read())
   zf = zipfile.ZipFile(zip_path)
