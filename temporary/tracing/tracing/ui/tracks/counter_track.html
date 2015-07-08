@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+<link rel="import" href="/ui/tracks/chart_series.html">
+<link rel="import" href="/ui/tracks/chart_track.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  /**
+   * A track that displays a Counter object.
+   * @constructor
+   * @extends {ChartTrack}
+   */
+  var CounterTrack = tr.ui.b.define('counter-track', tr.ui.tracks.ChartTrack);
+
+  CounterTrack.prototype = {
+    __proto__: tr.ui.tracks.ChartTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.ChartTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('counter-track');
+    },
+
+    get counter() {
+      return this.chart;
+    },
+
+    set counter(counter) {
+      this.heading = counter.name + ': ';
+      this.series = CounterTrack.buildChartSeriesFromCounter(counter);
+      this.autoSetAllAxes({expandMax: true});
+    },
+
+    getModelEventFromItem: function(chartValue) {
+      return chartValue;
+    }
+  };
+
+  CounterTrack.buildChartSeriesFromCounter = function(counter) {
+    var numSeries = counter.series.length;
+    var totals = counter.totals;
+
+    // Create one common axis for all series.
+    var chartAxis = new tr.ui.tracks.ChartAxis(0, undefined);
+
+    // Build one chart series for each counter series.
+    var chartSeries = counter.series.map(function(series, seriesIndex) {
+      var chartPoints = series.samples.map(function(sample, sampleIndex) {
+        var total = totals[sampleIndex * numSeries + seriesIndex];
+        return new tr.ui.tracks.ChartPoint(sample, sample.timestamp, total);
+      });
+      var renderingConfig = {
+        chartType: tr.ui.tracks.ChartSeriesType.AREA,
+        colorId: series.color
+      };
+      return new tr.ui.tracks.ChartSeries(
+          chartPoints, chartAxis, renderingConfig);
+    });
+
+    // Show the first series (with the smallest cumulative value) at the top.
+    chartSeries.reverse();
+
+    return chartSeries;
+  };
+
+  return {
+    CounterTrack: CounterTrack
+  };
+});
+</script>

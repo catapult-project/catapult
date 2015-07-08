@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/utils.html">
+
+<polymer-element name="instantiate-template-polymer-element-test">
+  <template></template>
+  <script>
+  'use strict';
+  Polymer({
+    testProperty: 'Test'
+  });
+  </script>
+</polymer-element>
+
+<template id="instantiate-template-polymer-test">
+  <instantiate-template-polymer-element-test>
+  </instantiate-template-polymer-element-test>
+</template>
+
+<template id="multiple-template-test">
+  <template>
+    <instantiate-template-polymer-element-test>
+    </instantiate-template-polymer-element-test>
+    <span test-attribute='TestAttribute'>Foo</span>
+  </template>
+  <instantiate-template-polymer-element-test>
+  </instantiate-template-polymer-element-test>
+</template>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('instantiateTemplatePolymer', function() {
+    var e = tr.ui.b.instantiateTemplate(
+                '#instantiate-template-polymer-test',
+                THIS_DOC);
+    assert.equal(e.children.length, 1);
+    assert.equal(e.children[0].testProperty, 'Test');
+  });
+
+  test('instantiateTemplateMultipleTemplates', function() {
+    var outerElement = tr.ui.b.instantiateTemplate(
+                           '#multiple-template-test',
+                           THIS_DOC);
+    assert.equal(outerElement.children.length, 2);
+    assert.equal(outerElement.children[1].testProperty, 'Test');
+
+    // Make sure we can still instantiate inner templates, if we need them.
+    var innerElement = outerElement.children[0].createInstance();
+    assert.equal(innerElement.children.length, 2);
+    assert.equal(innerElement.children[0].testProperty, 'Test');
+    assert.equal(
+        innerElement.children[1].getAttribute('test-attribute'),
+        'TestAttribute');
+    assert.equal(innerElement.children[1].textContent, 'Foo');
+  });
+});
+</script>
+

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('createTimeDurationSpan', function() {
+    // Default owner document.
+    var timeStamp = tr.ui.units.createTimeDurationSpan(3.14);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-DURATION-SPAN');
+    assert.strictEqual(timeStamp.duration, 3.14);
+    assert.strictEqual(timeStamp.ownerDocument, document);
+
+    // Custom owner document.
+    var config = {ownerDocument: THIS_DOC};
+    var timeStamp = tr.ui.units.createTimeDurationSpan(-273.15, config);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-DURATION-SPAN');
+    assert.strictEqual(timeStamp.duration, -273.15);
+    assert.strictEqual(timeStamp.ownerDocument, THIS_DOC);
+  });
+
+  test('instantiate', function() {
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.duration = 73;
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('instantiateWithObject', function() {
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.duration = new tr.b.units.TimeDuration(73);
+    this.addHTMLOutput(timeSpan);
+    assert.equal(timeSpan.duration, 73);
+  });
+
+  test('instantiateWithWarning', function() {
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.duration = 400;
+    timeSpan.warning = 'there is a problem with this time';
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('instantiateWithPercentage', function() {
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.percentage = 0.5;
+    timeSpan.duration = 40;
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('warningAndNonWarningHaveSimilarHeights', function() {
+    var spanA = document.createElement('tr-ui-u-time-duration-span');
+    spanA.duration = 400;
+
+    var spanB = document.createElement('tr-ui-u-time-duration-span');
+    spanB.duration = 400;
+    spanB.warning = 'there is a problem with this time';
+
+    var overall = document.createElement('div');
+    overall.style.display = 'flex';
+    overall.appendChild(spanA);
+    spanB.style.marginLeft = '4px';
+    overall.appendChild(spanB);
+    this.addHTMLOutput(overall);
+  });
+
+
+  test('respectCurrentDisplayUnit', function() {
+    try {
+      var Time = tr.b.units.Time;
+      Time.currentDisplayUnit = Time.supportedUnits.ns;
+
+      var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+      timeSpan.duration = 73;
+      this.addHTMLOutput(timeSpan);
+
+      assert.isTrue(timeSpan.$.content.textContent.indexOf('ns') > 0);
+      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      assert.isTrue(timeSpan.$.content.textContent.indexOf('ms') > 0);
+    } finally {
+      Time.reset();
+    }
+  });
+
+
+  test('displaySparkline', function() {
+    var div = document.createElement('div');
+    div.style.width = '100px';
+
+    var timeSpan = document.createElement('tr-ui-u-time-duration-span');
+    timeSpan.duration = 40;
+    div.appendChild(timeSpan);
+
+    this.addHTMLOutput(div);
+
+    function checkSparkline(expectedDisplay, expectedWidth) {
+      var computedStyle = getComputedStyle(timeSpan.$.sparkline);
+      assert.equal(computedStyle.display, expectedDisplay);
+      assert.equal(parseInt(computedStyle.width), expectedWidth);
+    }
+
+    // No percentage set.
+    checkSparkline('none', 0);
+
+    // Zero percentage set.
+    timeSpan.percentage = 0;
+    checkSparkline('block', 1);
+
+    // Undefined percentage set.
+    timeSpan.percentage = undefined;
+    checkSparkline('none', 0);
+
+    // Undefined percentage set.
+    timeSpan.percentage = 0.5;
+    checkSparkline('block', 50);
+  });
+
+});
+</script>

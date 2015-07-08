@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/layer_tree_host_impl.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/extras/chrome/cc/raster_task.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/chrome/cc/layer_tree_host_impl_view.html">
+
+<script src="/extras/chrome/cc/layer_tree_host_impl_test_data.js"></script>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = tr.b.dictionaryValues(m.processes)[0];
+
+    var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    var snapshot = instance.snapshots[0];
+
+    var view = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
+    view.style.width = '900px';
+    view.style.height = '400px';
+    view.objectSnapshot = snapshot;
+
+    this.addHTMLOutput(view);
+  });
+});
+</script>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/raf.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  if (tr.isHeadless)
+    return;
+
+  var fakeNow = undefined;
+  function withFakeWindowPerformanceNow(func) {
+    var oldNow = window.performance.now;
+    try {
+      window.performance.now = function() { return fakeNow; };
+      func();
+    } finally {
+      window.performance.now = oldNow;
+    }
+  }
+
+  test('runIdleTaskWhileIdle', function() {
+    withFakeWindowPerformanceNow(function() {
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
+      var rafRan = false;
+      tr.b.requestAnimationFrame(function() {
+        rafRan = true;
+      });
+      var idleRan = false;
+      tr.b.requestIdleCallback(function() {
+        idleRan = true;
+      });
+      fakeNow = 0;
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
+      assert.isFalse(idleRan);
+      assert.isTrue(rafRan);
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
+      assert.isTrue(idleRan);
+    });
+  });
+
+  test('twoShortIdleCallbacks', function() {
+    withFakeWindowPerformanceNow(function() {
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
+      var idle1Ran = false;
+      var idle2Ran = false;
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 1;
+        idle1Ran = true;
+      });
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 1;
+        idle2Ran = true;
+      });
+      fakeNow = 0;
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
+      assert.isTrue(idle1Ran);
+      assert.isTrue(idle2Ran);
+    });
+  });
+
+
+  test('oneLongOneShortIdleCallback', function() {
+    withFakeWindowPerformanceNow(function() {
+      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
+      var idle1Ran = false;
+      var idle2Ran = false;
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 100;
+        idle1Ran = true;
+      });
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 1;
+        idle2Ran = true;
+      });
+      fakeNow = 0;
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
+      assert.isTrue(idle1Ran);
+      assert.isFalse(idle2Ran);
+
+      // Reset idle1Ran to verify that it dosn't run again.
+      idle1Ran = false;
+
+      // Now run. idle2 should now run.
+      tr.b.forcePendingRAFTasksToRun(fakeNow);
+      assert.isFalse(idle1Ran);
+      assert.isTrue(idle2Ran);
+    });
+  });
+
+  test('buggyPerformanceNowDoesNotBlockIdleTasks', function() {
+    withFakeWindowPerformanceNow(function() {
+      tr.b.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
+
+      var idle1Ran = false;
+      var idle2Ran = false;
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 100;
+        idle1Ran = true;
+      });
+      tr.b.requestIdleCallback(function() {
+        fakeNow += 1;
+        idle2Ran = true;
+      });
+      fakeNow = 10000;
+      tr.b.forcePendingRAFTasksToRun(0);
+      assert.isTrue(idle1Ran);
+      assert.isFalse(idle2Ran);
+
+      // Reset idle1Ran to verify that it dosn't run again.
+      idle1Ran = false;
+
+      // Now run. idle2 should now run.
+      tr.b.forcePendingRAFTasksToRun(0);
+      assert.isFalse(idle1Ran);
+      assert.isTrue(idle2Ran);
+    });
+  });
+
+});
+</script>

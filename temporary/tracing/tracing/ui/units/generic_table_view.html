@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/base/units/generic_table.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/units/array_of_numbers_span.html">
+
+<polymer-element name="tr-ui-u-generic-table-view">
+  <template>
+    <style>
+    :host {
+    display: flex;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.units', function() {
+  var TEXT_COLUMN_MODE = 1;
+  var NUMERIC_COLUMN_MODE = 2;
+
+  function isNumeric(value) {
+    // TODO(nduca): Also consider other units that are numeric.
+    if ((typeof value) === 'number')
+      return true;
+    else if (value instanceof Number)
+      return true;
+    return false;
+  }
+
+  function GenericTableViewTotalsItem(opt_values) {
+    if (opt_values !== undefined)
+      this.values = opt_values;
+    else
+      this.values = [];
+  }
+
+  function GenericTableViewColumnDescriptor(fieldName, firstFieldValue) {
+    this.title = fieldName;
+    this.fieldName = fieldName;
+
+    this.updateModeGivenValue(firstFieldValue);
+  }
+
+  GenericTableViewColumnDescriptor.prototype = {
+    get columnMode() {
+      return this.columnMode_;
+    },
+
+    get isInNumericMode() {
+      return this.columnMode_ === NUMERIC_COLUMN_MODE;
+    },
+
+    cmp: function(a, b) {
+      return tr.b.comparePossiblyUndefinedValues(a, b, function(a, b) {
+        var vA = a[this.fieldName];
+        var vB = b[this.fieldName];
+        return tr.b.comparePossiblyUndefinedValues(vA, vB, function(vA, vB) {
+          if (vA.localeCompare)
+            return vA.localeCompare(vB);
+          return vA - vB;
+        }, this);
+      }, this);
+    },
+
+    updateModeGivenValue: function(fieldValue) {
+      if (this.columnMode_ === undefined) {
+        if (fieldValue === undefined || fieldValue === null)
+          return;
+
+        if (isNumeric(fieldValue))
+          this.columnMode_ = NUMERIC_COLUMN_MODE;
+        else
+          this.columnMode_ = TEXT_COLUMN_MODE;
+        return;
+      }
+
+      // Undefineds & nulls shouldn't change the mode.
+      if (fieldValue === undefined || fieldValue === null)
+        return;
+
+      // If we were already in numeric mode, then we don't
+      // need to put it into numeric mode again. And, if we were
+      // previously in text mode, then we can't go into numeric mode now.
+      if (isNumeric(fieldValue))
+        return;
+
+      this.columnMode_ = TEXT_COLUMN_MODE;
+    },
+
+    value: function(item) {
+      var fieldValue = item[this.fieldName];
+      if (fieldValue instanceof GenericTableViewTotalsItem) {
+        var span = document.createElement('tr-ui-u-array-of-numbers-span');
+        span.summaryMode = tr.ui.units.ArrayOfNumbersSummaryModes.TOTAL_MODE;
+        span.numbers = fieldValue.values;
+        return span;
+      }
+
+      if (fieldValue === undefined)
+        return '-';
+
+      if (fieldValue instanceof Object) {
+        var gov = document.createElement('tr-ui-a-generic-object-view');
+        gov.object = fieldValue;
+        return gov;
+      }
+
+      // TODO(nduca): Use units objects if applicable.
+      return fieldValue;
+    }
+  };
+
+  Polymer('tr-ui-u-generic-table-view', {
+    created: function() {
+      this.items_ = undefined;
+    },
+
+    get items() {
+      return this.items_;
+    },
+
+    set items(itemsOrGenericTable) {
+      if (itemsOrGenericTable === undefined) {
+        this.items_ = undefined;
+      } else if (itemsOrGenericTable instanceof Array) {
+        this.items_ = itemsOrGenericTable;
+      } else if (itemsOrGenericTable instanceof tr.b.units.GenericTable) {
+        this.items_ = itemsOrGenericTable.items;
+      }
+      this.updateContents_();
+    },
+
+    createColumns_: function() {
+      var columnsByName = {};
+      this.items_.forEach(function(item) {
+        tr.b.iterItems(item, function(itemFieldName, itemFieldValue) {
+          var colDesc = columnsByName[itemFieldName];
+          if (colDesc !== undefined) {
+            colDesc.updateModeGivenValue(itemFieldValue);
+            return;
+          }
+
+          colDesc = new GenericTableViewColumnDescriptor(
+              itemFieldName, itemFieldValue);
+          columnsByName[itemFieldName] = colDesc;
+        }, this);
+      }, this);
+
+      var columns = tr.b.dictionaryValues(columnsByName);
+      if (columns.length === 0)
+        return undefined;
+
+      // Sort by name.
+      columns.sort(function(a, b) {
+        return a.title.localeCompare(b.title);
+      });
+
+      // Set sizes. This is convoluted by the fact that the first
+      // table column must have fixed size.
+      var colWidthPercentage;
+      if (columns.length == 1)
+        colWidthPercentage = '100%';
+      else
+        colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+      columns[0].width = '250px';
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = colWidthPercentage;
+
+      return columns;
+    },
+
+    createFooterRowsIfNeeded_: function(columns) {
+      // Make totals row if needed.
+      var hasColumnThatIsNumeric = columns.some(function(column) {
+        return column.isInNumericMode;
+      });
+      if (!hasColumnThatIsNumeric)
+        return [];
+
+      var totalsItems = {};
+      columns.forEach(function(column) {
+        if (!column.isInNumericMode)
+          return;
+        var totalsItem = new GenericTableViewTotalsItem();
+        this.items_.forEach(function(item) {
+          var fieldValue = item[column.fieldName];
+          if (fieldValue === undefined || fieldValue === null)
+            return;
+          totalsItem.values.push(fieldValue);
+        });
+        totalsItems[column.fieldName] = totalsItem;
+      }, this);
+
+      return [totalsItems];
+    },
+
+    updateContents_: function() {
+      var columns;
+      if (this.items_ !== undefined)
+        columns = this.createColumns_();
+
+      if (!columns) {
+        this.$.table.tableColumns = [];
+        this.$.table.tableRows = [];
+        this.$.table.footerRows = [];
+        return;
+      }
+
+      this.$.table.tableColumns = columns;
+      this.$.table.tableRows = this.items_;
+      this.$.table.footerRows = this.createFooterRowsIfNeeded_(columns);
+      this.$.table.rebuild();
+    }
+  });
+
+  return {
+    GenericTableViewTotalsItem: GenericTableViewTotalsItem,
+    GenericTableViewColumnDescriptor: GenericTableViewColumnDescriptor
+  };
+});
+</script>

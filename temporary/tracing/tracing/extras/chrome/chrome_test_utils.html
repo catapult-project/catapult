@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/chrome_process_helper.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tr.exportTo('tr.e.audits', function() {
+  function newChromeModel(customizeModelCallback) {
+    return tr.c.test_utils.newModel(function(model) {
+      model.browserProcess = model.getOrCreateProcess(1);
+      model.browserMain = model.browserProcess.getOrCreateThread(2);
+      model.browserMain.name = 'CrBrowserMain';
+
+      model.rendererProcess = model.getOrCreateProcess(2);
+      model.rendererMain = model.rendererProcess.getOrCreateThread(3);
+      model.rendererMain.name = 'CrRendererMain';
+
+      model.rendererCompositor = model.rendererProcess.getOrCreateThread(4);
+      model.rendererCompositor.name = 'Compositor';
+
+      model.rasterWorker1 = model.rendererProcess.getOrCreateThread(5);
+      model.rasterWorker1.name = 'CompositorTileWorker1';
+
+      customizeModelCallback(model);
+    });
+  }
+
+  function addGeneralLatencyInfoEvent(model, dict) {
+    dict.title = 'InputLatency';
+    dict.isTopLevel = true;
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addFlingStartLatencyInfoEvent(model, dict) {
+    var topEvent = addGeneralLatencyInfoEvent(model, dict);
+
+    dict.start = dict.flingStart;
+    dict.end = topEvent.end;
+    dict.title = 'InputLatency:GestureFlingStart';
+    var flingStartEvent = tr.c.test_utils.newAsyncSliceEx(dict);
+    topEvent.subSlices.push(flingStartEvent);
+    return topEvent;
+  }
+
+  function addFlingCancelLatencyInfoEvent(model, dict) {
+    var topEvent = addGeneralLatencyInfoEvent(model, dict);
+
+    dict.start = dict.flingCancel;
+    dict.end = topEvent.end;
+    dict.title = 'InputLatency:GestureFlingCancel';
+    var flingCancelEvent = tr.c.test_utils.newAsyncSliceEx(dict);
+    topEvent.subSlices.push(flingCancelEvent);
+    return topEvent;
+  }
+
+  function addFlingAnimationEvent(model, dict) {
+    dict.title = 'InputHandlerProxy::HandleGestureFling::started';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererCompositor.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addFrameEvent(model, dict) {
+    dict.title = tr.e.audits.IMPL_RENDERING_STATS;
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addLoadingEvent(model, dict) {
+    dict.title = 'WebContentsImpl Loading';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addNetworkEvent(model, dict) {
+    dict.title = 'Generic Network event';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.browserMain.asyncSliceGroup.push(slice);
+    // TODO Why can't this be dict.cat?
+    slice.cat = 'netlog';
+    return slice;
+  }
+
+  function addProvisionalLoadEvent(model, dict) {
+    dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  return {
+    newChromeModel: newChromeModel,
+    addFrameEvent: addFrameEvent,
+    addLoadingEvent: addLoadingEvent,
+    addNetworkEvent: addNetworkEvent,
+    addProvisionalLoadEvent: addProvisionalLoadEvent,
+    addGeneralLatencyInfoEvent: addGeneralLatencyInfoEvent,
+    addFlingStartLatencyInfoEvent: addFlingStartLatencyInfoEvent,
+    addFlingCancelLatencyInfoEvent: addFlingCancelLatencyInfoEvent,
+    addFlingAnimationEvent: addFlingAnimationEvent
+  };
+});
+</script>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/ui/extras/chrome/cc/picture_ops_list_view.css">
+
+<link rel="import" href="/extras/chrome/cc/constants.html">
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/extras/chrome/cc/selection.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.chrome.cc', function() {
+  var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
+  var ANNOTATION = 'Comment';
+  var BEGIN_ANNOTATION = 'BeginCommentGroup';
+  var END_ANNOTATION = 'EndCommentGroup';
+  var ANNOTATION_ID = 'ID: ';
+  var ANNOTATION_CLASS = 'CLASS: ';
+  var ANNOTATION_TAG = 'TAG: ';
+
+  var constants = tr.e.cc.constants;
+
+  /**
+   * @constructor
+   */
+  var PictureOpsListView =
+      tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-list-view');
+
+  PictureOpsListView.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.opsList_ = new tr.ui.b.ListView();
+      this.appendChild(this.opsList_);
+
+      this.selectedOp_ = undefined;
+      this.selectedOpIndex_ = undefined;
+      this.opsList_.addEventListener(
+          'selection-changed', this.onSelectionChanged_.bind(this));
+
+      this.picture_ = undefined;
+    },
+
+    get picture() {
+      return this.picture_;
+    },
+
+    set picture(picture) {
+      this.picture_ = picture;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.opsList_.clear();
+
+      if (!this.picture_)
+        return;
+
+      var ops = this.picture_.getOps();
+      if (!ops)
+        return;
+
+      ops = this.picture_.tagOpsWithTimings(ops);
+
+      ops = this.opsTaggedWithAnnotations_(ops);
+
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        var item = document.createElement('div');
+        item.opIndex = op.opIndex;
+        item.textContent = i + ') ' + op.cmd_string;
+
+        // Display the element info associated with the op, if available.
+        if (op.elementInfo.tag || op.elementInfo.id || op.elementInfo.class) {
+          var elementInfo = document.createElement('span');
+          elementInfo.classList.add('elementInfo');
+          var tag = op.elementInfo.tag ? op.elementInfo.tag : 'unknown';
+          var id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
+          var className = op.elementInfo.class ? 'class=' +
+              op.elementInfo.class : undefined;
+          elementInfo.textContent =
+              '<' + tag + (id ? ' ' : '') +
+              (id ? id : '') + (className ? ' ' : '') +
+              (className ? className : '') + '>';
+          item.appendChild(elementInfo);
+        }
+
+        // Display the Skia params.
+        // FIXME: now that we have structured data, we should format it.
+        // (https://github.com/google/trace-viewer/issues/782)
+        if (op.info.length > 0) {
+          var infoItem = document.createElement('div');
+          infoItem.textContent = JSON.stringify(op.info);
+          item.appendChild(infoItem);
+        }
+
+        // Display the op timing, if available.
+        if (op.cmd_time && op.cmd_time >= 0.0001) {
+          var time = document.createElement('span');
+          time.classList.add('time');
+          var rounded = op.cmd_time.toFixed(4);
+          time.textContent = '(' + rounded + 'ms)';
+          item.appendChild(time);
+        }
+
+        this.opsList_.appendChild(item);
+      }
+    },
+
+    onSelectionChanged_: function(e) {
+      var beforeSelectedOp = true;
+
+      // Deselect on re-selection.
+      if (this.opsList_.selectedElement === this.selectedOp_) {
+        this.opsList_.selectedElement = undefined;
+        beforeSelectedOp = false;
+        this.selectedOpIndex_ = undefined;
+      }
+
+      this.selectedOp_ = this.opsList_.selectedElement;
+
+      // Set selection on all previous ops.
+      var ops = this.opsList_.children;
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        if (op === this.selectedOp_) {
+          beforeSelectedOp = false;
+          this.selectedOpIndex_ = op.opIndex;
+        } else if (beforeSelectedOp) {
+          op.setAttribute('beforeSelection', 'beforeSelection');
+        } else {
+          op.removeAttribute('beforeSelection');
+        }
+      }
+
+      tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
+    },
+
+    get numOps() {
+      return this.opsList_.children.length;
+    },
+
+    get selectedOpIndex() {
+      return this.selectedOpIndex_;
+    },
+
+    set selectedOpIndex(s) {
+      this.selectedOpIndex_ = s;
+
+      if (s === undefined) {
+        this.opsList_.selectedElement = this.selectedOp_;
+        this.onSelectionChanged_();
+      } else {
+        if (s < 0) throw new Error('Invalid index');
+        if (s >= this.numOps) throw new Error('Invalid index');
+        this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
+        tr.ui.b.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
+      }
+    },
+
+    /**
+     * Return Skia operations tagged by annotation.
+     *
+     * The ops returned from Picture.getOps() contain both Skia ops and
+     * annotations threaded together. This function removes all annotations
+     * from the list and tags each op with the associated annotations.
+     * Additionally, the last {tag, id, class} is stored as elementInfo on
+     * each op.
+     *
+     * @param {Array} ops Array of Skia operations and annotations.
+     * @return {Array} Skia ops where op.annotations contains the associated
+     *         annotations for a given op.
+     */
+    opsTaggedWithAnnotations_: function(ops) {
+      // This algorithm works by walking all the ops and pushing any
+      // annotations onto a stack. When a non-annotation op is found, the
+      // annotations stack is traversed and stored with the op.
+      var annotationGroups = new Array();
+      var opsWithoutAnnotations = new Array();
+      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
+        var op = ops[opIndex];
+        op.opIndex = opIndex;
+        switch (op.cmd_string) {
+          case BEGIN_ANNOTATION:
+            annotationGroups.push(new Array());
+            break;
+          case END_ANNOTATION:
+            annotationGroups.pop();
+            break;
+          case ANNOTATION:
+            annotationGroups[annotationGroups.length - 1].push(op);
+            break;
+          default:
+            var annotations = new Array();
+            var elementInfo = {};
+            annotationGroups.forEach(function(annotationGroup) {
+              elementInfo = {};
+              annotationGroup.forEach(function(annotation) {
+                annotation.info.forEach(function(info) {
+                  if (info.indexOf(ANNOTATION_TAG) != -1)
+                    elementInfo.tag = info.substring(
+                        info.indexOf(ANNOTATION_TAG) +
+                        ANNOTATION_TAG.length).toLowerCase();
+                  else if (info.indexOf(ANNOTATION_ID) != -1)
+                    elementInfo.id = info.substring(
+                        info.indexOf(ANNOTATION_ID) +
+                        ANNOTATION_ID.length);
+                  else if (info.indexOf(ANNOTATION_CLASS) != -1)
+                    elementInfo.class = info.substring(
+                        info.indexOf(ANNOTATION_CLASS) +
+                        ANNOTATION_CLASS.length);
+
+                  annotations.push(info);
+                });
+              });
+            });
+            op.annotations = annotations;
+            op.elementInfo = elementInfo;
+            opsWithoutAnnotations.push(op);
+        }
+      }
+
+      return opsWithoutAnnotations;
+    }
+  };
+
+  return {
+    PictureOpsListView: PictureOpsListView
+  };
+});
+</script>

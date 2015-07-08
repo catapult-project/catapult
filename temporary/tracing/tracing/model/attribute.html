@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/extension_registry.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Attribute class.
+ */
+tr.exportTo('tr.model', function() {
+
+  /**
+   * @constructor
+   */
+  function Attribute(units) {
+    this.units = units;
+
+    // AttributeInfo(s) about the attribute (e.g. information about how it was
+    // calculated).
+    this.infos = [];
+  }
+
+  Attribute.fromDictIfPossible = function(dict, opt_model) {
+    var typeInfo = Attribute.findTypeInfoMatching(function(typeInfo) {
+      return typeInfo.metadata.type === dict.type;
+    });
+
+    if (typeInfo === undefined) {
+      if (opt_model) {
+        opt_model.importWarning({
+          type: 'attribute_parse_error',
+          message: 'Unknown attribute type \'' + dict.type + '\'.'
+        });
+      }
+      return UnknownAttribute.fromDict(dict, opt_model);
+    }
+
+    return typeInfo.constructor.fromDict(dict, opt_model);
+  };
+
+  /**
+   * Find the common constructor and units of a list of attribute values. If
+   * they have different types (e.g. ScalarAttribute and UnknownAttribute) or
+   * units (e.g. 'ms' and 'Hz'), the common constructor will be
+   * UnknownAttribute and the common units will be undefined.
+   *
+   * Undefined attribute values are skipped. This function will return undefined
+   * if the list of attribute values contains no defined attribute values.
+   */
+  Attribute.findCommonTraits = function(attributes, opt_model) {
+    var commonTraits;
+    for (var i = 0; i < attributes.length; i++) {
+      var attribute = attributes[i];
+      if (attribute === undefined)
+        continue;
+
+      var attributeConstructor = attribute.constructor;
+      var attributeUnits = attribute.units;
+
+      if (commonTraits === undefined) {
+        commonTraits = {
+          constructor: attributeConstructor,
+          units: attributeUnits
+        };
+      } else if (attributeConstructor !== commonTraits.constructor) {
+        if (opt_model) {
+          opt_model.importWarning({
+            type: 'attribute_parse_error',
+            message: 'Attribute with different types: ' +
+                commonTraits.constructor + ' and ' + attributeConstructor + '.'
+          });
+        }
+        commonTraits = {
+          constructor: UnknownAttribute,
+          units: undefined
+        };
+        break;
+      } else if (attributeUnits !== commonTraits.units) {
+        if (opt_model) {
+          opt_model.importWarning({
+            type: 'attribute_parse_error',
+            message: 'Attribute with different units: ' + commonTraits.units +
+                ' and ' + attributeUnits + '.'
+          });
+        }
+        commonTraits = {
+          constructor: UnknownAttribute,
+          units: undefined
+        };
+        break;
+      }
+    }
+    return commonTraits;
+  };
+
+  /**
+   * Aggregate a list of child attribute values with an existing attribute
+   * value. The individual values can be undefined, in which case they are
+   * ignored.
+   */
+  Attribute.aggregate = function(childAttributes, existingParentAttribute,
+                                 opt_model) {
+    var definedChildAttributes = childAttributes.filter(
+        function(childAttribute) {
+      return childAttribute !== undefined;
+    });
+
+    // If all child attribute values were undefined, return the existing parent
+    // attribute value (possibly undefined).
+    var traits = Attribute.findCommonTraits(definedChildAttributes, opt_model);
+    if (traits === undefined)
+      return existingParentAttribute;
+
+    var constructor = traits.constructor;
+
+    // If the common type does not support merging child attribute values,
+    // return the existing parent attribute value (possibly undefined).
+    if (constructor.merge === undefined)
+      return existingParentAttribute;
+
+    var mergedAttribute = constructor.merge(
+        definedChildAttributes, traits.units, opt_model);
+
+    // If there is no existing parent attribute value, use the merged value
+    // (possibly undefined).
+    if (existingParentAttribute === undefined)
+      return mergedAttribute;
+
+    // Leave it up to the existing parent attribute value to decide if/how it
+    // will use the merged value (e.g. generate an import warning if the
+    // existing and merged attribute value types differ).
+    existingParentAttribute.useMergedAttribute(mergedAttribute, opt_model);
+
+    return existingParentAttribute;
+  }
+
+  Attribute.fromTraceValue = function(dict, opt_model) {
+    throw new Error('Not implemented');
+  };
+
+  Attribute.prototype.useMergedAttribute = function(mergedAttribute,
+                                                    opt_model) {
+    if (mergedAttribute.constructor !== this.constructor) {
+      if (opt_model) {
+        opt_model.importWarning({
+          type: 'attribute_parse_error',
+          message: 'Attribute with different types: ' + this.constructor +
+              ' and ' + mergedAttribute.constructor + '.'
+        });
+      }
+    } else if (mergedAttribute.units !== this.units) {
+      if (opt_model) {
+        opt_model.importWarning({
+          type: 'attribute_parse_error',
+          message: 'Attribute with different units: ' + this.units +
+              ' and ' + mergedAttribute.units + '.'
+        });
+      }
+    }
+  };
+
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  tr.b.decorateExtensionRegistry(Attribute, options);
+
+  Attribute.addEventListener('will-register', function(e) {
+    if (!e.typeInfo.constructor.hasOwnProperty('fromDict'))
+      throw new Error('Attributes must have fromDict method');
+
+    if (!e.typeInfo.metadata.type)
+      throw new Error('Attributes must provide type');
+
+    if (e.typeInfo.constructor.prototype.constructor !== e.typeInfo.constructor)
+      throw new Error('Attribute prototypes must provide constructor.');
+  });
+
+  /**
+   * @constructor
+   */
+  function ScalarAttribute(units, value) {
+    Attribute.call(this, units);
+    this.value = value;
+  }
+
+  ScalarAttribute.fromDict = function(dict) {
+    return new ScalarAttribute(dict.units, parseInt(dict.value, 16));
+  };
+
+  ScalarAttribute.merge = function(childAttributes, units) {
+    var sum = 0;
+    childAttributes.forEach(function(childAttribute) {
+      sum += childAttribute.value;
+    });
+    return new ScalarAttribute(units, sum);
+  }
+
+  ScalarAttribute.prototype.__proto__ = Attribute.prototype;
+
+  Attribute.register(ScalarAttribute, {type: 'scalar'});
+
+  /**
+   * @constructor
+   */
+  function StringAttribute(units, value) {
+    Attribute.call(this, units);
+    this.value = value;
+  }
+
+  StringAttribute.fromDict = function(dict) {
+    return new StringAttribute(dict.units, dict.value);
+  };
+
+  Attribute.register(StringAttribute, {type: 'string'});
+
+  /**
+   * @constructor
+   */
+  function UnknownAttribute(units, opt_value) {
+    Attribute.call(this, units, opt_value);
+    this.value = opt_value;
+  }
+
+  UnknownAttribute.fromDict = function(dict) {
+    return new UnknownAttribute(dict.units);
+  };
+
+  UnknownAttribute.prototype.__proto__ = Attribute.prototype;
+
+  /**
+   * @constructor
+   */
+  function AttributeInfo(type, message) {
+    this.type = type;
+    this.message = message;
+  }
+
+  /**
+   * The type of AttributeInfo.
+   * @enum
+   */
+  var AttributeInfoType = {
+    // Generic information (e.g. how the attribute was calculated).
+    INFORMATION: 0,
+
+    // Warning (e.g. inconsistent attribute values provided).
+    WARNING: 1,
+
+    // Attribute source (e.g. attribute refers to an older dump's attribute).
+    LINK: 2,
+
+    // Corresponding memory allocator dump owns another MAD.
+    // TODO(petrcermak): Figure out if there's a better place to store this.
+    MEMORY_OWNER: 3,
+
+    // Corresponding memory allocator dump is owned by another MAD.
+    // TODO(petrcermak): Figure out if there's a better place to store this.
+    MEMORY_OWNED: 4
+  };
+
+  return {
+    Attribute: Attribute,
+    ScalarAttribute: ScalarAttribute,
+    StringAttribute: StringAttribute,
+    UnknownAttribute: UnknownAttribute,
+    AttributeInfo: AttributeInfo,
+    AttributeInfoType: AttributeInfoType
+  };
+});
+</script>

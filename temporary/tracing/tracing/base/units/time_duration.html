@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b.units', function() {
+  /**
+   * Float wrapper, representing a time duration, capable of pretty-printing.
+   */
+  // TODO(petrcermak): Although this class is currently identical to
+  // tr.b.units.TimeStamp, we should probably keep both classes in case we want
+  // to handle them differently in the future. Therefore, rather than removing
+  // one of the classes, it would probably make more sense to have one inherit
+  // the prototype chain of the other one.
+  function TimeDuration(duration) {
+    this.duration = duration;
+  };
+
+  TimeDuration.prototype = {
+    toString: function() {
+      return TimeDuration.format(this.duration);
+    }
+  };
+
+  TimeDuration.format = function(duration) {
+    return tr.b.units.Time.currentDisplayUnit.format(duration);
+  };
+
+  return {
+    TimeDuration: TimeDuration
+  };
+});
+</script>

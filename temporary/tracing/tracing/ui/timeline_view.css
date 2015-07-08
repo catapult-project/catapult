@@ -1,0 +1,94 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+x-timeline-view {
+  flex-direction: column;
+  cursor: default;
+  display: flex;
+  font-family: sans-serif;
+  padding: 0;
+}
+
+x-timeline-view > .control {
+  background-color: #e6e6e6;
+  background-image: -webkit-gradient(linear,
+                                     0 0,
+                                     0 100%,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  flex: 0 0 auto;
+  overflow-x: auto;
+}
+
+x-timeline-view > .control::-webkit-scrollbar{
+  height: 0px;
+}
+
+
+x-timeline-view > .control > .bar {
+  font-size: 12px;
+  display: flex;
+  flex-direction: row;
+  margin: 1px;
+}
+
+x-timeline-view > .control > .bar > .title {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  padding-right: 8px;
+  flex: 1 1 auto;
+}
+
+x-timeline-view > .control > .bar > #left-controls,
+x-timeline-view > .control > .bar > #right-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+x-timeline-view > .control > .bar > #left-controls > * {
+  margin-right: 2px;
+}
+x-timeline-view > .control > .bar > #right-controls > * {
+  margin-left: 2px;
+}
+
+
+x-timeline-view > .control > #collapsing-controls {
+  display: flex;
+}
+
+
+x-timeline-view > middle-container {
+  flex: 1 1 auto;
+  flex-direction: row;
+  border-bottom: 1px solid #8e8e8e;
+  display: flex;
+  min-height: 0;
+}
+
+x-timeline-view > middle-container > track-view-container {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+x-timeline-view > middle-container > track-view-container > * {
+  flex: 1 1 auto;
+}
+
+x-timeline-view > middle-container > x-timeline-view-side-panel-container {
+  flex: 0 0 auto;
+}
+
+x-timeline-view > x-drag-handle {
+  flex: 0 0 auto;
+}
+
+x-timeline-view > tr-ui-a-analysis-view {
+  flex: 0 0 auto;
+}

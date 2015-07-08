@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+
+<script src="/chai/chai.js"></script>
+<script>
+  'use strict';
+  /**
+   * Alias chai assert to the global assert.
+   */
+  global.assert = chai.assert;
+</script>
+
+<link rel="import" href="/base/unittest/suite_loader.html">
+<link rel="import" href="/base/unittest/test_case.html">
+<link rel="import" href="/base/unittest/test_suite.html">
+<link rel="import" href="/base/unittest/test_runner.html">
+<script>
+'use strict';
+tr.exportTo('tr.b.unittest', function() {
+  return {
+  };
+});
+</script>

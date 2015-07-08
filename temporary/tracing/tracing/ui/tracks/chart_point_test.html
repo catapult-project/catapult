@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ChartPoint = tr.ui.tracks.ChartPoint;
+
+  test('checkFields_withoutYBase', function() {
+    var event = {};
+    var point = new ChartPoint(event, 42, -7);
+
+    assert.equal(point.modelItem, event);
+    assert.equal(point.x, 42);
+    assert.equal(point.y, -7);
+    assert.isUndefined(point.yBase);
+  });
+
+  test('checkFields_withYBase', function() {
+    var event = {};
+    var point = new ChartPoint(event, 111, 222, 333);
+
+    assert.equal(point.modelItem, event);
+    assert.equal(point.x, 111);
+    assert.equal(point.y, 222);
+    assert.equal(point.yBase, 333);
+  });
+});
+</script>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/sample.html">
+<link rel="import" href="/model/stack_frame.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/tracks/sample_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var SampleTrack = tr.ui.tracks.SampleTrack;
+  var Sample = tr.model.Sample;
+  var StackFrame = tr.model.StackFrame;
+
+  test('modelMapping', function() {
+    var track = new SampleTrack(new tr.ui.TimelineViewport());
+    var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
+    var sample = new Sample(undefined, undefined, 'instructions_retired',
+                            10, fA, 10);
+    track.samples = [sample];
+    var me0 = track.rects[0].modelItem;
+    assert.equal(me0, sample);
+  });
+});
+</script>
+

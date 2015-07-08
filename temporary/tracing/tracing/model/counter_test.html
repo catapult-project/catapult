@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/counter.html">
+<link rel="import" href="/model/counter_series.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Counter = tr.model.Counter;
+  var CounterSeries = tr.model.CounterSeries;
+  var CounterSample = tr.model.CounterSample;
+
+  var createCounterWithTwoSeries = function() {
+    var ctr = new Counter(null, 0, '', 'myCounter');
+    var aSeries = new CounterSeries('a', 0);
+    var bSeries = new CounterSeries('b', 0);
+    ctr.addSeries(aSeries);
+    ctr.addSeries(bSeries);
+
+    aSeries.addCounterSample(0, 5);
+    aSeries.addCounterSample(1, 6);
+    aSeries.addCounterSample(2, 5);
+    aSeries.addCounterSample(3, 7);
+
+    bSeries.addCounterSample(0, 10);
+    bSeries.addCounterSample(1, 15);
+    bSeries.addCounterSample(2, 12);
+    bSeries.addCounterSample(3, 16);
+
+    return ctr;
+  };
+
+  test('getSampleStatisticsWithSingleSelection', function() {
+    var ctr = createCounterWithTwoSeries();
+    var ret = ctr.getSampleStatistics([0]);
+
+    assert.equal(ret[0].min, 5);
+    assert.equal(ret[0].max, 5);
+    assert.equal(ret[0].avg, 5);
+    assert.equal(ret[0].start, 5);
+    assert.equal(ret[0].end, 5);
+
+    assert.equal(ret[1].min, 10);
+    assert.equal(ret[1].max, 10);
+    assert.equal(ret[1].avg, 10);
+    assert.equal(ret[1].start, 10);
+    assert.equal(ret[1].end, 10);
+  });
+
+  test('getSampleStatisticsWithMultipleSelections', function() {
+    var ctr = createCounterWithTwoSeries();
+    var ret = ctr.getSampleStatistics([0, 1]);
+
+    assert.equal(ret[0].min, 5);
+    assert.equal(ret[0].max, 6);
+    assert.equal(ret[0].avg, (5 + 6) / 2);
+    assert.equal(ret[0].start, 5);
+    assert.equal(ret[0].end, 6);
+
+    assert.equal(ret[1].min, 10);
+    assert.equal(ret[1].max, 15);
+    assert.equal(ret[1].avg, (10 + 15) / 2);
+    assert.equal(ret[1].start, 10);
+    assert.equal(ret[1].end, 15);
+  });
+
+  test('getSampleStatisticsWithOutofOrderIndices', function() {
+    var ctr = createCounterWithTwoSeries();
+    var ret = ctr.getSampleStatistics([1, 0]);
+
+    assert.equal(ret[0].min, 5);
+    assert.equal(ret[0].max, 6);
+    assert.equal(ret[0].avg, (5 + 6) / 2);
+    assert.equal(ret[0].start, 5);
+    assert.equal(ret[0].end, 6);
+
+    assert.equal(ret[1].min, 10);
+    assert.equal(ret[1].max, 15);
+    assert.equal(ret[1].avg, (10 + 15) / 2);
+    assert.equal(ret[1].start, 10);
+    assert.equal(ret[1].end, 15);
+  });
+
+  test('getSampleStatisticsWithAllSelections', function() {
+    var ctr = createCounterWithTwoSeries();
+    var ret = ctr.getSampleStatistics([1, 0, 2, 3]);
+
+    assert.equal(ret[0].min, 5);
+    assert.equal(ret[0].max, 7);
+    assert.equal(ret[0].avg, (5 + 6 + 5 + 7) / 4);
+    assert.equal(ret[0].start, 5);
+    assert.equal(ret[0].end, 7);
+
+    assert.equal(ret[1].min, 10);
+    assert.equal(ret[1].max, 16);
+    assert.equal(ret[1].avg, (10 + 15 + 12 + 16) / 4);
+    assert.equal(ret[1].start, 10);
+    assert.equal(ret[1].end, 16);
+  });
+});
+</script>
+

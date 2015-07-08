@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/base/dom_helpers.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('simpleSpanAndDiv', function() {
+    var divEl = tr.ui.b.createDiv({
+      className: 'a-div-class', parent: document.body
+    });
+    var testText = 'some span text';
+    var spanEl = tr.ui.b.createSpan({
+      className: 'a-span-class',
+      textContent: testText,
+      parent: divEl
+    });
+    var eltInDocument = document.querySelector('.a-div-class>.a-span-class');
+    assert.equal(eltInDocument.textContent, testText);
+    eltInDocument.parentElement.removeChild(eltInDocument);
+  });
+
+  test('checkboxFromDefaults', function() {
+    var target = {foo: undefined};
+    var cb = tr.ui.b.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    assert.isFalse(target.foo);
+  });
+
+  test('checkboxFromSettings', function() {
+    tr.b.Settings.set('myCheckBox', true);
+    var target = {foo: undefined};
+    var cb = tr.ui.b.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    assert.isTrue(target.foo);
+  });
+
+  test('checkboxChanged', function() {
+    var target = {foo: undefined};
+    var cb = tr.ui.b.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    cb.checked = true;
+
+    assert.isTrue(tr.b.Settings.get('myCheckBox', undefined));
+    assert.isTrue(target.foo);
+  });
+
+  test('selectorSettingsAlreaySet', function() {
+    tr.b.Settings.set('myScale', 0.25);
+
+    var target = {
+      scale: 314
+    };
+    var sel = tr.ui.b.createSelector(
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
+    assert.equal(target.scale, 0.25);
+    assert.equal(sel.selectedIndex, 2);
+  });
+
+  test('selectorSettingsDefault', function() {
+    var target = {
+      scale: 314
+    };
+    var sel = tr.ui.b.createSelector(
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
+    assert.equal(target.scale, 0.375);
+    assert.equal(sel.selectedIndex, 3);
+  });
+
+  test('selectorSettingsChanged', function() {
+    var target = {
+      scale: 314
+    };
+    var sel = tr.ui.b.createSelector(
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
+    assert.equal(sel.selectedValue, 0.375);
+    sel.selectedValue = 0.75;
+    assert.equal(target.scale, 0.75);
+    assert.equal(sel.selectedValue, 0.75);
+    assert.equal(undefined), 0.75, tr.b.Settings.get('myScale');
+  });
+
+  test('asHTMLOrTextNode_string', function() {
+    // Default owner document.
+    var node = tr.ui.b.asHTMLOrTextNode('Hello, World!');
+    assert.instanceOf(node, Node);
+    assert.equal(node.textContent, 'Hello, World!');
+    assert.strictEqual(node.ownerDocument, document);
+
+    // Custom owner document.
+    var node = tr.ui.b.asHTMLOrTextNode('Bye, World!', THIS_DOC);
+    assert.instanceOf(node, Node);
+    assert.equal(node.textContent, 'Bye, World!');
+    assert.strictEqual(node.ownerDocument, THIS_DOC);
+  });
+
+  test('asHTMLOrTextNode_node', function() {
+    // Node object. Owner document should NOT be modified.
+    var node = document.createTextNode('Hi', THIS_DOC);
+    assert.strictEqual(tr.ui.b.asHTMLOrTextNode(node), node);
+    assert.strictEqual(node.ownerDocument, document);
+
+    // HTMLElement object. Owner document should NOT be modified.
+    var node = THIS_DOC.createElement('div');
+    assert.strictEqual(tr.ui.b.asHTMLOrTextNode(node), node);
+    assert.strictEqual(node.ownerDocument, THIS_DOC);
+  });
+});
+</script>

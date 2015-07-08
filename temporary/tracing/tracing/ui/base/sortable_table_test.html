@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/sortable_table.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var SortableTable = tr.ui.b.SortableTable;
+
+  function convertToHTML(s) {
+    var res = '';
+    for (var i = 0; i < s.length; i++) {
+      res += s.charCodeAt(i) > 127 ?
+             '&#x' + s.charCodeAt(i).toString(16).toUpperCase() + ';' :
+             s.charAt(i);
+    }
+    return res;
+  }
+
+  function SimpleTable() {
+    var table = document.createElement('table');
+    var thead = table.createTHead();
+    var tfoot = table.createTFoot();
+    var tbody = table.createTBody();
+    var headerRow = thead.insertRow(0);
+    headerRow.insertCell(0).appendChild(document.createTextNode('Name'));
+    headerRow.insertCell(1).appendChild(document.createTextNode('Value'));
+    var row1 = tbody.insertRow(0);
+    row1.insertCell(0).appendChild(document.createTextNode('First'));
+    row1.insertCell(1).appendChild(document.createTextNode('2'));
+    var row2 = tbody.insertRow(1);
+    row2.insertCell(0).appendChild(document.createTextNode('Middle'));
+    row2.insertCell(1).appendChild(document.createTextNode('18'));
+    var row3 = tbody.insertRow(2);
+    row3.insertCell(0).appendChild(document.createTextNode('Last'));
+    row3.insertCell(1).appendChild(document.createTextNode('1'));
+    var footerRow = tfoot.insertRow(0);
+    footerRow.insertCell(0).appendChild(document.createTextNode('Average'));
+    footerRow.insertCell(1).appendChild(document.createTextNode('7'));
+    return table;
+  }
+
+  test('instantiate', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[1].cells[1].innerText, '18');
+    assert.equal(tableRows[2].cells[0].innerText, 'Last');
+    assert.equal(tableRows[2].cells[1].innerText, '1');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnAlphabeticColumnAscending', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(0 /*, 'downward' */);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BE;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnAlphabeticColumnDescending', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(0 , 'upward');
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnNumericColumnAscending', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(1 /*, 'downward' */);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BE;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Last');
+    assert.equal(tableRows[0].cells[1].innerText, '1');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnNumericColumnDescending', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(1 , 'upward');
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25B4;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Last');
+    assert.equal(tableRows[2].cells[1].innerText, '1');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnAColumnThenReverseIt', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(0);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BE;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'First');
+    assert.equal(tableRows[0].cells[1].innerText, '2');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+    table.sort(0);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+
+  test('sortOnAColumnThenOnAnotherColumn', function() {
+    var table = SimpleTable();
+    SortableTable.decorate(table);
+    table.sort(0 , 'upward');
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25B4;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BF;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[0].cells[1].innerText, '18');
+    assert.equal(tableRows[1].cells[0].innerText, 'Last');
+    assert.equal(tableRows[1].cells[1].innerText, '1');
+    assert.equal(tableRows[2].cells[0].innerText, 'First');
+    assert.equal(tableRows[2].cells[1].innerText, '2');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+    table.sort(1 /*, 'downward' */);
+    var headerRow = table.tHead.rows[0];
+    assert.equal(convertToHTML(headerRow.cells[0].innerHTML),
+                 'Name&nbsp;&#x25BF;');
+    assert.equal(convertToHTML(headerRow.cells[1].innerHTML),
+                 'Value&nbsp;&#x25BE;');
+    var tableRows = table.tBodies[0].rows;
+    assert.equal(tableRows[0].cells[0].innerText, 'Last');
+    assert.equal(tableRows[0].cells[1].innerText, '1');
+    assert.equal(tableRows[1].cells[0].innerText, 'First');
+    assert.equal(tableRows[1].cells[1].innerText, '2');
+    assert.equal(tableRows[2].cells[0].innerText, 'Middle');
+    assert.equal(tableRows[2].cells[1].innerText, '18');
+    // the footer should never change.
+    var footerRow = table.tFoot.rows[0];
+    assert.equal(footerRow.cells[0].innerText, 'Average');
+    assert.equal(footerRow.cells[1].innerText, '7');
+  });
+});
+</script>

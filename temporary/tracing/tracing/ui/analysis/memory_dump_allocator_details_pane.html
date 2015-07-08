@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-memory-dump-allocator-details-pane">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #label {
+        flex: 0 0 auto;
+        padding: 8px;
+
+        background-color: #eee;
+        border-bottom: 1px solid #8e8e8e;
+        border-top: 1px solid white;
+
+        font-size:  15px;
+        font-weight: bold;
+      }
+
+      #contents {
+        flex: 1 0 auto;
+        align-self: stretch;
+        font-size: 12px;
+      }
+
+      #contents .info-text {
+        padding: 8px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+      }
+    </style>
+    <div id="label">Allocator details</div>
+    <div id="contents"></div>
+  </template>
+  <script>
+  'use strict';
+
+  (function() {
+    var IMPORTANCE_RULES = [
+      {
+        condition: 'size',
+        importance: 10
+      },
+      {
+        condition: 'page_size',
+        importance: 0
+      },
+      {
+        condition: /size/,
+        importance: 5
+      },
+      {
+        importance: 0
+      }
+    ];
+
+    Polymer({
+      // TODO(petrcermak): Consider sharing more code between
+      // tr-ui-a-memory-dump-overview-pane and
+      // tr-ui-a-memory-dump-allocator-details-pane (e.g. by defining a common
+      // base class tr-c-memory-dump-pane).
+
+      created: function() {
+        this.memoryAllocatorDump_ = undefined;
+      },
+
+      ready: function() {
+        this.updateContents_();
+      },
+
+      set memoryAllocatorDump(memoryAllocatorDump) {
+        this.memoryAllocatorDump_ = memoryAllocatorDump;
+        this.updateContents_();
+      },
+
+      get memoryAllocatorDump() {
+        return this.memoryAllocatorDump_;
+      },
+
+      updateContents_: function() {
+        this.$.contents.textContent = '';
+
+        if (this.memoryAllocatorDump_ === undefined) {
+          var infoText = this.ownerDocument.createElement('div');
+          this.$.contents.appendChild(infoText);
+          infoText.classList.add('info-text');
+          infoText.innerText = 'No memory allocator dump selected';
+          return;
+        }
+
+        var rows = this.createRows_();
+        var columns = this.createColumns_(rows);
+
+        var table = this.ownerDocument.createElement(
+            'tr-ui-b-table');
+        this.$.contents.appendChild(table);
+        table.supportsSelection = true;
+        table.tableRows = rows;
+        table.tableColumns = columns;
+        table.rebuild();
+        tr.ui.analysis.expandTableRowsRecursively(table);
+      },
+
+      createRows_: function() {
+        var createAllocatorRow = function(allocatorDump) {
+          var cells = tr.b.mapItems(allocatorDump.attributes,
+              function(attrName, attrValue) {
+            return new tr.ui.analysis.MemoryCell(attrValue);
+          });
+          var row = {
+            title: allocatorDump.name,
+            cells: cells
+          };
+          if (allocatorDump.children.length > 0)
+            row.subRows = allocatorDump.children.map(createAllocatorRow);
+          return row;
+        };
+        var rows = [createAllocatorRow(this.memoryAllocatorDump_)];
+        return rows;
+      },
+
+      createColumns_: function(rows) {
+        var titleColumn = {
+          title: 'Allocator',
+          value: function(row) {
+            return row.title;
+          },
+          width: '200px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          }
+        };
+
+        var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+            rows, 'cells');
+        tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
+        tr.ui.analysis.MemoryColumn.sortByImportance(
+            attributeColumns, IMPORTANCE_RULES);
+
+        var columns = [titleColumn].concat(attributeColumns);
+        return columns;
+      }
+    });
+  })();
+  </script>
+</polymer-element>

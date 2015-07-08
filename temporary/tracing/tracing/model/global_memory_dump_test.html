@@ -1,0 +1,3315 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/process_memory_dump.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+  var AttributeInfo = tr.model.AttributeInfo;
+  var AttributeInfoType = tr.model.AttributeInfoType;
+
+  var SIZE_DELTA = 0.0001;
+
+  function buildArgPusher(array) {
+    return function(arg) { array.push(arg); };
+  }
+
+  function assertEqualUniqueMembers(actualArray, expectedArray) {
+    assert.lengthOf(actualArray, expectedArray.length);
+    assert.sameMembers(actualArray, expectedArray);
+  }
+
+  function assertUndefinedAttribute(dump, attributeName) {
+    var attribute = dump.attributes[attributeName];
+    assert.isUndefined(attribute, 'expected attribute \'' + attributeName +
+        '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
+        dump.containerMemoryDump.userFriendlyName + ' to be undefined');
+  }
+
+  function assertDefinedAttribute(dump, attributeName, expectedType,
+      expectedUnits, expectedValue, expectedInfos, opt_delta) {
+    var attribute = dump.attributes[attributeName];
+    var errorMessagePrefix = 'expected attribute \'' + attributeName +
+        '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
+        dump.containerMemoryDump.userFriendlyName + ' to ';
+
+    assert.instanceOf(attribute, expectedType,
+        errorMessagePrefix + 'be an instance of ' + expectedType);
+    assert.equal(attribute.units, expectedUnits,
+        errorMessagePrefix + 'have units \'' + expectedUnits + '\' but got \'' +
+        attribute.units + '\'');
+
+    var valueErrorMessage = errorMessagePrefix + 'have value \'' +
+        expectedValue + '\' but got \'' + attribute.value + '\'';
+    if (opt_delta !== undefined) {
+      assert.closeTo(
+          attribute.value, expectedValue, opt_delta, valueErrorMessage);
+    } else {
+      assert.equal(attribute.value, expectedValue, valueErrorMessage);
+    }
+
+    if (expectedInfos === undefined)
+      expectedInfos = [];
+    var actualInfos = dump.attributes[attributeName].infos;
+    assert.lengthOf(actualInfos, expectedInfos.length,
+        'expected the \'' + attributeName + '\' attribute of ' +
+        'memory allocator dump \'' + dump.fullName + '\' in ' +
+        dump.containerMemoryDump.userFriendlyName + ' to have ' +
+        expectedInfos.length + ' infos but got ' + actualInfos.length);
+    for (var k = 0; k < actualInfos.length; k++) {
+      var actualInfo = actualInfos[k];
+      var expectedInfo = expectedInfos[k];
+      assert.equal(actualInfo.type, expectedInfo.type,
+          'expected info ' + k + ' of the \'' + attributeName + '\' ' +
+          'attribute of memory allocator dump \'' + dump.fullName + '\' in ' +
+          dump.containerMemoryDump.userFriendlyName + ' to have type ' +
+          expectedInfo.type + ' but got ' + actualInfo.type);
+      assert.match(actualInfo.message, expectedInfo.message,
+          'invalid message of info ' + k + ' of the \'' + attributeName +
+          '\' attribute of memory allocator dump \'' + dump.fullName +
+          '\' in ' + dump.containerMemoryDump.userFriendlyName);
+    }
+  }
+
+  function assertSizeAttribute(dump, sizeName, expectedValue, expectedInfos) {
+    if (expectedValue === undefined) {
+      assertUndefinedAttribute(dump, sizeName);
+      // No size attribute infos should be expected (test sanity check).
+      assert(expectedInfos === undefined || expectedInfos.length === 0);
+    } else {
+      assertDefinedAttribute(dump, sizeName, ScalarAttribute, 'bytes',
+          expectedValue, expectedInfos, SIZE_DELTA);
+    }
+  }
+
+  function createContainerDumps(processMemoryDumpCount, opt_model) {
+    var model = opt_model || new Model();
+    var gmd = new GlobalMemoryDump(model, 0);
+    model.globalMemoryDumps.push(gmd);
+
+    var pmds = [];
+    for (var i = 0; i < processMemoryDumpCount; i++) {
+      var process = model.getOrCreateProcess(i);
+      var pmd = new ProcessMemoryDump(gmd, process, 0);
+      gmd.processMemoryDumps[i] = pmd;
+      process.memoryDumps.push(pmd);
+      pmds.push(pmd);
+    }
+
+    return [gmd].concat(pmds);
+  }
+
+  /**
+   * Build container memory dumps from tree recipes. This function returns
+   * a list containing a global memory dump and zero or more process memory
+   * dumps constructed from the provided function argument as follows:
+   *
+   *   allTreeRecipes (argument):
+   *
+   *     [
+   *       [tree recipe GA, tree recipe GB, ...],
+   *       [tree recipe P1A, tree recipe P1B, ...],
+   *       [tree recipe P2A, tree recipe P2B ...],
+   *       ...
+   *     ]
+   *
+   *   return value:
+   *
+   *     [
+   *       GlobalMemoryDump with root MemoryAllocatorDump(s) [GA, GB, ...],
+   *       ProcessMemoryDump with root MemoryAllocatorDump(s) [P1A, P1B, ...],
+   *       ProcessMemoryDump with root MemoryAllocatorDump(s) [P2A, P2B, ...],
+   *       ...
+   *     ]
+   *
+   * where a tree recipe is an object (a recursive data structure) with the
+   * following fields:
+   *
+   *   name: Name of the resulting MAD.
+   *   guid: GUID of the resulting MAD (can be undefined).
+   *   owns: GUID of another MAD owned by the resulting MAD (no owned MAD if
+   *       undefined).
+   *   importance: Importance of the above ownership (can be undefined).
+   *   size: Value of the 'size' attribute of the resulting MAD (no 'size'
+   *       attribute if undefined).
+   *   children: List of tree recipes for child MADs (no children if undefined).
+   *   skip_build: If this optional property is set to true, this function will
+   *       skip the corresponding tree recipe node and will not create a MAD
+   *       for it (not allowed in root recipes).
+   *
+   * Other fields (most importantly 'expected_size') of a tree recipe are
+   * ignored by this function.
+   */
+  function buildDumpTrees(allTreeRecipes, opt_model) {
+    assert.isAbove(allTreeRecipes.length, 0);
+
+    var ownerDumps = {};  // owned GUID -> {dump: owner, importance: optional}.
+    var ownableDumps = {};  // ownable GUID -> ownable dump.
+
+    function buildAndAddDumpTrees(containerDump, treeRecipes) {
+      if (treeRecipes === undefined)
+        return;
+
+      function buildDumpTreeRecursively(treeRecipe, namePrefix) {
+        var skipBuild = treeRecipe['skip_build'];
+        var name = treeRecipe['name'];
+        var guid = treeRecipe['guid'];
+        var owns = treeRecipe['owns'];
+        var size = treeRecipe['size'];
+        var importance = treeRecipe['importance'];
+
+        assert.notStrictEqual(skipBuild, true);
+        assert.isDefined(name);
+
+        var fullName = namePrefix + name;
+        var dump = new MemoryAllocatorDump(containerDump, fullName, guid);
+
+        if (size !== undefined)
+          dump.addAttribute('size', new ScalarAttribute('bytes', size));
+        if (guid !== undefined) {
+          assert.notProperty(guid, ownableDumps);
+          ownableDumps[guid] = dump;
+        }
+        if (owns !== undefined) {
+          if (!(owns in ownerDumps))
+            ownerDumps[owns] = [];
+          ownerDumps[owns].push({dump: dump, importance: importance});
+        }
+
+        if (treeRecipe.children !== undefined) {
+          treeRecipe.children.forEach(function(childTreeRecipe) {
+            // Virtual children are added during size calculation.
+            if (childTreeRecipe['skip_build'] === true)
+              return;
+            var childDump =
+                buildDumpTreeRecursively(childTreeRecipe, fullName + '/');
+            childDump.parent = dump;
+            dump.children.push(childDump);
+          });
+        }
+
+        return dump;
+      }
+
+      var memoryAllocatorDumps = treeRecipes.map(function(treeRecipe) {
+        return buildDumpTreeRecursively(treeRecipe, '');
+      });
+      containerDump.memoryAllocatorDumps = memoryAllocatorDumps;
+    }
+
+    // Recursively build memory allocator dump trees for all container dumps.
+    var containerDumps = createContainerDumps(
+        allTreeRecipes.length - 1, opt_model);
+    for (var i = 0; i < allTreeRecipes.length; i++)
+      buildAndAddDumpTrees(containerDumps[i], allTreeRecipes[i]);
+
+    // Hook up ownership links.
+    tr.b.iterItems(ownerDumps, function(ownedGuid, ownershipInfos) {
+      var ownedDump = ownableDumps[ownedGuid];
+      assert.isDefined(ownedDump, 'Tree recipes don\'t contain a memory ' +
+          'allocator dump with guid \'' + ownedGuid + '\'');
+
+      ownershipInfos.forEach(function(ownershipInfo) {
+        var ownerDump = ownershipInfo.dump;
+        var ownershipLink = new MemoryAllocatorDumpLink(
+            ownerDump, ownedDump, ownershipInfo.importance);
+        ownerDump.owns = ownershipLink;
+        ownedDump.ownedBy.push(ownershipLink);
+      });
+    });
+
+    return containerDumps;
+  }
+
+  // Check that the buildDumpTrees testing helper method above builds a
+  // hierarchy of container and memory allocator dumps from tree recipes
+  // correctly.
+  test('testSanityCheck_buildDumpTrees', function() {
+    var containerDumps = buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'globalSharedDump1',
+          'size': 123
+        },
+        {
+          'name': 'globalSharedDump2',
+          'subsystem_size': 999,
+          'owns': 7,
+          'importance': -1
+        }
+      ],
+      undefined,  // PMD1.
+      [  // PMD2.
+        {
+          'name': 'v8',
+          'children': [
+            {
+              'name': 'isolate1',
+              'guid': 7
+            },
+            {
+              'name': 'isolate2',
+              'skip_build': true
+            },
+            {
+              'name': 'isolate3',
+              'size': 54,
+              'guid': 60,
+              'children': [
+                {
+                  'name': 'obj1',
+                  'size': 89,
+                  'guid': 3
+                },
+                {
+                  'name': 'obj2',
+                  'owns': 3
+                },
+                {
+                  'name': 'obj3',
+                  'owns': 3,
+                  'importance': 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]);
+    assert.lengthOf(containerDumps, 3);
+    var gmd = containerDumps[0];
+    var pmd1 = containerDumps[1];
+    var pmd2 = containerDumps[2];
+
+    function checkDump(dump, expectedGuid, expectedFullName, expectedParent,
+        expectedChildrenCount, expectedSize, expectedIsOwner,
+        expectedOwnersCount, expectedContainerDump) {
+      assert.isDefined(dump);
+      assert.instanceOf(dump, MemoryAllocatorDump);
+      assert.strictEqual(dump.guid, expectedGuid);
+      assert.strictEqual(dump.fullName, expectedFullName);
+      assert.strictEqual(dump.parent, expectedParent);
+      assert.lengthOf(dump.children, expectedChildrenCount);
+
+      assertSizeAttribute(dump, 'size', expectedSize);
+      assertSizeAttribute(dump, 'subsystem_size', undefined);
+
+      if (expectedIsOwner)
+        assert.isDefined(dump.owns);
+      else
+        assert.isUndefined(dump.owns);
+      assert.lengthOf(dump.ownedBy, expectedOwnersCount);
+
+      assert.strictEqual(dump.containerMemoryDump, expectedContainerDump);
+      assert.strictEqual(expectedContainerDump.getMemoryAllocatorDumpByFullName(
+          expectedFullName), dump);
+    }
+
+    function checkOwnershipLink(expectedSourceDump, expectedTargetDump,
+        expectedImportance) {
+      var link = expectedSourceDump.owns;
+      assert.isDefined(link);
+      assert.instanceOf(link, MemoryAllocatorDumpLink);
+      assert.strictEqual(link.source, expectedSourceDump);
+      assert.strictEqual(link.target, expectedTargetDump);
+      assert.strictEqual(link.importance, expectedImportance);
+      assert.include(expectedTargetDump.ownedBy, link);
+    }
+
+    // GMD memory allocator dumps.
+    assert.lengthOf(gmd.memoryAllocatorDumps, 2);
+    var globalSharedDump1 = gmd.memoryAllocatorDumps[0];
+    checkDump(globalSharedDump1, undefined, 'globalSharedDump1', undefined, 0,
+        123, false, 0, gmd);
+    var globalSharedDump2 = gmd.memoryAllocatorDumps[1];
+    checkDump(globalSharedDump2, undefined, 'globalSharedDump2', undefined, 0,
+        undefined, true, 0, gmd);
+
+    // PMD1 memory allocator dumps.
+    assert.isUndefined(pmd1.memoryAllocatorDumps);
+
+    // PMD2 memory allocator dumps.
+    assert.lengthOf(pmd2.memoryAllocatorDumps, 1);
+    var v8Dump = pmd2.memoryAllocatorDumps[0];
+    checkDump(v8Dump, undefined, 'v8', undefined, 2, undefined, false, 0,
+        pmd2);
+    var isolate1Dump = v8Dump.children[0];
+    checkDump(isolate1Dump, 7, 'v8/isolate1', v8Dump, 0, undefined, false, 1,
+        pmd2);
+    var isolate3Dump = v8Dump.children[1];
+    checkDump(isolate3Dump, 60, 'v8/isolate3', v8Dump, 3, 54, false, 0, pmd2);
+    var obj1Dump = isolate3Dump.children[0];
+    checkDump(obj1Dump, 3, 'v8/isolate3/obj1', isolate3Dump, 0, 89, false, 2,
+        pmd2);
+    var obj2Dump = isolate3Dump.children[1];
+    checkDump(obj2Dump, undefined, 'v8/isolate3/obj2', isolate3Dump, 0,
+        undefined, true, 0, pmd2);
+    var obj3Dump = isolate3Dump.children[2];
+    checkDump(obj3Dump, undefined, 'v8/isolate3/obj3', isolate3Dump, 0,
+        undefined, true, 0, pmd2);
+
+    // Ownership links.
+    checkOwnershipLink(globalSharedDump2, isolate1Dump, -1);
+    checkOwnershipLink(obj2Dump, obj1Dump, undefined);
+    checkOwnershipLink(obj3Dump, obj1Dump, 2);
+  });
+
+  /**
+   * Check that container memory dumps have the expected structure with sizes
+   * as described by tree recipes. The fields of a tree recipe are used by this
+   * function to check the properties of a MemoryAllocatorDump as follows (see
+   * the buildDumpTrees documentation for more details about the structure of
+   * tree recipes):
+   *
+   *   name: Expected name of the MAD.
+   *   expected_size: Expected value of the 'size' attribute of the MAD (no
+   *       'size' attribute expected if undefined).
+   *   expected_size_infos: List of expected 'size' attribute infos (zero infos
+   *       expected if undefined). The items in the list are object with two
+   *       fields: 'type' (expected value of the info type), and 'message'
+   *       (regular expression over the info message).
+   *   expected_effective_size: Expected value of the 'effective_size'
+   *       attribute of the MAD (no 'effective_size' attribute expected if
+   *       undefined).
+   *   expected_effective_size_infos: List of expected 'effective_size'
+   *       attribute infos (zero infos expected if undefined). The items in the
+   *       list are object with two fields: 'type' (expected value of the info
+   *       type), and 'message' (regular expression over the info message).
+   *   children: List of tree recipes for child MADs (no children expected if
+   *       undefined).
+   *
+   * Other fields of a tree recipe (including 'skip_build') are ignored by this
+   * function.
+   */
+  function checkDumpTrees(containerDumps, allTreeRecipes) {
+    assert.lengthOf(containerDumps, allTreeRecipes.length);
+
+    for (var i = 0; i < containerDumps.length; i++) {
+      var containerDump = containerDumps[i];
+      var treeRecipes = allTreeRecipes[i];
+
+      var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
+      if (treeRecipes === undefined) {
+        assert.isUndefined(memoryAllocatorDumps,
+            'expected undefined memory allocator dumps in ' +
+            containerDump.userFriendlyName);
+        continue;
+      }
+
+      assert.isDefined(memoryAllocatorDumps,
+          'expected defined memory allocator dumps in ' +
+          containerDump.userFriendlyName);
+      assert.lengthOf(memoryAllocatorDumps, treeRecipes.length,
+          'expected ' + treeRecipes.length + ' root memory allocator dumps ' +
+          'but got ' + memoryAllocatorDumps.length + ' in ' +
+          containerDump.userFriendlyName);
+
+      function checkDumpTree(dump, treeRecipe, expectedParent, namePrefix) {
+        // Check full name, parent, and container dump.
+        var expectedFullName = namePrefix + treeRecipe['name'];
+        var errorMessagePrefix = 'memory allocator dump \'' + dump.fullName +
+            '\' in ' + dump.containerMemoryDump.userFriendlyName + ' ';
+
+        assert.equal(dump.fullName, expectedFullName,
+            errorMessagePrefix + 'has invalid full name');
+        assert.strictEqual(dump.parent, expectedParent,
+            errorMessagePrefix + 'has invalid parent');
+        assert.strictEqual(dump.containerMemoryDump, containerDump,
+            errorMessagePrefix + 'has invalid container memory dump');
+        assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+            expectedFullName), dump, errorMessagePrefix +
+            'is not indexed in its container memory dump');
+
+        // Check that 'size' was calculated correctly.
+        assertSizeAttribute(dump, 'size', treeRecipe['expected_size'],
+            treeRecipe['expected_size_infos']);
+
+        // Check that 'effective_size' was calculated correctly.
+        assertSizeAttribute(dump, 'effective_size',
+            treeRecipe['expected_effective_size'],
+            treeRecipe['expected_effective_size_infos']);
+
+        // Check children recursively.
+        var actualChildren = dump.children;
+        var expectedChildren = treeRecipe.children || [];
+        assert.lengthOf(actualChildren, expectedChildren.length,
+            'expected memory allocator dump \'' + dump.fullName + '\' in ' +
+            dump.containerMemoryDump.userFriendlyName + ' to have ' +
+            expectedChildren.length + ' children but got ' +
+            actualChildren.length);
+        for (var k = 0; k < actualChildren.length; k++) {
+          checkDumpTree(actualChildren[k], expectedChildren[k], dump,
+              expectedFullName + '/');
+        }
+      }
+
+      for (var j = 0; j < memoryAllocatorDumps.length; j++)
+        checkDumpTree(memoryAllocatorDumps[j], treeRecipes[j], undefined, '');
+    }
+  }
+
+  function genericInfo(type, regex) {
+    return {type: type, message: regex};
+  }
+
+  function informationInfo(regex) {
+    return genericInfo(AttributeInfoType.INFORMATION, regex);
+  }
+
+  function warningInfo(regex) {
+    return genericInfo(AttributeInfoType.WARNING, regex);
+  }
+
+  function ownershipInfo(type, prefix, entries) {
+    assert(entries.length % 3 === 0);  // Test sanity check.
+
+    var regExpString = '\\b' + prefix + '\\b';
+
+    for (var i = 0; i < entries.length; i += 3) {
+      regExpString += '.*\'' + entries[i] + '\'';
+      regExpString += '.*\\b' + entries[i + 1] + '\\b';
+      regExpString += '.*\\bimportance ' + entries[i + 2] + '\\b';
+    }
+
+    return genericInfo(type, new RegExp(regExpString));
+  }
+
+  function ownerInfo(/* fullName1, containerName1, importance1, ... */) {
+    return ownershipInfo(AttributeInfoType.MEMORY_OWNER, 'shares',
+        Array.prototype.slice.call(arguments));
+  }
+
+  function ownedInfo(/* fullName1, containerName1, importance1, ... */) {
+    return ownershipInfo(AttributeInfoType.MEMORY_OWNED, 'shared by',
+        Array.prototype.slice.call(arguments));
+  }
+
+  // Check that the checkDumpTrees testing helper method above actually
+  // performs the expected checks. Since it will be used heavily throughout
+  // this file (where it is expected to pass), we only need to verify that it
+  // does indeed fail in several cases where it should.
+  test('testSanityCheck_checkDumpTrees_invalidName', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    var heapsDump =
+        new MemoryAllocatorDump(gmd, 'heaps');  // Should be 'v8/heaps'.
+    v8Dump.children.push(heapsDump);
+    heapsDump.parent = v8Dump;
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'children': [
+              {
+                'name': 'heaps'
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /'heaps'.*invalid full name/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidStructure', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var rootDump = new MemoryAllocatorDump(gmd, 'root');
+    var child1Dump = new MemoryAllocatorDump(gmd, 'root/child1');
+    rootDump.children.push(child1Dump);
+    child1Dump.parent = rootDump;
+    gmd.memoryAllocatorDumps = [rootDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'root',
+            'children': [
+              {
+                'name': 'child1'
+              },
+              {
+                // This child is not present in the dump.
+                'name': 'child2',
+                'skip_build': true
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*\b2\b.*children.*got.*\b1\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidParentLink', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var rootDump = new MemoryAllocatorDump(gmd, 'root');
+    var parentDump = new MemoryAllocatorDump(gmd, 'root/parent');
+    rootDump.children.push(parentDump);
+    parentDump.parent = rootDump;
+    var childDump = new MemoryAllocatorDump(gmd, 'root/parent/child');
+    parentDump.children.push(childDump);
+    childDump.parent = rootDump;  // This should correctly be parentDump.
+    gmd.memoryAllocatorDumps = [rootDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'root',
+            'children': [
+              {
+                'name': 'parent',
+                'children': [
+                  {
+                    'name': 'child'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      ]);
+    }, 'invalid parent');
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidSize', function() {
+    var containerDumps = createContainerDumps(1);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+    var rootDump = new MemoryAllocatorDump(pmd, 'root');
+    rootDump.addAttribute('size', new ScalarAttribute('bytes', 100));
+    var parentDump = new MemoryAllocatorDump(pmd, 'root/parent');
+    parentDump.addAttribute('size', new ScalarAttribute('bytes', 49));
+    rootDump.children.push(parentDump);
+    parentDump.parent = rootDump;
+    pmd.memoryAllocatorDumps = [rootDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        undefined,
+        [
+          {
+            'name': 'root',
+            'expected_size': 100,
+            'children': [
+              {
+                'name': 'parent',
+                'expected_size': 50  // This should be 49.
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*'size'.*value.*\b50\b.*got.*\b49\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidEffectiveSize', function() {
+    var containerDumps = createContainerDumps(1);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+    var rootDump = new MemoryAllocatorDump(pmd, 'root');
+    rootDump.addAttribute('effective_size', new ScalarAttribute('bytes', 99));
+    var parentDump = new MemoryAllocatorDump(pmd, 'root/parent');
+    parentDump.addAttribute('effective_size', new ScalarAttribute('bytes', 50));
+    rootDump.children.push(parentDump);
+    parentDump.parent = rootDump;
+    pmd.memoryAllocatorDumps = [rootDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        undefined,
+        [
+          {
+            'name': 'root',
+            'expected_effective_size': 100,  // This should be 99.
+            'children': [
+              {
+                'name': 'parent',
+                'expected_effective_size': 50
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*'effective_size'.*value.*\b100\b.*got.*\b99\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidSizeInfoCount', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    // This attribute should have an info.
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 50));
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              warningInfo(/[some_message]/)
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*\'size'.*'v8'.*\b1 infos\b.*\bgot\b.*\b0\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidSizeInfoType', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    var attr = new ScalarAttribute('bytes', 50);
+    attr.infos.push(new AttributeInfo(
+        AttributeInfoType.INFORMATION, 'message text!'));
+    v8Dump.addAttribute('size', attr);
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              warningInfo(/^message text!$/)  // This should be informationInfo.
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*\binfo 0\b.*'size'.*'v8'.*\btype 1\b.*\bgot\b.*\b0\b/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidSizeInfoMessage', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    var attr = new ScalarAttribute('bytes', 50);
+    attr.infos.push(new AttributeInfo(AttributeInfoType.WARNING, 'ok'));
+    attr.infos.push(new AttributeInfo(AttributeInfoType.INFORMATION, 'one'));
+    v8Dump.addAttribute('size', attr);
+    gmd.memoryAllocatorDumps = [v8Dump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'v8',
+            'expected_size': 50,
+            'expected_size_infos': [
+              warningInfo(/.*/),
+              informationInfo(/two/)  // This should be /one/.
+            ]
+          }
+        ]
+      ]);
+    }, /invalid message.*\binfo 1\b.*'size'.*'v8'/);
+  });
+
+  test('testSanityCheck_checkDumpTrees_invalidEffectiveSizeInfo',
+      function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+    var oilpanDump = new MemoryAllocatorDump(gmd, 'oilpan');
+    var attr = new ScalarAttribute('bytes', 78);
+    attr.infos.push(new AttributeInfo(AttributeInfoType.INFORMATION, 'three'));
+    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 49));
+    oilpanDump.addAttribute('effective_size', attr);
+    gmd.memoryAllocatorDumps = [oilpanDump];
+
+    assert.throws(function() {
+      checkDumpTrees(containerDumps, [
+        [
+          {
+            'name': 'oilpan',
+            'expected_size': 49,
+            'expected_effective_size': 78,
+            'expected_effective_size_infos': [
+              informationInfo(/two/)  // This should be /three/.
+            ]
+          }
+        ]
+      ]);
+    }, /invalid message.*\binfo 0\b.*'effective_size'.*'oilpan'/);
+  });
+
+  /**
+   * Build container memory dumps from tree recipes, let the resulting
+   * GlobalMemoryDump calculate sizes and effective sizes, and then check that
+   * the augmented container memory dumps have the expected structure with
+   * correct sizes and effective sizes (as described by the same tree recipes).
+   *
+   * See the documentation for buildDumpTrees and checkDumpTrees for more
+   * details about the structure of tree recipes.
+   */
+  function testSizesCalculation(allTreeRecipes) {
+    var containerDumps = buildDumpTrees(allTreeRecipes);
+    var gmd = containerDumps[0];
+    gmd.calculateSizes();
+    gmd.calculateEffectiveSizes();
+    checkDumpTrees(containerDumps, allTreeRecipes);
+  }
+
+  // Check that the testSizesCalculation testing helper method above
+  // actually performs the expected checks. Since it will be used heavily
+  // throughout this file (where it is expected to pass), we only need to
+  // verify that it does indeed fail when it should.
+  test('testSanityCheck_testSizesCalculation', function() {
+    assert.throws(function() {
+      testSizesCalculation([
+        [],
+        undefined,
+        [
+          {
+            'name': 'winheap'
+          },
+          {
+            'name': 'malloc',
+            'expected_size': 100,
+            'children': [
+              {
+                'name': 'allocated_objects',
+                'size': 100,
+                'expected_size': 100
+              },
+              {
+                'name': 'extra',
+                'size': 20,
+                'expected_size': 20
+              }
+            ]
+          }
+        ]
+      ]);
+    }, /expected.*'size'.*value.*\b100\b.*got.*\b120\b/);
+  });
+
+  function calculationTest(caseName, treeRecipes) {
+    test('calculateSizes_' + caseName, function() {
+      testSizesCalculation(treeRecipes);
+    });
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Actual tests begin here.
+  /////////////////////////////////////////////////////////////////////////////
+
+  test('iterateContainerDumps_withoutProcessMemoryDumps', function() {
+    var containerDumps = createContainerDumps(0);
+    var gmd = containerDumps[0];
+
+    var visitedContainerDumps = [];
+    gmd.iterateContainerDumps(buildArgPusher(visitedContainerDumps));
+    assertEqualUniqueMembers(visitedContainerDumps, containerDumps);
+  });
+
+  test('iterateContainerDumps_withProcessMemoryDumps', function() {
+    var containerDumps = createContainerDumps(2);
+    var gmd = containerDumps[0];
+
+    var visitedContainerDumps = [];
+    gmd.iterateContainerDumps(buildArgPusher(visitedContainerDumps));
+    assertEqualUniqueMembers(visitedContainerDumps, containerDumps);
+  });
+
+  test('iterateRootAllocatorDumps', function() {
+    var containerDumps = buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'globalSharedDump1'
+        },
+        {
+          'name': 'globalSharedDump2'
+        }
+      ],
+      [  // PMD.
+        {
+          'name': 'v8',
+          'children': [
+            {
+              'name': 'isolate'
+            }
+          ]
+        }
+      ]
+    ]);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+
+    var visitedAllocatorDumps = [];
+    gmd.iterateRootAllocatorDumps(buildArgPusher(visitedAllocatorDumps));
+    assertEqualUniqueMembers(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('globalSharedDump1'),
+      gmd.getMemoryAllocatorDumpByFullName('globalSharedDump2'),
+      pmd.getMemoryAllocatorDumpByFullName('v8')
+    ]);
+  });
+
+  test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithoutOwners',
+      function() {
+    var containerDumps = buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'root',
+          'children': [
+            {
+              'name': 'parent',
+              'children': [
+                {
+                  'name': 'child1'
+                },
+                {
+                  'name': 'child2'
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]);
+    var gmd = containerDumps[0];
+
+    // Post-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      gmd.getMemoryAllocatorDumpByFullName('root')
+    ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('root'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      gmd.getMemoryAllocatorDumpByFullName('root/parent/child2')
+    ]);
+  });
+
+  test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithOwners',
+      function() {
+    var containerDumps = buildDumpTrees([
+      [],  // GMD.
+      [  // PMD.
+        {
+          'name': 'root',
+          'children': [
+            {
+              'name': 'parent',
+              'children': [
+                {
+                  'name': 'child1',
+                  'owns': 0
+                },
+                {
+                  'name': 'child2',
+                  'guid': 0
+                },
+                {
+                  'name': 'child3',
+                  'owns': 0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    ]);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+
+    // Post-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child3'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      pmd.getMemoryAllocatorDumpByFullName('root')
+    ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      pmd.getMemoryAllocatorDumpByFullName('root'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+      pmd.getMemoryAllocatorDumpByFullName('root/parent/child3')
+    ]);
+  });
+
+  test('traverseAllocatorDumpsInDepthFirstOrder_multipleTrees', function() {
+    var containerDumps = buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'shared',
+          'children': [
+            {
+              'name': 'pool1',
+              'guid': 1
+            },
+            {
+              'name': 'pool2',
+              'owns': 3
+            }
+          ]
+        }
+      ],
+      [  // PMD.
+        {
+          'name': 'oilpan',
+          'children': [
+            {
+              'name': 'objects'
+            },
+            {
+              'name': 'heaps',
+              'owns': 1,
+              'children': [
+                {
+                  'name': 'small',
+                  'guid': 2
+                },
+                {
+                  'name': 'large'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          'name': 'v8',
+          'children': [
+            {
+              'name': 'isolate1',
+              'owns': 2
+            },
+            {
+              'name': 'isolate2',
+              'guid': 3
+            }
+          ]
+        }
+      ]
+    ]);
+    var gmd = containerDumps[0];
+    var pmd = containerDumps[1];
+
+    // Post-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate1'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/small'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/large'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool1'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool2'),
+      gmd.getMemoryAllocatorDumpByFullName('shared'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/objects'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate2'),
+      pmd.getMemoryAllocatorDumpByFullName('v8')
+    ]);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, [
+      gmd.getMemoryAllocatorDumpByFullName('shared'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool1'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/objects'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/small'),
+      pmd.getMemoryAllocatorDumpByFullName('oilpan/heaps/large'),
+      pmd.getMemoryAllocatorDumpByFullName('v8'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate1'),
+      pmd.getMemoryAllocatorDumpByFullName('v8/isolate2'),
+      gmd.getMemoryAllocatorDumpByFullName('shared/pool2')
+    ]);
+  });
+
+  test('traverseAllocatorDumpsInDepthFirstPostOrder_cycle', function() {
+    var containerDumps = buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'shared',
+          'owns': 2,
+          'children': [
+            {
+              'name': 'pool',
+              'guid': 1
+            }
+          ]
+        }
+      ],
+      [  // PMD.
+        {
+          'name': 'oilpan',
+          'owns': 1,
+          'children': [
+            {
+              'name': 'objects',
+              'guid': 2
+            }
+          ]
+        }
+      ]
+    ]);
+    var gmd = containerDumps[0];
+
+    // Post-order.
+    assert.throws(function() {
+      gmd.traverseAllocatorDumpsInDepthFirstPostOrder(function() {});
+    }, /contains.*cycle/);
+
+    // Pre-order.
+    var visitedAllocatorDumps = [];
+    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        buildArgPusher(visitedAllocatorDumps));
+    assert.deepEqual(visitedAllocatorDumps, []);
+  });
+
+  // Just check that the method doesn't crash upon encountering empty and/or
+  // undefined memory allocator dumps.
+  calculationTest('noDumps', [
+    undefined,  // GMD.
+    [],  // PMD1.
+    undefined  // PMD2.
+  ]);
+
+  calculationTest('flatDumps', [
+    [  // GMD.
+      {
+        'name': 'shared',
+        'size': 1024,
+        'expected_size': 1024,
+        'expected_effective_size': 1024
+      }
+    ],
+    [  // PMD.
+      {
+        'name': 'gpu'
+      }
+    ]
+  ]);
+
+  calculationTest('zeroSizes', [
+    [  // GMD.
+      {
+        'name': 'shared',
+        'size': 0,
+        'expected_size': 0,
+        'expected_effective_size': 0
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'gpu',
+        'expected_size': 0,
+        'expected_effective_size': 0,
+        'children': [
+          {
+            'name': 'zero',
+            'size': 0,
+            'expected_size': 0,
+            'expected_effective_size': 0
+          }
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'gpu',
+        'expected_size': 0,
+        'expected_effective_size': 0,
+        'children': [
+          {
+            'name': 'zero',
+            'size': 0,
+            'expected_size': 0,
+            'expected_effective_size': 0
+          },
+          {
+            'name': 'undefined'
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_allSizesUndefined', [
+    [
+      {
+        'name': 'parent',
+        'children': [
+          {
+            'name': 'child1'
+          },
+          {
+            'name': 'child2'
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_parentSizeUndefined', [
+    [
+      {
+        'name': 'parent',
+        'expected_size': 384,
+        'expected_effective_size': 384,
+        'children': [
+          {
+            'name': 'child1',
+            'size': 128,
+            'expected_size': 128,
+            'expected_effective_size': 128
+          },
+          {
+            'name': 'child2',
+            'size': 256,
+            'expected_size': 256,
+            'expected_effective_size': 256
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_parentSizeDefined_childrenAddUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 0,
+        'expected_size': 0,
+        'expected_effective_size': 0,
+        'children': [
+          {
+            'name': 'child1'
+          },
+          {
+            'name': 'child2'
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_parentSizeDefined_childrenDontAddUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 2048,
+        'expected_size': 2048,
+        'expected_effective_size': 2048,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 2048,
+            'expected_effective_size': 2048
+          },
+          {
+            'name': 'child1'
+          },
+          {
+            'name': 'child2'
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_oneChildSizeUndefined_childrenAddUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 4096,
+        'expected_size': 4096,
+        'expected_effective_size': 4096,
+        'children': [
+          {
+            'name': 'child1'
+          },
+          {
+            'name': 'child2',
+            'size': 4096,
+            'expected_size': 4096,
+            'expected_effective_size': 4096
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_oneChildSizeUndefined_childrenDontAddUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 6144,
+        'expected_size': 6144,
+        'expected_effective_size': 6144,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 2048,
+            'expected_effective_size': 2048
+          },
+          {
+            'name': 'child1'
+          },
+          {
+            'name': 'child2',
+            'size': 4096,
+            'expected_size': 4096,
+            'expected_effective_size': 4096
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_allSizesDefined_childrenAddUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 100,
+        'expected_size': 100,
+        'expected_effective_size': 100,
+        'children': [
+          {
+            'name': 'child1',
+            'size': 70,
+            'expected_size': 70,
+            'expected_effective_size': 70
+          },
+          {
+            'name': 'child2',
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_allSizesDefined_childrenDontUp', [
+    [
+      {
+        'name': 'parent',
+        'size': 150,
+        'expected_size': 150,
+        'expected_effective_size': 150,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 50,
+            'expected_effective_size': 50
+          },
+          {
+            'name': 'child1',
+            'size': 70,
+            'expected_size': 70,
+            'expected_effective_size': 70
+          },
+          {
+            'name': 'child2',
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_oneChildSizeDefined', [
+    [
+      {
+        'name': 'parent',
+        'expected_size': 49,
+        'expected_effective_size': 49,
+        'children': [
+          {
+            'name': 'child1',
+            'size': 49,
+            'expected_size': 49,
+            'expected_effective_size': 49
+          },
+          {
+            'name': 'child2'
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('children_multipleLevels', [
+    [],  // GMD.
+    [  // PMD.
+      {
+        'name': 'v8',
+        'expected_size': 36,
+        'expected_effective_size': 36,
+        'children': [
+          {
+            'name': 'isolate1',
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 10,
+            'children': [
+              {
+                'skip_build': true,
+                'name': '<unspecified>',
+                'expected_size': 3,
+                'expected_effective_size': 3
+              },
+              {
+                'name': 'objects',
+                'size': 3,
+                'expected_size': 3,
+                'expected_effective_size': 3
+              },
+              {
+                'name': 'heaps',
+                'size': 4,
+                'expected_size': 4,
+                'expected_effective_size': 4
+              }
+            ]
+          },
+          {
+            'name': 'isolate2',
+            'size': 12,
+            'expected_size': 12,
+            'expected_effective_size': 12,
+            'children': [
+              {
+                'name': 'objects',
+                'size': 5,
+                'expected_size': 5,
+                'expected_effective_size': 5
+              },
+              {
+                'name': 'heaps',
+                'size': 7,
+                'expected_size': 7,
+                'expected_effective_size': 7
+              }
+            ]
+          },
+          {
+            'name': 'isolate3',
+            'expected_size': 14,
+            'expected_effective_size': 14,
+            'children': [
+              {
+                'name': 'objects',
+                'size': 14,
+                'expected_size': 14,
+                'expected_effective_size': 14
+              },
+              {
+                'name': 'heaps'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('owners_allSizesUndefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'owns': 7,
+        'importance': 1
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_ownedSizeDefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 15,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'owns': 7
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_ownedSizeUndefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'expected_size': 9,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'size': 5,
+        'expected_size': 5,
+        'expected_effective_size': 2.5,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'size': 9,
+        'expected_size': 9,
+        'expected_effective_size': 6.5,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_oneOwnerSizeDefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'expected_size': 16,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'size': 16,
+        'expected_size': 16,
+        'expected_effective_size': 16,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_oneOwnerSizeUndefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'owns': 7
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'size': 18,
+        'expected_size': 18,
+        'expected_effective_size': 18,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_allSizesDefined', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'size': 60,
+        'expected_size': 60,
+        'expected_effective_size': 31,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'size': 29,
+        'expected_size': 29,
+        'expected_effective_size': 19.5,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'size': 19,
+        'expected_size': 19,
+        'expected_effective_size': 9.5,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_hierarchy', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'expected_size': 50,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0, 'chunk', 'Process 1', 0)
+        ],
+        'guid': 7
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile',
+        'expected_size': 50,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('object1', 'Process 0', 0, 'object2', 'Process 0', 0,
+              'object3', 'Process 0', 0),
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7,
+        'guid': 0
+      },
+      {
+        'name': 'object1',
+        'size': 30,
+        'owns': 0,
+        'expected_size': 30,
+        'expected_effective_size': 9,
+        'expected_effective_size_infos': [
+          ownerInfo('tile', 'Process 0', 0)
+        ]
+      },
+      {
+        'name': 'object2',
+        'owns': 0
+      },
+      {
+        'name': 'object3',
+        'size': 50,
+        'owns': 0,
+        'expected_size': 50,
+        'expected_effective_size': 21,
+        'expected_effective_size_infos': [
+          ownerInfo('tile', 'Process 0', 0)
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'chunk',
+        'size': 40,
+        'expected_size': 40,
+        'expected_effective_size': 20,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'owns': 7
+      }
+    ]
+  ]);
+
+  calculationTest('owners_withChildren', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'guid': 7,
+        'expected_size': 48,
+        'expected_effective_size': 17,
+        'expected_effective_size_infos': [
+          ownedInfo('tile', 'Process 0', 0)
+        ],
+        'children': [
+          {
+            'name': 'subbitmap1',
+            'size': 32,
+            'expected_size': 32,
+            'expected_effective_size': 17 * (32 / 48)
+          },
+          {
+            'name': 'subbitmap2',
+            'size': 16,
+            'expected_size': 16,
+            'expected_effective_size': 17 * (16 / 48)
+          }
+        ]
+      }
+    ],
+    [  // PMD.
+      {
+        'name': 'tile',
+        'expected_size': 31,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('cc', 'Process 0', 0),
+          ownerInfo('bitmap', 'global space', 0)
+        ],
+        'guid': 8,
+        'owns': 7,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 7,
+            'expected_effective_size': 0
+          },
+          {
+            'name': 'subtile',
+            'size': 24,
+            'expected_size': 24,
+            'expected_effective_size': 0
+          }
+        ]
+      },
+      {
+        'name': 'cc',
+        'owns': 8,
+        'size': 31,
+        'expected_size': 31,
+        'expected_effective_size': 31,
+        'expected_effective_size_infos': [
+          ownerInfo('tile', 'Process 0', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('owners_withParents', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'size': 96,
+        'expected_size': 96,
+        'expected_effective_size': 32,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 32,
+            'expected_effective_size': 32
+          },
+          {
+            'name': 'subbitmap',
+            'guid': 2,
+            'expected_size': 64,
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('tile/subtile', 'Process 0', 0)
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD.
+      {
+        'name': 'tile',
+        'expected_size': 64,
+        'expected_effective_size': 0,
+        'children': [
+          {
+            'name': 'subtile',
+            'guid': 1,
+            'owns': 2,
+            'expected_size': 64,
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('cc', 'Process 0', 0),
+              ownerInfo('bitmap/subbitmap', 'global space', 0)
+            ]
+          }
+        ]
+      },
+      {
+        'name': 'cc',
+        'owns': 1,
+        'size': 64,
+        'expected_size': 64,
+        'expected_effective_size': 64,
+        'expected_effective_size_infos': [
+          ownerInfo('tile/subtile', 'Process 0', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('owners_multipleLevels', [
+    [  // GMD.
+      {
+        'name': 'bitmap',
+        'size': 96,
+        'expected_size': 96,
+        'expected_effective_size': 32,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 32,
+            'expected_effective_size': 32
+          },
+          {
+            'name': 'subbitmap',
+            'guid': 2,
+            'expected_size': 64,
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('tile', 'Process 0', 0)
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD.
+      {
+        'name': 'tile',
+        'expected_size': 64,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownerInfo('bitmap/subbitmap', 'global space', 0)
+        ],
+        'owns': 2,
+        'children': [
+          {
+            'name': 'subtile',
+            'guid': 1,
+            'expected_size': 64,
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('cc', 'Process 0', 0)
+            ]
+          }
+        ]
+      },
+      {
+        'name': 'cc',
+        'owns': 1,
+        'size': 64,
+        'expected_size': 64,
+        'expected_effective_size': 64,
+        'expected_effective_size_infos': [
+          ownerInfo('tile/subtile', 'Process 0', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_allSizesUndefined', [
+    [
+      {
+        'name': 'v8',
+        'children': [
+          {
+            'name': 'v8/heaps',
+            'guid': 1
+          },
+          {
+            'name': 'v8/objects',
+            'owns': 1
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownedSizeDefined', [
+    [
+      {
+        'name': 'v8',
+        'expected_size': 10,
+        'expected_effective_size': 10,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 10,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownerSizeDefined', [
+    [
+      {
+        'name': 'v8',
+        'expected_size': 20,
+        'expected_effective_size': 20,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'expected_size': 20,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
+            ],
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 20,
+            'expected_size': 20,
+            'expected_effective_size': 20,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_parentSizeUndefined', [
+    [
+      {
+        'name': 'v8',
+        'expected_size': 30,
+        'expected_effective_size': 30,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b20\.0 B\b/)
+            ],
+            'expected_effective_size': 10,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 20,
+            'expected_size': 20,
+            'expected_effective_size': 20,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownerSizeUndefined_childrenAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 30,
+        'expected_size': 30,
+        'expected_effective_size': 30,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownerSizeUndefined_childrenDontAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 40,
+        'expected_size': 40,
+        'expected_effective_size': 40,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 10,
+            'expected_effective_size': 10
+          },
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownedSizeUndefined_childrenAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 30,
+        'expected_size': 30,
+        'expected_effective_size': 30,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
+            ],
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_ownedSizeUndefined_childrenDontAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 40,
+        'expected_size': 40,
+        'expected_effective_size': 40,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 10,
+            'expected_effective_size': 10
+          },
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b30\.0 B\b/)
+            ],
+            'expected_effective_size': 0,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_effective_size': 30,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_allSizesDefined_childrenAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 30,
+        'expected_size': 30,
+        'expected_effective_size': 30,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b14\.0 B\b/)
+            ],
+            'expected_effective_size': 16,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 14,
+            'expected_size': 14,
+            'expected_effective_size': 14,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_allSizesDefined_childrenDontAddUp', [
+    [
+      {
+        'name': 'v8',
+        'size': 35,
+        'expected_size': 35,
+        'expected_effective_size': 35,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 5,
+            'expected_effective_size': 5
+          },
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 30,
+            'expected_size': 30,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b14\.0 B\b/)
+            ],
+            'expected_effective_size': 16,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ]
+          },
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 14,
+            'expected_size': 14,
+            'expected_effective_size': 14,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_deep', [
+    [
+      {
+        'name': 'root',
+        'expected_size': 17,
+        'expected_effective_size': 17,
+        'children': [
+          {
+            'name': 'parent1',
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 5,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'parent2'.*\b5\.0 B\b/)
+            ],
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 2,
+                'expected_effective_size': 2
+              },
+              {
+                'name': 'child',
+                'guid': 1,
+                'size': 8,
+                'expected_size': 8,
+                'expected_effective_size': 3,
+                'expected_effective_size_infos': [
+                  ownedInfo('root/parent2/child', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'parent2',
+            'size': 8,
+            'expected_size': 8,
+            'expected_effective_size': 5,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'parent3'.*\b3\.0 B\b/)
+            ],
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 3,
+                'expected_effective_size': 3
+              },
+              {
+                'name': 'child',
+                'guid': 2,
+                'owns': 1,
+                'size': 5,
+                'expected_size': 5,
+                'expected_effective_size': 2,
+                'expected_effective_size_infos': [
+                  ownedInfo('root/parent3/child', 'global space', 0),
+                  ownerInfo('root/parent1/child', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'parent3',
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 7,
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 4,
+                'expected_effective_size': 4
+              },
+              {
+                'name': 'child',
+                'owns': 2,
+                'size': 3,
+                'expected_size': 3,
+                'expected_effective_size': 3,
+                'expected_effective_size_infos': [
+                  ownerInfo('root/parent2/child', 'global space', 0)
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('views_nested', [
+    [
+      {
+        'name': 'system',
+        'expected_size': 7,
+        'expected_effective_size': 7,
+        'children': [
+          {
+            'name': 'subsystem-A',
+            'owns': 15,
+            'expected_size': 5,
+            'expected_effective_size': 5,
+            'expected_effective_size_infos': [
+              ownerInfo('system/subsystem-B', 'global space', 0)
+            ],
+            'children': [
+              {
+                'name': 'objects',
+                'owns': 30,
+                'size': 3,
+                'expected_size': 3,
+                'expected_effective_size': 3,
+                'expected_effective_size_infos': [
+                  ownerInfo('system/subsystem-A/heaps', 'global space', 0)
+                ]
+              },
+              {
+                'name': 'heaps',
+                'guid': 30,
+                'size': 5,
+                'expected_size': 5,
+                'expected_size_infos': [
+                  informationInfo(/\boverlaps\b.*'objects'.*\b3\.0 B\b/)
+                ],
+                'expected_effective_size': 2,
+                'expected_effective_size_infos': [
+                  ownedInfo('system/subsystem-A/objects', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'subsystem-B',
+            'guid': 15,
+            'expected_size': 7,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'subsystem-A'.*\b5\.0 B\b/)
+            ],
+            'expected_effective_size': 2,
+            'expected_effective_size_infos': [
+              ownedInfo('system/subsystem-A', 'global space', 0)
+            ],
+            'children': [
+              {
+                'name': 'objects',
+                'owns': 40,
+                'size': 7,
+                'expected_size': 7,
+                'expected_effective_size': 2,
+                'expected_effective_size_infos': [
+                  ownerInfo('system/subsystem-B/heaps', 'global space', 0)
+                ]
+              },
+              {
+                'name': 'heaps',
+                'guid': 40,
+                'expected_size': 7,
+                'expected_size_infos': [
+                  informationInfo(/\boverlaps\b.*'objects'.*\b7\.0 B\b/)
+                ],
+                'expected_effective_size': 0,
+                'expected_effective_size_infos': [
+                  ownedInfo('system/subsystem-B/objects', 'global space', 0)
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_equal', [
+    [  // GMD (both importances undefined and equal sizes).
+      {
+        'name': 'owned',
+        'guid': 1,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 4,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'global space', 0, 'owner2', 'global space', 0)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 3,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 0)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 3,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 0)
+        ]
+      }
+    ],
+    [  // PMD1 (only one importance defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 2,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 5,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 0', 0, 'owner2', 'Process 0', 0)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 2,
+        'importance': 0,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 10 / 2 + 5,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 0', 0)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 10 / 2,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 0', 0)
+        ]
+      }
+    ],
+    [  // PMD2 (all importances defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 3,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 5,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 1', 3, 'owner2', 'Process 1', 3,
+              'owner3', 'Process 1', 3)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 3,
+        'importance': 3,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 8 / 3,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 3)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 3,
+        'importance': 3,
+        'size': 9,
+        'expected_size': 9,
+        'expected_effective_size': 8 / 3 + 1 / 2,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 3)
+        ]
+      },
+      {
+        'name': 'owner3',
+        'owns': 3,
+        'importance': 3,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 8 / 3 + 1 / 2 + 1,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 3)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_notEqual', [
+    [  // GMD (one importance undefined and equal sizes).
+      {
+        'name': 'owned',
+        'guid': 1,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 4,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'global space', 0, 'owner2', 'global space', 1)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 0)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 1,
+        'importance': 1,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 6,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 1)
+        ]
+      }
+    ],
+    [  // PMD1 (one importance undefined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 2,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 4,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 0', -1, 'owner2', 'Process 0', 0)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 2,
+        'importance': -1,
+        'size': 16,
+        'expected_size': 16,
+        'expected_effective_size': 6,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 0', -1)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 10,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 0', 0)
+        ]
+      }
+    ],
+    [  // PMD2 (all importances defined and different sizes).
+      {
+        'name': 'owned',
+        'guid': 3,
+        'size': 15,
+        'expected_size': 15,
+        'expected_effective_size': 5,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 1', 4, 'owner2', 'Process 1', 3,
+              'owner3', 'Process 1', 2)
+        ]
+      },
+      {
+        'name': 'owner1',
+        'owns': 3,
+        'importance': 4,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 8,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 4)
+        ]
+      },
+      {
+        'name': 'owner2',
+        'owns': 3,
+        'importance': 3,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 3)
+        ]
+      },
+      {
+        'name': 'owner3',
+        'owns': 3,
+        'importance': 2,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'Process 1', 2)
+        ]
+      }
+    ]
+  ]);
+
+  // Example taken from GlobalMemoryDump.calculateDumpOwnershipCoefficient_()
+  // documentation.
+  calculationTest('importance_manyOwners', [
+    [  // GMD.
+      {
+        'name': 'owned',
+        'guid': 4,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 0', 2,
+              'some_parent/owner2', 'Process 1', 2, 'owner3', 'Process 2', 1,
+              'owner4', 'Process 2', 0)
+        ]
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'owner1',
+        'owns': 4,
+        'importance': 2,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 6 / 2,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 2)
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'some_parent',
+        'expected_size': 7,
+        'expected_effective_size': 6 / 2 + 1,
+        'children': [
+          {
+            'name': 'owner2',
+            'owns': 4,
+            'importance': 2,
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 6 / 2 + 1,
+            'expected_effective_size_infos': [
+              ownerInfo('owned', 'global space', 2)
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD3.
+      {
+        'name': 'owner3',
+        'owns': 4,
+        'importance': 1,
+        'size': 5,
+        'expected_size': 5,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 1)
+        ]
+      },
+      {
+        'name': 'owner4',
+        'owns': 4,
+        'importance': 0,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 1,
+        'expected_effective_size_infos': [
+          ownerInfo('owned', 'global space', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_chainOwnerships', [
+    [  // GMD.
+      {
+        'name': 'owned',
+        'guid': 5,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownedInfo('owner1', 'Process 0', 2)
+        ]
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'owner1',
+        'owns': 5,
+        'importance': 2,
+        'guid': 6,
+        'size': 6,
+        'expected_size': 6,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownedInfo('subowner1', 'Process 0', 0),
+          ownerInfo('owned', 'global space', 2)
+        ]
+      },
+      {
+        'name': 'subowner1',
+        'owns': 6,
+        'size': 4,
+        'expected_size': 4,
+        'expected_effective_size': 4,
+        'expected_effective_size_infos': [
+          ownerInfo('owner1', 'Process 0', 0)
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'owner2',
+        'owns': 5,
+        'importance': 1,
+        'guid': 8,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 2 - 2 / 4,
+        'expected_effective_size_infos': [
+          ownedInfo('subowner2', 'Process 1', 0),
+          ownerInfo('owned', 'global space', 1)
+        ]
+      },
+      {
+        'name': 'subowner2',
+        'owns': 8,
+        'size': 2,
+        'expected_size': 2,
+        'expected_effective_size': 2 / 4,
+        'expected_effective_size_infos': [
+          ownerInfo('owner2', 'Process 1', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_nested', [
+    [
+      {
+        'name': 'grey',
+        'guid': 15,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 6,
+        'expected_effective_size_infos': [
+          ownedInfo('blue', 'global space', 1, 'purple', 'global space', 2)
+        ]
+      },
+      {
+        'name': 'blue',
+        'guid': 18,
+        'owns': 15,
+        'importance': 1,
+        'size': 14,
+        'expected_size': 14,
+        'expected_effective_size': 1,
+        'expected_effective_size_infos': [
+          ownedInfo('red', 'global space', 0),
+          ownerInfo('grey', 'global space', 1)
+        ]
+      },
+      {
+        'name': 'purple',
+        'owns': 15,
+        'importance': 2,
+        'size': 7,
+        'expected_size': 7,
+        'expected_effective_size': 7,
+        'expected_effective_size_infos': [
+          ownerInfo('grey', 'global space', 2)
+        ]
+      },
+      {
+        'name': 'yellow',
+        'owns': 21,
+        'importance': 3,
+        'size': 10,
+        'expected_size': 10,
+        'expected_effective_size': 3,
+        'expected_effective_size_infos': [
+          ownerInfo('red', 'global space', 3)
+        ]
+      },
+      {
+        'name': 'red',
+        'guid': 21,
+        'owns': 18,
+        'size': 12,
+        'expected_size': 12,
+        'expected_effective_size': 1,
+        'expected_effective_size_infos': [
+          ownedInfo('yellow', 'global space', 3, 'green', 'global space', 3),
+          ownerInfo('blue', 'global space', 0)
+        ]
+      },
+      {
+        'name': 'green',
+        'owns': 21,
+        'importance': 3,
+        'size': 8,
+        'expected_size': 8,
+        'expected_effective_size': 2,
+        'expected_effective_size_infos': [
+          ownerInfo('red', 'global space', 3)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_singleRefinement', [
+    [
+      {
+        'name': 'v8',
+        'expected_size': 13,
+        'expected_effective_size': 13,
+        'children': [
+          {
+            'name': 'objects',
+            'owns': 1,
+            'size': 11,
+            'expected_size': 11,
+            'expected_effective_size': 11,
+            'expected_effective_size_infos': [
+              ownerInfo('v8/heaps', 'global space', 0)
+            ],
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 4,
+                'expected_effective_size': 4
+              },
+              {
+                'name': 'object1',
+                'owns': 2,
+                'size': 7,
+                'expected_size': 7,
+                'expected_effective_size': 7,
+                'expected_effective_size_infos': [
+                  ownerInfo('v8/heaps/heap1', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'heaps',
+            'guid': 1,
+            'size': 13,
+            'expected_size': 13,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b11\.0 B\b/)
+            ],
+            'expected_effective_size': 2,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects', 'global space', 0)
+            ],
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 3,
+                'expected_effective_size': 1
+              },
+              {
+                'name': 'heap1',
+                'guid': 2,
+                'size': 10,
+                'expected_size': 10,
+                'expected_effective_size': 1,
+                'expected_effective_size_infos': [
+                  ownedInfo('v8/objects/object1', 'global space', 0)
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('importance_sharedRefinement', [
+    [  // GMD.
+      {
+        'name': 'shared_bitmap',
+        'guid': 0,
+        'size': 23,
+        'expected_size': 23,
+        'expected_effective_size': 5,
+        'expected_effective_size_infos': [
+          ownedInfo('tile_manager', 'Process 0', 2, 'gpu', 'Process 1', 1)
+        ],
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 13,
+            'expected_effective_size': 13 * 5 / (13 + 3)
+          },
+          {
+            'name': 'bitmap0x7',
+            'guid': 999,
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 3 * 5 / (13 + 3),
+            'expected_effective_size_infos': [
+              ownedInfo('tile_manager/tile42', 'Process 0', 1,
+                  'gpu/chunk-3\\.14', 'Process 1', 2)
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD1.
+      {
+        'name': 'tile_manager',
+        'owns': 0,
+        'importance': 2,
+        'size': 12,
+        'expected_size': 12,
+        'expected_effective_size': 5 + 2,
+        'expected_effective_size_infos': [
+          ownerInfo('shared_bitmap', 'global space', 2)
+        ],
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 5,
+            'expected_effective_size': 5
+          },
+          {
+            'name': 'tile42',
+            'owns': 999,
+            'importance': 1,
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 2,
+            'expected_effective_size_infos': [
+              ownerInfo('shared_bitmap/bitmap0x7', 'global space', 1)
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD2.
+      {
+        'name': 'gpu',
+        'owns': 0,
+        'importance': 1,
+        'size': 16,
+        'expected_size': 16,
+        'expected_effective_size': 6 + 5,
+        'expected_effective_size_infos': [
+          ownerInfo('shared_bitmap', 'global space', 1)
+        ],
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 11,
+            'expected_effective_size': 6
+          },
+          {
+            'name': 'chunk-3.14',
+            'owns': 999,
+            'importance': 2,
+            'size': 5,
+            'expected_size': 5,
+            'expected_effective_size': 5,
+            'expected_effective_size_infos': [
+              ownerInfo('shared_bitmap/bitmap0x7', 'global space', 2)
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  // Example taken from https://goo.gl/fKg0dt.
+  calculationTest('documentationExample', [
+    [  // GMD, Global (shared) memory.
+      {
+        'name': 'unknown',
+        'guid': 2,
+        'expected_size': 16,
+        'expected_effective_size': 0,
+        'expected_effective_size_infos': [
+          ownedInfo('sharedbitmap/0x7', 'Process 0', 1,
+              'v8/heaps/1', 'Process 1', 2)
+        ]
+      }
+    ],
+    [  // PMD1, Browser process.
+      {
+        'name': 'sharedbitmap',
+        'size': 17,
+        'expected_size': 17,
+        'expected_effective_size': 9,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 1,
+            'expected_effective_size': 1
+          },
+          {
+            'name': '0x7',
+            'size': 16,
+            'expected_size': 16,
+            'expected_effective_size': 8,
+            'expected_effective_size_infos': [
+              ownerInfo('unknown', 'global space', 1)
+            ],
+            'owns': 2,
+            'importance': 1,
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 16,
+                'expected_effective_size': 8
+              },
+              {
+                'name': 'y'
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [  // PMD2, Renderer process.
+      {
+        'name': 'v8',
+        'expected_size': 13,
+        'expected_effective_size': 13,
+        'children': [
+          {
+            'name': 'heaps',
+            'guid': 100,
+            'expected_size': 12,
+            'expected_size_infos': [
+              informationInfo(/\boverlaps\b.*'objects'.*\b9\.0 B\b/)
+            ],
+            'expected_effective_size': 3,
+            'expected_effective_size_infos': [
+              ownedInfo('v8/objects/strings', 'Process 1', 0)
+            ],
+            'children': [
+              {
+                'name': '1',
+                'size': 8,
+                'expected_size': 8,
+                'expected_effective_size': 2,
+                'expected_effective_size_infos': [
+                  ownerInfo('unknown', 'global space', 2)
+                ],
+                'owns': 2,
+                'importance': 2
+              },
+              {
+                'name': '2',
+                'expected_size': 4,
+                'expected_effective_size': 1,
+                'size': 4
+              }
+            ]
+          },
+          {
+            'name': 'objects',
+            'size': 10,
+            'expected_size': 10,
+            'expected_effective_size': 10,
+            'children': [
+              {
+                'name': '<unspecified>',
+                'skip_build': true,
+                'expected_size': 1,
+                'expected_effective_size': 1
+              },
+              {
+                'name': 'strings',
+                'size': 9,
+                'expected_size': 9,
+                'expected_effective_size': 9,
+                'expected_effective_size_infos': [
+                  ownerInfo('v8/heaps', 'Process 1', 0)
+                ],
+                'owns': 100
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ]);
+
+  // This should never happen. Nevertheless, this test checks that we can
+  // handle invalid sizes (parent dump being smaller than its aggregated
+  // children and owned dump being smaller than its largest owner) gracefully.
+  calculationTest('invalidSizes', [
+    [
+      {
+        'name': 'root1',
+        'size': 24,
+        'expected_size': 24,
+        'expected_effective_size': 4,
+        'children': [
+          {
+            'name': '<unspecified>',
+            'skip_build': true,
+            'expected_size': 4,
+            'expected_effective_size': 4
+          },
+          {
+            'name': 'parent',
+            'size': 17,  // Invalid: child has larger size.
+            'expected_size': 20,
+            'expected_size_infos': [
+              warningInfo(/\bless than\b.*\bchildren\b.*\b20\.0 B\b/)
+            ],
+            'expected_effective_size': 0,
+            'children': [
+              {
+                'name': 'child',
+                'guid': 1,
+                'size': 10,  // Invalid: owner has larger size.
+                'expected_size': 20,
+                'expected_size_infos': [
+                  warningInfo(/\bless than\b.*\blargest owner\b.*\b20\.0 B\b/)
+                ],
+                'expected_effective_size': 0,
+                'expected_effective_size_infos': [
+                  ownedInfo('root2', 'global space', 0)
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        'name': 'root2',
+        'owns': 1,
+        'size': 20,
+        'expected_size': 20,
+        'expected_effective_size': 20,
+        'expected_effective_size_infos': [
+          ownerInfo('root1/parent/child', 'global space', 0)
+        ]
+      }
+    ]
+  ]);
+
+  calculationTest('multipleInfos', [
+    [
+      {
+        'name': 'root',
+        'expected_size': 10,
+        'expected_effective_size': 10,
+        'children': [
+          {
+            'name': 'parent1',
+            'size': 5,
+            'expected_size': 10,
+            'expected_size_infos': [
+              warningInfo(/\bless than\b.*\bchildren\b.*\b10.0 B\b/),
+              informationInfo(/\boverlaps\b.*'parent2'.*\b17\.0 B\b.*\boverlaps\b.*'parent3'.*\b7.0 B\b/)  // @suppress longLineCheck
+            ],
+            'expected_effective_size': 1,
+            'children': [
+              {
+                'name': 'child',
+                'guid': 3,
+                'size': 10,
+                'expected_size': 10,
+                'expected_effective_size': 1,
+                'expected_effective_size_infos': [
+                  ownedInfo('root/parent2/child1', 'global space', 0,
+                      'root/parent2/child2', 'global space', 0,
+                      'root/parent3', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'parent2',
+            // NOTE(petrcermak): The expected size here is a little strange
+            // because the children both own the same dump (namely
+            // root/parent1/child). It would, therefore, probably make more
+            // sense for the calculated size to be 9. Since this is an unlikely
+            // case and would complicate the (already complex) size
+            // calculation, we will now keep the algorithm as is.
+            'expected_size': 17,
+            'expected_effective_size': 14 / 3 + 2,
+            'children': [
+              {
+                'name': 'child1',
+                'owns': 3,
+                'size': 9,
+                'expected_size': 9,
+                'expected_effective_size': 7 / 3 + 1 / 2 + 1,
+                'expected_effective_size_infos': [
+                  ownerInfo('root/parent1/child', 'global space', 0)
+                ]
+              },
+              {
+                'name': 'child2',
+                'owns': 3,
+                'size': 8,
+                'expected_size': 8,
+                'expected_effective_size': 7 / 3 + 1 / 2,
+                'expected_effective_size_infos': [
+                  ownerInfo('root/parent1/child', 'global space', 0)
+                ]
+              }
+            ]
+          },
+          {
+            'name': 'parent3',
+            'size': 7,
+            'expected_size': 7,
+            'expected_effective_size': 7 / 3,
+            'expected_effective_size_infos': [
+              ownerInfo('root/parent1/child', 'global space', 0)
+            ],
+            'owns': 3
+          }
+        ]
+      }
+    ]
+  ]);
+
+  // Check that size calculation is NOT preceded by attribute
+  // aggregation, which would recursively sum up size attributes.
+  test('calculateGraphAttributes', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      buildDumpTrees([
+        undefined,  // GMD.
+        [  // PMD.
+          {
+            'name': 'root',
+            'children': [
+              {
+                'name': 'owner_child',
+                'owns': 9,
+                'size': 7
+              },
+              {
+                'name': 'owned_child',
+                'guid': 9,
+                'size': 20
+              }
+            ]
+          }
+        ]
+      ], model);
+    });
+    var pmd = model.getProcess(0).memoryDumps[0];
+
+    var rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
+    assertSizeAttribute(rootDump, 'size', 20);
+    assertSizeAttribute(rootDump, 'effective_size', 20);
+
+    var ownerChildDump = pmd.getMemoryAllocatorDumpByFullName(
+        'root/owner_child');
+    assertSizeAttribute(ownerChildDump, 'size', 7);
+    assertSizeAttribute(ownerChildDump, 'effective_size', 7, [
+      ownerInfo('root/owned_child', 'Process 0', 0)
+    ]);
+
+    var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
+        'root/owned_child');
+    assertSizeAttribute(ownedChildDump, 'size', 20,
+        [informationInfo(/\boverlaps\b.*'owner_child'.*\b7\.0 B\b/)]);
+    assertSizeAttribute(ownedChildDump, 'effective_size', 13,
+        [ownedInfo('root/owner_child', 'Process 0', 0)]);
+  });
+});
+</script>

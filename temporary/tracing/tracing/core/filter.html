@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.c', function() {
+  function matchLower(value, pattern) {
+    return value.toLowerCase().indexOf(pattern) !== -1;
+  }
+
+  /**
+   * @constructor The generic base class for filtering a Model based on
+   * various rules. The base class returns true for everything.
+   */
+  function Filter() { }
+
+  Filter.prototype = {
+    __proto__: Object.prototype,
+
+    matchCounter: function(counter) {
+      return true;
+    },
+
+    matchCpu: function(cpu) {
+      return true;
+    },
+
+    matchProcess: function(process) {
+      return true;
+    },
+
+    matchSlice: function(slice) {
+      return true;
+    },
+
+    matchThread: function(thread) {
+      return true;
+    }
+  };
+
+  /**
+   * @constructor A filter that matches objects by their name or category
+   * case insensitive.
+   * .findAllObjectsMatchingFilter
+   */
+  function TitleOrCategoryFilter(text) {
+    Filter.call(this);
+    this.text_ = text.toLowerCase();
+
+    if (!text.length)
+      throw new Error('Filter text is empty.');
+  }
+  TitleOrCategoryFilter.prototype = {
+    __proto__: Filter.prototype,
+
+    matchSlice: function(slice) {
+      if (slice.title === undefined && slice.category === undefined)
+        return false;
+
+      return matchLower(slice.title, this.text_) ||
+          (!!slice.category && matchLower(slice.category, this.text_));
+    }
+  };
+
+  /**
+   * @constructor A filter that matches objects with the exact given title.
+   */
+  function ExactTitleFilter(text) {
+    Filter.call(this);
+    this.text_ = text;
+
+    if (!text.length)
+      throw new Error('Filter text is empty.');
+  }
+  ExactTitleFilter.prototype = {
+    __proto__: Filter.prototype,
+
+    matchSlice: function(slice) {
+      return slice.title === this.text_;
+    }
+  };
+
+  return {
+    Filter: Filter,
+    TitleOrCategoryFilter: TitleOrCategoryFilter,
+    ExactTitleFilter: ExactTitleFilter
+  };
+});
+</script>

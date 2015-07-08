@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/process_memory_dump_track.html">
+<link rel="import" href="/ui/tracks/memory_dump_track_test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Viewport = tr.ui.TimelineViewport;
+  var ProcessMemoryDumpTrack = tr.ui.tracks.ProcessMemoryDumpTrack;
+  var createTestProcessMemoryDumps = tr.ui.tracks.createTestProcessMemoryDumps;
+
+  function instantiateTrack(withVMRegions, withAllocatorDumps,
+                            expectedTrackCount) {
+    var dumps = createTestProcessMemoryDumps(withVMRegions, withAllocatorDumps);
+
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = new ProcessMemoryDumpTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.invalidate();
+
+    track.memoryDumps = dumps;
+
+    // TODO(petrcermak): Check that the div has indeed zero size.
+    if (expectedTrackCount > 0)
+      this.addHTMLOutput(div);
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    assert.lengthOf(track.tracks_, expectedTrackCount);
+  };
+
+  test('instantiate_withoutMemoryAllocatorDumps', function() {
+    instantiateTrack.call(this, false, false, 0);
+  });
+  test('instantiate_withMemoryAllocatorDumps', function() {
+    instantiateTrack.call(this, false, true, 1);
+  });
+});
+</script>

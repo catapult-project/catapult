@@ -1,0 +1,5 @@
+build
+*.pyc
+*.pyc.d
+*.py,cover
+typ.egg-info

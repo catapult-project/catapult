@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/model/async_slice.html">
+<link rel="import" href="/model/event_set.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.cc', function() {
+  var AsyncSlice = tr.model.AsyncSlice;
+  var EventSet = tr.m.EventSet;
+
+  var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
+  var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
+  var BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
+  var END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+
+  var MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
+  var COMPOSITOR_THREAD_NAME = 'Compositor';
+
+  var INPUT_EVENT_TYPE_NAMES = {
+    CHAR: 'Char',
+    CONTEXT_MENU: 'ContextMenu',
+    FLING_CANCEL: 'GestureFlingCancel',
+    FLING_START: 'GestureFlingStart',
+    KEY_DOWN: 'KeyDown',
+    KEY_DOWN_RAW: 'RawKeyDown',
+    KEY_UP: 'KeyUp',
+    LATENCY_SCROLL_UPDATE: 'ScrollUpdate',
+    MOUSE_DOWN: 'MouseDown',
+    MOUSE_ENTER: 'MouseEnter',
+    MOUSE_LEAVE: 'MouseLeave',
+    MOUSE_MOVE: 'MouseMove',
+    MOUSE_UP: 'MouseUp',
+    MOUSE_WHEEL: 'MouseWheel',
+    PINCH_BEGIN: 'GesturePinchBegin',
+    PINCH_END: 'GesturePinchEnd',
+    PINCH_UPDATE: 'GesturePinchUpdate',
+    SCROLL_BEGIN: 'GestureScrollBegin',
+    SCROLL_END: 'GestureScrollEnd',
+    SCROLL_UPDATE: 'GestureScrollUpdate',
+    SHOW_PRESS: 'GestureShowPress',
+    TAP: 'GestureTap',
+    TAP_CANCEL: 'GestureTapCancel',
+    TAP_DOWN: 'GestureTapDown',
+    TOUCH_CANCEL: 'TouchCancel',
+    TOUCH_END: 'TouchEnd',
+    TOUCH_MOVE: 'TouchMove',
+    TOUCH_START: 'TouchStart',
+    UNKNOWN: 'UNKNOWN'
+  };
+
+  function InputLatencyAsyncSlice() {
+    AsyncSlice.apply(this, arguments);
+    this.associatedEvents_ = new EventSet();
+    this.typeName_ = undefined;
+    if (!this.isLegacyEvent)
+      this.determineModernTypeName_();
+  }
+
+  InputLatencyAsyncSlice.prototype = {
+    __proto__: AsyncSlice.prototype,
+
+    // Legacy InputLatencyAsyncSlices involve a top-level slice titled
+    // "InputLatency" containing a subSlice whose title starts with
+    // "InputLatency:". Modern InputLatencyAsyncSlices involve a single
+    // top-level slice whose title starts with "InputLatency::".
+    // Legacy subSlices are not available at construction time, so
+    // determineLegacyTypeName_() must be called at get time.
+    // So this returns false for the legacy subSlice events titled like
+    // "InputLatency:Foo" even though they are technically legacy events.
+    get isLegacyEvent() {
+      return this.title === 'InputLatency';
+    },
+
+    get typeName() {
+      if (!this.typeName_)
+        this.determineLegacyTypeName_();
+      return this.typeName_;
+    },
+
+    checkTypeName_: function() {
+      if (!this.typeName_)
+        throw 'Unable to determine typeName';
+      var found = false;
+      for (var type_name in INPUT_EVENT_TYPE_NAMES) {
+        if (this.typeName === INPUT_EVENT_TYPE_NAMES[type_name]) {
+          found = true;
+          break;
+        }
+      }
+      if (!found)
+        this.typeName_ = INPUT_EVENT_TYPE_NAMES.UNKNOWN;
+    },
+
+    determineModernTypeName_: function() {
+      // This method works both on modern events titled like
+      // "InputLatency::Foo" and also on the legacy subSlices titled like
+      // "InputLatency:Foo". Modern events' titles contain 2 colons, whereas the
+      // legacy subSlices events contain 1 colon.
+
+      var lastColonIndex = this.title.lastIndexOf(':');
+      if (lastColonIndex < 0)
+        return;
+
+      var characterAfterLastColonIndex = lastColonIndex + 1;
+      this.typeName_ = this.title.slice(characterAfterLastColonIndex);
+
+      // Check that the determined typeName is known.
+      this.checkTypeName_();
+    },
+
+    determineLegacyTypeName_: function() {
+      // Iterate over all descendent subSlices.
+      this.iterateAllDescendents(function(subSlice) {
+
+        // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
+        var subSliceIsAInputLatencyAsyncSlice = (
+            subSlice instanceof InputLatencyAsyncSlice);
+        if (!subSliceIsAInputLatencyAsyncSlice)
+          return;
+
+        // If |subSlice| does not have a typeName, then ignore it.
+        if (!subSlice.typeName)
+          return;
+
+        // If |this| already has a typeName and |subSlice| has a different
+        // typeName, then explode!
+        if (this.typeName_ && subSlice.typeName_) {
+          var subSliceHasDifferentTypeName = (
+              this.typeName_ !== subSlice.typeName_);
+          if (subSliceHasDifferentTypeName) {
+            throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() ' +
+              ' found multiple typeNames';
+          }
+        }
+
+        // The typeName of |this| top-level event is whatever the typeName of
+        // |subSlice| is. Set |this.typeName_| to the subSlice's typeName.
+        this.typeName_ = subSlice.typeName_;
+      }, this);
+
+      // If typeName could not be determined, then explode!
+      if (!this.typeName_)
+        throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() failed';
+
+      // Check that the determined typeName is known.
+      this.checkTypeName_();
+    },
+
+    getRendererHelper: function(flowPath) {
+      var traceModel = this.startThread.parent.model;
+      if (!tr.e.audits.ChromeModelHelper.supportsModel(traceModel))
+        return undefined;
+
+      var mainThread = undefined;
+      var compositorThread = undefined;
+
+      for (var i in flowPath) {
+        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
+          mainThread = flowPath[i].parentContainer;
+        else if (flowPath[i].parentContainer.name === COMPOSITOR_THREAD_NAME)
+          compositorThread = flowPath[i].parentContainer;
+      }
+
+      var modelHelper = new tr.e.audits.ChromeModelHelper(traceModel);
+      var rendererHelpers = modelHelper.rendererHelpers;
+
+      var pids = Object.keys(rendererHelpers);
+      for (var i = 0; i < pids.length; i++) {
+        var pid = pids[i];
+        var rendererHelper = rendererHelpers[pid];
+        if (rendererHelper.mainThread === mainThread ||
+            rendererHelper.compositorThread === compositorThread)
+          return rendererHelper;
+      }
+
+      return undefined;
+    },
+
+    constructFlowPath: function(flowEvents) {
+      var flowPath = [];
+
+      flowEvents.forEach(function(flowEvent) {
+        flowPath.push(flowEvent.startSlice.mostTopLevelSlice);
+      }, this);
+      var lastFlowEvent = flowEvents[flowEvents.length - 1];
+      flowPath.push(lastFlowEvent.endSlice.mostTopLevelSlice);
+
+      return flowPath;
+    },
+
+    addDirectlyAssociatedEvents: function(flowEvents) {
+      flowEvents.forEach(function(flowEvent, index, matchedFlowEvents) {
+        this.associatedEvents_.push(flowEvent);
+
+        flowEvent.startSlice.ancestorAndSubsequentSlices.forEach(function(s) {
+          this.associatedEvents_.push(s);
+        }, this);
+      }, this);
+
+      // Only process the endSlice for the last flowEvent
+      // this is assuming flowEvents are always followable
+      var lastFlowEvent = flowEvents[flowEvents.length - 1];
+      lastFlowEvent.endSlice.ancestorAndSubsequentSlices.forEach(function(s) {
+        this.associatedEvents_.push(s);
+      }, this);
+    },
+
+    findFirstRendererSlice: function(flowPath) {
+      for (var i in flowPath) {
+        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
+          return flowPath[i];
+      }
+
+      return undefined;
+    },
+
+    findLastRendererSlice: function(flowPath) {
+      for (var i in flowPath) {
+        // TODO (Yuhao): The current implementation actually finds a compositor
+        // slice that does draw and buffer swap. Once we trace the renderer
+        // commit, we can find the real last renderer slice.
+        // It's tracked at: https://github.com/google/trace-viewer/issues/1025
+        var commitMaker = 'Scheduler::OnBeginImplFrameDeadline';
+        if (flowPath[i].findDescendentSlice(commitMaker))
+          return flowPath[i];
+      }
+
+      return flowPath[flowPath.length - 1];
+    },
+
+    addSlicesBetweenFirstAndLast: function(firstSlice,
+        lastSlice, rendererHelper) {
+      var started = false;
+
+      var allRendererSlices = rendererHelper.mainThread.sliceGroup.slices;
+      for (var i in allRendererSlices) {
+        var slice = allRendererSlices[i];
+
+        if (slice.end > lastSlice.start)
+          break;
+
+        if (started) {
+          // TODO (Yuhao): Can we definitely find main thread slices that
+          // handle other inputs? This bug is tracked at:
+          // https://github.com/google/trace-viewer/issues/1027
+          var handleInputMarker = 'WebViewImpl::handleInputEvent';
+          if (slice.mostTopLevelSlice.findDescendentSlice(handleInputMarker))
+            continue;
+
+          this.associatedEvents_.push(slice);
+        } else {
+          started = (slice.guid === firstSlice.guid);
+        }
+      }
+    },
+
+    // Find the Latency::ScrollUpdate slice that corresponds to the
+    // InputLatency::GestureScrollUpdate slice
+    addScrollUpdateEvents: function(compositorThread) {
+      var gestureScrollUpdateStart = this.start;
+      var gestureScrollUpdateEnd = this.end;
+
+      var allCompositorAsyncSlices =
+        compositorThread.asyncSliceGroup.slices;
+
+      for (var i in allCompositorAsyncSlices) {
+        var slice = allCompositorAsyncSlices[i];
+
+        if (slice.title !== 'Latency::ScrollUpdate')
+          continue;
+
+        var parentId = slice.args.data.
+            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT.
+            sequence_number;
+
+        if (parentId === undefined) {
+          // Old trace, we can only rely on the timestamp to find the slice
+          if (slice.start < gestureScrollUpdateStart ||
+              slice.start >= gestureScrollUpdateEnd)
+            continue;
+        } else {
+          // New trace, we can definitely find the latency slice by comparing
+          // its sequence number with gesture id
+          if (parseInt(parentId) !== parseInt(this.id))
+            continue;
+        }
+
+        slice.associatedEvents.forEach(function(event) {
+          this.associatedEvents_.push(event);
+        }, this);
+        break;
+      }
+    },
+
+    addOtherCasuallyRelatedEvents: function(flowEvents) {
+      var flowPath = this.constructFlowPath(flowEvents);
+      var rendererHelper = this.getRendererHelper(flowPath);
+
+      if (rendererHelper === undefined ||
+          rendererHelper.mainThread === undefined)
+        return;
+
+      // Find the first renderer slice from the flow path. It might not
+      // exist because some inputs (e.g., scroll update) are
+      //  1) taken over by the compositor and thus bypass the renderer,
+      //  2) directly consumed by the browser process..
+      var firstRendererSlice = this.findFirstRendererSlice(flowPath);
+
+      if (firstRendererSlice === undefined) {
+        // Scroll update doesn't go through the main thread, but the compositor
+        // may go back to the main thread if there is an onscroll event handler.
+        // This is captured by a different flow event, which does not have the
+        // same ID as the Input Latency Event, but it is technically casually
+        // related to the GestureScrollUpdate input. Add them manually for now.
+        var latencyScrollUpdateMaker = 'InputLatency::GestureScrollUpdate';
+        if (this.title === latencyScrollUpdateMaker)
+          this.addScrollUpdateEvents(rendererHelper.compositorThread);
+
+        return;
+      }
+
+      // If the first renderer slice exist, we look for the last renderer slice.
+      // There are two cases:
+      //  1) the slice that commits to the compositor thread
+      //  2) renderer didn't commit, then for now we fall back to the last slice
+      //  in the flow path (which might not be a renderer slice)
+      var lastRendererSlice = this.findLastRendererSlice(flowPath);
+
+      // Push relevant slices between first and last slice
+      this.addSlicesBetweenFirstAndLast(firstRendererSlice,
+          lastRendererSlice, rendererHelper);
+    },
+
+    get associatedEvents() {
+      if (this.associatedEvents_.length !== 0)
+        return this.associatedEvents_;
+
+      var modelIndices = this.startThread.parent.model.modelIndices;
+      var flowEvents = modelIndices.getFlowEventsWithId(this.id);
+
+      if (flowEvents.length === 0)
+        return this.associatedEvents_;
+
+      // Step 1: Get all the events that are directly connected by the flow
+      this.addDirectlyAssociatedEvents(flowEvents);
+
+      // Step 2: Get events that are casually related but not connect by flow
+      // It only takes care of the main renderer thread for now
+      this.addOtherCasuallyRelatedEvents(flowEvents);
+
+      return this.associatedEvents_;
+    },
+
+    get inputLatency() {
+      if (!('data' in this.args))
+        return undefined;
+
+      var data = this.args.data;
+      if (!(END_COMP_NAME in data))
+        return undefined;
+
+      var latency = 0;
+      var endTime = data[END_COMP_NAME].time;
+      if (ORIGINAL_COMP_NAME in data) {
+        latency = endTime - data[ORIGINAL_COMP_NAME].time;
+      } else if (UI_COMP_NAME in data) {
+        latency = endTime - data[UI_COMP_NAME].time;
+      } else if (BEGIN_COMP_NAME in data) {
+        latency = endTime - data[BEGIN_COMP_NAME].time;
+      } else {
+        throw new Error('No valid begin latency component');
+      }
+      return latency;
+    }
+  };
+
+  var eventTypeNames = [
+    'Char',
+    'ContextMenu',
+    'GestureFlingCancel',
+    'GestureFlingStart',
+    'GestureScrollBegin',
+    'GestureScrollEnd',
+    'GestureScrollUpdate',
+    'GestureShowPress',
+    'GestureTap',
+    'GestureTapCancel',
+    'GestureTapDown',
+    'GesturePinchBegin',
+    'GesturePinchEnd',
+    'GesturePinchUpdate',
+    'KeyDown',
+    'KeyUp',
+    'MouseDown',
+    'MouseEnter',
+    'MouseLeave',
+    'MouseMove',
+    'MouseUp',
+    'MouseWheel',
+    'RawKeyDown',
+    'ScrollUpdate',
+    'TouchCancel',
+    'TouchEnd',
+    'TouchMove',
+    'TouchStart'
+  ];
+  var allTypeNames = ['InputLatency'];
+  eventTypeNames.forEach(function(eventTypeName) {
+    // Old style.
+    allTypeNames.push('InputLatency:' + eventTypeName);
+
+    // New style.
+    allTypeNames.push('InputLatency::' + eventTypeName);
+  });
+
+  AsyncSlice.register(
+    InputLatencyAsyncSlice,
+    {
+      typeNames: allTypeNames,
+      categoryParts: ['latencyInfo']
+    });
+
+  return {
+    InputLatencyAsyncSlice: InputLatencyAsyncSlice,
+    INPUT_EVENT_TYPE_NAMES: INPUT_EVENT_TYPE_NAMES
+  };
+});
+</script>

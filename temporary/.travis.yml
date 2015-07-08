@@ -1,0 +1,28 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+language: python
+
+python:
+  - "2.7"
+
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - export CHROME_VER=$(
+    curl -s http://omahaproxy.appspot.com/all | grep linux,stable | cut -d, -f3)
+  - echo "Downloading Chrome stable channel ($CHROME_VER)"
+  - GCS="https://commondatastorage.googleapis.com/chrome-unsigned"
+  - curl -s $GCS/desktop-W15K3Y/$CHROME_VER/precise64/chrome-precise64.zip
+    -o /tmp/chrome.zip
+  - unzip -q /tmp/chrome.zip -d /tmp
+
+script:
+ - ./tracing/run_tests --chrome_path=/tmp/chrome-precise64/chrome
+
+# Vulcanize trace_viewer in full & chrome mode & report total size
+ - ./tracing/vulcanize_trace_viewer --config=chrome
+ - ./tracing/vulcanize_trace_viewer --config=full
+ - stat -c%s tracing/bin/trace_viewer_chrome.html
+ - stat -c%s tracing/bin/trace_viewer_full.html

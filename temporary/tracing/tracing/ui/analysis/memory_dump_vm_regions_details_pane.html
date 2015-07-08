@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/model/attribute.html">
+
+<polymer-element name="tr-ui-a-memory-dump-vm-regions-details-pane">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #label {
+        flex: 0 0 auto;
+        padding: 8px;
+
+        background-color: #eee;
+        border-bottom: 1px solid #8e8e8e;
+        border-top: 1px solid white;
+
+        font-size:  15px;
+        font-weight: bold;
+      }
+
+      #contents {
+        flex: 1 0 auto;
+        align-self: stretch;
+        font-size: 12px;
+      }
+
+      #contents .info-text {
+        padding: 8px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+      }
+    </style>
+    <div id="label">Memory maps</div>
+    <div id="contents"></div>
+  </template>
+  <script>
+  'use strict';
+
+  (function() {
+    /**
+     * Rules for classifying memory maps.
+     *
+     * These rules are derived from core/jni/android_os_Debug.cpp in Android.
+     */
+    var CLASSIFICATION_RULES = {
+      name: 'Total',
+      children: [
+        {
+          name: 'Android',
+          file: /^\/dev\/ashmem(?!\/libc malloc)/,
+          children: [
+            {
+              name: 'Java runtime',
+              file: /^\/dev\/ashmem\/dalvik-/,
+              children: [
+                {
+                  name: 'Spaces',
+                  file: /\/dalvik-(alloc|main|large object|non moving|zygote) space/,  // @suppress longLineCheck
+                  children: [
+                    {
+                      name: 'Normal',
+                      file: /\/dalvik-(alloc|main)/
+                    },
+                    {
+                      name: 'Large',
+                      file: /\/dalvik-large object/
+                    },
+                    {
+                      name: 'Zygote',
+                      file: /\/dalvik-zygote/
+                    },
+                    {
+                      name: 'Non-moving',
+                      file: /\/dalvik-non moving/
+                    }
+                  ]
+                },
+                {
+                  name: 'Linear Alloc',
+                  file: /\/dalvik-LinearAlloc/
+                },
+                {
+                  name: 'Indirect Reference Table',
+                  file: /\/dalvik-indirect.ref/
+                },
+                {
+                  name: 'Cache',
+                  file: /\/dalvik-jit-code-cache/
+                },
+                {
+                  name: 'Accounting'
+                }
+              ]
+            },
+            {
+              name: 'Cursor',
+              file: /\/CursorWindow/
+            },
+            {
+              name: 'Ashmem'
+            }
+          ]
+        },
+        {
+          name: 'Native heap',
+          file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)/
+        },
+        {
+          name: 'Stack',
+          file: /^\[stack/
+        },
+        {
+          name: 'Files',
+          file: /\.((((jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex)|(so))/,
+          children: [
+            {
+              name: 'so',
+              file: /\.so/
+            },
+            {
+              name: 'jar',
+              file: /\.jar$/
+            },
+            {
+              name: 'apk',
+              file: /\.apk$/
+            },
+            {
+              name: 'ttf',
+              file: /\.ttf$/
+            },
+            {
+              name: 'dex',
+              file: /\.((dex)|(odex$))/
+            },
+            {
+              name: 'oat',
+              file: /\.oat$/
+            },
+            {
+              name: 'art',
+              file: /\.art$/
+            }
+          ]
+        },
+        {
+          name: 'Devices',
+          file: /(^\/dev\/)|(anon_inode:dmabuf)/,
+          children: [
+            {
+              name: 'GPU',
+              file: /\/((nv)|(mali)|(kgsl))/
+            },
+            {
+              name: 'DMA',
+              file: /anon_inode:dmabuf/
+            }
+          ]
+        },
+        {
+          // Add a separate category for the discounted tracing overhead to
+          // avoid negative 'Total/Other' sizes.
+          name: 'Discounted tracing overhead',
+          file: /\[discounted tracing overhead\]/
+        }
+      ]
+    };
+
+    /**
+     * Create a tree of nested rows (containing no mmaps) corresponding to a
+     * tree of classification rules.
+     */
+    function createEmptyRow(rule) {
+      var row = {
+        title: rule.name,
+        rule: rule,
+        cells: {},
+        subRows: []
+      };
+      if (rule.children !== undefined)
+        row.subRows = rule.children.map(createEmptyRow);
+      return row;
+    }
+
+    function hexString(address, is64BitAddress) {
+      var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
+      if (address === undefined)
+        return undefined;
+      return (hexPadding + address.toString(16)).substr(-hexPadding.length);
+    }
+
+    /**
+     * Classify a memory map and add it as a leaf row to a tree of nested rows.
+     */
+    function classifyVMRegion(row, vmRegion, is64BitAddress) {
+      var rule = row.rule;
+      if (rule === undefined ||
+          rule.children === undefined ||
+          rule.children.length === 0) {
+        // Leaf rule (create a sub-row for the mmap).
+        var mappedFile = vmRegion.mappedFile || '';
+
+        var cells = {};
+        function addCellIfValueDefined(columnName, attrClass, units, value) {
+          if (value === undefined)
+            return;
+          var attr = new attrClass(units, value);
+          var cell = new tr.ui.analysis.MemoryCell(attr);
+          cells[columnName] = cell;
+        }
+        function addBytesCellIfValueDefined(columnName, value) {
+          addCellIfValueDefined(columnName,
+              tr.model.ScalarAttribute, 'bytes', value);
+        }
+        addCellIfValueDefined('Start address',
+            tr.model.StringAttribute, '',
+            hexString(vmRegion.startAddress, is64BitAddress));
+        addBytesCellIfValueDefined('Virtual size', vmRegion.sizeInBytes);
+        addCellIfValueDefined('Protection flags',
+            tr.model.StringAttribute, '',
+            vmRegion.protectionFlagsToString);
+        addBytesCellIfValueDefined('PSS',
+            vmRegion.byteStats.proportionalResident);
+        addBytesCellIfValueDefined('Private dirty',
+            vmRegion.byteStats.privateDirtyResident);
+        addBytesCellIfValueDefined('Private clean',
+            vmRegion.byteStats.privateCleanResident);
+        addBytesCellIfValueDefined('Shared dirty',
+            vmRegion.byteStats.sharedDirtyResident);
+        addBytesCellIfValueDefined('Shared clean',
+            vmRegion.byteStats.sharedCleanResident);
+        addBytesCellIfValueDefined('Swapped',
+            vmRegion.byteStats.swapped);
+
+        row.subRows.push({title: mappedFile, cells: cells});
+        return;
+      }
+
+      // Non-leaf rule (classify mmap further down the tree).
+      function vmRegionMatchesChildRule(childRule) {
+        var fileRegExp = childRule.file;
+        if (fileRegExp === undefined)
+          return true;
+        return fileRegExp.test(vmRegion.mappedFile);
+      }
+
+      var matchedChildRuleIndex = tr.b.findFirstIndexInArray(
+          rule.children, vmRegionMatchesChildRule);
+      if (matchedChildRuleIndex === -1) {
+        // Mmap belongs to the 'Other' node (created lazily).
+        matchedChildRuleIndex = rule.children.length;
+        if (matchedChildRuleIndex >= row.subRows.length) {
+          row.subRows.push({
+            title: 'Other',
+            cells: {},
+            subRows: []
+          });
+        }
+      }
+
+      classifyVMRegion(
+          row.subRows[matchedChildRuleIndex], vmRegion, is64BitAddress);
+    }
+
+    Polymer({
+      // TODO(petrcermak): Consider sharing more code between
+      // tr-ui-a-memory-dump-allocator-details-pane and
+      // tr-ui-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
+      // base class tr-c-memory-dump-details-pane).
+
+      created: function() {
+        this.vmRegions_ = undefined;
+      },
+
+      ready: function() {
+        this.updateContents_();
+      },
+
+      set vmRegions(vmRegions) {
+        this.vmRegions_ = vmRegions;
+        this.updateContents_();
+      },
+
+      get vmRegions() {
+        return this.vmRegions_;
+      },
+
+      updateContents_: function() {
+        this.$.contents.textContent = '';
+
+        if (this.vmRegions_ === undefined) {
+          var infoText = this.ownerDocument.createElement('div');
+          this.$.contents.appendChild(infoText);
+          infoText.classList.add('info-text');
+          infoText.innerText = 'No memory maps selected';
+          return;
+        }
+
+        var rows = this.createRows_();
+        var columns = this.createColumns_(rows);
+
+        var table = this.ownerDocument.createElement(
+            'tr-ui-b-table');
+        this.$.contents.appendChild(table);
+        table.supportsSelection = true;
+        table.tableRows = rows;
+        table.tableColumns = columns;
+
+        // TODO(petrcermak): This can be quite slow. Consider doing this somehow
+        // asynchronously.
+        table.rebuild();
+
+        tr.ui.analysis.expandTableRowsRecursively(table);
+      },
+
+      createRows_: function() {
+        // TODO(petrcermak): Figure out if there's a cleaner way to do this.
+        var is64BitAddress = this.vmRegions_.some(function(vmRegion) {
+          if (vmRegion.startAddress === undefined)
+            return;
+          return vmRegion.startAddress >= 4294967296 /* 2^32 */;
+        });
+
+        // Create an empty tree structure of rows.
+        var rootRow = createEmptyRow(CLASSIFICATION_RULES);
+
+        // Classify the mmaps.
+        this.vmRegions_.map(function(vmRegion) {
+          classifyVMRegion(rootRow, vmRegion, is64BitAddress);
+        });
+
+        // Aggregate attributes of the mmaps.
+        tr.ui.analysis.aggregateTableRowCellsRecursively(rootRow, 'cells');
+
+        return [rootRow];
+      },
+
+      createColumns_: function(rows) {
+        var titleColumn = {
+          title: 'Mapped file',
+          value: function(row) {
+            return row.title;
+          },
+          width: '200px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          }
+        };
+
+        var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+            rows, 'cells');
+        tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
+
+        var columns = [titleColumn].concat(attributeColumns);
+        return columns;
+      }
+    });
+  })();
+  </script>
+</polymer-element>

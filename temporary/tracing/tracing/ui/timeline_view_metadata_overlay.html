@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/mouse_mode_icon.html">
+<link rel="import" href="/ui/units/generic_table_view.html">
+
+<polymer-element name="tr-ui-timeline-view-metadata-overlay">
+  <template>
+    <style>
+    :host {
+      width: 700px;
+
+      overflow: auto;
+    }
+    </style>
+    <tr-ui-u-generic-table-view id="gtv"></tr-ui-u-generic-table-view>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer('tr-ui-timeline-view-metadata-overlay', {
+    created: function() {
+      this.metadata_ = undefined;
+    },
+
+    get metadata() {
+      return this.metadata_;
+    },
+
+    set metadata(metadata) {
+      this.metadata_ = metadata;
+      this.$.gtv.items = this.metadata_;
+    }
+  });
+  </script>
+</polymer-element>

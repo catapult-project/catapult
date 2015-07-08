@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/rect.html">
+<link rel="import" href="/base/quad.html">
+<script>
+'use strict';
+
+function assertQuadEquals(a, b, opt_message) {
+  var ok = true;
+  ok &= a.p1[0] === b.p1[0] && a.p1[1] === b.p1[1];
+  ok &= a.p2[0] === b.p2[0] && a.p2[1] === b.p2[1];
+  ok &= a.p3[0] === b.p3[0] && a.p3[1] === b.p3[1];
+  ok &= a.p4[0] === b.p4[0] && a.p4[1] === b.p4[1];
+  if (ok)
+    return;
+  var message = opt_message || 'Expected "' + a.toString() +
+      '", got "' + b.toString() + '"';
+  throw new tr.b.unittest.TestError(message);
+}
+
+tr.b.unittest.testSuite(function() {
+  test('pointInTri', function() {
+    var res = tr.b.pointInTriangle2(
+        [0.25, 0.25],
+        [0, 0],
+        [1, 0],
+        [0, 1]);
+    assert.isTrue(res);
+  });
+
+  test('pointNotInTri', function() {
+    var res = tr.b.pointInTriangle2(
+        [0.75, 0.75],
+        [0, 0],
+        [1, 0],
+        [0, 1]);
+    assert.isFalse(res);
+  });
+
+  test('pointInside', function() {
+    var q = tr.b.Quad.from4Vecs([0, 0],
+                                [1, 0],
+                                [1, 1],
+                                [0, 1]);
+    var res = q.pointInside([0.5, 0.5]);
+    assert.isTrue(res);
+  });
+
+  test('pointNotInQuad', function() {
+    var q = tr.b.Quad.from4Vecs([0, 0],
+                                [1, 0],
+                                [1, 1],
+                                [0, 1]);
+    var res = q.pointInside([1.5, 0.5]);
+    assert.isFalse(res);
+  });
+
+  test('isRectangle', function() {
+    assert.isTrue(tr.b.Quad.fromXYWH(0, 0, 10, 10).isRectangle());
+    assert.isTrue(tr.b.Quad.fromXYWH(-10, -10, 5, 5).isRectangle());
+    assert.isTrue(tr.b.Quad.fromXYWH(-10, -10, 20, 20).isRectangle());
+    assert.isTrue(tr.b.Quad.fromXYWH(-10, 10, 5, 5).isRectangle());
+
+    assert.isFalse(tr.b.Quad.fromXYWH(0, 0, -10, -10).isRectangle());
+    assert.isFalse(
+        tr.b.Quad.from8Array([0, 1, 2, 3, 4, 5, 6, 7]).isRectangle());
+    assert.isFalse(
+        tr.b.Quad.from8Array([0, 0, 0, 5, 5, 5, 0, 0]).isRectangle());
+  });
+
+  test('projectUnitRect', function() {
+    var container = tr.b.Quad.fromXYWH(0, 0, 10, 10);
+    var srcRect = tr.b.Rect.fromXYWH(0.1, 0.8, 0.8, 0.1);
+    var expectedRect = srcRect.scale(10);
+
+    var q = new tr.b.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tr.b.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoUnitQuad', function() {
+    var container = tr.b.Quad.fromXYWH(0, 0, 1, 1);
+    var srcRect = tr.b.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect;
+
+    var q = new tr.b.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tr.b.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoSizeTwoQuad', function() {
+    var container = tr.b.Quad.fromXYWH(0, 0, 2, 2);
+    var srcRect = tr.b.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect.scale(2);
+
+    var q = new tr.b.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tr.b.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectUnitRectOntoTranslatedQuad', function() {
+    var container = tr.b.Quad.fromXYWH(1, 1, 1, 1);
+    var srcRect = tr.b.Rect.fromXYWH(0.0, 0, 1, 1);
+    var expectedRect = srcRect.translate([1, 1]);
+
+    var q = new tr.b.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tr.b.Quad.fromRect(expectedRect), q);
+  });
+
+  test('projectShrunkUnitRectOntoUnitQuad', function() {
+    var container = tr.b.Quad.fromXYWH(0, 0, 1, 1);
+    var srcRect = tr.b.Rect.fromXYWH(0.1, 0.1, 0.8, 0.8);
+    var expectedRect = srcRect;
+
+    var q = new tr.b.Quad();
+    container.projectUnitRectFast(q, srcRect);
+
+    assertQuadEquals(tr.b.Quad.fromRect(expectedRect), q);
+  });
+});
+</script>

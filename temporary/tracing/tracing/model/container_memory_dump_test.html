@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+
+  function setUpParentChildRelationship(parent, child) {
+    child.parent = parent;
+    parent.children.push(child);
+  }
+
+  test('memoryAllocatorDumps_undefined', function() {
+    var md = new ContainerMemoryDump(42);
+
+    assert.isUndefined(md.memoryAllocatorDumps);
+    assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_zero', function() {
+    var md = new ContainerMemoryDump(42);
+    md.memoryAllocatorDumps = [];
+
+    assert.lengthOf(md.memoryAllocatorDumps, 0);
+    assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_flat', function() {
+    var md = new ContainerMemoryDump(42);
+
+    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
+    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
+    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
+    oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
+
+    var v8Dump = new MemoryAllocatorDump(md, 'v8');
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
+    v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
+    v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
+
+    md.memoryAllocatorDumps = [oilpanDump, v8Dump];
+
+    assert.lengthOf(md.memoryAllocatorDumps, 2);
+    assert.equal(md.memoryAllocatorDumps[0], oilpanDump);
+    assert.equal(md.memoryAllocatorDumps[1], v8Dump);
+
+    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.equal(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+
+  test('memoryAllocatorDumps_nested', function() {
+    var md = new ContainerMemoryDump(42);
+
+    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
+    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
+    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
+    oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
+
+    var oilpanBucket1Dump = new MemoryAllocatorDump(
+        md, 'oilpan/bucket1', oilpanDump);
+    oilpanBucket1Dump.addAttribute('size',
+        new ScalarAttribute('bytes', 512));
+    oilpanBucket1Dump.addAttribute('objects_count',
+        new ScalarAttribute('objects', 3));
+    oilpanBucket1Dump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 256));
+    setUpParentChildRelationship(oilpanDump, oilpanBucket1Dump);
+
+    var oilpanBucket2Dump = new MemoryAllocatorDump(
+        md, 'oilpan/bucket2', oilpanDump);
+    oilpanBucket2Dump.addAttribute('size',
+        new ScalarAttribute('bytes', 512));
+    oilpanBucket2Dump.addAttribute('objects_count',
+        new ScalarAttribute('objects', 4));
+    oilpanBucket2Dump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 512));
+    setUpParentChildRelationship(oilpanDump, oilpanBucket2Dump);
+
+    var oilpanBucket2StringsDump = new MemoryAllocatorDump(
+        md, 'oilpan/bucket2/strings', oilpanBucket2Dump);
+    oilpanBucket2StringsDump.addAttribute('size',
+        new ScalarAttribute('bytes', 512));
+    oilpanBucket2StringsDump.addAttribute('objects_count',
+        new ScalarAttribute('objects', 4));
+    oilpanBucket2StringsDump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 512));
+    setUpParentChildRelationship(oilpanBucket2Dump, oilpanBucket2StringsDump);
+
+    var v8Dump = new MemoryAllocatorDump(md, 'v8');
+    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
+    v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
+    v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
+
+    md.memoryAllocatorDumps = [oilpanDump, v8Dump];
+
+    assert.lengthOf(md.memoryAllocatorDumps, 2);
+    assert.equal(md.memoryAllocatorDumps[0], oilpanDump);
+    assert.equal(md.memoryAllocatorDumps[1], v8Dump);
+
+    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket1'),
+        oilpanBucket1Dump);
+    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket2'),
+        oilpanBucket2Dump);
+    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket2/strings'),
+        oilpanBucket2StringsDump);
+    assert.equal(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
+  });
+});
+</script>

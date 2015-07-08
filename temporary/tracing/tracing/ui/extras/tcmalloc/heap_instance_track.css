@@ -1,0 +1,15 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.tr-ui-e-tcmalloc-heap-instance-track {
+  height: 150px;
+}
+
+.tr-ui-e-tcmalloc-heap-instance-track ul {
+  list-style: none;
+  list-style-position: outside;
+  margin: 0;
+  overflow: hidden;
+}

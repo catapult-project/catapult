@@ -1,0 +1,167 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2011 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Simple Embedded Viewer</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="/components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/trace_viewer.html">
+<link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/base/xhr.html">
+
+<style>
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    -webkit-flex-direction: column;
+    display: -webkit-flex;
+    margin: 0;
+    padding: 0;
+  }
+
+  body > x-timeline-view {
+    -webkit-flex: 1 1 auto;
+    min-height: 0;
+  }
+  body > x-timeline-view:focus {
+    outline: none;
+  }
+</style>
+</head>
+<body>
+  <x-timeline-view>
+  </x-timeline-view>
+
+  <script>
+  'use strict';
+
+  var timelineViewEl;
+
+  function loadTraces(filenames, onTracesLoaded) {
+    var traces = [];
+    for (var i = 0; i < filenames.length; i++) {
+      traces.push(undefined);
+    }
+    var numTracesPending = filenames.length;
+
+    filenames.forEach(function(filename, i) {
+      getAsync(filename, function(trace) {
+        traces[i] = trace;
+        numTracesPending--;
+        if (numTracesPending == 0)
+          onTracesLoaded(filenames, traces);
+      });
+    });
+  }
+
+
+  function getAsync(url, cb) {
+    tr.b.getAsync(url).then(cb);
+  }
+
+  function createViewFromTraces(filenames, traces) {
+    var m = new tr.Model();
+    var p = m.importTracesWithProgressDialog(traces, true);
+    p.then(
+      function() {
+        timelineViewEl.model = m;
+        timelineViewEl.updateDocumentFavicon();
+        timelineViewEl.globalMode = true;
+        timelineViewEl.viewTitle = '';
+      },
+      function(err) {
+        var overlay = new tr.ui.b.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
+        overlay.title = 'Import error';
+        overlay.visible = true;
+      });
+  }
+
+  function onSelectionChange() {
+    var select = document.querySelector('#trace-file');
+    window.location.hash = '#' + select[select.selectedIndex].value;
+  }
+
+  function onHashChange() {
+    var file = window.location.hash.substr(1);
+    var select = document.querySelector('#trace-file');
+    if (select[select.selectedIndex].value != file) {
+      for (var i = 0; i < select.children.length; i++) {
+        if (select.children[i].value == file) {
+          select.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    reload();
+  }
+
+  function cleanFilename(file) {
+    var m = /\/test_data\/(.+)/.exec(file);
+    var rest = m[1];
+
+    function upcase(letter) {
+      return ' ' + letter.toUpperCase();
+    }
+
+    return rest.replace(/_/g, ' ')
+               .replace(/\.[^\.]*$/, '')
+               .replace(/ ([a-z])/g, upcase)
+               .replace(/^[a-z]/, upcase);
+  }
+
+  function reload() {
+    var file = window.location.hash.substr(1);
+    var filenames = [file];
+    loadTraces(filenames, createViewFromTraces);
+  }
+
+  window.addEventListener('hashchange', onHashChange);
+
+  function onLoad() {
+    timelineViewEl = document.querySelector('x-timeline-view');
+    tr.ui.b.decorate(timelineViewEl, tr.TraceViewer);
+    timelineViewEl.globalMode = true;
+
+    var selectEl = document.createElement('select');
+    selectEl.id = 'trace-file';
+    timelineViewEl.leftControls.appendChild(selectEl);
+
+    getAsync('/json/examples', function(data) {
+      var select = document.querySelector('#trace-file');
+      var files = JSON.parse(data);
+      files = files.map(function(rest) {
+        return '/test_data/' + rest;
+      });
+
+      for (var i = 0; i < files.length; ++i) {
+        var opt = document.createElement('option');
+        opt.value = files[i];
+        opt.textContent = cleanFilename(files[i]);
+        select.appendChild(opt);
+      }
+      select.selectedIndex = 0;
+      select.onchange = onSelectionChange;
+
+      if (!window.location.hash) {
+        // This will trigger an onHashChange so no need to reload directly.
+        window.location.hash = '#' + select[select.selectedIndex].value;
+      } else {
+        onHashChange();
+      }
+    });
+  }
+  window.addEventListener('load', onLoad);
+  </script>
+</body>
+</html>

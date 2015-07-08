@@ -1,0 +1,35 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.heading-track {
+  -webkit-box-align: stretch;
+  -webkit-box-orient: horizontal;
+  display: -webkit-box;
+  margin: 0;
+  padding: 0 5px 0 0;
+}
+
+.heading-track > heading {
+  -webkit-box-sizing: border-box;
+  background-color: rgb(243, 245, 247);
+  border-right: 1px solid #8e8e8e;
+  box-sizing: border-box;
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  align-items: center;
+  overflow-x: hidden;
+  padding-right: 5px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heading-track > heading > .heading-arrow {
+  -webkit-flex: 0 0 auto;
+  margin-left: 5px;
+  margin-right: 5px;
+  width: 8px;
+  font-family: sans-serif;
+}

@@ -1,0 +1,72 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.analysis-header {
+  font-weight: bold;
+}
+
+.analysis-results {
+  font-family: monospace;
+  white-space: pre;
+}
+
+.analysis-results * {
+  -webkit-user-select: text !important;
+  cursor: text;
+}
+
+.analysis-table {
+  border-collapse: collapse;
+  border-width: 0;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.analysis-table tr > td:first-child {
+  padding-left: 2px;
+}
+
+.analysis-table tr > td {
+  padding: 2px 4px 2px 4px;
+  vertical-align: text-top;
+  width: 150px;
+}
+
+/* Shrink back nested cells (used to display Args) */
+.analysis-table td td {
+  padding: 0 0 0 0;
+  width: auto;
+}
+
+.analysis-table-header {
+  text-align: left;
+}
+
+.analysis-table-row {
+  vertical-align: top;
+}
+
+.analysis-table-row:nth-child(2n+0) {
+  background-color: #e2e2e2;
+}
+
+.analysis-table-row-inverted:nth-child(2n+1) {
+  background-color: #e2e2e2;
+}
+
+.selection-changing-link {
+  color: -webkit-link;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.analysis-table thead {
+  background-color: #e2e2e2;
+  font-weight: bold;
+}
+
+.analysis-table tfoot {
+  font-weight: bold;
+}

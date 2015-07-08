@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/gzip_importer.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var findSliceNamed = tr.c.test_utils.findSliceNamed;
+  var original_data =
+      '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
+      '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
+      '"tid":53,"ph":"E"}]\n';
+  var gzip_data_base64 =
+      'H4sICHr4HVIAA3RyYWNlAIuuVspLzE1VslJKVNJRSixKL1ayqq7VUSrITFGy' +
+      'MjXSUSopBtEGOkrJiSVAVWn5+UB1JWBZY6CyDKCYk1KtDhWMcVWqjeUCALak' +
+      'EH+QAAAA';
+
+  test('failImportEmpty', function() {
+    assert.isFalse(tr.e.importer.GzipImporter.canImport([]));
+    assert.isFalse(tr.e.importer.GzipImporter.canImport(''));
+  });
+
+  test('inflateString', function() {
+    // Test inflating the data from a string.
+    var gzip_data = atob(gzip_data_base64);
+    var importer = new tr.e.importer.GzipImporter(null, gzip_data);
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
+    assert.equal(importer.extractSubtraces()[0], original_data);
+  });
+
+  test('inflateArrayBuffer', function() {
+    // Test inflating the data from an ArrayBuffer.
+    var gzip_data = atob(gzip_data_base64);
+    var buffer = new ArrayBuffer(gzip_data.length);
+    var view = new Uint8Array(buffer);
+    for (var i = 0; i < gzip_data.length; i++)
+      view[i] = gzip_data.charCodeAt(i);
+    var importer = new tr.e.importer.GzipImporter(null, buffer);
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(buffer));
+    assert.equal(importer.extractSubtraces()[0], original_data);
+  });
+
+  test('import', function() {
+    var gzip_data = atob(gzip_data_base64);
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
+
+    var model = new tr.Model(gzip_data);
+    var threads = model.getAllThreads();
+    assert.equal(threads.length, 1);
+
+    var slice = findSliceNamed(threads[0].sliceGroup, 'a');
+    assert.equal(slice.category, 'foo');
+  });
+
+  test('importXMLHttpRequest', function() {
+    if (tr.isHeadless)
+      return;
+    var req = new XMLHttpRequest();
+    var url = '/test_data/simple_trace_gz.gz';
+    req.open('GET', url, false);
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.send(null);
+    var gzip_data = req.responseText;
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
+
+    var model = new tr.Model(gzip_data);
+    var threads = model.getAllThreads();
+    assert.equal(threads.length, 2);
+
+    var slice = findSliceNamed(threads[0].sliceGroup, 'B');
+    assert.equal(slice.category, 'PERF');
+
+  });
+});
+</script>
+

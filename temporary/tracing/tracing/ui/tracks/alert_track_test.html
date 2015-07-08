@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/alert_track.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var AlertTrack = tr.ui.tracks.AlertTrack;
+  var SelectionState = tr.model.SelectionState;
+  var Viewport = tr.ui.TimelineViewport;
+
+  var ALERT_INFO_1 = new tr.model.EventInfo(
+    'Alert 1', 'One alert');
+  var ALERT_INFO_2 = new tr.model.EventInfo(
+    'Alert 2', 'Another alert');
+
+  var createAlerts = function() {
+    var alerts = [
+      new tr.model.Alert(ALERT_INFO_1, 5),
+      new tr.model.Alert(ALERT_INFO_1, 20),
+      new tr.model.Alert(ALERT_INFO_2, 35),
+      new tr.model.Alert(ALERT_INFO_2, 50)
+    ];
+    return alerts;
+  };
+
+  test('instantiate', function() {
+    var alerts = createAlerts();
+    alerts[1].selectionState = SelectionState.SELECTED;
+
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = AlertTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.alerts = alerts;
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+
+    assert.equal(5, track.items[0].start);
+  });
+
+  test('modelMapping', function() {
+    var alerts = createAlerts();
+
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var track = AlertTrack(viewport);
+    track.alerts = alerts;
+
+    var a0 = track.items[0].modelItem;
+    assert.equal(a0, alerts[0]);
+  });
+});
+</script>
+

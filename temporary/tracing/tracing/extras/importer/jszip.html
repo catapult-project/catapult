@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+// Workaround for JSzip requiring window.
+if (tr.isHeadless) {
+  /**
+   * Hack.
+   */
+  global.window = {};
+}
+</script>
+<script src="/jszip.min.js"></script>
+<script>
+'use strict';
+// Workaround for JSzip requiring window.
+if (tr.isHeadless) {
+  /**
+   * Hack.
+   */
+  global.JSZip = global.window.JSZip;
+  global.window = undefined;
+}
+</script>

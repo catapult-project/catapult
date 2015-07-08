@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+<link rel="import" href="/ui/tracks/chart_series.html">
+<link rel="import" href="/ui/tracks/chart_track.html">
+<link rel="import" href="/ui/tracks/container_track.html">
+<link rel="import" href="/ui/tracks/letter_dot_track.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  // TODO(petrcermak): This constant is defined and/or used in many files. It
+  // should be defined once only.
+  var ALLOCATOR_SIZE_ATTRIBUTE_NAME = 'size';
+
+  /**
+   * Add numeric values from a source dictionary to the numeric values in
+   * a destination dictionary. Undefined values are treated as zeros. Note that
+   * this method modifies the destination dictionary in place.
+   *
+   * Example: addDictionary({a: 1, b: 2}, {b: 3, c: 4}) will update the
+   * destination dictionary (first argument) to {a: 1, b: 5, c: 4}.
+   */
+  function addDictionary(dstDict, srcDict) {
+    tr.b.iterItems(srcDict, function(key, value) {
+      var existingValue = dstDict[key];
+      if (existingValue === undefined)
+        existingValue = 0;
+      dstDict[key] = existingValue + value;
+    });
+  }
+
+  /**
+   * Get a dictionary mapping root allocator names (e.g. 'v8') to the
+   * corresponding sizes (e.g. 1024) in a process memory dump.
+   */
+  function getProcessMemoryDumpAllocatorSizes(processMemoryDump) {
+    var allocatorDumps = processMemoryDump.memoryAllocatorDumps;
+    if (allocatorDumps === undefined)
+      return {};
+    var allocatorSizes = {};
+    allocatorDumps.forEach(function(allocatorDump) {
+      // Don't show tracing overhead in the charts.
+      // TODO(petrcermak): Find a less hacky way to do this.
+      if (allocatorDump.fullName === 'tracing')
+        return;
+      var allocatorSize = allocatorDump.attributes[
+          ALLOCATOR_SIZE_ATTRIBUTE_NAME];
+      if (allocatorSize === undefined)
+        return;
+      var allocatorSizeValue = allocatorSize.value;
+      if (allocatorSizeValue === undefined)
+        return;
+      allocatorSizes[allocatorDump.fullName] = allocatorSizeValue;
+    });
+    return allocatorSizes;
+  };
+
+  /**
+   * Get a dictionary mapping root allocator names (e.g. 'v8') to the
+   * corresponding sizes (e.g. 1024) in a global memory dump (i.e. summed over
+   * all simultaneous process memory dumps).
+   */
+  function getGlobalMemoryDumpAllocatorSizes(globalMemoryDump) {
+    var globalAllocatorSizes = {};
+    tr.b.iterItems(globalMemoryDump.processMemoryDumps,
+        function(pid, processMemoryDump) {
+      addDictionary(globalAllocatorSizes,
+          getProcessMemoryDumpAllocatorSizes(processMemoryDump));
+    });
+    return globalAllocatorSizes;
+  }
+
+  /**
+   * A generic function which converts a list of memory dumps to a list of chart
+   * series (one per root allocator). Each series represents the evolution of
+   * the size of a the corresponding root allocator (e.g. 'v8') over time.
+   */
+  function buildAllocatedMemoryChartSeries(memoryDumps,
+      memoryDumpToAllocatorSizesFn) {
+    var allocatorNameToPoints = {};
+    var dumpsData = memoryDumps.map(function(memoryDump) {
+      var allocatorSizes = memoryDumpToAllocatorSizesFn(memoryDump);
+      tr.b.iterItems(allocatorSizes, function(allocatorName) {
+        allocatorNameToPoints[allocatorName] = [];
+      });
+      return {dump: memoryDump, sizes: allocatorSizes};
+    });
+
+    // Do not generate any chart series if no process memory dump contains any
+    // allocator dumps.
+    if (Object.keys(allocatorNameToPoints).length === 0)
+      return undefined;
+
+    dumpsData.forEach(function(dumpData) {
+      var memoryDump = dumpData.dump;
+      var allocatorSizes = dumpData.sizes;
+      tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+        var allocatorSize = allocatorSizes[allocatorName] || 0;
+        points.push(new tr.ui.tracks.ChartPoint(
+            memoryDump, memoryDump.start, allocatorSize));
+      });
+    });
+
+    // Create one common axis for all allocated memory chart series.
+    var axis = new tr.ui.tracks.ChartAxis(0);
+
+    // Build a chart series for each allocator.
+    var series = [];
+    tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(allocatorName);
+      var renderingConfig = {
+        chartType: tr.ui.tracks.ChartSeriesType.LINE,
+        colorId: colorId
+      };
+      series.push(new tr.ui.tracks.ChartSeries(points, axis, renderingConfig));
+    });
+
+    return series;
+  }
+
+  /**
+   * Transform a list of memory dumps to a list of letter dots (with letter 'M'
+   * inside).
+   */
+  function buildMemoryLetterDots(memoryDumps) {
+    var memoryColorId = tr.ui.b.getColorIdForReservedName('memory_dump');
+    return memoryDumps.map(function(memoryDump) {
+      return new tr.ui.tracks.LetterDot(
+          memoryDump, 'M', memoryColorId, memoryDump.start);
+    });
+  }
+
+  /**
+   * Convert a list of global memory dumps to a list of chart series (one per
+   * process). Each series represents the evolution of the memory used by the
+   * process over time.
+   */
+  function buildGlobalUsedMemoryChartSeries(globalMemoryDumps) {
+    // Do not generate the chart if no process memory dump contains VM regions.
+    var containsVmRegions = globalMemoryDumps.some(function(globalDump) {
+      for (var pid in globalDump.processMemoryDumps)
+        if (globalDump.processMemoryDumps[pid].mostRecentVmRegions)
+          return true;
+      return false;
+    });
+    if (!containsVmRegions)
+      return undefined;
+
+    // Find all processes that dump memory at least once.
+    var pidToProcess = {};
+    globalMemoryDumps.forEach(function(globalDump) {
+      tr.b.iterItems(globalDump.processMemoryDumps, function(pid, processDump) {
+        pidToProcess[pid] = processDump.process;
+      });
+    });
+
+    // Build one list of points for each instrumented process.
+    var pidToPoints = {};
+    tr.b.iterItems(pidToProcess, function(pid, process) {
+      pidToPoints[pid] = [];
+    });
+
+    // For every timestamp, calculate the total PSS (proportional set size) of
+    // each process and append it to the corresponding list of points.
+    globalMemoryDumps.forEach(function(globalDump) {
+      var pssBase = 0;
+      tr.b.iterItems(pidToPoints, function(pid, points) {
+        var processMemoryDump = globalDump.processMemoryDumps[pid];
+        var pss;
+        if (processMemoryDump === undefined) {
+          // If no dump was found, assume that the process is dead.
+          pss = 0;
+        } else {
+          pss = processMemoryDump.getMostRecentTotalVmRegionStat(
+              'proportionalResident');
+          if (pss === undefined) {
+            // If the dump does not provide the necessary information (namely
+            // most recent VM regions), assume zero.
+            pss = 0;
+          }
+        }
+        var cumulativePss = pssBase + pss;
+        points.push(new tr.ui.tracks.ChartPoint(
+            globalDump, globalDump.start, cumulativePss, pssBase));
+        pssBase = cumulativePss;
+      });
+    });
+
+    // Create one common axis for all used memory chart series.
+    var axis = new tr.ui.tracks.ChartAxis(0);
+
+    // Build a chart series for each instrumented process.
+    var series = [];
+    tr.b.iterItems(pidToPoints, function(pid, points) {
+      var process = pidToProcess[pid];
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
+          process.userFriendlyName);
+      var renderingConfig = {
+        chartType: tr.ui.tracks.ChartSeriesType.AREA,
+        colorId: colorId,
+        backgroundOpacity: 0.8
+      };
+      series.push(new tr.ui.tracks.ChartSeries(points, axis, renderingConfig));
+    });
+
+    // Show the first series (with the smallest cumulative value) at the top.
+    series.reverse();
+
+    return series;
+  }
+
+  /**
+   * Convert a list of process memory dumps to a list of chart series (one per
+   * root allocator). Each series represents the evolution of the size of a the
+   * corresponding root allocator (e.g. 'v8') over time.
+   */
+  function buildProcessAllocatedMemoryChartSeries(processMemoryDumps) {
+    return buildAllocatedMemoryChartSeries(processMemoryDumps,
+        getProcessMemoryDumpAllocatorSizes);
+  }
+
+  /**
+   * Convert a list of global memory dumps to a list of chart series (one per
+   * root allocator). Each series represents the evolution of the size of a the
+   * corresponding root allocator (e.g. 'v8') over time.
+   */
+  function buildGlobalAllocatedMemoryChartSeries(globalMemoryDumps) {
+    return buildAllocatedMemoryChartSeries(globalMemoryDumps,
+        getGlobalMemoryDumpAllocatorSizes);
+  }
+
+  return {
+    buildMemoryLetterDots:
+        buildMemoryLetterDots,
+    buildGlobalUsedMemoryChartSeries:
+        buildGlobalUsedMemoryChartSeries,
+    buildProcessAllocatedMemoryChartSeries:
+        buildProcessAllocatedMemoryChartSeries,
+    buildGlobalAllocatedMemoryChartSeries:
+        buildGlobalAllocatedMemoryChartSeries
+  };
+});
+</script>

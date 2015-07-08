@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/analysis/memory_dump_view.html">
+<link rel="import" href="/ui/analysis/memory_dump_sub_view_test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var createTestProcessMemoryDumps =
+      tr.ui.analysis.createTestProcessMemoryDumps;
+
+  test('instantiate', function() {
+    var processMemoryDumps = createTestProcessMemoryDumps();
+
+    var viewEl = document.createElement('tr-ui-a-memory-dump-view');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var overviewPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-a-memory-dump-overview-pane');
+    var overviewTable = tr.b.findDeepElementMatching(
+        overviewPane, 'tr-ui-b-table');
+    assert.lengthOf(overviewTable.tableRows, 3);
+    assert.lengthOf(overviewTable.tableColumns, 9);
+
+    // Select totals of first process.
+    overviewTable.selectedTableRow = overviewTable.tableRows[0];
+    overviewTable.selectedColumnIndex = 1;
+    var detailsPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
+    assert.strictEqual(
+        detailsPane.vmRegions, processMemoryDumps[0].mostRecentVmRegions);
+
+    // Select PSS of first process.
+    overviewTable.selectedColumnIndex = 2;
+    var detailsPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
+    assert.strictEqual(
+        detailsPane.vmRegions, processMemoryDumps[0].mostRecentVmRegions);
+
+    // Select PSS of third process.
+    overviewTable.selectedTableRow = overviewTable.tableRows[2];
+    var detailsPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
+    assert.isUndefined(detailsPane);
+
+    // Select oilpan dump of second process.
+    overviewTable.selectedColumnIndex = 7;
+    var detailsPane = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-a-memory-dump-allocator-details-pane');
+    var detailsTable = tr.b.findDeepElementMatching(
+        detailsPane, 'tr-ui-b-table');
+    assert.lengthOf(detailsTable.tableRows, 1);
+  });
+});
+</script>
+

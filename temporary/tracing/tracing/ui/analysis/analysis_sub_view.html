@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<!--
+@fileoverview Polymer element for various analysis sub-views.
+-->
+<polymer-element name="tr-ui-a-sub-view">
+  <script>
+  'use strict';
+  Polymer({
+    set tabLabel(label) {
+      return this.setAttribute('tab-label', label);
+    },
+
+    get tabLabel() {
+      return this.getAttribute('tab-label');
+    },
+
+    get requiresTallView() {
+      return false;
+    },
+
+    get relatedEventsToHighlight() {
+      return undefined;
+    },
+
+    /**
+     * Each element extending this one must implement
+     * a 'selection' property.
+     */
+    set selection(selection) {
+      throw new Error('Not implemented!');
+    },
+
+    get selection() {
+      throw new Error('Not implemented!');
+    }
+  });
+  </script>
+</polymer-element>

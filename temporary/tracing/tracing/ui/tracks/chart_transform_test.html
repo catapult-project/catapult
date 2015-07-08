@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/timeline_display_transform.html">
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_transform.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  var ChartTransform = tr.ui.tracks.ChartTransform;
+  var ChartAxis = tr.ui.tracks.ChartAxis;
+
+  function buildChartTransform() {
+    var displayTransform = new TimelineDisplayTransform();
+    displayTransform.panX = -20;
+    displayTransform.scaleX = 0.5;
+
+    var axis = new ChartAxis(-100, 100);
+
+    var chartTransform = new ChartTransform(
+        displayTransform,
+        axis,
+        500, /* trackWidth */
+        80, /* trackHeight */
+        15, /* topPadding */
+        5, /* bottomPadding */
+        3 /* pixelRatio */);
+
+    return chartTransform;
+  }
+
+  test('checkFields', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.pixelRatio, 3);
+
+    assert.equal(t.leftViewX, 0);
+    assert.equal(t.rightViewX, 500);
+    assert.equal(t.leftTimestamp, 20);
+    assert.equal(t.rightTimestamp, 1020);
+
+    assert.equal(t.outerTopViewY, 0);
+    assert.equal(t.innerTopViewY, 15);
+    assert.equal(t.innerBottomViewY, 75);
+    assert.equal(t.outerBottomViewY, 80);
+  });
+
+  test('checkWorldXToViewX', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.worldXToViewX(-100), -60);
+    assert.equal(t.worldXToViewX(0), -10);
+    assert.equal(t.worldXToViewX(520), 250);
+    assert.equal(t.worldXToViewX(1020), 500);
+    assert.equal(t.worldXToViewX(1200), 590);
+  });
+
+  test('checkViewXToWorldX', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.viewXToWorldX(-60), -100);
+    assert.equal(t.viewXToWorldX(-10), 0);
+    assert.equal(t.viewXToWorldX(250), 520);
+    assert.equal(t.viewXToWorldX(500), 1020);
+    assert.equal(t.viewXToWorldX(590), 1200);
+  });
+
+  test('checkWorldYToViewY', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.worldYToViewY(-200), 105);
+    assert.equal(t.worldYToViewY(-100), 75);
+    assert.equal(t.worldYToViewY(0), 45);
+    assert.equal(t.worldYToViewY(100), 15);
+    assert.equal(t.worldYToViewY(200), -15);
+  });
+});
+</script>

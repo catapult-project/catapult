@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/extras/chrome/chrome_browser_helper.html">
+<link rel="import" href="/extras/chrome/chrome_renderer_helper.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tr.exportTo('tr.e.audits', function() {
+  function findChromeBrowserProcess(model) {
+    var browserProcesses = [];
+    model.getAllProcesses().forEach(function(process) {
+      if (!tr.e.audits.ChromeBrowserHelper.isBrowserProcess(process))
+        return;
+      browserProcesses.push(process);
+    }, this);
+    if (browserProcesses.length === 0)
+      return undefined;
+    if (browserProcesses.length > 1)
+      return undefined;
+    return browserProcesses[0];
+  }
+
+  function findChromeRenderProcesses(model) {
+    var rendererProcesses = [];
+    model.getAllProcesses().forEach(function(process) {
+      if (!tr.e.audits.ChromeRendererHelper.isRenderProcess(process))
+        return;
+      rendererProcesses.push(process);
+    });
+    return rendererProcesses;
+  }
+
+  /**
+   * @constructor
+   */
+  function ChromeModelHelper(model) {
+    this.model_ = model;
+
+    // Find browserHelper.
+    this.browserProcess_ = findChromeBrowserProcess(model);
+    if (this.browserProcess_) {
+      this.browserHelper_ = new tr.e.audits.ChromeBrowserHelper(
+          this, this.browserProcess_);
+    } else {
+      this.browserHelper_ = undefined;
+    }
+
+    // Find rendererHelpers.
+    var rendererProcesses_ = findChromeRenderProcesses(model);
+
+    this.rendererHelpers_ = {};
+    rendererProcesses_.forEach(function(renderProcess) {
+      var rendererHelper = new tr.e.audits.ChromeRendererHelper(
+        this, renderProcess);
+      this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
+    }, this);
+  }
+
+  ChromeModelHelper.supportsModel = function(model) {
+    if (findChromeBrowserProcess(model) !== undefined)
+      return true;
+    if (findChromeRenderProcesses(model).length)
+      return true;
+    return false;
+  }
+
+  ChromeModelHelper.prototype = {
+    get pid() {
+      throw new Error('woah');
+    },
+
+    get process() {
+      throw new Error('woah');
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    get browserProcess() {
+      return this.browserProcess_;
+    },
+
+    get browserHelper() {
+      return this.browserHelper_;
+    },
+
+    get rendererHelpers() {
+      return this.rendererHelpers_;
+    }
+  };
+
+  return {
+    ChromeModelHelper: ChromeModelHelper
+  };
+});
+</script>

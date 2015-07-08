@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/frame.html">
+<link rel="import" href="/extras/android/android_auditor.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
+  var TimeDuration = tr.b.units.TimeDuration;
+
+  test('saveLayerAlert_badAlpha', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 200, 5));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'BadAlphaView alpha caused saveLayer 480x320', 203, 1));
+
+      // doesn't create alert, since bad alpha accounts for this savelayer
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'unclipped saveLayer 480x320', 204, 1));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.equal(alert.args['view name'], 'BadAlphaView');
+    assert.equal(alert.args.width, 480);
+    assert.equal(alert.args.height, 320);
+  });
+
+  test('saveLayerAlert_canvas', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 200, 5));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'saveLayer 480x320', 204, 1));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.equal(alert.args['Clipped saveLayer count'], 1);
+    assert.equal(alert.associatedEvents.length, 2);
+  });
+
+  test('generatePathAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 20));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Generate Path Texture', 0, 3));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Generate Path Texture', 3, 6));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.deepEqual(alert.args['Time spent'], new TimeDuration(9));
+    assert.equal(alert.associatedEvents.length, 3);
+  });
+
+  test('uploadAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 0, 20));
+      renderThread.sliceGroup.pushSlice(newSliceNamed(
+          'Upload 1000x1000 Texture', 0, 15));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.equal(alert.args['Pixels uploaded'], '1.00 million');
+    assert.deepEqual(alert.args['Time spent'], new TimeDuration(15));
+    assert.equal(alert.associatedEvents.length, 2);
+  });
+
+  test('listViewAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 0, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 5, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 10, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 15, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 5));
+
+      // short frame, so no alert should be generated
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 50, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 55, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 60, 1));
+
+      uiThread.sliceGroup.pushSlice(newSliceNamed('obtainView', 100, 10));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('inflate', 101, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('setupListItem', 110, 10));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 120, 5));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 2);
+    var alert = model.alerts[0];
+    assert.equal(alert.args['ListView items rebound'], 2);
+    assert.deepEqual(alert.args['Time spent'], new TimeDuration(20));
+    assert.equal(alert.associatedEvents.length, 5);
+
+    var alert = model.alerts[1];
+    assert.equal(alert.args['ListView items inflated'], 1);
+    assert.deepEqual(alert.args['Time spent'], new TimeDuration(20));
+    assert.equal(alert.associatedEvents.length, 3); // note: inflate not assoc.
+  });
+
+  test('measureLayoutAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('measure', 0, 5));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('layout', 10, 5));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+
+    var alert = model.alerts[0];
+    assert.deepEqual(alert.args['Time spent'], new TimeDuration(10));
+    assert.equal(alert.associatedEvents.length, 3);
+  });
+
+  test('viewDrawAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      // modern naming
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 0, 10));
+
+      // legacy naming
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 20));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('getDisplayList', 40, 10));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 2);
+    assert.deepEqual(model.alerts[0].args['Time spent'], new TimeDuration(10));
+    assert.deepEqual(model.alerts[1].args['Time spent'], new TimeDuration(10));
+  });
+
+  test('blockingGcAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      var sliceGroup = uiThread.sliceGroup;
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      sliceGroup.pushSlice(newSliceNamed('DVM Suspend', 0, 15));
+
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 50, 20));
+      sliceGroup.pushSlice(newSliceNamed('GC: Wait For Concurrent', 50, 15));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 2);
+    assert.deepEqual(model.alerts[0].args['Blocked duration'],
+        new TimeDuration(15));
+    assert.deepEqual(model.alerts[1].args['Blocked duration'],
+        new TimeDuration(15));
+  });
+
+  test('lockContentionAlert', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      var sliceGroup = uiThread.sliceGroup;
+      sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      sliceGroup.pushSlice(newSliceNamed('Lock Contention on a lock', 0, 15));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 1);
+    assert.deepEqual(model.alerts[0].args['Blocked duration'],
+        new TimeDuration(15));
+  });
+
+  test('schedulingAlerts', function() {
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 6),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 6, 10),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
+    }, tr.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.deepEqual(alert.args['Not scheduled, but runnable'],
+        new TimeDuration(10));
+
+    model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 20));
+      uiThread.timeSlices = [
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5),
+          newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 10),
+          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
+    }, tr.e.audits.AndroidAuditor);
+    assert.equal(model.alerts.length, 1);
+    var alert = model.alerts[0];
+    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.deepEqual(alert.args['Blocking I/O delay'], new TimeDuration(10));
+  });
+
+  test('addFramesToModel', function() {
+    var process;
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      process = model.getOrCreateProcess(1);
+      var uiThread = process.getOrCreateThread(1);
+
+      // High level choreographer frame signal
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'Choreographer#doFrame', 0, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'Choreographer#doFrame', 16, 20));
+
+      // Old devices only have 'performTraversals'
+      uiThread.sliceGroup.pushSlice(newSliceNamed(
+          'performTraversals', 40, 90));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(process.frames.length, 3);
+    assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
+    assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
+    assert.closeTo(process.frames[2].totalDuration, 90, 1e-5);
+
+    assert.equal(process.frames[0].perfClass,
+        FRAME_PERF_CLASS.GOOD);
+    assert.equal(process.frames[1].perfClass,
+        FRAME_PERF_CLASS.BAD);
+    assert.equal(process.frames[2].perfClass,
+        FRAME_PERF_CLASS.TERRIBLE);
+  });
+
+  test('processRenameAndSort', function() {
+    var appProcess;
+    var sfProcess;
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      appProcess = model.getOrCreateProcess(1);
+      var uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'ndroid.systemui';
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 8));
+
+      sfProcess = model.getOrCreateProcess(2);
+      var sfThread = sfProcess.getOrCreateThread(2);
+      sfThread.name = '/system/bin/surfaceflinger';
+      sfThread.sliceGroup.pushSlice(newSliceNamed('doComposition', 8, 2));
+
+    }, tr.e.audits.AndroidAuditor);
+
+    // both processes should be renamed
+    assert.equal(appProcess.name, 'android.systemui');
+    assert.equal(sfProcess.name, 'SurfaceFlinger');
+
+    assert.isTrue(sfProcess.sortIndex < appProcess.sortIndex);
+    assert.isTrue(appProcess.important);
+    assert.isFalse(sfProcess.important);
+  });
+
+  test('eventInfo', function() {
+    var eventsExpectingInfo = [];
+    var eventsNotExpectingInfo = [];
+
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var appProcess = model.getOrCreateProcess(1);
+      var uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'ndroid.systemui';
+
+      var pushInfoSlice = function(slice) {
+        eventsExpectingInfo.push(slice);
+        uiThread.sliceGroup.pushSlice(slice);
+      }
+      var pushNonInfoSlice = function(slice) {
+        eventsNotExpectingInfo.push(slice);
+        uiThread.sliceGroup.pushSlice(slice);
+      }
+
+      pushInfoSlice(newSliceNamed('performTraversals', 0, 10));
+      pushInfoSlice(newSliceNamed('measure', 0, 2));
+      pushInfoSlice(newSliceNamed('layout', 2, 1));
+      pushInfoSlice(newSliceNamed('draw', 3, 7));
+
+      // Out of place slices should not be tagged.
+      pushNonInfoSlice(newSliceNamed('measure', 11, 1));
+      pushNonInfoSlice(newSliceNamed('draw', 12, 1));
+    }, tr.e.audits.AndroidAuditor);
+
+    eventsExpectingInfo.forEach(function(event) {
+      assert.notEqual(event.info, undefined);
+    });
+
+    eventsNotExpectingInfo.forEach(function(event) {
+      assert.equal(event.info, undefined);
+    });
+  });
+
+  test('drawingThreadPriorities', function() {
+    var uiThread;
+    var renderThread;
+    var workerThread;
+    var otherThread;
+    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+      var appProcess = model.getOrCreateProcess(1);
+
+      uiThread = appProcess.getOrCreateThread(1);
+      uiThread.name = 'ndroid.systemui';
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 0, 4));
+
+      renderThread = appProcess.getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 3, 4));
+
+      workerThread = appProcess.getOrCreateThread(3);
+      workerThread.name = 'hwuiTask1';
+      workerThread.sliceGroup.pushSlice(newSliceNamed('work', 4, 1));
+
+      otherThread = appProcess.getOrCreateThread(4);
+      otherThread.name = 'other';
+      otherThread.sliceGroup.pushSlice(newSliceNamed('otherWork', 0, 2));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.isTrue(uiThread.sortIndex < renderThread.sortIndex);
+    assert.isTrue(renderThread.sortIndex < workerThread.sortIndex);
+    assert.isTrue(workerThread.sortIndex < otherThread.sortIndex);
+  });
+
+  test('favicon', function() {
+    var createModelWithJank = function(percentageJank) {
+
+      return tr.c.test_utils.newModelWithAuditor(function(model) {
+        var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+        for (var i = 0; i < 100; i++) {
+          var slice = newSliceNamed('performTraversals',
+                                    30 * i,
+                                    i <= percentageJank ? 24 : 8);
+          uiThread.sliceGroup.pushSlice(slice);
+        }
+      }, tr.e.audits.AndroidAuditor);
+    };
+    assert.equal(createModelWithJank(3).faviconHue, 'green');
+    assert.equal(createModelWithJank(10).faviconHue, 'yellow');
+    assert.equal(createModelWithJank(50).faviconHue, 'red');
+  });
+});
+</script>

@@ -1,0 +1,9 @@
+me: BeautifulSoup - HTML parser
+Short Name: BeautifulSoup
+URL: http://www.crummy.com/software/BeautifulSoup/download/3.x/BeautifulSoup-3.2.1.tar.gz (?)
+Version: 3.2
+License: MIT
+License File: NOT_SHIPPED
+Security Critical: no
+Description: Used for HTML module parsing
+Local Modifications: None

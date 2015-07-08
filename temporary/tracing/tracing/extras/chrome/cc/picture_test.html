@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/cc.html">
+<link rel="import" href="/extras/chrome/cc/picture.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/model.html">
+
+<script src="/extras/chrome/cc/layer_tree_host_impl_test_data.js"></script>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = tr.b.dictionaryValues(m.processes)[0];
+
+    var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
+    var snapshot = instance.snapshots[0];
+
+    assert.instanceOf(snapshot, tr.e.cc.PictureSnapshot);
+    instance.wasDeleted(150);
+  });
+
+  test('getOps', function() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = tr.b.dictionaryValues(m.processes)[0];
+
+    var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
+    var snapshot = instance.snapshots[0];
+
+    var ops = snapshot.getOps();
+    if (!ops)
+      return;
+    assert.equal(ops.length, 142);
+
+    var op0 = ops[0];
+    assert.equal(op0.cmd_string, 'Save');
+    assert.instanceOf(op0.info, Array);
+  });
+});
+</script>

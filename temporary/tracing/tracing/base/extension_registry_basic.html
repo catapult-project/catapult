@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/extension_registry_base.html">
+<link rel="import" href="/base/event.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+
+  var RegisteredTypeInfo = tr.b.RegisteredTypeInfo;
+  var ExtensionRegistryOptions = tr.b.ExtensionRegistryOptions;
+
+  function decorateBasicExtensionRegistry(registry, extensionRegistryOptions) {
+    var savedStateStack = [];
+    registry.registeredTypeInfos_ = [];
+
+    registry.register = function(constructor,
+                                 opt_metadata) {
+      if (registry.findIndexOfRegisteredConstructor(
+          constructor) !== undefined)
+        throw new Error('Handler already registered for ' + constructor);
+
+      extensionRegistryOptions.validateConstructor(constructor);
+
+      var metadata = {};
+      for (var k in extensionRegistryOptions.defaultMetadata)
+        metadata[k] = extensionRegistryOptions.defaultMetadata[k];
+      if (opt_metadata) {
+        for (var k in opt_metadata)
+          metadata[k] = opt_metadata[k];
+      }
+
+      var typeInfo = new RegisteredTypeInfo(
+          constructor,
+          metadata);
+
+      var e = new tr.b.Event('will-register');
+      e.typeInfo = typeInfo;
+      registry.dispatchEvent(e);
+
+      registry.registeredTypeInfos_.push(typeInfo);
+
+      e = new tr.b.Event('registry-changed');
+      registry.dispatchEvent(e);
+    };
+
+    registry.pushCleanStateBeforeTest = function() {
+      savedStateStack.push(registry.registeredTypeInfos_);
+      registry.registeredTypeInfos_ = [];
+
+      var e = new tr.b.Event('registry-changed');
+      registry.dispatchEvent(e);
+    };
+    registry.popCleanStateAfterTest = function() {
+      registry.registeredTypeInfos_ = savedStateStack[0];
+      savedStateStack.splice(0, 1);
+
+      var e = new tr.b.Event('registry-changed');
+      registry.dispatchEvent(e);
+    };
+
+    registry.findIndexOfRegisteredConstructor = function(constructor) {
+      for (var i = 0; i < registry.registeredTypeInfos_.length; i++)
+        if (registry.registeredTypeInfos_[i].constructor == constructor)
+          return i;
+      return undefined;
+    };
+
+    registry.unregister = function(constructor) {
+      var foundIndex = registry.findIndexOfRegisteredConstructor(constructor);
+      if (foundIndex === undefined)
+        throw new Error(constructor + ' not registered');
+      registry.registeredTypeInfos_.splice(foundIndex, 1);
+
+      var e = new tr.b.Event('registry-changed');
+      registry.dispatchEvent(e);
+    };
+
+    registry.getAllRegisteredTypeInfos = function() {
+      return registry.registeredTypeInfos_;
+    };
+
+    registry.findTypeInfo = function(constructor) {
+      var foundIndex = this.findIndexOfRegisteredConstructor(constructor);
+      if (foundIndex !== undefined)
+        return this.registeredTypeInfos_[foundIndex];
+      return undefined;
+    };
+
+    registry.findTypeInfoMatching = function(predicate, opt_this) {
+      opt_this = opt_this ? opt_this : undefined;
+      for (var i = 0; i < registry.registeredTypeInfos_.length; ++i) {
+        var typeInfo = registry.registeredTypeInfos_[i];
+        if (predicate.call(opt_this, typeInfo))
+          return typeInfo;
+      }
+      return extensionRegistryOptions.defaultTypeInfo;
+    };
+  }
+
+  return {
+    _decorateBasicExtensionRegistry: decorateBasicExtensionRegistry
+  };
+});
+</script>

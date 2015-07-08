@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/size_in_bytes.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var SizeInBytes = tr.b.units.SizeInBytes;
+
+  function checkFormat(numBytes, expectedString) {
+    assert.equal(SizeInBytes.format(numBytes), expectedString);
+    assert.equal(new SizeInBytes(numBytes).toString(), expectedString);
+  }
+
+  test('format', function() {
+    checkFormat(0, '0.0 B');
+    checkFormat(1, '1.0 B');
+    checkFormat(1536, '1.5 KiB');
+    checkFormat(424.2 * 1024 * 1024, '424.2 MiB');
+    checkFormat(5 * 1024 * 1024 * 1024, '5.0 GiB');
+    checkFormat(1025 * 1024 * 1024 * 1024 * 1024, '1025.0 TiB');
+    checkFormat(-2.5 * 1024 * 1024, '-2.5 MiB');
+  });
+});
+</script>

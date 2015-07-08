@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/chrome/cc/constants.html">
+<link rel="import" href="/extras/chrome/cc/layer_impl.html">
+<link rel="import" href="/model/object_instance.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.cc', function() {
+
+  var constants = tr.e.cc.constants;
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
+
+  /**
+   * @constructor
+   */
+  function LayerTreeImplSnapshot() {
+    ObjectSnapshot.apply(this, arguments);
+  }
+
+  LayerTreeImplSnapshot.prototype = {
+    __proto__: ObjectSnapshot.prototype,
+
+    preInitialize: function() {
+      tr.e.cc.preInitializeObject(this);
+      this.layerTreeHostImpl = undefined;
+      this.whichTree = undefined;
+      this.sourceFrameNumber = undefined;
+    },
+
+    initialize: function() {
+      tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
+          this, ['rootLayer',
+            'renderSurfaceLayerList']);
+      if (this.args.sourceFrameNumber)
+        this.sourceFrameNumber = this.args.sourceFrameNumber;
+      this.rootLayer.layerTreeImpl = this;
+
+      if (this.args.swapPromiseTraceIds &&
+          this.args.swapPromiseTraceIds.length) {
+        this.tracedInputLatencies = [];
+
+        var ownProcess = this.objectInstance.parent;
+        var model = ownProcess.model;
+        if (tr.e.audits.ChromeModelHelper.supportsModel(model))
+          this._initializeTracedInputLatencies(model);
+      }
+    },
+
+    _initializeTracedInputLatencies: function(model) {
+      var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+      if (!modelHelper.browserHelper)
+        return;
+
+      var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
+          model.bounds);
+
+      // Convert all ids to InputLatency Async objects.
+      latencyEvents.forEach(function(event) {
+        for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
+          if (!event.args.data || !event.args.data.trace_id)
+            continue;
+          if (parseInt(event.args.data.trace_id) ===
+              this.args.swapPromiseTraceIds[i])
+            this.tracedInputLatencies.push(event);
+        }
+      }, this);
+    },
+
+    get hasSourceFrameBeenDrawnBefore() {
+      if (this.whichTree == tr.e.cc.constants.PENDING_TREE)
+        return false;
+
+      // Old chrome's don't produce sourceFrameNumber.
+      if (this.sourceFrameNumber === undefined)
+        return;
+
+      var thisLTHI = this.layerTreeHostImpl;
+      var thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
+        thisLTHI);
+      var prevLTHIIndex = thisLTHIIndex - 1;
+      if (prevLTHIIndex < 0 ||
+          prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length)
+        return false;
+      var prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
+      if (!prevLTHI.activeTree)
+        return false;
+
+      // Old chrome's don't produce sourceFrameNumber.
+      if (prevLTHI.activeTree.sourceFrameNumber === undefined)
+        return;
+      return prevLTHI.activeTree.sourceFrameNumber == this.sourceFrameNumber;
+    },
+
+    get otherTree() {
+      var other = this.whichTree == constants.ACTIVE_TREE ?
+          constants.PENDING_TREE : constants.ACTIVE_TREE;
+      return this.layerTreeHostImpl.getTree(other);
+    },
+
+    get gpuMemoryUsageInBytes() {
+      var totalBytes = 0;
+      this.iterLayers(function(layer) {
+        if (layer.gpuMemoryUsageInBytes !== undefined)
+          totalBytes += layer.gpuMemoryUsageInBytes;
+      });
+      return totalBytes;
+    },
+
+    iterLayers: function(func, thisArg) {
+      var visitedLayers = {};
+      function visitLayer(layer, depth, isMask, isReplica) {
+        if (visitedLayers[layer.layerId])
+          return;
+        visitedLayers[layer.layerId] = true;
+        func.call(thisArg, layer, depth, isMask, isReplica);
+        if (layer.children) {
+          for (var i = 0; i < layer.children.length; i++)
+            visitLayer(layer.children[i], depth + 1);
+        }
+        if (layer.maskLayer)
+          visitLayer(layer.maskLayer, depth + 1, true, false);
+        if (layer.replicaLayer)
+          visitLayer(layer.replicaLayer, depth + 1, false, true);
+      }
+      visitLayer(this.rootLayer, 0, false, false);
+    },
+    findLayerWithId: function(id) {
+      var foundLayer = undefined;
+      function visitLayer(layer) {
+        if (layer.layerId == id)
+          foundLayer = layer;
+      }
+      this.iterLayers(visitLayer);
+      return foundLayer;
+    }
+  };
+
+  ObjectSnapshot.register(
+      LayerTreeImplSnapshot,
+      {typeName: 'cc::LayerTreeImpl'});
+
+  return {
+    LayerTreeImplSnapshot: LayerTreeImplSnapshot
+  };
+});
+</script>

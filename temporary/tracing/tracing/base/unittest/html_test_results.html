@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/event.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/unittest/constants.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/utils.html">
+
+<style>
+  x-tr.b.unittest-test-resultsbase
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+  }
+
+  x-tr.b.unittest-test-results > x-html-test-case-result.dark {
+    background-color: #eee;
+  }
+
+  x-html-test-case-result {
+    display: block;
+  }
+  x-html-test-case-result > #title,
+  x-html-test-case-result > #status,
+  x-html-test-case-result > #details > x-html-test-case-error > #message,
+  x-html-test-case-result > #details > x-html-test-case-error > #stack,
+  x-html-test-case-result > #details > x-html-test-case-error > #return-value {
+    -webkit-user-select: auto;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-error {
+    display: block;
+    border: 1px solid grey;
+    border-radius: 5px;
+    font-family: monospace;
+    margin-bottom: 14px;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-error > #message,
+  x-html-test-case-result > #details > x-html-test-case-error > #stack {
+    white-space: pre;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-html-result {
+    display: block;
+  }
+
+  .unittest-pending {
+    color: orange;
+  }
+  .unittest-running {
+    color: orange;
+    font-weight: bold;
+  }
+
+  .unittest-passed {
+    color: darkgreen;
+  }
+
+  .unittest-failed {
+    color: darkred;
+    font-weight: bold;
+  }
+
+  .unittest-exception {
+    color: red;
+    font-weight: bold;
+  }
+
+  .unittest-failure {
+    border: 1px solid grey;
+    border-radius: 5px;
+    padding: 5px;
+  }
+</style>
+<template id="x-html-test-case-result-template">
+  <span id="title"></span>&nbsp;
+  <span id="status"></span>&nbsp;
+  <span id="return-value"></span>
+  <div id="details"></div>
+</template>
+
+<template id="x-html-test-case-error-template">
+  <div id="stack"></div>
+</template>
+
+<script>
+'use strict';
+tr.exportTo('tr.b.unittest', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
+
+  var TestStatus = tr.b.unittest.TestStatus;
+  var TestTypes = tr.b.unittest.TestTypes;
+
+  /**
+   * @constructor
+   */
+  var HTMLTestCaseResult = tr.ui.b.define('x-html-test-case-result');
+
+  HTMLTestCaseResult.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.appendChild(tr.ui.b.instantiateTemplate(
+          '#x-html-test-case-result-template', THIS_DOC));
+      this.testCase_ = undefined;
+      this.testCaseHRef_ = undefined;
+      this.duration_ = undefined;
+      this.testStatus_ = TestStatus.PENDING;
+      this.testReturnValue_ = undefined;
+      this.showHTMLOutput_ = false;
+      this.updateColorAndStatus_();
+    },
+
+    get showHTMLOutput() {
+      return this.showHTMLOutput_;
+    },
+
+    set showHTMLOutput(showHTMLOutput) {
+      this.showHTMLOutput_ = showHTMLOutput;
+      this.updateHTMLOutputDisplayState_();
+    },
+
+    get testCase() {
+      return this.testCase_;
+    },
+
+    set testCase(testCase) {
+      this.testCase_ = testCase;
+      this.updateTitle_();
+    },
+
+    get testCaseHRef() {
+      return this.testCaseHRef_;
+    },
+
+    set testCaseHRef(href) {
+      this.testCaseHRef_ = href;
+      this.updateTitle_();
+    },
+    updateTitle_: function() {
+      var titleEl = this.querySelector('#title');
+      if (this.testCase_ === undefined) {
+        titleEl.textContent = '';
+        return;
+      }
+
+      if (this.testCaseHRef_) {
+        titleEl.innerHTML = '<a href="' + this.testCaseHRef_ + '">' +
+            this.testCase_.fullyQualifiedName + '</a>';
+      } else {
+        titleEl.textContent = this.testCase_.fullyQualifiedName;
+      }
+    },
+
+    addError: function(normalizedException) {
+      var errorEl = document.createElement('x-html-test-case-error');
+      errorEl.appendChild(tr.ui.b.instantiateTemplate(
+          '#x-html-test-case-error-template', THIS_DOC));
+      errorEl.querySelector('#stack').textContent = normalizedException.stack;
+      this.querySelector('#details').appendChild(errorEl);
+      this.updateColorAndStatus_();
+    },
+
+    addHTMLOutput: function(element) {
+      var htmlResultEl = document.createElement('x-html-test-case-html-result');
+      htmlResultEl.appendChild(element);
+      this.querySelector('#details').appendChild(htmlResultEl);
+
+      var bounds = element.getBoundingClientRect();
+      assert(bounds.width !== 0, 'addHTMLOutput element as 0 width');
+      assert(bounds.height !== 0, 'addHTMLOutput element has 0 height');
+    },
+
+    updateHTMLOutputDisplayState_: function() {
+      var htmlResults = this.querySelectorAll('x-html-test-case-html-result');
+      var display;
+      if (this.showHTMLOutput)
+        display = '';
+      else
+        display = (this.testStatus_ == TestStatus.RUNNING) ? '' : 'none';
+      for (var i = 0; i < htmlResults.length; i++)
+        htmlResults[i].style.display = display;
+    },
+
+    get hadErrors() {
+      return !!this.querySelector('x-html-test-case-error');
+    },
+
+    get duration() {
+      return this.duration_;
+    },
+
+    set duration(duration) {
+      this.duration_ = duration;
+      this.updateColorAndStatus_();
+    },
+
+    get testStatus() {
+      return this.testStatus_;
+    },
+
+    set testStatus(testStatus) {
+      this.testStatus_ = testStatus;
+      this.updateColorAndStatus_();
+      this.updateHTMLOutputDisplayState_();
+    },
+
+    updateColorAndStatus_: function() {
+      var colorCls;
+      var status;
+      if (this.hadErrors) {
+        colorCls = 'unittest-failed';
+        status = 'failed';
+      } else if (this.testStatus_ == TestStatus.PENDING) {
+        colorCls = 'unittest-pending';
+        status = 'pending';
+      } else if (this.testStatus_ == TestStatus.RUNNING) {
+        colorCls = 'unittest-running';
+        status = 'running';
+      } else { // DONE_RUNNING and no errors
+        colorCls = 'unittest-passed';
+        status = 'passed';
+      }
+
+      var statusEl = this.querySelector('#status');
+      if (this.duration_)
+        statusEl.textContent = status + ' (' +
+            this.duration_.toFixed(2) + 'ms)';
+      else
+        statusEl.textContent = status;
+      statusEl.className = colorCls;
+    },
+
+    get testReturnValue() {
+      return this.testReturnValue_;
+    },
+
+    set testReturnValue(testReturnValue) {
+      this.testReturnValue_ = testReturnValue;
+      this.querySelector('#return-value').textContent = testReturnValue;
+    }
+  };
+
+
+
+
+  /**
+   * @constructor
+   */
+  var HTMLTestResults = tr.ui.b.define('x-tr.b.unittest-test-results');
+
+  HTMLTestResults.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.currentTestCaseStartTime_ = undefined;
+      this.totalRunTime_ = 0;
+      this.numTestsThatPassed_ = 0;
+      this.numTestsThatFailed_ = 0;
+      this.showHTMLOutput_ = false;
+      this.showPendingAndPassedTests_ = false;
+      this.linkifyCallback_ = undefined;
+      this.headless_ = false;
+    },
+
+    get headless() {
+      return this.headless_;
+    },
+
+    set headless(headless) {
+      this.headless_ = headless;
+    },
+
+    getHRefForTestCase: function(testCase) {
+      /* Override this to create custom links */
+      return undefined;
+    },
+
+    get showHTMLOutput() {
+      return this.showHTMLOutput_;
+    },
+
+    set showHTMLOutput(showHTMLOutput) {
+      this.showHTMLOutput_ = showHTMLOutput;
+      var testCaseResults = this.querySelectorAll('x-html-test-case-result');
+      for (var i = 0; i < testCaseResults.length; i++)
+        testCaseResults[i].showHTMLOutput = showHTMLOutput;
+    },
+
+    get showPendingAndPassedTests() {
+      return this.showPendingAndPassedTests_;
+    },
+
+    set showPendingAndPassedTests(showPendingAndPassedTests) {
+      this.showPendingAndPassedTests_ = showPendingAndPassedTests;
+
+      var testCaseResults = this.querySelectorAll('x-html-test-case-result');
+      for (var i = 0; i < testCaseResults.length; i++)
+        this.updateDisplayStateForResult_(testCaseResults[i]);
+    },
+
+    updateDisplayStateForResult_: function(res) {
+      var display;
+      if (this.showPendingAndPassedTests_) {
+        if (res.testStatus == TestStatus.RUNNING ||
+            res.hadErrors) {
+          display = '';
+        } else {
+          display = 'none';
+        }
+      } else {
+        display = '';
+      }
+      res.style.display = display;
+
+      // This bit of mess gives res objects a dark class based on whether their
+      // last visible sibling was not dark. It relies on the
+      // updateDisplayStateForResult_ being called on all previous siblings of
+      // an element before being called on the element itself. Yay induction.
+      var dark;
+      if (!res.previousSibling) {
+        dark = true;
+      } else {
+        var lastVisible;
+        for (var cur = res.previousSibling;
+             cur;
+             cur = cur.previousSibling) {
+          if (cur.style.display == '') {
+            lastVisible = cur;
+            break;
+          }
+        }
+        if (lastVisible) {
+          dark = !lastVisible.classList.contains('dark');
+        } else {
+          dark = true;
+        }
+      }
+
+      if (dark)
+        res.classList.add('dark');
+      else
+        res.classList.remove('dark');
+    },
+
+    willRunTest: function(testCase) {
+      this.currentTestCaseResult_ = new HTMLTestCaseResult();
+      this.currentTestCaseResult_.showHTMLOutput = this.showHTMLOutput_;
+      this.currentTestCaseResult_.testCase = testCase;
+      var href = this.getHRefForTestCase(testCase);
+      if (href)
+        this.currentTestCaseResult_.testCaseHRef = href;
+      this.currentTestCaseResult_.testStatus = TestStatus.RUNNING;
+      this.currentTestCaseStartTime_ = window.performance.now();
+      this.appendChild(this.currentTestCaseResult_);
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+      this.log_(testCase.fullyQualifiedName + ': ');
+    },
+
+    addErrorForCurrentTest: function(error) {
+      this.log_('\n');
+
+      var normalizedException = tr.b.normalizeException(error);
+      this.log_('Exception: ' + normalizedException.message + '\n' +
+          normalizedException.stack);
+
+      this.currentTestCaseResult_.addError(normalizedException);
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+      if (this.headless_)
+        this.notifyTestResultToDevServer_('EXCEPT', normalizedException.stack);
+    },
+
+    addHTMLOutputForCurrentTest: function(element) {
+      this.currentTestCaseResult_.addHTMLOutput(element);
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+    },
+
+    setReturnValueFromCurrentTest: function(returnValue) {
+      this.currentTestCaseResult_.testReturnValue = returnValue;
+    },
+
+    didCurrentTestEnd: function() {
+      var testCaseResult = this.currentTestCaseResult_;
+      var testCaseDuration = window.performance.now() -
+          this.currentTestCaseStartTime_;
+      this.currentTestCaseResult_.testStatus = TestStatus.DONE_RUNNING;
+      testCaseResult.duration = testCaseDuration;
+      this.totalRunTime_ += testCaseDuration;
+      if (testCaseResult.hadErrors) {
+        this.log_('[FAILED]\n');
+        this.numTestsThatFailed_ += 1;
+        tr.b.dispatchSimpleEvent(this, 'testfailed');
+      } else {
+        this.log_('[PASSED]\n');
+        this.numTestsThatPassed_ += 1;
+        tr.b.dispatchSimpleEvent(this, 'testpassed');
+      }
+
+      if (this.headless_) {
+        this.notifyTestResultToDevServer_(testCaseResult.hadErrors ?
+                                          'FAILED' : 'PASSED');
+      }
+
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+      this.currentTestCaseResult_ = undefined;
+    },
+
+    didRunTests: function() {
+      this.log_('[DONE]\n');
+      if (this.headless_)
+        this.notifyTestCompletionToDevServer_();
+    },
+
+    getStats: function() {
+      return {
+        numTestsThatPassed: this.numTestsThatPassed_,
+        numTestsThatFailed: this.numTestsThatFailed_,
+        totalRunTime: this.totalRunTime_
+      };
+    },
+
+    notifyTestResultToDevServer_: function(result, extra_msg) {
+      var req = new XMLHttpRequest();
+      var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
+      req.open('POST', '/test_automation/notify_test_result', true);
+      req.send(result + '  ' + testName + ' ' + (extra_msg || ''));
+    },
+
+    notifyTestCompletionToDevServer_: function() {
+      if (this.numTestsThatPassed_ + this.numTestsThatFailed_ == 0)
+        return;
+      var data = this.numTestsThatFailed_ == 0 ? 'ALL_PASSED' : 'HAD_FAILURES';
+      data += '\nPassed tests: ' + this.numTestsThatPassed_ +
+              '  Failed tests: ' + this.numTestsThatFailed_;
+
+      var req = new XMLHttpRequest();
+      req.open('POST', '/test_automation/notify_completion', true);
+      req.send(data);
+    },
+
+    log_: function(msg) {
+      //this.textContent += msg;
+      tr.b.dispatchSimpleEvent(this, 'statschange');
+    }
+  };
+
+  return {
+    HTMLTestResults: HTMLTestResults
+  };
+});
+</script>

@@ -1,0 +1,18 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* /deep/ tr-ui-e-chrome-cc-picture-ops-chart-view {
+  display: block;
+  height: 180px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+* /deep/ tr-ui-e-chrome-cc-picture-ops-chart-view > .use-percentile-scale {
+  left: 0;
+  position: absolute;
+  top: 0;
+}

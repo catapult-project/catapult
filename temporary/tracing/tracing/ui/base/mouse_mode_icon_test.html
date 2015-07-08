@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/ui/base/mouse_mode_icon.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
+
+  test('inactive', function() {
+    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
+    assert.equal(icon.modeName, 'SELECTION');
+    icon.acceleratorKey = 'a';
+    this.addHTMLOutput(icon);
+  });
+
+  test('active', function() {
+    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
+    assert.equal(icon.modeName, 'SELECTION');
+    icon.active = true;
+    this.addHTMLOutput(icon);
+  });
+
+  test('modeNameSetter', function() {
+    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    icon.setAttribute('modeName', 'SELECTION');
+    this.addHTMLOutput(icon);
+
+    return Promise.resolve().then(function() {
+      assert.equal(icon.mode, 1);
+    });
+  });
+});
+</script>

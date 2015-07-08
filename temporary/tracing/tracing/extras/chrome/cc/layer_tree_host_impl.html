@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/constants.html">
+<link rel="import" href="/extras/chrome/cc/layer_tree_impl.html">
+<link rel="import" href="/extras/chrome/cc/util.html">
+<link rel="import" href="/base/bbox2.html">
+<link rel="import" href="/model/object_instance.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the LayerTreeHostImpl model-level objects.
+ */
+tr.exportTo('tr.e.cc', function() {
+  var constants = tr.e.cc.constants;
+
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
+  var ObjectInstance = tr.model.ObjectInstance;
+
+  /**
+   * @constructor
+   */
+  function LayerTreeHostImplSnapshot() {
+    ObjectSnapshot.apply(this, arguments);
+  }
+
+  LayerTreeHostImplSnapshot.prototype = {
+    __proto__: ObjectSnapshot.prototype,
+
+    preInitialize: function() {
+      tr.e.cc.preInitializeObject(this);
+    },
+
+    initialize: function() {
+      tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
+          this, ['deviceViewportSize',
+            'activeTree']);
+      tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
+          this, ['pendingTree']);
+
+      // Move active_tiles into this.tiles. If that doesn't exist then, then as
+      // a backward compatability move tiles into this.tiles.
+      if (this.args.activeTiles !== undefined) {
+        this.activeTiles = this.args.activeTiles;
+        delete this.args.activeTiles;
+      } else if (this.args.tiles !== undefined) {
+        this.activeTiles = this.args.tiles;
+        delete this.args.tiles;
+      }
+
+      if (!this.activeTiles)
+        this.activeTiles = [];
+
+      this.activeTree.layerTreeHostImpl = this;
+      this.activeTree.whichTree = constants.ACTIVE_TREE;
+      if (this.pendingTree) {
+        this.pendingTree.layerTreeHostImpl = this;
+        this.pendingTree.whichTree = constants.PENDING_TREE;
+      }
+    },
+
+    /**
+     * Get all of tile scales and their associated names.
+     */
+    getContentsScaleNames: function() {
+      var scales = {};
+      for (var i = 0; i < this.activeTiles.length; ++i) {
+        var tile = this.activeTiles[i];
+        // Return scale -> scale name mappings.
+        // Example:
+        //  0.25 -> LOW_RESOLUTION
+        //  1.0 -> HIGH_RESOLUTION
+        //  0.75 -> NON_IDEAL_RESOLUTION
+        scales[tile.contentsScale] = tile.resolution;
+      }
+      return scales;
+    },
+
+    getTree: function(whichTree) {
+      if (whichTree == constants.ACTIVE_TREE)
+        return this.activeTree;
+      if (whichTree == constants.PENDING_TREE)
+        return this.pendingTree;
+      throw new Exception('Unknown tree type + ' + whichTree);
+    },
+
+    get tilesHaveGpuMemoryUsageInfo() {
+      if (this.tilesHaveGpuMemoryUsageInfo_ !== undefined)
+        return this.tilesHaveGpuMemoryUsageInfo_;
+
+      for (var i = 0; i < this.activeTiles.length; i++) {
+        if (this.activeTiles[i].gpuMemoryUsageInBytes === undefined)
+          continue;
+        this.tilesHaveGpuMemoryUsageInfo_ = true;
+        return true;
+      }
+      this.tilesHaveGpuMemoryUsageInfo_ = false;
+      return false;
+    },
+
+    get gpuMemoryUsageInBytes() {
+      if (!this.tilesHaveGpuMemoryUsageInfo)
+        return;
+
+      var usage = 0;
+      for (var i = 0; i < this.activeTiles.length; i++) {
+        var u = this.activeTiles[i].gpuMemoryUsageInBytes;
+        if (u !== undefined)
+          usage += u;
+      }
+      return usage;
+    },
+
+    get userFriendlyName() {
+      var frameNumber;
+      if (!this.activeTree) {
+        frameNumber = this.objectInstance.snapshots.indexOf(this);
+      } else {
+        if (this.activeTree.sourceFrameNumber === undefined)
+          frameNumber = this.objectInstance.snapshots.indexOf(this);
+        else
+          frameNumber = this.activeTree.sourceFrameNumber;
+      }
+      return 'cc::LayerTreeHostImpl frame ' + frameNumber;
+    }
+  };
+
+  ObjectSnapshot.register(
+      LayerTreeHostImplSnapshot,
+      {typeName: 'cc::LayerTreeHostImpl'});
+
+  /**
+   * @constructor
+   */
+  function LayerTreeHostImplInstance() {
+    ObjectInstance.apply(this, arguments);
+
+    this.allLayersBBox_ = undefined;
+  }
+
+  LayerTreeHostImplInstance.prototype = {
+    __proto__: ObjectInstance.prototype,
+
+    get allContentsScales() {
+      if (this.allContentsScales_)
+        return this.allContentsScales_;
+
+      var scales = {};
+      for (var tileID in this.allTileHistories_) {
+        var tileHistory = this.allTileHistories_[tileID];
+        scales[tileHistory.contentsScale] = true;
+      }
+      this.allContentsScales_ = tr.b.dictionaryKeys(scales);
+      return this.allContentsScales_;
+    },
+
+    get allLayersBBox() {
+      if (this.allLayersBBox_)
+        return this.allLayersBBox_;
+      var bbox = new tr.b.BBox2();
+      function handleTree(tree) {
+        tree.renderSurfaceLayerList.forEach(function(layer) {
+          bbox.addQuad(layer.layerQuad);
+        });
+      }
+      this.snapshots.forEach(function(lthi) {
+        handleTree(lthi.activeTree);
+        if (lthi.pendingTree)
+          handleTree(lthi.pendingTree);
+      });
+      this.allLayersBBox_ = bbox;
+      return this.allLayersBBox_;
+    }
+  };
+
+  ObjectInstance.register(
+      LayerTreeHostImplInstance,
+      {typeName: 'cc::LayerTreeHostImpl'});
+
+  return {
+    LayerTreeHostImplSnapshot: LayerTreeHostImplSnapshot,
+    LayerTreeHostImplInstance: LayerTreeHostImplInstance
+
+  };
+});
+</script>

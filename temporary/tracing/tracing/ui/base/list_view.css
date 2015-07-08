@@ -1,0 +1,30 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* /deep/ .x-list-view {
+  -webkit-user-select: none;
+  display: block;
+}
+* /deep/ .x-list-view:focus {
+  outline: none;
+}
+
+* /deep/ .x-list-view * {
+  -webkit-user-select: none;
+}
+
+* /deep/ .x-list-view > .list-item {
+  padding: 2px 4px 2px 4px;
+}
+
+* /deep/ .x-list-view:focus > .list-item[selected] {
+  background-color: rgb(171, 217, 202);
+  outline: 1px dotted rgba(0,0,0,0.1);
+  outline-offset: 0;
+}
+
+* /deep/ .x-list-view > .list-item[selected] {
+  background-color: rgb(103, 199, 165);
+}
