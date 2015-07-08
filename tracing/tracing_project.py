@@ -13,7 +13,7 @@ def _FindAllFilesRecursive(source_paths):
   assert isinstance(source_paths, list)
   all_filenames = set()
   for source_path in source_paths:
-    for dirpath, dirnames, filenames in os.walk(source_path):
+    for dirpath, _, filenames in os.walk(source_path):
       for f in filenames:
         if f.startswith('.'):
           continue
@@ -24,7 +24,8 @@ def _FindAllFilesRecursive(source_paths):
 _D8_TESTS_ONLY_DIR = os.path.join(
     os.path.dirname(__file__), 'build', 'test_data')
 
-def _IsFilenameATest(loader, x):
+
+def _IsFilenameATest(loader, x):  # pylint: disable=unused-argument
   if x.startswith(_D8_TESTS_ONLY_DIR):
     return False
 
@@ -42,6 +43,7 @@ def _IsFilenameATest(loader, x):
 
   # TODO(nduca): Add content test?
   return False
+
 
 class TracingProject(project_module.Project):
   tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

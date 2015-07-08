@@ -5,12 +5,10 @@
 import codecs
 import optparse
 import os
-import StringIO
 import sys
-import tempfile
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
@@ -21,8 +19,8 @@ from tvcm import generate
 def Main(args):
 
   parser = optparse.OptionParser(
-    usage="%prog <options>",
-    epilog="""Produces a standalone html import that contains the
+      usage="%prog <options>",
+      epilog="""Produces a standalone html import that contains the
 trace viewer.""")
 
   project = tracing_project.TracingProject()
@@ -77,19 +75,19 @@ def WriteTraceViewer(output_file,
   if extra_search_paths:
     for p in extra_search_paths:
       project.source_paths.append(p)
-  if config_name == None:
+  if config_name is None:
     config_name = project.GetDefaultConfigName()
 
   module_names = [project.GetModuleNameForConfigName(config_name)]
   if extra_module_names_to_load:
     module_names += extra_module_names_to_load
   load_sequence = project.CalcLoadSequenceForModuleNames(
-    module_names)
+      module_names)
 
   if report_deps:
     sys.stdout.write(project.GetDepsGraphFromModuleNames(module_names))
 
   generate.GenerateStandaloneHTMLToFile(
-    output_file, load_sequence,
-    minify=minify, report_sizes=report_sizes,
-    output_html_head_and_body=output_html_head_and_body)
+      output_file, load_sequence,
+      minify=minify, report_sizes=report_sizes,
+      output_html_head_and_body=output_html_head_and_body)

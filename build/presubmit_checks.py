@@ -1,6 +1,7 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 import re
 import sys
@@ -10,14 +11,16 @@ import checklicenses
 
 from tracing import tracing_project
 
+
 def _FormatError(msg, files):
   return ('%s in these files:\n' % msg +
-      '\n'.join(['  ' + x for x in files])
-      )
+          '\n'.join('  ' + x for x in files))
+
 
 def _ReportErrorFileAndLine(filename, line_num, dummy_line):
   """Default error formatter for _FindNewViolationsOfRule."""
   return '%s:%s' % (filename, line_num)
+
 
 def _FindNewViolationsOfRule(callable_rule, input_api,
                              error_formatter=_ReportErrorFileAndLine):
@@ -53,11 +56,13 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
 
   return errors
 
+
 def CheckCopyright(input_api):
   results = []
   results += _CheckCopyrightThirdParty(input_api)
   results += _CheckCopyrightNonThirdParty(input_api)
   return results
+
 
 def _CheckCopyrightThirdParty(input_api):
   results = []
@@ -74,6 +79,7 @@ def _CheckCopyrightThirdParty(input_api):
       results.append(
           'License check encountered invalid licenses in tracing/third_party/.')
   return results
+
 
 def _CheckCopyrightNonThirdParty(input_api):
   project_name = 'Chromium'
@@ -124,6 +130,7 @@ def _CheckCopyrightNonThirdParty(input_api):
   results += _Check(input_api, non_html_license_re, non_html_sources)
   return results
 
+
 def _Check(input_api, license_re, sources):
   bad_files = []
   for f in sources:
@@ -139,10 +146,9 @@ def _Check(input_api, license_re, sources):
         bad_files)]
   return []
 
+
 def CheckLongLines(input_api, maxlen=80):
-  """Checks that there aren't any lines longer than maxlen characters in any of
-  the text files to be submitted.
-  """
+  """Checks the line length in all text files to be submitted."""
   maxlens = {
       '': maxlen,
   }
@@ -159,9 +165,9 @@ def CheckLongLines(input_api, maxlen=80):
                      '#pragma')
 
   LANGUAGE_EXCEPTIONS = [
-    (CPP_FILE_EXTS, CPP_EXCEPTIONS),
-    (JAVA_FILE_EXTS, JAVA_EXCEPTIONS),
-    (OBJC_FILE_EXTS, OBJC_EXCEPTIONS),
+      (CPP_FILE_EXTS, CPP_EXCEPTIONS),
+      (JAVA_FILE_EXTS, JAVA_EXCEPTIONS),
+      (OBJC_FILE_EXTS, OBJC_EXCEPTIONS),
   ]
 
   def no_long_lines(file_extension, line):
@@ -209,6 +215,7 @@ def CheckLongLines(input_api, maxlen=80):
         errors)]
   else:
     return []
+
 
 def RunChecks(input_api):
   results = []

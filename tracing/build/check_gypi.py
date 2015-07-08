@@ -6,14 +6,14 @@ import sys
 import os
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing.build import check_common
 
 GYPI_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', 'trace_viewer.gypi'))
+                                         '..', 'trace_viewer.gypi'))
 
 
 def GypiCheck():

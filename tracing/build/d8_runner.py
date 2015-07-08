@@ -8,16 +8,14 @@ import os
 import platform
 import shutil
 import subprocess
-import StringIO
-import sys
 import json
 import tempfile
 
-from tvcm import parse_html_deps
 
 _V8_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__),
-    os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
+    os.path.join(
+        os.path.dirname(__file__),
+        os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
 
 _HTML_JS_EVAL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html2jseval.py'))
@@ -94,23 +92,23 @@ class RunResult(object):
 
 
 def ExecuteFile(file_path, source_paths=None, js_args=None):
-  """ Execute javascript program in |file_path|.
+  """Execute JavaScript program in |file_path|.
 
   Args:
     file_path: string file_path that contains path the .js or .html file to be
       executed.
     source_paths: the list of absolute paths containing code. All the imports
-    js_args: a list of string arguments to sent to the js program.
+    js_args: a list of string arguments to sent to the JS program.
 
   Returns:
-     The string output from running the js program.
+     The string output from running the JS program.
   """
   res = RunFile(file_path, source_paths, js_args)
   return res.stdout
 
 
 def RunFile(file_path, source_paths=None, js_args=None):
-  """ Runs javascript program in |file_path|.
+  """Runs JavaScript program in |file_path|.
 
   Args are same as ExecuteFile.
 
@@ -150,7 +148,7 @@ def ExcecuteJsString(js_string, source_paths=None, js_args=None,
 
 
 def RunJsString(js_string, source_paths=None, js_args=None,
-                     original_file_name=None):
+                original_file_name=None):
   _ValidateSourcePaths(source_paths)
 
   try:
@@ -205,7 +203,7 @@ def _RunFileWithD8(js_file_path, js_args):
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Run javascript file with v8 engine')
+      description='Run JavaScript file with v8 engine')
   parser.add_argument('file_name', help='input file', metavar='FILE',
                       type=lambda f: _IsValidJsOrHTMLFile(parser, f))
   parser.add_argument('--js_args', help='arguments for the js program',

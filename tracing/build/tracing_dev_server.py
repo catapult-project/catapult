@@ -9,7 +9,7 @@ import os
 import sys
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
@@ -67,7 +67,7 @@ def do_GET_json_tests(self):
                    for x in test_module_resources]
 
   tests = {'test_relpaths': test_relpaths}
-  tests_as_json = json.dumps(tests);
+  tests_as_json = json.dumps(tests)
 
   self.send_response(200)
   self.send_header('Content-Type', 'application/json')

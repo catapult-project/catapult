@@ -10,7 +10,6 @@ import tempfile
 import unittest
 
 from tracing.build import d8_runner
-from tracing.build import check_common
 
 
 class D8RunnerUnittest(unittest.TestCase):
@@ -24,7 +23,7 @@ class D8RunnerUnittest(unittest.TestCase):
     return os.path.join(self.test_data_dir, file_name)
 
   def AssertHasNamedFrame(self, func_name, file_and_linum,
-                            exception_message):
+                          exception_message):
     m = re.search('at %s.+\(.*%s.*\)' % (func_name, file_and_linum),
                   exception_message)
     if not m:
@@ -32,9 +31,9 @@ class D8RunnerUnittest(unittest.TestCase):
       msg = "Expected to find %s and %s" % (func_name, file_and_linum)
       sys.stderr.write('%s\n' % msg)
       sys.stderr.write('=========== Begin Exception Message =========\n')
-      sys.stderr.write(exception_message);
+      sys.stderr.write(exception_message)
       sys.stderr.write('=========== End Exception Message =========\n\n')
-      self.assertTrue(False, msg)
+      self.fail(msg)
 
   def AssertHasFrame(self, file_and_linum,
                      exception_message):
@@ -45,17 +44,17 @@ class D8RunnerUnittest(unittest.TestCase):
       msg = "Expected to find %s" % file_and_linum
       sys.stderr.write('%s\n' % msg)
       sys.stderr.write('=========== Begin Exception Message =========\n')
-      sys.stderr.write(exception_message);
+      sys.stderr.write(exception_message)
       sys.stderr.write('=========== End Exception Message =========\n\n')
-      self.assertTrue(False, msg)
+      self.fail(msg)
 
   def testSimpleJsExecution(self):
     file_path = self.GetTestFilePath('print_file_content.js')
     dummy_test_path = self.GetTestFilePath('dummy_test_file')
     output = d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir],
                                    js_args=[dummy_test_path])
-    self.assertTrue(
-        'This is file contains only data for testing.\n1 2 3 4' in output)
+    self.assertIn(
+        'This is file contains only data for testing.\n1 2 3 4', output)
 
   def testJsFileLoadHtmlFile(self):
     file_path = self.GetTestFilePath('load_simple_html.js')
@@ -83,7 +82,7 @@ class D8RunnerUnittest(unittest.TestCase):
                        "File foo.html's second script is loaded\n"
                        'x = 2\n'
                        'bar.js is loaded\n'
-                      'File load_simple_html.html is loaded\n')
+                       'File load_simple_html.html is loaded\n')
     self.assertEquals(output, expected_output)
 
   def testQuit0Handling(self):
@@ -96,7 +95,7 @@ class D8RunnerUnittest(unittest.TestCase):
     res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
     self.assertEquals(res.returncode, 1)
 
-  def testQuit1Handling(self):
+  def testQuit42Handling(self):
     file_path = self.GetTestFilePath('quit_42_test.js')
     res = d8_runner.RunFile(file_path, source_paths=[self.test_data_dir])
     self.assertEquals(res.returncode, 42)
@@ -122,12 +121,12 @@ class D8RunnerUnittest(unittest.TestCase):
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
     self.assertIn(
-      ('error.js:7: Error: Throw ERROR\n'
-       "    throw new Error('Throw ERROR');"), exception_message)
+        ('error.js:7: Error: Throw ERROR\n'
+         "    throw new Error('Throw ERROR');"), exception_message)
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
-                               exception_message)
+                             exception_message)
     self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:34',
-                        exception_message)
+                             exception_message)
     self.AssertHasFrame('error_stack_test.js:14', exception_message)
 
   def testErrorStackTraceHTML(self):
@@ -147,8 +146,8 @@ class D8RunnerUnittest(unittest.TestCase):
     # Assert error stack trace contain src files' info.
     exception_message = context.exception.message
     self.assertIn(
-      ('error.js:7: Error: Throw ERROR\n'
-       "    throw new Error('Throw ERROR');"), exception_message)
+        ('error.js:7: Error: Throw ERROR\n'
+         "    throw new Error('Throw ERROR');"), exception_message)
 
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
                              exception_message)
@@ -204,6 +203,7 @@ def _GetLineNumberOfSubstring(content, substring):
   index = content.index(substring)
   return content[:index].count('\n') + 1
 
+
 def _GenerateLineByLineDiff(actual, expected):
   results = []
   expected_lines = expected.split('\n')
@@ -229,7 +229,7 @@ class HTMLGeneratorTest(unittest.TestCase):
     if actual != expected:
       message = 'Expected %s but got %s.\n' % (repr(expected), repr(actual))
       message += _GenerateLineByLineDiff(actual, expected)
-      self.assertTrue(False, message)
+      self.fail(message)
 
   def GetGeneratedJs(self, html_text):
     tmp_dir = tempfile.mkdtemp()
@@ -238,7 +238,7 @@ class HTMLGeneratorTest(unittest.TestCase):
       with open(temp_file_name, 'w') as f:
         f.write(html_text)
       return d8_runner.ExcecuteJsString(
-        'write(generateJsFromHTML(read("%s")));' % temp_file_name)
+          'write(generateJsFromHTML(read("%s")));' % temp_file_name)
     finally:
       shutil.rmtree(tmp_dir)
 
@@ -253,13 +253,13 @@ class HTMLGeneratorTest(unittest.TestCase):
           href="/base/math.html">"""
     expected_js = "\nloadHTML('/base/math.html');"
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportSimpleScriptWithSrc(self):
     html = '<script src="/base/math.js"></script>'
     expected_js = "loadScript('/base/math.js');"
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportMultilineScriptWithSrc(self):
     html = """<script
@@ -271,7 +271,7 @@ class HTMLGeneratorTest(unittest.TestCase):
 
                   """
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerWithMixedMultipleImport(self):
     html = """
@@ -301,7 +301,7 @@ loadScript('/base/math.js');
 
 loadHTML('/base/random.html');""")
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportWithSimpleContent(self):
     html = """<script>
@@ -318,7 +318,7 @@ loadHTML('/base/random.html');""")
                ];
     """
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportWithEscapedScriptTag(self):
     html = """<script>
@@ -331,7 +331,7 @@ var s = ("<") + "<\/script>";
 var x = 100;
     """
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportWithSrcAndSimpleContent(self):
     html = """<script
@@ -348,7 +348,7 @@ var html_lines = [
                ];
     """
     self.AssertStringEquals(self.GetGeneratedJs(html),
-                      expected_js)
+                            expected_js)
 
   def testGenerateJsForD8RunnerImportComplex(self):
     html = """<!DOCTYPE html>
@@ -417,12 +417,12 @@ loadHTML('/base/this_is_line_28.html');
 
     generated_js = self.GetGeneratedJs(html)
     self.AssertStringEquals(
-      _GetLineNumberOfSubstring(generated_js, '// line number of this is 9'),
-      9)
+        _GetLineNumberOfSubstring(generated_js, '// line number of this is 9'),
+        9)
     self.AssertStringEquals(
-      _GetLineNumberOfSubstring(generated_js, '// line number of this is 21'),
-      21)
+        _GetLineNumberOfSubstring(generated_js, '// line number of this is 21'),
+        21)
     self.AssertStringEquals(
-      _GetLineNumberOfSubstring(generated_js, 'this_is_line_28.html'),
-      28)
+        _GetLineNumberOfSubstring(generated_js, 'this_is_line_28.html'),
+        28)
     self.AssertStringEquals(generated_js, expected_js)

@@ -4,6 +4,7 @@
 
 import sys
 
+
 def RunChecks(input_api, output_api):
   results = []
   from tracing.build import check_gypi
@@ -21,6 +22,7 @@ def RunChecks(input_api, output_api):
 
   return map(output_api.PresubmitError, results)
 
+
 def CheckChange(input_api, output_api):
   original_sys_path = sys.path
   try:
@@ -29,8 +31,10 @@ def CheckChange(input_api, output_api):
   finally:
     sys.path = original_sys_path
 
+
 def CheckChangeOnUpload(input_api, output_api):
   return CheckChange(input_api, output_api)
+
 
 def CheckChangeOnCommit(input_api, output_api):
   return CheckChange(input_api, output_api)

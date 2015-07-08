@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 
 import os
-import sys
 import re
 
 from tracing import tracing_project
+
 
 class JSChecker(object):
 
@@ -47,7 +47,7 @@ class JSChecker(object):
       return ''
 
     return self.RegexCheck(i, line, r'(?:^|\s|\()(const)\s',
-        'Use var instead of const.')
+                           'Use var instead of const.')
 
   def error_highlight(self, start, length):
     """Takes a start position and a length, and produces a row of '^'s to
