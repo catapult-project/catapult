@@ -222,6 +222,13 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
+    toArray: function() {
+      var ary = [];
+      for (var i = 0; i < this.length; i++)
+        ary.push(this[i]);
+      return ary;
+    },
+
     forEach: function(fn, opt_this) {
       for (var i = 0; i < this.length; i++)
         fn.call(opt_this, this[i], i);

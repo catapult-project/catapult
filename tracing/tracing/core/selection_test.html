@@ -184,5 +184,14 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(res.equals(new tr.model.EventSet([m.s0])));
   });
 
+  test('toArray', function() {
+     var samples = [
+       {guid: 1},
+       {guid: 2}
+     ];
+     var eventSet = new tr.model.EventSet(samples);
+
+     assert.deepEqual(eventSet.toArray(), samples);
+   });
 });
 </script>

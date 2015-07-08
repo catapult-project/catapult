@@ -32,13 +32,9 @@ found in the LICENSE file.
       },
 
       analyzeCounterSamples_: function(results, allSamples) {
-        var samplesByCounter = {};
-        for (var i = 0; i < allSamples.length; i++) {
-          var ctr = allSamples[i].series.counter;
-          if (!samplesByCounter[ctr.guid])
-            samplesByCounter[ctr.guid] = [];
-          samplesByCounter[ctr.guid].push(allSamples[i]);
-        }
+        var samplesByCounter = tr.b.group(allSamples.toArray(), function(smpl) {
+          return smpl.series.counter.guid;
+        });
 
         for (var guid in samplesByCounter) {
           var samples = samplesByCounter[guid];
