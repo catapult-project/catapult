@@ -1,7 +1,6 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 import unittest
 import StringIO
 
@@ -32,18 +31,18 @@ class GenerateTests(unittest.TestCase):
 """)
 
     self.project = project_module.Project(
-        [os.sep + 'x'])
+        ['/x'])
 
   def testJSGeneration(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.join('foo', 'my_module.html')])
+          ['foo/my_module.html'])
       res = generate.GenerateJS(load_sequence)
 
   def testHTMLGeneration(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.join('foo', 'my_module.html')])
+          ['foo/my_module.html'])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
 
@@ -51,7 +50,7 @@ class GenerateTests(unittest.TestCase):
   def testExtraScriptWithWriteContentsFunc(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.join('foo', 'my_module.html')])
+          ['foo/my_module.html'])
 
       class ExtraScript(generate.ExtraScript):
         def WriteToFile(self, f):
