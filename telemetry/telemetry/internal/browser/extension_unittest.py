@@ -9,6 +9,7 @@ import tempfile
 import unittest
 
 from telemetry.core import util
+from telemetry.decorators import Disabled
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import extension_to_load
 from telemetry.testing import options_for_unittests
@@ -183,6 +184,9 @@ class ComponentExtensionTest(unittest.TestCase):
 
 
 class WebviewInExtensionTest(ExtensionTest):
+
+  # Flaky on windows, hits an exception: http://crbug.com/508325
+  @Disabled('win')
   def testWebviewInExtension(self):
     """Tests GetWebviewContext() for a web app containing <webview> element."""
     if not self.CreateBrowserWithExtension('webview_app'):
