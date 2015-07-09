@@ -64,7 +64,7 @@ class SharedPageState(story.SharedState):
     if not device_type and _IsPageSetInstance(story_set):
       device_type = story_set.user_agent_type
     _PrepareFinderOptions(finder_options, self._test, device_type)
-    self.browser = None
+    self._browser = None
     self._finder_options = finder_options
     self._possible_browser = self._GetPossibleBrowser(
         self._test, finder_options)
@@ -78,6 +78,10 @@ class SharedPageState(story.SharedState):
 
     self._pregenerated_profile_archive = None
     self._test.SetOptions(self._finder_options)
+
+  @property
+  def browser(self):
+    return self._browser
 
   def _GetPossibleBrowser(self, test, finder_options):
     """Return a possible_browser with the given options. """
@@ -146,6 +150,47 @@ class SharedPageState(story.SharedState):
         archive_path, wpr_mode, browser_options.netsim,
         browser_options.extra_wpr_args, make_javascript_deterministic)
 
+  def _StartBrowser(self, page):
+    assert self._browser is None
+    self._test.CustomizeBrowserOptionsForSinglePage(
+        page, self._finder_options)
+    self._possible_browser.SetCredentialsPath(page.credentials_path)
+
+    self._test.WillStartBrowser(self.platform)
+    self._browser = self._possible_browser.Create(self._finder_options)
+    self._test.DidStartBrowser(self.browser)
+
+    if self._first_browser:
+      self._first_browser = False
+      self.browser.credentials.WarnIfMissingCredentials(page)
+      logging.info('OS: %s %s',
+                   self.platform.GetOSName(),
+                   self.platform.GetOSVersionName())
+      if self.browser.supports_system_info:
+        system_info = self.browser.GetSystemInfo()
+        if system_info.model_name:
+          logging.info('Model: %s', system_info.model_name)
+        if system_info.gpu:
+          for i, device in enumerate(system_info.gpu.devices):
+            logging.info('GPU device %d: %s', i, device)
+          if system_info.gpu.aux_attributes:
+            logging.info('GPU Attributes:')
+            for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
+              logging.info('  %-20s: %s', k, v)
+          if system_info.gpu.feature_status:
+            logging.info('Feature Status:')
+            for k, v in sorted(system_info.gpu.feature_status.iteritems()):
+              logging.info('  %-20s: %s', k, v)
+          if system_info.gpu.driver_bug_workarounds:
+            logging.info('Driver Bug Workarounds:')
+            for workaround in system_info.gpu.driver_bug_workarounds:
+              logging.info('  %s', workaround)
+        else:
+          logging.info('No GPU devices')
+      else:
+        logging.warning('System info not supported')
+
+
   def WillRunStory(self, page):
     if self._ShouldDownloadPregeneratedProfileArchive():
       self._DownloadPregeneratedProfileArchive()
@@ -163,44 +208,7 @@ class SharedPageState(story.SharedState):
       self.browser.credentials.credentials_path = page.credentials_path
       self.platform.network_controller.UpdateReplayForExistingBrowser()
     else:
-      self._test.CustomizeBrowserOptionsForSinglePage(
-          page, self._finder_options)
-      self._possible_browser.SetCredentialsPath(page.credentials_path)
-
-      self._test.WillStartBrowser(self.platform)
-      self.browser = self._possible_browser.Create(self._finder_options)
-      self._test.DidStartBrowser(self.browser)
-
-      if self._first_browser:
-        self._first_browser = False
-        self.browser.credentials.WarnIfMissingCredentials(page)
-        logging.info('OS: %s %s',
-                     self.platform.GetOSName(),
-                     self.platform.GetOSVersionName())
-        if self.browser.supports_system_info:
-          system_info = self.browser.GetSystemInfo()
-          if system_info.model_name:
-            logging.info('Model: %s', system_info.model_name)
-          if system_info.gpu:
-            for i, device in enumerate(system_info.gpu.devices):
-              logging.info('GPU device %d: %s', i, device)
-            if system_info.gpu.aux_attributes:
-              logging.info('GPU Attributes:')
-              for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
-                logging.info('  %-20s: %s', k, v)
-            if system_info.gpu.feature_status:
-              logging.info('Feature Status:')
-              for k, v in sorted(system_info.gpu.feature_status.iteritems()):
-                logging.info('  %-20s: %s', k, v)
-            if system_info.gpu.driver_bug_workarounds:
-              logging.info('Driver Bug Workarounds:')
-              for workaround in system_info.gpu.driver_bug_workarounds:
-                logging.info('  %s', workaround)
-          else:
-            logging.info('No GPU devices')
-        else:
-          logging.warning('System info not supported')
-
+      self._StartBrowser(page)
     if self.browser.supports_tab_control and self._test.close_tabs_before_run:
       # Create a tab if there's none.
       if len(self.browser.tabs) == 0:
@@ -297,9 +305,9 @@ class SharedPageState(story.SharedState):
     self._StopBrowser()
 
   def _StopBrowser(self):
-    if self.browser:
-      self.browser.Close()
-      self.browser = None
+    if self._browser:
+      self._browser.Close()
+      self._browser = None
 
       # Restarting the state will also restart the wpr server. If we're
       # recording, we need to continue adding into the same wpr archive,
