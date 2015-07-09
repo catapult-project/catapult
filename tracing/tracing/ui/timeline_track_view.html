@@ -64,8 +64,12 @@ found in the LICENSE file.
     }
     </style>
     <content></content>
+
     <div id='drag_box'></div>
     <div id='hint_text'></div>
+
+    <tv-ui-b-hotkey-controller id='hotkey_controller'>
+    </tv-ui-b-hotkey-controller>
   </template>
 
   <script>
@@ -343,23 +347,17 @@ found in the LICENSE file.
     },
 
     addHotKeys_: function() {
-      var hkc = document.createElement('tv-ui-b-hotkey-controller');
-      this.appendChild(hkc);
-      this.hotkeyController_ = hkc;
-
       this.addKeyDownHotKeys_();
       this.addKeyPressHotKeys_();
     },
 
     addKeyPressHotKeys_: function() {
-      var hkc = this.hotkeyController_;
-
       var addBinding = function(dict) {
         dict.eventType = 'keypress';
         dict.useCapture = false;
         dict.thisArg = this;
         var binding = new tr.ui.b.HotKey(dict);
-        hkc.addHotKey(binding);
+        this.$.hotkey_controller.addHotKey(binding);
       }.bind(this);
 
       addBinding({
@@ -480,14 +478,12 @@ found in the LICENSE file.
     },
 
     addKeyDownHotKeys_: function() {
-      var hkc = this.hotkeyController_;
-
       var addBinding = function(dict) {
         dict.eventType = 'keydown';
         dict.useCapture = false;
         dict.thisArg = this;
         var binding = new tr.ui.b.HotKey(dict);
-        hkc.addHotKey(binding);
+        this.$.hotkey_controller.addHotKey(binding);
       }.bind(this);
 
       addBinding({
@@ -897,7 +893,7 @@ found in the LICENSE file.
     },
 
     focusElements_: function() {
-      this.hotkeyController_.childRequestsGeneralFocus(this);
+      this.$.hotkey_controller.childRequestsGeneralFocus(this);
     },
 
     storeInitialInteractionPositionsAndFocus_: function(e) {
