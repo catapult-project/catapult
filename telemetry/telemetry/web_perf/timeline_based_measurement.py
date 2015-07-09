@@ -142,29 +142,36 @@ class Options(object):
         one of NO_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL or
         DEBUG_OVERHEAD_LEVEL.
     """
-    if (not isinstance(overhead_level,
-                       tracing_category_filter.TracingCategoryFilter) and
-        overhead_level not in ALL_OVERHEAD_LEVELS):
+    self._category_filter = None
+    if isinstance(overhead_level,
+                  tracing_category_filter.TracingCategoryFilter):
+      self._category_filter = overhead_level
+    elif overhead_level in ALL_OVERHEAD_LEVELS:
+      if overhead_level == NO_OVERHEAD_LEVEL:
+        self._category_filter = tracing_category_filter.CreateNoOverheadFilter()
+      elif overhead_level == MINIMAL_OVERHEAD_LEVEL:
+        self._category_filter = (
+          tracing_category_filter.CreateMinimalOverheadFilter())
+      else:
+        self._category_filter = (
+          tracing_category_filter.CreateDebugOverheadFilter())
+    else:
       raise Exception("Overhead level must be a TracingCategoryFilter object"
                       " or valid overhead level string."
                       " Given overhead level: %s" % overhead_level)
 
-    self._overhead_level = overhead_level
-    self._extra_category_filters = []
     self._tracing_options = tracing_options.TracingOptions()
     self._tracing_options.enable_chrome_trace = True
     self._tracing_options.enable_platform_display_trace = True
 
-  def ExtendTraceCategoryFilters(self, filters):
-    self._extra_category_filters.extend(filters)
+
+  def ExtendTraceCategoryFilter(self, filters):
+    for new_category_filter in filters:
+      self._category_filter.AddIncludedCategory(new_category_filter)
 
   @property
-  def extra_category_filters(self):
-    return self._extra_category_filters
-
-  @property
-  def overhead_level(self):
-    return self._overhead_level
+  def category_filter(self):
+    return self._category_filter
 
   @property
   def tracing_options(self):
@@ -221,23 +228,7 @@ class TimelineBasedMeasurement(object):
     if not tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
 
-    if isinstance(self._tbm_options.overhead_level,
-                  tracing_category_filter.TracingCategoryFilter):
-      category_filter = self._tbm_options.overhead_level
-    else:
-      assert self._tbm_options.overhead_level in ALL_OVERHEAD_LEVELS, (
-          "Invalid TBM Overhead Level: %s" % self._tbm_options.overhead_level)
-
-      if self._tbm_options.overhead_level == NO_OVERHEAD_LEVEL:
-        category_filter = tracing_category_filter.CreateNoOverheadFilter()
-      elif self._tbm_options.overhead_level == MINIMAL_OVERHEAD_LEVEL:
-        category_filter = tracing_category_filter.CreateMinimalOverheadFilter()
-      else:
-        category_filter = tracing_category_filter.CreateDebugOverheadFilter()
-
-    for new_category_filter in self._tbm_options.extra_category_filters:
-      category_filter.AddIncludedCategory(new_category_filter)
-
+    category_filter = self._tbm_options.category_filter
     # TODO(slamm): Move synthetic_delay_categories to the TBM options.
     for delay in synthetic_delay_categories or []:
       category_filter.AddSyntheticDelay(delay)
