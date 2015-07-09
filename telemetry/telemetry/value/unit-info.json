@@ -31,6 +31,10 @@
     "improvement_direction": "down",
     "why": "Processes"
   },
+  "coverage%": {
+    "improvement_direction": "up",
+    "why": "Used in alloy-perf-test/cts%/passed."
+  },
   "dB": {
     "improvement_direction": "up",
     "why": "Decibels peak signal-to-noise ratio. Used by WebRTC quality tests."
@@ -141,13 +145,13 @@
   "ObjectsAt30FPS": {
     "improvement_direction": "up"
   },
+  "packets": {
+    "improvement_direction": "down",
+    "why": "Monitors how many packets we use to accomplish something."
+  },
   "percent": {
     "improvement_direction": "down",
     "why": "Synonym for %, used in memory metric for percent fragmentation."
-  },
-  "coverage%": {
-    "improvement_direction": "up",
-    "why": "Used in alloy-perf-test/cts%/passed."
   },
   "points": {
     "improvement_direction": "up",
