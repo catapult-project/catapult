@@ -12,6 +12,8 @@ import collections
 import json
 import logging
 
+from telemetry.core import exceptions
+
 BROWSER_HISTOGRAM = 'browser_histogram'
 RENDERER_HISTOGRAM = 'renderer_histogram'
 
@@ -107,9 +109,13 @@ def GetHistogram(histogram_type, histogram_name, tab):
   function = 'getHistogram'
   if histogram_type == BROWSER_HISTOGRAM:
     function = 'getBrowserHistogram'
-  histogram_json = tab.EvaluateJavaScript(
-      'statsCollectionController.%s("%s")' %
-      (function, histogram_name))
+  try:
+    histogram_json = tab.EvaluateJavaScript(
+        'statsCollectionController.%s("%s")' %
+        (function, histogram_name))
+  except exceptions.EvaluateException:
+    # Sometimes JavaScript flakily fails to execute: http://crbug.com/508431
+    histogram_json = None
   if histogram_json:
     return histogram_json
   return None
