@@ -11,6 +11,7 @@ import sys
 import traceback
 
 from catapult_base import cloud_storage
+from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run
 from telemetry import value as value_module
@@ -200,7 +201,6 @@ class PageTestResults(object):
     self._progress_reporter.DidFinishAllTests(self)
 
     # Only serialize the trace if output_format is json.
-    from telemetry.internal.results import json_output_formatter
     if (self._output_dir and
         any(isinstance(o, json_output_formatter.JsonOutputFormatter)
             for o in self._output_formatters)):
