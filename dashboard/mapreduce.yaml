@@ -1,0 +1,22 @@
+# Mapreduce jobs to run using /mapreduce
+# https://code.google.com/p/appengine-mapreduce/wiki/GettingStartedInPython
+
+mapreduce:
+
+- name: Update test deprecation status.
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: dashboard.mr.DeprecateTestsMapper
+    params:
+    - name: entity_kind
+      default: dashboard.models.graph_data.Test
+    - name: filter
+      value: has_rows=True
+
+- name: Save all entities of a kind.
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: dashboard.mr.SaveAllMapper
+    params:
+    - name: entity_kind
+      default: dashboard.models.graph_data.Test

@@ -23,6 +23,10 @@ inbound_services:
 - warmup
 
 handlers:
+- url: /mapreduce(/.*)?
+  script: mapreduce.main.APP
+  login: admin
+
 - url: /_ah/dev_console(/.*)?
   script: google.appengine.ext.admin.application
   login: admin
@@ -36,13 +40,11 @@ handlers:
   static_dir: dashboard/static/
   secure: always
 
-# Dashboard-specific web components.
 - url: /dashboard/elements/(.*\.html)$
   static_files: dashboard/elements/\1
   upload: dashboard/elements/.*\.html$
   secure: always
 
-# Web components provided by the polymer-project.org.
 - url: /third_party/polymer/components/(.*)/(.*\.(html|js|css))$
   static_files: third_party/polymer/components/\1/\2
   upload: third_party/polymer/components/.*/.*\.(html|js|css)$

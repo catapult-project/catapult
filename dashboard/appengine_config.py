@@ -15,19 +15,10 @@ import sys
 
 from google.appengine.ext import vendor
 
+import dashboard
+
 # The path to the symlink to the third_party directory.
 _THIRD_PARTY_LINK = os.path.join(os.path.dirname(__file__), 'third_party')
-
-# Third-party library directories inside the third_party directory.
-_THIRD_PARTY_LIBRARIES = [
-    'beautifulsoup4',
-    'google-api-python-client-1.4.0',
-    'mock-1.0.1',
-    'oauth2client-1.4.11',
-    'six-1.9.0',
-    'uritemplate-0.6',
-    'webtest',
-]
 
 
 def _AddThirdPartyLibraries():
@@ -42,7 +33,7 @@ def _AddThirdPartyLibraries():
   if os.name == 'nt':
     logging.error('Can not use the symlink to ../third_party on Windows.')
     return
-  for library_dir in _THIRD_PARTY_LIBRARIES:
+  for library_dir in dashboard.THIRD_PARTY_LIBRARIES:
     vendor.add(os.path.join(_THIRD_PARTY_LINK, library_dir))
 
 

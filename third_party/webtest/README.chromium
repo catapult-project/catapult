@@ -5,8 +5,10 @@ License: MIT
 
 Description:
 This wraps any WSGI application and makes it easy to send test requests
-to that application, without starting up an HTTP server.
+to that application, without starting up an HTTP server. It is used in
+perf dashboard unit tests.
+
+It depends on the library "six".
 
 Local Modifications:
-Removed everything except for the webtest directory
-(including setup script and documentation).
+Removed everything except for webtest/.
