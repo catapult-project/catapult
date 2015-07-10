@@ -29,6 +29,7 @@ tr.exportTo('tr.model', function() {
     tr.model.EventContainer.call(this);
 
     this.guid = tr.b.GUID.allocate();
+    this.vSyncTimestamps_ = [];
   };
 
   Device.compare = function(x, y) {
@@ -62,13 +63,22 @@ tr.exportTo('tr.model', function() {
       return {};
     },
 
+    get vSyncTimestamps() {
+      return this.vSyncTimestamps_;
+    },
+
+    set vSyncTimestamps(value) {
+      this.vSyncTimestamps_ = value;
+    },
+
     updateBounds: function() {
       this.bounds.reset();
       // TODO(charliea): Update and add bounds for all children counters
     },
 
     shiftTimestampsForward: function(amount) {
-      // TODO(charliea): Shift timestamps for all children
+      for (var i = 0; i < this.vSyncTimestamps_.length; i++)
+        this.vSyncTimestamps_[i] += amount;
     },
 
     addCategoriesToDict: function(categoriesDict) {
