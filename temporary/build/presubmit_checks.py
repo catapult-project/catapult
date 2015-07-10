@@ -45,7 +45,7 @@ def _FindNewViolationsOfRule(callable_rule, input_api,
     if input_api.IsIgnoredFile(f):
       continue
 
-    for line_num, line in f.changed_lines:
+    for line_num, line in f.ChangedContents():
       if not callable_rule(extension, line):
         errors.append(error_formatter(f.LocalPath(), line_num, line))
 
