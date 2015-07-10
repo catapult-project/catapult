@@ -124,17 +124,6 @@ class PageTest(object):
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""
 
-  def CustomizeBrowserOptionsForSinglePage(self, page, options):
-    """Set options specific to the test and the given page.
-
-    This will be called with the current page when the browser is (re)started.
-    Changing options at this point only makes sense if the browser is being
-    restarted for each page. Note that if page has a startup_url, the browser
-    will always be restarted for each run.
-    """
-    if page.startup_url:
-      options.browser_options.startup_url = page.startup_url
-
   def WillStartBrowser(self, platform):
     """Override to manipulate the browser environment before it launches."""
 

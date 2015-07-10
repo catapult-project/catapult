@@ -152,8 +152,6 @@ class SharedPageState(story.SharedState):
 
   def _StartBrowser(self, page):
     assert self._browser is None
-    self._test.CustomizeBrowserOptionsForSinglePage(
-        page, self._finder_options)
     self._possible_browser.SetCredentialsPath(page.credentials_path)
 
     self._test.WillStartBrowser(self.platform)

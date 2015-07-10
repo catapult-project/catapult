@@ -388,25 +388,24 @@ class PageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(test, story_set, expectations, options, results)
 
   def testRunPageWithStartupUrl(self):
+    num_times_browser_closed = [0]
+    class TestSharedState(shared_page_state.SharedPageState):
+      def _StopBrowser(self):
+        super(TestSharedState, self)._StopBrowser()
+        num_times_browser_closed[0] += 1
     story_set = story.StorySet()
-    expectations = test_expectations.TestExpectations()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-        startup_url='about:blank')
+        startup_url='about:blank', shared_page_state_class=TestSharedState)
     story_set.AddStory(page)
 
     class Measurement(page_test.PageTest):
       def __init__(self):
         super(Measurement, self).__init__()
-        self.browser_restarted = False
 
-      def CustomizeBrowserOptionsForSinglePage(self, story_set, options):
-        self.browser_restarted = True
-        super(Measurement, self).CustomizeBrowserOptionsForSinglePage(story_set,
-                                                                      options)
       def ValidateAndMeasurePage(self, page, tab, results):
-        pass
+        del page, tab, results  # not used
 
     options = options_for_unittests.GetCopy()
     options.page_repeat = 2
@@ -419,7 +418,9 @@ class PageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, expectations, options, results)
     self.assertEquals('about:blank', options.browser_options.startup_url)
-    self.assertTrue(test.browser_restarted)
+    # _StopBrowser should be called 3 times: after browser restarts, after page
+    # 2 has run and in the TearDownState after all the pages have run.
+    self.assertEquals(num_times_browser_closed[0], 3)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
