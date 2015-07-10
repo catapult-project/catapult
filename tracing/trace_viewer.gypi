@@ -114,6 +114,7 @@
       'tracing/extras/importer/gzip_importer.html',
       'tracing/extras/importer/jszip.html',
       'tracing/extras/importer/linux_perf/android_parser.html',
+      'tracing/extras/importer/linux_perf/binder_parser.html',
       'tracing/extras/importer/linux_perf/bus_parser.html',
       'tracing/extras/importer/linux_perf/clock_parser.html',
       'tracing/extras/importer/linux_perf/cpufreq_parser.html',
