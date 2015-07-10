@@ -12,6 +12,8 @@ import unittest
 from tracing.build import d8_runner
 
 
+@unittest.skipIf(sys.platform.startswith('win'),
+                 'd8 not yet supported on Windows.')
 class D8RunnerUnittest(unittest.TestCase):
 
   @classmethod
@@ -223,6 +225,8 @@ def _GenerateLineByLineDiff(actual, expected):
   return '\n'.join(results)
 
 
+@unittest.skipIf(sys.platform.startswith('win'),
+                 'd8 not yet supported on Windows.')
 class HTMLGeneratorTest(unittest.TestCase):
 
   def AssertStringEquals(self, actual, expected):
