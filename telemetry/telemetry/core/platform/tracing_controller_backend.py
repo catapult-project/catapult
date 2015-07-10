@@ -7,10 +7,10 @@ import os
 from telemetry.core import discover
 from telemetry.core.platform import tracing_agent
 from telemetry.core.platform.tracing_agent import chrome_tracing_agent
-from telemetry.core.platform import tracing_category_filter
-from telemetry.core.platform import tracing_options
 from telemetry.core import util
 from telemetry.timeline import trace_data as trace_data_module
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_options
 
 
 def _IterAllTracingAgentClasses():

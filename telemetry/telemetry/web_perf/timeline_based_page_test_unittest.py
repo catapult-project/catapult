@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform import tracing_category_filter
 from telemetry import decorators
 from telemetry.page import page as page_module
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
+from telemetry.timeline import tracing_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf import timeline_based_page_test as tbpt_module

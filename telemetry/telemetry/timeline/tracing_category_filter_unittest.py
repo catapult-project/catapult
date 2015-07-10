@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.core.platform import tracing_category_filter
+from telemetry.timeline import tracing_category_filter
 
 
 class TracingCategoryFilterTests(unittest.TestCase):

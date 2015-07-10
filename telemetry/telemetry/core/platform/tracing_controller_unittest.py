@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform import tracing_category_filter
-from telemetry.core.platform import tracing_options
 from telemetry import decorators
 from telemetry.testing import tab_test_case
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_options
 
 class TracingControllerTest(tab_test_case.TabTestCase):
 

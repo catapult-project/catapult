@@ -4,14 +4,14 @@
 import time
 import unittest
 
-from telemetry.core.platform import tracing_category_filter
-from telemetry.core.platform import tracing_options
 from telemetry import decorators
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.testing import page_test_test_case
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_options
 from telemetry.web_perf import smooth_gesture_util as sg_util
 from telemetry.web_perf import timeline_interaction_record as tir_module
 

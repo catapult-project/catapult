@@ -7,8 +7,8 @@ import StringIO
 import zipfile
 
 from telemetry.core.platform import profiler
-from telemetry.core.platform import tracing_options
 from telemetry.timeline import trace_data as trace_data_module
+from telemetry.timeline import tracing_options
 
 
 class TraceProfiler(profiler.Profiler):
