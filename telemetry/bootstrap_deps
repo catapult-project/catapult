@@ -14,5 +14,4 @@ deps = {
     "src/third_party/chromite/ssh_keys": "",
     "src/third_party/webpagereplay": "",
     "src/third_party/trace-viewer": "",
-    "src/third_party/typ": "",
 }

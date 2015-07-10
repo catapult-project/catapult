@@ -26,8 +26,7 @@ def _CommonChecks(input_api, output_api):
 
 def GetPathsToPrepend(input_api):
   return [input_api.PresubmitLocalPath(),
-          os.path.join(input_api.PresubmitLocalPath(), os.path.pardir,
-                       os.path.pardir, 'third_party', 'typ')]
+          os.path.join(input_api.PresubmitLocalPath(), 'third_party', 'typ')]
 
 def RunWithPrependedPath(prepended_path, fn, *args):
   old_path = sys.path
