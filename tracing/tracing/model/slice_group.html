@@ -41,6 +41,7 @@ tr.exportTo('tr.model', function() {
    * @extends {tr.model.EventContainer}
    */
   function SliceGroup(parentContainer, opt_sliceConstructor, opt_name) {
+    tr.model.EventContainer.call(this);
     this.guid_ = tr.b.GUID.allocate();
 
     this.parentContainer_ = parentContainer;
@@ -51,7 +52,6 @@ tr.exportTo('tr.model', function() {
     this.openPartialSlices_ = [];
 
     this.slices = [];
-    this.bounds = new tr.b.Range();
     this.topLevelSlices = [];
     this.haveTopLevelSlicesBeenBuilt = false;
     this.name_ = opt_name;

@@ -31,7 +31,6 @@ tr.exportTo('tr.model', function() {
   function ObjectCollection(parent) {
     tr.model.EventContainer.call(this);
     this.parent = parent;
-    this.bounds = new tr.b.Range();
     this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
     this.instancesByTypeName_ = {};
     this.createObjectInstance_ = this.createObjectInstance_.bind(this);

@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/model/async_slice.html">
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
+<link rel="import" href="/model/async_slice.html">
+<link rel="import" href="/model/event_container.html">
 
 <script>
 'use strict';
@@ -22,10 +23,10 @@ tr.exportTo('tr.model', function() {
    * @extends {tr.model.EventContainer}
    */
   function AsyncSliceGroup(parentContainer, opt_name) {
+    tr.model.EventContainer.call(this);
     this.parentContainer_ = parentContainer;
     this.guid_ = tr.b.GUID.allocate();
     this.slices = [];
-    this.bounds = new tr.b.Range();
     this.name_ = opt_name;
     this.viewSubGroups_ = undefined;
   }

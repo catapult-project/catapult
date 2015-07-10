@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/base/base.html">
+<link rel="import" href="/base/range.html">
 
 <script>
 'use strict';
@@ -15,11 +16,15 @@ tr.exportTo('tr.model', function() {
   /**
    * EventContainer is a base class for any class in the trace model that
    * contains child events or child EventContainers.
+   *
+   * For all EventContainers, updateBounds() must be called after modifying the
+   * container's events if an up-to-date bounds is expected.
+   *
    * @constructor
    */
   function EventContainer() {
     this.important = true;
-    this.bounds = undefined;
+    this.bounds_ = new tr.b.Range();
   }
 
   EventContainer.prototype = {
@@ -32,6 +37,14 @@ tr.exportTo('tr.model', function() {
      */
     get stableId() {
       throw new Error('Not implemented');
+    },
+
+    /**
+     * Returns the bounds of the event container, which describe the range
+     * of timestamps for all ancestor events.
+     */
+    get bounds() {
+      return this.bounds_;
     },
 
     // TODO(charliea): A default implementation of this method could likely be
