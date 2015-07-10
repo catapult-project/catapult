@@ -104,7 +104,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     super(WinPlatformBackend, self).__init__()
     self._msr_server_handle = None
     self._msr_server_port = None
-    self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
+    self._power_monitor = msr_power_monitor.MsrPowerMonitorWin(self)
 
   @classmethod
   def IsPlatformBackendForHost(cls):

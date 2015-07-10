@@ -15,7 +15,7 @@ class MsrPowerMonitorTest(unittest.TestCase):
   @decorators.Enabled('xp', 'win7', 'win8')  # http://crbug.com/479337
   def testMsrRuns(self):
     platform_backend = win_platform_backend.WinPlatformBackend()
-    power_monitor = msr_power_monitor.MsrPowerMonitor(platform_backend)
+    power_monitor = msr_power_monitor.MsrPowerMonitorWin(platform_backend)
     if not power_monitor.CanMonitorPower():
       logging.warning('Test not supported on this platform.')
       return

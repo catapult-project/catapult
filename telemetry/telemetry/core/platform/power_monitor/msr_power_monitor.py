@@ -31,26 +31,6 @@ def _IsSandyBridgeOrLater(vendor, family, model):
           (model in (0x2A, 0x2D) or model >= 0x30))
 
 
-def _LinuxCheckCPU():
-  vendor = None
-  family = None
-  model = None
-  cpuinfo = open('/proc/cpuinfo').read().splitlines()
-  for line in cpuinfo:
-    if vendor and family and model:
-      break
-    if line.startswith('vendor_id'):
-      vendor = line.split('\t')[1]
-    elif line.startswith('cpu family'):
-      family = int(line.split(' ')[2])
-    elif line.startswith('model\t\t'):
-      model = int(line.split(' ')[1])
-  if not _IsSandyBridgeOrLater(vendor, family, model):
-    logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
-    return False
-  return True
-
-
 class MsrPowerMonitor(power_monitor.PowerMonitor):
   def __init__(self, backend):
     super(MsrPowerMonitor, self).__init__()
@@ -59,11 +39,7 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     self._start_temp_c = None
 
   def CanMonitorPower(self):
-    if self._backend.GetOSName() == 'win':
-      return self._WinCanMonitorPower()
-    elif self._backend.GetOSName() == 'linux':
-      return self._LinuxCanMonitorPower()
-    return False
+    raise NotImplementedError()
 
   def StartMonitoringPower(self, browser):
     assert self._start_energy_j is None and self._start_temp_c is None, (
@@ -124,7 +100,31 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
       return False
     return True
 
-  def _WinCanMonitorPower(self):
+
+class MsrPowerMonitorLinux(MsrPowerMonitor):
+  def CanMonitorPower(self):
+    vendor = None
+    family = None
+    model = None
+    cpuinfo = open('/proc/cpuinfo').read().splitlines()
+    for line in cpuinfo:
+      if vendor and family and model:
+        break
+      if line.startswith('vendor_id'):
+        vendor = line.split('\t')[1]
+      elif line.startswith('cpu family'):
+        family = int(line.split(' ')[2])
+      elif line.startswith('model\t\t'):
+        model = int(line.split(' ')[1])
+    if not _IsSandyBridgeOrLater(vendor, family, model):
+      logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
+      return False
+
+    return self._CheckMSRs()
+
+
+class MsrPowerMonitorWin(MsrPowerMonitor):
+  def CanMonitorPower(self):
     family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
                         platform.processor()).groups())
     if not _IsSandyBridgeOrLater(platform.processor(), family, model):
@@ -133,7 +133,7 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
 
     return self._CheckMSRs()
 
-  def _LinuxCanMonitorPower(self):
-    if not _LinuxCheckCPU():
-      return False
-    return self._CheckMSRs()
+  def StopMonitoringPower(self):
+    power_statistics = super(MsrPowerMonitorWin, self).StopMonitoringPower()
+    self._backend.CloseMsrServer()
+    return power_statistics

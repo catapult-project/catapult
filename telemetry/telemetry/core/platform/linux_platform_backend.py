@@ -29,7 +29,7 @@ class LinuxPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self):
     super(LinuxPlatformBackend, self).__init__()
-    self._power_monitor = msr_power_monitor.MsrPowerMonitor(self)
+    self._power_monitor = msr_power_monitor.MsrPowerMonitorLinux(self)
 
   @classmethod
   def IsPlatformBackendForHost(cls):
