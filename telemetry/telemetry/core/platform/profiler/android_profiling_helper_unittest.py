@@ -94,7 +94,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     super(TestAndroidProfilingHelperTabTestCase, self).setUp()
     # pylint: disable=W0212
     browser_backend = self._browser._browser_backend
-    self._device = browser_backend._adb.device()
+    self._device = browser_backend.device()
 
   @decorators.Enabled('android')
   def testCreateSymFs(self):
