@@ -19,7 +19,7 @@ class UpdateGypiTests(unittest.TestCase):
     self.assertEqual(3, len(gypi_files._tokens))
     self.assertEqual('plain', gypi_files._tokens[0].id)
     self.assertEqual(
-        "useless data\n'group1': [\ngi", gypi_files._tokens[0].data)
+        "useless data\n'group1': [\n", gypi_files._tokens[0].data)
     self.assertEqual('group1', gypi_files._tokens[1].id)
     self.assertEqual("    <file list goes here>\n", gypi_files._tokens[1].data)
     self.assertEqual('plain', gypi_files._tokens[2].id)
