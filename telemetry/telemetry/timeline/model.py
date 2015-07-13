@@ -13,7 +13,6 @@ from telemetry.timeline import async_slice as async_slice_module
 from telemetry.timeline import bounds
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
-from telemetry.timeline import memory_dump_event
 from telemetry.timeline import process as process_module
 from telemetry.timeline import slice as slice_module
 from telemetry.timeline import surface_flinger_importer
@@ -70,36 +69,20 @@ class TimelineModel(event_container.TimelineEventContainer):
     self.import_errors = []
     self.metadata = []
     self.flow_events = []
-    self._memory_dump_events = None
+    self._global_memory_dumps = None
     if trace_data is not None:
       self.ImportTraces(trace_data, shift_world_to_zero=shift_world_to_zero)
 
-  def SetMemoryDumpEvents(self, memory_dump_events):
-    """Populates the model with a sequence of MemoryDumpEvent objects."""
-    assert not self._frozen and self._memory_dump_events is None
-    # keep events sorted in cronological order
-    self._memory_dump_events = sorted(memory_dump_events,
-                                      key=lambda event: event.start)
+  def SetGlobalMemoryDumps(self, global_memory_dumps):
+    """Populates the model with a sequence of GlobalMemoryDump objects."""
+    assert not self._frozen and self._global_memory_dumps is None
+    # Keep dumps sorted in chronological order.
+    self._global_memory_dumps = tuple(sorted(global_memory_dumps,
+                                             key=lambda dump: dump.start))
 
-  def IterMemoryDumpEvents(self, reverse=False):
-    """Iterate over the memory dump events of this model.
-
-    Args:
-      reverse: A boolean indicating whether to yield events in reversed time
-          order. By default events are generated in chronological order.
-    """
-    if self._memory_dump_events is None:
-      return iter([]) # empty iterator
-    elif reverse:
-      return reversed(self._memory_dump_events)
-    else:
-      return iter(self._memory_dump_events)
-
-  def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
-    if event_type_predicate(memory_dump_event.MemoryDumpEvent):
-      for event in self.IterMemoryDumpEvents():
-        if event_predicate(event):
-          yield event
+  def IterGlobalMemoryDumps(self):
+    """Iterate over the memory dump events of this model."""
+    return iter(self._global_memory_dumps or [])
 
   def IterChildContainers(self):
     for process in self._processes.itervalues():

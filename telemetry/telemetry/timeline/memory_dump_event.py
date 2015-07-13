@@ -132,23 +132,27 @@ class MemoryBucket(object):
     return self._bucket[name]
 
 
-class ProcessMemoryDump(object):
-  """Object to classify and hold memory used by a single process.
+class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
+  """A memory dump event belonging to a single timeline.Process object.
+
+  It's a subclass of telemetry's TimelineEvent so it can be included in
+  the stream of events contained in timeline.model objects, and have its
+  timing correlated with that of other events in the model.
 
   Properties:
-    dump_id: A string to identifiy processes from the same global dump.
-    pid: An integer with the process id.
-    start_offset_ms: Time in ms when this dump was taken, typically represented
-        as an offset since the start of the global dump.
+    dump_id: A string to identify events belonging to the same global dump.
+    process: The timeline.Process object that owns this memory dump event.
     has_mmaps: True if the memory dump has mmaps information. If False then
         GetStatsSummary will report all zeros.
   """
-  def __init__(self, event):
-    assert event['ph'] == 'v'
+  def __init__(self, process, event):
+    assert event['ph'] == 'v' and process.pid == event['pid']
 
+    super(ProcessMemoryDumpEvent, self).__init__(
+        'memory', 'memory_dump', event['ts'] / 1000.0, 0.0)
+
+    self.process = process
     self.dump_id = event['id']
-    self.pid = event['pid']
-    self.start_offset_ms = event['ts'] / 1000.0
 
     try:
       allocators_dict = event['args']['dumps']['allocators']
@@ -180,6 +184,10 @@ class ProcessMemoryDump(object):
     self.has_mmaps = bool(vm_regions)
     for vm_region in vm_regions:
       self._AddRegion(vm_region)
+
+  @property
+  def process_name(self):
+    return self.process.name
 
   def _AddRegion(self, vm_region):
     path = ''
@@ -235,53 +243,47 @@ class ProcessMemoryDump(object):
             for name, allocator in self._allocators.iteritems()}
 
 
-class MemoryDumpEvent(timeline_event.TimelineEvent):
-  """Object to hold a global dump, a collection of individual process dumps.
-
-  It's a subclass of telemetry's TimelineEvent, so it can be included in
-  the stream of events yielded by timeline.model objects. A MemoryDumpEvent
-  aggregates dumps for all processes carrying the same dump id.
+class GlobalMemoryDump(object):
+  """Object to aggregate individual process dumps with the same dump id.
 
   Args:
-    events: A sequence of individual memory dump events for each process.
-        All must share the same global dump id.
+    process_dumps: A sequence of ProcessMemoryDumpEvent objects, all sharing
+        the same global dump id.
 
   Attributes:
     dump_id: A string identifying this dump.
-    process_dumps: A list of ProcessMemoryDump objects with the same dump_id.
     has_mmaps: True if the memory dump has mmaps information. If False then
         GetStatsSummary will report all zeros.
   """
-  def __init__(self, events):
-    assert events
-    self.process_dumps = [ProcessMemoryDump(event) for event in events]
+  def __init__(self, process_dumps):
+    assert process_dumps
+    # Keep dumps sorted in chronological order.
+    self._process_dumps = sorted(process_dumps, key=lambda dump: dump.start)
 
     # All process dump events should have the same dump id.
-    dump_ids = set(dump.dump_id for dump in self.process_dumps)
+    dump_ids = set(dump.dump_id for dump in self._process_dumps)
     assert len(dump_ids) == 1
     self.dump_id = dump_ids.pop()
 
-    # We should have exactly one process dump for each pid.
-    self.pids = set(dump.pid for dump in self.process_dumps)
-    assert len(self.process_dumps) == len(self.pids)
-
     # Either all processes have mmaps or none of them do.
-    has_mmaps = set(dump.has_mmaps for dump in self.process_dumps)
-    assert len(has_mmaps) == 1
-    self.has_mmaps = has_mmaps.pop()
+    have_mmaps = set(dump.has_mmaps for dump in self._process_dumps)
+    assert len(have_mmaps) == 1
+    self.has_mmaps = have_mmaps.pop()
 
-    # Sort individual dumps and offset them w.r.t. the start of the global dump.
-    self.process_dumps.sort(key=lambda dump: dump.start_offset_ms)
-    start = self.process_dumps[0].start_offset_ms
-    for dump in self.process_dumps:
-      dump.start_offset_ms -= start
+  @property
+  def start(self):
+    return self._process_dumps[0].start
 
-    # The duration of the event is the time difference between first and the
-    # last process dumps contained.
-    duration = self.process_dumps[-1].start_offset_ms
+  @property
+  def end(self):
+    return self._process_dumps[-1].start
 
-    super(MemoryDumpEvent, self).__init__(
-        'memory-infra', 'memory_dump', start, duration)
+  @property
+  def duration(self):
+    return self.end - self.start
+
+  def IterProcessMemoryDumps(self):
+    return iter(self._process_dumps)
 
   def __repr__(self):
     values = ['id=%s' % self.dump_id]
@@ -292,7 +294,7 @@ class MemoryDumpEvent(timeline_event.TimelineEvent):
 
   def _AggregateProcessStats(self, get_stats):
     result = {}
-    for dump in self.process_dumps:
+    for dump in self._process_dumps:
       for key, value in get_stats(dump).iteritems():
         result[key] = result.get(key, 0) + value
     return result

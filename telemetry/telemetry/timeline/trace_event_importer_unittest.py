@@ -1033,13 +1033,13 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
     trace_data = trace_data_module.TraceData(events)
     m = timeline_model.TimelineModel(trace_data)
-    memory_dump_events = list(m.IterMemoryDumpEvents())
-    self.assertEqual(len(expected), len(memory_dump_events))
-    for event, test_values in zip(memory_dump_events, expected):
+    memory_dumps = list(m.IterGlobalMemoryDumps())
+    self.assertEqual(len(expected), len(memory_dumps))
+    for memory_dump, test_values in zip(memory_dumps, expected):
       dump_id, start, duration = test_values
-      self.assertEquals(dump_id, event.dump_id)
-      self.assertAlmostEqual(start / 1000.0, event.start)
-      self.assertAlmostEqual(duration / 1000.0, event.duration)
+      self.assertEquals(dump_id, memory_dump.dump_id)
+      self.assertAlmostEqual(start / 1000.0, memory_dump.start)
+      self.assertAlmostEqual(duration / 1000.0, memory_dump.duration)
 
   def testImportOutOfOrderMemoryDumpEvents(self):
     events = [
@@ -1056,10 +1056,10 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
     trace_data = trace_data_module.TraceData(events)
     m = timeline_model.TimelineModel(trace_data)
-    memory_dump_events = list(m.IterMemoryDumpEvents())
-    self.assertEqual(len(expected), len(memory_dump_events))
-    for event, test_values in zip(memory_dump_events, expected):
+    memory_dumps = list(m.IterGlobalMemoryDumps())
+    self.assertEqual(len(expected), len(memory_dumps))
+    for memory_dump, test_values in zip(memory_dumps, expected):
       dump_id, start, duration = test_values
-      self.assertEquals(dump_id, event.dump_id)
-      self.assertAlmostEqual(start / 1000.0, event.start)
-      self.assertAlmostEqual(duration / 1000.0, event.duration)
+      self.assertEquals(dump_id, memory_dump.dump_id)
+      self.assertAlmostEqual(start / 1000.0, memory_dump.start)
+      self.assertAlmostEqual(duration / 1000.0, memory_dump.duration)

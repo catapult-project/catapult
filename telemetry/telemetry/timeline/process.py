@@ -6,6 +6,7 @@ import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.event as event_module
 import telemetry.timeline.event_container as event_container
 import telemetry.timeline.thread as tracing_thread
+from telemetry.timeline import memory_dump_event
 
 
 class Process(event_container.TimelineEventContainer):
@@ -17,6 +18,7 @@ class Process(event_container.TimelineEventContainer):
     self._threads = {}
     self._counters = {}
     self._trace_buffer_overflow_event = None
+    self._memory_dump_events = {}
 
   @property
   def trace_buffer_did_overflow(self):
@@ -41,12 +43,15 @@ class Process(event_container.TimelineEventContainer):
       yield counter
 
   def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
-    if (not self.trace_buffer_did_overflow or
-        not event_type_predicate(event_module.TimelineEvent) or
-        not event_predicate(self._trace_buffer_overflow_event)):
-      return
-      yield # pylint: disable=W0101
-    yield self._trace_buffer_overflow_event
+    if (self.trace_buffer_did_overflow and
+        event_type_predicate(event_module.TimelineEvent) and
+        event_predicate(self._trace_buffer_overflow_event)):
+      yield self._trace_buffer_overflow_event
+    if (self._memory_dump_events and
+        event_type_predicate(memory_dump_event.ProcessMemoryDumpEvent)):
+      for memory_dump in self._memory_dump_events.itervalues():
+        if event_predicate(memory_dump):
+          yield memory_dump
 
   def GetOrCreateThread(self, tid):
     thread = self.threads.get(tid, None)
@@ -79,6 +84,13 @@ class Process(event_container.TimelineEventContainer):
     # TODO: use instant event for trace_buffer_overflow_event
     self._trace_buffer_overflow_event = event_module.TimelineEvent(
         "TraceBufferInfo", "trace_buffer_overflowed", timestamp, 0)
+
+  def AddMemoryDumpEvent(self, memory_dump):
+    """Add a ProcessMemoryDumpEvent to this process."""
+    if memory_dump.dump_id in self._memory_dump_events:
+      raise ValueError('Duplicate memory dump id %s in process with id %s.' % (
+          memory_dump.dump_id, self.pid))
+    self._memory_dump_events[memory_dump.dump_id] = memory_dump
 
   def FinalizeImport(self):
     for thread in self._threads.itervalues():

@@ -2,11 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
 import unittest
 
 from telemetry.core import util
 from telemetry.internal.results import page_test_results
 from telemetry.page import page
+from telemetry.timeline import memory_dump_event
 from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf import timeline_interaction_record
 
@@ -14,17 +16,34 @@ util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
 import mock # pylint: disable=import-error
 
 
-def MockMemoryDump(start, end, stats):
-  memory_dump = mock.Mock()
-  memory_dump.start = start
-  memory_dump.end = end
-  memory_dump.has_mmaps = stats is not None
-  # As a shortcut, if stats are given as a single int value, we create a dict
-  # with all metrics mapping to that same value.
-  if stats is None or isinstance(stats, int):
-    stats = dict.fromkeys(memory_timeline.REPORTED_METRICS, stats or 0)
-  memory_dump.GetStatsSummary = mock.Mock(return_value=stats)
-  return memory_dump
+def MockProcessDumpEvent(dump_id, name, start, memory_usage):
+  process_dump = mock.Mock()
+  process_dump.dump_id = dump_id
+  process_dump.process_name = name
+  process_dump.start = start
+  if memory_usage is None:
+    process_dump.has_mmaps = False
+    memory_usage = {}
+  else:
+    process_dump.has_mmaps = True
+  if not isinstance(memory_usage, dict):
+    memory_usage = dict.fromkeys(memory_timeline.DEFAULT_METRICS, memory_usage)
+  process_dump.GetStatsSummary = mock.Mock(return_value=memory_usage)
+  return process_dump
+
+
+def MockTimelineModel(process_dumps):
+  dumps_by_id = collections.defaultdict(list)
+  for process_dump in process_dumps:
+    dumps_by_id[process_dump.dump_id].append(process_dump)
+
+  global_dumps = sorted((memory_dump_event.GlobalMemoryDump(dumps)
+                         for dumps in dumps_by_id.itervalues()),
+                        key=lambda dump: dump.start)
+
+  mock_model = mock.Mock()
+  mock_model.IterGlobalMemoryDumps = mock.Mock(return_value=global_dumps)
+  return mock_model
 
 
 def TestInteraction(start, end):
@@ -33,7 +52,7 @@ def TestInteraction(start, end):
 
 
 class MemoryTimelineMetricUnitTest(unittest.TestCase):
-  def getResultsDict(self, events, interactions):
+  def getResultsDict(self, model, interactions):
     def strip_prefix(key, prefix):
       self.assertTrue(key.startswith(prefix))
       return key[len(prefix):]
@@ -42,90 +61,78 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     test_page = page.Page('http://google.com')
     results.WillRunPage(test_page)
     metric = memory_timeline.MemoryTimelineMetric()
-    mock_model = mock.Mock()
-    mock_model.IterMemoryDumpEvents = mock.Mock(return_value=events)
-    metric.AddResults(mock_model, None, interactions, results)
-    result_dict = {strip_prefix(v.name, 'memory_'): v.values
+    metric.AddResults(model, None, interactions, results)
+    result_dict = {strip_prefix(v.name, 'memory_'): v.value
                    for v in results.current_page_run.values}
     results.DidRunPage(test_page)
-    # REPORTED_METRICS are exactly the ones reported
-    self.assertItemsEqual(memory_timeline.REPORTED_METRICS,
-                          result_dict.keys())
     return result_dict
 
-  def getMetricValues(self, events, interactions):
-    result_dict = self.getResultsDict(events, interactions)
-    # values for all metrics should be identical in this case
-    values = result_dict.popitem()[1]
-    for other_values in result_dict.itervalues():
-      self.assertEquals(values, other_values)
-    return values
+  def getOverallPssTotal(self, model, interactions):
+    return self.getResultsDict(
+        model, interactions).get('overall_pss_total')
 
   def testSingleMemoryDump(self):
-    events = [MockMemoryDump(2, 4, 123)]
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, 123)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals([123],
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(123, self.getOverallPssTotal(model, interactions))
 
   def testMultipleMemoryDumps(self):
-    events = [MockMemoryDump(2, 4, 123),
-              MockMemoryDump(5, 6, 456)]
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, 123),
+        MockProcessDumpEvent('dump2', 'browser', 5, 456)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals([123, 456],
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(456, self.getOverallPssTotal(model, interactions))
 
   def testMultipleInteractions(self):
-    events = [MockMemoryDump(2, 4, 123),
-              MockMemoryDump(5, 6, 456),
-              MockMemoryDump(13, 14, 789)]
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, 123),
+        MockProcessDumpEvent('dump2', 'browser', 5, 456),
+        MockProcessDumpEvent('dump3', 'browser', 13, 789)])
     interactions = [TestInteraction(1, 10),
                     TestInteraction(12, 15)]
-    self.assertEquals([123, 456, 789],
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(789, self.getOverallPssTotal(model, interactions))
 
-  def testDumpsOutsideSingleInteractionAreFilteredOut(self):
-    events = [MockMemoryDump(0, 1, 555),
-              MockMemoryDump(2, 4, 123),
-              MockMemoryDump(5, 6, 456),
-              MockMemoryDump(8, 11, 789)]
-    interactions = [TestInteraction(1, 10)]
-    self.assertEquals([123, 456],
-                      self.getMetricValues(events, interactions))
-
-  def testDumpsOutsideMultipleInteractionsAreFilteredOut(self):
-    events = [MockMemoryDump(0, 1, 111),
-              MockMemoryDump(2, 4, 123),
-              MockMemoryDump(11, 12, 456),
-              MockMemoryDump(13, 14, 555),
-              MockMemoryDump(11, 12, 789)]
-    interactions = [TestInteraction(1, 10),
+  def testDumpsOutsideInteractionsAreFilteredOut(self):
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 1, 111),
+        MockProcessDumpEvent('dump2', 'browser', 5, 123),
+        MockProcessDumpEvent('dump3', 'browser', 11, 456),
+        MockProcessDumpEvent('dump4', 'browser', 13, 555),
+        MockProcessDumpEvent('dump5', 'browser', 17, 789)])
+    interactions = [TestInteraction(3, 10),
                     TestInteraction(12, 15)]
-    self.assertEquals([123, 555],
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(555, self.getOverallPssTotal(model, interactions))
 
   def testDumpsWithNoMemoryMapsAreFilteredOut(self):
-    events = [MockMemoryDump(2, 4, 123),
-              MockMemoryDump(5, 6, None)]
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, 123),
+        MockProcessDumpEvent('dump2', 'browser', 5, None)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals([123],
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(123, self.getOverallPssTotal(model, interactions))
 
   def testReturnsNoneWhenAllDumpsAreFilteredOut(self):
-    events = [MockMemoryDump(0, 1, 555),
-              MockMemoryDump(8, 11, 789)]
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'bowser', 5, None),
+        MockProcessDumpEvent('dump2', 'browser', 11, 789)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals(None,
-                      self.getMetricValues(events, interactions))
+    self.assertEquals(None, self.getOverallPssTotal(model, interactions))
 
-  def testResultsGroupingByMetric(self):
-    metrics = memory_timeline.REPORTED_METRICS
-    offset = len(metrics)
+  def testResultsBrokenDownByProcess(self):
+    metrics = memory_timeline.DEFAULT_METRICS
     stats1 = {metric: value for value, metric in enumerate(metrics)}
-    stats2 = {metric: value for value, metric in enumerate(metrics, offset)}
-    expected = {metric: [value, value + offset]
-                for value, metric in enumerate(metrics)}
-    events = [MockMemoryDump(2, 4, stats1),
-              MockMemoryDump(5, 6, stats2)]
+    stats2 = {metric: value for value, metric in enumerate(reversed(metrics))}
+    total = len(metrics) - 1
+
+    expected = {}
+    expected.update(('%s_browser' % metric, value)
+                    for metric, value in stats1.iteritems())
+    expected.update(('%s_renderer' % metric, value)
+                    for metric, value in stats2.iteritems())
+    expected.update(('%s_total' % metric, total) for metric in metrics)
+
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, stats1),
+        MockProcessDumpEvent('dump1', 'renderer', 5, stats2)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals(expected,
-                      self.getResultsDict(events, interactions))
+    self.assertEquals(expected, self.getResultsDict(model, interactions))

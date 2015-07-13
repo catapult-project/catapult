@@ -4,11 +4,15 @@
 
 import unittest
 
+from telemetry.core import util
 from telemetry.timeline import memory_dump_event
 
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock # pylint: disable=import-error
 
-def TestDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
-                  allocators=None):
+
+def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
+                         allocators=None):
   def vm_region(mapped_file, byte_stats):
     return {
         'mf': mapped_file,
@@ -27,16 +31,19 @@ def TestDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
     event['args']['dumps']['process_mmaps'] = {
         'vm_regions': [vm_region(mapped_file, byte_stats)
                        for mapped_file, byte_stats in mmaps.iteritems()]}
-  return event
+
+  process = mock.Mock()
+  process.pid = event['pid']
+  return memory_dump_event.ProcessMemoryDumpEvent(process, event)
 
 
-class ProcessMemoryDumpUnitTest(unittest.TestCase):
+class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
   def testProcessMemoryDump_categories(self):
     ALL = [2 ** x for x in range(8)]
     (JAVA_SPACES, JAVA_CACHE, ASHMEM, NATIVE_1, NATIVE_2,
      STACK, FILES_APK, DEVICE_GPU) = ALL
 
-    memory_dump = memory_dump_event.ProcessMemoryDump(TestDumpEvent(mmaps={
+    memory_dump = TestProcessDumpEvent(mmaps={
       '/dev/ashmem/dalvik-space-foo': {'pss': JAVA_SPACES},
       '/dev/ashmem/dalvik-jit-code-cache': {'pss': JAVA_CACHE},
       '/dev/ashmem/other-random-stuff': {'pss': ASHMEM},
@@ -45,7 +52,7 @@ class ProcessMemoryDumpUnitTest(unittest.TestCase):
       '[stack thingy]': {'pss': STACK},
       'my_little_app.apk': {'pss': FILES_APK},
       '/dev/mali': {'pss': DEVICE_GPU},
-    }))
+    })
 
     EXPECTED = {
       '/': sum(ALL),
@@ -66,15 +73,15 @@ class ProcessMemoryDumpUnitTest(unittest.TestCase):
 
 class MemoryDumpEventUnitTest(unittest.TestCase):
   def testDumpEventsTiming(self):
-    memory_dump = memory_dump_event.MemoryDumpEvent([
-        TestDumpEvent(pid=3, start=8),
-        TestDumpEvent(pid=1, start=4),
-        TestDumpEvent(pid=2, start=13),
-        TestDumpEvent(pid=4, start=7)])
+    memory_dump = memory_dump_event.GlobalMemoryDump([
+        TestProcessDumpEvent(pid=3, start=8),
+        TestProcessDumpEvent(pid=1, start=4),
+        TestProcessDumpEvent(pid=2, start=13),
+        TestProcessDumpEvent(pid=4, start=7)])
 
     self.assertFalse(memory_dump.has_mmaps)
     self.assertEquals(4,
-                      len(memory_dump.process_dumps))
+                      len(list(memory_dump.IterProcessMemoryDumps())))
     self.assertAlmostEquals(4.0,
                             memory_dump.start)
     self.assertAlmostEquals(13.0,
@@ -87,15 +94,15 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     (JAVA_HEAP_1, JAVA_HEAP_2, ASHMEM_1, ASHMEM_2, NATIVE,
      DIRTY_1, DIRTY_2) = ALL
 
-    memory_dump = memory_dump_event.MemoryDumpEvent([
-        TestDumpEvent(pid=1, mmaps={
+    memory_dump = memory_dump_event.GlobalMemoryDump([
+        TestProcessDumpEvent(pid=1, mmaps={
             '/dev/ashmem/dalvik-alloc space': {'pss': JAVA_HEAP_1}}),
-        TestDumpEvent(pid=2, mmaps={
+        TestProcessDumpEvent(pid=2, mmaps={
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_1, 'pd': DIRTY_1}}),
-        TestDumpEvent(pid=3, mmaps={
+        TestProcessDumpEvent(pid=3, mmaps={
             '[heap] native': {'pss': NATIVE, 'pd': DIRTY_2},
             '/dev/ashmem/dalvik-zygote space': {'pss': JAVA_HEAP_2}}),
-        TestDumpEvent(pid=4, mmaps={
+        TestProcessDumpEvent(pid=4, mmaps={
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_2}})])
 
     self.assertTrue(memory_dump.has_mmaps)
@@ -110,8 +117,8 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     ALL = [2 ** x for x in range(5)]
     (HEAP, DIRTY, MALLOC, TRACING_1, TRACING_2) = ALL
 
-    memory_dump = memory_dump_event.MemoryDumpEvent([
-        TestDumpEvent(
+    memory_dump = memory_dump_event.GlobalMemoryDump([
+        TestProcessDumpEvent(
             mmaps={'/dev/ashmem/libc malloc': {'pss': HEAP + TRACING_2,
                                                'pd': DIRTY + TRACING_2}},
             allocators={

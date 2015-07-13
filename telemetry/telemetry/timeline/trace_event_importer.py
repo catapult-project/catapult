@@ -7,6 +7,7 @@ This is a port of the trace event importer from
 https://code.google.com/p/trace-viewer/
 """
 
+import collections
 import copy
 
 import telemetry.timeline.async_slice as tracing_async_slice
@@ -26,7 +27,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._all_async_events = []
     self._all_object_events = []
     self._all_flow_events = []
-    self._all_memory_dump_events_by_dump_id = {}
+    self._all_memory_dumps_by_dump_id = collections.defaultdict(list)
 
     self._events = trace_data.GetEventsFor(trace_data_module.CHROME_TRACE_PART)
 
@@ -181,13 +182,10 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         'thread': thread})
 
   def _ProcessMemoryDumpEvent(self, event):
-    dump_id = event.get('id')
-    if not dump_id:
-      self._model.import_errors.append(
-          'Memory dump event with missing dump id.')
-      return
-    self._all_memory_dump_events_by_dump_id.setdefault(dump_id, [])
-    self._all_memory_dump_events_by_dump_id[dump_id].append(event)
+    process = self._GetOrCreateProcess(event['pid'])
+    memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process, event)
+    process.AddMemoryDumpEvent(memory_dump)
+    self._all_memory_dumps_by_dump_id[memory_dump.dump_id].append(memory_dump)
 
   def ImportEvents(self):
     """Walks through the events_ list and outputs the structures discovered to
@@ -407,9 +405,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           flow_id_to_event[event['id']] = flow_event
 
   def _CreateMemoryDumps(self):
-    self._model.SetMemoryDumpEvents(
-        memory_dump_event.MemoryDumpEvent(events)
-        for events in self._all_memory_dump_events_by_dump_id.itervalues())
+    self._model.SetGlobalMemoryDumps(
+        memory_dump_event.GlobalMemoryDump(events)
+        for events in self._all_memory_dumps_by_dump_id.itervalues())
 
   def _SetBrowserProcess(self):
     for thread in self._model.GetAllThreads():
