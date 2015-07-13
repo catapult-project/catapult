@@ -18,8 +18,7 @@ import tvcm
 
 
 if __name__ == '__main__':
-  # TODO(sullivan): Make this run on the command line but not the buildbots.
-  #install.InstallHooks()
+  install.InstallHooks()
 
   runner = test_runner.TestRunner()
   runner.AddModule(tvcm)

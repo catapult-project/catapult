@@ -1,24 +1,29 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import codecs
 import os
 import sys
 import collections
 import StringIO
 
+
 class WithableStringIO(StringIO.StringIO):
+
   def __enter__(self, *args):
     return self
 
   def __exit__(self, *args):
     pass
 
+
 class FakeFS(object):
+
   def __init__(self, initial_filenames_and_contents=None):
     self._file_contents = {}
     if initial_filenames_and_contents:
-      for k,v in initial_filenames_and_contents.iteritems():
+      for k, v in initial_filenames_and_contents.iteritems():
         self._file_contents[k] = v
 
     self._bound = False
@@ -58,7 +63,7 @@ class FakeFS(object):
     self._file_contents[path] = contents
 
   def _FakeOpen(self, path, mode=None):
-    if mode == None:
+    if mode is None:
       mode = 'r'
     if mode == 'r' or mode == 'rU' or mode == 'rb':
       if path not in self._file_contents:
@@ -67,8 +72,9 @@ class FakeFS(object):
 
     raise NotImplementedError()
 
-  def _FakeCodecsOpen(self, path, mode=None, encoding=None):
-    if mode == None:
+  def _FakeCodecsOpen(self, path, mode=None,
+                      encoding=None):  # pylint: disable=unused-argument
+    if mode is None:
       mode = 'r'
     if mode == 'r' or mode == 'rU' or mode == 'rb':
       if path not in self._file_contents:

@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     var thread = process.getOrCreateThread(2);
     thread.sliceGroup.pushSlice(tr.c.test_utils.newSliceNamed('a', 80, 50));
 
-    var timeline = new tr.ui.TimelineTrackView();
+    var timeline = document.createElement('tr-ui-timeline-track-view');
     var vp = new tr.ui.TimelineViewport(timeline);
     timeline.model = model;
     timeline.style.maxHeight = '600px';

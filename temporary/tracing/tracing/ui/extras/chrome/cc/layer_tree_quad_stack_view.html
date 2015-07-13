@@ -1178,8 +1178,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     onWhatRasterizedLinkClicked_: function() {
       var tasks = this.getWhatRasterized_();
-      var event = new tr.m.RequestSelectionChangeEvent();
-      event.selection = new tr.m.EventSet(tasks);
+      var event = new tr.model.RequestSelectionChangeEvent();
+      event.selection = new tr.model.EventSet(tasks);
       this.dispatchEvent(event);
     }
   };

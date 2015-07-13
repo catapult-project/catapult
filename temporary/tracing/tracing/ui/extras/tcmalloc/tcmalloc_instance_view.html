@@ -79,7 +79,7 @@ tr.exportTo('tr.ui.e.tcmalloc', function() {
       var td = document.createElement('td');
       if (snapshot) {
         var snapshotLink = document.createElement('tr-ui-a-analysis-link');
-        snapshotLink.selection = new tr.m.EventSet(snapshot);
+        snapshotLink.selection = new tr.model.EventSet(snapshot);
         td.appendChild(snapshotLink);
       }
       row.appendChild(td);

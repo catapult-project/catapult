@@ -54,8 +54,14 @@ found in the LICENSE file.
   }
 
   x-base-interactive-test-runner > #shortform-results {
-    word-break: break-all;
+    color: green;
     height; 40px;
+    word-wrap: break-word;
+  }
+
+  x-base-interactive-test-runner > #shortform-results > .fail {
+    color: darkred;
+    font-weight: bold;
   }
 
   x-base-interactive-test-runner > #results-container {
@@ -312,11 +318,15 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestPassed_: function() {
-      this.querySelector('#shortform-results').textContent += '.';
+      this.querySelector('#shortform-results').
+          appendChild(document.createTextNode('.'));
     },
 
     onTestFailed_: function() {
-      this.querySelector('#shortform-results').textContent += 'F';
+      var span = document.createElement('span');
+      span.classList.add('fail');
+      span.appendChild(document.createTextNode('F'));
+      this.querySelector('#shortform-results').appendChild(span);
     },
 
     onResultsStatsChanged_: function() {
@@ -446,12 +456,6 @@ tr.exportTo('tr.b.unittest', function() {
 
     runCompleted_: function() {
       this.runner_ = undefined;
-      if (this.results_.getStats().numTestsThatFailed > 0) {
-        this.querySelector('#shortform-results').textContent +=
-            '[THERE WERE FAILURES]';
-      } else {
-        this.querySelector('#shortform-results').textContent += '[DONE]';
-      }
     }
   };
 

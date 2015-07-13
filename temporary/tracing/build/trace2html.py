@@ -7,24 +7,24 @@ import base64
 import gzip
 import json
 import optparse
-import shutil
 import os
 import StringIO
 import sys
-import tempfile
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing import tracing_project
 from tvcm import generate
 
+
 def Main(args):
+
   parser = optparse.OptionParser(
-    usage="%prog <options> trace_file1 [trace_file2 ...]",
-    epilog="""Takes the provided trace file and produces a standalone html
+      usage="%prog <options> trace_file1 [trace_file2 ...]",
+      epilog="""Takes the provided trace file and produces a standalone html
 file that contains both the trace and the trace viewer.""")
 
   project = tracing_project.TracingProject()
@@ -58,6 +58,7 @@ file that contains both the trace and the trace viewer.""")
 
 
 class ViewerDataScript(generate.ExtraScript):
+
   def __init__(self, trace_data_string, mime_type):
     super(ViewerDataScript, self).__init__()
     self._trace_data_string = trace_data_string
@@ -78,13 +79,13 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
                                 config_name=None):
   project = tracing_project.TracingProject()
 
-  if config_name == None:
+  if config_name is None:
     config_name = project.GetDefaultConfigName()
 
   modules = [
-    'trace2html',
-    'extras.importer.gzip_importer', # Must have this regardless of config.
-    project.GetModuleNameForConfigName(config_name)
+      'trace2html',
+      'extras.importer.gzip_importer',  # Must have this regardless of config.
+      project.GetModuleNameForConfigName(config_name)
   ]
 
   load_sequence = project.CalcLoadSequenceForModuleNames(modules)
@@ -102,7 +103,7 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
       mime_type = 'text/plain'
     scripts.append(ViewerDataScript(trace_data, mime_type))
   generate.GenerateStandaloneHTMLToFile(
-    output_file, load_sequence, title, extra_scripts=scripts)
+      output_file, load_sequence, title, extra_scripts=scripts)
 
 
 def WriteHTMLForTracesToFile(trace_filenames, output_file, config_name=None):

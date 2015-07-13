@@ -9,12 +9,14 @@ import os
 import sys
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing import tracing_project
+
 import tvcm
+
 
 def getFilesIn(basedir):
   data_files = []
@@ -35,6 +37,7 @@ def getFilesIn(basedir):
   data_files.sort()
   return data_files
 
+
 def do_GET_json_examples(request):
   data_files = getFilesIn(request.server.data_dir)
   files_as_json = json.dumps(data_files)
@@ -44,6 +47,7 @@ def do_GET_json_examples(request):
   request.send_header('Content-Length', len(files_as_json))
   request.end_headers()
   request.wfile.write(files_as_json)
+
 
 def do_GET_json_examples_skp(request):
   data_files = getFilesIn(request.server.skp_data_dir)
@@ -55,6 +59,7 @@ def do_GET_json_examples_skp(request):
   request.end_headers()
   request.wfile.write(files_as_json)
 
+
 def do_GET_json_tests(self):
   test_module_resources = self.server.project.FindAllTestModuleResources()
 
@@ -62,13 +67,14 @@ def do_GET_json_tests(self):
                    for x in test_module_resources]
 
   tests = {'test_relpaths': test_relpaths}
-  tests_as_json = json.dumps(tests);
+  tests_as_json = json.dumps(tests)
 
   self.send_response(200)
   self.send_header('Content-Type', 'application/json')
   self.send_header('Content-Length', len(tests_as_json))
   self.end_headers()
   self.wfile.write(tests_as_json)
+
 
 def do_POST_report_test_results(request):
   request.send_response(200)
@@ -78,6 +84,7 @@ def do_POST_report_test_results(request):
   ostream = sys.stdout if 'PASSED' in msg else sys.stderr
   ostream.write(msg + '\n')
 
+
 def do_POST_report_test_completion(request):
   request.send_response(200)
   request.send_header('Content-Length', '0')
@@ -85,6 +92,7 @@ def do_POST_report_test_completion(request):
   msg = request.rfile.read()
   sys.stdout.write(msg + '\n')
   request.server.RequestShutdown(exit_code=(0 if 'ALL_PASSED' in msg else 1))
+
 
 def Main(args):
   project = tracing_project.TracingProject()
@@ -114,6 +122,5 @@ def Main(args):
                         do_POST_report_test_results, supports_post=True)
   server.AddPathHandler('/test_automation/notify_completion',
                         do_POST_report_test_completion, supports_post=True)
-
 
   server.serve_forever()

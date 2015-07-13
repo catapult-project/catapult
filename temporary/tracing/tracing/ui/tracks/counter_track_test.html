@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
       var y75 = clientRect.top + (0.75 * clientRect.height);
 
       // In bounds.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       var x = 0.15 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
@@ -124,13 +124,13 @@ tr.b.unittest.testSuite(function() {
       assert.equal(sel[1].series.seriesIndex, 0);
 
       // Outside bounds.
-      sel = new tr.m.EventSet();
+      sel = new tr.model.EventSet();
       var x = -0.5 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
       assert.equal(sel.length, 0);
 
-      sel = new tr.m.EventSet();
+      sel = new tr.model.EventSet();
       var x = 0.8 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
@@ -145,43 +145,43 @@ tr.b.unittest.testSuite(function() {
 
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
       // Before with not range.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, 0, 0, 0, sel);
       assert.equal(sel.length, 0);
 
       // Before with negative range.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, -10, 0, 0, sel);
       assert.equal(sel.length, 0);
 
       // Before first sample.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, 1, 0, 0, sel);
       assert.equal(sel.length, 2);
       assert.equal(sel[0].getSampleIndex(), 0);
 
       // Between and closer to sample before.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
       assert.equal(sel[0].getSampleIndex(), 1);
 
       // Between samples with bad range.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(1.45, 0.25, 0, 0, sel);
       assert.equal(sel.length, 0);
 
       // Between and closer to next sample.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
       assert.equal(sel[0].getSampleIndex(), 5);
 
       // After last sample with good range.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
       assert.equal(sel[0].getSampleIndex(), 7);
 
       // After last sample with bad range.
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(10, 1, 0, 0, sel);
       assert.equal(sel.length, 0);
     });

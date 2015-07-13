@@ -158,7 +158,7 @@ found in the LICENSE file.
 
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
-              return new tr.m.EventSet(row.event);
+              return new tr.model.EventSet(row.event);
           });
           linkEl.appendChild(tr.ui.units.createTimeStampSpan(
               row.start, timeSpanConfig));

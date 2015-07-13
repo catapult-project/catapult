@@ -5,98 +5,142 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/ui/base/common.css">
-<link rel="stylesheet" href="/ui/timeline_view.css">
-
-<link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/settings.html">
-<link rel="import" href="/ui/base/hotkey_controller.html">
-<link rel="import" href="/ui/base/toolbar_button.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/dropdown.html">
 <link rel="import" href="/ui/base/favicons.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/toolbar_button.html">
+<link rel="import" href="/ui/base/utils.html">
 <link rel="import" href="/ui/find_control.html">
 <link rel="import" href="/ui/find_controller.html">
-<link rel="import" href="/ui/timeline_track_view.html">
-<link rel="import" href="/core/selection_controller.html">
-<link rel="import" href="/core/scripting_controller.html">
-<link rel="import" href="/ui/side_panel/side_panel_container.html">
-<link rel="import" href="/ui/base/dom_helpers.html">
-<link rel="import" href="/ui/base/overlay.html">
-<link rel="import" href="/ui/base/dropdown.html">
-<link rel="import" href="/ui/base/drag_handle.html">
-<link rel="import" href="/ui/base/utils.html">
 <link rel="import" href="/ui/scripting_control.html">
-<link rel="import" href="/ui/timeline_view_metadata_overlay.html">
+<link rel="import" href="/ui/side_panel/side_panel_container.html">
+<link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_view_help_overlay.html">
+<link rel="import" href="/ui/timeline_view_metadata_overlay.html">
 
-<template id="timeline-view-template">
-  <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
-  <div class="control">
-    <div class="bar">
-      <div id="left-controls"></div>
-      <div class="title">^_^</div>
-      <div id="right-controls">
-        <tr-ui-b-toolbar-button id="view-metadata-button">
-          M
-        </tr-ui-b-toolbar-button>
-        <tr-ui-b-dropdown id="view-options-dropdown"></tr-ui-b-dropdown>
-        <tr-ui-find-control id="view-find-control"></tr-ui-find-control>
-        <tr-ui-b-toolbar-button id="view-console-button">
-          &#187;
-        </tr-ui-b-toolbar-button>
-        <tr-ui-b-toolbar-button id="view-help-button">
-          ?
-        </tr-ui-b-toolbar-button>
+<polymer-element name='tr-ui-timeline-view'>
+  <template>
+    <style>
+    :host {
+      flex-direction: column;
+      cursor: default;
+      display: flex;
+      font-family: sans-serif;
+      padding: 0;
+    }
+
+    #control {
+      background-color: #e6e6e6;
+      background-image: -webkit-gradient(linear, 0 0, 0 100%,
+          from(#E5E5E5), to(#D1D1D1));
+      flex: 0 0 auto;
+      overflow-x: auto;
+    }
+
+    #control::-webkit-scrollbar { height: 0px; }
+
+    #control > #bar {
+      font-size: 12px;
+      display: flex;
+      flex-direction: row;
+      margin: 1px;
+    }
+
+    #control > #bar > #title {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      padding-right: 8px;
+      flex: 1 1 auto;
+    }
+
+    #control > #bar > #left_controls,
+    #control > #bar > #right_controls {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    #control > #bar > #left_controls > * { margin-right: 2px; }
+    #control > #bar > #right_controls > * { margin-left: 2px; }
+    #control > #collapsing_controls { display: flex; }
+
+    middle-container {
+      flex: 1 1 auto;
+      flex-direction: row;
+      border-bottom: 1px solid #8e8e8e;
+      display: flex;
+      min-height: 0;
+    }
+
+    middle-container ::content track-view-container {
+      flex: 1 1 auto;
+      display: flex;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    middle-container ::content track-view-container > * { flex: 1 1 auto; }
+    middle-container > x-timeline-view-side-panel-container { flex: 0 0 auto; }
+    x-drag-handle { flex: 0 0 auto; }
+    tr-ui-a-analysis-view { flex: 0 0 auto; }
+    </style>
+
+    <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
+    <div id="control">
+      <div id="bar">
+        <div id="left_controls"></div>
+        <div id="title">^_^</div>
+        <div id="right_controls">
+          <tr-ui-b-toolbar-button id="view_metadata_button">
+            M
+          </tr-ui-b-toolbar-button>
+          <tr-ui-b-dropdown id="view_options_dropdown"></tr-ui-b-dropdown>
+          <tr-ui-find-control id="view_find_control"></tr-ui-find-control>
+          <tr-ui-b-toolbar-button id="view_console_button">
+            &#187;
+          </tr-ui-b-toolbar-button>
+          <tr-ui-b-toolbar-button id="view_help_button">
+            ?
+          </tr-ui-b-toolbar-button>
+        </div>
       </div>
+      <div id="collapsing_controls"></div>
     </div>
-    <div id="collapsing-controls"></div>
-  </div>
-  <middle-container>
-    <track-view-container></track-view-container>
-    <tr-ui-side-panel-container></tr-ui-side-panel-container>
-  </middle-container>
-  <x-drag-handle></x-drag-handle>
-  <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
-</template>
+    <middle-container>
+      <content></content>
 
-<script>
-'use strict';
+      <tr-ui-side-panel-container id="side_panel_container">
+      </tr-ui-side-panel-container>
+    </middle-container>
+    <x-drag-handle id="drag_handle"></x-drag-handle>
+    <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
+  </template>
 
-/**
- * @fileoverview View visualizes TRACE_EVENT events using the
- * tr.ui.Timeline component and adds in selection summary and control buttons.
- */
-tr.exportTo('tr.ui', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  <script>
+  'use strict';
 
-  /**
-   * View
-   * @constructor
-   * @extends {HTMLUnknownElement}
-   */
-  var TimelineView = tr.ui.b.define('x-timeline-view');
-
-  TimelineView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      var node =
-          tr.ui.b.instantiateTemplate('#timeline-view-template', THIS_DOC);
-      this.appendChild(node);
-
+  Polymer({
+    ready: function() {
       this.tabIndex = 0; // Let the timeline able to receive key events.
 
-      this.titleEl_ = this.querySelector('.title');
-      this.leftControlsEl_ = this.querySelector('#left-controls');
-      this.rightControlsEl_ = this.querySelector('#right-controls');
-      this.collapsingControlsEl_ = this.querySelector('#collapsing-controls');
-      this.sidePanelContainer_ = this.querySelector(
-          'tr-ui-side-panel-container');
-      this.trackViewContainer_ = this.querySelector('track-view-container');
+      this.titleEl_ = this.$.title;
+      this.leftControlsEl_ = this.$.left_controls;
+      this.rightControlsEl_ = this.$.right_controls;
+      this.collapsingControlsEl_ = this.$.collapsing_controls;
+      this.sidePanelContainer_ = this.$.side_panel_container;
 
       this.selectionController_ = new tr.c.SelectionController(this);
 
-      this.findCtl_ = this.querySelector('#view-find-control');
+      this.findCtl_ = this.$.view_find_control;
       this.findCtl_.controller = new tr.ui.FindController(
           this.selectionController_);
 
@@ -106,7 +150,6 @@ tr.exportTo('tr.ui', function() {
 
       this.sidePanelContainer_.selectionController = this.selectionController_;
 
-
       if (window.tr.e && window.tr.e.rail && window.tr.e.rail.RAILScore) {
         this.railScoreSpan_ = document.createElement(
             'tr-ui-e-rail-rail-score-span');
@@ -115,8 +158,7 @@ tr.exportTo('tr.ui', function() {
         this.railScoreSpan_ = undefined;
       }
 
-
-      this.optionsDropdown_ = this.querySelector('#view-options-dropdown');
+      this.optionsDropdown_ = this.$.view_options_dropdown;
       this.optionsDropdown_.iconElement.textContent = 'View Options';
 
       this.showFlowEvents_ = false;
@@ -137,10 +179,10 @@ tr.exportTo('tr.ui', function() {
 
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
-      this.dragEl_ = this.querySelector('x-drag-handle');
+      this.dragEl_ = this.$.drag_handle;
       tr.ui.b.decorate(this.dragEl_, tr.ui.b.DragHandle);
 
-      this.analysisEl_ = this.querySelector('#analysis');
+      this.analysisEl_ = this.$.analysis;
       this.analysisEl_.selectionController = this.selectionController_;
 
       this.addEventListener(
@@ -157,6 +199,10 @@ tr.exportTo('tr.ui', function() {
       this.dragEl_.target = this.analysisEl_;
     },
 
+    domReady: function() {
+      this.trackViewContainer_ = this.querySelector('#track_view_container');
+    },
+
     get globalMode() {
       return this.hotkeyController.globalMode;
     },
@@ -168,7 +214,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     get hotkeyController() {
-      return this.querySelector('#hkc');
+      return this.$.hkc;
     },
 
     updateDocumentFavicon: function() {
@@ -215,11 +261,11 @@ tr.exportTo('tr.ui', function() {
     },
 
     initHelpButton_: function() {
-      var helpButtonEl = this.querySelector('#view-help-button');
+      var helpButtonEl = this.$.view_help_button;
 
       function onClick(e) {
         var dlg = new tr.ui.b.Overlay();
-        dlg.title = 'chrome://tracing Help';
+        dlg.title = 'Chrome Tracing Help';
         dlg.appendChild(
             document.createElement('tr-ui-timeline-view-help-overlay'));
         dlg.visible = true;
@@ -231,7 +277,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     initConsoleButton_: function() {
-      var toggleEl = this.querySelector('#view-console-button');
+      var toggleEl = this.$.view_console_button;
 
       function onClick(e) {
         this.scriptingCtl_.toggleVisibility();
@@ -242,7 +288,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     initMetadataButton_: function() {
-      var showEl = this.querySelector('#view-metadata-button');
+      var showEl = this.$.view_metadata_button;
 
       function onClick(e) {
         var dlg = new tr.ui.b.Overlay();
@@ -264,7 +310,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateMetadataButtonVisibility_: function() {
-      var showEl = this.querySelector('#view-metadata-button');
+      var showEl = this.$.view_metadata_button;
       showEl.style.display =
           (this.model && this.model.metadata.length) ? '' : 'none';
     },
@@ -323,7 +369,8 @@ tr.exportTo('tr.ui', function() {
 
       // Create new trackView if needed.
       if (modelValid && !this.trackView_) {
-        this.trackView_ = new tr.ui.TimelineTrackView(this);
+        this.trackView_ = document.createElement('tr-ui-timeline-track-view');
+        this.trackView_.timelineView = this;
 
         this.trackView.selectionController = this.selectionController_;
 
@@ -416,7 +463,7 @@ tr.exportTo('tr.ui', function() {
         useCapture: false,
         thisArg: this,
         callback: function(e) {
-          this.querySelector('#view-help-button').click();
+          this.$.view_help_button.click();
           e.stopPropagation();
         }
       }));
@@ -453,10 +500,6 @@ tr.exportTo('tr.ui', function() {
     setFindCtlText: function(string) {
       this.findCtl_.setText(string);
     }
-  };
-
-  return {
-    TimelineView: TimelineView
-  };
-});
-</script>
+  });
+  </script>
+</polymer-element>

@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.e.cc', function() {
   var AsyncSlice = tr.model.AsyncSlice;
-  var EventSet = tr.m.EventSet;
+  var EventSet = tr.model.EventSet;
 
   var UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
   var ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
@@ -22,6 +22,9 @@ tr.exportTo('tr.e.cc', function() {
 
   var MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
   var COMPOSITOR_THREAD_NAME = 'Compositor';
+
+  var POSTTASK_FLOW_EVENT = 'disabled-by-default-toplevel.flow';
+  var IPC_FLOW_EVENT = 'disabled-by-default-ipc.flow';
 
   var INPUT_EVENT_TYPE_NAMES = {
     CHAR: 'Char',
@@ -153,7 +156,7 @@ tr.exportTo('tr.e.cc', function() {
       this.checkTypeName_();
     },
 
-    getRendererHelper: function(flowPath) {
+    getRendererHelper: function(sourceSlices) {
       var traceModel = this.startThread.parent.model;
       if (!tr.e.audits.ChromeModelHelper.supportsModel(traceModel))
         return undefined;
@@ -161,11 +164,16 @@ tr.exportTo('tr.e.cc', function() {
       var mainThread = undefined;
       var compositorThread = undefined;
 
-      for (var i in flowPath) {
-        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
-          mainThread = flowPath[i].parentContainer;
-        else if (flowPath[i].parentContainer.name === COMPOSITOR_THREAD_NAME)
-          compositorThread = flowPath[i].parentContainer;
+      for (var i in sourceSlices) {
+        if (sourceSlices[i].parentContainer.name ===
+            MAIN_RENDERER_THREAD_NAME)
+          mainThread = sourceSlices[i].parentContainer;
+        else if (sourceSlices[i].parentContainer.name ===
+            COMPOSITOR_THREAD_NAME)
+          compositorThread = sourceSlices[i].parentContainer;
+
+        if (mainThread && compositorThread)
+          break;
       }
 
       var modelHelper = new tr.e.audits.ChromeModelHelper(traceModel);
@@ -183,87 +191,40 @@ tr.exportTo('tr.e.cc', function() {
       return undefined;
     },
 
-    constructFlowPath: function(flowEvents) {
-      var flowPath = [];
-
-      flowEvents.forEach(function(flowEvent) {
-        flowPath.push(flowEvent.startSlice.mostTopLevelSlice);
+    addEntireSliceHierarchy: function(slice) {
+      this.associatedEvents_.push(slice);
+      slice.iterateAllSubsequentSlices(function(subsequentSlice) {
+        this.associatedEvents_.push(subsequentSlice);
       }, this);
-      var lastFlowEvent = flowEvents[flowEvents.length - 1];
-      flowPath.push(lastFlowEvent.endSlice.mostTopLevelSlice);
-
-      return flowPath;
     },
 
     addDirectlyAssociatedEvents: function(flowEvents) {
-      flowEvents.forEach(function(flowEvent, index, matchedFlowEvents) {
+      var slices = [];
+
+      flowEvents.forEach(function(flowEvent) {
         this.associatedEvents_.push(flowEvent);
-
-        flowEvent.startSlice.ancestorAndSubsequentSlices.forEach(function(s) {
-          this.associatedEvents_.push(s);
-        }, this);
+        var newSource = flowEvent.startSlice.mostTopLevelSlice;
+        if (slices.indexOf(newSource) === -1)
+          slices.push(newSource);
       }, this);
 
-      // Only process the endSlice for the last flowEvent
-      // this is assuming flowEvents are always followable
       var lastFlowEvent = flowEvents[flowEvents.length - 1];
-      lastFlowEvent.endSlice.ancestorAndSubsequentSlices.forEach(function(s) {
-        this.associatedEvents_.push(s);
-      }, this);
-    },
+      var lastSource = lastFlowEvent.endSlice.mostTopLevelSlice;
+      if (slices.indexOf(lastSource) === -1)
+        slices.push(lastSource);
 
-    findFirstRendererSlice: function(flowPath) {
-      for (var i in flowPath) {
-        if (flowPath[i].parentContainer.name === MAIN_RENDERER_THREAD_NAME)
-          return flowPath[i];
-      }
-
-      return undefined;
-    },
-
-    findLastRendererSlice: function(flowPath) {
-      for (var i in flowPath) {
-        // TODO (Yuhao): The current implementation actually finds a compositor
-        // slice that does draw and buffer swap. Once we trace the renderer
-        // commit, we can find the real last renderer slice.
-        // It's tracked at: https://github.com/google/trace-viewer/issues/1025
-        var commitMaker = 'Scheduler::OnBeginImplFrameDeadline';
-        if (flowPath[i].findDescendentSlice(commitMaker))
-          return flowPath[i];
-      }
-
-      return flowPath[flowPath.length - 1];
-    },
-
-    addSlicesBetweenFirstAndLast: function(firstSlice,
-        lastSlice, rendererHelper) {
-      var started = false;
-
-      var allRendererSlices = rendererHelper.mainThread.sliceGroup.slices;
-      for (var i in allRendererSlices) {
-        var slice = allRendererSlices[i];
-
-        if (slice.end > lastSlice.start)
-          break;
-
-        if (started) {
-          // TODO (Yuhao): Can we definitely find main thread slices that
-          // handle other inputs? This bug is tracked at:
-          // https://github.com/google/trace-viewer/issues/1027
-          var handleInputMarker = 'WebViewImpl::handleInputEvent';
-          if (slice.mostTopLevelSlice.findDescendentSlice(handleInputMarker))
-            continue;
-
-          this.associatedEvents_.push(slice);
-        } else {
-          started = (slice.guid === firstSlice.guid);
-        }
-      }
+      return slices;
     },
 
     // Find the Latency::ScrollUpdate slice that corresponds to the
-    // InputLatency::GestureScrollUpdate slice
-    addScrollUpdateEvents: function(compositorThread) {
+    // InputLatency::GestureScrollUpdate slice.
+    // The C++ CL that makes this connection is at:
+    // https://codereview.chromium.org/1178963003
+    addScrollUpdateEvents: function(rendererHelper) {
+      if (!rendererHelper || !rendererHelper.compositorThread)
+        return;
+
+      var compositorThread = rendererHelper.compositorThread;
       var gestureScrollUpdateStart = this.start;
       var gestureScrollUpdateEnd = this.end;
 
@@ -286,7 +247,7 @@ tr.exportTo('tr.e.cc', function() {
               slice.start >= gestureScrollUpdateEnd)
             continue;
         } else {
-          // New trace, we can definitely find the latency slice by comparing
+          // New trace, we can definitively find the latency slice by comparing
           // its sequence number with gesture id
           if (parseInt(parentId) !== parseInt(this.id))
             continue;
@@ -299,43 +260,260 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    addOtherCasuallyRelatedEvents: function(flowEvents) {
-      var flowPath = this.constructFlowPath(flowEvents);
-      var rendererHelper = this.getRendererHelper(flowPath);
+    // Return true if the slice hierarchy is tracked by LatencyInfo of other
+    // input latency events. If the slice hierarchy is tracked by both, this
+    // function still returns true.
+    belongToOtherInputs: function(slice, flowEvents) {
+      var fromOtherInputs = false;
 
-      if (rendererHelper === undefined ||
-          rendererHelper.mainThread === undefined)
+      slice.iterateEntireHierarchy(function(subsequentSlice) {
+        if (fromOtherInputs)
+          return;
+
+        subsequentSlice.inFlowEvents.forEach(function(inflow) {
+          if (fromOtherInputs)
+            return;
+
+          if (inflow.category.indexOf('input') > -1) {
+            if (flowEvents.indexOf(inflow) === -1)
+              fromOtherInputs = true;
+          }
+        }, this);
+      }, this);
+
+      return fromOtherInputs;
+    },
+
+    // Return true if |event| triggers slices of other inputs.
+    triggerOtherInputs: function(event, flowEvents) {
+      if (event.outFlowEvents === undefined ||
+          event.outFlowEvents.length === 0)
+        return false;
+
+      // Once we fix the bug of flow event binding, there should exist one and
+      // only one outgoing flow (PostTask) from ScheduleBeginImplFrameDeadline
+      // and PostComposite.
+      var flow = event.outFlowEvents[0];
+
+      if (flow.category !== POSTTASK_FLOW_EVENT ||
+          !flow.endSlice)
+        return false;
+
+      var endSlice = flow.endSlice;
+      if (this.belongToOtherInputs(endSlice.mostTopLevelSlice, flowEvents))
+        return true;
+
+      return false;
+    },
+
+    // Follow outgoing flow of subsequentSlices in the current hierarchy.
+    // We also handle cases where different inputs interfere with each other.
+    followSubsequentSlices: function(event, queue, visited, flowEvents) {
+      var stopFollowing = false;
+      var inputAck = false;
+
+      event.iterateAllSubsequentSlices(function(slice) {
+        if (stopFollowing)
+          return;
+
+        // Do not follow TaskQueueManager::RunTask because it causes
+        // many false events to be included.
+        if (slice.title === 'TaskQueueManager::RunTask')
+          return;
+
+        // Do not follow ScheduledActionSendBeginMainFrame because the real
+        // main thread BeginMainFrame is already traced by LatencyInfo flow.
+        if (slice.title === 'ThreadProxy::ScheduledActionSendBeginMainFrame')
+          return;
+
+        // Do not follow ScheduleBeginImplFrameDeadline that triggers an
+        // OnBeginImplFrameDeadline that is tracked by another LatencyInfo.
+        if (slice.title === 'Scheduler::ScheduleBeginImplFrameDeadline') {
+          if (this.triggerOtherInputs(slice, flowEvents))
+            return;
+        }
+
+        // Do not follow PostComposite that triggers CompositeImmediately
+        // that is tracked by another LatencyInfo.
+        if (slice.title === 'CompositorImpl::PostComposite') {
+          if (this.triggerOtherInputs(slice, flowEvents))
+            return;
+        }
+
+        // Stop following the rest of the current slice hierarchy if
+        // FilterAndSendWebInputEvent occurs after ProcessInputEventAck.
+        if (slice.title === 'InputRouterImpl::ProcessInputEventAck')
+          inputAck = true;
+        if (inputAck &&
+            slice.title === 'InputRouterImpl::FilterAndSendWebInputEvent')
+          stopFollowing = true;
+
+        this.followCurrentSlice(slice, queue, visited);
+      }, this);
+    },
+
+    // Follow outgoing flow events of the current slice.
+    followCurrentSlice: function(event, queue, visited) {
+      event.outFlowEvents.forEach(function(outflow) {
+        if ((outflow.category === POSTTASK_FLOW_EVENT ||
+            outflow.category === IPC_FLOW_EVENT) &&
+            outflow.endSlice) {
+          this.associatedEvents_.push(outflow);
+
+          var nextEvent = outflow.endSlice.mostTopLevelSlice;
+          if (!visited.contains(nextEvent)) {
+            visited.push(nextEvent);
+            queue.push(nextEvent);
+          }
+        }
+      }, this);
+    },
+
+    backtraceFromDraw: function(beginImplFrame, visited) {
+      var pendingEventQueue = [];
+      pendingEventQueue.push(beginImplFrame.mostTopLevelSlice);
+
+      while (pendingEventQueue.length !== 0) {
+        var event = pendingEventQueue.pop();
+
+        this.addEntireSliceHierarchy(event);
+
+        // TODO(yuhao): For now, we backtrace all the way to the source input.
+        // But is this really needed? I will have an entry in the design
+        // doc to discuss this.
+        event.inFlowEvents.forEach(function(inflow) {
+          if (inflow.category === POSTTASK_FLOW_EVENT && inflow.startSlice) {
+            var nextEvent = inflow.startSlice.mostTopLevelSlice;
+            if (!visited.contains(nextEvent)) {
+              visited.push(nextEvent);
+              pendingEventQueue.push(nextEvent);
+            }
+          }
+        }, this);
+      }
+    },
+
+    sortRasterizerSlices: function(rasterWorkerThreads,
+        sortedRasterizerSlices) {
+      rasterWorkerThreads.forEach(function(rasterizer) {
+        Array.prototype.push.apply(sortedRasterizerSlices,
+            rasterizer.sliceGroup.slices);
+      }, this);
+
+      sortedRasterizerSlices.sort(function(a, b) {
+        if (a.start !== b.start)
+          return a.start - b.start;
+        return a.guid - b.guid;
+      });
+    },
+
+    // Find rasterization slices that have the source_prepare_tiles_id
+    // same as the prepare_tiles_id of TileManager::PrepareTiles
+    // The C++ CL that makes this connection is at:
+    // https://codereview.chromium.org/1208683002/
+    addRasterizationEvents: function(prepareTiles, rendererHelper,
+        visited, flowEvents, sortedRasterizerSlices) {
+      if (!prepareTiles.args.prepare_tiles_id)
         return;
 
-      // Find the first renderer slice from the flow path. It might not
-      // exist because some inputs (e.g., scroll update) are
-      //  1) taken over by the compositor and thus bypass the renderer,
-      //  2) directly consumed by the browser process..
-      var firstRendererSlice = this.findFirstRendererSlice(flowPath);
-
-      if (firstRendererSlice === undefined) {
-        // Scroll update doesn't go through the main thread, but the compositor
-        // may go back to the main thread if there is an onscroll event handler.
-        // This is captured by a different flow event, which does not have the
-        // same ID as the Input Latency Event, but it is technically casually
-        // related to the GestureScrollUpdate input. Add them manually for now.
-        var latencyScrollUpdateMaker = 'InputLatency::GestureScrollUpdate';
-        if (this.title === latencyScrollUpdateMaker)
-          this.addScrollUpdateEvents(rendererHelper.compositorThread);
-
+      if (!rendererHelper || !rendererHelper.rasterWorkerThreads)
         return;
+
+      var rasterWorkerThreads = rendererHelper.rasterWorkerThreads;
+      var prepare_tile_id = prepareTiles.args.prepare_tiles_id;
+      var pendingEventQueue = [];
+
+      // Collect all the rasterizer tasks. Return the cached copy if possible.
+      if (sortedRasterizerSlices.length === 0)
+        this.sortRasterizerSlices(rasterWorkerThreads, sortedRasterizerSlices);
+
+      // TODO(yuhao): Once TaskSetFinishedTaskImpl also get the prepare_tile_id
+      // we can simply track by checking id rather than counting.
+      var numFinishedTasks = 0;
+      var RASTER_TASK_TITLE = 'RasterizerTaskImpl::RunOnWorkerThread';
+      var IMAGEDECODE_TASK_TITLE = 'ImageDecodeTaskImpl::RunOnWorkerThread';
+      var FINISHED_TASK_TITLE = 'TaskSetFinishedTaskImpl::RunOnWorkerThread';
+
+      for (var i = 0; i < sortedRasterizerSlices.length; i++) {
+        var task = sortedRasterizerSlices[i];
+
+        if (task.title === RASTER_TASK_TITLE ||
+            task.title === IMAGEDECODE_TASK_TITLE) {
+          if (task.args.source_prepare_tiles_id === prepare_tile_id)
+            this.addEntireSliceHierarchy(task.mostTopLevelSlice);
+        } else if (task.title === FINISHED_TASK_TITLE) {
+          if (task.start > prepareTiles.start) {
+            pendingEventQueue.push(task.mostTopLevelSlice);
+            if (++numFinishedTasks === 3)
+              break;
+          }
+        }
       }
 
-      // If the first renderer slice exist, we look for the last renderer slice.
-      // There are two cases:
-      //  1) the slice that commits to the compositor thread
-      //  2) renderer didn't commit, then for now we fall back to the last slice
-      //  in the flow path (which might not be a renderer slice)
-      var lastRendererSlice = this.findLastRendererSlice(flowPath);
+      // Trace PostTask from rasterizer tasks.
+      while (pendingEventQueue.length != 0) {
+        var event = pendingEventQueue.pop();
 
-      // Push relevant slices between first and last slice
-      this.addSlicesBetweenFirstAndLast(firstRendererSlice,
-          lastRendererSlice, rendererHelper);
+        this.addEntireSliceHierarchy(event);
+        this.followSubsequentSlices(event, pendingEventQueue, visited,
+            flowEvents);
+      }
+    },
+
+    addOtherCausallyRelatedEvents: function(rendererHelper, sourceSlices,
+        flowEvents, sortedRasterizerSlices) {
+      var pendingEventQueue = [];
+      // Keep track of visited nodes when traversing a DAG
+      var visitedEvents = new EventSet();
+      var beginImplFrame = undefined;
+      var prepareTiles = undefined;
+      var sortedRasterizerSlices = [];
+
+      sourceSlices.forEach(function(sourceSlice) {
+        if (!visitedEvents.contains(sourceSlice)) {
+          visitedEvents.push(sourceSlice);
+          pendingEventQueue.push(sourceSlice);
+        }
+      }, this);
+
+      while (pendingEventQueue.length != 0) {
+        var event = pendingEventQueue.pop();
+
+        // Push the current event chunk into associatedEvents.
+        this.addEntireSliceHierarchy(event);
+
+        this.followCurrentSlice(event, pendingEventQueue, visitedEvents);
+
+        this.followSubsequentSlices(event, pendingEventQueue, visitedEvents,
+            flowEvents);
+
+        // The rasterization work (CompositorTileWorker thread) and the
+        // Compositor tile manager are connect by the prepare_tiles_id
+        // instead of flow events.
+        var COMPOSITOR_PREPARE_TILES = 'TileManager::PrepareTiles';
+        prepareTiles = event.findDescendentSlice(COMPOSITOR_PREPARE_TILES);
+        if (prepareTiles)
+           this.addRasterizationEvents(prepareTiles, rendererHelper,
+               visitedEvents, flowEvents, sortedRasterizerSlices);
+
+        // OnBeginImplFrameDeadline could be triggered by other inputs.
+        // For now, we backtrace from it.
+        // TODO(yuhao): There are more such slices that we need to backtrace
+        var COMPOSITOR_ON_BIFD = 'Scheduler::OnBeginImplFrameDeadline';
+        beginImplFrame = event.findDescendentSlice(COMPOSITOR_ON_BIFD);
+        if (beginImplFrame)
+          this.backtraceFromDraw(beginImplFrame, visitedEvents);
+      }
+
+      // A separate pass on GestureScrollUpdate.
+      // Scroll update doesn't go through the main thread, but the compositor
+      // may go back to the main thread if there is an onscroll event handler.
+      // This is captured by a different flow event, which does not have the
+      // same ID as the Input Latency Event, but it is technically causally
+      // related to the GestureScrollUpdate input. Add them manually for now.
+      var INPUT_GSU = 'InputLatency::GestureScrollUpdate';
+      if (this.title === INPUT_GSU)
+        this.addScrollUpdateEvents(rendererHelper);
     },
 
     get associatedEvents() {
@@ -348,12 +526,23 @@ tr.exportTo('tr.e.cc', function() {
       if (flowEvents.length === 0)
         return this.associatedEvents_;
 
-      // Step 1: Get all the events that are directly connected by the flow
-      this.addDirectlyAssociatedEvents(flowEvents);
+      // Step 1: Get events that are directly connected by the LatencyInfo
+      // flow events. This gives us a small set of events that are guaranteed
+      // to be associated with the input, but are almost certain incomplete.
+      // We call this set "source" event set.
+      // This step returns the "source" event set (sourceSlices), which is then
+      // used in the second step.
+      var sourceSlices = this.addDirectlyAssociatedEvents(flowEvents);
 
-      // Step 2: Get events that are casually related but not connect by flow
-      // It only takes care of the main renderer thread for now
-      this.addOtherCasuallyRelatedEvents(flowEvents);
+      // Step 2: Start from the previously constructed "source" event set, we
+      // follow the toplevel (i.e., PostTask) and IPC flow events. Any slices
+      // that are reachable from the "source" event set via PostTasks or IPCs
+      // are conservatively considered associated with the input event.
+      // We then deal with specific cases where flow events either over include
+      // or miss capturing slices.
+      var rendererHelper = this.getRendererHelper(sourceSlices);
+      this.addOtherCausallyRelatedEvents(rendererHelper, sourceSlices,
+          flowEvents);
 
       return this.associatedEvents_;
     },

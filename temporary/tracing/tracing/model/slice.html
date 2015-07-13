@@ -172,6 +172,22 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
+    iterateEntireHierarchy: function(callback, opt_this) {
+      var mostTopLevelSlice = this.mostTopLevelSlice;
+      callback.call(opt_this, mostTopLevelSlice);
+      mostTopLevelSlice.iterateAllSubsequentSlices(callback, opt_this);
+    },
+
+    get entireHierarchy() {
+      var res = [];
+
+      this.iterateEntireHierarchy(function(slice) {
+        res.push(slice);
+      });
+
+      return res;
+    },
+
     /**
      * Returns this slice, and its ancestor and subsequent slices.
      *

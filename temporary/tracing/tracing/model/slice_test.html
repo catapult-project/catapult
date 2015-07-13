@@ -137,5 +137,30 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(sD.ancestorAndSubsequentSlices, [sD, sA, sE, sF]);
   });
+
+  test('entireHierarchy', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // [     A     ]
+    // [ B ][ D ][F]
+    // [C]  [E]
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 5.0, duration: 2.0 }));
+    var sE = group.pushSlice(newSliceEx(
+        { title: 'sE', start: 5.0, duration: 1.0 }));
+    var sF = group.pushSlice(newSliceEx(
+        { title: 'sF', start: 8.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sD.entireHierarchy, [sA, sB, sC, sD, sE, sF]);
+  });
 });
 </script>

@@ -70,8 +70,8 @@ found in the LICENSE file.
         return alert.title === alertTypeString;
       });
 
-      var event = new tr.m.RequestSelectionChangeEvent();
-      event.selection = new tr.m.EventSet(alertsOfType);
+      var event = new tr.model.RequestSelectionChangeEvent();
+      event.selection = new tr.model.EventSet(alertsOfType);
       this.dispatchEvent(event);
     },
 

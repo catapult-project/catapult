@@ -531,6 +531,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateForm_: function() {
+      function ignoreCaseCompare(a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+      }
+
       this.enabledCategoriesContainerEl_.innerHTML = ''; // Clear old categories
       this.disabledCategoriesContainerEl_.innerHTML = '';
 
@@ -545,8 +549,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         else
           categories.push(category);
       }
-      disabledCategories = disabledCategories.sort();
-      categories = categories.sort();
+      disabledCategories = disabledCategories.sort(ignoreCaseCompare);
+      categories = categories.sort(ignoreCaseCompare);
 
       if (this.categories_.length == 0) {
         this.infoBarGroup_.addMessage(

@@ -2,44 +2,58 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import cProfile, pstats, StringIO
+import cProfile
+import pstats
+import StringIO
 import inspect
 import optparse
 import sys
+import os
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing import tracing_project
+from tvcm import generate
+from tvcm import project
+
 
 class Bench(object):
+
   def SetUp(self):
     pass
+
   def Run(self):
     pass
+
   def TearDown(self):
     pass
 
+
 class CalcDepsBench(Bench):
+
   def Run(self):
     project = tracing_project.TracingProject()
-    load_sequence = project.CalcLoadSequenceForAllModules()
+    project.CalcLoadSequenceForAllModules()
+
 
 class FindAllModuleFilenamesBench(Bench):
+
   def Run(self):
     project = tracing_project.TracingProject()
-    filenames = project.FindAllModuleFilenames()
+    project.FindAllModuleFilenames()
+
 
 class DoGenerate(Bench):
-  def SetUp():
+
+  def SetUp(self):
     self.project = tracing_project.TracingProject()
     self.load_sequence = project.CalcLoadSequenceForAllModules()
 
   def Run(self):
-    self.deps = generate.GenerateDepsJS(
-      self.load_sequence, self.project)
+    self.deps = generate.GenerateDepsJS(self.load_sequence, self.project)
 
 
 def Main(args):
@@ -49,7 +63,8 @@ def Main(args):
   options, args = parser.parse_args(args)
 
   benches = [g for g in globals().values()
-            if g != Bench and inspect.isclass(g) and Bench in inspect.getmro(g)]
+             if g != Bench and inspect.isclass(g) and
+             Bench in inspect.getmro(g)]
   if len(args) != 1:
     sys.stderr.write('\n'.join([b.__name__ for b in benches]))
     return 1
@@ -76,6 +91,7 @@ def Main(args):
     return 0
   finally:
     bench.TearDown()
+
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))

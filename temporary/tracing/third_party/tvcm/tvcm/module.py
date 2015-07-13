@@ -1,47 +1,47 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """This module contains the Module class and other classes for resources.
 
 The Module class represents a module in the trace viewer system. A module has
 a name, and may require a variety of other resources, such as stylesheets,
-template objects, raw javascript, or other modules.
+template objects, raw JavaScript, or other modules.
 
-Other resources include HTML templates, raw javascript files, and stylesheets.
+Other resources include HTML templates, raw JavaScript files, and stylesheets.
 """
 
 import os
-import re
 import inspect
 import codecs
 
-from tvcm import resource as resource_module
 from tvcm import js_utils
 
 
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
+
   def __init__(self, fmt, *args):
-    import style_sheet as style_sheet_module
+    from tvcm import style_sheet as style_sheet_module
     context = []
     frame = inspect.currentframe()
     while frame:
-      locals = frame.f_locals
+      frame_locals = frame.f_locals
 
       module_name = None
-      if 'self' in locals:
-        s = locals['self']
+      if 'self' in frame_locals:
+        s = frame_locals['self']
         if isinstance(s, Module):
           module_name = s.name
         if isinstance(s, style_sheet_module.StyleSheet):
           module_name = s.name + '.css'
       if not module_name:
-        if 'module' in locals:
-          module = locals['module']
+        if 'module' in frame_locals:
+          module = frame_locals['module']
           if isinstance(s, Module):
             module_name = module.name
-        elif 'm' in locals:
-          module = locals['m']
+        elif 'm' in frame_locals:
+          module = frame_locals['m']
           if isinstance(s, Module):
             module_name = module.name
 
@@ -56,11 +56,13 @@ class DepsException(Exception):
 
     context.reverse()
     self.context = context
-    context_str = '\n'.join(['  %s' % x for x in context])
-    Exception.__init__(self, 'While loading:\n%s\nGot: %s' % (context_str, (fmt % args)))
+    context_str = '\n'.join('  %s' % x for x in context)
+    Exception.__init__(
+        self, 'While loading:\n%s\nGot: %s' % (context_str, (fmt % args)))
 
 
 class ModuleDependencyMetadata(object):
+
   def __init__(self):
     self.dependent_module_names = []
     self.dependent_raw_script_relative_paths = []
@@ -75,18 +77,20 @@ class ModuleDependencyMetadata(object):
 
 _next_module_id = 1
 
+
 class Module(object):
-  """Represents a javascript module.
+  """Represents a JavaScript module.
 
   Interesting properties include:
     name: Module name, may include a namespace, e.g. 'tvcm.foo'.
     filename: The filename of the actual module.
-    contents: The text contents of the module
+    contents: The text contents of the module.
     dependent_modules: Other modules that this module depends on.
 
   In addition to these properties, a Module also contains lists of other
   resources that it depends on.
   """
+
   def __init__(self, loader, name, resource, load_resource=True):
     assert isinstance(name, basestring), 'Got %s instead' % repr(name)
 
@@ -154,11 +158,12 @@ class Module(object):
         f.write('\n')
 
   def AppendHTMLContentsToFile(self, f, ctl, minify=False):
-    """Appends the html for this module [without links] to the provided file."""
+    """Appends the HTML for this module [without links] to the provided file."""
     pass
 
   def Load(self):
-    """Loads the sub-resources that this module depends on from its dependency metadata.
+    """Loads the sub-resources that this module depends on from its dependency
+    metadata.
 
     Raises:
       DepsException: There was a problem finding one of the dependencies.
@@ -166,15 +171,16 @@ class Module(object):
     """
     assert self.name, 'Module name must be set before dep resolution.'
     assert self.filename, 'Module filename must be set before dep resolution.'
-    assert self.name in self.loader.loaded_modules, 'Module must be registered in resource loader before loading.'
+    assert self.name in self.loader.loaded_modules, (
+        'Module must be registered in resource loader before loading.')
 
     metadata = self.dependency_metadata
     for name in metadata.dependent_module_names:
       module = self.loader.LoadModule(module_name=name)
       self.dependent_modules.append(module)
 
-    for relative_raw_script_path in metadata.dependent_raw_script_relative_paths:
-      raw_script = self.loader.LoadRawScript(relative_raw_script_path)
+    for path in metadata.dependent_raw_script_relative_paths:
+      raw_script = self.loader.LoadRawScript(path)
       self.dependent_raw_scripts.append(raw_script)
 
     for name in metadata.style_sheet_names:
@@ -208,7 +214,7 @@ class Module(object):
       if dependent_module.name in already_loaded_set:
         continue
       dependent_module.ComputeLoadSequenceRecursive(
-          load_sequence, already_loaded_set, depth+1)
+          load_sequence, already_loaded_set, depth + 1)
     if self.name not in already_loaded_set:
       already_loaded_set.add(self.name)
       load_sequence.append(self)
@@ -217,6 +223,7 @@ class Module(object):
     dependent_filenames = []
 
     visited_modules = set()
+
     def Get(module):
       module.AppendDirectlyDependentFilenamesTo(
           dependent_filenames, include_raw_scripts)
@@ -238,9 +245,11 @@ class Module(object):
     for style_sheet in self.style_sheets:
       style_sheet.AppendDirectlyDependentFilenamesTo(dependent_filenames)
 
+
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
   tvcm.requireRawScript(xxx) directive."""
+
   def __init__(self, resource):
     self.resource = resource
 
@@ -253,4 +262,4 @@ class RawScript(object):
     return self.resource.contents
 
   def __repr__(self):
-    return "RawScript(%s)" % self.filename
+    return 'RawScript(%s)' % self.filename

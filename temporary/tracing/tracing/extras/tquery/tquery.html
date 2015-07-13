@@ -78,7 +78,7 @@ tr.exportTo('tr.e.tquery', function() {
         // Reuse any memoized result.
         if (node.selection_ !== undefined)
           continue;
-        node.selection_ = new tr.m.EventSet();
+        node.selection_ = new tr.model.EventSet();
         if (node.parent_ === undefined) {
           // If this is the root, start by collecting all objects from the
           // selection controller.

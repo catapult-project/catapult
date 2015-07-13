@@ -12,4 +12,6 @@ Description:
 HTML parser in javascript.
 
 Local Modifications:
-None.
+Add parse5_lib.js to export parse5's functionality to global environment.
+parse5.js is the bundle file created by running:
+"$ browserify parse5_lib.js -o parse5.js"

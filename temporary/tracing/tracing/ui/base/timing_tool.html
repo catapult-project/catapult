@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.b', function() {
       var worldX = this.getWorldXFromEvent_(e);
       var mouseY = e.clientY;
 
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
 
       // Look at the track under mouse position first for better performance.
       modelTrackContainer.addClosestEventToSelection(

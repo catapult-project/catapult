@@ -8,14 +8,16 @@ import re
 import sys
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing.build import check_common
 from tracing import tracing_project
 
+
 class _Token(object):
+
   def __init__(self, data, id=None):
     self.data = data
     if id:
@@ -25,6 +27,7 @@ class _Token(object):
 
 
 class BuildFile(object):
+
   def __init__(self, text, file_groups):
     self._file_groups = file_groups
     self._tokens = [token for token in self._Tokenize(text)]
@@ -52,9 +55,8 @@ class BuildFile(object):
     for token in self._tokens:
       if token.id in files_by_group:
         token.data = self._GetReplacementListAsString(
-          token.data,
-          files_by_group[token.id]
-        )
+            token.data,
+            files_by_group[token.id])
 
   def Write(self, f):
     for token in self._tokens:
@@ -71,11 +73,12 @@ class BuildFile(object):
 
 
 class GypiFile(BuildFile):
+
   def _ProcessMatch(self, match):
     min_index = match.start(2)
     end_index = match.end(2)
     token = _Token(match.string[min_index:end_index],
-                        id=match.groups()[0])
+                   id=match.groups()[0])
     return min_index, end_index, token
 
   def _TokenRegex(self):
@@ -107,7 +110,6 @@ def _GroupFiles(fileNameToGroupNameFunc, filenames):
 
 
 def _UpdateBuildFile(filename, build_file_class):
-  updated_content = None
   with open(filename, 'r') as f:
     build_file = build_file_class(f.read(), check_common.FILE_GROUPS)
   files_by_group = _GroupFiles(check_common.GetFileGroupFromFileName,

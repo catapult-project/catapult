@@ -121,7 +121,7 @@ tr.exportTo('tr.ui.tracks', function() {
             sampleTitle;
         samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
-          var selection = new tr.m.EventSet();
+          var selection = new tr.model.EventSet();
           for (var i = 0; i < samplesTrack.slices.length; i++) {
             selection.push(samplesTrack.slices[i]);
           }

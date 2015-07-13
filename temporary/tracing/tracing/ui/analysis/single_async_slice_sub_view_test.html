@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
       endThread: t1
     }));
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(t1.asyncSliceGroup.slices[0]);
 
     var viewEl = document.createElement('tr-ui-a-single-async-slice-sub-view');

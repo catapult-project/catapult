@@ -53,7 +53,8 @@ tr.b.unittest.testSuite(function() {
     });
 
     var viewEl = document.createElement('tr-ui-a-related-events');
-    viewEl.addRelatedEvents(new tr.m.EventSet([m.sA, m.f1, m.sB, m.f2, m.sC]));
+    viewEl.addRelatedEvents(new tr.model.EventSet(
+        [m.sA, m.f1, m.sB, m.f2, m.sC]));
     this.addHTMLOutput(viewEl);
   });
 

@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.m', function() {
+tr.exportTo('tr.model', function() {
 
   var EventRegistry = tr.model.EventRegistry;
 
@@ -220,6 +220,13 @@ tr.exportTo('tr.m', function() {
       }, opt_this);
 
       return res;
+    },
+
+    toArray: function() {
+      var ary = [];
+      for (var i = 0; i < this.length; i++)
+        ary.push(this[i]);
+      return ary;
     },
 
     forEach: function(fn, opt_this) {

@@ -1,13 +1,16 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """A Resource is a file and its various associated canonical names."""
 
 import codecs
 import os
 
+
 class Resource(object):
   """Represents a file found via a path search."""
+
   def __init__(self, toplevel_dir, absolute_path, binary=False):
     self.toplevel_dir = toplevel_dir
     self.absolute_path = absolute_path
@@ -32,7 +35,7 @@ class Resource(object):
   def name_from_relative_path(relative_path):
     dirname = os.path.dirname(relative_path)
     basename = os.path.basename(relative_path)
-    modname  = os.path.splitext(basename)[0]
+    modname = os.path.splitext(basename)[0]
     if len(dirname):
       name = dirname.replace(os.path.sep, '.') + '.' + modname
     else:

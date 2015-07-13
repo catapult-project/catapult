@@ -132,7 +132,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.analysis', function() {
   var THIS_DOC = document.currentScript.ownerDocument;
 
-  var RequestSelectionChangeEvent = tr.m.RequestSelectionChangeEvent;
+  var RequestSelectionChangeEvent = tr.model.RequestSelectionChangeEvent;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
   /**
@@ -333,7 +333,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
       var sample = selection[i];
       var id = sample.leafStackFrame.id;
       if (!stackFrameIdToSamples[id])
-        stackFrameIdToSamples[id] = new tr.m.EventSet();
+        stackFrameIdToSamples[id] = new tr.model.EventSet();
       stackFrameIdToSamples[id].push(sample);
     }
     return stackFrameIdToSamples;
@@ -471,7 +471,7 @@ tr.exportTo('tr.ui.e.analysis', function() {
 
     getSamplesFromNode_: function(node) {
       // A node has samples associated with it, if it's a leaf node.
-      var selection = new tr.m.EventSet();
+      var selection = new tr.model.EventSet();
       if (node.leaf_node_id !== undefined) {
         selection.addEventSet(this.stackFrameIdToSamples_[node.leaf_node_id]);
       }

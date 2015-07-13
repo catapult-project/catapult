@@ -20,7 +20,7 @@ tr.exportTo('tr.ui', function() {
 
   function FindController(selectionController) {
     this.selectionController_ = selectionController;
-    this.filterHits_ = new tr.m.EventSet();
+    this.filterHits_ = new tr.model.EventSet();
     this.currentHitIndex_ = -1;
     this.activePromise_ = Promise.resolve();
     this.activeTask_ = undefined;
@@ -68,7 +68,7 @@ tr.exportTo('tr.ui', function() {
       // TODO(beaudoin): Cancel anything left in the task queue, without
       // invalidating the promise.
       this.enqueueOperation_(function() {
-        this.filterHits_ = new tr.m.EventSet();
+        this.filterHits_ = new tr.model.EventSet();
         this.currentHitIndex_ = -1;
       }.bind(this));
 
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui', function() {
           this.enqueueOperation_(sc.findTextCleared.bind(sc));
         } else {
           var filter = new tr.c.TitleOrCategoryFilter(filterText);
-          var filterHits = new tr.m.EventSet();
+          var filterHits = new tr.model.EventSet();
           this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
               filter, filterHits));
           this.enqueueOperation_(function() {
@@ -111,7 +111,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * Returns the most recent filter hits as a tr.m.EventSet. Call
+     * Returns the most recent filter hits as a tr.model.EventSet. Call
      * |startFiltering| to ensure this is up to date after the filter settings
      * have been changed.
      */

@@ -8,17 +8,14 @@ import os
 import platform
 import shutil
 import subprocess
-import StringIO
-import sys
 import json
 import tempfile
 
-from tvcm import parse_html_deps
-
 
 _V8_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__),
-    os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
+    os.path.join(
+        os.path.dirname(__file__),
+        os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
 
 _HTML_JS_EVAL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html2jseval.py'))
@@ -29,7 +26,17 @@ _BOOTSTRAP_JS_DIR = os.path.abspath(
 _PATH_UTILS_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
+_HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'html_to_js_generator.js'))
+
+_JS_PARSER_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__),
+                 os.pardir, 'third_party', 'parse5', 'parse5.js'))
+
+
 _BOOTSTRAP_JS_CONTENT = None
+
+
 def _ValidateSourcePaths(source_paths):
   if source_paths is None:
     return
@@ -37,6 +44,7 @@ def _ValidateSourcePaths(source_paths):
     assert os.path.exists(x)
     assert os.path.isdir(x)
     assert os.path.isabs(x)
+
 
 def _GetBootStrapJsContent(source_paths):
   global _BOOTSTRAP_JS_CONTENT
@@ -46,13 +54,15 @@ def _GetBootStrapJsContent(source_paths):
       _BOOTSTRAP_JS_CONTENT = bootstrap_js_content.replace(
           '<%html2jseval-path%>', _HTML_JS_EVAL_PATH)
 
-
   bsc = _BOOTSTRAP_JS_CONTENT
 
   source_path_string = json.dumps(source_paths)
   bsc = bsc.replace('<%source_paths%>', source_path_string)
   bsc = bsc.replace('<%current_working_directory%>', os.getcwd())
   bsc = bsc.replace('<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
+  bsc = bsc.replace('<%html_to_js_generator_js_path%>',
+                    _HTML_TO_JS_GENERATOR_JS_DIR)
+  bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
   return bsc
 
 
@@ -74,28 +84,31 @@ def _GetD8BinaryPathForPlatform():
     raise NotImplementedError(
         'd8 binary for this platform and architecture is not yet supported')
 
+
 class RunResult(object):
   def __init__(self, returncode, stdout):
     self.returncode = returncode
     self.stdout = stdout
 
+
 def ExecuteFile(file_path, source_paths=None, js_args=None):
-  """ Execute javascript program in |file_path|.
+  """Execute JavaScript program in |file_path|.
 
   Args:
     file_path: string file_path that contains path the .js or .html file to be
       executed.
     source_paths: the list of absolute paths containing code. All the imports
-    js_args: a list of string arguments to sent to the js program.
+    js_args: a list of string arguments to sent to the JS program.
 
   Returns:
-     The string output from running the js program.
+     The string output from running the JS program.
   """
   res = RunFile(file_path, source_paths, js_args)
   return res.stdout
 
+
 def RunFile(file_path, source_paths=None, js_args=None):
-  """ Runs javascript program in |file_path|.
+  """Runs JavaScript program in |file_path|.
 
   Args are same as ExecuteFile.
 
@@ -133,8 +146,9 @@ def ExcecuteJsString(js_string, source_paths=None, js_args=None,
   res = RunJsString(js_string, source_paths, js_args, original_file_name)
   return res.stdout
 
+
 def RunJsString(js_string, source_paths=None, js_args=None,
-                     original_file_name=None):
+                original_file_name=None):
   _ValidateSourcePaths(source_paths)
 
   try:
@@ -189,7 +203,7 @@ def _RunFileWithD8(js_file_path, js_args):
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Run javascript file with v8 engine')
+      description='Run JavaScript file with v8 engine')
   parser.add_argument('file_name', help='input file', metavar='FILE',
                       type=lambda f: _IsValidJsOrHTMLFile(parser, f))
   parser.add_argument('--js_args', help='arguments for the js program',

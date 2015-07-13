@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     var d1 = addGlobalMemoryDump(5);
     var d2 = addGlobalMemoryDump(20);
 
-    var selection = new tr.m.EventSet();
+    var selection = new tr.model.EventSet();
     selection.push(d1);
     selection.push(d2);
     assert.equal(selection.length, 2);

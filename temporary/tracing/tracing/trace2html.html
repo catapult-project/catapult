@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/trace_viewer.html">
+<link rel="import" href="/ui/timeline_view.html">
 <script>
 'use strict';
 
@@ -21,11 +21,11 @@ var g_timelineViewEl;
     '  width: 100%;',
     '  height: 100%;',
     '}',
-    '#timeline-view {',
+    'tr-ui-timeline-view {',
     '  width: 100%;',
     '  height: 100%;',
     '}',
-    '#timeline-view:focus {',
+    'tr-ui-timeline-view:focus {',
     '  outline: none;',
     '}'
   ];
@@ -34,8 +34,12 @@ var g_timelineViewEl;
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-  g_timelineViewEl = new tr.TraceViewer();
-  g_timelineViewEl.id = 'timeline-view';
+  var container = document.createElement('track-view-container');
+  container.id = 'track_view_container';
+
+  g_timelineViewEl = document.createElement('tr-ui-timeline-view');
+  g_timelineViewEl.appendChild(container);
+
   document.body.appendChild(g_timelineViewEl);
 
   var traces = [];

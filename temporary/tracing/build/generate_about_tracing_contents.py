@@ -10,11 +10,12 @@ import sys
 import tvcm
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
 from tracing import tracing_project
+
 
 def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
@@ -51,7 +52,6 @@ def main(args):
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
     o.close()
-
 
     o = codecs.open(os.path.join(options.out_dir, "about_tracing.js"), 'w',
                     encoding='utf-8')

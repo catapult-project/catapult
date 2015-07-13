@@ -39,7 +39,8 @@ PLATFORM_MAPPING = {
         'omaha': 'mac',
         'cs_dir': 'mac64',
         'cs_filename': 'mac',
-        'chromepath': 'chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome',
+        'chromepath': ('chrome-mac/Google Chrome.app/'
+                       'Contents/MacOS/Google Chrome'),
     },
 }
 
@@ -54,13 +55,12 @@ def DownloadChromeStable():
       PLATFORM_MAPPING[sys.platform]['cs_filename'])
   tmpdir = tempfile.mkdtemp()
   zip_path = os.path.join(tmpdir, 'chrome.zip')
-  print 'GOT OMAHA_URL', omaha_url
-  print 'OPENING CS URL:', cs_url
   with open(zip_path, 'wb') as local_file:
     local_file.write(urllib2.urlopen(cs_url).read())
   zf = zipfile.ZipFile(zip_path)
   zf.extractall(path=tmpdir)
   return tmpdir
+
 
 def StartXvfb():
   xvfb_command = [
@@ -78,18 +78,19 @@ def StartXvfb():
 
 
 def main():
-  StartXvfb()
-
+  if sys.platform == 'linux2':
+    StartXvfb()
   tmpdir = DownloadChromeStable()
-  server_path = os.path.join(os.path.dirname(
-      os.path.abspath(__file__)), os.pardir, 'run_dev_server')
+  server_path = [os.path.join(os.path.dirname(
+      os.path.abspath(__file__)), os.pardir, 'run_dev_server')]
+  if sys.platform.startswith('win'):
+      server_path = ['python.exe'] + server_path
   server_process = subprocess.Popen(
-      [server_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      server_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   time.sleep(5)
 
   chrome_path = os.path.join(
       tmpdir, PLATFORM_MAPPING[sys.platform]['chromepath'])
-  print "CHROME PATH:", chrome_path
   os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
   chrome_command = [
       chrome_path,

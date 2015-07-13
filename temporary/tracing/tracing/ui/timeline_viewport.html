@@ -377,7 +377,7 @@ tr.exportTo('tr.ui', function() {
      * @return {boolean} true if current selection changed.
      */
     getShiftedSelection: function(selection, offset) {
-      var newSelection = new tr.m.EventSet();
+      var newSelection = new tr.model.EventSet();
       for (var i = 0; i < selection.length; i++) {
         var event = selection[i];
 

@@ -1,9 +1,12 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import re
 
+
 class CSSChecker(object):
+
   def __init__(self, input_api, output_api, file_filter=None):
     self.input_api = input_api
     self.output_api = output_api
@@ -60,6 +63,7 @@ class CSSChecker(object):
 
     # Ignore single frames in a @keyframe, i.e. 0% { margin: 50px; }
     frame_reg = r'\s*\d+%\s*{\s*[_a-zA-Z0-9-]+:(\s*[_a-zA-Z0-9-]+)+\s*;\s*}\s*'
+
     def close_brace_on_new_line(line):
       return (line.find('}') >= 0 and re.search(r'[^ }]', line) and
               not re.match(frame_reg, line))
@@ -73,11 +77,13 @@ class CSSChecker(object):
     # Shared between hex_could_be_shorter and rgb_if_not_gray.
     hex_reg = (r'#([a-fA-F0-9]{3}|[a-fA-F0-9]{6})(?=[^_a-zA-Z0-9-]|$)'
                r'(?!.*(?:{.*|,\s*)$)')
+
     def hex_could_be_shorter(line):
       m = re.search(hex_reg, line)
       return (m and _is_gray(m.group(1)) and _collapseable_hex(m.group(1)))
 
     small_seconds = r'(?:^|[^_a-zA-Z0-9-])(0?\.[0-9]+)s(?!-?[_a-zA-Z0-9-])'
+
     def milliseconds_for_small_times(line):
       return re.search(small_seconds, line)
 
@@ -90,6 +96,7 @@ class CSSChecker(object):
     any_reg = re.compile(r':(?:-webkit-)?any\(.*?\)', re.DOTALL)
     multi_sels = re.compile(r'(?:}[\n\s]*)?([^,]+,(?=[^{}]+?{).*[,{])\s*$',
                             re.MULTILINE)
+
     def one_selector_per_line(contents):
       errors = []
       for b in re.finditer(multi_sels, re.sub(any_reg, '', contents)):
@@ -106,7 +113,7 @@ class CSSChecker(object):
 
     def suggest_rgb_from_hex(line):
       suggestions = ['rgb(%d, %d, %d)' % _rgb_from_hex(h.group(1))
-          for h in re.finditer(hex_reg, line)]
+                     for h in re.finditer(hex_reg, line)]
       return ' (replace with %s)' % ', '.join(suggestions)
 
     def suggest_short_hex(line):
@@ -117,6 +124,7 @@ class CSSChecker(object):
     zeros = (r'^.*(?:^|\D)'
              r'(?:\.0|0(?:\.0?|px|em|%|in|cm|mm|pc|pt|ex|deg|g?rad|m?s|k?hz))'
              r'(?:\D|$)(?=[^{}]+?}).*$')
+
     def zero_length_values(contents):
       errors = []
       for z in re.finditer(re.compile(zeros, re.MULTILINE), contents):
@@ -126,54 +134,68 @@ class CSSChecker(object):
       return errors
 
     added_or_modified_files_checks = [
-        { 'desc': 'Alphabetize properties and list vendor specific (i.e. '
-                  '-webkit) above standard.',
-          'test': alphabetize_props,
-          'multiline': True,
+        {
+            'desc': 'Alphabetize properties and list vendor specific (i.e. '
+                    '-webkit) above standard.',
+            'test': alphabetize_props,
+            'multiline': True,
         },
-        { 'desc': 'Start braces ({) end a selector, have a space before them '
-                  'and no rules after.',
-          'test': braces_have_space_before_and_nothing_after,
+        {
+            'desc': 'Start braces ({) end a selector, have a space before them '
+                    'and no rules after.',
+            'test': braces_have_space_before_and_nothing_after,
         },
-        { 'desc': 'Classes use .dash-form.',
-          'test': classes_use_dashes,
+        {
+            'desc': 'Classes use .dash-form.',
+            'test': classes_use_dashes,
         },
-        { 'desc': 'Always put a rule closing brace (}) on a new line.',
-          'test': close_brace_on_new_line,
+        {
+            'desc': 'Always put a rule closing brace (}) on a new line.',
+            'test': close_brace_on_new_line,
         },
-        { 'desc': 'Colons (:) should have a space after them.',
-          'test': colons_have_space_after,
+        {
+            'desc': 'Colons (:) should have a space after them.',
+            'test': colons_have_space_after,
         },
-        { 'desc': 'Use single quotes (\') instead of double quotes (") in '
-                  'strings.',
-          'test': favor_single_quotes,
+        {
+            'desc': 'Use single quotes (\') instead of double quotes (") in '
+                    'strings.',
+            'test': favor_single_quotes,
         },
-        { 'desc': 'Use abbreviated hex (#rgb) when in form #rrggbb.',
-          'test': hex_could_be_shorter,
-          'after': suggest_short_hex,
+        {
+            'desc': 'Use abbreviated hex (#rgb) when in form #rrggbb.',
+            'test': hex_could_be_shorter,
+            'after': suggest_short_hex,
         },
-        { 'desc': 'Use milliseconds for time measurements under 1 second.',
-          'test': milliseconds_for_small_times,
-          'after': suggest_ms_from_s,
+        {
+            'desc': 'Use milliseconds for time measurements under 1 second.',
+            'test': milliseconds_for_small_times,
+            'after': suggest_ms_from_s,
         },
-        { 'desc': 'Don\'t use data URIs in source files. Use grit instead.',
-          'test': no_data_uris_in_source_files,
+        {
+            'desc': 'Don\'t use data URIs in source files. Use grit instead.',
+            'test': no_data_uris_in_source_files,
         },
-        { 'desc': 'One rule per line (what not to do: color: red; margin: 0;).',
-          'test': one_rule_per_line,
+        {
+            'desc': 'One rule per line '
+                    '(what not to do: color: red; margin: 0;).',
+            'test': one_rule_per_line,
         },
-        { 'desc': 'One selector per line (what not to do: a, b {}).',
-          'test': one_selector_per_line,
-          'multiline': True,
+        {
+            'desc': 'One selector per line (what not to do: a, b {}).',
+            'test': one_selector_per_line,
+            'multiline': True,
         },
-        { 'desc': 'Use rgb() over #hex when not a shade of gray (like #333).',
-          'test': rgb_if_not_gray,
-          'after': suggest_rgb_from_hex,
+        {
+            'desc': 'Use rgb() over #hex when not a shade of gray (like #333).',
+            'test': rgb_if_not_gray,
+            'after': suggest_rgb_from_hex,
         },
-        { 'desc': 'Make all zero length terms (i.e. 0px) 0 unless inside of '
-                  'hsl() or part of @keyframe.',
-          'test': zero_length_values,
-          'multiline': True,
+        {
+            'desc': 'Make all zero length terms (i.e. 0px) 0 unless inside of '
+                    'hsl() or part of @keyframe.',
+            'test': zero_length_values,
+            'multiline': True,
         },
     ]
 
@@ -198,8 +220,8 @@ class CSSChecker(object):
           check_errors = check['test'](f[1])
           if len(check_errors) > 0:
             # There are currently no multiline checks with ['after'].
-            file_errors.append('- %s\n%s' %
-                (check['desc'], '\n'.join(check_errors).rstrip()))
+            file_errors.append(
+                '- %s\n%s' % (check['desc'], '\n'.join(check_errors).rstrip()))
         else:
           check_errors = []
           lines = f[1].splitlines()
@@ -211,8 +233,8 @@ class CSSChecker(object):
                 error += check['after'](line)
               check_errors.append(error)
           if len(check_errors) > 0:
-            file_errors.append('- %s\n%s' %
-                (check['desc'], '\n'.join(check_errors)))
+            file_errors.append(
+                '- %s\n%s' % (check['desc'], '\n'.join(check_errors)))
       if file_errors:
         results.append(self.output_api.PresubmitPromptWarning(
             '%s:\n%s' % (f[0], '\n\n'.join(file_errors))))

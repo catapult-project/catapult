@@ -38,85 +38,6 @@ tr.exportTo('tr.ui.e.highlighter', function() {
       VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT -
       VSyncHighlighter.VSYNC_DENSITY_OPAQUE;
 
-  VSyncHighlighter.VSYNC_COUNTER_PRECISIONS = {
-    // Android. Some versions have VSYNC split out into VSYNC-app and VSYNC-sf.
-    // Requires "gfx" systrace category to be enabled.
-    'android.VSYNC-app': 15,
-    'android.VSYNC': 15
-  };
-
-  VSyncHighlighter.VSYNC_SLICE_PRECISIONS = {
-    // Android.
-    'RenderWidgetHostViewAndroid::OnVSync': 5,
-
-    // Android. Very precise. Requires "gfx" systrace category to be enabled.
-    'VSYNC': 10,
-
-    // Linux. Very precise. Requires "gpu" tracing category to be enabled.
-    'vblank': 10,
-
-    // Mac. Derived from a Mac callback (CVDisplayLinkSetOutputCallback).
-    'DisplayLinkMac::GetVSyncParameters': 5
-  };
-
-  /**
-   * Find the most precise VSync event times in a model.
-   */
-  VSyncHighlighter.findVSyncTimes = function(model) {
-    var times = [];
-
-    // Only keep the most precise VSync data.
-    var maxPrecision = Number.NEGATIVE_INFINITY;
-    var maxTitle = undefined;
-    var useInstead = function(title, precisions) {
-      if (title != maxTitle) {
-        var precision = precisions[title];
-        if (precision === undefined || precision <= maxPrecision) {
-          if (precision === maxPrecision) {
-            console.warn('Encountered two different VSync events (' +
-                maxTitle + ', ' + title + ') with the same precision, ' +
-                'ignoring the newer one (' + title + ')');
-          }
-          return false;
-        }
-        maxPrecision = precision;
-        maxTitle = title;
-        times = [];
-      }
-      return true;
-    }
-
-    for (var pid in model.processes) {
-      var process = model.processes[pid];
-
-      // Traverse process counters.
-      for (var cid in process.counters) {
-        if (useInstead(cid, VSyncHighlighter.VSYNC_COUNTER_PRECISIONS)) {
-          var counter = process.counters[cid];
-          for (var i = 0; i < counter.series.length; i++) {
-            var series = counter.series[i];
-            Array.prototype.push.apply(times, series.timestamps);
-          }
-        }
-      }
-
-      // Traverse thread slices.
-      for (var tid in process.threads) {
-        var thread = process.threads[tid];
-        for (var i = 0; i < thread.sliceGroup.slices.length; i++) {
-          var slice = thread.sliceGroup.slices[i];
-          if (useInstead(slice.title,
-                         VSyncHighlighter.VSYNC_SLICE_PRECISIONS)) {
-            times.push(slice.start);
-          }
-        }
-      }
-    }
-
-    times.sort(function(x, y) { return x - y; });
-    return times;
-  };
-
   /**
    * Generate a zebra striping from a list of times.
    */
@@ -150,7 +71,7 @@ tr.exportTo('tr.ui.e.highlighter', function() {
     __proto__: Highlighter.prototype,
 
     processModel: function(model) {
-      this.times_ = VSyncHighlighter.findVSyncTimes(model);
+      this.times_ = model.device.vSyncTimestamps;
     },
 
     drawHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {

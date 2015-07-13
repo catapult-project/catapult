@@ -34,7 +34,6 @@ def Main(args):
   return res.returncode
 
 if __name__ == '__main__':
-  # TODO(sullivan): Make this run on the command line but not the buildbots.
-  #install.InstallHooks()
+  install.InstallHooks()
 
   sys.exit(Main(sys.argv[1:]))

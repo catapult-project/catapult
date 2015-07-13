@@ -91,7 +91,7 @@ found in the LICENSE file.
       var addToEventGroups = function(type, flowEvent) {
         this.eventGroups_.push({
           type: type,
-          selection: new tr.m.EventSet(flowEvent),
+          selection: new tr.model.EventSet(flowEvent),
           name: flowEvent.title
         });
       };
@@ -126,7 +126,7 @@ found in the LICENSE file.
       var precedingEventsSelection = undefined;
       var followingEventsSelection = undefined;
       if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
-        precedingEventsSelection = new tr.m.EventSet();
+        precedingEventsSelection = new tr.model.EventSet();
         this.recursivelyAddConnectedEvents_(precedingEventsSelection, slice,
             function(event) { return event.inFlowEvents; });
         this.eventGroups_.push({
@@ -136,7 +136,7 @@ found in the LICENSE file.
         });
       }
       if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
-        followingEventsSelection = new tr.m.EventSet();
+        followingEventsSelection = new tr.model.EventSet();
         this.recursivelyAddConnectedEvents_(followingEventsSelection, slice,
             function(event) { return event.outFlowEvents; });
         this.eventGroups_.push({
@@ -146,7 +146,7 @@ found in the LICENSE file.
         });
       }
       if (precedingEventsSelection && followingEventsSelection) {
-        var allEventsSelection = new tr.m.EventSet();
+        var allEventsSelection = new tr.model.EventSet();
         for (var i = 0; i < precedingEventsSelection.length; ++i)
           allEventsSelection.push(precedingEventsSelection[i]);
         for (var i = 0; i < followingEventsSelection.length; ++i)
@@ -160,7 +160,7 @@ found in the LICENSE file.
     },
 
     addConnectedEventsForSelection_: function(selection) {
-      var allEventsSelection = new tr.m.EventSet();
+      var allEventsSelection = new tr.model.EventSet();
       selection.forEach(function(slice) {
         this.recursivelyAddConnectedEvents_(allEventsSelection, slice,
             function(event) {
@@ -201,9 +201,9 @@ found in the LICENSE file.
     addAncestorsAndDescendentsForSlice_: function(slice) {
       if (!slice.iterateAllAncestors || !slice.iterateAllDescendents)
         return;
-      var ancestorsSelection = new tr.m.EventSet(slice);
-      var descendentsSelection = new tr.m.EventSet(slice);
-      var allSlicesSelection = new tr.m.EventSet(slice);
+      var ancestorsSelection = new tr.model.EventSet(slice);
+      var descendentsSelection = new tr.model.EventSet(slice);
+      var allSlicesSelection = new tr.model.EventSet(slice);
       slice.iterateAllAncestors(function(otherSlice) {
         ancestorsSelection.push(otherSlice);
       });
@@ -238,7 +238,7 @@ found in the LICENSE file.
     },
 
     addAncestorsAndDescendentsForSelection_: function(selection) {
-      var allSlicesSelection = new tr.m.EventSet();
+      var allSlicesSelection = new tr.model.EventSet();
       selection.forEach(function(slice) {
         allSlicesSelection.push(slice);
         if (slice.iterateAllAncestors && slice.iterateAllDescendents) {

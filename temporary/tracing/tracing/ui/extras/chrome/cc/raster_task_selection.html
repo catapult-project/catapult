@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     });
   }
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tr.m.EventSet))
+    if (!(selection instanceof tr.model.EventSet))
       return {ok: false, why: 'Must be selection'};
 
     if (selection.length === 0)
@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = new tr.m.EventSet();
+      var sel = new tr.model.EventSet();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });

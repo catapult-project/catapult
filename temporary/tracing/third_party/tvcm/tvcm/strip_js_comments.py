@@ -1,9 +1,11 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Utility function for stripping comments out of javascript source code."""
+
+"""Utility function for stripping comments out of JavaScript source code."""
 
 import re
+
 
 def _TokenizeJS(text):
   """Splits source code text into segments in preparation for comment stripping.
@@ -12,7 +14,7 @@ def _TokenizeJS(text):
   variables, etc. The only tokens of interest are comment-related tokens.
 
   Args:
-    text: The contents of a javascript file.
+    text: The contents of a JavaScript file.
 
   Yields:
     A succession of strings in the file, including all comment-related symbols.
@@ -37,13 +39,13 @@ def _TokenizeJS(text):
 
 
 def StripJSComments(text):
-  """Strips comments out of javascript source code.
+  """Strips comments out of JavaScript source code.
 
   Args:
-    text: Javascript source text.
+    text: JavaScript source text.
 
   Returns:
-    Javascript source text with comments stripped out.
+    JavaScript source text with comments stripped out.
   """
   result_tokens = []
   token_stream = _TokenizeJS(text).__iter__()

@@ -14,10 +14,15 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.c', function() {
   function Auditor(model) {
+    this.model_ = model;
   }
 
   Auditor.prototype = {
     __proto__: Object.prototype,
+
+    get model() {
+      return this.model_;
+    },
 
     /**
      * Called by the Model after baking slices. May modify model.

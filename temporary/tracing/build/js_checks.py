@@ -1,11 +1,15 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
-import sys
 import re
 
+from tracing import tracing_project
+
+
 class JSChecker(object):
+
   def __init__(self, input_api, file_filter=None):
     self.input_api = input_api
     if file_filter:
@@ -43,7 +47,7 @@ class JSChecker(object):
       return ''
 
     return self.RegexCheck(i, line, r'(?:^|\s|\()(const)\s',
-        'Use var instead of const.')
+                           'Use var instead of const.')
 
   def error_highlight(self, start, length):
     """Takes a start position and a length, and produces a row of '^'s to
@@ -127,7 +131,7 @@ class JSChecker(object):
       affected_files = []
 
     def ShouldCheck(f):
-      if self.input_api.IsIgnoredFile(f):
+      if tracing_project.TracingProject.IsIgnoredFile(f):
         return False
       if f.LocalPath().endswith('.js'):
         return True

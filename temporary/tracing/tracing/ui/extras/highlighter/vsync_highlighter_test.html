@@ -18,111 +18,12 @@ tr.b.unittest.testSuite(function() {
   var VIEW_L_WORLD = 100;
   var VIEW_R_WORLD = 1000;
 
-  function buildModel(slices, counters) {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(1);
-    for (var i = 0; i < slices.length; i++) {
-      var thread = process.getOrCreateThread(i);
-      for (var j = 0; j < slices[i].length; j++) {
-        thread.sliceGroup.pushSlice(slices[i][j]);
-      }
-    }
-    for (var i = 0; i < counters.length; i++) {
-      var counter = process.getOrCreateCounter(
-          counters[i].category,
-          counters[i].name);
-      counter.addSeries(counters[i].series);
-    }
-    return model;
-  }
-
-  function buildSlice(title, time) {
-    return new tr.model.ThreadSlice('', title, 0, time, {});
-  }
-
-  function buildCounterSeries(name, timestamps) {
-    var series = new tr.model.CounterSeries(name, '');
-    for (var i = 0; i < timestamps.length; i++) {
-      series.addCounterSample(timestamps[i], 1);
-    }
-    return series;
-  }
-
-  function testFindVSyncTimes(slices, counters, expectedTimes) {
-    assert.deepEqual(
-        expectedTimes,
-        VSyncHighlighter.findVSyncTimes(buildModel(slices, counters)));
-  }
-
   function testGenerateStripes(times, expectedRanges) {
     var ranges = VSyncHighlighter.generateStripes(
         times, VIEW_L_WORLD, VIEW_R_WORLD);
-    ranges.sort();
-    expectedRanges.sort();
 
-    assert.equal(ranges.length, expectedRanges.length);
-    for (var i = 0; i < expectedRanges.length; i++) {
-      assert.deepEqual(ranges[i], expectedRanges[i]);
-    }
+    assert.sameDeepMembers(ranges, expectedRanges);
   }
-
-  test('findEmpty', function() {
-    testFindVSyncTimes([], [], []);
-  });
-
-  test('findNoVsync', function() {
-    testFindVSyncTimes([
-        [buildSlice('MessageLoop::RunTask', 10),
-         buildSlice('MessageLoop::RunTask', 20)],
-        [buildSlice('MessageLoop::RunTask', 15)]
-    ], [], []);
-  });
-
-  test('findOneVsync', function() {
-    testFindVSyncTimes([[buildSlice('vblank', 42)]], [], [42]);
-  });
-
-  test('findMultipleVsyncs', function() {
-    testFindVSyncTimes([
-        [buildSlice('VSYNC', 1), buildSlice('MessageLoop::RunTask', 2)],
-        [buildSlice('MessageLoop::RunTask', 3)],
-        [buildSlice('MessageLoop::RunTask', 4), buildSlice('VSYNC', 5)],
-        [buildSlice('VSYNC', 6), buildSlice('VSYNC', 7)]
-    ], [], [1, 5, 6, 7]);
-  });
-
-  test('findMultipleAndroidVsyncs', function() {
-    testFindVSyncTimes([
-        [buildSlice('MessageLoop::RunTask', 2)],
-        [buildSlice('MessageLoop::RunTask', 3)],
-        [buildSlice('MessageLoop::RunTask', 4)]
-    ],
-    [
-      {
-        category: 'android',
-        name: 'VSYNC-app',
-        series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
-      }
-    ], [1, 5, 6, 7]);
-  });
-
-  test('findUnsorted', function() {
-    testFindVSyncTimes([
-        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 4),
-         buildSlice('MessageLoop::RunTask', 2)],
-        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 1),
-         buildSlice('RenderWidgetHostViewAndroid::OnVSync', 3)]
-    ], [], [1, 3, 4]);
-  });
-
-  test('findDifferentPrecisions', function() {
-    // vblank has higher precision than RenderWidgetHostViewAndroid::OnVSync.
-    testFindVSyncTimes([
-        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 1),
-         buildSlice('vblank', 2),
-         buildSlice('RenderWidgetHostViewAndroid::OnVSync', 3)]
-    ], [], [2]);
-  });
 
   test('generateInside', function() {
     testGenerateStripes([], []);

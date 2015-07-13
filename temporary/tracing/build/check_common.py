@@ -6,7 +6,7 @@ import sys
 import os
 
 tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    '..', '..'))
+                                            '..', '..'))
 if tracing_path not in sys.path:
   sys.path.append(tracing_path)
 
@@ -17,14 +17,16 @@ FILE_GROUPS = ["tracing_css_files",
                "tracing_js_html_files",
                "tracing_img_files"]
 
+
 def GetFileGroupFromFileName(filename):
    extension = os.path.splitext(filename)[1]
    return {
-     '.css': 'tracing_css_files',
-     '.html': 'tracing_js_html_files',
-     '.js': 'tracing_js_html_files',
-     '.png': 'tracing_img_files'
+       '.css': 'tracing_css_files',
+       '.html': 'tracing_js_html_files',
+       '.js': 'tracing_js_html_files',
+       '.png': 'tracing_img_files'
    }[extension]
+
 
 def CheckListedFilesSorted(src_file, group_name, listed_files):
   sorted_files = sorted(listed_files)
@@ -49,6 +51,7 @@ Correct listing:
   else:
     return ''
 
+
 def GetKnownFiles():
   p = tracing_project.TracingProject()
   m = p.loader.LoadModule(module_name='ui.extras.about_tracing.about_tracing')
@@ -58,8 +61,9 @@ def GetKnownFiles():
   return list(set([os.path.relpath(f, p.tracing_root_path)
                    for f in absolute_filenames]))
 
+
 def CheckCommon(file_name, listed_files):
-  project = tracing_project.TracingProject()
+  tracing_project.TracingProject()
 
   known_files = GetKnownFiles()
   u = set(listed_files).union(set(known_files))
@@ -81,7 +85,8 @@ def CheckCommon(file_name, listed_files):
     error += '  On disk only:\n    ' + '\n    '.join(sorted(in_known_only))
 
   if in_file_only:
-    error += ('\n\n'
+    error += (
+        '\n\n'
         '  Note: only files actually used in about:tracing should\n'
         '  be listed in the build files. Try running build/update_gyp_and_gn\n'
         '  to update the files automatically.')
