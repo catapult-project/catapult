@@ -3,8 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import sys
+import argparse
 import os
+import sys
 
 hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if hooks_path not in sys.path:
@@ -18,7 +19,14 @@ import tvcm
 
 
 if __name__ == '__main__':
-  install.InstallHooks()
+  parser = argparse.ArgumentParser(
+      description='Run d8 tests.')
+  parser.add_argument(
+    '--no-install-hooks', dest='install_hooks', action='store_false')
+  parser.set_defaults(install_hooks=True)
+  args = parser.parse_args()
+  if args.install_hooks:
+    install.InstallHooks()
 
   runner = test_runner.TestRunner()
   runner.AddModule(tvcm)
