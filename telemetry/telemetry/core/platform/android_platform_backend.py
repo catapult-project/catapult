@@ -24,6 +24,7 @@ from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal.backends import adb_commands
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.image_processing import video
 from telemetry.internal.util import exception_formatter
@@ -42,7 +43,6 @@ from pylib import constants  # pylint: disable=import-error
 from pylib import screenshot  # pylint: disable=import-error
 from pylib.device import battery_utils  # pylint: disable=import-error
 from pylib.device import device_errors  # pylint: disable=import-error
-from pylib.device import device_utils  # pylint: disable=import-error
 from pylib.perf import cache_control  # pylint: disable=import-error
 from pylib.perf import perf_control  # pylint: disable=import-error
 from pylib.perf import thermal_throttle  # pylint: disable=import-error
@@ -60,7 +60,7 @@ _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
 
 
-def _SetupPrebuiltTools(device):
+def _SetupPrebuiltTools(adb):
   """Some of the android pylib scripts we depend on are lame and expect
   binaries to be in the out/ directory. So we copy any prebuilt binaries there
   as a prereq."""
@@ -82,7 +82,7 @@ def _SetupPrebuiltTools(device):
   if platform.GetHostPlatform().GetOSName() == 'linux':
     host_tools.append('host_forwarder')
 
-  arch_name = device.product_cpu_abi
+  arch_name = adb.device().GetABI()
   has_device_prebuilt = (arch_name.startswith('armeabi')
                          or arch_name.startswith('arm64'))
   if not has_device_prebuilt:
@@ -133,8 +133,8 @@ class AndroidPlatformBackend(
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
-    self._device = device_utils.DeviceUtils(device.device_id)
-    installed_prebuilt_tools = _SetupPrebuiltTools(self._device)
+    self._adb = adb_commands.AdbCommands(device=device.device_id)
+    installed_prebuilt_tools = _SetupPrebuiltTools(self._adb)
     if not installed_prebuilt_tools:
       logging.error(
           '%s detected, however prebuilt android tools could not '
@@ -142,11 +142,10 @@ class AndroidPlatformBackend(
           '  $ ninja -C out/Release android_tools' % device.name)
       raise exceptions.PlatformError()
     # Trying to root the device, if possible.
-    if not self._device.HasRoot():
-      try:
-        self._device.EnableRoot()
-      except device_errors.CommandFailedError:
-        logging.warning('Unable to root %s', str(self._device))
+    if not self._adb.IsRootEnabled():
+      # Ignore result.
+      self._adb.EnableAdbRoot()
+    self._device = self._adb.device()
     self._battery = battery_utils.BatteryUtils(self._device)
     self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
@@ -195,7 +194,7 @@ class AndroidPlatformBackend(
   def forwarder_factory(self):
     if not self._forwarder_factory:
       self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-          self._device, self._use_rndis_forwarder)
+          self._adb, self._use_rndis_forwarder)
 
     return self._forwarder_factory
 
@@ -204,8 +203,8 @@ class AndroidPlatformBackend(
     return self._use_rndis_forwarder
 
   @property
-  def device(self):
-    return self._device
+  def adb(self):
+    return self._adb
 
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
@@ -502,7 +501,7 @@ class AndroidPlatformBackend(
     return old_flag
 
   def ForwardHostToDevice(self, host_port, device_port):
-    self._device.adb.Forward('tcp:%d' % host_port, device_port)
+    self._adb.Forward('tcp:%d' % host_port, device_port)
 
   def DismissCrashDialogIfNeeded(self):
     """Dismiss any error dialogs.
@@ -519,7 +518,8 @@ class AndroidPlatformBackend(
     Args:
       process_name: The full package name string of the process.
     """
-    return bool(self._device.GetPids(process_name))
+    pids = self._adb.ExtractPid(process_name)
+    return len(pids) != 0
 
   @property
   def wpr_ca_cert_path(self):
@@ -555,9 +555,9 @@ class AndroidPlatformBackend(
       certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
                                     cert_path=self._wpr_ca_cert_path)
       self._device_cert_util = adb_install_cert.AndroidCertInstaller(
-          self._device.adb.GetDeviceSerial(), None, self._wpr_ca_cert_path)
+          self._adb.device_serial(), None, self._wpr_ca_cert_path)
       logging.info('Installing test certificate authority on device: %s',
-                   str(self._device))
+                   self._adb.device_serial())
       self._device_cert_util.install_cert(overwrite_cert=True)
       self._is_test_ca_installed = True
     except Exception as e:
@@ -566,7 +566,7 @@ class AndroidPlatformBackend(
       logging.warning(
           'Unable to install test certificate authority on device: %s. '
           'Will fallback to ignoring certificate errors. Install error: %s',
-          str(self._device), e)
+          self._adb.device_serial(), e)
 
   @property
   def is_test_ca_installed(self):
@@ -587,7 +587,7 @@ class AndroidPlatformBackend(
         # Best effort cleanup - show the error and continue.
         exception_formatter.PrintFormattedException(
           msg=('Error while trying to remove certificate authority: %s. '
-               % str(self._device)))
+               % self._adb.device_serial()))
       self._is_test_ca_installed = False
 
     shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors=True)
@@ -704,7 +704,7 @@ class AndroidPlatformBackend(
     Args:
       package: The full package name string of the application.
     """
-    if self._device.IsUserBuild():
+    if self._adb.IsUserBuild():
       logging.debug('User build device, setting debug app')
       self._device.RunShellCommand('am set-debug-app --persistent %s' % package)
 
@@ -714,7 +714,7 @@ class AndroidPlatformBackend(
     Args:
       number_of_lines: Number of lines of log to return.
     """
-    return '\n'.join(self._device.RunShellCommand(
+    return '\n'.join(self.adb.device().RunShellCommand(
         'logcat -d -t %d' % number_of_lines))
 
   def GetStackTrace(self, target_arch):
@@ -748,7 +748,7 @@ class AndroidPlatformBackend(
     if os.path.exists(tombstones):
       ret += Decorate('Tombstones',
                       subprocess.Popen([tombstones, '-w', '--device',
-                                        self._device.adb.GetDeviceSerial()],
+                                        self._adb.device_serial()],
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 
