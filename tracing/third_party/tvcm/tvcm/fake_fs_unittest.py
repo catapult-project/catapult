@@ -14,16 +14,16 @@ class FakeFSUnittest(unittest.TestCase):
     fs = fake_fs.FakeFS()
     fs.AddFile('/blah/x', 'foobar')
     with fs:
-      assert os.path.exists('/blah/x')
+      assert os.path.exists(os.path.normpath('/blah/x'))
       self.assertEquals(
           'foobar',
-          open('/blah/x', 'r').read())
+          open(os.path.normpath('/blah/x'), 'r').read())
 
   def testWithableOpen(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/blah/x', 'foobar')
     with fs:
-      with open('/blah/x', 'r') as f:
+      with open(os.path.normpath('/blah/x'), 'r') as f:
         self.assertEquals('foobar', f.read())
 
   def testWalk(self):
@@ -33,20 +33,20 @@ class FakeFSUnittest(unittest.TestCase):
     fs.AddFile('/x/y.txt', '')
     fs.AddFile('/a.txt', 'foobar')
     with fs:
-      gen = os.walk('/')
+      gen = os.walk(os.path.normpath('/'))
       r = gen.next()
-      self.assertEquals(('/', ['x'], ['a.txt']), r)
+      self.assertEquals((os.path.normpath('/'), ['x'], ['a.txt']), r)
 
       r = gen.next()
-      self.assertEquals(('/x', ['w', 'w2'], ['y.txt']), r)
+      self.assertEquals((os.path.normpath('/x'), ['w', 'w2'], ['y.txt']), r)
 
       r = gen.next()
-      self.assertEquals(('/x/w', [], ['z.txt']), r)
+      self.assertEquals((os.path.normpath('/x/w'), [], ['z.txt']), r)
 
       r = gen.next()
-      self.assertEquals(('/x/w2', ['w3'], []), r)
+      self.assertEquals((os.path.normpath('/x/w2'), ['w3'], []), r)
 
       r = gen.next()
-      self.assertEquals(('/x/w2/w3', [], ['z3.txt']), r)
+      self.assertEquals((os.path.normpath('/x/w2/w3'), [], ['z3.txt']), r)
 
       self.assertRaises(StopIteration, gen.next)

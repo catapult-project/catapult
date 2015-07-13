@@ -144,9 +144,11 @@ def UpdatePolymerCallsGivenElementName(js, polymer_element_name):
 def _HRefToResource(
     loader, module_name, module_dir_name, href, tag_for_err_msg):
   if href[0] == '/':
-    resource = loader.FindResourceGivenRelativePath(href[1:])
+    resource = loader.FindResourceGivenRelativePath(
+      os.path.normpath(href[1:]))
   else:
-    abspath = os.path.normpath(os.path.join(module_dir_name, href))
+    abspath = os.path.normpath(os.path.join(module_dir_name,
+      os.path.normpath(href)))
     resource = loader.FindResourceGivenAbsolutePath(abspath)
 
   if not resource:

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import base64
+import os
 import unittest
 
 from tvcm import project as project_module
@@ -22,14 +23,15 @@ class StyleSheetUnittest(unittest.TestCase):
 """)
     fs.AddFile('/src/images/bar.jpeg', 'hello world')
     with fs:
-      project = project_module.Project(['/src/'])
+      project = project_module.Project([os.path.normpath('/src/')])
       loader = resource_loader.ResourceLoader(project)
 
       foo_x = loader.LoadStyleSheet('foo.x')
       self.assertEquals(1, len(foo_x.images))
 
       r0 = foo_x.images[0]
-      self.assertEquals('/src/images/bar.jpeg', r0.absolute_path)
+      self.assertEquals(os.path.normpath('/src/images/bar.jpeg'),
+                        r0.absolute_path)
 
       inlined = foo_x.contents_with_inlined_images
       self.assertEquals("""
@@ -46,7 +48,7 @@ class StyleSheetUnittest(unittest.TestCase):
 }
 """)
     with fs:
-      project = project_module.Project(['/src/'])
+      project = project_module.Project([os.path.normpath('/src')])
       loader = resource_loader.ResourceLoader(project)
 
       self.assertRaises(module.DepsException,
@@ -58,7 +60,7 @@ class StyleSheetUnittest(unittest.TestCase):
 @import url(awesome.css);
 """)
     with fs:
-      project = project_module.Project(['/src/'])
+      project = project_module.Project([os.path.normpath('/src')])
       loader = resource_loader.ResourceLoader(project)
 
       self.assertRaises(Exception,

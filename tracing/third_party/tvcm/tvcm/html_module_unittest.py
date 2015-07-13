@@ -74,7 +74,7 @@ class ParseTests(unittest.TestCase):
     file_contents = {}
 
     def DoIt():
-      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
                         'a.b.start',
                         '/tmp/a/b/',
                         is_component=False,
@@ -87,15 +87,16 @@ class ParseTests(unittest.TestCase):
       """)
 
     file_contents = {}
-    file_contents['/tmp/a/foo.js'] = """
+    file_contents[os.path.normpath('/tmp/a/foo.js')] = """
 'i am just some raw script';
 """
 
-    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
-                                 'a.b.start',
-                                 '/tmp/a/b/',
-                                 is_component=False,
-                                 parser_results=parse_results)
+    metadata = html_module.Parse(
+        FakeLoader([os.path.normpath('/tmp')], file_contents),
+        'a.b.start',
+        '/tmp/a/b/',
+        is_component=False,
+        parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
     self.assertEquals(
         ['a/foo.js'], metadata.dependent_raw_script_relative_paths)
@@ -106,10 +107,10 @@ class ParseTests(unittest.TestCase):
       """)
 
     file_contents = {}
-    file_contents['/foo.js'] = ''
+    file_contents[os.path.normpath('/foo.js')] = ''
 
     def DoIt():
-      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
                         'a.b.start',
                         '/tmp/a/b/',
                         is_component=False,
@@ -124,7 +125,7 @@ class ParseTests(unittest.TestCase):
     file_contents = {}
 
     def DoIt():
-      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
                         'a.b.start',
                         '/tmp/a/b/',
                         is_component=False,
@@ -141,7 +142,7 @@ console.log('Logging without strict mode is no fun.');
     file_contents = {}
 
     def DoIt():
-      html_module.Parse(FakeLoader(['/tmp'], file_contents),
+      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
                         'a.b.start',
                         '/tmp/a/b/',
                         is_component=False,
@@ -154,14 +155,15 @@ console.log('Logging without strict mode is no fun.');
       """)
 
     file_contents = {}
-    file_contents['/tmp/a/foo.html'] = """
+    file_contents[os.path.normpath('/tmp/a/foo.html')] = """
 """
 
-    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
-                                 'a.b.start',
-                                 '/tmp/a/b/',
-                                 is_component=False,
-                                 parser_results=parse_results)
+    metadata = html_module.Parse(
+        FakeLoader([os.path.normpath('/tmp')], file_contents),
+        'a.b.start',
+        '/tmp/a/b/',
+        is_component=False,
+        parser_results=parse_results)
     self.assertEquals(['a.foo'], metadata.dependent_module_names)
 
   def testStyleSheetImport(self):
@@ -170,13 +172,14 @@ console.log('Logging without strict mode is no fun.');
       """)
 
     file_contents = {}
-    file_contents['/tmp/a/foo.css'] = """
+    file_contents[os.path.normpath('/tmp/a/foo.css')] = """
 """
-    metadata = html_module.Parse(FakeLoader(['/tmp'], file_contents),
-                                 'a.b.start',
-                                 '/tmp/a/b/',
-                                 is_component=False,
-                                 parser_results=parse_results)
+    metadata = html_module.Parse(
+        FakeLoader([os.path.normpath('/tmp')], file_contents),
+        'a.b.start',
+        '/tmp/a/b/',
+        is_component=False,
+        parser_results=parse_results)
     self.assertEquals([], metadata.dependent_module_names)
     self.assertEquals(['a.foo'], metadata.style_sheet_names)
 
@@ -186,20 +189,22 @@ console.log('Logging without strict mode is no fun.');
       """)
 
     file_contents = {}
-    file_contents['/src/foo.js'] = ''
+    file_contents[os.path.normpath('/src/foo.js')] = ''
 
-    metadata = html_module.Parse(FakeLoader(["/tmp", "/src"], file_contents),
-                                 "a.b.start",
-                                 "/tmp/a/b/",
-                                 is_component=False,
-                                 parser_results=parse_results)
+    metadata = html_module.Parse(
+        FakeLoader([os.path.normpath("/tmp"), os.path.normpath("/src")],
+                   file_contents),
+        "a.b.start",
+        "/tmp/a/b/",
+        is_component=False,
+        parser_results=parse_results)
     self.assertEquals(['foo.js'], metadata.dependent_raw_script_relative_paths)
 
 
 class HTMLModuleTests(unittest.TestCase):
   def testBasic(self):
     file_contents = {}
-    file_contents['/tmp/a/b/start.html'] = """
+    file_contents[os.path.normpath('/tmp/a/b/start.html')] = """
 <!DOCTYPE html>
 <link rel="import" href="/widget.html">
 <link rel="stylesheet" href="../common.css">
@@ -213,9 +218,9 @@ class HTMLModuleTests(unittest.TestCase):
   </script>
 </polymer-element>
 """
-    file_contents['/tvcm/tvcm.html'] = """<!DOCTYPE html>
+    file_contents[os.path.normpath('/tvcm/tvcm.html')] = """<!DOCTYPE html>
 """
-    file_contents['/components/widget.html'] = """
+    file_contents[os.path.normpath('/components/widget.html')] = """
 <!DOCTYPE html>
 <link rel="import" href="/tvcm.html">
 <widget name="widget.html"></widget>
@@ -224,18 +229,22 @@ class HTMLModuleTests(unittest.TestCase):
 console.log('inline script for widget.html');
 </script>
 """
-    file_contents['/tmp/a/common.css'] = """
+    file_contents[os.path.normpath('/tmp/a/common.css')] = """
 /* /tmp/a/common.css was written */
 """
-    file_contents['/raw/raw_script.js'] = """
+    file_contents[os.path.normpath('/raw/raw_script.js')] = """
 console.log('/raw/raw_script.js was written');
 """
-    file_contents['/raw/components/polymer/polymer.min.js'] = """
+    file_contents[os.path.normpath(
+        '/raw/components/polymer/polymer.min.js')] = """
 """
 
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(
-          ['/tvcm/', '/tmp/', '/components/', '/raw/'])
+          [os.path.normpath('/tvcm/'),
+           os.path.normpath('/tmp/'),
+           os.path.normpath('/components/'),
+           os.path.normpath('/raw/')])
       loader = resource_loader.ResourceLoader(project)
       a_b_start_module = loader.LoadModule(module_name='a.b.start')
       load_sequence = project.CalcLoadSequenceForModules([a_b_start_module])
@@ -267,7 +276,7 @@ console.log('/raw/raw_script.js was written');
 
   def testPolymerConversion(self):
     file_contents = {}
-    file_contents['/tmp/a/b/my_component.html'] = """
+    file_contents[os.path.normpath('/tmp/a/b/my_component.html')] = """
 <!DOCTYPE html>
 <polymer-element name="my-component">
   <template>
@@ -280,7 +289,8 @@ console.log('/raw/raw_script.js was written');
 </polymer-element>
 """
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'])
+      project = project_module.Project([
+          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -299,7 +309,7 @@ console.log('/raw/raw_script.js was written');
 
   def testPolymerConversion2(self):
     file_contents = {}
-    file_contents['/tmp/a/b/my_component.html'] = """
+    file_contents[os.path.normpath('/tmp/a/b/my_component.html')] = """
 <!DOCTYPE html>
 <polymer-element name="my-component">
   <template>
@@ -311,7 +321,8 @@ console.log('/raw/raw_script.js was written');
 </polymer-element>
 """
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'])
+      project = project_module.Project([
+          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -329,7 +340,7 @@ console.log('/raw/raw_script.js was written');
 
   def testInlineStylesheetURLs(self):
     file_contents = {}
-    file_contents['/tmp/a/b/my_component.html'] = """
+    file_contents[os.path.normpath('/tmp/a/b/my_component.html')] = """
 <!DOCTYPE html>
 <style>
 .some-rule {
@@ -337,17 +348,18 @@ console.log('/raw/raw_script.js was written');
 }
 </style>
 """
-    file_contents['/tmp/a/something.jpg'] = 'jpgdata'
+    file_contents[os.path.normpath('/tmp/a/something.jpg')] = 'jpgdata'
     with fake_fs.FakeFS(file_contents):
-      project = project_module.Project(['/tvcm/', '/tmp/'])
+      project = project_module.Project([
+          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
       computed_deps = []
       my_component.AppendDirectlyDependentFilenamesTo(computed_deps)
       self.assertEquals(set(computed_deps),
-                        set(['/tmp/a/b/my_component.html',
-                             '/tmp/a/something.jpg']))
+                        set([os.path.normpath('/tmp/a/b/my_component.html'),
+                             os.path.normpath('/tmp/a/something.jpg')]))
 
       f = StringIO.StringIO()
       ctl = html_generation_controller.HTMLGenerationController()

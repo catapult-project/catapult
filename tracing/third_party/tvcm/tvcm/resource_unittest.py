@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import unittest
 
 from tvcm import resource
@@ -12,5 +13,5 @@ class ResourceUnittest(unittest.TestCase):
   def testBasic(self):
     r = resource.Resource('/a', '/a/b/c.js')
     self.assertEquals('b.c', r.name)
-    self.assertEquals('b/c.js', r.relative_path)
+    self.assertEquals(os.path.join('b', 'c.js'), r.relative_path)
     self.assertEquals('b/c.js', r.unix_style_relative_path)

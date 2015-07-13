@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import codecs
+import os
 import unittest
 import tempfile
 
@@ -11,6 +12,14 @@ from tracing.build import vulcanize_trace_viewer
 
 class Trace2HTMLTests(unittest.TestCase):
   def test_writeHTMLForTracesToFile(self):
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.html') as raw_tmpfile:
+    try:
+      # Note: We can't use "with" when working with tempfile.NamedTemporaryFile
+      # as that does not work on Windows. We use the longer, more clunky version
+      # instead. See https://bugs.python.org/issue14243 for detials.
+      raw_tmpfile = tempfile.NamedTemporaryFile(
+          mode='w', suffix='.html', delete=False)
+      raw_tmpfile.close()
       with codecs.open(raw_tmpfile.name, 'w', encoding='utf-8') as tmpfile:
         vulcanize_trace_viewer.WriteTraceViewer(tmpfile)
+    finally:
+      os.remove(raw_tmpfile.name)

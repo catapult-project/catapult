@@ -144,7 +144,7 @@ class ResourceLoader(object):
     resource = None
     for source_path in self.source_paths:
       possible_absolute_path = os.path.join(
-          source_path, relative_raw_script_path)
+          source_path, os.path.normpath(relative_raw_script_path))
       if os.path.exists(possible_absolute_path):
         resource = resource_module.Resource(source_path, possible_absolute_path)
         break

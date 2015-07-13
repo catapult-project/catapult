@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import unittest
 
 from tvcm import generate
@@ -32,25 +33,25 @@ class GenerateTests(unittest.TestCase):
 """)
 
     self.project = project_module.Project(
-        ['/x'])
+        [os.path.normpath('/x')])
 
   def testJSGeneration(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          ['foo/my_module.html'])
+          [os.path.normpath('foo/my_module.html')])
       generate.GenerateJS(load_sequence)
 
   def testHTMLGeneration(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          ['foo/my_module.html'])
+          [os.path.normpath('foo/my_module.html')])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
 
   def testExtraScriptWithWriteContentsFunc(self):
     with self.fs:
       load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          ['foo/my_module.html'])
+          [os.path.normpath('foo/my_module.html')])
 
       class ExtraScript(generate.ExtraScript):
         def WriteToFile(self, f):

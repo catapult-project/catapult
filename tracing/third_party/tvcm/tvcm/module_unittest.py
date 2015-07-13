@@ -5,6 +5,7 @@
 
 """Tests for the module module, which contains Module and related classes."""
 
+import os
 import unittest
 
 from tvcm import fake_fs
@@ -34,7 +35,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 """)
     fs.AddFile('/src/tvcm.html', '<!DOCTYPE html>')
     with fs:
-      project = project_module.Project(['/src/'])
+      project = project_module.Project([os.path.normpath('/src/')])
       loader = resource_loader.ResourceLoader(project)
       x_module = loader.LoadModule('x')
 
@@ -62,7 +63,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 });
 """)
-    project = project_module.Project(['/x'])
+    project = project_module.Project([os.path.normpath('/x')])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name='src.my_module')
@@ -79,7 +80,7 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 <link rel="import" href="missing.html">
 """)
-    project = project_module.Project(['/x'])
+    project = project_module.Project([os.path.normpath('/x')])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       exc = None
@@ -110,7 +111,8 @@ class ModuleIntegrationTests(unittest.TestCase):
 <!DOCTYPE html>
 """)
     fs.AddFile('/x/raw/bar.js', 'hello')
-    project = project_module.Project(['/x/y', '/x/raw/'])
+    project = project_module.Project([
+        os.path.normpath('/x/y'), os.path.normpath('/x/raw/')])
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name='z.foo')
@@ -119,10 +121,10 @@ class ModuleIntegrationTests(unittest.TestCase):
       dependent_filenames = my_module.GetAllDependentFilenamesRecursive()
       self.assertEquals(
           [
-              '/x/y/z/foo.html',
-              '/x/raw/bar.js',
-              '/x/y/z/foo.css',
-              '/x/y/z/foo.jpeg',
-              '/x/y/z/foo2.html'
+              os.path.normpath('/x/y/z/foo.html'),
+              os.path.normpath('/x/raw/bar.js'),
+              os.path.normpath('/x/y/z/foo.css'),
+              os.path.normpath('/x/y/z/foo.jpeg'),
+              os.path.normpath('/x/y/z/foo2.html'),
           ],
           dependent_filenames)

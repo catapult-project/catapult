@@ -29,6 +29,7 @@ class FakeFS(object):
     self._bound = False
     self._real_codecs_open = codecs.open
     self._real_open = sys.modules['__builtin__'].open
+    self._real_abspath = os.path.abspath
     self._real_exists = os.path.exists
     self._real_walk = os.walk
     self._real_listdir = os.listdir
@@ -44,6 +45,7 @@ class FakeFS(object):
     assert not self._bound
     codecs.open = self._FakeCodecsOpen
     sys.modules['__builtin__'].open = self._FakeOpen
+    os.path.abspath = self._FakeAbspath
     os.path.exists = self._FakeExists
     os.walk = self._FakeWalk
     os.listdir = self._FakeListDir
@@ -53,6 +55,7 @@ class FakeFS(object):
     assert self._bound
     codecs.open = self._real_codecs_open
     sys.modules['__builtin__'].open = self._real_open
+    os.path.abspath = self._real_abspath
     os.path.exists = self._real_exists
     os.walk = self._real_walk
     os.listdir = self._real_listdir
@@ -60,6 +63,7 @@ class FakeFS(object):
 
   def AddFile(self, path, contents):
     assert path not in self._file_contents
+    path = os.path.normpath(path)
     self._file_contents[path] = contents
 
   def _FakeOpen(self, path, mode=None):
@@ -83,6 +87,18 @@ class FakeFS(object):
 
     raise NotImplementedError()
 
+  def _FakeAbspath(self, path):
+    """Normalize the path and ensure it starts with os.path.sep.
+
+    The tests all assume paths start with things like '/my/project',
+    and this abspath implementaion makes that assumption work correctly
+    on Windows.
+    """
+    normpath = os.path.normpath(path)
+    if not normpath.startswith(os.path.sep):
+      normpath = os.path.sep + normpath
+    return normpath
+
   def _FakeExists(self, path):
     if path in self._file_contents:
       return True
@@ -99,10 +115,10 @@ class FakeFS(object):
       if prefix in visited_prefixes:
         continue
       visited_prefixes.add(prefix)
-      if prefix.endswith('/'):
+      if prefix.endswith(os.path.sep):
         prefix_with_trailing_sep = prefix
       else:
-        prefix_with_trailing_sep = prefix + '/'
+        prefix_with_trailing_sep = prefix + os.path.sep
 
       dirs = set()
       files = []
@@ -115,14 +131,11 @@ class FakeFS(object):
         if len(dirpart) == 0:
           files.append(relative_to_prefix)
           continue
-        parts = dirpart.split('/')
+        parts = dirpart.split(os.sep)
         if len(parts) == 0:
           dirs.add(dirpart)
         else:
-          if prefix.endswith('/'):
-            pending = prefix + parts[0]
-          else:
-            pending = prefix + '/' + parts[0]
+          pending = os.path.join(prefix, parts[0])
           dirs.add(parts[0])
           pending_prefixes.appendleft(pending)
 
