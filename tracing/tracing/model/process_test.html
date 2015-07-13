@@ -6,8 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/frame.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/instant_event.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/model/process.html">
+<link rel="import" href="/model/thread_slice.html">
 
 <script>
 'use strict';
@@ -27,6 +31,17 @@ tr.b.unittest.testSuite(function() {
     var ctr = process.getOrCreateCounter('foo', 'bar');
     var thread = process.getOrCreateThread(1);
 
+    var instantEvent = new tr.model.InstantEvent('cat', 'event1', 1, 100);
+    process.pushInstantEvent(instantEvent);
+
+    var slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
+    var frame =
+        new tr.model.Frame([slice], [{thread: thread, start: 100, end: 200}]);
+    process.frames.push(frame);
+
+    var memoryDump = new tr.model.GlobalMemoryDump(model, 100);
+    process.memoryDumps.push(memoryDump);
+
     var shiftCount = 0;
     thread.shiftTimestampsForward = function(ts) {
       if (ts == 0.32)
@@ -36,8 +51,13 @@ tr.b.unittest.testSuite(function() {
       if (ts == 0.32)
         shiftCount++;
     };
+
     process.shiftTimestampsForward(0.32);
     assert.equal(shiftCount, 2);
+    assert.equal(instantEvent.start, 100.32);
+    assert.equal(frame.start, 100.32);
+    assert.equal(frame.end, 200.32);
+    assert.equal(memoryDump.start, 100.32);
   });
 
   test('compareOnPID', function() {

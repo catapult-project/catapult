@@ -91,11 +91,9 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var tid in this.threads)
-        this.threads[tid].shiftTimestampsForward(amount);
-      for (var id in this.counters)
-        this.counters[id].shiftTimestampsForward(amount);
-      this.objects.shiftTimestampsForward(amount);
+      this.iterateAllChildEventContainers(function(child) {
+        child.shiftTimestampsForward(amount);
+      });
     },
 
     /**

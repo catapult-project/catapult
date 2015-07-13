@@ -94,12 +94,6 @@ tr.exportTo('tr.model', function() {
       return this.softwareMeasuredCpuCount;
     },
 
-    shiftTimestampsForward: function(amount) {
-      ProcessBase.prototype.shiftTimestampsForward.call(this, amount);
-      for (var cpuNumber in this.cpus)
-        this.cpus[cpuNumber].shiftTimestampsForward(amount);
-    },
-
     updateBounds: function() {
       ProcessBase.prototype.updateBounds.call(this);
       for (var cpuNumber in this.cpus) {
