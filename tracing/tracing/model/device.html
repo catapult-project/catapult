@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/base/guid.html">
 <link rel="import" href="/base/range.html">
 <link rel="import" href="/model/event_container.html">
+<link rel="import" href="/model/power_series.html">
 
 <script>
 'use strict';
@@ -20,7 +21,7 @@ tr.exportTo('tr.model', function() {
   /**
    * Device represents the device-level objects in the model.
    * @constructor
-     @extends {tr.model.EventContainer}
+   * @extends {tr.model.EventContainer}
    */
   function Device(model) {
     if (!model)
@@ -29,6 +30,7 @@ tr.exportTo('tr.model', function() {
     tr.model.EventContainer.call(this);
 
     this.guid = tr.b.GUID.allocate();
+    this.powerSeries_ = undefined;
     this.vSyncTimestamps_ = [];
   };
 
@@ -59,8 +61,11 @@ tr.exportTo('tr.model', function() {
       return 'device';
     },
 
-    get counters() {
-      return {};
+    get powerSeries() {
+      if (!this.powerSeries_)
+        this.powerSeries_ = new tr.model.PowerSeries(this);
+
+      return this.powerSeries_;
     },
 
     get vSyncTimestamps() {
@@ -73,16 +78,23 @@ tr.exportTo('tr.model', function() {
 
     updateBounds: function() {
       this.bounds.reset();
-      // TODO(charliea): Update and add bounds for all children counters
+
+      this.iterateAllChildEventContainers(function(child) {
+        child.updateBounds();
+        this.bounds.addRange(child.bounds);
+      }, this);
     },
 
     shiftTimestampsForward: function(amount) {
+      this.iterateAllChildEventContainers(function(child) {
+        child.shiftTimestampsForward(amount);
+      });
+
       for (var i = 0; i < this.vSyncTimestamps_.length; i++)
         this.vSyncTimestamps_[i] += amount;
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      // TODO(charliea): Add categories for all counters to dictionary
     },
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
@@ -90,7 +102,8 @@ tr.exportTo('tr.model', function() {
     },
 
     iterateAllChildEventContainers: function(callback, opt_this) {
-      // TODO(charliea): Call callback on all child counters
+      if (this.powerSeries_)
+        callback.call(opt_this, this.powerSeries_);
     }
   };
 

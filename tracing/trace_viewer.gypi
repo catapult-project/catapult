@@ -199,6 +199,8 @@
       'tracing/model/object_collection.html',
       'tracing/model/object_instance.html',
       'tracing/model/object_snapshot.html',
+      'tracing/model/power_sample.html',
+      'tracing/model/power_series.html',
       'tracing/model/process.html',
       'tracing/model/process_base.html',
       'tracing/model/process_memory_dump.html',
