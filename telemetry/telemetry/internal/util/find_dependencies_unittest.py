@@ -23,7 +23,7 @@ class FindDependenciesTest(unittest.TestCase):
       'Could not find a depot_tools installation with gsutil.')
   def testGsutil(self):
     parser = optparse.OptionParser()
-    find_dependencies.FindDependenciesCommand.AddCommandLineArgs(parser)
+    find_dependencies.FindDependenciesCommand.AddCommandLineArgs(parser, None)
     options, _ = parser.parse_args([])
 
     try:
