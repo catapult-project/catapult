@@ -12,7 +12,6 @@ from telemetry.internal.util import command_line
 from telemetry.internal.util import exception_formatter
 from telemetry import page
 from telemetry.page import page_test
-from telemetry.page import test_expectations
 from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled
@@ -176,7 +175,6 @@ class Benchmark(command_line.Command):
       # pylint: disable=protected-access
       pt._enabled_strings = self._enabled_strings
 
-    expectations = self.CreateExpectations()
     stories = self.CreateStorySet(finder_options)
     if isinstance(pt, page_test.PageTest):
       if any(not isinstance(p, page.Page) for p in stories.stories):
@@ -189,7 +187,7 @@ class Benchmark(command_line.Command):
         benchmark_metadata, finder_options,
         self.ValueCanBeAddedPredicate) as results:
       try:
-        story_runner.Run(pt, stories, expectations, finder_options, results,
+        story_runner.Run(pt, stories, finder_options, results,
                               max_failures=self._max_failures)
         return_code = min(254, len(results.failures))
       except Exception:
@@ -252,15 +250,6 @@ class Benchmark(command_line.Command):
     if not hasattr(self, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()
-
-  @classmethod
-  def CreateExpectations(cls):
-    """Get the expectations this test will run with.
-
-    By default, it will create an empty expectations set. Override to generate
-    custom expectations.
-    """
-    return test_expectations.TestExpectations()
 
 
 def AddCommandLineArgs(parser):

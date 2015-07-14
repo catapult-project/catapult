@@ -14,7 +14,6 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page_test
-from telemetry.page import test_expectations
 from telemetry.util import wpr_modes
 
 
@@ -177,7 +176,7 @@ class WprRecorder(object):
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     story_runner.Run(self._record_page_test, self._story_set,
-        test_expectations.TestExpectations(), self._options, results)
+        self._options, results)
 
   def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:

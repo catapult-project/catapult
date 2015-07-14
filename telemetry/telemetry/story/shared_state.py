@@ -42,9 +42,14 @@ class SharedState(object):
     """
     raise NotImplementedError()
 
-  def GetTestExpectationAndSkipValue(self, expectations):
-    """ Return test expectation and skip value instance in case expectation
-    is 'skip'. This is run after WillRunStory and before RunStory.
+  def CanRunStory(self, story):
+    """Indicate whether the story can be run in the current configuration.
+    This is called after WillRunStory and before RunStory. Return True
+    if the story should be run, and False if it should be skipped.
+    Most subclasses will probably want to override this to always
+    return True.
+    Args:
+      story: a story.Story instance.
     """
     raise NotImplementedError()
 
