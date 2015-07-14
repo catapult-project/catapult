@@ -62,10 +62,11 @@ tr.exportTo('tr.model', function() {
     },
 
     get powerSeries() {
-      if (!this.powerSeries_)
-        this.powerSeries_ = new tr.model.PowerSeries(this);
-
       return this.powerSeries_;
+    },
+
+    set powerSeries(powerSeries) {
+      this.powerSeries_ = powerSeries;
     },
 
     get vSyncTimestamps() {
