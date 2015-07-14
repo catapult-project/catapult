@@ -781,7 +781,8 @@ class AndroidPlatformBackend(
 
   def IsScreenOn(self):
     """Determines if device screen is on."""
-    input_methods = self._device.RunShellCommand('dumpsys input_method')
+    input_methods = self._device.RunShellCommand('dumpsys input_method',
+                                                 check_return=True)
     return self._IsScreenOn(input_methods)
 
   @staticmethod
@@ -814,7 +815,8 @@ class AndroidPlatformBackend(
 
   def IsScreenLocked(self):
     """Determines if device screen is locked."""
-    input_methods = self._device.RunShellCommand('dumpsys input_method')
+    input_methods = self._device.RunShellCommand('dumpsys input_method',
+                                                 check_return=True)
     return self._IsScreenLocked(input_methods)
 
 def _FixPossibleAdbInstability():
