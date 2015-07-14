@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
   var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
 
-  test('instantiate', function() {
+  function createModel() {
     var m = tr.c.test_utils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
@@ -29,8 +29,17 @@ tr.b.unittest.testSuite(function() {
       m.sA = m.t2.sliceGroup.pushSlice(
           newSliceEx({title: 'a', start: 0, end: 5,
                       type: tr.model.ThreadSlice}));
+      m.sAA = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'aa', start: 6, end: 8,
+                      type: tr.model.ThreadSlice}));
       m.sB = m.t3.sliceGroup.pushSlice(
           newSliceEx({title: 'b', start: 10, end: 15,
+                      type: tr.model.ThreadSlice}));
+      m.sBB = m.t3.sliceGroup.pushSlice(
+          newSliceEx({title: 'bb', start: 11, end: 14,
+                      type: tr.model.ThreadSlice}));
+      m.sBBB = m.t3.sliceGroup.pushSlice(
+          newSliceEx({title: 'bbb', start: 12, end: 13,
                       type: tr.model.ThreadSlice}));
       m.sC = m.t4.sliceGroup.pushSlice(
           newSliceEx({title: 'c', start: 20, end: 20,
@@ -40,22 +49,107 @@ tr.b.unittest.testSuite(function() {
       m.t3.createSubSlices();
       m.t4.createSubSlices();
 
+      m.f0 = newFlowEventEx({
+        'title': 'a_aa', start: 5, end: 6,
+        startSlice: m.sA,
+        endSlice: m.sAA
+      });
       m.f1 = newFlowEventEx({
-        'title': 'flowish', start: 0, end: 10,
+        'title': 'a_b', start: 0, end: 10,
         startSlice: m.sA,
         endSlice: m.sB
       });
       m.f2 = newFlowEventEx({
-        'title': 'flowish', start: 15, end: 21,
+        'title': 'b_bbb', start: 10, end: 12,
         startSlice: m.sB,
+        endSlice: m.sBBB
+      });
+      m.f3 = newFlowEventEx({
+        'title': 'bbb_c', start: 13, end: 20,
+        startSlice: m.sBBB,
         endSlice: m.sC
       });
     });
+    return m;
+  };
+
+  test('instantiate', function() {
+    var m = createModel();
 
     var viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.addRelatedEvents(new tr.model.EventSet(
-        [m.sA, m.f1, m.sB, m.f2, m.sC]));
+        [m.sA, m.f0, m.sAA, m.f1, m.sB, m.f2, m.sBB, m.sBBB, m.f3, m.sC]));
     this.addHTMLOutput(viewEl);
+  });
+
+  test('validateFlows', function() {
+    var m = createModel();
+
+    var viewEl = document.createElement('tr-ui-a-related-events');
+    viewEl.addRelatedEvents(new tr.model.EventSet([m.sB, m.sBB, m.sBBB]));
+    this.addHTMLOutput(viewEl);
+
+    var inFlows, outFlows, internalFlows;
+    viewEl.$.table.tableRows.forEach(function(row) {
+      if (row.type === 'Incoming flow') {
+        assert.isUndefined(inFlows);
+        inFlows = row.selection;
+      }
+      if (row.type === 'Outgoing flow') {
+        assert.isUndefined(outFlows);
+        outFlows = row.selection;
+      }
+      if (row.type === 'Internal flow') {
+        assert.isUndefined(internalFlows);
+        internalFlows = row.selection;
+      }
+    });
+    assert.equal(inFlows.length, 1);
+    assert.equal(inFlows[0].title, 'a_b');
+    assert.equal(outFlows.length, 1);
+    assert.equal(outFlows[0].title, 'bbb_c');
+    assert.equal(internalFlows.length, 1);
+    assert.equal(internalFlows[0].title, 'b_bbb');
+  });
+
+  test('validateConnectedEvents', function() {
+    var m = createModel();
+
+    var viewEl = document.createElement('tr-ui-a-related-events');
+    viewEl.addRelatedEvents(new tr.model.EventSet([m.sBB]));
+    this.addHTMLOutput(viewEl);
+
+    var precedingEvents, followingEvents, allEvents;
+    viewEl.$.table.tableRows.forEach(function(row) {
+      if (row.type === 'Preceding events') {
+        assert.isUndefined(precedingEvents);
+        precedingEvents = row.selection;
+      }
+      if (row.type === 'Following events') {
+        assert.isUndefined(followingEvents);
+        followingEvents = row.selection;
+      }
+      if (row.type === 'All connected events') {
+        assert.isUndefined(allEvents);
+        allEvents = row.selection;
+      }
+    });
+
+    var precedingTitles = precedingEvents.map(function(e) {
+      return e.title;
+    });
+    assert.sameMembers(precedingTitles, ['a', 'a_b', 'b', 'bb']);
+
+    var followingTitles = followingEvents.map(function(e) {
+      return e.title;
+    });
+    assert.sameMembers(followingTitles, ['bb', 'bbb', 'bbb_c', 'c']);
+
+    var allTitles = allEvents.map(function(e) {
+      return e.title;
+    });
+    assert.sameMembers(allTitles,
+        ['a', 'a_aa', 'aa', 'a_b', 'b', 'bb', 'bbb', 'b_bbb', 'bbb_c', 'c']);
   });
 
 });

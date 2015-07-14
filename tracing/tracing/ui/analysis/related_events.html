@@ -67,7 +67,6 @@ found in the LICENSE file.
     addRelatedEvents: function(selection) {
       this.addConnectedFlows_(selection);
       this.addConnectedEvents_(selection);
-      this.addAncestorsAndDescendents_(selection);
       this.updateContents_();
     },
 
@@ -104,160 +103,107 @@ found in the LICENSE file.
           addToEventGroups.bind(this, 'Internal flow'));
     },
 
-    addConnectedEvents_: function(selection) {
-      // Preceding and following events are only well-defined for single
-      // selections.
-      if (selection.length === 1)
-        this.addConnectedEventsForSlice_(selection[0]);
-      else
-        this.addConnectedEventsForSelection_(selection);
-    },
+    addConnectedEvents_: function(eventSet) {
+      if (eventSet.length === 0)
+        return;
 
-    addAncestorsAndDescendents_: function(selection) {
-      // Separating ancestors and descendents only makes sense for single
-      // selections.
-      if (selection.length === 1)
-        this.addAncestorsAndDescendentsForSlice_(selection[0]);
-      else
-        this.addAncestorsAndDescendentsForSelection_(selection);
-    },
+      var precedingEvents = new tr.model.EventSet(eventSet.toArray());
+      var followingEvents = new tr.model.EventSet(eventSet.toArray());
 
-    addConnectedEventsForSlice_: function(slice) {
-      var precedingEventsSelection = undefined;
-      var followingEventsSelection = undefined;
-      if (slice.inFlowEvents && slice.inFlowEvents.length !== 0) {
-        precedingEventsSelection = new tr.model.EventSet();
-        this.recursivelyAddConnectedEvents_(precedingEventsSelection, slice,
-            function(event) { return event.inFlowEvents; });
+      var i = 0;
+      while (i < precedingEvents.length) {
+        var event = precedingEvents[i];
+        this.addInFlowEvents_(event, precedingEvents);
+        this.addAncestors_(event, precedingEvents);
+        if (event.startSlice)
+          precedingEvents.push(event.startSlice);
+        i++;
+      }
+
+      i = 0;
+      while (i < followingEvents.length) {
+        var event = followingEvents[i];
+        this.addOutFlowEvents_(event, followingEvents);
+        this.addDescendents_(event, followingEvents);
+        if (event.endSlice)
+          followingEvents.push(event.endSlice);
+        i++;
+      }
+
+      var allEvents = new tr.model.EventSet(precedingEvents.toArray());
+      followingEvents.forEach(function(e) {
+        allEvents.push(e);
+      });
+      i = 0;
+      while (i < allEvents.length) {
+        var event = allEvents[i];
+        this.addInFlowEvents_(event, allEvents);
+        this.addOutFlowEvents_(event, allEvents);
+        this.addAncestors_(event, allEvents);
+        this.addDescendents_(event, allEvents);
+        if (event.startSlice)
+          allEvents.push(event.startSlice);
+        if (event.endSlice)
+          allEvents.push(event.endSlice);
+        i++;
+      }
+
+      if (precedingEvents.length !== eventSet.length) {
         this.eventGroups_.push({
           type: 'Preceding events',
-          tooltip: 'All preceding events connected to this one by flow arrows.',
-          selection: precedingEventsSelection
+          tooltip: 'All events that have led to the selected one(s), ' +
+                   'connected by flow arrows or by hierarchy.',
+          selection: precedingEvents
         });
       }
-      if (slice.outFlowEvents && slice.outFlowEvents.length !== 0) {
-        followingEventsSelection = new tr.model.EventSet();
-        this.recursivelyAddConnectedEvents_(followingEventsSelection, slice,
-            function(event) { return event.outFlowEvents; });
+      if (followingEvents.length !== eventSet.length) {
         this.eventGroups_.push({
           type: 'Following events',
-          tooltip: 'All following events connected to this one by flow arrows.',
-          selection: followingEventsSelection
+          tooltip: 'All events that have been caused by the selected one(s), ' +
+                   'connected by flow arrows or by call stack.',
+          selection: followingEvents
         });
       }
-      if (precedingEventsSelection && followingEventsSelection) {
-        var allEventsSelection = new tr.model.EventSet();
-        for (var i = 0; i < precedingEventsSelection.length; ++i)
-          allEventsSelection.push(precedingEventsSelection[i]);
-        for (var i = 0; i < followingEventsSelection.length; ++i)
-          allEventsSelection.push(followingEventsSelection[i]);
+      if (allEvents.length !== eventSet.length) {
         this.eventGroups_.push({
           type: 'All connected events',
-          tooltip: 'All events connected to this one by flow arrows.',
-          selection: allEventsSelection
+          tooltip: 'All events connected to the selected one(s) by flow ' +
+                   'arrows or by call stack.',
+          selection: allEvents
         });
       }
     },
 
-    addConnectedEventsForSelection_: function(selection) {
-      var allEventsSelection = new tr.model.EventSet();
-      selection.forEach(function(slice) {
-        this.recursivelyAddConnectedEvents_(allEventsSelection, slice,
-            function(event) {
-              var flows = [];
-              if (event.inFlowEvents)
-                flows = flows.concat(event.inFlowEvents);
-              if (event.outFlowEvents)
-                flows = flows.concat(event.outFlowEvents);
-              return flows;
-            });
-      }.bind(this));
-      // Add related events if it contains more than the original selection.
-      if (allEventsSelection.length > selection.length) {
-        this.eventGroups_.push({
-          type: 'All connected events',
-          tooltip: 'All events connected to this selection by flow arrows.',
-          selection: allEventsSelection
-        });
-      }
-    },
-
-    recursivelyAddConnectedEvents_: function(selection, event, getFlows) {
-      if (!event || selection.contains(event))
+    addInFlowEvents_: function(event, eventSet) {
+      if (!event.inFlowEvents)
         return;
-      selection.push(event);
-      var flowEvents = getFlows(event);
-      if (!flowEvents)
-        return;
-      for (var i = 0; i < flowEvents.length; ++i) {
-        selection.push(flowEvents[i]);
-        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].startSlice,
-            getFlows);
-        this.recursivelyAddConnectedEvents_(selection, flowEvents[i].endSlice,
-            getFlows);
-      }
-    },
-
-    addAncestorsAndDescendentsForSlice_: function(slice) {
-      if (!slice.iterateAllAncestors || !slice.iterateAllDescendents)
-        return;
-      var ancestorsSelection = new tr.model.EventSet(slice);
-      var descendentsSelection = new tr.model.EventSet(slice);
-      var allSlicesSelection = new tr.model.EventSet(slice);
-      slice.iterateAllAncestors(function(otherSlice) {
-        ancestorsSelection.push(otherSlice);
+      event.inFlowEvents.forEach(function(e) {
+        eventSet.push(e);
       });
-      slice.iterateAllDescendents(function(otherSlice) {
-        descendentsSelection.push(otherSlice);
-      });
-      if (ancestorsSelection.length > 1) {
-        this.eventGroups_.push({
-          type: 'Ancestors',
-          tooltip: 'All slices above this one on this thread.',
-          selection: ancestorsSelection
-        });
-      }
-      if (descendentsSelection.length > 1) {
-        this.eventGroups_.push({
-          type: 'Descendents',
-          tooltip: 'All slices below this one on this thread.',
-          selection: descendentsSelection
-        });
-      }
-      if (ancestorsSelection.length > 1 && descendentsSelection.length > 1) {
-        for (var i = 0; i < ancestorsSelection.length; ++i)
-          allSlicesSelection.push(ancestorsSelection[i]);
-        for (var i = 0; i < descendentsSelection.length; ++i)
-          allSlicesSelection.push(descendentsSelection[i]);
-        this.eventGroups_.push({
-          type: 'Hierarchy',
-          tooltip: 'All slices above or below this one on this thread.',
-          selection: allSlicesSelection
-        });
-      }
     },
 
-    addAncestorsAndDescendentsForSelection_: function(selection) {
-      var allSlicesSelection = new tr.model.EventSet();
-      selection.forEach(function(slice) {
-        allSlicesSelection.push(slice);
-        if (slice.iterateAllAncestors && slice.iterateAllDescendents) {
-          slice.iterateAllAncestors(function(otherSlice) {
-            allSlicesSelection.push(otherSlice);
-          });
-          slice.iterateAllDescendents(function(otherSlice) {
-            allSlicesSelection.push(otherSlice);
-          });
-        }
-      }.bind(this));
-      // Add hierarchy slices if it contains more than the original selection.
-      if (allSlicesSelection.length > selection.length) {
-        this.eventGroups_.push({
-          type: 'All hierarchies',
-          tooltip: 'All slices above or below any slice in the selection.',
-          selection: allSlicesSelection
-        });
-      }
+    addOutFlowEvents_: function(event, eventSet) {
+      if (!event.outFlowEvents)
+        return;
+      event.outFlowEvents.forEach(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    addAncestors_: function(event, eventSet) {
+      if (!event.iterateAllAncestors)
+        return;
+      event.iterateAllAncestors(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    addDescendents_: function(event, eventSet) {
+      if (!event.iterateAllDescendents)
+        return;
+      event.iterateAllDescendents(function(e) {
+        eventSet.push(e);
+      });
     },
 
     updateContents_: function() {
