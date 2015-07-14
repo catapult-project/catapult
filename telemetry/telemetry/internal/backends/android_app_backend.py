@@ -58,7 +58,7 @@ class AndroidAppBackend(app_backend.AppBackend):
           android_browser_backend_settings.WebviewBackendSettings(
               'android-webview'))
       with android_command_line_backend.SetUpCommandLineFlags(
-          self._device, backend_settings, webview_startup_args):
+          self.device, backend_settings, webview_startup_args):
         self._LaunchAndWaitForApplication()
     else:
       self._LaunchAndWaitForApplication()

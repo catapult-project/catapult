@@ -184,8 +184,8 @@ class AndroidRndisConfigurator(object):
   _INTERFACES_INCLUDE = 'source /etc/network/interfaces.d/*.conf'
   _TELEMETRY_INTERFACE_FILE = '/etc/network/interfaces.d/telemetry-{}.conf'
 
-  def __init__(self, adb):
-    self._device = adb.device()
+  def __init__(self, device):
+    self._device = device
 
     try:
       self._device.EnableRoot()
