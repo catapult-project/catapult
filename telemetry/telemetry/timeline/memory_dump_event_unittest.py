@@ -106,12 +106,12 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_2}})])
 
     self.assertTrue(memory_dump.has_mmaps)
-    self.assertEquals({'overall_pss': sum(ALL[:5]),
-                       'private_dirty': DIRTY_1 + DIRTY_2,
-                       'java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
-                       'ashmem': ASHMEM_1 + ASHMEM_2,
-                       'native_heap': NATIVE},
-                      memory_dump.GetStatsSummary())
+    self.assertEquals({'mmaps_overall_pss': sum(ALL[:5]),
+                       'mmaps_private_dirty': DIRTY_1 + DIRTY_2,
+                       'mmaps_java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
+                       'mmaps_ashmem': ASHMEM_1 + ASHMEM_2,
+                       'mmaps_native_heap': NATIVE},
+                      memory_dump.GetMemoryUsage())
 
   def testGetStatsSummaryDiscountsTracing(self):
     ALL = [2 ** x for x in range(5)]
@@ -125,12 +125,11 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                 'tracing': {'size': TRACING_1, 'resident_size': TRACING_2},
                 'malloc': {'size': MALLOC + TRACING_1}})])
 
-    self.assertEquals({'overall_pss': HEAP,
-                       'private_dirty': DIRTY,
-                       'java_heap': 0,
-                       'ashmem': 0,
-                       'native_heap': HEAP},
-                      memory_dump.GetStatsSummary())
-    self.assertEquals({'tracing': TRACING_1,
-                       'malloc': MALLOC},
-                      memory_dump.GetAllocatorStats())
+    self.assertEquals({'mmaps_overall_pss': HEAP,
+                       'mmaps_private_dirty': DIRTY,
+                       'mmaps_java_heap': 0,
+                       'mmaps_ashmem': 0,
+                       'mmaps_native_heap': HEAP,
+                       'allocator_tracing': TRACING_1,
+                       'allocator_malloc': MALLOC},
+                      memory_dump.GetMemoryUsage())

@@ -7,7 +7,7 @@ from telemetry.value import scalar as scalar_value
 from telemetry.web_perf.metrics import timeline_based_metric
 
 
-DEFAULT_METRICS = memory_dump_event.STATS_SUMMARY.keys()
+DEFAULT_METRICS = memory_dump_event.MMAPS_METRICS.keys()
 
 
 class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
@@ -26,7 +26,7 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         metrics = dict.fromkeys(DEFAULT_METRICS)
         none_reason = 'No memory dumps with mmaps found within interactions'
       else:
-        metrics = memory_dump.GetStatsSummary()
+        metrics = memory_dump.GetMemoryUsage()
         none_reason = None
       for metric, value in metrics.iteritems():
         results.AddValue(scalar_value.ScalarValue(

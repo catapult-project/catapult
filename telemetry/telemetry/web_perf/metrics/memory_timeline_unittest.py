@@ -28,7 +28,7 @@ def MockProcessDumpEvent(dump_id, name, start, memory_usage):
     process_dump.has_mmaps = True
   if not isinstance(memory_usage, dict):
     memory_usage = dict.fromkeys(memory_timeline.DEFAULT_METRICS, memory_usage)
-  process_dump.GetStatsSummary = mock.Mock(return_value=memory_usage)
+  process_dump.GetMemoryUsage = mock.Mock(return_value=memory_usage)
   return process_dump
 
 
@@ -68,8 +68,9 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     return result_dict
 
   def getOverallPssTotal(self, model, interactions):
-    return self.getResultsDict(
-        model, interactions).get('overall_pss_total')
+    results = self.getResultsDict(model, interactions)
+    self.assertTrue('mmaps_overall_pss_total' in results)
+    return results['mmaps_overall_pss_total']
 
   def testSingleMemoryDump(self):
     model = MockTimelineModel([

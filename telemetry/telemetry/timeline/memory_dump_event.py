@@ -105,12 +105,13 @@ BUCKET_ATTRS = {
 # Map of {memory_key: (category_path, discount_tracing), ...}.
 # When discount_tracing is True, we have to discount the resident_size of the
 # tracing allocator to get the correct value for that key.
-STATS_SUMMARY = {
-  'overall_pss': ('/.proportional_resident', True),
-  'private_dirty' : ('/.private_dirty_resident', True),
-  'java_heap': ('/Android/Java runtime/Spaces.proportional_resident', False),
-  'ashmem': ('/Android/Ashmem.proportional_resident', False),
-  'native_heap': ('/Native heap.proportional_resident', True)}
+MMAPS_METRICS = {
+  'mmaps_overall_pss': ('/.proportional_resident', True),
+  'mmaps_private_dirty' : ('/.private_dirty_resident', True),
+  'mmaps_java_heap': ('/Android/Java runtime/Spaces.proportional_resident',
+                      False),
+  'mmaps_ashmem': ('/Android/Ashmem.proportional_resident', False),
+  'mmaps_native_heap': ('/Native heap.proportional_resident', True)}
 
 
 class MemoryBucket(object):
@@ -159,8 +160,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     except KeyError:
       allocators_dict = {}
     # populate keys that should always be present
-    self._allocators = {'malloc': {'size': 0},
-                        'tracing': {'size': 0, 'resident_size': 0}}
+    self._allocators = {}
     for allocator_name, size_values in allocators_dict.iteritems():
       name_parts = allocator_name.split('/')
       # we want to skip allocated_objects, since they are already counted by
@@ -174,7 +174,10 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
         allocator[size_key] = (allocator.get(size_key, 0)
                                + int(size_value['value'], 16))
     # we need to discount tracing from malloc size.
-    self._allocators['malloc']['size'] -= self._allocators['tracing']['size']
+    try:
+      self._allocators['malloc']['size'] -= self._allocators['tracing']['size']
+    except KeyError:
+      pass # it's ok if any of those keys are not present
 
     self._buckets = {}
     try:
@@ -229,18 +232,18 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     """
     path, name = category_path.rsplit('.', 1)
     value = self.GetMemoryBucket(path).GetValue(name)
-    if discount_tracing:
-      value -= self._allocators['tracing']['resident_size']
+    if discount_tracing and 'tracing' in self._allocators:
+      value -= self._allocators['tracing'].get('resident_size', 0)
     return value
 
-  def GetStatsSummary(self):
-    """Get a summary of the memory usage for this process."""
-    return {key: self.GetMemoryValue(*value)
-            for key, value in STATS_SUMMARY.iteritems()}
-
-  def GetAllocatorStats(self):
-    return {name: allocator.get('size', 0)
-            for name, allocator in self._allocators.iteritems()}
+  def GetMemoryUsage(self):
+    """Get a dictionary with the memory usage of this process."""
+    usage = {'allocator_%s' % name: allocator.get('size', 0)
+             for name, allocator in self._allocators.iteritems()}
+    if self.has_mmaps:
+      usage.update((key, self.GetMemoryValue(*value))
+                   for key, value in MMAPS_METRICS.iteritems())
+    return usage
 
 
 class GlobalMemoryDump(object):
@@ -292,16 +295,10 @@ class GlobalMemoryDump(object):
     values = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values)
 
-  def _AggregateProcessStats(self, get_stats):
+  def GetMemoryUsage(self):
+    """Get the aggregated memory usage over all processes in this dump."""
     result = {}
     for dump in self._process_dumps:
-      for key, value in get_stats(dump).iteritems():
+      for key, value in dump.GetMemoryUsage().iteritems():
         result[key] = result.get(key, 0) + value
     return result
-
-  def GetStatsSummary(self):
-    """Get a summary of the memory usage for this dump."""
-    return self._AggregateProcessStats(lambda dump: dump.GetStatsSummary())
-
-  def GetAllocatorStats(self):
-    return self._AggregateProcessStats(lambda dump: dump.GetAllocatorStats())
