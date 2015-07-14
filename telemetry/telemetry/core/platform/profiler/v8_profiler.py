@@ -40,13 +40,13 @@ class V8Profiler(profiler.Profiler):
     if self._platform_backend.GetOSName() == 'android':
       host_output_file = '%s.log' % self._output_path
       try:
-        self._browser_backend.adb.device().PullFile(
+        self._browser_backend.device.PullFile(
             output_file, host_output_file)
       except:
         logging.exception('New exception caused by DeviceUtils conversion')
         raise
       # Clean the device
-      self._browser_backend.adb.device().RunShellCommand('rm %s' % output_file)
+      self._browser_backend.device.RunShellCommand('rm %s' % output_file)
       output_file = host_output_file
     print 'V8 profile saved as %s' % output_file
     print 'To view, open in ' \

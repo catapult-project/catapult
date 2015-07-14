@@ -61,7 +61,7 @@ class _SingleProcessVTuneProfiler(object):
           android_profiling_helper.GetRequiredLibrariesForVTuneProfile(
               self._output_file)
 
-      device = self._browser_backend.adb.device()
+      device = self._browser_backend.device
       symfs_root = os.path.dirname(self._output_file)
       android_profiling_helper.CreateSymFs(device,
                                            symfs_root,

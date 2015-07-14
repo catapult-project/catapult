@@ -24,29 +24,30 @@ class _TCPDumpProfilerAndroid(object):
 
   _DEVICE_DUMP_FILE = '/sdcard/tcpdump_profiles/capture.pcap'
 
-  def __init__(self, adb, output_path):
-    self._adb = adb
+  def __init__(self, device, output_path):
+    self._device = device
     self._output_path = output_path
-    self._adb.RunShellCommand('mkdir -p ' +
-                              os.path.dirname(self._DEVICE_DUMP_FILE))
+    self._device.RunShellCommand('mkdir -p ' +
+                                 os.path.dirname(self._DEVICE_DUMP_FILE))
     self._proc = subprocess.Popen(
-        ['adb', '-s', self._adb.device_serial(),
+        ['adb', '-s', self._device.adb.GetDeviceSerial(),
          'shell', android_prebuilt_profiler_helper.GetDevicePath('tcpdump')] +
          _TCP_DUMP_BASE_OPTS +
          [self._DEVICE_DUMP_FILE])
 
   def CollectProfile(self):
-    tcpdump_pid = self._adb.ExtractPid('tcpdump')
-    if not tcpdump_pid or not tcpdump_pid[0]:
+    tcpdump_pid = self._device.GetPids('tcpdump')
+    if not tcpdump_pid or not 'tcpdump' in tcpdump_pid:
       raise Exception('Unable to find TCPDump. Check your device is rooted '
           'and tcpdump is installed at ' +
           android_prebuilt_profiler_helper.GetDevicePath('tcpdump'))
-    self._adb.RunShellCommand('kill -term ' + tcpdump_pid[0])
+    tcpdump_pid = int(tcpdump_pid['tcpdump'])
+    self._device.RunShellCommand('kill -term ' + tcpdump_pid)
     self._proc.terminate()
     host_dump = os.path.join(self._output_path,
                              os.path.basename(self._DEVICE_DUMP_FILE))
     try:
-      self._adb.device().PullFile(self._DEVICE_DUMP_FILE, host_dump)
+      self._device.PullFile(self._DEVICE_DUMP_FILE, host_dump)
     except:
       logging.exception('New exception caused by DeviceUtils conversion')
       raise
@@ -103,9 +104,9 @@ class TCPDumpProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb.device(), 'tcpdump')
+          browser_backend.device, 'tcpdump')
       self._platform_profiler = _TCPDumpProfilerAndroid(
-          browser_backend.adb, output_path)
+          browser_backend.device, output_path)
     else:
       self._platform_profiler = _TCPDumpProfilerLinux(output_path)
 

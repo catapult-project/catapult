@@ -37,7 +37,7 @@ class AndroidBrowserBackendSettings(object):
   def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
     return self._cmdline_file
 
-  def GetDevtoolsRemotePort(self, adb):
+  def GetDevtoolsRemotePort(self, device):
     raise NotImplementedError()
 
   @property
@@ -64,7 +64,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='chrome',
         supports_tab_control=True)
 
-  def GetDevtoolsRemotePort(self, adb):
+  def GetDevtoolsRemotePort(self, device):
     return 'localabstract:chrome_devtools_remote'
 
 
@@ -77,7 +77,7 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='content_shell',
         supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self, adb):
+  def GetDevtoolsRemotePort(self, device):
     return 'localabstract:content_shell_devtools_remote'
 
 
@@ -90,7 +90,7 @@ class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
           pseudo_exec_name='chrome_shell',
           supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self, adb):
+  def GetDevtoolsRemotePort(self, device):
     return 'localabstract:chrome_shell_devtools_remote'
 
 
@@ -106,26 +106,26 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
         pseudo_exec_name='webview',
         supports_tab_control=False)
 
-  def GetDevtoolsRemotePort(self, adb):
+  def GetDevtoolsRemotePort(self, device):
     # The DevTools socket name for WebView depends on the activity PID's.
     retries = 0
     timeout = 1
     pid = None
     while True:
-      pids = adb.ExtractPid(self.package)
-      if len(pids) > 0:
-        pid = pids[-1]
-        break
-      time.sleep(timeout)
-      retries += 1
-      timeout *= 2
-      if retries == 4:
-        logging.critical('android_browser_backend: Timeout while waiting for '
-                         'activity %s:%s to come up',
-                         self.package,
-                         self.activity)
-        raise exceptions.BrowserGoneException(self.browser,
-                                              'Timeout waiting for PID.')
+      pids = device.GetPids(self.package)
+      if not pids or self.package not in pids:
+        time.sleep(timeout)
+        retries += 1
+        timeout *= 2
+        if retries == 4:
+          logging.critical('android_browser_backend: Timeout while waiting for '
+                           'activity %s:%s to come up',
+                           self.package,
+                           self.activity)
+          raise exceptions.BrowserGoneException(self.browser,
+                                                'Timeout waiting for PID.')
+      pid = pids[self.package]
+      break
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
 
