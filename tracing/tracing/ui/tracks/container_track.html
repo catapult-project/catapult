@@ -112,6 +112,12 @@ tr.exportTo('tr.ui.tracks', function() {
 
       tr.ui.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
+    },
+
+    clearTracks_: function() {
+      this.tracks_.forEach(function(track) {
+        this.removeChild(track);
+      }, this);
     }
   };
 

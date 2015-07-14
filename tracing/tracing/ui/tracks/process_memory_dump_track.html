@@ -42,9 +42,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateContents_: function() {
-      this.tracks_.forEach(function(track) {
-        this.removeChild(track);
-      }, this);
+      this.clearTracks_();
 
       // Show no tracks if there are no dumps.
       if (!this.memoryDumps_ || !this.memoryDumps_.length)

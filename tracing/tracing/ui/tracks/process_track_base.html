@@ -114,9 +114,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateContents_: function() {
-      this.tracks_.forEach(function(track) {
-        this.removeChild(track);
-      }, this);
+      this.clearTracks_();
 
       if (!this.processBase_)
         return;
