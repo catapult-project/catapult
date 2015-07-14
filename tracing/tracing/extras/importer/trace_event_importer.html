@@ -64,6 +64,13 @@ tr.exportTo('tr.e.importer', function() {
     return res;
   }
 
+  function getEventColor(event, opt_customName) {
+    if (event.cname)
+      return tr.ui.b.getColorIdForReservedName(event.cname);
+    return tr.ui.b.getColorIdForGeneralPurposeString(
+        opt_customName || event.name);
+  }
+
   var timestampFromUs = tr.b.units.Time.timestampFromUs;
   var maybeTimestampFromUs = tr.b.units.Time.maybeTimestampFromUs;
 
@@ -234,14 +241,14 @@ tr.exportTo('tr.e.importer', function() {
 
       var ctr = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateCounter(event.cat, ctr_name);
+      var reservedColorId = event.cname ? getEventColor(event) : undefined;
 
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
-          ctr.addSeries(new tr.model.CounterSeries(
-              seriesName,
-              tr.ui.b.getColorIdForGeneralPurposeString(
-                  ctr.name + '.' + seriesName)));
+          var colorId = reservedColorId ||
+              getEventColor(event, ctr.name + '.' + seriesName);
+          ctr.addSeries(new tr.model.CounterSeries(seriesName, colorId));
         }
 
         if (ctr.numSeries === 0) {
@@ -289,7 +296,8 @@ tr.exportTo('tr.e.importer', function() {
         var slice = thread.sliceGroup.beginSlice(
             event.cat, event.name, timestampFromUs(event.ts),
             this.deepCopyIfNeeded_(event.args),
-            timestampFromUs(event.tts), event.argsStripped);
+            timestampFromUs(event.tts), event.argsStripped,
+            getEventColor(event));
         slice.startStackFrame = this.getStackFrameForEvent_(event);
       } else if (event.ph == 'I' || event.ph == 'i') {
         if (event.s !== undefined && event.s !== 't')
@@ -298,7 +306,9 @@ tr.exportTo('tr.e.importer', function() {
         thread.sliceGroup.beginSlice(event.cat, event.name,
                                      timestampFromUs(event.ts),
                                      this.deepCopyIfNeeded_(event.args),
-                                     timestampFromUs(event.tts));
+                                     timestampFromUs(event.tts),
+                                     event.argsStripped,
+                                     getEventColor(event));
         var slice = thread.sliceGroup.endSlice(timestampFromUs(event.ts),
                                    timestampFromUs(event.tts));
         slice.startStackFrame = this.getStackFrameForEvent_(event);
@@ -350,7 +360,9 @@ tr.exportTo('tr.e.importer', function() {
           maybeTimestampFromUs(event.dur),
           maybeTimestampFromUs(event.tts),
           maybeTimestampFromUs(event.tdur),
-          this.deepCopyIfNeeded_(event.args), event.argsStripped);
+          this.deepCopyIfNeeded_(event.args),
+          event.argsStripped,
+          getEventColor(event));
       slice.startStackFrame = this.getStackFrameForEvent_(event);
       slice.endStackFrame = this.getStackFrameForEvent_(event, true);
     },
@@ -418,9 +430,8 @@ tr.exportTo('tr.e.importer', function() {
           return;
       }
 
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(event.name);
       var instantEvent = new constructor(event.cat, event.name,
-          colorId, timestampFromUs(event.ts),
+          getEventColor(event), timestampFromUs(event.ts),
           this.deepCopyIfNeeded_(event.args));
 
       switch (instantEvent.type) {
@@ -903,8 +914,7 @@ tr.exportTo('tr.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              tr.ui.b.getColorIdForGeneralPurposeString(
-                  eventStateEntry.event.name),
+              getEventColor(eventStateEntry.event),
               timestampFromUs(startState.event.ts),
               sliceArgs,
               timestampFromUs(endState.event.ts - startState.event.ts),
@@ -1014,7 +1024,7 @@ tr.exportTo('tr.e.importer', function() {
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
-                tr.ui.b.getColorIdForGeneralPurposeString(name),
+                getEventColor(events[0].event),
                 timestampFromUs(events[0].event.ts),
                 tr.b.concatenateObjects(events[0].event.args,
                                       events[events.length - 1].event.args),
@@ -1071,7 +1081,7 @@ tr.exportTo('tr.e.importer', function() {
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
-                  tr.ui.b.getColorIdForGeneralPurposeString(subName + j),
+                  getEventColor(event, subName + j),
                   timestampFromUs(events[startIndex].event.ts),
                   this.deepCopyIfNeeded_(events[j].event.args),
                   timestampFromUs(
@@ -1144,7 +1154,7 @@ tr.exportTo('tr.e.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tr.ui.b.getColorIdForGeneralPurposeString(event.name),
+            getEventColor(event),
             timestampFromUs(event.ts),
             that.deepCopyIfNeeded_(event.args));
         flowEvent.startSlice = startSlice;
@@ -1359,8 +1369,9 @@ tr.exportTo('tr.e.importer', function() {
           instance = snapshot.objectInstance;
         } else if (event.ph == 'D') {
           try {
-            instance = process.objects.idWasDeleted(
-                event.id, event.cat, event.name, ts);
+            process.objects.idWasDeleted(event.id, event.cat, event.name, ts);
+            var instanceMap = process.objects.getOrCreateInstanceMap_(event.id);
+            instance = instanceMap.lastInstance;
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
@@ -1371,10 +1382,8 @@ tr.exportTo('tr.e.importer', function() {
           }
         }
 
-        if (instance) {
-          instance.colorId = tr.ui.b.getColorIdForGeneralPurposeString(
-              instance.typeName);
-        }
+        if (instance)
+          instance.colorId = getEventColor(event, instance.typeName);
       }
 
       this.allObjectEvents_.sort(function(x, y) {
