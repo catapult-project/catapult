@@ -29,7 +29,9 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
 
   def __init__(self, device, use_rndis):
     super(AndroidForwarderFactory, self).__init__()
-    self._device = device
+    # TODO(sullivan): remove this line in
+    # https://codereview.chromium.org/1213423003/
+    self._device = device.device()
     self._rndis_configurator = None
     if use_rndis:
       self._rndis_configurator = AndroidRndisConfigurator(self._device)
