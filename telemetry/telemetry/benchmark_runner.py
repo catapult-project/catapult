@@ -324,6 +324,14 @@ def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
           if _Matches(input_benchmark_name, benchmark_class.Name())]
 
 
+def GetBenchmarkByName(name, environment):
+  matched = _MatchBenchmarkName(name, environment, exact_matches=True)
+  # With exact_matches, len(matched) is either 0 or 1.
+  if len(matched) == 0:
+    return None
+  return matched[0]
+
+
 def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
                           benchmark_classes, num_shards):
   """Returns a list of all enabled benchmarks in a JSON format expected by
