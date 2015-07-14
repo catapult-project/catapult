@@ -108,7 +108,7 @@ if __name__ == '__main__':
       'to see those.\n')
   if run_d8_tests_exit_code:
     sys.stderr.write(
-      'run_d8_tests have some failed tests. Rerun run_py_tests script '
+      'run_d8_tests have some failed tests. Rerun run_d8_tests script '
       'to see those.\n')
   if run_dev_server_exit_code:
     sys.stderr.write(
