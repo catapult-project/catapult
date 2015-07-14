@@ -14,6 +14,7 @@ from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_test
+from telemetry.page import test_expectations
 from telemetry.testing import options_for_unittests
 
 
@@ -46,6 +47,7 @@ class PageTestTestCase(unittest.TestCase):
     return ps
 
   def RunMeasurement(self, measurement, ps,
+      expectations=test_expectations.TestExpectations(),
       options=None):
     """Runs a measurement against a pageset, returning the rows its outputs."""
     if options is None:
@@ -66,7 +68,7 @@ class PageTestTestCase(unittest.TestCase):
     options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(measurement, ps, options, results)
+    story_runner.Run(measurement, ps, expectations, options, results)
     return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):

@@ -64,16 +64,22 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _RunStoryAndProcessErrorIfNeeded(story, results, state):
+def _RunStoryAndProcessErrorIfNeeded(expectations, story, results,
+                                         state):
   def ProcessError():
-    results.AddValue(failure.FailureValue(story, sys.exc_info()))
+    if expectation == 'fail':
+      msg = 'Expected exception while running %s' % story.display_name
+      exception_formatter.PrintFormattedException(msg=msg)
+    else:
+      msg = 'Exception while running %s' % story.display_name
+      results.AddValue(failure.FailureValue(story, sys.exc_info()))
   try:
+    expectation = None
     state.WillRunStory(story)
-    if not state.CanRunStory(story):
-      results.AddValue(skip.SkipValue(
-          story,
-          'Skipped because story is not supported '
-          '(SharedState.CanRunStory() returns False).'))
+    expectation, skip_value = state.GetTestExpectationAndSkipValue(expectations)
+    if expectation == 'skip':
+      assert skip_value
+      results.AddValue(skip_value)
       return
     state.RunStory(results)
   except (page_test.Failure, exceptions.TimeoutException,
@@ -90,6 +96,10 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state):
         failure.FailureValue(
             story, sys.exc_info(), 'Unhandlable exception raised.'))
     raise
+  else:
+    if expectation == 'fail':
+      logging.warning(
+          '%s was expected to fail, but passed.\n', story.display_name)
   finally:
     has_existing_exception = sys.exc_info() is not None
     try:
@@ -156,7 +166,8 @@ def StoriesGroupedByStateClass(story_set, allow_multiple_groups):
   return story_groups
 
 
-def Run(test, story_set, finder_options, results, max_failures=None):
+def Run(test, story_set, expectations, finder_options, results,
+        max_failures=None):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -202,7 +213,7 @@ def Run(test, story_set, finder_options, results, max_failures=None):
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
               _RunStoryAndProcessErrorIfNeeded(
-                  story, results, state)
+                  expectations, story, results, state)
             except exceptions.Error:
               # Catch all Telemetry errors to give the story a chance to retry.
               # The retry is enabled by tearing down the state and creating
