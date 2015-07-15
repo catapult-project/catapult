@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from functools import partial
 import logging
 
 from telemetry.core import exceptions
@@ -51,29 +52,33 @@ class Oobe(web_contents.WebContents):
     """Fake user login."""
     self._ExecuteOobeApi('Oobe.loginForTesting', username, password)
 
-  def NavigateEnterpriseEnrollment(self, username, password):
-    """Enterprise enrolls using the GAIA webview or IFrame, whichever
-    is present."""
-    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
-    self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
-    if self._GaiaIFrameContext() is None:
-      self._NavigateWebViewLogin(username, password, wait_for_close=False)
-    else:
-      self._NavigateIFrameLogin(username, password)
-
-    self.WaitForJavaScriptExpression('Oobe.isEnrollmentSuccessfulForTest()', 30)
-    self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
-
-  def NavigateGaiaLogin(self, username, password):
+  def NavigateGaiaLogin(self, username, password,
+                        enterprise_enroll=False,
+                        for_user_triggered_enrollment=False):
     """Logs in using the GAIA webview or IFrame, whichever is
-    present."""
+    present. |enterprise_enroll| allows for enterprise enrollment.
+    |for_user_triggered_enrollment| should be False for remora enrollment."""
     self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
+    if for_user_triggered_enrollment:
+      self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
+
+    self._NavigateGaiaLogin(username, password, enterprise_enroll)
+
+    if enterprise_enroll:
+      self.WaitForJavaScriptExpression('Oobe.isEnrollmentSuccessfulForTest()',
+                                       30)
+      self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
+
+  def _NavigateGaiaLogin(self, username, password, enterprise_enroll):
+    """Invokes NavigateIFrameLogin or NavigateWebViewLogin as appropriate."""
     def _GetGaiaFunction():
-      self._ExecuteOobeApi('Oobe.showAddUserForTesting')
+      if not enterprise_enroll:
+        self._ExecuteOobeApi('Oobe.showAddUserForTesting')
       if self._GaiaIFrameContext() is not None:
         return Oobe._NavigateIFrameLogin
       elif self._GaiaWebviewContext():
-        return Oobe._NavigateWebViewLogin
+        return partial(Oobe._NavigateWebViewLogin,
+                       wait_for_close=not enterprise_enroll)
       return None
     util.WaitFor(_GetGaiaFunction, 20)(self, username, password)
 
@@ -88,7 +93,7 @@ class Oobe(web_contents.WebContents):
             % (username, password),
         gaia_iframe_context)
 
-  def _NavigateWebViewLogin(self, username, password, wait_for_close=True):
+  def _NavigateWebViewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username)
     self._GaiaWebviewContext().WaitForJavaScriptExpression(
