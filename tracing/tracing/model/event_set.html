@@ -42,6 +42,8 @@ tr.exportTo('tr.model', function() {
       if (opt_events instanceof Array) {
         for (var i = 0; i < opt_events.length; i++)
           this.push(opt_events[i]);
+      } else if (opt_events instanceof EventSet) {
+        this.addEventSet(opt_events);
       } else {
         this.push(opt_events);
       }

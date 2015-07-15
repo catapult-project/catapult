@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/base/statistics.html">
 <link rel="import" href="/model/event.html">
+<link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/color_scheme.html">
 
 <script>
@@ -37,7 +38,7 @@ tr.exportTo('tr.model', function() {
     tr.model.Event.call(this);
 
     this.threadTimeRanges = threadTimeRanges;
-    this.associatedEvents = associatedEvents;
+    this.associatedEvents = new tr.model.EventSet(associatedEvents);
     this.args = opt_args || {};
 
     this.title = 'Frame';
