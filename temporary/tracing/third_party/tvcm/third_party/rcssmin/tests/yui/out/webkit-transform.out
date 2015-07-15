@@ -1,1 +1,0 @@
-c{-webkit-transform-origin:0 0}d{-MOZ-TRANSFORM-ORIGIN:0 0}

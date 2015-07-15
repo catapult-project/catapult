@@ -1,1 +1,0 @@
-a[href$="/test/"] span:first-child{b:1}a[href$="/test/"] span:first-child{}
