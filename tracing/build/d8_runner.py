@@ -91,7 +91,8 @@ class RunResult(object):
     self.stdout = stdout
 
 
-def ExecuteFile(file_path, source_paths=None, js_args=None):
+def ExecuteFile(file_path, source_paths=None, js_args=None,
+                stdout=subprocess.PIPE, stdin=subprocess.PIPE):
   """Execute JavaScript program in |file_path|.
 
   Args:
@@ -100,14 +101,17 @@ def ExecuteFile(file_path, source_paths=None, js_args=None):
     source_paths: the list of absolute paths containing code. All the imports
     js_args: a list of string arguments to sent to the JS program.
 
+  Args stdout & stdin are the same as _RunFileWithD8.
+
   Returns:
      The string output from running the JS program.
   """
-  res = RunFile(file_path, source_paths, js_args)
+  res = RunFile(file_path, source_paths, js_args, stdout, stdin)
   return res.stdout
 
 
-def RunFile(file_path, source_paths=None, js_args=None):
+def RunFile(file_path, source_paths=None, js_args=None, stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE):
   """Runs JavaScript program in |file_path|.
 
   Args are same as ExecuteFile.
@@ -136,19 +140,22 @@ def RunFile(file_path, source_paths=None, js_args=None):
         f.write('\nloadHTMLFile("%s");' % abs_file_path)
       else:
         f.write('\nloadFile("%s");' % abs_file_path)
-    return _RunFileWithD8(temp_boostrap_file, js_args)
+    return _RunFileWithD8(temp_boostrap_file, js_args, stdout, stdin)
   finally:
     shutil.rmtree(temp_dir)
 
 
 def ExcecuteJsString(js_string, source_paths=None, js_args=None,
-                     original_file_name=None):
-  res = RunJsString(js_string, source_paths, js_args, original_file_name)
+                     original_file_name=None, stdout=subprocess.PIPE,
+                     stdin=subprocess.PIPE):
+  res = RunJsString(js_string, source_paths, js_args, original_file_name,
+                    stdout, stdin)
   return res.stdout
 
 
 def RunJsString(js_string, source_paths=None, js_args=None,
-                original_file_name=None):
+                original_file_name=None, stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE):
   _ValidateSourcePaths(source_paths)
 
   try:
@@ -161,17 +168,21 @@ def RunJsString(js_string, source_paths=None, js_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    return RunFile(temp_file, source_paths, js_args)
+    return RunFile(temp_file, source_paths, js_args, stdout, stdin)
   finally:
     shutil.rmtree(temp_dir)
 
 
-def _RunFileWithD8(js_file_path, js_args):
+def _RunFileWithD8(js_file_path, js_args, stdout, stdin):
   """ Execute the js_files with v8 engine and return the output of the program.
 
   Args:
     js_file_path: the string path of the js file to be run.
     js_args: a list of arguments to passed to the |js_file_path| program.
+    stdout: where to pipe the stdout of the executed program to. If
+      subprocess.PIPE is used, stdout will be returned in RunResult.out.
+      Otherwise RunResult.out is None
+    stdin: specify the executed program's input.
   """
   args = [_GetD8BinaryPathForPlatform()]
   args.append(os.path.abspath(js_file_path))
@@ -180,9 +191,9 @@ def _RunFileWithD8(js_file_path, js_args):
     full_js_args += js_args
 
   args += ['--js_arguments'] + full_js_args
-  sp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-  out, err = sp.communicate()
-  assert err is None
+  # Set stderr=None since d8 doesn't write into stderr anyway.
+  sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)
+  out, _ = sp.communicate()
 
   # d8 uses returncode 1 to indicate an uncaught exception, but
   # _RunFileWithD8 needs to distingiush between that and quit(1).
@@ -194,9 +205,13 @@ def _RunFileWithD8(js_file_path, js_args):
   if returncode == 0:
     return RunResult(0, out)
   elif returncode == 1:
-    raise RuntimeError(
-        "Exception raised when executing %s:\n%s" %
-        (js_file_path, out))
+    if out:
+      raise RuntimeError(
+        'Exception raised when executing %s:\n%s' % (js_file_path, out))
+    else:
+      raise RuntimeError(
+        'Exception raised when executing %s. '
+        '(Error stack is dumped into stdout)' % js_file_path)
   else:
     return RunResult(returncode - 1, out)
 
@@ -215,6 +230,5 @@ def main():
 
   args.source_paths = [os.path.abspath(x) for x in args.source_paths]
   res = RunFile(args.file_name, source_paths=args.source_paths,
-                js_args=args.js_args)
-  print res.stdout
+                js_args=args.js_args, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode

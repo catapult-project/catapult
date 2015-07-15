@@ -24,8 +24,7 @@ class D8RunnerUnittest(unittest.TestCase):
   def GetTestFilePath(self, file_name):
     return os.path.join(self.test_data_dir, file_name)
 
-  def AssertHasNamedFrame(self, func_name, file_and_linum,
-                          exception_message):
+  def AssertHasNamedFrame(self, func_name, file_and_linum, exception_message):
     m = re.search('at %s.+\(.*%s.*\)' % (func_name, file_and_linum),
                   exception_message)
     if not m:
@@ -37,10 +36,8 @@ class D8RunnerUnittest(unittest.TestCase):
       sys.stderr.write('=========== End Exception Message =========\n\n')
       self.fail(msg)
 
-  def AssertHasFrame(self, file_and_linum,
-                     exception_message):
-    m = re.search('at .*%s.*' % file_and_linum,
-                  exception_message)
+  def AssertHasFrame(self, file_and_linum, exception_message):
+    m = re.search('at .*%s.*' % file_and_linum, exception_message)
     if not m:
       sys.stderr.write('\n=============================================\n')
       msg = "Expected to find %s" % file_and_linum
@@ -49,6 +46,54 @@ class D8RunnerUnittest(unittest.TestCase):
       sys.stderr.write(exception_message)
       sys.stderr.write('=========== End Exception Message =========\n\n')
       self.fail(msg)
+
+  def testExecuteJsStringStdoutPiping(self):
+    tmp_dir = tempfile.mkdtemp()
+    try:
+      temp_file_name = os.path.join(tmp_dir, 'out_file')
+      with open(temp_file_name, 'w') as f:
+        d8_runner.ExcecuteJsString(
+            'print("Hello w0rld");\n', stdout=f)
+      with open(temp_file_name, 'r') as f:
+        self.assertEquals(f.read(), 'Hello w0rld\n')
+    finally:
+      shutil.rmtree(tmp_dir)
+
+  def testRunJsStringStdoutPiping(self):
+    tmp_dir = tempfile.mkdtemp()
+    try:
+      temp_file_name = os.path.join(tmp_dir, 'out_file')
+      with open(temp_file_name, 'w') as f:
+        d8_runner.RunJsString(
+            'print("Hello w0rld");\n', stdout=f)
+      with open(temp_file_name, 'r') as f:
+        self.assertEquals(f.read(), 'Hello w0rld\n')
+    finally:
+      shutil.rmtree(tmp_dir)
+
+  def testExecuteFileStdoutPiping(self):
+    file_path = self.GetTestFilePath('simple.js')
+    tmp_dir = tempfile.mkdtemp()
+    try:
+      temp_file_name = os.path.join(tmp_dir, 'out_file')
+      with open(temp_file_name, 'w') as f:
+        d8_runner.ExecuteFile(file_path, stdout=f)
+      with open(temp_file_name, 'r') as f:
+        self.assertEquals(f.read(), 'Hello W0rld from simple.js\n')
+    finally:
+      shutil.rmtree(tmp_dir)
+
+  def testRunFileStdoutPiping(self):
+    file_path = self.GetTestFilePath('simple.js')
+    tmp_dir = tempfile.mkdtemp()
+    try:
+      temp_file_name = os.path.join(tmp_dir, 'out_file')
+      with open(temp_file_name, 'w') as f:
+        d8_runner.RunFile(file_path, stdout=f)
+      with open(temp_file_name, 'r') as f:
+        self.assertEquals(f.read(), 'Hello W0rld from simple.js\n')
+    finally:
+      shutil.rmtree(tmp_dir)
 
   def testSimpleJsExecution(self):
     file_path = self.GetTestFilePath('print_file_content.js')
