@@ -42,13 +42,13 @@ tr.b.unittest.testSuite(function() {
 
     series.shiftTimestampsForward(2);
 
-    assert.equal(series.samples[0].timestamp, 2);
-    assert.equal(series.samples[1].timestamp, 3);
+    assert.equal(series.samples[0].start, 2);
+    assert.equal(series.samples[1].start, 3);
 
     series.shiftTimestampsForward(-4);
 
-    assert.equal(series.samples[0].timestamp, -2);
-    assert.equal(series.samples[1].timestamp, -1);
+    assert.equal(series.samples[0].start, -2);
+    assert.equal(series.samples[1].start, -1);
   });
 
 

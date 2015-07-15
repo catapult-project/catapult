@@ -64,7 +64,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var axis = new tr.ui.tracks.ChartAxis(0, undefined);
       var pts = this.powerSeries_.samples.map(function(smpl) {
-        return new tr.ui.tracks.ChartPoint(smpl, smpl.timestamp, smpl.power);
+        return new tr.ui.tracks.ChartPoint(smpl, smpl.start, smpl.power);
       });
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,

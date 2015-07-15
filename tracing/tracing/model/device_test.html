@@ -46,8 +46,8 @@ tr.b.unittest.testSuite(function() {
     device.powerSeries.addPowerSample(200, 2);
     device.shiftTimestampsForward(2);
 
-    assert.equal(device.powerSeries.samples[0].timestamp, 102);
-    assert.equal(device.powerSeries.samples[1].timestamp, 202);
+    assert.equal(device.powerSeries.samples[0].start, 102);
+    assert.equal(device.powerSeries.samples[1].start, 202);
   });
 
   test('iterateAllChildEventContainers', function() {

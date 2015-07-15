@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
 
     shiftTimestampsForward: function(amount) {
       for (var i = 0; i < this.samples_.length; ++i)
-        this.samples_[i].timestamp += amount;
+        this.samples_[i].start += amount;
     },
 
     updateBounds: function() {
@@ -64,8 +64,8 @@ tr.exportTo('tr.model', function() {
       if (this.samples_.length === 0)
         return;
 
-      this.bounds.addValue(this.samples_[0].timestamp);
-      this.bounds.addValue(this.samples_[this.samples_.length - 1].timestamp);
+      this.bounds.addValue(this.samples_[0].start);
+      this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
     },
 
     iterateAllEventsInThisContainer: function(eventTypePredicate, callback,

@@ -18,10 +18,10 @@ tr.b.unittest.testSuite(function() {
     var sample1 = new PowerSample(0.0, 1000.0);
     var sample2 = new PowerSample(1.0, 2000.0);
 
-    assert.equal(sample1.timestamp, 0.0);
+    assert.equal(sample1.start, 0.0);
     assert.equal(sample1.power, 1000.0);
 
-    assert.equal(sample2.timestamp, 1.0);
+    assert.equal(sample2.start, 1.0);
     assert.equal(sample2.power, 2000.0);
   });
 });
