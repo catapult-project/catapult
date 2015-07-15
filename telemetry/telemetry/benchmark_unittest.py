@@ -136,7 +136,7 @@ class BenchmarkTest(unittest.TestCase):
     original_run_fn = story_runner.Run
     validPredicate = [False]
 
-    def RunStub(test, story_set_module, finder_options, results,
+    def RunStub(test, story_set_module, expectations, finder_options, results,
                 **args): # pylint: disable=unused-argument
       predicate = results._value_can_be_added_predicate
       valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate

@@ -21,6 +21,7 @@ from telemetry.page import action_runner as action_runner_module
 from telemetry.page import page_test
 from telemetry import story
 from telemetry.util import wpr_modes
+from telemetry.value import skip
 from telemetry.web_perf import timeline_based_measurement
 
 
@@ -231,18 +232,27 @@ class SharedPageState(story.SharedState):
     if self._finder_options.profiler:
       self._StartProfiling(self._current_page)
 
-  def CanRunStory(self, page):
-    return self.CanRunOnBrowser(browser_info_module.BrowserInfo(self.browser),
-                                page)
+  def GetTestExpectationAndSkipValue(self, expectations):
+    skip_value = None
+    if not self.CanRunOnBrowser(browser_info_module.BrowserInfo(self.browser)):
+      skip_value = skip.SkipValue(
+          self._current_page,
+          'Skipped because browser is not supported '
+          '(page.CanRunOnBrowser() returns False).')
+      return 'skip', skip_value
+    expectation = expectations.GetExpectationForPage(
+        self, self._current_page)
+    if expectation == 'skip':
+      skip_value = skip.SkipValue(
+          self._current_page, 'Skipped by test expectations')
+    return expectation, skip_value
 
-  def CanRunOnBrowser(self, browser_info,
-                      page):  # pylint: disable=unused-argument
-    """Override this to return whether the browser brought up by this state
-    instance is suitable for running the given page.
+  def CanRunOnBrowser(self, browser_info):  # pylint: disable=unused-argument
+    """Override this to returns whether the browser brought up by this state
+    instance is suitable for test runs.
 
     Args:
       browser_info: an instance of telemetry.core.browser_info.BrowserInfo
-      page: an instance of telemetry.page.Page
     """
     return True
 

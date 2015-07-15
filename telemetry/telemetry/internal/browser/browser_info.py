@@ -57,7 +57,3 @@ class BrowserInfo(object):
   @property
   def browser_type(self):
     return self._browser.browser_type
-
-  @property
-  def browser(self):
-    return self._browser
