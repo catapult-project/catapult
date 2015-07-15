@@ -20,7 +20,7 @@ import tvcm
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
-      description='Run d8 tests.')
+      description='Run python tests.')
   parser.add_argument(
     '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.set_defaults(install_hooks=True)

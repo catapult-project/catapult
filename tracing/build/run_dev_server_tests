@@ -96,12 +96,13 @@ def main():
       StartXvfb()
     profiledir = tempfile.mkdtemp()
     tmpdir, version = DownloadChromeStable()
-    server_path = [os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), os.pardir, 'run_dev_server')]
+    server_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), os.pardir, 'run_dev_server')
+    server_command = [server_path, '--no-install-hooks']
     if sys.platform.startswith('win'):
-        server_path = ['python.exe'] + server_path
+        server_command = ['python.exe'] + server_command
     server_process = subprocess.Popen(
-        server_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     time.sleep(5)
 
     chrome_path = os.path.join(

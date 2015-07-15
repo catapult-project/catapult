@@ -14,5 +14,11 @@ from hooks import install
 from tracing.build import tracing_dev_server
 
 if __name__ == '__main__':
-  install.InstallHooks()
-  sys.exit(tracing_dev_server.Main(sys.argv[1:]))
+  dev_server_args = sys.argv[1:]
+  # This parses sys.argv instead of using argparse because
+  # tracing_dev_server.Main also uses argparse, and using argparse here would
+  # override its help message.
+  if '--no-install-hooks' in sys.argv:
+    install.InstallHooks()
+    dev_server_args.remove('--no-install-hooks')
+  sys.exit(tracing_dev_server.Main(dev_server_args))

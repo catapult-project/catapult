@@ -105,7 +105,7 @@ def Main(args):
       '-s', '--skp-data-dir',
       default=os.path.abspath(os.path.join(project.skp_data_path)))
   parser.add_argument('-p', '--port', default=8003, type=int)
-  args = parser.parse_args()
+  args = parser.parse_args(args=args)
 
   server = tvcm.DevServer(port=args.port, project=project)
   server.data_dir = os.path.abspath(args.data_dir)
