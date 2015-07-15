@@ -422,7 +422,20 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('durationColorArgument', function() {
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B', cname: 'thread_state_unknown'}, // @suppress longLineCheck
-      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B', cname: 'thread_state_unknown'} // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('thread_state_unknown'));
+  });
+
+  test('durationColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B', cname: 'thread_state_sleeping'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
     ];
 
     var m = new tr.Model(events);
@@ -447,6 +460,19 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   test('asyncColorArgument', function() {
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'b', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.asyncSliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('asyncColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'b', id: 1, cname: 'thread_state_unknown'}, // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
@@ -496,6 +522,20 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'N', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'O', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var i = p.objects.instanceMapsById_[1].instances[0];
+    assert.equal(i.colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('objectColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'N', id: 1, cname: 'thread_state_sleeping'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'O', id: 1, cname: 'thread_state_unknown'}, // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 

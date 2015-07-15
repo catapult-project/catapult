@@ -67,8 +67,10 @@ tr.exportTo('tr.e.importer', function() {
   function getEventColor(event, opt_customName) {
     if (event.cname)
       return tr.ui.b.getColorIdForReservedName(event.cname);
-    return tr.ui.b.getColorIdForGeneralPurposeString(
-        opt_customName || event.name);
+    else if (opt_customName || event.name) {
+      return tr.ui.b.getColorIdForGeneralPurposeString(
+          opt_customName || event.name);
+    }
   }
 
   var timestampFromUs = tr.b.units.Time.timestampFromUs;
@@ -323,7 +325,8 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         var slice = thread.sliceGroup.endSlice(timestampFromUs(event.ts),
-                                               timestampFromUs(event.tts));
+                                               timestampFromUs(event.tts),
+                                               getEventColor(event));
         if (event.name && slice.title != event.name) {
           this.model_.importWarning({
             type: 'title_match_error',
@@ -914,7 +917,7 @@ tr.exportTo('tr.e.importer', function() {
           var slice = new asyncSliceConstructor(
               eventStateEntry.event.cat,
               eventStateEntry.event.name,
-              getEventColor(eventStateEntry.event),
+              getEventColor(endState.event),
               timestampFromUs(startState.event.ts),
               sliceArgs,
               timestampFromUs(endState.event.ts - startState.event.ts),

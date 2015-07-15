@@ -179,10 +179,12 @@ tr.exportTo('tr.model', function() {
      * Ends the last begun slice in this group and pushes it onto the slice
      * array.
      *
-     * @param {Number} ts Timestamp when the slice ended.
+     * @param {Number} ts Timestamp when the slice ended
+     * @param {Number=} opt_colorId The color of the slice, defined by
+     * its palette id (see ui/base/color_scheme.html).
      * @return {Slice} slice.
      */
-    endSlice: function(ts, opt_tts) {
+    endSlice: function(ts, opt_tts, opt_colorId) {
       if (!this.openSliceCount)
         throw new Error('endSlice called without an open slice');
 
@@ -194,6 +196,7 @@ tr.exportTo('tr.model', function() {
 
       slice.duration = ts - slice.start;
       slice.didNotFinish = false;
+      slice.colorId = opt_colorId || slice.colorId;
 
       if (opt_tts && slice.cpuStart !== undefined)
         slice.cpuDuration = opt_tts - slice.cpuStart;
