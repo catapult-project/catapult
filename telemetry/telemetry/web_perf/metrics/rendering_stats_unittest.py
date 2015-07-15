@@ -86,7 +86,7 @@ def AddSurfaceFlingerStats(mock_timer, thread, first_frame,
       # Add frame_time if this is not the first frame in within the bounds of an
       # action.
       prev_timestamp = ref_stats.frame_timestamps[-1][-1]
-      ref_stats.frame_times[-1].append(round(timestamp - prev_timestamp, 2))
+      ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
     ref_stats.frame_timestamps[-1].append(timestamp)
 
 
@@ -116,7 +116,7 @@ def AddDisplayRenderingStats(mock_timer, thread, first_frame,
     # Add frame_time if this is not the first frame in within the bounds of an
     # action.
     prev_timestamp = ref_stats.frame_timestamps[-1][-1]
-    ref_stats.frame_times[-1].append(round(timestamp - prev_timestamp, 2))
+    ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
   ref_stats.frame_timestamps[-1].append(timestamp)
 
 
@@ -150,7 +150,7 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
       # Add frame_time if this is not the first frame in within the bounds of an
       # action.
       prev_timestamp = ref_stats.frame_timestamps[-1][-1]
-      ref_stats.frame_times[-1].append(round(timestamp - prev_timestamp, 2))
+      ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
     ref_stats.frame_timestamps[-1].append(timestamp)
 
   ref_stats.approximated_pixel_percentages[-1].append(

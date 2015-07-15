@@ -240,8 +240,8 @@ class RenderingStats(object):
       self.frame_timestamps[-1].append(
           event.start)
       if len(self.frame_timestamps[-1]) >= 2:
-        self.frame_times[-1].append(round(self.frame_timestamps[-1][-1] -
-                                          self.frame_timestamps[-1][-2], 2))
+        self.frame_times[-1].append(
+            self.frame_timestamps[-1][-1] - self.frame_timestamps[-1][-2])
 
   def _InitFrameTimestampsFromTimeline(
       self, process, timestamp_event_name, timeline_range):
