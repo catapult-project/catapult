@@ -15,6 +15,7 @@ class Process(event_container.TimelineEventContainer):
   def __init__(self, parent, pid):
     super(Process, self).__init__('process %s' % pid, parent)
     self.pid = pid
+    self.labels = None
     self._threads = {}
     self._counters = {}
     self._trace_buffer_overflow_event = None

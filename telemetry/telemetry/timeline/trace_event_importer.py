@@ -148,6 +148,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     elif event['name'] == 'process_name':
       process = self._GetOrCreateProcess(event['pid'])
       process.name = event['args']['name']
+    elif event['name'] == 'process_labels':
+      process = self._GetOrCreateProcess(event['pid'])
+      process.labels = event['args']['labels']
     elif event['name'] == 'trace_buffer_overflowed':
       process = self._GetOrCreateProcess(event['pid'])
       process.SetTraceBufferOverflowTimestamp(event['args']['overflowed_at_ts'])
