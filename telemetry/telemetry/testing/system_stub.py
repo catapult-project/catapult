@@ -15,8 +15,7 @@ import sys
 
 class Override(object):
   def __init__(self, base_module, module_list):
-    stubs = {'adb_commands': AdbCommandsModuleStub,
-             'cloud_storage': CloudStorageModuleStub,
+    stubs = {'cloud_storage': CloudStorageModuleStub,
              'open': OpenFunctionStub,
              'os': OsModuleStub,
              'perf_control': PerfControlModuleStub,
@@ -94,57 +93,6 @@ class AdbDevice(object):
 
   def SetProp(self, property_name, property_value):
     self.system_properties[property_name] = property_value
-
-
-class AdbCommandsModuleStub(object):
-
-  class AdbCommandsStub(object):
-
-    def __init__(self, module, device):
-      self._module = module
-      self._device = device
-      self.is_root_enabled = True
-      self._adb_device = module.adb_device
-
-    def IsRootEnabled(self):
-      return self.is_root_enabled
-
-    def RestartAdbdOnDevice(self):
-      pass
-
-    def IsUserBuild(self):
-      return False
-
-    def WaitForDevicePm(self):
-      pass
-
-    def device(self):
-      return self._adb_device
-
-    def device_serial(self):
-      return self._device
-
-  def __init__(self):
-    self.attached_devices = []
-    self.apk_package_name = None
-    self.adb_device = AdbDevice()
-
-    def AdbCommandsStubConstructor(device=None):
-      return AdbCommandsModuleStub.AdbCommandsStub(self, device)
-    self.AdbCommands = AdbCommandsStubConstructor
-
-  @staticmethod
-  def IsAndroidSupported():
-    return True
-
-  def GetPackageName(self, _):
-    return self.apk_package_name
-
-  def GetAttachedDevices(self):
-    return self.attached_devices
-
-  def CleanupLeftoverProcesses(self):
-    pass
 
 
 class CloudStorageModuleStub(object):
