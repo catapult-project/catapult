@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
 from telemetry.timeline import importer
 from telemetry.timeline import trace_data as trace_data_module
 
@@ -47,7 +49,14 @@ class TabIdImporter(importer.TimelineImporter):
         trace_data_module.TAB_ID_PART)
 
     for tab_id in tab_id_events:
-      timeline_markers = self._model.FindTimelineMarkers(tab_id)
+      try:
+        timeline_markers = self._model.FindTimelineMarkers(tab_id)
+      # If timeline_markers with name equals |tab_id| can't be found, it's
+      # non-fatal.
+      except Exception:
+        logging.warning('Cannot find timeline marker for tab with id=%s' %
+                        tab_id)
+        continue
       assert len(timeline_markers) == 1
       assert timeline_markers[0].start_thread == timeline_markers[0].end_thread
       self._model.AddMappingFromTabIdToRendererThread(
