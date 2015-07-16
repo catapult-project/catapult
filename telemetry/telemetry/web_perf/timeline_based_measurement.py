@@ -16,7 +16,7 @@ from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf import smooth_gesture_util
-from telemetry import decorators
+from telemetry.web_perf import story_test
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
 # timeline. But, depending on the amount of instrumentation that is enabled,
@@ -182,7 +182,7 @@ class Options(object):
     self._tracing_options = value
 
 
-class TimelineBasedMeasurement(object):
+class TimelineBasedMeasurement(story_test.StoryTest):
   """Collects multiple metrics based on their interaction records.
 
   A timeline based measurement shifts the burden of what metrics to collect onto
@@ -215,7 +215,20 @@ class TimelineBasedMeasurement(object):
     self._tbm_options = options
     self._results_wrapper_class = results_wrapper_class
 
-  def WillRunStory(self, tracing_controller, synthetic_delay_categories=None):
+  def WillRunStory(self, platform):
+    """Set up test according to the tbm options."""
+    pass
+
+  def Measure(self, platform, results):
+    """Collect all possible metrics and added them to results."""
+    pass
+
+  def DidRunStory(self, platform):
+    """Clean up test according to the tbm options."""
+    pass
+
+  def WillRunStoryForPageTest(self, tracing_controller,
+                              synthetic_delay_categories=None):
     """Configure and start tracing.
 
     Args:
@@ -235,14 +248,7 @@ class TimelineBasedMeasurement(object):
 
     tracing_controller.Start(self._tbm_options.tracing_options, category_filter)
 
-  @decorators.Deprecated(
-    2015, 7, 19, 'Please use WillRunStory instead. The user story concept is '
-    'being renamed to story.')
-  def WillRunUserStory(self, tracing_controller,
-                       synthetic_delay_categories=None):
-    self.WillRunStory(tracing_controller, synthetic_delay_categories)
-
-  def Measure(self, tracing_controller, results):
+  def MeasureForPageTest(self, tracing_controller, results):
     """Collect all possible metrics and added them to results."""
     trace_result = tracing_controller.Stop()
     results.AddValue(trace.TraceValue(results.current_page, trace_result))
@@ -255,12 +261,6 @@ class TimelineBasedMeasurement(object):
           self._results_wrapper_class)
       meta_metrics.AddResults(results)
 
-  def DidRunStory(self, tracing_controller):
+  def DidRunStoryForPageTest(self, tracing_controller):
     if tracing_controller.is_tracing_running:
       tracing_controller.Stop()
-
-  @decorators.Deprecated(
-    2015, 7, 19, 'Please use DidRunStory instead. The user story concept is '
-    'being renamed to story.')
-  def DidRunUserStory(self, tracing_controller):
-    self.DidRunStory(tracing_controller)

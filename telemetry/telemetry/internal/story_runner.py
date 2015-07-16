@@ -18,6 +18,7 @@ from telemetry import story as story_module
 from telemetry.util import wpr_modes
 from telemetry.value import failure
 from telemetry.value import skip
+from telemetry.web_perf import story_test
 
 
 class ArchiveError(Exception):
@@ -64,10 +65,12 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _RunStoryAndProcessErrorIfNeeded(story, results, state):
+def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
   def ProcessError():
     results.AddValue(failure.FailureValue(story, sys.exc_info()))
   try:
+    if isinstance(test, story_test.StoryTest):
+      test.WillRunStory(state.platform)
     state.WillRunStory(story)
     if not state.CanRunStory(story):
       results.AddValue(skip.SkipValue(
@@ -76,6 +79,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state):
           '(SharedState.CanRunStory() returns False).'))
       return
     state.RunStory(results)
+    if isinstance(test, story_test.StoryTest):
+      test.Measure(state.platform, results)
   except (page_test.Failure, exceptions.TimeoutException,
           exceptions.LoginException, exceptions.ProfilingException):
     ProcessError()
@@ -94,12 +99,17 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state):
     has_existing_exception = sys.exc_info() is not None
     try:
       state.DidRunStory(results)
+      # if state.DidRunStory raises exception, things are messed up badly and we
+      # do not need to run test.DidRunStory at that point.
+      if isinstance(test, story_test.StoryTest):
+        test.DidRunStory(state.platform)
     except Exception:
       if not has_existing_exception:
         raise
       # Print current exception and propagate existing exception.
       exception_formatter.PrintFormattedException(
-          msg='Exception from DidRunStory: ')
+          msg='Exception raised when cleaning story run: ')
+
 
 class StoryGroup(object):
   def __init__(self, shared_state_class):
@@ -201,8 +211,7 @@ def Run(test, story_set, finder_options, results, max_failures=None):
             results.WillRunPage(story)
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
-              _RunStoryAndProcessErrorIfNeeded(
-                  story, results, state)
+              _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
             except exceptions.Error:
               # Catch all Telemetry errors to give the story a chance to retry.
               # The retry is enabled by tearing down the state and creating

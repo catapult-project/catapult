@@ -16,14 +16,14 @@ class TimelineBasedPageTest(page_test.PageTest):
 
   def WillNavigateToPage(self, page, tab):
     tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.WillRunStory(
+    self._measurement.WillRunStoryForPageTest(
         tracing_controller, page.GetSyntheticDelayCategories())
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""
     tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.Measure(tracing_controller, results)
+    self._measurement.MeasureForPageTest(tracing_controller, results)
 
   def CleanUpAfterPage(self, page, tab):
     tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.DidRunStory(tracing_controller)
+    self._measurement.DidRunStoryForPageTest(tracing_controller)

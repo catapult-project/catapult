@@ -23,8 +23,13 @@ from telemetry.testing import system_stub
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
+from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
+
+# Import Python mock module (https://pypi.python.org/pypi/mock)
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
+import mock  # pylint: disable=import-error
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -238,6 +243,62 @@ class StoryRunnerTest(unittest.TestCase):
         test, story_set, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
+
+  def testCallOrderBetweenStoryTestAndSharedState(self):
+    """Check that the call order between StoryTest and SharedState is correct.
+    """
+    TEST_WILL_RUN_STORY = 'test.WillRunStory'
+    TEST_MEASURE = 'test.Measure'
+    TEST_DID_RUN_STORY = 'test.DidRunStory'
+    STATE_WILL_RUN_STORY = 'state.WillRunStory'
+    STATE_RUN_STORY = 'state.RunStory'
+    STATE_DID_RUN_STORY = 'state.DidRunStory'
+
+    EXPECTED_CALLS_IN_ORDER = [TEST_WILL_RUN_STORY,
+                               STATE_WILL_RUN_STORY,
+                               STATE_RUN_STORY,
+                               TEST_MEASURE,
+                               STATE_DID_RUN_STORY,
+                               TEST_DID_RUN_STORY]
+
+    class TestStoryTest(story_test.StoryTest):
+      def WillRunStory(self, platform):
+        pass
+
+      def Measure(self, platform, results):
+        pass
+
+      def DidRunStory(self, platform):
+        pass
+
+    class TestSharedStateForStoryTest(TestSharedState):
+      def RunStory(self, results):
+        pass
+
+    @mock.patch.object(TestStoryTest, 'WillRunStory')
+    @mock.patch.object(TestStoryTest, 'Measure')
+    @mock.patch.object(TestStoryTest, 'DidRunStory')
+    @mock.patch.object(TestSharedStateForStoryTest, 'WillRunStory')
+    @mock.patch.object(TestSharedStateForStoryTest, 'RunStory')
+    @mock.patch.object(TestSharedStateForStoryTest, 'DidRunStory')
+    def GetCallsInOrder(state_DidRunStory, state_RunStory, state_WillRunStory,
+                        test_DidRunStory, test_Measure, test_WillRunStory):
+      manager = mock.MagicMock()
+      manager.attach_mock(test_WillRunStory, TEST_WILL_RUN_STORY)
+      manager.attach_mock(test_Measure, TEST_MEASURE)
+      manager.attach_mock(test_DidRunStory, TEST_DID_RUN_STORY)
+      manager.attach_mock(state_WillRunStory, STATE_WILL_RUN_STORY)
+      manager.attach_mock(state_RunStory, STATE_RUN_STORY)
+      manager.attach_mock(state_DidRunStory, STATE_DID_RUN_STORY)
+
+      test = TestStoryTest()
+      story_set = story_module.StorySet()
+      story_set.AddStory(DummyLocalStory(TestSharedStateForStoryTest))
+      story_runner.Run(test, story_set, self.options, self.results)
+      return [call[0] for call in manager.mock_calls]
+
+    calls_in_order = GetCallsInOrder() # pylint: disable=no-value-for-parameter
+    self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
   def testTearDownIsCalledOnceForEachStoryGroupWithPageSetRepeat(self):
     self.options.pageset_repeat = 3
