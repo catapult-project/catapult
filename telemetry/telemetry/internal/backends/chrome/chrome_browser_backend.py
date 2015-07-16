@@ -284,6 +284,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return 'nacl_helper_bootstrap'
     if ':sandboxed_process' in cmd_line:
       return 'renderer'
+    if ':privileged_process' in cmd_line:
+      return 'gpu-process'
     m = re.match(r'.* --type=([^\s]*) .*', cmd_line)
     if not m:
       return 'browser'
