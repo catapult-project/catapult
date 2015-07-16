@@ -17,12 +17,12 @@ from telemetry.internal import forwarders
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
-  from pylib import forwarder  # pylint: disable=import-error
+  from pylib import forwarder
 except ImportError:
   forwarder = None
 
-from pylib.device import device_errors  # pylint: disable=import-error
-from pylib.device import device_utils  # pylint: disable=import-error
+from pylib.device import device_errors
+from pylib.device import device_utils
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):

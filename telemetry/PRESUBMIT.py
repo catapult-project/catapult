@@ -1,8 +1,6 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
-import sys
 
 
 def _CommonChecks(input_api, output_api):
@@ -11,42 +9,45 @@ def _CommonChecks(input_api, output_api):
   # TODO(nduca): This should call update_docs.IsUpdateDocsNeeded().
   # Disabled due to crbug.com/255326.
   if False:
-    update_docs_path = os.path.join(
+    update_docs_path = input_api.os_path.join(
       input_api.PresubmitLocalPath(), 'update_docs')
-    assert os.path.exists(update_docs_path)
+    assert input_api.os_path.exists(update_docs_path)
     results.append(output_api.PresubmitError(
       'Docs are stale. Please run:\n' +
-      '$ %s' % os.path.abspath(update_docs_path)))
+      '$ %s' % input_api.os_path.abspath(update_docs_path)))
 
   pylint_checks = input_api.canned_checks.GetPylint(
-    input_api, output_api, black_list=[], pylintrc='pylintrc')
+    input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
+    pylintrc='pylintrc')
 
   results.extend(input_api.RunTests(pylint_checks))
   return results
 
-def GetPathsToPrepend(input_api):
-  return [input_api.PresubmitLocalPath(),
-          os.path.join(input_api.PresubmitLocalPath(), 'third_party', 'typ')]
 
-def RunWithPrependedPath(prepended_path, fn, *args):
-  old_path = sys.path
+def _GetPathsToPrepend(input_api):
+  telemetry_dir = input_api.PresubmitLocalPath()
+  chromium_src_dir = input_api.os_path.join(telemetry_dir, '..', '..')
+  return [
+      telemetry_dir,
+      input_api.os_path.join(telemetry_dir, 'third_party', 'mock'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'typ'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
 
-  try:
-    sys.path = prepended_path + old_path
-    return fn(*args)
-  finally:
-    sys.path = old_path
+      input_api.os_path.join(chromium_src_dir, 'build', 'android'),
+      input_api.os_path.join(
+          chromium_src_dir, 'third_party', 'py_trace_event', 'src'),
+      input_api.os_path.join(chromium_src_dir, 'third_party', 'trace-viewer'),
+      input_api.os_path.join(chromium_src_dir, 'third_party', 'webpagereplay'),
+  ]
+
 
 def CheckChangeOnUpload(input_api, output_api):
-  def go():
-    results = []
-    results.extend(_CommonChecks(input_api, output_api))
-    return results
-  return RunWithPrependedPath(GetPathsToPrepend(input_api), go)
+  results = []
+  results.extend(_CommonChecks(input_api, output_api))
+  return results
+
 
 def CheckChangeOnCommit(input_api, output_api):
-  def go():
-    results = []
-    results.extend(_CommonChecks(input_api, output_api))
-    return results
-  return RunWithPrependedPath(GetPathsToPrepend(input_api), go)
+  results = []
+  results.extend(_CommonChecks(input_api, output_api))
+  return results

@@ -13,7 +13,7 @@ from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf import timeline_interaction_record
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=import-error
+import mock
 
 
 def MockProcessDumpEvent(dump_id, name, start, memory_usage):

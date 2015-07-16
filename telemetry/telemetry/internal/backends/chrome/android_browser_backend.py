@@ -16,10 +16,10 @@ from telemetry.internal import forwarders
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
-  from pylib import ports # pylint: disable=import-error
+  from pylib import ports
 except ImportError:
   ports = None
-from pylib.device import intent  # pylint: disable=import-error
+from pylib.device import intent
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):

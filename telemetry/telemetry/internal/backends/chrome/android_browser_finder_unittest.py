@@ -10,7 +10,7 @@ from telemetry.internal.browser import browser_options
 from telemetry.testing import system_stub
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=import-error
+import mock
 
 
 class FakeAndroidPlatform(object):

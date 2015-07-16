@@ -14,7 +14,7 @@ from telemetry.internal.backends import android_app_backend
 from telemetry.testing import options_for_unittests
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import intent  # pylint: disable=import-error
+from pylib.device import intent
 
 
 class AndroidAppTest(unittest.TestCase):

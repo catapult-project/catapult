@@ -8,7 +8,7 @@ from telemetry.internal.browser import web_contents
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
-  from pylib import ports  # pylint: disable=import-error
+  from pylib import ports
 except ImportError:
   ports = None
 

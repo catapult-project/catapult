@@ -12,10 +12,10 @@ from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint: disable=import-error
+import mock
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.device import battery_utils  # pylint: disable=import-error
-from pylib.device import device_utils  # pylint: disable=import-error
+from pylib.device import battery_utils
+from pylib.device import device_utils
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):

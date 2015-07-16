@@ -32,23 +32,23 @@ from telemetry.internal.util import external_modules
 psutil = external_modules.ImportOptionalModule('psutil')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(),
                         'third_party', 'webpagereplay')
-import adb_install_cert  # pylint: disable=import-error
-import certutils  # pylint: disable=import-error
-import platformsettings  # pylint: disable=import-error
+import adb_install_cert
+import certutils
+import platformsettings
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import constants  # pylint: disable=import-error
-from pylib import screenshot  # pylint: disable=import-error
-from pylib.device import battery_utils  # pylint: disable=import-error
-from pylib.device import device_errors  # pylint: disable=import-error
-from pylib.device import device_utils  # pylint: disable=import-error
-from pylib.perf import cache_control  # pylint: disable=import-error
-from pylib.perf import perf_control  # pylint: disable=import-error
-from pylib.perf import thermal_throttle  # pylint: disable=import-error
+from pylib import constants
+from pylib import screenshot
+from pylib.device import battery_utils
+from pylib.device import device_errors
+from pylib.device import device_utils
+from pylib.perf import cache_control
+from pylib.perf import perf_control
+from pylib.perf import thermal_throttle
 
 try:
-  from pylib.perf import surface_stats_collector  # pylint: disable=import-error
+  from pylib.perf import surface_stats_collector
 except Exception:
   surface_stats_collector = None
 

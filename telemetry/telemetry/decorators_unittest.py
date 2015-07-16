@@ -8,7 +8,7 @@ from telemetry import decorators
 from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint:disable=import-error
+import mock
 
 
 class FakePlatform(object):

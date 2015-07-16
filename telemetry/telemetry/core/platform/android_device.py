@@ -11,9 +11,9 @@ from telemetry.core.platform.profiler import monsoon
 from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib import constants # pylint: disable=import-error
-from pylib.device import device_errors # pylint: disable=import-error
-from pylib.device import device_utils # pylint: disable=import-error
+from pylib import constants
+from pylib.device import device_errors
+from pylib.device import device_utils
 
 
 class AndroidDevice(device.Device):

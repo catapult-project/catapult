@@ -14,7 +14,7 @@ from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint:disable=import-error
+import mock
 
 
 class FakeInspectorWebsocket(object):

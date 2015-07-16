@@ -15,7 +15,7 @@ from telemetry.timeline import tracing_options
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint:disable=import-error
+import mock
 
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):

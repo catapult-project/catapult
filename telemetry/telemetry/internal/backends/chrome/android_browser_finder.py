@@ -18,7 +18,7 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-from pylib.utils import apk_helper # pylint: disable=import-error
+from pylib.utils import apk_helper
 
 
 CHROME_PACKAGE_NAMES = {

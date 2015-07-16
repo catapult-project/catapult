@@ -10,7 +10,7 @@ from telemetry.core import util
 from telemetry import decorators
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint:disable=import-error
+import mock
 
 
 class LinuxPlatformBackendTest(unittest.TestCase):
