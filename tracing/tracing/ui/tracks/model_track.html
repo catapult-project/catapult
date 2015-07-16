@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/tracks/device_track.html">
 <link rel="import" href="/ui/tracks/global_memory_dump_track.html">
 <link rel="import" href="/ui/tracks/highlighter.html">
+<link rel="import" href="/ui/tracks/interaction_track.html">
 <link rel="import" href="/ui/tracks/kernel_track.html">
 <link rel="import" href="/ui/tracks/process_track.html">
 
@@ -25,39 +26,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-
-  // TODO(nduca): Move this elsewhere and make it non-hacky.
-  function HackyMultiRowTrack(viewport, model) {
-    var mrt = new tr.ui.tracks.MultiRowTrack(viewport);
-    mrt.heading = 'Interactions';
-    mrt.buildSubRows_ = function(slices) {
-      slices.sort(function(x, y) {
-        var r = x.title.localeCompare(y.title);
-        if (r)
-          return r;
-        return x.start - y.start;
-      });
-      return tr.ui.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
-          {}, slices, true);
-    };
-    mrt.addSubTrack_ = function(slices) {
-      var track = new tr.ui.tracks.SliceTrack(this.viewport);
-      track.slices = slices;
-      this.appendChild(track);
-      return track;
-    };
-
-    mrt.setItemsToGroup(model.interaction_records, {
-      guid: tr.b.GUID.allocate(),
-      model: model,
-      getSettingsKey: function() {
-        return undefined;
-      }
-    });
-
-    return mrt;
-  }
-
   var SelectionState = tr.model.SelectionState;
   var EventPresenter = tr.ui.b.EventPresenter;
 
@@ -132,7 +100,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateContentsForLowerMode_: function() {
       if (this.model_.interaction_records.length) {
-        var mrt = new HackyMultiRowTrack(this.viewport_, this.model_);
+        var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
+        mrt.model = this.model_;
         this.appendChild(mrt);
       }
 

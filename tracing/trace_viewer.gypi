@@ -384,6 +384,7 @@
       'tracing/ui/tracks/global_memory_dump_track.html',
       'tracing/ui/tracks/heading_track.html',
       'tracing/ui/tracks/highlighter.html',
+      'tracing/ui/tracks/interaction_track.html',
       'tracing/ui/tracks/kernel_track.html',
       'tracing/ui/tracks/letter_dot_track.html',
       'tracing/ui/tracks/memory_dump_track_util.html',
