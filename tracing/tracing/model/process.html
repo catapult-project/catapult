@@ -72,11 +72,6 @@ tr.exportTo('tr.model', function() {
       return Process.compare(this, that);
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      ProcessBase.prototype.iterateAllChildEventContainers.call(
-          this, callback, opt_this);
-    },
-
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       ProcessBase.prototype.iterateAllEventsInThisContainer.call(
