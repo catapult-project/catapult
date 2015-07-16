@@ -7,7 +7,7 @@
 import logging
 import os
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry import decorators
 
 _DEVICE_PROFILER_DIR = '/data/local/tmp/profilers/'
@@ -20,7 +20,7 @@ def GetDevicePath(profiler_binary):
 @decorators.Cache
 def InstallOnDevice(device, profiler_binary):
   arch_name = device.GetABI()
-  host_path = support_binaries.FindPath(profiler_binary, arch_name, 'android')
+  host_path = binary_manager.FetchPath(profiler_binary, arch_name, 'android')
   if not host_path:
     logging.error('Profiler binary "%s" not found. Could not be installed',
                   host_path)

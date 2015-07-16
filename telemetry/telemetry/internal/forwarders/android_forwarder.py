@@ -9,7 +9,7 @@ import socket
 import struct
 import subprocess
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import platform
 from telemetry.core.platform import android_device
 from telemetry.core import util
@@ -271,7 +271,7 @@ class AndroidRndisConfigurator(object):
       logging.info('HoRNDIS kext loaded successfully.')
       return
     logging.info('Installing HoRNDIS...')
-    pkg_path = support_binaries.FindPath('HoRNDIS-rel5.pkg', arch_name, 'mac')
+    pkg_path = binary_manager.FetchPath('HoRNDIS-rel5.pkg', arch_name, 'mac')
     subprocess.check_call(
         ['/usr/bin/sudo', 'installer', '-pkg', pkg_path, '-target', '/'])
 

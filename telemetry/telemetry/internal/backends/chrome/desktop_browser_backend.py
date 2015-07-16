@@ -15,7 +15,7 @@ import sys
 import tempfile
 import time
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.backends import browser_backend
@@ -111,7 +111,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if os_name != 'win':
       return None
     arch_name = self.browser.platform.GetArchName()
-    command = support_binaries.FindPath('crash_service', arch_name, os_name)
+    command = binary_manager.FetchPath('crash_service', arch_name, os_name)
     if not command:
       logging.warning('crash_service.exe not found for %s %s',
                       arch_name, os_name)
@@ -253,7 +253,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _GetMostRecentCrashpadMinidump(self):
     os_name = self.browser.platform.GetOSName()
     arch_name = self.browser.platform.GetArchName()
-    crashpad_database_util = support_binaries.FindPath(
+    crashpad_database_util = binary_manager.FetchPath(
         'crashpad_database_util', arch_name, os_name)
     if not crashpad_database_util:
       return None
@@ -355,7 +355,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return output[stack_start:stack_end]
 
     arch_name = self.browser.platform.GetArchName()
-    stackwalk = support_binaries.FindPath(
+    stackwalk = binary_manager.FetchPath(
         'minidump_stackwalk', arch_name, os_name)
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found.')

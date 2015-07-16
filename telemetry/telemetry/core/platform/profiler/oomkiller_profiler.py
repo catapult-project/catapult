@@ -4,7 +4,7 @@
 
 import os
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core.platform import profiler
 from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
@@ -33,7 +33,7 @@ class OOMKillerProfiler(profiler.Profiler):
     if not 'mem_consumer_launched' in state:
       state['mem_consumer_launched'] = True
       arch_name = self._browser_backend.device.GetABI()
-      mem_consumer_path = support_binaries.FindPath(
+      mem_consumer_path = binary_manager.FetchPath(
           os.path.join('apks', 'MemConsumer.apk'), arch_name, 'android')
       assert mem_consumer_path, ('Could not find memconsumer app. Please build '
                                  'memconsumer target.')

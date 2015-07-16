@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 from catapult_base import cloud_storage
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core.platform import linux_based_platform_backend
 from telemetry.core import os_version
 from telemetry.core.platform import posix_platform_backend
@@ -122,9 +122,9 @@ class LinuxPlatformBackend(
         ['lsmod'], stdout=subprocess.PIPE).communicate()[0]
 
   def _InstallIpfw(self):
-    ipfw_bin = support_binaries.FindPath(
+    ipfw_bin = binary_manager.FindPath(
         'ipfw', self.GetArchName(), self.GetOSName())
-    ipfw_mod = support_binaries.FindPath(
+    ipfw_mod = binary_manager.FindPath(
         'ipfw_mod.ko', self.GetArchName(), self.GetOSName())
 
     try:
@@ -152,7 +152,7 @@ class LinuxPlatformBackend(
         'your kernel. See: http://info.iet.unipi.it/~luigi/dummynet/'
 
   def _InstallBinary(self, bin_name, fallback_package=None):
-    bin_path = support_binaries.FindPath(
+    bin_path = binary_manager.FetchPath(
         bin_name, self.GetArchName(), self.GetOSName())
     if not bin_path:
       raise Exception('Could not find the binary package %s' % bin_name)

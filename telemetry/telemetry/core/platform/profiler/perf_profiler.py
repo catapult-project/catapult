@@ -12,7 +12,7 @@ import tempfile
 
 from pylib.device import device_errors  # pylint: disable=F0401
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import platform
 from telemetry.core.platform import profiler
 from telemetry.core.platform.profiler import android_profiling_helper
@@ -58,7 +58,7 @@ def _InstallPerfHost():
   host = platform.GetHostPlatform()
   if not host.CanLaunchApplication(perfhost_name):
     host.InstallApplication(perfhost_name)
-  return support_binaries.FindPath(perfhost_name, 'x86_64', 'linux')
+  return binary_manager.FetchPath(perfhost_name, 'x86_64', 'linux')
 
 
 class _SingleProcessPerfProfiler(object):

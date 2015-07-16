@@ -4,14 +4,14 @@
 
 import subprocess
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import platform
 from telemetry.core import os_version
 
 def _PathForExecutable(executable_name):
   """Fetches the executable from cloud storage, and returns its path."""
   arch_name = platform.GetHostPlatform().GetArchName()
-  return support_binaries.FindPath(executable_name, arch_name, 'mac')
+  return binary_manager.FetchPath(executable_name, arch_name, 'mac')
 
 def IsKeychainLocked():
   """

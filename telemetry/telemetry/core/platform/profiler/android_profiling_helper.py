@@ -11,7 +11,7 @@ import re
 import shutil
 import subprocess
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import platform as telemetry_platform
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.core import util
@@ -109,7 +109,7 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
     A set of required library file names.
   """
   with open(os.devnull, 'w') as dev_null:
-    perfhost_path = support_binaries.FindPath(
+    perfhost_path = binary_manager.FetchPath(
         GetPerfhostName(), 'x86_64', 'linux')
     perf = subprocess.Popen([perfhost_path, 'script', '-i', profile_file],
                              stdout=dev_null, stderr=subprocess.PIPE)

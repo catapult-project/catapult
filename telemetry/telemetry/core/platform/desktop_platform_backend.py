@@ -5,7 +5,7 @@
 import os
 import subprocess
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core.platform import platform_backend
 
 
@@ -17,9 +17,8 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
   def FlushSystemCacheForDirectory(self, directory):
     assert directory and os.path.exists(directory), \
         'Target directory %s must exist' % directory
-    flush_command = support_binaries.FindPath('clear_system_cache',
-                                              self.GetArchName(),
-                                              self.GetOSName())
+    flush_command = binary_manager.FetchPath(
+        'clear_system_cache', self.GetArchName(), self.GetOSName())
     assert flush_command, 'You must build clear_system_cache first'
 
     subprocess.check_call([flush_command, '--recurse', directory])

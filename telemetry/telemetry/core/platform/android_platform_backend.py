@@ -10,7 +10,7 @@ import stat
 import subprocess
 import tempfile
 
-from catapult_base import support_binaries
+from catapult_base import binary_manager
 from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core.platform import android_device
@@ -79,7 +79,8 @@ def _SetupPrebuiltTools(device):
     'md5sum_bin_host',
   ]
 
-  if platform.GetHostPlatform().GetOSName() == 'linux':
+  platform_name = platform.GetHostPlatform().GetOSName()
+  if platform_name == 'linux':
     host_tools.append('host_forwarder')
 
   arch_name = device.product_cpu_abi
@@ -87,12 +88,14 @@ def _SetupPrebuiltTools(device):
                          or arch_name.startswith('arm64'))
   if not has_device_prebuilt:
     logging.warning('Unknown architecture type: %s' % arch_name)
-    return all([support_binaries.FindLocallyBuiltPath(t) for t in device_tools])
+    return all([binary_manager.LocalPath(t, platform_name, arch_name)
+        for t in device_tools])
 
   build_type = None
   for t in device_tools + host_tools:
     executable = os.path.basename(t)
-    locally_built_path = support_binaries.FindLocallyBuiltPath(t)
+    locally_built_path = binary_manager.LocalPath(
+        t, platform_name, arch_name)
     if not build_type:
       build_type = _GetBuildTypeOfPath(locally_built_path) or 'Release'
       constants.SetBuildType(build_type)
@@ -105,7 +108,7 @@ def _SetupPrebuiltTools(device):
                        platform.GetHostPlatform().GetOSName())
       bin_arch_name = (arch_name if t in device_tools else
                        platform.GetHostPlatform().GetArchName())
-      prebuilt_path = support_binaries.FindPath(
+      prebuilt_path = binary_manager.FetchPath(
           executable, bin_arch_name, platform_name)
       if not prebuilt_path or not os.path.exists(prebuilt_path):
         raise NotImplementedError("""
