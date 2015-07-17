@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/model/sample.html">
 <link rel="import" href="/model/thread_slice.html">
 <link rel="import" href="/ui/analysis/related_events.html">
 
@@ -25,6 +26,31 @@ tr.b.unittest.testSuite(function() {
       m.t2 = m.p1.getOrCreateThread(2);
       m.t3 = m.p1.getOrCreateThread(3);
       m.t4 = m.p1.getOrCreateThread(4);
+
+      // Setup samples and slices in this way:
+      //     0    5    10   15   20
+      // _____________________________
+      // t2              *
+      //     [ a  ][ ]aa
+      // -----------------------------
+      // t3         *  * *  *    *
+      //               *    *
+      //               [ b  ]
+      //                [bb]
+      //                 []bbb
+      // -----------------------------
+      // t4                      |c
+      // -----------------------------
+      m.samples.push(
+        new tr.model.Sample(null, m.t3, 'b10_1', 10),
+        new tr.model.Sample(null, m.t3, 'b7', 7),
+        new tr.model.Sample(null, m.t3, 'b12', 12),
+        new tr.model.Sample(null, m.t3, 'b20', 20),
+        new tr.model.Sample(null, m.t3, 'b10_2', 10),
+        new tr.model.Sample(null, m.t3, 'b15_1', 15),
+        new tr.model.Sample(null, m.t3, 'b15_2', 15),
+        new tr.model.Sample(null, m.t2, 'a12', 12)
+      );
 
       m.sA = m.t2.sliceGroup.pushSlice(
           newSliceEx({title: 'a', start: 0, end: 5,
@@ -49,6 +75,7 @@ tr.b.unittest.testSuite(function() {
       m.t3.createSubSlices();
       m.t4.createSubSlices();
 
+      // Add flow events.
       m.f0 = newFlowEventEx({
         'title': 'a_aa', start: 5, end: 6,
         startSlice: m.sA,
@@ -150,6 +177,28 @@ tr.b.unittest.testSuite(function() {
     });
     assert.sameMembers(allTitles,
         ['a', 'a_aa', 'aa', 'a_b', 'b', 'bb', 'bbb', 'b_bbb', 'bbb_c', 'c']);
+  });
+
+  test('validateOverlappingSamples', function() {
+    var m = createModel();
+
+    var viewEl = document.createElement('tr-ui-a-related-events');
+    viewEl.addRelatedEvents(new tr.model.EventSet([m.sB]));
+    this.addHTMLOutput(viewEl);
+
+    var overlappingSamples;
+    viewEl.$.table.tableRows.forEach(function(row) {
+      if (row.type === 'Overlapping samples') {
+        assert.isUndefined(overlappingSamples);
+        overlappingSamples = row.selection;
+      }
+    });
+
+    var samplesTitles = overlappingSamples.map(function(e) {
+      return e.title;
+    });
+    assert.sameMembers(samplesTitles,
+        ['b10_1', 'b10_2', 'b12', 'b15_1', 'b15_2']);
   });
 
 });
