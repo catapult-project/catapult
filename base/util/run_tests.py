@@ -14,6 +14,8 @@ def main():
   test_path = os.path.abspath(os.path.normpath(os.path.join(
       os.path.dirname(__file__), os.path.pardir, os.path.pardir,
       'temporary', 'tracing', 'build', 'run_dev_server_tests')))
+  print "TEST PATH:"
+  print test_path
   test_proc = subprocess.Popen(
       test_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   test_out, test_err = test_proc.communicate()
