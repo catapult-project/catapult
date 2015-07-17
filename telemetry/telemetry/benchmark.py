@@ -194,12 +194,15 @@ class Benchmark(command_line.Command):
         exception_formatter.PrintFormattedException()
         return_code = 255
 
-      bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
-      if finder_options.upload_results:
-        results.UploadTraceFilesToCloud(bucket)
-        results.UploadProfilingFilesToCloud(bucket)
-
-      results.PrintSummary()
+      try:
+        bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
+        if finder_options.upload_results:
+          results.UploadTraceFilesToCloud(bucket)
+          results.UploadProfilingFilesToCloud(bucket)
+      # Uploading trace/profiles to cloud can be flaky. Make sure that results
+      # are always output.
+      finally:
+        results.PrintSummary()
     return return_code
 
   def CreateTimelineBasedMeasurementOptions(self):
