@@ -89,7 +89,7 @@ def DownloadChromeStable():
   return tmpdir, version
 
 
-def main():
+def RunTests():
   try:
     platform_data = PLATFORM_MAPPING[sys.platform]
     if platform_data.get('use_xfvb'):
@@ -140,6 +140,9 @@ def main():
 
   sys.exit(server_process.returncode)
 
+
+def main():
+  RunTests()
 
 
 if __name__ == "__main__":

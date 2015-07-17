@@ -5,19 +5,32 @@
 
 import glob
 import os
+import subprocess
 import sys
 import unittest
 
 
 def main():
-  sys.path.append(os.path.dirname(__file__))
-  suite = unittest.TestLoader().discover(
-      os.path.dirname(__file__), pattern = '*_unittest.py')
-  result = unittest.TextTestRunner(verbosity=2).run(suite)
-  if result.wasSuccessful():
-    sys.exit(0)
-  else:
-    sys.exit(1)
+  test_path = os.path.abspath(os.path.normpath(os.path.join(
+      os.path.dirname(__file__), os.path.pardir, os.path.pardir,
+      'temporary', 'tracing', 'build', 'run_dev_server_tests')))
+  test_proc = subprocess.Popen(
+      test_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  test_out, test_err = test_proc.communicate()
+  print "OUTPUT"
+  print test_out
+  print "ERROR"
+  print test_err
+  sys.exit(test_proc.returncode)
+
+  #sys.path.append(os.path.dirname(__file__))
+  #suite = unittest.TestLoader().discover(
+  #    os.path.dirname(__file__), pattern = '*_unittest.py')
+  #result = unittest.TextTestRunner(verbosity=2).run(suite)
+  #if result.wasSuccessful():
+  #  sys.exit(0)
+  #else:
+  #  sys.exit(1)
 
 
 if __name__ == '__main__':
