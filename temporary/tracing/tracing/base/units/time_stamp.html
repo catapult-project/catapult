@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b.units', function() {
+  /**
+   * Float wrapper, representing a time stamp, capable of pretty-printing.
+   */
+  function TimeStamp(timestamp) {
+    this.timestamp = timestamp;
+  };
+
+  TimeStamp.prototype = {
+    toString: function() {
+      return TimeStamp.format(this.timestamp);
+    }
+  };
+
+  TimeStamp.format = function(timestamp) {
+    return tr.b.units.Time.currentDisplayUnit.format(timestamp);
+  };
+
+  return {
+    TimeStamp: TimeStamp
+  };
+});
+</script>

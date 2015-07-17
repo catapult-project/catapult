@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b.units', function() {
+  var UNIT_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
+
+  /**
+   * Float wrapper, representing a size in bytes, capable of pretty-printing.
+   */
+  function SizeInBytes(numBytes) {
+    this.numBytes = numBytes;
+  };
+
+  SizeInBytes.prototype = {
+    toString: function() {
+      return SizeInBytes.format(this.numBytes);
+    }
+  };
+
+  SizeInBytes.format = function(numBytes) {
+    var signPrefix = '';
+    if (numBytes < 0) {
+      signPrefix = '-';
+      numBytes = -numBytes;
+    }
+
+    var i = 0;
+    while (numBytes >= 1024 && i < UNIT_PREFIXES.length - 1) {
+      numBytes /= 1024;
+      i++;
+    }
+
+    return signPrefix + numBytes.toFixed(1) + ' ' + UNIT_PREFIXES[i] + 'B';
+  };
+
+  return {
+    SizeInBytes: SizeInBytes
+  };
+});
+</script>

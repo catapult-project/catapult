@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/linux_perf/parser.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Parses filesystem and block device events in the Linux event
+ * trace format.
+ */
+tr.exportTo('tr.e.importer.linux_perf', function() {
+
+  var Parser = tr.e.importer.linux_perf.Parser;
+
+  /**
+   * Parses linux filesystem and block device trace events.
+   * @constructor
+   */
+  function DiskParser(importer) {
+    Parser.call(this, importer);
+
+    importer.registerEventHandler('f2fs_write_begin',
+        DiskParser.prototype.f2fsWriteBeginEvent.bind(this));
+    importer.registerEventHandler('f2fs_write_end',
+        DiskParser.prototype.f2fsWriteEndEvent.bind(this));
+    importer.registerEventHandler('f2fs_sync_file_enter',
+        DiskParser.prototype.f2fsSyncFileEnterEvent.bind(this));
+    importer.registerEventHandler('f2fs_sync_file_exit',
+        DiskParser.prototype.f2fsSyncFileExitEvent.bind(this));
+    importer.registerEventHandler('ext4_sync_file_enter',
+        DiskParser.prototype.ext4SyncFileEnterEvent.bind(this));
+    importer.registerEventHandler('ext4_sync_file_exit',
+        DiskParser.prototype.ext4SyncFileExitEvent.bind(this));
+    importer.registerEventHandler('ext4_da_write_begin',
+        DiskParser.prototype.ext4WriteBeginEvent.bind(this));
+    importer.registerEventHandler('ext4_da_write_end',
+        DiskParser.prototype.ext4WriteEndEvent.bind(this));
+    importer.registerEventHandler('block_rq_issue',
+        DiskParser.prototype.blockRqIssueEvent.bind(this));
+    importer.registerEventHandler('block_rq_complete',
+        DiskParser.prototype.blockRqCompleteEvent.bind(this));
+  }
+
+  DiskParser.prototype = {
+    __proto__: Parser.prototype,
+
+    openAsyncSlice: function(ts, category, threadName, pid, key, name) {
+      var kthread = this.importer.getOrCreateKernelThread(
+          category + ':' + threadName, pid);
+      var asyncSliceConstructor =
+         tr.model.AsyncSlice.getConstructor(
+            category, name);
+      var slice = new asyncSliceConstructor(
+          category, name,
+          tr.ui.b.getColorIdForGeneralPurposeString(name),
+          ts);
+      slice.startThread = kthread.thread;
+
+      if (!kthread.openAsyncSlices) {
+        kthread.openAsyncSlices = { };
+      }
+      kthread.openAsyncSlices[key] = slice;
+    },
+
+    closeAsyncSlice: function(ts, category, threadName, pid, key, args) {
+      var kthread = this.importer.getOrCreateKernelThread(
+          category + ':' + threadName, pid);
+      if (kthread.openAsyncSlices) {
+        var slice = kthread.openAsyncSlices[key];
+        if (slice) {
+          slice.duration = ts - slice.start;
+          slice.args = args;
+          slice.endThread = kthread.thread;
+          slice.subSlices = [
+            new tr.model.AsyncSlice(category, slice.title,
+                slice.colorId, slice.start, slice.args, slice.duration)
+          ];
+          kthread.thread.asyncSliceGroup.push(slice);
+          delete kthread.openAsyncSlices[key];
+        }
+      }
+    },
+
+    /**
+     * Parses events and sets up state in the importer.
+     */
+    f2fsWriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
+          exec(eventBase.details);
+      if (!event)
+        return false;
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var pos = parseInt(event[3]);
+      var len = parseInt(event[4]);
+      var key = device + '-' + inode + '-' + pos + '-' + len;
+      this.openAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
+          key, 'f2fs_write');
+      return true;
+    },
+
+    f2fsWriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
+          exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var pos = parseInt(event[3]);
+      var len = parseInt(event[4]);
+      var error = parseInt(event[5]) !== len;
+      var key = device + '-' + inode + '-' + pos + '-' + len;
+      this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
+          key, {
+            device: device,
+            inode: inode,
+            error: error
+          });
+      return true;
+    },
+
+    ext4WriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) flags (\d+)/.
+          exec(eventBase.details);
+      if (!event)
+        return false;
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var pos = parseInt(event[3]);
+      var len = parseInt(event[4]);
+      var key = device + '-' + inode + '-' + pos + '-' + len;
+      this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
+          key, 'ext4_write');
+      return true;
+    },
+
+    ext4WriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) copied (\d+)/.
+          exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var pos = parseInt(event[3]);
+      var len = parseInt(event[4]);
+      var error = parseInt(event[5]) !== len;
+      var key = device + '-' + inode + '-' + pos + '-' + len;
+      this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
+          key, {
+            device: device,
+            inode: inode,
+            error: error
+          });
+      return true;
+    },
+
+    f2fsSyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = new RegExp(
+          'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' + // @suppress longLineCheck
+          'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)'). // @suppress longLineCheck
+          exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var key = device + '-' + inode;
+      this.openAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
+          key, 'fsync');
+      return true;
+    },
+
+    f2fsSyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
+          'datasync = (\\d+), ret = (\\d+)').
+          exec(eventBase.details.replace('not needed', 'not_needed'));
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var error = parseInt(event[5]);
+      var key = device + '-' + inode;
+      this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
+          key, {
+            device: device,
+            inode: inode,
+            error: error
+          });
+      return true;
+    },
+
+    ext4SyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev (\d+,\d+) ino (\d+) parent (\d+) datasync (\d+)/.
+          exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var datasync = event[4] == 1;
+      var key = device + '-' + inode;
+      var action = datasync ? 'fdatasync' : 'fsync';
+      this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
+          key, action);
+      return true;
+    },
+
+    ext4SyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /dev (\d+,\d+) ino (\d+) ret (\d+)/.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var inode = parseInt(event[2]);
+      var error = parseInt(event[3]);
+      var key = device + '-' + inode;
+      this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
+          key, {
+            device: device,
+            inode: inode,
+            error: error
+          });
+      return true;
+    },
+
+    blockRqIssueEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
+          '\\d+ \\(.*\\) (\\d+) \\+ (\\d+) \\[.*\\]').exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var action;
+      switch (event[3]) {
+        case 'D':
+          action = 'discard';
+          break;
+        case 'W':
+          action = 'write';
+          break;
+        case 'R':
+          action = 'read';
+          break;
+        case 'N':
+          action = 'none';
+          break;
+        default:
+          action = 'unknown';
+          break;
+      }
+
+      if (event[2]) {
+        action += ' flush';
+      }
+      if (event[4] == 'F') {
+        action += ' fua';
+      }
+      if (event[5] == 'A') {
+        action += ' ahead';
+      }
+      if (event[6] == 'S') {
+        action += ' sync';
+      }
+      if (event[7] == 'M') {
+        action += ' meta';
+      }
+      var device = event[1];
+      var sector = parseInt(event[8]);
+      var numSectors = parseInt(event[9]);
+      var key = device + '-' + sector + '-' + numSectors;
+      this.openAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
+          key, action);
+      return true;
+    },
+
+    blockRqCompleteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
+          '\\(.*\\) (\\d+) \\+ (\\d+) \\[(.*)\\]').exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var device = event[1];
+      var sector = parseInt(event[8]);
+      var numSectors = parseInt(event[9]);
+      var error = parseInt(event[10]);
+      var key = device + '-' + sector + '-' + numSectors;
+      this.closeAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
+          key, {
+            device: device,
+            sector: sector,
+            numSectors: numSectors,
+            error: error
+          });
+      return true;
+    }
+  };
+
+  Parser.register(DiskParser);
+
+  return {
+    DiskParser: DiskParser
+  };
+});
+</script>

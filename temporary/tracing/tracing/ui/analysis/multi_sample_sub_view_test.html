@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/multi_sample_sub_view.html">
+<link rel='import' href='/ui/extras/analysis/sampling_summary.html'>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var EventSet = tr.model.EventSet;
+  var newSampleNamed = tr.c.test_utils.newSampleNamed;
+
+  test('instantiate_withMultipleSamples', function() {
+    var model = new Model();
+    var t53;
+    model.importTraces([], false, false, function() {
+      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.02));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.04));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.06));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0.08));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.10));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['CCC'], 0.12));
+      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.14));
+    });
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new EventSet();
+    for (var i = 0; i < t53.samples.length; i++)
+      selection.push(t53.samples[i]);
+
+    var view = document.createElement('tr-ui-a-multi-sample-sub-view');
+    view.style.height = '500px';
+    this.addHTMLOutput(view);
+    view.selection = selection;
+  });
+});
+</script>

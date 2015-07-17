@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/ui/extras/chrome/cc/layer_view.css">
+
+<link rel="import" href="/base/raf.html">
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/extras/chrome/cc/constants.html">
+<link rel="import" href="/extras/chrome/cc/picture.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/extras/chrome/cc/layer_tree_quad_stack_view.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview LayerView coordinates graphical and analysis views of layers.
+ */
+
+tr.exportTo('tr.ui.e.chrome.cc', function() {
+  var constants = tr.e.cc.constants;
+
+  /**
+   * @constructor
+   */
+  var LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
+
+  LayerView.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.layerTreeQuadStackView_ =
+          new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
+      this.dragBar_ = new tr.ui.b.DragHandle();
+      this.analysisEl_ =
+          document.createElement('tr-ui-e-chrome-cc-layer-view-analysis');
+      this.analysisEl_.addEventListener('requestSelectionChange',
+          this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
+
+      this.dragBar_.target = this.analysisEl_;
+
+      this.appendChild(this.layerTreeQuadStackView_);
+      this.appendChild(this.dragBar_);
+      this.appendChild(this.analysisEl_);
+
+      this.layerTreeQuadStackView_.addEventListener('selection-change',
+          function() {
+            this.layerTreeQuadStackViewSelectionChanged_();
+          }.bind(this));
+      this.layerTreeQuadStackViewSelectionChanged_();
+    },
+
+    get layerTreeImpl() {
+      return this.layerTreeQuadStackView_.layerTreeImpl;
+    },
+
+    set layerTreeImpl(newValue) {
+      return this.layerTreeQuadStackView_.layerTreeImpl = newValue;
+    },
+
+    set isRenderPassQuads(newValue) {
+      return this.layerTreeQuadStackView_.isRenderPassQuads = newValue;
+    },
+
+    get selection() {
+      return this.layerTreeQuadStackView_.selection;
+    },
+
+    set selection(newValue) {
+      this.layerTreeQuadStackView_.selection = newValue;
+    },
+
+    regenerateContent: function() {
+      this.layerTreeQuadStackView_.regenerateContent();
+    },
+
+    layerTreeQuadStackViewSelectionChanged_: function() {
+      var selection = this.layerTreeQuadStackView_.selection;
+      if (selection) {
+        this.dragBar_.style.display = '';
+        this.analysisEl_.style.display = '';
+        this.analysisEl_.textContent = '';
+
+        var layer = selection.layer;
+        if (layer && layer.args && layer.args.pictures) {
+          this.analysisEl_.appendChild(
+              this.createPictureBtn_(layer.args.pictures));
+        }
+
+        var analysis = selection.createAnalysis();
+        this.analysisEl_.appendChild(analysis);
+      } else {
+        this.dragBar_.style.display = 'none';
+        this.analysisEl_.style.display = 'none';
+        var analysis = this.analysisEl_.firstChild;
+        if (analysis)
+          this.analysisEl_.removeChild(analysis);
+        this.layerTreeQuadStackView_.style.height =
+            window.getComputedStyle(this).height;
+      }
+      tr.b.dispatchSimpleEvent(this, 'selection-change');
+    },
+
+    createPictureBtn_: function(pictures) {
+      if (!(pictures instanceof Array))
+        pictures = [pictures];
+
+      var link = document.createElement('tr-ui-a-analysis-link');
+      link.selection = function() {
+        var layeredPicture = new tr.e.cc.LayeredPicture(pictures);
+        var snapshot = new tr.e.cc.PictureSnapshot(layeredPicture);
+        snapshot.picture = layeredPicture;
+
+        var selection = new tr.model.EventSet();
+        selection.push(snapshot);
+        return selection;
+      };
+      link.textContent = 'View in Picture Debugger';
+      return link;
+    },
+
+    onRequestSelectionChangeFromAnalysisEl_: function(e) {
+      if (!(e.selection instanceof tr.ui.e.chrome.cc.Selection))
+        return;
+
+      e.stopPropagation();
+      this.selection = e.selection;
+    },
+
+    get extraHighlightsByLayerId() {
+      return this.layerTreeQuadStackView_.extraHighlightsByLayerId;
+    },
+
+    set extraHighlightsByLayerId(extraHighlightsByLayerId) {
+      this.layerTreeQuadStackView_.extraHighlightsByLayerId =
+          extraHighlightsByLayerId;
+    }
+  };
+
+  return {
+    LayerView: LayerView
+  };
+});
+</script>

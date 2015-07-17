@@ -1,0 +1,17 @@
+Name: closure-linter
+URL: http://code.google.com/p/closure-linter/
+Version: 2.3.4
+Date: 28 Feb 2012
+Revision: 16
+License: Apache 2.0
+Security Critical: no
+
+Description:
+  The Closure Linter enforces the guidelines set by the Google JavaScript Style
+  Guide. The linter handles style issues so that you can focus on the code.
+
+Local modifications:
+  Removed closure_linter/testdata/
+  Added Apache License notice to closure_linter/common/tokens_test.py
+
+  Lines ending with @supress longLineCheck do not warn.

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/color_legend.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    // No label set.
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    this.addHTMLOutput(colorLegend);
+
+    // Undefined label.
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = undefined;
+    this.addHTMLOutput(colorLegend);
+
+    // Empty label.
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = '';
+    this.addHTMLOutput(colorLegend);
+
+    // Non-empty label.
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Frequency';
+    this.addHTMLOutput(colorLegend);
+
+    // Long label.
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Total memory usage';
+    this.addHTMLOutput(colorLegend);
+  });
+});
+</script>

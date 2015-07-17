@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="stylesheet" href="/ui/tracks/spacing_track.css">
+
+<link rel="import" href="/ui/tracks/heading_track.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  /**
+   * @constructor
+   */
+  var SpacingTrack = tr.ui.b.define('spacing-track',
+                                    tr.ui.tracks.HeadingTrack);
+
+  SpacingTrack.prototype = {
+    __proto__: tr.ui.tracks.HeadingTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('spacing-track');
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+    },
+
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    }
+  };
+
+  return {
+    SpacingTrack: SpacingTrack
+  };
+});
+</script>
+

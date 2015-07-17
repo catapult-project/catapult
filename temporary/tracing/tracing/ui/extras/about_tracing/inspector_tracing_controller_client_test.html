@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import"
+      href="/ui/extras/about_tracing/inspector_tracing_controller_client.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  test('beginRecording_sendCategoriesAndOptions', function() {
+    var controller =
+        new tr.ui.e.about_tracing.InspectorTracingControllerClient();
+    controller.conn_ = new (function() {
+      this.req = function(method, params) {
+        var msg = JSON.stringify({
+          id: 1,
+          method: method,
+          params: params
+        });
+        return new (function() {
+          this.msg = msg;
+          this.then = function(m1, m2) {
+            return this;
+          };
+        })();
+      };
+      this.setNotificationListener = function(method, listener) {
+      };
+    })();
+
+    var recordingOptions = {
+      categoryFilter: JSON.stringify(['a', 'b', 'c']),
+      useSystemTracing: false,
+      tracingRecordMode: 'test-mode',
+      useSampling: true
+    };
+
+    var result = JSON.parse(controller.beginRecording(recordingOptions).msg);
+    assert.equal(result.params.categories, JSON.stringify(['a', 'b', 'c']));
+    var options = result.params.options.split(',');
+    var tracingRecordTestMode = false;
+    var sampleFlag = false;
+    for (var s in options) {
+      if (options[s] === 'test-mode') tracingRecordTestMode = true;
+      else if (options[s] === 'enable-sampling') sampleFlag = true;
+      else assert.equal(options[s], '');
+    }
+    assert.isTrue(tracingRecordTestMode);
+    assert.isTrue(sampleFlag);
+  });
+
+  test('oldFormat', function() {
+    var chunks = [];
+    tr.ui.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [ {"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}} ] } }"'); // @suppress longLineCheck
+    assert.equal(chunks.length, 1);
+    JSON.parse('[' + chunks.join('') + ']');
+  });
+
+  test('newFormat', function() {
+    var chunks = [];
+    tr.ui.e.about_tracing.appendTraceChunksTo(chunks, '"{ "method": "Tracing.dataCollected", "params": { "value": [{"cat":"__metadata","pid":28871,"tid":0,"ts":0,"ph":"M","name":"num_cpus","args":{"number":4}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_sort_index","args":{"sort_index":-5}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_name","args":{"name":"Renderer"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"process_labels","args":{"labels":"JS Bin"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_sort_index","args":{"sort_index":-1}},{"cat":"__metadata","pid":28871,"tid":28917,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Compositor"}},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"thread_name","args":{"name":"Chrome_ChildIOThread"}},{"cat":"__metadata","pid":28871,"tid":28919,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CompositorRasterWorker1/28919"}},{"cat":"__metadata","pid":28871,"tid":28908,"ts":0,"ph":"M","name":"thread_name","args":{"name":"CrRendererMain"}},{"cat":"ipc,toplevel","pid":28871,"tid":28911,"ts":22000084746,"ph":"X","name":"ChannelReader::DispatchInputData","args":{"class":64,"line":25},"tdur":0,"tts":1853064},{"cat":"__metadata","pid":28871,"tid":28911,"ts":0,"ph":"M","name":"overhead","args":{"average_overhead":0.015}}] } }"'); // @suppress longLineCheck
+    assert.equal(chunks.length, 1);
+    JSON.parse('[' + chunks.join('') + ']');
+  });
+
+  test('stringAndObjectPayload', function() {
+    var connection = new tr.ui.e.about_tracing.InspectorConnection();
+    connection.setNotificationListener('Tracing.dataCollected',
+        function(message) {
+          assert.typeOf(message, 'string');
+          JSON.parse(message);
+        }
+    );
+    connection.dispatchMessage_('{ "method": "Tracing.dataCollected", "params": { "value": [] } }'); // @suppress longLineCheck
+    connection.dispatchMessage_({'method': 'Tracing.dataCollected', 'params': {'value': [] } }); // @suppress longLineCheck
+  });
+});
+</script>

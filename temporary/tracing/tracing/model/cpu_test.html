@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Cpu = tr.model.Cpu;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
+
+  test('cpuBounds_Empty', function() {
+    var cpu = new Cpu({}, 1);
+    cpu.updateBounds();
+    assert.isUndefined(cpu.bounds.min);
+    assert.isUndefined(cpu.bounds.max);
+  });
+
+  test('cpuBounds_OneSlice', function() {
+    var cpu = new Cpu({}, 1);
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
+    cpu.updateBounds();
+    assert.equal(cpu.bounds.min, 1);
+    assert.equal(cpu.bounds.max, 4);
+  });
+
+  test('getOrCreateCounter', function() {
+    var cpu = new Cpu({}, 1);
+    var ctrBar = cpu.getOrCreateCounter('foo', 'bar');
+    var ctrBar2 = cpu.getOrCreateCounter('foo', 'bar');
+    assert.equal(ctrBar, ctrBar2);
+  });
+
+  test('shiftTimestampsForward', function() {
+    var cpu = new Cpu({}, 1);
+    var ctr = cpu.getOrCreateCounter('foo', 'bar');
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
+    var shiftCount = 0;
+    ctr.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+    cpu.slices.push(tr.c.test_utils.newSlice(1, 3));
+    cpu.shiftTimestampsForward(0.32);
+    assert.equal(1, shiftCount);
+    assert.equal(cpu.slices[0].start, 1.32);
+  });
+
+
+  function newCpuSliceNamed(cpu, name, start, duration, opt_thread) {
+    var s = new tr.model.CpuSlice(
+        'cat', name, 0, start, {}, duration);
+    s.cpu = cpu;
+    if (opt_thread)
+      s.threadThatWasRunning = opt_thread;
+    return s;
+  }
+
+  test('getTimesliceForCpuSlice', function() {
+    var m = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var cpu = m.kernel.getOrCreateCpu(1);
+    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
+    cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
+                  newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
+    assert.equal(cpu.slices[0].getAssociatedTimeslice(), t2.timeSlices[0]);
+    assert.equal(cpu.slices[1].getAssociatedTimeslice(), t2.timeSlices[2]);
+
+    assert.equal(t2.timeSlices[0].getAssociatedCpuSlice(), cpu.slices[0]);
+    assert.isUndefined(t2.timeSlices[1].getAssociatedCpuSlice());
+    assert.equal(t2.timeSlices[2].getAssociatedCpuSlice(), cpu.slices[1]);
+
+    assert.equal(cpu.indexOf(cpu.slices[0]), 0);
+    assert.equal(cpu.indexOf(cpu.slices[1]), 1);
+
+    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[0]), 0);
+    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[1]), 1);
+    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[2]), 2);
+  });
+
+  test('putToSleepFor', function() {
+    var m = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var cpu = m.kernel.getOrCreateCpu(1);
+
+    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
+    t3.timeSlices = [newThreadSlice(t3, SCHEDULING_STATE.RUNNING, 10, 5, cpu)];
+    cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
+                   newCpuSliceNamed(cpu, 'x', 10, 5, t3),
+                   newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
+
+    // At timeslice 0, the thread is running.
+    assert.isUndefined(t2.timeSlices[0].getCpuSliceThatTookCpu());
+
+    // t2 lost the cpu to t3 at t=10
+    assert.equal(
+        cpu.slices[1],
+        t2.timeSlices[1].getCpuSliceThatTookCpu());
+  });
+
+  test('putToSleepForNothing', function() {
+    var m = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var cpu = m.kernel.getOrCreateCpu(1);
+
+    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
+    t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
+                     newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
+                     newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
+    t3.timeSlices = [newThreadSlice(t3, SCHEDULING_STATE.RUNNING, 15, 5, cpu)];
+    cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
+                   newCpuSliceNamed(cpu, 'x', 15, 5, t3),
+                   newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
+    assert.isUndefined(t2.timeSlices[1].getCpuSliceThatTookCpu());
+  });
+
+  test('switchActiveThread', function() {
+    var m = new tr.Model();
+    var cpu = m.kernel.getOrCreateCpu(1);
+
+    cpu.switchActiveThread(5, {}, 0, 'idle thread', {});
+    cpu.switchActiveThread(10, {}, 1, 'thread one', {a: 1});
+    cpu.switchActiveThread(15, {b: 2}, 2, 'thread two', {c: 3});
+    cpu.switchActiveThread(30, {c: 4, d: 5}, 3, 'thread three', {e: 6});
+    cpu.closeActiveThread(40, {f: 7});
+    cpu.switchActiveThread(50, {}, 4, 'thread four', {g: 8});
+    cpu.switchActiveThread(60, {}, 1, 'thread one', {});
+    cpu.closeActiveThread(70, {});
+
+    assert.equal(cpu.slices.length, 5);
+
+    assert.equal(cpu.slices[0].title, 'thread one');
+    assert.equal(cpu.slices[0].start, 10);
+    assert.equal(cpu.slices[0].duration, 5);
+    assert.equal(Object.keys(cpu.slices[0].args).length, 2);
+    assert.equal(cpu.slices[0].args.a, 1);
+    assert.equal(cpu.slices[0].args.b, 2);
+
+    assert.equal(cpu.slices[1].title, 'thread two');
+    assert.equal(cpu.slices[1].start, 15);
+    assert.equal(cpu.slices[1].duration, 15);
+    assert.equal(Object.keys(cpu.slices[1].args).length, 2);
+    assert.equal(cpu.slices[1].args.c, 4);
+    assert.equal(cpu.slices[1].args.d, 5);
+
+    assert.equal(cpu.slices[2].title, 'thread three');
+    assert.equal(cpu.slices[2].start, 30);
+    assert.equal(cpu.slices[2].duration, 10);
+    assert.equal(Object.keys(cpu.slices[2].args).length, 2);
+    assert.equal(cpu.slices[2].args.e, 6);
+    assert.equal(cpu.slices[2].args.f, 7);
+
+    assert.equal(cpu.slices[3].title, 'thread four');
+    assert.equal(cpu.slices[3].start, 50);
+    assert.equal(cpu.slices[3].duration, 10);
+    assert.equal(Object.keys(cpu.slices[3].args).length, 1);
+    assert.equal(cpu.slices[3].args.g, 8);
+
+    assert.equal(cpu.slices[4].title, 'thread one');
+    assert.equal(cpu.slices[4].start, 60);
+    assert.equal(cpu.slices[4].duration, 10);
+    assert.equal(Object.keys(cpu.slices[4].args).length, 0);
+  });
+});
+</script>
+

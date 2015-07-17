@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/color.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('fromRGB', function() {
+    var c = tr.b.Color.fromString('rgb(1, 2, 3)');
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
+    assert.isUndefined(c.a);
+  });
+
+  test('fromRGBA', function() {
+    var c = tr.b.Color.fromString('rgba(1, 2, 3, 0.5)');
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
+    assert.equal(c.a, 0.5);
+  });
+
+  test('fromHex', function() {
+    var c = tr.b.Color.fromString('#010203');
+    assert.equal(c.r, 1);
+    assert.equal(c.g, 2);
+    assert.equal(c.b, 3);
+    assert.isUndefined(c.a);
+  });
+
+  test('toStringRGB', function() {
+    var c = new tr.b.Color(1, 2, 3);
+    assert.equal(c.toString(), 'rgb(1,2,3)');
+  });
+
+  test('toStringRGBA', function() {
+    var c = new tr.b.Color(1, 2, 3, 0.5);
+    assert.equal(c.toString(), 'rgba(1,2,3,0.5)');
+  });
+
+  test('lerpRGB', function() {
+    var a = new tr.b.Color(0, 127, 191);
+    var b = new tr.b.Color(255, 255, 255);
+    var x = tr.b.Color.lerpRGB(a, b, 0.25);
+    assert.equal(x.r, 63);
+    assert.equal(x.g, 159);
+    assert.equal(x.b, 207);
+  });
+
+  test('lerpRGBA', function() {
+    var a = new tr.b.Color(0, 127, 191, 0.5);
+    var b = new tr.b.Color(255, 255, 255, 1);
+    var x = tr.b.Color.lerpRGBA(a, b, 0.25);
+    assert.equal(x.r, 63);
+    assert.equal(x.g, 159);
+    assert.equal(x.b, 207);
+    assert.equal(x.a, 0.625);
+  });
+
+  test('blendRGBA', function() {
+    var red = new tr.b.Color(255, 0, 0, 0.5);
+    var white = new tr.b.Color(255, 255, 255, 1);
+    var x = red.blendOver(white);
+    assert.equal(x.r, 255);
+    assert.equal(x.g, 127);
+    assert.equal(x.b, 127);
+    assert.equal(x.a, 1);
+  });
+});
+</script>

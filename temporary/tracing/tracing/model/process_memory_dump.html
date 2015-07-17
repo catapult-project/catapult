@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the ProcessMemoryDump class.
+ */
+tr.exportTo('tr.model', function() {
+
+  // Names of MemoryAllocatorDump(s) from which tracing overhead should be
+  // discounted.
+  var DISCOUNTED_ALLOCATOR_NAMES = ['winheap', 'malloc'];
+
+  /**
+   * The ProcessMemoryDump represents a memory dump of a single process.
+   * @constructor
+   */
+  function ProcessMemoryDump(globalMemoryDump, process, start) {
+    tr.model.ContainerMemoryDump.call(this, start);
+    this.process = process;
+    this.globalMemoryDump = globalMemoryDump;
+
+    this.totalResidentBytes = undefined;
+    this.vmRegions_ = undefined;
+
+    this.tracingMemoryDiscounted_ = false;
+  };
+
+  ProcessMemoryDump.prototype = {
+    __proto__: tr.model.ContainerMemoryDump.prototype,
+
+    get userFriendlyName() {
+      return 'Process memory dump at ' +
+          tr.b.units.TimeStamp.format(this.start);
+    },
+
+    get containerName() {
+      return this.process.userFriendlyName;
+    },
+
+    get vmRegions() {
+      throw new Error(
+          'VM regions must be accessed through the mostRecentVmRegions field');
+    },
+
+    set vmRegions(vmRegions) {
+      this.vmRegions_ = vmRegions;
+    },
+
+    get hasOwnVmRegions() {
+      return this.vmRegions_ !== undefined;
+    },
+
+    getMostRecentTotalVmRegionStat: function(statName) {
+      if (this.mostRecentVmRegions === undefined)
+        return undefined;
+
+      var total = 0;
+      this.mostRecentVmRegions.forEach(function(vmRegion) {
+        var statValue = vmRegion.byteStats[statName];
+        if (statValue === undefined)
+          return;
+        total += statValue;
+      });
+      return total;
+    },
+
+    discountTracingOverhead: function(opt_model) {
+      // Make sure that calling this method twice won't lead to
+      // 'double-discounting'.
+      if (this.tracingMemoryDiscounted_)
+        return;
+      this.tracingMemoryDiscounted_ = true;
+
+      var tracingDump = this.getMemoryAllocatorDumpByFullName('tracing');
+      if (tracingDump === undefined)
+        return;
+
+      // Subtract 'resident_size' from totals and VM regions stats.
+      var tracingResidentSizeAttr =
+          tracingDump.getValidSizeAttributeOrUndefined(
+              'resident_size', opt_model);
+      if (tracingResidentSizeAttr !== undefined) {
+        var tracingResidentSize = tracingResidentSizeAttr.value;
+
+        // Subtract the tracing size from the total.
+        if (this.totalResidentBytes !== undefined)
+          this.totalResidentBytes -= tracingResidentSize;
+
+        // Subtract the tracing size from VM regions.
+        if (this.vmRegions_ !== undefined) {
+          this.vmRegions_.push(VMRegion.fromDict({
+            mappedFile: '[discounted tracing overhead]',
+            byteStats: {
+              privateDirtyResident: -tracingResidentSize,
+              proportionalResident: -tracingResidentSize
+            }
+          }));
+        }
+      }
+
+      // Subtract 'size' from the 'winheap' or 'malloc' MemoryAllocatorDump.
+      var tracingSizeAttr = tracingDump.getValidSizeAttributeOrUndefined(
+          'size', opt_model);
+      if (tracingSizeAttr !== undefined) {
+        var tracingSize = tracingSizeAttr.value;
+
+        var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
+            function(allocatorName) {
+          var dump = this.getMemoryAllocatorDumpByFullName(allocatorName);
+          if (dump === undefined)
+            return false;
+
+          var overheadSizeAttribute = new tr.model.ScalarAttribute(
+              'bytes', -tracingSize);
+          var overheadDump = new tr.model.MemoryAllocatorDump(
+              this, allocatorName + '/discounted_tracing_overhead');
+          overheadDump.parent = dump;
+          overheadDump.addAttribute('size', overheadSizeAttribute);
+          dump.children.push(overheadDump);
+
+          var dumpSizeAttr = dump.getValidSizeAttributeOrUndefined(
+              'size', opt_model);
+          if (dumpSizeAttr !== undefined)
+            dumpSizeAttr.value -= tracingSize;
+
+          return true;
+        }, this);
+
+        // Force rebuilding the memory allocator dump index (if we've just added
+        // a new memory allocator dump).
+        if (hasDiscountedFromAllocatorDumps)
+          this.memoryAllocatorDumps = this.memoryAllocatorDumps;
+      }
+    }
+  };
+
+  ProcessMemoryDump.hookUpMostRecentVmRegionsLinks = function(processDumps) {
+    var mostRecentVmRegions = undefined;
+
+    processDumps.forEach(function(processDump) {
+      // Update the most recent VM regions from the current dump.
+      if (processDump.vmRegions_ !== undefined)
+        mostRecentVmRegions = processDump.vmRegions_;
+
+      // Set the most recent VM regions of the current dump.
+      processDump.mostRecentVmRegions = mostRecentVmRegions;
+    });
+  };
+
+  /**
+   * @constructor
+   */
+  function VMRegion(startAddress, sizeInBytes, protectionFlags,
+      mappedFile, byteStats) {
+    this.startAddress = startAddress;
+    this.sizeInBytes = sizeInBytes;
+    this.protectionFlags = protectionFlags;
+    this.mappedFile = mappedFile;
+    this.byteStats = byteStats;
+  };
+
+  VMRegion.PROTECTION_FLAG_READ = 4;
+  VMRegion.PROTECTION_FLAG_WRITE = 2;
+  VMRegion.PROTECTION_FLAG_EXECUTE = 1;
+
+  VMRegion.prototype = {
+    get protectionFlagsToString() {
+      if (this.protectionFlags === undefined)
+        return undefined;
+      return (
+          (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
+          (this.protectionFlags & VMRegion.PROTECTION_FLAG_WRITE ? 'w' : '-') +
+          (this.protectionFlags & VMRegion.PROTECTION_FLAG_EXECUTE ? 'x' : '-')
+      );
+    }
+  };
+
+  VMRegion.fromDict = function(dict) {
+    return new VMRegion(
+        dict.startAddress,
+        dict.sizeInBytes,
+        dict.protectionFlags,
+        dict.mappedFile,
+        VMRegionByteStats.fromDict(dict.byteStats));
+  };
+
+  /**
+   * @constructor
+   */
+  function VMRegionByteStats(privateCleanResident, privateDirtyResident,
+                             sharedCleanResident, sharedDirtyResident,
+                             proportionalResident, swapped) {
+    this.privateCleanResident = privateCleanResident;
+    this.privateDirtyResident = privateDirtyResident;
+    this.sharedCleanResident = sharedCleanResident;
+    this.sharedDirtyResident = sharedDirtyResident;
+    this.proportionalResident = proportionalResident;
+    this.swapped = swapped;
+  }
+
+  VMRegionByteStats.fromDict = function(dict) {
+    return new VMRegionByteStats(
+        dict.privateCleanResident,
+        dict.privateDirtyResident,
+        dict.sharedCleanResident,
+        dict.sharedDirtyResident,
+        dict.proportionalResident,
+        dict.swapped);
+  }
+
+  tr.model.EventRegistry.register(
+      ProcessMemoryDump,
+      {
+        name: 'processMemoryDump',
+        pluralName: 'processMemoryDumps',
+        singleViewElementName: 'tr-ui-a-single-process-memory-dump-sub-view',
+        multiViewElementName: 'tr-ui-a-multi-process-memory-dump-sub-view'
+      });
+
+  return {
+    ProcessMemoryDump: ProcessMemoryDump,
+    VMRegion: VMRegion,
+    VMRegionByteStats: VMRegionByteStats
+  };
+});
+</script>

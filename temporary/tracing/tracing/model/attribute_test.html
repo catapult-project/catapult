@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/attribute.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Attribute = tr.model.Attribute;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+  var StringAttribute = tr.model.StringAttribute;
+  var UnknownAttribute = tr.model.UnknownAttribute;
+
+  test('findCommonTraits', function() {
+    // Empty list.
+    var traits = Attribute.findCommonTraits([]);
+    assert.isUndefined(traits);
+
+    // List containing no defined attribute values.
+    var traits = Attribute.findCommonTraits([undefined, undefined]);
+    assert.isUndefined(traits);
+
+    // Singleton list.
+    var traits = Attribute.findCommonTraits([
+      new ScalarAttribute('ms', 24)
+    ]);
+    assert.strictEqual(traits.constructor, ScalarAttribute);
+    assert.strictEqual(traits.units, 'ms');
+
+    // Long list.
+    var traits = Attribute.findCommonTraits([
+      undefined,
+      new ScalarAttribute('km', 15),
+      new ScalarAttribute('km', 16),
+      undefined,
+      new ScalarAttribute('km', 17),
+      undefined
+    ]);
+    assert.strictEqual(traits.constructor, ScalarAttribute);
+    assert.strictEqual(traits.units, 'km');
+
+    // List containing attribute values of different types.
+    var traits = Attribute.findCommonTraits([
+      new ScalarAttribute('km/h', 15),
+      undefined,
+      new StringAttribute('km/h', 'speed-of-light')
+    ]);
+    assert.strictEqual(traits.constructor, UnknownAttribute);
+    assert.isUndefined(traits.units);
+
+    // List containing attribute values with different units.
+    var traits = Attribute.findCommonTraits([
+      new ScalarAttribute('m', 10),
+      new ScalarAttribute('ft', 10)
+    ]);
+    assert.strictEqual(traits.constructor, UnknownAttribute);
+    assert.isUndefined(traits.units);
+  });
+
+  test('aggregate', function() {
+    // No parent or children.
+    var aggregatedAttr = Attribute.aggregate([], undefined);
+    assert.isUndefined(aggregatedAttr);
+
+    // No parent, children with a single type.
+    var aggregatedAttr = Attribute.aggregate([
+      undefined,
+      new ScalarAttribute('bytes', 128),
+      undefined,
+      new ScalarAttribute('bytes', 64),
+      undefined
+    ], undefined);
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, 192);
+    assert.equal(aggregatedAttr.units, 'bytes');
+    assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // No parent, children with multiple types.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('Hz', 128),
+      new ScalarAttribute('Hz', 64)
+    ], undefined);
+    assert.isUndefined(aggregatedAttr);
+
+    // No parent, children with multiple units.
+    var aggregatedAttr = Attribute.aggregate([
+      new ScalarAttribute('s', 10),
+      new ScalarAttribute('Hz', 0.1)
+    ], undefined);
+    assert.isUndefined(aggregatedAttr);
+
+    // No parent, children which do not support merging.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('items', 'a piece of text'),
+      new StringAttribute('items', 'another piece of text')
+    ], undefined);
+    assert.isUndefined(aggregatedAttr);
+
+    // Defined parent, no children.
+    var aggregatedAttr = Attribute.aggregate([], new ScalarAttribute('C', -12));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, -12);
+    assert.equal(aggregatedAttr.units, 'C');
+    assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // Defined parent, children with the same type.
+    var aggregatedAttr = Attribute.aggregate([
+      new ScalarAttribute('W', 110),
+      new ScalarAttribute('W', 13)
+    ], new ScalarAttribute('W', -123));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, -123);
+    assert.equal(aggregatedAttr.units, 'W');
+    assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // Defined parent, children with a different type.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('colors', 640),
+      new StringAttribute('colors', 640)
+    ], new ScalarAttribute('colors', -1234));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, -1234);
+    assert.equal(aggregatedAttr.units, 'colors');
+    assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // Defined parent, children with multiple types.
+    var aggregatedAttr = Attribute.aggregate([
+      new ScalarAttribute('mm', 999),
+      new StringAttribute('mm', 640)
+    ], new ScalarAttribute('mm', -12345));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, -12345);
+    assert.equal(aggregatedAttr.units, 'mm');
+    assert.instanceOf(aggregatedAttr, ScalarAttribute);
+
+    // Defined parent, children which do not support merging.
+    var aggregatedAttr = Attribute.aggregate([
+      new StringAttribute('m', 'X'),
+      new StringAttribute('m', 'Y')
+    ], new StringAttribute('m', 'Z'));
+    assert.isDefined(aggregatedAttr);
+    assert.equal(aggregatedAttr.value, 'Z');
+    assert.equal(aggregatedAttr.units, 'm');
+    assert.instanceOf(aggregatedAttr, StringAttribute);
+  });
+
+  test('useMergedAttribute', function() {
+    var importWarningCallbackFired;
+    var model = {
+      importWarning: function() {
+        importWarningCallbackFired = true;
+      }
+    };
+
+    // Same type.
+    var attr = new ScalarAttribute('C', 42);
+    importWarningCallbackFired = false;
+    attr.useMergedAttribute(new ScalarAttribute('C', 24), model);
+    assert.isFalse(importWarningCallbackFired);
+
+    // Different type.
+    var attr = new ScalarAttribute('C', 42);
+    importWarningCallbackFired = false;
+    attr.useMergedAttribute(new UnknownAttribute('C'), model);
+    assert.isTrue(importWarningCallbackFired);
+
+    // Different units.
+    var attr = new ScalarAttribute('C', 42);
+    importWarningCallbackFired = false;
+    attr.useMergedAttribute(new ScalarAttribute('F', 75.2), model);
+    assert.isTrue(importWarningCallbackFired);
+  });
+
+  test('scalar_construct', function() {
+    var attr = new ScalarAttribute('kHz', 1024);
+    assert.equal(attr.value, 1024);
+    assert.equal(attr.units, 'kHz');
+  });
+
+  test('scalar_fromDict', function() {
+    var attr = Attribute.fromDictIfPossible({
+      type: 'scalar',
+      units: 'kHz',
+      value: '400'
+    });
+    assert.isDefined(attr);
+    assert.equal(attr.value, 1024);
+    assert.equal(attr.units, 'kHz');
+    assert.instanceOf(attr, ScalarAttribute);
+  });
+
+  test('scalar_merge', function() {
+    var mergedAttr = ScalarAttribute.merge([
+      new ScalarAttribute('objects', 10),
+      new ScalarAttribute('objects', 20),
+      new ScalarAttribute('objects', -3)
+    ], 'objects');
+    assert.isDefined(mergedAttr);
+    assert.equal(mergedAttr.value, 27);
+    assert.equal(mergedAttr.units, 'objects');
+    assert.instanceOf(mergedAttr, ScalarAttribute);
+  });
+
+  test('string_construct', function() {
+    var attr = new StringAttribute('C', 'absolute zero');
+    assert.equal(attr.value, 'absolute zero');
+    assert.equal(attr.units, 'C');
+  });
+
+  test('string_fromDict', function() {
+    var attr = Attribute.fromDictIfPossible({
+      type: 'string',
+      units: 'm/s',
+      value: 'almost zero'
+    });
+    assert.isDefined(attr);
+    assert.equal(attr.value, 'almost zero');
+    assert.equal(attr.units, 'm/s');
+    assert.instanceOf(attr, StringAttribute);
+  });
+
+  test('unknown_construct', function() {
+    var attr = new UnknownAttribute('ml');
+    assert.equal(attr.units, 'ml');
+  });
+
+  test('unknown_fromDict', function() {
+    // Missing type.
+    var attr = Attribute.fromDictIfPossible({units: 'F'});
+    assert.isDefined(attr);
+    assert.equal(attr.units, 'F');
+    assert.instanceOf(attr, UnknownAttribute);
+
+    // Non-existent type.
+    var attr = Attribute.fromDictIfPossible({type: 'hashmap'});
+    assert.isDefined(attr);
+    assert.isUndefined(attr.units);
+    assert.instanceOf(attr, UnknownAttribute);
+  });
+});
+</script>

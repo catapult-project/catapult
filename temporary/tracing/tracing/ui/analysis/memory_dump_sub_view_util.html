@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper code for memory dump sub-views.
+ */
+tr.exportTo('tr.ui.analysis', function() {
+
+  /**
+   * A table builder column for displaying memory dump data.
+   *
+   * @constructor
+   */
+  function MemoryColumn(name, title, units, cellGetter) {
+    this.name = name;
+    this.title = title;
+    this.units = units;
+    this.cell = cellGetter;
+
+    // Color of the values returned by this column. This can be either
+    // (1) undefined (no specific color is set), (2) a color string (e.g.
+    // 'blue'), or (3) a function mapping defined attributes to color strings
+    // (the return value can be undefined again).
+    this.color = undefined;
+  }
+
+  MemoryColumn.fromRows = function(rows, cellKey, opt_titleBuilder) {
+    var columnTraits = {};
+
+    function gatherTraits(row) {
+      if (row === undefined)
+        return;
+      var attrCells = row[cellKey];
+      tr.b.iterItems(attrCells, function(attrName, attrCell) {
+        if (attrCell === undefined)
+          return;
+        var attrValue = attrCell.attr;
+        if (attrValue === undefined)
+          return;
+        var existingTraits = columnTraits[attrName];
+        if (existingTraits === undefined) {
+          columnTraits[attrName] = {
+            constructor: attrValue.constructor,
+            units: attrValue.units
+          };
+          return;
+        }
+        if (existingTraits.constructor !== attrValue.constructor ||
+            existingTraits.units !== attrValue.units) {
+          existingTraits.constructor = tr.model.UnknownAttribute;
+          existingTraits.units = undefined;
+        }
+      });
+      if (row.subRows !== undefined)
+        row.subRows.forEach(gatherTraits);
+    };
+    rows.forEach(gatherTraits);
+
+    var titleBuilder = opt_titleBuilder || tr.b.identity;
+
+    var columns = [];
+    tr.b.iterItems(columnTraits, function(columnName, columnTraits) {
+      var cellGetter = fieldGetter(cellKey, columnName);
+      var title = titleBuilder(columnName);
+      columns.push(MemoryColumn.fromAttributeTraits(
+          columnName, title, columnTraits, cellGetter));
+    });
+
+    return columns;
+  };
+
+  MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter) {
+    var constructor;
+    if (traits.constructor === tr.model.ScalarAttribute)
+      constructor = ScalarMemoryColumn;
+    else
+      constructor = MemoryColumn;
+    return new constructor(name, title, traits.units, cellGetter);
+  };
+
+  MemoryColumn.spaceEqually = function(columns) {
+    var columnWidth = (100 / columns.length).toFixed(3) + '%';
+    columns.forEach(function(column) {
+      column.width = columnWidth;
+    });
+  };
+
+  /**
+   * Sort a list of memory columns according to a list of importance rules.
+   * This function modifies the original array and doesn't return anything.
+   *
+   * The list of importance rules contains objects with mandatory 'importance'
+   * numeric fields and optional 'condition' string or regex fields. Example:
+   *
+   *   var importanceRules = [
+   *     {
+   *       condition: 'page_size',
+   *       importance: 8
+   *     },
+   *     {
+   *       condition: /size/,
+   *       importance: 10
+   *     },
+   *     {
+   *       // No condition: matches all columns.
+   *       importance: 9
+   *     }
+   *   ];
+   *
+   * The importance of a column is determined by the first rule whose condition
+   * matches the column's name, so the rules above will sort a generic list of
+   * columns into three groups as follows:
+   *
+   *      [most important, left in the resulting table]
+   *   1. columns whose name contains 'size' excluding 'page_size' because it
+   *      would have already matched the first rule (Note that string matches
+   *      must be exact so a column named 'page_size2' would not match the
+   *      first rule and would therefore belong to this group).
+   *   2. columns whose name does not contain 'size'.
+   *   3. columns whose name is 'page_size'.
+   *      [least important, right in the resulting table]
+   *
+   * where the order within each group is unmodified (stable sort).
+   */
+  MemoryColumn.sortByImportance = function(columns, importanceRules) {
+    var positions = columns.map(function(column, srcIndex) {
+      return {
+        importance: column.getImportance(importanceRules),
+        srcIndex: srcIndex,
+        column: column
+      };
+    });
+
+    positions.sort(function(a, b) {
+      // Keep existing order of columns if they have the same importance
+      // (stable sort).
+      if (a.importance === b.importance)
+        return a.srcIndex - b.srcIndex;
+
+      // Sort columns in descending order of importance.
+      return b.importance - a.importance;
+    });
+
+    positions.forEach(function(position, dstIndex) {
+      columns[dstIndex] = position.column;
+    });
+  };
+
+  MemoryColumn.iconFromAttributeInfoType = function(type) {
+    switch (type) {
+      case tr.model.AttributeInfoType.WARNING:
+        return {
+          symbol: String.fromCharCode(9888),  // Exclamation mark in a triangle.
+          color: 'red'
+        };
+      case tr.model.AttributeInfoType.LINK:
+        return {
+          symbol: String.fromCharCode(9903)  // Link symbol.
+          /* Don't modify the color. */
+        };
+      case tr.model.AttributeInfoType.MEMORY_OWNER:
+        return {
+          symbol: String.fromCharCode(8702),  // Right arrow.
+          color: 'green'
+        };
+      case tr.model.AttributeInfoType.MEMORY_OWNED:
+        return {
+          symbol: String.fromCharCode(8701),  // Left arrow.
+          color: 'green'
+        };
+      default:
+        return {
+          symbol: String.fromCharCode(9432),  // Circled small letter 'i'.
+          color: 'blue'
+        };
+    }
+    throw new Error('Unreachable');
+  };
+
+  MemoryColumn.prototype = {
+    attr: function(row) {
+      var cell = this.cell(row);
+      if (cell === undefined)
+        return undefined;
+      return cell.attr;
+    },
+
+    value: function(row) {
+      var attr = this.attr(row);
+      if (attr === undefined)
+        return '';
+      return this.formatDefinedAttribute(attr);
+    },
+
+    /**
+     * Format a defined attribute (both values and infos). This method is not
+     * intended to be overriden.
+     */
+    formatDefinedAttribute: function(attr) {
+      var formattedValue = this.formatDefinedAttributeValue(attr);
+
+      // Determine the color of the resulting element.
+      var color;
+      if (typeof this.color === 'function')
+        color = this.color(attr);
+      else
+        color = this.color;
+
+      // If no color is specified and there are no infos, there is no need
+      // to wrap the value in a span element.
+      if (color === undefined && attr.infos.length === 0)
+        return formattedValue;
+
+      var attrEl = document.createElement('span');
+      attrEl.style.display = 'flex';
+      attrEl.style.alignItems = 'center';
+      attrEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedValue));
+
+      // Add info icons with tooltips.
+      attr.infos.forEach(function(info) {
+        var infoEl = document.createElement('span');
+        infoEl.style.paddingLeft = '4px';
+        infoEl.style.cursor = 'help';
+        infoEl.style.fontWeight = 'bold';
+        var icon = MemoryColumn.iconFromAttributeInfoType(info.type);
+        infoEl.textContent = icon.symbol;
+        if (icon.color !== undefined)
+          infoEl.style.color = icon.color;
+        infoEl.title = info.message;
+        attrEl.appendChild(infoEl);
+      }, this);
+
+      // Set the color of the element.
+      if (color !== undefined)
+        attrEl.style.color = color;
+
+      return attrEl;
+    },
+
+    /**
+     * Format the value of a defined attribute. This method is intended to be
+     * overriden by attribute type/unit specific columns (e.g. show '1.0 KiB'
+     * instead of '1024' for ScalarAttribute(s) representing bytes).
+     */
+    formatDefinedAttributeValue: function(attr) {
+      return String(attr.value);
+    },
+
+    cmp: function(rowA, rowB) {
+      var attrA = this.attr(rowA);
+      var attrB = this.attr(rowB);
+      if (attrA === undefined && attrB === undefined)
+        return 0;
+      if (attrA === undefined)
+        return -1;
+      if (attrB === undefined)
+        return 1;
+      return this.compareDefinedAttributes(attrA, attrB);
+    },
+
+    compareDefinedAttributes: function(attrA, attrB) {
+      var strA = String(attrA.value);
+      var strB = String(attrB.value);
+      return strA.localeCompare(strB);
+    },
+
+    getImportance: function(importanceRules) {
+      if (importanceRules.length === 0)
+        return 0;
+
+      // Find the first matching rule.
+      for (var i = 0; i < importanceRules.length; i++) {
+        var importanceRule = importanceRules[i];
+        if (this.matchesNameCondition(importanceRule.condition))
+          return importanceRule.importance;
+      }
+
+      // No matching rule. Return lower importance than all rules.
+      var minImportance = importanceRules[0].importance;
+      for (var i = 1; i < importanceRules.length; i++) {
+        minImportance = Math.min(minImportance, importanceRules[i].importance);
+      }
+      return minImportance - 1;
+    },
+
+    matchesNameCondition: function(condition) {
+      // Rules without conditions match all columns.
+      if (condition === undefined)
+        return true;
+
+      // String conditions must match the column name exactly.
+      if (typeof(condition) === 'string')
+        return this.name === condition;
+
+      // If the condition is not a string, assume it is a RegExp.
+      return condition.test(this.name);
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  function ScalarMemoryColumn(name, title, units, cellGetter) {
+    MemoryColumn.call(this, name, title, units, cellGetter);
+  }
+
+  ScalarMemoryColumn.prototype = {
+    __proto__: MemoryColumn.prototype,
+
+    formatDefinedAttributeValue: function(attr) {
+      if (this.units === 'bytes') {
+        var sizeEl = document.createElement('tr-ui-u-size-in-bytes-span');
+        sizeEl.numBytes = attr.value;
+        return sizeEl;
+      }
+      return MemoryColumn.prototype.formatDefinedAttributeValue.call(
+          this, attr);
+    },
+
+    compareDefinedAttributes: function(attrA, attrB) {
+      return attrA.value - attrB.value;
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  function MemoryCell(attr) {
+    this.attr = attr;
+  }
+
+  MemoryCell.extractAttribute = function(cell) {
+    if (cell === undefined)
+      return undefined;
+    return cell.attr;
+  };
+
+  function fieldGetter(/* fields */) {
+    var fields = tr.b.asArray(arguments);
+    return function(row) {
+      var value = row;
+      for (var i = 0; i < fields.length; i++)
+        value = value[fields[i]];
+      return value;
+    };
+  }
+
+  /** Limit for the number of sub-rows for recursive table row expansion. */
+  var RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT = 10;
+
+  function expandTableRowsRecursively(table) {
+    function expandRowRecursively(row) {
+      if (row.subRows === undefined || row.subRows.length === 0)
+        return;
+      if (row.subRows.length > RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT)
+        return;
+      table.setExpandedForTableRow(row, true);
+      row.subRows.forEach(expandRowRecursively);
+    }
+    table.tableRows.forEach(expandRowRecursively);
+  }
+
+  // TODO(petrcermak): This code is almost the same as
+  // MemoryAllocatorDump.aggregateAttributes. Consider sharing code between
+  // the two functions.
+  function aggregateTableRowCellsRecursively(row, cellKey) {
+    var subRows = row.subRows;
+    if (subRows === undefined)
+      return;
+
+    subRows.forEach(function(subRow) {
+      aggregateTableRowCellsRecursively(subRow, cellKey);
+    });
+
+    aggregateTableRowCells(row, subRows, cellKey);
+  }
+
+  function aggregateTableRowCells(row, subRows, cellKey) {
+    var rowCells = row[cellKey];
+    if (rowCells === undefined)
+      row[cellKey] = rowCells = {};
+
+    var subRowCellNames = {};
+    subRows.forEach(function(subRow) {
+      var subRowCells = subRow[cellKey];
+      if (subRowCells === undefined)
+        return;
+      tr.b.iterItems(subRowCells, function(columnName) {
+        subRowCellNames[columnName] = true;
+      });
+    });
+
+    tr.b.iterItems(subRowCellNames, function(cellName) {
+      var subRowAttributes = subRows.map(function(subRow) {
+        var subRowCells = subRow[cellKey];
+        if (subRowCells === undefined)
+          return undefined;
+        return MemoryCell.extractAttribute(subRowCells[cellName]);
+      }, this);
+      var existingRowCell = rowCells[cellName];
+      var existingRowAttribute = MemoryCell.extractAttribute(existingRowCell);
+
+      var aggregatedAttribute =
+          tr.model.Attribute.aggregate(subRowAttributes, existingRowAttribute);
+
+      if (existingRowCell !== undefined) {
+        // The cell might contain some extra fields (e.g. custom
+        // buildDetailsPane method) which we don't want to throw away.
+        existingRowCell.attr = aggregatedAttribute;
+      } else {
+        rowCells[cellName] = new MemoryCell(aggregatedAttribute);
+      }
+    });
+  }
+
+  return {
+    MemoryColumn: MemoryColumn,
+    ScalarMemoryColumn: ScalarMemoryColumn,
+    MemoryCell: MemoryCell,
+    fieldGetter: fieldGetter,
+    expandTableRowsRecursively: expandTableRowsRecursively,
+    aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
+    aggregateTableRowCells: aggregateTableRowCells
+  };
+});
+</script>

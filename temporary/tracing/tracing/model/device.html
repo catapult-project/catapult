@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/model/event_container.html">
+<link rel="import" href="/model/power_series.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Device class.
+ */
+tr.exportTo('tr.model', function() {
+
+  /**
+   * Device represents the device-level objects in the model.
+   * @constructor
+   * @extends {tr.model.EventContainer}
+   */
+  function Device(model) {
+    if (!model)
+      throw new Error('Must provide a model.');
+
+    tr.model.EventContainer.call(this);
+
+    this.guid = tr.b.GUID.allocate();
+    this.powerSeries_ = undefined;
+    this.vSyncTimestamps_ = [];
+  };
+
+  Device.compare = function(x, y) {
+    return x.guid - y.guid;
+  };
+
+  Device.prototype = {
+    __proto__: tr.model.EventContainer.prototype,
+
+    compareTo: function(that) {
+      return Device.compare(this, that);
+    },
+
+    get userFriendlyName() {
+      return 'Device';
+    },
+
+    get userFriendlyDetails() {
+      return 'Device';
+    },
+
+    get stableId() {
+      return 'Device';
+    },
+
+    getSettingsKey: function() {
+      return 'device';
+    },
+
+    get powerSeries() {
+      return this.powerSeries_;
+    },
+
+    set powerSeries(powerSeries) {
+      this.powerSeries_ = powerSeries;
+    },
+
+    get vSyncTimestamps() {
+      return this.vSyncTimestamps_;
+    },
+
+    set vSyncTimestamps(value) {
+      this.vSyncTimestamps_ = value;
+    },
+
+    updateBounds: function() {
+      this.bounds.reset();
+
+      this.iterateAllChildEventContainers(function(child) {
+        child.updateBounds();
+        this.bounds.addRange(child.bounds);
+      }, this);
+    },
+
+    shiftTimestampsForward: function(amount) {
+      this.iterateAllChildEventContainers(function(child) {
+        child.shiftTimestampsForward(amount);
+      });
+
+      for (var i = 0; i < this.vSyncTimestamps_.length; i++)
+        this.vSyncTimestamps_[i] += amount;
+    },
+
+    addCategoriesToDict: function(categoriesDict) {
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      if (this.powerSeries_)
+        callback.call(opt_this, this.powerSeries_);
+    }
+  };
+
+  return {
+    Device: Device
+  };
+});
+</script>

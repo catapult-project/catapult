@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/animation_controller.html">
+<link rel="import" href="/ui/timeline_display_transform.html">
+<link rel="import" href="/ui/timeline_display_transform_animations.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  var TimelineDisplayTransformPanAnimation =
+      tr.ui.TimelineDisplayTransformPanAnimation;
+  var TimelineDisplayTransformZoomToAnimation =
+      tr.ui.TimelineDisplayTransformZoomToAnimation;
+
+  test('panBasic', function() {
+    var target = new TimelineDisplayTransform();
+    target.cloneAnimationState = function() {
+      return this.clone();
+    };
+
+    var a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
+
+    var controller = new tr.ui.b.AnimationController();
+    controller.target = target;
+    controller.queueAnimation(a, 0);
+
+    assert.isTrue(a.affectsPanY);
+    tr.b.forcePendingRAFTasksToRun(50);
+    assert.isAbove(target.panX, 0);
+    tr.b.forcePendingRAFTasksToRun(100);
+    assert.isFalse(controller.hasActiveAnimation);
+    assert.equal(target.panX, 10);
+    assert.equal(target.panY, 20);
+  });
+
+  test('zoomBasic', function() {
+    var target = new TimelineDisplayTransform();
+    target.panY = 30;
+    target.cloneAnimationState = function() {
+      return this.clone();
+    };
+
+    var a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
+
+    var controller = new tr.ui.b.AnimationController();
+    controller.target = target;
+    controller.queueAnimation(a, 0);
+
+    assert.isFalse(a.affectsPanY);
+    tr.b.forcePendingRAFTasksToRun(100);
+    assert.equal(target.scaleX, 5);
+  });
+
+  test('panTakeover', function() {
+    var target = new TimelineDisplayTransform();
+    target.cloneAnimationState = function() {
+      return this.clone();
+    };
+
+    var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
+    var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
+
+    var controller = new tr.ui.b.AnimationController();
+    controller.target = target;
+    controller.queueAnimation(a, 0);
+
+    tr.b.forcePendingRAFTasksToRun(50);
+    controller.queueAnimation(b, 50);
+
+    tr.b.forcePendingRAFTasksToRun(100);
+    assert.isTrue(controller.hasActiveAnimation);
+
+    tr.b.forcePendingRAFTasksToRun(150);
+    assert.isFalse(controller.hasActiveAnimation);
+    assert.equal(target.panX, 20);
+  });
+});
+</script>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_container.html">
+<link rel="import" href="/model/thread_slice.html">
+<link rel="import" href="/model/slice_group.html">
+<link rel="import" href="/model/async_slice_group.html">
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/range.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Thread class.
+ */
+tr.exportTo('tr.model', function() {
+  var AsyncSlice = tr.model.AsyncSlice;
+  var AsyncSliceGroup = tr.model.AsyncSliceGroup;
+  var Slice = tr.model.Slice;
+  var SliceGroup = tr.model.SliceGroup;
+  var ThreadSlice = tr.model.ThreadSlice;
+  var ThreadTimeSlice = tr.model.ThreadTimeSlice;
+
+  /**
+   * A Thread stores all the trace events collected for a particular
+   * thread. We organize the synchronous slices on a thread by "subrows," where
+   * subrow 0 has all the root slices, subrow 1 those nested 1 deep, and so on.
+   * The asynchronous slices are stored in an AsyncSliceGroup object.
+   *
+   * The slices stored on a Thread should be instances of
+   * ThreadSlice.
+   *
+   * @constructor
+   * @extends {tr.model.EventContainer}
+   */
+  function Thread(parent, tid) {
+    if (!parent)
+      throw new Error('Parent must be provided.');
+
+    tr.model.EventContainer.call(this);
+    this.parent = parent;
+    this.guid_ = tr.b.GUID.allocate();
+    this.sortIndex = 0;
+    this.tid = tid;
+    this.name = undefined;
+    this.samples_ = undefined; // Set during createSubSlices
+
+    var that = this;
+
+    this.sliceGroup = new SliceGroup(this, ThreadSlice, 'slices');
+    this.timeSlices = undefined;
+    this.kernelSliceGroup = new SliceGroup(
+        this, ThreadSlice, 'kernel-slices');
+    this.asyncSliceGroup = new AsyncSliceGroup(this, 'async-slices');
+  }
+
+  Thread.prototype = {
+    __proto__: tr.model.EventContainer.prototype,
+
+    get guid() {
+      return this.guid_;
+    },
+
+    get model() {
+      return this.parent.model;
+    },
+
+    get stableId() {
+      return this.parent.stableId + '.' + this.tid;
+    },
+
+    compareTo: function(that) {
+      return Thread.compare(this, that);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      if (this.sliceGroup.length)
+        callback.call(opt_this, this.sliceGroup);
+      if (this.kernelSliceGroup.length)
+        callback.call(opt_this, this.kernelSliceGroup);
+      if (this.asyncSliceGroup.length)
+        callback.call(opt_this, this.asyncSliceGroup);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (this.timeSlices && this.timeSlices.length) {
+        if (eventTypePredicate.call(opt_this, ThreadTimeSlice))
+          this.timeSlices.forEach(callback, opt_this);
+      }
+    },
+
+    iterateAllPersistableObjects: function(cb) {
+      cb(this);
+      if (this.sliceGroup.length)
+        cb(this.sliceGroup);
+      this.asyncSliceGroup.viewSubGroups.forEach(cb);
+    },
+
+    /**
+     * Shifts all the timestamps inside this thread forward by the amount
+     * specified.
+     */
+    shiftTimestampsForward: function(amount) {
+      this.sliceGroup.shiftTimestampsForward(amount);
+
+      if (this.timeSlices) {
+        for (var i = 0; i < this.timeSlices.length; i++) {
+          var slice = this.timeSlices[i];
+          slice.start += amount;
+        }
+      }
+
+      this.kernelSliceGroup.shiftTimestampsForward(amount);
+      this.asyncSliceGroup.shiftTimestampsForward(amount);
+    },
+
+    /**
+     * Determines whether this thread is empty. If true, it usually implies
+     * that it should be pruned from the model.
+     */
+    get isEmpty() {
+      if (this.sliceGroup.length)
+        return false;
+      if (this.sliceGroup.openSliceCount)
+        return false;
+      if (this.timeSlices && this.timeSlices.length)
+        return false;
+      if (this.kernelSliceGroup.length)
+        return false;
+      if (this.asyncSliceGroup.length)
+        return false;
+      if (this.samples_.length)
+        return false;
+      return true;
+    },
+
+    /**
+     * Updates the bounds based on the
+     * current objects associated with the thread.
+     */
+    updateBounds: function() {
+      this.bounds.reset();
+
+      this.sliceGroup.updateBounds();
+      this.bounds.addRange(this.sliceGroup.bounds);
+
+      this.kernelSliceGroup.updateBounds();
+      this.bounds.addRange(this.kernelSliceGroup.bounds);
+
+      this.asyncSliceGroup.updateBounds();
+      this.bounds.addRange(this.asyncSliceGroup.bounds);
+
+      if (this.timeSlices && this.timeSlices.length) {
+        this.bounds.addValue(this.timeSlices[0].start);
+        this.bounds.addValue(
+            this.timeSlices[this.timeSlices.length - 1].end);
+      }
+
+      if (this.samples_ && this.samples_.length) {
+        this.bounds.addValue(this.samples_[0].start);
+        this.bounds.addValue(
+            this.samples_[this.samples_.length - 1].end);
+      }
+    },
+
+    addCategoriesToDict: function(categoriesDict) {
+      for (var i = 0; i < this.sliceGroup.length; i++)
+        categoriesDict[this.sliceGroup.slices[i].category] = true;
+      for (var i = 0; i < this.kernelSliceGroup.length; i++)
+        categoriesDict[this.kernelSliceGroup.slices[i].category] = true;
+      for (var i = 0; i < this.asyncSliceGroup.length; i++)
+        categoriesDict[this.asyncSliceGroup.slices[i].category] = true;
+      if (this.samples_) {
+        for (var i = 0; i < this.samples_.length; i++)
+          categoriesDict[this.samples_[i].category] = true;
+      }
+    },
+
+    autoCloseOpenSlices: function(opt_maxTimestamp) {
+      this.sliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
+      this.kernelSliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
+    },
+
+    mergeKernelWithUserland: function() {
+      if (this.kernelSliceGroup.length > 0) {
+        var newSlices = SliceGroup.merge(
+            this.sliceGroup, this.kernelSliceGroup);
+        this.sliceGroup.slices = newSlices.slices;
+        this.kernelSliceGroup = new SliceGroup(this);
+        this.updateBounds();
+      }
+    },
+
+    createSubSlices: function() {
+      this.sliceGroup.createSubSlices();
+      this.samples_ = this.parent.model.samples.filter(function(sample) {
+        return sample.thread == this;
+      }, this);
+    },
+
+    /**
+     * @return {String} A user-friendly name for this thread.
+     */
+    get userFriendlyName() {
+      return this.name || this.tid;
+    },
+
+    /**
+     * @return {String} User friendly details about this thread.
+     */
+    get userFriendlyDetails() {
+      return 'tid: ' + this.tid +
+          (this.name ? ', name: ' + this.name : '');
+    },
+
+    getSettingsKey: function() {
+      if (!this.name)
+        return undefined;
+      var parentKey = this.parent.getSettingsKey();
+      if (!parentKey)
+        return undefined;
+      return parentKey + '.' + this.name;
+    },
+
+    /*
+     * Returns the index of the slice in the timeSlices array, or undefined.
+     */
+    indexOfTimeSlice: function(timeSlice) {
+      var i = tr.b.findLowIndexInSortedArray(
+          this.timeSlices,
+          function(slice) { return slice.start; },
+          timeSlice.start);
+      if (this.timeSlices[i] !== timeSlice)
+        return undefined;
+      return i;
+    },
+
+    getSchedulingStatsForRange: function(start, end) {
+      var stats = {};
+
+      if (!this.timeSlices) return stats;
+
+      function addStatsForSlice(threadTimeSlice) {
+        var overlapStart = Math.max(threadTimeSlice.start, start);
+        var overlapEnd = Math.min(threadTimeSlice.end, end);
+        var schedulingState = threadTimeSlice.schedulingState;
+
+        if (!(schedulingState in stats))
+          stats[schedulingState] = 0;
+        stats[schedulingState] += overlapEnd - overlapStart;
+      }
+
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
+                                            function(x) { return x.start; },
+                                            function(x) { return x.end; },
+                                            start,
+                                            end,
+                                            addStatsForSlice);
+      return stats;
+    },
+
+    get samples() {
+      return this.samples_;
+    }
+  };
+
+  /**
+   * Comparison between threads that orders first by parent.compareTo,
+   * then by names, then by tid.
+   */
+  Thread.compare = function(x, y) {
+    var tmp = x.parent.compareTo(y.parent);
+    if (tmp)
+      return tmp;
+
+    tmp = x.sortIndex - y.sortIndex;
+    if (tmp)
+      return tmp;
+
+    tmp = tr.b.comparePossiblyUndefinedValues(
+        x.name, y.name,
+        function(x, y) { return x.localeCompare(y); });
+    if (tmp)
+      return tmp;
+
+    return x.tid - y.tid;
+  };
+
+  return {
+    Thread: Thread
+  };
+});
+</script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/extension_registry.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Allows custom highlighting to be added to the full model track.
+ */
+tr.exportTo('tr.ui.tracks', function() {
+
+  /**
+   * Highlights cetrain features of the model.
+   * @constructor
+   */
+  function Highlighter(viewport) {
+    if (viewport === undefined) {
+      throw new Error('viewport must be provided');
+    }
+    this.viewport_ = viewport;
+  };
+
+  Highlighter.prototype = {
+    __proto__: Object.prototype,
+
+    processModel: function(model) {
+      throw new Error('processModel implementation missing');
+    },
+
+    drawHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
+      throw new Error('drawHighlight implementation missing');
+    }
+  };
+
+
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  options.defaultMetadata = {};
+  options.mandatoryBaseClass = Highlighter;
+  tr.b.decorateExtensionRegistry(Highlighter, options);
+
+  return {
+    Highlighter: Highlighter
+  };
+});
+</script>
+

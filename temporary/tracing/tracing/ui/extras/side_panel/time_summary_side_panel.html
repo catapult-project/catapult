@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/pie_chart.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+
+<polymer-element name="tr-ui-e-s-time-summary-side-panel"
+    extends="tr-ui-side-panel">
+  <template>
+    <style>
+    :host {
+      flex-direction: column;
+      display: flex;
+    }
+    toolbar {
+      flex: 0 0 auto;
+      border-bottom: 1px solid black;
+      display: flex;
+    }
+    result-area {
+      flex: 1 1 auto;
+      display: block;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    </style>
+
+    <toolbar id='toolbar'></toolbar>
+    <result-area id='result_area'></result-area>
+  </template>
+
+  <script>
+  'use strict';
+  (function() {
+    var GROUP_BY_PROCESS_NAME = 'process';
+    var GROUP_BY_THREAD_NAME = 'thread';
+
+    var WALL_TIME_GROUPING_UNIT = 'Wall time';
+    var CPU_TIME_GROUPING_UNIT = 'CPU time';
+
+    /**
+     * @constructor
+     */
+    function ResultsForGroup(model, name) {
+      this.model = model;
+      this.name = name;
+      this.topLevelSlices = [];
+      this.allSlices = [];
+    }
+
+    ResultsForGroup.prototype = {
+      get wallTime() {
+        var wallSum = tr.b.Statistics.sum(
+            this.topLevelSlices, function(x) { return x.duration; });
+        return wallSum;
+      },
+
+      get cpuTime() {
+        var cpuDuration = 0;
+        for (var i = 0; i < this.topLevelSlices.length; i++) {
+          var x = this.topLevelSlices[i];
+          // Only report thread-duration if we have it for all events.
+          //
+          // A thread_duration of 0 is valid, so this only returns 0 if it is
+          // None.
+          if (x.cpuDuration === undefined) {
+            if (x.duration === undefined)
+              continue;
+            return 0;
+          }
+          cpuDuration += x.cpuDuration;
+        }
+        return cpuDuration;
+      },
+
+      appendGroupContents: function(group) {
+        if (group.model != this.model)
+          throw new Error('Models must be the same');
+
+        group.allSlices.forEach(function(slice) {
+          this.allSlices.push(slice);
+        }, this);
+        group.topLevelSlices.forEach(function(slice) {
+          this.topLevelSlices.push(slice);
+        }, this);
+      },
+
+      appendThreadSlices: function(rangeOfInterest, thread) {
+        var tmp = this.getSlicesIntersectingRange(
+            rangeOfInterest, thread.sliceGroup.slices);
+        tmp.forEach(function(slice) {
+          this.allSlices.push(slice);
+        }, this);
+        tmp = this.getSlicesIntersectingRange(
+            rangeOfInterest, thread.sliceGroup.topLevelSlices);
+        tmp.forEach(function(slice) {
+          this.topLevelSlices.push(slice);
+        }, this);
+      },
+
+      getSlicesIntersectingRange: function(rangeOfInterest, slices) {
+        var slicesInFilterRange = [];
+        for (var i = 0; i < slices.length; i++) {
+          var slice = slices[i];
+          if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+            slicesInFilterRange.push(slice);
+        }
+        return slicesInFilterRange;
+      }
+    };
+
+    Polymer({
+      ready: function() {
+        this.rangeOfInterest_ = new tr.b.Range();
+        this.selection_ = undefined;
+        this.groupBy_ = GROUP_BY_PROCESS_NAME;
+        this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
+        this.showCpuIdleTime_ = true;
+        this.chart_ = undefined;
+
+        var toolbarEl = this.$.toolbar;
+        this.groupBySelector_ = tr.ui.b.createSelector(
+            this, 'groupBy',
+            'timeSummarySidePanel.groupBy', this.groupBy_,
+            [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
+             {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
+            ]);
+        toolbarEl.appendChild(this.groupBySelector_);
+
+        this.groupingUnitSelector_ = tr.ui.b.createSelector(
+            this, 'groupingUnit',
+            'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
+            [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
+             {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
+            ]);
+        toolbarEl.appendChild(this.groupingUnitSelector_);
+
+        this.showCpuIdleTimeCheckbox_ = tr.ui.b.createCheckBox(
+            this, 'showCpuIdleTime',
+            'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
+            'Show CPU idle time');
+        toolbarEl.appendChild(this.showCpuIdleTimeCheckbox_);
+        this.updateShowCpuIdleTimeCheckboxVisibility_();
+      },
+
+      /**
+       * This function takes an array of groups and merges smaller groups into
+       * the provided 'Other' group item such that the remaining items are ready
+       * for pie-chart consumption. Otherwise, the pie chart gets overwhelmed
+       * with tons of little slices.
+       */
+      trimPieChartData: function(groups, otherGroup, getValue, opt_extraValue) {
+        // Copy the array so it can be mutated.
+        groups = groups.filter(function(d) {
+          return getValue(d) != 0;
+        });
+
+        // Figure out total array range.
+        var sum = tr.b.Statistics.sum(groups, getValue);
+        if (opt_extraValue !== undefined)
+          sum += opt_extraValue;
+
+        // Sort by value.
+        function compareByValue(a, b) {
+          return getValue(a) - getValue(b);
+        }
+        groups.sort(compareByValue);
+
+        // Now start fusing elements until none are less than threshold in size.
+        var thresshold = 0.1 * sum;
+        while (groups.length > 1) {
+          var group = groups[0];
+          if (getValue(group) >= thresshold)
+            break;
+
+          var v = getValue(group);
+          if (v + getValue(otherGroup) > thresshold)
+            break;
+
+          // Remove the group from the list and add it to the 'Other' group.
+          groups.splice(0, 1);
+          otherGroup.appendGroupContents(group);
+        }
+
+        // Final return.
+        if (getValue(otherGroup) > 0)
+          groups.push(otherGroup);
+
+        groups.sort(compareByValue);
+
+        return groups;
+      },
+
+      generateResultsForGroup: function(model, name) {
+        return new ResultsForGroup(model, name);
+      },
+
+      createPieChartFromResultGroups: function(
+          groups, title, getValue, opt_extraData) {
+        var chart = new tr.ui.b.PieChart();
+
+        function pushDataForGroup(data, resultsForGroup, value) {
+          data.push({
+            label: resultsForGroup.name,
+            value: value,
+            valueText: tr.b.units.TimeDuration.format(value),
+            resultsForGroup: resultsForGroup
+          });
+        }
+        chart.addEventListener('item-click', function(clickEvent) {
+          var resultsForGroup = clickEvent.data.resultsForGroup;
+          if (resultsForGroup === undefined)
+            return;
+
+          var event = new tr.model.RequestSelectionChangeEvent();
+          event.selection = new tr.model.EventSet(resultsForGroup.allSlices);
+          event.selection.timeSummaryGroupName = resultsForGroup.name;
+          chart.dispatchEvent(event);
+        });
+
+
+        // Build chart data.
+        var data = [];
+        groups.forEach(function(resultsForGroup) {
+          var value = getValue(resultsForGroup);
+          if (value === 0)
+            return;
+          pushDataForGroup(data, resultsForGroup, value);
+        });
+        if (opt_extraData)
+          data.push.apply(data, opt_extraData);
+
+        chart.chartTitle = title;
+        chart.data = data;
+        return chart;
+      },
+
+      get model() {
+        return this.model_;
+      },
+
+      set model(model) {
+        this.model_ = model;
+        this.updateContents_();
+      },
+
+      get listeningToKeys() {
+        return false;
+      },
+
+      get groupBy() {
+        return groupBy_;
+      },
+
+      set groupBy(groupBy) {
+        this.groupBy_ = groupBy;
+        if (this.groupBySelector_)
+          this.groupBySelector_.selectedValue = groupBy;
+        this.updateContents_();
+      },
+
+      get groupingUnit() {
+        return groupingUnit_;
+      },
+
+      set groupingUnit(groupingUnit) {
+        this.groupingUnit_ = groupingUnit;
+        if (this.groupingUnitSelector_)
+          this.groupingUnitSelector_.selectedValue = groupingUnit;
+        this.updateShowCpuIdleTimeCheckboxVisibility_();
+        this.updateContents_();
+      },
+
+      get showCpuIdleTime() {
+        return this.showCpuIdleTime_;
+      },
+
+      set showCpuIdleTime(showCpuIdleTime) {
+        this.showCpuIdleTime_ = showCpuIdleTime;
+        if (this.showCpuIdleTimeCheckbox_)
+          this.showCpuIdleTimeCheckbox_.checked = showCpuIdleTime;
+        this.updateContents_();
+      },
+
+      updateShowCpuIdleTimeCheckboxVisibility_: function() {
+        if (!this.showCpuIdleTimeCheckbox_)
+          return;
+        var visible = this.groupingUnit_ == CPU_TIME_GROUPING_UNIT;
+        if (visible)
+          this.showCpuIdleTimeCheckbox_.style.display = '';
+        else
+          this.showCpuIdleTimeCheckbox_.style.display = 'none';
+      },
+
+      getGroupNameForThread_: function(thread) {
+        if (this.groupBy_ == GROUP_BY_THREAD_NAME)
+          return thread.name ? thread.name : thread.userFriendlyName;
+
+        if (this.groupBy_ == GROUP_BY_PROCESS_NAME)
+          return thread.parent.userFriendlyName;
+      },
+
+      updateContents_: function() {
+        var resultArea = this.$.result_area;
+        this.chart_ = undefined;
+        resultArea.textContent = '';
+
+        if (this.model_ === undefined)
+          return;
+
+        var rangeOfInterest;
+        if (this.rangeOfInterest_.isEmpty)
+          rangeOfInterest = this.model_.bounds;
+        else
+          rangeOfInterest = this.rangeOfInterest_;
+
+        var allGroup = this.generateResultsForGroup(this.model_, 'all');
+        var resultsByGroupName = {};
+        this.model_.getAllThreads().forEach(function(thread) {
+          var groupName = this.getGroupNameForThread_(thread);
+          if (resultsByGroupName[groupName] === undefined) {
+            resultsByGroupName[groupName] = this.generateResultsForGroup(
+                this.model_, groupName);
+          }
+          resultsByGroupName[groupName].appendThreadSlices(
+              rangeOfInterest, thread);
+
+          allGroup.appendThreadSlices(rangeOfInterest, thread);
+        }, this);
+
+        // Helper function for working with the produced group.
+        var getValueFromGroup = function(group) {
+          if (this.groupingUnit_ == WALL_TIME_GROUPING_UNIT)
+            return group.wallTime;
+          return group.cpuTime;
+        }.bind(this);
+
+        // Create summary.
+        var summaryText = document.createElement('div');
+        summaryText.appendChild(tr.ui.b.createSpan({
+          textContent: 'Total ' + this.groupingUnit_ + ': ',
+          bold: true}));
+        summaryText.appendChild(tr.ui.units.createTimeDurationSpan(
+            getValueFromGroup(allGroup), {ownerDocument: this.ownerDocument}));
+        resultArea.appendChild(summaryText);
+
+        // If needed, add in the idle time.
+        var extraValue = 0;
+        var extraData = [];
+        if (this.showCpuIdleTime_ &&
+            this.groupingUnit_ === CPU_TIME_GROUPING_UNIT &&
+            this.model.kernel.bestGuessAtCpuCount !== undefined) {
+          var maxCpuTime = rangeOfInterest.range *
+              this.model.kernel.bestGuessAtCpuCount;
+          var idleTime = Math.max(0, maxCpuTime - allGroup.cpuTime);
+          extraData.push({
+            label: 'CPU Idle',
+            value: idleTime,
+            valueText: tr.b.units.TimeDuration.format(idleTime)
+          });
+          extraValue += idleTime;
+        }
+
+        // Create the actual chart.
+        var otherGroup = this.generateResultsForGroup(this.model_, 'Other');
+        var groups = this.trimPieChartData(
+            tr.b.dictionaryValues(resultsByGroupName),
+            otherGroup,
+            getValueFromGroup,
+            extraValue);
+
+        if (groups.length == 0) {
+          resultArea.appendChild(tr.ui.b.createSpan({textContent: 'No data'}));
+          return undefined;
+        }
+
+        this.chart_ = this.createPieChartFromResultGroups(
+            groups,
+            this.groupingUnit_ + ' breakdown by ' + this.groupBy_,
+            getValueFromGroup, extraData);
+        resultArea.appendChild(this.chart_);
+
+        this.chart_.addEventListener('click', function() {
+          var event = new tr.model.RequestSelectionChangeEvent();
+          event.selection = new tr.c.EventSet([]);
+          this.dispatchEvent(event);
+        });
+        this.chart_.setSize(this.chart_.getMinSize());
+      },
+
+      get selection() {
+        return selection_;
+      },
+
+      set selection(selection) {
+        this.selection_ = selection;
+
+        if (this.chart_ === undefined)
+          return;
+
+        if (selection.timeSummaryGroupName)
+          this.chart_.highlightedLegendKey = selection.timeSummaryGroupName;
+        else
+          this.chart_.highlightedLegendKey = undefined;
+      },
+
+      get rangeOfInterest() {
+        return this.rangeOfInterest_;
+      },
+
+      set rangeOfInterest(rangeOfInterest) {
+        this.rangeOfInterest_ = rangeOfInterest;
+        this.updateContents_();
+      },
+
+      supportsModel: function(model) {
+        return {
+          supported: false
+        };
+      },
+
+      get textLabel() {
+        return 'Time Summary';
+      }
+    });
+  }());
+  </script>
+</polymer-element>

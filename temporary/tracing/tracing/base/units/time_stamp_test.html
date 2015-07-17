@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/base/units/time_stamp.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Time = tr.b.units.Time;
+  var TimeStamp = tr.b.units.TimeStamp;
+
+  function checkFormat(timestamp, expectedString) {
+    assert.equal(TimeStamp.format(timestamp), expectedString);
+    assert.equal(new TimeStamp(timestamp).toString(), expectedString);
+  }
+
+  test('format', function() {
+    try {
+      // Use milliseconds to display time (default behavior).
+      Time.currentDisplayUnit = Time.supportedUnits.ms;
+
+      checkFormat(0, '0.000 ms');
+      checkFormat(0.02, '0.020 ms');
+      checkFormat(0.001, '0.001 ms');
+      checkFormat(0.0005, '0.001 ms');
+      checkFormat(0.00049, '0.000 ms');
+      checkFormat(999.999, '999.999 ms');
+      checkFormat(1000.001, '1,000.001 ms');
+      checkFormat(123456789, '123,456,789.000 ms');
+      checkFormat(-0.00051, '-0.001 ms');
+      checkFormat(-123456789, '-123,456,789.000 ms');
+
+      // Change the unit to nanoseconds.
+      Time.currentDisplayUnit = Time.supportedUnits.ns;
+
+      checkFormat(0, '0 ns');
+      checkFormat(1, '1,000,000 ns');
+      checkFormat(0.000042, '42 ns');
+      checkFormat(0.000001, '1 ns');
+      checkFormat(0.0000005, '1 ns');
+      checkFormat(0.00000049, '0 ns');
+      checkFormat(123.456, '123,456,000 ns');
+      checkFormat(-0.07, '-70,000 ns');
+    } finally {
+      Time.reset();
+    }
+  });
+});
+</script>

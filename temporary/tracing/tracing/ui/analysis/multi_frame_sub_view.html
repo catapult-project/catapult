@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/multi_event_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+
+<polymer-element name="tr-ui-a-multi-frame-sub-view"
+    extends="tr-ui-a-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.textContent = '';
+      var realView = document.createElement('tr-ui-a-multi-event-sub-view');
+      realView.eventsHaveDuration = false;
+      realView.eventsHaveSubRows = false;
+
+      this.appendChild(realView);
+      realView.setSelectionWithoutErrorChecks(selection);
+
+      this.currentSelection_ = selection;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      var selection = new tr.model.EventSet();
+      this.currentSelection_.forEach(function(frameEvent) {
+        frameEvent.associatedEvents.forEach(function(event) {
+          selection.push(event);
+        });
+      });
+      return selection;
+    }
+  });
+  </script>
+</polymer-element>

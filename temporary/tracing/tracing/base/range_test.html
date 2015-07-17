@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/range.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('addValue', function() {
+    var range = new tr.b.Range();
+    assert.isTrue(range.isEmpty);
+    range.addValue(1);
+    assert.isFalse(range.isEmpty);
+    assert.equal(1, range.min);
+    assert.equal(1, range.max);
+
+    range.addValue(2);
+    assert.isFalse(range.isEmpty);
+    assert.equal(1, range.min);
+    assert.equal(2, range.max);
+  });
+
+  test('addNonEmptyRange', function() {
+    var r1 = new tr.b.Range();
+    r1.addValue(1);
+    r1.addValue(2);
+
+    var r = new tr.b.Range();
+    r.addRange(r1);
+    assert.equal(1, r.min);
+    assert.equal(2, r.max);
+  });
+
+  test('addEmptyRange', function() {
+    var r1 = new tr.b.Range();
+
+    var r = new tr.b.Range();
+    r.addRange(r1);
+    assert.isTrue(r.isEmpty);
+    assert.isUndefined(r.min);
+    assert.isUndefined(r.max);
+  });
+
+  test('addRangeToRange', function() {
+    var r1 = new tr.b.Range();
+    r1.addValue(1);
+    r1.addValue(2);
+
+    var r = new tr.b.Range();
+    r.addValue(3);
+    r.addRange(r1);
+
+    assert.isFalse(r.isEmpty);
+    assert.equal(1, r.min);
+    assert.equal(3, r.max);
+  });
+});
+</script>

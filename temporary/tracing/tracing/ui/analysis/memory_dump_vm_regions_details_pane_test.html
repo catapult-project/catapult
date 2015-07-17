@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/process_memory_dump.html">
+<link rel="import"
+    href="/ui/analysis/memory_dump_vm_regions_details_pane.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var VMRegion = tr.model.VMRegion;
+
+  function createVMRegions() {
+    return [
+      VMRegion.fromDict({
+        mappedFile: '/lib/chrome.so',
+        startAddress: 65536,
+        sizeInBytes: 536870912,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 8192
+        }
+      }),
+      VMRegion.fromDict({
+        mappedFile: '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+        startAddress: 140296983150592,
+        sizeInBytes: 2097152,
+        protectionFlags: 0,
+        byteStats: {
+          proportionalResident: 0
+        }
+      }),
+      VMRegion.fromDict({
+        startAddress: 10995116277760,
+        sizeInBytes: 2147483648,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        byteStats: {
+          privateDirtyResident: 0,
+          swapped: 0
+        }
+      }),
+      VMRegion.fromDict({
+        startAddress: 12094627905536,
+        sizeInBytes: 2147483648,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        byteStats: {
+          privateDirtyResident: 0,
+          swapped: 0
+        }
+      }),
+      VMRegion.fromDict({
+        mappedFile: '/dev/ashmem/dalvik-zygote space',
+        startAddress: 13194139533312,
+        sizeInBytes: 100,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 100,
+          privateDirtyResident: 0,
+          swapped: 0
+        }
+      }),
+      VMRegion.fromDict({
+        mappedFile: '/dev/ashmem/libc malloc',
+        startAddress: 14293651161088,
+        sizeInBytes: 200,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          proportionalResident: 200,
+          privateDirtyResident: 0,
+          swapped: 0
+        }
+      })
+    ];
+  }
+
+  function checkRowValue(row, column, expectedValue) {
+    var value = column.value(row);
+    if (typeof(expectedValue) === 'number')
+      value = value.numBytes;
+    assert.equal(value, expectedValue);
+  }
+
+  test('instantiate_empty', function() {
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-vm-regions-details-pane');
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('instantiate_nonEmpty', function() {
+    var vmRegions = createVMRegions();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-vm-regions-details-pane');
+    viewEl.vmRegions = vmRegions;
+    this.addHTMLOutput(viewEl);
+
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-b-table');
+
+    var columns = table.tableColumns;
+
+    assert.lengthOf(columns, 7);
+    var titleColumn = columns[0];
+    var virtualSizeColumn = columns[1];
+    var proportionalResidentColumn = columns[2];
+    var privateDirtyResidentColumn = columns[3];
+    var swappedColumn = columns[4];
+    var startAddressColumn = columns[5];
+    var protectionFlagsColumn = columns[6];
+
+    function checkRow(row, expectedTitle, expectedVirtualSize,
+        expectedProportionalResident, expectedPrivateDirtyResident,
+        expectedSwapped, expectedStartAddress, expectedProtectionFlags,
+        expectedSubRowCount) {
+      checkRowValue(row, titleColumn, expectedTitle);
+      checkRowValue(row, virtualSizeColumn, expectedVirtualSize);
+      checkRowValue(
+          row, proportionalResidentColumn, expectedProportionalResident);
+      checkRowValue(
+          row, privateDirtyResidentColumn, expectedPrivateDirtyResident);
+      checkRowValue(row, swappedColumn, expectedSwapped);
+      checkRowValue(row, startAddressColumn, expectedStartAddress);
+      checkRowValue(row, protectionFlagsColumn, expectedProtectionFlags);
+
+      if (expectedSubRowCount === undefined)
+        assert.isUndefined(row.subRows);
+      else
+        assert.lengthOf(row.subRows, expectedSubRowCount);
+    }
+
+    // Check the rows of the table.
+    var rows = table.tableRows;
+    assert.lengthOf(rows, 1);
+
+    var totalRow = rows[0];
+    checkRow(totalRow, 'Total', 4833935660, 8492, 0, 0, '', '', 7);
+
+    var androidRow = totalRow.subRows[0];
+    checkRow(androidRow, 'Android', 100, 100, 0, 0, '', '', 3);
+
+    var javaRuntimeRow = androidRow.subRows[0];
+    checkRow(javaRuntimeRow, 'Java runtime', 100, 100, 0, 0, '', '', 5);
+
+    var spacesRow = javaRuntimeRow.subRows[0];
+    checkRow(spacesRow, 'Spaces', 100, 100, 0, 0, '', '', 4);
+
+    var normalRow = spacesRow.subRows[0];
+    checkRow(normalRow, 'Normal', '', '', '', '', '', '', 0);
+
+    var filesRow = totalRow.subRows[3];
+    checkRow(filesRow, 'Files', 538968064, 8192, '', '', '', '', 7);
+
+    var soRow = filesRow.subRows[0];
+    checkRow(soRow, 'so', 538968064, 8192, '', '', '', '', 2);
+
+    var mmapChromeRow = soRow.subRows[0];
+    checkRow(mmapChromeRow, '/lib/chrome.so', 536870912, 8192, '', '',
+        '0000000000010000', 'r-x', undefined);
+
+    var mmapLibX11Row = soRow.subRows[1];
+    checkRow(mmapLibX11Row, '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+        2097152, 0, '', '', '00007f996fd80000', '---', undefined);
+
+    var otherRow = totalRow.subRows[6];
+    checkRow(otherRow, 'Other', 4294967296, '', 0, 0, '', '', 2);
+
+    var mmapOther2Row = otherRow.subRows[1];
+    checkRow(mmapOther2Row, '', 2147483648, '', 0, 0, '00000b0000000000',
+        'rw-', undefined);
+  });
+});
+</script>

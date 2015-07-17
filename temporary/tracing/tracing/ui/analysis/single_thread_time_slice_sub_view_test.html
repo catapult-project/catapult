@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_thread_time_slice_sub_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  function createBasicModel() {
+    var lines = [
+      'Android.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
+      '       Binder_1-217   [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=D ==> next_comm=Android.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
+      'Android.launcher-584   [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
+      'Android.launcher-584   [001] d..3 12622.506950: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
+      '       Binder_1-217   [001] ...1 12622.507057: tracing_mark_write: B|128|queueBuffer', // @suppress longLineCheck
+      '       Binder_1-217   [001] ...1 12622.507175: tracing_mark_write: E',
+      '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
+    ];
+
+    return new tr.Model(lines.join('\n'), false);
+  }
+
+  test('runningSlice', function() {
+    var m = createBasicModel();
+
+    var cpu = m.kernel.cpus[1];
+    var binderSlice = cpu.slices[0];
+    assert.equal(binderSlice.title, 'Binder_1');
+    var launcherSlice = cpu.slices[1];
+    assert.equal(launcherSlice.title, 'Android.launcher');
+
+
+    var thread = m.findAllThreadsNamed('Binder_1')[0];
+
+    var view = document.createElement(
+        'tr-ui-a-single-thread-time-slice-sub-view');
+    var selection = new tr.model.EventSet();
+    selection.push(thread.timeSlices[0]);
+    view.selection = selection;
+    this.addHTMLOutput(view);
+
+    // Clicking the analysis link should focus the Binder1's timeslice.
+    var didSelectionChangeHappen = false;
+    view.addEventListener('requestSelectionChange', function(e) {
+      assert.equal(e.selection.length, 1);
+      assert.equal(e.selection[0], binderSlice);
+      didSelectionChangeHappen = true;
+    });
+    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    assert.isTrue(didSelectionChangeHappen);
+  });
+
+  test('sleepingSlice', function() {
+    var m = createBasicModel();
+
+    var cpu = m.kernel.cpus[1];
+    var binderSlice = cpu.slices[0];
+    assert.equal(binderSlice.title, 'Binder_1');
+    var launcherSlice = cpu.slices[1];
+    assert.equal(launcherSlice.title, 'Android.launcher');
+
+
+    var thread = m.findAllThreadsNamed('Binder_1')[0];
+
+    var view = document.createElement(
+        'tr-ui-a-single-thread-time-slice-sub-view');
+    var selection = new tr.model.EventSet();
+    selection.push(thread.timeSlices[1]);
+    view.selection = selection;
+    this.addHTMLOutput(view);
+
+    // Clicking the analysis link should focus the Android.launcher slice
+    var didSelectionChangeHappen = false;
+    view.addEventListener('requestSelectionChange', function(e) {
+      assert.equal(e.selection.length, 1);
+      assert.equal(e.selection[0], launcherSlice);
+      didSelectionChangeHappen = true;
+    });
+    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    assert.isTrue(didSelectionChangeHappen);
+  });
+});
+</script>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function getSynchronous(url) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, false);
+    // Without the mime type specified like this, the file's bytes are not
+    // retrieved correctly.
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.send(null);
+    return req.responseText;
+  }
+
+  var ZOOM_STEPS = 10;
+  var ZOOM_COEFFICIENT = 1.2;
+
+  var model = undefined;
+
+  var drawingContainer;
+  var viewportDiv;
+
+  var viewportWidth;
+  var worldMid;
+
+  var startScale = undefined;
+
+  function timedCounterTrackPerfTest(name, testFn, iterations) {
+
+    function setUpOnce() {
+      if (model !== undefined)
+        return;
+      var fileUrl = '/test_data/counter_tracks.html';
+      var events = getSynchronous(fileUrl);
+      model = new tr.Model();
+      model.importTraces([events], true);
+    }
+
+    function setUp() {
+      setUpOnce();
+      viewportDiv = document.createElement('div');
+
+      var viewport = new tr.ui.TimelineViewport(viewportDiv);
+
+      drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+      viewport.modelTrackContainer = drawingContainer;
+
+      var modelTrack = new tr.ui.tracks.ModelTrack(viewport);
+      drawingContainer.appendChild(modelTrack);
+
+      modelTrack.model = model;
+
+      viewportDiv.appendChild(drawingContainer);
+
+      this.addHTMLOutput(viewportDiv);
+
+      // Size the canvas.
+      drawingContainer.updateCanvasSizeIfNeeded_();
+
+      // Size the viewport.
+      viewportWidth = drawingContainer.canvas.width;
+      var min = model.bounds.min;
+      var range = model.bounds.range;
+      worldMid = min + range / 2;
+
+      var boost = range * 0.15;
+      var dt = new tr.ui.TimelineDisplayTransform();
+      dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
+      modelTrack.viewport.setDisplayTransformImmediately(dt);
+      startScale = dt.scaleX;
+
+      // Select half of the counter samples.
+      for (var pid in model.processes) {
+        var counters = model.processes[pid].counters;
+        for (var cid in counters) {
+          var series = counters[cid].series;
+          for (var i = 0; i < series.length; i++) {
+            var samples = series[i].samples;
+            for (var j = Math.floor(samples.length / 2); j < samples.length;
+                 j++) {
+              samples[j].selectionState =
+                  tr.model.SelectionState.SELECTED;
+            }
+          }
+        }
+      }
+    };
+
+    function tearDown() {
+      viewportDiv.innerText = '';
+      drawingContainer = undefined;
+    }
+
+    timedPerfTest(name, testFn, {
+      setUp: setUp,
+      tearDown: tearDown,
+      iterations: iterations
+    });
+  }
+
+  var n110100 = [1, 10, 100];
+  n110100.forEach(function(val) {
+    timedCounterTrackPerfTest(
+        'draw_softwareCanvas_' + val,
+        function() {
+          var scale = startScale;
+          for (var i = 0; i < ZOOM_STEPS; i++) {
+            var dt = drawingContainer.viewport.currentDisplayTransform.clone();
+            scale *= ZOOM_COEFFICIENT;
+            dt.scaleX = scale;
+            dt.xPanWorldPosToViewPos(worldMid, 'center', viewportWidth);
+            drawingContainer.viewport.setDisplayTransformImmediately(dt);
+            drawingContainer.draw_();
+          }
+        }, val);
+  });
+});
+</script>
+

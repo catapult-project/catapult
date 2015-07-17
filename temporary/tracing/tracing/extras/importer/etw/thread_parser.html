@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/etw/parser.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Parses threads events in the Windows event trace format.
+ *
+ * The Windows thread events are:
+ *
+ * - DCStart: Describes a thread that was already running when the trace
+ *    started. ETW automatically generates these events for all running
+ *    threads at the beginning of the trace.
+ * - Start: Describes a thread that started during the tracing session.
+ * - End: Describes a thread that ended during the tracing session.
+ * - DCEnd: Describes a thread that was still alive when the trace ended.
+ *
+ * See http://msdn.microsoft.com/library/windows/desktop/aa364132.aspx
+ */
+tr.exportTo('tr.e.importer.etw', function() {
+  var Parser = tr.e.importer.etw.Parser;
+
+  // Constants for Thread events.
+  var guid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
+  var kThreadStartOpcode = 1;
+  var kThreadEndOpcode = 2;
+  var kThreadDCStartOpcode = 3;
+  var kThreadDCEndOpcode = 4;
+  var kThreadCSwitchOpcode = 36;
+
+  /**
+   * Parses Windows threads trace events.
+   * @constructor
+   */
+  function ThreadParser(importer) {
+    Parser.call(this, importer);
+
+    // Register handlers.
+    importer.registerEventHandler(guid, kThreadStartOpcode,
+        ThreadParser.prototype.decodeStart.bind(this));
+    importer.registerEventHandler(guid, kThreadEndOpcode,
+        ThreadParser.prototype.decodeEnd.bind(this));
+    importer.registerEventHandler(guid, kThreadDCStartOpcode,
+        ThreadParser.prototype.decodeDCStart.bind(this));
+    importer.registerEventHandler(guid, kThreadDCEndOpcode,
+        ThreadParser.prototype.decodeDCEnd.bind(this));
+    importer.registerEventHandler(guid, kThreadCSwitchOpcode,
+        ThreadParser.prototype.decodeCSwitch.bind(this));
+  }
+
+  ThreadParser.prototype = {
+    __proto__: Parser.prototype,
+
+    decodeFields: function(header, decoder) {
+      if (header.version > 3)
+        throw new Error('Incompatible Thread event version.');
+
+      // Common fields to all Thread events.
+      var processId = decoder.decodeUInt32();
+      var threadId = decoder.decodeUInt32();
+
+      // Extended fields.
+      var stackBase;
+      var stackLimit;
+      var userStackBase;
+      var userStackLimit;
+      var affinity;
+      var startAddr;
+      var win32StartAddr;
+      var tebBase;
+      var subProcessTag;
+      var basePriority;
+      var pagePriority;
+      var ioPriority;
+      var threadFlags;
+      var waitMode;
+
+      if (header.version == 1) {
+        // On version 1, only start events have extended information.
+        if (header.opcode == kThreadStartOpcode ||
+            header.opcode == kThreadDCStartOpcode) {
+          stackBase = decoder.decodeUInteger(header.is64);
+          stackLimit = decoder.decodeUInteger(header.is64);
+          userStackBase = decoder.decodeUInteger(header.is64);
+          userStackLimit = decoder.decodeUInteger(header.is64);
+          startAddr = decoder.decodeUInteger(header.is64);
+          win32StartAddr = decoder.decodeUInteger(header.is64);
+          waitMode = decoder.decodeInt8();
+          decoder.skip(3);
+        }
+      } else {
+        stackBase = decoder.decodeUInteger(header.is64);
+        stackLimit = decoder.decodeUInteger(header.is64);
+        userStackBase = decoder.decodeUInteger(header.is64);
+        userStackLimit = decoder.decodeUInteger(header.is64);
+
+        // Version 2 produces a field named 'startAddr'.
+        if (header.version == 2)
+          startAddr = decoder.decodeUInteger(header.is64);
+        else
+          affinity = decoder.decodeUInteger(header.is64);
+
+        win32StartAddr = decoder.decodeUInteger(header.is64);
+        tebBase = decoder.decodeUInteger(header.is64);
+        subProcessTag = decoder.decodeUInt32();
+
+        if (header.version == 3) {
+          basePriority = decoder.decodeUInt8();
+          pagePriority = decoder.decodeUInt8();
+          ioPriority = decoder.decodeUInt8();
+          threadFlags = decoder.decodeUInt8();
+        }
+      }
+
+      return {
+        processId: processId,
+        threadId: threadId,
+        stackBase: stackBase,
+        stackLimit: stackLimit,
+        userStackBase: userStackBase,
+        userStackLimit: userStackLimit,
+        affinity: affinity,
+        startAddr: startAddr,
+        win32StartAddr: win32StartAddr,
+        tebBase: tebBase,
+        subProcessTag: subProcessTag,
+        waitMode: waitMode,
+        basePriority: basePriority,
+        pagePriority: pagePriority,
+        ioPriority: ioPriority,
+        threadFlags: threadFlags
+      };
+    },
+
+    decodeCSwitchFields: function(header, decoder) {
+      if (header.version != 2)
+        throw new Error('Incompatible Thread event version.');
+
+      // Decode CSwitch payload.
+      var newThreadId = decoder.decodeUInt32();
+      var oldThreadId = decoder.decodeUInt32();
+      var newThreadPriority = decoder.decodeInt8();
+      var oldThreadPriority = decoder.decodeInt8();
+      var previousCState = decoder.decodeUInt8();
+      var spareByte = decoder.decodeInt8();
+      var oldThreadWaitReason = decoder.decodeInt8();
+      var oldThreadWaitMode = decoder.decodeInt8();
+      var oldThreadState = decoder.decodeInt8();
+      var oldThreadWaitIdealProcessor = decoder.decodeInt8();
+      var newThreadWaitTime = decoder.decodeUInt32();
+      var reserved = decoder.decodeUInt32();
+
+      return {
+        newThreadId: newThreadId,
+        oldThreadId: oldThreadId,
+        newThreadPriority: newThreadPriority,
+        oldThreadPriority: oldThreadPriority,
+        previousCState: previousCState,
+        spareByte: spareByte,
+        oldThreadWaitReason: oldThreadWaitReason,
+        oldThreadWaitMode: oldThreadWaitMode,
+        oldThreadState: oldThreadState,
+        oldThreadWaitIdealProcessor: oldThreadWaitIdealProcessor,
+        newThreadWaitTime: newThreadWaitTime,
+        reserved: reserved
+      };
+    },
+
+    decodeStart: function(header, decoder) {
+      var fields = this.decodeFields(header, decoder);
+      this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
+      return true;
+    },
+
+    decodeEnd: function(header, decoder) {
+      var fields = this.decodeFields(header, decoder);
+      this.importer.removeThreadIfPresent(fields.threadId);
+      return true;
+    },
+
+    decodeDCStart: function(header, decoder) {
+      var fields = this.decodeFields(header, decoder);
+      this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
+      return true;
+    },
+
+    decodeDCEnd: function(header, decoder) {
+      var fields = this.decodeFields(header, decoder);
+      this.importer.removeThreadIfPresent(fields.threadId);
+      return true;
+    },
+
+    decodeCSwitch: function(header, decoder) {
+      var fields = this.decodeCSwitchFields(header, decoder);
+      var cpu = this.importer.getOrCreateCpu(header.cpu);
+      var new_thread =
+          this.importer.getThreadFromWindowsTid(fields.newThreadId);
+
+      // Generate the new thread name. If some events were lost, it's possible
+      // that information about the new thread or process is not available.
+      var new_thread_name;
+      if (new_thread && new_thread.userFriendlyName) {
+        new_thread_name = new_thread.userFriendlyName;
+      } else {
+        var new_process_id = this.importer.getPidFromWindowsTid(
+            fields.newThreadId);
+        var new_process = this.model.getProcess(new_process_id);
+        var new_process_name;
+        if (new_process)
+          new_process_name = new_process.name;
+        else
+          new_process_name = 'Unknown process';
+
+        new_thread_name =
+            new_process_name + ' (tid ' + fields.newThreadId + ')';
+      }
+
+      cpu.switchActiveThread(
+          header.timestamp,
+          {},
+          fields.newThreadId,
+          new_thread_name,
+          fields);
+      return true;
+    }
+
+  };
+
+  Parser.register(ThreadParser);
+
+  return {
+    ThreadParser: ThreadParser
+  };
+});
+</script>
+

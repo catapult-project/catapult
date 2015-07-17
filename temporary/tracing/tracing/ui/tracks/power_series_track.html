@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/color_scheme.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+<link rel="import" href="/ui/tracks/chart_series.html">
+<link rel="import" href="/ui/tracks/chart_track.html">
+
+<style>
+.power-series-track {
+  height: 90px;
+}
+</style>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  var ChartTrack = tr.ui.tracks.ChartTrack;
+
+  /**
+   * A track that displays a PowerSeries.
+   *
+   * @constructor
+   * @extends {ChartTrack}
+   */
+  var PowerSeriesTrack = tr.ui.b.define('power-series-track', ChartTrack);
+
+  PowerSeriesTrack.prototype = {
+    __proto__: ChartTrack.prototype,
+
+    decorate: function(viewport) {
+      ChartTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('power-series-track');
+      this.heading = 'Power';
+      this.powerSeries_ = undefined;
+    },
+
+    set powerSeries(powerSeries) {
+      this.powerSeries_ = powerSeries;
+
+      this.series = this.buildChartSeries_();
+      this.autoSetAllAxes({expandMax: true});
+    },
+
+    get hasVisibleContent() {
+      return (this.powerSeries_ && this.powerSeries_.samples.length > 0);
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.powerSeries_, this);
+    },
+
+    buildChartSeries_: function() {
+      if (!this.hasVisibleContent)
+        return [];
+
+      var axis = new tr.ui.tracks.ChartAxis(0, undefined);
+      var pts = this.powerSeries_.samples.map(function(smpl) {
+        return new tr.ui.tracks.ChartPoint(smpl, smpl.start, smpl.power);
+      });
+      var renderingConfig = {
+        chartType: tr.ui.tracks.ChartSeriesType.AREA,
+        colorId: tr.ui.b.getColorIdForGeneralPurposeString(this.heading)
+      };
+
+      return [new tr.ui.tracks.ChartSeries(pts, axis, renderingConfig)];
+    }
+  };
+
+  return {
+    PowerSeriesTrack: PowerSeriesTrack
+  };
+});
+</script>

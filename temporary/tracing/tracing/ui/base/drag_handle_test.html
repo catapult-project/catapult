@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/base/drag_handle.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var createDragHandle = function() {
+    var el = document.createElement('div');
+    el.style.border = '1px solid black';
+    el.style.width = '200px';
+    el.style.height = '200px';
+    el.style.display = '-webkit-flex';
+    el.style.webkitFlexDirection = 'column';
+
+    var upperEl = document.createElement('div');
+    upperEl.style.webkitFlex = '1 1 auto';
+
+    var lowerEl = document.createElement('div');
+    lowerEl.style.height = '100px';
+
+    var dragHandle = new tr.ui.b.DragHandle();
+    dragHandle.target = lowerEl;
+
+    el.appendChild(upperEl);
+    el.appendChild(dragHandle);
+    el.appendChild(lowerEl);
+    el.upperEl = upperEl;
+    el.dragHandle = dragHandle;
+    el.lowerEl = lowerEl;
+
+    el.getLowerElHeight = function() {
+      return parseInt(getComputedStyle(this.lowerEl).height);
+    };
+    return el;
+  };
+
+  test('instantiate', function() {
+    this.addHTMLOutput(createDragHandle());
+  });
+
+  test('applyDelta', function() {
+    var el = createDragHandle();
+    document.body.appendChild(el);
+
+    var dragHandle = el.dragHandle;
+    var oldHeight = el.getLowerElHeight();
+    dragHandle.applyDelta_(10);
+    assert.equal(el.getLowerElHeight(), oldHeight + 10);
+
+    document.body.removeChild(el);
+  });
+
+  test('classNameMutation', function() {
+    var el = createDragHandle();
+
+    var styleEl = document.createElement('style');
+    styleEl.textContent =
+        '.mode-a { height: 100px; } .mode-b { height: 50px; }';
+    document.head.appendChild(styleEl);
+
+    document.body.appendChild(el);
+
+    var dragHandle = el.dragHandle;
+    el.lowerEl.className = 'mode-a';
+    assert.equal(el.getLowerElHeight(), 100);
+
+    dragHandle.applyDelta_(10);
+    assert.equal(el.getLowerElHeight(), 110);
+
+    // Change the class, which should restore the layout
+    // to the default sizing for mode-b
+    el.lowerEl.className = 'mode-b';
+    dragHandle.forceMutationObserverFlush_();
+    assert.equal(el.getLowerElHeight(), 50);
+
+    dragHandle.applyDelta_(10);
+    assert.equal(el.getLowerElHeight(), 60);
+
+    // Restore the class-a, which should restore the layout
+    // to sizing when we were changed.
+    el.lowerEl.className = 'mode-a';
+    dragHandle.forceMutationObserverFlush_();
+    assert.equal(el.getLowerElHeight(), 110);
+
+    document.head.removeChild(styleEl);
+    document.body.removeChild(el);
+  });
+});
+</script>

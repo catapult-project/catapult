@@ -1,0 +1,16 @@
+me: polymer
+Short Name: polymer
+URL: http://www.polymer-project.org/
+Version: 0.5.5
+Revision: None
+Date: Mar 24, 2015
+License: BSD
+License File: NOT_SHIPPED
+Security Critical: no
+
+Description:
+Polymer framework.
+
+Local modifications:
+ - Removed comment lines with {{var_names}} from polymer.js because of
+   breaking GRIT in Chromium. See #854

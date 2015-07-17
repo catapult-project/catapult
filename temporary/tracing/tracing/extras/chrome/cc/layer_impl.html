@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/constants.html">
+<link rel="import" href="/extras/chrome/cc/region.html">
+<link rel="import" href="/extras/chrome/cc/tile_coverage_rect.html">
+<link rel="import" href="/base/rect.html">
+<link rel="import" href="/model/object_instance.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.cc', function() {
+  var constants = tr.e.cc.constants;
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
+
+  /**
+   * @constructor
+   */
+  function LayerImplSnapshot() {
+    ObjectSnapshot.apply(this, arguments);
+  }
+
+  LayerImplSnapshot.prototype = {
+    __proto__: ObjectSnapshot.prototype,
+
+    preInitialize: function() {
+      tr.e.cc.preInitializeObject(this);
+
+      this.layerTreeImpl_ = undefined;
+      this.parentLayer = undefined;
+    },
+
+    initialize: function() {
+      // Defaults.
+      this.invalidation = new tr.e.cc.Region();
+      this.annotatedInvalidation = new tr.e.cc.Region();
+      this.unrecordedRegion = new tr.e.cc.Region();
+      this.pictures = [];
+
+      // Import & validate this.args
+      tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
+          this, ['layerId', 'children',
+                 'layerQuad']);
+      tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
+          this, ['maskLayer', 'replicaLayer',
+                 'idealContentsScale', 'geometryContentsScale',
+                 'layoutRects', 'usingGpuRasterization']);
+
+      // Leave gpu memory usage in both places.
+      this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
+
+      // Leave bounds in both places.
+      this.bounds = tr.b.Rect.fromXYWH(
+          0, 0,
+          this.args.bounds.width, this.args.bounds.height);
+
+      if (this.args.animationBounds) {
+        // AnimationBounds[2] and [5] are the Z-component of the box.
+        this.animationBoundsRect = tr.b.Rect.fromXYWH(
+            this.args.animationBounds[0], this.args.animationBounds[1],
+            this.args.animationBounds[3], this.args.animationBounds[4]);
+      }
+
+      for (var i = 0; i < this.children.length; i++)
+        this.children[i].parentLayer = this;
+      if (this.maskLayer)
+        this.maskLayer.parentLayer = this;
+      if (this.replicaLayer)
+        this.replicaLayer.parentLayer = this;
+      if (!this.geometryContentsScale)
+        this.geometryContentsScale = 1.0;
+      if (!this.idealContentsScale)
+        this.idealContentsScale = 1.0;
+
+      this.touchEventHandlerRegion = tr.e.cc.Region.fromArrayOrUndefined(
+          this.args.touchEventHandlerRegion);
+      this.wheelEventHandlerRegion = tr.e.cc.Region.fromArrayOrUndefined(
+          this.args.wheelEventHandlerRegion);
+      this.nonFastScrollableRegion = tr.e.cc.Region.fromArrayOrUndefined(
+          this.args.nonFastScrollableRegion);
+    },
+
+    get layerTreeImpl() {
+      if (this.layerTreeImpl_)
+        return this.layerTreeImpl_;
+      if (this.parentLayer)
+        return this.parentLayer.layerTreeImpl;
+      return undefined;
+    },
+    set layerTreeImpl(layerTreeImpl) {
+      this.layerTreeImpl_ = layerTreeImpl;
+    },
+
+    get activeLayer() {
+      if (this.layerTreeImpl.whichTree == constants.ACTIVE_TREE)
+        return this;
+      var activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
+      return activeTree.findLayerWithId(this.layerId);
+    },
+
+    get pendingLayer() {
+      if (this.layerTreeImpl.whichTree == constants.PENDING_TREE)
+        return this;
+      var pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
+      return pendingTree.findLayerWithId(this.layerId);
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  function PictureLayerImplSnapshot() {
+    LayerImplSnapshot.apply(this, arguments);
+  }
+
+  PictureLayerImplSnapshot.prototype = {
+    __proto__: LayerImplSnapshot.prototype,
+
+    initialize: function() {
+      LayerImplSnapshot.prototype.initialize.call(this);
+
+      if (this.args.invalidation) {
+        this.invalidation = tr.e.cc.Region.fromArray(this.args.invalidation);
+        delete this.args.invalidation;
+      }
+      if (this.args.annotatedInvalidationRects) {
+        this.annotatedInvalidation = new tr.e.cc.Region();
+        for (var i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
+          var annotatedRect = this.args.annotatedInvalidationRects[i];
+          var rect = annotatedRect.geometryRect;
+          rect.reason = annotatedRect.reason;
+          this.annotatedInvalidation.addRect(rect);
+        }
+        delete this.args.annotatedInvalidationRects;
+      }
+      if (this.args.unrecordedRegion) {
+        this.unrecordedRegion = tr.e.cc.Region.fromArray(
+            this.args.unrecordedRegion);
+        delete this.args.unrecordedRegion;
+      }
+      if (this.args.pictures) {
+        this.pictures = this.args.pictures;
+
+        // The picture list comes in with an unknown ordering. We resort based
+        // on timestamp order so we will draw the base picture first and the
+        // various fixes on top of that.
+        this.pictures.sort(function(a, b) { return a.ts - b.ts; });
+      }
+
+      this.tileCoverageRects = [];
+      if (this.args.coverageTiles) {
+        for (var i = 0; i < this.args.coverageTiles.length; ++i) {
+          var rect = this.args.coverageTiles[i].geometryRect.scale(
+              this.idealContentsScale);
+          var tile = this.args.coverageTiles[i].tile;
+          this.tileCoverageRects.push(new tr.e.cc.TileCoverageRect(rect, tile));
+        }
+        delete this.args.coverageTiles;
+      }
+    }
+  };
+
+  ObjectSnapshot.register(
+      PictureLayerImplSnapshot,
+      {
+        typeName: 'cc::PictureLayerImpl'
+      });
+
+  ObjectSnapshot.register(
+      LayerImplSnapshot,
+      {
+        typeNames: [
+          'cc::LayerImpl',
+          'cc::DelegatedRendererLayerImpl',
+          'cc::HeadsUpDisplayLayerImpl',
+          'cc::IOSurfaceLayerImpl',
+          'cc::NinePatchLayerImpl',
+          'cc::PictureImageLayerImpl',
+          'cc::ScrollbarLayerImpl',
+          'cc::SolidColorLayerImpl',
+          'cc::SurfaceLayerImpl',
+          'cc::TextureLayerImpl',
+          'cc::TiledLayerImpl',
+          'cc::VideoLayerImpl',
+          'cc::PaintedScrollbarLayerImpl',
+          'ClankPatchLayer',
+          'TabBorderLayer',
+          'CounterLayer'
+        ]
+      });
+
+  return {
+    LayerImplSnapshot: LayerImplSnapshot,
+    PictureLayerImplSnapshot: PictureLayerImplSnapshot
+  };
+});
+</script>

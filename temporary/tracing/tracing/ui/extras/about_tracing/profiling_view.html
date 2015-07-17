@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base64.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/record_and_capture_controller.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/inspector_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/xhr_based_tracing_controller_client.html">
+<link rel="import" href="/ui/base/info_bar_group.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/timeline_view.html">
+
+<style>
+x-profiling-view {
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+  padding: 0;
+}
+
+x-profiling-view .controls #save-button {
+  margin-left: 64px !important;
+}
+
+x-profiling-view .controls #upload-button {
+  display: none;
+}
+
+x-profiling-view > tr-ui-timeline-view {
+  -webkit-flex: 1 1 auto;
+  min-height: 0;
+}
+
+.report-id-message {
+  -webkit-user-select: text;
+}
+
+x-timeline-view-buttons,
+x-timeline-view-buttons > #monitoring-elements {
+  display: flex;
+  align-items: center;
+}
+</style>
+
+<template id="profiling-view-template">
+  <tr-ui-b-info-bar-group></tr-ui-b-info-bar-group>
+  <x-timeline-view-buttons>
+    <button id="record-button">Record</button>
+    <span id="monitoring-elements">
+      <input id="monitor-checkbox" type="checkbox">
+      <label for="monitor-checkbox">Monitoring</label></input>
+      <button id="capture-button">Capture Monitoring Snapshot</button>
+    </span>
+    <button id="save-button">Save</button>
+    <button id="upload-button">Upload</button>
+    <button id="load-button">Load</button>
+  </x-timeline-view-buttons>
+  <tr-ui-timeline-view>
+    <track-view-container id='track_view_container'></track-view-container>
+  </tr-ui-timeline-view>
+</template>
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview ProfilingView glues the View control to
+ * TracingController.
+ */
+tr.exportTo('tr.ui.e.about_tracing', function() {
+  function readFile(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      var filename = file.name;
+      reader.onload = function(data) {
+        resolve(data.target.result);
+      };
+      reader.onerror = function(err) {
+        reject(err);
+      }
+
+      var is_binary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
+      if (is_binary)
+        reader.readAsArrayBuffer(file);
+      else
+        reader.readAsText(file);
+    });
+  }
+
+  /**
+   * ProfilingView
+   * @constructor
+   * @extends {HTMLUnknownElement}
+   */
+  var ProfilingView = tr.ui.b.define('x-profiling-view');
+  var THIS_DOC = document.currentScript.ownerDocument;
+  var REPORT_UPLOAD_URL = 'http://crash-staging/';
+
+  ProfilingView.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function(tracingControllerClient) {
+      this.appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
+          THIS_DOC));
+
+      this.timelineView_ = this.querySelector('tr-ui-timeline-view');
+      this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
+
+      // Detach the buttons. We will reattach them to the timeline view.
+      // TODO(nduca): Make timeline-view have a content select="x-buttons"
+      // that pulls in any buttons.
+      this.monitoringElements_ = this.querySelector('#monitoring-elements');
+      this.monitorCheckbox_ = this.querySelector('#monitor-checkbox');
+      this.captureButton_ = this.querySelector('#capture-button');
+      this.recordButton_ = this.querySelector('#record-button');
+      this.loadButton_ = this.querySelector('#load-button');
+      this.saveButton_ = this.querySelector('#save-button');
+      this.uploadButton_ = this.querySelector('#upload-button');
+
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      buttons.parentElement.removeChild(buttons);
+      this.timelineView_.leftControls.appendChild(buttons);
+      this.initButtons_();
+
+      this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: 'r'.charCodeAt(0),
+        callback: function(e) {
+          this.beginRecording();
+          event.stopPropagation();
+        },
+        thisArg: this
+      }));
+
+      this.initDragAndDrop_();
+
+      if (tracingControllerClient) {
+        this.tracingControllerClient_ = tracingControllerClient;
+      } else if (window.DevToolsHost !== undefined) {
+        this.tracingControllerClient_ =
+            new tr.ui.e.about_tracing.InspectorTracingControllerClient();
+      } else {
+        this.tracingControllerClient_ =
+            new tr.ui.e.about_tracing.XhrBasedTracingControllerClient();
+      }
+
+      this.isRecording_ = false;
+      this.isMonitoring_ = false;
+      this.activeTrace_ = undefined;
+
+      window.onMonitoringStateChanged = function(is_monitoring) {
+        this.onMonitoringStateChanged_(is_monitoring);
+      }.bind(this);
+
+      window.onUploadError = function(error_message) {
+        this.setUploadOverlayText_(['Trace upload failed: ' + error_message]);
+      }.bind(this);
+      window.onUploadProgress = function(percent, currentAsString,
+                                         totalAsString) {
+        this.setUploadOverlayText_(
+            ['Upload progress: ' + percent + '% (' + currentAsString + ' of ' +
+            currentAsString + ' bytes)']);
+      }.bind(this);
+      window.onUploadComplete = function(reportId) {
+        var messageDiv = document.createElement('div');
+        var textNode = document.createTextNode(
+            'Trace uploaded successfully. Report id: ');
+        messageDiv.appendChild(textNode);
+        var reportLink = document.createElement('a');
+        messageDiv.appendChild(reportLink);
+        reportLink.href = REPORT_UPLOAD_URL + reportId;
+        reportLink.text = reportId;
+        reportLink.className = 'report-id-message';
+        reportLink.target = '_blank';
+        this.setUploadOverlayContent_(messageDiv);
+      }.bind(this);
+
+      this.getMonitoringStatus();
+      this.updateTracingControllerSpecificState_();
+    },
+
+    // Detach all document event listeners. Without this the tests can get
+    // confused as the element may still be listening when the next test runs.
+    detach_: function() {
+      this.detachDragAndDrop_();
+    },
+
+    get isRecording() {
+      return this.isRecording_;
+    },
+
+    get isMonitoring() {
+      return this.isMonitoring_;
+    },
+
+    set tracingControllerClient(tracingControllerClient) {
+      this.tracingControllerClient_ = tracingControllerClient;
+      this.updateTracingControllerSpecificState_();
+    },
+
+    updateTracingControllerSpecificState_: function() {
+      var isInspector = this.tracingControllerClient_ instanceof
+          tr.ui.e.about_tracing.InspectorTracingControllerClient;
+
+      if (isInspector) {
+        this.infoBarGroup_.addMessage(
+            'This about:tracing is connected to a remote device...',
+            [{buttonText: 'Wow!', onClick: function() {}}]);
+      }
+
+      this.monitoringElements_.style.display = isInspector ? 'none' : '';
+    },
+
+    beginRecording: function() {
+      if (this.isRecording_)
+        throw new Error('Already recording');
+      if (this.isMonitoring_)
+        throw new Error('Already monitoring');
+      this.isRecording_ = true;
+      this.monitorCheckbox_.disabled = true;
+      this.monitorCheckbox_.checked = false;
+      var resultPromise = tr.ui.e.about_tracing.beginRecording(
+          this.tracingControllerClient_);
+      resultPromise.then(
+          function(data) {
+            this.isRecording_ = false;
+            this.monitorCheckbox_.disabled = false;
+            var traceName = tr.ui.e.about_tracing.defaultTraceName(
+                this.tracingControllerClient_);
+            this.setActiveTrace(traceName, data, false);
+          }.bind(this),
+          function(err) {
+            this.isRecording_ = false;
+            this.monitorCheckbox_.disabled = false;
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+              return;
+            tr.ui.b.Overlay.showError('Error while recording', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    beginMonitoring: function() {
+      if (this.isRecording_)
+        throw new Error('Already recording');
+      if (this.isMonitoring_)
+        throw new Error('Already monitoring');
+      var resultPromise =
+          tr.ui.e.about_tracing.beginMonitoring(this.tracingControllerClient_);
+      resultPromise.then(
+          function() {
+          }.bind(this),
+          function(err) {
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+              return;
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    endMonitoring: function() {
+      if (this.isRecording_)
+        throw new Error('Already recording');
+      if (!this.isMonitoring_)
+        throw new Error('Monitoring is disabled');
+      var resultPromise =
+          tr.ui.e.about_tracing.endMonitoring(this.tracingControllerClient_);
+      resultPromise.then(
+          function() {
+          }.bind(this),
+          function(err) {
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+              return;
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    captureMonitoring: function() {
+      if (!this.isMonitoring_)
+        throw new Error('Monitoring is disabled');
+      var resultPromise =
+          tr.ui.e.about_tracing.captureMonitoring(
+              this.tracingControllerClient_);
+      resultPromise.then(
+          function(data) {
+            var traceName = tr.ui.e.about_tracing.defaultTraceName(
+                this.tracingControllerClient_);
+            this.setActiveTrace(traceName, data, true);
+          }.bind(this),
+          function(err) {
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+              return;
+            tr.ui.b.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    getMonitoringStatus: function() {
+      var resultPromise =
+          tr.ui.e.about_tracing.getMonitoringStatus(
+              this.tracingControllerClient_);
+      resultPromise.then(
+          function(status) {
+            this.onMonitoringStateChanged_(status.isMonitoring);
+          }.bind(this),
+          function(err) {
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+              return;
+            tr.ui.b.Overlay.showError('Error while updating tracing states',
+                                      err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    onMonitoringStateChanged_: function(is_monitoring) {
+      this.isMonitoring_ = is_monitoring;
+      this.recordButton_.disabled = is_monitoring;
+      this.captureButton_.disabled = !is_monitoring;
+      this.monitorCheckbox_.checked = is_monitoring;
+    },
+
+    get timelineView() {
+      return this.timelineView_;
+    },
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    clearActiveTrace: function() {
+      this.saveButton_.disabled = true;
+      this.uploadButton_.disabled = true;
+      this.activeTrace_ = undefined;
+    },
+
+    setActiveTrace: function(filename, data) {
+      this.activeTrace_ = {
+        filename: filename,
+        data: data
+      };
+
+      this.infoBarGroup_.clearMessages();
+      this.updateTracingControllerSpecificState_();
+      this.saveButton_.disabled = false;
+      this.uploadButton_.disabled = false;
+      this.timelineView_.viewTitle = filename;
+
+      var m = new tr.Model();
+      var p = m.importTracesWithProgressDialog([data], true);
+      p.then(
+          function() {
+            this.timelineView_.model = m;
+            this.timelineView_.updateDocumentFavicon();
+          }.bind(this),
+          function(err) {
+            tr.ui.b.Overlay.showError('While importing: ', err);
+          }.bind(this));
+    },
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    initButtons_: function() {
+      this.recordButton_.addEventListener(
+          'click', function(event) {
+            event.stopPropagation();
+            this.beginRecording();
+          }.bind(this));
+
+      this.monitorCheckbox_.addEventListener(
+          'click', function(event) {
+            event.stopPropagation();
+            if (this.isMonitoring_)
+              this.endMonitoring();
+            else
+              this.beginMonitoring();
+          }.bind(this));
+
+      this.captureButton_.addEventListener(
+          'click', function(event) {
+            event.stopPropagation();
+            this.captureMonitoring();
+          }.bind(this));
+      this.captureButton_.disabled = true;
+
+      this.loadButton_.addEventListener(
+          'click', function(event) {
+            event.stopPropagation();
+            this.onLoadClicked_();
+          }.bind(this));
+
+      this.saveButton_.addEventListener('click',
+                                        this.onSaveClicked_.bind(this));
+      this.saveButton_.disabled = true;
+
+      this.uploadButton_.addEventListener('click',
+                                          this.onUploadClicked_.bind(this));
+      if (typeof(chrome.send) === 'function') {
+        this.uploadButton_.style.display = 'inline-block';
+      }
+      this.uploadButton_.disabled = true;
+      this.uploadOverlay_ = null;
+    },
+
+    requestFilename_: function() {
+
+      // unsafe filename patterns:
+      var illegalRe = /[\/\?<>\\:\*\|":]/g;
+      var controlRe = /[\x00-\x1f\x80-\x9f]/g;
+      var reservedRe = /^\.+$/;
+
+      var filename;
+      var defaultName = this.activeTrace_.filename;
+      var fileExtension = '.json';
+      var fileRegex = /\.json$/;
+      if (/[.]gz$/.test(defaultName)) {
+        fileExtension += '.gz';
+        fileRegex = /\.json\.gz$/;
+      } else if (/[.]zip$/.test(defaultName)) {
+        fileExtension = '.zip';
+        fileRegex = /\.zip$/;
+      }
+
+      var custom = prompt('Filename? (' + fileExtension +
+                          ' appended) Or leave blank:');
+      if (custom === null)
+        return undefined;
+
+      var name;
+      if (custom) {
+        name = ' ' + custom;
+      } else {
+        var date = new Date();
+        var dateText = ' ' + date.toDateString() +
+                       ' ' + date.toLocaleTimeString();
+        name = dateText;
+      }
+
+      filename = defaultName.replace(fileRegex, name) + fileExtension;
+
+      return filename
+              .replace(illegalRe, '.')
+              .replace(controlRe, '\u2022')
+              .replace(reservedRe, '')
+              .replace(/\s+/g, '_');
+    },
+
+    onSaveClicked_: function() {
+      // Create a blob URL from the binary array.
+      var blob = new Blob([this.activeTrace_.data],
+                          {type: 'application/octet-binary'});
+      var blobUrl = window.webkitURL.createObjectURL(blob);
+
+      // Create a link and click on it. BEST API EVAR!
+      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      link.href = blobUrl;
+      var filename = this.requestFilename_();
+      if (filename) {
+        link.download = filename;
+        link.click();
+      }
+    },
+
+    onUploadClicked_: function() {
+      if (this.uploadOverlay_) {
+        throw new Error('Already uploading');
+      }
+      this.initUploadStatusOverlay_();
+    },
+
+    initUploadStatusOverlay_: function() {
+      this.uploadOverlay_ = tr.ui.b.Overlay();
+      this.uploadOverlay_.title = 'Uploading trace...';
+      this.uploadOverlay_.userCanClose = false;
+      this.uploadOverlay_.visible = true;
+
+      this.setUploadOverlayText_([
+        'You are about to upload trace data to Google server.',
+        'Would you like to proceed?'
+      ]);
+      var okButton = document.createElement('button');
+      okButton.textContent = 'Ok';
+      okButton.addEventListener('click', this.doTraceUpload_.bind(this));
+      this.uploadOverlay_.buttons.appendChild(okButton);
+
+      var cancelButton = document.createElement('button');
+      cancelButton.textContent = 'Cancel';
+      cancelButton.addEventListener('click',
+                                    this.hideUploadOverlay_.bind(this));
+      this.uploadOverlay_.buttons.appendChild(cancelButton);
+    },
+
+    setUploadOverlayContent_: function(content) {
+      if (!this.uploadOverlay_)
+        throw new Error('Not uploading');
+
+      this.uploadOverlay_.textContent = '';
+      this.uploadOverlay_.appendChild(content);
+    },
+
+    setUploadOverlayText_: function(messages) {
+      var contentDiv = document.createElement('div');
+
+      for (var i = 0; i < messages.length; ++i) {
+        var messageDiv = document.createElement('div');
+        messageDiv.textContent = messages[i];
+        contentDiv.appendChild(messageDiv);
+      }
+      this.setUploadOverlayContent_(contentDiv);
+    },
+
+    doTraceUpload_: function() {
+      this.setUploadOverlayText_(['Uploading trace data...']);
+      this.uploadOverlay_.buttons.removeChild(
+          this.uploadOverlay_.buttons.firstChild);
+      this.uploadOverlay_.buttons.firstChild.textContent = 'Close';
+
+      var filename = this.activeTrace_.filename;
+      var isBinary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
+      if (isBinary) {
+        var data_base64 = tr.b.Base64.EncodeArrayBufferToString(
+            this.activeTrace_.data);
+        chrome.send('doUploadBase64', [data_base64]);
+      } else {
+        chrome.send('doUpload', [this.activeTrace_.data]);
+      }
+    },
+
+    hideUploadOverlay_: function() {
+      if (!this.uploadOverlay_)
+        throw new Error('Not uploading');
+
+      this.uploadOverlay_.visible = false;
+      this.uploadOverlay_ = null;
+    },
+
+    onLoadClicked_: function() {
+      var inputElement = document.createElement('input');
+      inputElement.type = 'file';
+      inputElement.multiple = false;
+
+      var changeFired = false;
+      inputElement.addEventListener(
+          'change',
+          function(e) {
+            if (changeFired)
+              return;
+            changeFired = true;
+
+            var file = inputElement.files[0];
+            readFile(file).then(
+                function(data) {
+                  this.setActiveTrace(file.name, data);
+                }.bind(this),
+                function(err) {
+                  tr.ui.b.Overlay.showError('Error while loading file: ' + err);
+                });
+          }.bind(this), false);
+      inputElement.click();
+    },
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    initDragAndDrop_: function() {
+      this.dropHandler_ = this.dropHandler_.bind(this);
+      this.ignoreDragEvent_ = this.ignoreDragEvent_.bind(this);
+      document.addEventListener('dragstart', this.ignoreDragEvent_, false);
+      document.addEventListener('dragend', this.ignoreDragEvent_, false);
+      document.addEventListener('dragenter', this.ignoreDragEvent_, false);
+      document.addEventListener('dragleave', this.ignoreDragEvent_, false);
+      document.addEventListener('dragover', this.ignoreDragEvent_, false);
+      document.addEventListener('drop', this.dropHandler_, false);
+    },
+
+    detachDragAndDrop_: function() {
+      document.removeEventListener('dragstart', this.ignoreDragEvent_);
+      document.removeEventListener('dragend', this.ignoreDragEvent_);
+      document.removeEventListener('dragenter', this.ignoreDragEvent_);
+      document.removeEventListener('dragleave', this.ignoreDragEvent_);
+      document.removeEventListener('dragover', this.ignoreDragEvent_);
+      document.removeEventListener('drop', this.dropHandler_);
+    },
+
+    ignoreDragEvent_: function(e) {
+      e.preventDefault();
+      return false;
+    },
+
+    dropHandler_: function(e) {
+      if (this.isAnyDialogUp_)
+        return;
+
+      e.stopPropagation();
+      e.preventDefault();
+
+      var files = e.dataTransfer.files;
+      if (files.length !== 1) {
+        tr.ui.b.Overlay.showError('1 file supported at a time.');
+        return;
+      }
+
+      readFile(files[0]).then(
+          function(data) {
+            this.setActiveTrace(files[0].name, data);
+          }.bind(this),
+          function(err) {
+            tr.ui.b.Overlay.showError('Error while loading file: ' + err);
+          });
+      return false;
+    }
+  };
+
+  return {
+    ProfilingView: ProfilingView
+  };
+});
+</script>

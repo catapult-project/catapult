@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/multi_row_track.html">
+<link rel="import" href="/ui/tracks/slice_track.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  /**
+   * A track that displays a AsyncSliceGroup.
+   * @constructor
+   * @extends {MultiRowTrack}
+   */
+  var AsyncSliceGroupTrack = tr.ui.b.define(
+      'async-slice-group-track',
+      tr.ui.tracks.MultiRowTrack);
+
+  AsyncSliceGroupTrack.prototype = {
+
+    __proto__: tr.ui.tracks.MultiRowTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('async-slice-group-track');
+      this.group_ = undefined;
+    },
+
+    addSubTrack_: function(slices) {
+      var track = new tr.ui.tracks.SliceTrack(this.viewport);
+      track.slices = slices;
+      this.appendChild(track);
+      track.asyncStyle = true;
+      return track;
+    },
+
+    get group() {
+      return this.group_;
+    },
+
+    set group(group) {
+      this.group_ = group;
+      this.setItemsToGroup(this.group_.slices, this.group_);
+    },
+
+    get eventContainer() {
+      return this.group;
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      containerToTrackMap.addContainer(this.group, this);
+    },
+
+    /**
+     * Breaks up the list of slices into N rows, each of which is a list of
+     * slices that are non overlapping.
+     *
+     * It uses a very simple approach: walk through the slices in sorted order
+     * by start time. For each slice, try to fit it in an existing subRow. If
+     * it doesn't fit in any subrow, make another subRow. It then fits nested
+     * subSlices recursively into rows below parent slice according to which
+     * nested level the child is in.
+     */
+    buildSubRows_: function(slices, opt_skipSort) {
+      if (!opt_skipSort) {
+        slices.sort(function(x, y) {
+          return x.start - y.start;
+        });
+      }
+
+      // Helper function that returns true if it can put the slice on row n.
+      var findLevel = function(sliceToPut, rows, n) {
+        if (n >= rows.length)
+          return true; // We always can make empty rows to put the slice.
+        var subRow = rows[n];
+        var lastSliceInSubRow = subRow[subRow.length - 1];
+        if (sliceToPut.start >= lastSliceInSubRow.end) {
+          if (sliceToPut.subSlices === undefined ||
+              sliceToPut.subSlices.length === 0) {
+            return true;
+          }
+          // Make sure nested sub slices can be fitted in as well.
+          for (var i = 0; i < sliceToPut.subSlices.length; i++) {
+            if (!findLevel(sliceToPut.subSlices[i], rows, n + 1))
+              return false;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      var subRows = [];
+      for (var i = 0; i < slices.length; i++) {
+        var slice = slices[i];
+
+        var found = false;
+        var index = subRows.length;
+        for (var j = 0; j < subRows.length; j++) {
+          if (findLevel(slice, subRows, j)) {
+            found = true;
+            index = j;
+            break;
+          }
+        }
+        if (!found)
+          subRows.push([]);
+        subRows[index].push(slice);
+
+        // Fit subSlices recursively into rows below parent.
+        var fitSubSlicesRecursively = function(subSlices, level, rows) {
+          if (subSlices === undefined || subSlices.length === 0)
+            return;
+          if (level === rows.length)
+            rows.push([]);
+          for (var h = 0; h < subSlices.length; h++) {
+             rows[level].push(subSlices[h]);
+             fitSubSlicesRecursively(subSlices[h].subSlices, level + 1, rows);
+          }
+        }
+        fitSubSlicesRecursively(slice.subSlices, index + 1, subRows);
+      }
+      return subRows;
+    }
+  };
+
+  return {
+    AsyncSliceGroupTrack: AsyncSliceGroupTrack
+  };
+});
+</script>

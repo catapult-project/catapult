@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+  function guessBinary(url) {
+    return /[.]gz$/.test(url) || /[.]zip$/.test(url);
+  }
+  function get(url, async) {
+    var req = new XMLHttpRequest();
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.open('GET', url, async);
+    var isBinary = guessBinary(url);
+    if (isBinary && async)
+      req.responseType = 'arraybuffer';
+
+    if (!async) {
+      req.send(null);
+      if (req.status == 200) {
+        return req.responseText;
+      } else {
+        throw new Error('XHR failed with status ' + req.status);
+      }
+    }
+
+    var p = new Promise(function(resolve, reject) {
+      req.onreadystatechange = function(aEvt) {
+        if (req.readyState == 4) {
+          window.setTimeout(function() {
+            if (req.status == 200) {
+              resolve(isBinary ? req.response : req.responseText);
+            } else {
+              reject(new Error('XHR failed with status ' + req.status));
+            }
+          }, 0);
+        }
+      };
+    });
+    req.send();
+    return p;
+  }
+
+  function getAsync(url) {
+    if (!tr.isHeadless)
+      return get(url, true);
+    var filename = global.hrefToAbsolutePath(url);
+    var isBinary = guessBinary(url);
+    return Promise.resolve().then(function() {
+      if (isBinary)
+        return readbuffer(filename);
+      return read(filename);
+    });
+  }
+
+  function getSync(url) {
+    if (!tr.isHeadless)
+      return get(url, false);
+    var filename = global.hrefToAbsolutePath(url);
+    var isBinary = guessBinary(url);
+    if (isBinary)
+      return readbuffer(filename);
+    return read(filename);
+  }
+
+  return {
+    getAsync: getAsync,
+    getSync: getSync
+  };
+});
+</script>

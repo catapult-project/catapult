@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/extras/system_stats/system_stats.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var SystemStatsInstanceTrack = tr.ui.e.system_stats.SystemStatsInstanceTrack;
+  var Viewport = tr.ui.TimelineViewport;
+
+  var createObjects = function() {
+    var objectInstance = new tr.model.ObjectInstance({});
+    var snapshots = [];
+
+    var stats1 = new Object();
+    var stats2 = new Object();
+
+    stats1['committed_memory'] = 2000000;
+    stats2['committed_memory'] = 3000000;
+
+    stats1['meminfo'] = new Object();
+    stats1.meminfo['free'] = 10000;
+    stats2['meminfo'] = new Object();
+    stats2.meminfo['free'] = 20000;
+
+    snapshots.push(new tr.e.system_stats.SystemStatsSnapshot(objectInstance,
+                                                             10, stats1));
+    snapshots.push(new tr.e.system_stats.SystemStatsSnapshot(objectInstance,
+                                                             20, stats2));
+
+    objectInstance.snapshots = snapshots;
+
+    return objectInstance;
+  };
+
+  test('instantiate', function() {
+    var objectInstances = [];
+    objectInstances.push(createObjects());
+
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = new SystemStatsInstanceTrack(viewport);
+    track.objectInstances = objectInstances;
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testBasic';
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+});
+</script>

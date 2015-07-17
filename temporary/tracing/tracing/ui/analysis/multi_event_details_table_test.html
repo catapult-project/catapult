@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/multi_event_details_table.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var Thread = tr.model.Thread;
+  var EventSet = tr.model.EventSet;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  test('sortingOfFirstColumn', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    var sA = tsg.pushSlice(newSliceEx({title: 'a', start: 1, end: 2,
+                                       cpuStart: 1, cpuEnd: 1.75}));
+    var sB = tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                                       cpuStart: 0, cpuEnd: 3}));
+    var sC = tsg.pushSlice(newSliceEx({title: 'a', start: 4, end: 5,
+                                       cpuStart: 3, cpuEnd: 3.75}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+
+    var table = viewEl.$.table;
+    var cmpResult = table.tableColumns[0].cmp(sA, sB);
+    assert.equal(cmpResult, 1);
+  });
+
+  test('withCpuTime', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              cpuStart: 0, cpuEnd: 3}));
+    tsg.pushSlice(newSliceEx({title: 'a', start: 1, end: 2,
+                              cpuStart: 1, cpuEnd: 1.75}));
+    tsg.pushSlice(newSliceEx({title: 'a', start: 4, end: 5,
+                              cpuStart: 3, cpuEnd: 3.75}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('withoutCpuTime', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
+    tsg.pushSlice(newSliceEx({title: 'a', start: 1, end: 2}));
+    tsg.pushSlice(newSliceEx({title: 'a', start: 4, end: 5}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+
+  test('withFewerThanFourArgs', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              args: {value1: 3, value2: 'x', value3: 1}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              args: {value1: 3.1, value2: 'y', value3: 2}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              args: {value1: 3.2, value2: 'z', value3: 'x'}}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('withExtraArgs', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              args: {value1: 3, value2: 'x', value3: 1,
+                                     value4: 4, value5: 5, value6: 6}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              args: {value1: 3.1, value2: 'y', value3: 2,
+                                     value4: 4, value5: 5, value6: 6}}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              args: {value1: 3.2, value2: 'z', value3: 'x',
+                                     value4: 4, value5: 'whoops', value6: 6}}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('noDuration', function() {
+    var model = new Model();
+
+    var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+
+    // Make reading some properties an explosion, as a way to ensure that they
+    // aren't read.
+    var failProp = {
+      get: function() {
+        throw new Error('Should not be called');
+      }
+    };
+    Object.defineProperty(fe1, 'duration', failProp);
+    Object.defineProperty(fe2, 'duration', failProp);
+
+    Object.defineProperty(fe1, 'subRows', failProp);
+    Object.defineProperty(fe2, 'subRows', failProp);
+
+    Object.defineProperty(fe1, 'selfTime', failProp);
+    Object.defineProperty(fe2, 'selfTime', failProp);
+
+    model.flowEvents.push(fe1);
+    model.flowEvents.push(fe2);
+
+    var selection = new EventSet([fe1, fe2]);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-details-table');
+    viewEl.eventsHaveDuration = false;
+    viewEl.selection = selection;
+    this.addHTMLOutput(viewEl);
+  });
+});
+</script>

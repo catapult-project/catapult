@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import argparse
+import logging
+import os
+import subprocess
+import sys
+
+
+_RUN_PY_TESTS_DIR = os.path.join(os.path.dirname(__file__), 'run_py_tests')
+_RUN_D8_TESTS_DIR = os.path.join(os.path.dirname(__file__), 'run_d8_tests')
+_RUN_DEV_SERVER_DIR = os.path.join(os.path.dirname(__file__), 'run_dev_server')
+
+
+class bcolors(object):
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def _RunPyTests():
+  return subprocess.call([_RUN_PY_TESTS_DIR])
+
+
+def _RunD8Tests():
+  return subprocess.call([_RUN_D8_TESTS_DIR])
+
+
+def _RunDevServer(chrome_command):
+  if (sys.platform.startswith('linux') and os.getenv('DISPLAY') is None):
+    logging.warning(
+      'Browser found but cannot run browser tests because you do not have a '
+      'DISPLAY environment set.')
+    return 0
+  args = [
+    chrome_command, '--no-sandbox', '--no-experiments', '--no-first-run',
+    '--noerrdialogs',
+    'http://localhost:8003/base/tests.html?headless=true&testTypeToRun=all']
+  chrome_proc = subprocess.Popen(args)
+  exit_code = subprocess.call([_RUN_DEV_SERVER_DIR])
+  chrome_proc.terminate()
+  if chrome_proc.poll() is None:
+    chrome_proc.kill()
+  return exit_code
+
+
+def _TryGettingChromeCommand():
+  if sys.platform.startswith('darwin'):  # Mac
+    chrome_path = (
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+    if os.path.isfile(chrome_path):
+      return chrome_path
+  elif sys.platform.startswith('linux'):
+    found = False
+    try:
+      with open(os.devnull, 'w') as devnull:
+        found = subprocess.call(['google-chrome', '--version'],
+                                stdout=devnull, stderr=devnull) == 0
+    except OSError:
+      pass
+    if found:
+      return 'google-chrome'
+  # TODO(nedn): Find the default path to chrome on win platform.
+  return None
+
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(
+      description='Run all tests of tracing project.')
+  parser.add_argument('--chrome_path', type=str,
+                      help='Path to Chrome browser binary.')
+  args = parser.parse_args()
+  chrome_command = args.chrome_path
+  if not chrome_command:
+    chrome_command = _TryGettingChromeCommand()
+
+  run_py_tests_exit_code = _RunPyTests()
+  run_d8_tests_exit_code = _RunD8Tests()
+  if chrome_command:
+    run_dev_server_exit_code = _RunDevServer(chrome_command)
+  else:
+    logging.warning(
+      'Could not run browser tests because chrome is missing.')
+    run_dev_server_exit_code = 0
+
+  exit_code = (run_py_tests_exit_code | run_dev_server_exit_code |
+               run_d8_tests_exit_code)
+  if exit_code:
+    print (bcolors.FAIL +
+           'Oooops! Looks like some of your tests have failed.' +
+           bcolors.ENDC), u'\U0001F631'.encode('utf-8')
+  else:
+    print (bcolors.OKGREEN +
+           'Woho! All the tests have passed. You are awesome!' +
+           bcolors.ENDC), u'\U0001F601'.encode('utf-8')
+
+  if run_py_tests_exit_code:
+    sys.stderr.write(
+      'run_py_tests have some failed tests. Rerun run_py_tests script '
+      'to see those.\n')
+  if run_d8_tests_exit_code:
+    sys.stderr.write(
+      'run_d8_tests have some failed tests. Rerun run_d8_tests script '
+      'to see those.\n')
+  if run_dev_server_exit_code:
+    sys.stderr.write(
+      'run_dev_server have some failed tests. Rerun run_dev_server script '
+      'and open the browser to see those.\n')
+
+  sys.exit(exit_code)

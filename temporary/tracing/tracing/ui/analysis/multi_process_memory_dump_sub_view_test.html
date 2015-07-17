@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var EventSet = tr.model.EventSet;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+
+  test('basic', function() {
+    var m = new tr.Model();
+    var p = m.getOrCreateProcess(42);
+
+    function addProcessMemoryDump(timestamp) {
+      var gmd = new GlobalMemoryDump(m, timestamp);
+      m.globalMemoryDumps.push(gmd);
+      var pmd = new ProcessMemoryDump(gmd, p, timestamp);
+      p.memoryDumps.push(pmd);
+      gmd.processMemoryDumps[pmd.pid] = pmd;
+      return pmd;
+    }
+
+    var d1 = addProcessMemoryDump(5);
+    var d2 = addProcessMemoryDump(20);
+
+    var selection = new EventSet();
+    selection.push(d1);
+    selection.push(d2);
+    assert.equal(selection.length, 2);
+
+    var subView = document.createElement(
+        'tr-ui-a-multi-process-memory-dump-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

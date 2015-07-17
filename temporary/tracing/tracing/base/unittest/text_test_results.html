@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/unittest/constants.html">
+<link rel="import" href="/ui/base/ui.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.b.unittest', function() {
+  /**
+   * @constructor
+   */
+  function TextTestResults() {
+    this.numTestsThatPassed_ = 0;
+    this.numTestsThatFailed_ = 0;
+    this.currentTestCaseHadErrors_ = false;
+  }
+
+  TextTestResults.prototype = {
+    get numTestsThatRan() {
+      return this.numTestsThatPassed_ + this.numTestsThatFailed_;
+    },
+
+    get numTestsThatFailed() {
+      return this.numTestsThatFailed_;
+    },
+
+    get numTestsThatPassed() {
+      return this.numTestsThatPassed_;
+    },
+
+    willRunTest: function(testCase) {
+      this.write_(testCase.name + ' (' + testCase.suite.name + ') ... ');
+      this.currentTestCaseHadErrors_ = false;
+    },
+
+    addErrorForCurrentTest: function(error) {
+      if (!this.currentTestCaseHadErrors_)
+        this.write_('FAIL\n');
+      var normalizedException = tr.b.normalizeException(error);
+      this.write_(normalizedException.stack + '\n');
+      this.currentTestCaseHadErrors_ = true;
+    },
+
+    addHTMLOutputForCurrentTest: function(element) {
+      this.curHTMLOutput_.push(element);
+    },
+
+    setReturnValueFromCurrentTest: function(returnValue) {
+      this.write_('[RESULT] ' + JSON.stringify(returnValue) + '\n');
+    },
+
+    didCurrentTestEnd: function() {
+      if (this.currentTestCaseHadErrors_) {
+        this.numTestsThatFailed_ += 1;
+      } else {
+        this.numTestsThatPassed_ += 1;
+        this.write_('ok\n');
+      }
+    },
+
+    didRunTests: function() {
+      this.write_('\n------------------------------------------------------' +
+               '----------------\n');
+      if (this.numTestsThatRan === 1)
+        this.write_('Ran 1 test\n');
+      else
+        this.write_('Ran ' + this.numTestsThatRan + ' tests\n');
+
+      if (this.numTestsThatFailed > 0) {
+        this.write_('\nFAILED (errors=' + this.numTestsThatFailed + ')');
+      } else {
+        this.write_('\nOK');
+      }
+    },
+
+    write_: function(msg) {
+      if (!tr.isD8)
+        throw new Error('Unsupported');
+      global.write(msg);
+    }
+  };
+
+  return {
+    TextTestResults: TextTestResults
+  };
+});
+</script>

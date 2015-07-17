@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var Thread = tr.model.Thread;
+  var EventSet = tr.model.EventSet;
+
+  test('analyzeSelectionWithSingleEvent', function() {
+    var model = new Model();
+    var p52 = model.getOrCreateProcess(52);
+    var t53 = p52.getOrCreateThread(53);
+
+    var ie = new tr.model.ProcessInstantEvent('cat', 'title', 7, 10, {});
+    ie.duration = 20;
+    p52.instantEvents.push(ie);
+
+
+    var selection = new EventSet();
+    selection.push(ie);
+    assert.equal(selection.length, 1);
+
+    var subView = document.createElement(
+        'tr-ui-a-single-instant-event-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/single_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-single-instant-event-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <div id='content'></div>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.$.content.textContent = '';
+      var realView = document.createElement('tr-ui-a-single-event-sub-view');
+      realView.setSelectionWithoutErrorChecks(selection);
+
+      this.$.content.appendChild(realView);
+
+      this.currentSelection_ = selection;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    }
+  });
+  </script>
+</polymer-element>

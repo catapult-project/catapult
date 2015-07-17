@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/frame.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/instant_event.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/process.html">
+<link rel="import" href="/model/thread_slice.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('getOrCreateCounter', function() {
+    var model = new tr.Model();
+    var process = new tr.model.Process(model, 7);
+    var ctrBar = process.getOrCreateCounter('foo', 'bar');
+    var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
+    assert.equal(ctrBar2, ctrBar);
+  });
+
+  test('shiftTimestampsForward', function() {
+    var model = new tr.Model();
+    var process = new tr.model.Process(model, 7);
+    var ctr = process.getOrCreateCounter('foo', 'bar');
+    var thread = process.getOrCreateThread(1);
+
+    var instantEvent = new tr.model.InstantEvent('cat', 'event1', 1, 100);
+    process.pushInstantEvent(instantEvent);
+
+    var slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
+    var frame =
+        new tr.model.Frame([slice], [{thread: thread, start: 100, end: 200}]);
+    process.frames.push(frame);
+
+    var memoryDump = new tr.model.GlobalMemoryDump(model, 100);
+    process.memoryDumps.push(memoryDump);
+
+    var shiftCount = 0;
+    thread.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+    ctr.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+
+    process.shiftTimestampsForward(0.32);
+    assert.equal(shiftCount, 2);
+    assert.equal(instantEvent.start, 100.32);
+    assert.equal(frame.start, 100.32);
+    assert.equal(frame.end, 200.32);
+    assert.equal(memoryDump.start, 100.32);
+  });
+
+  test('compareOnPID', function() {
+    var model = new tr.Model();
+    var p1 = new tr.model.Process(model, 1);
+    p1.name = 'Renderer';
+
+    var model = new tr.Model();
+    var p2 = new tr.model.Process(model, 2);
+    p2.name = 'Renderer';
+
+    assert.isBelow(p1.compareTo(p2), 0);
+  });
+
+  test('compareOnSortIndex', function() {
+    var model = new tr.Model();
+    var p1 = new tr.model.Process(model, 1);
+    p1.name = 'Renderer';
+    p1.sortIndex = 1;
+
+    var p2 = new tr.model.Process(model, 2);
+    p2.name = 'Renderer';
+
+    assert.isAbove(p1.compareTo(p2), 0);
+  });
+
+  test('compareOnName', function() {
+    var model = new tr.Model();
+    var p1 = new tr.model.Process(model, 1);
+    p1.name = 'Browser';
+
+    var p2 = new tr.model.Process(model, 2);
+    p2.name = 'Renderer';
+
+    assert.isBelow(p1.compareTo(p2), 0);
+  });
+
+  test('compareOnLabels', function() {
+    var model = new tr.Model();
+    var p1 = new tr.model.Process(model, 1);
+    p1.name = 'Renderer';
+    p1.labels = ['a'];
+
+    var p2 = new tr.model.Process(model, 2);
+    p2.name = 'Renderer';
+    p2.labels = ['b'];
+
+    assert.isBelow(p1.compareTo(p2), 0);
+  });
+});
+</script>
+

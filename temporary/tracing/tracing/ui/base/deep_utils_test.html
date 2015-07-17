@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createElement(tagName, opt_class) {
+    var el = document.createElement(tagName);
+    if (opt_class)
+      el.className = opt_class;
+    return el;
+  }
+
+  test('testFindDeepElementMatching', function() {
+    var a = createElement('a');
+    var a_ = a.createShadowRoot();
+
+    var b = createElement('b');
+    a_.appendChild(b);
+
+    var b_ = b.createShadowRoot();
+    b_.appendChild(createElement('c', 'x'));
+
+    var m = tr.b.findDeepElementMatching(a, 'c.x');
+    assert.equal(m, b_.children[0]);
+  });
+
+  test('testFindDeepElementsMatching', function() {
+    var a = createElement('a');
+    var a_ = a.createShadowRoot();
+
+    var b = createElement('b');
+    a_.appendChild(b);
+
+    var b_ = b.createShadowRoot();
+    b_.appendChild(createElement('c', 'x'));
+    b_.appendChild(createElement('c', 'x'));
+
+    var m = tr.b.findDeepElementsMatching(a, 'c.x');
+    assert.equal(m[0], b_.children[0]);
+    assert.equal(m[1], b_.children[1]);
+  });
+});
+</script>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/base/sunburst_chart.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('simple', function() {
+    var chart = new tr.ui.b.SunburstChart();
+    chart.width = 600;
+    chart.height = 600;
+    assert.equal(chart.getAttribute('width'), '600');
+    assert.equal(chart.getAttribute('height'), '600');
+    chart.chartTitle = 'Chart title';
+    var nodes = {
+      category: 'root',
+      name: '<All Threads>',
+      children: [
+        {
+          category: 'Thread',
+          name: 'Thread 1',
+          children: [
+            {
+              category: 'Chrome',
+              name: 'foo()',
+              children: [
+                {
+                  category: 'Chrome',
+                  name: 'foo()',
+                  size: 150
+                },
+                {
+                  category: 'Chrome',
+                  name: 'bar()',
+                  size: 200
+                }]
+            },
+            {
+              category: 'Chrome',
+              name: 'bar()',
+              size: 200
+            }]
+        },
+        {
+          category: 'Thread',
+          name: 'Thread 2',
+          children: [
+            {
+              category: 'Java',
+              name: 'Java',
+              size: 100
+            }]
+        }]
+    };
+    chart.data = {
+      nodes: nodes
+    };
+    this.addHTMLOutput(chart);
+  });
+});
+</script>

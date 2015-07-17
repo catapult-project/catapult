@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/object_snapshot_view.html">
+<link rel="import" href="/ui/analysis/object_instance_view.html">
+<link rel="import" href="/ui/tracks/multi_row_track.html">
+<link rel="import" href="/ui/tracks/object_instance_track.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  /**
+   * A track that displays a ObjectInstanceGroup.
+   * @constructor
+   * @extends {ContainerTrack}
+   */
+  var ObjectInstanceGroupTrack = tr.ui.b.define(
+      'object-instance-group-track', tr.ui.tracks.MultiRowTrack);
+
+  ObjectInstanceGroupTrack.prototype = {
+
+    __proto__: tr.ui.tracks.MultiRowTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('object-instance-group-track');
+      this.objectInstances_ = undefined;
+    },
+
+    get objectInstances() {
+      return this.itemsToGroup;
+    },
+
+    set objectInstances(objectInstances) {
+      this.setItemsToGroup(objectInstances);
+    },
+
+    addSubTrack_: function(objectInstances) {
+      var hasMultipleRows = this.subRows.length > 1;
+      var track = new tr.ui.tracks.ObjectInstanceTrack(this.viewport);
+      track.objectInstances = objectInstances;
+      this.appendChild(track);
+      return track;
+    },
+
+    buildSubRows_: function(objectInstances) {
+      objectInstances.sort(function(x, y) {
+        return x.creationTs - y.creationTs;
+      });
+
+      var subRows = [];
+      for (var i = 0; i < objectInstances.length; i++) {
+        var objectInstance = objectInstances[i];
+
+        var found = false;
+        for (var j = 0; j < subRows.length; j++) {
+          var subRow = subRows[j];
+          var lastItemInSubRow = subRow[subRow.length - 1];
+          if (objectInstance.creationTs >= lastItemInSubRow.deletionTs) {
+            found = true;
+            subRow.push(objectInstance);
+            break;
+          }
+        }
+        if (!found) {
+          var subRow = [objectInstance];
+          subRows.push(subRow);
+        }
+      }
+      return subRows;
+    },
+    updateHeadingAndTooltip_: function() {
+    }
+  };
+
+  return {
+    ObjectInstanceGroupTrack: ObjectInstanceGroupTrack
+  };
+});
+</script>

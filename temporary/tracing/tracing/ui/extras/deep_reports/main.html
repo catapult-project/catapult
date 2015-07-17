@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/extras/rail/rail_score.html">
+<link rel="import" href="/ui/extras/deep_reports/scalar_value.html">
+<link rel="import" href="/base/xhr.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.deep_reports', function() {
+  /**
+   * Runs deep reports on the provided files, and pushes telemetry-style
+   * values to the results object.
+   */
+  function main(results, filesInDir) {
+    var lastP = new Promise(function(resolve) { resolve(); });
+
+    filesInDir.forEach(function(filename) {
+      // TODO(nduca): Make this like telemetry page.
+      var page = {
+        url: filename
+      };
+      lastP = lastP.then(function() {
+        return loadModelFromFileAsync(filename);
+      });
+      lastP = lastP.then(function(model) {
+        processModel(results, page, model);
+      });
+    });
+    return lastP;
+  }
+
+  function loadModelFromFileAsync(filename) {
+    return tr.b.getAsync(filename).then(function(trace) {
+      var io = new tr.ImportOptions();
+      io.shiftWorldToZero = true;
+      io.pruneEmptyContainers = false;
+
+      var m = new tr.Model();
+      try {
+        m.importTraces([trace], io);
+      } catch (e) {
+        throw new Error('While loading ' + filename + ' got: ' + e.toString());
+      }
+      return m;
+    });
+  }
+
+  function processModel(results, page, model) {
+    var railScore = tr.e.rail.RAILScore.fromModel(model);
+    if (railScore === undefined)
+      return;
+
+    results.addValue(
+        new tr.ui.e.deep_reports.ScalarValue(
+            page, 'numRailIRs', 'ms', railScore.interactionRecords.length));
+    results.addValue(
+      new tr.ui.e.deep_reports.ScalarValue(
+        page, 'railScore', 'rails', railScore.overallScore));
+  }
+
+  return {
+    main: main
+  };
+});
+</script>

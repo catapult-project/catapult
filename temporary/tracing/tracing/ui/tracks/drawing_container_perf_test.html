@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/full_config.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/base/xhr.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
+  var generalModel;
+  function getOrCreateGeneralModel() {
+    if (generalModel !== undefined)
+      generalModel;
+    var fileUrl = '/test_data/thread_time_visualisation.json.gz';
+    var events = tr.b.getSync(fileUrl);
+    generalModel = new tr.Model();
+    generalModel.importTraces([events], true);
+    return generalModel;
+  }
+
+  function DCPerfTestCase(testName, opt_options) {
+    tr.b.unittest.PerfTestCase.call(this, testName, undefined, opt_options);
+    this.viewportDiv = undefined;
+    this.drawingContainer = undefined;
+    this.viewport = undefined;
+  }
+  DCPerfTestCase.prototype = {
+    __proto__: tr.b.unittest.PerfTestCase.prototype,
+
+    setUp: function(model) {
+      this.viewportDiv = document.createElement('div');
+
+      this.viewport = new tr.ui.TimelineViewport(this.viewportDiv);
+
+      this.drawingContainer = new tr.ui.tracks.DrawingContainer(this.viewport);
+      this.viewport.modelTrackContainer = this.drawingContainer;
+
+      var modelTrack = new tr.ui.tracks.ModelTrack(this.viewport);
+      this.drawingContainer.appendChild(modelTrack);
+
+      modelTrack.model = model;
+
+      this.viewportDiv.appendChild(this.drawingContainer);
+
+      this.addHTMLOutput(this.viewportDiv);
+
+      // Size the canvas.
+      this.drawingContainer.updateCanvasSizeIfNeeded_();
+
+      // Size the viewport.
+      var w = this.drawingContainer.canvas.width;
+      var min = model.bounds.min;
+      var range = model.bounds.range;
+
+      var boost = range * 0.15;
+      var dt = new tr.ui.TimelineDisplayTransform();
+      dt.xSetWorldBounds(min - boost, min + range + boost, w);
+      this.viewport.setDisplayTransformImmediately(dt);
+    },
+
+    runOneIteration: function() {
+      this.drawingContainer.draw_();
+    },
+
+    tearDown: function() {
+    }
+  };
+
+
+  function GeneralDCPerfTestCase(testName, opt_options) {
+    DCPerfTestCase.call(this, testName, opt_options);
+  }
+
+  GeneralDCPerfTestCase.prototype = {
+    __proto__: DCPerfTestCase.prototype,
+
+    setUp: function() {
+      var model = getOrCreateGeneralModel();
+      DCPerfTestCase.prototype.setUp.call(this, model);
+    }
+  };
+
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
+                                 {iterations: 1}));
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
+                                 {iterations: 10}));
+  test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
+                                 {iterations: 100}));
+
+
+  function AsyncDCPerfTestCase(testName, opt_options) {
+    DCPerfTestCase.call(this, testName, opt_options);
+  }
+
+  AsyncDCPerfTestCase.prototype = {
+    __proto__: DCPerfTestCase.prototype,
+
+    setUp: function() {
+      var model = tr.c.test_utils.newModel(function(m) {
+        var proc = m.getOrCreateProcess(1);
+        for (var tid = 1; tid <= 5; tid++) {
+          var thread = proc.getOrCreateThread(tid);
+          for (var i = 0; i < 5000; i++) {
+            var mod = Math.floor(i / 100) % 4;
+            var slice = tr.c.test_utils.newAsyncSliceEx({
+              name: 'Test' + i,
+              colorId: tid + mod,
+              id: tr.b.GUID.allocate(),
+              start: i * 10,
+              duration: 9,
+              isTopLevel: true
+            });
+            thread.asyncSliceGroup.push(slice);
+          }
+        }
+      });
+      DCPerfTestCase.prototype.setUp.call(this, model);
+
+      var w = this.drawingContainer.canvas.width;
+
+      var dt = new tr.ui.TimelineDisplayTransform();
+      dt.xSetWorldBounds(-2000, 54000, w);
+      this.viewport.setDisplayTransformImmediately(dt);
+    }
+  };
+  test(new AsyncDCPerfTestCase('draw_asyncSliceHeavy_Twenty',
+                                 {iterations: 20}));
+});
+</script>
+

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+
+<polymer-element name="tr-ui-a-multi-object-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="content"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    ready: function() {
+      this.$.content.showHeader = false;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+
+      var objectEvents = tr.b.asArray(selection).sort(
+          tr.b.Range.compareByMinTimes);
+
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+      var table = this.$.content;
+      table.tableColumns = [
+        {
+          title: 'First',
+          value: function(event) {
+            if (event instanceof tr.model.ObjectSnapshot)
+              return tr.ui.units.createTimeStampSpan(event.ts, timeSpanConfig);
+
+            var spanEl = document.createElement('span');
+            spanEl.appendChild(tr.ui.units.createTimeStampSpan(
+                event.creationTs, timeSpanConfig));
+            spanEl.appendChild(tr.ui.b.createSpan({
+                textContent: '-',
+                marginLeft: '4px',
+                marginRight: '4px'
+            }));
+            if (event.deletionTs != Number.MAX_VALUE) {
+              spanEl.appendChild(tr.ui.units.createTimeStampSpan(
+                  event.deletionTs, timeSpanConfig));
+            }
+            return spanEl;
+          },
+          width: '200px'
+        },
+        {
+          title: 'Second',
+          value: function(event) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+                return new tr.model.EventSet(event);
+            }, event.userFriendlyName);
+            return linkEl;
+          },
+          width: '100%'
+        }
+      ];
+      table.tableRows = objectEvents;
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/extras/tquery/filter.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.tquery', function() {
+  function FilterAnyOf(opt_subExpressions) {
+    tr.e.tquery.Filter.call(this);
+    this.subExpressions = opt_subExpressions || [];
+  };
+
+  FilterAnyOf.prototype = {
+    __proto__: tr.e.tquery.Filter.prototype,
+
+    set subExpressions(exprs) {
+      this.subExpressions_ = [];
+      for (var i = 0; i < exprs.length; i++) {
+        this.subExpressions_.push(
+            tr.e.tquery.Filter.normalizeFilterExpression(exprs[i]));
+      }
+    },
+
+    get subExpressions() {
+      return this.subExpressions_;
+    },
+
+    evaluate: function(context) {
+      if (!this.subExpressions.length)
+        return true;
+      for (var i = 0; i < this.subExpressions.length; i++) {
+        if (this.subExpressions[i].evaluate(context))
+          return true;
+      }
+      return false;
+    }
+  };
+  tr.c.ScriptingObjectRegistry.register(
+      function() {
+        var exprs = [];
+        for (var i = 0; i < arguments.length; i++) {
+          exprs.push(arguments[i]);
+        }
+        return new FilterAnyOf(exprs);
+      },
+      {
+        name: 'anyOf'
+      }
+  );
+  return {
+    FilterAnyOf: FilterAnyOf
+  };
+});
+</script>

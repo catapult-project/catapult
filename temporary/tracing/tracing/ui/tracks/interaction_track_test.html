@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/interaction_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  // InteractionRecords should be sorted by start time, not title, so that
+  // AsyncSliceGroupTrack.buildSubRows_ can lay them out in as few tracks as
+  // possible, so that they mesh instead of stacking unnecessarily.
+  test('instantiate', function() {
+    var div = document.createElement('div');
+    var viewport = new tr.ui.TimelineViewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+    var track = new tr.ui.tracks.InteractionTrack(viewport);
+    track.model = tr.c.test_utils.newModel(function(model) {
+      var process = model.getOrCreateProcess(1);
+      var thread = process.getOrCreateThread(1);
+      thread.sliceGroup.pushSlice(tr.c.test_utils.newSlice(0, 200));
+      model.interaction_records.push(new tr.model.InteractionRecord(
+            'a', 0, 100, 100));
+      model.interaction_records.push(new tr.model.InteractionRecord(
+            'b', 1, 0, 100));
+      model.interaction_records.push(new tr.model.InteractionRecord(
+            'c', 2, 150, 50));
+      model.interaction_records.push(new tr.model.InteractionRecord(
+            'd', 3, 50, 100));
+      model.interaction_records.push(new tr.model.InteractionRecord(
+            'e', 4, 0, 50));
+      // Model.createImportTracesTask() automatically sorts IRs by start time.
+    });
+    assert.equal(2, track.subRows_.length);
+    assert.equal(2, track.subRows_[0].length);
+    assert.equal(3, track.subRows_[1].length);
+    drawingContainer.appendChild(track);
+    this.addHTMLOutput(div);
+  });
+});
+</script>

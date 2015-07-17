@@ -1,0 +1,17 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* /deep/ .tool-button {
+  background-position: center center;
+  background-repeat: no-repeat;
+  border-bottom: 1px solid #BCBCBC;
+  border-top: 1px solid #F1F1F1;
+  cursor: pointer;
+  height: 30px;
+}
+
+* /deep/ .tool-button.active {
+  cursor: auto;
+}

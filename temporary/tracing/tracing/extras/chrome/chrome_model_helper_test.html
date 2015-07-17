@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newAsyncSliceEx = tr.c.test_utils.newAsyncSliceEx;
+
+  test('getLatencyData', function() {
+    var m = tr.e.audits.newChromeModel(function(m) {
+      m.browserMain.asyncSliceGroup.push(newAsyncSliceEx({
+        title: 'InputLatency::GestureScrollUpdate',
+        cat: 'benchmark',
+        start: 0,
+        end: 10,
+        id: '0x100',
+        isTopLevel: true,
+        args: {
+          data: {
+            INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time' : 0},
+            INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+          }
+        }
+      }));
+    });
+
+    var modelHelper = new tr.e.audits.ChromeModelHelper(m);
+    var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
+      m.bounds);
+    assert.equal(latencyEvents.length, 1);
+  });
+
+  test('getFrametime', function() {
+    var frame_ts;
+    var events = [];
+    // Browser process 3507
+    events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3507, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrBrowserMain'}}); // @suppress longLineCheck
+
+    // Renderer process 3508
+    events.push({'cat' : '__metadata', 'pid' : 3508, 'tid' : 3508, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrRendererMain'}}); // @suppress longLineCheck
+    // Compositor thread 3510
+    events.push({'cat' : '__metadata', 'pid' : 3508, 'tid' : 3510, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'Compositor'}}); // @suppress longLineCheck
+
+    // Renderer process 3509
+    events.push({'cat' : '__metadata', 'pid' : 3509, 'tid' : 3509, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrRendererMain'}}); // @suppress longLineCheck
+
+    // Compositor thread 3511
+    events.push({'cat' : '__metadata', 'pid' : 3509, 'tid' : 3511, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'Compositor'}}); // @suppress longLineCheck
+
+    frame_ts = 0;
+    // Add impl rendering stats for browser process 3507
+    for (var i = 0; i < 10; i++) {
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid' : 3507, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frame_ts += 16000 + 1000 * (i % 2);
+    }
+
+    frame_ts = 0;
+    // Add main rendering stats for renderer process 3508
+    for (var i = 0; i < 10; i++) {
+      events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3508, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frame_ts += 16000 + 1000 * (i % 2);
+    }
+    events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3510, 'ts' : 1600, 'ph' : 'i', 'name' : 'KeepAlive', 's' : 't'}); // @suppress longLineCheck
+
+    frame_ts = 0;
+    // Add impl and main rendering stats for renderer process 3509
+    for (var i = 0; i < 10; i++) {
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3511, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3509, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frame_ts += 16000 + 1000 * (i % 2);
+    }
+
+    var m = new tr.Model(events);
+    var modelHelper = new tr.e.audits.ChromeModelHelper(m);
+
+    // Testing browser impl and main rendering stats.
+    var frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
+        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    var frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assert.equal(frametimeData.length, 9);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+    }
+    // No main rendering stats.
+    frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
+        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    assert.equal(frameEvents.length, 0);
+
+
+    // Testing renderer 3508 impl and main rendering stats.
+    frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
+        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assert.equal(frametimeData.length, 9);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+    }
+
+    // No impl rendering stats.
+    frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
+        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    assert.equal(frameEvents.length, 0);
+
+
+    // Testing renderer 3509 impl and main rendering stats.
+    frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
+        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assert.equal(frametimeData.length, 9);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+    }
+
+    frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
+        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+    assert.equal(frametimeData.length, 9);
+    for (var i = 0; i < frametimeData.length; i++) {
+      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+    }
+
+  });
+});
+</script>

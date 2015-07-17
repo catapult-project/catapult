@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/kernel.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('bestGuessAtCpuCountWithNoData', function() {
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+    });
+    assert.isUndefined(m.kernel.bestGuessAtCpuCount);
+  });
+
+  test('bestGuessAtCpuCountWithCpuData', function() {
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+      var c1 = m.kernel.getOrCreateCpu(1);
+      var c2 = m.kernel.getOrCreateCpu(2);
+    });
+    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+  });
+
+  test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+      m.kernel.softwareMeasuredCpuCount = 2;
+    });
+    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+  });
+
+  test('kernelStableId', function() {
+    var model = new tr.Model();
+
+    assert.equal(model.kernel.stableId, 'Kernel');
+  });
+
+  test('kernelTimeShifting', function() {
+    var m = new tr.Model([]);
+
+    var ctr1 = m.kernel.getOrCreateCounter('cat', 'ctr1');
+    var series1 = new tr.model.CounterSeries('a', 0);
+    series1.addCounterSample(100, 5);
+    series1.addCounterSample(200, 5);
+    ctr1.addSeries(series1);
+
+    var ctr2 = m.kernel.getOrCreateCpu(1).getOrCreateCounter('cat', 'ctr2');
+    var series2 = new tr.model.CounterSeries('b', 0);
+    series2.addCounterSample(300, 5);
+    series2.addCounterSample(400, 5);
+    ctr2.addSeries(series2);
+
+    m.kernel.shiftTimestampsForward(2);
+
+    assert.equal(ctr1.series[0].samples[0].timestamp, 102);
+    assert.equal(ctr1.series[0].samples[1].timestamp, 202);
+
+    assert.equal(ctr2.series[0].samples[0].timestamp, 302);
+    assert.equal(ctr2.series[0].samples[1].timestamp, 402);
+  });
+});
+</script>
+

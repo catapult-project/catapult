@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel='import' href='/ui/base/info_bar.html'>
+
+<polymer-element name='tr-ui-b-info-bar-group' is='HTMLUnknownElement'>
+  <template>
+    <style>
+    :host {
+      flex: 0 0 auto;
+      flex-direction: column;
+      display: flex;
+    }
+    </style>
+    <div id='messages'></div>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.messages_ = [];
+    },
+
+    clearMessages: function() {
+      this.messages_ = [];
+      this.updateContents_();
+    },
+
+    addMessage: function(text, opt_buttons) {
+      opt_buttons = opt_buttons || [];
+      for (var i = 0; i < opt_buttons.length; i++) {
+        if (opt_buttons[i].buttonText === undefined)
+          throw new Error('buttonText must be provided');
+        if (opt_buttons[i].onClick === undefined)
+          throw new Error('onClick must be provided');
+      }
+
+      this.messages_.push({
+        text: text,
+        buttons: opt_buttons || []
+      });
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.$.messages.textContent = '';
+      this.messages_.forEach(function(message) {
+        var bar = document.createElement('tr-ui-b-info-bar');
+        bar.message = message.text;
+        bar.visible = true;
+
+        message.buttons.forEach(function(button) {
+          bar.addButton(button.buttonText, button.onClick);
+        }, this);
+
+        this.$.messages.appendChild(bar);
+      }, this);
+    }
+  });
+  </script>
+</polymer-element>

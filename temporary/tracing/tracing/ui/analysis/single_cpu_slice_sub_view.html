@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-single-cpu-slice-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    table {
+      border-collapse: collapse;
+      border-width: 0;
+      margin-bottom: 25px;
+      width: 100%;
+    }
+
+    table tr > td:first-child {
+      padding-left: 2px;
+    }
+
+    table tr > td {
+      padding: 2px 4px 2px 4px;
+      vertical-align: text-top;
+      width: 150px;
+    }
+
+    table td td {
+      padding: 0 0 0 0;
+      width: auto;
+    }
+    tr {
+      vertical-align: top;
+    }
+
+    tr:nth-child(2n+0) {
+      background-color: #e2e2e2;
+    }
+    </style>
+    <table>
+      <tr>
+        <td>Running process:</td><td id="process-name"></td>
+      </tr>
+      <tr>
+        <td>Running thread:</td><td id="thread-name"></td>
+      </tr>
+      <tr>
+        <td>Start:</td>
+        <td>
+          <tr-ui-u-time-stamp-span id="start">
+          </tr-ui-u-time-stamp-span>
+        </td>
+      </tr>
+      <tr>
+        <td>Duration:</td>
+        <td>
+          <tr-ui-u-time-duration-span id="duration">
+          </tr-ui-u-time-duration-span>
+        </td>
+      </tr>
+      <tr>
+        <td>Active slices:</td><td id="running-thread"></td>
+      </tr>
+      <tr>
+        <td>Args:</td>
+        <td>
+          <tr-ui-a-generic-object-view id="args">
+          </tr-ui-a-generic-object-view>
+        </td>
+      </tr>
+    </table>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports single slices');
+      if (!(selection[0] instanceof tr.model.CpuSlice))
+        throw new Error('Only supports thread time slices');
+
+      this.currentSelection_ = selection;
+
+      var cpuSlice = selection[0];
+      var thread = cpuSlice.threadThatWasRunning;
+
+      var shadowRoot = this.shadowRoot;
+      if (thread) {
+        shadowRoot.querySelector('#process-name').textContent =
+            thread.parent.userFriendlyName;
+        shadowRoot.querySelector('#thread-name').textContent =
+            thread.userFriendlyName;
+      } else {
+        shadowRoot.querySelector('#process-name').parentElement.style.display =
+            'none';
+        shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
+      }
+
+      shadowRoot.querySelector('#start').timestamp = cpuSlice.start;
+      shadowRoot.querySelector('#duration').duration = cpuSlice.duration;
+
+      var runningThreadEl = shadowRoot.querySelector('#running-thread');
+
+      var timeSlice = cpuSlice.getAssociatedTimeslice();
+      if (!timeSlice) {
+        runningThreadEl.parentElement.style.display = 'none';
+      } else {
+        var threadLink = document.createElement('tr-ui-a-analysis-link');
+        threadLink.selection = new tr.model.EventSet(timeSlice);
+        threadLink.textContent = 'Click to select';
+        runningThreadEl.parentElement.style.display = '';
+        runningThreadEl.textContent = '';
+        runningThreadEl.appendChild(threadLink);
+      }
+
+      shadowRoot.querySelector('#args').object = cpuSlice.args;
+
+    }
+  });
+  </script>
+</polymer-element>

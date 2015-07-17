@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/instant_event.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/tracks/thread_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var HighlightInstantEvent = tr.model.ThreadHighlightInstantEvent;
+  var Process = tr.model.Process;
+  var EventSet = tr.model.EventSet;
+  var StackFrame = tr.model.StackFrame;
+  var Sample = tr.model.Sample;
+  var Thread = tr.model.Thread;
+  var ThreadSlice = tr.model.ThreadSlice;
+  var ThreadTrack = tr.ui.tracks.ThreadTrack;
+  var Viewport = tr.ui.TimelineViewport;
+  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+
+  test('selectionHitTestingWithThreadTrack', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
+
+    var testEl = document.createElement('div');
+    testEl.appendChild(tr.ui.b.createScopedStyle('heading { width: 100px; }'));
+    testEl.style.width = '600px';
+
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new ThreadTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.updateCanvasSizeIfNeeded_();
+    track.thread = t1;
+
+    var y = track.getBoundingClientRect().top;
+    var h = track.getBoundingClientRect().height;
+    var wW = 10;
+    var vW = drawingContainer.canvas.getBoundingClientRect().width;
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, wW, vW);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    var selection = new EventSet();
+    var x = (1.5 / wW) * vW;
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
+    assert.equal(t1.sliceGroup.slices[0], selection[0]);
+
+    var selection = new EventSet();
+    track.addIntersectingEventsInRangeToSelection(
+        (1.5 / wW) * vW, (1.8 / wW) * vW,
+        y, y + h, selection);
+    assert.equal(t1.sliceGroup.slices[0], selection[0]);
+  });
+
+  test('filterThreadSlices', function() {
+    var model = new tr.Model();
+    var thread = new Thread(new Process(model, 7), 1);
+    thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
+    thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
+
+    var t = new ThreadTrack(new tr.ui.TimelineViewport());
+    t.thread = thread;
+
+    assert.equal(t.tracks_.length, 2);
+    assert.instanceOf(t.tracks_[0], tr.ui.tracks.AsyncSliceGroupTrack);
+    assert.instanceOf(t.tracks_[1], tr.ui.tracks.SliceGroupTrack);
+  });
+
+  test('sampleThreadSlices', function() {
+    var model = new tr.Model();
+    var thread;
+    var cpu;
+    model.importTraces([], false, false, function() {
+      cpu = model.kernel.getOrCreateCpu(1);
+      thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+
+      var fA = model.addStackFrame(new StackFrame(
+          undefined, 1, 'cat', 'a', 7));
+      var fAB = model.addStackFrame(new StackFrame(
+          fA, 2, 'cat', 'b', 7));
+      var fABC = model.addStackFrame(new StackFrame(
+          fAB, 3, 'cat', 'c', 7));
+      var fAD = model.addStackFrame(new StackFrame(
+          fA, 4, 'cat', 'd', 7));
+
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    10, fABC, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    20, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    30, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    40, fAD, 10));
+
+      model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                    25, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                    35, fAD, 10));
+    });
+
+    var t = new ThreadTrack(new tr.ui.TimelineViewport());
+    t.thread = thread;
+    assert.equal(t.tracks_.length, 2);
+
+    // Instructions retired
+    var t0 = t.tracks_[0];
+    assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
+    assert.instanceOf(t0, tr.ui.tracks.SampleTrack);
+    assert.equal(t0.samples.length, 4);
+    t0.samples.forEach(function(s) {
+      assert.instanceOf(s, tr.model.Sample);
+    });
+
+    // page_fault
+    var t1 = t.tracks_[1];
+    assert.notEqual(t1.heading.indexOf('page_fault'), -1);
+    assert.instanceOf(t1, tr.ui.tracks.SampleTrack);
+    assert.equal(t1.samples.length, 2);
+  });
+});
+</script>

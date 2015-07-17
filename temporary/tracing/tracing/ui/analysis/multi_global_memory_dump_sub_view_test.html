@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var m = new tr.Model();
+
+    function addGlobalMemoryDump(timestamp) {
+      var gmd = new tr.model.GlobalMemoryDump(m, timestamp);
+      m.globalMemoryDumps.push(gmd);
+      return gmd;
+    }
+
+    var d1 = addGlobalMemoryDump(5);
+    var d2 = addGlobalMemoryDump(20);
+
+    var selection = new tr.model.EventSet();
+    selection.push(d1);
+    selection.push(d2);
+    assert.equal(selection.length, 2);
+
+    var subView = document.createElement(
+        'tr-ui-a-multi-global-memory-dump-sub-view');
+    subView.selection = selection;
+
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

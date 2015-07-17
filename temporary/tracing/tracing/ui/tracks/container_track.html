@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/ui/tracks/track.html">
+<link rel="import" href="/core/filter.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  var Task = tr.b.Task;
+
+  /**
+   * A generic track that contains other tracks as its children.
+   * @constructor
+   */
+  var ContainerTrack = tr.ui.b.define('container-track', tr.ui.tracks.Track);
+  ContainerTrack.prototype = {
+    __proto__: tr.ui.tracks.Track.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
+    },
+
+    detach: function() {
+      this.textContent = '';
+    },
+
+    get tracks_() {
+      var tracks = [];
+      for (var i = 0; i < this.children.length; i++) {
+        if (this.children[i].classList.contains('track'))
+          tracks.push(this.children[i]);
+      }
+      return tracks;
+    },
+
+    drawTrack: function(type) {
+      for (var i = 0; i < this.children.length; ++i) {
+        if (!(this.children[i] instanceof tr.ui.tracks.Track))
+          continue;
+        this.children[i].drawTrack(type);
+      }
+    },
+
+    /**
+     * Adds items intersecting the given range to a selection.
+     * @param {number} loVX Lower X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVX Upper X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} loY Lower Y bound of the interval to search, in
+     *     viewspace space.
+     * @param {number} hiY Upper Y bound of the interval to search, in
+     *     viewspace space.
+     * @param {Selection} selection Selection to which to add results.
+     */
+    addIntersectingEventsInRangeToSelection: function(
+        loVX, hiVX, loY, hiY, selection) {
+      for (var i = 0; i < this.tracks_.length; i++) {
+        var trackClientRect = this.tracks_[i].getBoundingClientRect();
+        var a = Math.max(loY, trackClientRect.top);
+        var b = Math.min(hiY, trackClientRect.bottom);
+        if (a <= b)
+          this.tracks_[i].addIntersectingEventsInRangeToSelection(
+              loVX, hiVX, loY, hiY, selection);
+      }
+
+      tr.ui.tracks.Track.prototype.addIntersectingEventsInRangeToSelection.
+          apply(this, arguments);
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      for (var i = 0; i < this.children.length; ++i)
+        this.children[i].addEventsToTrackMap(eventToTrackMap);
+    },
+
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+      for (var i = 0; i < this.tracks_.length; i++)
+        this.tracks_[i].addAllEventsMatchingFilterToSelection(
+            filter, selection);
+    },
+
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      var task = new Task();
+      for (var i = 0; i < this.tracks_.length; i++) {
+        task.subTask(function(i) { return function() {
+          this.tracks_[i].addAllEventsMatchingFilterToSelection(
+              filter, selection);
+        } }(i), this);
+      }
+      return task;
+    },
+
+    addClosestEventToSelection: function(
+        worldX, worldMaxDist, loY, hiY, selection) {
+      for (var i = 0; i < this.tracks_.length; i++) {
+        var trackClientRect = this.tracks_[i].getBoundingClientRect();
+        var a = Math.max(loY, trackClientRect.top);
+        var b = Math.min(hiY, trackClientRect.bottom);
+        if (a <= b) {
+          this.tracks_[i].addClosestEventToSelection(
+              worldX, worldMaxDist, loY, hiY, selection);
+        }
+      }
+
+      tr.ui.tracks.Track.prototype.addClosestEventToSelection.
+          apply(this, arguments);
+    },
+
+    clearTracks_: function() {
+      this.tracks_.forEach(function(track) {
+        this.removeChild(track);
+      }, this);
+    }
+  };
+
+  return {
+    ContainerTrack: ContainerTrack
+  };
+});
+</script>

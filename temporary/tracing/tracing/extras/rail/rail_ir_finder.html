@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/model/event_info.html">
+<link rel="import" href="/base/range_utils.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/extras/rail/idle_interaction_record.html">
+<link rel="import" href="/extras/rail/load_interaction_record.html">
+<link rel="import" href="/extras/rail/response_interaction_record.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tr.exportTo('tr.e.rail', function() {
+  function RAILIRFinder(model, modelHelper) {
+    this.model = model;
+    this.modelHelper = modelHelper;
+  };
+
+  RAILIRFinder.supportsModelHelper = function(modelHelper) {
+    return modelHelper.browserHelper !== undefined;
+  };
+
+  RAILIRFinder.prototype = {
+    getAllLatencyEvents: function() {
+      return this.modelHelper.browserHelper.getLatencyEventsInRange(
+          this.model.bounds);
+    },
+
+    getAllFrameEvents: function() {
+      var frameEvents = [];
+      if (this.modelHelper.browserHelper) {
+        var fe = this.modelHelper.browserHelper.getFrameEventsInRange(
+            tr.e.audits.IMPL_FRAMETIME_TYPE,
+            this.model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }
+      tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
+        var fe = renderer.getFrameEventsInRange(tr.e.audits.IMPL_FRAMETIME_TYPE,
+                                                this.model.bounds);
+        frameEvents.push.apply(frameEvents, fe);
+      }, this);
+      frameEvents.sort(function(x, y) { return x.start - y.start; });
+      return frameEvents;
+    },
+
+    getAllGestures: function() {
+      var allLatencyEvents = this.getAllLatencyEvents();
+
+      function latencyEventToStartPoint(latencyEvent) {
+        return {
+          min: latencyEvent.start,
+          max: latencyEvent.start,
+          latencyEvent: latencyEvent
+        };
+      }
+      var latencyStartPoints = allLatencyEvents.map(latencyEventToStartPoint);
+
+      function joinStartPointsIntoGesture(startPoints) {
+        var latencyEvents = startPoints.map(function(startPoint) {
+          return startPoint.latencyEvent;
+        });
+
+        var e0 = latencyEvents[0];
+        var eN = latencyEvents[latencyEvents.length - 1];
+
+        var gesture = {
+          expectedStart: e0.start,
+          expectedEnd: eN.start,
+          latencyEvents: latencyEvents
+        };
+        return gesture;
+      }
+
+      return tr.b.mergeRanges(
+          latencyStartPoints,
+          250,
+          joinStartPointsIntoGesture);
+    },
+
+    getAllExpectedFlingingRanges: function() {
+      if (this.modelHelper.browserHelper === undefined)
+        return;
+      var ops = [];
+      var FLING_OP_START = 'start';
+      var FLING_OP_CANCEL = 'cancel';
+      var FLING_OP_ANIM_END = 'anim-end';
+
+
+      // Add ops for input fling start & cancel.
+      var allLatencyEvents = this.getAllLatencyEvents();
+      allLatencyEvents.forEach(function(latencyEvent) {
+        if (latencyEvent.subSlices.length == 0)
+          return;
+        var s0title = latencyEvent.subSlices[0].title;
+        if (s0title === 'InputLatency:GestureFlingStart') {
+          ops.push({
+            op: FLING_OP_START, guid: latencyEvent.guid,
+            opTs: latencyEvent.start,
+            latencyEvent: latencyEvent
+          });
+        } else if (s0title === 'InputLatency:GestureFlingCancel') {
+          ops.push({
+            op: FLING_OP_CANCEL, guid: latencyEvent.guid,
+            opTs: latencyEvent.start,
+            latencyEvent: latencyEvent
+          });
+        }
+      });
+
+      // Add ops for fling animations.
+      this.modelHelper.browserHelper.getAllAsyncSlicesMatching(function(event) {
+        if (event.title !== 'InputHandlerProxy::HandleGestureFling::started')
+          return;
+        ops.push({
+            op: FLING_OP_ANIM_END,
+            guid: event.guid,
+            opTs: event.end,
+            flingAnimationEvent: event
+        });
+      });
+
+      // Sort ops, stably.
+      ops.sort(function(x, y) {
+        var delta = x.opTs - y.opTs;
+        if (delta != 0)
+          return delta;
+        return x.guid - y.guid;
+      });
+
+      // Create expected-to-fling ranges based on UX expectations.
+      var allExpectedFlingRanges = [];
+      var currentFling = undefined;
+      ops.forEach(function(op) {
+        switch (op.op) {
+        case FLING_OP_START:
+          if (currentFling)
+            throw new Error('OMG THERE IS ALREADY A FLING');
+          currentFling = {
+            expectedStart: op.latencyEvent.start,
+            actualStart: op.latencyEvent.end,
+            expectedEnd: undefined,
+            actualEnd: undefined
+          };
+          break;
+        case FLING_OP_CANCEL:
+          if (!currentFling)
+            return;
+          currentFling.expectedEnd = op.latencyEvent.start;
+          currentFling.actualEnd = op.latencyEvent.end;
+          allExpectedFlingRanges.push(currentFling);
+          currentFling = undefined;
+          break;
+        case FLING_OP_ANIM_END:
+          if (!currentFling)
+            return;
+          currentFling.expectedEnd = op.flingAnimationEvent.end;
+          currentFling.actualEnd = op.flingAnimationEvent.end;
+          allExpectedFlingRanges.push(currentFling);
+          currentFling = undefined;
+          break;
+        }
+      });
+
+      if (currentFling) {
+        currentFling.expectedEnd = this.model.bounds.max;
+        currentFling.actualEnd = this.model.bounds.max;
+        allExpectedFlingRanges.push(currentFling);
+        currentFling = undefined;
+      }
+      return allExpectedFlingRanges;
+    },
+
+    getAllExpected60Ranges: function() {
+      return this.getAllExpectedFlingingRanges();
+    },
+
+    findGestureTapDowns: function() {
+      // InputLatency:GestureTapDown/
+    },
+
+    findLoadInteractionRecords: function() {
+      var commits =
+        this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
+            this.model.bounds);
+      var frames = this.getAllFrameEvents();
+
+      commits.forEach(function(commitLoad, commitLoadIndex) {
+        frames.some(function(frame) {
+          if ((frame.start > commitLoad.start) &&
+              (frame.parentContainer.parent.pid ==
+                  commitLoad.parentContainer.parent.pid)) {
+            if (frame.commitProvisionalLoad) return true;
+            console.log('commit first frame', commitLoad.start, frame.start,
+                frame.start - commitLoad.start);
+            commitLoad.firstFrame = frame;
+            frame.commitProvisionalLoad = commitLoad;
+            return true;
+          }
+          return false;
+        });
+        if (!commitLoad.firstFrame) {
+          console.log('missing first frame', commitLoad);
+        }
+      });
+
+      var lirs = [];
+      commits.forEach(function(commitLoad, commitLoadIndex) {
+        if (!commitLoad.firstFrame)
+          return;
+        lirs.push(new tr.e.rail.LoadInteractionRecord(
+            commitLoad.start, commitLoad.firstFrame.end - commitLoad.start));
+      });
+      return lirs;
+    },
+
+    findResponseInteractionRecords: function() {
+      return this.getAllGestures().map(function(gesture) {
+        var ir = new tr.e.rail.ResponseInteractionRecord(
+            gesture.expectedStart, gesture.expectedEnd - gesture.expectedStart);
+
+        gesture.latencyEvents.forEach(function(latencyEvent) {
+          ir.associatedEvents.push(latencyEvent);
+          if (latencyEvent.associatedEvents === undefined)
+            return;
+
+          latencyEvent.associatedEvents.forEach(function(event) {
+            ir.associatedEvents.push(event);
+          });
+        });
+        return ir;
+      });
+    },
+
+    findAnimationInteractionRecords: function() {
+      return this.getAllExpected60Ranges().map(function(fling) {
+        return new tr.e.rail.AnimationInteractionRecord(
+            fling.expectedStart, fling.expectedEnd - fling.expectedStart);
+      });
+    },
+
+    findIdleInteractionRecords: function(otherIRs) {
+      if (this.model.bounds.isEmpty) {
+        console.error('RAILIRFinder.findIdleInteractionRecords Empty model');
+        return [];
+      }
+      var emptyRanges = tr.b.findEmptyRangesBetweenRanges(
+          tr.b.convertEventsToRanges(otherIRs),
+          this.model.bounds);
+      return emptyRanges.map(function(range) {
+        return new tr.e.rail.IdleInteractionRecord(
+            range.min, range.max - range.min);
+      });
+    },
+
+    findAllInteractionRecords: function() {
+      var rirs = [];
+      rirs.push.apply(rirs, this.findLoadInteractionRecords());
+      rirs.push.apply(rirs, this.findResponseInteractionRecords());
+      rirs.push.apply(rirs, this.findAnimationInteractionRecords());
+      rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
+      return rirs;
+    }
+  };
+
+  return {
+    RAILIRFinder: RAILIRFinder
+  };
+});
+</script>

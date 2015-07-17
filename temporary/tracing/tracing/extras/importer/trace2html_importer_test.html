@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/trace2html_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  test('simple', function() {
+    var html_lines = [
+      '<!DOCTYPE HTML>',
+      '<script id="viewer-data" type="application/json">',
+      btoa('hello'),
+      '<\/script>',
+      '<script id="viewer-data" type="text/plain">',
+      btoa('world'),
+      '<\/script>',
+      '</html>'
+    ];
+    var html_text = html_lines.join('\n');
+    assert.isTrue(tr.e.importer.Trace2HTMLImporter.canImport(html_text));
+
+    var m = new tr.Model();
+    var imp = new tr.e.importer.Trace2HTMLImporter(m, html_text);
+    var subTracesAsBuffers = imp.extractSubtraces();
+    var subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
+      var str = '';
+      var ary = new Uint8Array(buffer);
+      for (var i = 0; i < ary.length; i++)
+        str += String.fromCharCode(ary[i]);
+      return str;
+    });
+    assert.deepEqual(subTracesAsStrings, ['hello', 'world']);
+  });
+});
+</script>

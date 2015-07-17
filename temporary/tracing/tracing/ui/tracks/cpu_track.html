@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/filter.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/container_track.html">
+<link rel="import" href="/ui/tracks/slice_track.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  /**
+   * Visualizes a Cpu using a series of of SliceTracks.
+   * @constructor
+   */
+  var CpuTrack =
+      tr.ui.b.define('cpu-track', tr.ui.tracks.ContainerTrack);
+  CpuTrack.prototype = {
+    __proto__: tr.ui.tracks.ContainerTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('cpu-track');
+      this.detailedMode_ = true;
+    },
+
+    get cpu() {
+      return this.cpu_;
+    },
+
+    set cpu(cpu) {
+      this.cpu_ = cpu;
+      this.updateContents_();
+    },
+
+    get detailedMode() {
+      return this.detailedMode_;
+    },
+
+    set detailedMode(detailedMode) {
+      this.detailedMode_ = detailedMode;
+      this.updateContents_();
+    },
+
+    get tooltip() {
+      return this.tooltip_;
+    },
+
+    set tooltip(value) {
+      this.tooltip_ = value;
+      this.updateContents_();
+    },
+
+    get hasVisibleContent() {
+      if (this.cpu_ === undefined)
+        return false;
+      var cpu = this.cpu_;
+      if (cpu.slices.length)
+        return true;
+      if (cpu.samples && cpu.samples.length)
+        return true;
+      if (tr.b.dictionaryLength(cpu.counters) > 0)
+        return true;
+      return false;
+    },
+
+    updateContents_: function() {
+      this.detach();
+      if (!this.cpu_)
+        return;
+      var slices = this.cpu_.slices;
+      if (slices.length) {
+        var track = new tr.ui.tracks.SliceTrack(this.viewport);
+        track.slices = slices;
+        track.heading = this.cpu_.userFriendlyName + ':';
+        this.appendChild(track);
+      }
+
+      if (this.detailedMode_) {
+        this.appendSamplesTracks_();
+
+        for (var counterName in this.cpu_.counters) {
+          var counter = this.cpu_.counters[counterName];
+          track = new tr.ui.tracks.CounterTrack(this.viewport);
+          track.heading = this.cpu_.userFriendlyName + ' ' +
+              counter.name + ':';
+          track.counter = counter;
+          this.appendChild(track);
+        }
+      }
+    },
+
+    appendSamplesTracks_: function() {
+      var samples = this.cpu_.samples;
+      if (samples === undefined || samples.length === 0)
+        return;
+      var samplesByTitle = {};
+      samples.forEach(function(sample) {
+        if (samplesByTitle[sample.title] === undefined)
+          samplesByTitle[sample.title] = [];
+        samplesByTitle[sample.title].push(sample);
+      });
+
+      var sampleTitles = tr.b.dictionaryKeys(samplesByTitle);
+      sampleTitles.sort();
+
+      sampleTitles.forEach(function(sampleTitle) {
+        var samples = samplesByTitle[sampleTitle];
+        var samplesTrack = new tr.ui.tracks.SliceTrack(this.viewport);
+        samplesTrack.group = this.cpu_;
+        samplesTrack.slices = samples;
+        samplesTrack.heading = this.cpu_.userFriendlyName + ': ' +
+            sampleTitle;
+        samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
+        samplesTrack.selectionGenerator = function() {
+          var selection = new tr.model.EventSet();
+          for (var i = 0; i < samplesTrack.slices.length; i++) {
+            selection.push(samplesTrack.slices[i]);
+          }
+          return selection;
+        };
+        this.appendChild(samplesTrack);
+      }, this);
+    }
+  };
+
+  return {
+    CpuTrack: CpuTrack
+  };
+});
+</script>

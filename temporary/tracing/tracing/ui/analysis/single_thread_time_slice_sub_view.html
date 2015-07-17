@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/sorted_array_utils.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/base/color_scheme.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-single-thread-time-slice-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    table {
+      border-collapse: collapse;
+      border-width: 0;
+      margin-bottom: 25px;
+      width: 100%;
+    }
+
+    table tr > td:first-child {
+      padding-left: 2px;
+    }
+
+    table tr > td {
+      padding: 2px 4px 2px 4px;
+      vertical-align: text-top;
+      width: 150px;
+    }
+
+    table td td {
+      padding: 0 0 0 0;
+      width: auto;
+    }
+    tr {
+      vertical-align: top;
+    }
+
+    tr:nth-child(2n+0) {
+      background-color: #e2e2e2;
+    }
+    </style>
+    <table>
+      <tr>
+        <td>Running process:</td><td id="process-name"></td>
+      </tr>
+      <tr>
+        <td>Running thread:</td><td id="thread-name"></td>
+      </tr>
+      <tr>
+        <td>State:</td>
+        <td><b><span id="state"></span></b></td>
+      </tr>
+      <tr>
+        <td>Start:</td>
+        <td>
+          <tr-ui-u-time-stamp-span id="start">
+          </tr-ui-u-time-stamp-span>
+        </td>
+      </tr>
+      <tr>
+        <td>Duration:</td>
+        <td>
+          <tr-ui-u-time-duration-span id="duration">
+          </tr-ui-u-time-duration-span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>On CPU:</td><td id="on-cpu"></td>
+      </tr>
+
+      <tr>
+        <td>Running instead:</td><td id="running-instead"></td>
+      </tr>
+
+      <tr>
+        <td>Args:</td><td id="args"></td>
+      </tr>
+    </table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports single slices');
+      if (!(selection[0] instanceof tr.model.ThreadTimeSlice))
+        throw new Error('Only supports thread time slices');
+
+      this.currentSelection_ = selection;
+
+      var timeSlice = selection[0];
+      var thread = timeSlice.thread;
+
+      var shadowRoot = this.shadowRoot;
+      shadowRoot.querySelector('#state').textContent = timeSlice.title;
+      var stateColor = tr.ui.b.getColorPalette()[timeSlice.colorId];
+      shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
+
+      shadowRoot.querySelector('#process-name').textContent =
+          thread.parent.userFriendlyName;
+      shadowRoot.querySelector('#thread-name').textContent =
+          thread.userFriendlyName;
+
+      shadowRoot.querySelector('#start').timestamp = timeSlice.start;
+      shadowRoot.querySelector('#duration').duration = timeSlice.duration;
+      var onCpuEl = shadowRoot.querySelector('#on-cpu');
+      onCpuEl.textContent = '';
+      var runningInsteadEl = shadowRoot.querySelector('#running-instead');
+      if (timeSlice.cpuOnWhichThreadWasRunning) {
+        runningInsteadEl.parentElement.removeChild(runningInsteadEl);
+
+        var cpuLink = document.createElement('tr-ui-a-analysis-link');
+        cpuLink.selection = new tr.model.EventSet(
+            timeSlice.getAssociatedCpuSlice());
+        cpuLink.textContent =
+            timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
+        onCpuEl.appendChild(cpuLink);
+      } else {
+        onCpuEl.parentElement.removeChild(onCpuEl);
+
+        var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
+        if (cpuSliceThatTookCpu) {
+          var cpuLink = document.createElement('tr-ui-a-analysis-link');
+          cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
+          if (cpuSliceThatTookCpu.thread)
+            cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
+          else
+            cpuLink.textContent = cpuSliceThatTookCpu.title;
+          runningInsteadEl.appendChild(cpuLink);
+        } else {
+          runningInsteadEl.parentElement.removeChild(runningInsteadEl);
+        }
+      }
+
+      var argsEl = shadowRoot.querySelector('#args');
+      if (tr.b.dictionaryKeys(timeSlice.args).length > 0) {
+        var argsView =
+            document.createElement('tr-ui-a-generic-object-view');
+        argsView.object = timeSlice.args;
+
+        argsEl.parentElement.style.display = '';
+        argsEl.textContent = '';
+        argsEl.appendChild(argsView);
+      } else {
+        argsEl.parentElement.style.display = 'none';
+      }
+    }
+  });
+  </script>
+</polymer-element>

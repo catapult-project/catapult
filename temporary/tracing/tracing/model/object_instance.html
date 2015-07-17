@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/extension_registry.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/object_snapshot.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/base/sorted_array_utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the ObjectSnapshot and ObjectHistory classes.
+ */
+tr.exportTo('tr.model', function() {
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
+
+  /**
+   * An object with a specific id, whose state has been snapshotted several
+   * times.
+   *
+   * @constructor
+   */
+  function ObjectInstance(
+      parent, id, category, name, creationTs, opt_baseTypeName) {
+    tr.model.Event.call(this);
+    this.parent = parent;
+    this.id = id;
+    this.category = category;
+    this.baseTypeName = opt_baseTypeName ? opt_baseTypeName : name;
+    this.name = name;
+    this.creationTs = creationTs;
+    this.creationTsWasExplicit = false;
+    this.deletionTs = Number.MAX_VALUE;
+    this.deletionTsWasExplicit = false;
+    this.colorId = 0;
+    this.bounds = new tr.b.Range();
+    this.snapshots = [];
+    this.hasImplicitSnapshots = false;
+  }
+
+  ObjectInstance.prototype = {
+    __proto__: tr.model.Event.prototype,
+
+    get typeName() {
+      return this.name;
+    },
+
+    addBoundsToRange: function(range) {
+      range.addRange(this.bounds);
+    },
+
+    addSnapshot: function(ts, args, opt_name, opt_baseTypeName) {
+      if (ts < this.creationTs)
+        throw new Error('Snapshots must be >= instance.creationTs');
+      if (ts >= this.deletionTs)
+        throw new Error('Snapshots cannot be added after ' +
+                        'an objects deletion timestamp.');
+
+      var lastSnapshot;
+      if (this.snapshots.length > 0) {
+        lastSnapshot = this.snapshots[this.snapshots.length - 1];
+        if (lastSnapshot.ts == ts)
+          throw new Error('Snapshots already exists at this time!');
+        if (ts < lastSnapshot.ts) {
+          throw new Error(
+              'Snapshots must be added in increasing timestamp order');
+        }
+      }
+
+      // Update baseTypeName if needed.
+      if (opt_name &&
+          (this.name != opt_name)) {
+        if (!opt_baseTypeName)
+          throw new Error('Must provide base type name for name update');
+        if (this.baseTypeName != opt_baseTypeName)
+          throw new Error('Cannot update type name: base types dont match');
+        this.name = opt_name;
+      }
+
+      var snapshotConstructor =
+          tr.model.ObjectSnapshot.getConstructor(
+              this.category, this.name);
+      var snapshot = new snapshotConstructor(this, ts, args);
+      this.snapshots.push(snapshot);
+      return snapshot;
+    },
+
+    wasDeleted: function(ts) {
+      var lastSnapshot;
+      if (this.snapshots.length > 0) {
+        lastSnapshot = this.snapshots[this.snapshots.length - 1];
+        if (lastSnapshot.ts > ts)
+          throw new Error(
+              'Instance cannot be deleted at ts=' +
+              ts + '. A snapshot exists that is older.');
+      }
+      this.deletionTs = ts;
+      this.deletionTsWasExplicit = true;
+    },
+
+    /**
+     * See ObjectSnapshot constructor notes on object initialization.
+     */
+    preInitialize: function() {
+      for (var i = 0; i < this.snapshots.length; i++)
+        this.snapshots[i].preInitialize();
+    },
+
+    /**
+     * See ObjectSnapshot constructor notes on object initialization.
+     */
+    initialize: function() {
+      for (var i = 0; i < this.snapshots.length; i++)
+        this.snapshots[i].initialize();
+    },
+
+    getSnapshotAt: function(ts) {
+      if (ts < this.creationTs) {
+        if (this.creationTsWasExplicit)
+          throw new Error('ts must be within lifetime of this instance');
+        return this.snapshots[0];
+      }
+      if (ts > this.deletionTs)
+        throw new Error('ts must be within lifetime of this instance');
+
+      var snapshots = this.snapshots;
+      var i = tr.b.findIndexInSortedIntervals(
+          snapshots,
+          function(snapshot) { return snapshot.ts; },
+          function(snapshot, i) {
+            if (i == snapshots.length - 1)
+              return snapshots[i].objectInstance.deletionTs;
+            return snapshots[i + 1].ts - snapshots[i].ts;
+          },
+          ts);
+      if (i < 0) {
+        // Note, this is a little bit sketchy: this lets early ts point at the
+        // first snapshot, even before it is taken. We do this because raster
+        // tasks usually post before their tile snapshots are dumped. This may
+        // be a good line of code to re-visit if we start seeing strange and
+        // confusing object references showing up in the traces.
+        return this.snapshots[0];
+      }
+      if (i >= this.snapshots.length)
+        return this.snapshots[this.snapshots.length - 1];
+      return this.snapshots[i];
+    },
+
+    updateBounds: function() {
+      this.bounds.reset();
+      this.bounds.addValue(this.creationTs);
+      if (this.deletionTs != Number.MAX_VALUE)
+        this.bounds.addValue(this.deletionTs);
+      else if (this.snapshots.length > 0)
+        this.bounds.addValue(this.snapshots[this.snapshots.length - 1].ts);
+    },
+
+    shiftTimestampsForward: function(amount) {
+      this.creationTs += amount;
+      if (this.deletionTs != Number.MAX_VALUE)
+        this.deletionTs += amount;
+      this.snapshots.forEach(function(snapshot) {
+        snapshot.ts += amount;
+      });
+    },
+
+    get userFriendlyName() {
+      return this.typeName + ' object ' + this.id;
+    }
+  };
+
+  tr.model.EventRegistry.register(
+    ObjectInstance,
+    {
+      name: 'objectInstance',
+      pluralName: 'objectInstances',
+      singleViewElementName: 'tr-ui-a-single-object-instance-sub-view',
+      multiViewElementName: 'tr-ui-a-multi-object-sub-view'
+    });
+
+  var options = new tr.b.ExtensionRegistryOptions(
+      tr.b.TYPE_BASED_REGISTRY_MODE);
+  options.mandatoryBaseClass = ObjectInstance;
+  options.defaultConstructor = ObjectInstance;
+  tr.b.decorateExtensionRegistry(ObjectInstance, options);
+
+  return {
+    ObjectInstance: ObjectInstance
+  };
+});
+</script>

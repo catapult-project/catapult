@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/single_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-single-flow-event-sub-view"
+    extends="tr-ui-a-single-event-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    getEventRows_: function(event) {
+      // TODO(nduca): Figure out if there is a cleaner way to do this.
+      var rows = this.__proto__.__proto__.getEventRows_(event);
+
+      // Put the ID up top.
+      rows.splice(0, 0, {
+        name: 'ID',
+        value: event.id
+      });
+
+      function createLinkTo(slice) {
+        var linkEl = document.createElement('tr-ui-a-analysis-link');
+        linkEl.setSelectionAndContent(function() {
+            return new tr.model.EventSet(slice);
+        });
+        linkEl.textContent = slice.userFriendlyName;
+        return linkEl;
+      }
+
+      rows.push({
+        name: 'From',
+        value: createLinkTo(event.startSlice)
+      });
+      rows.push({
+        name: 'To',
+        value: createLinkTo(event.endSlice)
+      });
+      return rows;
+    }
+  });
+  </script>
+</polymer-element>

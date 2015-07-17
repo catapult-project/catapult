@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  test('clock', function() {
+    var lines = [
+      'cfinteractive-23    [000] d..2  8113.233768: clock_set_rate: ' +
+          'fout_apll state=500000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.249509: clock_set_rate: ' +
+          'fout_apll state=300000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.289796: clock_set_rate: ' +
+          'fout_apll state=400000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.294568: clock_set_rate: ' +
+          'fout_apll state=500000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.309509: clock_set_rate: ' +
+          'fout_apll state=800000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.388732: clock_set_rate: ' +
+          'fout_apll state=200000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.410182: clock_set_rate: ' +
+          'fout_apll state=300000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.414872: clock_set_rate: ' +
+          'fout_apll state=600000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.494455: clock_set_rate: ' +
+          'fout_apll state=200000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.515254: clock_set_rate: ' +
+          'fout_apll state=500000000 cpu_id=0'
+    ];
+
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var counters = m.getAllCounters();
+    assert.equal(counters.length, 1);
+
+    assert.equal(counters[0].series[0].samples.length, 10);
+  });
+});
+</script>
+

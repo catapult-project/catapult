@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-multi-process-memory-dump-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="content"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+
+      selection = tr.b.asArray(selection).sort(
+          tr.b.Range.compareByMinTimes);
+
+      var ownerDocument = this.ownerDocument;
+      var table = this.$.content;
+      table.tableColumns = [
+        {
+          title: 'Dump',
+          value: function(row) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+                return new tr.model.EventSet(row);
+            });
+            var spanEl = document.createElement('span');
+            spanEl.textContent = 'Process memory dump at ';
+            linkEl.appendChild(spanEl);
+            linkEl.appendChild(tr.ui.units.createTimeStampSpan(
+                row.start, {ownerDocument: ownerDocument}));
+            return linkEl;
+          }
+        }
+      ];
+      table.showHeader = false;
+      table.tableRows = selection;
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

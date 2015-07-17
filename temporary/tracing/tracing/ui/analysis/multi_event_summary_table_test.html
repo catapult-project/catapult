@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/multi_event_summary_table.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var EventSet = tr.model.EventSet;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  test('basicNoCpu', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, duration: 0.5}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0.5}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0.5}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-summary-table');
+    viewEl.configure({
+      showTotals: true,
+      eventsHaveDuration: true,
+      eventsByTitle: selection.getEventsOrganizedByTitle()
+    });
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('basicWithCpu', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
+                              cpuStart: 0, cpuEnd: 3}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
+                              cpuStart: 1, cpuEnd: 1.75}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
+                              cpuStart: 3, cpuEnd: 3.75}));
+    tsg.createSubSlices();
+
+    var threadTrack = {};
+    threadTrack.thread = thread;
+
+    var selection = new EventSet(tsg.slices);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-summary-table');
+    viewEl.configure({
+      showTotals: true,
+      eventsHaveDuration: true,
+      eventsByTitle: selection.getEventsOrganizedByTitle()
+    });
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('noDurationNoSubRows', function() {
+    var model = new Model();
+
+    var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+
+    // Make reading some properties an explosion, as a way to ensure that they
+    // aren't read.
+    var failProp = {
+      get: function() {
+        throw new Error('Should not be called');
+      }
+    };
+    Object.defineProperty(fe1, 'duration', failProp);
+    Object.defineProperty(fe2, 'duration', failProp);
+
+    Object.defineProperty(fe1, 'subRows', failProp);
+    Object.defineProperty(fe2, 'subRows', failProp);
+
+    Object.defineProperty(fe1, 'selfTime', failProp);
+    Object.defineProperty(fe2, 'selfTime', failProp);
+
+    model.flowEvents.push(fe1);
+    model.flowEvents.push(fe2);
+
+    var selection = new EventSet([fe1, fe2]);
+
+    var viewEl = document.createElement('tr-ui-a-multi-event-summary-table');
+    viewEl.configure({
+      showTotals: true,
+      eventsHaveDuration: false,
+      eventsHaveSubRows: false,
+      eventsByTitle: selection.getEventsOrganizedByTitle()
+    });
+    this.addHTMLOutput(viewEl);
+  });
+
+  // TODO(nduca): Tooltippish stuff.
+});
+</script>

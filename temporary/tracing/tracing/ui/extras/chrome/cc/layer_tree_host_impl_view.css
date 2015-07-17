@@ -1,0 +1,18 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* /deep/ .tr-ui-e-chrome-cc-lthi-s-view {
+  -webkit-flex: 1 1 auto !important;
+  -webkit-flex-direction: row;
+  display: -webkit-flex;
+}
+
+* /deep/ .tr-ui-e-chrome-cc-lthi-s-view > tr-ui-e-chrome-cc-layer-picker {
+  -webkit-flex: 1 1 auto;
+}
+
+* /deep/ .tr-ui-e-chrome-cc-lthi-s-view > x-drag-handle {
+  -webkit-flex: 0 0 auto;
+}

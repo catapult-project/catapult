@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var Process = tr.model.Process;
+  var Thread = tr.model.Thread;
+  var AsyncSlice = tr.model.AsyncSlice;
+  var AsyncSliceGroup = tr.model.AsyncSliceGroup;
+  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
+  var newAsyncSliceEx = tr.c.test_utils.newAsyncSliceEx;
+  var newModel = tr.c.test_utils.newModel;
+
+  test('asyncSliceGroupBounds_Empty', function() {
+    var thread = {};
+    var g = new AsyncSliceGroup(thread);
+    g.updateBounds();
+    assert.isTrue(g.bounds.isEmpty);
+  });
+
+  test('asyncSliceGroupBounds_Basic', function() {
+    var model = new tr.Model();
+    var p1 = new Process(model, 1);
+    var t1 = new Thread(p1, 1);
+    var g = new AsyncSliceGroup(t1);
+    g.push(newAsyncSlice(0, 1, t1, t1));
+    g.push(newAsyncSlice(1, 1.5, t1, t1));
+    assert.equal(g.length, 2);
+    g.updateBounds();
+    assert.equal(g.bounds.min, 0);
+    assert.equal(g.bounds.max, 2.5);
+  });
+
+  test('asyncSliceGroupStableId', function() {
+    var model = new tr.Model();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new AsyncSliceGroup(thread);
+
+    assert.equal(process.stableId, 123);
+    assert.equal(thread.stableId, '123.456');
+    assert.equal(group.stableId, '123.456.AsyncSliceGroup');
+  });
+
+  test('asyncSliceParentContainerSetAtPush', function() {
+    var m = newModel(function(m) {
+      m.process = m.getOrCreateProcess(123);
+      m.thread = m.process.getOrCreateThread(456);
+      m.group = new AsyncSliceGroup(m.thread);
+
+      m.sA = m.group.push(newAsyncSliceEx(
+          { title: 'sA', start: 0.0, duration: 10.0 }));
+    });
+
+    assert.deepEqual(m.sA.parentContainer, m.thread);
+  });
+});
+</script>
+

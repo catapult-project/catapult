@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/thread.html">
+<link rel="import" href="/ui/extras/highlighter/vsync_highlighter.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var VSyncHighlighter = tr.ui.e.highlighter.VSyncHighlighter;
+
+  var VIEW_L_WORLD = 100;
+  var VIEW_R_WORLD = 1000;
+
+  function testGenerateStripes(times, expectedRanges) {
+    var ranges = VSyncHighlighter.generateStripes(
+        times, VIEW_L_WORLD, VIEW_R_WORLD);
+
+    assert.sameDeepMembers(ranges, expectedRanges);
+  }
+
+  test('generateInside', function() {
+    testGenerateStripes([], []);
+    testGenerateStripes([200, 500], [[200, 500]]);
+    testGenerateStripes([200, 500, 800, 900], [[200, 500], [800, 900]]);
+    testGenerateStripes(
+        [200, 500, 800, 900, 998, 999],
+        [[200, 500], [800, 900], [998, 999]]);
+  });
+
+  test('generateOutside', function() {
+    // Far left.
+    testGenerateStripes([0, 99], []);
+    testGenerateStripes([0, 10, 50, 99], []);
+    testGenerateStripes([0, 99, 101, 999], [[101, 999]]);
+    testGenerateStripes([0, 10, 50, 99, 101, 999], [[101, 999]]);
+
+    // Far right.
+    testGenerateStripes([1001, 2000], []);
+    testGenerateStripes([1001, 2000, 3000, 4000], []);
+    testGenerateStripes([101, 999, 1001, 2000], [[101, 999]]);
+    testGenerateStripes([101, 999, 1001, 2000, 3000, 4000], [[101, 999]]);
+
+    // Far both.
+    testGenerateStripes([0, 99, 1001, 2000], []);
+    testGenerateStripes([0, 10, 50, 99, 1001, 2000], []);
+    testGenerateStripes([0, 10, 50, 99, 1001, 2000, 3000, 4000], []);
+    testGenerateStripes([0, 99, 101, 999, 1001, 2000], [[101, 999]]);
+  });
+
+  test('generateOverlap', function() {
+    // Left overlap.
+    testGenerateStripes([0, 101], [[VIEW_L_WORLD, 101]]);
+    testGenerateStripes([0, 1, 2, 101], [[VIEW_L_WORLD, 101]]);
+    testGenerateStripes(
+        [2, 101, 102, 103],
+        [[VIEW_L_WORLD, 101], [102, 103]]);
+    testGenerateStripes(
+        [0, 1, 2, 101, 102, 103],
+        [[VIEW_L_WORLD, 101], [102, 103]]);
+    testGenerateStripes(
+        [0, 1, 2, 101, 102, 103, 1001, 3000],
+        [[VIEW_L_WORLD, 101], [102, 103]]);
+
+    // Right overlap.
+    testGenerateStripes([999, 2000], [[999, VIEW_R_WORLD]]);
+    testGenerateStripes([999, 2000, 3000, 4000], [[999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [997, 998, 999, 2000],
+        [[997, 998], [999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [997, 998, 999, 2000, 3000, 4000],
+        [[997, 998], [999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 10, 997, 998, 999, 2000, 3000, 4000],
+        [[997, 998], [999, VIEW_R_WORLD]]);
+
+    // Both overlap.
+    testGenerateStripes([0, 2000], [[VIEW_L_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 101, 999, 2000],
+        [[VIEW_L_WORLD, 101], [999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 101, 200, 900, 999, 2000],
+        [[VIEW_L_WORLD, 101], [200, 900], [999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 10, 90, 101, 999, 2000, 3000, 4000],
+        [[VIEW_L_WORLD, 101], [999, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 10, 90, 101, 200, 900, 999, 2000, 3000, 4000],
+        [[VIEW_L_WORLD, 101], [200, 900], [999, VIEW_R_WORLD]]);
+  });
+
+  test('generateOdd', function() {
+    // One VSync.
+    testGenerateStripes([0], [[VIEW_L_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes([500], [[500, VIEW_R_WORLD]]);
+    testGenerateStripes([1500], []);
+
+    // Multiple VSyncs.
+    testGenerateStripes([0, 10, 20], [[VIEW_L_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes([0, 500, 2000], [[VIEW_L_WORLD, 500]]);
+    testGenerateStripes([0, 10, 500], [[500, VIEW_R_WORLD]]);
+    testGenerateStripes([0, 10, 2000], []);
+    testGenerateStripes(
+        [0, 200, 500],
+        [[VIEW_L_WORLD, 200], [500, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 200, 500, 900],
+        [[VIEW_L_WORLD, 200], [500, 900]]);
+  });
+
+  test('generateBorder', function() {
+    testGenerateStripes([0, VIEW_L_WORLD], [[VIEW_L_WORLD, VIEW_L_WORLD]]);
+    testGenerateStripes(
+        [VIEW_L_WORLD, VIEW_L_WORLD],
+        [[VIEW_L_WORLD, VIEW_L_WORLD]]);
+    testGenerateStripes(
+        [VIEW_R_WORLD, 2000],
+        [[VIEW_R_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [VIEW_R_WORLD, VIEW_R_WORLD],
+        [[VIEW_R_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [VIEW_L_WORLD, VIEW_R_WORLD],
+        [[VIEW_L_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [VIEW_L_WORLD, 200, 500, VIEW_R_WORLD],
+        [[VIEW_L_WORLD, 200], [500, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, VIEW_L_WORLD, VIEW_R_WORLD, 2000],
+        [[VIEW_L_WORLD, VIEW_L_WORLD], [VIEW_R_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, VIEW_L_WORLD, VIEW_R_WORLD, 2000],
+        [[VIEW_L_WORLD, VIEW_L_WORLD], [VIEW_R_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, VIEW_L_WORLD, 200, 500, VIEW_R_WORLD, 2000],
+        [[VIEW_L_WORLD, VIEW_L_WORLD], [200, 500],
+         [VIEW_R_WORLD, VIEW_R_WORLD]]);
+    testGenerateStripes(
+        [0, 10, VIEW_L_WORLD, VIEW_R_WORLD, 2000, 3000],
+        [[VIEW_L_WORLD, VIEW_R_WORLD]]);
+  });
+});
+</script>

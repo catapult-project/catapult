@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/color_legend.html">
+<link rel="import" href="/ui/base/color_scheme.html">
+<link rel="import"
+    href="/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import"
+    href="/ui/analysis/memory_dump_vm_regions_details_pane.html">
+<link rel="import" href="/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/base/view_specific_brushing_state.html">
+<link rel="import" href="/model/attribute.html">
+
+<polymer-element name="tr-ui-a-memory-dump-overview-pane">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #label {
+        flex: 0 0 auto;
+        padding: 8px;
+
+        background-color: #eee;
+        border-bottom: 1px solid #8e8e8e;
+        border-top: 1px solid white;
+
+        font-size:  15px;
+        font-weight: bold;
+      }
+
+      #table {
+        flex: 1 0 auto;
+        align-self: stretch;
+      }
+    </style>
+    <tr-ui-b-view-specific-brushing-state id="state"
+        view-id="analysis.memory_dump_overview_pane">
+    </tr-ui-b-view-specific-brushing-state>
+    <div id="label">Overview</div>
+    <tr-ui-b-table id="table">
+    </tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  (function() {
+    var IMPORTANCE_RULES = [
+      {
+        condition: 'tracing',
+        importance: 0
+      },
+      {
+        importance: 1
+      }
+    ];
+
+    var LINK_SYMBOL = String.fromCharCode(9903);
+
+    Polymer({
+      // TODO(petrcermak): Consider sharing more code between
+      // tr-ui-a-memory-dump-overview-pane and tr-c-memory-dump-process pane
+      // (e.g. by defining a common base class tr-c-memory-dump-pane).
+
+      created: function() {
+        this.processMemoryDumps_ = undefined;
+      },
+
+      ready: function() {
+        this.$.table.supportsSelection = true;
+        this.$.table.cellSelectionMode = true;
+        this.$.table.rowHighlightEnabled = true;
+        this.$.table.addEventListener('selection-changed',
+            function(tableEvent) {
+          tableEvent.stopPropagation();
+          var paneEvent = new tr.b.Event('selected-memory-cell-changed');
+          this.dispatchEvent(paneEvent);
+          this.storeSelection_();
+        }.bind(this));
+      },
+
+      set processMemoryDumps(processMemoryDumps) {
+        this.processMemoryDumps_ = processMemoryDumps;
+        this.updateContents_();
+      },
+
+      get processMemoryDumps() {
+        return this.processMemoryDumps_;
+      },
+
+      get selectedMemoryCell() {
+        var selectedTableRow = this.$.table.selectedTableRow;
+        if (!selectedTableRow)
+          return undefined;
+
+        var selectedColumnIndex = this.$.table.selectedColumnIndex;
+        if (selectedColumnIndex === undefined)
+          return undefined;
+
+        var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+        var selectedMemoryCell = selectedColumn.cell(selectedTableRow);
+        return selectedMemoryCell;
+      },
+
+      updateContents_: function() {
+        var processMemoryDumps = this.processMemoryDumps_ || [];
+
+        var rows = processMemoryDumps.map(function(processMemoryDump) {
+          function buildVMRegionsPane() {
+            var pane = document.createElement(
+                    'tr-ui-a-memory-dump-vm-regions-details-pane');
+            pane.vmRegions = processMemoryDump.mostRecentVmRegions;
+            return pane;
+          }
+
+          // Used memory (total resident, PSS, ...).
+          var usedMemorySizes = {};
+          var totalResident = processMemoryDump.totalResidentBytes;
+          if (totalResident !== undefined) {
+            var cell = new tr.ui.analysis.MemoryCell(
+                new tr.model.ScalarAttribute('bytes', totalResident));
+            cell.buildDetailsPane = buildVMRegionsPane;
+            usedMemorySizes['Total resident'] = cell;
+          }
+
+          function addByteStatCell(byteStatName, columnTitle) {
+            var byteStat =
+                processMemoryDump.getMostRecentTotalVmRegionStat(byteStatName);
+            if (byteStat !== undefined) {
+              var attr = new tr.model.ScalarAttribute('bytes', byteStat);
+              if (!processMemoryDump.hasOwnVmRegions) {
+                attr.infos.push(new tr.model.AttributeInfo(
+                    tr.model.AttributeInfoType.LINK,
+                     'Older value (process did not dump memory maps).'));
+                attr.isOlderValue = true;
+              }
+              var cell = new tr.ui.analysis.MemoryCell(attr);
+              cell.buildDetailsPane = buildVMRegionsPane;
+              usedMemorySizes[columnTitle] = cell;
+            }
+          }
+          addByteStatCell('proportionalResident', 'PSS');
+          addByteStatCell('privateDirtyResident', 'Private dirty');
+          addByteStatCell('swapped', 'Swapped');
+
+          // Allocator memory (v8, oilpan, ...).
+          var allocatorSizes = {};
+          if (processMemoryDump.memoryAllocatorDumps !== undefined) {
+            processMemoryDump.memoryAllocatorDumps.forEach(function(dump) {
+              var attr = dump.attributes['size'];
+              var cell = new tr.ui.analysis.MemoryCell(attr);
+              cell.buildDetailsPane = function() {
+                var pane = document.createElement(
+                    'tr-ui-a-memory-dump-allocator-details-pane');
+                pane.memoryAllocatorDump = dump;
+                return pane;
+              };
+              allocatorSizes[dump.fullName] = cell;
+            }, this);
+          }
+
+          return {
+            title: processMemoryDump.process.userFriendlyName,
+            usedMemorySizes: usedMemorySizes,
+            allocatorSizes: allocatorSizes
+          };
+        }, this);
+        this.$.table.tableRows = rows;
+
+        // Add a 'Total' row if there are at least two process memory dumps.
+        if (rows.length > 1) {
+          var totalRow = {
+            title: 'Total',
+            noLegend: true
+          };
+          tr.ui.analysis.aggregateTableRowCells(
+              totalRow, rows, 'usedMemorySizes');
+          tr.ui.analysis.aggregateTableRowCells(
+              totalRow, rows, 'allocatorSizes');
+          this.$.table.footerRows = [totalRow];
+        }
+
+        this.updateColumns_(rows);
+
+        this.$.table.rebuild();
+
+        this.restoreSelection_();
+      },
+
+      updateColumns_: function(rows) {
+        var titleColumn = {
+          title: 'Process',
+          value: function(row) {
+            if (row.noLegend)
+              return row.title;
+            var titleEl = document.createElement('tr-ui-b-color-legend');
+            titleEl.label = row.title;
+            return titleEl;
+          },
+          width: '200px',
+          cmp: function(rowA, rowB) {
+            return rowA.title.localeCompare(rowB.title);
+          },
+          supportsCellSelection: false
+        };
+
+        var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+            rows, 'usedMemorySizes');
+        var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+            rows, 'allocatorSizes', function(allocatorName) {
+          var titleEl = document.createElement('tr-ui-b-color-legend');
+          titleEl.label = allocatorName;
+          return titleEl;
+        });
+        tr.ui.analysis.MemoryColumn.sortByImportance(
+            allocatorSizeColumns, IMPORTANCE_RULES);
+
+        // Grey the 'tracing' column out (if present).
+        // TODO(petrcermak): Find a less hacky way to do this.
+        var tracingColumn = tr.b.findFirstInArray(allocatorSizeColumns,
+            function(column) {
+          return column.name === 'tracing';
+        });
+        if (tracingColumn !== undefined) {
+          var tracingColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
+          tracingColumn.title = tr.ui.b.createSpan(
+              {textContent: 'tracing', color: tracingColumnColor});
+          tracingColumn.color = tracingColumnColor;
+        }
+
+        // Make the used memory size columns blue.
+        // TODO(petrcermak): Find a less hacky way to do this.
+        usedMemorySizeColumns.forEach(function(column) {
+          var olderUsedMemoryColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('older_used_memory_column')];
+          var usedMemoryColumnColor = tr.ui.b.getColorPalette()[
+              tr.ui.b.getColorIdForReservedName('used_memory_column')];
+          column.title = tr.ui.b.createSpan(
+              {textContent: column.title, color: usedMemoryColumnColor});
+          column.color = function(attr) {
+            return attr.isOlderValue ?
+                olderUsedMemoryColumnColor : usedMemoryColumnColor;
+          }
+        });
+
+        var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
+        tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);
+
+        var columns = [titleColumn].concat(sizeColumns);
+        this.$.table.tableColumns = columns;
+      },
+
+      storeSelection_: function() {
+        var selectedRowTitle;
+        var selectedRow = this.$.table.selectedTableRow;
+        if (selectedRow !== undefined)
+          selectedRowTitle = selectedRow.title;
+
+        var selectedColumnName;
+        var selectedColumnIndex = this.$.table.selectedColumnIndex;
+        if (selectedColumnIndex !== undefined) {
+          var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+          selectedColumnName = selectedColumn.name;
+        }
+
+        this.$.state.set(
+            {rowTitle: selectedRowTitle, columnName: selectedColumnName});
+      },
+
+      restoreSelection_: function() {
+        var settings = this.$.state.get();
+        if (settings === undefined || settings.rowTitle === undefined ||
+            settings.columnName === undefined)
+          return;
+
+        var selectedColumnName = settings.columnName;
+        var selectedColumnIndex = tr.b.findFirstIndexInArray(
+            this.$.table.tableColumns, function(column) {
+          return column.name === selectedColumnName;
+        });
+        if (selectedColumnIndex < 0)
+          return;
+
+        var selectedRowTitle = settings.rowTitle;
+        var selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
+            function(row) {
+          return row.title === selectedRowTitle;
+        });
+        if (selectedRow === undefined)
+          return;
+
+        this.$.table.selectedTableRow = selectedRow;
+        this.$.table.selectedColumnIndex = selectedColumnIndex;
+      }
+    });
+  })();
+  </script>
+</polymer-element>

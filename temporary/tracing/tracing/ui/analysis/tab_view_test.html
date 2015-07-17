@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/tab_view.html">
+
+<template id="tab-view-test-template">
+  <tr-ui-a-tab-view>
+    <p tab-label="Existing Label"> Tab with label already set </p>
+    <p> Tab Content with no label </p>
+    <p selected="selected" tab-label="Should be selected">
+      Already selected tab
+    </p>
+    <p selected="selected" tab-label="Should not be selected">
+      Second already selected tab
+    </p>
+  </tr-ui-a-tab-view>
+</template>
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('instantiate', function() {
+
+    var TAB_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' +
+        ' Cras eleifend elit nec erat tristique pellentesque. Cras placerat ' +
+        'lectus, sed semper tortor ornare quis. Maecenas vitae hendrerit. ' +
+        'Cras mattis interdum nisi, eget egestas dui iaculis ultricies. Proi' +
+        'n magna at nibh fringilla tincidunt id vitae ante. Fusce nec urna n' +
+        'on porttitor tincidunt. Pellentesque habitant morbi tristique senec' +
+        'tus netus et malesuada fames ac turpis egestas. Suspendisse sed vel' +
+        'it mollis ornare sit amet vel augue. Nullam rhoncus in tellus id. ' +
+        'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices ' +
+        'cubilia Curae; Nunc at velit consectetur ipsum tempus tempus. Nunc ' +
+        'mattis sapien, a placerat erat. Vivamus ac enim ultricies, gravida ' +
+        'nulla ut, scelerisque magna. Sed a volutpat enim. Morbi vulputate, ' +
+        'sed egestas mollis, urna nisl varius sem, sed venenatis turpis null' +
+        'a ipsum. Suspendisse potenti.';
+
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var firstTab = document.createElement('div');
+    firstTab.setAttribute('tab-label', 'First Tab Label');
+    firstTab.innerHTML = '<p>' + TAB_TEXT + '<p>';
+
+    var secondTab = document.createElement('div');
+    secondTab.setAttribute('tab-label', 'Second Tab Label');
+    secondTab.innerHTML = '<b>' + 'Second Tab Text' + '</b>';
+
+    var thirdTab = document.createElement('div');
+    thirdTab.setAttribute('tab-label', 'Third Tab Label');
+    thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
+
+    tabView.appendChild(firstTab);
+    tabView.appendChild(secondTab);
+    tabView.appendChild(thirdTab);
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+
+    thirdTab.setAttribute('tab-label', 'Something Different');
+
+    var button = document.createElement('button');
+    button.textContent = 'Change label';
+
+    button.addEventListener('click', function() {
+      thirdTab.setAttribute('tab-label', 'Label Changed');
+    });
+
+    tabView.selectedTab = secondTab;
+    this.addHTMLOutput(button);
+  });
+
+
+  test('instantiateWithTabHeading', function() {
+    var TAB_TEXT = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' +
+        ' Cras eleifend elit nec erat tristique pellentesque. Cras placerat ' +
+        'lectus, sed semper tortor ornare quis. Maecenas vitae hendrerit. ' +
+        'Cras mattis interdum nisi, eget egestas dui iaculis ultricies. Proi' +
+        'n magna at nibh fringilla tincidunt id vitae ante. Fusce nec urna n' +
+        'on porttitor tincidunt. Pellentesque habitant morbi tristique senec' +
+        'tus netus et malesuada fames ac turpis egestas. Suspendisse sed vel' +
+        'it mollis ornare sit amet vel augue. Nullam rhoncus in tellus id. ' +
+        'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices ' +
+        'cubilia Curae; Nunc at velit consectetur ipsum tempus tempus. Nunc ' +
+        'mattis sapien, a placerat erat. Vivamus ac enim ultricies, gravida ' +
+        'nulla ut, scelerisque magna. Sed a volutpat enim. Morbi vulputate, ' +
+        'sed egestas mollis, urna nisl varius sem, sed venenatis turpis null' +
+        'a ipsum. Suspendisse potenti.';
+
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+    tabView.tabStripHeadingText = 'Hello world:';
+
+    var firstTab = document.createElement('div');
+    firstTab.setAttribute('tab-label', 'First Tab Label');
+    firstTab.innerHTML = '<p>' + TAB_TEXT + '<p>';
+
+    var secondTab = document.createElement('div');
+    secondTab.setAttribute('tab-label', 'Second Tab Label');
+    secondTab.innerHTML = '<b>' + 'Second Tab Text' + '</b>';
+
+    var thirdTab = document.createElement('div');
+    thirdTab.setAttribute('tab-label', 'Third Tab Label');
+    thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
+
+    tabView.appendChild(firstTab);
+    tabView.appendChild(secondTab);
+    tabView.appendChild(thirdTab);
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+    tabView.selectedTab = secondTab;
+  });
+
+  test('instantiateChildrenAlreadyInside', function() {
+    var tabViewTemplate = THIS_DOC.querySelector('#tab-view-test-template');
+    var tabView = tabViewTemplate.createInstance();
+
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '400px';
+    tabViewContainer.style.height = '200px';
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+
+  });
+
+  test('programaticallySetSelectedTab', function() {
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var t1 = document.createElement('div');
+    var t2 = document.createElement('div');
+    var t3 = document.createElement('div');
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    assert.isUndefined(tabView.selectedTab);
+    tabView.selectedTab = t1;
+
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
+
+    tabView.selectedTab = t2;
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isTrue(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t2, tabView.selectedTab));
+
+    tabView.selectedTab = t3;
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isTrue(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t3, tabView.selectedTab));
+
+    t1.selected = true;
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
+
+    // Make sure just randomly setting a tab as not selected does not
+    // break the existing selection.
+    t2.selected = false;
+    t3.selected = false;
+    assert.isTrue(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isFalse(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t1, tabView.selectedTab));
+
+    t3.selected = true;
+    assert.isFalse(t1.hasAttribute('selected'));
+    assert.isFalse(t2.hasAttribute('selected'));
+    assert.isTrue(t3.hasAttribute('selected'));
+    assert.isTrue(Object.is(t3, tabView.selectedTab));
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+  });
+
+  /**
+   * This test checks that if an element has a selected property already set,
+   * before being attached to the tabView, it still gets selected if the
+   * property is true, after it gets attached.
+   */
+  test('instantiateSetSelectedTabAlreadySet', function() {
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var t1 = document.createElement('div');
+    t1.textContent = 'This text should BE visible.';
+    var t2 = document.createElement('div');
+    t2.textContent = 'This text should NOT be visible.';
+    var t3 = document.createElement('div');
+    t3.textContent = 'This text should NOT be visible, also.';
+
+    t1.selected = true;
+    t2.selected = false;
+    t3.selected = false;
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    t1.setAttribute('tab-label', 'This should be selected');
+    t2.setAttribute('tab-label', 'Not selected');
+    t3.setAttribute('tab-label', 'Not selected');
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+  });
+
+  test('selectingInvalidTabWorks', function() {
+    var tabView = new TracingAnalysisTabView();
+    var t1 = document.createElement('div');
+    var t2 = document.createElement('div');
+    var t3 = document.createElement('div');
+    var invalidChild = document.createElement('div');
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    tabView.selectedTab = t1;
+
+    assert.equal(tabView.selectedTab, t1);
+
+    // Make sure that selecting an invalid tab does not break the current
+    // selection.
+    tabView.selectedTab = invalidChild;
+    assert.equal(t1, tabView.selectedTab);
+
+    // Also make sure the invalidChild does not influence the tab view when
+    // it has a selected property set.
+    invalidChild.selected = true;
+    tabView.selectedTab = invalidChild;
+    assert.equal(t1, tabView.selectedTab);
+  });
+
+  test('changeTabCausesEvent', function() {
+    var tabView = new TracingAnalysisTabView();
+    var t1 = document.createElement('div');
+    var t2 = document.createElement('div');
+    var invalidChild = document.createElement('div');
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+
+    var numChangeEvents = 0;
+    tabView.addEventListener('selected-tab-change', function() {
+        numChangeEvents++;
+    });
+    tabView.selectedTab = t1;
+    assert.equal(numChangeEvents, 1);
+    tabView.selectedTab = t1;
+    assert.equal(numChangeEvents, 1);
+    tabView.selectedTab = t2;
+    assert.equal(numChangeEvents, 2);
+    tabView.selectedTab = undefined;
+    assert.equal(numChangeEvents, 3);
+  });
+
+  /**
+   * This test makes sure that removing the selected tab does not select
+   * any other tab.
+   */
+  test('instantiateRemovingSelectedTab', function() {
+    var tabViewContainer = document.createElement('div');
+    tabViewContainer.style.width = '500px';
+    tabViewContainer.style.height = '200px';
+
+    var tabView = new TracingAnalysisTabView();
+
+    var t1 = document.createElement('div');
+    t1.textContent = 'This text should BE visible.';
+    var t2 = document.createElement('div');
+    t2.textContent = 'This text should NOT be visible.';
+    var t3 = document.createElement('div');
+    t3.textContent = 'This text should NOT be visible, also.';
+
+    tabView.appendChild(t1);
+    tabView.appendChild(t2);
+    tabView.appendChild(t3);
+
+    t1.setAttribute('tab-label', 'This should not exist');
+    t2.setAttribute('tab-label', 'Not selected');
+    t3.setAttribute('tab-label', 'Not selected');
+
+    tabView.selectedTab = t1;
+    tabView.removeChild(t1);
+
+    tabViewContainer.appendChild(tabView);
+
+    this.addHTMLOutput(tabViewContainer);
+  });
+});
+</script>

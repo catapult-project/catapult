@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/model/counter.html">
+<link rel="import" href="/model/cpu_slice.html">
+<link rel="import" href="/model/thread_time_slice.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Cpu class.
+ */
+tr.exportTo('tr.model', function() {
+
+  var Counter = tr.model.Counter;
+  var Slice = tr.model.Slice;
+  var CpuSlice = tr.model.CpuSlice;
+
+  /**
+   * The Cpu represents a Cpu from the kernel's point of view.
+   * @constructor
+   */
+  function Cpu(kernel, number) {
+    if (kernel === undefined || number === undefined)
+      throw new Error('Missing arguments');
+    this.kernel = kernel;
+    this.cpuNumber = number;
+    this.slices = [];
+    this.counters = {};
+    this.bounds = new tr.b.Range();
+    this.samples_ = undefined; // Set during createSubSlices
+
+    // Start timestamp of the last active thread.
+    this.lastActiveTimestamp_ = undefined;
+
+    // Identifier of the last active thread. On Linux, it's a pid while on
+    // Windows it's a thread id.
+    this.lastActiveThread_ = undefined;
+
+    // Name and arguments of the last active thread.
+    this.lastActiveName_ = undefined;
+    this.lastActiveArgs_ = undefined;
+  };
+
+  Cpu.prototype = {
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, tr.model.CpuSlice))
+        this.slices.forEach(callback, opt_this);
+
+      if (this.samples_) {
+        if (eventTypePredicate.call(opt_this, tr.model.Sample))
+          this.samples_.forEach(callback, opt_this);
+      }
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      for (var id in this.counters)
+        callback.call(opt_this, this.counters[id]);
+    },
+
+    /**
+     * @return {Counter} The counter on this CPU with the given category/name
+     * combination, creating it if it doesn't exist.
+     */
+    getOrCreateCounter: function(cat, name) {
+      var id = cat + '.' + name;
+      if (!this.counters[id])
+        this.counters[id] = new Counter(this, id, cat, name);
+      return this.counters[id];
+    },
+
+    /**
+     * Shifts all the timestamps inside this CPU forward by the amount
+     * specified.
+     */
+    shiftTimestampsForward: function(amount) {
+      for (var sI = 0; sI < this.slices.length; sI++)
+        this.slices[sI].start = (this.slices[sI].start + amount);
+      for (var id in this.counters)
+        this.counters[id].shiftTimestampsForward(amount);
+    },
+
+    /**
+     * Updates the range based on the current slices attached to the cpu.
+     */
+    updateBounds: function() {
+      this.bounds.reset();
+      if (this.slices.length) {
+        this.bounds.addValue(this.slices[0].start);
+        this.bounds.addValue(this.slices[this.slices.length - 1].end);
+      }
+      for (var id in this.counters) {
+        this.counters[id].updateBounds();
+        this.bounds.addRange(this.counters[id].bounds);
+      }
+      if (this.samples_ && this.samples_.length) {
+        this.bounds.addValue(this.samples_[0].start);
+        this.bounds.addValue(
+            this.samples_[this.samples_.length - 1].end);
+      }
+    },
+
+    createSubSlices: function() {
+      this.samples_ = this.kernel.model.samples.filter(function(sample) {
+        return sample.cpu == this;
+      }, this);
+    },
+
+    addCategoriesToDict: function(categoriesDict) {
+      for (var i = 0; i < this.slices.length; i++)
+        categoriesDict[this.slices[i].category] = true;
+      for (var id in this.counters)
+        categoriesDict[this.counters[id].category] = true;
+      for (var i = 0; i < this.samples_.length; i++)
+        categoriesDict[this.samples_[i].category] = true;
+    },
+
+    get userFriendlyName() {
+      return 'CPU ' + this.cpuNumber;
+    },
+
+    /*
+     * Returns the index of the slice in the CPU's slices, or undefined.
+     */
+    indexOf: function(cpuSlice) {
+      var i = tr.b.findLowIndexInSortedArray(
+          this.slices,
+          function(slice) { return slice.start; },
+          cpuSlice.start);
+      if (this.slices[i] !== cpuSlice)
+        return undefined;
+      return i;
+    },
+
+    /**
+     * Closes the thread running on the CPU. |end_timestamp| is the timestamp
+     * at which the thread was unscheduled. |args| is merged with the arguments
+     * specified when the thread was initially scheduled.
+     */
+    closeActiveThread: function(end_timestamp, args) {
+      // Don't generate a slice if the last active thread is the idle task.
+      if (this.lastActiveThread_ == undefined || this.lastActiveThread_ == 0)
+        return;
+
+      if (end_timestamp < this.lastActiveTimestamp_) {
+        throw new Error('The end timestamp of a thread running on CPU ' +
+                        this.cpuNumber + ' is before its start timestamp.');
+      }
+
+      // Merge |args| with |this.lastActiveArgs_|. If a key is in both
+      // dictionaries, the value from |args| is used.
+      for (var key in args) {
+        this.lastActiveArgs_[key] = args[key];
+      }
+
+      var duration = end_timestamp - this.lastActiveTimestamp_;
+      var slice = new tr.model.CpuSlice(
+          '', this.lastActiveName_,
+          tr.ui.b.getColorIdForGeneralPurposeString(this.lastActiveName_),
+          this.lastActiveTimestamp_,
+          this.lastActiveArgs_,
+          duration);
+      slice.cpu = this;
+      this.slices.push(slice);
+
+      // Clear the last state.
+      this.lastActiveTimestamp_ = undefined;
+      this.lastActiveThread_ = undefined;
+      this.lastActiveName_ = undefined;
+      this.lastActiveArgs_ = undefined;
+    },
+
+    switchActiveThread: function(timestamp, old_thread_args, new_thread_id,
+                                 new_thread_name, new_thread_args) {
+      // Close the previous active thread and generate a slice.
+      this.closeActiveThread(timestamp, old_thread_args);
+
+      // Keep track of the new thread.
+      this.lastActiveTimestamp_ = timestamp;
+      this.lastActiveThread_ = new_thread_id;
+      this.lastActiveName_ = new_thread_name;
+      this.lastActiveArgs_ = new_thread_args;
+    },
+
+    get samples() {
+      return this.samples_;
+    }
+  };
+
+  /**
+   * Comparison between processes that orders by cpuNumber.
+   */
+  Cpu.compare = function(x, y) {
+    return x.cpuNumber - y.cpuNumber;
+  };
+
+
+  return {
+    Cpu: Cpu
+  };
+});
+</script>

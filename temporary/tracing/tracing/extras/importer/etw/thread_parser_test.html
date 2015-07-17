@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/etw/etw_importer.html">
+<link rel="import" href="/extras/importer/etw/thread_parser.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  // Constants for Thread events.
+  var guid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
+  var kThreadStartOpcode = 1;
+  var kThreadEndOpcode = 2;
+  var kThreadDCStartOpcode = 3;
+  var kThreadCSwitchOpcode = 36;
+
+  var kThreadStartPayload32bitV1 =
+      'BAAAAEwHAAAAYLfzADC38wAAAAAAAAAAhdse9wAAAAD/AAAA';
+
+  var kThreadEndPayload32bitV1 = 'BAAAALQAAAA=';
+
+
+  var kThreadDCStartPayload64bitV2 =
+      'AAAAAAAAAAAAYPUCAPj//wAA9QIA+P//AAAAAAAAAAAAAAAAAAAAAIAlxwEA+P//gCXHA' +
+      'QD4//8AAAAAAAAAAAAAAAA=';
+
+  var kThreadStartPayload32bitV3 =
+      'LAIAACwTAAAAUJixACCYsQAA1QAAwNQAAwAAAOkDq3cA4P1/AAAAAAkFAgA=';
+
+  var kThreadStartPayload64bitV3 =
+      'eCEAAJQUAAAAMA4nAND//wDQDScA0P//MP0LBgAAAAAAgAsGAAAAAP8AAAAAAAAALP1YX' +
+      'AAAAAAAwBL/AAAAAAAAAAAIBQIA';
+
+  var kThreadCSwitchPayload32bitV2 = 'AAAAACwRAAAACQAAFwABABIAAAAmSAAA';
+  var kThreadCSwitchPayload64bitV2 = 'zAgAAAAAAAAIAAEAAAACBAEAAACHbYg0';
+
+  test('DecodeFields', function() {
+
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+    var parser = new tr.e.importer.etw.ThreadParser(importer);
+    var header;
+    var fields;
+
+    // Validate a version 1 32-bit payload.
+    header = { guid: guid, opcode: kThreadStartOpcode, version: 1, is64: 0 };
+    decoder.reset(kThreadStartPayload32bitV1);
+    fields = parser.decodeFields(header, decoder);
+
+    assert.equal(fields.processId, 4);
+    assert.equal(fields.threadId, 1868);
+    assert.equal(fields.stackBase, 4088881152);
+    assert.equal(fields.stackLimit, 4088868864);
+    assert.equal(fields.userStackBase, 0);
+    assert.equal(fields.userStackLimit, 0);
+    assert.equal(fields.startAddr, 4145994629);
+    assert.equal(fields.win32StartAddr, 0);
+    assert.equal(fields.waitMode, -1);
+
+    // Validate an End version 1 32-bit payload.
+    header = { guid: guid, opcode: kThreadEndOpcode, version: 1, is64: 0 };
+    decoder.reset(kThreadStartPayload32bitV1);
+    fields = parser.decodeFields(header, decoder);
+
+    assert.equal(fields.processId, 4);
+    assert.equal(fields.threadId, 1868);
+
+    // Validate a version 2 64-bit payload.
+    header = { guid: guid, opcode: kThreadDCStartOpcode, version: 2, is64: 1 };
+    decoder.reset(kThreadDCStartPayload64bitV2);
+    fields = parser.decodeFields(header, decoder);
+
+    assert.equal(fields.processId, 0);
+    assert.equal(fields.threadId, 0);
+    assert.strictEqual(fields.stackBase, 'fffff80002f56000');
+    assert.equal(fields.stackLimit, 'fffff80002f50000');
+    assert.strictEqual(fields.userStackBase, '0000000000000000');
+    assert.strictEqual(fields.userStackLimit, '0000000000000000');
+    assert.strictEqual(fields.startAddr, 'fffff80001c72580');
+    assert.strictEqual(fields.win32StartAddr, 'fffff80001c72580');
+    assert.strictEqual(fields.tebBase, '0000000000000000');
+    assert.equal(fields.subProcessTag, 0);
+
+    // Validate a version 3 32-bit payload.
+    header = { guid: guid, opcode: kThreadStartOpcode, version: 3, is64: 0 };
+    decoder.reset(kThreadStartPayload32bitV3);
+    fields = parser.decodeFields(header, decoder);
+
+    assert.equal(fields.processId, 556);
+    assert.equal(fields.threadId, 4908);
+    assert.equal(fields.stackBase, 2979549184);
+    assert.equal(fields.stackLimit, 2979536896);
+    assert.equal(fields.userStackBase, 13959168);
+    assert.equal(fields.userStackLimit, 13942784);
+    assert.equal(fields.affinity, 3);
+    assert.equal(fields.win32StartAddr, 2007696361);
+    assert.equal(fields.tebBase, 2147344384);
+    assert.equal(fields.subProcessTag, 0);
+    assert.equal(fields.basePriority, 9);
+    assert.equal(fields.pagePriority, 5);
+    assert.equal(fields.ioPriority, 2);
+    assert.equal(fields.threadFlags, 0);
+
+    // Validate a version 3 64-bit payload.
+    header = { guid: guid, opcode: kThreadStartOpcode, version: 3, is64: 1 };
+    decoder.reset(kThreadStartPayload64bitV3);
+    fields = parser.decodeFields(header, decoder);
+
+    assert.equal(fields.processId, 8568);
+    assert.equal(fields.threadId, 5268);
+    assert.strictEqual(fields.stackBase, 'ffffd000270e3000');
+    assert.strictEqual(fields.stackLimit, 'ffffd000270dd000');
+    assert.strictEqual(fields.userStackBase, '00000000060bfd30');
+    assert.strictEqual(fields.userStackLimit, '00000000060b8000');
+    assert.strictEqual(fields.affinity, '00000000000000ff');
+    assert.strictEqual(fields.win32StartAddr, '000000005c58fd2c');
+    assert.strictEqual(fields.tebBase, '00000000ff12c000');
+    assert.equal(fields.subProcessTag, 0);
+    assert.equal(fields.basePriority, 8);
+    assert.equal(fields.pagePriority, 5);
+    assert.equal(fields.ioPriority, 2);
+    assert.equal(fields.threadFlags, 0);
+  });
+
+  test('DecodeCSwitchFields', function() {
+    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+    var parser = new tr.e.importer.etw.ThreadParser(importer);
+    var header;
+    var fields;
+
+
+    // Validate a version 2 CSwitch 32-bit payload.
+    header = { guid: guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 0 };
+    decoder.reset(kThreadCSwitchPayload32bitV2);
+    fields = parser.decodeCSwitchFields(header, decoder);
+
+    assert.equal(fields.newThreadId, 0);
+    assert.equal(fields.oldThreadId, 4396);
+    assert.equal(fields.newThreadPriority, 0);
+    assert.equal(fields.oldThreadPriority, 9);
+    assert.equal(fields.previousCState, 0);
+    assert.equal(fields.spareByte, 0);
+    assert.equal(fields.oldThreadWaitReason, 23);
+    assert.equal(fields.oldThreadWaitMode, 0);
+    assert.equal(fields.oldThreadState, 1);
+    assert.equal(fields.oldThreadWaitIdealProcessor, 0);
+    assert.equal(fields.newThreadWaitTime, 18);
+    assert.equal(fields.reserved, 18470);
+
+    // Validate a version 2 CSwitch 64-bit payload.
+    header = { guid: guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 1 };
+    decoder.reset(kThreadCSwitchPayload64bitV2);
+    fields = parser.decodeCSwitchFields(header, decoder);
+
+    assert.equal(fields.newThreadId, 2252);
+    assert.equal(fields.oldThreadId, 0);
+    assert.equal(fields.newThreadPriority, 8);
+    assert.equal(fields.oldThreadPriority, 0);
+    assert.equal(fields.previousCState, 1);
+    assert.equal(fields.spareByte, 0);
+    assert.equal(fields.oldThreadWaitReason, 0);
+    assert.equal(fields.oldThreadWaitMode, 0);
+    assert.equal(fields.oldThreadState, 2);
+    assert.equal(fields.oldThreadWaitIdealProcessor, 4);
+    assert.equal(fields.newThreadWaitTime, 1);
+    assert.equal(fields.reserved, 881356167);
+
+  });
+});
+</script>
+

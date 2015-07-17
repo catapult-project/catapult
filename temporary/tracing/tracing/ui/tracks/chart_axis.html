@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/range.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  /**
+   * A vertical axis for a (set of) chart series which maps an arbitrary range
+   * of values [min, max] to the unit range [0, 1].
+   *
+   * @constructor
+   */
+  function ChartAxis(opt_min, opt_max) {
+    this.guid_ = tr.b.GUID.allocate();
+    this.bounds = new tr.b.Range();
+    if (opt_min !== undefined)
+      this.bounds.addValue(opt_min);
+    if (opt_max !== undefined)
+      this.bounds.addValue(opt_max);
+  };
+
+  ChartAxis.prototype = {
+    get guid() {
+      return this.guid_;
+    },
+
+    valueToUnitRange: function(value) {
+      if (this.bounds.isEmpty)
+        throw new Error('Chart axis bounds are empty');
+      var bounds = this.bounds;
+      if (bounds.range === 0)
+        return 0;
+      return (value - bounds.min) / bounds.range;
+    },
+
+    /**
+     * Automatically set the axis bounds from the range of values of all series
+     * in a list.
+     *
+     * See the description of autoSetFromRange for the optional configuration
+     * argument flags.
+     */
+    autoSetFromSeries: function(series, opt_config) {
+      var range = new tr.b.Range();
+      series.forEach(function(s) {
+        range.addRange(s.range);
+      }, this);
+      this.autoSetFromRange(range, opt_config);
+    },
+
+    /**
+     * Automatically set the axis bound from a range of values.
+     *
+     * The following four flags, which affect the behavior of this method with
+     * respect to already defined bounds, can be present in the optional
+     * configuration (a flag is assumed to be false if it is not provided or if
+     * the configuration is not provided):
+     *
+     *   - expandMin: allow decreasing the min bound (if range.min < this.min)
+     *   - shrinkMin: allow increasing the min bound (if range.min > this.min)
+     *   - expandMax: allow increasing the max bound (if range.max > this.max)
+     *   - shrinkMax: allow decreasing the max bound (if range.max < this.max)
+     *
+     * This method will ensure that the resulting bounds are defined and valid
+     * (i.e. min <= max) provided that they were valid or empty before and the
+     * value range is non-empty and valid.
+     *
+     * Note that unless expanding/shrinking a bound is explicitly enabled in
+     * the configuration, non-empty bounds will not be changed under any
+     * circumstances.
+     *
+     * Observe that if no configuration is provided (or all flags are set to
+     * false), this method will only modify the axis bounds if they are empty.
+     */
+    autoSetFromRange: function(range, opt_config) {
+      if (range.isEmpty)
+        return;
+
+      var bounds = this.bounds;
+      if (bounds.isEmpty) {
+        bounds.addRange(range);
+        return;
+      }
+
+      if (!opt_config)
+        return;
+
+      var useRangeMin = (opt_config.expandMin && range.min < bounds.min ||
+                         opt_config.shrinkMin && range.min > bounds.min);
+      var useRangeMax = (opt_config.expandMax && range.max > bounds.max ||
+                         opt_config.shrinkMax && range.max < bounds.max);
+
+      // Neither bound is modified.
+      if (!useRangeMin && !useRangeMax)
+        return;
+
+      // Both bounds are modified. Assuming the range argument is a valid
+      // range, no extra checks are necessary.
+      if (useRangeMin && useRangeMax) {
+        bounds.min = range.min;
+        bounds.max = range.max;
+        return;
+      }
+
+      // Only one bound is modified. We must ensure that it doesn't go
+      // over/under the other (unmodified) bound.
+      if (useRangeMin) {
+        bounds.min = Math.min(range.min, bounds.max);
+      } else {
+        bounds.max = Math.max(range.max, bounds.min);
+      }
+    }
+  };
+
+  return {
+    ChartAxis: ChartAxis
+  };
+});
+</script>

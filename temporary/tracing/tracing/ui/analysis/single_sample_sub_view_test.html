@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_sample_sub_view.html">
+<link rel="import" href="/ui/analysis/stub_analysis_results.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var EventSet = tr.model.EventSet;
+  var StubAnalysisResults = tr.ui.analysis.StubAnalysisResults;
+  var newSampleNamed = tr.c.test_utils.newSampleNamed;
+
+  test('instantiate_withSingleSample', function() {
+    var model = new Model();
+    var t53;
+    model.importTraces([], false, false, function() {
+      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      model.samples.push(newSampleNamed(t53, 'X', 'my-category',
+                                        ['a', 'b', 'c'], 0.184));
+    });
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new EventSet();
+
+    assert.equal(selection.length, 0);
+    selection.push(t53.samples[0]);
+    assert.equal(selection.length, 1);
+
+    var view = document.createElement('tr-ui-a-single-sample-sub-view');
+    view.selection = selection;
+    this.addHTMLOutput(view);
+
+    var table = tr.b.findDeepElementMatching(
+        view, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    assert.equal(rows.length, 3);
+
+    assert.equal(rows[0].value, 'X');
+    assert.equal(rows[1].value.timestamp, 0.184);
+    assert.equal(rows[2].value.stackFrame, t53.samples[0].leafStackFrame);
+  });
+});
+</script>

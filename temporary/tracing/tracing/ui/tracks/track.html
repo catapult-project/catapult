@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="stylesheet" href="/ui/tracks/track.css">
+
+<link rel="import" href="/ui/base/container_that_decorates_its_children.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Renders an array of slices into the provided div,
+ * using a child canvas element. Uses a FastRectRenderer to draw only
+ * the visible slices.
+ */
+tr.exportTo('tr.ui.tracks', function() {
+  /**
+   * The base class for all tracks.
+   * @constructor
+   */
+  var Track = tr.ui.b.define('track',
+                             tr.ui.b.ContainerThatDecoratesItsChildren);
+  Track.prototype = {
+    __proto__: tr.ui.b.ContainerThatDecoratesItsChildren.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.b.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      if (viewport === undefined)
+        throw new Error('viewport is required when creating a Track.');
+
+      this.viewport_ = viewport;
+      this.classList.add('track');
+    },
+
+    get viewport() {
+      return this.viewport_;
+    },
+
+    get drawingContainer() {
+      var cur = this;
+      while (cur) {
+        if (cur instanceof tr.ui.tracks.DrawingContainer)
+          return cur;
+        cur = cur.parentElement;
+      }
+      return undefined;
+    },
+
+    get eventContainer() {
+    },
+
+    invalidateDrawingContainer: function() {
+      var dc = this.drawingContainer;
+      if (dc)
+        dc.invalidate();
+    },
+
+    context: function() {
+      // This is a little weird here, but we have to be able to walk up the
+      // parent tree to get the context.
+      if (!this.parentNode)
+        return undefined;
+      if (!this.parentNode.context)
+        throw new Error('Parent container does not support context() method.');
+      return this.parentNode.context();
+    },
+
+    decorateChild_: function(childTrack) {
+    },
+
+    undecorateChild_: function(childTrack) {
+      if (childTrack.detach)
+        childTrack.detach();
+    },
+
+    updateContents_: function() {
+    },
+
+    drawTrack: function(type) {
+      var ctx = this.context();
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.getBoundingClientRect();
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+
+      ctx.save();
+      ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
+
+      var dt = this.viewport.currentDisplayTransform;
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
+
+      this.draw(type, viewLWorld, viewRWorld);
+      ctx.restore();
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+    },
+
+    addIntersectingEventsInRangeToSelection: function(
+        loVX, hiVX, loVY, hiVY, selection) {
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var dt = this.viewport.currentDisplayTransform;
+      var viewPixWidthWorld = dt.xViewVectorToWorld(1);
+      var loWX = dt.xViewToWorld(loVX * pixelRatio);
+      var hiWX = dt.xViewToWorld(hiVX * pixelRatio);
+
+      var clientRect = this.getBoundingClientRect();
+      var a = Math.max(loVY, clientRect.top);
+      var b = Math.min(hiVY, clientRect.bottom);
+      if (a > b)
+        return;
+
+      this.addIntersectingEventsInRangeToSelectionInWorldSpace(
+          loWX, hiWX, viewPixWidthWorld, selection);
+    },
+
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+    },
+
+    /**
+     * Gets implemented by supporting track types. The method adds the event
+     * closest to worldX to the selection.
+     *
+     * @param {number} worldX The position that is looked for.
+     * @param {number} worldMaxDist The maximum distance allowed from worldX to
+     *     the event.
+     * @param {number} loY Lower Y bound of the search interval in view space.
+     * @param {number} hiY Upper Y bound of the search interval in view space.
+     * @param {Selection} selection Selection to which to add hits.
+     */
+    addClosestEventToSelection: function(
+        worldX, worldMaxDist, loY, hiY, selection) {
+    },
+
+    addClosestInstantEventToSelection: function(instantEvents, worldX,
+                                                worldMaxDist, selection) {
+      var instantEvent = tr.b.findClosestElementInSortedArray(
+          instantEvents,
+          function(x) { return x.start; },
+          worldX,
+          worldMaxDist);
+
+      if (!instantEvent)
+        return;
+
+      selection.push(instantEvent);
+    }
+  };
+
+  return {
+    Track: Track
+  };
+});
+</script>

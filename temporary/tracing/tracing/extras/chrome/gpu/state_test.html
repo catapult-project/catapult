@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/gpu/state.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/model.html">
+
+<script src="/extras/chrome/gpu/state_test_data.js"></script>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var m = new tr.Model(g_gpu_state_trace);
+    var p = tr.b.dictionaryValues(m.processes)[0];
+
+    var instance = p.objects.getAllInstancesNamed('gpu::State')[0];
+    var snapshot = instance.snapshots[0];
+
+    assert.instanceOf(snapshot, tr.e.gpu.StateSnapshot);
+    assert.typeOf(snapshot.screenshot, 'string');
+    instance.wasDeleted(150);
+  });
+});
+</script>

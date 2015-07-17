@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/extras/chrome/cc/raster_task.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/extras/chrome/cc/selection.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+
+<polymer-element name="tr-ui-e-chrome-cc-raster-task-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #heading {
+      flex: 0 0 auto;
+    }
+    </style>
+
+    <div id="heading">
+      Rasterization costs in
+      <tr-ui-a-analysis-link id="link"></tr-ui-a-analysis-link>
+    </div>
+    <tr-ui-b-table id="content"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.selection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+
+      this.updateContents_();
+    },
+
+    updateColumns_: function(hadCpuDurations) {
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+
+      var columns = [
+        {
+          title: 'Layer',
+          value: function(row) {
+            if (row.isTotals)
+              return 'Totals';
+            if (row.layer) {
+              var linkEl = document.createElement('tr-ui-a-analysis-link');
+              linkEl.setSelectionAndContent(
+                function() {
+                  return new tr.ui.e.chrome.cc.LayerSelection(costs.layer);
+                },
+                'Layer ' + row.layerId);
+              return linkEl;
+            } else {
+              return 'Layer ' + row.layerId;
+            }
+          },
+          width: '250px'
+        },
+        {
+          title: 'Num Tiles',
+          value: function(row) { return row.numTiles; },
+          cmp: function(a, b) { return a.numTiles - b.numTiles; }
+        },
+        {
+          title: 'Num Analysis Tasks',
+          value: function(row) { return row.numAnalysisTasks; },
+          cmp: function(a, b) {
+            return a.numAnalysisTasks - b.numAnalysisTasks;
+          }
+        },
+        {
+          title: 'Num Raster Tasks',
+          value: function(row) { return row.numRasterTasks; },
+          cmp: function(a, b) { return a.numRasterTasks - b.numRasterTasks; }
+        },
+        {
+          title: 'Wall Duration (ms)',
+          value: function(row) {
+            return tr.ui.units.createTimeDurationSpan(
+                row.duration, timeSpanConfig);
+          },
+          cmp: function(a, b) { return a.duration - b.duration; }
+        }
+      ];
+
+      if (hadCpuDurations) {
+        columns.push({
+          title: 'CPU Duration (ms)',
+          value: function(row) {
+            return tr.ui.units.createTimeDurationSpan(
+                row.duration, timeSpanConfig);
+          },
+          cmp: function(a, b) { return a.cpuDuration - b.cpuDuration; }
+        });
+      }
+
+      var colWidthPercentage;
+      if (columns.length == 1)
+        colWidthPercentage = '100%';
+      else
+        colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = colWidthPercentage;
+
+      this.$.content.tableColumns = columns;
+      this.$.content.sortColumnIndex = columns.length - 1;
+    },
+
+    updateContents_: function() {
+      var table = this.$.content;
+
+      if (this.selection_.length === 0) {
+        this.$.link.setSelectionAndContent(undefined, '');
+        table.tableRows = [];
+        table.footerRows = [];
+        table.rebuild();
+        return;
+      }
+
+      // LTHI link.
+      var lthi = tr.e.cc.getTileFromRasterTaskSlice(
+          this.selection_[0]).containingSnapshot;
+      this.$.link.setSelectionAndContent(function() {
+          return new tr.model.EventSet(lthi);
+      }, lthi.userFriendlyName);
+
+      // Get costs by layer.
+      var costsByLayerId = {};
+      function getCurrentCostsForLayerId(tile) {
+        var layerId = tile.layerId;
+        var lthi = tile.containingSnapshot;
+        var layer;
+        if (lthi.activeTree)
+          layer = lthi.activeTree.findLayerWithId(layerId);
+        if (layer === undefined && lthi.pendingTree)
+          layer = lthi.pendingTree.findLayerWithId(layerId);
+        if (costsByLayerId[layerId] === undefined) {
+          costsByLayerId[layerId] = {
+            layerId: layerId,
+            layer: layer,
+            numTiles: 0,
+            numAnalysisTasks: 0,
+            numRasterTasks: 0,
+            duration: 0,
+            cpuDuration: 0
+          };
+        }
+        return costsByLayerId[layerId];
+      }
+
+      var totalDuration = 0;
+      var totalCpuDuration = 0;
+      var totalNumAnalyzeTasks = 0;
+      var totalNumRasterizeTasks = 0;
+      var hadCpuDurations = false;
+
+      var tilesThatWeHaveSeen = {};
+
+      this.selection_.forEach(function(slice) {
+        var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
+        var curCosts = getCurrentCostsForLayerId(tile);
+
+        if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
+          tilesThatWeHaveSeen[tile.objectInstance.id] = true;
+          curCosts.numTiles += 1;
+        }
+
+        if (tr.e.cc.isSliceDoingAnalysis(slice)) {
+          curCosts.numAnalysisTasks += 1;
+          totalNumAnalyzeTasks += 1;
+        } else {
+          curCosts.numRasterTasks += 1;
+          totalNumRasterizeTasks += 1;
+        }
+        curCosts.duration += slice.duration;
+        totalDuration += slice.duration;
+        if (slice.cpuDuration !== undefined) {
+          curCosts.cpuDuration += slice.cpuDuration;
+          totalCpuDuration += slice.cpuDuration;
+          hadCpuDurations = true;
+        }
+      });
+
+      // Apply to the table.
+      this.updateColumns_(hadCpuDurations);
+      table.tableRows = tr.b.dictionaryValues(costsByLayerId);
+      table.rebuild();
+
+      // Footer.
+      table.footerRows = [
+        {
+          isTotals: true,
+          numTiles: tr.b.dictionaryLength(tilesThatWeHaveSeen),
+          numAnalysisTasks: totalNumAnalyzeTasks,
+          numRasterTasks: totalNumRasterizeTasks,
+          duration: totalDuration,
+          cpuDuration: totalCpuDuration
+        }
+      ];
+    }
+  });
+  </script>
+</polymer-element>

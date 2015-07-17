@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+
+  test('layoutInfo', function() {
+    var model = tr.e.audits.newChromeModel(function(model) {
+      // TODO(benjhayden): Create
+      model.rendererMain.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'FrameView::layout',
+        start: 0,
+        duration: 100
+      }));
+    });
+
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+    var rir = new tr.e.rail.RAILInteractionRecord(
+        'simple', 'rail_response', 0, 100);
+    rir.associatedEvents.push(model.rendererMain.sliceGroup.slices[0]);
+    rir.updateArgs();
+
+    assert.equal(rir.args.layoutInfo.timeInLayout, 100);
+  });
+
+  test('railScore', function() {
+    var ir = new tr.e.rail.StubRAILInteractionRecord({
+      start: 0, end: 100,
+      railTypeName: 'rail_idle',
+      normalizedUserPain: 1,
+      normalizedEfficiency: 0
+    });
+    assert.closeTo(0, ir.railScore, 1e-5);
+
+    ir = new tr.e.rail.StubRAILInteractionRecord({
+      start: 0, end: 100,
+      railTypeName: 'rail_idle',
+      normalizedUserPain: 0,
+      normalizedEfficiency: 1
+    });
+    assert.closeTo(1, ir.railScore, 1e-5);
+
+    ir = new tr.e.rail.StubRAILInteractionRecord({
+      start: 0, end: 100,
+      railTypeName: 'rail_idle',
+      normalizedUserPain: 0,
+      normalizedEfficiency: 0
+    });
+    assert.closeTo(0.42388, ir.railScore, 1e-5);
+
+    ir = new tr.e.rail.StubRAILInteractionRecord({
+      start: 0, end: 100,
+      railTypeName: 'rail_idle',
+      normalizedUserPain: 1,
+      normalizedEfficiency: 1
+    });
+    assert.closeTo(0.15536, ir.railScore, 1e-5);
+  });
+});
+</script>

@@ -1,0 +1,16 @@
+/* Copyright 2014 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+* /deep/ .pie-chart .arc-text {
+  font-size: 8pt;
+}
+
+* /deep/ .pie-chart .label {
+  font-size: 10pt;
+}
+
+* /deep/ .pie-chart polyline {
+  fill: none;
+  stroke: black;
+}

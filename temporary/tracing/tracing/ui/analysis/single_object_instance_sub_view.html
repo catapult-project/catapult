@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/analysis/object_instance_view.html">
+<link rel="import" href="/ui/analysis/single_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-single-object-instance-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+
+    #snapshots > * {
+      display: block;
+    }
+
+    :host {
+      overflow: auto;
+      display: block;
+    }
+
+    * {
+      -webkit-user-select: text;
+    }
+
+    .title {
+      border-bottom: 1px solid rgb(128, 128, 128);
+      font-size: 110%;
+      font-weight: bold;
+    }
+
+    td, th {
+      font-family: monospace;
+      vertical-align: top;
+    }
+    </style>
+    <div id='content'></div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    get requiresTallView() {
+      if (this.$.content.children.length === 0)
+        return false;
+      if (this.$.content.children[0] instanceof
+          tr.ui.analysis.ObjectInstanceView)
+        return this.$.content.children[0].requiresTallView;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      if (selection.length !== 1)
+        throw new Error('Only supports single item selections');
+      if (!(selection[0] instanceof tr.model.ObjectInstance))
+        throw new Error('Only supports object instances');
+
+      this.$.content.textContent = '';
+      this.currentSelection_ = selection;
+
+      var instance = selection[0];
+      var typeInfo = tr.ui.analysis.ObjectInstanceView.getTypeInfo(
+          instance.category, instance.typeName);
+      if (typeInfo) {
+        var customView = new typeInfo.constructor();
+        this.$.content.appendChild(customView);
+        customView.modelEvent = instance;
+      } else {
+        this.appendGenericAnalysis_(instance);
+      }
+    },
+
+    appendGenericAnalysis_: function(instance) {
+      var html = '';
+      html += '<div class="title">' +
+          instance.typeName + ' ' +
+          instance.id + '</div>\n';
+      html += '<table>';
+      html += '<tr>';
+      html += '<tr><td>creationTs:</td><td>' +
+          instance.creationTs + '</td></tr>\n';
+      if (instance.deletionTs != Number.MAX_VALUE) {
+        html += '<tr><td>deletionTs:</td><td>' +
+            instance.deletionTs + '</td></tr>\n';
+      } else {
+        html += '<tr><td>deletionTs:</td><td>not deleted</td></tr>\n';
+      }
+      html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
+      html += '</table>';
+      this.$.content.innerHTML = html;
+      var snapshotsEl = this.$.content.querySelector('#snapshots');
+      instance.snapshots.forEach(function(snapshot) {
+        var snapshotLink = document.createElement('tr-ui-a-analysis-link');
+        snapshotLink.selection = new tr.model.EventSet(snapshot);
+        snapshotsEl.appendChild(snapshotLink);
+      });
+    }
+  });
+  </script>
+</polymer-element>

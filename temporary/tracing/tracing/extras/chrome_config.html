@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+The chrome config is heavily used:
+  - chrome://tracing,
+  - trace2html, which in turn implies
+    - adb_profile_chrome
+    - telemetry
+-->
+
+<!-- Core UI configs -->
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/timeline_view.html">
+
+<!-- Chrome also supports systrace & lean config -->
+<link rel="import" href="/extras/systrace_config.html">
+<link rel="import" href="/extras/lean_config.html">
+
+<!-- General importers -->
+<link rel="import" href="/extras/importer/gzip_importer.html">
+<link rel="import" href="/extras/importer/zip_importer.html">
+
+<!--- Domain specific importers -->
+<link rel="import" href="/extras/importer/v8/v8_log_importer.html">
+<link rel="import" href="/extras/importer/etw/etw_importer.html">
+<link rel="import" href="/extras/importer/trace2html_importer.html">
+
+<!-- Lots of chrome-specific extras -->
+<link rel="import" href="/extras/net/net.html">
+<link rel="import" href="/extras/chrome/layout_object.html">
+<link rel="import" href="/ui/extras/chrome/cc/cc.html">
+<link rel="import" href="/ui/extras/chrome/gpu/gpu.html">
+<link rel="import" href="/ui/extras/system_stats/system_stats.html">
+<link rel="import" href="/ui/extras/tcmalloc/tcmalloc.html">
+
+<!-- Side panels are chrome-only for now -->
+<link rel="import" href="/ui/extras/side_panel/input_latency_side_panel.html">
+<link rel="import" href="/ui/extras/side_panel/time_summary_side_panel.html">
+
+<!-- Sample analysis is chrome-only because it brings in D3 which is HUGE -->
+<link rel="import" href="/ui/extras/analysis/sampling_summary.html">
+
+<!-- Auditors are fun -->
+<link rel="import" href="/extras/chrome/chrome_auditor.html">
+<link rel="import" href="/extras/android/android_auditor.html">
+<link rel="import" href="/extras/vsync/vsync_auditor.html">
+
+<!-- RAIL is fun too -->
+<link rel="import" href="/ui/extras/rail/rail_score_side_panel.html">
