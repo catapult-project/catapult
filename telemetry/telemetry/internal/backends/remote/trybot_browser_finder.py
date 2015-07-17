@@ -151,7 +151,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     for index, arg in enumerate(arguments):
       if arg.startswith('--browser='):
         if bot_platform == 'android':
-          arguments[index] = '--browser=android-chrome-shell'
+          arguments[index] = '--browser=android-chromium'
         elif any('x64' in bot for bot in self._builder_names[bot_platform]):
           arguments[index] = '--browser=release_x64'
           target_arch = 'x64'

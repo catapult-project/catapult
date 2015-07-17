@@ -349,7 +349,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     self.assertEquals(
         ('config = {\n'
          '  "command": "./tools/perf/run_benchmark '
-         '--browser=android-chrome-shell sunspider",\n'
+         '--browser=android-chromium sunspider",\n'
          '  "max_time_minutes": "120",\n'
          '  "repeat_count": "1",\n'
          '  "target_arch": "ia32",\n'
