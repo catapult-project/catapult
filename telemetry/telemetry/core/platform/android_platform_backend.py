@@ -331,7 +331,7 @@ class AndroidPlatformBackend(
     return 'android'
 
   def GetDeviceTypeName(self):
-    return self._device.product_model()
+    return self._device.product_model
 
   @decorators.Cache
   def GetOSVersionName(self):

@@ -21,7 +21,7 @@ RESULT_TYPES = {perf_result_data_type.UNIMPORTANT: 'RESULT ',
 
 def _EscapePerfResult(s):
   """Escapes |s| for use in a perf result."""
-  return re.sub('[\:|=/#&,]', '_', s)
+  return re.sub(r'[\:|=/#&,]', '_', s)
 
 
 def FlattenList(values):

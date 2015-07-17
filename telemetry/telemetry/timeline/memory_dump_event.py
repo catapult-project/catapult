@@ -63,7 +63,7 @@ ROOT_CATEGORY = MmapCategory('/', None, [
       ]),
       MmapCategory('Linear Alloc', r'\/dalvik-LinearAlloc'),
       MmapCategory('Indirect Reference Table', r'\/dalvik-indirect.ref'),
-      MmapCategory('Cache', '\/dalvik-jit-code-cache'),
+      MmapCategory('Cache', r'\/dalvik-jit-code-cache'),
       MmapCategory('Accounting', None)
     ]),
     MmapCategory('Cursor', r'\/CursorWindow'),
