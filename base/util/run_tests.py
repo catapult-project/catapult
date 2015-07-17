@@ -11,9 +11,11 @@ import unittest
 
 
 def main():
-  test_path = os.path.abspath(os.path.normpath(os.path.join(
+  test_path = [os.path.abspath(os.path.normpath(os.path.join(
       os.path.dirname(__file__), os.path.pardir, os.path.pardir,
-      'temporary', 'tracing', 'build', 'run_dev_server_tests')))
+      'temporary', 'tracing', 'build', 'run_dev_server_tests')))]
+  if sys.platform.startswith('win'):
+    test_path = ['python.exe'] + test_path
   print "TEST PATH:"
   print test_path
   test_proc = subprocess.Popen(
