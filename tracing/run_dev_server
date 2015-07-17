@@ -18,7 +18,8 @@ if __name__ == '__main__':
   # This parses sys.argv instead of using argparse because
   # tracing_dev_server.Main also uses argparse, and using argparse here would
   # override its help message.
-  if '--no-install-hooks' in sys.argv:
+  if '--no-install-hooks' not in sys.argv:
     install.InstallHooks()
+  else:
     dev_server_args.remove('--no-install-hooks')
   sys.exit(tracing_dev_server.Main(dev_server_args))
