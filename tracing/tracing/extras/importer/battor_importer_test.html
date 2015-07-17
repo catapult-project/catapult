@@ -57,18 +57,16 @@ tr.b.unittest.testSuite(function() {
   test('importPowerSamplesAndTrace', function() {
     var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
     m.importTraces([BATTOR_LINES.join('\n')]);
-    assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(m.getAllCounters().length, 2);
+    assert.isDefined(m.device.powerSeries);
 
     // Check to see if time shifted correctly
     m.getAllCounters().forEach(function(counter) {
       var series = counter.getSeries(0);
-      if (counter.id == 'null.vreg test_regulator enabled')
+      if (counter.id === 'null.vreg test_regulator enabled')
         assert.equal(series.getTimestamp(0), 2.0);
-      else if (counter.id == 'null.Power')
-        assert.equal(series.getTimestamp(0), 0.0);
     });
+    assert.equal(m.device.powerSeries.samples[1].start, 0.5);
   });
 
   test('importAlreadyHasPower', function() {
