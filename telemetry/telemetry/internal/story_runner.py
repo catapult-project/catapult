@@ -13,6 +13,7 @@ from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
 from telemetry.internal.results import results_options
 from telemetry.internal.util import exception_formatter
+from telemetry import page
 from telemetry.page import page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
@@ -250,6 +251,53 @@ def Run(test, story_set, finder_options, results, max_failures=None):
           # Print current exception and propagate existing exception.
           exception_formatter.PrintFormattedException(
               msg='Exception from TearDownState:')
+
+
+def RunBenchmark(benchmark, finder_options):
+  """Run this test with the given options.
+
+  Returns:
+    The number of failure values (up to 254) or 255 if there is an uncaught
+    exception.
+  """
+  benchmark.CustomizeBrowserOptions(finder_options.browser_options)
+
+  pt = benchmark.CreatePageTest(finder_options)
+  pt.__name__ = benchmark.__class__.__name__
+
+  if hasattr(benchmark, '_disabled_strings'):
+    # pylint: disable=protected-access
+    pt._disabled_strings = benchmark._disabled_strings
+  if hasattr(benchmark, '_enabled_strings'):
+    # pylint: disable=protected-access
+    pt._enabled_strings = benchmark._enabled_strings
+
+  stories = benchmark.CreateStorySet(finder_options)
+  if isinstance(pt, page_test.PageTest):
+    if any(not isinstance(p, page.Page) for p in stories.stories):
+      raise Exception(
+          'PageTest must be used with StorySet containing only '
+          'telemetry.page.Page stories.')
+
+  benchmark_metadata = benchmark.GetMetadata()
+  with results_options.CreateResults(
+      benchmark_metadata, finder_options,
+      benchmark.ValueCanBeAddedPredicate) as results:
+    try:
+      Run(pt, stories, finder_options, results, benchmark.max_failures)
+      return_code = min(254, len(results.failures))
+    except Exception:
+      exception_formatter.PrintFormattedException()
+      return_code = 255
+
+    try:
+      bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
+      if finder_options.upload_results:
+        results.UploadTraceFilesToCloud(bucket)
+        results.UploadProfilingFilesToCloud(bucket)
+    finally:
+      results.PrintSummary()
+  return return_code
 
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
