@@ -64,7 +64,8 @@ found in the LICENSE file.
       return (this.eventGroups_ && this.eventGroups_.length > 0);
     },
 
-    addRelatedEvents: function(eventSet) {
+    setRelatedEvents: function(eventSet) {
+      this.eventGroups_ = [];
       this.addConnectedFlows_(eventSet);
       this.addConnectedEvents_(eventSet);
       this.addOverlappingSamples_(eventSet);

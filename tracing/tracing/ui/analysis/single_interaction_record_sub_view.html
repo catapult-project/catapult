@@ -18,6 +18,10 @@ found in the LICENSE file.
       this.currentSelection_ = undefined;
     },
 
+    get selection() {
+      return this.currentSelection_;
+    },
+
     set selection(selection) {
       this.textContent = '';
       var realView = document.createElement('tr-ui-a-single-event-sub-view');

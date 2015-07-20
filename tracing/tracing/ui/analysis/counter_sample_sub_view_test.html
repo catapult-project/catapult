@@ -55,6 +55,11 @@ tr.b.unittest.testSuite(function() {
     var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
+
+    // Check that the element handles multiple set selection calls correctly.
+    assert.lengthOf(analysisEl.children, 1);
+    analysisEl.selection = selection;
+    assert.lengthOf(analysisEl.children, 1);
   });
 
   var createSelectionWithTwoSeriesTwoCounters = function() {

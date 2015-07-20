@@ -104,16 +104,22 @@ tr.b.unittest.testSuite(function() {
     var m = createModel();
 
     var viewEl = document.createElement('tr-ui-a-related-events');
-    viewEl.addRelatedEvents(new tr.model.EventSet(
-        [m.sA, m.f0, m.sAA, m.f1, m.sB, m.f2, m.sBB, m.sBBB, m.f3, m.sC]));
+    var selection = new tr.model.EventSet(
+        [m.sA, m.f0, m.sAA, m.f1, m.sB, m.f2, m.sBB, m.sBBB, m.f3, m.sC]);
+    viewEl.setRelatedEvents(selection);
     this.addHTMLOutput(viewEl);
+
+    // Check that the element handles multiple setRelatedEvents calls correctly.
+    assert.lengthOf(viewEl.$.table.tableRows, 5);
+    viewEl.setRelatedEvents(selection);
+    assert.lengthOf(viewEl.$.table.tableRows, 5);
   });
 
   test('validateFlows', function() {
     var m = createModel();
 
     var viewEl = document.createElement('tr-ui-a-related-events');
-    viewEl.addRelatedEvents(new tr.model.EventSet([m.sB, m.sBB, m.sBBB]));
+    viewEl.setRelatedEvents(new tr.model.EventSet([m.sB, m.sBB, m.sBBB]));
     this.addHTMLOutput(viewEl);
 
     var inFlows, outFlows, internalFlows;
@@ -143,7 +149,7 @@ tr.b.unittest.testSuite(function() {
     var m = createModel();
 
     var viewEl = document.createElement('tr-ui-a-related-events');
-    viewEl.addRelatedEvents(new tr.model.EventSet([m.sBB]));
+    viewEl.setRelatedEvents(new tr.model.EventSet([m.sBB]));
     this.addHTMLOutput(viewEl);
 
     var precedingEvents, followingEvents, allEvents;
@@ -183,7 +189,7 @@ tr.b.unittest.testSuite(function() {
     var m = createModel();
 
     var viewEl = document.createElement('tr-ui-a-related-events');
-    viewEl.addRelatedEvents(new tr.model.EventSet([m.sB]));
+    viewEl.setRelatedEvents(new tr.model.EventSet([m.sB]));
     this.addHTMLOutput(viewEl);
 
     var overlappingSamples;

@@ -158,6 +158,14 @@ using custom elements specialized for different event types.
         var previouslySelectedTab = this.tabView_.selectedTab;
         this.tabView_.removeEventListener(
           'selected-tab-change', this.onSelectedTabChange_);
+
+        var previousSubViews = {};
+        for (var i = 0; i < this.tabView_.children.length; i++) {
+          var previousSubView = this.tabView_.children[i];
+          previousSubViews[previousSubView._eventTypeName] = previousSubView;
+        }
+
+        this.tabView_.saveTabStates();
         this.tabView_.textContent = '';
         if (selection.length == 0) {
           this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
@@ -174,7 +182,7 @@ using custom elements specialized for different event types.
         for (var eventTypeName in eventsByBaseTypeName) {
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
-            eventTypeName, subSelection);
+            eventTypeName, subSelection, previousSubViews[eventTypeName]);
           // Store the eventTypeName for future tab restoration.
           subView._eventTypeName = eventTypeName;
           this.tabView_.appendChild(subView);
@@ -200,14 +208,14 @@ using custom elements specialized for different event types.
           tab = this.tabView_.firstChild;
 
         this.tabView_.selectedTab = tab;
-        if (this.tabView_.selectedTab !== previouslySelectedTab)
-          this.onSelectedTabChange_();
+        this.onSelectedTabChange_();
 
         this.tabView_.addEventListener(
           'selected-tab-change', this.onSelectedTabChange_);
       },
 
-      createSubViewForSelection_: function(eventTypeName, subSelection) {
+      createSubViewForSelection_: function(eventTypeName, subSelection,
+          previousSubView) {
         // Find.
         var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(
             eventTypeName);
@@ -221,8 +229,13 @@ using custom elements specialized for different event types.
         if (!tr.ui.b.getPolymerElementNamed(tagName))
           throw new Error('Element not registered: ' + tagName);
 
-        // Create.
-        var subView = document.createElement(tagName);
+        // Create if necessary.
+        var subView;
+        if (previousSubView &&
+            previousSubView.tagName === tagName.toUpperCase())
+          subView = previousSubView;
+        else
+          subView = document.createElement(tagName);
 
         // Set label.
         var camelLabel;
