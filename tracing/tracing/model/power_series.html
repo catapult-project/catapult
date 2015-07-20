@@ -21,10 +21,10 @@ tr.exportTo('tr.model', function() {
    * @constructor
    * @extends {EventContainer}
    */
-  function PowerSeries(parent) {
+  function PowerSeries(device) {
     tr.model.EventContainer.call(this);
 
-    this.parent_ = parent;
+    this.device_ = device;
     this.samples_ = [];
   }
 
@@ -36,7 +36,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get stableId() {
-      return this.parent_.stableId + '.PowerSeries';
+      return this.device_.stableId + '.PowerSeries';
     },
 
     /**
@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
      * Note: Samples must be added in chronological order.
      */
     addPowerSample: function(ts, val) {
-      var sample = new PowerSample(ts, val);
+      var sample = new PowerSample(this, ts, val);
       this.samples_.push(sample);
       return sample;
     },

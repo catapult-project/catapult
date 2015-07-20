@@ -22,15 +22,20 @@ tr.exportTo('tr.model', function() {
    * @constructor
    * @extends {Event}
    */
-  function PowerSample(start, power) {
+  function PowerSample(series, start, power) {
     Event.call(this);
 
+    this.series_ = series;
     this.start_ = start;
     this.power_ = power;
   }
 
   PowerSample.prototype = {
     __proto__: Event.prototype,
+
+    get series() {
+      return this.series_;
+    },
 
     get start() {
       return this.start_;

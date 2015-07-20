@@ -17,14 +17,14 @@ tr.b.unittest.testSuite(function() {
   var PowerSeries = tr.model.PowerSeries;
 
   test('stableId', function() {
-    var parent1 = { stableId: 'test1' };
-    var series1 = new PowerSeries(parent1);
+    var device = { stableId: 'test' };
+    var series = new PowerSeries(device);
 
-    assert.equal(series1.stableId, 'test1.PowerSeries');
+    assert.equal(series.stableId, 'test.PowerSeries');
   });
 
   test('addPowerSample', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     assert.equal(series.samples.length, 0);
 
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shiftTimestampsForward', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1000);
     series.addPowerSample(1, 2000);
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('updateBounds', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1000);
     series.addPowerSample(1, 2000);
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateAllEventsInThisContainer', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     var eventsInSeries = [];
     series.iterateAllEventsInThisContainer(
