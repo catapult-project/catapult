@@ -115,12 +115,13 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
                              stdout=dev_null, stderr=subprocess.PIPE)
     _, output = perf.communicate()
   missing_lib_re = re.compile(
-      r'^Failed to open (.*), continuing without symbols')
+      ('^Failed to open (.*), continuing without symbols|'
+       '^(.*[.]so).*not found, continuing without symbols'))
   libs = set()
   for line in output.split('\n'):
     lib = missing_lib_re.match(line)
     if lib:
-      lib = lib.group(1)
+      lib = lib.group(1) or lib.group(2)
       path = os.path.dirname(lib)
       if (any(path.startswith(ignored_path)
               for ignored_path in _IGNORED_LIB_PATHS)
@@ -213,8 +214,11 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
         except:
           logging.exception('New exception caused by DeviceUtils conversion')
           raise
-        pull = (not host_md5sums or not device_md5sums
-                or host_md5sums[0] != device_md5sums[0])
+
+        pull = True
+        if host_md5sums and device_md5sums and output_lib in host_md5sums \
+          and lib in device_md5sums:
+          pull = host_md5sums[output_lib] != device_md5sums[lib]
 
       if pull:
         logging.info('Pulling %s to %s', lib, output_lib)
