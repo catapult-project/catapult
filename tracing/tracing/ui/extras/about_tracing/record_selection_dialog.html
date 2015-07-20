@@ -111,6 +111,38 @@ found in the LICENSE file.
   .group-selectors button {
     padding: 1px;
   }
+
+  .record-selection-dialog .labeled-option-group {
+    -webkit-flex: 0 0 auto;
+    -webkit-flex-direction: column;
+    -webkit-align-items: left;
+    display: -webkit-flex;
+  }
+
+  .record-selection-dialog .labeled-option {
+    border-top: 5px solid white;
+    border-bottom: 5px solid white;
+  }
+
+  .record-selection-dialog .edit-categories {
+    padding-left: 6px;
+  }
+
+  .record-selection-dialog .edit-categories:after {
+    padding-left: 15px;
+    font-size: 125%;
+  }
+
+  .record-selection-dialog .labeled-option-group:not(.categories-expanded)
+      .edit-categories:after {
+    content: '\25B8'; /* Right triangle */
+  }
+
+  .record-selection-dialog .labeled-option-group.categories-expanded
+      .edit-categories:after {
+    content: '\25BE'; /* Down triangle */
+  }
+
   </style>
 
   <div class="record-selection-dialog">
