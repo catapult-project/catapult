@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
 
     var asyncTrack =
         vp.containerToTrackMap.getTrackByStableId('123.456.AsyncSliceGroup');
-    assert.isNotNull(asyncTrack);
+    assert.isDefined(asyncTrack);
     assert.isFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
 
     // Hack to allow Location to find the element we're looking for.

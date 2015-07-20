@@ -30,10 +30,10 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isFalse(m.hasImportWarnings);
 
     var process = m.processes[127];
-    assert.isNotNull(process);
+    assert.isDefined(process);
 
     var thread = process.threads[127];
-    assert.isNotNull(thread);
+    assert.isDefined(thread);
 
     var slices = thread.sliceGroup.slices;
     assert.equal(thread.sliceGroup.length, 7);
