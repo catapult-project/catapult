@@ -186,7 +186,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         'value': 'record-as-much-as-possible'}];
   var DEFAULT_RECORD_MODE = 'record-until-full';
   var DEFAULT_CONTINUOUS_TRACING = true;
-  var DEFAULT_SYSTEM_TRACING = false;
+  var DEFAULT_SYSTEM_TRACING = true;
   var DEFAULT_SAMPLING_TRACING = false;
 
   RecordSelectionDialog.prototype = {
@@ -228,11 +228,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       this.systemTracingBn_ = tr.ui.b.createCheckBox(
           undefined, undefined,
-          'recordSelectionDialog.useSystemTracing', true,
+          'recordSelectionDialog.useSystemTracing', DEFAULT_SYSTEM_TRACING,
           'System tracing');
       this.samplingTracingBn_ = tr.ui.b.createCheckBox(
           undefined, undefined,
-          'recordSelectionDialog.useSampling', false,
+          'recordSelectionDialog.useSampling', DEFAULT_SAMPLING_TRACING,
           'State sampling');
       this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
       this.tracingModesContainerEl_.appendChild(this.tracingRecordModeSltr_);
@@ -272,8 +272,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get tracingRecordMode() {
-      if (this.usingPreset_())
-        return DEFAULT_RECORD_MODE;
       return this.tracingRecordModeSltr_.selectedValue;
     },
     set tracingRecordMode(value) {
@@ -281,8 +279,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get useSystemTracing() {
-      if (this.usingPreset_())
-        return DEFAULT_SYSTEM_TRACING;
       return this.systemTracingBn_.checked;
     },
     set useSystemTracing(value) {
@@ -290,8 +286,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get useSampling() {
-      if (this.usingPreset_())
-        return DEFAULT_SAMPLING_TRACING;
       return this.samplingTracingBn_.checked;
     },
     set useSampling(value) {
