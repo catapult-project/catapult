@@ -10,13 +10,13 @@ import shlex
 import socket
 import sys
 
-from telemetry.core import device_finder
 from telemetry.core import platform
-from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import profile_types
+from telemetry.internal.platform import device_finder
+from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.util import wpr_modes
 
 util.AddDirToPythonPath(

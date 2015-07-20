@@ -8,10 +8,10 @@ import sys
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
-from telemetry.core.platform import desktop_device
 from telemetry.internal.backends.mandoline import desktop_mandoline_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
+from telemetry.internal.platform import desktop_device
 from telemetry.internal.util import path
 
 

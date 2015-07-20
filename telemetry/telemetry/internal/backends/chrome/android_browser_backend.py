@@ -6,7 +6,7 @@ import logging
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core.platform import android_platform_backend as \
+from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
 from telemetry.core import util
 from telemetry.internal.backends import android_command_line_backend

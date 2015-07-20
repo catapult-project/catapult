@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.core.platform import ios_device
 from telemetry import decorators
 from telemetry.internal.backends.chrome import ios_browser_finder
 from telemetry.internal.browser import browser_options
+from telemetry.internal.platform import ios_device
 
 
 class IosBrowserFinderUnitTest(unittest.TestCase):

@@ -9,12 +9,12 @@ import zipfile
 
 from catapult_base import cloud_storage
 from telemetry.core import exceptions
-from telemetry.core.platform.profiler import profiler_finder
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
+from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
 from telemetry.page import action_runner as action_runner_module

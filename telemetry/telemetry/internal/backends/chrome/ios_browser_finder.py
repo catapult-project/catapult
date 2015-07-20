@@ -8,12 +8,12 @@ import logging
 import re
 
 from telemetry.core import platform
-from telemetry.core.platform import ios_device
-from telemetry.core.platform import ios_platform_backend
 from telemetry.internal.backends.chrome import ios_browser_backend
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
+from telemetry.internal.platform import ios_device
+from telemetry.internal.platform import ios_platform_backend
 
 
 # Key matches output from ios-webkit-debug-proxy and the value is a readable

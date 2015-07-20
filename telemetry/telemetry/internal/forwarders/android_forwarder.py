@@ -11,9 +11,9 @@ import subprocess
 
 from catapult_base import binary_manager
 from telemetry.core import platform
-from telemetry.core.platform import android_device
 from telemetry.core import util
 from telemetry.internal import forwarders
+from telemetry.internal.platform import android_device
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:

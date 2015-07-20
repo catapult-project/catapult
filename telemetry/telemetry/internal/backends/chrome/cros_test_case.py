@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from telemetry.core.platform import cros_interface
+from telemetry.core import cros_interface
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import extension_to_load

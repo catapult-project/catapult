@@ -9,13 +9,13 @@ import os
 
 from telemetry.core import exceptions
 from telemetry.core import platform
-from telemetry.core.platform import android_device
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
+from telemetry.internal.platform import android_device
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.utils import apk_helper

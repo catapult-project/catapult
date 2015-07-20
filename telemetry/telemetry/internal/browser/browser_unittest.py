@@ -8,12 +8,12 @@ import shutil
 import tempfile
 import unittest
 
-from telemetry.core import gpu_device
-from telemetry.core import gpu_info
-from telemetry.core import system_info
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
+from telemetry.internal.platform import gpu_device
+from telemetry.internal.platform import gpu_info
+from telemetry.internal.platform import system_info
 from telemetry.internal.util import path
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests

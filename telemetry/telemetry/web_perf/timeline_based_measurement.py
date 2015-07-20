@@ -14,9 +14,9 @@ from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
-from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf import smooth_gesture_util
 from telemetry.web_perf import story_test
+from telemetry.web_perf import timeline_interaction_record as tir_module
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
 # timeline. But, depending on the amount of instrumentation that is enabled,

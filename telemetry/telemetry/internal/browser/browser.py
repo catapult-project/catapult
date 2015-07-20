@@ -7,7 +7,7 @@ import os
 from telemetry.core import exceptions
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
-from telemetry.core.platform import profiling_controller
+from telemetry.core import profiling_controller
 from telemetry import decorators
 from telemetry.internal import app
 from telemetry.internal.backends import browser_backend
