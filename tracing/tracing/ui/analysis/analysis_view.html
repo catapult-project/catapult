@@ -95,7 +95,7 @@ using custom elements specialized for different event types.
         this.tabView_ = document.createElement('tr-ui-a-tab-view');
         this.tabView_.style.flex = '1 1 auto';
         this.appendChild(this.tabView_);
-        this.selectionController_ = undefined;
+        this.brushingStateController_ = undefined;
         this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
         this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
 
@@ -117,29 +117,29 @@ using custom elements specialized for different event types.
         return this.tabView_;
       },
 
-      get selectionController() {
-        return this.selectionController_;
+      get brushingStateController() {
+        return this.brushingStateController_;
       },
 
-      set selectionController(selectionController) {
-        if (this.selectionController) {
-          this.selectionController_.removeEventListener(
+      set brushingStateController(brushingStateController) {
+        if (this.brushingStateController) {
+          this.brushingStateController_.removeEventListener(
               'change', this.onSelectionChanged_);
         }
-        this.selectionController_ = selectionController;
-        if (this.selectionController) {
-          this.selectionController_.addEventListener(
+        this.brushingStateController_ = brushingStateController;
+        if (this.brushingStateController) {
+          this.brushingStateController_.addEventListener(
               'change', this.onSelectionChanged_);
         }
         this.onSelectionChanged_();
       },
 
       get selection() {
-        return this.selectionController_.selection;
+        return this.brushingStateController_.selection;
       },
 
       onSelectionChanged_: function(e) {
-        var selection = this.selectionController_.selection;
+        var selection = this.brushingStateController_.selection;
 
         var selectionHasSameValue = this.lastSeenSelection_.equals(selection);
         this.lastSeenSelection_ = selection;
@@ -249,18 +249,18 @@ using custom elements specialized for different event types.
       },
 
       onSelectedTabChange_: function() {
-        var selectionController = this.selectionController_;
+        var brushingStateController = this.brushingStateController_;
         if (this.tabView_.selectedTab) {
           var selectedTab = this.tabView_.selectedTab;
           this.tallMode = selectedTab.requiresTallView;
-          if (selectionController) {
+          if (brushingStateController) {
             var rlth = selectedTab.relatedEventsToHighlight;
-            selectionController.changeAnalysisViewRelatedEvents(rlth);
+            brushingStateController.changeAnalysisViewRelatedEvents(rlth);
           }
         } else {
           this.tallMode = false;
-          if (selectionController)
-            selectionController.changeAnalysisViewRelatedEvents(undefined);
+          if (brushingStateController)
+            brushingStateController.changeAnalysisViewRelatedEvents(undefined);
         }
       }
     });

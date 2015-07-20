@@ -22,7 +22,7 @@ tr.exportTo('tr.c', function() {
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
-  function SelectionController(timelineView) {
+  function BrushingStateController(timelineView) {
     tr.b.EventTarget.call(this);
 
     this.timelineView_ = timelineView;
@@ -33,7 +33,7 @@ tr.exportTo('tr.c', function() {
     this.selections_ = {};
   }
 
-  SelectionController.prototype = {
+  BrushingStateController.prototype = {
     __proto__: tr.b.EventTarget.prototype,
 
     dispatchChangeEvent_: function() {
@@ -269,13 +269,13 @@ tr.exportTo('tr.c', function() {
     }
   };
 
-  SelectionController.getControllerForElement = function(element) {
+  BrushingStateController.getControllerForElement = function(element) {
     if (tr.isHeadless)
       throw new Error('Unsupported');
     var currentElement = element;
     while (currentElement) {
-      if (currentElement.selectionController)
-        return currentElement.selectionController;
+      if (currentElement.brushingStateController)
+        return currentElement.brushingStateController;
 
       // Walk up the DOM.
       if (currentElement.parentElement) {
@@ -293,7 +293,7 @@ tr.exportTo('tr.c', function() {
   };
 
   return {
-    SelectionController: SelectionController
+    BrushingStateController: BrushingStateController
   };
 });
 </script>

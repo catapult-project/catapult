@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection_controller.html">
+<link rel="import" href="/core/brushing_state_controller.html">
 
 <!--
 This element handles storing and retrieving the brushing state of arbitrary
@@ -25,8 +25,9 @@ follows:
   state = newStateElement.get();
 
 Under the hood, the state element searches the DOM tree for an ancestor element
-with a selectionController field to persist the state (see the
-tr.c.SelectionController and tr.ui.b.BrushingState classes for more details).
+with a brushingStateController field to persist the state (see the
+tr.c.BrushingStateController and tr.ui.b.BrushingState classes for more
+details).
 -->
 <polymer-element name="tr-ui-b-view-specific-brushing-state">
   <script>
@@ -48,19 +49,19 @@ tr.c.SelectionController and tr.ui.b.BrushingState classes for more details).
      * object/field is treated as a reference).
      *
      * If no state has been persisted yet or there is no ancestor element with
-     * a selectionController field, this method returns undefined.
+     * a brushingStateController field, this method returns undefined.
      */
     get: function() {
       var viewId = this.viewId;
       if (!viewId)
         throw new Error('Element must have a view-id attribute!');
 
-      var selectionController =
-          tr.c.SelectionController.getControllerForElement(this);
-      if (!selectionController)
+      var brushingStateController =
+          tr.c.BrushingStateController.getControllerForElement(this);
+      if (!brushingStateController)
         return undefined;
 
-      return selectionController.getViewSpecificBrushingState(viewId);
+      return brushingStateController.getViewSpecificBrushingState(viewId);
     },
 
     /**
@@ -68,20 +69,20 @@ tr.c.SelectionController and tr.ui.b.BrushingState classes for more details).
      * (or any of its fields) must not be modified afterwards (unless the
      * object/field is treated as a reference).
      *
-     * If there is no ancestor element with a selectionController field, this
-     * method does nothing.
+     * If there is no ancestor element with a brushingStateController field,
+     * this method does nothing.
      */
     set: function(state) {
       var viewId = this.viewId;
       if (!viewId)
         throw new Error('Element must have a view-id attribute!');
 
-      var selectionController =
-          tr.c.SelectionController.getControllerForElement(this);
-      if (!selectionController)
+      var brushingStateController =
+          tr.c.BrushingStateController.getControllerForElement(this);
+      if (!brushingStateController)
         return;
 
-      selectionController.changeViewSpecificBrushingState(viewId, state);
+      brushingStateController.changeViewSpecificBrushingState(viewId, state);
     }
   });
   </script>

@@ -5,14 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection_controller.html">
+<link rel="import" href="/core/brushing_state_controller.html">
 <link rel="import" href="/ui/base/view_specific_brushing_state.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SelectionController = tr.c.SelectionController;
+  var BrushingStateController = tr.c.BrushingStateController;
 
   function setStateElement(containerEl, viewId) {
     var stateElement = document.createElement(
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     return addChildDiv(shadowRoot);
   }
 
-  test('instantiate_withoutSelectionController', function() {
+  test('instantiate_withoutBrushingStateController', function() {
     var containerEl = document.createElement('div');
 
     var stateElement1 = setStateElement(containerEl, 'test-view');
@@ -42,10 +42,10 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(stateElement1.get());
   });
 
-  test('instantiate_withSelectionController', function() {
+  test('instantiate_withBrushingStateController', function() {
     var rootEl = document.createElement('div');
     var containerEl = addChildDiv(addShadowChildDiv(addChildDiv(rootEl)));
-    rootEl.selectionController = new SelectionController(undefined);
+    rootEl.brushingStateController = new BrushingStateController(undefined);
 
     var stateElement1 = setStateElement(containerEl, 'test-view');
     assert.isUndefined(stateElement1.get());

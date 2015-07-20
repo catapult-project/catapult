@@ -78,33 +78,33 @@ found in the LICENSE file.
       this.tabStrip_ = this.$.tab_strip;
 
       this.rangeOfInterest_ = new tr.b.Range();
-      this.selectionController_ = undefined;
+      this.brushingStateController_ = undefined;
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
       this.onModelChanged_ = this.onModelChanged_.bind(this);
     },
 
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
-    set selectionController(selectionController) {
-      if (this.selectionController) {
-        this.selectionController_.removeEventListener(
+    set brushingStateController(brushingStateController) {
+      if (this.brushingStateController) {
+        this.brushingStateController_.removeEventListener(
             'change', this.onSelectionChanged_);
-        this.selectionController_.removeEventListener(
+        this.brushingStateController_.removeEventListener(
             'model-changed', this.onModelChanged_);
       }
-      this.selectionController_ = selectionController;
-      if (this.selectionController) {
-        this.selectionController_.addEventListener(
+      this.brushingStateController_ = brushingStateController;
+      if (this.brushingStateController) {
+        this.brushingStateController_.addEventListener(
             'change', this.onSelectionChanged_);
-        this.selectionController_.addEventListener(
+        this.brushingStateController_.addEventListener(
             'model-changed', this.onModelChanged_);
       }
     },
 
     get selection() {
-      return this.selectionController_.selection;
+      return this.brushingStateController_.selection;
     },
 
     onSelectionChanged_: function() {
@@ -113,7 +113,7 @@ found in the LICENSE file.
     },
 
     get model() {
-      return this.selectionController_.model;
+      return this.brushingStateController_.model;
     },
 
     onModelChanged_: function() {

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/selection_controller.html">
+<link rel="import" href="/core/brushing_state_controller.html">
 <link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/model/counter.html">
 <link rel="import" href="/model/counter_sample.html">
@@ -19,7 +19,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var EventSet = tr.model.EventSet;
-  var SelectionController = tr.c.SelectionController;
+  var BrushingStateController = tr.c.BrushingStateController;
   var Model = tr.Model;
   var Counter = tr.model.Counter;
   var CounterSeries = tr.model.CounterSeries;
@@ -63,12 +63,12 @@ tr.b.unittest.testSuite(function() {
     record2.associatedEvents.push(sample3);
     record2.associatedEvents.push(slice1);
 
-    // Set up the analysis views and selection controller.
+    // Set up the analysis views and brushing state controller.
     var analysisView = document.createElement('tr-ui-a-analysis-view');
     this.addHTMLOutput(analysisView);
     var tabView = analysisView.tabView;
-    var controller = new SelectionController(undefined);
-    analysisView.selectionController = controller;
+    var controller = new BrushingStateController(undefined);
+    analysisView.brushingStateController = controller;
 
     function checkSelectedTab(expectedSelectedTab, expectedRelatedEvents) {
       assert.strictEqual(tabView.selectedTab, expectedSelectedTab);
