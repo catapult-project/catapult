@@ -204,7 +204,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Make sure the default tracing types are returned.
     assert.equal(dlg.tracingRecordMode, 'record-until-full');
-    assert.isFalse(dlg.useSystemTracing);
+    assert.isTrue(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
@@ -248,8 +248,8 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         '-three,-two');
 
     // Make sure the default tracing types are returned.
-    assert.equal(dlg.tracingRecordMode, 'record-until-full');
-    assert.isFalse(dlg.useSystemTracing);
+    assert.equal(dlg.tracingRecordMode, 'record-as-much-as-possible');
+    assert.isTrue(dlg.useSystemTracing);
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
@@ -297,9 +297,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(dlg.categoryFilter(), '-three,-two');
 
     // Make sure the correct tracing types are returned.
-    assert.equal(dlg.tracingRecordMode, 'record-until-full');
-    assert.isFalse(dlg.useSystemTracing);
-    assert.isFalse(dlg.useSampling);
+    assert.equal(dlg.tracingRecordMode, 'record-continuously');
+    assert.isTrue(dlg.useSystemTracing);
+    assert.isTrue(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
     var classList = dlg.categoriesView_.classList;
