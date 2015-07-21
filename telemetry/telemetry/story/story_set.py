@@ -7,7 +7,6 @@ import os
 
 from telemetry.story import story as story_module
 from telemetry.wpr import archive_info
-from telemetry import decorators
 
 
 class StorySet(object):
@@ -108,18 +107,6 @@ class StorySet(object):
     """
     self.stories.remove(story)
 
-  @decorators.Deprecated(
-    2015, 7, 19, 'Please use AddStory instead. The user story concept is '
-    'being renamed to story.')
-  def AddUserStory(self, story):
-    self.AddStory(story)
-
-  @decorators.Deprecated(
-    2015, 7, 19, 'Please use RemoveStory instead. The user story concept is '
-    'being renamed to story.')
-  def RemoveUserStory(self, story):
-    self.RemoveStory(story)
-
   @classmethod
   def Name(cls):
     """Returns the string name of this StorySet.
@@ -154,12 +141,6 @@ class StorySet(object):
     if not self.wpr_archive_info:
       return None
     return self.wpr_archive_info.WprFilePathForStory(story)
-
-  @decorators.Deprecated(
-    2015, 7, 19, 'Please use WprFilePathForStory instead. The user story '
-    'concept is being renamed to story.')
-  def WprFilePathForUserStory(self, story):
-    return self.WprFilePathForStory(story)
 
   def __iter__(self):
     return self.stories.__iter__()
