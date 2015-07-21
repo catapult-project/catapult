@@ -121,6 +121,21 @@ class TracingCategoryFilter(object):
       categories.extend(l)
     return ','.join(categories)
 
+  def GetDictForChromeTracing(self):
+    INCLUDED_CATEGORIES_PARAM = 'included_categories'
+    EXCLUDED_CATEGORIES_PARAM = 'excluded_categories'
+    SYNTHETIC_DELAYS_PARAM = 'synthetic_delays'
+
+    result = {}
+    if self._included_categories or self._disabled_by_default_categories:
+      result[INCLUDED_CATEGORIES_PARAM] = list(
+        self._included_categories | self._disabled_by_default_categories)
+    if self._excluded_categories:
+      result[EXCLUDED_CATEGORIES_PARAM] = list(self._excluded_categories)
+    if self._synthetic_delays:
+      result[SYNTHETIC_DELAYS_PARAM] = list(self._synthetic_delays)
+    return result
+
   def AddIncludedCategory(self, category_glob):
     """Explicitly enables anything matching category_glob."""
     assert not category_glob.startswith('disabled-by-default-')
