@@ -21,6 +21,8 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.rail', function() {
+  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
+
   function RAILIRFinder(model, modelHelper) {
     this.model = model;
     this.modelHelper = modelHelper;
@@ -95,25 +97,24 @@ tr.exportTo('tr.e.rail', function() {
       var FLING_OP_CANCEL = 'cancel';
       var FLING_OP_ANIM_END = 'anim-end';
 
-
       // Add ops for input fling start & cancel.
       var allLatencyEvents = this.getAllLatencyEvents();
       allLatencyEvents.forEach(function(latencyEvent) {
-        if (latencyEvent.subSlices.length == 0)
-          return;
-        var s0title = latencyEvent.subSlices[0].title;
-        if (s0title === 'InputLatency:GestureFlingStart') {
-          ops.push({
-            op: FLING_OP_START, guid: latencyEvent.guid,
-            opTs: latencyEvent.start,
-            latencyEvent: latencyEvent
-          });
-        } else if (s0title === 'InputLatency:GestureFlingCancel') {
-          ops.push({
-            op: FLING_OP_CANCEL, guid: latencyEvent.guid,
-            opTs: latencyEvent.start,
-            latencyEvent: latencyEvent
-          });
+        switch (latencyEvent.typeName) {
+          case INPUT_TYPE.FLING_START:
+            ops.push({
+              op: FLING_OP_START, guid: latencyEvent.guid,
+              opTs: latencyEvent.start,
+              latencyEvent: latencyEvent
+            });
+            break;
+          case INPUT_TYPE.FLING_CANCEL:
+            ops.push({
+              op: FLING_OP_CANCEL, guid: latencyEvent.guid,
+              opTs: latencyEvent.start,
+              latencyEvent: latencyEvent
+            });
+            break;
         }
       });
 
