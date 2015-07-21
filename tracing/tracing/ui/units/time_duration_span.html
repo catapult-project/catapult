@@ -26,6 +26,9 @@ tr.exportTo('tr.ui.units', function() {
     if (config.total)
       span.percentage = duration / config.total;
     span.duration = duration;
+    // TODO(petrcermak): Get rid of this boolean once we've cleaned up units.
+    if (config.rightAlign)
+      span.rightAlign = true;
     return span;
   }
 
@@ -48,13 +51,11 @@ tr.exportTo('tr.ui.units', function() {
     :host {
       display: block;
       position: relative;
-      text-align:right;
     }
-    #content {
-      font-family: Consolas, Menlo, monospace;
-      font-size: 90%;
+    #content.right-align {
       text-align: right;
       position: relative;
+      display: block;
     }
     #sparkline {
       width: 0%;
@@ -105,6 +106,17 @@ tr.exportTo('tr.ui.units', function() {
     set percentage(percentage) {
       this.percentage_ = percentage;
       this.updateSparkline_();
+    },
+
+    get rightAlign() {
+      return this.$.content.classList.contains('right-align');
+    },
+
+    set rightAlign(rightAlign) {
+      if (rightAlign)
+        this.$.content.classList.add('right-align');
+      else
+        this.$.content.classList.remove('right-align');
     },
 
     updateSparkline_: function() {
