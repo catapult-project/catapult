@@ -70,8 +70,8 @@ tr.b.unittest.testSuite(function() {
           function() {
             resolve();
           },
-          function() {
-            reject();
+          function(err) {
+            reject(err);
           });
     });
   });
