@@ -24,16 +24,24 @@ tr.exportTo('tr.b', function() {
   }
 
   function normalizeException(e) {
-    if (typeof(e) == 'string') {
+    if (e === undefined || e === null) {
       return {
-        message: e,
-        stack: ['<unknown>']
+        message: 'Unknown: null or undefined exception',
+        stack: 'Unknown'
       };
     }
 
+    if (typeof(e) == 'string') {
+      return {
+        message: e,
+        stack: [e]
+      };
+    }
+
+    var msg = e.message ? e.message : 'Unknown';
     return {
-      message: e.message,
-      stack: e.stack ? e.stack : ['<unknown>']
+      message: msg,
+      stack: e.stack ? e.stack : [msg]
     };
   }
 
