@@ -58,7 +58,11 @@ tr.b.unittest.testSuite(function() {
 
     return new Promise(function(resolve, reject) {
       var recordingPromise = view.beginRecording();
+
+      var didAbort = false;
       function pressRecord() {
+        if (didAbort)
+          return;
         recordingPromise.selectionDlg.clickRecordButton();
         setTimeout(pressStop, 60);
       }
@@ -71,6 +75,7 @@ tr.b.unittest.testSuite(function() {
             resolve();
           },
           function(err) {
+            didAbort = true;
             reject(err);
           });
     });
