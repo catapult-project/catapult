@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
       return '';
     });
     mock.expectRequest('getCategories', function() {
-      return JSON.stringify(['a', 'b', 'c']);
+      return ['a', 'b', 'c'];
     });
     mock.expectRequest('beginRecording', function(data) {
       return '';

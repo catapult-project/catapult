@@ -331,6 +331,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     set categories(c) {
+      if (!(c instanceof Array))
+        throw new Error('categories must be an array');
       this.categories_ = c;
 
       for (var i = 0; i < this.categories_.length; i++) {
