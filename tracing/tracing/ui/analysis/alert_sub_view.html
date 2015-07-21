@@ -144,6 +144,12 @@ found in the LICENSE file.
       var alerts = this.currentSelection_;
       this.$.table.tableRows = this.getRowsForAlerts_(alerts);
       this.$.table.rebuild();
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.currentSelection_)
+        return undefined;
+      return this.currentSelection_[0].associatedEvents;
     }
   });
   </script>

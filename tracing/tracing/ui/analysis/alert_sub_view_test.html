@@ -29,12 +29,15 @@ tr.b.unittest.testSuite(function() {
         }]);
 
     var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
+    assert.equal(1, alert.associatedEvents.length);
 
     var selection = new tr.model.EventSet();
     selection.push(alert);
 
     var subView = document.createElement('tr-ui-a-alert-sub-view');
     subView.selection = selection;
+    assert.strictEqual(subView.relatedEventsToHighlight,
+                       alert.associatedEvents);
     this.addHTMLOutput(subView);
 
     var table = tr.b.findDeepElementMatching(
