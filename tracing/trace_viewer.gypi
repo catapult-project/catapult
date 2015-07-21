@@ -243,6 +243,7 @@
       'tracing/ui/analysis/multi_instant_event_sub_view.html',
       'tracing/ui/analysis/multi_interaction_record_sub_view.html',
       'tracing/ui/analysis/multi_object_sub_view.html',
+      'tracing/ui/analysis/multi_power_sample_sub_view.html',
       'tracing/ui/analysis/multi_process_memory_dump_sub_view.html',
       'tracing/ui/analysis/multi_sample_sub_view.html',
       'tracing/ui/analysis/multi_thread_slice_sub_view.html',
