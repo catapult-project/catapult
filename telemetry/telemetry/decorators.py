@@ -72,7 +72,7 @@ class Deprecated(object):
       @functools.wraps(target)
       def wrapper(*args, **kwargs):
         self._DisplayWarningMessage(target)
-        target(*args, **kwargs)
+        return target(*args, **kwargs)
       return wrapper
     elif inspect.isclass(target):
       original_ctor = target.__init__
