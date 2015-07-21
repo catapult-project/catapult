@@ -31,6 +31,10 @@ tr.exportTo('tr.model', function() {
   PowerSeries.prototype = {
     __proto__: tr.model.EventContainer.prototype,
 
+    get device() {
+      return this.device_;
+    },
+
     get samples() {
       return this.samples_;
     },
