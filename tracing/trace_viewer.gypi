@@ -409,6 +409,7 @@
       'tracing/ui/tracks/track.html',
       'tracing/ui/units/array_of_numbers_span.html',
       'tracing/ui/units/generic_table_view.html',
+      'tracing/ui/units/preferred_display_unit.html',
       'tracing/ui/units/size_in_bytes_span.html',
       'tracing/ui/units/time_duration_span.html',
       'tracing/ui/units/time_stamp_span.html',

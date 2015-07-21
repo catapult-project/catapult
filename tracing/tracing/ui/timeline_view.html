@@ -25,6 +25,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_view_help_overlay.html">
 <link rel="import" href="/ui/timeline_view_metadata_overlay.html">
+<link rel="import" href="/ui/units/preferred_display_unit.html">
 
 <polymer-element name='tr-ui-timeline-view'>
   <template>
@@ -123,6 +124,9 @@ found in the LICENSE file.
     </middle-container>
     <x-drag-handle id="drag_handle"></x-drag-handle>
     <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
+
+    <tr-ui-u-preferred-display-unit id="display_unit">
+    </tr-ui-u-preferred-display-unit>
   </template>
 
   <script>
@@ -389,6 +393,8 @@ found in the LICENSE file.
           var railScore = tr.e.rail.RAILScore.fromModel(model);
           this.railScoreSpan_.railScore = railScore;
         }
+
+        this.$.display_unit.preferredDisplayUnit = model.intrinsicTimeUnit;
       }
 
       // Do things that are selection specific
