@@ -2608,7 +2608,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(m.samples[0].title, 'cycles:HG');
     assert.equal(m.samples[0].start, 1);
     assert.deepEqual(
-        ['main', 'a', 'a_sub'],
+        ['a_sub', 'a', 'main'],
         m.samples[0].stackTrace.map(function(x) { return x.title; }));
     assert.equal(m.samples[0].weight, 1);
   });

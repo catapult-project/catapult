@@ -53,6 +53,9 @@ tr.exportTo('tr.model', function() {
       this.children.splice(0, this.children.length);
     },
 
+    /**
+     * Returns stackFrames where the most specific frame is first.
+     */
     get stackTrace() {
       var stack = [];
       var cur = this;
@@ -60,7 +63,6 @@ tr.exportTo('tr.model', function() {
         stack.push(cur);
         cur = cur.parentFrame;
       }
-      stack.reverse();
       return stack;
     },
 
