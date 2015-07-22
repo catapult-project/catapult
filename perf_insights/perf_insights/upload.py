@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import re
 import sys
 import webapp2
 import uuid
@@ -46,7 +47,7 @@ class UploadPage(webapp2.RequestHandler):
     trace_object.prod = self.request.get('prod')
     trace_object.remote_addr = os.environ["REMOTE_ADDR"]
     tags_string = self.request.get('tags')
-    if len(tags_string):
+    if re.match('^[a-zA-Z0-9,]+$', tags_string): # ignore non alpha-numeric tags
       trace_object.tags = tags_string.split(',')
     trace_object.user_agent = self.request.headers.get('User-Agent')
     trace_object.ver = self.request.get('product_version')
