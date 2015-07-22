@@ -20,7 +20,6 @@ from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import linux_based_platform_backend
-from telemetry.internal.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.internal.platform.power_monitor import android_dumpsys_power_monitor
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
 from telemetry.internal.platform.power_monitor import monsoon_power_monitor
@@ -165,7 +164,6 @@ class AndroidPlatformBackend(
     self._device_copy_script = None
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
-        android_ds2784_power_monitor.DS2784PowerMonitor(self._device, self),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(self._battery, self),
     ])
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
