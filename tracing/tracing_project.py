@@ -63,8 +63,8 @@ class TracingProject(project_module.Project):
   d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
   chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
   mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
-  parse5_path = os.path.abspath(
-    os.path.join(tracing_third_party_path, 'parse5'))
+  parse5_path = os.path.abspath(os.path.join(
+      tracing_third_party_path, 'vinn', 'third_party', 'parse5'))
 
   test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
@@ -84,7 +84,6 @@ class TracingProject(project_module.Project):
     self.source_paths.append(self.d3_path)
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
-    self.source_paths.append(self.parse5_path)
 
     self.non_module_html_files.extendRel(self.tracing_root_path, [
       'bin/index.html',
@@ -113,13 +112,10 @@ class TracingProject(project_module.Project):
       'build/test_data/load_simple_html.html'
     ]);
 
-    parse5_test_data_path = os.path.join(self.parse5_path, 'test', 'data')
-    for p in _FindAllFilesRecursive([parse5_test_data_path]):
+    for p in _FindAllFilesRecursive([self.parse5_path]):
       if p.endswith('.html'):
         os.path.relpath(p, self.tracing_third_party_path)
         self.non_module_html_files.extendRel(self.tracing_third_party_path, [p])
-    self.non_module_html_files.extendRel(self.tracing_third_party_path, [
-      'parse5/benchmark/spec.html'])
 
     # Ignore drive html due to embedded external script resources.
     self.non_module_html_files.appendRel(self.tracing_src_path,

@@ -14,8 +14,8 @@ import tempfile
 
 _V8_DIR = os.path.abspath(
     os.path.join(
-        os.path.dirname(__file__),
-        os.path.pardir, os.path.pardir, 'tracing', 'third_party', 'v8'))
+        os.path.dirname(__file__), os.path.pardir, os.path.pardir,
+        'tracing', 'third_party', 'vinn', 'third_party', 'v8'))
 
 _HTML_JS_EVAL_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html2jseval.py'))
@@ -31,7 +31,8 @@ _HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
 
 _JS_PARSER_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__),
-                 os.pardir, 'third_party', 'parse5', 'parse5.js'))
+                 os.pardir, 'third_party', 'vinn', 'third_party',
+                 'parse5', 'parse5.js'))
 
 
 _BOOTSTRAP_JS_CONTENT = None
