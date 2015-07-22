@@ -571,7 +571,8 @@ found in the LICENSE file.
             }
           }
 
-          td.appendChild(tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
+          if (value !== undefined)
+            td.appendChild(tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
 
           i += colSpan;
         }
