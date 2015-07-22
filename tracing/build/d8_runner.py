@@ -17,9 +17,6 @@ _V8_DIR = os.path.abspath(
         os.path.dirname(__file__), os.path.pardir, os.path.pardir,
         'tracing', 'third_party', 'vinn', 'third_party', 'v8'))
 
-_HTML_JS_EVAL_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'html2jseval.py'))
-
 _BOOTSTRAP_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'd8_bootstrap.js'))
 
@@ -51,9 +48,7 @@ def _GetBootStrapJsContent(source_paths):
   global _BOOTSTRAP_JS_CONTENT
   if not _BOOTSTRAP_JS_CONTENT:
     with open(_BOOTSTRAP_JS_DIR, 'r') as f:
-      bootstrap_js_content = f.read()
-      _BOOTSTRAP_JS_CONTENT = bootstrap_js_content.replace(
-          '<%html2jseval-path%>', _HTML_JS_EVAL_PATH)
+      _BOOTSTRAP_JS_CONTENT = f.read()
 
   bsc = _BOOTSTRAP_JS_CONTENT
 
