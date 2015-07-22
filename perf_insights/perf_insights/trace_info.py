@@ -9,5 +9,7 @@ class TraceInfo(ndb.Model):
   date = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
   prod = ndb.StringProperty(indexed=True)
   remote_addr = ndb.StringProperty(indexed=True)
+  #TODO(fmeawad): remove the 'tag' property once we add a network type.
+  tag = ndb.StringProperty(indexed=True)
   user_agent = ndb.StringProperty(indexed=True, default=None)
   ver = ndb.StringProperty(indexed=True)
