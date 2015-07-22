@@ -2,18 +2,26 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
+
 import telemetry.internal.platform.power_monitor as power_monitor
 
+
+def _ReenableChargingIfNeeded(battery):
+  if not battery.GetCharging():
+    battery.TieredSetCharging(True)
 
 class PowerMonitorController(power_monitor.PowerMonitor):
   """
   PowerMonitor that acts as facade for a list of PowerMonitor objects and uses
   the first available one.
   """
-  def __init__(self, power_monitors):
+  def __init__(self, power_monitors, battery):
     super(PowerMonitorController, self).__init__()
     self._cascading_power_monitors = power_monitors
     self._active_monitor = None
+    self._battery = battery
+    atexit.register(_ReenableChargingIfNeeded, self._battery)
 
   def _AsyncPowerMonitor(self):
     return next(

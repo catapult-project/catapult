@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
 import csv
 import logging
 
@@ -47,12 +46,6 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     if self._fuel_gauge_found:
       self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
     self._battery.TieredSetCharging(False)
-
-    def _ReenableChargingIfNeeded():
-      if not self._battery.GetCharging():
-        self._battery.self._battery.TieredSetCharging(True)
-
-    atexit.register(_ReenableChargingIfNeeded)
 
   def StopMonitoringPower(self):
     self._battery.TieredSetCharging(True)
