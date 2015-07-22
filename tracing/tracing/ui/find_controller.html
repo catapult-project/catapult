@@ -97,7 +97,7 @@ tr.exportTo('tr.ui', function() {
         if (filterText.length === 0) {
           this.enqueueOperation_(sc.findTextCleared.bind(sc));
         } else {
-          var filter = new tr.c.TitleOrCategoryFilter(filterText);
+          var filter = new tr.c.FullTextFilter(filterText);
           var filterHits = new tr.model.EventSet();
           this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
               filter, filterHits));
