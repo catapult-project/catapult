@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/ui/tracks/heading_track.html">
+<link rel="import" href="/ui/base/heading.html">
 <link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/track.html">
 
 <script>
 'use strict';
@@ -15,19 +16,34 @@ tr.exportTo('tr.ui.tracks', function() {
   /**
    * A track that displays traces as stacked bars.
    * @constructor
-   * @extends {HeadingTrack}
+   * @extends {Track}
    */
   var StackedBarsTrack = tr.ui.b.define(
-      'stacked-bars-track', tr.ui.tracks.HeadingTrack);
+      'stacked-bars-track', tr.ui.tracks.Track);
 
   StackedBarsTrack.prototype = {
 
-    __proto__: tr.ui.tracks.HeadingTrack.prototype,
+    __proto__: tr.ui.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tr.ui.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('stacked-bars-track');
       this.objectInstance_ = null;
+
+      this.heading_ = document.createElement('tr-ui-heading');
+      this.appendChild(this.heading_);
+    },
+
+    set heading(heading) {
+      this.heading_.heading = heading;
+    },
+
+    get heading() {
+      return this.heading_.heading;
+    },
+
+    set tooltip(tooltip) {
+      this.heading_.tooltip = tooltip;
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
