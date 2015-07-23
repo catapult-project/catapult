@@ -4,31 +4,38 @@
 # found in the LICENSE file.
 
 import cStringIO
+import functools
 import imp
 import inspect
+import itertools
+import operator
 import os
 import re
 import sys
+
+from catapult_base import refactor
+from catapult_base.refactor_util import move
 
 from telemetry.internal.util import command_line
 from telemetry.internal.util import path
 
 
-# All folders dependent on Telemetry, found using a code search.
-BASE_DIRS = (
-  path.GetTelemetryDir(),
-  os.path.join(path.GetChromiumSrcDir(), 'chrome', 'test', 'telemetry'),
-  os.path.join(path.GetChromiumSrcDir(), 'content', 'test', 'gpu'),
-  os.path.join(path.GetChromiumSrcDir(), 'tools', 'bisect-manual-test.py'),
-  os.path.join(path.GetChromiumSrcDir(), 'tools', 'chrome_proxy'),
-  os.path.join(path.GetChromiumSrcDir(), 'tools', 'perf'),
-  os.path.join(path.GetChromiumSrcDir(),
-               'tools', 'profile_chrome', 'perf_controller.py'),
-  os.path.join(path.GetChromiumSrcDir(), 'tools', 'run-bisect-manual-test.py'),
-  os.path.join(path.GetChromiumSrcDir(),
-               'third_party', 'skia', 'tools', 'skp', 'page_sets'),
-  os.path.join(path.GetChromiumSrcDir(), 'third_party', 'trace-viewer'),
+_RELATIVE_BASE_DIRS = (
+  ('chrome', 'test', 'telemetry'),
+  ('content', 'test', 'gpu'),
+  ('tools', 'bisect-manual-test.py'),
+  ('tools', 'chrome_proxy'),
+  ('tools', 'perf'),
+  ('tools', 'profile_chrome', 'perf_controller.py'),
+  ('tools', 'run-bisect-manual-test.py'),
+  ('third_party', 'skia', 'tools', 'skp', 'page_sets'),
+  ('third_party', 'trace-viewer'),
 )
+# All folders dependent on Telemetry, found using a code search.
+# Note that this is not the same as the directory that imports are relative to.
+BASE_DIRS = [path.GetTelemetryDir()] + [
+    os.path.join(path.GetChromiumSrcDir(), *dir_path)
+    for dir_path in _RELATIVE_BASE_DIRS]
 
 
 def SortImportGroups(module_path):
@@ -121,13 +128,9 @@ def _TransformImportGroups(module_path, transformation):
   return True
 
 
-def _ListFiles(base_directory, should_include_dir, should_include_file):
-  matching_files = []
-  for root, dirs, files in os.walk(base_directory):
-    dirs[:] = [dir_name for dir_name in dirs if should_include_dir(dir_name)]
-    matching_files += [os.path.join(root, file_name)
-                       for file_name in files if should_include_file(file_name)]
-  return sorted(matching_files)
+def _CountInterfaces(module):
+  return (len(list(module.FindChildren(refactor.Class))) +
+      len(list(module.FindChildren(refactor.Function))))
 
 
 def _IsSourceDir(dir_name):
@@ -142,16 +145,26 @@ def _IsPythonModule(file_name):
 class Count(command_line.Command):
   """Print the number of public modules."""
 
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    parser.add_argument('type', nargs='?', choices=('interfaces', 'modules'),
+                        default='modules')
+
   def Run(self, args):
-    modules = _ListFiles(path.GetTelemetryDir(),
-                         self._IsPublicApiDir, self._IsPublicApiFile)
-    print len(modules)
+    module_paths = path.ListFiles(
+        path.GetTelemetryDir(), self._IsPublicApiDir, self._IsPublicApiFile)
+
+    if args.type == 'modules':
+      print len(module_paths)
+    elif args.type == 'interfaces':
+      print reduce(operator.add, refactor.Transform(_CountInterfaces, module_paths))
+
     return 0
 
   @staticmethod
   def _IsPublicApiDir(dir_name):
     return (dir_name[0] != '.' and dir_name[0] != '_' and
-        not dir_name.startswith('internal') and not dir_name == 'third_party')
+        dir_name != 'internal' and dir_name != 'third_party')
 
   @staticmethod
   def _IsPublicApiFile(file_name):
@@ -160,122 +173,62 @@ class Count(command_line.Command):
         not root.endswith('_unittest') and ext == '.py')
 
 
+def _TelemetryFiles():
+  list_files = functools.partial(path.ListFiles,
+                                 should_include_dir=_IsSourceDir,
+                                 should_include_file=_IsPythonModule)
+  return sorted(itertools.chain(*map(list_files, BASE_DIRS)))
+
+
 class Mv(command_line.Command):
   """Move modules or packages."""
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('source', nargs='+')
-    parser.add_argument('destination')
+    parser.add_argument('target')
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    for source in args.source:
+    # Check source file paths.
+    for source_path in args.source:
       # Ensure source path exists.
-      if not os.path.exists(source):
-        parser.error('"%s" not found.' % source)
+      if not os.path.exists(source_path):
+        parser.error('"%s" not found.' % source_path)
 
       # Ensure source path is in one of the BASE_DIRS.
       for base_dir in BASE_DIRS:
-        if path.IsSubpath(source, base_dir):
+        if path.IsSubpath(source_path, base_dir):
           break
       else:
-        parser.error('Source path "%s" is not in any of the base dirs.')
+        parser.error('"%s" is not in any of the base dirs.')
 
-    # Ensure destination path exists.
-    if not os.path.exists(args.destination):
-      parser.error('"%s" not found.' % args.destination)
+    # Ensure target directory exists.
+    if not (os.path.exists(args.target) or
+        os.path.exists(os.path.dirname(args.target))):
+      parser.error('"%s" not found.' % args.target)
 
-    # Ensure destination path is in one of the BASE_DIRS.
+    # Ensure target path is in one of the BASE_DIRS.
     for base_dir in BASE_DIRS:
-      if path.IsSubpath(args.destination, base_dir):
+      if path.IsSubpath(args.target, base_dir):
         break
     else:
-      parser.error('Destination path "%s" is not in any of the base dirs.')
+      parser.error('"%s" is not in any of the base dirs.')
 
-    # If there are multiple source paths, ensure destination is a directory.
-    if len(args.source) > 1 and not os.path.isdir(args.destination):
-      parser.error('Target "%s" is not a directory.' % args.destination)
+    # If there are multiple source paths, ensure target is a directory.
+    if len(args.source) > 1 and not os.path.isdir(args.target):
+      parser.error('Target "%s" is not a directory.' % args.target)
 
-    # Ensure destination is not in any of the source paths.
-    for source in args.source:
-      if path.IsSubpath(args.destination, source):
+    # Ensure target is not in any of the source paths.
+    for source_path in args.source:
+      if path.IsSubpath(args.target, source_path):
         parser.error('Cannot move "%s" to a subdirectory of itself, "%s".' %
-            (source, args.destination))
+            (source_path, args.target))
 
   def Run(self, args):
-    for dest_base_dir in BASE_DIRS:
-      if path.IsSubpath(args.destination, dest_base_dir):
-        break
-
-    # Get a list of old and new module names for renaming imports.
-    moved_modules = {}
-    for source in args.source:
-      for source_base_dir in BASE_DIRS:
-        if path.IsSubpath(source, source_base_dir):
-          break
-
-      source_dir = os.path.dirname(os.path.normpath(source))
-
-      if os.path.isdir(source):
-        source_files = _ListFiles(source, _IsSourceDir, _IsPythonModule)
-      else:
-        source_files = (source,)
-
-      for source_file_path in source_files:
-        source_rel_path = os.path.relpath(source_file_path, source_base_dir)
-        source_module_name = os.path.splitext(
-            source_rel_path)[0].replace(os.sep, '.')
-
-        source_tree = os.path.relpath(source_file_path, source_dir)
-        dest_path = os.path.join(args.destination, source_tree)
-        dest_rel_path = os.path.relpath(dest_path, dest_base_dir)
-        dest_module_name = os.path.splitext(
-            dest_rel_path)[0].replace(os.sep, '.')
-
-        moved_modules[source_module_name] = dest_module_name
-
-    # Move things!
-    if os.path.isdir(args.destination):
-      for source in args.source:
-        destination_path = os.path.join(
-            args.destination, os.path.split(os.path.normpath(source))[1])
-        os.rename(source, destination_path)
-    else:
-      assert len(args.source) == 1
-      os.rename(args.source.pop(), args.destination)
-
-    # Update imports!
-    def _UpdateImportGroup(import_group):
-      modified = False
-      for import_line in import_group:
-        _, root, module, _, _ = import_line
-        full_module = root + '.' + module if root else module
-
-        if full_module not in moved_modules:
-          continue
-
-        modified = True
-
-        # Update import line.
-        new_root, _, new_module = moved_modules[full_module].rpartition('.')
-        import_line[1] = new_root
-        import_line[2] = new_module
-
-      if modified:
-        return _SortImportGroup(import_group)
-      else:
-        return import_group
-
-    for base_dir in BASE_DIRS:
-      for module_path in _ListFiles(base_dir, _IsSourceDir, _IsPythonModule):
-        if not _TransformImportGroups(module_path, _UpdateImportGroup):
-          continue
-
-        # TODO(dtu): Update occurrences.
-
-    print moved_modules
-
+    move.Run(args.source, args.target, _TelemetryFiles())
+    for module_path in _TelemetryFiles():
+      SortImportGroups(module_path)
     return 0
 
 
@@ -299,7 +252,7 @@ class Sort(command_line.Command):
       targets = BASE_DIRS
 
     for base_dir in targets:
-      for module_path in _ListFiles(base_dir, _IsSourceDir, _IsPythonModule):
+      for module_path in path.ListFiles(base_dir, _IsSourceDir, _IsPythonModule):
         SortImportGroups(module_path)
     return 0
 

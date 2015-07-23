@@ -53,3 +53,13 @@ def IsSubpath(subpath, superpath):
       return True
     subpath = os.path.split(subpath)[0]
   return False
+
+
+def ListFiles(base_directory, should_include_dir=lambda _: True,
+              should_include_file=lambda _: True):
+  matching_files = []
+  for root, dirs, files in os.walk(base_directory):
+    dirs[:] = [dir_name for dir_name in dirs if should_include_dir(dir_name)]
+    matching_files += [os.path.join(root, file_name)
+                       for file_name in files if should_include_file(file_name)]
+  return sorted(matching_files)
