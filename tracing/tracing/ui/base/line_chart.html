@@ -61,26 +61,15 @@ tr.exportTo('tr.ui.b', function() {
      *
      * @param {Array} data The data. Each element must be an object, with at
      * least an x property. All other properties become series names in the
-     * chart.
+     * chart. The data can be sparse (i.e. every x value does not have to
+     * contain data for every series).
      */
     set data(data) {
       if (data.length == 0)
         throw new Error('Data must be nonzero. Pass undefined.');
 
-      var keys;
-      if (data !== undefined) {
-        var d = data[0];
-        if (d.x === undefined)
-          throw new Error('Elements must have "x" fields');
-        keys = d3.keys(data[0]);
-        keys.splice(keys.indexOf('x'), 1);
-        if (keys.length == 0)
-          throw new Error('Elements must have at least one other field than X');
-      } else {
-        keys = undefined;
-      }
       this.data_ = data;
-      this.seriesKeys_ = keys;
+      this.seriesKeys_ = this.getSeriesKeys_();
 
       this.updateContents_();
     },
@@ -113,6 +102,28 @@ tr.exportTo('tr.ui.b', function() {
       return [];
     },
 
+    getSeriesKeys_: function() {
+      if (this.data_ === undefined)
+        return undefined;
+
+      // Accumulate the keys on each data point.
+      var keySet = {};
+      this.data_.forEach(function(datum) {
+        if (datum.x === undefined)
+          throw new Error('Elements must have "x" fields.');
+
+        Object.keys(datum).forEach(function(key) {
+          // Don't count 'x': it's the domain, not an actual series.
+          if (key === 'x')
+            return;
+
+          keySet[key] = true;
+        });
+      });
+
+      return Object.keys(keySet);
+    },
+
     updateScales_: function(width, height) {
       if (this.data_ === undefined)
         return;
@@ -123,9 +134,11 @@ tr.exportTo('tr.ui.b', function() {
 
       // Y.
       var yRange = new tr.b.Range();
-      this.data_.forEach(function(d) {
-        this.seriesKeys_.forEach(function(k) {
-          yRange.addValue(d[k]);
+      this.data_.forEach(function(datum) {
+        this.seriesKeys_.forEach(function(key) {
+          // Allow for sparse data
+          if (datum[key] !== undefined)
+            yRange.addValue(datum[key]);
         });
       }, this);
 
@@ -157,6 +170,7 @@ tr.exportTo('tr.ui.b', function() {
           }.bind(this))
         .attr('height', this.chartAreaSize.height);
 
+      var dataBySeriesKey = this.getDataBySeriesKey_();
 
       var seriesSel = chartAreaSel.select('#series');
       var pathsSel = seriesSel.selectAll('path').data(this.seriesKeys_);
@@ -170,9 +184,44 @@ tr.exportTo('tr.ui.b', function() {
             var line = d3.svg.line()
               .x(function(d) { return this.xScale_(d.x); }.bind(this))
               .y(function(d) { return this.yScale_(d[key]); }.bind(this));
-            return line(this.data_);
+            return line(dataBySeriesKey[key]);
           }.bind(this));
       pathsSel.exit().remove();
+    },
+
+    /**
+     * Returns a map of series key to the data for that series.
+     *
+     * Example:
+     * // returns {y: [{x: 1, y: 1}, {x: 3, y: 3}], z: [{x: 2, z: 2}]}
+     * this.data_ = [{x: 1, y: 1}, {x: 2, z: 2}, {x: 3, y: 3}];
+     * this.getDataBySeriesKey_();
+     * @return {Object} A map of series data by series key.
+     */
+    getDataBySeriesKey_: function() {
+      var dataBySeriesKey = {};
+      this.seriesKeys_.forEach(function(seriesKey) {
+        dataBySeriesKey[seriesKey] = [];
+      });
+
+      this.data_.forEach(function(multiSeriesDatum) {
+        var x = multiSeriesDatum.x;
+
+        d3.keys(multiSeriesDatum).forEach(function(seriesKey) {
+          // Skip 'x' - it's not a series
+          if (seriesKey === 'x')
+            return;
+
+          if (multiSeriesDatum[seriesKey] === undefined)
+            return;
+
+          var singleSeriesDatum = {x: x};
+          singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];
+          dataBySeriesKey[seriesKey].push(singleSeriesDatum);
+        });
+      });
+
+      return dataBySeriesKey;
     },
 
     getDataIndexAtClientPoint_: function(clientX, clientY, clipToY) {
