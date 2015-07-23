@@ -16,27 +16,31 @@
     return;
   }
 
+  // Some benchmarks patch window.performance to make it deterministic.
+  // Save the original performance object before it is patched.
+  var real_performance = window.performance;
+
   // Set the Resource Timing interface functions that will be used below
   // to use whatever version is available currently regardless of vendor
   // prefix.
-  window.performance.clearResourceTimings =
-      (window.performance.clearResourceTimings     ||
-       window.performance.mozClearResourceTimings  ||
-       window.performance.msClearResourceTimings   ||
-       window.performance.oClearResourceTimings    ||
-       window.performance.webkitClearResourceTimings);
+  real_performance.clearResourceTimings =
+      (real_performance.clearResourceTimings     ||
+       real_performance.mozClearResourceTimings  ||
+       real_performance.msClearResourceTimings   ||
+       real_performance.oClearResourceTimings    ||
+       real_performance.webkitClearResourceTimings);
 
-  window.performance.getEntriesByType =
-      (window.performance.getEntriesByType     ||
-       window.performance.mozGetEntriesByType  ||
-       window.performance.msGetEntriesByType   ||
-       window.performance.oGetEntriesByType    ||
-       window.performance.webkitGetEntriesByType);
+  real_performance.getEntriesByType =
+      (real_performance.getEntriesByType     ||
+       real_performance.mozGetEntriesByType  ||
+       real_performance.msGetEntriesByType   ||
+       real_performance.oGetEntriesByType    ||
+       real_performance.webkitGetEntriesByType);
 
   // This variable will available to the function below and it will be
   // persistent across different function calls. It stores the last
   // entry in the list of PerformanceResourceTiming objects returned by
-  // window.performance.getEntriesByType('resource').
+  // real_performance.getEntriesByType('resource').
   //
   // The reason for doing it this way is because the buffer for
   // PerformanceResourceTiming objects has a limit, and once it's full,
@@ -72,25 +76,25 @@
       return false;
     }
 
-    var resourceTimings = window.performance.getEntriesByType('resource');
+    var resourceTimings = real_performance.getEntriesByType('resource');
     if (resourceTimings.length > 0) {
       lastEntry = resourceTimings.pop();
-      window.performance.clearResourceTimings();
+      real_performance.clearResourceTimings();
     }
 
     // The times for performance.now() and in the PerformanceResourceTiming
     // objects are all in milliseconds since performance.timing.navigationStart,
     // so we must also get load time in the same terms.
-    var timing = window.performance.timing;
+    var timing = real_performance.timing;
     var loadTime = timing.loadEventEnd - timing.navigationStart;
     var lastResponseTimeMs = 0;
 
     // If there have been no resource timing entries, or the last entry was
     // before the load event, then use the time since the load event.
     if (!lastEntry || lastEntry.responseEnd < loadTime) {
-      lastResponseTimeMs = window.performance.now() - loadTime;
+      lastResponseTimeMs = real_performance.now() - loadTime;
     } else {
-      lastResponseTimeMs = window.performance.now() - lastEntry.responseEnd;
+      lastResponseTimeMs = real_performance.now() - lastEntry.responseEnd;
     }
 
     if (lastResponseTimeMs >= QUIESCENCE_TIMEOUT_MS) {
