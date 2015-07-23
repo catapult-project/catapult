@@ -5,10 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/core/brushing_state_controller.html">
 <link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/base/ui.html">
 
-<polymer-element name="tr-ui-a-analysis-link" is="a">
+<polymer-element name="tr-ui-a-analysis-link" is="a"
+    on-click="{{onClicked_}}"
+    on-mouseenter="{{onMouseEnter_}}"
+    on-mouseleave="{{onMouseLeave_}}">
   <template>
     <style>
     :host {
@@ -31,8 +35,20 @@ found in the LICENSE file.
   'use strict';
   Polymer({
     ready: function() {
-      this.addEventListener('click', this.onClicked_.bind(this));
       this.selection_ = undefined;
+    },
+
+    attached: function() {
+      // Save an instance of the controller since it's going to be used in
+      // detached() where it can no longer be obtained.
+      this.controller_ =
+          tr.c.BrushingStateController.getControllerForElement(this);
+    },
+
+    detached: function() {
+      // Reset highlights.
+      this.clearHighlight_();
+      this.controller_ = undefined;
     },
 
     get selection() {
@@ -40,6 +56,7 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
+      // Selection can be either an EventSet or a function.
       this.selection_ = selection;
       this.textContent = selection.userFriendlyName;
     },
@@ -50,16 +67,37 @@ found in the LICENSE file.
         this.textContent = opt_textContent;
     },
 
+    getCurrentSelection_: function() {
+      // Gets the current selection, invoking the selection function if needed.
+      if (typeof this.selection_ === 'function')
+        return this.selection_();
+      return this.selection_;
+    },
+
+    setHighlight_: function(opt_eventSet) {
+      if (this.controller_)
+        this.controller_.changeAnalysisLinkHoveredEvents(opt_eventSet);
+    },
+
+    clearHighlight_: function(opt_eventSet) {
+      this.setHighlight_();
+    },
+
     onClicked_: function() {
       if (!this.selection_)
         return;
 
       var event = new tr.model.RequestSelectionChangeEvent();
-      if (typeof this.selection_ === 'function')
-        event.selection = this.selection_();
-      else
-        event.selection = this.selection_;
+      event.selection = this.getCurrentSelection_();
       this.dispatchEvent(event);
+    },
+
+    onMouseEnter_: function() {
+      this.setHighlight_(this.getCurrentSelection_());
+    },
+
+    onMouseLeave_: function() {
+      this.clearHighlight_();
     }
   });
   </script>

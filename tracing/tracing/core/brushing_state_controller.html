@@ -243,9 +243,15 @@ tr.exportTo('tr.c', function() {
       this.onUserInitiatedSelectionChange_();
     },
 
-    changeAnalysisViewRelatedEvents: function(selection) {
+    changeAnalysisViewRelatedEvents: function(eventSet) {
       var newBrushingState = this.currentBrushingState_.clone();
-      newBrushingState.analysisViewRelatedEvents = selection;
+      newBrushingState.analysisViewRelatedEvents = eventSet;
+      this.currentBrushingState = newBrushingState;
+    },
+
+    changeAnalysisLinkHoveredEvents: function(eventSet) {
+      var newBrushingState = this.currentBrushingState_.clone();
+      newBrushingState.analysisLinkHoveredEvents = eventSet;
       this.currentBrushingState = newBrushingState;
     },
 
