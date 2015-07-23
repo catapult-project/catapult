@@ -5,10 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/extras/rail/rail_ir_finder.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/extras/importer/trace_event_importer.html">
-<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/rail/rail_ir_finder.html">
 <link rel="import" href="/model/model.html">
 
 <script>
@@ -16,6 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var audits = tr.e.audits;
+  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
 
   function newRIRF(customizeModelCallback) {
     var model = tr.e.audits.newChromeModel(customizeModelCallback);
@@ -34,13 +36,13 @@ tr.b.unittest.testSuite(function() {
 
   test('twoScrollsNoFling', function() {
     var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
-      audits.addGeneralLatencyInfoEvent(model, {start: 16, end: 100});
-      audits.addGeneralLatencyInfoEvent(model, {start: 32, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 32, end: 100});
 
-      audits.addGeneralLatencyInfoEvent(model, {start: 300, end: 330});
-      audits.addGeneralLatencyInfoEvent(model, {start: 316, end: 346});
-      audits.addGeneralLatencyInfoEvent(model, {start: 332, end: 368});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 300, end: 330});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 316, end: 346});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 332, end: 368});
     });
 
     var gestures = rirf.getAllGestures();
@@ -55,10 +57,10 @@ tr.b.unittest.testSuite(function() {
 
   test('flingThatIsntstopped', function() {
     var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
-      audits.addGeneralLatencyInfoEvent(model, {start: 16, end: 100});
-      audits.addFlingStartLatencyInfoEvent(model, {start: 32, end: 100,
-                                                   flingStart: 38});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+                           {start: 32, end: 100});
       audits.addFlingAnimationEvent(model, {start: 38, end: 200});
     });
 
@@ -72,17 +74,16 @@ tr.b.unittest.testSuite(function() {
 
   test('flingThatIsStopped', function() {
     var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
-      audits.addGeneralLatencyInfoEvent(model, {start: 16, end: 100});
-      audits.addFlingStartLatencyInfoEvent(model, {start: 32, end: 100,
-                                                   flingStart: 38});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+                           {start: 32, end: 100});
       audits.addFlingAnimationEvent(model, {start: 38, end: 200});
-      audits.addFlingCancelLatencyInfoEvent(model, {start: 100, end: 150,
-                                                    flingCancel: 105});
-
+      audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+                           {start: 100, end: 150});
     });
 
-    assert.equal(6, rirf.getAllLatencyEvents().length);
+    assert.equal(4, rirf.getAllLatencyEvents().length);
 
     var e60ranges = rirf.getAllExpected60Ranges();
     assert.equal(e60ranges.length, 1);
@@ -94,7 +95,7 @@ tr.b.unittest.testSuite(function() {
 
   test('FrameEvent', function() {
     var rirf = newRIRF(function(model) {
-      audits.addGeneralLatencyInfoEvent(model, {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
       audits.addFrameEvent(model, {start: 1, end: 10});
     });
     assert.equal(1, rirf.getAllFrameEvents().length);
@@ -102,7 +103,7 @@ tr.b.unittest.testSuite(function() {
 
   test('Load', function() {
     var rirf = newRIRF(function(model) {
-      audits.addProvisionalLoadEvent(model, {start: 1, end: 10});
+      audits.addCommitLoadEvent(model, {start: 1, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 20});
     });
     var loads = rirf.modelHelper.browserHelper.
@@ -126,11 +127,11 @@ tr.b.unittest.testSuite(function() {
   test('MultipleIdles', function() {
     var rirf = newRIRF(function(model) {
       audits.addFrameEvent(model, {start: 0, end: 1});
-      audits.addProvisionalLoadEvent(model, {start: 1, end: 2});
+      audits.addCommitLoadEvent(model, {start: 1, end: 2});
       audits.addFrameEvent(model, {start: 3, end: 4});
-      audits.addProvisionalLoadEvent(model, {start: 5, end: 6});
+      audits.addCommitLoadEvent(model, {start: 5, end: 6});
       audits.addFrameEvent(model, {start: 7, end: 8});
-      audits.addProvisionalLoadEvent(model, {start: 9, end: 10});
+      audits.addCommitLoadEvent(model, {start: 9, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 12});
       audits.addFrameEvent(model, {start: 12, end: 13});
     });
