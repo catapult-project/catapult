@@ -291,6 +291,7 @@
       'tracing/ui/base/event_presenter.html',
       'tracing/ui/base/fast_rect_renderer.html',
       'tracing/ui/base/favicons.html',
+      'tracing/ui/base/heading.html',
       'tracing/ui/base/hot_key.html',
       'tracing/ui/base/hotkey_controller.html',
       'tracing/ui/base/info_bar.html',
