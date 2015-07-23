@@ -5,10 +5,10 @@
 import csv
 import logging
 
-from telemetry.internal.platform.power_monitor import sysfs_power_monitor
+from telemetry.internal.platform import power_monitor
 
 
-class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
+class DumpsysPowerMonitor(power_monitor.PowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
@@ -21,9 +21,10 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
         battery: A BatteryUtil instance.
         platform_backend: A LinuxBasedPlatformBackend instance.
     """
-    super(DumpsysPowerMonitor, self).__init__(platform_backend)
+    super(DumpsysPowerMonitor, self).__init__()
     self._battery = battery
     self._browser = None
+    self._platform = platform_backend
     self._fuel_gauge_found = self._battery.SupportsFuelGauge()
     self._starting_fuel_gauge = None
 
@@ -38,7 +39,6 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     return False
 
   def StartMonitoringPower(self, browser):
-    super(DumpsysPowerMonitor, self).StartMonitoringPower(browser)
     self._browser = browser
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
@@ -52,7 +52,6 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None
-    cpu_stats = super(DumpsysPowerMonitor, self).StopMonitoringPower()
 
     fuel_gauge_delta = None
     if self._fuel_gauge_found:
@@ -77,8 +76,7 @@ class DumpsysPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     if power_results['energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
                       % (package, self._battery.GetPowerData()))
-    return super(DumpsysPowerMonitor, self).CombineResults(
-        cpu_stats, power_results)
+    return power_results
 
   @staticmethod
   def ProcessPowerData(power_data, voltage, package, fuel_gauge_delta):

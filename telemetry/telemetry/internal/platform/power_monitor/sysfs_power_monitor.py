@@ -18,11 +18,14 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
   """PowerMonitor that relies on sysfs to monitor CPU statistics on several
   different platforms.
   """
-  def __init__(self, linux_based_platform_backend):
+  # TODO(rnephew): crbug.com/513453
+  # Convert all platforms to use standalone power monitors.
+  def __init__(self, linux_based_platform_backend, standalone=False):
     """Constructor.
 
     Args:
         linux_based_platform_backend: A LinuxBasedPlatformBackend object.
+        standalone: If it is not wrapping another monitor, set to True.
 
     Attributes:
         _cpus: A list of the CPUs on the target device.
@@ -42,6 +45,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     self._initial_cstate = None
     self._initial_freq = None
     self._platform = linux_based_platform_backend
+    self._standalone = standalone
 
   @decorators.Cache
   def CanMonitorPower(self):
@@ -74,6 +78,8 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         for cpu in frequencies:
           out[cpu] = {'frequency_percent': frequencies[cpu]}
           out[cpu]['cstate_residency_percent'] = cstates[cpu]
+      if self._standalone:
+        return self.CombineResults(out, {})
       return out
     finally:
       self._initial_cstate = None

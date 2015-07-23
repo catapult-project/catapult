@@ -24,6 +24,7 @@ from telemetry.internal.platform.power_monitor import android_dumpsys_power_moni
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
 from telemetry.internal.platform.power_monitor import monsoon_power_monitor
 from telemetry.internal.platform.power_monitor import power_monitor_controller
+from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import external_modules
@@ -165,6 +166,7 @@ class AndroidPlatformBackend(
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(self._battery, self),
+        sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
     ], self._battery)
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, self._device)
