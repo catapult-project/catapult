@@ -178,7 +178,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
       os.makedirs(output_dir)
     output_lib = os.path.join(output_dir, os.path.basename(lib))
 
-    if lib.startswith('/data/app/'):
+    if lib.startswith('/data/app'):
       # If this is our own library instead of a system one, look for a matching
       # unstripped library under the out directory.
       unstripped_host_lib = _FindMatchingUnstrippedLibraryOnHost(device, lib)
