@@ -84,9 +84,9 @@ tr.exportTo('tr.e.audits', function() {
       this.modelHelper.model.getAllThreads().forEach(function(thread) {
         thread.asyncSliceGroup.slices.forEach(function(slice) {
           var match = false;
-          if (slice.category == 'net' ||  // old-style URLRequest/Resource
-              slice.category == 'disabled-by-default-netlog' ||
-              slice.category == 'netlog') {
+          if (slice.cat == 'net' || // old-style URLRequest/Resource slices.
+              slice.cat == 'disabled-by-default-netlog' || // early netlog.
+              slice.cat == 'netlog') {
             match = true;
           }
 
