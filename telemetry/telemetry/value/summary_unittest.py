@@ -77,9 +77,13 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
+        page0, 'a', 'seconds', [3])
+    merged_list = list_of_scalar_values.ListOfScalarValues(
         None, 'a', 'seconds', [3])
 
-    self.assertEquals([v0_list], values)
+    self.assertEquals(2, len(values))
+    self.assertIn(v0_list, values)
+    self.assertIn(merged_list, values)
 
   def testBasicSummaryNonuniformResults(self):
     page0 = self.pages[0]

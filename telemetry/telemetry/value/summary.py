@@ -144,20 +144,7 @@ class Summary(object):
 
   def _ComputePerPageValue(
       self, value, num_successful_pages_for_this_value_name):
-    # If there were any page errors, we typically will print nothing.
-    #
-    # Note: this branch is structured less-densely to improve legibility.
-    if num_successful_pages_for_this_value_name > 1:
-      should_print = True
-    elif (self.had_failures and
-         num_successful_pages_for_this_value_name == 1):
-      should_print = True
-    else:
-      should_print = False
-
-    if not should_print:
-      return
-
-    # Actually save the result.
-    self._computed_per_page_values.append(value)
-    self._interleaved_computed_per_page_values_and_summaries.append(value)
+    if num_successful_pages_for_this_value_name >= 1:
+      # Save the result.
+      self._computed_per_page_values.append(value)
+      self._interleaved_computed_per_page_values_and_summaries.append(value)
