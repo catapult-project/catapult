@@ -83,6 +83,7 @@ tr.exportTo('tr.e.importer', function() {
     this.sampleEvents_ = undefined;
     this.stackFrameEvents_ = undefined;
     this.systemTraceEvents_ = undefined;
+    this.battorData_ = undefined;
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
     this.allAsyncEvents_ = [];
@@ -126,6 +127,11 @@ tr.exportTo('tr.e.importer', function() {
       // out. It will be picked up by extractSubtraces later on.
       this.systemTraceEvents_ = container.systemTraceEvents;
 
+      // Some trace_event implementations put battor power traces as a
+      // huge string inside container.battorLogAsString. If we see that, pull
+      // it out. It will be picked up by extractSubtraces later on.
+      this.battorData_ = container.battorLogAsString;
+
       // Sampling data.
       this.sampleEvents_ = container.samples;
       this.stackFrameEvents_ = container.stackFrames;
@@ -142,9 +148,12 @@ tr.exportTo('tr.e.importer', function() {
 
       // Any other fields in the container should be treated as metadata.
       for (var fieldName in container) {
+        // TODO(prabhur), Eliminate this chain of checks by pulling the
+        // fieldnames into an array and use array.indexOf, crbug/513802.
         if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents' ||
             fieldName === 'samples' || fieldName === 'stackFrames' ||
-            fieldName === 'traceAnnotations')
+            fieldName === 'traceAnnotations' ||
+            fieldName === 'battorLogAsString')
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
@@ -188,9 +197,14 @@ tr.exportTo('tr.e.importer', function() {
     __proto__: Importer.prototype,
 
     extractSubtraces: function() {
-      var tmp = this.systemTraceEvents_;
+      var systemEventsTmp = this.systemTraceEvents_;
+      var battorDataTmp = this.battorData_;
       this.systemTraceEvents_ = undefined;
-      return tmp ? [tmp] : [];
+      this.battorData_ = undefined;
+      var subTraces = systemEventsTmp ? [systemEventsTmp] : [];
+      if (battorDataTmp)
+        subTraces.push(battorDataTmp);
+       return subTraces;
     },
 
     /**
