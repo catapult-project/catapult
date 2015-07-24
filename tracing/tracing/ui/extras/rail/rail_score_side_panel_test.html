@@ -21,13 +21,27 @@ tr.b.unittest.testSuite(function() {
         start: 0, end: 100,
         railTypeName: 'rail_idle',
         normalizedEfficiency: 0.8,
-        normalizedUserPain: 0.0
+        normalizedUserPain: 0.0,
+        associatedEvents: [
+          {
+            guid: 0,
+            isTopLevel: true,
+            cpuDuration: 1
+          }
+        ]
       }));
       model.addInteractionRecord(new tr.e.rail.StubRAILInteractionRecord({
         start: 100, end: 200,
         railTypeName: 'rail_response',
         normalizedEfficiency: 1.,
-        normalizedUserPain: 0.0
+        normalizedUserPain: 0.0,
+        associatedEvents: [
+          {
+            guid: 1,
+            isTopLevel: true,
+            cpuDuration: 1
+          }
+        ]
       }));
     });
     panel.style.height = '200px';

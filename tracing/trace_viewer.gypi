@@ -189,6 +189,7 @@
       'tracing/model/global_memory_dump.html',
       'tracing/model/instant_event.html',
       'tracing/model/interaction_record.html',
+      'tracing/model/ir_coverage.html',
       'tracing/model/kernel.html',
       'tracing/model/location.html',
       'tracing/model/memory_allocator_dump.html',

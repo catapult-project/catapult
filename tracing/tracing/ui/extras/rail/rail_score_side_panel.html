@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/rail/rail_score.html">
+<link rel="import" href="/model/ir_coverage.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/ui/extras/rail/rail_score_span.html">
 <link rel="import" href="/ui/side_panel/side_panel.html">
@@ -17,6 +18,7 @@ found in the LICENSE file.
     :host {
       display: flex;
       width: 250px;
+      flex-direction: column;
     }
     #content {
       flex-direction: column;
@@ -25,11 +27,40 @@ found in the LICENSE file.
     </style>
 
     <tr-ui-e-rail-rail-score-span id='score'></tr-ui-e-rail-rail-score-span>
+    <tr-ui-a-analysis-link id='associated_events'></tr-ui-a-analysis-link>
+    <tr-ui-a-analysis-link id='unassociated_events'></tr-ui-a-analysis-link>
     <tr-ui-table id="table"></tr-ui-table>
   </template>
 
   <script>
   'use strict';
+
+  function setCoverageLink(
+      link, labelString, events, eventRatio, cpuMs, cpuRatio) {
+    link.setSelectionAndContent(events);
+
+    labelString += ' ' + events.length + ' events';
+    labelString += ' (' + parseInt(100 * eventRatio) + '%)';
+    if (cpuRatio !== undefined)
+      labelString += ', ';
+    link.appendChild(document.createTextNode(labelString));
+
+    if (cpuRatio === undefined)
+      return;
+
+    var cpuMsSpan = document.createElement('tr-ui-u-time-duration-span');
+    // There will be some text after the cpuMsSpan, that should be on the same
+    // line if it fits. This "span" has display: block for its sparkline... so I
+    // guess I'll set it inline here?
+    cpuMsSpan.style.display = 'inline';
+    cpuMsSpan.duration = cpuMs;
+    // Style the content like the analysis-link.
+    cpuMsSpan.$.content.style.textDecoration = 'underline';
+    link.appendChild(cpuMsSpan);
+
+    var cpuString = ' (' + parseInt(100 * cpuRatio) + '%)';
+    link.appendChild(document.createTextNode(cpuString));
+  }
 
   Polymer({
     ready: function() {
@@ -71,6 +102,23 @@ found in the LICENSE file.
       this.model_ = model;
       this.railScore_ = tr.e.rail.RAILScore.fromModel(model);
       this.$.score.railScore = this.railScore_;
+
+      var coverage = tr.model.getIRCoverageFromModel(model);
+      if (coverage) {
+        setCoverageLink(this.$.associated_events,
+                        'Associated',
+                        coverage.associatedEvents,
+                        coverage.coveredEventsRatio,
+                        coverage.associatedCpuMs,
+                        coverage.coveredCpuRatio);
+        setCoverageLink(this.$.unassociated_events,
+                        'Unassociated',
+                        coverage.unassociatedEvents,
+                        coverage.uncoveredEventsRatio,
+                        coverage.unassociatedCpuMs,
+                        coverage.uncoveredCpuRatio);
+      }
+
       this.updateTable_();
     },
 
