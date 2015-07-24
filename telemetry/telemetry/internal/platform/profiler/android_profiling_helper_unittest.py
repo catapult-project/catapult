@@ -7,6 +7,7 @@ import pickle
 import re
 import shutil
 import tempfile
+import time
 import unittest
 
 from telemetry.core import util
@@ -26,6 +27,77 @@ def _GetLibrariesMappedIntoProcesses(device, pids):
       if lib:
         libs.add(lib.group(1))
   return libs
+
+
+class TestFileMetadataMatches(unittest.TestCase):
+  def setUp(self):
+    self.tempdir = tempfile.mkdtemp()
+    self.filename_a = os.path.join(self.tempdir, 'filea')
+    self.filename_b = os.path.join(self.tempdir, 'fileb')
+
+    with open(self.filename_a, 'w') as f:
+      f.write('testing')
+
+  def tearDown(self):
+    shutil.rmtree(self.tempdir)
+
+  def testDoesntMatchNonExistant(self):
+    self.assertFalse(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testDoesntMatchJustExistence(self):
+    with open(self.filename_b, 'w') as f:
+      f.write('blah')
+
+    self.assertFalse(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testDoesntMatchCopy(self):
+    # This test can run so fast that the file system doesn't have enough
+    # accuracy to differentiate between the copy and initial file times.
+    # Hence we need to guarantee a delay here.
+    time.sleep(3)
+    shutil.copy(self.filename_a, self.filename_b)
+    self.assertFalse(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testMatchesAfterCopy2(self):
+    shutil.copy2(self.filename_a, self.filename_b)
+    self.assertTrue(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testDoesntMatchAfterCopy2ThenModify(self):
+    shutil.copy2(self.filename_a, self.filename_b)
+
+    filea = open(self.filename_a, 'w')
+    filea.write('moar testing!')
+    filea.close()
+
+    self.assertFalse(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testDoesntMatchAfterCopy2ThenModifyStats(self):
+    shutil.copy2(self.filename_a, self.filename_b)
+    os.utime(self.filename_a, (20, 20))
+    self.assertFalse(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
+
+  def testMatchesAfterCopyStatWithDifferentContent(self):
+    fileb = open(self.filename_b, 'w')
+    fileb.write('blahing')
+    fileb.close()
+
+    shutil.copystat(self.filename_a, self.filename_b)
+
+    self.assertTrue(
+        android_profiling_helper._FileMetadataMatches(
+            self.filename_a, self.filename_b))
 
 
 class TestAndroidProfilingHelper(unittest.TestCase):

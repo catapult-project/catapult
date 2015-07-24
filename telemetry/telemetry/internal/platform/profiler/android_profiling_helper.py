@@ -152,6 +152,25 @@ def GetRequiredLibrariesForVTuneProfile(profile_file):
     conn.close()
 
 
+def _FileMetadataMatches(filea, fileb):
+  """Check if the metadata of two files matches."""
+  assert os.path.exists(filea)
+  if not os.path.exists(fileb):
+    return False
+
+  fields_to_compare = [
+      'st_ctime', 'st_gid', 'st_mode', 'st_mtime', 'st_size', 'st_uid']
+
+  filea_stat = os.stat(filea)
+  fileb_stat = os.stat(fileb)
+  for field in fields_to_compare:
+    # shutil.copy2 doesn't get ctime/mtime identical when the file system
+    # provides sub-second accuracy.
+    if int(getattr(filea_stat, field)) != int(getattr(fileb_stat, field)):
+      return False
+  return True
+
+
 def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
   """Creates a symfs directory to be used for symbolizing profiles.
 
@@ -193,11 +212,8 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
           os.remove(output_lib)
         os.symlink(os.path.abspath(unstripped_host_lib), output_lib)
       # Copy the unstripped library only if it has been changed to avoid the
-      # delay. Add one second to the modification time to guard against file
-      # systems with poor timestamp resolution.
-      elif not os.path.exists(output_lib) or \
-          (os.stat(unstripped_host_lib).st_mtime >
-           os.stat(output_lib).st_mtime + 1):
+      # delay.
+      elif not _FileMetadataMatches(unstripped_host_lib, output_lib):
         logging.info('Copying %s to %s' % (unstripped_host_lib, output_lib))
         shutil.copy2(unstripped_host_lib, output_lib)
     else:
