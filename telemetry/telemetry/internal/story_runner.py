@@ -104,6 +104,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       # do not need to run test.DidRunStory at that point.
       if isinstance(test, story_test.StoryTest):
         test.DidRunStory(state.platform)
+      else:
+        test.DidRunPage(state.platform)
     except Exception:
       if not has_existing_exception:
         raise

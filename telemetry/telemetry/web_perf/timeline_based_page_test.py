@@ -24,6 +24,5 @@ class TimelineBasedPageTest(page_test.PageTest):
     tracing_controller = tab.browser.platform.tracing_controller
     self._measurement.MeasureForPageTest(tracing_controller, results)
 
-  def CleanUpAfterPage(self, page, tab):
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.DidRunStoryForPageTest(tracing_controller)
+  def DidRunPage(self, platform):
+    self._measurement.DidRunStoryForPageTest(platform.tracing_controller)
