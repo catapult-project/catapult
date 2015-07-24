@@ -13,6 +13,7 @@ from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
+from telemetry.internal.util import command_line
 from telemetry.page import page_test
 from telemetry.util import wpr_modes
 
@@ -62,11 +63,13 @@ class RecorderPageTest(page_test.PageTest):
 
 
 def _GetSubclasses(base_dir, cls):
-  """ Return all subclasses of |cls| in |base_dir|.
+  """Returns all subclasses of |cls| in |base_dir|.
+
   Args:
     cls: a class
-  Returns:
 
+  Returns:
+    dict of {underscored_class_name: benchmark class}
   """
   return discover.DiscoverClasses(base_dir, base_dir, cls,
                                   index_by_class_name=True)
@@ -79,28 +82,41 @@ def _MaybeGetInstanceOfClass(target, base_dir, cls):
   return classes[target]() if target in classes else None
 
 
+def _PrintAllImpl(all_items, item_name, output_stream):
+  output_stream.write('Available %s\' names with descriptions:\n' % item_name)
+  keys = sorted(all_items.keys())
+  key_description = [(k, all_items[k].Description()) for k in keys]
+  _PrintPairs(key_description, output_stream)
+  output_stream.write('\n')
+
+
 def _PrintAllBenchmarks(base_dir, output_stream):
   # TODO: reuse the logic of finding supported benchmarks in benchmark_runner.py
   # so this only prints out benchmarks that are supported by the recording
   # platform.
-  classes = _GetSubclasses(base_dir, benchmark.Benchmark)
-  output_stream.write('Available benchmarks\' names:\n\n')
-  for k in classes:
-    output_stream.write('%s\n' % k)
+  _PrintAllImpl(_GetSubclasses(base_dir, benchmark.Benchmark), 'benchmarks',
+                output_stream)
 
 
-def _PrintAllUserStories(base_dir, output_stream):
-  output_stream.write('Available page sets\' names:\n\n')
+def _PrintAllStories(base_dir, output_stream):
   # TODO: actually print all stories once record_wpr support general
   # stories recording.
-  classes = _GetSubclasses(base_dir, story.StorySet)
-  for k in classes:
-    output_stream.write('%s\n' % k)
+  _PrintAllImpl(_GetSubclasses(base_dir, story.StorySet), 'story sets',
+                output_stream)
+
+
+def _PrintPairs(pairs, output_stream, prefix=''):
+  """Prints a list of string pairs with alignment."""
+  first_column_length = max(len(a) for a, _ in pairs)
+  format_string = '%s%%-%ds  %%s\n' % (prefix, first_column_length)
+  for a, b in pairs:
+    output_stream.write(format_string % (a, b.strip()))
 
 
 class WprRecorder(object):
 
   def __init__(self, base_dir, target, args=None):
+    self._base_dir = base_dir
     self._record_page_test = RecorderPageTest()
     self._options = self._CreateOptions()
 
@@ -115,11 +131,10 @@ class WprRecorder(object):
       self._record_page_test.page_test = self._benchmark.CreatePageTest(
           self.options)
 
-    if self._options.page_set_base_dir:
-      page_set_base_dir = self._options.page_set_base_dir
-    else:
-      page_set_base_dir = base_dir
-    self._story_set = self._GetStorySet(page_set_base_dir, target)
+    self._page_set_base_dir = (
+        self._options.page_set_base_dir if self._options.page_set_base_dir
+        else self._base_dir)
+    self._story_set = self._GetStorySet(target)
 
   @property
   def options(self):
@@ -161,14 +176,38 @@ class WprRecorder(object):
     if self._benchmark is not None:
       self._benchmark.ProcessCommandLineArgs(self._parser, self._options)
 
-  def _GetStorySet(self, base_dir, target):
+  def _GetStorySet(self, target):
     if self._benchmark is not None:
       return self._benchmark.CreateStorySet(self._options)
-    story_set = _MaybeGetInstanceOfClass(target, base_dir, story.StorySet)
+    story_set = _MaybeGetInstanceOfClass(target, self._page_set_base_dir,
+                                         story.StorySet)
     if story_set is None:
-      self._parser.print_usage()
+      sys.stderr.write('Target %s is neither benchmark nor story set.\n'
+                       % target)
+      if not self._HintMostLikelyBenchmarksStories(target):
+        sys.stderr.write(
+            'Found no similiar benchmark or story. Please use '
+            '--list-benchmarks or --list-stories to list candidates.\n')
+        self._parser.print_usage()
       sys.exit(1)
     return story_set
+
+  def _HintMostLikelyBenchmarksStories(self, target):
+    def _Impl(all_items, category_name):
+      candidates = command_line.GetMostLikelyMatchedObject(
+          all_items.iteritems(), target, name_func=lambda kv: kv[1].Name())
+      if candidates:
+        sys.stderr.write('\nDo you mean any of those %s below?\n' %
+                         category_name)
+        _PrintPairs([(k, v.Description()) for k, v in candidates], sys.stderr)
+        return True
+      return False
+
+    has_benchmark_hint = _Impl(
+        _GetSubclasses(self._base_dir, benchmark.Benchmark), 'benchmarks')
+    has_story_hint = _Impl(
+        _GetSubclasses(self._base_dir, story.StorySet), 'stories')
+    return has_benchmark_hint or has_story_hint
 
   def Record(self, results):
     assert self._story_set.wpr_archive_info, (
@@ -195,13 +234,12 @@ def Main(base_dir):
   parser = argparse.ArgumentParser(
       usage='Record a benchmark or a story (page set).')
   parser.add_argument(
-      'benchmark', type=str,
+      'benchmark',
       help=('benchmark name. This argument is optional. If both benchmark name '
             'and story name are specified, this takes precedence as the '
             'target of the recording.'),
       nargs='?')
-  parser.add_argument('--story', dest='story', type=str,
-                      help='story (page set) name')
+  parser.add_argument('--story', help='story (page set) name')
   parser.add_argument('--list-stories', dest='list_stories',
                       action='store_true', help='list all story names.')
   parser.add_argument('--list-benchmarks', dest='list_benchmarks',
@@ -210,14 +248,19 @@ def Main(base_dir):
                       help='upload to cloud storage.')
   args, extra_args = parser.parse_known_args()
 
-  if args.list_benchmarks:
-    _PrintAllBenchmarks(base_dir, sys.stderr)
-  elif args.list_stories:
-    _PrintAllUserStories(base_dir, sys.stderr)
+  if args.list_benchmarks or args.list_stories:
+    if args.list_benchmarks:
+      _PrintAllBenchmarks(base_dir, sys.stderr)
+    if args.list_stories:
+      _PrintAllStories(base_dir, sys.stderr)
+    return 0
 
   target = args.benchmark or args.story
 
   if not target:
+    sys.stderr.write('Please specify target (benchmark or story). Please refer '
+                     'usage below\n\n')
+    parser.print_help()
     return 0
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference

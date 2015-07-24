@@ -71,20 +71,3 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
       benchmark_runner.PrintBenchmarkList(
         [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
       self.assertEquals(expected_printed_stream, self._stream.output_data)
-
-  def testGetMostLikelyMatchedBenchmarks(self):
-    all_benchmarks = [BenchmarkFoo, BenchmarkBar, UnusualBenchmark]
-    self.assertEquals(
-        [BenchmarkFoo, BenchmarkBar],
-        benchmark_runner.GetMostLikelyMatchedBenchmarks(
-            all_benchmarks, 'BenchmarkFooz'))
-
-    self.assertEquals(
-        [BenchmarkBar, BenchmarkFoo],
-        benchmark_runner.GetMostLikelyMatchedBenchmarks(
-            all_benchmarks, 'BarBenchmark'))
-
-    self.assertEquals(
-        [UnusualBenchmark],
-        benchmark_runner.GetMostLikelyMatchedBenchmarks(
-            all_benchmarks, 'unusual'))
