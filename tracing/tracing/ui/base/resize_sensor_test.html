@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/ui/base/resize_sensor.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function forceLayout(element) {
+    console.debug(element.offsetHeight);
+  }
+
+  test('instantiate', function() {
+    var sensor = document.createElement('tr-ui-b-resize-sensor');
+    sensor.appendChild(document.createTextNode('hello'));
+
+    var resizeCount = 0;
+    function onResize(event) {
+      resizeCount += 1;
+    }
+
+    this.addHTMLOutput(sensor);
+    forceLayout(sensor);
+    sensor.addEventListener('resize', onResize);
+
+    // Trigger a resize:
+    sensor.style.fontSize = '20pt';
+    forceLayout(sensor);
+
+    // The event doesn't fire synchronously, so return a Promise for a task that
+    // will be run when the main thread is Idle after the resize event fires.
+    return tr.b.Task.RunWhenIdle(new tr.b.Task(function(task) {
+      assert.equal(1, resizeCount);
+      sensor.removeEventListener('resize', onResize);
+      sensor.style.fontSize = '12pt';
+      forceLayout(sensor);
+    }, this)).then(tr.b.Task.RunWhenIdle(new tr.b.Task(function(task) {
+      assert.equal(1, resizeCount);
+    }, this)));
+  });
+});
+</script>
