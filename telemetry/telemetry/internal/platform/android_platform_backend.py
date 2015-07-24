@@ -449,6 +449,14 @@ class AndroidPlatformBackend(
   def GetNetworkData(self, browser):
     return self._battery.GetNetworkData(browser._browser_backend.package)
 
+  def PathExists(self, device_path, timeout=None, retries=None):
+    """ Return whether the given path exists on the device.
+    This method is the same as
+    android.pylib.device.device_utils.DeviceUtils.PathExists.
+    """
+    return self._device.PathExists(
+        device_path, timeout=timeout, retries=retries)
+
   def GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:
       logging.warning('%s cannot be retrieved on non-rooted device.' % fname)

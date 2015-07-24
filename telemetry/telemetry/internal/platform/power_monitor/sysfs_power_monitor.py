@@ -93,7 +93,13 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     """
     stats = {}
     for cpu in self._cpus:
-      cpu_state_path = os.path.join(CPU_PATH, cpu, 'cpuidle/state*')
+      cpu_idle_path = os.path.join(CPU_PATH, cpu, 'cpuidle')
+      if not self._platform.PathExists(cpu_idle_path):
+        logging.warning(
+            'Cannot read cpu c-state residency times for %s due to %s not exist'
+            % (cpu, cpu_idle_path))
+        continue
+      cpu_state_path = os.path.join(cpu_idle_path, 'state*')
       output = self._platform.RunCommand(
           'cat %s %s %s; date +%%s' % (
               os.path.join(cpu_state_path, 'name'),

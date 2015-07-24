@@ -221,6 +221,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
         self._run_command_return_value = run_command_return_value
       def RunCommand(self, _cmd):
         return self._run_command_return_value
+      def PathExists(self, path):
+        return 'cpu0' in path or 'cpu1' in path
 
     cpu_state_from_samsung_note3 = (
         "C0\n\nC1\n\nC2\n\nC3\n\n"
@@ -234,8 +236,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
       'C3': 1722554,
       'WFI': 53658520886
     }
-    cpus = ["cpu%d" % cpu for cpu in range(2)]
-    expected_result = dict(zip(cpus, [expected_cstate_dict]*len(cpus)))
+    cpus = ["cpu%d" % cpu for cpu in range(4)]
+    expected_result = dict(zip(cpus, [expected_cstate_dict]*2))
 
     sysfsmon = sysfs_power_monitor.SysfsPowerMonitor(
       PlatformStub(cpu_state_from_samsung_note3))
@@ -252,6 +254,8 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
         self._run_command_return_value = run_command_return_value
       def RunCommand(self, _cmd):
         return self._run_command_return_value
+      def PathExists(self, path):
+        return True
 
     cpu_state_from_samsung_note3 = (
         "C0\n\nC1\n\nC2\n\nC3\n\n"
