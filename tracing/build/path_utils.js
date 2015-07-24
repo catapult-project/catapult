@@ -12,29 +12,34 @@
  * be included directly by the boostrap.
  */
 (function(global) {
-  global.PathUtils = {
-    currentWorkingDirectory_: '/',
+
+  /**
+   *  Class provides common operations on pathnames.
+   *  @param {object} os_client An object that defines:
+   *    currentWorkingDirectory: the current working directory of program.
+   *    exists: a function that takes a string fileName and returns whether the
+   *    file with name exists.
+   *
+   *  @constructor
+   */
+  global.PathUtils = function(os_client) {
+    this.os_client_ = os_client;
+    var path = this.os_client_.currentWorkingDirectory;
+    if (!this.isAbs(path)) {
+      throw new Error('Invalid current directory: ' + path + '. ' +
+          'It must be an absolute path.');
+    }
+  }
+
+  global.PathUtils.prototype = {
+    __proto__: Object.prototype,
 
     get currentWorkingDirectory() {
-      return this.currentWorkingDirectory_;
-    },
-
-    set currentWorkingDirectory(cwd) {
-      if (!this.isAbs(cwd))
-        throw new Error('nope');
-      this.currentWorkingDirectory_ = this.normPath(cwd);
+      return this.os_client_.currentWorkingDirectory;
     },
 
     exists: function(fileName) {
-      try {
-        // Try a dummy read to check whether file_path exists.
-        // TODO(nednguyen): find a more efficient way to check whether some file
-        // path exists in d8.
-        read(fileName);
-        return true;
-      } catch (err) {
-        return false;
-      }
+      return this.os_client_.exists(this.absPath(fileName));
     },
 
     isAbs: function(a) {
@@ -65,7 +70,7 @@
 
       if (a.startsWith('./'))
         a = a.substring(2);
-      var res = this.join(this.currentWorkingDirectory_, a);
+      var res = this.join(this.currentWorkingDirectory, a);
       return this.normPath(res);
     },
 
@@ -76,7 +81,7 @@
       if (opt_relTo) {
         relTo = this.normPath(this.absPath(opt_relTo));
       } else {
-        relTo = this.currentWorkingDirectory_;
+        relTo = this.currentWorkingDirectory;
       }
 
       if (relTo.endsWith('/'))

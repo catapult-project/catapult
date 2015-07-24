@@ -10,8 +10,8 @@ outside the tracing codebase.
 -->
 <html>
   <head>
-    <script src="../third_party/chai/chai.js"></script>
     <script src="path_utils.js"></script>
+    <script src="path_utils_test.js"></script>
     <style>
       #result {
         white-space: pre;
@@ -23,42 +23,6 @@ outside the tracing codebase.
     </div>
     <script>
     'use strict';
-    var assert = chai.assert;
-
-    function runTests() {
-      assert.equal(PathUtils.join('a', 'b'), 'a/b');
-      assert.equal(PathUtils.join('/a', 'b'), '/a/b');
-      assert.equal(PathUtils.join('/a/', 'b/'), '/a/b/');
-      assert.equal(PathUtils.join('/a', '/b/'), '/b/');
-      assert.equal(PathUtils.join('/a', './b/'), '/a/./b/');
-      assert.equal(PathUtils.join('/a/', './b/'), '/a/./b/');
-      assert.equal(PathUtils.join('../', 'b'), '../b');
-      assert.equal(PathUtils.join('../', 'b/'), '../b/');
-
-      PathUtils.currentWorkingDirectory = '/a/b';
-      assert.equal(PathUtils.absPath('c'), '/a/b/c');
-      assert.equal(PathUtils.absPath('./c'), '/a/b/c');
-      assert.equal(PathUtils.absPath('./c/d'), '/a/b/c/d');
-
-      assert.equal(PathUtils.relPath('/a/b/c', '/a/b'), 'c');
-
-      assert.equal(PathUtils.relPath('/a/b/c/', '/a/b/c/'), '.');
-      assert.equal(PathUtils.relPath('/a/b/c', '/a/b/c/'), '.');
-      assert.equal(PathUtils.relPath('/a/b/c/', '/a/b/c'), '.');
-      assert.equal(PathUtils.relPath('/a/b/c', '/a/b/c'), '.');
-
-      assert.equal(PathUtils.relPath('/a/b/c', '/a'), 'b/c');
-      assert.equal(PathUtils.relPath('/a/b/c', '/a/'), 'b/c');
-
-      assert.equal(PathUtils.relPath('/a/b/c', '/b/c/'), '../../a/b/c');
-      assert.equal(PathUtils.relPath('/a/b/c', '/b/c'), '../../a/b/c');
-      assert.equal(PathUtils.relPath('/a/b/c/', '/b/c/'), '../../a/b/c');
-      assert.equal(PathUtils.relPath('/a/b/c/', '/b/c'), '../../a/b/c');
-
-
-      assert.equal(PathUtils.join('a', 'b'), 'a/b');
-    }
-
     window.addEventListener('load', function() {
       var div = document.querySelector('#result');
       try {

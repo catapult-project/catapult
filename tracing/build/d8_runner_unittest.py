@@ -245,6 +245,22 @@ class D8RunnerUnittest(unittest.TestCase):
         'Error: hello world\n')
 
 
+@unittest.skipIf(sys.platform.startswith('win'),
+                 'd8 not yet supported on Windows.')
+class PathUtilUnittest(unittest.TestCase):
+  def testPathUtil(self):
+    path_util_js_test = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), 'path_utils_test.js'))
+    test_loading_js = """
+    load('%s');
+    load('%s');
+    runTests();
+    """ % (d8_runner._PATH_UTILS_JS_DIR, path_util_js_test)
+
+    res = d8_runner.RunJsString(test_loading_js)
+    self.assertEquals(res.returncode, 0)
+
+
 def _GetLineNumberOfSubstring(content, substring):
   """ Return the line number of |substring| in |content|."""
   index = content.index(substring)

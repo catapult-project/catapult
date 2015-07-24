@@ -160,7 +160,22 @@
 
   // Bring in path utils.
   load('<%path_utils_js_path%>');
-  PathUtils.currentWorkingDirectory = '<%current_working_directory%>';
+
+  var d8_path_utils = new PathUtils(
+      {
+        currentWorkingDirectory: '<%current_working_directory%>',
+        exists: function(fileName) {
+          try {
+            // Try a dummy read to check whether file_path exists.
+            // TODO(nednguyen): find a more efficient way to check whether
+            // some file path exists in d8.
+            read(fileName);
+            return true;
+          } catch (err) {
+            return false;
+          }
+        }
+      });
 
   /**
    * Strips the starting '/' in file_path if |file_path| is meant to be a
@@ -175,7 +190,7 @@
     if (file_path.substring(0, 1) !== '/') {
       return file_path;
     }
-    if (PathUtils.exists(file_path))
+    if (d8_path_utils.exists(file_path))
       return file_path;
     return file_path.substring(1);
   }
@@ -184,7 +199,7 @@
 
   global.hrefToAbsolutePath = function(href) {
     var pathPart;
-    if (!PathUtils.isAbs(href)) {
+    if (!d8_path_utils.isAbs(href)) {
       throw new Error('Found a non absolute import and thats not supported: ' +
                       href);
     } else {
@@ -193,8 +208,8 @@
 
     candidates = [];
     for (var i = 0; i < sourcePaths.length; i++) {
-      var candidate = PathUtils.join(sourcePaths[i], pathPart);
-      if (PathUtils.exists(candidate))
+      var candidate = d8_path_utils.join(sourcePaths[i], pathPart);
+      if (d8_path_utils.exists(candidate))
         candidates.push(candidate);
     }
     if (candidates.length > 1)
@@ -259,7 +274,7 @@
 
   global.loadFile = function(absPath, opt_href) {
     var href = opt_href || absPath;
-    var relPath = PathUtils.relPath(absPath);
+    var relPath = d8_path_utils.relPath(absPath);
     try {
       load(relPath);
     } catch (err) {
