@@ -41,6 +41,12 @@ tr.exportTo('tr.model', function() {
     this.parentContainer = undefined;
     this.argsStripped = false;
 
+    // parentSlice and isTopLevel will be set by SliceGroup.
+    this.parentSlice = undefined;
+    this.isTopLevel = false;
+    // After SliceGroup processes Slices, isTopLevel should be equivalent to
+    // !parentSlice.
+
     if (opt_duration !== undefined)
       this.duration = opt_duration;
 

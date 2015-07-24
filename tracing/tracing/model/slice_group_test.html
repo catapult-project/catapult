@@ -68,6 +68,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 3);
 
     assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
   });
 
   test('subSlicesBuilderNestedExactly', function() {
@@ -85,6 +87,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sB.selfTime, 0);
 
     assert.equal(sB, sA.parentSlice);
+    assert.isTrue(sB.isTopLevel);
+    assert.isFalse(sA.isTopLevel);
 
     assert.equal(group.findSliceAtTs(0), undefined);
     assert.equal(group.findSliceAtTs(1), sA);
@@ -122,6 +126,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 0);
 
     assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
     assert.equal(group.findSliceAtTs(1), sB);
     assert.equal(group.findSliceAtTs(1.0001), undefined);
   });
@@ -162,6 +168,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sA.selfTime, 4);
 
     assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
     assert.equal(group.findSliceAtTs(1.5), sA);
     assert.equal(group.findSliceAtTs(3), sB);
     assert.equal(group.findSliceAtTs(3.5), sB);
