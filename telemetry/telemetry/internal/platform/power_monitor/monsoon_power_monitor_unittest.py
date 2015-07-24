@@ -18,4 +18,4 @@ class MonsoonPowerMonitorTest(unittest.TestCase):
     results = monsoon_power_monitor.MonsoonPowerMonitor.ParseSamplingOutput(
         json.dumps(data))
     self.assertEqual(results['power_samples_mw'], [1000, 4000, 9000, 16000])
-    self.assertEqual(results['energy_consumption_mwh'], 7500)
+    self.assertEqual(results['monsoon_energy_consumption_mwh'], 7500)
