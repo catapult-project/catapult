@@ -18,28 +18,27 @@ class PowerMonitorController(power_monitor.PowerMonitor):
   """
   def __init__(self, power_monitors, battery):
     super(PowerMonitorController, self).__init__()
-    self._candidate_power_monitors = power_monitors
-    self._active_monitors = []
+    self._cascading_power_monitors = power_monitors
+    self._active_monitor = None
     self._battery = battery
     atexit.register(_ReenableChargingIfNeeded, self._battery)
 
+  def _AsyncPowerMonitor(self):
+    return next(
+        (x for x in self._cascading_power_monitors if x.CanMonitorPower()),
+        None)
+
   def CanMonitorPower(self):
-    return any(m.CanMonitorPower() for m in self._candidate_power_monitors)
+    return bool(self._AsyncPowerMonitor())
 
   def StartMonitoringPower(self, browser):
-    assert not self._active_monitors, 'Must call StopMonitoringPower().'
-    self._active_monitors = (
-        [m for m in self._candidate_power_monitors if m.CanMonitorPower()])
-    assert self._active_monitors, 'No available monitor.'
-    for monitor in self._active_monitors:
-      monitor.StartMonitoringPower(browser)
+    self._active_monitor = self._AsyncPowerMonitor()
+    assert self._active_monitor, 'No available monitor.'
+    self._active_monitor.StartMonitoringPower(browser)
 
   def StopMonitoringPower(self):
-    assert self._active_monitors, 'StartMonitoringPower() not called.'
+    assert self._active_monitor, 'StartMonitoringPower() not called.'
     try:
-      results = {}
-      for monitor in self._active_monitors:
-        results.update(monitor.StopMonitoringPower())
-      return results
+      return self._active_monitor.StopMonitoringPower()
     finally:
-      self._active_monitors = []
+      self._active_monitor = None
