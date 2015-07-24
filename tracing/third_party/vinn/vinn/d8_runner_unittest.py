@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import unittest
 
-from tracing.build import d8_runner
+from vinn import d8_runner
 
 
 @unittest.skipIf(sys.platform.startswith('win'),

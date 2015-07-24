@@ -21,14 +21,8 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
-_D8_TESTS_ONLY_DIR = os.path.join(
-    os.path.dirname(__file__), 'build', 'test_data')
-
 
 def _IsFilenameATest(loader, x):  # pylint: disable=unused-argument
-  if x.startswith(_D8_TESTS_ONLY_DIR):
-    return False
-
   if x.endswith('_test.js'):
     return True
 
@@ -100,16 +94,13 @@ class TracingProject(project_module.Project):
     self.non_module_html_files.extendRel(self.tracing_third_party_path, [
       'gl-matrix/jsdoc-template/static/header.html',
       'gl-matrix/jsdoc-template/static/index.html',
-    ])
-
-    self.non_module_html_files.extendRel(self.tracing_root_path, [
-      'build/test_data/error_stack_test.html',
-      'build/test_data/foo.html',
-      'build/test_data/load_error.html',
-      'build/test_data/load_error_2.html',
-      'build/test_data/load_js_error.html',
-      'build/test_data/load_js_error_2.html',
-      'build/test_data/load_simple_html.html'
+      'vinn/vinn/test_data/error_stack_test.html',
+      'vinn/vinn/test_data/foo.html',
+      'vinn/vinn/test_data/load_error.html',
+      'vinn/vinn/test_data/load_error_2.html',
+      'vinn/vinn/test_data/load_js_error.html',
+      'vinn/vinn/test_data/load_js_error_2.html',
+      'vinn/vinn/test_data/load_simple_html.html'
     ]);
 
     for p in _FindAllFilesRecursive([self.parse5_path]):

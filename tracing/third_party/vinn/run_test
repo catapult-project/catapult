@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import os
+import unittest
+from vinn import d8_runner_unittest
+
+if __name__ == '__main__':
+  suite = unittest.TestSuite()
+  vinn_dir = os.path.join(os.path.dirname(__file__), 'vinn')
+  suite.addTest(unittest.TestLoader().discover(
+    start_dir=vinn_dir, pattern='*test.py'))
+  unittest.TextTestRunner(verbosity=2).run(suite)

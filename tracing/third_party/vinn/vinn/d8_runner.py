@@ -14,9 +14,15 @@ import tempfile
 
 
 _V8_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__), os.path.pardir, os.path.pardir,
-        'tracing', 'third_party', 'vinn', 'third_party', 'v8'))
+    os.path.join(os.path.dirname(__file__), os.path.pardir, 'third_party',
+                 'v8'))
+
+print _V8_DIR
+
+_JS_PARSER_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir, 'third_party',
+                 'parse5', 'parse5.js'))
+
 
 _BOOTSTRAP_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'd8_bootstrap.js'))
@@ -26,11 +32,6 @@ _PATH_UTILS_JS_DIR = os.path.abspath(
 
 _HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html_to_js_generator.js'))
-
-_JS_PARSER_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__),
-                 os.pardir, 'third_party', 'vinn', 'third_party',
-                 'parse5', 'parse5.js'))
 
 
 _BOOTSTRAP_JS_CONTENT = None

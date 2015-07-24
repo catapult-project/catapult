@@ -15,7 +15,7 @@ from hooks import install
 
 
 from tracing import tracing_project
-from tracing.build import d8_runner
+import vinn
 
 
 def Main(args):
@@ -28,7 +28,7 @@ def Main(args):
   cmd = """
   loadHTML('/base/d8_tests.html');
   """
-  res = d8_runner.RunJsString(
+  res = vinn.RunJsString(
     cmd, source_paths=list(project.source_paths),
     js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
