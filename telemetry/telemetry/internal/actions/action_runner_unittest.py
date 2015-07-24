@@ -53,7 +53,8 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
       self.assertTrue(getattr(records[0], attribute_name))
 
   # Test disabled for android: crbug.com/437057
-  @decorators.Disabled('android', 'chromeos')
+  # Test disabled for linux: crbug.com/513874
+  @decorators.Disabled('android', 'chromeos', 'linux')
   def testIssuingMultipleMeasurementInteractionRecords(self):
     self.VerifyIssuingInteractionRecords(repeatable=True)
 
