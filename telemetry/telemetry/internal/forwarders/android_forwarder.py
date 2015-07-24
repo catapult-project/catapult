@@ -214,10 +214,14 @@ class AndroidRndisConfigurator(object):
 
   def _FindDeviceRndisInterface(self):
     """Returns the name of the RNDIS network interface if present."""
-    config = self._device.RunShellCommand('netcfg')
-    interfaces = [line.split()[0] for line in config]
+    config = self._device.RunShellCommand('ip -o link show')
+    interfaces = [line.split(':')[1].strip() for line in config]
     candidates = [iface for iface in interfaces if re.match('rndis|usb', iface)]
     if candidates:
+      candidates.sort()
+      if len(candidates) == 2 and candidates[0].startswith('rndis') and \
+          candidates[1].startswith('usb'):
+        return candidates[0]
       assert len(candidates) == 1, 'Found more than one rndis device!'
       return candidates[0]
 
@@ -312,7 +316,7 @@ function doit() {
   # For some combinations of devices and host kernels, adb won't work unless the
   # interface is up, but if we bring it up immediately, it will break adb.
   #sleep 1
-  #ifconfig rndis0 192.168.42.2 netmask 255.255.255.0 up
+  #ifconfig rndis0 192.168.123.2 netmask 255.255.255.0 up
   echo DONE >> %(prefix)s.log
 }
 
@@ -394,8 +398,8 @@ doit &
         excluded = excluded_iface
       else:
         excluded = 'no interfaces excluded on other devices'
-      addresses += [line.split()[2]
-                    for line in device.RunShellCommand('netcfg')
+      addresses += [line.split()[3]
+                    for line in device.RunShellCommand('ip -o -4 addr')
                     if excluded not in line]
     return addresses
 
