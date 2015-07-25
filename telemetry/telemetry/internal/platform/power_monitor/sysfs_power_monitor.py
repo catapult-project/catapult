@@ -46,6 +46,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     self._initial_freq = None
     self._platform = linux_based_platform_backend
     self._standalone = standalone
+    self._is_monitoring_power = False
 
   @decorators.Cache
   def CanMonitorPower(self):
@@ -54,16 +55,17 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
 
   def StartMonitoringPower(self, _browser):
     # |_browser| is unused, can be None.
-    assert not self._initial_cstate, 'Must call StopMonitoringPower().'
+    assert not self._is_monitoring_power, 'Must call StopMonitoringPower().'
     if self.CanMonitorPower():
       self._cpus = filter(  # pylint: disable=deprecated-lambda
           lambda x: re.match(r'^cpu[0-9]+', x),
           self._platform.RunCommand('ls %s' % CPU_PATH).split())
       self._initial_freq = self.GetCpuFreq()
       self._initial_cstate = self.GetCpuState()
+      self._is_monitoring_power = True
 
   def StopMonitoringPower(self):
-    assert self._initial_cstate, 'StartMonitoringPower() not called.'
+    assert self._is_monitoring_power, 'StartMonitoringPower() not called.'
     try:
       out = {}
       if SysfsPowerMonitor.CanMonitorPower(self):
@@ -82,6 +84,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         return self.CombineResults(out, {})
       return out
     finally:
+      self._is_monitoring_power = False
       self._initial_cstate = None
       self._initial_freq = None
 
