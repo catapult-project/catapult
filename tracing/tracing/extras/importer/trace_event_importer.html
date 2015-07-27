@@ -146,12 +146,17 @@ tr.exportTo('tr.e.importer', function() {
         this.model_.intrinsicTimeUnit = unit;
       }
 
-      // Array sorted by frequency of occurrences - most frequent ones first.
-      var knownFieldNames = ['traceEvents', 'systemTraceEvents', 'samples',
-          'stackFrames', 'traceAnnotations', 'battorLogAsString'];
+      var knownFieldNames = {
+        battorLogAsString: true,
+        samples: true,
+        stackFrames: true,
+        systemTraceEvents: true,
+        traceAnnotations: true,
+        traceEvents: true
+      };
       // Any other fields in the container should be treated as metadata.
       for (var fieldName in container) {
-        if (knownFieldNames.indexOf(fieldName) > -1)
+        if (fieldName in knownFieldNames)
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
