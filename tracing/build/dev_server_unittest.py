@@ -4,7 +4,7 @@
 
 import unittest
 
-from tvcm import temporary_dev_server
+from tracing.build import temporary_dev_server
 
 
 class DevServerTests(unittest.TestCase):
