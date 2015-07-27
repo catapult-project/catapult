@@ -115,6 +115,7 @@ tr.exportTo('tr.e.importer.battor', function() {
         minTs = this.model_.bounds.min;
 
       lines.forEach(function(line) {
+        line = line.trim();
         if (line.length === 0)
           return;
 
