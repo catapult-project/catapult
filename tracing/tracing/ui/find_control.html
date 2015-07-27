@@ -94,8 +94,11 @@ found in the LICENSE file.
         e.preventDefault();
         e.stopPropagation();
         return;
-      } else if (e.keyCode !== 13) {
-        e.shiftKey ? this.findPrevious() : this.findNext();
+      } else if (e.keyCode === 13) {
+        if (e.shiftKey)
+          this.findPrevious();
+        else
+          this.findNext();
       }
     },
 
