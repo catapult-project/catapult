@@ -146,6 +146,7 @@
       'tracing/extras/rail/animation_interaction_record.html',
       'tracing/extras/rail/idle_interaction_record.html',
       'tracing/extras/rail/load_interaction_record.html',
+      'tracing/extras/rail/proto_ir.html',
       'tracing/extras/rail/rail_interaction_record.html',
       'tracing/extras/rail/rail_ir_finder.html',
       'tracing/extras/rail/rail_score.html',

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/range_utils.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/extras/rail/response_interaction_record.html">
+<link rel="import" href="/model/event_info.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview An intermediate data format between InputLatencyAsyncSlices
+ * and RAILIRs.
+ */
+tr.exportTo('tr.e.rail', function() {
+  // This is an intermediate data format between InputLatencyAsyncSlices and
+  // Response and Animation IRs.
+  function ProtoIR(irType) {
+    this.irType = irType;
+    this.start = Infinity;
+    this.end = -Infinity;
+    this.associatedEvents = new tr.model.EventSet();
+  }
+
+  ProtoIR.RESPONSE_TYPE = 'r';
+  ProtoIR.ANIMATION_TYPE = 'a';
+
+  // Explicitly ignore some input events to allow
+  // RAILIRFinder.checkAllInputEventsHandled() to determine which events were
+  // unintentionally ignored due to a bug.
+  ProtoIR.IGNORED_TYPE = 'ignored';
+
+  ProtoIR.prototype = {
+    get isValid() {
+      return this.end > this.start;
+    },
+
+    // Return true if any associatedEvent's typeName is in typeNames.
+    containsTypeNames: function(typeNames) {
+      for (var i = 0; i < this.associatedEvents.length; ++i) {
+        if (typeNames.indexOf(this.associatedEvents[i].typeName) >= 0)
+          return true;
+      }
+      return false;
+    },
+
+    getIRConstructor: function() {
+      switch (this.irType) {
+        case ProtoIR.RESPONSE_TYPE:
+          return tr.e.rail.ResponseInteractionRecord;
+        case ProtoIR.ANIMATION_TYPE:
+          return tr.e.rail.AnimationInteractionRecord;
+      }
+      return undefined;
+    },
+
+    createInteractionRecord: function() {
+      if (!this.isValid) {
+        console.error('Invalid ProtoIR: ' + this.debug() +
+                      ' File a bug with this trace!');
+        return undefined;
+      }
+
+      var constructor = this.getIRConstructor();
+      if (constructor === undefined)
+        return undefined;
+
+      var ir = new constructor(this.start, this.end - this.start);
+
+      function pushAssociatedEvents(event) {
+        ir.associatedEvents.push(event);
+
+        // |event| is either an InputLatencyAsyncSlice (which collects all of
+        // its associated events transitively) or a CSS Animation (which doesn't
+        // have any associated events). So this does not need to recurse.
+        if (event.associatedEvents)
+          ir.associatedEvents.addEventSet(event.associatedEvents);
+      }
+
+      this.associatedEvents.forEach(function(event) {
+        pushAssociatedEvents(event);
+
+        // Old-style InputLatencyAsyncSlices have subSlices.
+        if (event.subSlices)
+          event.subSlices.forEach(pushAssociatedEvents);
+      });
+
+      return ir;
+    },
+
+    // Merge the other ProtoIR into this one.
+    merge: function(other) {
+      if (this.irType !== other.irType)
+        console.error('Merging', this.debug(), other.debug());
+
+      // Don't use pushEvent(), which would lose special start, end.
+      this.associatedEvents.addEventSet(other.associatedEvents);
+      this.start = Math.min(this.start, other.start);
+      this.end = Math.max(this.end, other.end);
+    },
+
+    // Include |event| in this ProtoIR, expanding start/end to include it.
+    pushEvent: function(event) {
+      // Usually, this method will be called while iterating over a list of
+      // events sorted by start time, so this method won't usually change
+      // this.start. However, this will sometimes be called for ProtoIRs created
+      // by previous handlers, in which case event.start could possibly be
+      // before this.start.
+      this.start = Math.min(this.start, event.start);
+      this.end = Math.max(this.end, event.end);
+      this.associatedEvents.push(event);
+    },
+
+    // Returns true if timestamp is contained in this ProtoIR.
+    containsTimestampInclusive: function(timestamp) {
+      return (this.start <= timestamp) && (timestamp <= this.end);
+    },
+
+    // Return true if the other event intersects this ProtoIR.
+    intersects: function(other) {
+      // http://stackoverflow.com/questions/325933
+      return (other.start < this.end) && (other.end > this.start);
+    },
+
+    isNear: function(event, threshold) {
+      return (this.end + threshold) > event.start;
+    },
+
+    // Return a string describing this ProtoIR for debugging.
+    debug: function() {
+      var debugString = this.irType + '(';
+      debugString += parseInt(this.start) + ' ';
+      debugString += parseInt(this.end);
+      this.associatedEvents.forEach(function(event) {
+        debugString += ' ' + event.typeName;
+      });
+      return debugString + ')';
+    }
+  };
+
+  return {
+    ProtoIR: ProtoIR
+  };
+});
+</script>

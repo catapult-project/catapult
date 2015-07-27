@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/extras/rail/ir_verifier_row_test_helper.html">
+<link rel="import" href="/extras/rail/rail_ir_finder.html">
+
+<polymer-element name="tr-e-rail-ir-verifier">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0px;
+    }
+    </style>
+
+    <span id="bug"></span>
+    <table id="table"></table>
+  </template>
+  <script>
+  'use strict';
+
+  function compareEvents(x, y) {
+    if (x.start !== y.start)
+      return x.start - y.start;
+    return x.guid - y.guid;
+  }
+
+  Polymer({
+    created: function() {
+      this.customizeModelCallback_ = undefined;
+      this.expectedIRs_ = undefined;
+    },
+
+    set customizeModelCallback(cmc) {
+      this.customizeModelCallback_ = cmc;
+    },
+
+    // |irs| must be sorted by start time.
+    set expectedIRs(irs) {
+      this.expectedIRs_ = irs;
+    },
+
+    verify: function() {
+      var model = tr.e.audits.newChromeModel(this.customizeModelCallback_);
+      var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+      var rirf = new tr.e.rail.RAILIRFinder(model, modelHelper);
+      var actualIRs = [];
+
+      try {
+        actualIRs = rirf.findAllInteractionRecords();
+      } catch (bug) {
+        this.$.bug.textContent = bug;
+        tr.b.unittest.addHTMLOutputForCurrentTest(this);
+        throw bug;
+      }
+
+      // findAllInteractionRecords() doesn't sort, but we need to sort them in
+      // order to compare them to expectedIRs.
+      actualIRs.sort(compareEvents);
+
+      var failure = undefined;
+      try {
+        assert.equal(this.expectedIRs_.length, actualIRs.length);
+        for (var i = 0; i < this.expectedIRs_.length; ++i) {
+          var at = 'IRs[' + i + '].';
+          assert.equal(this.expectedIRs_[i].title, actualIRs[i].title,
+                       at + 'title');
+          assert.equal(this.expectedIRs_[i].start, actualIRs[i].start,
+                       at + 'start');
+          assert.equal(this.expectedIRs_[i].end, actualIRs[i].end, at + 'end');
+          assert.equal(this.expectedIRs_[i].eventCount,
+                      actualIRs[i].associatedEvents.length, at + 'eventCount');
+        }
+      } catch (caught) {
+        failure = caught;
+      }
+
+      var isDebug = location.search.split('&').indexOf('debug') >= 0;
+      if (!failure && !isDebug)
+        return;
+
+      // Make getEventColor() for the expectedIRs match the actualIRs:
+      this.expectedIRs_.forEach(function(eir) {
+        if (eir.title === 'Response') {
+          eir.railTypeName_ = 'rail_response';
+        } else if (eir.title === 'Animation') {
+          eir.railTypeName_ = 'rail_animate';
+        } else if (eir.title === 'Idle') {
+          eir.railTypeName_ = 'rail_idle';
+        } else if (eir.title === 'Load') {
+          eir.railTypeName_ = 'rail_load';
+        }
+      });
+
+      var interactionsLabel = 'Interactions:';
+      var expectedRow = undefined;
+      if (failure) {
+        interactionsLabel = 'Actual:';
+
+        expectedRow = document.createElement('tr-e-rail-ir-verifier-row');
+        this.$.table.appendChild(expectedRow);
+        expectedRow.labelString = 'Expected:';
+        expectedRow.bounds = model.bounds;
+        expectedRow.events = this.expectedIRs_;
+      }
+
+      var actualRow = document.createElement('tr-e-rail-ir-verifier-row');
+      this.$.table.appendChild(actualRow);
+      actualRow.labelString = interactionsLabel;
+      actualRow.bounds = model.bounds;
+      actualRow.events = actualIRs;
+
+      var modelRow = document.createElement('tr-e-rail-ir-verifier-row');
+      this.$.table.appendChild(modelRow);
+      modelRow.labelString = 'Model:';
+      modelRow.bounds = model.bounds;
+      modelRow.events = modelHelper.browserHelper.getAllAsyncSlicesMatching(
+          function(slice) {
+            return true;
+      }).sort(compareEvents);
+
+      this.$.table.style.width = (window.innerWidth - 30) + 'px';
+      tr.b.unittest.addHTMLOutputForCurrentTest(this);
+
+      if (expectedRow)
+        expectedRow.update();
+      actualRow.update();
+      modelRow.update();
+
+      if (failure)
+        throw failure;
+    }
+  });
+  </script>
+</polymer-element>

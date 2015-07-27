@@ -5,127 +5,318 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/test_utils.html">
 <link rel="import" href="/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/extras/chrome/chrome_test_utils.html">
-<link rel="import" href="/extras/importer/trace_event_importer.html">
-<link rel="import" href="/extras/rail/rail_ir_finder.html">
-<link rel="import" href="/model/model.html">
+<link rel="import" href="/extras/rail/ir_verifier_test_helper.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
   var audits = tr.e.audits;
   var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
 
-  function newRIRF(customizeModelCallback) {
-    var model = tr.e.audits.newChromeModel(customizeModelCallback);
-    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
-    return new tr.e.rail.RAILIRFinder(model, modelHelper);
-  }
+  test('empty', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+    };
+    verifier.expectedIRs = [
+    ];
+    verifier.verify();
+  });
 
-  function assertInteractionRecords(actual, expected) {
-    assert.equal(expected.length, actual.length);
-    actual.forEach(function(actualIR, index) {
-      assert.equal(expected[index][0], actualIR.title);
-      assert.equal(expected[index][1], actualIR.start);
-      assert.equal(expected[index][2], actualIR.end);
-    });
-  }
+  test('FlingFlingFling', function() {
+    // This trace gave me so many different kinds of trouble that I'm just going
+    // to copy it straight in here, without trying to clarify it at all.
+    // measurmt-traces/mobile/cnet_fling_up_fling_down_motox_2013.json
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addFrameEvent(model, {start: 0, end: 10});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 919, end: 998});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+          {start: 919, end: 1001});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 919, end: 1001});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+          {start: 974, end: 1020});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 974, end: 1020});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 974, end: 1040});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 974, end: 1054});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 990, end: 1021});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 990, end: 1052});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1006, end: 1021});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1022, end: 1036});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1022, end: 1052});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1038, end: 1049});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1038, end: 1068});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 1046, end: 1050});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 1046, end: 1077});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 1432, end: 2238});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+          {start: 1432, end: 2241});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1516, end: 2605});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 1532, end: 2274});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1532, end: 2294});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1549, end: 2310});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 1627, end: 2275});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 1627, end: 2310});
+      audits.addFrameEvent(model, {start: 2990, end: 3000});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 919, eventCount: 0},
+      {title: 'Response', start: 919, end: 1054, eventCount: 6},
+      {title: 'Animation', start: 1054, end: 1432, eventCount: 10},
+      {title: 'Response', start: 1432, end: 2605, eventCount: 5},
+      {title: 'Animation', start: 2605, end: 3000, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('keyboardEvents', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.KEY_DOWN_RAW,
+          {start: 0, end: 45});
+      audits.addInputEvent(model, INPUT_TYPE.CHAR,
+          {start: 10, end: 50});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 50, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('mouseResponses', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.CLICK,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.CONTEXT_MENU,
+          {start: 200, end: 300});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 400, end: 500});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 100, eventCount: 1},
+      {title: 'Idle', start: 100, end: 200, eventCount: 0},
+      {title: 'Response', start: 200, end: 300, eventCount: 1},
+      {title: 'Idle', start: 300, end: 400, eventCount: 0},
+      {title: 'Response', start: 400, end: 500, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
+  test('mouseDownUpResponse', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+          {start: 200, end: 210});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 200, eventCount: 0},
+      {title: 'Response', start: 200, end: 210, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('ignoreLoneMouseMoves', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 0, end: 100});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 100, eventCount: 0}
+    ];
+    verifier.verify();
+  });
+
+  test('mouseDrags', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 200, end: 215});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 210, end: 220});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 221, end: 240});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+          {start: 400, end: 410});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 200, eventCount: 0},
+      {title: 'Response', start: 200, end: 215, eventCount: 2},
+      {title: 'Animation', start: 215, end: 410, eventCount: 3}
+    ];
+    verifier.verify();
+  });
 
   test('twoScrollsNoFling', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 32, end: 100});
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 20, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 40, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 60, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 70, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_END,
+          {start: 80, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 300, end: 400});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 320, end: 400});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 330, end: 450});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 340, end: 450});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 350, end: 500});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_END,
+          {start: 360, end: 500});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Animation', start: 100, end: 150, eventCount: 4},
+      {title: 'Idle', start: 150, end: 300, eventCount: 0},
+      {title: 'Response', start: 300, end: 400, eventCount: 2},
+      {title: 'Animation', start: 400, end: 500, eventCount: 4}
+    ];
+    verifier.verify();
+  });
 
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 300, end: 330});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 316, end: 346});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 332, end: 368});
-    });
-
-    var gestures = rirf.getAllGestures();
-    assert.equal(gestures.length, 2);
-
-    assert.equal(gestures[0].expectedStart, 0);
-    assert.equal(gestures[0].expectedEnd, 32);
-
-    assert.equal(gestures[1].expectedStart, 300);
-    assert.equal(gestures[1].expectedEnd, 332);
+  test('CSSAnimations', function() {
+    // CSS Animations happen on the renderer process, not the browser process.
+    // They are merged if they overlap.
+    // They are merged with other kinds of animations.
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addEvent(model.rendererMain, {
+        title: 'Animation', start: 0, end: 100});
+      audits.addEvent(model.rendererMain, {
+        title: 'Animation', start: 99, end: 200});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 150, end: 180});
+      audits.addFrameEvent(model, {start: 290, end: 300});
+    };
+    verifier.expectedIRs = [
+      {title: 'Animation', start: 0, end: 300, eventCount: 3}
+    ];
+    verifier.verify();
   });
 
   test('flingThatIsntstopped', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
       audits.addInputEvent(model, INPUT_TYPE.FLING_START,
-                           {start: 32, end: 100});
+          {start: 32, end: 100});
       audits.addFlingAnimationEvent(model, {start: 38, end: 200});
-    });
-
-    var e60ranges = rirf.getAllExpected60Ranges();
-    assert.equal(e60ranges.length, 1);
-
-    var e60r = e60ranges[0];
-    assert.equal(e60r.expectedStart, 32);
-    assert.equal(e60r.expectedEnd, 200);
+      audits.addFrameEvent(model, {start: 290, end: 300});
+    };
+    verifier.expectedIRs = [
+      {title: 'Animation', start: 32, end: 200, eventCount: 2},
+      {title: 'Idle', start: 200, end: 300, eventCount: 0}
+    ];
+    verifier.verify();
   });
 
   test('flingThatIsStopped', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 16, end: 100});
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
       audits.addInputEvent(model, INPUT_TYPE.FLING_START,
-                           {start: 32, end: 100});
-      audits.addFlingAnimationEvent(model, {start: 38, end: 200});
+          {start: 32, end: 100});
       audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
-                           {start: 100, end: 150});
-    });
-
-    assert.equal(4, rirf.getAllLatencyEvents().length);
-
-    var e60ranges = rirf.getAllExpected60Ranges();
-    assert.equal(e60ranges.length, 1);
-
-    var e60r = e60ranges[0];
-    assert.equal(e60r.expectedStart, 32);
-    assert.equal(e60r.expectedEnd, 100);
+          {start: 105, end: 150});
+    };
+    verifier.expectedIRs = [
+      {title: 'Animation', start: 32, end: 105, eventCount: 2},
+      {title: 'Idle', start: 105, end: 150, eventCount: 0}
+    ];
+    verifier.verify();
   });
 
-  test('FrameEvent', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addInputEvent(model, INPUT_TYPE.UNKNOWN, {start: 0, end: 100});
-      audits.addFrameEvent(model, {start: 1, end: 10});
-    });
-    assert.equal(1, rirf.getAllFrameEvents().length);
+  test('FlingFling', function() {
+    // measurmt-traces/mobile/facebook_obama_scroll_dialog_box.html
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 0, end: 30});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 100, end: 130});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+          {start: 100, end: 130});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 110, end: 140});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 170, end: 180});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 200, end: 210});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 200, end: 220});
+      audits.addFrameEvent(model, {start: 230, end: 240});
+    };
+    verifier.expectedIRs = [
+      {title: 'Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'Response', start: 100, end: 140, eventCount: 2},
+      {title: 'Animation', start: 140, end: 240, eventCount: 3}
+    ];
+    verifier.verify();
   });
 
   test('Load', function() {
-    var rirf = newRIRF(function(model) {
-      audits.addCommitLoadEvent(model, {start: 1, end: 10});
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addCommitLoadEvent(model, {start: 0, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 20});
-    });
-    var loads = rirf.modelHelper.browserHelper.
-      getCommitProvisionalLoadEventsInRange(
-        rirf.model.bounds);
-    assert.equal(1, loads.length);
-    assertInteractionRecords(rirf.findAllInteractionRecords(), [
-      ['Load', 1, 20]
-    ]);
+    };
+    verifier.expectedIRs = [
+      {title: 'Load', start: 0, end: 20, eventCount: 2}
+    ];
+    verifier.verify();
   });
 
   test('totalIdle', function() {
-    var rirf = newRIRF(function(model) {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
       audits.addFrameEvent(model, {start: 0, end: 10});
-    });
-    assertInteractionRecords(rirf.findAllInteractionRecords(), [
-      ['Idle', 0, 10]
-    ]);
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 10, eventCount: 0}
+    ];
+    verifier.verify();
   });
 
   test('MultipleIdles', function() {
-    var rirf = newRIRF(function(model) {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
       audits.addFrameEvent(model, {start: 0, end: 1});
       audits.addCommitLoadEvent(model, {start: 1, end: 2});
       audits.addFrameEvent(model, {start: 3, end: 4});
@@ -134,22 +325,199 @@ tr.b.unittest.testSuite(function() {
       audits.addCommitLoadEvent(model, {start: 9, end: 10});
       audits.addFrameEvent(model, {start: 11, end: 12});
       audits.addFrameEvent(model, {start: 12, end: 13});
-    });
-    assertInteractionRecords(rirf.findAllInteractionRecords(), [
-      ['Load', 1, 4],
-      ['Load', 5, 8],
-      ['Load', 9, 12],
-      ['Idle', 0, 1],
-      ['Idle', 4, 5],
-      ['Idle', 8, 9],
-      ['Idle', 12, 13]
-    ]);
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 1, eventCount: 0},
+      {title: 'Load', start: 1, end: 4, eventCount: 2},
+      {title: 'Idle', start: 4, end: 5, eventCount: 0},
+      {title: 'Load', start: 5, end: 8, eventCount: 2},
+      {title: 'Idle', start: 8, end: 9, eventCount: 0},
+      {title: 'Load', start: 9, end: 12, eventCount: 2},
+      {title: 'Idle', start: 12, end: 13, eventCount: 0}
+    ];
+    verifier.verify();
   });
 
-  test('emptyNoIdle', function() {
-    var rirf = newRIRF(function(model) {
-    });
-    assertInteractionRecords(rirf.findAllInteractionRecords(), []);
+  test('TouchStartTouchEndTap', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 0, end: 10});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 200, end: 210});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 210, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('TouchMoveResponseAnimation', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 0, end: 10});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 50, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 70, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 200, end: 300});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Animation', start: 100, end: 300, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('TapEvents', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TAP,
+          {start: 0, end: 50});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 300, end: 310});
+      audits.addInputEvent(model, INPUT_TYPE.TAP,
+          {start: 320, end: 350});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 50, eventCount: 1},
+      {title: 'Idle', start: 50, end: 300, eventCount: 0},
+      {title: 'Response', start: 300, end: 350, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('TapAndTapCancelResponses', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+          {start: 300, end: 350});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 100, eventCount: 1},
+      {title: 'Idle', start: 100, end: 300, eventCount: 0},
+      {title: 'Response', start: 300, end: 350, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
+  test('TapCancelResponse', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 0, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+          {start: 150, end: 200});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 200, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('PinchResponseAnimation', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addFrameEvent(model, {start: 0, end: 10});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
+          {start: 100, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 130, end: 160});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 140, end: 200});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 150, end: 205});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 210, end: 220});
+      // pause > 200ms
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 421, end: 470});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_END,
+          {start: 460, end: 500});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 100, eventCount: 0},
+      {title: 'Response', start: 100, end: 160, eventCount: 2},
+      {title: 'Animation', start: 160, end: 220, eventCount: 3},
+      {title: 'Idle', start: 220, end: 421, eventCount: 0},
+      {title: 'Animation', start: 421, end: 500, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('TapThenScroll', function() {
+    // measurmt-traces/mobile/google_io_instrument_strumming.json
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 0, end: 20});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 40, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 50, end: 120});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 80, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 180, end: 200});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Response', start: 50, end: 150, eventCount: 2},
+      {title: 'Animation', start: 150, end: 200, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
+  test('PinchFlingTapTouchEventsOverlap', function() {
+    var verifier = document.createElement('tr-e-rail-ir-verifier');
+    verifier.customizeModelCallback = function(model) {
+      audits.addFrameEvent(model, {start: 0, end: 10});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 20, end: 50});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 20, end: 30});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+          {start: 20, end: 50});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 60, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 60, end: 110});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
+          {start: 60, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+          {start: 65, end: 75});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 70, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+          {start: 70, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 75, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 80, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 85, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 75, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 150, end: 200});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 150, end: 200});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 180, end: 210});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 190, end: 210});
+      audits.addFrameEvent(model, {start: 215, end: 220});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 20, eventCount: 0},
+      {title: 'Response', start: 20, end: 110, eventCount: 9},
+      {title: 'Animation', start: 110, end: 220, eventCount: 7}
+    ];
+    verifier.verify();
   });
 });
 </script>
