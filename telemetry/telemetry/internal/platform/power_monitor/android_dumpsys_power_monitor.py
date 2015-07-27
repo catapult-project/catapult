@@ -25,8 +25,6 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     self._battery = battery
     self._browser = None
     self._platform = platform_backend
-    self._fuel_gauge_found = self._battery.SupportsFuelGauge()
-    self._starting_fuel_gauge = None
 
   def CanMonitorPower(self):
     result = self._platform.RunCommand('dumpsys batterystats -c')
@@ -43,8 +41,6 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    if self._fuel_gauge_found:
-      self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
     self._battery.TieredSetCharging(False)
 
   def StopMonitoringPower(self):
@@ -52,13 +48,6 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None
-
-    fuel_gauge_delta = None
-    if self._fuel_gauge_found:
-      # Convert from nAh to mAh.
-      fuel_gauge_delta = (
-          float((self._starting_fuel_gauge) -
-          self._battery.GetFuelGaugeChargeCounter()) / 1000000)
 
     power_data = self._battery.GetPackagePowerData(package)
     battery_info = self._battery.GetBatteryInfo()
@@ -72,14 +61,14 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
       voltage = float(voltage) / 1000
       logging.info('Device voltage at %s', voltage)
     power_results = self.ProcessPowerData(
-        power_data, voltage, package, fuel_gauge_delta)
+        power_data, voltage, package)
     if power_results['energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
                       % (package, self._battery.GetPowerData()))
     return power_results
 
   @staticmethod
-  def ProcessPowerData(power_data, voltage, package, fuel_gauge_delta):
+  def ProcessPowerData(power_data, voltage, package):
     power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
     if not power_data:
       logging.warning('Unable to find power data for %s in dumpsys output. '
@@ -88,7 +77,4 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
       return power_results
     consumption_mwh = sum(power_data['data']) * voltage
     power_results['energy_consumption_mwh'] = consumption_mwh
-    if fuel_gauge_delta is not None:
-      power_results['fuel_gauge_energy_consumption_mwh'] = (
-          fuel_gauge_delta * voltage)
     return power_results

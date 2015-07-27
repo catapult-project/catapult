@@ -21,6 +21,7 @@ from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import linux_based_platform_backend
 from telemetry.internal.platform.power_monitor import android_dumpsys_power_monitor
+from telemetry.internal.platform.power_monitor import android_fuelgauge_power_monitor
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
 from telemetry.internal.platform.power_monitor import monsoon_power_monitor
 from telemetry.internal.platform.power_monitor import power_monitor_controller
@@ -167,6 +168,8 @@ class AndroidPlatformBackend(
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(self._battery, self),
         sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
+        android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
+            self._battery, self),
     ], self._battery)
     self._power_monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         power_controller, self._device)
