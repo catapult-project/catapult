@@ -172,6 +172,7 @@
       'tracing/model/async_slice_group.html',
       'tracing/model/attribute.html',
       'tracing/model/comment_box_annotation.html',
+      'tracing/model/compound_event_selection_state.html',
       'tracing/model/container_memory_dump.html',
       'tracing/model/counter.html',
       'tracing/model/counter_sample.html',

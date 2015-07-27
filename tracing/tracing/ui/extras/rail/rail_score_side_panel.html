@@ -7,9 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/extras/rail/rail_score.html">
 <link rel="import" href="/model/ir_coverage.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/base/color_legend.html">
 <link rel="import" href="/ui/base/table.html">
 <link rel="import" href="/ui/extras/rail/rail_score_span.html">
 <link rel="import" href="/ui/side_panel/side_panel.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
 
 <polymer-element name='tr-ui-e-rail-rail-score-side-panel'
     extends='tr-ui-side-panel'>
@@ -17,24 +20,42 @@ found in the LICENSE file.
     <style>
     :host {
       display: flex;
-      width: 250px;
       flex-direction: column;
+      width: 450px;
+      overflow-x: auto;
     }
+
+    #score {
+      background-color: rgb(236, 236, 236)
+      flex: 0 0 auto;
+    }
+
     #content {
+      min-width: 0;
       flex-direction: column;
       display: flex;
+      flex: 1 1 auto;
+    }
+
+    #coverage {
+      font-size: 10px;
     }
     </style>
 
     <tr-ui-e-rail-rail-score-span id='score'></tr-ui-e-rail-rail-score-span>
-    <tr-ui-a-analysis-link id='associated_events'></tr-ui-a-analysis-link>
-    <tr-ui-a-analysis-link id='unassociated_events'></tr-ui-a-analysis-link>
-    <tr-ui-table id="table"></tr-ui-table>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+
+    <div id="coverage">
+      <b>Coverage:</b><br>
+      <tr-ui-a-analysis-link id='associated-events'></tr-ui-a-analysis-link><br>
+      <tr-ui-a-analysis-link id='unassociated-events'></tr-ui-a-analysis-link>
+    </div>
   </template>
+</polymer-element>
 
-  <script>
-  'use strict';
-
+<script>
+'use strict';
+(function() {
   function setCoverageLink(
       link, labelString, events, eventRatio, cpuMs, cpuRatio) {
     link.setSelectionAndContent(events);
@@ -62,11 +83,12 @@ found in the LICENSE file.
     link.appendChild(document.createTextNode(cpuString));
   }
 
-  Polymer({
+  Polymer('tr-ui-e-rail-rail-score-side-panel', {
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
       this.model_ = undefined;
       this.railScore_ = undefined;
+      this.selection_ = new tr.model.EventSet();
     },
 
     get textLabel() {
@@ -105,13 +127,13 @@ found in the LICENSE file.
 
       var coverage = tr.model.getIRCoverageFromModel(model);
       if (coverage) {
-        setCoverageLink(this.$.associated_events,
+        setCoverageLink(this.shadowRoot.querySelector('#associated-events'),
                         'Associated',
                         coverage.associatedEvents,
                         coverage.coveredEventsRatio,
                         coverage.associatedCpuMs,
                         coverage.coveredCpuRatio);
-        setCoverageLink(this.$.unassociated_events,
+        setCoverageLink(this.shadowRoot.querySelector('#unassociated-events'),
                         'Unassociated',
                         coverage.unassociatedEvents,
                         coverage.uncoveredEventsRatio,
@@ -126,14 +148,95 @@ found in the LICENSE file.
       return false;
     },
 
-    set selection(selection) {
-    },
-
     set rangeOfInterest(rangeOfInterest) {
     },
 
     updateTable_: function() {
+      function toThreeDigitLocaleString(value) {
+        return value.toLocaleString(undefined,
+                                    {minimumFractionDigits: 3,
+                                     maximumFractionDigits: 3});
+      }
+
+      var columns = [
+        {
+          title: 'Type',
+          width: '150px',
+          value: function(ir) {
+            var el = document.createElement('tr-ui-b-color-legend');
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(new tr.model.EventSet([ir]),
+                                          ir.railTypeName);
+            el.setLabelAndColorId(linkEl, ir.colorId);
+            el.compoundEventSelectionState =
+                ir.computeCompoundEvenSelectionState(this.selection_);
+            return el;
+          }.bind(this),
+          cmp: function(a, b) {
+            return a.railTypeName.localeCompare(b.railTypeName);
+          }
+        },
+        {
+          title: 'Efficiency',
+          width: '33%',
+          value: function(ir) {
+            return toThreeDigitLocaleString(ir.normalizedEfficiency);
+          },
+          cmp: function(a, b) {
+            return a.normalizedEfficiency - b.normalizedEfficiency;
+          }
+        },
+        {
+          title: 'Pain',
+          width: '33%',
+          value: function(ir) {
+            return toThreeDigitLocaleString(ir.normalizedUserPain);
+          },
+          cmp: function(a, b) {
+            return a.normalizedUserPain - b.normalizedUserPain;
+          }
+        },
+        {
+          title: 'Score',
+          width: '33%',
+          value: function(ir) {
+            var span = document.createElement('span');
+            span.style.fontWeight = 'bold';
+            span.textContent = toThreeDigitLocaleString(ir.railScore);
+            return span;
+          },
+          cmp: function(a, b) {
+            return a.railScore - b.railScore;
+          }
+        }
+      ];
+
+      this.$.table.tableColumns = columns;
+      if (this.railScore_)
+        this.$.table.tableRows = this.railScore_.interactionRecords;
+      else
+        this.$.table.tableRows = [];
+      this.$.table.rebuild();
+    },
+
+    onTableSelectionChanged_: function() {
+      var selectedIR = this.$.table.selectedTableRow;
+
+      var event = new tr.c.RequestSelectionChangeEvent();
+      event.selection = new tr.c.Selection([selectedIR]);
+      this.dispatchEvent(event);
+    },
+
+    set selection(selection) {
+      if (selection === undefined)
+        selection = new tr.model.EventSet();
+
+      if (this.selection_.equals(selection))
+        return;
+
+      this.selection_ = selection;
+      this.updateTable_();
     }
   });
-  </script>
-</polymer-element>
+})();
+</script>

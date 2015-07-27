@@ -5,12 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/model/compound_event_selection_state.html">
 <link rel="import" href="/ui/base/color_scheme.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
 
 <!--
-@fileoverview A component used to display a label preceded by a small square
-filled with the label's associated color (as determined by
-tr.ui.b.getColorIdForGeneralPurposeString).
+@fileoverview A component used to display a label and a color square.
+
+The colored square is typically filled with the color associated with
+that label, using the getColorId* methods from base/color_scheme.
 -->
 <polymer-element name="tr-ui-b-color-legend">
   <template>
@@ -35,6 +38,14 @@ tr.ui.b.getColorIdForGeneralPurposeString).
       var blackSquareCharCode = 9632;
       this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
       this.label_ = undefined;
+
+      this.compoundEventSelectionState_ =
+          tr.model.CompoundEventSelectionState.NOT_SELECTED;
+    },
+
+    set compoundEventSelectionState(compoundEventSelectionState) {
+      this.compoundEventSelectionState_ = compoundEventSelectionState;
+      // TODO(nduca): Adjust appearance based on associated state.
     },
 
     get label() {
@@ -42,19 +53,28 @@ tr.ui.b.getColorIdForGeneralPurposeString).
     },
 
     set label(label) {
-      this.label_ = label;
-
-      if (this.label_ === undefined) {
-        this.$.square.style.color = 'initial';
-        this.$.label.innerText = '';
+      if (label === undefined) {
+        this.setLabelAndColorId(undefined, undefined);
         return;
       }
 
-      var paletteRaw = tr.ui.b.getRawColorPalette();
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(this.label_);
-      var color = tr.ui.b.colorToRGBString(paletteRaw[colorId]);
-      this.$.square.style.color = color;
-      this.$.label.innerText = this.label_;
+      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(label);
+      this.setLabelAndColorId(label, colorId);
+    },
+
+    setLabelAndColorId: function(label, colorId) {
+      this.label_ = label;
+
+      this.$.label.textContent = '';
+      this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
+
+      if (colorId === undefined) {
+        this.$.square.style.color = 'initial';
+      } else {
+        var paletteRaw = tr.ui.b.getRawColorPalette();
+        var color = tr.ui.b.colorToRGBString(paletteRaw[colorId]);
+        this.$.square.style.color = color;
+      }
     }
   });
   </script>

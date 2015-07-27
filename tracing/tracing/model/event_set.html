@@ -121,6 +121,12 @@ tr.exportTo('tr.model', function() {
       return eventSet;
     },
 
+    intersectionIsEmpty: function(otherEventSet) {
+      return !this.some(function(event) {
+        return otherEventSet.contains(event);
+      });
+    },
+
     equals: function(that) {
       if (this.length !== that.length)
         return false;
