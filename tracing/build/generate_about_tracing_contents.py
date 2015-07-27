@@ -31,9 +31,9 @@ def main(args):
     parser.print_help()
     return 1
 
-  filenames = ["ui/extras/about_tracing/about_tracing.html"]
+  names = ["ui.extras.about_tracing.about_tracing"]
   project = tracing_project.TracingProject()
-  load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
+  load_sequence = project.CalcLoadSequenceForModuleNames(names)
 
   olddir = os.getcwd()
   try:

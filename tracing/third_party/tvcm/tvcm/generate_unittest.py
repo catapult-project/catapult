@@ -37,21 +37,21 @@ class GenerateTests(unittest.TestCase):
 
   def testJSGeneration(self):
     with self.fs:
-      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.normpath('foo/my_module.html')])
+      load_sequence = self.project.CalcLoadSequenceForModuleNames(
+          [os.path.normpath('foo.my_module')])
       generate.GenerateJS(load_sequence)
 
   def testHTMLGeneration(self):
     with self.fs:
-      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.normpath('foo/my_module.html')])
+      load_sequence = self.project.CalcLoadSequenceForModuleNames(
+          [os.path.normpath('foo.my_module')])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
 
   def testExtraScriptWithWriteContentsFunc(self):
     with self.fs:
-      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
-          [os.path.normpath('foo/my_module.html')])
+      load_sequence = self.project.CalcLoadSequenceForModuleNames(
+          [os.path.normpath('foo.my_module')])
 
       class ExtraScript(generate.ExtraScript):
         def WriteToFile(self, f):

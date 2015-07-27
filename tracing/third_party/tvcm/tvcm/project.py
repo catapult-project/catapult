@@ -21,9 +21,6 @@ def _FindAllFilesRecursive(source_paths):
   return all_filenames
 
 
-def _IsFilenameAModule(loader, x):  # pylint: disable=unused-argument
-  return x.endswith('.html')
-
 
 class AbsFilenameList(object):
 
@@ -85,7 +82,7 @@ class Project(object):
   tvcm_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
-  def __init__(self, source_paths=None, non_module_html_files=None):
+  def __init__(self, source_paths=None):
     """
     source_paths: A list of top-level directories in which modules and raw
         scripts can be found. Module paths are relative to these directories.
@@ -93,13 +90,9 @@ class Project(object):
     self._loader = None
     self._frozen = False
     self.source_paths = AbsFilenameList(self._WillPartOfPathChange)
-    self.non_module_html_files = AbsFilenameList(self._WillPartOfPathChange)
 
     if source_paths is not None:
       self.source_paths.extend(source_paths)
-
-    if non_module_html_files is not None:
-      self.non_module_html_files.extend(non_module_html_files)
 
   def Freeze(self):
     self._frozen = True
@@ -111,13 +104,11 @@ class Project(object):
 
   @staticmethod
   def FromDict(d):
-    return Project(d['source_paths'],
-                   non_module_html_files=d.get('non_module_html_files', None))
+    return Project(d['source_paths'])
 
   def AsDict(self):
     return {
-        'source_paths': list(self.source_paths),
-        'non_module_html_files': list(self.non_module_html_files)
+        'source_paths': list(self.source_paths)
     }
 
   def __repr__(self):
@@ -135,26 +126,9 @@ class Project(object):
   def ResetLoader(self):
     self._loader = None
 
-  def _FindAllModuleFilenames(self, source_paths):
-    all_filenames = _FindAllFilesRecursive(source_paths)
-    return [x for x in all_filenames if
-            x not in self.non_module_html_files and
-            _IsFilenameAModule(self.loader, x)]
-
-  def FindAllModuleFilenames(self):
-    return self._FindAllModuleFilenames(self.source_paths)
-
-  def CalcLoadSequenceForAllModules(self):
-    filenames = self.FindAllModuleFilenames()
-    return self.CalcLoadSequenceForModuleFilenames(filenames)
-
   def _Load(self, filenames):
     return [self.loader.LoadModule(module_filename=filename) for
             filename in filenames]
-
-  def CalcLoadSequenceForModuleFilenames(self, filenames):
-    modules = self._Load(filenames)
-    return self.CalcLoadSequenceForModules(modules)
 
   def CalcLoadSequenceForModuleNames(self, module_names):
     modules = [self.loader.LoadModule(module_name=name) for
@@ -185,16 +159,12 @@ class Project(object):
     # FIXME: _GetGraph is not defined. Maybe `return g` is intended?
     return _GetGraph(load_sequence)
 
-  def GetDominatorGraphForModulesNamed(self, module_names, load_sequence=None):
+  def GetDominatorGraphForModulesNamed(self, module_names, load_sequence):
     modules = [self.loader.LoadModule(module_name=name)
                for name in module_names]
     return self.GetDominatorGraphForModules(modules, load_sequence)
 
-  def GetDominatorGraphForModules(self, start_modules, load_sequence=None):
-    # Load all modules.
-    if load_sequence is None:
-      load_sequence = self.CalcLoadSequenceForAllModules()
-
+  def GetDominatorGraphForModules(self, start_modules, load_sequence):
     modules_by_id = {}
     for m in load_sequence:
       modules_by_id[m.id] = m

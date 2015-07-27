@@ -12,11 +12,6 @@ def RunChecks(input_api, output_api):
   if err:
     results += [err]
 
-  from tracing.build import check_modules
-  err = check_modules.CheckModules()
-  if err:
-    results += [err]
-
   from tracing.build import js_checks
   results += js_checks.RunChecks(input_api)
 

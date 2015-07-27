@@ -21,7 +21,6 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
-
 def _IsFilenameATest(loader, x):  # pylint: disable=unused-argument
   if x.endswith('_test.js'):
     return True
@@ -79,52 +78,6 @@ class TracingProject(project_module.Project):
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
 
-    self.non_module_html_files.extendRel(self.tracing_root_path, [
-      'bin/index.html',
-      'test_data/android_systrace.html',
-    ])
-    for config_name in self.GetConfigNames():
-      self.non_module_html_files.appendRel(self.tracing_root_path,
-        'bin/trace_viewer_%s.html' % config_name)
-
-    # Ignore the old viewer if it still exists.
-    self.non_module_html_files.appendRel(self.tracing_root_path,
-      'bin/trace_viewer.html')
-
-    self.non_module_html_files.extendRel(self.tracing_third_party_path, [
-      'gl-matrix/jsdoc-template/static/header.html',
-      'gl-matrix/jsdoc-template/static/index.html',
-      'vinn/vinn/test_data/error_stack_test.html',
-      'vinn/vinn/test_data/foo.html',
-      'vinn/vinn/test_data/load_error.html',
-      'vinn/vinn/test_data/load_error_2.html',
-      'vinn/vinn/test_data/load_js_error.html',
-      'vinn/vinn/test_data/load_js_error_2.html',
-      'vinn/vinn/test_data/load_simple_html.html'
-    ]);
-
-    for p in _FindAllFilesRecursive([self.parse5_path]):
-      if p.endswith('.html'):
-        os.path.relpath(p, self.tracing_third_party_path)
-        self.non_module_html_files.extendRel(self.tracing_third_party_path, [p])
-
-    # Ignore drive html due to embedded external script resources.
-    self.non_module_html_files.appendRel(self.tracing_src_path,
-      'ui/extras/drive/index.html')
-
-    rjsmin_doc_files = _FindAllFilesRecursive(
-        [os.path.join(self.rjsmin_path, 'docs', 'apidoc')])
-    rjsmin_doc_files = [os.path.relpath(x, self.rjsmin_path)
-                         for x in rjsmin_doc_files
-                         if x.endswith('.html')]
-    self.non_module_html_files.extendRel(self.rjsmin_path, rjsmin_doc_files)
-
-    rcssmin_doc_files = _FindAllFilesRecursive(
-        [os.path.join(self.rcssmin_path, 'docs', 'apidoc')])
-    rcssmin_doc_files = [os.path.relpath(x, self.rcssmin_path)
-                         for x in rcssmin_doc_files
-                         if x.endswith('.html')]
-    self.non_module_html_files.extendRel(self.rcssmin_path, rcssmin_doc_files)
 
   def IsD8CompatibleFile(self, filename):
     return not filename.startswith(self.ui_path)
