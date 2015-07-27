@@ -3541,6 +3541,24 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(subTraces.length, 1);
     assert.equal(subTraces[0], battorLog);
   });
+
+  test('metadataParsing', function() {
+    var metadataValue = {value: {}};
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      metadata: metadataValue
+    };
+
+    var m = new tr.Model(eventData);
+    assert.isTrue(m.metadata instanceof Array);
+    assert.equal(m.metadata.length, 1);
+    assert.equal(m.metadata[0].name, 'metadata');
+    assert.equal(m.metadata[0].value, metadataValue);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 
