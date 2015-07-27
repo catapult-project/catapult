@@ -107,7 +107,8 @@ class _SingleProcessPerfProfiler(object):
       device = self._browser_backend.device
       try:
         binary_name = os.path.basename(self._perf_binary)
-        device.KillAll(binary_name, signum=signal.SIGINT, blocking=True)
+        device.KillAll(binary_name, signum=signal.SIGINT, blocking=True,
+                       quiet=True)
       except device_errors.CommandFailedError:
         logging.warning('The perf process could not be killed on the device.')
     self._proc.send_signal(signal.SIGINT)

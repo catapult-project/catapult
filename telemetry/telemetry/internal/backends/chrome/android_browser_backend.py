@@ -141,7 +141,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     pids = self.device.GetPids(self._backend_settings.package)
     if not pids or self._backend_settings.package not in pids:
       raise exceptions.BrowserGoneException(self.browser)
-    return int(pids[self._backend_settings.package])
+    if len(pids[self._backend_settings.package]) > 1:
+      raise Exception(
+          'At most one instance of process %s expected but found pids: '
+          '%s' % (self._backend_settings.package, pids))
+    return int(pids[self._backend_settings.package][0])
 
   @property
   def browser_directory(self):

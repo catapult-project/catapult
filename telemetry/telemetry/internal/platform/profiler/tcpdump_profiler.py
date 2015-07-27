@@ -41,7 +41,11 @@ class _TCPDumpProfilerAndroid(object):
       raise Exception('Unable to find TCPDump. Check your device is rooted '
           'and tcpdump is installed at ' +
           android_prebuilt_profiler_helper.GetDevicePath('tcpdump'))
-    tcpdump_pid = int(tcpdump_pid['tcpdump'])
+    if len(tcpdump_pid['tcpdump']) > 1:
+      raise Exception(
+          'At most one instance of process tcpdump expected but found pids: '
+          '%s' % tcpdump_pid)
+    tcpdump_pid = int(tcpdump_pid['tcpdump'][0])
     self._device.RunShellCommand('kill -term ' + tcpdump_pid)
     self._proc.terminate()
     host_dump = os.path.join(self._output_path,
