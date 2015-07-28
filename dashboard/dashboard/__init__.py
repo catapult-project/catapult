@@ -11,17 +11,15 @@ _THIRD_PARTY_DIR = os.path.join(
     os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'third_party')
 
 THIRD_PARTY_LIBRARIES = [
+    'apiclient',
     'beautifulsoup4',
-    'google-api-python-client-1.4.0',
-    'GoogleAppEngineMapReduce-1.9.22.0',
-    'Graphy-1.0.0',
-    'mock-1.0.1',
-    'oauth2client-1.4.11',
-    'six-1.9.0',
-    'uritemplate-0.6',
+    'graphy',
+    'mapreduce',
+    'mock',
+    'oauth2client',
+    'six',
+    'uritemplate',
     'webtest',
-    #'pg8000-1.10.2',
-    #'simplejson-3.7.3',
 ]
 
 
