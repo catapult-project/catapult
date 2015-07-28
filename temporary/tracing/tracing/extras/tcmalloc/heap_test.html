@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(trace.currentBytes, 200);
     // One child for "(here)".
     assert.equal(Object.keys(trace.children).length, 1);
-    assert.isNotNull(trace.children['(here)']);
+    assert.isDefined(trace.children['']);
 
     // Verify the second trace entry stack.
     trace = heap.children['TestObject2::TestMethod2'];
@@ -100,8 +100,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(trace.currentBytes, 800);
     // Two children, "(here)" and another stack.
     assert.equal(Object.keys(trace.children).length, 2);
-    assert.isNotNull(trace.children['TestObject3::TestMethod3']);
-    assert.isNotNull(trace.children['(here)']);
+    assert.isDefined(trace.children['TestObject3::TestMethod3']);
+    assert.isDefined(trace.children['']);
 
     trace = trace.children['TestObject3::TestMethod3'];
     assert.equal(trace.currentAllocs, 5);

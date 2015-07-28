@@ -201,6 +201,12 @@ found in the LICENSE file.
         ts.removeAttribute('tabs-hidden');
     },
 
+    get tabs() {
+      return this.tabs_.map(function(tabObject) {
+        return tabObject.content;
+      });
+    },
+
     /**
      * Function called on light-dom child addition.
      */
@@ -216,9 +222,7 @@ found in the LICENSE file.
         observers: {
           forAttributeSelected: observerAttributeSelected,
           forAttributeTabLabel: observerAttributeTabLabel
-        },
-        savedScrollTop: 0,
-        savedScrollLeft: 0
+        }
       };
 
       this.tabs_.push(tabObject);
@@ -383,11 +387,16 @@ found in the LICENSE file.
 
     },
 
+    saveTabStates: function() {
+      // Scroll positions of unselected tabs have already been saved.
+      this.saveCurrentTabScrollPosition_();
+    },
+
     saveCurrentTabScrollPosition_: function() {
       if (this.selectedTab_) {
-        this.selectedTab_.savedScrollTop =
+        this.selectedTab_.content._savedScrollTop =
             this.$['content-container'].scrollTop;
-        this.selectedTab_.savedScrollLeft =
+        this.selectedTab_.content._savedScrollLeft =
             this.$['content-container'].scrollLeft;
       }
     },
@@ -395,9 +404,9 @@ found in the LICENSE file.
     restoreCurrentTabScrollPosition_: function() {
       if (this.selectedTab_) {
         this.$['content-container'].scrollTop =
-            this.selectedTab_.savedScrollTop;
+            this.selectedTab_.content._savedScrollTop || 0;
         this.$['content-container'].scrollLeft =
-            this.selectedTab_.savedScrollLeft;
+            this.selectedTab_.content._savedScrollLeft || 0;
       }
     },
 

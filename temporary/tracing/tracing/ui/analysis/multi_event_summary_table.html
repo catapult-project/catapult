@@ -80,7 +80,8 @@ found in the LICENSE file.
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.duration, {
               total: row.totalsRow ? undefined : maxValues.duration,
-              ownerDocument: ownerDocument
+              ownerDocument: ownerDocument,
+              rightAlign: true
             });
           },
           width: '<upated further down>',
@@ -96,7 +97,8 @@ found in the LICENSE file.
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.cpuDuration, {
               total: row.totalsRow ? undefined : maxValues.cpuDuration,
-              ownerDocument: ownerDocument
+              ownerDocument: ownerDocument,
+              rightAlign: true
             });
           },
           width: '<upated further down>',
@@ -112,7 +114,8 @@ found in the LICENSE file.
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.selfTime, {
               total: row.totalsRow ? undefined : maxValues.selfTime,
-              ownerDocument: ownerDocument
+              ownerDocument: ownerDocument,
+              rightAlign: true
             });
           },
           width: '<upated further down>',
@@ -128,7 +131,8 @@ found in the LICENSE file.
           value: function(row) {
             return tr.ui.units.createTimeDurationSpan(row.cpuSelfTime, {
               total: row.totalsRow ? undefined : maxValues.cpuSelfTime,
-              ownerDocument: ownerDocument
+              ownerDocument: ownerDocument,
+              rightAlign: true
             });
           },
           width: '<upated further down>',

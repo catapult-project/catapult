@@ -805,7 +805,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       var lineParser = null;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
-        var line = lines[lineNumber];
+        var line = lines[lineNumber].trim();
         if (line.length == 0 || /^#/.test(line))
           continue;
         if (lineParser == null) {

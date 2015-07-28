@@ -21,6 +21,7 @@ tr.exportTo('tr.ui.b', function() {
     this.selection_ = new EventSet();
     this.findMatches_ = new EventSet();
     this.analysisViewRelatedEvents_ = new EventSet();
+    this.analysisLinkHoveredEvents_ = new EventSet();
     this.appliedToModel_ = undefined;
     this.viewSpecificBrushingStates_ = {};
   }
@@ -34,6 +35,7 @@ tr.exportTo('tr.ui.b', function() {
       that.selection_ = this.selection_;
       that.findMatches_ = this.findMatches_;
       that.analysisViewRelatedEvents_ = this.analysisViewRelatedEvents_;
+      that.analysisLinkHoveredEvents_ = this.analysisLinkHoveredEvents_;
       that.viewSpecificBrushingStates_ = this.viewSpecificBrushingStates_;
 
       return that;
@@ -48,10 +50,14 @@ tr.exportTo('tr.ui.b', function() {
           that.analysisViewRelatedEvents_)) {
         return false;
       }
+      if (!this.analysisLinkHoveredEvents_.equals(
+          that.analysisLinkHoveredEvents_)) {
+        return false;
+      }
       // We currently do not take the view-specific brushing states into
       // account. If we did, every change of the view-specific brushing state
       // of any view would cause a redraw of the whole UI (see the
-      // SelectionController.currentBrushingState setter).
+      // BrushingStateController.currentBrushingState setter).
       return true;
     },
 
@@ -64,6 +70,9 @@ tr.exportTo('tr.ui.b', function() {
 
       if (this.analysisViewRelatedEvents_.length)
         return this.analysisViewRelatedEvents_;
+
+      if (this.analysisLinkHoveredEvents_.length)
+        return this.analysisLinkHoveredEvents_;
 
       return this.selection_;
     },
@@ -104,13 +113,26 @@ tr.exportTo('tr.ui.b', function() {
       this.analysisViewRelatedEvents_ = analysisViewRelatedEvents;
     },
 
+    get analysisLinkHoveredEvents() {
+      return this.analysisLinkHoveredEvents_;
+    },
+
+    set analysisLinkHoveredEvents(analysisLinkHoveredEvents) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (analysisLinkHoveredEvents === undefined)
+        analysisLinkHoveredEvents = new EventSet();
+      this.analysisLinkHoveredEvents_ = analysisLinkHoveredEvents;
+    },
+
     get isAppliedToModel() {
       return this.appliedToModel_ !== undefined;
     },
 
     get hasHighlight_() {
       return this.findMatches_.length > 0 ||
-          this.analysisViewRelatedEvents_.length > 0;
+          this.analysisViewRelatedEvents_.length > 0 ||
+          this.analysisLinkHoveredEvents_.length > 0;
     },
 
     get viewSpecificBrushingStates() {
@@ -135,9 +157,9 @@ tr.exportTo('tr.ui.b', function() {
         var selectionState;
         if (this.selection_.contains(e)) {
           selectionState = SelectionState.SELECTED;
-        } else if (this.findMatches_.contains(e)) {
-          selectionState = SelectionState.HIGHLIGHTED;
-        } else if (this.analysisViewRelatedEvents_.contains(e)) {
+        } else if (this.findMatches_.contains(e) ||
+                   this.analysisViewRelatedEvents_.contains(e) ||
+                   this.analysisLinkHoveredEvents_.contains(e)) {
           selectionState = SelectionState.HIGHLIGHTED;
         } else {
           selectionState = SelectionState.DIMMED;

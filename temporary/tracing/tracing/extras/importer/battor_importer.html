@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/importer/importer.html">
 <link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
 
 <script>
 /**
@@ -62,10 +63,8 @@ tr.exportTo('tr.e.importer.battor', function() {
      * Imports the data in this.events_ into model_.
      */
     importEvents: function(isSecondaryImport) {
-      var ctr = this.model_.kernel.getOrCreateCounter(null, 'Power');
-
       // Fail if the model already has a Power counter.
-      if (ctr.numSeries > 0) {
+      if (this.model_.device.powerSeries) {
         this.model_.importWarning({
           type: 'import_error',
           message: 'Power counter exists, can not import BattOr power trace.'
@@ -75,8 +74,7 @@ tr.exportTo('tr.e.importer.battor', function() {
 
       // Create series and import power samples into it.
       var name = 'power';
-      var series = new tr.model.CounterSeries('value',
-          tr.ui.b.getColorIdForGeneralPurposeString(name + '.' + 'value'));
+      var series = new tr.model.PowerSeries(this.model_.device);
       this.importPowerSamples(series);
 
       // Find the sync markers.
@@ -100,9 +98,8 @@ tr.exportTo('tr.e.importer.battor', function() {
         return;
       }
 
-      // Add the series to the counter and shift time based on the clock sync.
-      ctr.addSeries(series);
-      ctr.shiftTimestampsForward(shiftTs);
+      series.shiftTimestampsForward(shiftTs);
+      this.model_.device.powerSeries = series;
     },
 
     /**
@@ -118,6 +115,7 @@ tr.exportTo('tr.e.importer.battor', function() {
         minTs = this.model_.bounds.min;
 
       lines.forEach(function(line) {
+        line = line.trim();
         if (line.length === 0)
           return;
 
@@ -141,7 +139,7 @@ tr.exportTo('tr.e.importer.battor', function() {
           var time = parseFloat(groups[1]) + minTs;
           var voltage_mV = parseFloat(groups[2]);
           var current_mA = parseFloat(groups[3]);
-          series.addCounterSample(time, (voltage_mV * current_mA) / 1000);
+          series.addPowerSample(time, (voltage_mV * current_mA) / 1000);
         }
       }, this);
     },
@@ -216,8 +214,8 @@ tr.exportTo('tr.e.importer.battor', function() {
         var corrSum = 0;
         var powerAvg = 0;
         for (var i = 0; i < syncSamples.length; i++) {
-          corrSum += (powerSamples[i + shift].value * syncSamples[i]);
-          powerAvg += powerSamples[i + shift].value;
+          corrSum += (powerSamples[i + shift].power * syncSamples[i]);
+          powerAvg += powerSamples[i + shift].power;
         }
         powerAvg = powerAvg / syncSamples.length;
         corr.push(corrSum / powerAvg);

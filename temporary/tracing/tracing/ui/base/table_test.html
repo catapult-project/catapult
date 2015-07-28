@@ -1096,5 +1096,31 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(2, table.$.body.children[1].children[0].textContent);
   });
+
+  test('shouldNotRenderUndefined', function() {
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.firstData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: undefined,
+        secondData: 'A2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // check that we don't have 'undefined' anywhere
+    assert.isTrue(table.$.body.innerHTML.indexOf('undefined') < 0);
+  });
 });
 </script>

@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/base/settings.html">
 <link rel="import" href="/base/utils.html">
+<link rel="import" href="/core/brushing_state_controller.html">
 <link rel="import" href="/core/scripting_controller.html">
-<link rel="import" href="/core/selection_controller.html">
 <link rel="import" href="/ui/analysis/analysis_view.html">
 <link rel="import" href="/ui/base/dom_helpers.html">
 <link rel="import" href="/ui/base/drag_handle.html">
@@ -25,6 +25,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/timeline_track_view.html">
 <link rel="import" href="/ui/timeline_view_help_overlay.html">
 <link rel="import" href="/ui/timeline_view_metadata_overlay.html">
+<link rel="import" href="/ui/units/preferred_display_unit.html">
 
 <polymer-element name='tr-ui-timeline-view'>
   <template>
@@ -123,6 +124,9 @@ found in the LICENSE file.
     </middle-container>
     <x-drag-handle id="drag_handle"></x-drag-handle>
     <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
+
+    <tr-ui-u-preferred-display-unit id="display_unit">
+    </tr-ui-u-preferred-display-unit>
   </template>
 
   <script>
@@ -138,17 +142,18 @@ found in the LICENSE file.
       this.collapsingControlsEl_ = this.$.collapsing_controls;
       this.sidePanelContainer_ = this.$.side_panel_container;
 
-      this.selectionController_ = new tr.c.SelectionController(this);
+      this.brushingStateController_ = new tr.c.BrushingStateController(this);
 
       this.findCtl_ = this.$.view_find_control;
       this.findCtl_.controller = new tr.ui.FindController(
-          this.selectionController_);
+          this.brushingStateController_);
 
       this.scriptingCtl_ = document.createElement('tr-ui-scripting-control');
       this.scriptingCtl_.controller = new tr.c.ScriptingController(
-          this.selectionController_);
+          this.brushingStateController_);
 
-      this.sidePanelContainer_.selectionController = this.selectionController_;
+      this.sidePanelContainer_.brushingStateController =
+          this.brushingStateController_;
 
       if (window.tr.e && window.tr.e.rail && window.tr.e.rail.RAILScore) {
         this.railScoreSpan_ = document.createElement(
@@ -183,12 +188,12 @@ found in the LICENSE file.
       tr.ui.b.decorate(this.dragEl_, tr.ui.b.DragHandle);
 
       this.analysisEl_ = this.$.analysis;
-      this.analysisEl_.selectionController = this.selectionController_;
+      this.analysisEl_.brushingStateController = this.brushingStateController_;
 
       this.addEventListener(
           'requestSelectionChange',
           function(e) {
-            var sc = this.selectionController_;
+            var sc = this.brushingStateController_;
             sc.changeSelectionFromRequestSelectionChangeEvent(e.selection);
           }.bind(this));
 
@@ -209,7 +214,7 @@ found in the LICENSE file.
 
     set globalMode(globalMode) {
       globalMode = !!globalMode;
-      this.selectionController_.historyEnabled = globalMode;
+      this.brushingStateController_.historyEnabled = globalMode;
       this.hotkeyController.globalMode = globalMode;
     },
 
@@ -360,11 +365,11 @@ found in the LICENSE file.
         if (this.trackView_) {
           this.trackView_.viewport.removeEventListener(
               'change', this.onViewportChanged_);
-          this.trackView_.selectionController = undefined;
+          this.trackView_.brushingStateController = undefined;
           this.trackView_.detach();
           this.trackView_ = undefined;
         }
-        this.selectionController_.modelWillChange();
+        this.brushingStateController_.modelWillChange();
       }
 
       // Create new trackView if needed.
@@ -372,7 +377,7 @@ found in the LICENSE file.
         this.trackView_ = document.createElement('tr-ui-timeline-track-view');
         this.trackView_.timelineView = this;
 
-        this.trackView.selectionController = this.selectionController_;
+        this.trackView.brushingStateController = this.brushingStateController_;
 
         this.trackViewContainer_.appendChild(this.trackView_);
         this.trackView_.viewport.addEventListener(
@@ -388,18 +393,20 @@ found in the LICENSE file.
           var railScore = tr.e.rail.RAILScore.fromModel(model);
           this.railScoreSpan_.railScore = railScore;
         }
+
+        this.$.display_unit.preferredDisplayUnit = model.intrinsicTimeUnit;
       }
 
       // Do things that are selection specific
       if (modelInstanceChanged) {
         this.updateMetadataButtonVisibility_();
-        this.selectionController_.modelDidChange();
+        this.brushingStateController_.modelDidChange();
         this.onViewportChanged_();
       }
     },
 
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
     get trackView() {

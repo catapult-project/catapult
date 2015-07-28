@@ -21,10 +21,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.tquery', function() {
-  function TQuery(selectionController) {
+  function TQuery(brushingStateController) {
     tr.c.ScriptingObject.call(this);
 
-    this.selectionController_ = selectionController;
+    this.brushingStateController_ = brushingStateController;
     this.parent_ = undefined;
     this.filterExpression_ = undefined;
     // Memoized filtering result.
@@ -38,14 +38,14 @@ tr.exportTo('tr.e.tquery', function() {
       this.selection_ = undefined;
     },
 
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
     // Append a new filter expression to this query and return a query node
     // that represents the result.
     filter: function(filterExpression) {
-      var result = new TQuery(this.selectionController_);
+      var result = new TQuery(this.brushingStateController_);
       result.parent_ = this;
       result.filterExpression_ =
           tr.e.tquery.Filter.normalizeFilterExpression(filterExpression);
@@ -81,7 +81,7 @@ tr.exportTo('tr.e.tquery', function() {
         node.selection_ = new tr.model.EventSet();
         if (node.parent_ === undefined) {
           // If this is the root, start by collecting all objects from the
-          // selection controller.
+          // brushing state controller.
           lastTask = lastTask.after(
               this.selectEverythingAsTask_(node.selection_));
         } else {
@@ -133,25 +133,25 @@ tr.exportTo('tr.e.tquery', function() {
       }
     },
 
-    // Show the result as a highlight on the selection controller. Returns a
-    // {Task} which runs the query and sets the highlight.
+    // Show the result as a highlight on the brushing state controller. Returns
+    // a {Task} which runs the query and sets the highlight.
     show: function() {
       var graph = this.createFilterTaskGraph_();
 
       graph.lastTask = graph.lastTask.after(function() {
-        this.selectionController.showScriptControlSelection(
+        this.brushingStateController.showScriptControlSelection(
             graph.lastNode.selection_);
       }, this);
       return graph.rootTask;
     },
 
     // Returns a task that fills the given selection with everything reachable
-    // by the selection controller.
+    // by the brushing state controller.
     selectEverythingAsTask_: function(selection) {
       var passThroughFilter = new tr.c.Filter();
-      var filterTask =
-        this.selectionController.addAllEventsMatchingFilterToSelectionAsTask(
-            passThroughFilter, selection);
+      var filterTask = this.brushingStateController.
+          addAllEventsMatchingFilterToSelectionAsTask(passThroughFilter,
+              selection);
       return filterTask;
     },
 

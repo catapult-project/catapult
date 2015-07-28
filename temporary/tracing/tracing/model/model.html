@@ -254,8 +254,9 @@ tr.exportTo('tr', function() {
       return stackFrame;
     },
 
-    addInteractionRecord: function(ir1) {
-      this.interaction_records.push(ir1);
+    addInteractionRecord: function(ir) {
+      this.interaction_records.push(ir);
+      return ir;
     },
 
     getClockSyncRecordsNamed: function(name) {

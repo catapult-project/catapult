@@ -21,6 +21,11 @@ tr.exportTo('tr.e.rail', function() {
          this, args.railTypeName, args.railTypeName,
          sd.start, sd.duration);
     this.args = args;
+    if (args.associatedEvents) {
+      args.associatedEvents.forEach(function(event) {
+        this.associatedEvents.push(event);
+      }, this);
+    }
   }
 
   StubRAILInteractionRecord.prototype = {

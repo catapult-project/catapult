@@ -9,8 +9,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.c', function() {
-  function matchLower(value, pattern) {
-    return value.toLowerCase().indexOf(pattern) !== -1;
+  function makeCaseInsensitiveRegex(pattern) {
+    // See https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/
+    // Regular_Expressions.
+    pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(pattern, 'i');
   }
 
   /**
@@ -50,7 +53,7 @@ tr.exportTo('tr.c', function() {
    */
   function TitleOrCategoryFilter(text) {
     Filter.call(this);
-    this.text_ = text.toLowerCase();
+    this.regex_ = makeCaseInsensitiveRegex(text);
 
     if (!text.length)
       throw new Error('Filter text is empty.');
@@ -62,8 +65,8 @@ tr.exportTo('tr.c', function() {
       if (slice.title === undefined && slice.category === undefined)
         return false;
 
-      return matchLower(slice.title, this.text_) ||
-          (!!slice.category && matchLower(slice.category, this.text_));
+      return this.regex_.test(slice.title) ||
+          (!!slice.category && this.regex_.test(slice.category));
     }
   };
 
@@ -85,10 +88,44 @@ tr.exportTo('tr.c', function() {
     }
   };
 
+  /**
+   * @constructor A filter that matches objects by their full text contents
+   * (title, category, args). Note that for performance this filter applies a
+   * regex against all the keys of the slice arguments instead of recursing
+   * through any embedded sub-objects.
+   */
+  function FullTextFilter(text) {
+    Filter.call(this);
+    this.regex_ = makeCaseInsensitiveRegex(text);
+    this.titleOrCategoryFilter_ = new TitleOrCategoryFilter(text);
+  }
+  FullTextFilter.prototype = {
+    __proto__: Filter.prototype,
+
+    matchObject_: function(obj) {
+      for (var key in obj) {
+        if (!obj.hasOwnProperty(key))
+          continue;
+        if (this.regex_.test(key))
+          return true;
+        if (this.regex_.test(obj[key]))
+          return true;
+      }
+      return false;
+    },
+
+    matchSlice: function(slice) {
+      if (this.titleOrCategoryFilter_.matchSlice(slice))
+        return true;
+      return this.matchObject_(slice.args);
+    }
+  };
+
   return {
     Filter: Filter,
     TitleOrCategoryFilter: TitleOrCategoryFilter,
-    ExactTitleFilter: ExactTitleFilter
+    ExactTitleFilter: ExactTitleFilter,
+    FullTextFilter: FullTextFilter
   };
 });
 </script>

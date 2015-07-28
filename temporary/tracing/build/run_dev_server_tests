@@ -34,7 +34,10 @@ PLATFORM_MAPPING = {
         'omaha': 'win',
         'cs_dir': 'win',
         'cs_filename': 'win',
-        'chromepath': 'chrome-win\\chrome.exe',
+        'chromepath': 'Chrome-bin\\chrome.exe',
+        'installer_url': ('https://commondatastorage.googleapis.com/'
+                          'chrome-signed/desktop-W15K3Y/%VERSION%/win/'
+                          '%VERSION%_chrome_installer.exe'),
     },
     'darwin': {
         'omaha': 'mac',
@@ -70,12 +73,52 @@ def StartXvfb():
     logging.error('Xvfb did not start, returncode: %s', returncode)
 
 
+def IsDepotToolsPath(path):
+  return os.path.isfile(os.path.join(path, 'gclient'))
+
+
+def FindDepotTools():
+  # Check if depot_tools is already in PYTHONPATH
+  for path in sys.path:
+    if path.rstrip(os.sep).endswith('depot_tools') and IsDepotToolsPath(path):
+      return path
+
+  # Check if depot_tools is in the path
+  for path in os.environ['PATH'].split(os.pathsep):
+    if IsDepotToolsPath(path):
+        return path.rstrip(os.sep)
+
+  return None
+
+
+def DownloadSignedWinChromeStable(url, version):
+  url = url.replace('%VERSION%', version)
+  tmpdir = tempfile.mkdtemp()
+  installer_path = os.path.join(tmpdir, url[url.rindex('/') + 1:])
+  with open(installer_path, 'wb') as local_file:
+    local_file.write(urllib2.urlopen(url).read())
+  depot_tools_path = FindDepotTools()
+  path_7z = os.path.join(depot_tools_path, 'win_toolchain', '7z', '7z.exe')
+  command_7z = [path_7z, 'x', '-o' + tmpdir, installer_path]
+  process_7z = subprocess.Popen(
+    command_7z, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  out_7z, err_7z = process_7z.communicate()
+  command_7z = [path_7z, 'x', '-o' + tmpdir, os.path.join(tmpdir, 'chrome.7z')]
+  process_7z = subprocess.Popen(
+    command_7z, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  out_7z, err_7z = process_7z.communicate()
+  return tmpdir, version
+
+
 def DownloadChromeStable():
   platform_data = PLATFORM_MAPPING[sys.platform]
   omaha_platform = platform_data['omaha']
   omaha_url = OMAHA_URL % omaha_platform
   response = urllib2.urlopen(omaha_url)
   version = response.readlines()[1].split(',')[2]
+  if 'installer_url' in platform_data:
+    return DownloadSignedWinChromeStable(
+        platform_data['installer_url'], version)
   cs_url = CLOUDSTORAGE_URL % (
       version,
       platform_data['cs_dir'],
@@ -89,12 +132,12 @@ def DownloadChromeStable():
   return tmpdir, version
 
 
-def RunTests():
+def main():
   try:
     platform_data = PLATFORM_MAPPING[sys.platform]
     if platform_data.get('use_xfvb'):
       StartXvfb()
-    profiledir = tempfile.mkdtemp()
+    user_data_dir = tempfile.mkdtemp()
     tmpdir, version = DownloadChromeStable()
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'run_dev_server')
@@ -115,7 +158,7 @@ def RunTests():
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
     chrome_command = [
         chrome_path,
-        '--profile-directory=%s' % profiledir,
+        '--user-data-dir=%s' % user_data_dir,
         '--no-sandbox',
         '--no-experiments',
         '--no-first-run',
@@ -124,35 +167,22 @@ def RunTests():
     ]
     chrome_process = subprocess.Popen(
         chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    sleep(120)
-    server_process.kill()
-#    server_out, server_err = server_process.communicate()
+    server_out, server_err = server_process.communicate()
     chrome_process.kill()
-    print "CHROME OUTPUT"
-    print chrome_process.stdout.read()
-    print "CHROME ERRORS"
-    print chrome_process.stderr.read()
-    print "SERVER OUTPUT"
-    print server_process.stdout.read()
-    print "SERVER ERRORS"
-    print server_process.stderr.read()
-#    if server_process.returncode != 0:
-#      logging.error('Tests failed!')
-#      logging.error('Server stderr:')
-#      logging.error(server_err)
-#      logging.error('Server stdout:')
-#      logging.error(server_out)
-#    else:
-#      print server_out
+    if server_process.returncode != 0:
+      logging.error('Tests failed!')
+      logging.error('Server stderr:')
+      logging.error(server_err)
+      logging.error('Server stdout:')
+      logging.error(server_out)
+    else:
+      print server_out
   finally:
     shutil.rmtree(tmpdir)
-    shutil.rmtree(profiledir)
+    shutil.rmtree(user_data_dir)
 
   sys.exit(server_process.returncode)
 
-
-def main():
-  RunTests()
 
 
 if __name__ == "__main__":

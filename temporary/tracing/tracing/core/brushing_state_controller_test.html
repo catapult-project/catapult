@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/brushing_state_controller.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/event_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  var EventSet = tr.model.EventSet;
+  var SelectionState = tr.model.SelectionState;
+  var Task = tr.b.Task;
+
+  function newSimpleFakeTimelineView() {
+    var m = tr.c.test_utils.newModel(function(m) {
+      m.p1 = m.getOrCreateProcess(1);
+      m.t2 = m.p1.getOrCreateThread(2);
+
+      m.sA = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'a', start: 0, end: 5}));
+      m.sB = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'b', start: 10, end: 15}));
+      m.sC = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'c', start: 20, end: 20}));
+    });
+
+    // Fake timeline view. So fake its ... just wow.
+    var timelineView = {
+      model: m
+    };
+    return timelineView;
+  }
+
+  function doesCauseChangeToFire(brushingStateController, cb, opt_this) {
+    var didFire = false;
+    function didFireCb() {
+      didFire = true;
+    };
+    brushingStateController.addEventListener('change', didFireCb);
+    cb.call(opt_this);
+    brushingStateController.removeEventListener('change', didFireCb);
+    return didFire;
+  }
+
+  test('simpleStateChanges', function() {
+    var timelineView = newSimpleFakeTimelineView();
+    var brushingStateController =
+        new tr.c.BrushingStateController(timelineView);
+    var m = timelineView.model;
+
+    // Setting empty brushing state doesn't cause change event. This behavior
+    // is triggered when the user tries to search for something when no trace
+    // has been loaded yet in chrome://tracing.
+    var bs0 = new tr.ui.b.BrushingState();
+    assert.isFalse(doesCauseChangeToFire(
+        brushingStateController,
+        function() {
+          brushingStateController.currentBrushingState = bs0;
+        }));
+    assert.isFalse(bs0.isAppliedToModel);
+    assert.strictEqual(brushingStateController.currentBrushingState, bs0);
+
+    // Setting causes change.
+    var bs1 = new tr.ui.b.BrushingState();
+    bs1.selection = new EventSet([m.sA]);
+    assert.isTrue(doesCauseChangeToFire(
+        brushingStateController,
+        function() {
+          brushingStateController.currentBrushingState = bs1;
+        }));
+    assert.isTrue(bs1.isAppliedToModel);
+
+    // Setting value equivalent doesn't cause change event.
+    var bs2 = bs1.clone();
+    assert.isFalse(doesCauseChangeToFire(
+        brushingStateController,
+        function() {
+          brushingStateController.currentBrushingState = bs2;
+        }));
+    assert.equal(brushingStateController.currentBrushingState, bs2);
+    assert.isTrue(
+        brushingStateController.currentBrushingState.isAppliedToModel);
+
+    // Setting to something different unapplies the old bs.
+    var bs3 = new tr.ui.b.BrushingState();
+    bs3.findMatches = new EventSet([m.sA, m.sB]);
+    brushingStateController.currentBrushingState = bs3;
+    assert.isTrue(bs3.isAppliedToModel);
+    assert.isFalse(bs2.isAppliedToModel);
+  });
+
+  test('modelCausesStateChange', function() {
+    var timelineView = newSimpleFakeTimelineView();
+    var brushingStateController =
+        new tr.c.BrushingStateController(timelineView);
+
+    var m1 = timelineView.model;
+
+    var bs1 = new tr.ui.b.BrushingState();
+    bs1.selection = new EventSet([m1.sA]);
+
+    // Change the model.
+    var m2 = tr.c.test_utils.newModel(function(m) {
+      m.p1 = m.getOrCreateProcess(1);
+      m.t2 = m.p1.getOrCreateThread(2);
+
+      m.sA = m.t2.sliceGroup.pushSlice(
+          newSliceEx({title: 'a', start: 0, end: 5}));
+    });
+    assert.isTrue(doesCauseChangeToFire(
+        brushingStateController,
+        function() {
+          brushingStateController.modelWillChange();
+          timelineView.model = m2;
+          brushingStateController.modelDidChange();
+        }));
+    assert.equal(
+        brushingStateController.currentBrushingState.selection.length, 0);
+  });
+
+  function addChildDiv(element) {
+    var child = element.ownerDocument.createElement('div');
+    element.appendChild(child);
+    return child;
+  }
+
+  function addShadowChildDiv(element) {
+    var shadowRoot = element.createShadowRoot();
+    return addChildDiv(shadowRoot);
+  }
+
+  if (!tr.isHeadless) {
+    test('getControllerForElement_none', function() {
+      var element = document.createElement('div');
+
+      assert.isUndefined(
+          tr.c.BrushingStateController.getControllerForElement(element));
+    });
+
+    test('getControllerForElement_self', function() {
+      var controller = new tr.c.BrushingStateController(undefined);
+      var element = document.createElement('div');
+      element.brushingStateController = controller;
+
+      assert.strictEqual(
+          tr.c.BrushingStateController.getControllerForElement(element),
+          controller);
+    });
+
+    test('getControllerForElement_ancestor', function() {
+      var controller = new tr.c.BrushingStateController(undefined);
+      var ancestor = document.createElement('div');
+      ancestor.brushingStateController = controller;
+
+      var element = addChildDiv(addChildDiv(addChildDiv(ancestor)));
+      assert.strictEqual(
+          tr.c.BrushingStateController.getControllerForElement(element),
+          controller);
+    });
+
+    test('getControllerForElement_host', function() {
+      var controller = new tr.c.BrushingStateController(undefined);
+      var host = document.createElement('div');
+      host.brushingStateController = controller;
+
+      var element = addShadowChildDiv(host);
+      assert.strictEqual(
+          tr.c.BrushingStateController.getControllerForElement(element),
+          controller);
+    });
+
+    test('getControllerForElement_hierarchy', function() {
+      var controller1 = new tr.c.BrushingStateController(undefined);
+      var root = document.createElement('div');
+      root.brushingStateController = controller1;
+
+      var controller2 = new tr.c.BrushingStateController(undefined);
+      var child = addChildDiv(root);
+      child.brushingStateController = controller2;
+
+      var controller3 = new tr.c.BrushingStateController(undefined);
+      var shadowChild = addShadowChildDiv(child);
+      shadowChild.brushingStateController = controller3;
+
+      var element = addChildDiv(addChildDiv(addShadowChildDiv(
+          addChildDiv(addChildDiv(addShadowChildDiv(
+              addChildDiv(shadowChild)))))));
+      assert.strictEqual(
+          tr.c.BrushingStateController.getControllerForElement(element),
+          controller3);
+    });
+  }
+});
+</script>

@@ -439,10 +439,12 @@ tr.exportTo('tr.model', function() {
       var rootSlice = slices[0];
       this.topLevelSlices = [];
       this.topLevelSlices.push(rootSlice);
+      rootSlice.isTopLevel = true;
       for (var i = 1; i < slices.length; i++) {
         var slice = slices[i];
         if (!addSliceIfBounds(rootSlice, slice)) {
           rootSlice = slice;
+          rootSlice.isTopLevel = true;
           this.topLevelSlices.push(rootSlice);
         }
       }

@@ -216,9 +216,17 @@ def CheckLongLines(input_api, maxlen=80):
   else:
     return []
 
+def CheckChangeLogBug(input_api):
+  results = []
+  if input_api.change.BUG is None or re.match('\#\d+$', input_api.change.BUG):
+    return []
+  return [('Invalid bug "%s". BUG= should either not be present or start'
+           ' with # for a github issue.' % input_api.change.BUG)]
+
 
 def RunChecks(input_api):
   results = []
   results += CheckCopyright(input_api)
   results += CheckLongLines(input_api)
+  results += CheckChangeLogBug(input_api)
   return results

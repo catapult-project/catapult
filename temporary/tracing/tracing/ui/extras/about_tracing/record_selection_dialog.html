@@ -111,6 +111,38 @@ found in the LICENSE file.
   .group-selectors button {
     padding: 1px;
   }
+
+  .record-selection-dialog .labeled-option-group {
+    -webkit-flex: 0 0 auto;
+    -webkit-flex-direction: column;
+    -webkit-align-items: left;
+    display: -webkit-flex;
+  }
+
+  .record-selection-dialog .labeled-option {
+    border-top: 5px solid white;
+    border-bottom: 5px solid white;
+  }
+
+  .record-selection-dialog .edit-categories {
+    padding-left: 6px;
+  }
+
+  .record-selection-dialog .edit-categories:after {
+    padding-left: 15px;
+    font-size: 125%;
+  }
+
+  .record-selection-dialog .labeled-option-group:not(.categories-expanded)
+      .edit-categories:after {
+    content: '\25B8'; /* Right triangle */
+  }
+
+  .record-selection-dialog .labeled-option-group.categories-expanded
+      .edit-categories:after {
+    content: '\25BE'; /* Down triangle */
+  }
+
   </style>
 
   <div class="record-selection-dialog">
@@ -186,7 +218,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         'value': 'record-as-much-as-possible'}];
   var DEFAULT_RECORD_MODE = 'record-until-full';
   var DEFAULT_CONTINUOUS_TRACING = true;
-  var DEFAULT_SYSTEM_TRACING = false;
+  var DEFAULT_SYSTEM_TRACING = true;
   var DEFAULT_SAMPLING_TRACING = false;
 
   RecordSelectionDialog.prototype = {
@@ -228,11 +260,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       this.systemTracingBn_ = tr.ui.b.createCheckBox(
           undefined, undefined,
-          'recordSelectionDialog.useSystemTracing', true,
+          'recordSelectionDialog.useSystemTracing', DEFAULT_SYSTEM_TRACING,
           'System tracing');
       this.samplingTracingBn_ = tr.ui.b.createCheckBox(
           undefined, undefined,
-          'recordSelectionDialog.useSampling', false,
+          'recordSelectionDialog.useSampling', DEFAULT_SAMPLING_TRACING,
           'State sampling');
       this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
       this.tracingModesContainerEl_.appendChild(this.tracingRecordModeSltr_);
@@ -272,8 +304,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get tracingRecordMode() {
-      if (this.usingPreset_())
-        return DEFAULT_RECORD_MODE;
       return this.tracingRecordModeSltr_.selectedValue;
     },
     set tracingRecordMode(value) {
@@ -281,8 +311,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get useSystemTracing() {
-      if (this.usingPreset_())
-        return DEFAULT_SYSTEM_TRACING;
       return this.systemTracingBn_.checked;
     },
     set useSystemTracing(value) {
@@ -290,8 +318,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     get useSampling() {
-      if (this.usingPreset_())
-        return DEFAULT_SAMPLING_TRACING;
       return this.samplingTracingBn_.checked;
     },
     set useSampling(value) {
@@ -299,6 +325,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     set categories(c) {
+      if (!(c instanceof Array))
+        throw new Error('categories must be an array');
       this.categories_ = c;
 
       for (var i = 0; i < this.categories_.length; i++) {

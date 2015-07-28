@@ -84,7 +84,6 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     set expanded(expanded) {
-      expanded = expanded;
       if (this.expanded_ == expanded)
         return;
       this.expanded_ = expanded;
@@ -129,11 +128,18 @@ tr.exportTo('tr.ui.tracks', function() {
     expandedStateChanged_: function() {
       var minH = Math.max(2, Math.ceil(18 / this.children.length));
       var h = (this.expanded_ ? 18 : minH) + 'px';
-      for (var i = 0; i < this.children.length; i++)
-        this.children[i].height = h;
 
-      if (this.children.length > 0)
-        this.children[0].expanded = this.expanded;
+      for (var i = 0; i < this.children.length; i++) {
+        this.children[i].height = h;
+        if (i === 0)
+          this.children[i].arrowVisible = true;
+        this.children[i].expanded = this.expanded;
+      }
+
+      if (this.children.length === 1) {
+        this.children[0].expanded = true;
+        this.children[0].arrowVisible = false;
+      }
     },
 
     updateContents_: function() {

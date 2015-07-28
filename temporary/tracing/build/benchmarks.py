@@ -32,30 +32,6 @@ class Bench(object):
     pass
 
 
-class CalcDepsBench(Bench):
-
-  def Run(self):
-    project = tracing_project.TracingProject()
-    project.CalcLoadSequenceForAllModules()
-
-
-class FindAllModuleFilenamesBench(Bench):
-
-  def Run(self):
-    project = tracing_project.TracingProject()
-    project.FindAllModuleFilenames()
-
-
-class DoGenerate(Bench):
-
-  def SetUp(self):
-    self.project = tracing_project.TracingProject()
-    self.load_sequence = project.CalcLoadSequenceForAllModules()
-
-  def Run(self):
-    self.deps = generate.GenerateDepsJS(self.load_sequence, self.project)
-
-
 def Main(args):
   parser = optparse.OptionParser()
   parser.add_option('--repeat-count', type='int',

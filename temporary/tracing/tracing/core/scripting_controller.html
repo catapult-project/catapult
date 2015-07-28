@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.c', function() {
-  function ScriptingController(selectionController) {
-    this.selectionController_ = selectionController;
+  function ScriptingController(brushingStateController) {
+    this.brushingStateController_ = brushingStateController;
     this.scriptObjectNames_ = [];
     this.scriptObjectValues_ = [];
-    this.selectionController.addEventListener(
+    this.brushingStateController.addEventListener(
         'model-changed', this.onModelChanged_.bind(this));
 
     // Register all scripting objects.
@@ -34,8 +34,8 @@ tr.exportTo('tr.c', function() {
   tr.b.decorateExtensionRegistry(ScriptingObjectRegistry, options);
 
   ScriptingController.prototype = {
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
     onModelChanged_: function() {

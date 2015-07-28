@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         setTimeout(function() {
           recordingPromise.selectionDlg.clickRecordButton();
         }, 20);
-        return JSON.stringify(['a', 'b', 'c']);
+        return ['a', 'b', 'c'];
       });
       mock.expectRequest('beginRecording', function(recordingOptions) {
         assert.typeOf(recordingOptions.categoryFilter, 'string');

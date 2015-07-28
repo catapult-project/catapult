@@ -84,7 +84,7 @@ found in the LICENSE file.
 
       this.viewport_ = new tr.ui.TimelineViewport(this);
       this.viewportDisplayTransformAtMouseDown_ = undefined;
-      this.selectionController_ = undefined;
+      this.brushingStateController_ = undefined;
 
       this.rulerTrackContainer_ =
           new tr.ui.tracks.DrawingContainer(this.viewport_);
@@ -210,18 +210,18 @@ found in the LICENSE file.
           m.ZOOM, tr.ui.b.MODIFIER.CMD_OR_CTRL);
     },
 
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
-    set selectionController(selectionController) {
-      if (this.selectionController_) {
-        this.selectionController_.removeEventListener('change',
+    set brushingStateController(brushingStateController) {
+      if (this.brushingStateController_) {
+        this.brushingStateController_.removeEventListener('change',
                                                       this.onSelectionChanged_);
       }
-      this.selectionController_ = selectionController;
-      if (this.selectionController_) {
-        this.selectionController_.addEventListener('change',
+      this.brushingStateController_ = brushingStateController;
+      if (this.brushingStateController_) {
+        this.brushingStateController_.addEventListener('change',
                                                    this.onSelectionChanged_);
       }
     },
@@ -489,11 +489,11 @@ found in the LICENSE file.
       addBinding({
         keyCode: 37, // Left arrow.
         callback: function(e) {
-          var curSel = this.selectionController_.selection;
+          var curSel = this.brushingStateController_.selection;
           var sel = this.viewport.getShiftedSelection(curSel, -1);
 
           if (sel) {
-            this.selectionController.changeSelectionFromTimeline(sel);
+            this.brushingStateController.changeSelectionFromTimeline(sel);
             this.panToSelection();
           } else {
             this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
@@ -506,10 +506,10 @@ found in the LICENSE file.
       addBinding({
         keyCode: 39, // Right arrow.
         callback: function(e) {
-          var curSel = this.selectionController_.selection;
+          var curSel = this.brushingStateController_.selection;
           var sel = this.viewport.getShiftedSelection(curSel, 1);
           if (sel) {
-            this.selectionController.changeSelectionFromTimeline(sel);
+            this.brushingStateController.changeSelectionFromTimeline(sel);
             this.panToSelection();
           } else {
             this.queueSmoothPan_(-this.viewWidth_ * 0.3, 0);
@@ -525,7 +525,7 @@ found in the LICENSE file.
           tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
-      var curSelection = this.selectionController_.selection;
+      var curSelection = this.brushingStateController_.selection;
       if (!curSelection.length || !curSelection[0].title)
         return;
 
@@ -534,7 +534,7 @@ found in the LICENSE file.
       this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
                                                               selection);
 
-      this.selectionController.changeSelectionFromTimeline(selection);
+      this.brushingStateController.changeSelectionFromTimeline(selection);
     },
 
     onMouseWheel_: function(e) {
@@ -648,10 +648,10 @@ found in the LICENSE file.
      * Zoom into the current selection.
      */
     zoomToSelection: function() {
-      if (!this.selectionController.selectionOfInterest.length)
+      if (!this.brushingStateController.selectionOfInterest.length)
         return;
 
-      var bounds = this.selectionController.selectionOfInterest.bounds;
+      var bounds = this.brushingStateController.selectionOfInterest.bounds;
       if (!bounds.range)
         return;
 
@@ -674,10 +674,10 @@ found in the LICENSE file.
      * Pan the view so the current selection becomes visible.
      */
     panToSelection: function() {
-      if (!this.selectionController.selectionOfInterest.length)
+      if (!this.brushingStateController.selectionOfInterest.length)
         return;
 
-      var bounds = this.selectionController.selectionOfInterest.bounds;
+      var bounds = this.brushingStateController.selectionOfInterest.bounds;
       var worldCenter = bounds.center;
       var viewWidth = this.viewWidth_;
 
@@ -738,7 +738,7 @@ found in the LICENSE file.
     },
 
     setCurrentSelectionAsInterestRange_: function() {
-      var selectionBounds = this.selectionController_.selection.bounds;
+      var selectionBounds = this.brushingStateController_.selection.bounds;
       if (selectionBounds.empty) {
         this.viewport_.interestRange.reset();
         return;
@@ -830,7 +830,7 @@ found in the LICENSE file.
     },
 
     onGridToggle_: function(left) {
-      var selection = this.selectionController_.selection;
+      var selection = this.brushingStateController_.selection;
       var tb = left ? selection.bounds.min : selection.bounds.max;
 
       // Toggle the grid off if the grid is on, the marker position is the same
@@ -1012,7 +1012,7 @@ found in the LICENSE file.
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      this.selectionController_.changeSelectionFromTimeline(selection);
+      this.brushingStateController_.changeSelectionFromTimeline(selection);
     },
 
     onBeginZoom_: function(e) {

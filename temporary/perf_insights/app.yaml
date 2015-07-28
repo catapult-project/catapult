@@ -4,7 +4,7 @@
 
 application: performance-insights
 
-version: 2
+version: 3
 api_version: 1
 runtime: python27
 threadsafe: true

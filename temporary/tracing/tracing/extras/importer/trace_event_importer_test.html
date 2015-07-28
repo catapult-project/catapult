@@ -2608,7 +2608,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.equal(m.samples[0].title, 'cycles:HG');
     assert.equal(m.samples[0].start, 1);
     assert.deepEqual(
-        ['main', 'a', 'a_sub'],
+        ['a_sub', 'a', 'main'],
         m.samples[0].stackTrace.map(function(x) { return x.title; }));
     assert.equal(m.samples[0].weight, 1);
   });
@@ -3513,6 +3513,50 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     };
     var m = new tr.Model(JSON.stringify(eventData), false);
     assert.equal(m.intrinsicTimeUnit, tr.b.units.Time.supportedUnits.ns);
+  });
+
+  test('extractBattorSubTraces', function() {
+    var battorLog = '# BattOr\n# voltage range [0.000000, 7196.484161] mV\n' +
+        '#current range [11.898481, 2110.900916] mA\n' +
+        '# sample_rate=10000Hz, gain=30.257143x\n' +
+        '# filpot_pos=3, amppot_pos=35, timer_ovf=399, timer_div=4 ovs_bits=0\n' + // @suppress longLineCheck
+        '0.0 1040.3 3984.2\n' +
+        '0.1 1081.3 3987.8\n' +
+        '0.2 1092.6 3987.8\n' +
+        '0.3 1070.0 3987.8\n' +
+        '0.4 1017.7 3994.8\n';
+
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      battorLogAsString: battorLog
+    };
+
+    var m = new tr.Model(eventData, false);
+    var importer = new tr.e.importer.TraceEventImporter(m, eventData);
+    var subTraces = importer.extractSubtraces();
+    assert.isTrue(subTraces instanceof Array);
+    assert.equal(subTraces.length, 1);
+    assert.equal(subTraces[0], battorLog);
+  });
+
+  test('metadataParsing', function() {
+    var metadataValue = {value: {}};
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      metadata: metadataValue
+    };
+
+    var m = new tr.Model(eventData);
+    assert.isTrue(m.metadata instanceof Array);
+    assert.equal(m.metadata.length, 1);
+    assert.equal(m.metadata[0].name, 'metadata');
+    assert.equal(m.metadata[0].value, metadataValue);
   });
 
   // TODO(nduca): one slice, two threads

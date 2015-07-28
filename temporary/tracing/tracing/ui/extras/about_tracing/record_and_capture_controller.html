@@ -93,9 +93,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     // Step 1: Get categories.
     function getCategories() {
-      tracingControllerClient.getCategories().then(
+      var p = tracingControllerClient.getCategories().then(
           showTracingDialog,
           beginRecordingError);
+      p.catch(function(err) {
+        beginRecordingError(err);
+      });
     }
 
     // Step 2: Show tracing dialog.

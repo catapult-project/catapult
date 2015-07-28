@@ -15,7 +15,7 @@ if tracing_path not in sys.path:
 
 from tracing import tracing_project
 
-import tvcm
+from build import dev_server
 
 
 def getFilesIn(basedir):
@@ -107,7 +107,7 @@ def Main(args):
   parser.add_argument('-p', '--port', default=8003, type=int)
   args = parser.parse_args(args=args)
 
-  server = tvcm.DevServer(port=args.port, project=project)
+  server = dev_server.DevServer(port=args.port, project=project)
   server.data_dir = os.path.abspath(args.data_dir)
   server.skp_data_dir = os.path.abspath(args.skp_data_dir)
   project.source_paths.append(server.data_dir)

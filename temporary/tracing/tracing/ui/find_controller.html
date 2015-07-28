@@ -18,8 +18,8 @@ found in the LICENSE file.
 tr.exportTo('tr.ui', function() {
   var Task = tr.b.Task;
 
-  function FindController(selectionController) {
-    this.selectionController_ = selectionController;
+  function FindController(brushingStateController) {
+    this.brushingStateController_ = brushingStateController;
     this.filterHits_ = new tr.model.EventSet();
     this.currentHitIndex_ = -1;
     this.activePromise_ = Promise.resolve();
@@ -30,11 +30,11 @@ tr.exportTo('tr.ui', function() {
     __proto__: Object.prototype,
 
     get model() {
-      return this.selectionController_.model;
+      return this.brushingStateController_.model;
     },
 
-    get selectionController() {
-      return this.selectionController_;
+    get brushingStateController() {
+      return this.brushingStateController_;
     },
 
     enqueueOperation_: function(operation) {
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui', function() {
      * promise which resolves when |filterHits| has been refreshed.
      */
     startFiltering: function(filterText) {
-      var sc = this.selectionController_;
+      var sc = this.brushingStateController_;
       if (!sc)
         return;
 
@@ -97,7 +97,7 @@ tr.exportTo('tr.ui', function() {
         if (filterText.length === 0) {
           this.enqueueOperation_(sc.findTextCleared.bind(sc));
         } else {
-          var filter = new tr.c.TitleOrCategoryFilter(filterText);
+          var filter = new tr.c.FullTextFilter(filterText);
           var filterHits = new tr.model.EventSet();
           this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
               filter, filterHits));
@@ -131,10 +131,10 @@ tr.exportTo('tr.ui', function() {
       var N = this.filterHits.length;
       this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
-      if (!this.selectionController_)
+      if (!this.brushingStateController_)
         return;
 
-      this.selectionController_.findFocusChangedTo(
+      this.brushingStateController_.findFocusChangedTo(
           this.filterHits.subEventSet(this.currentHitIndex_, 1));
     },
 

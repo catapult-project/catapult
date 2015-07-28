@@ -36,82 +36,57 @@ tr.exportTo('tr.e.audits', function() {
     });
   }
 
-  function addGeneralLatencyInfoEvent(model, dict) {
-    dict.title = 'InputLatency';
-    dict.isTopLevel = true;
+  function addEvent(thread, dict) {
+    thread.asyncSliceGroup.push(tr.c.test_utils.newAsyncSliceEx(dict));
+  }
+
+  function addInputEvent(model, typeName, dict) {
+    dict.title = 'InputLatency::' + typeName;
+    dict.isTopLevel = (dict.isTopLevel === undefined);
+    dict.startThread = model.browserMain;
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    return slice;
-  }
-
-  function addFlingStartLatencyInfoEvent(model, dict) {
-    var topEvent = addGeneralLatencyInfoEvent(model, dict);
-
-    dict.start = dict.flingStart;
-    dict.end = topEvent.end;
-    dict.title = 'InputLatency:GestureFlingStart';
-    var flingStartEvent = tr.c.test_utils.newAsyncSliceEx(dict);
-    topEvent.subSlices.push(flingStartEvent);
-    return topEvent;
-  }
-
-  function addFlingCancelLatencyInfoEvent(model, dict) {
-    var topEvent = addGeneralLatencyInfoEvent(model, dict);
-
-    dict.start = dict.flingCancel;
-    dict.end = topEvent.end;
-    dict.title = 'InputLatency:GestureFlingCancel';
-    var flingCancelEvent = tr.c.test_utils.newAsyncSliceEx(dict);
-    topEvent.subSlices.push(flingCancelEvent);
-    return topEvent;
   }
 
   function addFlingAnimationEvent(model, dict) {
     dict.title = 'InputHandlerProxy::HandleGestureFling::started';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererCompositor.asyncSliceGroup.push(slice);
-    return slice;
   }
 
   function addFrameEvent(model, dict) {
     dict.title = tr.e.audits.IMPL_RENDERING_STATS;
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    return slice;
   }
 
   function addLoadingEvent(model, dict) {
     dict.title = 'WebContentsImpl Loading';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    return slice;
   }
 
   function addNetworkEvent(model, dict) {
+    dict.cat = 'netlog';
     dict.title = 'Generic Network event';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.browserMain.asyncSliceGroup.push(slice);
-    // TODO Why can't this be dict.cat?
-    slice.cat = 'netlog';
-    return slice;
   }
 
-  function addProvisionalLoadEvent(model, dict) {
+  function addCommitLoadEvent(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
-    return slice;
   }
 
   return {
     newChromeModel: newChromeModel,
+    addEvent: addEvent,
+    addInputEvent: addInputEvent,
     addFrameEvent: addFrameEvent,
     addLoadingEvent: addLoadingEvent,
     addNetworkEvent: addNetworkEvent,
-    addProvisionalLoadEvent: addProvisionalLoadEvent,
-    addGeneralLatencyInfoEvent: addGeneralLatencyInfoEvent,
-    addFlingStartLatencyInfoEvent: addFlingStartLatencyInfoEvent,
-    addFlingCancelLatencyInfoEvent: addFlingCancelLatencyInfoEvent,
+    addCommitLoadEvent: addCommitLoadEvent,
     addFlingAnimationEvent: addFlingAnimationEvent
   };
 });

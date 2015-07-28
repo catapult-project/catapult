@@ -9,7 +9,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('singleSeries', function() {
+  test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.LineChart();
     chart.width = 400;
     chart.height = 200;
@@ -24,17 +24,17 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
   });
 
-  test('twoSeries', function() {
+  test('instantiation_twoSeries', function() {
     var chart = new tr.ui.b.LineChart();
 
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
     var data = [
-      {x: 10, value1: 100, value2: 50},
-      {x: 20, value1: 110, value2: 75},
-      {x: 30, value1: 100, value2: 125},
-      {x: 40, value1: 50, value2: 125}
+      {x: 10, alpha: 100, beta: 50},
+      {x: 20, alpha: 110, beta: 75},
+      {x: 30, alpha: 100, beta: 125},
+      {x: 40, alpha: 50, beta: 125}
     ];
     chart.data = data;
 
@@ -42,6 +42,42 @@ tr.b.unittest.testSuite(function() {
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
+    var chart = new tr.ui.b.LineChart();
+
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 10, alpha: 20, beta: undefined},
+      {x: 20, alpha: undefined, beta: 10},
+      {x: 30, alpha: 10, beta: undefined},
+      {x: 45, alpha: undefined, beta: 20},
+      {x: 50, alpha: 30, beta: 30}
+    ];
+    chart.data = data;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
+    var chart = new tr.ui.b.LineChart();
+
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 10, alpha: 20, beta: 40},
+      {x: 20, alpha: undefined, beta: 10},
+      {x: 30, alpha: 10, beta: undefined},
+      {x: 45, alpha: undefined, beta: 20},
+      {x: 50, alpha: 30, beta: undefined}
+    ];
+    chart.data = data;
 
     this.addHTMLOutput(chart);
   });
@@ -77,7 +113,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(r.max, 100);
   });
 
-  test('interactiveBrushing', function() {
+  test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.LineChart();
     chart.width = 400;
     chart.height = 200;

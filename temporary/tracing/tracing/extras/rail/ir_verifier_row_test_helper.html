@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+
+<polymer-element name="tr-e-rail-ir-verifier-row">
+  <template>
+    <style>
+    :host {
+      display: table-row;
+      border-spacing: 0px;
+    }
+    #label {
+      width: 1px;
+    }
+    td {
+      vertical-align: top;
+      padding: 0px;
+    }
+    </style>
+
+    <td id="label"></td>
+    <td><canvas id="canvas"></td>
+  </template>
+  <script>
+  'use strict';
+
+  // Returns a list of non-overlapping lists of events.
+  // |events| must be sorted by start time.
+  // C.f. AsyncSliceGroupTrack.buildSubRows_()
+  function organizeEventsIntoTracks(events) {
+    if (events.length === 0)
+      return [[]];
+
+    var tracks = [[events.shift()]];
+    events.forEach(function(event) {
+      for (var tracki = 0; tracki < tracks.length; ++tracki) {
+        var track = tracks[tracki];
+        var lastEvent = track[track.length - 1];
+        if (event.start >= lastEvent.end) {
+          track.push(event);
+          return;
+        }
+      }
+      tracks.push([event]);
+    });
+    return tracks;
+  }
+
+  function getEventColor(event) {
+    var typeNameOrTitle = event.typeName || event.title;
+    var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
+        typeNameOrTitle);
+    if (event.railTypeName_) {
+      colorId = tr.ui.b.getColorIdForReservedName(event.railTypeName_);
+    }
+    return tr.ui.b.getColorPalette()[colorId];
+  }
+
+  Polymer({
+    created: function() {
+      this.events_ = undefined;
+      this.bounds_ = undefined;
+    },
+
+    // |events| must be sorted by start time.
+    set events(events) {
+      this.events_ = events;
+    },
+
+    set bounds(bounds) {
+      this.bounds_ = bounds;
+    },
+
+    set labelString(s) {
+      this.$.label.textContent = s;
+    },
+
+    update: function() {
+      var tracks = organizeEventsIntoTracks(this.events_);
+      var totalWidth = this.getBoundingClientRect().width;
+      var labelWidth = this.$.label.getBoundingClientRect().width;
+      this.$.canvas.width = totalWidth - labelWidth;
+      var xScale = this.$.canvas.width / this.bounds_.max;
+      var ROW_HEIGHT = 20;
+      this.$.canvas.height = ROW_HEIGHT * tracks.length;
+      var context = this.$.canvas.getContext('2d');
+      tracks.forEach(function(track, trackIndex) {
+        var y = 20 * trackIndex;
+        track.forEach(function(event) {
+          var x = event.start * xScale;
+          var w = (event.end - event.start) * xScale;
+
+          context.beginPath();
+          context.rect(x, y, w, ROW_HEIGHT - 1);
+          context.fillStyle = getEventColor(event);
+          context.fill();
+          context.lineWidth = 1;
+          context.strokeStyle = 'black';
+          context.stroke();
+
+          context.beginPath();
+          context.font = '15px Arial';
+          context.fillStyle = 'black';
+          context.textAlign = 'center';
+          var textString = event.typeName || event.title;
+          context.fillText(textString, x + (w / 2), y + (3 * ROW_HEIGHT / 4));
+          context.stroke();
+        });
+      });
+    }
+  });
+  </script>
+</polymer-element>

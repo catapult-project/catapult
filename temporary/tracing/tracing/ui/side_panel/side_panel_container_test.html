@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function FakeSelectionController() {
+  function FakeBrushingStateController() {
     this.addAllEventsMatchingFilterToSelectionReturnValue = [];
 
     this.viewport = undefined;
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
     this.highlight = new tr.model.EventSet();
   }
 
-  FakeSelectionController.prototype = {
+  FakeBrushingStateController.prototype = {
     addEventListener: function(name, cb) {
     }
   };
@@ -43,11 +43,11 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiateCollapsed', function() {
-    var selectionController = new FakeSelectionController();
-    selectionController.model = createModel();
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.model = createModel();
 
     var container = document.createElement('tr-ui-side-panel-container');
-    container.selectionController = selectionController;
+    container.brushingStateController = brushingStateController;
     this.addHTMLOutput(container);
   });
 });

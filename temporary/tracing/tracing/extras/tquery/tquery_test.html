@@ -15,12 +15,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.tquery', function() {
-  function FakeSelectionController() {
+  function FakeBrushingStateController() {
     tr.b.EventTarget.call(this);
     this.allEvents_ = [];
   }
 
-  FakeSelectionController.prototype = {
+  FakeBrushingStateController.prototype = {
     __proto__: tr.b.EventTarget.prototype,
 
     get allEvents() {
@@ -56,12 +56,12 @@ tr.exportTo('tr.e.tquery', function() {
     }
   };
   return {
-    FakeSelectionController: FakeSelectionController
+    FakeBrushingStateController: FakeBrushingStateController
   };
 });
 
 tr.b.unittest.testSuite(function() {
-  var FakeSelectionController = tr.e.tquery.FakeSelectionController;
+  var FakeBrushingStateController = tr.e.tquery.FakeBrushingStateController;
 
   function createSliceArray(sliceCount) {
     var allEvents = [];
@@ -71,10 +71,10 @@ tr.b.unittest.testSuite(function() {
     return allEvents;
   }
 
-  function createFakeSelectionController_(sliceCount) {
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = createSliceArray(sliceCount);
-    return selectionController;
+  function createFakeBrushingStateController_(sliceCount) {
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = createSliceArray(sliceCount);
+    return brushingStateController;
   }
 
   function getScriptObject(name) {
@@ -87,44 +87,44 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('tqueryAsyncSelection', function() {
-    var selectionController = createFakeSelectionController_(3);
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var brushingStateController = createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.show();
     tr.b.Task.RunSynchronously(result);
-    assert.equal(selectionController.highlight.length, 3);
+    assert.equal(brushingStateController.highlight.length, 3);
   });
 
   test('tquerySyncSelection', function() {
-    var selectionController = createFakeSelectionController_(3);
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var brushingStateController = createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     assert.equal(tquery.selection.length, 3);
 
     // Selection should get reset when the model changes.
-    selectionController.allEvents = createSliceArray(5);
+    brushingStateController.allEvents = createSliceArray(5);
     tquery.onModelChanged();
     assert.equal(tquery.selection.length, 5);
   });
 
   test('tqueryPassThroughFiltering', function() {
-    var selectionController = new createFakeSelectionController_(3);
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var brushingStateController = new createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter().filter().show();
     tr.b.Task.RunSynchronously(result);
-    assert.equal(selectionController.highlight.length, 3);
+    assert.equal(brushingStateController.highlight.length, 3);
   });
 
   test('tqueryFilterHasTitle', function() {
     var hasTitle = getScriptObject('hasTitle');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(hasTitle('a')).selection;
     assert.equal(result.length, 1);
@@ -141,13 +141,13 @@ tr.b.unittest.testSuite(function() {
 
   test('tqueryFilterHasAncestor', function() {
     var hasAncestor = getScriptObject('hasAncestor');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(hasAncestor('b')).selection;
     assert.equal(result.length, 1);
@@ -163,13 +163,13 @@ tr.b.unittest.testSuite(function() {
 
   test('tqueryFilterAllOf', function() {
     var allOf = getScriptObject('allOf');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a1'},
         {guid: 2, title: 'b1'},
         {guid: 3, title: 'c1'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(allOf('a1')).selection;
     assert.equal(result.length, 1);
@@ -185,13 +185,13 @@ tr.b.unittest.testSuite(function() {
 
   test('tqueryFilterAnyOf', function() {
     var anyOf = getScriptObject('anyOf');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b'},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(anyOf('a', 'b')).selection;
     assert.equal(result.length, 2);
@@ -208,13 +208,13 @@ tr.b.unittest.testSuite(function() {
 
   test('tqueryFilterIsTopLevel', function() {
     var isTopLevel = getScriptObject('isTopLevel');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a'},
         {guid: 2, title: 'b', subSlices: [{guid: 4}]},
         {guid: 3, title: 'c'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(isTopLevel()).selection;
     assert.equal(result.length, 3);
@@ -229,14 +229,14 @@ tr.b.unittest.testSuite(function() {
 
   test('tqueryFilterHasDuration', function() {
     var hasDuration = getScriptObject('hasDuration');
-    var selectionController = new FakeSelectionController();
-    selectionController.allEvents = [
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
         {guid: 1, title: 'a', duration: 1},
         {guid: 2, title: 'b', duration: 2},
         {guid: 3, title: 'c', duration: 3},
         {guid: 4, title: 'no duration'}
     ];
-    var tquery = new tr.e.tquery.TQuery(selectionController);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
 
     var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
     assert.equal(result.length, 1);

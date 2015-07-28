@@ -58,6 +58,8 @@ found in the LICENSE file.
     href="/ui/analysis/single_global_memory_dump_sub_view.html">
 <link rel="import" href="/ui/analysis/multi_global_memory_dump_sub_view.html">
 
+<link rel="import" href="/ui/analysis/multi_power_sample_sub_view.html">
+
 <link rel="import" href="/ui/base/polymer_utils.html">
 
 <!--
@@ -95,7 +97,7 @@ using custom elements specialized for different event types.
         this.tabView_ = document.createElement('tr-ui-a-tab-view');
         this.tabView_.style.flex = '1 1 auto';
         this.appendChild(this.tabView_);
-        this.selectionController_ = undefined;
+        this.brushingStateController_ = undefined;
         this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
         this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
 
@@ -117,29 +119,29 @@ using custom elements specialized for different event types.
         return this.tabView_;
       },
 
-      get selectionController() {
-        return this.selectionController_;
+      get brushingStateController() {
+        return this.brushingStateController_;
       },
 
-      set selectionController(selectionController) {
-        if (this.selectionController) {
-          this.selectionController_.removeEventListener(
+      set brushingStateController(brushingStateController) {
+        if (this.brushingStateController) {
+          this.brushingStateController_.removeEventListener(
               'change', this.onSelectionChanged_);
         }
-        this.selectionController_ = selectionController;
-        if (this.selectionController) {
-          this.selectionController_.addEventListener(
+        this.brushingStateController_ = brushingStateController;
+        if (this.brushingStateController) {
+          this.brushingStateController_.addEventListener(
               'change', this.onSelectionChanged_);
         }
         this.onSelectionChanged_();
       },
 
       get selection() {
-        return this.selectionController_.selection;
+        return this.brushingStateController_.selection;
       },
 
       onSelectionChanged_: function(e) {
-        var selection = this.selectionController_.selection;
+        var selection = this.brushingStateController_.selection;
 
         var selectionHasSameValue = this.lastSeenSelection_.equals(selection);
         this.lastSeenSelection_ = selection;
@@ -158,6 +160,14 @@ using custom elements specialized for different event types.
         var previouslySelectedTab = this.tabView_.selectedTab;
         this.tabView_.removeEventListener(
           'selected-tab-change', this.onSelectedTabChange_);
+
+        var previousSubViews = {};
+        for (var i = 0; i < this.tabView_.children.length; i++) {
+          var previousSubView = this.tabView_.children[i];
+          previousSubViews[previousSubView._eventTypeName] = previousSubView;
+        }
+
+        this.tabView_.saveTabStates();
         this.tabView_.textContent = '';
         if (selection.length == 0) {
           this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
@@ -174,7 +184,7 @@ using custom elements specialized for different event types.
         for (var eventTypeName in eventsByBaseTypeName) {
           var subSelection = eventsByBaseTypeName[eventTypeName];
           var subView = this.createSubViewForSelection_(
-            eventTypeName, subSelection);
+            eventTypeName, subSelection, previousSubViews[eventTypeName]);
           // Store the eventTypeName for future tab restoration.
           subView._eventTypeName = eventTypeName;
           this.tabView_.appendChild(subView);
@@ -200,14 +210,14 @@ using custom elements specialized for different event types.
           tab = this.tabView_.firstChild;
 
         this.tabView_.selectedTab = tab;
-        if (this.tabView_.selectedTab !== previouslySelectedTab)
-          this.onSelectedTabChange_();
+        this.onSelectedTabChange_();
 
         this.tabView_.addEventListener(
           'selected-tab-change', this.onSelectedTabChange_);
       },
 
-      createSubViewForSelection_: function(eventTypeName, subSelection) {
+      createSubViewForSelection_: function(eventTypeName, subSelection,
+          previousSubView) {
         // Find.
         var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(
             eventTypeName);
@@ -221,8 +231,13 @@ using custom elements specialized for different event types.
         if (!tr.ui.b.getPolymerElementNamed(tagName))
           throw new Error('Element not registered: ' + tagName);
 
-        // Create.
-        var subView = document.createElement(tagName);
+        // Create if necessary.
+        var subView;
+        if (previousSubView &&
+            previousSubView.tagName === tagName.toUpperCase())
+          subView = previousSubView;
+        else
+          subView = document.createElement(tagName);
 
         // Set label.
         var camelLabel;
@@ -236,18 +251,18 @@ using custom elements specialized for different event types.
       },
 
       onSelectedTabChange_: function() {
-        var selectionController = this.selectionController_;
+        var brushingStateController = this.brushingStateController_;
         if (this.tabView_.selectedTab) {
           var selectedTab = this.tabView_.selectedTab;
           this.tallMode = selectedTab.requiresTallView;
-          if (selectionController) {
+          if (brushingStateController) {
             var rlth = selectedTab.relatedEventsToHighlight;
-            selectionController.changeAnalysisViewRelatedEvents(rlth);
+            brushingStateController.changeAnalysisViewRelatedEvents(rlth);
           }
         } else {
           this.tallMode = false;
-          if (selectionController)
-            selectionController.changeAnalysisViewRelatedEvents(undefined);
+          if (brushingStateController)
+            brushingStateController.changeAnalysisViewRelatedEvents(undefined);
         }
       }
     });

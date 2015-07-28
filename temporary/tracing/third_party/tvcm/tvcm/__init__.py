@@ -8,5 +8,4 @@ This module implements trace-viewer's component model.
 """
 
 from tvcm.generate import *  # pylint: disable=wildcard-import
-from tvcm.dev_server import DevServer
 from tvcm.project import Project

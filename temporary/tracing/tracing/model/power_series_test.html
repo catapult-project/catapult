@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/model/device.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/model/power_series.html">
 
@@ -17,14 +18,21 @@ tr.b.unittest.testSuite(function() {
   var PowerSeries = tr.model.PowerSeries;
 
   test('stableId', function() {
-    var parent1 = { stableId: 'test1' };
-    var series1 = new PowerSeries(parent1);
+    var device = { stableId: 'test' };
+    var series = new PowerSeries(device);
 
-    assert.equal(series1.stableId, 'test1.PowerSeries');
+    assert.equal(series.stableId, 'test.PowerSeries');
+  });
+
+  test('device', function() {
+    var device = new tr.model.Device(new Model());
+    var series = new PowerSeries(device);
+
+    assert.equal(series.device, device);
   });
 
   test('addPowerSample', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     assert.equal(series.samples.length, 0);
 
@@ -35,7 +43,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shiftTimestampsForward', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1000);
     series.addPowerSample(1, 2000);
@@ -53,7 +61,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('updateBounds', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1000);
     series.addPowerSample(1, 2000);
@@ -70,7 +78,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateAllEventsInThisContainer', function() {
-    var series = new PowerSeries(new Model());
+    var series = new PowerSeries(new Model().device);
 
     var eventsInSeries = [];
     series.iterateAllEventsInThisContainer(

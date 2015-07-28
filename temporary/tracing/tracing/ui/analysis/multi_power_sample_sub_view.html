@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-multi-power-sample-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.currentSelection_ = undefined;
+
+      this.$.table.tableColumns = [
+        {
+          title: 'Time',
+          width: '150px',
+          value: function(row) { return row.start; }
+        },
+        {
+          title: 'Power (mW)',
+          width: '100%',
+          value: function(row) { return row.power; }
+        }
+      ];
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (this.currentSelection_ === undefined) {
+        this.$.table.rows = [];
+        this.$.table.rebuild();
+        return;
+      }
+
+      var powerSamples = this.currentSelection_;
+      this.$.table.tableRows = this.getRowsForPowerSamples_(powerSamples);
+      this.$.table.rebuild();
+    },
+
+    getRowsForPowerSamples_: function(powerSamples) {
+      return powerSamples.map(function(powerSample) {
+        return {
+          start: powerSample.start,
+          power: powerSample.power
+        };
+      });
+    }
+  });
+  </script>
+</polymer-element>

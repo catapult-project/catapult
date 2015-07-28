@@ -185,7 +185,7 @@ tr.exportTo('tr.ui.b', function() {
       var alpha = EventPresenter.getSliceAlpha(slice, async);
       var lightAlpha = alpha * 0.70;
 
-      if (slice.isTopLevel) {
+      if (async && slice.isTopLevel) {
         rect.setYandH(3, height - 3);
         hadTopLevel = true;
       } else {

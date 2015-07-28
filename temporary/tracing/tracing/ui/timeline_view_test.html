@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
     var view = setupTimeline();
     view.style.height = '400px';
     view.model = model;
-    var sc = view.selectionController;
+    var sc = view.brushingStateController;
 
     // Mutate the model and update the view.
     var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);

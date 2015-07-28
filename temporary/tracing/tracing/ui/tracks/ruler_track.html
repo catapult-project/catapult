@@ -8,10 +8,10 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/ui/tracks/ruler_track.css">
 
 <link rel="import" href="/core/constants.html">
-<link rel="import" href="/ui/tracks/track.html">
-<link rel="import" href="/ui/tracks/heading_track.html">
 <link rel="import" href="/ui/base/draw_helpers.html">
+<link rel="import" href="/ui/base/heading.html">
 <link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/track.html">
 
 <script>
 'use strict';
@@ -20,9 +20,9 @@ tr.exportTo('tr.ui.tracks', function() {
   /**
    * A track that displays the ruler.
    * @constructor
-   * @extends {HeadingTrack}
+   * @extends {Track}
    */
-  var RulerTrack = tr.ui.b.define('ruler-track', tr.ui.tracks.HeadingTrack);
+  var RulerTrack = tr.ui.b.define('ruler-track', tr.ui.tracks.Track);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -30,10 +30,10 @@ tr.exportTo('tr.ui.tracks', function() {
   }
 
   RulerTrack.prototype = {
-    __proto__: tr.ui.tracks.HeadingTrack.prototype,
+    __proto__: tr.ui.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tr.ui.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
@@ -43,10 +43,13 @@ tr.exportTo('tr.ui.tracks', function() {
       this.viewportChange_ = this.viewportChange_.bind(this);
       viewport.addEventListener('change', this.viewportChange_);
 
+      var heading = document.createElement('tr-ui-heading');
+      heading.arrowVisible = false;
+      this.appendChild(heading);
     },
 
     detach: function() {
-      tr.ui.tracks.HeadingTrack.prototype.detach.call(this);
+      tr.ui.tracks.Track.prototype.detach.call(this);
       this.viewport.removeEventListener('change',
                                         this.viewportChange_);
     },

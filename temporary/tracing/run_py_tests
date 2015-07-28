@@ -16,6 +16,7 @@ from hooks import install
 import tracing # Brings in tvcm bindings.
 from tvcm import test_runner
 import tvcm
+import vinn
 
 
 if __name__ == '__main__':
@@ -30,5 +31,6 @@ if __name__ == '__main__':
 
   runner = test_runner.TestRunner()
   runner.AddModule(tvcm)
+  runner.AddModule(vinn)
   runner.AddModule(tracing)
   sys.exit(runner.Main())

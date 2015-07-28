@@ -6,7 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/ui/tracks/chart_transform.html">
-<link rel="import" href="/ui/tracks/heading_track.html">
+<link rel="import" href="/ui/tracks/track.html">
+<link rel="import" href="/ui/base/heading.html">
 <link rel="import" href="/ui/base/ui.html">
 
 <style>
@@ -25,16 +26,16 @@ tr.exportTo('tr.ui.tracks', function() {
    * A track that displays a chart.
    *
    * @constructor
-   * @extends {HeadingTrack}
+   * @extends {Track}
    */
   var ChartTrack =
-      tr.ui.b.define('chart-track', tr.ui.tracks.HeadingTrack);
+      tr.ui.b.define('chart-track', tr.ui.tracks.Track);
 
   ChartTrack.prototype = {
-    __proto__: tr.ui.tracks.HeadingTrack.prototype,
+    __proto__: tr.ui.tracks.Track.prototype,
 
     decorate: function(viewport) {
-      tr.ui.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('chart-track');
       this.series_ = undefined;
 
@@ -44,6 +45,21 @@ tr.exportTo('tr.ui.tracks', function() {
       // The maximum top and bottom padding of all series.
       this.topPadding_ = undefined;
       this.bottomPadding_ = undefined;
+
+      this.heading_ = document.createElement('tr-ui-heading');
+      this.appendChild(this.heading_);
+    },
+
+    set heading(heading) {
+      this.heading_.heading = heading;
+    },
+
+    get heading() {
+      return this.heading_.heading;
+    },
+
+    set tooltip(tooltip) {
+      this.heading_.tooltip = tooltip;
     },
 
     get series() {

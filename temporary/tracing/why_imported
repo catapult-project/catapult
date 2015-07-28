@@ -34,7 +34,7 @@ def Main(args):
              project.GetModuleNameForConfigName(options.config)]
     load_sequence = project.CalcLoadSequenceForModuleNames(names)
   else:
-    load_sequence = None
+    parser.parse_err('Unsupported')
   print project.GetDominatorGraphForModulesNamed(args, load_sequence)
 
 

@@ -1,0 +1,13 @@
+Name: Chrome d8 for executing javascript
+Short Name: d8
+URL: https://developers.google.com/v8/
+Version: 4.3.61
+License: BSD
+License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
+Security Critical: no
+Description: d8 binaries is used for executing trace-viewer's trace analyzing
+code.
+Local modifications: We ignore the source code & only keep the d8 binaries. Use
+the instructions here to build the binary, after syncing v8 to the above
+version:
+https://code.google.com/p/v8-wiki/wiki/BuildingWithGYP

@@ -20,7 +20,7 @@ tr.exportTo('tr.b.unittest', function() {
       runner.results.addErrorForCurrentTest(error);
     }
 
-    if (global.onerror) {
+    if (tr.isExported('global.onerror')) {
       realGlobalOnError = global.onerror;
       global.onerror = function(errorMsg, url, lineNumber) {
         runner.results.addErrorForCurrentTest(
@@ -31,7 +31,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     }
 
-    if (global.history) {
+    if (tr.isExported('global.history')) {
       realGlobalHistoryPushState = global.history.pushState;
       global.history.pushState = function() {
       };
@@ -41,7 +41,7 @@ tr.exportTo('tr.b.unittest', function() {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
 
-    if (global.sessionStorage) {
+    if (tr.isExported('global.sessionStorage')) {
       global.sessionStorage.clear();
     }
 
@@ -50,7 +50,7 @@ tr.exportTo('tr.b.unittest', function() {
   }
 
   function uninstallGlobalTestHooks() {
-    if (global.onerror) {
+    if (tr.isExported('global.onerror')) {
       global.onerror = realGlobalOnError;
       realGlobalOnError = undefined;
     }
@@ -58,7 +58,7 @@ tr.exportTo('tr.b.unittest', function() {
     tr.b.onAnimationFrameError = realTvOnAnimationFrameError;
     realTvOnAnimationFrameError = undefined;
 
-    if (global.history) {
+    if (tr.isExported('global.history')) {
       global.history.pushState = realGlobalHistoryPushState;
       realGlobalHistoryPushState = undefined;
     }
