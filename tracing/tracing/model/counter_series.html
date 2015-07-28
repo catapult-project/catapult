@@ -42,6 +42,10 @@ tr.exportTo('tr.model', function() {
   CounterSeries.prototype = {
     __proto__: tr.model.EventContainer.prototype,
 
+    get guid() {
+      return this.guid_;
+    },
+
     get length() {
       return this.timestamps_.length;
     },

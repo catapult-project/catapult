@@ -5,7 +5,6 @@
 {
   'variables': {
     'tracing_css_files': [
-      'tracing/ui/analysis/analysis_results.css',
       'tracing/ui/base/drag_handle.css',
       'tracing/ui/base/line_chart.css',
       'tracing/ui/base/list_view.css',
@@ -222,7 +221,6 @@
       'tracing/model/x_marker_annotation.html',
       'tracing/ui/analysis/alert_sub_view.html',
       'tracing/ui/analysis/analysis_link.html',
-      'tracing/ui/analysis/analysis_results.html',
       'tracing/ui/analysis/analysis_sub_view.html',
       'tracing/ui/analysis/analysis_view.html',
       'tracing/ui/analysis/counter_sample_sub_view.html',

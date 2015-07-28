@@ -5,94 +5,116 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/iteration_helpers.html">
 <link rel="import" href="/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/ui/analysis/analysis_results.html">
-<link rel="import" href="/model/counter_sample.html">
+<link rel="import" href="/ui/base/table.html">
 
-<polymer-element name="tr-ui-a-counter-sample-sub-view"
-    extends="tr-ui-a-sub-view">
-  <script>
-  'use strict';
-  (function() {
-    var CounterSample = tr.model.CounterSample;
+<polymer-element name='tr-ui-a-counter-sample-sub-view'
+    extends='tr-ui-a-sub-view'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    </style>
+    <tr-ui-b-table id='table'></tr-ui-b-table>
+  </template>
+</polymer-element>
 
-    Polymer({
-      created: function() {
-        this.currentSelection_ = undefined;
-      },
+<script>
+'use strict';
+(function() {
+  var COUNTER_SAMPLE_TABLE_COLUMNS = [
+    {
+      title: 'Counter',
+      width: '150px',
+      value: function(row) { return row.counter; }
+    },
+    {
+      title: 'Series',
+      width: '150px',
+      value: function(row) { return row.series; }
+    },
+    {
+      title: 'Time',
+      width: '150px',
+      value: function(row) { return row.start; }
+    },
+    {
+      title: 'Value',
+      width: '100%',
+      value: function(row) { return row.value; }
+    }
+  ];
 
-      get selection() {
-        return this.currentSelection_;
-      },
+  Polymer('tr-ui-a-counter-sample-sub-view', {
+    ready: function() {
+      this.currentSelection_ = undefined;
+      this.$.table.tableColumns = COUNTER_SAMPLE_TABLE_COLUMNS;
+    },
 
-      set selection(selection) {
-        this.currentSelection_ = selection;
-        this.textContent = '';
-        var results = new tr.ui.analysis.AnalysisResults();
-        this.appendChild(results);
-        this.analyzeCounterSamples_(results, selection);
-      },
+    get selection() {
+      return this.currentSelection_;
+    },
 
-      analyzeCounterSamples_: function(results, allSamples) {
-        var samplesByCounter = tr.b.group(allSamples.toArray(), function(smpl) {
-          return smpl.series.counter.guid;
+    set selection(selection) {
+      this.currentSelection_ = selection;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.$.table.tableRows =
+          this.selection ? this.getRows_(this.selection.toArray()) : [];
+      this.$.table.rebuild();
+    },
+
+    /**
+     * Returns the table rows for the specified samples.
+     *
+     * We print each counter/series combination the first time that it
+     * appears. For subsequent samples in each series, we omit the counter
+     * and series name. This makes it easy to scan to find the next series.
+     *
+     * Each series can be collapsed. In the expanded state, all samples
+     * are shown. In the collapsed state, only the first sample is displayed.
+     */
+    getRows_: function(samples) {
+      var samplesByCounter = tr.b.group(samples, function(sample) {
+        return sample.series.counter.guid;
+      });
+
+      var rows = [];
+      tr.b.iterItems(samplesByCounter, function(unused, counterSamples) {
+        var samplesBySeries = tr.b.group(counterSamples, function(sample) {
+          return sample.series.guid;
         });
 
-        for (var guid in samplesByCounter) {
-          var samples = samplesByCounter[guid];
-          var ctr = samples[0].series.counter;
+        tr.b.iterItems(samplesBySeries, function(unused, seriesSamples) {
+          var seriesRows = this.getRowsForSamples_(seriesSamples);
+          seriesRows[0].counter = seriesSamples[0].series.counter.name;
+          seriesRows[0].series = seriesSamples[0].series.name;
 
-          var timestampGroups = CounterSample.groupByTimestamp(samples);
-          if (timestampGroups.length == 1)
-            this.analyzeSingleCounterTimestamp_(results, ctr,
-                                                timestampGroups[0]);
-          else
-            this.analyzeMultipleCounterTimestamps_(results, ctr,
-                                                   timestampGroups);
-        }
-      },
+          if (seriesRows.length > 1) {
+            seriesRows[0].subRows = seriesRows.slice(1);
+            seriesRows[0].isExpanded = true;
+          }
 
-      analyzeSingleCounterTimestamp_: function(
-          results, ctr, samplesWithSameTimestamp) {
-        results.appendHeader('Selected counter:');
-        var table = results.appendTable('analysis-counter-table', 2);
-        results.appendInfoRow(table, 'Title', ctr.name);
-        results.appendInfoRowTime(
-            table, 'Timestamp', samplesWithSameTimestamp[0].timestamp);
-        for (var i = 0; i < samplesWithSameTimestamp.length; i++) {
-          var sample = samplesWithSameTimestamp[i];
-          results.appendInfoRow(table, sample.series.name, sample.value);
-        }
-      },
+          rows.push(seriesRows[0]);
+        }, this);
+      }, this);
 
-      analyzeMultipleCounterTimestamps_: function(results, ctr,
-                                             samplesByTimestamp) {
-        results.appendHeader('Counter ' + ctr.name);
-        var table = results.appendTable('analysis-counter-table', 2);
+      return rows;
+    },
 
-        var sampleIndices = [];
-        for (var i = 0; i < samplesByTimestamp.length; i++)
-          sampleIndices.push(samplesByTimestamp[i][0].getSampleIndex());
-
-        var stats = ctr.getSampleStatistics(sampleIndices);
-        for (var i = 0; i < stats.length; i++) {
-          var samples = [];
-          for (var k = 0; k < sampleIndices.length; ++k)
-            samples.push(ctr.getSeries(i).getSample(sampleIndices[k]).value);
-
-          results.appendDataRow(
-              table,
-              ctr.name + ': series(' + ctr.getSeries(i).name + ')',
-              samples,
-              null,
-              null,
-              null,
-              samples.length,
-              null,
-              stats[i]);
-        }
-      }
-    });
-  })();
-  </script>
-</polymer-element>
+    getRowsForSamples_: function(samples) {
+      return samples.map(function(sample) {
+        return {
+          start: sample.timestamp,
+          value: sample.value
+        };
+      });
+    }
+  });
+})();
+</script>

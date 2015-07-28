@@ -5,170 +5,168 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/counter.html">
+<link rel="import" href="/model/counter_series.html">
 <link rel="import" href="/model/event_set.html">
-<link rel="import" href="/model/model.html">
-<link rel="import" href="/ui/analysis/analysis_view.html">
-<link rel="import" href="/ui/analysis/stub_analysis_results.html">
+<link rel="import" href="/ui/analysis/counter_sample_sub_view.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+
   var Counter = tr.model.Counter;
   var CounterSeries = tr.model.CounterSeries;
-
   var EventSet = tr.model.EventSet;
-  var StubAnalysisResults = tr.ui.analysis.StubAnalysisResults;
 
-  function createSeries(ctr) {
-    var allocatedSeries = new CounterSeries('bytesallocated', 0);
-    var freeSeries = new CounterSeries('bytesfree', 1);
-
-    ctr.addSeries(allocatedSeries);
-    ctr.addSeries(freeSeries);
-
-    allocatedSeries.addCounterSample(0, 0);
-    allocatedSeries.addCounterSample(10, 25);
-    allocatedSeries.addCounterSample(20, 10);
-
-    freeSeries.addCounterSample(0, 15);
-    freeSeries.addCounterSample(10, 20);
-    freeSeries.addCounterSample(20, 5);
-  }
-
-  var createSelectionWithTwoSeriesSingleCounter = function() {
-    var ctr = new Counter(null, 0, 'foo', 'ctr[0]');
-    createSeries(ctr);
-
-    var selection = new EventSet();
-    var t1track = {};
-
-    selection.push(ctr.getSeries(0).samples[1]);
-    selection.push(ctr.getSeries(1).samples[1]);
-    return selection;
-  };
-
-  test('instantiate_singleCounterWithTwoSeries', function() {
-    var selection = createSelectionWithTwoSeriesSingleCounter();
-
+  test('instantiate_undefinedSelection', function() {
     var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
-    analysisEl.selection = selection;
-    this.addHTMLOutput(analysisEl);
+    analysisEl.selection = new EventSet(undefined);
 
-    // Check that the element handles multiple set selection calls correctly.
-    assert.lengthOf(analysisEl.children, 1);
-    analysisEl.selection = selection;
-    assert.lengthOf(analysisEl.children, 1);
+    assert.lengthOf(analysisEl.$.table.tableRows, 0);
   });
 
-  var createSelectionWithTwoSeriesTwoCounters = function() {
-    var ctr1 = new Counter(null, 0, '', 'ctr1');
-    createSeries(ctr1);
-
-    var ctr2 = new Counter(null, 0, '', 'ctr2');
-    createSeries(ctr2);
-
-    var selection = new EventSet();
-    var t1track = {};
-
-    selection.push(ctr1.getSeries(0).samples[1]);
-    selection.push(ctr1.getSeries(1).samples[1]);
-
-
-    selection.push(ctr2.getSeries(0).samples[2]);
-    selection.push(ctr2.getSeries(1).samples[2]);
-    return selection;
-  };
-
-  test('instantiate_twoCountersWithTwoSeries', function() {
-    var selection = createSelectionWithTwoSeriesTwoCounters();
-
-    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
-    analysisEl.selection = selection;
-    this.addHTMLOutput(analysisEl);
-  });
-
-  test('analyzeSelectionWithSingleCounter', function() {
-    var ctr = new Counter(null, 0, '', 'ctr');
-    var series = new CounterSeries('value', 0);
-    ctr.addSeries(series);
-
+  test('instantiate_oneCounterOneSeries', function() {
+    var series = new CounterSeries('series1', 0);
     series.addCounterSample(0, 0);
-    series.addCounterSample(10, 10);
+    series.addCounterSample(1, 10);
 
-    var selection = new EventSet();
-    var t1track = {};
-    selection.push(ctr.getSeries(0).samples[1]);
+    var counter = new Counter(null, 0, 'cat', 'ctr1');
+    counter.addSeries(series);
 
-    var view = document.createElement('tr-ui-a-counter-sample-sub-view');
-    var results = new StubAnalysisResults();
-    view.analyzeCounterSamples_(results, selection);
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection = new EventSet(series.samples);
+    this.addHTMLOutput(analysisEl);
 
-    assert.equal(results.tables.length, 1);
-    assert.equal(results.headers[0].label, 'Selected counter:');
-    var table = results.tables[0];
-    assert.equal(table.rows.length, 3);
+    // The first sample should be listed as a collapsible header row for the
+    // series.
+    var rows = analysisEl.$.table.tableRows;
+    assert.lengthOf(rows, 1);
+    assert.isTrue(rows[0].isExpanded);
+    assert.equal(rows[0].counter, 'ctr1');
+    assert.equal(rows[0].series, 'series1');
+    assert.equal(rows[0].start, 0);
+    assert.equal(rows[0].value, 0);
 
-    assert.equal(table.rows[0].label, 'Title');
-    assert.equal(table.rows[1].label, 'Timestamp');
-    assert.equal(table.rows[2].label, 'value');
-    assert.equal(table.rows[2].text, 10);
+    // The second sample should be listed as a subrow of the first.
+    var subRows = rows[0].subRows;
+    assert.lengthOf(subRows, 1);
+    assert.isUndefined(subRows[0].counter);
+    assert.isUndefined(subRows[0].series);
+    assert.equal(subRows[0].start, 1);
+    assert.equal(subRows[0].value, 10);
   });
 
-  function createSelectionWithTwoCountersDiffSeriesDiffEvents() {
-    var ctr1 = new Counter(null, 0, '', 'a');
-    var ctr1AllocatedSeries = new CounterSeries('bytesallocated', 0);
-    ctr1.addSeries(ctr1AllocatedSeries);
+  test('instantiate_singleSampleDoesntHaveSubrows', function() {
+    var series = new CounterSeries('series1', 0);
+    series.addCounterSample(0, 0);
 
-    ctr1AllocatedSeries.addCounterSample(0, 0);
-    ctr1AllocatedSeries.addCounterSample(10, 25);
-    ctr1AllocatedSeries.addCounterSample(20, 15);
+    var counter = new Counter(null, 0, 'cat', 'ctr1');
+    counter.addSeries(series);
 
-    assert.equal(ctr1.name, 'a');
-    assert.equal(ctr1.numSamples, 3);
-    assert.equal(ctr1.numSeries, 1);
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection = new EventSet(series.samples);
+    this.addHTMLOutput(analysisEl);
 
-    var ctr2 = new Counter(null, 0, '', 'b');
-    var ctr2AllocatedSeries = new CounterSeries('bytesallocated', 0);
-    var ctr2FreeSeries = new CounterSeries('bytesfree', 1);
+    // The first sample should be listed as a collapsible header row for the
+    // series.
+    var rows = analysisEl.$.table.tableRows;
+    assert.lengthOf(rows, 1);
+    assert.equal(rows[0].counter, 'ctr1');
+    assert.equal(rows[0].series, 'series1');
+    assert.equal(rows[0].start, 0);
+    assert.equal(rows[0].value, 0);
+    assert.isUndefined(rows[0].subRows);
+  });
 
-    ctr2.addSeries(ctr2AllocatedSeries);
-    ctr2.addSeries(ctr2FreeSeries);
+  test('instantiate_oneCounterTwoSeries', function() {
+    var series1 = new CounterSeries('series1', 0);
+    series1.addCounterSample(1, 10);
+    series1.addCounterSample(2, 20);
 
-    ctr2AllocatedSeries.addCounterSample(0, 0);
-    ctr2AllocatedSeries.addCounterSample(10, 25);
-    ctr2AllocatedSeries.addCounterSample(20, 10);
-    ctr2AllocatedSeries.addCounterSample(30, 15);
+    var series2 = new CounterSeries('series2', 0);
+    series2.addCounterSample(3, 30);
 
-    ctr2FreeSeries.addCounterSample(0, 20);
-    ctr2FreeSeries.addCounterSample(10, 5);
-    ctr2FreeSeries.addCounterSample(20, 25);
-    ctr2FreeSeries.addCounterSample(30, 0);
+    var counter = new Counter(null, 0, 'cat', 'ctr1');
+    counter.addSeries(series1);
+    counter.addSeries(series2);
 
-    assert.equal(ctr2.name, 'b');
-    assert.equal(ctr2.numSamples, 4);
-    assert.equal(ctr2.numSeries, 2);
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection =
+        new EventSet(series1.samples.concat(series2.samples));
+    this.addHTMLOutput(analysisEl);
 
-    var selection = new EventSet();
-    var t1track = {};
-    var t2track = {};
+    // The first samples should be listed as collapsible header rows for the
+    // series.
+    var rows = analysisEl.$.table.tableRows;
+    assert.lengthOf(rows, 2);
+    assert.equal(rows[0].counter, 'ctr1');
+    assert.equal(rows[0].series, 'series1');
+    assert.equal(rows[0].start, 1);
+    assert.equal(rows[0].value, 10);
 
-    selection.push(ctr1AllocatedSeries.samples[1]);
-    selection.push(ctr2AllocatedSeries.samples[2]);
-    selection.push(ctr2FreeSeries.samples[2]);
+    assert.equal(rows[1].counter, 'ctr1');
+    assert.equal(rows[1].series, 'series2');
+    assert.equal(rows[1].start, 3);
+    assert.equal(rows[1].value, 30);
 
-    return selection;
-  };
+    // The subsequent samples should be listed as subrows of the first.
+    var subRows1 = rows[0].subRows;
+    assert.lengthOf(subRows1, 1);
+    assert.isUndefined(subRows1[0].counter);
+    assert.isUndefined(subRows1[0].series);
+    assert.equal(subRows1[0].start, 2);
+    assert.equal(subRows1[0].value, 20);
 
-  test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
-    var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
+    assert.isUndefined(rows[1].subRows);
+  });
 
-    var view = document.createElement('tr-ui-a-counter-sample-sub-view');
-    var results = new StubAnalysisResults();
-    view.analyzeCounterSamples_(results, selection);
+  test('instantiate_twoCountersTwoSeries', function() {
+    var series1 = new CounterSeries('series1', 0);
+    series1.addCounterSample(1, 10);
 
-    assert.equal(results.tables.length, 2);
+    var series2 = new CounterSeries('series2', 0);
+    series2.addCounterSample(2, 20);
+
+    var counter1 = new Counter(null, 0, 'cat', 'ctr1');
+    var counter2 = new Counter(null, 0, 'cat', 'ctr2');
+    counter1.addSeries(series1);
+    counter2.addSeries(series2);
+
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection =
+        new EventSet(series1.samples.concat(series2.samples));
+    this.addHTMLOutput(analysisEl);
+
+    // Each sample should be a header row with no subrows.
+    var rows = analysisEl.$.table.tableRows;
+    assert.lengthOf(rows, 2);
+    assert.equal(rows[0].counter, 'ctr1');
+    assert.equal(rows[0].series, 'series1');
+    assert.equal(rows[0].start, 1);
+    assert.equal(rows[0].value, 10);
+    assert.isUndefined(rows[0].subRows);
+
+    assert.equal(rows[1].counter, 'ctr2');
+    assert.equal(rows[1].series, 'series2');
+    assert.equal(rows[1].start, 2);
+    assert.equal(rows[1].value, 20);
+    assert.isUndefined(rows[1].subRows);
+  });
+
+  test('instantiate_contentsClearedEachSelection', function() {
+    var series = new CounterSeries('series1', 0);
+    series.addCounterSample(0, 0);
+
+    var counter = new Counter(null, 0, 'cat', 'ctr1');
+    counter.addSeries(series);
+
+    var analysisEl = document.createElement('tr-ui-a-counter-sample-sub-view');
+    analysisEl.selection = new EventSet(series.samples);
+    analysisEl.selection = new EventSet(series.samples);
+    this.addHTMLOutput(analysisEl);
+
+    assert.lengthOf(analysisEl.$.table.tableRows, 1);
   });
 });
 </script>
