@@ -1,5 +1,0 @@
-Paste Reference Document
-@@@@@@@@@@@@@@@@@@@@@@@@
-
-.. contents::
-

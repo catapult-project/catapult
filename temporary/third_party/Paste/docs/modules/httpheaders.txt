@@ -1,8 +1,0 @@
-:mod:`paste.httpheaders` -- Manipulate HTTP Headers
-===================================================
-
-.. comment:
-   I just don't feel like documenting the items...
-
-.. automodule:: paste.httpheaders
-   :members:
