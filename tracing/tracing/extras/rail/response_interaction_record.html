@@ -51,6 +51,11 @@ tr.exportTo('tr.e.rail', function() {
       // computeRawUserPain() altogether.
       var PAIN_POWER = 1.5;
 
+      // Prevent raising a negative number to a fractional power, which produces
+      // NaN.
+      if (this.duration < PAIN_BEGINS_AT_MS)
+        return 0;
+
       function computeRawUserPain(durationMs) {
         var painDurationMs = durationMs - PAIN_BEGINS_AT_MS;
         // Convert ms to seconds because this value is about to be passed

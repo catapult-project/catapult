@@ -24,6 +24,8 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, responseIR.normalizedUserPain, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(0, 751.68);
     assert.closeTo(0.5, responseIR.normalizedUserPain, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 1);
+    assert.closeTo(0, responseIR.normalizedUserPain, 1e-5);
   });
 });
 </script>
