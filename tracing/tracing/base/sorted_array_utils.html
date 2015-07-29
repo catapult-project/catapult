@@ -176,10 +176,10 @@ tr.exportTo('tr.b', function() {
    * nonoverlapping ranges [x,y) using the mapLoFn and mapWidth.
    * @param {function():*} mapLoFn Callback that produces the low value for the
    * interval represented by an element in the array.
-   * @param {function():*} mapLoFn Callback that produces the width for the
+   * @param {function():*} mapWidthFn Callback that produces the width for the
    * interval represented by an element in the array.
-   * @param {number} The low value for the search, inclusive.
-   * @param {number} loVal The high value for the search, non inclusive.
+   * @param {number} loVal The low value for the search, inclusive.
+   * @param {number} hiVal The high value for the search, non inclusive.
    * @param {function():*} cb The function to run for intersecting intervals.
    */
   function iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal,
