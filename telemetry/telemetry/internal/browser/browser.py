@@ -14,6 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.browser import browser_credentials
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
+from telemetry.internal.browser import web_contents
 
 
 class Browser(app.App):
@@ -281,3 +282,10 @@ class Browser(app.App):
 
        See the documentation of the SystemInfo class for more details."""
     return self._browser_backend.GetSystemInfo()
+
+  @property
+  def supports_memory_dumping(self):
+    return self._browser_backend.supports_memory_dumping
+
+  def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    return self._browser_backend.DumpMemory(timeout)

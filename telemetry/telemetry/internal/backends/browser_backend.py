@@ -101,3 +101,10 @@ class BrowserBackend(app_backend.AppBackend):
 
   def GetSystemInfo(self):
     raise NotImplementedError()
+
+  @property
+  def supports_memory_dumping(self):
+    return False
+
+  def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    raise NotImplementedError()

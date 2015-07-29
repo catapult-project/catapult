@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import socket
 import time
@@ -25,6 +26,10 @@ class TracingUnrecoverableException(Exception):
 
 
 class TracingHasNotRunException(Exception):
+  pass
+
+
+class TracingUnexpectedResponseException(Exception):
   pass
 
 
@@ -89,6 +94,41 @@ class TracingBackend(object):
     self._is_tracing_running = False
     trace_data_builder.AddEventsTo(
       trace_data_module.CHROME_TRACE_PART, self._trace_events)
+
+  def DumpMemory(self, timeout=30):
+    """Dumps memory.
+
+    Returns:
+      GUID of the generated dump if successful, None otherwise.
+
+    Raises:
+      TracingTimeoutException: If more than |timeout| seconds has passed
+      since the last time any data is received.
+      TracingUnrecoverableException: If there is a websocket error.
+      TracingUnexpectedResponseException: If the response contains an error
+      or does not contain the expected result.
+    """
+    request = {
+      'method': 'Tracing.requestMemoryDump'
+    }
+    try:
+      response = self._inspector_websocket.SyncRequest(request, timeout)
+    except websocket.WebSocketTimeoutException:
+      raise TracingTimeoutException
+    except (socket.error, websocket.WebSocketException,
+            inspector_websocket.WebSocketDisconnected):
+      raise TracingUnrecoverableException
+
+    if ('error' in response or
+        'result' not in response or
+        'success' not in response['result'] or
+        'dumpGuid' not in response['result']):
+      raise TracingUnexpectedResponseException(
+          'Inspector returned unexpected response for '
+          'Tracing.requestMemoryDump:\n' + json.dumps(response, indent=2))
+
+    result = response['result']
+    return result['dumpGuid'] if result['success'] else None
 
   def _CollectTracingData(self, timeout):
     """Collects tracing data. Assumes that Tracing.end has already been sent.

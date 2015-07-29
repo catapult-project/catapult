@@ -214,6 +214,22 @@ class DevToolsClientBackend(object):
     assert self._tracing_backend
     return self._tracing_backend.StopTracing(trace_data_builder, timeout)
 
+  def DumpMemory(self, timeout=30):
+    """Dumps memory.
+
+    Returns:
+      GUID of the generated dump if successful, None otherwise.
+
+    Raises:
+      TracingTimeoutException: If more than |timeout| seconds has passed
+      since the last time any data is received.
+      TracingUnrecoverableException: If there is a websocket error.
+      TracingUnexpectedResponseException: If the response contains an error
+      or does not contain the expected result.
+    """
+    self._CreateTracingBackendIfNeeded()
+    return self._tracing_backend.DumpMemory(timeout)
+
 
 class _DevToolsContextMapBackend(object):
   def __init__(self, app_backend, devtools_client):

@@ -305,3 +305,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self._port)
     return self._system_info_backend.GetSystemInfo()
+
+  @property
+  def supports_memory_dumping(self):
+    return True
+
+  def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    return self.devtools_client.DumpMemory(timeout)
