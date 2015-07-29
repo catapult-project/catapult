@@ -7,7 +7,7 @@ import inspect
 import unittest
 import sys
 import os
-import optparse
+import argparse
 
 __all__ = []
 
@@ -95,10 +95,16 @@ class TestRunner(object):
     if argv is None:
       argv = sys.argv
 
-    parser = optparse.OptionParser()
-    _, args = parser.parse_args(argv[1:])
+    parser = argparse.ArgumentParser(
+        description='Run python tests.')
+    parser.add_argument('filters', nargs='*')
+    args = parser.parse_args()
+    return self.Run(args.filters)
 
-    runner = _RunnerImpl(filters=args)
+  def Run(self, filters=None):
+    if filters is None:
+      filters = []
+    runner = _RunnerImpl(filters)
     return unittest.main(module=__name__, argv=[sys.argv[0]],
                          testLoader=self._loader,
                          testRunner=runner)
