@@ -36,10 +36,6 @@ tr.exportTo('tr.e.audits', function() {
     });
   }
 
-  function addEvent(thread, dict) {
-    thread.asyncSliceGroup.push(tr.c.test_utils.newAsyncSliceEx(dict));
-  }
-
   function addInputEvent(model, typeName, dict) {
     dict.title = 'InputLatency::' + typeName;
     dict.isTopLevel = (dict.isTopLevel === undefined);
@@ -81,7 +77,6 @@ tr.exportTo('tr.e.audits', function() {
 
   return {
     newChromeModel: newChromeModel,
-    addEvent: addEvent,
     addInputEvent: addInputEvent,
     addFrameEvent: addFrameEvent,
     addLoadingEvent: addLoadingEvent,
