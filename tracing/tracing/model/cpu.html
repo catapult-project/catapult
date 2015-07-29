@@ -49,6 +49,14 @@ tr.exportTo('tr.model', function() {
   };
 
   Cpu.prototype = {
+    get samples() {
+      return this.samples_;
+    },
+
+    get userFriendlyName() {
+      return 'CPU ' + this.cpuNumber;
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.CpuSlice))
@@ -122,9 +130,7 @@ tr.exportTo('tr.model', function() {
         categoriesDict[this.samples_[i].category] = true;
     },
 
-    get userFriendlyName() {
-      return 'CPU ' + this.cpuNumber;
-    },
+
 
     /*
      * Returns the index of the slice in the CPU's slices, or undefined.
@@ -187,10 +193,6 @@ tr.exportTo('tr.model', function() {
       this.lastActiveThread_ = new_thread_id;
       this.lastActiveName_ = new_thread_name;
       this.lastActiveArgs_ = new_thread_args;
-    },
-
-    get samples() {
-      return this.samples_;
     }
   };
 
