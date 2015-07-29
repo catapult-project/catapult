@@ -17,8 +17,6 @@ _V8_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir, 'third_party',
                  'v8'))
 
-print _V8_DIR
-
 _JS_PARSER_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir, 'third_party',
                  'parse5', 'parse5.js'))
