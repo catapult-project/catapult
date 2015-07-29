@@ -1,0 +1,40 @@
+Guestbook Service
+=================
+
+This sample contains two sample ProtoRPC services that allow users to
+sign a guestbook. The two applications act as client and server.
+
+Google App Engine
+=================
+
+For more information about Google App Engine, and to download the SDK, see:
+
+  http://code.google.com/appengine
+
+Running locally
+===============
+
+ProtoRPC is packaged with the App Engine SDK, but the version shipped
+may not be the most current version due to the App Engine release
+schedule. If you'd like to use the most current version of ProtoRPC,
+you can install it in the guestbook/client and guestbook/server
+directories.
+
+For example on a unix-like OS, you could either copy:
+
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/guestbook/client
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/guestbook/server
+
+or symlink the directory:
+
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/guestbook/client/protorpc
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/guestbook/server/protorpc
+
+To run this demo locally, you need to run an instance of the Google App
+Engine dev-appserver both for the client and the server. The dev-appserver
+defaults on port 8080, so use different ports to avoid a port collision.
+
+Example on a unix-like OS:
+
+  $ python $GAE_SDK/dev_appserver.py --port=8080 $PROTORPC/demos/guestbook/client &
+  $ python $GAE_SDK/dev_appserver.py --port=8081 $PROTORPC/demos/guestbook/server

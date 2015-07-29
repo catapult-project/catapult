@@ -1,0 +1,41 @@
+<!--
+ Copyright 2010 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+{% extends "album_search.html" %}
+
+{% block title %}Artist - {{artist.name}}{% endblock %}
+
+{% block top %}
+
+<form action="/update_artist" method="POST">
+Artist: <input type="text" name="artist_name" value="{{artist.name}}"><br>
+<input type="hidden" name="artist_id" value="{{artist.artist_id}}">
+<input type="submit" name="submit" value="Update">
+</form>
+
+{% endblock %}
+
+
+{% block bottom %}
+
+<form id="new-album-form" action="/album" method="POST">
+New Album: <input type="text" name="album_name">
+Released: <input type="text" name="album_released">
+<input type="hidden" name="album_artist_id" value="{{artist.artist_id}}">
+<input type="submit" name="submit" value="Create">
+</form>
+
+{% endblock %}
