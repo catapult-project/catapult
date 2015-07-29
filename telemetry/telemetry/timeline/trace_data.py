@@ -126,7 +126,7 @@ class TraceData(object):
         continue
       yield {
         'name': k,
-        'value': self._raw_data[v]
+        'value': v
       }
 
   def HasEventsFor(self, part):
