@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-power-sample-table">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+var EventSet = tr.model.EventSet;
+
+Polymer('tr-ui-a-power-sample-table', {
+  ready: function() {
+    this.$.table.tableColumns = [
+      {
+        title: 'Time',
+        width: '150px',
+        value: function(row) { return row.start; }
+      },
+      {
+        title: 'Power (mW)',
+        width: '100%',
+        value: function(row) { return row.power; }
+      }
+    ];
+    this.samples = new EventSet();
+  },
+
+  get samples() {
+    return this.samples_;
+  },
+
+  set samples(samples) {
+    this.samples_ = (samples === undefined) ? new EventSet() : samples;
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    this.$.table.tableRows = this.samples.toArray();
+    this.$.table.rebuild();
+  }
+});
+</script>

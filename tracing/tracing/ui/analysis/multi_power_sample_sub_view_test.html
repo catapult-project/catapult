@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/model/event_set.html">
 <link rel="import" href="/model/model.html">
-<link rel="import" href="/model/power_sample.html">
 <link rel="import" href="/model/power_series.html">
 <link rel="import" href="/ui/analysis/multi_power_sample_sub_view.html">
 
@@ -20,7 +19,6 @@ tr.b.unittest.testSuite(function() {
     var model = new tr.Model();
     var series = new tr.model.PowerSeries(model.device);
     model.device.powerSeries = series;
-    var selection = new tr.model.EventSet();
 
     series.addPowerSample(0, 1000);
     series.addPowerSample(1, 2000);
@@ -28,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(3, 4000);
 
     var viewEl = document.createElement('tr-ui-a-multi-power-sample-sub-view');
-    viewEl.selection = series.samples;
+    viewEl.selection = new tr.model.EventSet(series.samples);
     this.addHTMLOutput(viewEl);
   });
 });

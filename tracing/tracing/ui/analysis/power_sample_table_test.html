@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
+<link rel="import" href="/ui/analysis/power_sample_table.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var EventSet = tr.model.EventSet;
+  var Model = tr.Model;
+  var PowerSeries = tr.model.PowerSeries;
+
+  test('instantiate_undefinedPowerSamples', function() {
+    var table = document.createElement('tr-ui-a-power-sample-table');
+    table.samples = undefined;
+
+    this.addHTMLOutput(table);
+
+    assert.lengthOf(table.$.table.tableRows, 0);
+  });
+
+  test('instantiate_noPowerSamples', function() {
+    var table = document.createElement('tr-ui-a-power-sample-table');
+    table.samples = new EventSet([]);
+
+    this.addHTMLOutput(table);
+
+    assert.lengthOf(table.$.table.tableRows, 0);
+  });
+
+  test('instantiate_onePowerSample', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1000);
+
+    var table = document.createElement('tr-ui-a-power-sample-table');
+    table.samples = new EventSet(series.samples);
+
+    this.addHTMLOutput(table);
+
+    assert.lengthOf(table.$.table.tableRows, 1);
+  });
+
+  test('instantiate_twoPowerSamples', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+
+    var table = document.createElement('tr-ui-a-power-sample-table');
+    table.samples = new EventSet(series.samples);
+
+    this.addHTMLOutput(table);
+
+    assert.lengthOf(table.$.table.tableRows, 2);
+  });
+});
+</script>

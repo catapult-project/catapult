@@ -249,6 +249,7 @@
       'tracing/ui/analysis/multi_thread_time_slice_sub_view.html',
       'tracing/ui/analysis/object_instance_view.html',
       'tracing/ui/analysis/object_snapshot_view.html',
+      'tracing/ui/analysis/power_sample_table.html',
       'tracing/ui/analysis/related_events.html',
       'tracing/ui/analysis/selection_summary_table.html',
       'tracing/ui/analysis/single_async_slice_sub_view.html',
