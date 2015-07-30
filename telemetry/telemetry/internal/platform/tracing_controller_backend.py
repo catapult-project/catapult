@@ -4,6 +4,7 @@
 
 import os
 
+from telemetry.core import discover
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
@@ -11,14 +12,14 @@ from telemetry.internal.platform.tracing_agent import (
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
-from telemetry.util import classes_util
 
 
 def _IterAllTracingAgentClasses():
   tracing_agent_dir = os.path.join(
       os.path.dirname(os.path.realpath(__file__)), 'tracing_agent')
-  return classes_util.DiscoverClasses(
-      tracing_agent_dir, util.GetTelemetryDir(), tracing_agent.TracingAgent)
+  return discover.DiscoverClasses(
+      tracing_agent_dir, util.GetTelemetryDir(),
+      tracing_agent.TracingAgent).itervalues()
 
 
 class TracingControllerBackend(object):

@@ -7,9 +7,12 @@ import inspect
 import os
 import re
 
+from telemetry import decorators
+from telemetry.internal.util import camel_case
 from telemetry.internal.util import classes as classes_module
 
 
+@decorators.Cache
 def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   """Discover all modules in |start_dir| which match |pattern|.
 
@@ -46,8 +49,12 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
       modules.append(module)
   return modules
 
+
+# TODO(dtu): Normalize all discoverable classes to have corresponding module
+# and class names, then always index by class name.
+@decorators.Cache
 def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
-                    one_class_per_module=False, directly_constructable=False):
+                    index_by_class_name=True, directly_constructable=False):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
   Base classes that contain subclasses are ignored by default.
@@ -57,21 +64,24 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
     top_level_dir: The top level of the package, for importing.
     base_class: The base class to search for.
     pattern: Unix shell-style pattern for filtering the filenames to import.
-    one_class_per_module: If True, will only include the first class found in
-                each module.
+    index_by_class_name: If True, use class name converted to
+        lowercase_with_underscores instead of module name in return dict keys.
     directly_constructable: If True, will only return classes that can be
         constructed without arguments
 
-  Returns: A list of classes.
+  Returns:
+    dict of {module_name: class} or {underscored_class_name: class}
   """
   modules = DiscoverModules(start_dir, top_level_dir, pattern)
-  classes = []
+  classes = {}
   for module in modules:
-    classes.extend(DiscoverClassesInModule(
-        module, base_class, one_class_per_module, directly_constructable))
+    new_classes = DiscoverClassesInModule(
+        module, base_class, index_by_class_name, directly_constructable)
+    classes = dict(classes.items() + new_classes.items())
   return classes
 
-def DiscoverClassesInModule(module, base_class, one_class_per_module=False,
+@decorators.Cache
+def DiscoverClassesInModule(module, base_class, index_by_class_name=False,
                             directly_constructable=False):
   """Discover all classes in |module| which subclass |base_class|.
 
@@ -80,12 +90,13 @@ def DiscoverClassesInModule(module, base_class, one_class_per_module=False,
   Args:
     module: The module to search.
     base_class: The base class to search for.
-    one_class_per_module: If True, will only include the first class found in
-                each module.
+    index_by_class_name: If True, use class name converted to
+        lowercase_with_underscores instead of module name in return dict keys.
 
-  Returns: A list of classes.
+  Returns:
+    dict of {module_name: class} or {underscored_class_name: class}
   """
-  classes = []
+  classes = {}
   for _, obj in inspect.getmembers(module):
     # Ensure object is a class.
     if not inspect.isclass(obj):
@@ -104,11 +115,14 @@ def DiscoverClassesInModule(module, base_class, one_class_per_module=False,
     if obj.__module__ != module.__name__:
       continue
 
+    if index_by_class_name:
+      key_name = camel_case.ToUnderscore(obj.__name__)
+    else:
+      key_name = module.__name__.split('.')[-1]
     if (not directly_constructable or
         classes_module.IsDirectlyConstructable(obj)):
-      classes.append(obj)
-      if one_class_per_module:
-        return classes
+      classes[key_name] = obj
+
   return classes
 
 

@@ -13,12 +13,11 @@ import zipfile
 
 from catapult_base import cloud_storage
 from telemetry import benchmark
+from telemetry.core import discover
 from telemetry.internal.util import bootstrap
 from telemetry.internal.util import command_line
 from telemetry.internal.util import path
 from telemetry.internal.util import path_set
-from telemetry.util import classes_util
-
 
 DEPS_FILE = 'bootstrap_deps'
 
@@ -63,9 +62,10 @@ def FindPageSetDependencies(base_dir):
 
   # Add base_dir to path so our imports relative to base_dir will work.
   sys.path.append(base_dir)
-  tests = classes_util.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark)
+  tests = discover.DiscoverClasses(base_dir, base_dir, benchmark.Benchmark,
+                                   index_by_class_name=True)
 
-  for test_class in tests:
+  for test_class in tests.itervalues():
     test_obj = test_class()
 
     # Ensure the test's default options are set if needed.
