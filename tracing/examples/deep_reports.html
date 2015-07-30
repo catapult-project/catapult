@@ -34,10 +34,10 @@ found in the LICENSE file.
   'use strict';
 
   function onLoad() {
-    tr.b.getAsync('/json/examples').then(function(data) {
+    tr.b.getAsync('/test_data/__file_list__').then(function(data) {
       var select = document.querySelector('#trace-file');
       var all_files = JSON.parse(data);
-      var files = all_files.filter(function(file) {
+      var filenames = all_files.filter(function(file) {
         if (!file.startsWith('measurmt-traces/'))
           return false;
         if (file === 'measurmt-traces/README.md')
@@ -45,9 +45,6 @@ found in the LICENSE file.
         return true;
       });
 
-      var filenames = files.map(function(file) {
-        return '../test_data/' + file;
-      });
       initUI(filenames);
     });
   }

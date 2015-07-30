@@ -59,26 +59,6 @@ tr.b.unittest.testSuite(function() {
     var slice = findSliceNamed(threads[0].sliceGroup, 'a');
     assert.equal(slice.category, 'foo');
   });
-
-  test('importXMLHttpRequest', function() {
-    if (tr.isHeadless)
-      return;
-    var req = new XMLHttpRequest();
-    var url = '/test_data/simple_trace_gz.gz';
-    req.open('GET', url, false);
-    req.overrideMimeType('text/plain; charset=x-user-defined');
-    req.send(null);
-    var gzip_data = req.responseText;
-    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
-
-    var model = new tr.Model(gzip_data);
-    var threads = model.getAllThreads();
-    assert.equal(threads.length, 2);
-
-    var slice = findSliceNamed(threads[0].sliceGroup, 'B');
-    assert.equal(slice.category, 'PERF');
-
-  });
 });
 </script>
 

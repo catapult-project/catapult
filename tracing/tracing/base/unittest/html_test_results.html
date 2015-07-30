@@ -426,7 +426,7 @@ tr.exportTo('tr.b.unittest', function() {
     notifyTestResultToDevServer_: function(result, extra_msg) {
       var req = new XMLHttpRequest();
       var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
-      req.open('POST', '/test_automation/notify_test_result', true);
+      req.open('POST', '/tr/json/notify_test_result', true);
       req.send(result + '  ' + testName + ' ' + (extra_msg || ''));
     },
 
@@ -438,7 +438,7 @@ tr.exportTo('tr.b.unittest', function() {
               '  Failed tests: ' + this.numTestsThatFailed_;
 
       var req = new XMLHttpRequest();
-      req.open('POST', '/test_automation/notify_completion', true);
+      req.open('POST', '/tr/json/notify_tests_completed', true);
       req.send(data);
     },
 

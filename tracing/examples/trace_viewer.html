@@ -133,12 +133,8 @@ found in the LICENSE file.
     selectEl = document.createElement('select');
     timelineViewEl.leftControls.appendChild(selectEl);
 
-    getAsync('/json/examples', function(data) {
+    getAsync('/test_data/__file_list__', function(data) {
       var files = JSON.parse(data);
-      files = files.map(function(rest) {
-        return '/test_data/' + rest;
-      });
-
       for (var i = 0; i < files.length; ++i) {
         var opt = document.createElement('option');
         opt.value = files[i];

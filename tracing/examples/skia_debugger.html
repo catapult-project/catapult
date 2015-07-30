@@ -137,8 +137,7 @@ found in the LICENSE file.
   }
 
   function reload() {
-    var file = window.location.hash.substr(1);
-    var filename = '/skp_data/' + file;
+    var filename = window.location.hash.substr(1);
     loadSkp(filename, createViewFromSkp);
   }
 
@@ -146,7 +145,7 @@ found in the LICENSE file.
     debuggerEl = new tr.ui.e.chrome.cc.PictureDebugger();
     document.querySelector('.view').appendChild(debuggerEl);
 
-    getAsync('/json/examples/skp', function(data) {
+    getAsync('/skp_data/__file_list__', function(data) {
       var select = document.querySelector('#skp_file');
       var files = JSON.parse(data);
 
