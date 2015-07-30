@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/extras/rail/ir_verifier_row.html">
+
+<polymer-element name="tr-ui-e-rail-ir-verifier-view">
+  <template>
+    <style>
+    :host {
+      display: table;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0px;
+    }
+    #expected {
+      display: none;
+    }
+    </style>
+
+    <tr-ui-e-rail-ir-verifier-row id="expected"></tr-ui-e-rail-ir-verifier-row>
+    <tr-ui-e-rail-ir-verifier-row id="actual"></tr-ui-e-rail-ir-verifier-row>
+    <tr-ui-e-rail-ir-verifier-row id="model"></tr-ui-e-rail-ir-verifier-row>
+  </template>
+  <script>
+  'use strict';
+  (function() {
+    Polymer({
+      created: function() {
+        this.hasExpectedIRs_ = false;
+      },
+
+      ready: function() {
+        this.$.actual.labelString = 'Interactions:';
+        this.$.model.labelString = 'Model:';
+      },
+
+      set bounds(bounds) {
+        this.$.expected.bounds = bounds;
+        this.$.actual.bounds = bounds;
+        this.$.model.bounds = bounds;
+      },
+
+      set actualIRs(irs) {
+        this.$.actual.events = irs;
+      },
+
+      set expectedIRs(irs) {
+        // Make getEventColor() for the expectedIRs match the actualIRs:
+        irs.forEach(function(eir) {
+          if (eir.title === 'Response') {
+            eir.railTypeName_ = 'rail_response';
+          } else if (eir.title === 'Animation') {
+            eir.railTypeName_ = 'rail_animate';
+          } else if (eir.title === 'Idle') {
+            eir.railTypeName_ = 'rail_idle';
+          } else if (eir.title === 'Load') {
+            eir.railTypeName_ = 'rail_load';
+          }
+        });
+
+        this.$.expected.labelString = 'Expected:';
+        this.$.actual.labelString = 'Actual:';
+        this.$.expected.events = irs;
+        this.$.expected.display = 'table-row';
+        this.hasExpectedIRs_ = true;
+      },
+
+      set model(events) {
+        this.$.model.events = events;
+      },
+
+      update: function() {
+        this.style.width = (window.innerWidth - 30) + 'px';
+        if (this.hasExpectedIRs_)
+          this.$.expected.update();
+        this.$.actual.update();
+        this.$.model.update();
+      }
+    });
+  })();
+  </script>
+</polymer-element>
