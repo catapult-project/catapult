@@ -107,6 +107,9 @@ def FindAllBrowserTypes(_):
       'release_x64',
       'debug',
       'debug_x64',
+      'stable',
+      'beta',
+      'dev',
       'canary',
       'content-shell-debug',
       'content-shell-debug_x64',
@@ -223,18 +226,25 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   # Linux specific options.
   if sys.platform.startswith('linux'):
-    # Look for a google-chrome instance.
-    found = False
-    try:
-      with open(os.devnull, 'w') as devnull:
-        found = subprocess.call(['google-chrome', '--version'],
-                                stdout=devnull, stderr=devnull) == 0
-    except OSError:
-      pass
-    if found:
-      browsers.append(PossibleDesktopBrowser('system', finder_options,
-                                             'google-chrome', None, False,
-                                             '/opt/google/chrome'))
+    versions = {
+        'system': ('google-chrome',
+                   os.path.split(os.path.realpath('google-chrome'))[0]),
+        'stable': ('google-chrome-stable', '/opt/google/chrome'),
+        'beta': ('google-chrome-beta', '/opt/google/chrome-beta'),
+        'dev': ('google-chrome-unstable', '/opt/google/chrome-unstable')
+    }
+
+    for version, (name, root) in versions.iteritems():
+      found = False
+      try:
+        with open(os.devnull, 'w') as devnull:
+          found = subprocess.call([name, '--version'],
+                                  stdout=devnull, stderr=devnull) == 0
+      except OSError:
+        pass
+      if found:
+        browsers.append(PossibleDesktopBrowser(version, finder_options, name,
+                                               None, False, root))
     linux_reference_root = os.path.join(reference_build_root, 'chrome_linux')
     linux_reference = os.path.join(linux_reference_root, 'chrome')
     if path.IsExecutable(linux_reference):

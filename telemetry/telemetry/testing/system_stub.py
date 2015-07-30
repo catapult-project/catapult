@@ -355,6 +355,14 @@ class OsModuleStub(object):
       return os.path.dirname(path)
 
     @staticmethod
+    def realpath(path):
+      return os.path.realpath(path)
+
+    @staticmethod
+    def split(path):
+      return os.path.split(path)
+
+    @staticmethod
     def splitext(path):
       return os.path.splitext(path)
 
