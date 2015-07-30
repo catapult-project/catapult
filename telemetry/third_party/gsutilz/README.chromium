@@ -1,0 +1,24 @@
+Name: gsutil
+Short Name: gsutil
+URL: https://cloud.google.com/storage/docs/gsutil
+Version: 4.13
+Date: 2015-07-28
+License: Apache 2.0
+License File: no
+Security Critical: no
+
+Description:
+gsutil is a Python application that allow access Google Cloud Storage from
+the command line. gsutil can do a wide range of bucket and object
+management tasks, including:
+* Creating and deleting buckets.
+* Uploading, downloading, and deleting objects.
+* Listing buckets and objects.
+* Moving, copying, and renaming objects.
+* Editing object and bucket ACLs.
+
+Local Modifications:
+_ Flip executable bits of file with shebang to pass the checkperm script.
+_ Temporarily remove gsutilz/third_party/ to avoid overloading build bots.
+_ Temporarily rename top level naming from gsutil to gsutilz so patch can apply
+cleanly on the buildbots.
