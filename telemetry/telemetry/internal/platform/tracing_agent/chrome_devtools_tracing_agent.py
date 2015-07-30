@@ -15,7 +15,7 @@ class ChromeTracingStoppedError(Exception):
   pass
 
 
-class ChromeTracingAgent(tracing_agent.TracingAgent):
+class ChromeDevtoolsTracingAgent(tracing_agent.TracingAgent):
   # A singleton map from platform backends to maps of uniquely-identifying
   # remote port (which may be the same as local port) to DevToolsClientBackend.
   # There is no guarantee that the devtools agent is still alive.
@@ -24,7 +24,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   _is_tracing_running_for_platform_backend.setdefault(False)
 
   def __init__(self, platform_backend):
-    super(ChromeTracingAgent, self).__init__(platform_backend)
+    super(ChromeDevtoolsTracingAgent, self).__init__(platform_backend)
 
   @classmethod
   def _RemoveStaleDevToolsClient(cls, platform_backend):
