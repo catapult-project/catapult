@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
 import zipfile
 
 from catapult_base import cloud_storage
@@ -74,6 +75,7 @@ class SharedPageState(story.SharedState):
     self._did_login_for_current_page = False
     self._current_page = None
     self._current_tab = None
+    self._migrated_profile = None
 
     self._pregenerated_profile_archive = None
     self._test.SetOptions(self._finder_options)
@@ -82,13 +84,17 @@ class SharedPageState(story.SharedState):
   def browser(self):
     return self._browser
 
-  def _GetPossibleBrowser(self, test, finder_options):
-    """Return a possible_browser with the given options. """
+  def _FindBrowser(self, finder_options):
     possible_browser = browser_finder.FindBrowser(finder_options)
     if not possible_browser:
       raise browser_finder_exceptions.BrowserFinderException(
           'No browser found.\n\nAvailable browsers:\n%s\n' %
           '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
+    return possible_browser
+
+  def _GetPossibleBrowser(self, test, finder_options):
+    """Return a possible_browser with the given options for |test|. """
+    possible_browser = self._FindBrowser(finder_options)
     finder_options.browser_options.browser_type = (
         possible_browser.browser_type)
 
@@ -192,6 +198,9 @@ class SharedPageState(story.SharedState):
     if self._ShouldDownloadPregeneratedProfileArchive():
       self._DownloadPregeneratedProfileArchive()
 
+      if self._ShouldMigrateProfile():
+        self._MigratePregeneratedProfile()
+
     page_set = page.page_set
     self._current_page = page
     if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
@@ -290,6 +299,10 @@ class SharedPageState(story.SharedState):
       raise
 
   def TearDownState(self):
+    if self._migrated_profile:
+      shutil.rmtree(self._migrated_profile)
+      self._migrated_profile = None
+
     self._StopBrowser()
 
   def _StopBrowser(self):
@@ -319,6 +332,50 @@ class SharedPageState(story.SharedState):
         if os.path.isfile(f):
           results.AddProfilingFile(self._current_page,
                                    file_handle.FromFilePath(f))
+
+  def _ShouldMigrateProfile(self):
+    return not self._migrated_profile
+
+  def _MigrateProfile(self, finder_options, found_browser,
+                      initial_profile, final_profile):
+    """Migrates a profile to be compatible with a newer version of Chrome.
+
+    Launching Chrome with the old profile will perform the migration.
+    """
+    # Save the current input and output profiles.
+    saved_input_profile = finder_options.browser_options.profile_dir
+    saved_output_profile = finder_options.output_profile_path
+
+    # Set the input and output profiles.
+    finder_options.browser_options.profile_dir = initial_profile
+    finder_options.output_profile_path = final_profile
+
+    # Launch the browser, then close it.
+    browser = found_browser.Create(finder_options)
+    browser.Close()
+
+    # Load the saved input and output profiles.
+    finder_options.browser_options.profile_dir = saved_input_profile
+    finder_options.output_profile_path = saved_output_profile
+
+  def _MigratePregeneratedProfile(self):
+    """Migrates the pregenerated profile by launching Chrome with it.
+
+    On success, updates self._migrated_profile and
+    self._finder_options.browser_options.profile_dir with the directory of the
+    migrated profile.
+    """
+    self._migrated_profile = tempfile.mkdtemp()
+    logging.info("Starting migration of pregenerated profile to %s",
+        self._migrated_profile)
+    pregenerated_profile = self._finder_options.browser_options.profile_dir
+
+    possible_browser = self._FindBrowser(self._finder_options)
+    self._MigrateProfile(self._finder_options, possible_browser,
+                         pregenerated_profile, self._migrated_profile)
+    self._finder_options.browser_options.profile_dir = self._migrated_profile
+    logging.info("Finished migration of pregenerated profile to %s",
+        self._migrated_profile)
 
   def GetPregeneratedProfileArchive(self):
     return self._pregenerated_profile_archive
