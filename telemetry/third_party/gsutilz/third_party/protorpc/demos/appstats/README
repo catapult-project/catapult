@@ -1,0 +1,50 @@
+Appstats Service
+================
+
+This utility can be integrated in to an existing application that uses
+appstats to turn appstats in to a service that can be remotely
+queried.
+
+Google App Engine
+=================
+
+For more information about Google App Engine, and to download the SDK, see:
+
+  http://code.google.com/appengine
+
+Appstats
+========
+
+For more information about appstats, please see:
+
+  http://code.google.com/appengine/docs/python/tools/appstats.html
+
+The file appstats.descriptor is a binary FileSet descriptor encoded in
+protocol buffer format as defined in protorpc.descriptor.FileSet.  The
+defintions were described from yet to be published .proto file.  The
+generated classes are the same as defined in:
+
+  google.appengine.ext.appstats.datamodel_pb.py
+
+Running locally
+===============
+
+ProtoRPC is packaged with the App Engine SDK, but the version shipped
+may not be the most current version due to the App Engine release
+schedule. If you'd like to use the most current version of ProtoRPC,
+you can install it in the appstats directory.
+
+For example on a unix-like OS, you could either copy:
+
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/appstats
+
+or symlink the directory:
+
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/appstats/protorpc
+
+To run this demo locally, you need to run an instance of the Google App
+Engine dev-appserver.  The server defaults on port 8080.
+
+Example on a unix-like OS:
+
+  $ python $GAE_SDK/dev_appserver.py $PROTORPC/demos/appstats

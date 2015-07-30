@@ -1,0 +1,9 @@
+application: experimental-wsgi
+version: 1
+api_version: 1
+runtime: python
+
+handlers:
+
+- url: /protorpc.*
+  script: services.py
