@@ -69,7 +69,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                                          stats.input_event_latency)
     values += self._ComputeLatencyMetric(page, stats, 'scroll_update_latency',
                                          stats.scroll_update_latency)
-    values += self._ComputeFirstGestureScrollUpdateLatency(page, stats)
+    values.append(self._ComputeFirstGestureScrollUpdateLatencies(page, stats))
     values += self._ComputeFrameTimeMetric(page, stats)
     if has_surface_flinger_stats:
       values += self._ComputeSurfaceFlingerMetric(page, stats)
@@ -184,28 +184,28 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
           none_value_reason=none_value_reason)
     )
 
-  def _ComputeFirstGestureScrollUpdateLatency(self, page, stats):
-    """Returns a Value for the first gesture scroll update latency."""
-    first_gesture_scroll_update_latency = None
+  def _ComputeFirstGestureScrollUpdateLatencies(self, page, stats):
+    """Returns a ListOfScalarValuesValues of gesture scroll update latencies.
+
+    Returns a Value for the first gesture scroll update latency for each
+    interaction record in |stats|.
+    """
     none_value_reason = None
-    if self._HasEnoughFrames(stats.frame_timestamps):
-      latency_list = perf_tests_helper.FlattenList(
-          stats.gesture_scroll_update_latency)
-      if len(latency_list) == 0:
-        return ()
-      first_gesture_scroll_update_latency = round(latency_list[0], 4)
-    else:
+    first_gesture_scroll_update_latencies = [round(latencies[0], 4)
+        for latencies in stats.gesture_scroll_update_latency
+        if len(latencies)]
+    if (not self._HasEnoughFrames(stats.frame_timestamps) or
+        not first_gesture_scroll_update_latencies):
+      first_gesture_scroll_update_latencies = None
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
-    return (
-      scalar.ScalarValue(
+    return list_of_scalar_values.ListOfScalarValues(
         page, 'first_gesture_scroll_update_latency', 'ms',
-        first_gesture_scroll_update_latency,
+        first_gesture_scroll_update_latencies,
         description='First gesture scroll update latency measures the time it '
                     'takes to process the very first gesture scroll update '
                     'input event. The first scroll gesture can often get '
                     'delayed by work related to page loading.',
-        none_value_reason=none_value_reason),
-    )
+        none_value_reason=none_value_reason)
 
   def _ComputeQueueingDuration(self, page, stats):
     """Returns a Value for the frame queueing durations."""
