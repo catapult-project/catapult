@@ -167,4 +167,6 @@ class TracingProject(project_module.Project):
 
   @staticmethod
   def IsThirdParty(affected_file):
-    return affected_file.LocalPath().startswith('tracing/third_party')
+    return (affected_file.LocalPath().startswith('tracing/third_party') or
+            affected_file.LocalPath().startswith('third_party'))
+
