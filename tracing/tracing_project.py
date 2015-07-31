@@ -43,6 +43,7 @@ class TracingProject(project_module.Project):
   tracing_root_path = os.path.abspath(os.path.join(tracing_path, 'tracing'))
   tracing_src_path = os.path.abspath(os.path.join(tracing_root_path, 'tracing'))
   extras_path = os.path.join(tracing_src_path, 'extras')
+  ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
 
   tracing_third_party_path = os.path.abspath(os.path.join(
       tracing_root_path, 'third_party'))
@@ -99,7 +100,8 @@ class TracingProject(project_module.Project):
 
   def GetConfigNames(self):
     config_files = [
-        os.path.join(self.extras_path, x) for x in os.listdir(self.extras_path)
+        os.path.join(self.ui_extras_path, x)
+        for x in os.listdir(self.ui_extras_path)
         if x.endswith('_config.html')
     ]
 
@@ -124,7 +126,7 @@ class TracingProject(project_module.Project):
     return choices
 
   def GetModuleNameForConfigName(self, config_name):
-    return 'extras.%s_config' % config_name
+    return 'ui.extras.%s_config' % config_name
 
   @classmethod
   def IsIgnoredFile(cls, affected_file):
