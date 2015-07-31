@@ -1,0 +1,23 @@
+# Build artifacts
+*.py[cod]
+oauth2client.egg-info/
+build/
+dist/
+
+# Documentation-related
+docs/_build
+/google_appengine/
+
+# Test files
+.tox/
+
+# Coverage files
+.coverage
+coverage.xml
+nosetests.xml
+
+# Files with private / local data
+scripts/local_test_setup
+tests/data/key.json
+tests/data/key.p12
+tests/data/user-key.json
