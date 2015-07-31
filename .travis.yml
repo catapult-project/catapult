@@ -20,6 +20,7 @@ before_install:
 
 script:
  - ./tracing/run_tests --chrome_path=/tmp/chrome-precise64/chrome
+ - ./third_party/vinn/run_test
 
 # Vulcanize trace_viewer in full & chrome mode & report total size
  - ./tracing/vulcanize_trace_viewer --config=chrome
