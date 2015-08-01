@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import argparse
+import os
+import sys
+
+hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if hooks_path not in sys.path:
+  sys.path.append(hooks_path)
+
+from hooks import install
+
+
+def _SetupTVCMPath():
+  tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                           '..', 'tracing',
+                                           'third_party', 'tvcm'))
+  if tvcm_path not in sys.path:
+    sys.path.append(tvcm_path)
+
+_SetupTVCMPath()
+
+
+from tvcm import test_runner
+import perf_insights
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(
+      description='Run python tests.')
+  parser.add_argument(
+    '--no-install-hooks', dest='install_hooks', action='store_false')
+  parser.add_argument('filters', nargs='*')
+  parser.set_defaults(install_hooks=True)
+  args = parser.parse_args()
+  if args.install_hooks:
+    install.InstallHooks()
+
+  runner = test_runner.TestRunner()
+  runner.AddModule(perf_insights)
+  sys.exit(runner.Run(args.filters))
