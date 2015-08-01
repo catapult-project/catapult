@@ -26,15 +26,17 @@ def _GetFilesIn(basedir):
   data_files.sort()
   return data_files
 
-
-def _GetMetadataForFilename(base_directory, filename):
+def _GetTagsForRelPath(relpath):
   # Tags.
-  relpath = os.path.relpath(filename, base_directory)
   sub_dir = os.path.dirname(relpath)
   if len(sub_dir) == 0:
-    tags = []
-  else:
-    tags = sub_dir.split(os.sep)
+    return []
+  parts = sub_dir.split(os.sep)
+  return [p for p in parts if len(p) > 0]
+
+def _GetMetadataForFilename(base_directory, filename):
+  relpath = os.path.relpath(filename, base_directory)
+  tags = _GetTagsForRelPath(base_directory, filename)
 
   metadata = {'tags': tags}
 
