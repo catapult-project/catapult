@@ -51,7 +51,11 @@ tr.exportTo('tr.b', function() {
   function getAsync(url) {
     if (!tr.isHeadless)
       return get(url, true);
-    var filename = global.hrefToAbsolutePath(url);
+    var filename;
+    if (url.startsWith('file:///'))
+      filename = url.substring(7);
+    else
+      filename = global.hrefToAbsolutePath(url);
     var isBinary = guessBinary(url);
     return Promise.resolve().then(function() {
       if (isBinary)
@@ -63,7 +67,11 @@ tr.exportTo('tr.b', function() {
   function getSync(url) {
     if (!tr.isHeadless)
       return get(url, false);
-    var filename = global.hrefToAbsolutePath(url);
+    var filename;
+    if (url.startsWith('file:///'))
+      filename = url.substring(7);
+    else
+      filename = global.hrefToAbsolutePath(url);
     var isBinary = guessBinary(url);
     if (isBinary)
       return readbuffer(filename);
