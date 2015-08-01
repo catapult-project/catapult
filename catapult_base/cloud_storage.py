@@ -44,15 +44,12 @@ _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
 class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions(gsutil_path):
-    if SupportsProdaccess(gsutil_path) and _FindExecutableInPath('prodaccess'):
-      return 'Run prodaccess to authenticate.'
-    else:
-      if util.IsRunningOnCrosDevice():
-        gsutil_path = ('HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, gsutil_path))
-      return ('To configure your credentials:\n'
-              '  1. Run "%s config" and follow its instructions.\n'
-              '  2. If you have a @google.com account, use that account.\n'
-              '  3. For the project-id, just enter 0.' % gsutil_path)
+    if util.IsRunningOnCrosDevice():
+      gsutil_path = ('HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, gsutil_path))
+    return ('To configure your credentials:\n'
+            '  1. Run "%s config" and follow its instructions.\n'
+            '  2. If you have a @google.com account, use that account.\n'
+            '  3. For the project-id, just enter 0.' % gsutil_path)
 
 
 class PermissionError(CloudStorageError):
@@ -113,11 +110,6 @@ def FindGsutil():
 
   # Failed to find it. Download it!
   return _DownloadGsutil()
-
-
-def SupportsProdaccess(gsutil_path):
-  with open(gsutil_path, 'r') as gsutil:
-    return 'prodaccess' in gsutil.read()
 
 
 def _RunCommand(args):
