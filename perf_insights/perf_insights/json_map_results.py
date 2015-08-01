@@ -35,6 +35,7 @@ class JSONMapResults(map_results.MapResults):
     self.num_mapped_traces += 1
     full_result = {
       'run': trace_handle.run_info.AsDict(),
+      'metadata': trace_handle.metadata,
       'value': result_value
     }
     json.dump(full_result, self.output_file, indent=2)
