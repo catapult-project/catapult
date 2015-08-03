@@ -6,10 +6,10 @@ import logging
 import os
 import unittest
 
+from telemetry.core import discover
 from telemetry.internal.browser import browser_credentials
 from telemetry import page
 from telemetry import story as story_module
-from telemetry.util import classes_util
 from telemetry.wpr import archive_info
 
 
@@ -23,9 +23,9 @@ class StorySetSmokeTest(unittest.TestCase):
   def GetAllStorySetClasses(self, story_sets_dir, top_level_dir):
     # We can't test page sets that aren't directly constructable since we
     # don't know what arguments to put for the constructor.
-    return classes_util.DiscoverClasses(story_sets_dir, top_level_dir,
-                                        story_module.StorySet,
-                                        directly_constructable=True)
+    return discover.DiscoverClasses(story_sets_dir, top_level_dir,
+                                    story_module.StorySet,
+                                    directly_constructable=True).values()
 
   def CheckArchive(self, story_set):
     """Verify that all URLs of pages in story_set have an associated archive."""

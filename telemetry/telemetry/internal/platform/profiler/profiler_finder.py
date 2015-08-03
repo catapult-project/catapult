@@ -4,15 +4,16 @@
 
 import os
 
+from telemetry.core import discover
 from telemetry.internal.platform import profiler
 from telemetry.core import util
-from telemetry.util import classes_util
 
 
 def _DiscoverProfilers():
   profiler_dir = os.path.dirname(__file__)
-  return classes_util.DiscoverClasses(
-      profiler_dir, util.GetTelemetryDir(), profiler.Profiler)
+  return discover.DiscoverClasses(profiler_dir, util.GetTelemetryDir(),
+                                  profiler.Profiler,
+                                  index_by_class_name=True).values()
 
 
 def FindProfiler(name):
