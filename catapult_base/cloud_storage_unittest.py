@@ -9,9 +9,6 @@ from catapult_base import cloud_storage
 from telemetry.testing import system_stub
 
 
-def _FakeFindGsutil():
-  return 'fake gsutil path'
-
 def _FakeReadHash(_):
   return 'hashthis!'
 
@@ -32,8 +29,6 @@ class CloudStorageUnitTest(unittest.TestCase):
 
   def _assertRunCommandRaisesError(self, communicate_strs, error):
     stubs = system_stub.Override(cloud_storage, ['open', 'subprocess'])
-    orig_find_gs_util = cloud_storage.FindGsutil
-    cloud_storage.FindGsutil = _FakeFindGsutil
     stubs.open.files = {'fake gsutil path':''}
     stubs.subprocess.Popen.returncode_result = 1
     try:
@@ -42,7 +37,6 @@ class CloudStorageUnitTest(unittest.TestCase):
         self.assertRaises(error, cloud_storage._RunCommand, [])
     finally:
       stubs.Restore()
-      cloud_storage.FindGsutil = orig_find_gs_util
 
   def testRunCommandCredentialsError(self):
     strs = ['You are attempting to access protected data with no configured',
@@ -82,22 +76,18 @@ class CloudStorageUnitTest(unittest.TestCase):
 
   def testExistsReturnsFalse(self):
     stubs = system_stub.Override(cloud_storage, ['subprocess'])
-    orig_find_gs_util = cloud_storage.FindGsutil
     try:
       stubs.subprocess.Popen.communicate_result = (
         '',
         'CommandException: One or more URLs matched no objects.\n')
       stubs.subprocess.Popen.returncode_result = 1
-      cloud_storage.FindGsutil = _FakeFindGsutil
       self.assertFalse(cloud_storage.Exists('fake bucket',
                                             'fake remote path'))
     finally:
       stubs.Restore()
-      cloud_storage.FindGsutil = orig_find_gs_util
 
   def testGetIfChanged(self):
     stubs = system_stub.Override(cloud_storage, ['os', 'open'])
-    stubs.open.files[_FakeFindGsutil()] = ''
     orig_get = cloud_storage.Get
     orig_read_hash = cloud_storage.ReadHash
     orig_calculate_hash = cloud_storage.CalculateHash
