@@ -102,10 +102,10 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # List of RunningAverage objects specifying metrics we want to aggregate.
     metrics = [
         ConstructMetric(
-            ['component_utilization', 'whole_package', 'average_frequency_hz'],
+            ['platform_info', 'average_frequency_hz'],
             ['processor', 'freq_hz']),
         ConstructMetric(
-            ['component_utilization', 'whole_package', 'idle_percent'],
+            ['platform_info', 'idle_percent'],
             ['processor', 'packages', 0, 'c_state_ratio'])]
 
     def DataWithMetricKeyPath(metric, powermetrics_output):

@@ -199,7 +199,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for state in cumulative_times:
       time, count = cumulative_times[state]
       average[state] = time / float(count)
-    cpu_stats['whole_package'] = average
+    cpu_stats['platform_info'] = average
     return cpu_stats
 
   @staticmethod
@@ -217,6 +217,11 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
       return power_stats
     if 'component_utilization' not in power_stats:
       power_stats['component_utilization'] = {}
+    if 'platform_info' in cpu_stats:
+      if 'platform_info' not in power_stats:
+        power_stats['platform_info'] = {}
+      power_stats['platform_info'].update(cpu_stats['platform_info'])
+      del cpu_stats['platform_info']
     for cpu in cpu_stats:
       power_stats['component_utilization'][cpu] = cpu_stats[cpu]
     return power_stats

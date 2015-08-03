@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import atexit
+import logging
 
 import telemetry.internal.platform.power_monitor as power_monitor
 
@@ -34,12 +35,39 @@ class PowerMonitorController(power_monitor.PowerMonitor):
     for monitor in self._active_monitors:
       monitor.StartMonitoringPower(browser)
 
+  @staticmethod
+  def _MergePowerResults(combined_results, monitor_results):
+    """
+    Merges monitor_results into combined_results and leaves monitor_results
+    values if there are merge conflicts.
+    """
+    def _CheckDuplicateKeys(dict_one, dict_two, ignore_list=None):
+      for key in dict_one:
+        if key in dict_two and key not in ignore_list:
+          logging.warning('Found multiple instances of %s in power monitor '
+                          'enteries. Using newest one.', key)
+    # Sub level power enteries.
+    for part in ['platform_info', 'component_utilization']:
+      if part in monitor_results:
+        _CheckDuplicateKeys(combined_results[part], monitor_results[part])
+        combined_results[part].update(monitor_results[part])
+
+    # Top level power enteries.
+    platform_info = combined_results['platform_info'].copy()
+    comp_utilization = combined_results['component_utilization'].copy()
+    _CheckDuplicateKeys(
+        combined_results, monitor_results,
+        ['identifier', 'platform_info', 'component_utilization'])
+    combined_results.update(monitor_results)
+    combined_results['platform_info'] = platform_info
+    combined_results['component_utilization'] = comp_utilization
+
   def StopMonitoringPower(self):
     assert self._active_monitors, 'StartMonitoringPower() not called.'
     try:
-      results = {}
+      results = {'platform_info': {}, 'component_utilization': {}}
       for monitor in self._active_monitors:
-        results.update(monitor.StopMonitoringPower())
+        self._MergePowerResults(results, monitor.StopMonitoringPower())
       return results
     finally:
       self._active_monitors = []

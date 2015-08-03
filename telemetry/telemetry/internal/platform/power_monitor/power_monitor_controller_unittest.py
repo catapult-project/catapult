@@ -57,3 +57,31 @@ class PowerMonitorControllerTest(unittest.TestCase):
     battery = battery_utils.BatteryUtils(None)
     battery.GetCharging.return_value = False
     power_monitor_controller._ReenableChargingIfNeeded(battery)
+
+  def testMergePowerResultsOneEmpty(self):
+    dict_one = {'platform_info': {}, 'component_utilization': {}}
+    dict_two = {'test': 1, 'component_utilization': {'test': 2}}
+    results = {
+        'platform_info': {},
+        'component_utilization': {'test': 2},
+        'test': 1
+    }
+    power_monitor_controller.PowerMonitorController._MergePowerResults(
+        dict_one, dict_two)
+    self.assertDictEqual(dict_one, results)
+
+  def testMergePowerResultsSameEntry(self):
+    dict_one = {
+        'test': 1,
+        'component_utilization': {'test': 2},
+        'platform_info': {'test2': 'a'}
+    }
+    dict_two = {'test': 3, 'platform_info': {'test': 4}}
+    results = {
+        'test' : 3,
+        'component_utilization': {'test': 2},
+        'platform_info': {'test': 4, 'test2': 'a'}
+    }
+    power_monitor_controller.PowerMonitorController._MergePowerResults(
+        dict_one, dict_two)
+    self.assertDictEqual(dict_one, results)

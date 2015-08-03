@@ -22,9 +22,8 @@ class TemperatureMonitorForTesting(
     return self._expected_temperature
 
   def PowerMeasurementsConsistent(self, power_measurements):
-    component_utilization = power_measurements.get('component_utilization', {})
-    whole_package = component_utilization.get('whole_package', {})
-    expected_temperature = whole_package.get('average_temperature_c')
+    platform_info = power_measurements.get('platform_info', {})
+    expected_temperature = platform_info.get('average_temperature_c')
     return expected_temperature == self._expected_temperature
 
 

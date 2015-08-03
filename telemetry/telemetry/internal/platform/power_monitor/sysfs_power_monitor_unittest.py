@@ -117,7 +117,7 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
     'cpu3': {}
   }
   expected_freq_percents = {
-    'whole_package': {
+    'platform_info': {
       1700000000: 3.29254111574526,
       1600000000: 0.0,
       1500000000: 0.0,

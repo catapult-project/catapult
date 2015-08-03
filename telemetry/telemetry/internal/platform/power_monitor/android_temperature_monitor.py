@@ -53,7 +53,7 @@ class AndroidTemperatureMonitor(power_monitor.PowerMonitor):
     # returned by StopMonitoringPower() creating appropriate sub-dictionaries on
     # the way if necessary.
     temperature_path = [
-        'component_utilization', 'whole_package', 'average_temperature_c']
+        'platform_info', 'average_temperature_c']
     temperature_insertion_point = power_data
     for path_element in temperature_path[:-1]:
       if not path_element in temperature_insertion_point:

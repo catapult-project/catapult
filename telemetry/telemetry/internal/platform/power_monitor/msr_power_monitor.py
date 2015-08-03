@@ -63,10 +63,8 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     return {
         'identifier': 'msr',
         'energy_consumption_mwh': _JoulesToMilliwattHours(energy_consumption_j),
-        'component_utilization': {
-            'whole_package': {
-                'average_temperature_c': average_temp_c,
-            },
+        'platform_info': {
+            'average_temperature_c': average_temp_c,
         },
     }
 

@@ -60,9 +60,13 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
 
     self.assertTrue(result['energy_consumption_mwh'] > 0)
 
+    # Verify platform info exists in output.
+    self.assertTrue(result['platform_info']['average_frequency_hz'] > 0)
+    self.assertTrue(result['platform_info']['idle_percent'] > 0)
+
     # Verify that all component entries exist in output.
     component_utilization = result['component_utilization']
-    for k in ['whole_package', 'gpu'] + ['cpu%d' % x for x in range(8)]:
+    for k in ['gpu'] + ['cpu%d' % x for x in range(8)]:
       self.assertTrue(component_utilization[k]['average_frequency_hz'] > 0)
       self.assertTrue(component_utilization[k]['idle_percent'] > 0)
 
