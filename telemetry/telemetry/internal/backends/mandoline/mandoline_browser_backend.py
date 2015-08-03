@@ -9,6 +9,7 @@ from telemetry.core import util
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
+from telemetry.internal import forwarders
 from telemetry.util import wpr_modes
 
 
@@ -26,6 +27,17 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
     self._port = None
     self._devtools_client = None
 
+    if browser_options.netsim:
+      self.wpr_port_pairs = forwarders.PortPairs(
+          http=forwarders.PortPair(80, 80),
+          https=forwarders.PortPair(443, 443),
+          dns=forwarders.PortPair(53, 53))
+    else:
+      self.wpr_port_pairs = forwarders.PortPairs(
+          http=forwarders.PortPair(0, 0),
+          https=forwarders.PortPair(0, 0),
+          dns=None)
+
     # Some of the browser options are not supported by mandoline yet.
     self._CheckUnsupportedBrowserOptions(browser_options)
 
@@ -36,7 +48,45 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
   def GetBrowserStartupArgs(self):
     args = []
     args.extend(self.browser_options.extra_browser_args)
+    args.extend(self.GetReplayBrowserStartupArgs())
     return args
+
+  def _UseHostResolverRules(self):
+    """Returns True to add --host-resolver-rules to send requests to replay."""
+    if self._platform_backend.forwarder_factory.does_forwarder_override_dns:
+      # Avoid --host-resolver-rules when the forwarder will map DNS requests
+      # from the target platform to replay (on the host platform).
+      # This allows the browser to exercise DNS requests.
+      return False
+    if self.browser_options.netsim and self.platform_backend.is_host_platform:
+      # Avoid --host-resolver-rules when replay will configure the platform to
+      # resolve hosts to replay.
+      # This allows the browser to exercise DNS requests.
+      return False
+    return True
+
+  def GetReplayBrowserStartupArgs(self):
+    if self.browser_options.wpr_mode == wpr_modes.WPR_OFF:
+      return []
+    replay_args = []
+    if self.should_ignore_certificate_errors:
+      # Ignore certificate errors if the platform backend has not created
+      # and installed a root certificate.
+      replay_args.append('--ignore-certificate-errors')
+    if self._UseHostResolverRules():
+      # Force hostnames to resolve to the replay's host_ip.
+      replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost,'
+                         #'EXCLUDE *.google.com' %
+                         % self._platform_backend.forwarder_factory.host_ip)
+    # Force the browser to send HTTP/HTTPS requests to fixed ports if they
+    # are not the standard HTTP/HTTPS ports.
+    http_port = self.platform_backend.wpr_http_device_port
+    https_port = self.platform_backend.wpr_https_device_port
+    if http_port != 80:
+      replay_args.append('--testing-fixed-http-port=%s' % http_port)
+    if https_port != 443:
+      replay_args.append('--testing-fixed-https-port=%s' % https_port)
+    return replay_args
 
   def HasBrowserFinishedLaunching(self):
     assert self._port, 'No DevTools port info available.'
@@ -115,12 +165,6 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
 
     if browser_options.extra_wpr_args:
       _RaiseForUnsupportedOption('extra_wpr_args')
-
-    if browser_options.wpr_mode != wpr_modes.WPR_OFF:
-      _RaiseForUnsupportedOption('wpr_mode')
-
-    if browser_options.netsim:
-      _RaiseForUnsupportedOption('netsim')
 
     if not browser_options.disable_background_networking:
       _RaiseForUnsupportedOption('disable_background_networking')
