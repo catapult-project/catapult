@@ -56,6 +56,10 @@ tr.exportTo('tr.ui.b', function() {
       this.addEventListener('mousedown', this.onMouseDown_.bind(this));
     },
 
+    get data() {
+      return this.data_;
+    },
+
     /**
      * Sets the data array for the object
      *
