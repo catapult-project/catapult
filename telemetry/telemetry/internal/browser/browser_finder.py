@@ -12,6 +12,7 @@ from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.backends.chrome import cros_browser_finder
 from telemetry.internal.backends.chrome import desktop_browser_finder
 from telemetry.internal.backends.chrome import ios_browser_finder
+from telemetry.internal.backends.mandoline import android_mandoline_finder
 from telemetry.internal.backends.mandoline import desktop_mandoline_finder
 from telemetry.internal.backends.remote import trybot_browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
@@ -24,6 +25,7 @@ BROWSER_FINDERS = [
   ios_browser_finder,
   trybot_browser_finder,
   desktop_mandoline_finder,
+  android_mandoline_finder,
   ]
 
 
