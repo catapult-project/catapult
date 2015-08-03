@@ -87,6 +87,10 @@ tr.exportTo('tr.ui.units', function() {
       this.percentage_ = undefined;
     },
 
+    set contentTextDecoration(deco) {
+      this.$.content.style.textDecoration = deco;
+    },
+
     get duration() {
       return this.duration_;
     },
