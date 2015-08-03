@@ -6,8 +6,7 @@ import os
 
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
-from telemetry.internal.platform.tracing_agent import (
-    chrome_devtools_tracing_agent)
+from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
@@ -26,7 +25,7 @@ class TracingControllerBackend(object):
     self._platform_backend = platform_backend
     self._current_trace_options = None
     self._current_category_filter = None
-    self._current_chrome_devtools_tracing_agent = None
+    self._current_chrome_tracing_agent = None
     self._supported_agents_classes = [
         agent_classes for agent_classes in _IterAllTracingAgentClasses() if
         agent_classes.IsSupported(platform_backend)]
@@ -47,12 +46,12 @@ class TracingControllerBackend(object):
     # Hack: chrome tracing agent depends on the number of alive chrome devtools
     # processes, rather platform, hence we add it to the list of supported
     # agents here if it was not added.
-    if (chrome_devtools_tracing_agent.ChromeDevtoolsTracingAgent.IsSupported(
+    if (chrome_tracing_agent.ChromeTracingAgent.IsSupported(
         self._platform_backend) and
-        not chrome_devtools_tracing_agent.ChromeDevtoolsTracingAgent in
+        not chrome_tracing_agent.ChromeTracingAgent in
         self._supported_agents_classes):
       self._supported_agents_classes.append(
-          chrome_devtools_tracing_agent.ChromeDevtoolsTracingAgent)
+          chrome_tracing_agent.ChromeTracingAgent)
 
     for agent_class in self._supported_agents_classes:
       agent = agent_class(self._platform_backend)
@@ -70,7 +69,7 @@ class TracingControllerBackend(object):
     return trace_data_builder.AsData()
 
   def IsChromeTracingSupported(self):
-    return chrome_devtools_tracing_agent.ChromeDevtoolsTracingAgent.IsSupported(
+    return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
         self._platform_backend)
 
   @property
