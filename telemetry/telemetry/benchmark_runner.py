@@ -14,11 +14,11 @@ import os
 import sys
 
 from telemetry import benchmark
-from telemetry.core import discover
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.util import command_line
+from telemetry.util import classes_util
 
 
 def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
@@ -264,10 +264,9 @@ def _MatchingCommands(string):
 def _Benchmarks(environment):
   benchmarks = []
   for search_dir in environment.benchmark_dirs:
-    benchmarks += discover.DiscoverClasses(search_dir,
+    benchmarks += classes_util.DiscoverClasses(search_dir,
                                            environment.top_level_dir,
-                                           benchmark.Benchmark,
-                                           index_by_class_name=True).values()
+                                           benchmark.Benchmark)
   return benchmarks
 
 def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):

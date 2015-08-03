@@ -22,8 +22,9 @@ Merge* family of methods for this kind of aggregation.
 """
 import os
 
-from telemetry.core import discover
 from telemetry.core import util
+from telemetry.util import classes_util
+
 
 # When combining a pair of Values togehter, it is sometimes ambiguous whether
 # the values should be concatenated, or one should be picked as representative.
@@ -248,9 +249,8 @@ class Value(object):
     page_dict: a dictionary mapping IDs to page objects.
     """
     value_dir = os.path.dirname(__file__)
-    value_classes = discover.DiscoverClasses(
-        value_dir, util.GetTelemetryDir(),
-        Value, index_by_class_name=True)
+    value_classes = classes_util.DiscoverClassesByClassName(
+        value_dir, util.GetTelemetryDir(), Value)
 
     value_json_types = dict((value_classes[x].GetJSONTypeName(), x) for x in
         value_classes)
