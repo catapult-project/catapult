@@ -66,7 +66,7 @@ def _Run(map_results, corpus_driver, query, map_file,
         trace_handle,
         os.path.abspath(map_file))
     map_results.DidMapSingleTrace(trace_handle, result_value)
-    if stop_on_error and result['type'] == 'failure':
+    if stop_on_error and result_value['type'] == 'failure':
       failure_to_dump = (trace_handle, result_value)
       break
   map_results.DidMapTraces()
