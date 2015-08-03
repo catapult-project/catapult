@@ -21,21 +21,21 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
 
 
 def RunChecks(input_api, output_api):
-  results = []
   from build import presubmit_checks
-  results += presubmit_checks.RunChecks(input_api)
-  results += input_api.canned_checks.PanProjectChecks(input_api, output_api)
-
-  return map(output_api.PresubmitError, results)
+  return map(output_api.PresubmitError, presubmit_checks.RunChecks(input_api))
 
 
 def CheckChange(input_api, output_api):
+  results = []
+  results.extend(
+      input_api.canned_checks.PanProjectChecks(input_api, output_api))
   original_sys_path = sys.path
   try:
     sys.path += [input_api.PresubmitLocalPath()]
-    return RunChecks(input_api, output_api)
+    results.extend(RunChecks(input_api, output_api))
   finally:
     sys.path = original_sys_path
+  return results
 
 
 def CheckChangeOnUpload(input_api, output_api):

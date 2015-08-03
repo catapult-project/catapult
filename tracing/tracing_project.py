@@ -153,6 +153,8 @@ class TracingProject(project_module.Project):
 
     if (affected_file.LocalPath().startswith('.gitignore') or
         affected_file.LocalPath().startswith('codereview.settings') or
+        affected_file.LocalPath().startswith('LICENSE') or
+        affected_file.LocalPath().startswith('OWNERS') or
         affected_file.LocalPath().startswith('tracing/.allow-devtools-save') or
         affected_file.LocalPath().startswith('tracing/AUTHORS') or
         affected_file.LocalPath().startswith('tracing/LICENSE') or

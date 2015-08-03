@@ -1,10 +1,15 @@
+<!-- Copyright 2015 The Chromium Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style license that can be
+     found in the LICENSE file.
+-->
 # Contributing to Catapult
 
 ## Getting the code
 
-We recommend [setting up ssh keys](https://help.github.com/articles/generating-ssh-keys/)
-and using the ssh url to clone (`git clone git@github.com:catapult-project/catapult.git`)
-This alleviates the need to type your password when using Rietveld (see below).
+Install [depot_tools]
+(https://www.chromium.org/developers/how-tos/install-depot-tools)
+
+`git clone https://github.com/catapult-project/catapult.git`
 
 ## Code style
 
@@ -21,8 +26,9 @@ https://www.chromium.org/developers/how-tos/install-depot-tools) set up.
 
 ## Tests
 
-You can run tests locally with `./base/util/run_tests.py`. You can also check the
-current status of our tests on the
-[waterfall](http://build.chromium.org/p/client.catapult/waterfall). Use the
-"commit" checkbox in rietveld to commit through the commit queue, which automatically
-runs all tests.
+Check individual project documentation for instructions on how to run tests.
+You can also check the current status of our tests on the
+[waterfall](http://build.chromium.org/p/client.catapult/waterfall).
+Use the "commit" checkbox in rietveld to commit through the commit queue, which
+automatically runs all tests. Run the tests before committing with the
+"CQ dry run" link.
