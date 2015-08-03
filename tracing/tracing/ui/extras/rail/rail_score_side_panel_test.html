@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/rail/rail_score_side_panel.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+
+  function createModel(opt_customizeModelCallback) {
+    return test_utils.newModel(function(model) {
+      model.p1 = model.getOrCreateProcess(1);
+      model.t2 = model.p1.getOrCreateThread(2);
+
+      model.s1 = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'a', start: 10, end: 20
+      }));
+      model.s2 = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'b', start: 20, end: 30
+      }));
+      model.s3 = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'c', start: 30, end: 40
+      }));
+
+      model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
+        start: 0, end: 100,
+        railTypeName: 'rail_idle',
+        normalizedEfficiency: 0.8,
+        normalizedUserPain: 0.0,
+        associatedEvents: [
+          {
+            guid: 0,
+            isTopLevel: true,
+            cpuDuration: 1
+          }
+        ]
+      });
+      model.addInteractionRecord(model.ir1);
+      model.ir1.associatedEvents.push(model.s1);
+
+      model.ir2 = new tr.e.rail.StubRAILInteractionRecord({
+        start: 100, end: 200,
+        railTypeName: 'rail_response',
+        normalizedEfficiency: 0.92935252939242,
+        normalizedUserPain: 0.24128432825823582,
+        associatedEvents: [
+          {
+            guid: 1,
+            isTopLevel: true,
+            cpuDuration: 1
+          }
+        ]
+      });
+      model.addInteractionRecord(model.ir2);
+
+      model.ir2.associatedEvents.push(model.s2);
+      model.ir2.associatedEvents.push(model.s3);
+
+      if (opt_customizeModelCallback)
+        opt_customizeModelCallback(model);
+    });
+  }
+
+  test('instantiate', function() {
+    var panel = document.createElement('tr-ui-e-rail-rail-score-side-panel');
+    panel.model = createModel();
+    panel.style.height = '200px';
+
+    var rows = panel.$.table.tableRows;
+    assert.equal(rows.length, 2);
+
+    this.addHTMLOutput(panel);
+  });
+});
+</script>

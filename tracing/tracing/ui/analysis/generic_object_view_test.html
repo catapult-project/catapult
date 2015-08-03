@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/model/object_instance.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  test('undefinedValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = undefined;
+    assert.equal(view.$.content.textContent, 'undefined');
+  });
+
+  test('nullValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = null;
+    assert.equal(view.$.content.textContent, 'null');
+  });
+
+  test('stringValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = 'string value';
+    assert.equal(view.$.content.textContent, '"string value"');
+  });
+
+  test('multiLineStringValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = 'i am a\n  string value\ni have\n  various indents';
+    this.addHTMLOutput(view);
+    var c = view.$.content;
+  });
+
+  test('multiLineStringValueInsideObject', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = {key: 'i am a\n  string value\ni have\n  various indents',
+                   value: 'simple'};
+    this.addHTMLOutput(view);
+    var c = view.$.content;
+
+  });
+
+  test('jsonObjectStringValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = '{"x": 1}';
+    assert.equal(view.$.content.children.length, 1);
+    assert.equal(view.$.content.children[0].children.length, 4);
+  });
+
+  test('jsonArrayStringValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = '[1,2,3]';
+    assert.equal(view.$.content.children.length, 3);
+  });
+
+  test('booleanValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = false;
+    assert.equal(view.$.content.textContent, 'false');
+  });
+
+  test('numberValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = 3.14159;
+    assert.equal(view.$.content.textContent, '3.14159');
+  });
+
+  test('objectSnapshotValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+
+    var i10 = new tr.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    view.object = s10;
+    this.addHTMLOutput(view);
+    assert.strictEqual(view.$.content.children[0].dataElement.tagName,
+        'TR-UI-A-ANALYSIS-LINK');
+  });
+
+  test('objectInstanceValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+
+    var i10 = new tr.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    view.object = i10;
+    assert.strictEqual(view.$.content.children[0].dataElement.tagName,
+        'TR-UI-A-ANALYSIS-LINK');
+  });
+
+  test('instantiate_emptyArrayValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [];
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_twoValueArrayValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [1, 2];
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_twoValueBArrayValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [1, {x: 1}];
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_arrayValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [1, 2, 'three'];
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_arrayWithSimpleObjectValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [{simple: 'object'}];
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_arrayWithComplexObjectValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [{col0: 'object', col1: 0},
+                   {col2: 'Object', col3: 1}];
+    this.addHTMLOutput(view);
+    assert.equal(undefined, tr.b.findDeepElementMatching(
+      view.$.content, 'table'));
+  });
+
+  test('instantiate_arrayWithDeepObjectValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [{key: {deep: 'object values make isTable() return false'}}];
+    this.addHTMLOutput(view);
+    assert.equal(undefined, tr.b.findDeepElementMatching(
+      view.$.content, 'table'));
+  });
+
+  test('jsonTableValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = [{col0: 'object', col1: 0}, {col0: 'Object', col1: 1}];
+    this.addHTMLOutput(view);
+    var table = tr.b.findDeepElementMatching(
+        view.$.content, 'tr-ui-b-table');
+    assert.equal('col0', table.tableColumns[0].title);
+    assert.equal('col1', table.tableColumns[1].title);
+    assert.equal('object', table.tableColumns[0].value(table.tableRows[0]));
+    assert.equal('Object', table.tableColumns[0].value(table.tableRows[1]));
+    assert.equal(0, table.tableColumns[1].value(table.tableRows[0]));
+    assert.equal(1, table.tableColumns[1].value(table.tableRows[1]));
+  });
+
+  test('instantiate_objectValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = {
+      'entry_one': 'entry_one_value',
+      'entry_two': 2,
+      'entry_three': [3, 4, 5]
+    };
+    this.addHTMLOutput(view);
+  });
+
+  test('timeDurationValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = new tr.b.units.TimeDuration(3);
+    assert.isDefined(tr.b.findDeepElementMatching(
+      view.$.content, 'tr-ui-u-time-duration-span'));
+  });
+
+  test('timeStampValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = new tr.b.units.TimeStamp(3);
+    assert.isDefined(tr.b.findDeepElementMatching(
+      view.$.content, 'tr-ui-u-time-stamp-span'));
+  });
+
+  test('sizeInBytesValue', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    view.object = new tr.b.units.SizeInBytes(3);
+    assert.isDefined(tr.b.findDeepElementMatching(
+      view.$.content, 'tr-ui-u-size-in-bytes-span'));
+  });
+
+
+});
+</script>

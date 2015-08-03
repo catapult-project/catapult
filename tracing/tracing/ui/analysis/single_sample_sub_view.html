@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/analysis/stack_frame.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-single-sample-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="content"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    ready: function() {
+      this.$.content.tableColumns = [
+        {
+          title: 'FirstColumn',
+          value: function(row) { return row.title; },
+          width: '250px'
+        },
+        {
+          title: 'SecondColumn',
+          value: function(row) { return row.value; },
+          width: '100%'
+        }
+      ];
+      this.$.content.showHeader = false;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+
+      if (this.currentSelection_ === undefined) {
+        this.$.content.tableRows = [];
+        return;
+      }
+
+      var sample = this.currentSelection_[0];
+      var table = this.$.content;
+
+      var rows = [];
+
+      rows.push({
+        title: 'Title',
+        value: sample.title
+      });
+
+      rows.push({
+          title: 'Sample time',
+          value: tr.ui.units.createTimeStampSpan(
+              sample.start, {ownerDocument: this.ownerDocument})
+      });
+
+      var sfEl = document.createElement('tr-ui-a-stack-frame');
+      sfEl.stackFrame = sample.leafStackFrame;
+      rows.push({
+        title: 'Stack trace',
+        value: sfEl
+      });
+      table.tableRows = rows;
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,15 @@
+Name: css-element-queries
+Short Name: css-element-queries
+URL: https://github.com/marcj/css-element-queries
+Version: 0.2.1
+Revision: 996d9035b1a13bb6883c181aad742ae45bd74026
+Date: Thu May 28 13:57:31 2015 +0000
+License File: LICENSE
+Security Critical: no
+
+Description:
+ResizeSensor.js calls a callback when an element is resized for any reason.
+
+Local Modifications:
+Made test/index.html conform to tvcm's expectations: up-cased doctype, added
+'use strict', downloaded mootools from cloudflare and added them to test/.

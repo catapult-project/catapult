@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/find_control.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var ctl = document.createElement('tr-ui-find-control');
+    ctl.controller = {
+      findNext: function() { },
+      findPrevious: function() { },
+      reset: function() {},
+
+      filterHits: ['a', 'b'],
+
+      currentHitIndex: 0
+    };
+
+    this.addHTMLOutput(ctl);
+  });
+});
+</script>

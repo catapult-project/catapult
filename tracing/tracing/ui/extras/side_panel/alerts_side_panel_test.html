@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/extras/side_panel/alerts_side_panel.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ALERT_INFO_1 = new tr.model.EventInfo(
+    'Alert 1', 'Critical alert');
+  var ALERT_INFO_2 = new tr.model.EventInfo(
+    'Alert 2', 'Warning alert');
+
+  test('instantiate', function() {
+    var panel = document.createElement('tr-ui-e-s-alerts-side-panel');
+    panel.model = createModelWithAlerts([
+      new tr.model.Alert(ALERT_INFO_1, 5),
+      new tr.model.Alert(ALERT_INFO_2, 35)
+    ]);
+    panel.style.height = '100px';
+
+    this.addHTMLOutput(panel);
+  });
+
+  test('selectAlertsOfType', function() {
+    var panel = document.createElement('tr-ui-e-s-alerts-side-panel');
+    var alerts = [
+      new tr.model.Alert(ALERT_INFO_1, 1),
+      new tr.model.Alert(ALERT_INFO_1, 2),
+      new tr.model.Alert(ALERT_INFO_2, 3)
+    ];
+    panel.model = createModelWithAlerts(alerts);
+    panel.style.height = '100px';
+    this.addHTMLOutput(panel);
+
+    var selectionChanged = false;
+    panel.addEventListener('requestSelectionChange', function(e) {
+      selectionChanged = true;
+      assert.lengthOf(e.selection, 2);
+      assert.equal(alerts[0], e.selection[0]);
+      assert.equal(alerts[1], e.selection[1]);
+    });
+    panel.selectAlertsOfType(ALERT_INFO_1.title);
+
+    assert.isTrue(selectionChanged);
+  });
+
+  function createModelWithAlerts(alerts) {
+    var m = new tr.Model();
+    m.alerts = alerts;
+    return m;
+  };
+});
+</script>

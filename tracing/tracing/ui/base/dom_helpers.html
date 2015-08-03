@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<style>
+* /deep/ .labeled-checkbox {
+  display: flex;
+  white-space: nowrap;
+}
+</style>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+
+  function createSpan(opt_dictionary) {
+    var spanEl = document.createElement('span');
+    if (opt_dictionary) {
+      if (opt_dictionary.className)
+        spanEl.className = opt_dictionary.className;
+      if (opt_dictionary.textContent)
+        spanEl.textContent = opt_dictionary.textContent;
+      if (opt_dictionary.parent)
+        opt_dictionary.parent.appendChild(spanEl);
+      if (opt_dictionary.bold)
+        spanEl.style.fontWeight = 'bold';
+      if (opt_dictionary.marginLeft)
+        spanEl.style.marginLeft = opt_dictionary.marginLeft;
+      if (opt_dictionary.marginRight)
+        spanEl.style.marginRight = opt_dictionary.marginRight;
+      if (opt_dictionary.backgroundColor)
+        spanEl.style.backgroundColor = opt_dictionary.backgroundColor;
+      if (opt_dictionary.color)
+        spanEl.style.color = opt_dictionary.color;
+    }
+    return spanEl;
+  };
+
+  function createDiv(opt_dictionary) {
+    var divEl = document.createElement('div');
+    if (opt_dictionary) {
+      if (opt_dictionary.className)
+        divEl.className = opt_dictionary.className;
+      if (opt_dictionary.parent)
+        opt_dictionary.parent.appendChild(divEl);
+      if (opt_dictionary.textContent)
+        divEl.textContent = opt_dictionary.textContent;
+      if (opt_dictionary.maxWidth)
+        divEl.style.maxWidth = opt_dictionary.maxWidth;
+    }
+    return divEl;
+  };
+
+  function createScopedStyle(styleContent) {
+    var styleEl = document.createElement('style');
+    styleEl.scoped = true;
+    styleEl.innerHTML = styleContent;
+    return styleEl;
+  }
+
+  function valuesEqual(a, b) {
+    if (a instanceof Array && b instanceof Array)
+      return a.length === b.length && JSON.stringify(a) === JSON.stringify(b);
+    return a === b;
+  }
+
+  function createSelector(
+      targetEl, targetElProperty,
+      settingsKey, defaultValue,
+      items, opt_namespace) {
+    var defaultValueIndex;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (valuesEqual(item.value, defaultValue)) {
+        defaultValueIndex = i;
+        break;
+      }
+    }
+    if (defaultValueIndex === undefined)
+      throw new Error('defaultValue must be in the items list');
+
+    var selectorEl = document.createElement('select');
+    selectorEl.addEventListener('change', onChange);
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var optionEl = document.createElement('option');
+      optionEl.textContent = item.label;
+      optionEl.targetPropertyValue = item.value;
+      selectorEl.appendChild(optionEl);
+    }
+    function onChange(e) {
+      var value = selectorEl.selectedOptions[0].targetPropertyValue;
+      tr.b.Settings.set(settingsKey, value, opt_namespace);
+      targetEl[targetElProperty] = value;
+    }
+    var oldSetter = targetEl.__lookupSetter__('selectedIndex');
+    selectorEl.__defineGetter__('selectedValue', function(v) {
+      return selectorEl.children[selectorEl.selectedIndex].targetPropertyValue;
+    });
+    selectorEl.__defineSetter__('selectedValue', function(v) {
+      for (var i = 0; i < selectorEl.children.length; i++) {
+        var value = selectorEl.children[i].targetPropertyValue;
+        if (valuesEqual(value, v)) {
+          var changed = selectorEl.selectedIndex != i;
+          if (changed) {
+            selectorEl.selectedIndex = i;
+            onChange();
+          }
+          return;
+        }
+      }
+      throw new Error('Not a valid value');
+    });
+
+    var initialValue = tr.b.Settings.get(
+        settingsKey, defaultValue, opt_namespace);
+    var didSet = false;
+    for (var i = 0; i < selectorEl.children.length; i++) {
+      if (valuesEqual(selectorEl.children[i].targetPropertyValue,
+          initialValue)) {
+        didSet = true;
+        targetEl[targetElProperty] = initialValue;
+        selectorEl.selectedIndex = i;
+        break;
+      }
+    }
+    if (!didSet) {
+      selectorEl.selectedIndex = defaultValueIndex;
+      targetEl[targetElProperty] = defaultValue;
+    }
+
+    return selectorEl;
+  }
+
+  function createEditCategorySpan(optionGroupEl, targetEl) {
+    var spanEl = createSpan({className: 'edit-categories'});
+    spanEl.textContent = 'Edit categories';
+    spanEl.classList.add('labeled-option');
+
+    spanEl.addEventListener('click', function() {
+      targetEl.onClickEditCategories();
+    });
+    return spanEl;
+  }
+
+  function createOptionGroup(targetEl, targetElProperty,
+                             settingsKey, defaultValue,
+                             items) {
+    function onChange() {
+      var value = [];
+      if (this.value.length)
+        value = this.value.split(',');
+      tr.b.Settings.set(settingsKey, value);
+      targetEl[targetElProperty] = value;
+    }
+
+    var optionGroupEl = createSpan({className: 'labeled-option-group'});
+    var initialValue = tr.b.Settings.get(settingsKey, defaultValue);
+    for (var i = 0; i < items.length; ++i) {
+      var item = items[i];
+      var id = 'category-preset-' + item.label.replace(/ /g, '-');
+
+      var radioEl = document.createElement('input');
+      radioEl.type = 'radio';
+      radioEl.setAttribute('id', id);
+      radioEl.setAttribute('name', 'category-presets-group');
+      radioEl.setAttribute('value', item.value);
+      radioEl.addEventListener('change', onChange.bind(radioEl, targetEl,
+                                                       targetElProperty,
+                                                       settingsKey));
+      if (valuesEqual(initialValue, item.value))
+        radioEl.checked = true;
+
+      var labelEl = document.createElement('label');
+      labelEl.textContent = item.label;
+      labelEl.setAttribute('for', id);
+
+      var spanEl = createSpan({className: 'labeled-option'});
+      spanEl.appendChild(radioEl);
+      spanEl.appendChild(labelEl);
+
+      spanEl.__defineSetter__('checked', function(opt_bool) {
+        var changed = radioEl.checked !== (!!opt_bool);
+        if (!changed)
+          return;
+
+        radioEl.checked = !!opt_bool;
+        onChange();
+      });
+      spanEl.__defineGetter__('checked', function() {
+        return radioEl.checked;
+      });
+
+      optionGroupEl.appendChild(spanEl);
+    }
+    optionGroupEl.appendChild(createEditCategorySpan(optionGroupEl, targetEl));
+    // Since this option group element is not yet added to the tree,
+    // querySelector will fail during updateEditCategoriesStatus_ call.
+    // Hence, creating the element with the 'expanded' classlist category
+    // added, if last selected value was 'Manual' selection.
+    if (!initialValue.length)
+      optionGroupEl.classList.add('categories-expanded');
+    targetEl[targetElProperty] = initialValue;
+
+    return optionGroupEl;
+  }
+
+  var nextCheckboxId = 1;
+  function createCheckBox(targetEl, targetElProperty,
+                          settingsKey, defaultValue,
+                          label) {
+    var buttonEl = document.createElement('input');
+    buttonEl.type = 'checkbox';
+
+    var initialValue = tr.b.Settings.get(settingsKey, defaultValue);
+    buttonEl.checked = !!initialValue;
+    if (targetEl)
+      targetEl[targetElProperty] = initialValue;
+
+    function onChange() {
+      tr.b.Settings.set(settingsKey, buttonEl.checked);
+      if (targetEl)
+        targetEl[targetElProperty] = buttonEl.checked;
+    }
+
+    buttonEl.addEventListener('change', onChange);
+
+    var id = '#checkbox-' + nextCheckboxId++;
+
+    var spanEl = createSpan({className: 'labeled-checkbox'});
+    buttonEl.setAttribute('id', id);
+
+    var labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    labelEl.setAttribute('for', id);
+    spanEl.appendChild(buttonEl);
+    spanEl.appendChild(labelEl);
+
+    spanEl.__defineSetter__('checked', function(opt_bool) {
+      var changed = buttonEl.checked !== (!!opt_bool);
+      if (!changed)
+        return;
+
+      buttonEl.checked = !!opt_bool;
+      onChange();
+    });
+    spanEl.__defineGetter__('checked', function() {
+      return buttonEl.checked;
+    });
+
+    return spanEl;
+  }
+
+  function isElementAttachedToDocument(el) {
+    var cur = el;
+    while (cur.parentNode)
+      cur = cur.parentNode;
+    return (cur === el.ownerDocument || cur.nodeName === '#document-fragment');
+  }
+
+  function asHTMLOrTextNode(value, opt_ownerDocument) {
+    if (value instanceof Node)
+      return value;
+    var ownerDocument = opt_ownerDocument || document;
+    return ownerDocument.createTextNode(value);
+  }
+
+  return {
+    createSpan: createSpan,
+    createDiv: createDiv,
+    createScopedStyle: createScopedStyle,
+    createSelector: createSelector,
+    createOptionGroup: createOptionGroup,
+    createCheckBox: createCheckBox,
+    isElementAttachedToDocument: isElementAttachedToDocument,
+    asHTMLOrTextNode: asHTMLOrTextNode
+  };
+});
+</script>

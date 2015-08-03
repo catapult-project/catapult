@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/model/async_slice.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.net', function() {
+  var AsyncSlice = tr.model.AsyncSlice;
+
+  function NetAsyncSlice() {
+    AsyncSlice.apply(this, arguments);
+    // A boolean variable indicates whether we have computed the title.
+    this.isTitleComputed_ = false;
+  }
+
+  NetAsyncSlice.prototype = {
+    __proto__: AsyncSlice.prototype,
+
+    get viewSubGroupTitle() {
+      return 'NetLog';
+    },
+
+    get title() {
+      if (this.isTitleComputed_ || !this.isTopLevel) {
+        return this.title_;
+      }
+
+      // A recursive helper function that gets the url param of a slice or its
+      // nested subslices if there is one.
+      var getUrl = function(slice) {
+        if (slice.args !== undefined && slice.args.params !== undefined &&
+            slice.args.params.url !== undefined) {
+          return slice.args.params.url;
+        }
+        if (slice.subSlices === undefined || slice.subSlices.length === 0)
+          return undefined;
+        for (var i = 0; i < slice.subSlices.length; i++) {
+          var result = getUrl(slice.subSlices[i]);
+          if (result !== undefined)
+            return result;
+        }
+        return undefined;
+      };
+
+      var url = getUrl(this);
+      if (url !== undefined && url.length > 0) {
+        // Set the title so we do not have to recompute when it is redrawn.
+        this.title_ = url;
+      } else if (this.args !== undefined &&
+                 this.args.source_type !== undefined) {
+        // We do not have a URL, use the source type as the title.
+        this.title_ = this.args.source_type;
+      }
+      this.isTitleComputed_ = true;
+      return this.title_;
+    },
+
+    set title(title) {
+      this.title_ = title;
+    }
+  };
+
+  AsyncSlice.register(
+    NetAsyncSlice,
+    {
+      categoryParts: ['netlog', 'disabled-by-default-netlog']
+    });
+
+  return {
+    NetAsyncSlice: NetAsyncSlice
+  };
+});
+</script>

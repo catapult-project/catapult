@@ -1,0 +1,18 @@
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+application: performance-insights
+
+version: 3
+api_version: 1
+runtime: python27
+threadsafe: true
+
+builtins:
+- remote_api: on
+
+handlers:
+- url: /upload
+  script: perf_insights.upload.app
+  secure: always

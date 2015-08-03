@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/core/brushing_state_controller.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/ui/extras/chrome/cc/layer_tree_host_impl_view.html">
+<link rel="import" href="/ui/extras/chrome/cc/raster_task_selection.html">
+<link rel="import" href="/ui/extras/chrome/cc/raster_task_view.html">
+
+<script src="/extras/chrome/cc/layer_tree_host_impl_test_data.js"></script>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createSelection() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = m.processes[1];
+    var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
+      return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';
+    });
+
+    var selection = new tr.model.EventSet();
+    selection.model = m;
+
+    selection.push(rasterTasks[0]);
+    selection.push(rasterTasks[1]);
+    return selection;
+  }
+
+  test('basic', function() {
+    var selection = createSelection();
+    var view = document.createElement('tr-ui-e-chrome-cc-raster-task-view');
+    view.selection = selection;
+    this.addHTMLOutput(view);
+  });
+
+  test('analysisViewIntegration', function() {
+    var selection = createSelection();
+
+    var timelineView = {model: selection.model};
+    var brushingStateController =
+        new tr.c.BrushingStateController(timelineView);
+
+    var analysisEl = document.createElement('tr-ui-a-analysis-view');
+    analysisEl.brushingStateController = brushingStateController;
+    brushingStateController.changeSelectionFromTimeline(selection);
+
+    assert.isDefined(analysisEl.querySelector(
+        'tr-ui-e-chrome-cc-raster-task-view'));
+
+    var sv = tr.b.findDeepElementMatching(
+        analysisEl, 'tr-ui-a-multi-thread-slice-sub-view');
+    assert.isTrue(sv.requiresTallView);
+    this.addHTMLOutput(analysisEl);
+  });
+});
+</script>

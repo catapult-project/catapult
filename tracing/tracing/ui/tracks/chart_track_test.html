@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+<link rel="import" href="/ui/tracks/chart_series.html">
+<link rel="import" href="/ui/tracks/chart_track.html">
+<link rel="import" href="/ui/tracks/event_to_track_map.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ChartAxis = tr.ui.tracks.ChartAxis;
+  var ChartPoint = tr.ui.tracks.ChartPoint;
+  var ChartSeries = tr.ui.tracks.ChartSeries;
+  var ChartSeriesType = tr.ui.tracks.ChartSeriesType;
+  var ChartTrack = tr.ui.tracks.ChartTrack;
+  var Event = tr.model.Event;
+  var EventSet = tr.model.EventSet;
+  var EventToTrackMap = tr.ui.tracks.EventToTrackMap;
+  var SelectionState = tr.model.SelectionState;
+  var Viewport = tr.ui.TimelineViewport;
+
+  function buildPoint(x, y) {
+    var event = new Event();
+    return new ChartPoint(event, x, y);
+  }
+
+  function buildTrack(opt_viewport) {
+    var viewport = opt_viewport || new Viewport(document.createElement('div'));
+
+    var axis1 = new ChartAxis(0, 2);
+    var axis2 = new ChartAxis(-100, 100);
+
+    var points1 = [
+      buildPoint(-2.5, 2),
+      buildPoint(-1.5, 1),
+      buildPoint(-0.5, 0),
+      buildPoint(0.5, 1),
+      buildPoint(1.5, 2),
+      buildPoint(2.5, 0)
+    ];
+    var renderingConfig1 = {
+      chartType: ChartSeriesType.AREA,
+      colorId: 6,
+      selectedPointSize: 7
+    };
+    var series1 = new ChartSeries(points1, axis1, renderingConfig1);
+
+    var points2 = [
+      buildPoint(-2.3, 0.2),
+      buildPoint(-1.3, 1.2),
+      buildPoint(-0.3, 2.2),
+      buildPoint(0.3, 1.2),
+      buildPoint(1.3, 0.2),
+      buildPoint(2.3, 0)
+    ];
+    var renderingConfig2 = {
+      chartType: ChartSeriesType.AREA,
+      colorId: 4,
+      selectedPointSize: 10
+    };
+    var series2 = new ChartSeries(points2, axis1, renderingConfig2);
+
+    var points3 = [
+      buildPoint(-3, -50),
+      buildPoint(-2.4, -40),
+      buildPoint(-1.8, -30),
+      buildPoint(-1.2, -20),
+      buildPoint(-0.6, -10),
+      buildPoint(0, 0),
+      buildPoint(0.6, 10),
+      buildPoint(1.2, 20),
+      buildPoint(1.8, 30),
+      buildPoint(2.4, 40),
+      buildPoint(3, 50)
+    ];
+    var renderingConfig3 = {
+      chartType: ChartSeriesType.LINE,
+      lineWidth: 2
+    };
+    var series3 = new ChartSeries(points3, axis2, renderingConfig3);
+
+    var track = new ChartTrack(viewport);
+    track.series = [series1, series2, series3];
+
+    return track;
+  }
+
+  test('instantiate_lowDetailsWithoutSelection', function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = buildTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '100px';
+  });
+
+  test('instantiate_highDetailsWithSelection', function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = buildTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    track.series[0].points[1].modelItem.selectionState =
+      SelectionState.SELECTED;
+    track.series[1].points[1].modelItem.selectionState =
+      SelectionState.SELECTED;
+    track.series[2].points[3].modelItem.selectionState =
+      SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '100px';
+  });
+
+  test('checkPadding', function() {
+    var track = buildTrack();
+
+    // Padding should be equal to half maximum point size.
+    assert.equal(track.topPadding_, 5);
+    assert.equal(track.bottomPadding_, 5);
+  });
+
+  test('checkAddEventsToTrackMap', function() {
+    var track = buildTrack();
+    var eventToTrackMap = new EventToTrackMap();
+    track.addEventsToTrackMap(eventToTrackMap);
+    assert.lengthOf(Object.keys(eventToTrackMap), 23);
+  });
+
+  test('checkaddIntersectingEventsInRangeToSelectionInWorldSpace', function() {
+    var track = buildTrack();
+
+    var sel = new EventSet();
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
+        -1.1, -0.7, 0.01, sel);
+    assert.lengthOf(sel, 3);
+    assert.equal(sel[0], track.series[0].points[1].modelItem);
+    assert.equal(sel[1], track.series[1].points[1].modelItem);
+    assert.equal(sel[2], track.series[2].points[3].modelItem);
+  });
+
+  test('checkaddEventNearToProvidedEventToSelection', function() {
+    var track = buildTrack();
+
+    // Fail to find a near item to the left in any series.
+    var sel = new EventSet();
+    assert.isFalse(track.addEventNearToProvidedEventToSelection(
+        track.series[0].points[0].modelItem, -1, sel));
+    assert.lengthOf(sel, 0);
+
+    // Succeed at finding a near item to the right of one series.
+    var sel = new EventSet();
+    assert.isTrue(track.addEventNearToProvidedEventToSelection(
+        track.series[1].points[1].modelItem, 1, sel));
+    assert.lengthOf(sel, 1);
+    assert.equal(sel[0], track.series[1].points[2].modelItem);
+  });
+
+  test('checkAddClosestEventToSelection', function() {
+    var track = buildTrack();
+
+    var sel = new EventSet();
+    track.addClosestEventToSelection(-0.8, 0.4, 0.5, 1.5, sel);
+    assert.lengthOf(sel, 2);
+    assert.equal(sel[0], track.series[0].points[2].modelItem);
+    assert.equal(sel[1], track.series[2].points[4].modelItem);
+  });
+
+  test('checkAutoSetAllAxes', function() {
+    var track = buildTrack();
+    var axis1 = track.series[0].axis;
+    var axis2 = track.series[2].axis;
+
+    track.autoSetAllAxes({expandMax: true, shrinkMax: true});
+
+    // Min bounds of both axes should not have been modified.
+    assert.equal(axis1.bounds.min, 0);
+    assert.equal(axis2.bounds.min, -100);
+
+    // Max bounds of both axes should have been modified.
+    assert.equal(axis1.bounds.max, 2.2);
+    assert.equal(axis2.bounds.max, 50);
+  });
+
+  test('checkAutoSetAxis', function() {
+    var track = buildTrack();
+    var axis1 = track.series[0].axis;
+    var axis2 = track.series[2].axis;
+
+    track.autoSetAxis(axis2,
+        {expandMin: true, shrinkMin: true, expandMax: true, shrinkMax: true});
+
+    // First axis should not have been modified.
+    assert.equal(axis1.bounds.min, 0);
+    assert.equal(axis1.bounds.max, 2);
+
+    // Second axis should have been modified.
+    assert.equal(axis2.bounds.min, -50);
+    assert.equal(axis2.bounds.max, 50);
+  });
+});
+</script>
+

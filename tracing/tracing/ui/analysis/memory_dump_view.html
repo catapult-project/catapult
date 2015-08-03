@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/analysis/memory_dump_overview_pane.html">
+
+<polymer-element name="tr-ui-a-memory-dump-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #overview_pane,
+    #details_pane_container {
+      flex: 0 0 auto;
+    }
+    </style>
+    <tr-ui-a-memory-dump-overview-pane id="overview_pane">
+    </tr-ui-a-memory-dump-overview-pane>
+    <div id="details_pane_container">
+    </div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.processMemoryDumps_ = undefined;
+    },
+
+    ready: function() {
+      this.$.overview_pane.addEventListener(
+          'selected-memory-cell-changed', this.updateDetailsPane_.bind(this));
+    },
+
+    set processMemoryDumps(processMemoryDumps) {
+      this.processMemoryDumps_ = processMemoryDumps;
+      this.$.overview_pane.processMemoryDumps = this.processMemoryDumps_;
+      this.updateDetailsPane_();
+    },
+
+    get processMemoryDumps() {
+      return this.processMemoryDumps_;
+    },
+
+    updateDetailsPane_: function() {
+      this.$.details_pane_container.textContent = '';
+      var selectedMemoryCell = this.$.overview_pane.selectedMemoryCell;
+      if (!selectedMemoryCell || !selectedMemoryCell.buildDetailsPane)
+        return;
+      this.$.details_pane_container.appendChild(
+          selectedMemoryCell.buildDetailsPane());
+    }
+  });
+  </script>
+</polymer-element>

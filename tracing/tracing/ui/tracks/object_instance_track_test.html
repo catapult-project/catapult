@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/object_collection.html">
+<link rel="import" href="/model/selection_state.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/object_instance_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var EventSet = tr.model.EventSet;
+  var ObjectInstanceTrack = tr.ui.tracks.ObjectInstanceTrack;
+  var Viewport = tr.ui.TimelineViewport;
+
+  var createObjects = function() {
+    var objects = new tr.model.ObjectCollection({});
+    objects.idWasCreated('0x1000', 'tr.e.cc', 'Frame', 10);
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 10, 'snapshot-1');
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 25, 'snapshot-2');
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 40, 'snapshot-3');
+    objects.idWasDeleted('0x1000', 'tr.e.cc', 'Frame', 45);
+
+    objects.idWasCreated('0x1001', 'skia', 'Picture', 20);
+    objects.addSnapshot('0x1001', 'skia', 'Picture', 20, 'snapshot-1');
+    objects.idWasDeleted('0x1001', 'skia', 'Picture', 25);
+    return objects;
+  };
+
+  test('instantiate', function() {
+    var objects = createObjects();
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
+    frames[0].snapshots[1].selectionState =
+        tr.model.SelectionState.SELECTED;
+
+    var div = document.createElement('div');
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = ObjectInstanceTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testBasic';
+    track.objectInstances = frames;
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('selectionHitTestingWithThreadTrack', function() {
+    var objects = createObjects();
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
+
+    var track = ObjectInstanceTrack(new Viewport());
+    track.objectInstances = frames;
+
+    // Hit outside range
+    var selection = new EventSet();
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
+        8, 8.1, 0.1, selection);
+    assert.equal(selection.length, 0);
+
+    // Hit the first snapshot, via pixel-nearness.
+    selection = new EventSet();
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
+        9.98, 9.99, 0.1, selection);
+    assert.equal(selection.length, 1);
+    assert.instanceOf(selection[0], tr.model.ObjectSnapshot);
+
+    // Hit the instance, between the 1st and 2nd snapshots
+    selection = new EventSet();
+    track.addIntersectingEventsInRangeToSelectionInWorldSpace(
+        20, 20.1, 0.1, selection);
+    assert.equal(selection.length, 1);
+    assert.instanceOf(selection[0], tr.model.ObjectInstance);
+  });
+
+  test('addEventNearToProvidedEventToSelection', function() {
+    var objects = createObjects();
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
+
+    var track = ObjectInstanceTrack(new Viewport());
+    track.objectInstances = frames;
+
+    var instance = new tr.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+
+    assert.doesNotThrow(function() {
+      track.addEventNearToProvidedEventToSelection(instance, 0, undefined);
+    });
+  });
+});
+</script>
+

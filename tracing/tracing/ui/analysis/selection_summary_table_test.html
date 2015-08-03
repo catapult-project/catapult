@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/selection_summary_table.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var EventSet = tr.model.EventSet;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  test('noSelection', function() {
+    var summaryTable =
+        document.createElement('tr-ui-a-selection-summary-table');
+    summaryTable.selection = undefined;
+    this.addHTMLOutput(summaryTable);
+
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-ui-b-table');
+    assert.equal(tableEl.tableRows[0].value, '<empty>');
+    assert.equal(tableEl.tableRows[1].value, '<empty>');
+  });
+
+  test('emptySelection', function() {
+    var summaryTable =
+        document.createElement('tr-ui-a-selection-summary-table');
+    var selection = new EventSet();
+    summaryTable.selection = selection;
+    this.addHTMLOutput(summaryTable);
+
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-ui-b-table');
+    assert.equal(tableEl.tableRows[0].value, '<empty>');
+    assert.equal(tableEl.tableRows[1].value, '<empty>');
+  });
+
+  test('selection', function() {
+    var model = new Model();
+    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var tsg = thread.sliceGroup;
+
+    tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
+    tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2}));
+
+    var selection = new EventSet();
+    selection.push(tsg.slices[0]);
+    selection.push(tsg.slices[1]);
+
+    var summaryTable =
+        document.createElement('tr-ui-a-selection-summary-table');
+    summaryTable.selection = selection;
+    this.addHTMLOutput(summaryTable);
+
+    var tableEl = tr.b.findDeepElementMatching(
+        summaryTable, 'tr-ui-b-table');
+    assert.equal(tableEl.tableRows[0].value.timestamp, 0);
+    assert.equal(tableEl.tableRows[1].value.duration, 3);
+  });
+});
+</script>

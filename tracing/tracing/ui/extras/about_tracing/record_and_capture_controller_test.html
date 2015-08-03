@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import"
+      href="/ui/extras/about_tracing/mock_tracing_controller_client.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/record_and_capture_controller.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var testData = [
+    {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
+    {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
+    {name: 'b', args: {}, pid: 52, ts: 32000, cat: 'foo', tid: 53, ph: 'B'},
+    {name: 'b', args: {}, pid: 52, ts: 54000, cat: 'foo', tid: 53, ph: 'E'}
+  ];
+
+  test('fullRecording', function() {
+    return new Promise(function(resolve, reject) {
+      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+      mock.expectRequest('endRecording', function() {
+        return '';
+      });
+      mock.expectRequest('getCategories', function() {
+        setTimeout(function() {
+          recordingPromise.selectionDlg.clickRecordButton();
+        }, 20);
+        return ['a', 'b', 'c'];
+      });
+      mock.expectRequest('beginRecording', function(recordingOptions) {
+        assert.typeOf(recordingOptions.categoryFilter, 'string');
+        assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
+        assert.typeOf(recordingOptions.useSampling, 'boolean');
+        assert.typeOf(recordingOptions.tracingRecordMode, 'string');
+        setTimeout(function() {
+          recordingPromise.progressDlg.clickStopButton();
+        }, 10);
+        return '';
+      });
+      mock.expectRequest('endRecording', function(data) {
+        return JSON.stringify(testData);
+      });
+
+      var recordingPromise = tr.ui.e.about_tracing.beginRecording(mock);
+
+      return recordingPromise.then(
+          function(data) {
+            mock.assertAllRequestsHandled();
+            var testDataString = JSON.stringify(testData);
+            assert.equal(data, testDataString);
+            resolve();
+          },
+          function(error) {
+            reject('This should never be reached');
+          });
+    });
+  });
+
+  test('monitoring', function() {
+    return new Promise(function(resolve, reject) {
+      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+
+      mock.expectRequest('beginMonitoring', function(monitoringOptions) {
+        assert.typeOf(monitoringOptions.categoryFilter, 'string');
+        assert.typeOf(monitoringOptions.useSystemTracing, 'boolean');
+        assert.typeOf(monitoringOptions.useSampling, 'boolean');
+        assert.typeOf(monitoringOptions.tracingRecordMode, 'string');
+        setTimeout(function() {
+          var capturePromise = tr.ui.e.about_tracing.captureMonitoring(mock);
+          capturePromise.then(
+              function(data) {
+                var testDataString = JSON.stringify(testData);
+                assert.equal(data, testDataString);
+              },
+              function(error) {
+                reject();
+              });
+        }, 10);
+        return '';
+      });
+
+      mock.expectRequest('captureMonitoring', function(data) {
+        setTimeout(function() {
+          var endPromise = tr.ui.e.about_tracing.endMonitoring(mock);
+          endPromise.then(
+              function(data) {
+                mock.assertAllRequestsHandled();
+                resolve();
+              },
+              function(error) {
+                reject();
+              });
+        }, 10);
+        return JSON.stringify(testData);
+      });
+
+      mock.expectRequest('endMonitoring', function(data) {
+      });
+
+      tr.ui.e.about_tracing.beginMonitoring(mock);
+    });
+  });
+});
+</script>

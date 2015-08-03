@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+
+  function newChildDump(parentDump, name) {
+    var childDump = new MemoryAllocatorDump(
+        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
+    childDump.parent = parentDump;
+    parentDump.children.push(childDump);
+    return childDump;
+  }
+
+  test('memoryAllocatorDump_instantiate', function() {
+    var containerDump = new ContainerMemoryDump(42);
+    containerDump.containerName = 'super dump';
+    var dump = new MemoryAllocatorDump(containerDump, 'v8/objects/object7');
+
+    assert.equal(dump.name, 'object7');
+    assert.equal(dump.fullName, 'v8/objects/object7');
+    assert.strictEqual(dump.containerMemoryDump, containerDump);
+    assert.equal(dump.quantifiedName, '\'v8/objects/object7\' in super dump');
+  });
+
+  test('memoryAllocatorDumps_aggregateAttributes', function() {
+    var md = new ContainerMemoryDump(42);
+
+    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
+    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
+
+    var oilpanBucket1Dump = newChildDump(oilpanDump, 'bucket1');
+    oilpanBucket1Dump.addAttribute('size',
+        new ScalarAttribute('bytes', 512));
+    oilpanBucket1Dump.addAttribute('objects_count',
+        new ScalarAttribute('objects', 3));
+    oilpanBucket1Dump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 256));
+
+    var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2');
+
+    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings');
+    oilpanBucket2StringsDump.addAttribute('size',
+        new ScalarAttribute('bytes', 512));
+    oilpanBucket2StringsDump.addAttribute('objects_count',
+        new ScalarAttribute('objects', 4));
+    oilpanBucket2StringsDump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 512));
+
+    oilpanDump.aggregateAttributes();
+
+    // oilpan has *some* attributes aggregated.
+    assert.equal(oilpanDump.attributes['objects_count'].value, 7);
+    assert.equal(oilpanDump.attributes['inner_size'].value, 768);
+    assert.equal(oilpanDump.attributes['size'].value, 1024);
+
+    // oilpan/bucket2 has *all* attributes aggregated.
+    assert.equal(oilpanBucket2Dump.attributes['objects_count'].value,
+        4);
+    assert.equal(oilpanBucket2Dump.attributes['inner_size'].value, 512);
+    assert.equal(oilpanBucket2Dump.attributes['size'].value, 512);
+
+    // oilpan/bucket2/strings has *no* attributes aggregated.
+    assert.equal(oilpanBucket2StringsDump.attributes[
+        'objects_count'].value, 4);
+    assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
+    assert.equal(oilpanBucket2StringsDump.attributes['size'].value, 512);
+  });
+
+  test('memoryAllocatorDumps_isDescendantOf', function() {
+    var md = new ContainerMemoryDump(42);
+
+    var v8Dump = new MemoryAllocatorDump(md, 'v8');
+    var v8HeapsDump = newChildDump(v8Dump, 'heaps');
+    var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+    var v8Object1Dump = newChildDump(v8ObjectsDump, 'obj1');
+    var v8Object2Dump = newChildDump(v8ObjectsDump, 'obj2');
+
+    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
+
+    assert.isTrue(v8Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8HeapsDump.isDescendantOf(v8Dump));
+    assert.isTrue(v8ObjectsDump.isDescendantOf(v8Dump));
+    assert.isTrue(v8Object1Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8Object2Dump.isDescendantOf(v8Dump));
+    assert.isTrue(v8ObjectsDump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(v8Object1Dump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(v8Object2Dump.isDescendantOf(v8ObjectsDump));
+    assert.isTrue(oilpanDump.isDescendantOf(oilpanDump));
+
+    assert.isFalse(v8Dump.isDescendantOf(oilpanDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8HeapsDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8ObjectsDump));
+    assert.isFalse(v8Dump.isDescendantOf(v8Object1Dump));
+    assert.isFalse(v8Dump.isDescendantOf(v8Object2Dump));
+    assert.isFalse(v8Object1Dump.isDescendantOf(v8Object2Dump));
+    assert.isFalse(v8Object2Dump.isDescendantOf(v8Object1Dump));
+  });
+
+  test('memoryAllocatorDumpLink_instantiate', function() {
+    var d1 = new MemoryAllocatorDump('v8/isolate1');
+    var d2 = new MemoryAllocatorDump('oilpan/document1');
+    var link = new MemoryAllocatorDumpLink(d1, d2, 3);
+
+    assert.strictEqual(link.source, d1);
+    assert.strictEqual(link.target, d2);
+    assert.strictEqual(link.importance, 3);
+  });
+});
+</script>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/selection_summary_table.html">
+<link rel="import" href="/ui/analysis/multi_event_summary_table.html">
+<link rel="import" href="/ui/analysis/multi_event_details_table.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-multi-event-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      overflow: auto;
+    }
+    #content {
+      display: flex;
+      flex-direction: column;
+      flex: 0 1 auto;
+      align-self: stretch;
+    }
+    #content > * {
+      flex: 0 0 auto;
+      align-self: stretch;
+    }
+    tr-ui-a-multi-event-summary-table {
+      border-bottom: 1px solid #aaa;
+    }
+
+    tr-ui-a-selection-summary-table  {
+      margin-top: 1.25em;
+      border-top: 1px solid #aaa;
+      background-color: #eee;
+      font-weight: bold;
+      margin-bottom: 1.25em;
+      border-bottom: 1px solid #aaa;
+    }
+    </style>
+    <div id="content"></div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+      this.eventsHaveDuration_ = true;
+      this.eventsHaveSubRows_ = true;
+    },
+
+    set selection(selection) {
+      if (selection.length <= 1)
+        throw new Error('Only supports multiple items');
+      this.setSelectionWithoutErrorChecks(selection);
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    setSelectionWithoutErrorChecks: function(selection) {
+      this.currentSelection_ = selection;
+      this.updateContents_();
+    },
+
+    get eventsHaveDuration() {
+      return this.eventsHaveDuration_;
+    },
+
+    set eventsHaveDuration(eventsHaveDuration) {
+      this.eventsHaveDuration_ = eventsHaveDuration;
+      this.updateContents_();
+    },
+
+    get eventsHaveSubRows() {
+      return this.eventsHaveSubRows_;
+    },
+
+    set eventsHaveSubRows(eventsHaveSubRows) {
+      this.eventsHaveSubRows_ = eventsHaveSubRows;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var selection = this.currentSelection_;
+
+      this.$.content.textContent = '';
+      if (!selection)
+        return;
+
+      var eventsByTitle = selection.getEventsOrganizedByTitle();
+      var numTitles = tr.b.dictionaryLength(eventsByTitle);
+
+      var summaryTableEl = document.createElement(
+          'tr-ui-a-multi-event-summary-table');
+      summaryTableEl.configure({
+        showTotals: numTitles > 1,
+        eventsByTitle: eventsByTitle,
+        eventsHaveDuration: this.eventsHaveDuration_,
+        eventsHaveSubRows: this.eventsHaveSubRows_
+      });
+      this.$.content.appendChild(summaryTableEl);
+
+      var selectionSummaryTableEl = document.createElement(
+          'tr-ui-a-selection-summary-table');
+      selectionSummaryTableEl.selection = this.currentSelection_;
+      this.$.content.appendChild(selectionSummaryTableEl);
+
+      if (numTitles === 1) {
+        var detailsTableEl = document.createElement(
+            'tr-ui-a-multi-event-details-table');
+        detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
+        detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
+        detailsTableEl.selection = selection;
+        this.$.content.appendChild(detailsTableEl);
+      }
+    }
+  });
+  </script>
+</polymer-element>

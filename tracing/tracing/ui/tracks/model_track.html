@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/draw_helpers.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/tracks/alert_track.html">
+<link rel="import" href="/ui/tracks/container_track.html">
+<link rel="import" href="/ui/tracks/device_track.html">
+<link rel="import" href="/ui/tracks/global_memory_dump_track.html">
+<link rel="import" href="/ui/tracks/highlighter.html">
+<link rel="import" href="/ui/tracks/interaction_track.html">
+<link rel="import" href="/ui/tracks/kernel_track.html">
+<link rel="import" href="/ui/tracks/process_track.html">
+
+<style>
+.model-track {
+  -webkit-box-flex: 1;
+}
+</style>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+  var SelectionState = tr.model.SelectionState;
+  var EventPresenter = tr.ui.b.EventPresenter;
+
+  /**
+   * Visualizes a Model by building ProcessTracks and CpuTracks.
+   * @constructor
+   */
+  var ModelTrack = tr.ui.b.define('model-track', tr.ui.tracks.ContainerTrack);
+
+
+  ModelTrack.prototype = {
+
+    __proto__: tr.ui.tracks.ContainerTrack.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
+      this.classList.add('model-track');
+
+      var typeInfos = tr.ui.tracks.Highlighter.getAllRegisteredTypeInfos();
+      this.highlighters_ = typeInfos.map(
+        function(typeInfo) {
+          return new typeInfo.constructor(viewport);
+        });
+
+      this.upperMode_ = false;
+      this.annotationViews_ = [];
+    },
+
+    // upperMode is true if the track is being used on the ruler.
+    get upperMode() {
+      return this.upperMode_;
+    },
+
+    set upperMode(upperMode) {
+      this.upperMode_ = upperMode;
+      this.updateContents_();
+    },
+
+    detach: function() {
+      tr.ui.tracks.ContainerTrack.prototype.detach.call(this);
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    set model(model) {
+      this.model_ = model;
+      this.updateContents_();
+
+      this.model_.addEventListener('annotationChange',
+          this.updateAnnotations_.bind(this));
+    },
+
+    get hasVisibleContent() {
+      return this.children.length > 0;
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+      if (!this.model_)
+        return;
+
+      if (this.upperMode_)
+        this.updateContentsForUpperMode_();
+      else
+        this.updateContentsForLowerMode_();
+    },
+
+    updateContentsForUpperMode_: function() {
+    },
+
+    updateContentsForLowerMode_: function() {
+      if (this.model_.interaction_records.length) {
+        var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
+        mrt.model = this.model_;
+        this.appendChild(mrt);
+      }
+
+      if (this.model_.alerts.length) {
+        var at = new tr.ui.tracks.AlertTrack(this.viewport_);
+        at.alerts = this.model_.alerts;
+        this.appendChild(at);
+      }
+
+      if (this.model_.globalMemoryDumps.length) {
+        var gmdt = new tr.ui.tracks.GlobalMemoryDumpTrack(this.viewport_);
+        gmdt.memoryDumps = this.model_.globalMemoryDumps;
+        this.appendChild(gmdt);
+      }
+
+      this.appendDeviceTrack_();
+      this.appendKernelTrack_();
+
+      // Get a sorted list of processes.
+      var processes = this.model_.getAllProcesses();
+      processes.sort(tr.model.Process.compare);
+
+      for (var i = 0; i < processes.length; ++i) {
+        var process = processes[i];
+
+        var track = new tr.ui.tracks.ProcessTrack(this.viewport);
+        track.process = process;
+        if (!track.hasVisibleContent)
+          continue;
+
+        this.appendChild(track);
+      }
+      this.viewport_.rebuildEventToTrackMap();
+      this.viewport_.rebuildContainerToTrackMap();
+
+      for (var i = 0; i < this.highlighters_.length; i++) {
+        this.highlighters_[i].processModel(this.model_);
+      }
+
+      this.updateAnnotations_();
+    },
+
+    updateAnnotations_: function() {
+      this.annotationViews_ = [];
+      var annotations = this.model_.getAllAnnotations();
+      for (var i = 0; i < annotations.length; i++) {
+        this.annotationViews_.push(
+            annotations[i].getOrCreateView(this.viewport_));
+      }
+      this.invalidateDrawingContainer();
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      if (!this.model_)
+        return;
+
+      var tracks = this.children;
+      for (var i = 0; i < tracks.length; ++i)
+        tracks[i].addEventsToTrackMap(eventToTrackMap);
+
+      if (this.instantEvents === undefined)
+        return;
+
+      var vp = this.viewport_;
+      this.instantEvents.forEach(function(ev) {
+        eventToTrackMap.addEvent(ev, this);
+      }.bind(this));
+    },
+
+    addContainersToTrackMap: function(containerToTrackMap) {
+      var tracks = this.children;
+      for (var i = 0; i < tracks.length; ++i)
+        tracks[i].addContainersToTrackMap(containerToTrackMap);
+    },
+
+    appendDeviceTrack_: function() {
+      var device = this.model.device;
+      var track = new tr.ui.tracks.DeviceTrack(this.viewport);
+      track.device = this.model.device;
+      if (!track.hasVisibleContent)
+        return;
+      this.appendChild(track);
+    },
+
+    appendKernelTrack_: function() {
+      var kernel = this.model.kernel;
+      var track = new tr.ui.tracks.KernelTrack(this.viewport);
+      track.kernel = this.model.kernel;
+      if (!track.hasVisibleContent)
+        return;
+      this.appendChild(track);
+    },
+
+    drawTrack: function(type) {
+      var ctx = this.context();
+      if (!this.model_)
+        return;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.getBoundingClientRect();
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+
+      ctx.save();
+      ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
+
+      var dt = this.viewport.currentDisplayTransform;
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
+
+      switch (type) {
+        case tr.ui.tracks.DrawType.GRID:
+          this.viewport.drawMajorMarkLines(ctx);
+          // The model is the only thing that draws grid lines.
+          ctx.restore();
+          return;
+
+        case tr.ui.tracks.DrawType.FLOW_ARROWS:
+          if (this.model_.flowIntervalTree.size === 0) {
+            ctx.restore();
+            return;
+          }
+
+          this.drawFlowArrows_(viewLWorld, viewRWorld);
+          ctx.restore();
+          return;
+
+        case tr.ui.tracks.DrawType.INSTANT_EVENT:
+          if (!this.model_.instantEvents ||
+              this.model_.instantEvents.length === 0)
+            break;
+
+          tr.ui.b.drawInstantSlicesAsLines(
+              ctx,
+              this.viewport.currentDisplayTransform,
+              viewLWorld,
+              viewRWorld,
+              bounds.height,
+              this.model_.instantEvents,
+              4);
+
+          break;
+
+        case tr.ui.tracks.DrawType.MARKERS:
+          if (!this.viewport.interestRange.isEmpty) {
+            this.viewport.interestRange.draw(ctx, viewLWorld, viewRWorld);
+            this.viewport.interestRange.drawIndicators(
+                ctx, viewLWorld, viewRWorld);
+          }
+          ctx.restore();
+          return;
+
+        case tr.ui.tracks.DrawType.HIGHLIGHTS:
+          for (var i = 0; i < this.highlighters_.length; i++) {
+            this.highlighters_[i].drawHighlight(ctx, dt, viewLWorld, viewRWorld,
+                bounds.height);
+          }
+          ctx.restore();
+          return;
+
+        case tr.ui.tracks.DrawType.ANNOTATIONS:
+          for (var i = 0; i < this.annotationViews_.length; i++) {
+            this.annotationViews_[i].draw(ctx);
+          }
+          ctx.restore();
+          return;
+      }
+      ctx.restore();
+
+      tr.ui.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+    },
+
+    drawFlowArrows_: function(viewLWorld, viewRWorld) {
+      var ctx = this.context();
+      var dt = this.viewport.currentDisplayTransform;
+      dt.applyTransformToCanvas(ctx);
+
+      var pixWidth = dt.xViewVectorToWorld(1);
+
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
+
+      var events =
+          this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
+
+      // When not showing flow events, show only highlighted/selected ones.
+      var onlyHighlighted = !this.viewport.showFlowEvents;
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+      for (var i = 0; i < events.length; ++i) {
+        if (onlyHighlighted &&
+            events[i].selectionState !== SelectionState.SELECTED &&
+            events[i].selectionState !== SelectionState.HIGHLIGHTED)
+          continue;
+        this.drawFlowArrow_(ctx, events[i], canvasBounds, pixWidth);
+      }
+    },
+
+    drawFlowArrow_: function(ctx, flowEvent,
+                             canvasBounds, pixWidth) {
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
+      var endTrack = this.viewport.trackForEvent(flowEvent.endSlice);
+
+      // TODO(nduca): Figure out how to draw flow arrows even when
+      // processes are collapsed, bug #931.
+      if (startTrack === undefined || endTrack === undefined)
+        return;
+
+      var startBounds = startTrack.getBoundingClientRect();
+      var endBounds = endTrack.getBoundingClientRect();
+
+      if (flowEvent.selectionState == SelectionState.SELECTED) {
+        ctx.shadowBlur = 1;
+        ctx.shadowColor = 'red';
+        ctx.shadowOffsety = 2;
+        ctx.strokeStyle = 'red';
+      } else if (flowEvent.selectionState == SelectionState.HIGHLIGHTED) {
+        ctx.shadowBlur = 1;
+        ctx.shadowColor = 'red';
+        ctx.shadowOffsety = 2;
+        ctx.strokeStyle = 'red';
+      } else if (flowEvent.selectionState == SelectionState.DIMMED) {
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+      } else {
+        var hasBoost = false;
+        var startSlice = flowEvent.startSlice;
+        hasBoost |= startSlice.selectionState === SelectionState.SELECTED;
+        hasBoost |= startSlice.selectionState === SelectionState.HIGHLIGHTED;
+        var endSlice = flowEvent.endSlice;
+        hasBoost |= endSlice.selectionState === SelectionState.SELECTED;
+        hasBoost |= endSlice.selectionState === SelectionState.HIGHLIGHTED;
+        if (hasBoost) {
+          ctx.shadowBlur = 1;
+          ctx.shadowColor = 'rgba(255, 0, 0, 0.4)';
+          ctx.shadowOffsety = 2;
+          ctx.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+        } else {
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+        }
+      }
+
+      var startSize = startBounds.left + startBounds.top +
+          startBounds.bottom + startBounds.right;
+      var endSize = endBounds.left + endBounds.top +
+          endBounds.bottom + endBounds.right;
+      // Nothing to do if both ends of the track are collapsed.
+      if (startSize === 0 && endSize === 0)
+        return;
+
+      var startY = this.calculateTrackY_(startTrack, canvasBounds);
+      var endY = this.calculateTrackY_(endTrack, canvasBounds);
+
+      var pixelStartY = pixelRatio * startY;
+      var pixelEndY = pixelRatio * endY;
+      var half = (flowEvent.end - flowEvent.start) / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(flowEvent.start, pixelStartY);
+      ctx.bezierCurveTo(
+          flowEvent.start + half, pixelStartY,
+          flowEvent.start + half, pixelEndY,
+          flowEvent.end, pixelEndY);
+      ctx.stroke();
+
+      var arrowWidth = 5 * pixWidth * pixelRatio;
+      var distance = flowEvent.end - flowEvent.start;
+      if (distance <= (2 * arrowWidth))
+        return;
+
+      var tipX = flowEvent.end;
+      var tipY = pixelEndY;
+      var arrowHeight = (endBounds.height / 4) * pixelRatio;
+      tr.ui.b.drawTriangle(ctx,
+          tipX, tipY,
+          tipX - arrowWidth, tipY - arrowHeight,
+          tipX - arrowWidth, tipY + arrowHeight);
+      ctx.fill();
+    },
+
+    calculateTrackY_: function(track, canvasBounds) {
+      var bounds = track.getBoundingClientRect();
+      var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
+      if (size === 0)
+        return this.calculateTrackY_(track.parentNode, canvasBounds);
+
+      return bounds.top - canvasBounds.top + (bounds.height / 2);
+    },
+
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+      function onPickHit(instantEvent) {
+        selection.push(instantEvent);
+      }
+      tr.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
+          function(x) { return x.start; },
+          function(x) { return x.duration; },
+          loWX, hiWX,
+          onPickHit.bind(this));
+
+      tr.ui.tracks.ContainerTrack.prototype.
+          addIntersectingEventsInRangeToSelectionInWorldSpace.
+          apply(this, arguments);
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      this.addClosestInstantEventToSelection(this.model_.instantEvents,
+                                             worldX, worldMaxDist, selection);
+      tr.ui.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+          apply(this, arguments);
+    }
+  };
+
+  return {
+    ModelTrack: ModelTrack
+  };
+});
+</script>

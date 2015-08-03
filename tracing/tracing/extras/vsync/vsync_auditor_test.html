@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/vsync/vsync_auditor.html">
+<link rel="import" href="/model/counter_series.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/thread_slice.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var CounterSeries = tr.model.CounterSeries;
+  var Model = tr.Model;
+  var ThreadSlice = tr.model.ThreadSlice;
+  var VSyncAuditor = tr.e.audits.VSyncAuditor;
+
+  function testFindVSyncTimestamps(slices, counters, expectedTimes) {
+    var model = buildModel(slices, counters);
+    var auditor = new VSyncAuditor(model);
+    assert.deepEqual(auditor.findVSyncTimestamps(model), expectedTimes);
+  }
+
+  function buildModel(slices, counters) {
+    var model = new Model();
+    var process = model.getOrCreateProcess(1);
+    for (var i = 0; i < slices.length; i++) {
+      var thread = process.getOrCreateThread(i);
+      for (var j = 0; j < slices[i].length; j++)
+        thread.sliceGroup.pushSlice(slices[i][j]);
+    }
+    for (var i = 0; i < counters.length; i++) {
+      var counter = process.getOrCreateCounter(
+          counters[i].category,
+          counters[i].name);
+      counter.addSeries(counters[i].series);
+    }
+    return model;
+  }
+
+  function buildSlice(title, time) {
+    return new ThreadSlice('', title, 0, time, {});
+  }
+
+  function buildCounterSeries(name, timestamps) {
+    var series = new CounterSeries(name, '');
+    for (var i = 0; i < timestamps.length; i++)
+      series.addCounterSample(timestamps[i], 1);
+    return series;
+  }
+
+  test('findEmpty', function() {
+    testFindVSyncTimestamps([], [], []);
+  });
+
+  test('findNoVsync', function() {
+    testFindVSyncTimestamps([
+        [buildSlice('MessageLoop::RunTask', 10),
+         buildSlice('MessageLoop::RunTask', 20)],
+        [buildSlice('MessageLoop::RunTask', 15)]
+    ], [], []);
+  });
+
+  test('findOneVsync', function() {
+    testFindVSyncTimestamps([[buildSlice('vblank', 42)]], [], [42]);
+  });
+
+  test('findMultipleVsyncs', function() {
+    testFindVSyncTimestamps([
+        [buildSlice('VSYNC', 1), buildSlice('MessageLoop::RunTask', 2)],
+        [buildSlice('MessageLoop::RunTask', 3)],
+        [buildSlice('MessageLoop::RunTask', 4), buildSlice('VSYNC', 5)],
+        [buildSlice('VSYNC', 6), buildSlice('VSYNC', 7)]
+    ], [], [1, 5, 6, 7]);
+  });
+
+  test('findMultipleAndroidVsyncs', function() {
+    testFindVSyncTimestamps([
+        [buildSlice('MessageLoop::RunTask', 2)],
+        [buildSlice('MessageLoop::RunTask', 3)],
+        [buildSlice('MessageLoop::RunTask', 4)]
+    ],
+    [
+      {
+        category: 'android',
+        name: 'VSYNC-app',
+        series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
+      }
+    ], [1, 5, 6, 7]);
+  });
+
+  test('findUnsorted', function() {
+    testFindVSyncTimestamps([
+        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 4),
+         buildSlice('MessageLoop::RunTask', 2)],
+        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 1),
+         buildSlice('RenderWidgetHostViewAndroid::OnVSync', 3)]
+    ], [], [1, 3, 4]);
+  });
+
+  test('findDifferentPrecisions', function() {
+    // vblank has higher precision than RenderWidgetHostViewAndroid::OnVSync.
+    testFindVSyncTimestamps([
+        [buildSlice('RenderWidgetHostViewAndroid::OnVSync', 1),
+         buildSlice('vblank', 2),
+         buildSlice('RenderWidgetHostViewAndroid::OnVSync', 3)]
+    ], [], [2]);
+  });
+});
+</script>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/model/timed_event.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Slice class.
+ */
+tr.exportTo('tr.model', function() {
+  /**
+   * A Slice represents an interval of time plus parameters associated
+   * with that interval.
+   *
+   * @constructor
+   */
+  function Slice(category, title, colorId, start, args, opt_duration,
+                 opt_cpuStart, opt_cpuDuration, opt_argsStripped) {
+    tr.model.TimedEvent.call(this, start);
+
+    this.category = category || '';
+    this.title = title;
+    this.colorId = colorId;
+    this.args = args;
+    this.startStackFrame = undefined;
+    this.endStackFrame = undefined;
+    this.didNotFinish = false;
+    this.inFlowEvents = [];
+    this.outFlowEvents = [];
+    this.subSlices = [];
+    this.selfTime = undefined;
+    this.cpuSelfTime = undefined;
+    this.important = false;
+    this.parentContainer = undefined;
+    this.argsStripped = false;
+
+    // parentSlice and isTopLevel will be set by SliceGroup.
+    this.parentSlice = undefined;
+    this.isTopLevel = false;
+    // After SliceGroup processes Slices, isTopLevel should be equivalent to
+    // !parentSlice.
+
+    if (opt_duration !== undefined)
+      this.duration = opt_duration;
+
+    if (opt_cpuStart !== undefined)
+      this.cpuStart = opt_cpuStart;
+
+    if (opt_cpuDuration !== undefined)
+      this.cpuDuration = opt_cpuDuration;
+
+    if (opt_argsStripped !== undefined)
+      this.argsStripped = true;
+  }
+
+  Slice.prototype = {
+    __proto__: tr.model.TimedEvent.prototype,
+
+
+    get analysisTypeName() {
+      return this.title;
+    },
+
+    get userFriendlyName() {
+      return 'Slice ' + this.title + ' at ' +
+          tr.b.units.TimeStamp.format(this.start);
+    },
+
+    findDescendentSlice: function(targetTitle) {
+      if (!this.subSlices)
+        return undefined;
+
+      for (var i = 0; i < this.subSlices.length; i++) {
+        if (this.subSlices[i].title == targetTitle)
+          return this.subSlices[i];
+        var slice = this.subSlices[i].findDescendentSlice(targetTitle);
+        if (slice) return slice;
+      }
+      return undefined;
+    },
+
+    get mostTopLevelSlice() {
+      var curSlice = this;
+      while (curSlice.parentSlice)
+        curSlice = curSlice.parentSlice;
+
+      return curSlice;
+    },
+
+    /**
+     * Obtains all subsequent slices of this slice.
+     *
+     * Subsequent slices are slices that get executed after a particular
+     * slice, i.e., all the functions that are called after the current one.
+     *
+     * For instance, E.iterateAllSubsequentSlices() in the following example:
+     * [     A          ]
+     * [ B][  D   ][ G  ]
+     *  [C] [E][F]  [H]
+     * will pass F, G, then H to the provided callback.
+     *
+     * The reason we need subsequent slices of a particular slice is that
+     * when there is flow event goes into, e.g., E, we only want to highlight
+     * E's subsequent slices to indicate the execution order.
+     *
+     * The idea to calculate the subsequent slices of slice E is to view
+     * the slice group as a tree where the top-level slice A is the root node.
+     * The preorder depth-first-search (DFS) order is naturally equivalent
+     * to the function call order. We just need to perform a DFS, and start
+     * recording the slices after we see the occurance of E.
+     */
+    iterateAllSubsequentSlices: function(callback, opt_this) {
+      var parentStack = [];
+      var started = false;
+
+      // get the root node and push it to the DFS stack
+      var topmostSlice = this.mostTopLevelSlice;
+      parentStack.push(topmostSlice);
+
+      // Using the stack to perform DFS
+      while (parentStack.length !== 0) {
+        var curSlice = parentStack.pop();
+
+        if (started)
+          callback.call(opt_this, curSlice);
+        else
+          started = (curSlice.guid === this.guid);
+
+        for (var i = curSlice.subSlices.length - 1; i >= 0; i--) {
+          parentStack.push(curSlice.subSlices[i]);
+        }
+      }
+    },
+
+    get subsequentSlices() {
+      var res = [];
+
+      this.iterateAllSubsequentSlices(function(subseqSlice) {
+        res.push(subseqSlice);
+      });
+
+      return res;
+    },
+
+    /**
+     * Obtains the parents of a slice, from the most immediate to the root.
+     *
+     * For instance, E.iterateAllAncestors() in the following example:
+     * [     A          ]
+     * [ B][  D   ][ G  ]
+     *  [C] [E][F]  [H]
+     * will pass D, then A to the provided callback, in the order from the
+     * leaves to the root.
+     */
+    iterateAllAncestors: function(callback, opt_this) {
+      var curSlice = this;
+
+      while (curSlice.parentSlice) {
+        curSlice = curSlice.parentSlice;
+        callback.call(opt_this, curSlice);
+      }
+    },
+
+    get ancestorSlices() {
+      var res = [];
+
+      this.iterateAllAncestors(function(ancestor) {
+        res.push(ancestor);
+      });
+
+      return res;
+    },
+
+    iterateEntireHierarchy: function(callback, opt_this) {
+      var mostTopLevelSlice = this.mostTopLevelSlice;
+      callback.call(opt_this, mostTopLevelSlice);
+      mostTopLevelSlice.iterateAllSubsequentSlices(callback, opt_this);
+    },
+
+    get entireHierarchy() {
+      var res = [];
+
+      this.iterateEntireHierarchy(function(slice) {
+        res.push(slice);
+      });
+
+      return res;
+    },
+
+    /**
+     * Returns this slice, and its ancestor and subsequent slices.
+     *
+     * For instance, E.ancestorAndSubsequentSlices in the following example:
+     * [     A          ]
+     * [ B][  D   ][ G  ]
+     *  [C] [E][F]  [H]
+     * will return E, D, A, F, G, and H, where E is itself, D and A are
+     * E's ancestors, and F, G, and H are subsequent slices of E
+     */
+    get ancestorAndSubsequentSlices() {
+      var res = [];
+
+      res.push(this);
+
+      this.iterateAllAncestors(function(aSlice) {
+        res.push(aSlice);
+      });
+
+      this.iterateAllSubsequentSlices(function(sSlice) {
+        res.push(sSlice);
+      });
+
+      return res;
+    },
+
+    iterateAllDescendents: function(callback, opt_this) {
+      this.subSlices.forEach(callback, opt_this);
+      this.subSlices.forEach(function(subSlice) {
+        subSlice.iterateAllDescendents(callback, opt_this);
+      }, opt_this);
+    },
+
+    get descendentSlices() {
+      var res = [];
+
+      this.iterateAllDescendents(function(des) {
+        res.push(des);
+      });
+
+      return res;
+    }
+
+  };
+
+  return {
+    Slice: Slice
+  };
+});
+</script>
+

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_container.html">
+<link rel="import" href="/model/power_sample.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.model', function() {
+
+  var PowerSample = tr.model.PowerSample;
+
+  /**
+   * A container holding a time series of power samples.
+   *
+   * @constructor
+   * @extends {EventContainer}
+   */
+  function PowerSeries(device) {
+    tr.model.EventContainer.call(this);
+
+    this.device_ = device;
+    this.samples_ = [];
+  }
+
+  PowerSeries.prototype = {
+    __proto__: tr.model.EventContainer.prototype,
+
+    get device() {
+      return this.device_;
+    },
+
+    get samples() {
+      return this.samples_;
+    },
+
+    get stableId() {
+      return this.device_.stableId + '.PowerSeries';
+    },
+
+    /**
+     * Adds a power sample to the series and returns it.
+     *
+     * Note: Samples must be added in chronological order.
+     */
+    addPowerSample: function(ts, val) {
+      var sample = new PowerSample(this, ts, val);
+      this.samples_.push(sample);
+      return sample;
+    },
+
+    // TODO(charliea): Add a function that allows us to measure the total energy
+    // consumed between two timestamps.
+
+    shiftTimestampsForward: function(amount) {
+      for (var i = 0; i < this.samples_.length; ++i)
+        this.samples_[i].start += amount;
+    },
+
+    updateBounds: function() {
+      this.bounds.reset();
+
+      if (this.samples_.length === 0)
+        return;
+
+      this.bounds.addValue(this.samples_[0].start);
+      this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate, callback,
+                                              opt_this) {
+      if (eventTypePredicate.call(opt_this, PowerSample))
+        this.samples_.forEach(callback, opt_this);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+    }
+  };
+
+  return {
+    PowerSeries: PowerSeries
+  };
+});
+</script>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/unittest/constants.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.b.unittest', function() {
+  var TestTypes = tr.b.unittest.TestTypes;
+
+  function TestCase(name, opt_testFn, opt_options) {
+    if (!name)
+      throw new Error('Name must be provided');
+    this.guid_ = tr.b.GUID.allocate();
+    this.suite_ = undefined; // Set by TestSuite.addTest.
+    this.name_ = name;
+
+    if (opt_options)
+      this.options_ = opt_options;
+    else
+      this.options_ = {};
+
+    this.testFn_ = opt_testFn;
+  }
+
+  TestCase.parseFullyQualifiedName = function(fqn) {
+    var i = fqn.lastIndexOf('.');
+    if (i == -1)
+      throw new Error('FullyQualifiedNames must have a period in them');
+    return {
+      suiteName: fqn.substr(0, i),
+      testCaseName: fqn.substr(i + 1)
+    };
+  };
+
+  TestCase.prototype = {
+    __proto__: Object.prototype,
+
+    get guid() {
+      return this.guid;
+    },
+
+    get suite() {
+      return this.suite_;
+    },
+
+    set suite(suite) {
+      if (this.suite_ !== undefined)
+        throw new Error('Suite can only be assigned once.');
+      this.suite_ = suite;
+    },
+
+    get testType() {
+      return TestTypes.UNITTEST;
+    },
+
+    get name() {
+      return this.name_;
+    },
+
+    get fullyQualifiedName() {
+      return this.suite_.name + '.' + this.name_;
+    },
+
+    get options() {
+      return this.options_;
+    },
+
+    setUp: function() {
+      if (this.options_.setUp)
+        this.options_.setUp.call(this);
+    },
+
+    run: function(htmlHook) {
+      return this.testFn_();
+    },
+
+    tearDown: function() {
+      if (this.options_.tearDown)
+        this.options_.tearDown.call(this);
+    },
+
+    // TODO(nduca): The routing of this is a bit awkward. Probably better
+    // to install a global function.
+    addHTMLOutput: function(element) {
+      tr.b.unittest.addHTMLOutputForCurrentTest(element);
+    }
+  };
+
+  function PerfTestCase(name, testFn, opt_options) {
+    TestCase.call(this, name, testFn, opt_options);
+    this.iterations = this.options.iterations || 10;
+  }
+
+  PerfTestCase.prototype = {
+    __proto__: TestCase.prototype,
+
+    get testType() {
+      return TestTypes.PERFTEST;
+    },
+
+    run: function() {
+      var durations = [];
+      var iterations = this.iterations;
+      for (var i = 0; i < iterations; ++i) {
+        var start = window.performance.now();
+        this.runOneIteration();
+        var duration = window.performance.now() - start;
+        durations.push(duration);
+      }
+
+      var durationStrings = durations.map(function(d) {
+        return d.toFixed(2) + 'ms';
+      });
+      var average = tr.b.Statistics.mean(durations);
+      var min = tr.b.Statistics.min(durations);
+
+      var summaryString = ' [';
+      summaryString += 'min ' + min.toFixed(2) + 'ms, ';
+      summaryString += 'avg ' + average.toFixed(2) + 'ms';
+      summaryString += ']';
+
+      return durationStrings.join(', ') + summaryString;
+    },
+
+    runOneIteration: function() {
+      this.testFn_();
+    }
+  };
+
+  return {
+    TestCase: TestCase,
+    PerfTestCase: PerfTestCase
+  };
+});
+</script>

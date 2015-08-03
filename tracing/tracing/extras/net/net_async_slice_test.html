@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/net/net.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var AsyncSlice = tr.model.AsyncSlice;
+  var NetAsyncSlice = tr.e.net.NetAsyncSlice;
+
+  test('basic', function() {
+    var s = new NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
+    s.duration = 100;
+
+    assert.equal(AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'),
+                 NetAsyncSlice);
+    assert.equal(s.viewSubGroupTitle, 'NetLog');
+  });
+
+  test('import', function() {
+    var events = [
+      {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 100, cat: 'netlog', tid: 2, ph: 'b', id: 71}, // @suppress longLineCheck
+      {name: 'HTTP_STREAM_JOB', args: {}, pid: 1, ts: 200, cat: 'netlog', tid: 2, ph: 'e', id: 71} // @suppress longLineCheck
+    ];
+    var m = new tr.Model(events);
+    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    assert.equal(t2.asyncSliceGroup.length, 1);
+    assert.instanceOf(t2.asyncSliceGroup.slices[0], NetAsyncSlice);
+  });
+
+  test('ExposeURLBasic', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1,
+                                  {params: {url: 'https://google.com'},
+                                   source_type: 'b'}, 0, true);
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
+    assert.equal(slice.title, 'https://google.com');
+  });
+
+  test('ExposeURLNested', function() {
+    var slice = new NetAsyncSlice(
+        '', 'a', 0, 1, {params: {}, source_type: 'HELLO'}, 1, true);
+    var childSlice = new NetAsyncSlice('', 'b', 0, 1,
+                                       {params: {url: 'http://test.url'}});
+    slice.subSlices = [childSlice];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
+    assert.equal(slice.title, 'http://test.url');
+    assert.equal(childSlice.title, 'b');
+  });
+
+  test('ExposeURLNestedNoURL', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
+    var childSlice = new NetAsyncSlice('', 'b', 0, 1, {params: {}});
+    slice.subSlices = [childSlice];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice.isTopLevel);
+    // URL is exposed as the title of the parent slice.
+    assert.equal(slice.title, 'a');
+    assert.equal(childSlice.title, 'b');
+  });
+
+  test('ExposeURLNestedBothChildrenHaveURL', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
+    var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
+                                   {params: {url: 'http://test.url.net'}});
+    var childSlice2 = new NetAsyncSlice('', 'c', 0, 1,
+                                   {params: {url: 'http://test.url.com'}});
+    slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice1.isTopLevel);
+    assert.isFalse(childSlice2.isTopLevel);
+    // Parent should take the first url param that it finds.
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
+  });
+
+  test('ExposeURLNestedBothParentAndChildHaveURL', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1,
+                                  {params: {url: 'parent123.url.com'}}, 1,
+                                  true);
+    var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
+                                        {params: {url: 'http://test.url.net'}});
+    var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice1.isTopLevel);
+    assert.isFalse(childSlice2.isTopLevel);
+    // Parent should take its own url param if there is one.
+    assert.equal(slice.title, 'parent123.url.com');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
+  });
+
+  test('ExposeURLDoNotComputeUrlTwice', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
+    var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
+                                        {params: {url: 'http://test.url.net'}});
+    var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice1.isTopLevel);
+    assert.isFalse(childSlice2.isTopLevel);
+    // Parent should take its child's url param.
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
+    // Now if we change the url param of the child, the parent's title should
+    // remain the same. We do not recompute.
+    childSlice1.args.params.url = 'example.com';
+    assert.equal(slice.title, 'http://test.url.net');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
+  });
+
+  test('ExposeSourceTypeAsTitle', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1,
+                                  {params: {}, source_type: 'UDP_SOCKET'}, 1,
+                                  true);
+    var childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
+                                        {params: {}, source_type: 'SOCKET'});
+    var childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
+
+    slice.subSlices = [childSlice1, childSlice2];
+    // Make sure isTopLevel is populated in the constructor.
+    assert.isTrue(slice.isTopLevel);
+    assert.isFalse(childSlice1.isTopLevel);
+    assert.isFalse(childSlice2.isTopLevel);
+    // Parent should take its own source_type.
+    assert.equal(slice.title, 'UDP_SOCKET');
+    assert.equal(childSlice1.title, 'b');
+    assert.equal(childSlice2.title, 'c');
+  });
+});
+</script>

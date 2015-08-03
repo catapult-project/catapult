@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/base/units/time_stamp.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.ui.units', function() {
+  function createTimeStampSpan(timestamp, opt_config) {
+    if (timestamp === undefined)
+      return '';
+    var config = opt_config || {};
+    var ownerDocument = config.ownerDocument || document;
+    var span = ownerDocument.createElement('tr-ui-u-time-stamp-span');
+    span.timestamp = timestamp;
+    return span;
+  }
+
+  tr.b.units.Time.addEventListener('display-unit-changed', function(e) {
+    tr.b.findDeepElementsMatching(document.body,
+      'tr-ui-u-time-stamp-span').forEach(function(el) {
+        el.updateContent_();
+      });
+  });
+
+  return {
+    createTimeStampSpan: createTimeStampSpan
+  };
+});
+</script>
+
+<polymer-element name="tr-ui-u-time-stamp-span">
+  <template>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.timestamp_ = undefined;
+    },
+
+    get timestamp() {
+      return this.timestamp_;
+    },
+
+    set timestamp(timestamp) {
+      if (timestamp instanceof tr.b.units.TimeStamp)
+        this.timestamp_ = timestamp.timestamp;
+      else
+        this.timestamp_ = timestamp;
+      this.updateContent_();
+    },
+
+    updateContent_: function() {
+      var content = tr.b.units.TimeStamp.format(this.timestamp_);
+      this.shadowRoot.textContent = content;
+    }
+  });
+  </script>
+</polymer-element>

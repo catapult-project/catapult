@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/ruler_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var div = document.createElement('div');
+
+    var viewport = new tr.ui.TimelineViewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = tr.ui.tracks.RulerTrack(viewport);
+    drawingContainer.appendChild(track);
+    this.addHTMLOutput(div);
+
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.setPanAndScale(0, track.clientWidth / 1000);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+});
+</script>
+

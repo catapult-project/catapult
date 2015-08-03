@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the SelectionState class.
+ */
+tr.exportTo('tr.model', function() {
+
+  /**
+   * The SelectionState enum defines how selectable items are displayed in the
+   * view.
+   */
+  var SelectionState = {
+    NONE: 0,
+    SELECTED: 1,
+    HIGHLIGHTED: 2,
+    DIMMED: 3
+  };
+
+  return {
+    SelectionState: SelectionState
+  };
+});
+</script>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/extras/rail/rail_score.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var RAILScore = tr.e.rail.RAILScore;
+
+  test('empty', function() {
+    var railScore = new RAILScore();
+    assert.isUndefined(railScore.overallScore);
+  });
+
+  test('singleIR', function() {
+    // Solitary scores always reduce to exactly themselves.
+    for (var i = 0; i < 11; ++i) {
+      var railScore = new RAILScore([{railScore: i / 10}]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+
+      railScore = new RAILScore([{railScore: i / 10, railScorePower: 0.1}]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+
+      railScore = new RAILScore([{railScore: i / 10, railScoreScale: -1}]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+
+      railScore = new RAILScore([{
+        railScore: i / 10,
+        railScorePower: 0.1,
+        railScoreScale: -1
+      }]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+    }
+  });
+
+  var binaryScoreSets = [
+    [0, 0, 0, 1],
+    [0, 0, 1],
+    [0, 1],
+    [0, 1, 1],
+    [0, 1, 1, 1]];
+
+  test('binaryScoreSets', function() {
+    function simpleIR(score) {
+      return {railScore: score};
+    }
+
+    for (var index = 1; index < binaryScoreSets.length; ++index) {
+      var prevScore = new RAILScore(binaryScoreSets[index - 1].map(simpleIR));
+      prevScore = prevScore.overallScore;
+      var currentScore = new RAILScore(binaryScoreSets[index].map(simpleIR));
+      currentScore = currentScore.overallScore;
+
+      assert.isBelow(0, prevScore);
+      assert.isBelow(prevScore, currentScore);
+
+      var altScore = new RAILScore(binaryScoreSets[index].map(function(score) {
+        return {railScore: score, railScoreScale: -1};
+      }));
+      altScore = altScore.overallScore;
+
+      // When scale < 0, then higher scores are weighted more heavily than lower
+      // scores.
+      assert.isBelow(currentScore, altScore);
+      assert.isBelow(altScore, 1);
+    }
+  });
+
+  test('zeroBase', function() {
+    // When base = 0, then weight could be 0, which could cause NaN.
+    var railScore = new RAILScore([{railScore: 0, railScoreBase: 0}]);
+    assert.equal(0, railScore.overallScore);
+
+    railScore = new RAILScore([{railScore: 1, railScoreBase: 0}]);
+    assert.isTrue(isNaN(railScore.overallScore));
+
+    railScore = new RAILScore([{
+      railScore: 1,
+      railScoreScale: -1,
+      railScoreBase: 0
+    }]);
+    assert.isTrue(isNaN(railScore.overallScore));
+  });
+
+  test('oneBase', function() {
+    // When base = 1, then scale and power don't matter, and the algorithm
+    // simplifies to un-weighted averaging.
+
+    function mean(scores) {
+      var sum = 0;
+      scores.forEach(function(score) {
+        sum += score;
+      });
+      return sum / scores.length;
+    }
+
+    binaryScoreSets.forEach(function(scores) {
+      var railScore = new RAILScore(scores.map(function(score) {
+        return {railScore: score, railScoreBase: 1};
+      }));
+      assert.closeTo(mean(scores), railScore.overallScore, 0.01);
+
+      railScore = new RAILScore(scores.map(function(score) {
+        return {railScore: score, railScoreBase: 1, railScoreScale: -1};
+      }));
+      assert.closeTo(mean(scores), railScore.overallScore, 0.01);
+    });
+  });
+
+  test('zeroInteractionRecords', function() {
+    var score = new tr.e.rail.RAILScore();
+    assert.equal(0, score.interactionRecords.length);
+    assert.isUndefined(score.overallScore);
+  });
+
+  test('overallScore', function() {
+    var score = new tr.e.rail.RAILScore([
+      {railScore: 0.9},
+      {railScore: 1.0},
+      {railScore: 0.89},
+      {railScore: 1.0},
+      {railScore: 0.1}
+    ]);
+    assert.equal(5, score.interactionRecords.length);
+    assert.closeTo(score.overallScore, 0.51, 0.01);
+  });
+
+  test('fromModel', function() {
+    var model = tr.e.audits.newChromeModel(function(model) {
+      model.addInteractionRecord(new tr.e.rail.RAILInteractionRecord(
+          'Idle', 'rail_idle', 0, 1));
+    });
+    var score = tr.e.rail.RAILScore.fromModel(model);
+    assert.equal(1, score.interactionRecords.length);
+  });
+
+  test('fromEmptyModel', function() {
+    var model = tr.e.audits.newChromeModel(function(model) {
+    });
+    assert.isUndefined(tr.e.rail.RAILScore.fromModel(model));
+  });
+});
+</script>

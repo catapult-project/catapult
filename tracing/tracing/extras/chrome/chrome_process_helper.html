@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Utilities for accessing trace data about the Chrome browser.
+ */
+tr.exportTo('tr.e.audits', function() {
+  var MAIN_FRAMETIME_TYPE = 'main_frametime_type';
+  var IMPL_FRAMETIME_TYPE = 'impl_frametime_type';
+
+  var MAIN_RENDERING_STATS =
+      'BenchmarkInstrumentation::MainThreadRenderingStats';
+  var IMPL_RENDERING_STATS =
+      'BenchmarkInstrumentation::ImplThreadRenderingStats';
+
+
+  function getSlicesIntersectingRange(rangeOfInterest, slices) {
+    var slicesInFilterRange = [];
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+        slicesInFilterRange.push(slice);
+    }
+    return slicesInFilterRange;
+  }
+
+
+  function ChromeProcessHelper(modelHelper, process) {
+    this.modelHelper = modelHelper;
+    this.process = process;
+  }
+
+  ChromeProcessHelper.prototype = {
+    get pid() {
+      return this.process.pid;
+    },
+
+    getFrameEventsInRange: function(frametimeType, range) {
+      var titleToGet;
+      if (frametimeType == MAIN_FRAMETIME_TYPE)
+        titleToGet = MAIN_RENDERING_STATS;
+      else
+        titleToGet = IMPL_RENDERING_STATS;
+
+      var frameEvents = [];
+      this.process.iterateAllEvents(function(event) {
+        if (event.title !== titleToGet)
+          return;
+        if (range.intersectsExplicitRange(event.start, event.end))
+          frameEvents.push(event);
+      });
+
+      frameEvents.sort(function(a, b) {return a.start - b.start});
+      return frameEvents;
+    }
+  };
+
+  function getFrametimeDataFromEvents(frameEvents) {
+    var frametimeData = [];
+    for (var i = 1; i < frameEvents.length; i++) {
+      var diff = frameEvents[i].start - frameEvents[i - 1].start;
+      frametimeData.push({
+        'x': frameEvents[i].start,
+        'frametime': diff
+      });
+    }
+    return frametimeData;
+  }
+
+  return {
+    ChromeProcessHelper: ChromeProcessHelper,
+
+    MAIN_FRAMETIME_TYPE: MAIN_FRAMETIME_TYPE,
+    IMPL_FRAMETIME_TYPE: IMPL_FRAMETIME_TYPE,
+    MAIN_RENDERING_STATS: MAIN_RENDERING_STATS,
+    IMPL_RENDERING_STATS: IMPL_RENDERING_STATS,
+
+    getSlicesIntersectingRange: getSlicesIntersectingRange,
+    getFrametimeDataFromEvents: getFrametimeDataFromEvents
+  };
+});
+</script>

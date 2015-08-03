@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/device.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var Device = tr.model.Device;
+  var Model = tr.Model;
+  var PowerSeries = tr.model.PowerSeries;
+
+  test('updateBounds', function() {
+    var device = new Device(new Model());
+    device.powerSeries = new PowerSeries(device);
+
+    // Verify that the bounds match the lowest and highest timestamps.
+    device.powerSeries.addPowerSample(100, 5);
+    device.powerSeries.addPowerSample(200, 5);
+    device.updateBounds();
+
+    assert.equal(device.bounds.min, 100);
+    assert.equal(device.bounds.max, 200);
+
+    // Add a new sample and verify that the bounds change.
+    device.powerSeries.addPowerSample(700, 5);
+    device.updateBounds();
+
+    assert.equal(device.bounds.min, 100);
+    assert.equal(device.bounds.max, 700);
+ });
+
+  test('shiftTimestampsForward', function() {
+    var device = new Device(new Model());
+    device.powerSeries = new PowerSeries(device);
+
+    device.powerSeries.addPowerSample(100, 2);
+    device.powerSeries.addPowerSample(200, 2);
+    device.shiftTimestampsForward(2);
+
+    assert.equal(device.powerSeries.samples[0].start, 102);
+    assert.equal(device.powerSeries.samples[1].start, 202);
+  });
+
+  test('iterateAllChildEventContainers', function() {
+    var device = new Device(new Model());
+
+    // Power series shouldn't be included as a child until one's set.
+    var childEventContainers = [];
+    device.iterateAllChildEventContainers(function(eventContainer) {
+      childEventContainers.push(eventContainer);
+    });
+
+    assert.deepEqual(childEventContainers, []);
+
+    device.powerSeries = new PowerSeries(device);
+
+    // Verify that the power series is now included as a child.
+    var childEventContainers = [];
+    device.iterateAllChildEventContainers(function(eventContainer) {
+      childEventContainers.push(eventContainer);
+    });
+
+    assert.deepEqual(childEventContainers, [device.powerSeries]);
+  });
+});
+</script>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  test('instantiate', function() {
+    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+
+    var ALERT_INFO_1 = new tr.model.EventInfo(
+        'Alert 1', 'Critical alert',
+        [{
+          label: 'Project Page',
+          textContent: 'Trace-Viewer Github Project',
+          href: 'https://github.com/google/trace-viewer/'
+        }]);
+
+    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
+    assert.equal(1, alert.associatedEvents.length);
+
+    var selection = new tr.model.EventSet();
+    selection.push(alert);
+
+    var subView = document.createElement('tr-ui-a-alert-sub-view');
+    subView.selection = selection;
+    assert.strictEqual(subView.relatedEventsToHighlight,
+                       alert.associatedEvents);
+    this.addHTMLOutput(subView);
+
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 4);
+    assert.lengthOf(columns, 2);
+  });
+});
+</script>

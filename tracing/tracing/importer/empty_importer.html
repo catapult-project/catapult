@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/importer/importer.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data importers.
+ */
+tr.exportTo('tr.importer', function() {
+  var Importer = tr.importer.Importer;
+  /**
+   * Importer for empty strings and arrays.
+   * @constructor
+   */
+  function EmptyImporter(events) {
+    this.importPriority = 0;
+  };
+
+  EmptyImporter.canImport = function(eventData) {
+    if (eventData instanceof Array && eventData.length == 0)
+      return true;
+    if (typeof(eventData) === 'string' || eventData instanceof String) {
+      return eventData.length == 0;
+    }
+    return false;
+  };
+
+  EmptyImporter.prototype = {
+    __proto__: Importer.prototype
+  };
+
+  Importer.register(EmptyImporter);
+
+  return {
+    EmptyImporter: EmptyImporter
+  };
+});
+</script>

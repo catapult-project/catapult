@@ -7,6 +7,7 @@
 See https://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into depot_tools.
 """
+import sys
 
 
 def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
@@ -19,26 +20,27 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
   }
 
 
-def _CommonChecks(input_api, output_api):
+def RunChecks(input_api, output_api):
   results = []
-  results.extend(input_api.canned_checks.PanProjectChecks(
-      input_api, output_api))
-  return results
+  from build import presubmit_checks
+  results += presubmit_checks.RunChecks(input_api)
+  results += input_api.canned_checks.PanProjectChecks(input_api, output_api)
+
+  return map(output_api.PresubmitError, results)
+
+
+def CheckChange(input_api, output_api):
+  original_sys_path = sys.path
+  try:
+    sys.path += [input_api.PresubmitLocalPath()]
+    return RunChecks(input_api, output_api)
+  finally:
+    sys.path = original_sys_path
 
 
 def CheckChangeOnUpload(input_api, output_api):
-  results = []
-  results.extend(_CommonChecks(input_api, output_api))
-  results.extend(_RunPylint(input_api, output_api))
-  return results
+  return CheckChange(input_api, output_api)
 
 
 def CheckChangeOnCommit(input_api, output_api):
-  results = []
-  results.extend(_CommonChecks(input_api, output_api))
-  return results
-
-
-def _RunPylint(input_api, output_api):
-  tests = input_api.canned_checks.GetPylint(input_api, output_api)
-  return input_api.RunTests(tests)
+  return CheckChange(input_api, output_api)

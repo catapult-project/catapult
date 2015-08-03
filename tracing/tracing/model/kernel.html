@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/cpu.html">
+<link rel="import" href="/model/process_base.html">
+<link rel="import" href="/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the Process class.
+ */
+tr.exportTo('tr.model', function() {
+  var Cpu = tr.model.Cpu;
+  var ProcessBase = tr.model.ProcessBase;
+
+  /**
+   * The Kernel represents kernel-level objects in the model.
+   * @constructor
+   */
+  function Kernel(model) {
+    ProcessBase.call(this, model);
+
+    this.cpus = {};
+    this.softwareMeasuredCpuCount_ = undefined;
+  };
+
+  /**
+   * Comparison between kernels is pretty meaningless.
+   */
+  Kernel.compare = function(x, y) {
+    return 0;
+  };
+
+  Kernel.prototype = {
+    __proto__: ProcessBase.prototype,
+
+    compareTo: function(that) {
+      return Kernel.compare(this, that);
+    },
+
+    get userFriendlyName() {
+      return 'Kernel';
+    },
+
+    get userFriendlyDetails() {
+      return 'Kernel';
+    },
+
+    get stableId() {
+      return 'Kernel';
+    },
+
+    /**
+     * @return {Cpu} Gets a specific Cpu or creates one if
+     * it does not exist.
+     */
+    getOrCreateCpu: function(cpuNumber) {
+      if (!this.cpus[cpuNumber])
+        this.cpus[cpuNumber] = new Cpu(this, cpuNumber);
+      return this.cpus[cpuNumber];
+    },
+
+    get softwareMeasuredCpuCount() {
+      return this.softwareMeasuredCpuCount_;
+    },
+
+    set softwareMeasuredCpuCount(softwareMeasuredCpuCount) {
+      if (this.softwareMeasuredCpuCount_ !== undefined &&
+          this.softwareMeasuredCpuCount_ !== softwareMeasuredCpuCount) {
+        throw new Error(
+            'Cannot change the softwareMeasuredCpuCount once it is set');
+      }
+
+      this.softwareMeasuredCpuCount_ = softwareMeasuredCpuCount;
+    },
+
+    /**
+     * Estimates how many cpus are in the system, for use in system load
+     * estimation.
+     *
+     * If kernel trace was provided, uses that data. Otherwise, uses the
+     * software measured cpu count.
+     */
+    get bestGuessAtCpuCount() {
+      var realCpuCount = tr.b.dictionaryLength(this.cpus);
+      if (realCpuCount !== 0)
+        return realCpuCount;
+      return this.softwareMeasuredCpuCount;
+    },
+
+    updateBounds: function() {
+      ProcessBase.prototype.updateBounds.call(this);
+      for (var cpuNumber in this.cpus) {
+        var cpu = this.cpus[cpuNumber];
+        cpu.updateBounds();
+        this.bounds.addRange(cpu.bounds);
+      }
+    },
+
+    createSubSlices: function() {
+      ProcessBase.prototype.createSubSlices.call(this);
+      for (var cpuNumber in this.cpus) {
+        var cpu = this.cpus[cpuNumber];
+        cpu.createSubSlices();
+      }
+    },
+
+    addCategoriesToDict: function(categoriesDict) {
+      ProcessBase.prototype.addCategoriesToDict.call(this, categoriesDict);
+      for (var cpuNumber in this.cpus)
+        this.cpus[cpuNumber].addCategoriesToDict(categoriesDict);
+    },
+
+    getSettingsKey: function() {
+      return 'kernel';
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      ProcessBase.prototype.iterateAllChildEventContainers.call(
+          this, callback, opt_this);
+      for (var cpuId in this.cpus)
+        callback.call(opt_this, this.cpus[cpuId]);
+    },
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      ProcessBase.prototype.iterateAllEventsInThisContainer.call(
+          this, eventTypePredicate, callback, opt_this);
+    }
+  };
+
+  return {
+    Kernel: Kernel
+  };
+});
+</script>

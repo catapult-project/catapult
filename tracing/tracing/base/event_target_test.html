@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/event.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('eventTargetHelper', function() {
+    var listenerCallCount = 0;
+    function listener() { listenerCallCount++; }
+
+    var div = new tr.b.EventTarget();
+    tr.b.EventTargetHelper.decorate(div);
+
+    assert.isFalse(div.hasEventListener('foo'));
+
+    div.addEventListener('foo', listener);
+    assert.isTrue(div.hasEventListener('foo'));
+
+    tr.b.dispatchSimpleEvent(div, 'foo');
+    assert.equal(listenerCallCount, 1);
+
+    div.removeEventListener('foo', listener);
+
+    tr.b.dispatchSimpleEvent(div, 'foo');
+    assert.equal(listenerCallCount, 1);
+
+    assert.isFalse(div.hasEventListener('foo'));
+  });
+});
+</script>

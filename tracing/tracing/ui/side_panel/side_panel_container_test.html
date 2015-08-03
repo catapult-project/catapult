@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/side_panel/time_summary_side_panel.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
+<link rel="import" href="/ui/side_panel/side_panel_container.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function FakeBrushingStateController() {
+    this.addAllEventsMatchingFilterToSelectionReturnValue = [];
+
+    this.viewport = undefined;
+    this.model = undefined;
+    this.selection = new tr.model.EventSet();
+    this.highlight = new tr.model.EventSet();
+  }
+
+  FakeBrushingStateController.prototype = {
+    addEventListener: function(name, cb) {
+    }
+  };
+
+  function createModel() {
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+      var browserProcess = m.getOrCreateProcess(1);
+      var browserMain = browserProcess.getOrCreateThread(2);
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 0);
+      browserMain.sliceGroup.endSlice(10);
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 20);
+      browserMain.sliceGroup.endSlice(30);
+    });
+    return m;
+  }
+
+  test('instantiateCollapsed', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.model = createModel();
+
+    var container = document.createElement('tr-ui-side-panel-container');
+    container.brushingStateController = brushingStateController;
+    this.addHTMLOutput(container);
+  });
+});
+</script>

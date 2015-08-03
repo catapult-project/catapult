@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/model/event.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/color_scheme.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Class describing rendered frames.
+ *
+ * Because a frame is produced by multiple threads, it does not inherit from
+ * TimedEvent, and has no duration.
+ */
+tr.exportTo('tr.model', function() {
+  var Statistics = tr.b.Statistics;
+
+  var FRAME_PERF_CLASS = {
+    GOOD: 'good',
+    BAD: 'bad',
+    TERRIBLE: 'terrible',
+    NEUTRAL: 'generic_work'
+  };
+
+  /**
+   * @constructor
+   * @param {Array} associatedEvents Selection of events composing the frame.
+   * @param {Array} threadTimeRanges Array of {thread, start, end}
+   * for each thread, describing the critical path of the frame.
+   */
+  function Frame(associatedEvents, threadTimeRanges, opt_args) {
+    tr.model.Event.call(this);
+
+    this.threadTimeRanges = threadTimeRanges;
+    this.associatedEvents = new tr.model.EventSet(associatedEvents);
+    this.args = opt_args || {};
+
+    this.title = 'Frame';
+    this.start = Statistics.min(
+        threadTimeRanges, function(x) { return x.start; });
+    this.end = Statistics.max(
+        threadTimeRanges, function(x) { return x.end; });
+    this.totalDuration = Statistics.sum(
+        threadTimeRanges, function(x) { return x.end - x.start; });
+
+    this.perfClass = FRAME_PERF_CLASS.NEUTRAL;
+  };
+
+  Frame.prototype = {
+    __proto__: tr.model.Event.prototype,
+
+    set perfClass(perfClass) {
+      this.colorId = tr.ui.b.getColorIdForReservedName(perfClass);
+      this.perfClass_ = perfClass;
+    },
+
+    get perfClass() {
+      return this.perfClass_;
+    },
+
+    shiftTimestampsForward: function(amount) {
+      this.start += amount;
+      this.end += amount;
+
+      for (var i = 0; i < this.threadTimeRanges.length; i++) {
+        this.threadTimeRanges[i].start += amount;
+        this.threadTimeRanges[i].end += amount;
+      }
+    },
+
+    addBoundsToRange: function(range) {
+      range.addValue(this.start);
+      range.addValue(this.end);
+    }
+  };
+
+  tr.model.EventRegistry.register(
+      Frame,
+      {
+        name: 'frame',
+        pluralName: 'frames',
+        singleViewElementName: 'tr-ui-a-single-frame-sub-view',
+        multiViewElementName: 'tr-ui-a-multi-frame-sub-view'
+      });
+
+  return {
+    Frame: Frame,
+    FRAME_PERF_CLASS: FRAME_PERF_CLASS
+  };
+});
+</script>

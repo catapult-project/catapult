@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/range_utils.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/extras/rail/rail_ir_finder.html">
+<link rel="import" href="/model/event_info.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tr.exportTo('tr.e.audits', function() {
+  var Auditor = tr.c.Auditor;
+
+  /**
+   * Auditor for Chrome-specific traces.
+   * @constructor
+   */
+  function ChromeAuditor(model) {
+    Auditor.call(this, model);
+
+    if (tr.e.audits.ChromeModelHelper.supportsModel(this.model)) {
+      var modelHelper = new tr.e.audits.ChromeModelHelper(this.model);
+
+      // Must be a browserHelper in order to do audits.
+      if (modelHelper.browserHelper === undefined)
+        this.modelHelper = undefined;
+      else
+        this.modelHelper = modelHelper;
+    } else {
+      this.modelHelper = undefined;
+    }
+  };
+
+  ChromeAuditor.prototype = {
+    __proto__: Auditor.prototype,
+
+    runAnnotate: function() {
+      if (!this.modelHelper)
+        return;
+
+      this.model.getAllProcesses().forEach(function(process) {
+        if (process.labels !== undefined &&
+            process.labels.length == 1 &&
+            process.labels[0] == 'chrome://tracing')
+          process.important = false;
+      });
+    },
+
+    runAudit: function() {
+      if (!this.modelHelper)
+        return;
+
+      // ChromeAuditor is disabled when used directly inside about://tracing,
+      // for now.
+      if (tr.isExported('profilingView'))
+        return;
+
+      if (tr.e.rail.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
+        var rirf = new tr.e.rail.RAILIRFinder(this.model, this.modelHelper);
+        rirf.findAllInteractionRecords().forEach(function(ir) {
+          this.model.addInteractionRecord(ir);
+
+          var alerts = this.createAlertsForIR_(ir);
+          alerts.forEach(function(alert) {
+            this.model.alerts.push(alert);
+          }, this);
+        }, this);
+      }
+    },
+
+    createAlertsForIR_: function(ir) {
+      var allAlerts = [];
+      ir.associatedEvents.forEach(function(event) {
+        if (!(event instanceof tr.model.Slice))
+          return;
+        var slice = event;
+
+        if (slice.category != 'toplevel')
+          return;
+        if (slice.duration > 75.0) {
+          var alertInfo = new tr.model.EventInfo(
+              'Task too long',
+              'Tasks taking >= 75ms are bad, and should be broken up to ' +
+              'ensure the main thread is responsive');
+          var center = slice.start + 0.5 * slice.duration;
+          var alert = new tr.model.Alert(
+              alertInfo, center, [slice]);
+          allAlerts.push(alert);
+        }
+      });
+      return allAlerts;
+    }
+  };
+
+  Auditor.register(ChromeAuditor);
+
+  return {
+    ChromeAuditor: ChromeAuditor
+  };
+});
+</script>

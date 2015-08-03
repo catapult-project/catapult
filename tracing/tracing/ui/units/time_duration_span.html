@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/base/units/time_duration.html">
+
+<script>
+'use strict';
+
+// TODO(petrcermak): Similarly to base/units/time_duration.html and
+// base/units/time_stamp.html, the classes defined in this file are almost
+// identical to the ones defined in time_stamp_span. Consider sharing more
+// code between the two files.
+tr.exportTo('tr.ui.units', function() {
+  function createTimeDurationSpan(duration, opt_config) {
+    if (duration === undefined)
+      return '';
+    var config = opt_config || {};
+    var ownerDocument = config.ownerDocument || document;
+    var span = ownerDocument.createElement('tr-ui-u-time-duration-span');
+    if (config.total)
+      span.percentage = duration / config.total;
+    span.duration = duration;
+    // TODO(petrcermak): Get rid of this boolean once we've cleaned up units.
+    if (config.rightAlign)
+      span.rightAlign = true;
+    return span;
+  }
+
+  tr.b.units.Time.addEventListener('display-unit-changed', function(e) {
+    tr.b.findDeepElementsMatching(document.body,
+      'tr-ui-u-time-duration-span').forEach(function(el) {
+        el.updateContent_();
+      });
+  });
+
+  return {
+    createTimeDurationSpan: createTimeDurationSpan
+  };
+});
+</script>
+
+<polymer-element name="tr-ui-u-time-duration-span">
+  <template>
+    <style>
+    :host {
+      display: block;
+      position: relative;
+    }
+    #content.right-align {
+      text-align: right;
+      position: relative;
+      display: block;
+    }
+    #sparkline {
+      width: 0%;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      display: none;
+      height: 100%;
+      background-color: hsl(216, 100%, 94.5%);
+      border-left: 1px solid hsl(216, 100%, 89%);
+      box-sizing: border-box;
+    }
+    #warning {
+      margin-left: 4px;
+      font-size: 66%;
+    }
+    </style>
+    <span id="sparkline"></span>
+    <span id="content"></span>
+    <span id="warning" style="display:none">&#9888;</span>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.warning_ = undefined;
+      this.duration_ = undefined;
+      this.percentage_ = undefined;
+    },
+
+    get duration() {
+      return this.duration_;
+    },
+
+    set duration(duration) {
+      if (duration instanceof tr.b.units.TimeDuration)
+        this.duration_ = duration.duration;
+      else
+        this.duration_ = duration;
+      this.updateContent_();
+    },
+
+    get percentage() {
+      return this.percentage_;
+    },
+
+    set percentage(percentage) {
+      this.percentage_ = percentage;
+      this.updateSparkline_();
+    },
+
+    get rightAlign() {
+      return this.$.content.classList.contains('right-align');
+    },
+
+    set rightAlign(rightAlign) {
+      if (rightAlign)
+        this.$.content.classList.add('right-align');
+      else
+        this.$.content.classList.remove('right-align');
+    },
+
+    updateSparkline_: function() {
+      if (this.percentage_ === undefined) {
+        this.$.sparkline.style.display = 'none';
+        this.$.sparkline.style.width = '0';
+      } else {
+        this.$.sparkline.style.display = 'block';
+        this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
+      }
+    },
+
+    updateContent_: function() {
+      var content = tr.b.units.TimeDuration.format(this.duration_);
+      this.$.content.textContent = content;
+    },
+
+    get warning() {
+      return this.warning_;
+    },
+
+    set warning(warning) {
+      this.warning_ = warning;
+      var warningEl = this.$.warning;
+      if (this.warning_) {
+        warningEl.title = warning;
+        warningEl.style.display = '';
+      } else {
+        warningEl.title = '';
+        warningEl.style.display = 'none';
+      }
+    }
+  });
+  </script>
+</polymer-element>

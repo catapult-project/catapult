@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/color_legend.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+
+  test('noLabelSet', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('undefinedLabel', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = undefined;
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('emptyLabel', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = '';
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('nonEmptyLabel', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Frequency';
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('longLabel', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Total memory usage';
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('directlySetColorId', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.setLabelAndColorId('hello_world', 7 /* colorId */);
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('directlyProvidedLabelElement', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.setLabelAndColorId(
+        tr.ui.b.createSpan({textContent: 'hello',
+                            className: 'hello-span'}),
+        7 /* colorId */);
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('cessObjectSelected', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Object selected';
+    colorLegend.compoundEventSelectionState =
+        CompoundEventSelectionState.EVENT_SELECTED;
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('cessSomeAssociatedObjectsSelected', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Some associated objects selected';
+    colorLegend.compoundEventSelectionState =
+        CompoundEventSelectionState.SOME_ASSOCIATED_EVENTS_SELECTED;
+
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('cessAllAssociatedObjectsSelected', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'All associated objects selected';
+    colorLegend.compoundEventSelectionState =
+        CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED;
+
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('cessObjectAndSomeAssociatedObjectsSelected', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Object and some associated objects selected';
+    colorLegend.compoundEventSelectionState =
+        CompoundEventSelectionState.EVENT_AND_SOME_ASSOCIATED_SELECTED;
+
+    this.addHTMLOutput(colorLegend);
+  });
+
+  test('cessObjectAndAllAssociatedObjectsSelected', function() {
+    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    colorLegend.label = 'Object and all associated objects selected';
+    colorLegend.compoundEventSelectionState =
+        CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED;
+
+    this.addHTMLOutput(colorLegend);
+  });
+
+});
+</script>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/single_event_sub_view.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var Thread = tr.model.Thread;
+  var EventSet = tr.model.EventSet;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceCategory = tr.c.test_utils.newSliceCategory;
+
+  function createSelection(customizeThreadCallback) {
+    var model = new Model();
+    var importOptions = new tr.ImportOptions();
+    importOptions.customizeModelCallback = function() {
+      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      customizeThreadCallback(t53, model);
+    }
+    model.importTraces([], importOptions);
+
+    var t53 = model.processes[52].threads[53];
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new EventSet();
+    selection.push(t53.sliceGroup.slices[0]);
+    assert.equal(selection.length, 1);
+
+    return selection;
+  }
+
+  function createSelectionWithSingleSlice(opt_options) {
+    var options = opt_options || {};
+    return createSelection(function(t53, model) {
+      if (options.withStartStackFrame || options.withEndStackFrame) {
+        var fA = tr.c.test_utils.newStackTrace(model, 'cat', ['a1', 'a2']);
+        var fB = tr.c.test_utils.newStackTrace(model, 'cat', ['b1', 'b2']);
+      }
+
+      var slice;
+      if (options.withCategory)
+        slice = newSliceCategory('foo', 'b', 0, 0.002);
+      else
+        slice = newSliceNamed('b', 0, 0.002);
+
+      if (options.withStartStackFrame)
+        slice.startStackFrame = options.withStartStackFrame === 'a' ? fA : fB;
+
+      if (options.withEndStackFrame)
+        slice.endStackFrame = options.withEndStackFrame === 'a' ? fA : fB;
+
+      t53.sliceGroup.pushSlice(slice);
+    });
+  };
+
+  test('instantiate_withSingleSlice', function() {
+    var selection = createSelectionWithSingleSlice();
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('alerts', function() {
+    var slice = newSliceNamed('b', 0, 0.002);
+
+    var ALERT_INFO_1 = new tr.model.EventInfo(
+        'Alert 1', 'Critical alert');
+
+    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
+
+    var selection = new EventSet();
+    selection.push(slice);
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withSingleSliceWithArg', function() {
+    var selection = createSelection(function(t53) {
+      var slice = newSliceNamed('my_slice', 0, 1.0);
+      slice.args = {
+        'complex': {
+          'b': '2 as a string',
+          'c': [3, 4, 5]
+        }
+      };
+      t53.sliceGroup.pushSlice(slice);
+    });
+
+    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    subView.selection = selection;
+    this.addHTMLOutput(subView);
+
+    var gov = tr.b.findDeepElementMatching(subView,
+                                           'tr-ui-a-generic-object-view');
+    assert.isDefined(gov);
+  });
+
+
+  test('instantiate_withSingleSliceCategory', function() {
+    var selection = createSelectionWithSingleSlice({withCategory: true});
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withSingleStartStackFrame', function() {
+    var selection = createSelectionWithSingleSlice(
+        {withStartStackFrame: 'a'});
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+
+    var e = tr.b.findDeepElementWithTextContent(
+        analysisEl, /Start Stack Trace/);
+    assert.isDefined(e);
+    assert.isDefined(e.nextSibling.children[0].stackFrame);
+  });
+
+  test('instantiate_withSingleEndStackFrame', function() {
+    var selection = createSelectionWithSingleSlice(
+        {withEndStackFrame: 'b'});
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+
+    var e = tr.b.findDeepElementWithTextContent(
+        analysisEl, /End Stack Trace/);
+    assert.isDefined(e);
+    assert.isDefined(e.nextSibling.children[0].stackFrame);
+    assert.equal(e.nextSibling.children[0].stackFrame.title, 'b2');
+  });
+
+  test('instantiate_withDifferentStartAndEndStackFrames', function() {
+    var selection = createSelectionWithSingleSlice(
+        {withStartStackFrame: 'a',
+         withEndStackFrame: 'b'});
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+
+    var eA = tr.b.findDeepElementWithTextContent(
+        analysisEl, /Start Stack Trace/);
+    assert.isDefined(eA);
+    assert.isDefined(eA.nextSibling.children[0].stackFrame);
+    assert.equal(eA.nextSibling.children[0].stackFrame.title, 'a2');
+
+    var eB = tr.b.findDeepElementWithTextContent(
+        analysisEl, /End Stack Trace/);
+    assert.isDefined(eB);
+    assert.isDefined(eB.nextSibling.children[0].stackFrame);
+    assert.equal(eB.nextSibling.children[0].stackFrame.title, 'b2');
+  });
+
+  test('instantiate_withSameStartAndEndStackFrames', function() {
+    var selection = createSelectionWithSingleSlice(
+        {withStartStackFrame: 'a',
+         withEndStackFrame: 'a'});
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+
+    var e = tr.b.findDeepElementWithTextContent(
+        analysisEl, /Start\+End Stack Trace/);
+    assert.isDefined(e);
+    assert.isDefined(e.nextSibling.children[0].stackFrame);
+    assert.equal(e.nextSibling.children[0].stackFrame.title, 'a2');
+  });
+
+  test('analyzeSelectionWithSingleSlice', function() {
+    var selection = createSelectionWithSingleSlice();
+    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    subView.selection = selection;
+
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-ui-b-table');
+    assert.equal(table.tableRows.length, 3);
+    assert.equal(table.tableRows[0].value, 'b');
+    assert.equal(table.tableRows[1].value.timestamp, 0);
+    assert.equal(table.tableRows[2].value.duration, 0.002);
+  });
+
+  test('analyzeSelectionWithSingleSliceCategory', function() {
+    var selection = createSelectionWithSingleSlice({withCategory: true});
+
+    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    subView.selection = selection;
+
+    var table = tr.b.findDeepElementMatching(
+        subView, 'tr-ui-b-table');
+    assert.equal(table.tableRows.length, 4);
+    assert.equal(table.tableRows[0].value, 'b');
+    assert.equal(table.tableRows[1].value, 'foo');
+    assert.equal(table.tableRows[2].value.timestamp, 0);
+    assert.equal(table.tableRows[3].value.duration, 0.002);
+  });
+
+  test('instantiate_withSingleSliceContainingIDRef', function() {
+    var model = new Model();
+    var p1 = model.getOrCreateProcess(1);
+    var myObjectSlice = p1.objects.addSnapshot(
+        '0x1000', 'cat', 'my_object', 0);
+
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(newSliceCategory('cat', 'b', 0, 2));
+    t1.sliceGroup.slices[0].args.my_object = myObjectSlice;
+
+    var t1track = {};
+    t1track.thread = t1;
+
+    var selection = new EventSet();
+    selection.push(t1.sliceGroup.slices[0]);
+    assert.equal(selection.length, 1);
+
+    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    subView.selection = selection;
+    this.addHTMLOutput(subView);
+
+    var analysisLink = tr.b.findDeepElementMatching(subView,
+                                                    'tr-ui-a-analysis-link');
+    assert.isDefined(analysisLink);
+  });
+
+  test('instantiate_withSingleSliceContainingInfo', function() {
+    var slice = newSliceNamed('b', 0, 1);
+    slice.info = new tr.model.EventInfo(
+        'Info title', 'Description');
+
+    var selection = new EventSet();
+    selection.push(slice);
+
+    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+});
+</script>

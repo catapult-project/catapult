@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/extras/tquery/tquery.html">
+
+<polymer-element
+    name="tr-ui-scripting-control">
+  <template>
+    <style>
+      :host {
+        flex: 1 1 auto;
+      }
+      .root {
+        font-family: monospace;
+        cursor: text;
+
+        padding: 2px;
+        margin: 2px;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+        background: white;
+
+        height: 100px;
+        overflow-y: auto;
+
+        transition-property: opacity, height, padding, margin;
+        transition-duration: .2s;
+        transition-timing-function: ease-out;
+      }
+      .hidden {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        height: 0px;
+        opacity: 0;
+      }
+      .focused {
+        outline: auto 5px -webkit-focus-ring-color;
+      }
+      #history {
+        -webkit-user-select: text;
+        color: #777;
+      }
+      #prompt {
+        -webkit-user-select: text;
+        -webkit-user-modify: read-write-plaintext-only;
+        text-overflow: clip !important;
+        text-decoration: none !important;
+      }
+      #prompt:focus {
+        outline: none;
+      }
+      #prompt br {
+        display: none;
+      }
+      #prompt ::before {
+        content: ">";
+        color: #468;
+      }
+    </style>
+
+    <div id="root" class="root hidden" tabindex="0"
+         on-focus="{{ onConsoleFocus }}">
+      <div id='history'></div>
+      <div id='prompt'
+           on-keypress="{{ promptKeyPress }}"
+           on-keydown="{{ promptKeyDown }}"
+           on-blur="{{ onConsoleBlur }}">
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    _isEnterKey: function(event) {
+      // Check if in IME.
+      return event.keyCode !== 229 && event.keyIdentifier === 'Enter';
+    },
+
+    _setFocused: function(focused) {
+      var promptEl = this.$.prompt;
+      if (focused) {
+        promptEl.focus();
+        this.$.root.classList.add('focused');
+        // Move cursor to the end of any existing text.
+        if (promptEl.innerText.length > 0) {
+          var sel = window.getSelection();
+          sel.collapse(promptEl.firstChild, promptEl.innerText.length);
+        }
+      } else {
+        promptEl.blur();
+        this.$.root.classList.remove('focused');
+        // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
+        // keyboard focus.
+        var parent = promptEl.parentElement;
+        var nextEl = promptEl.nextSibling;
+        promptEl.remove();
+        parent.insertBefore(promptEl, nextEl);
+      }
+    },
+
+    onConsoleFocus: function(e) {
+      e.stopPropagation();
+      this._setFocused(true);
+    },
+
+    onConsoleBlur: function(e) {
+      e.stopPropagation();
+      this._setFocused(false);
+    },
+
+    promptKeyDown: function(e) {
+      e.stopPropagation();
+      if (!this._isEnterKey(e))
+        return;
+      var promptEl = this.$.prompt;
+      var command = promptEl.innerText;
+      if (command.length === 0)
+        return;
+      promptEl.innerText = '';
+      this.addLine_(String.fromCharCode(187) + ' ' + command);
+
+      try {
+        var result = this.controller_.executeCommand(command);
+      } catch (e) {
+        result = e.stack || e.stackTrace;
+      }
+
+      if (result instanceof tr.b.Task) {
+        // TODO(skyostil): Show a cool spinner.
+        tr.b.Task.RunWhenIdle(result);
+      } else {
+        this.addLine_(result);
+      }
+    },
+
+    addLine_: function(line) {
+      var historyEl = this.$.history;
+      if (historyEl.innerText.length !== 0)
+        historyEl.innerText += '\n';
+      historyEl.innerText += line;
+    },
+
+    promptKeyPress: function(e) {
+      e.stopPropagation();
+    },
+
+    toggleVisibility: function() {
+      var root = this.$.root;
+      if (!this.visible) {
+        root.classList.remove('hidden');
+        this._setFocused(true);
+      } else {
+        root.classList.add('hidden');
+        this._setFocused(false);
+      }
+    },
+
+    get hasFocus() {
+      return this === document.activeElement;
+    },
+
+    get visible() {
+      var root = this.$.root;
+      return !root.classList.contains('hidden');
+    },
+
+    get controller() {
+      return this.controller_;
+    },
+
+    set controller(c) {
+      this.controller_ = c;
+    }
+  });
+  </script>
+</polymer-element>

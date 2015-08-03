@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/slice_group.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Slice = tr.model.Slice;
+  var SliceGroup = tr.model.SliceGroup;
+  var newSlice = tr.c.test_utils.newSlice;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newFakeThread = tr.c.test_utils.newFakeThread;
+
+  test('findDescendentSlice', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sB, sA.findDescendentSlice('sB'));
+    assert.deepEqual(sC, sA.findDescendentSlice('sC'));
+    assert.isUndefined(sA.findDescendentSlice('sD'));
+  });
+
+  test('iterateAllDescendents', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sA.descendentSlices, [sB, sC]);
+    assert.deepEqual(sC.descendentSlices, []);
+  });
+
+  test('mostTopLevelSlice', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.equal(sA.mostTopLevelSlice, sA);
+    assert.equal(sB.mostTopLevelSlice, sA);
+    assert.equal(sC.mostTopLevelSlice, sA);
+  });
+
+  test('iterateAllAncestors', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    // Note that we iterate ancestors from the leaves to the root
+    assert.deepEqual(sC.ancestorSlices, [sB, sA]);
+    assert.deepEqual(sA.ancestorSlices, []);
+  });
+
+  test('iterateAllSubsequentSlices', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // [     A     ]
+    // [ B ][ D ][F]
+    // [C]  [E]
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 5.0, duration: 2.0 }));
+    var sE = group.pushSlice(newSliceEx(
+        { title: 'sE', start: 5.0, duration: 1.0 }));
+    var sF = group.pushSlice(newSliceEx(
+        { title: 'sF', start: 8.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sA.subsequentSlices, [sB, sC, sD, sE, sF]);
+    assert.deepEqual(sD.subsequentSlices, [sE, sF]);
+    assert.deepEqual(sF.subsequentSlices, []);
+  });
+
+  test('ancestorAndSubsequentSlices', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // [     A     ]
+    // [ B ][ D ][F]
+    // [C]  [E]
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 5.0, duration: 2.0 }));
+    var sE = group.pushSlice(newSliceEx(
+        { title: 'sE', start: 5.0, duration: 1.0 }));
+    var sF = group.pushSlice(newSliceEx(
+        { title: 'sF', start: 8.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sD.ancestorAndSubsequentSlices, [sD, sA, sE, sF]);
+  });
+
+  test('entireHierarchy', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // [     A     ]
+    // [ B ][ D ][F]
+    // [C]  [E]
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 0.0, duration: 4.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 0.0, duration: 2.0 }));
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 5.0, duration: 2.0 }));
+    var sE = group.pushSlice(newSliceEx(
+        { title: 'sE', start: 5.0, duration: 1.0 }));
+    var sF = group.pushSlice(newSliceEx(
+        { title: 'sF', start: 8.0, duration: 2.0 }));
+
+    group.createSubSlices();
+
+    assert.deepEqual(sD.entireHierarchy, [sA, sB, sC, sD, sE, sF]);
+  });
+});
+</script>

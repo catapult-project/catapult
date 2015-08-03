@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/statistics.html">
+<script>
+'use strict';
+tr.exportTo('tr.ui.units', function() {
+  var ArrayOfNumbersSummaryModes = {
+    AVERAGE_MODE: 'average-mode',
+    TOTAL_MODE: 'total-mode'
+  };
+  return {
+    ArrayOfNumbersSummaryModes: ArrayOfNumbersSummaryModes
+  };
+});
+</script>
+<polymer-element name="tr-ui-u-array-of-numbers-span">
+  <template>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.numbers_ = undefined;
+      this.summaryMode_ = tr.ui.units.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
+    },
+
+    get summaryMode() {
+      return this.summaryMode_;
+    },
+
+    set summaryMode(summaryMode) {
+      this.summaryMode_ = summaryMode;
+      this.updateContents_();
+    },
+
+    get numbers() {
+      return this.numbers_;
+    },
+
+    set numbers(numbers) {
+      if (numbers === undefined) {
+        this.numbers_ = undefined;
+        this.updateContents_();
+        return;
+      }
+      if (!(numbers instanceof Array))
+        throw new Error('Must provide an array');
+      this.numbers_ = numbers;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (this.numbers_ === undefined) {
+        this.shadowRoot.textContent = '-';
+        return;
+      }
+
+      var ArrayOfNumbersSummaryModes = tr.ui.units.ArrayOfNumbersSummaryModes;
+      var value;
+      if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
+        value = tr.b.Statistics.mean(this.numbers_);
+      else
+        value = tr.b.Statistics.sum(this.numbers_);
+
+      var valueRounded = Math.round(value * 1000.0) / 1000.0;
+      this.shadowRoot.textContent = valueRounded;
+    }
+  });
+  </script>
+</polymer-element>

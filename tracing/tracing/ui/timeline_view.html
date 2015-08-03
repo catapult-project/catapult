@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/settings.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/core/brushing_state_controller.html">
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/dropdown.html">
+<link rel="import" href="/ui/base/favicons.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/toolbar_button.html">
+<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/find_control.html">
+<link rel="import" href="/ui/find_controller.html">
+<link rel="import" href="/ui/scripting_control.html">
+<link rel="import" href="/ui/side_panel/side_panel_container.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_view_help_overlay.html">
+<link rel="import" href="/ui/timeline_view_metadata_overlay.html">
+<link rel="import" href="/ui/units/preferred_display_unit.html">
+
+<polymer-element name='tr-ui-timeline-view'>
+  <template>
+    <style>
+    :host {
+      flex-direction: column;
+      cursor: default;
+      display: flex;
+      font-family: sans-serif;
+      padding: 0;
+    }
+
+    #control {
+      background-color: #e6e6e6;
+      background-image: -webkit-gradient(linear, 0 0, 0 100%,
+          from(#E5E5E5), to(#D1D1D1));
+      flex: 0 0 auto;
+      overflow-x: auto;
+    }
+
+    #control::-webkit-scrollbar { height: 0px; }
+
+    #control > #bar {
+      font-size: 12px;
+      display: flex;
+      flex-direction: row;
+      margin: 1px;
+    }
+
+    #control > #bar > #title {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      padding-right: 8px;
+      flex: 1 1 auto;
+    }
+
+    #control > #bar > #left_controls,
+    #control > #bar > #right_controls {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    #control > #bar > #left_controls > * { margin-right: 2px; }
+    #control > #bar > #right_controls > * { margin-left: 2px; }
+    #control > #collapsing_controls { display: flex; }
+
+    middle-container {
+      flex: 1 1 auto;
+      flex-direction: row;
+      border-bottom: 1px solid #8e8e8e;
+      display: flex;
+      min-height: 0;
+    }
+
+    middle-container ::content track-view-container {
+      flex: 1 1 auto;
+      display: flex;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    middle-container ::content track-view-container > * { flex: 1 1 auto; }
+    middle-container > x-timeline-view-side-panel-container { flex: 0 0 auto; }
+    x-drag-handle { flex: 0 0 auto; }
+    tr-ui-a-analysis-view { flex: 0 0 auto; }
+    </style>
+
+    <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
+    <div id="control">
+      <div id="bar">
+        <div id="left_controls"></div>
+        <div id="title">^_^</div>
+        <div id="right_controls">
+          <tr-ui-b-toolbar-button id="view_metadata_button">
+            M
+          </tr-ui-b-toolbar-button>
+          <tr-ui-b-dropdown id="view_options_dropdown"></tr-ui-b-dropdown>
+          <tr-ui-find-control id="view_find_control"></tr-ui-find-control>
+          <tr-ui-b-toolbar-button id="view_console_button">
+            &#187;
+          </tr-ui-b-toolbar-button>
+          <tr-ui-b-toolbar-button id="view_help_button">
+            ?
+          </tr-ui-b-toolbar-button>
+        </div>
+      </div>
+      <div id="collapsing_controls"></div>
+    </div>
+    <middle-container>
+      <content></content>
+
+      <tr-ui-side-panel-container id="side_panel_container">
+      </tr-ui-side-panel-container>
+    </middle-container>
+    <x-drag-handle id="drag_handle"></x-drag-handle>
+    <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
+
+    <tr-ui-u-preferred-display-unit id="display_unit">
+    </tr-ui-u-preferred-display-unit>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.tabIndex = 0; // Let the timeline able to receive key events.
+
+      this.titleEl_ = this.$.title;
+      this.leftControlsEl_ = this.$.left_controls;
+      this.rightControlsEl_ = this.$.right_controls;
+      this.collapsingControlsEl_ = this.$.collapsing_controls;
+      this.sidePanelContainer_ = this.$.side_panel_container;
+
+      this.brushingStateController_ = new tr.c.BrushingStateController(this);
+
+      this.findCtl_ = this.$.view_find_control;
+      this.findCtl_.controller = new tr.ui.FindController(
+          this.brushingStateController_);
+
+      this.scriptingCtl_ = document.createElement('tr-ui-scripting-control');
+      this.scriptingCtl_.controller = new tr.c.ScriptingController(
+          this.brushingStateController_);
+
+      this.sidePanelContainer_.brushingStateController =
+          this.brushingStateController_;
+
+      if (window.tr.e && window.tr.e.rail && window.tr.e.rail.RAILScore) {
+        this.railScoreSpan_ = document.createElement(
+            'tr-ui-e-rail-rail-score-span');
+        this.rightControls.appendChild(this.railScoreSpan_);
+      } else {
+        this.railScoreSpan_ = undefined;
+      }
+
+      this.optionsDropdown_ = this.$.view_options_dropdown;
+      this.optionsDropdown_.iconElement.textContent = 'View Options';
+
+      this.showFlowEvents_ = false;
+      this.optionsDropdown_.appendChild(tr.ui.b.createCheckBox(
+          this, 'showFlowEvents',
+          'tr.ui.TimelineView.showFlowEvents', false,
+          'Flow events'));
+      this.highlightVSync_ = false;
+      this.highlightVSyncCheckbox_ = tr.ui.b.createCheckBox(
+          this, 'highlightVSync',
+          'tr.ui.TimelineView.highlightVSync', false,
+          'Highlight VSync');
+      this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
+
+      this.initMetadataButton_();
+      this.initConsoleButton_();
+      this.initHelpButton_();
+
+      this.collapsingControls.appendChild(this.scriptingCtl_);
+
+      this.dragEl_ = this.$.drag_handle;
+      tr.ui.b.decorate(this.dragEl_, tr.ui.b.DragHandle);
+
+      this.analysisEl_ = this.$.analysis;
+      this.analysisEl_.brushingStateController = this.brushingStateController_;
+
+      this.addEventListener(
+          'requestSelectionChange',
+          function(e) {
+            var sc = this.brushingStateController_;
+            sc.changeSelectionFromRequestSelectionChangeEvent(e.selection);
+          }.bind(this));
+
+      // Bookkeeping.
+      this.onViewportChanged_ = this.onViewportChanged_.bind(this);
+      this.bindKeyListeners_();
+
+      this.dragEl_.target = this.analysisEl_;
+    },
+
+    domReady: function() {
+      this.trackViewContainer_ = this.querySelector('#track_view_container');
+    },
+
+    get globalMode() {
+      return this.hotkeyController.globalMode;
+    },
+
+    set globalMode(globalMode) {
+      globalMode = !!globalMode;
+      this.brushingStateController_.historyEnabled = globalMode;
+      this.hotkeyController.globalMode = globalMode;
+    },
+
+    get hotkeyController() {
+      return this.$.hkc;
+    },
+
+    updateDocumentFavicon: function() {
+      var hue;
+      if (!this.model)
+        hue = 'blue';
+      else
+        hue = this.model.faviconHue;
+
+      var faviconData = tr.ui.b.FaviconsByHue[hue];
+      if (faviconData === undefined)
+        faviconData = tr.ui.b.FaviconsByHue['blue'];
+
+      // Find link if its there
+      var link = document.head.querySelector('link[rel="shortcut icon"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'shortcut icon';
+        document.head.appendChild(link);
+      }
+      link.href = faviconData;
+    },
+
+    get showFlowEvents() {
+      return this.showFlowEvents_;
+    },
+
+    set showFlowEvents(showFlowEvents) {
+      this.showFlowEvents_ = showFlowEvents;
+      if (!this.trackView_)
+        return;
+      this.trackView_.viewport.showFlowEvents = showFlowEvents;
+    },
+
+    get highlightVSync() {
+      return this.highlightVSync_;
+    },
+
+    set highlightVSync(highlightVSync) {
+      this.highlightVSync_ = highlightVSync;
+      if (!this.trackView_)
+        return;
+      this.trackView_.viewport.highlightVSync = highlightVSync;
+    },
+
+    initHelpButton_: function() {
+      var helpButtonEl = this.$.view_help_button;
+
+      function onClick(e) {
+        var dlg = new tr.ui.b.Overlay();
+        dlg.title = 'Chrome Tracing Help';
+        dlg.appendChild(
+            document.createElement('tr-ui-timeline-view-help-overlay'));
+        dlg.visible = true;
+
+        // Stop event so it doesn't trigger new click listener on document.
+        e.stopPropagation();
+      }
+      helpButtonEl.addEventListener('click', onClick.bind(this));
+    },
+
+    initConsoleButton_: function() {
+      var toggleEl = this.$.view_console_button;
+
+      function onClick(e) {
+        this.scriptingCtl_.toggleVisibility();
+        e.stopPropagation();
+        return false;
+      }
+      toggleEl.addEventListener('click', onClick.bind(this));
+    },
+
+    initMetadataButton_: function() {
+      var showEl = this.$.view_metadata_button;
+
+      function onClick(e) {
+        var dlg = new tr.ui.b.Overlay();
+        dlg.title = 'Metadata for trace';
+
+        var metadataOverlay = document.createElement(
+            'tr-ui-timeline-view-metadata-overlay');
+        metadataOverlay.metadata = this.model.metadata;
+
+        dlg.appendChild(metadataOverlay);
+        dlg.visible = true;
+
+        e.stopPropagation();
+        return false;
+      }
+      showEl.addEventListener('click', onClick.bind(this));
+
+      this.updateMetadataButtonVisibility_();
+    },
+
+    updateMetadataButtonVisibility_: function() {
+      var showEl = this.$.view_metadata_button;
+      showEl.style.display =
+          (this.model && this.model.metadata.length) ? '' : 'none';
+    },
+
+    get leftControls() {
+      return this.leftControlsEl_;
+    },
+
+    get rightControls() {
+      return this.rightControlsEl_;
+    },
+
+    get collapsingControls() {
+      return this.collapsingControlsEl_;
+    },
+
+    get viewTitle() {
+      return this.titleEl_.textContent.substring(
+          this.titleEl_.textContent.length - 2);
+    },
+
+    set viewTitle(text) {
+      if (text === undefined) {
+        this.titleEl_.textContent = '';
+        this.titleEl_.hidden = true;
+        return;
+      }
+      this.titleEl_.hidden = false;
+      this.titleEl_.textContent = text;
+    },
+
+    get model() {
+      if (this.trackView_)
+        return this.trackView_.model;
+      return undefined;
+    },
+
+    set model(model) {
+      var modelInstanceChanged = model != this.model;
+      var modelValid = model && !model.bounds.isEmpty;
+
+      // Remove old trackView if the model has completely changed.
+      if (modelInstanceChanged) {
+        if (this.railScoreSpan_)
+          this.railScoreSpan_.railScore = undefined;
+        this.trackViewContainer_.textContent = '';
+        if (this.trackView_) {
+          this.trackView_.viewport.removeEventListener(
+              'change', this.onViewportChanged_);
+          this.trackView_.brushingStateController = undefined;
+          this.trackView_.detach();
+          this.trackView_ = undefined;
+        }
+        this.brushingStateController_.modelWillChange();
+      }
+
+      // Create new trackView if needed.
+      if (modelValid && !this.trackView_) {
+        this.trackView_ = document.createElement('tr-ui-timeline-track-view');
+        this.trackView_.timelineView = this;
+
+        this.trackView.brushingStateController = this.brushingStateController_;
+
+        this.trackViewContainer_.appendChild(this.trackView_);
+        this.trackView_.viewport.addEventListener(
+            'change', this.onViewportChanged_);
+      }
+
+      // Set the model.
+      if (modelValid) {
+        this.trackView_.model = model;
+        this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
+        this.trackView_.viewport.highlightVSync = this.highlightVSync;
+        if (this.railScoreSpan_) {
+          var railScore = tr.e.rail.RAILScore.fromModel(model);
+          this.railScoreSpan_.railScore = railScore;
+        }
+
+        this.$.display_unit.preferredDisplayUnit = model.intrinsicTimeUnit;
+      }
+
+      // Do things that are selection specific
+      if (modelInstanceChanged) {
+        this.updateMetadataButtonVisibility_();
+        this.brushingStateController_.modelDidChange();
+        this.onViewportChanged_();
+      }
+    },
+
+    get brushingStateController() {
+      return this.brushingStateController_;
+    },
+
+    get trackView() {
+      return this.trackView_;
+    },
+
+    get settings() {
+      if (!this.settings_)
+        this.settings_ = new tr.b.Settings();
+      return this.settings_;
+    },
+
+    /**
+     * Deprecated. Kept around because third_party code occasionally calls
+     * this to set up embedding.
+     */
+    set focusElement(value) {
+      throw new Error('This is deprecated. Please set globalMode to true.');
+    },
+
+    bindKeyListeners_: function() {
+      var hkc = this.hotkeyController;
+
+      // Shortcuts that *can* steal focus from the console and the filter text
+      // box.
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '`'.charCodeAt(0),
+        useCapture: true,
+        thisArg: this,
+        callback: function(e) {
+          this.scriptingCtl_.toggleVisibility();
+          if (!this.scriptingCtl_.hasFocus)
+            this.focus();
+          e.stopPropagation();
+        }
+      }));
+
+      // Shortcuts that *can* steal focus from the filter text box.
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '/'.charCodeAt(0),
+        useCapture: true,
+        thisArg: this,
+        callback: function(e) {
+          if (this.scriptingCtl_.hasFocus)
+            return;
+          if (this.findCtl_.hasFocus)
+            this.focus();
+          else
+            this.findCtl_.focus();
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }));
+
+      // Shortcuts that *can't* steal focus.
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: '?'.charCodeAt(0),
+        useCapture: false,
+        thisArg: this,
+        callback: function(e) {
+          this.$.view_help_button.click();
+          e.stopPropagation();
+        }
+      }));
+
+      hkc.addHotKey(new tr.ui.b.HotKey({
+        eventType: 'keypress',
+        keyCode: 'v'.charCodeAt(0),
+        useCapture: false,
+        thisArg: this,
+        callback: function(e) {
+          this.toggleHighlightVSync_();
+          e.stopPropagation();
+        }
+      }));
+    },
+
+    onViewportChanged_: function(e) {
+      var spc = this.sidePanelContainer_;
+      if (!this.trackView_) {
+        spc.rangeOfInterest.reset();
+        return;
+      }
+
+      var vr = this.trackView_.viewport.interestRange.asRangeObject();
+      if (!spc.rangeOfInterest.equals(vr))
+        spc.rangeOfInterest = vr;
+    },
+
+    toggleHighlightVSync_: function() {
+      this.highlightVSyncCheckbox_.checked =
+          !this.highlightVSyncCheckbox_.checked;
+    },
+
+    setFindCtlText: function(string) {
+      this.findCtl_.setText(string);
+    }
+  });
+  </script>
+</polymer-element>

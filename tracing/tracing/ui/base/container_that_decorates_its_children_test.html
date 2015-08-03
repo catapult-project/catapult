@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/base/container_that_decorates_its_children.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+
+  function createChild() {
+    var span = document.createElement('span');
+    span.decorated = false;
+    return span;
+  }
+
+  /**
+   * @constructor
+   */
+  var SimpleContainer = tr.ui.b.define(
+      'simple-container', tr.ui.b.ContainerThatDecoratesItsChildren);
+
+  SimpleContainer.prototype = {
+    __proto__: tr.ui.b.ContainerThatDecoratesItsChildren.prototype,
+
+    decorateChild_: function(child) {
+      assert.isFalse(child.decorated);
+      child.decorated = true;
+    },
+
+    undecorateChild_: function(child) {
+      assert.isTrue(child.decorated);
+      child.decorated = false;
+    }
+  };
+
+  test('add', function() {
+    var container = new SimpleContainer();
+    container.appendChild(createChild());
+    container.appendChild(createChild());
+    container.appendChild(createChild());
+    assert.isTrue(container.children[0].decorated);
+    assert.isTrue(container.children[1].decorated);
+    assert.isTrue(container.children[2].decorated);
+  });
+
+  test('clearUsingTextContent', function() {
+    var c0 = createChild();
+    var container = new SimpleContainer();
+    container.appendChild(c0);
+    container.textContent = '';
+    assert.isFalse(c0.decorated);
+  });
+
+  test('clear', function() {
+    var c0 = createChild();
+    var container = new SimpleContainer();
+    container.appendChild(c0);
+    container.clear();
+    assert.isFalse(c0.decorated);
+  });
+
+  test('insertNewBefore', function() {
+    var c0 = createChild();
+    var c1 = createChild();
+    var container = new SimpleContainer();
+    container.appendChild(c1);
+    container.insertBefore(c0, c1);
+    assert.isTrue(c0.decorated);
+    assert.isTrue(c1.decorated);
+  });
+
+  test('insertExistingBefore', function() {
+    var c0 = createChild();
+    var c1 = createChild();
+    var container = new SimpleContainer();
+    container.appendChild(c1);
+    container.appendChild(c0);
+    container.insertBefore(c0, c1);
+    assert.isTrue(c0.decorated);
+    assert.isTrue(c1.decorated);
+  });
+
+  test('testReplace', function() {
+    var c0 = createChild();
+    var c1 = createChild();
+    var container = new SimpleContainer();
+    container.appendChild(c0);
+    container.replaceChild(c1, c0);
+    assert.isFalse(c0.decorated);
+    assert.isTrue(c1.decorated);
+  });
+
+});
+</script>

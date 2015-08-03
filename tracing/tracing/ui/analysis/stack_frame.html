@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-stack-frame">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.stackFrame_ = undefined;
+      this.$.table.tableColumns = [];
+      this.$.table.showHeader = false;
+    },
+
+    get stackFrame() {
+      return this.stackFrame_;
+    },
+
+    set stackFrame(stackFrame) {
+      var table = this.$.table;
+
+      this.stackFrame_ = stackFrame;
+      if (stackFrame === undefined) {
+        table.tableColumns = [];
+        table.tableRows = [];
+        table.rebuild();
+        return;
+      }
+
+      var hasCategory = false;
+      var hasName = false;
+      var hasTitle = false;
+
+      table.tableRows = stackFrame.stackTrace;
+      table.tableRows.forEach(function(row) {
+        hasCategory |= row.category !== undefined;
+        hasName |= row.name !== undefined;
+        hasTitle |= row.title !== undefined;
+      });
+
+      var cols = [];
+      if (hasCategory)
+        cols.push({
+          title: 'Category',
+          value: function(row) { return row.category; }
+        });
+
+      if (hasName)
+        cols.push({
+          title: 'Name',
+          value: function(row) { return row.name; }
+        });
+
+      if (hasTitle)
+        cols.push({
+          title: 'Title',
+          value: function(row) { return row.title; }
+        });
+
+      table.tableColumns = cols;
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

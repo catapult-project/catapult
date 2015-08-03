@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel='import' href='/model/device.html'>
+<link rel='import' href='/model/model.html'>
+<link rel='import' href='/model/power_series.html'>
+<link rel='import' href='/ui/timeline_viewport.html'>
+<link rel='import' href='/ui/tracks/container_to_track_map.html'>
+<link rel='import' href='/ui/tracks/drawing_container.html'>
+<link rel="import" href="/ui/tracks/power_series_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var Device = tr.model.Device;
+  var Model = tr.Model;
+  var PowerSeries = tr.model.PowerSeries;
+  var PowerSeriesTrack = tr.ui.tracks.PowerSeriesTrack;
+
+  var createDrawingContainer = function(series) {
+    var div = document.createElement('div');
+    var viewport = new tr.ui.TimelineViewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    if (series) {
+      series.updateBounds();
+      setDisplayTransformFromBounds(viewport, series.bounds);
+    }
+
+    return drawingContainer;
+  };
+
+  /**
+   * Sets the mapping between the input range of timestamps and the output range
+   * of horizontal pixels.
+   */
+  var setDisplayTransformFromBounds = function(viewport, bounds) {
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    var chartPixelWidth =
+        (window.innerWidth - tr.c.constants.HEADING_WIDTH) * pixelRatio;
+    dt.xSetWorldBounds(bounds.min, bounds.max, chartPixelWidth);
+    viewport.setDisplayTransformImmediately(dt);
+  };
+
+  test('instantiate', function() {
+    var series = new PowerSeries(new Model().device);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(0.5, 2);
+    series.addPowerSample(1, 3);
+    series.addPowerSample(1.5, 4);
+
+    var drawingContainer = createDrawingContainer(series);
+    var track = new PowerSeriesTrack(drawingContainer.viewport);
+    track.powerSeries = series;
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(drawingContainer);
+  });
+
+  test('hasVisibleContent_trueWithPowerSamplesPresent', function() {
+    var series = new PowerSeries(new Model().device);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(0.5, 2);
+    series.addPowerSample(1, 3);
+    series.addPowerSample(1.5, 4);
+
+    var drawingContainer = createDrawingContainer(series);
+    var track = new PowerSeriesTrack(drawingContainer.viewport);
+    track.powerSeries = series;
+
+    assert.isTrue(track.hasVisibleContent);
+  });
+
+  test('hasVisibleContent_falseWithUndefinedPowerSeries', function() {
+    var drawingContainer = createDrawingContainer(undefined);
+    var track = new PowerSeriesTrack(drawingContainer.viewport);
+    track.powerSeries = undefined;
+
+    assert.notOk(track.hasVisibleContent);
+  });
+
+  test('hasVisibleContent_falseWithEmptyPowerSeries', function() {
+    var series = new PowerSeries(new Model().device);
+    var drawingContainer = createDrawingContainer(series);
+    var track = new PowerSeriesTrack(drawingContainer.viewport);
+    track.powerSeries = series;
+
+    assert.notOk(track.hasVisibleContent);
+  });
+
+  test('addContainersToTrackMap', function() {
+    var series = new PowerSeries(new Model().device);
+    var drawingContainer = createDrawingContainer(series);
+    var powerSeriesTrack = new PowerSeriesTrack(drawingContainer.viewport);
+    powerSeriesTrack.powerSeries = series;
+
+    var containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
+    powerSeriesTrack.addContainersToTrackMap(containerToTrackMap);
+
+    assert.equal(
+        containerToTrackMap.getTrackByStableId('Device.PowerSeries'),
+        powerSeriesTrack);
+  });
+});
+</script>

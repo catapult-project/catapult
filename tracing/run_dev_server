@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import os
+import sys
+
+hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if hooks_path not in sys.path:
+  sys.path.append(hooks_path)
+
+from hooks import install
+from tracing.build import tracing_dev_server
+
+if __name__ == '__main__':
+  dev_server_args = sys.argv[1:]
+  # This parses sys.argv instead of using argparse because
+  # tracing_dev_server.Main also uses argparse, and using argparse here would
+  # override its help message.
+  if '--no-install-hooks' not in sys.argv:
+    install.InstallHooks()
+  else:
+    dev_server_args.remove('--no-install-hooks')
+  sys.exit(tracing_dev_server.Main(dev_server_args))

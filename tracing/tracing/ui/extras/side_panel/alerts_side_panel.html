@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/side_panel/side_panel.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/line_chart.html">
+
+<polymer-element name='tr-ui-e-s-alerts-side-panel'
+    extends='tr-ui-side-panel'>
+  <template>
+    <style>
+    :host {
+      display: block;
+      width: 250px;
+    }
+    #content {
+      flex-direction: column;
+      display: flex;
+    }
+    </style>
+
+    <div id='content'>
+      <toolbar id='toolbar'></toolbar>
+      <result-area id='result_area'></result-area>
+    </div>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.rangeOfInterest_ = new tr.b.Range();
+      this.selection_ = undefined;
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    set model(model) {
+      this.model_ = model;
+      this.updateContents_();
+    },
+
+    get listeningToKeys() {
+      return false;
+    },
+
+    set selection(selection) {
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+    },
+
+    /**
+     * Fires a selection event selecting all alerts of the specified
+     * type.
+     */
+    selectAlertsOfType: function(alertTypeString) {
+      var alertsOfType = this.model_.alerts.filter(function(alert) {
+        return alert.title === alertTypeString;
+      });
+
+      var event = new tr.model.RequestSelectionChangeEvent();
+      event.selection = new tr.model.EventSet(alertsOfType);
+      this.dispatchEvent(event);
+    },
+
+    /**
+     * Returns a map for the specified alerts where each key is the
+     * alert type string and each value is a list of alerts with that
+     * type.
+     */
+    alertsByType_: function(alerts) {
+      var alertsByType = {};
+      alerts.forEach(function(alert) {
+        if (!alertsByType[alert.title])
+          alertsByType[alert.title] = [];
+
+        alertsByType[alert.title].push(alert);
+      });
+      return alertsByType;
+    },
+
+    alertsTableRows_: function(alertsByType) {
+      return Object.keys(alertsByType).map(function(key) {
+        return {
+          alertType: key,
+          count: alertsByType[key].length
+        };
+      });
+    },
+
+    alertsTableColumns_: function() {
+      return [
+        {
+          title: 'Alert type',
+          value: function(row) { return row.alertType; },
+          width: '180px'
+        },
+        {
+          title: 'Count',
+          width: '100%',
+          value: function(row) { return row.count; }
+        }
+      ];
+    },
+
+    createAlertsTable_: function(alerts) {
+      var alertsByType = this.alertsByType_(alerts);
+
+      var table = document.createElement('tr-ui-b-table');
+      table.tableColumns = this.alertsTableColumns_();
+      table.tableRows = this.alertsTableRows_(alertsByType);
+      table.supportsSelection = true;
+      table.addEventListener('selection-changed', function(e) {
+        var row = table.selectedTableRow;
+        if (row)
+          this.selectAlertsOfType(row.alertType);
+      }.bind(this));
+
+      return table;
+    },
+
+    updateContents_: function() {
+      this.$.result_area.textContent = '';
+      if (this.model_ === undefined)
+        return;
+
+      var panel = this.createAlertsTable_(this.model_.alerts);
+      this.$.result_area.appendChild(panel);
+    },
+
+    supportsModel: function(m) {
+      if (m == undefined) {
+        return {
+          supported: false,
+          reason: 'Unknown tracing model'
+        };
+      } else if (m.alerts.length === 0) {
+        return {
+          supported: false,
+          reason: 'No alerts in tracing model'
+        };
+      }
+
+      return {
+        supported: true
+      };
+    },
+
+    get textLabel() {
+      return 'Alerts';
+    }
+  });
+  </script>
+</polymer-element>

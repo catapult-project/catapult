@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/linux_perf/parser.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Parses drm driver events in the Linux event trace format.
+ */
+tr.exportTo('tr.e.importer.linux_perf', function() {
+
+  var Parser = tr.e.importer.linux_perf.Parser;
+
+  /**
+   * Parses linux irq trace events.
+   * @constructor
+   */
+  function IrqParser(importer) {
+    Parser.call(this, importer);
+
+    importer.registerEventHandler('irq_handler_entry',
+        IrqParser.prototype.irqHandlerEntryEvent.bind(this));
+    importer.registerEventHandler('irq_handler_exit',
+        IrqParser.prototype.irqHandlerExitEvent.bind(this));
+    importer.registerEventHandler('softirq_raise',
+        IrqParser.prototype.softirqRaiseEvent.bind(this));
+    importer.registerEventHandler('softirq_entry',
+        IrqParser.prototype.softirqEntryEvent.bind(this));
+    importer.registerEventHandler('softirq_exit',
+        IrqParser.prototype.softirqExitEvent.bind(this));
+  }
+
+  // Matches the irq_handler_entry record
+  var irqHandlerEntryRE = /irq=(\d+) name=(.+)/;
+
+  // Matches the irq_handler_exit record
+  var irqHandlerExitRE = /irq=(\d+) ret=(.+)/;
+
+  // Matches the softirq_raise record
+  var softirqRE = /vec=(\d+) \[action=(.+)\]/;
+
+  IrqParser.prototype = {
+    __proto__: Parser.prototype,
+
+    /**
+     * Parses irq events and sets up state in the mporter.
+     */
+    irqHandlerEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = irqHandlerEntryRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var irq = parseInt(event[1]);
+      var name = event[2];
+
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
+      thread.lastEntryTs = ts;
+      thread.irqName = name;
+
+      return true;
+    },
+
+    irqHandlerExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = irqHandlerExitRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var irq = parseInt(event[1]);
+      var ret = event[2];
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
+
+      if (thread.lastEntryTs !== undefined) {
+        var duration = ts - thread.lastEntryTs;
+        var slice = new tr.model.Slice(
+            '', thread.irqName,
+            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
+            thread.lastEntryTs, { ret: ret },
+            duration);
+        thread.thread.sliceGroup.pushSlice(slice);
+      }
+      thread.lastEntryTs = undefined;
+      thread.irqName = undefined;
+      return true;
+    },
+
+    softirqRaiseEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      return true;
+    },
+
+    softirqEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = softirqRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var action = event[2];
+      var thread = this.importer.getOrCreatePseudoThread(
+          'softirq cpu ' + cpuNumber);
+      thread.lastEntryTs = ts;
+
+      return true;
+    },
+
+    softirqExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = softirqRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var vec = parseInt(event[1]);
+      var action = event[2];
+      var thread = this.importer.getOrCreatePseudoThread(
+          'softirq cpu ' + cpuNumber);
+
+      if (thread.lastEntryTs !== undefined) {
+        var duration = ts - thread.lastEntryTs;
+        var slice = new tr.model.Slice(
+            '', action,
+            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
+            thread.lastEntryTs, { vec: vec },
+            duration);
+        thread.thread.sliceGroup.pushSlice(slice);
+      }
+      thread.lastEntryTs = undefined;
+      return true;
+    }
+  };
+
+  Parser.register(IrqParser);
+
+  return {
+    IrqParser: IrqParser
+  };
+});
+</script>

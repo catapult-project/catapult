@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/statistics.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Statistics = tr.b.Statistics;
+
+  test('sumBasic', function() {
+    assert.equal(Statistics.sum([1, 2, 3]), 6);
+  });
+
+  test('sumWithFunctor', function() {
+    var ctx = {};
+    var ary = [1, 2, 3];
+    assert.equal(12, Statistics.sum(ary, function(x, i) {
+      assert.equal(this, ctx);
+      assert.equal(ary[i], x);
+      return x * 2;
+    }, ctx));
+  });
+
+  test('minMaxWithFunctor', function() {
+    var ctx = {};
+    var ary = [1, 2, 3];
+    function func(x, i) {
+      assert.equal(this, ctx);
+      assert.equal(ary[i], x);
+      return x;
+    }
+    assert.equal(Statistics.max(ary, func, ctx), 3);
+    assert.equal(Statistics.min(ary, func, ctx), 1);
+
+    var range = Statistics.range(ary, func, ctx);
+    assert.isFalse(range.isEmpty);
+    assert.equal(range.min, 1);
+    assert.equal(range.max, 3);
+  });
+
+  test('maxExtrema', function() {
+    assert.equal(Statistics.max([]), -Infinity);
+    assert.equal(Statistics.min([]), Infinity);
+  });
+
+  test('meanBasic', function() {
+    assert.equal(Statistics.mean([1, 2, 3]), 2);
+  });
+
+  test('varianceBasic', function() {
+    // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
+    // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
+    assert.equal(Statistics.variance([2, 4, 4, 2]), 4.0 / 3);
+
+    // In [1, 2, 3], the squared deviations are 1.0, 0.0 and 1.0 respectively;
+    // population variance 2.0 / 3 but sample variance is 2.0 / 2 = 1.0.
+    assert.equal(Statistics.variance([1, 2, 3]), 1.0);
+  });
+
+  test('varianceWithFunctor', function() {
+    var ctx = {};
+    var ary = [{x: 2},
+               {x: 4},
+               {x: 4},
+               {x: 2}];
+    assert.equal(4.0 / 3, Statistics.variance(ary, function(d) {
+      assert.equal(ctx, this);
+      return d.x;
+    }, ctx));
+  });
+
+  test('stddevBasic', function() {
+    assert.equal(Statistics.stddev([2, 4, 4, 2]), Math.sqrt(4.0 / 3));
+  });
+
+  test('stddevWithFunctor', function() {
+    var ctx = {};
+    var ary = [{x: 2},
+               {x: 4},
+               {x: 4},
+               {x: 2}];
+    assert.equal(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
+      assert.equal(ctx, this);
+      return d.x;
+    }, ctx));
+  });
+
+  test('percentile', function() {
+    var ctx = {};
+    var ary = [{x: 0},
+               {x: 1},
+               {x: 2},
+               {x: 3},
+               {x: 4},
+               {x: 5},
+               {x: 6},
+               {x: 7},
+               {x: 8},
+               {x: 9}];
+    function func(d, i) {
+      assert.equal(ctx, this);
+      return d.x;
+    }
+    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
+    assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
+    assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
+  });
+
+});
+</script>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import"
+      href="/ui/extras/about_tracing/tracing_controller_client.html">
+<link rel="import" href="/ui/extras/about_tracing/inspector_connection.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.about_tracing', function() {
+  function createResolvedPromise(data) {
+    var promise = new Promise(function(resolve, reject) {
+      if (data)
+        resolve(data);
+      else
+        resolve();
+    });
+    return promise;
+  }
+
+  function appendTraceChunksTo(chunks, messageString) {
+    if (typeof messageString !== 'string')
+      throw new Error('Invalid data');
+    var re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
+    var m = re.exec(messageString);
+    if (!m)
+      throw new Error('Malformed response');
+
+    if (chunks.length > 1)
+      chunks.push(',');
+    chunks.push(m[1]);
+  }
+
+  /**
+   * Controls tracing using the inspector's FrontendAgentHost APIs.
+   *
+   * @constructor
+   */
+  function InspectorTracingControllerClient() {
+    this.recording_ = false;
+    this.bufferUsage_ = 0;
+    this.conn_ = tr.ui.e.about_tracing.InspectorConnection.instance;
+    this.currentTraceTextChunks_ = undefined;
+  }
+
+  InspectorTracingControllerClient.prototype = {
+    __proto__: tr.ui.e.about_tracing.TracingControllerClient.prototype,
+
+    beginMonitoring: function(monitoringOptions) {
+      throw new Error('Not implemented');
+    },
+
+    endMonitoring: function() {
+      throw new Error('Not implemented');
+    },
+
+    captureMonitoring: function() {
+      throw new Error('Not implemented');
+    },
+
+    getMonitoringStatus: function() {
+      return createResolvedPromise({
+        isMonitoring: false,
+        categoryFilter: '',
+        useSystemTracing: false,
+        useContinuousTracing: false,
+        useSampling: false
+      });
+    },
+
+    getCategories: function() {
+      var res = this.conn_.req('Tracing.getCategories', {});
+      return res.then(function(result) {
+        return result.categories;
+      }, function(err) {
+        return [];
+      });
+    },
+
+    beginRecording: function(recordingOptions) {
+      if (this.recording_)
+        throw new Error('Already recording');
+      this.recording_ = 'starting';
+      var res = this.conn_.req(
+          'Tracing.start',
+          {
+            categories: recordingOptions.categoryFilter,
+            options:
+                [recordingOptions.tracingRecordMode,
+                  (recordingOptions.useSampling ? 'enable-sampling' : '')
+                ].join(','),
+            bufferUsageReportingInterval: 1000
+          });
+      res = res.then(
+          function ok() {
+            this.conn_.setNotificationListener(
+                'Tracing.bufferUsage',
+                this.onBufferUsageUpdateFromInspector_.bind(this));
+            this.recording_ = true;
+          }.bind(this),
+          function error() {
+            this.recording_ = false;
+          }.bind(this));
+      return res;
+    },
+
+    onBufferUsageUpdateFromInspector_: function(params) {
+      this.bufferUsage_ = params.value || params.percentFull;
+    },
+
+    beginGetBufferPercentFull: function() {
+      var that = this;
+      return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          resolve(that.bufferUsage_);
+        }, 100);
+      });
+    },
+
+    onDataCollected_: function(messageString) {
+      appendTraceChunksTo(this.currentTraceTextChunks_, messageString);
+    },
+
+    endRecording: function() {
+      if (this.recording_ === false)
+        return createResolvedPromise();
+
+      if (this.recording_ !== true)
+        throw new Error('Cannot end');
+
+      this.currentTraceTextChunks_ = ['['];
+      this.conn_.setNotificationListener(
+          'Tracing.dataCollected', this.onDataCollected_.bind(this));
+
+      var clearListeners = function() {
+        this.conn_.setNotificationListener(
+            'Tracing.bufferUsage', undefined);
+        this.conn_.setNotificationListener(
+            'Tracing.tracingComplete', undefined);
+        this.conn_.setNotificationListener(
+            'Tracing.dataCollected', undefined);
+      }.bind(this);
+
+      this.recording_ = 'stopping';
+      return new Promise(function(resolve, reject) {
+        function tracingComplete() {
+          clearListeners();
+          this.recording_ = false;
+          this.currentTraceTextChunks_.push(']');
+          var traceText = this.currentTraceTextChunks_.join('');
+          this.currentTraceTextChunks_ = undefined;
+          resolve(traceText);
+        }
+
+        function tracingFailed(err) {
+          clearListeners();
+          this.recording_ = false;
+          reject(err);
+        }
+
+        this.conn_.setNotificationListener(
+            'Tracing.tracingComplete', tracingComplete.bind(this));
+        this.conn_.req('Tracing.end', {}).then(
+            function end() {
+              // Nothing happens here. We're really waiting for
+              // Tracing.tracingComplete.
+            }.bind(this),
+            tracingFailed.bind(this));
+      }.bind(this));
+    },
+
+    defaultTraceName: function() {
+      return 'trace.json';
+    }
+  };
+
+  return {
+    InspectorTracingControllerClient: InspectorTracingControllerClient,
+    appendTraceChunksTo: appendTraceChunksTo
+  };
+});
+</script>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Model = tr.Model;
+  var EventSet = tr.model.EventSet;
+  var test_utils = tr.c.test_utils;
+
+  test('analyzeSelectionWithSingleEvent', function() {
+    var model = test_utils.newModel(function(model) {
+      model.p1 = model.getOrCreateProcess(1);
+      model.t2 = model.p1.getOrCreateThread(model.p1);
+      model.sA = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'a', start: 0, end: 2
+      }));
+      model.sB = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'b', start: 9, end: 11
+      }));
+      model.fe = test_utils.newFlowEventEx({
+        cat: 'cat',
+        id: 1234,
+        title: 'MyFlow',
+        start: 1,
+        end: 10,
+        startSlice: model.sA,
+        endSlice: model.sB
+      });
+      model.flowEvents.push(model.fe);
+    });
+
+    var selection = new EventSet();
+    selection.push(model.fe);
+    assert.equal(selection.length, 1);
+
+    var subView = document.createElement('tr-ui-a-single-flow-event-sub-view');
+    subView.selection = selection;
+    this.addHTMLOutput(subView);
+  });
+});
+</script>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/slice_group.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Slice = tr.model.Slice;
+  var SliceGroup = tr.model.SliceGroup;
+  var newSlice = tr.c.test_utils.newSlice;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newThreadSlice = tr.c.test_utils.newThreadSlice;
+  var newModel = tr.c.test_utils.newModel;
+  var newFakeThread = tr.c.test_utils.newFakeThread;
+
+  test('basicBeginEnd', function() {
+    var group = new SliceGroup(newFakeThread());
+    assert.equal(group.openSliceCount, 0);
+    var sliceA = group.beginSlice('', 'a', 1, {a: 1});
+    assert.equal(group.openSliceCount, 1);
+    assert.equal(sliceA.title, 'a');
+    assert.equal(sliceA.start, 1);
+    assert.equal(sliceA.args.a, 1);
+
+    var sliceB = group.endSlice(3);
+    assert.equal(sliceA, sliceB);
+    assert.equal(sliceB.duration, 2);
+  });
+
+  test('subSlicesBuilderBasic', function() {
+    var group = new SliceGroup(newFakeThread());
+    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 2);
+    assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(0), undefined);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(3), sA);
+    assert.equal(group.findSliceAtTs(3.1), sB);
+    assert.equal(group.findSliceAtTs(4), sB);
+    assert.equal(group.findSliceAtTs(5), undefined);
+  });
+
+  test('subSlicesBuilderBasic2', function() {
+    var group = new SliceGroup(newFakeThread());
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sA]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA.selfTime, 3);
+
+    assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
+  });
+
+  test('subSlicesBuilderNestedExactly', function() {
+    var group = new SliceGroup(newFakeThread());
+    var sB = group.pushSlice(newSliceNamed('b', 1, 4));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sB]);
+
+    assert.equal(sB.subSlices.length, 1);
+    assert.deepEqual(sB.subSlices, [sA]);
+    assert.equal(sB.selfTime, 0);
+
+    assert.equal(sB, sA.parentSlice);
+    assert.isTrue(sB.isTopLevel);
+    assert.isFalse(sA.isTopLevel);
+
+    assert.equal(group.findSliceAtTs(0), undefined);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(2), sA);
+    assert.equal(group.findSliceAtTs(5), sA);
+    assert.equal(group.findSliceAtTs(6), undefined);
+  });
+
+  test('subSlicesBuilderInstantEvents', function() {
+    var group = new SliceGroup(newFakeThread());
+    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+    var sB = group.pushSlice(newSliceNamed('b', 2, 0));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 2);
+    assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(1.5), undefined);
+    assert.equal(group.findSliceAtTs(2), sB);
+  });
+
+  test('subSlicesBuilderTwoInstantEvents', function() {
+    var group = new SliceGroup(newFakeThread());
+    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sA]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA.selfTime, 0);
+
+    assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
+    assert.equal(group.findSliceAtTs(1), sB);
+    assert.equal(group.findSliceAtTs(1.0001), undefined);
+  });
+
+  test('subSlicesBuilderOutOfOrderAddition', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [    a     ][   b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 2);
+    assert.deepEqual(group.topLevelSlices, [sA, sB]);
+    assert.equal(group.findSliceAtTs(3), sA);
+  });
+
+  test('subRowBuilderOutOfOrderAddition2', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [    a     ]
+    //   [  b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 5));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sA]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA.selfTime, 4);
+
+    assert.equal(sA, sB.parentSlice);
+    assert.isTrue(sA.isTopLevel);
+    assert.isFalse(sB.isTopLevel);
+    assert.equal(group.findSliceAtTs(1.5), sA);
+    assert.equal(group.findSliceAtTs(3), sB);
+    assert.equal(group.findSliceAtTs(3.5), sB);
+    assert.equal(group.findSliceAtTs(4), sB);
+    assert.equal(group.findSliceAtTs(4.5), sA);
+  });
+
+  test('subSlicesBuilderOnNestedZeroLength', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [    a    ]
+    // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB1 = group.pushSlice(newSliceNamed('b1', 1, 2));
+    var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sA]);
+
+    assert.equal(sA.subSlices.length, 2);
+    assert.deepEqual(sA.subSlices, [sB1, sB2]);
+    assert.equal(sA.selfTime, 1);
+
+    assert.equal(sA, sB1.parentSlice);
+    assert.equal(sA, sB2.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sB1);
+    assert.equal(group.findSliceAtTs(4), sB2);
+  });
+
+  test('subSlicesBuilderOnGroup1', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [    a     ]   [  c   ]
+    //   [  b   ]
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed('c', 5, 0));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 2);
+    assert.deepEqual(group.topLevelSlices, [sA, sC]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA.selfTime, 2);
+
+    assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sA);
+    assert.equal(group.findSliceAtTs(2), sB);
+    assert.equal(group.findSliceAtTs(3), sA);
+    assert.equal(group.findSliceAtTs(4.5), undefined);
+    assert.equal(group.findSliceAtTs(5), sC);
+  });
+
+  test('subSlicesBuilderOnGroup2', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [    a     ]   [  d   ]
+    //   [  b   ]
+    //    [ c ]
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed('c', 1.75, 0.5));
+    var sD = group.pushSlice(newSliceNamed('d', 5, 0.25));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 2);
+    assert.deepEqual(group.topLevelSlices, [sA, sD]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA.selfTime, 2);
+
+    assert.equal(sA, sB.parentSlice);
+    assert.equal(sB.subSlices.length, 1);
+    assert.deepEqual(sB.subSlices, [sC]);
+    assert.equal(sB.selfTime, 0.5);
+
+    assert.equal(sB, sC.parentSlice);
+    assert.equal(group.findSliceAtTs(2), sC);
+  });
+
+  test('findNextSliceAfterBasic', function() {
+    var group = new SliceGroup(newFakeThread());
+    // Pattern being tested:
+    // [        a         ] [   d    ]
+    // [b]    [   c   ]                 where b is dur=0
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
+    var sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
+    var sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
+
+    group.createSubSlices();
+
+    assert.equal(group.findNextSliceAfter(0, 0), sA);
+    assert.equal(group.findNextSliceAfter(1, sA.guid), sB);
+    assert.equal(group.findNextSliceAfter(1, sB.guid), sC);
+    assert.equal(group.findNextSliceAfter(2, sC.guid), sD);
+    assert.equal(group.findNextSliceAfter(6, 0), undefined);
+  });
+
+  test('subSlicesBuilderTolerateFPInaccuracy', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    // Pattern being tested:
+    // [  a  ]
+    // [  b  ] where b.end contains a tiny FP calculation error.
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 3.0000000001));
+
+    group.createSubSlices();
+
+    assert.equal(group.topLevelSlices.length, 1);
+    assert.deepEqual(group.topLevelSlices, [sA]);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.deepEqual(sA.subSlices, [sB]);
+    assert.equal(sA, sB.parentSlice);
+    assert.equal(group.findSliceAtTs(1), sB);
+    assert.equal(group.findSliceAtTs(3), sB);
+  });
+
+  test('basicMerge', function() {
+    function TestSlice(
+        cat, title, colorId, start, args, opt_duration,
+        opt_cpuStart, opt_cpuDuration) {
+      Slice.call(this, cat, title, colorId, start, args, opt_duration,
+                 opt_cpuStart, opt_cpuDuration);
+    }
+    TestSlice.prototype = {
+      __proto__: Slice.prototype
+    };
+
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread, TestSlice);
+    var b = new SliceGroup(thread, TestSlice);
+    a.beginSlice('', 'one', 1);
+    a.endSlice(2);
+    b.beginSlice('', 'two', 3);
+    b.endSlice(5);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 2);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 1);
+
+    assert.equal(m.slices[1].title, 'two');
+    assert.equal(m.slices[1].start, 3);
+    assert.equal(m.slices[1].duration, 2);
+
+    // ensure constructor merged correctly
+    assert.equal(m.sliceConstructor, TestSlice);
+  });
+
+  test('nestedMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 1);
+    a.endSlice(4);
+    b.beginSlice('', 'two', 2);
+    b.endSlice(3);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 2);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 3);
+
+    assert.equal(m.slices[1].title, 'two');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 1);
+  });
+
+  test('startSplitMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 2);
+    a.endSlice(4);
+    b.beginSlice('', 'two', 1);
+    b.endSlice(3);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 3);
+
+    assert.equal(m.slices[0].title, 'two');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 1);
+
+    assert.equal(m.slices[1].title, 'one');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 2);
+
+    assert.equal(m.slices[2].title, 'two (cont.)');
+    assert.equal(m.slices[2].start, 2);
+    assert.equal(m.slices[2].duration, 1);
+  });
+
+  test('startSplitTwoMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 3);
+    a.endSlice(6);
+    b.beginSlice('', 'two', 1);
+    b.beginSlice('', 'three', 2);
+    b.endSlice(4);
+    b.endSlice(5);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 5);
+
+    assert.equal(m.slices[0].title, 'two');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 2);
+
+    assert.equal(m.slices[1].title, 'three');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 1);
+
+    assert.equal(m.slices[2].title, 'one');
+    assert.equal(m.slices[2].start, 3);
+    assert.equal(m.slices[2].duration, 3);
+
+    assert.equal(m.slices[3].title, 'two (cont.)');
+    assert.equal(m.slices[3].start, 3);
+    assert.equal(m.slices[3].duration, 2);
+
+    assert.equal(m.slices[4].title, 'three (cont.)');
+    assert.equal(m.slices[4].start, 3);
+    assert.equal(m.slices[4].duration, 1);
+  });
+
+  test('startSplitTwiceMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 2);
+    a.beginSlice('', 'two', 3);
+    a.endSlice(5);
+    a.endSlice(6);
+    b.beginSlice('', 'three', 1);
+    b.endSlice(4);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 5);
+
+    assert.equal(m.slices[0].title, 'three');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 1);
+
+    assert.equal(m.slices[1].title, 'one');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 4);
+
+    assert.equal(m.slices[2].title, 'three (cont.)');
+    assert.equal(m.slices[2].start, 2);
+    assert.equal(m.slices[2].duration, 1);
+
+    assert.equal(m.slices[3].title, 'two');
+    assert.equal(m.slices[3].start, 3);
+    assert.equal(m.slices[3].duration, 2);
+
+    assert.equal(m.slices[4].title, 'three (cont.)');
+    assert.equal(m.slices[4].start, 3);
+    assert.equal(m.slices[4].duration, 1);
+  });
+
+  test('endSplitMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 1);
+    a.endSlice(3);
+    b.beginSlice('', 'two', 2);
+    b.endSlice(4);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 3);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 2);
+
+    assert.equal(m.slices[1].title, 'two');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 1);
+
+    assert.equal(m.slices[2].title, 'two (cont.)');
+    assert.equal(m.slices[2].start, 3);
+    assert.equal(m.slices[2].duration, 1);
+  });
+
+  test('endSplitTwoMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 1);
+    a.endSlice(4);
+    b.beginSlice('', 'two', 2);
+    b.beginSlice('', 'three', 3);
+    b.endSlice(5);
+    b.endSlice(6);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 5);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 3);
+
+    assert.equal(m.slices[1].title, 'two');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 2);
+
+    assert.equal(m.slices[2].title, 'three');
+    assert.equal(m.slices[2].start, 3);
+    assert.equal(m.slices[2].duration, 1);
+
+    assert.equal(m.slices[3].title, 'two (cont.)');
+    assert.equal(m.slices[3].start, 4);
+    assert.equal(m.slices[3].duration, 2);
+
+    assert.equal(m.slices[4].title, 'three (cont.)');
+    assert.equal(m.slices[4].start, 4);
+    assert.equal(m.slices[4].duration, 1);
+  });
+
+  test('endSplitTwiceMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 1);
+    a.beginSlice('', 'two', 2);
+    a.endSlice(4);
+    a.endSlice(5);
+    b.beginSlice('', 'three', 3);
+    b.endSlice(6);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 5);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 4);
+
+    assert.equal(m.slices[1].title, 'two');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 2);
+
+    assert.equal(m.slices[2].title, 'three');
+    assert.equal(m.slices[2].start, 3);
+    assert.equal(m.slices[2].duration, 1);
+
+    assert.equal(m.slices[3].title, 'three (cont.)');
+    assert.equal(m.slices[3].start, 4);
+    assert.equal(m.slices[3].duration, 1);
+
+    assert.equal(m.slices[4].title, 'three (cont.)');
+    assert.equal(m.slices[4].start, 5);
+    assert.equal(m.slices[4].duration, 1);
+  });
+
+  // Input:
+  // A:  |    one     |       |     two     |
+  //
+  // B:       |         three         |
+  //
+  // Output:
+  //     |    one     | three |     two     |
+  //          | three |       | three |
+  test('splitTwiceMerge', function() {
+    var thread = newFakeThread();
+    var a = new SliceGroup(thread);
+    var b = new SliceGroup(thread);
+    a.beginSlice('', 'one', 1);
+    a.endSlice(3);
+    a.beginSlice('', 'two', 4);
+    a.endSlice(6);
+    b.beginSlice('', 'three', 2);
+    b.endSlice(5);
+
+    var m = SliceGroup.merge(a, b);
+    assert.equal(m.slices.length, 5);
+
+    assert.equal(m.slices[0].title, 'one');
+    assert.equal(m.slices[0].start, 1);
+    assert.equal(m.slices[0].duration, 2);
+
+    assert.equal(m.slices[1].title, 'three');
+    assert.equal(m.slices[1].start, 2);
+    assert.equal(m.slices[1].duration, 1);
+
+    assert.equal(m.slices[2].title, 'three (cont.)');
+    assert.equal(m.slices[2].start, 3);
+    assert.equal(m.slices[2].duration, 1);
+
+    assert.equal(m.slices[3].title, 'two');
+    assert.equal(m.slices[3].start, 4);
+    assert.equal(m.slices[3].duration, 2);
+
+    assert.equal(m.slices[4].title, 'three (cont.)');
+    assert.equal(m.slices[4].start, 4);
+    assert.equal(m.slices[4].duration, 1);
+  });
+
+  test('bounds', function() {
+    var group = new SliceGroup(newFakeThread());
+    group.updateBounds();
+    assert.isUndefined(group.bounds.min);
+    assert.isUndefined(group.bounds.max);
+
+    group.pushSlice(newSlice(1, 3));
+    group.pushSlice(newSlice(7, 2));
+    group.updateBounds();
+    assert.equal(group.bounds.min, 1);
+    assert.equal(group.bounds.max, 9);
+  });
+
+  test('boundsWithPartial', function() {
+    var group = new SliceGroup(newFakeThread());
+    group.beginSlice('', 'a', 7);
+    group.updateBounds();
+    assert.equal(group.bounds.min, 7);
+    assert.equal(group.bounds.max, 7);
+  });
+
+  test('boundsWithTwoPartials', function() {
+    var group = new SliceGroup(newFakeThread());
+    group.beginSlice('', 'a', 0);
+    group.beginSlice('', 'a', 1);
+    group.updateBounds();
+    assert.equal(group.bounds.min, 0);
+    assert.equal(group.bounds.max, 1);
+  });
+
+  test('boundsWithBothPartialAndRegular', function() {
+    var group = new SliceGroup(newFakeThread());
+    group.updateBounds();
+    assert.isUndefined(group.bounds.min);
+    assert.isUndefined(group.bounds.max);
+
+    group.pushSlice(newSlice(1, 3));
+    group.beginSlice('', 'a', 7);
+    group.updateBounds();
+    assert.equal(group.bounds.min, 1);
+    assert.equal(group.bounds.max, 7);
+  });
+
+  test('autocloserBasic', function() {
+    var group = new SliceGroup(newFakeThread());
+    assert.equal(0, group.openSliceCount);
+
+    group.pushSlice(newSliceNamed('a', 1, 0.5));
+
+    group.beginSlice('', 'b', 2);
+    group.beginSlice('', 'c', 2.5);
+    group.endSlice(3);
+
+    group.autoCloseOpenSlices();
+    group.updateBounds();
+
+    assert.equal(group.bounds.min, 1);
+    assert.equal(group.bounds.max, 3);
+    assert.equal(group.slices.length, 3);
+
+    assert.equal(group.slices[0].title, 'a');
+    assert.isFalse(group.slices[0].didNotFinish);
+
+    assert.equal(group.slices[1].title, 'b');
+    assert.isTrue(group.slices[1].didNotFinish);
+    assert.equal(group.slices[1].duration, 1);
+
+    assert.equal(group.slices[2].title, 'c');
+    assert.isFalse(group.slices[2].didNotFinish);
+  });
+
+  test('autocloserWithSubTasks', function() {
+    var group = new SliceGroup(newFakeThread());
+    assert.equal(0, group.openSliceCount);
+
+    group.beginSlice('', 'a', 1);
+    group.beginSlice('', 'b1', 2);
+    group.endSlice(3);
+    group.beginSlice('', 'b2', 3);
+
+    group.autoCloseOpenSlices();
+    assert.equal(group.slices.length, 3);
+
+    assert.equal(group.slices[0].title, 'a');
+    assert.isTrue(group.slices[0].didNotFinish);
+    assert.equal(group.slices[0].duration, 2);
+
+    assert.equal(group.slices[1].title, 'b1');
+    assert.isFalse(group.slices[1].didNotFinish);
+    assert.equal(group.slices[1].duration, 1);
+
+    assert.equal(group.slices[2].title, 'b2');
+    assert.isTrue(group.slices[2].didNotFinish);
+    assert.equal(group.slices[2].duration, 0);
+  });
+
+  test('autocloseCompleteSlice', function() {
+    var group = new SliceGroup(newFakeThread());
+
+    group.pushCompleteSlice('', 'a', 1, undefined);
+    group.pushCompleteSlice('', 'b', 2, 3);
+
+    group.autoCloseOpenSlices();
+    assert.equal(group.slices.length, 2);
+
+    assert.equal(group.slices[0].title, 'a');
+    assert.isTrue(group.slices[0].didNotFinish);
+    assert.equal(group.slices[0].duration, 4);
+
+    assert.equal(group.slices[1].title, 'b');
+    assert.isFalse(group.slices[1].didNotFinish);
+    assert.equal(group.slices[1].duration, 3);
+  });
+
+  test('sliceGroupStableId', function() {
+    var model = new tr.Model();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+    var group = new SliceGroup(thread);
+
+    assert.equal(process.stableId, 123);
+    assert.equal(thread.stableId, '123.456');
+    assert.equal(group.stableId, '123.456.SliceGroup');
+  });
+
+  test('getSlicesOfName', function() {
+    var group = new SliceGroup(newFakeThread());
+    var expected = [];
+
+    for (var i = 0; i < 10; i++) {
+      var aSlice = newSliceNamed('a', i, i + 1);
+      group.pushSlice(aSlice);
+      group.pushSlice(newSliceNamed('b', i + 1, i + 2));
+      expected.push(aSlice);
+    }
+
+    assert.deepEqual(group.getSlicesOfName('a'), expected);
+  });
+
+  test('iterSlicesInTimeRange', function() {
+    var group = new SliceGroup(newFakeThread());
+    var expected = [];
+
+    for (var i = 0; i < 10; i++) {
+      var slice = newSliceNamed('a', i, 1);
+      group.pushSlice(slice);
+      if (4 <= i && i <= 7)
+        expected.push(slice);
+    }
+    group.createSubSlices();
+
+    var observed = [];
+    group.iterSlicesInTimeRange(function(slice) { observed.push(slice); },
+                                4.5, 7.5);
+    assert.deepEqual(observed, expected);
+  });
+
+  test('computeCpuDurationNoOverlap', function() {
+    var model = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 0, 20));
+    group.pushSlice(newSliceNamed('render', 60, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 0);
+    assert.equal(group.slices[1].cpuDuration, 0);
+  });
+
+  test('computeCpuDurationPartialOverlap', function() {
+    var model = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 10, 30));
+    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[1].cpuDuration, 10);
+  });
+
+  test('computeCpuDurationFullOverlap', function() {
+    var model = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 30));
+    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[1].cpuDuration, 20);
+  });
+
+  test('computeCpuSelfDurationWithSubslices', function() {
+    var model = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 30));
+    group.pushSlice(newSliceNamed('render', 21, 8));
+    group.pushSlice(newSliceNamed('flush', 29, 11));
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 20);
+    assert.equal(group.slices[0].cpuSelfTime, 1);
+    assert.equal(group.slices[1].cpuDuration, 8);
+    assert.equal(group.slices[1].cpuSelfTime, 8);
+    assert.equal(group.slices[2].cpuDuration, 11);
+    assert.equal(group.slices[2].cpuSelfTime, 11);
+  });
+
+  test('computeCpuDurationSmallTimeslices', function() {
+    var model = new tr.Model();
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var process = model.getOrCreateProcess(123);
+    var t = process.getOrCreateThread(456);
+    t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 21, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 22, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 23, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 24, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 25, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 26, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 27, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 28, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
+                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
+    var group = new SliceGroup(t);
+    group.pushSlice(newSliceNamed('draw', 20, 11)); // 20,[22,24,26,28],30
+    group.pushSlice(newSliceNamed('render', 22, 8)); // 22,[24, 26, 28]
+    group.pushSlice(newSliceNamed('flush', 24, 6)); // 24, 26, 28
+    group.createSubSlices();
+    assert.equal(group.slices[0].cpuDuration, 6);
+    assert.equal(group.slices[0].cpuSelfTime, 2);
+    assert.equal(group.slices[1].cpuDuration, 4);
+    assert.equal(group.slices[1].cpuSelfTime, 1);
+    assert.equal(group.slices[2].cpuDuration, 3);
+    assert.equal(group.slices[2].cpuSelfTime, 3);
+  });
+
+  test('sliceParentContainerSetAtPush', function() {
+    var m = newModel(function(m) {
+      m.process = m.getOrCreateProcess(123);
+      m.thread = m.process.getOrCreateThread(456);
+      m.group = new SliceGroup(m.thread);
+
+      m.sA = m.group.pushSlice(newSliceEx(
+          { title: 'sA', start: 0.0, duration: 10.0 }));
+
+      m.group.createSubSlices();
+    });
+
+    assert.deepEqual(m.sA.parentContainer, m.thread);
+  });
+});
+</script>

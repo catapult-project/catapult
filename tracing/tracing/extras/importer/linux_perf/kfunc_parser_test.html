@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  test('kernelFunctionParser', function() {
+    var lines = [
+      'Binder_2-127  ( 127) [001] ....  3431.906759: graph_ent: func=sys_write',
+      'Binder_2-127  ( 127) [001] ....  3431.906769: graph_ret: func=sys_write',
+      'Binder_2-127  ( 127) [001] ....  3431.906785: graph_ent: func=sys_write',
+      'Binder_2-127  ( 127) [001] ...1  3431.906798: tracing_mark_write: B|' +
+          '127|dequeueBuffer',
+      'Binder_2-127  ( 127) [001] ....  3431.906802: graph_ret: func=sys_write',
+      'Binder_2-127  ( 127) [001] ....  3431.906842: graph_ent: func=sys_write',
+      'Binder_2-127  ( 127) [001] ...1  3431.906849: tracing_mark_write: E',
+      'Binder_2-127  ( 127) [001] ....  3431.906853: graph_ret: func=sys_write',
+      'Binder_2-127  ( 127) [001] ....  3431.906896: graph_ent: func=sys_write',
+      'Binder_2-127  ( 127) [001] ....  3431.906906: graph_ret: func=sys_write'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var process = m.processes[127];
+    assert.isDefined(process);
+
+    var thread = process.threads[127];
+    assert.isDefined(thread);
+
+    var slices = thread.sliceGroup.slices;
+    assert.equal(thread.sliceGroup.length, 7);
+
+    // Slice 0 is an un-split sys_write
+    assert.equal(slices[0].title, 'sys_write');
+
+    // Slices 1 & 3 are a split sys_write
+    assert.equal(slices[1].title, 'sys_write');
+    assert.equal(slices[2].title, 'dequeueBuffer');
+    assert.equal(slices[3].title, 'sys_write (cont.)');
+
+    // Slices 4 & 5 are a split sys_write with the dequeueBuffer in between
+    assert.equal(slices[4].title, 'sys_write');
+    assert.equal(slices[5].title, 'sys_write (cont.)');
+
+    // Slice 6 is another un-split sys_write
+    assert.equal(slices[6].title, 'sys_write');
+  });
+});
+</script>
+

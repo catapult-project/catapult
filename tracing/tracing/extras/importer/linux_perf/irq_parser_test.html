@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('irqImport', function() {
+    var lines = [
+      ' kworker/u4:1-31907 (31907) [001] d.h3 14063.748288: ' +
+        'irq_handler_entry: irq=27 name=arch_timer',
+      ' kworker/u4:1-31907 (31907) [001] dNh3 14063.748384: ' +
+        'irq_handler_exit: irq=27 ret=handled',
+      ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477231: ' +
+        'softirq_entry: vec=9 [action=RCU]',
+      ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477246: ' +
+        'softirq_exit: vec=9 [action=RCU]'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var threads = m.getAllThreads();
+    assert.equal(threads.length, 2);
+
+    var threads = m.findAllThreadsNamed('irqs cpu 1');
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
+
+    var threads = m.findAllThreadsNamed('softirq cpu 0');
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
+  });
+});
+</script>

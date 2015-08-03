@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/ui/base/deep_utils.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Time currentDisplayUnit
+ */
+tr.exportTo('tr.b.units', function() {
+  var ms = {
+    scale: 1e-3,
+    suffix: 'ms',
+    // compares a < b with adjustments to precision errors
+    roundedLess: function(a, b) {
+      return Math.round(a * 1000) < Math.round(b * 1000);
+    },
+    format: function(ts) {
+      var tsRounded = Math.round(ts * 1000.0) / 1000.0;
+      var n = new Number(tsRounded);
+      return n.toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' ms';
+    }
+  };
+
+  var ns = {
+    scale: 1e-9,
+    suffix: 'ns',
+    // compares a < b with adjustments to precision errors
+    roundedLess: function(a, b) {
+      return Math.round(a * 1000000) < Math.round(b * 1000000);
+    },
+    format: function(ts) {
+      var tsRounded = Math.round(ts * 1000000.0);
+      var n = new Number(tsRounded);
+      return n.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' ns';
+    }
+  };
+
+  function max(a, b) {
+    if (a === undefined)
+      return b;
+    if (b === undefined)
+      return a;
+    return a.scale > b.scale ? a : b;
+  }
+
+  var Time = {
+    supportedUnits: {
+      ms: ms,
+      ns: ns
+    },
+
+    reset: function() {
+      this.currentDisplayUnit = ms;
+    },
+
+    currentDisplayUnit_: ms,
+    get currentDisplayUnit() {
+      return this.currentDisplayUnit_;
+    },
+    // use preferred-display-unit component instead of directly setting directly
+    set currentDisplayUnit(value) {
+      if (this.currentDisplayUnit_ == value)
+        return;
+
+      this.currentDisplayUnit_ = value;
+      this.dispatchEvent(new tr.b.Event('display-unit-changed'));
+    },
+
+    didPreferredUnitChange: function() {
+      var largest = undefined;
+      var els = tr.b.findDeepElementsMatching(document.body,
+          'tr-ui-u-preferred-display-unit');
+      els.forEach(function(el) {
+          largest = max(largest, el.preferredDisplayUnit);
+      });
+
+      this.currentDisplayUnit = largest === undefined ? ms : largest;
+    },
+
+    timestampFromUs: function(us) {
+      return us / 1000;
+    },
+    maybeTimestampFromUs: function(us) {
+      return us === undefined ? undefined : us / 1000;
+    }
+  };
+
+  tr.b.EventTarget.decorate(Time);
+
+  return {
+    Time: Time
+  };
+});
+</script>

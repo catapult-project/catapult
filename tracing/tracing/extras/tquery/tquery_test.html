@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/event_target.html">
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/scripting_controller.html">
+<link rel="import" href="/extras/tquery/tquery.html">
+<link rel="import" href="/model/event_set.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.tquery', function() {
+  function FakeBrushingStateController() {
+    tr.b.EventTarget.call(this);
+    this.allEvents_ = [];
+  }
+
+  FakeBrushingStateController.prototype = {
+    __proto__: tr.b.EventTarget.prototype,
+
+    get allEvents() {
+      return this.allEvents_;
+    },
+
+    set allEvents(allEvents) {
+      this.allEvents_ = allEvents;
+      var e = new tr.b.Event('model-changed');
+      this.dispatchEvent(e);
+    },
+
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      return new tr.b.Task(function() {
+        var n = this.allEvents.length;
+        for (var i = 0; i < n; i++) {
+          this.addSubtreeToSelection_(selection, this.allEvents[i]);
+        }
+      }, this);
+    },
+
+    addSubtreeToSelection_: function(selection, event) {
+      selection.push(event);
+      if (event.subSlices) {
+        for (var i = 0; i < event.subSlices.length; i++) {
+          this.addSubtreeToSelection_(selection, event.subSlices[i]);
+        }
+      }
+    },
+    showScriptControlSelection: function(selection) {
+      this.selection = new tr.model.EventSet();
+      this.highlight = selection;
+    }
+  };
+  return {
+    FakeBrushingStateController: FakeBrushingStateController
+  };
+});
+
+tr.b.unittest.testSuite(function() {
+  var FakeBrushingStateController = tr.e.tquery.FakeBrushingStateController;
+
+  function createSliceArray(sliceCount) {
+    var allEvents = [];
+    for (var i = 0; i < sliceCount; i++) {
+      allEvents.push({guid: i});
+    }
+    return allEvents;
+  }
+
+  function createFakeBrushingStateController_(sliceCount) {
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = createSliceArray(sliceCount);
+    return brushingStateController;
+  }
+
+  function getScriptObject(name) {
+    var typeInfos = tr.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    for (var i = 0; i < typeInfos.length; i++) {
+      if (typeInfos[i].metadata.name === name) {
+        return typeInfos[i].constructor;
+      }
+    }
+  }
+
+  test('tqueryAsyncSelection', function() {
+    var brushingStateController = createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.show();
+    tr.b.Task.RunSynchronously(result);
+    assert.equal(brushingStateController.highlight.length, 3);
+  });
+
+  test('tquerySyncSelection', function() {
+    var brushingStateController = createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    assert.equal(tquery.selection.length, 3);
+
+    // Selection should get reset when the model changes.
+    brushingStateController.allEvents = createSliceArray(5);
+    tquery.onModelChanged();
+    assert.equal(tquery.selection.length, 5);
+  });
+
+  test('tqueryPassThroughFiltering', function() {
+    var brushingStateController = new createFakeBrushingStateController_(3);
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter().filter().show();
+    tr.b.Task.RunSynchronously(result);
+    assert.equal(brushingStateController.highlight.length, 3);
+  });
+
+  test('tqueryFilterHasTitle', function() {
+    var hasTitle = getScriptObject('hasTitle');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b'},
+        {guid: 3, title: 'c'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(hasTitle('a')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter('b').selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 2);
+
+    var result = tquery.filter(/^c$/).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+  });
+
+  test('tqueryFilterHasAncestor', function() {
+    var hasAncestor = getScriptObject('hasAncestor');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+        {guid: 3, title: 'c'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(hasAncestor('b')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 4);
+
+    var result = tquery.filter(hasAncestor()).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 4);
+
+    var result = tquery.filter(hasAncestor('a')).selection;
+    assert.equal(result.length, 0);
+  });
+
+  test('tqueryFilterAllOf', function() {
+    var allOf = getScriptObject('allOf');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a1'},
+        {guid: 2, title: 'b1'},
+        {guid: 3, title: 'c1'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(allOf('a1')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(allOf('a1', /1/)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(allOf()).selection;
+    assert.equal(result.length, 3);
+  });
+
+  test('tqueryFilterAnyOf', function() {
+    var anyOf = getScriptObject('anyOf');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b'},
+        {guid: 3, title: 'c'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(anyOf('a', 'b')).selection;
+    assert.equal(result.length, 2);
+    assert.equal(result[0].guid, 1);
+    assert.equal(result[1].guid, 2);
+
+    var result = tquery.filter(anyOf('not there', 'a')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+
+    var result = tquery.filter(anyOf()).selection;
+    assert.equal(result.length, 3);
+  });
+
+  test('tqueryFilterIsTopLevel', function() {
+    var isTopLevel = getScriptObject('isTopLevel');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a'},
+        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+        {guid: 3, title: 'c'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(isTopLevel()).selection;
+    assert.equal(result.length, 3);
+    assert.equal(result[0].guid, 1);
+    assert.equal(result[1].guid, 2);
+    assert.equal(result[2].guid, 3);
+
+    var result = tquery.filter(isTopLevel('a')).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 1);
+  });
+
+  test('tqueryFilterHasDuration', function() {
+    var hasDuration = getScriptObject('hasDuration');
+    var brushingStateController = new FakeBrushingStateController();
+    brushingStateController.allEvents = [
+        {guid: 1, title: 'a', duration: 1},
+        {guid: 2, title: 'b', duration: 2},
+        {guid: 3, title: 'c', duration: 3},
+        {guid: 4, title: 'no duration'}
+    ];
+    var tquery = new tr.e.tquery.TQuery(brushingStateController);
+
+    var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 2);
+
+    var result = tquery.filter(hasDuration(3, Infinity)).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+
+    var result = tquery.filter(hasDuration(-1, 0)).selection;
+    assert.equal(result.length, 0);
+
+    var result = tquery.filter(hasDuration(function(d) {
+      return d > 2;
+    })).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+  });
+});
+</script>

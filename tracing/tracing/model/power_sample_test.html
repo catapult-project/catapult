@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_sample.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var PowerSample = tr.model.PowerSample;
+
+  test('powerSample', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var sample1 = new PowerSample(series, 0.0, 1000.0);
+    var sample2 = new PowerSample(series, 1.0, 2000.0);
+
+    assert.equal(sample1.series, series);
+    assert.equal(sample1.start, 0.0);
+    assert.equal(sample1.power, 1000.0);
+
+    assert.equal(sample2.series, series);
+    assert.equal(sample2.start, 1.0);
+    assert.equal(sample2.power, 2000.0);
+  });
+});
+</script>

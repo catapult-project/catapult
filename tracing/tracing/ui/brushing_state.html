@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/selection_state.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var EventSet = tr.model.EventSet;
+  var SelectionState = tr.model.SelectionState;
+
+  function BrushingState() {
+    this.guid_ = tr.b.GUID.allocate();
+    this.selection_ = new EventSet();
+    this.findMatches_ = new EventSet();
+    this.analysisViewRelatedEvents_ = new EventSet();
+    this.analysisLinkHoveredEvents_ = new EventSet();
+    this.appliedToModel_ = undefined;
+    this.viewSpecificBrushingStates_ = {};
+  }
+  BrushingState.prototype = {
+    get guid() {
+      return this.guid_;
+    },
+
+    clone: function() {
+      var that = new BrushingState();
+      that.selection_ = this.selection_;
+      that.findMatches_ = this.findMatches_;
+      that.analysisViewRelatedEvents_ = this.analysisViewRelatedEvents_;
+      that.analysisLinkHoveredEvents_ = this.analysisLinkHoveredEvents_;
+      that.viewSpecificBrushingStates_ = this.viewSpecificBrushingStates_;
+
+      return that;
+    },
+
+    equals: function(that) {
+      if (!this.selection_.equals(that.selection_))
+        return false;
+      if (!this.findMatches_.equals(that.findMatches_))
+        return false;
+      if (!this.analysisViewRelatedEvents_.equals(
+          that.analysisViewRelatedEvents_)) {
+        return false;
+      }
+      if (!this.analysisLinkHoveredEvents_.equals(
+          that.analysisLinkHoveredEvents_)) {
+        return false;
+      }
+      // We currently do not take the view-specific brushing states into
+      // account. If we did, every change of the view-specific brushing state
+      // of any view would cause a redraw of the whole UI (see the
+      // BrushingStateController.currentBrushingState setter).
+      return true;
+    },
+
+    get selectionOfInterest() {
+      if (this.selection_.length)
+        return this.selection_;
+
+      if (this.highlight_.length)
+        return this.highlight_;
+
+      if (this.analysisViewRelatedEvents_.length)
+        return this.analysisViewRelatedEvents_;
+
+      if (this.analysisLinkHoveredEvents_.length)
+        return this.analysisLinkHoveredEvents_;
+
+      return this.selection_;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (selection === undefined)
+        selection = new EventSet();
+      this.selection_ = selection;
+    },
+
+    get findMatches() {
+      return this.findMatches_;
+    },
+
+    set findMatches(findMatches) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (findMatches === undefined)
+        findMatches = new EventSet();
+      this.findMatches_ = findMatches;
+    },
+
+    get analysisViewRelatedEvents() {
+      return this.analysisViewRelatedEvents_;
+    },
+
+    set analysisViewRelatedEvents(analysisViewRelatedEvents) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (analysisViewRelatedEvents === undefined)
+        analysisViewRelatedEvents = new EventSet();
+      this.analysisViewRelatedEvents_ = analysisViewRelatedEvents;
+    },
+
+    get analysisLinkHoveredEvents() {
+      return this.analysisLinkHoveredEvents_;
+    },
+
+    set analysisLinkHoveredEvents(analysisLinkHoveredEvents) {
+      if (this.appliedToModel_)
+        throw new Error('Cannot mutate this state right now');
+      if (analysisLinkHoveredEvents === undefined)
+        analysisLinkHoveredEvents = new EventSet();
+      this.analysisLinkHoveredEvents_ = analysisLinkHoveredEvents;
+    },
+
+    get isAppliedToModel() {
+      return this.appliedToModel_ !== undefined;
+    },
+
+    get hasHighlight_() {
+      return this.findMatches_.length > 0 ||
+          this.analysisViewRelatedEvents_.length > 0 ||
+          this.analysisLinkHoveredEvents_.length > 0;
+    },
+
+    get viewSpecificBrushingStates() {
+      return this.viewSpecificBrushingStates_;
+    },
+
+    set viewSpecificBrushingStates(viewSpecificBrushingStates) {
+      this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
+    },
+
+    applyToModelSelectionState: function(model) {
+      this.appliedToModel_ = model;
+
+      if (!this.hasHighlight_) {
+        this.selection_.forEach(function(e) {
+          e.selectionState = SelectionState.SELECTED;
+        });
+        return;
+      }
+
+      model.iterateAllEvents(function(e) {
+        var selectionState;
+        if (this.selection_.contains(e)) {
+          selectionState = SelectionState.SELECTED;
+        } else if (this.findMatches_.contains(e) ||
+                   this.analysisViewRelatedEvents_.contains(e) ||
+                   this.analysisLinkHoveredEvents_.contains(e)) {
+          selectionState = SelectionState.HIGHLIGHTED;
+        } else {
+          selectionState = SelectionState.DIMMED;
+        }
+        e.selectionState = selectionState;
+      }.bind(this));
+    },
+
+    transferModelOwnershipToClone: function(that) {
+      if (!this.appliedToModel_)
+        throw new Error('Not applied');
+      // Assumes this.equals(that).
+      that.appliedToModel_ = this.appliedToModel_;
+      this.appliedToModel_ = undefined;
+    },
+
+    unapplyFromModelSelectionState: function() {
+      if (!this.appliedToModel_)
+        throw new Error('Not applied');
+      var model = this.appliedToModel_;
+      this.appliedToModel_ = undefined;
+
+      if (!this.hasHighlight_) {
+        this.selection_.forEach(function(e) {
+          e.selectionState = SelectionState.NONE;
+        });
+        return;
+      }
+
+      model.iterateAllEvents(function(e) {
+        e.selectionState = SelectionState.NONE;
+      });
+    }
+  };
+
+  return {
+    BrushingState: BrushingState
+  };
+});
+</script>

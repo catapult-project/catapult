@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/v8/v8_log_importer.html">
+
+<script>
+
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var V8LogImporter = tr.e.importer.v8.V8LogImporter;
+
+  test('tickEventInSharedLibrary', function() {
+    var lines = [
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'tick,0x99d8aae4,12158,0,0x0,5'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 1);
+    assert.equal(t.samples[0].title, 'V8 PC');
+    assert.equal(t.samples[0].start, 12158 / 1000);
+    assert.equal(t.samples[0].leafStackFrame.title, '/usr/lib/libc++.1.dylib');
+  });
+
+  test('tickEventInGeneratedCode', function() {
+    var lines = [
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
+      'tick,0x5b60ce84,12158,0,0x0,5'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var threads = p.findAllThreadsNamed('V8');
+    var t = threads[0];
+    assert.equal(t.samples.length, 1);
+    assert.equal(t.samples[0].leafStackFrame.title, 'StringAddStub');
+  });
+
+  test('tickEventInUknownCode', function() {
+    var lines = [
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
+      'tick,0x4,0xbff02f08,12158,0,0x0,5'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var threads = p.findAllThreadsNamed('V8');
+    var t = threads[0];
+    assert.equal(t.samples.length, 1);
+    assert.equal(t.samples[0].leafStackFrame.title, 'Unknown');
+  });
+
+  test('tickEventWithStack', function() {
+    var lines = [
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 1);
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[0].getUserFriendlyStackTrace());
+  });
+
+  test('twoTickEventsWithStack', function() {
+    var lines = [
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304',
+      'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 2);
+    assert.equal(t.samples[0].start, 528674 / 1000);
+    assert.equal(t.samples[1].start, 536213 / 1000);
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[1].getUserFriendlyStackTrace());
+    assert.equal(t.samples[0].leafStackFrame,
+                 t.samples[1].leafStackFrame);
+  });
+
+  test('twoTickEventsWithTwoStackFrames', function() {
+    var lines = [
+      'code-creation,LazyCompile,0,0x2904d560,876,"Instantiate native apinatives.js:9:21",0x56b190c8,~', // @suppress longLineCheck
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304,0x2904d6e8',
+      'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 2);
+
+    assert.equal(t.samples[0].start, 528674 / 1000);
+    assert.equal(t.samples[1].start, 536213 / 1000);
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[1].getUserFriendlyStackTrace());
+
+    var childStackFrame = t.samples[0].leafStackFrame;
+    assert.equal(childStackFrame, t.samples[1].leafStackFrame);
+    assert.equal(childStackFrame.children.length, 0);
+
+    var parentStackFrame = childStackFrame.parentFrame;
+    assert.equal(parentStackFrame.children.length, 1);
+    assert.equal(childStackFrame, parentStackFrame.children[0]);
+
+  });
+
+  test('threeTickEventsWithTwoStackFrames', function() {
+    var lines = [
+      'code-creation,LazyCompile,0,0x2904d560,876,"Instantiate native apinatives.js:9:21",0x56b190c8,~', // @suppress longLineCheck
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x7fd7f75c,518328,0,0x81d86da8,2,0x2904d6e8',
+      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304,0x2904d6e8',
+      'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var threads = p.findAllThreadsNamed('V8');
+
+    var t = threads[0];
+    assert.equal(t.samples.length, 3);
+    assert.equal(t.samples[0].start, 518328 / 1000);
+    assert.equal(t.samples[1].start, 528674 / 1000);
+    assert.equal(t.samples[2].start, 536213 / 1000);
+    assert.deepEqual(
+        ['v8: Instantiate native apinatives.js:9:21'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[1].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[2].getUserFriendlyStackTrace());
+
+    var topLevelStackFrame = t.samples[0].leafStackFrame;
+    var childStackFrame = t.samples[1].leafStackFrame;
+    assert.equal(t.samples[2].leafStackFrame, childStackFrame);
+    assert.equal(topLevelStackFrame, childStackFrame.parentFrame);
+    assert.equal(topLevelStackFrame.children.length, 1);
+    assert.equal(childStackFrame.children.length, 0);
+    assert.equal(childStackFrame, topLevelStackFrame.children[0]);
+  });
+
+  test('twoSubStacks', function() {
+    var lines = [
+      'code-creation,LazyCompile,0,0x2904d560,876,"Instantiate native apinatives.js:9:21",0x56b190c8,~', // @suppress longLineCheck
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x7fd7f75c,518328,0,0x81d86da8,2,0x2904d6e8',
+      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304,0x2904d6e8',
+      'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8',
+      'code-creation,Script,0,0x2906a7c0,792,"http://www.google.com/",0x5b12fe50,~', // @suppress longLineCheck
+      'tick,0xb6f51d30,794049,0,0xb6f7b368,2,0x2906a914',
+      'tick,0xb6f51d30,799146,0,0xb6f7b368,0,0x2906a914'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var threads = p.findAllThreadsNamed('V8');
+    var t = threads[0];
+    assert.equal(t.samples.length, 5);
+
+    assert.equal(t.samples[0].start, 518328 / 1000);
+    assert.equal(t.samples[1].start, 528674 / 1000);
+    assert.equal(t.samples[2].start, 536213 / 1000);
+    assert.equal(t.samples[3].start, 794049 / 1000);
+    assert.equal(t.samples[4].start, 799146 / 1000);
+
+    assert.deepEqual(
+        ['v8: Instantiate native apinatives.js:9:21'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[1].getUserFriendlyStackTrace());
+    assert.deepEqual(
+        ['v8: InstantiateFunction native apinatives.js:26:29',
+        'v8: Instantiate native apinatives.js:9:21'],
+        t.samples[2].getUserFriendlyStackTrace());
+    assert.deepEqual(['v8: http://www.google.com/'],
+                      t.samples[3].getUserFriendlyStackTrace());
+    assert.deepEqual(['v8: http://www.google.com/'],
+                      t.samples[4].getUserFriendlyStackTrace());
+
+    var firsStackTopLevelStackFrame = t.samples[0].leafStackFrame;
+    var firsStackChildStackFrame = t.samples[1].leafStackFrame;
+    assert.equal(firsStackChildStackFrame, t.samples[2].leafStackFrame);
+    assert.equal(firsStackTopLevelStackFrame,
+                 firsStackChildStackFrame.parentFrame);
+    assert.equal(firsStackTopLevelStackFrame.children.length, 1);
+    assert.equal(firsStackChildStackFrame.children.length, 0);
+    assert.equal(firsStackChildStackFrame,
+                 firsStackTopLevelStackFrame.children[0]);
+
+    var secondStackStackFrame = t.samples[3].leafStackFrame;
+    assert.equal(secondStackStackFrame, t.samples[4].leafStackFrame);
+    assert.equal(secondStackStackFrame.children.length, 0);
+    assert.isUndefined(secondStackStackFrame.parentFrame);
+  });
+
+  test('timerEventSliceCreation', function() {
+    var lines = ['timer-event,"V8.External",38189483,3'];
+    var m = new tr.Model(lines.join('\n'), false);
+    var p = m.processes[-32];
+    var threads = p.findAllThreadsNamed('V8 Timers');
+    assert.isDefined(threads);
+    assert.equal(threads.length, 1);
+    var t = threads[0];
+    assert.equal(t.sliceGroup.length, 1);
+  });
+
+  test('processThreadCreation', function() {
+    var lines = ['timer-event,"V8.External",38189483,3'];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isDefined(m);
+    var p = m.processes[-32];
+    assert.isDefined(p);
+    var threads = p.findAllThreadsNamed('V8 Timers');
+    assert.isDefined(threads);
+    assert.equal(1, threads.length);
+    var t = threads[0];
+    assert.equal('V8 Timers', t.name);
+  });
+
+  test('canImport', function() {
+    assert.isTrue(V8LogImporter.canImport(
+        'timer-event,"V8.External",38189483,3'));
+    assert.isTrue(V8LogImporter.canImport('v8-version,4,3,66,0,0'));
+    assert.isFalse(V8LogImporter.canImport(''));
+    assert.isFalse(V8LogImporter.canImport([]));
+  });
+});
+</script>
+

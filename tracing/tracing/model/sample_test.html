@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Sample = tr.model.Sample;
+  var StackFrame = tr.model.StackFrame;
+  var Thread = tr.model.Thread;
+
+  test('sampleStackTrace', function() {
+    var thread = tr.c.test_utils.newFakeThread();
+
+    var model = new tr.Model();
+    var fABC = tr.c.test_utils.newStackTrace(model, 'cat', ['a', 'b', 'c']);
+
+    var s = new Sample(undefined, thread, 'instructions_retired',
+                       10, fABC, 10);
+    var stackTrace = s.stackTrace;
+    var stackTraceNames = stackTrace.map(function(f) { return f.title; });
+    assert.deepEqual(
+        stackTraceNames,
+        ['c', 'b', 'a']);
+  });
+});
+</script>
+

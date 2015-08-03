@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>Trace-Viewer Tests: loading...</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <link rel="shortcut icon" href="data:image/x-icon;base64,"
+        type="image/x-icon">
+
+  <script src="/components/webcomponentsjs/webcomponents.js"></script>
+
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/base/base.html">
+  <link rel="import" href="/base/unittest.html">
+  <link rel="import" href="/base/unittest/interactive_test_runner.html">
+  <style>
+    html, body {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      margin: 0px;
+    }
+    body > x-base-interactive-test-runner {
+      height: 100%;
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+  <script>
+    'use strict';
+
+    // The test runner no-ops pushState so keep it around.
+    var realWindowHistoryPushState = window.history.pushState.bind(
+        window.history);
+
+    function stateToSearchString(defaultState, state) {
+      var parts = [];
+      for (var k in state) {
+        if (state[k] === defaultState[k])
+          continue;
+        var v = state[k];
+        var kv;
+        if (v === true) {
+          kv = k;
+        } else if (v === false) {
+          kv = k + '=false';
+        } else if (v === '') {
+          continue;
+        } else {
+          kv = k + '=' + v;
+        }
+        parts.push(kv);
+      }
+      return parts.join('&');
+    }
+
+    function stateFromSearchString(string) {
+      var state = {};
+      string.split('&').forEach(function(part) {
+        if (part == '')
+          return;
+        var kv = part.split('=');
+        var k, v;
+        if (kv.length == 1) {
+          k = kv[0];
+          v = true;
+        } else {
+          k = kv[0];
+          if (kv[1] == 'false')
+            v = false;
+          else
+            v = kv[1];
+        }
+        state[k] = v;
+      });
+      return state;
+    }
+
+    function getSuiteRelpathsToLoad(state) {
+      if (state.testSuiteName) {
+        return new Promise(function(resolve) {
+          var parts = state.testSuiteName.split('.');
+          var testSuiteRelPath = '/' + parts.join('/') + '.html';
+
+          var suiteRelpathsToLoad = [testSuiteRelPath];
+          resolve(suiteRelpathsToLoad);
+        });
+      }
+      return tr.b.getAsync('/tr/json/tests').then(
+        function(data) {
+          var testMetadata = JSON.parse(data);
+          if (testMetadata.hasOwnProperty('test_module_names')) {
+            tr.showPanic(
+                'out of date webserver',
+                '>_< your devserver needs a restart kthxbai');
+            throw new Error('Failed to load');
+          }
+          var suiteRelpathsToLoad = testMetadata.test_relpaths.map(function(x) {
+            return '/' + x;
+          });
+          return suiteRelpathsToLoad;
+        },
+        function(e) {
+          throw e;
+        });
+    }
+
+    function loadAndRunTests() {
+      var state = stateFromSearchString(
+          window.location.search.substring(1));
+      updateTitle(state);
+
+
+      showLoadingOverlay();
+
+      var loader;
+      var p = getSuiteRelpathsToLoad(state);
+      p = p.then(
+        function(suiteRelpathsToLoad) {
+          loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
+          return loader.allSuitesLoadedPromise;
+        },
+        function(e) {
+          hideLoadingOverlay();
+          throw e;
+        });
+      p = p.then(
+        function() {
+          hideLoadingOverlay();
+          Polymer.whenReady(function() {
+            runTests(loader, state);
+          });
+        },
+        function(err) {
+          hideLoadingOverlay();
+          tr.showPanic('Module loading failure', err);
+          throw err;
+        });
+      return p;
+    }
+
+    function showLoadingOverlay() {
+      var overlay = document.createElement('div');
+      overlay.id = 'tests-loading-overlay';
+      overlay.style.backgroundColor = 'white';
+      overlay.style.boxSizing = 'border-box';
+      overlay.style.color = 'black';
+      overlay.style.display = '-webkit-flex';
+      overlay.style.height = '100%';
+      overlay.style.left = 0;
+      overlay.style.padding = '8px';
+      overlay.style.position = 'fixed';
+      overlay.style.top = 0;
+      overlay.style.webkitFlexDirection = 'column';
+      overlay.style.width = '100%';
+
+      var element = document.createElement('div');
+      element.style.webkitFlex = '1 1 auto';
+      element.style.overflow = 'auto';
+      overlay.appendChild(element);
+
+      element.textContent = 'Loading tests...';
+      document.body.appendChild(overlay);
+    }
+    function hideLoadingOverlay() {
+      var overlay = document.body.querySelector('#tests-loading-overlay');
+      document.body.removeChild(overlay);
+    }
+
+    function updateTitle(state) {
+      var testFilterString = state.testFilterString || '';
+      var testSuiteName = state.testSuiteName || '';
+
+      var title;
+      if (testSuiteName && testFilterString.length) {
+        title = testFilterString + ' in ' + testSuiteName;
+      } else if (testSuiteName) {
+        title = testSuiteName;
+      } else if (testFilterString) {
+        title = testFilterString + ' in all tests';
+      } else {
+        title = 'All Trace-Viewer Tests';
+      }
+
+      if (state.shortFormat)
+        title += '(s)';
+      document.title = title;
+      var runner = document.querySelector('x-base-interactive-test-runner');
+      if (runner)
+        runner.title = title;
+    }
+
+    function runTests(loader, state) {
+      var runner = new tr.b.unittest.InteractiveTestRunner();
+      runner.testLinks = [
+        {linkPath: '/examples/skia_debugger.html', title: 'Skia Debugger'},
+        {linkPath: '/examples/trace_viewer.html', title: 'Trace File Viewer'}
+      ];
+      runner.allTests = loader.getAllTests();
+      document.body.appendChild(runner);
+
+      runner.setState(state);
+      updateTitle(state);
+
+      runner.addEventListener('statechange', function() {
+        var state = runner.getState();
+        var stateString = stateToSearchString(runner.getDefaultState(),
+                                              state);
+        if (window.location.search.substring(1) == stateString)
+          return;
+
+        updateTitle(state);
+        var stateURL;
+        if (stateString.length > 0)
+          stateURL = window.location.pathname + '?' + stateString;
+        else
+          stateURL = window.location.pathname;
+        realWindowHistoryPushState(state, document.title, stateURL);
+      });
+
+      window.addEventListener('popstate', function(state) {
+        runner.setState(state, true);
+      });
+
+      runner.getHRefForTestCase = function(testCase) {
+        var state = runner.getState();
+        if (state.testFilterString === '' &&
+            state.testSuiteName === '') {
+          state.testSuiteName = testCase.suite.name;
+          state.testFilterString = '';
+          state.shortFormat = false;
+        } else {
+          state.testSuiteName = testCase.suite.name;
+          state.testFilterString = testCase.name;
+          state.shortFormat = false;
+        }
+        var stateString = stateToSearchString(runner.getDefaultState(),
+                                              state);
+        if (stateString.length > 0)
+          return window.location.pathname + '?' + stateString;
+        else
+          return window.location.pathname;
+      }
+    }
+
+    window.addEventListener('load', loadAndRunTests);
+
+  </script>
+</body>
+</html>

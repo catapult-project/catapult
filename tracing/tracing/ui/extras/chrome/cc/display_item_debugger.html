@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/picture.html">
+<link rel="import" href="/ui/analysis/generic_object_view.html">
+<link rel="import" href="/ui/base/drag_handle.html">
+<link rel="import" href="/ui/base/info_bar.html">
+<link rel="import" href="/ui/base/hotkey_controller.html">
+<link rel="import" href="/ui/base/list_view.html">
+<link rel="import" href="/ui/base/mouse_mode_selector.html">
+<link rel="import" href="/ui/base/overlay.html">
+<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/ui/extras/chrome/cc/picture_ops_list_view.html">
+
+<template id="tr-ui-e-chrome-cc-display-item-debugger-template">
+  <style>
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger {
+    -webkit-flex: 1 1 auto;
+    display: -webkit-flex;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel {
+    -webkit-flex-direction: column;
+    display: -webkit-flex;
+    min-width: 300px;
+    overflow-y: auto;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info {
+    -webkit-flex: 1 1 auto;
+    padding-top: 2px;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info .title {
+    font-weight: bold;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+        display-item-info .export {
+    margin: 5px;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > x-drag-handle {
+    -webkit-flex: 0 0 auto;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel {
+    -webkit-flex: 1 1 auto;
+    display: -webkit-flex;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+      display-item-info > header {
+    border-bottom: 1px solid #555;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+      display-item-info > .x-list-view > div {
+    border-bottom: 1px solid #555;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
+      display-item-info > .x-list-view > div:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+
+  /*************************************************/
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+      tr-ui-e-chrome-cc-picture-ops-list-view.hasPictureOps {
+    display: block;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        x-drag-handle.hasPictureOps {
+    display: block;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        tr-ui-e-chrome-cc-picture-ops-list-view {
+    display: none;
+    overflow-y: auto;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
+        x-drag-handle {
+    display: none;
+  }
+
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger raster-area {
+    -webkit-flex: 1 1 auto;
+    background-color: #ddd;
+    min-height: 200px;
+    min-width: 200px;
+    overflow-y: auto;
+    padding-left: 5px;
+  }
+  </style>
+
+  <left-panel>
+    <display-item-info>
+      <header>
+        <span class='title'>Display Item List</span>
+        <span class='size'></span>
+        <div class='export'>
+          <input class='dlfilename' type='text' value='displayitemlist.json' />
+          <button class='dlexport'>Export display item list</button>
+        </div>
+        <div class='export'>
+          <input class='skpfilename' type='text' value='skpicture.skp' />
+          <button class='skpexport'>Export list as SkPicture</button>
+        </div>
+      </header>
+    </display-item-info>
+  </left-panel>
+  <right-panel>
+    <raster-area><canvas></canvas></raster-area>
+  </right-panel>
+</template>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.chrome.cc', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
+
+  /**
+   * DisplayItemDebugger is a view of a DisplayItemListSnapshot for inspecting
+   * a display item list and the pictures within it.
+   *
+   * @constructor
+   */
+  var DisplayItemDebugger = tr.ui.b.define(
+      'tr-ui-e-chrome-cc-display-item-debugger');
+
+  DisplayItemDebugger.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      var node = tr.ui.b.instantiateTemplate(
+          '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
+
+      this.appendChild(node);
+
+      this.pictureAsImageData_ = undefined;
+      this.zoomScaleValue_ = 1;
+
+      this.sizeInfo_ = this.querySelector('.size');
+      this.rasterArea_ = this.querySelector('raster-area');
+      this.rasterCanvas_ = this.rasterArea_.querySelector('canvas');
+      this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
+
+      this.trackMouse_();
+
+      this.displayItemInfo_ = this.querySelector('display-item-info');
+      this.displayItemInfo_.addEventListener(
+          'click', this.onDisplayItemInfoClick_.bind(this), false);
+
+      this.displayItemListView_ = new tr.ui.b.ListView();
+      this.displayItemListView_.addEventListener('selection-changed',
+          this.onDisplayItemListSelection_.bind(this));
+      this.displayItemInfo_.appendChild(this.displayItemListView_);
+
+      this.displayListFilename_ = this.querySelector('.dlfilename');
+      this.displayListExportButton_ = this.querySelector('.dlexport');
+      this.displayListExportButton_.addEventListener(
+          'click', this.onExportDisplayListClicked_.bind(this));
+
+      this.skpFilename_ = this.querySelector('.skpfilename');
+      this.skpExportButton_ = this.querySelector('.skpexport');
+      this.skpExportButton_.addEventListener(
+          'click', this.onExportSkPictureClicked_.bind(this));
+
+      var leftPanel = this.querySelector('left-panel');
+
+      var middleDragHandle = new tr.ui.b.DragHandle();
+      middleDragHandle.horizontal = false;
+      middleDragHandle.target = leftPanel;
+
+      var rightPanel = this.querySelector('right-panel');
+
+      this.infoBar_ = document.createElement('tr-ui-b-info-bar');
+      this.rasterArea_.insertBefore(this.infoBar_, this.rasterCanvas_);
+
+      this.insertBefore(middleDragHandle, rightPanel);
+
+      this.picture_ = undefined;
+
+      this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
+      rightPanel.insertBefore(this.pictureOpsListView_, this.rasterArea_);
+
+      this.pictureOpsListDragHandle_ = new tr.ui.b.DragHandle();
+      this.pictureOpsListDragHandle_.horizontal = false;
+      this.pictureOpsListDragHandle_.target = this.pictureOpsListView_;
+      rightPanel.insertBefore(this.pictureOpsListDragHandle_, this.rasterArea_);
+    },
+
+    get picture() {
+      return this.picture_;
+    },
+
+    set displayItemList(displayItemList) {
+      this.displayItemList_ = displayItemList;
+      this.picture = this.displayItemList_;
+
+      this.displayItemListView_.clear();
+      this.displayItemList_.items.forEach(function(item) {
+        var newListItem = document.createElement('div');
+        newListItem.innerText = item;
+        // FIXME: We should improve our output to better format this.
+        var text = item.skp64 ? item.name : item;
+        this.displayItemListView_.addItem(text);
+      }.bind(this));
+    },
+
+    set picture(picture) {
+      this.picture_ = picture;
+
+      // Hide the ops list if we are showing the "main" display item list.
+      var showOpsList = picture && picture !== this.displayItemList_;
+      this.updateDrawOpsList_(showOpsList);
+
+      if (picture) {
+        var size = this.getRasterCanvasSize_();
+        this.rasterCanvas_.width = size.width;
+        this.rasterCanvas_.height = size.height;
+      }
+
+      var bounds = this.rasterArea_.getBoundingClientRect();
+      var selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
+      this.mouseModeSelector_.pos = {
+        x: (bounds.right - selectorBounds.width - 10),
+        y: bounds.top
+      };
+
+      this.rasterize_();
+
+      this.scheduleUpdateContents_();
+    },
+
+    getRasterCanvasSize_: function() {
+      var style = window.getComputedStyle(this.rasterArea_);
+      var width = parseInt(style.width);
+      var height = parseInt(style.height);
+      if (this.picture_) {
+        width = Math.max(width, this.picture_.layerRect.width);
+        height = Math.max(height, this.picture_.layerRect.height);
+      }
+
+      return {
+        width: width,
+        height: height
+      };
+    },
+
+    scheduleUpdateContents_: function() {
+      if (this.updateContentsPending_)
+        return;
+      this.updateContentsPending_ = true;
+      tr.b.requestAnimationFrameInThisFrameIfPossible(
+          this.updateContents_.bind(this)
+      );
+    },
+
+    updateContents_: function() {
+      this.updateContentsPending_ = false;
+
+      if (this.picture_) {
+        this.sizeInfo_.textContent = '(' +
+            this.picture_.layerRect.width + ' x ' +
+            this.picture_.layerRect.height + ')';
+      }
+
+      // Return if picture hasn't finished rasterizing.
+      if (!this.pictureAsImageData_)
+        return;
+
+      this.infoBar_.visible = false;
+      this.infoBar_.removeAllButtons();
+      if (this.pictureAsImageData_.error) {
+        this.infoBar_.message = 'Cannot rasterize...';
+        this.infoBar_.addButton('More info...', function(e) {
+          var overlay = new tr.ui.b.Overlay();
+          overlay.textContent = this.pictureAsImageData_.error;
+          overlay.visible = true;
+          e.stopPropagation();
+          return false;
+        }.bind(this));
+        this.infoBar_.visible = true;
+      }
+
+      this.drawPicture_();
+    },
+
+    drawPicture_: function() {
+      var size = this.getRasterCanvasSize_();
+      if (size.width !== this.rasterCanvas_.width)
+        this.rasterCanvas_.width = size.width;
+      if (size.height !== this.rasterCanvas_.height)
+        this.rasterCanvas_.height = size.height;
+
+      this.rasterCtx_.clearRect(0, 0, size.width, size.height);
+
+      if (!this.picture_ || !this.pictureAsImageData_.imageData)
+        return;
+
+      var imgCanvas = this.pictureAsImageData_.asCanvas();
+      var w = imgCanvas.width;
+      var h = imgCanvas.height;
+      this.rasterCtx_.drawImage(imgCanvas, 0, 0, w, h,
+                                0, 0, w * this.zoomScaleValue_,
+                                h * this.zoomScaleValue_);
+    },
+
+    rasterize_: function() {
+      if (this.picture_) {
+        this.picture_.rasterize(
+            {
+              showOverdraw: false
+            },
+            this.onRasterComplete_.bind(this));
+      }
+    },
+
+    onRasterComplete_: function(pictureAsImageData) {
+      this.pictureAsImageData_ = pictureAsImageData;
+      this.scheduleUpdateContents_();
+    },
+
+    onDisplayItemListSelection_: function(e) {
+      var selected = this.displayItemListView_.selectedElement;
+
+      if (!selected) {
+        this.picture = this.displayItemList_;
+        return;
+      }
+
+      var index = Array.prototype.indexOf.call(
+          this.displayItemListView_.children, selected);
+      var displayItem = this.displayItemList_.items[index];
+      if (displayItem && displayItem.skp64)
+        this.picture = new tr.e.cc.Picture(
+            displayItem.skp64, this.displayItemList_.layerRect);
+      else
+        this.picture = undefined;
+    },
+
+    onDisplayItemInfoClick_: function(e) {
+      if (e && e.target == this.displayItemInfo_) {
+        this.displayItemListView_.selectedElement = undefined;
+      }
+    },
+
+    updateDrawOpsList_: function(showOpsList) {
+      if (showOpsList) {
+        this.pictureOpsListView_.picture = this.picture_;
+        if (this.pictureOpsListView_.numOps > 0) {
+          this.pictureOpsListView_.classList.add('hasPictureOps');
+          this.pictureOpsListDragHandle_.classList.add('hasPictureOps');
+        }
+      } else {
+        this.pictureOpsListView_.classList.remove('hasPictureOps');
+        this.pictureOpsListDragHandle_.classList.remove('hasPictureOps');
+      }
+    },
+
+    trackMouse_: function() {
+      this.mouseModeSelector_ = document.createElement(
+          'tr-ui-b-mouse-mode-selector');
+      this.mouseModeSelector_.targetElement = this.rasterArea_;
+      this.rasterArea_.appendChild(this.mouseModeSelector_);
+
+      this.mouseModeSelector_.supportedModeMask =
+          tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
+
+      this.mouseModeSelector_.addEventListener('beginzoom',
+          this.onBeginZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('updatezoom',
+          this.onUpdateZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('endzoom',
+          this.onEndZoom_.bind(this));
+    },
+
+    onBeginZoom_: function(e) {
+      this.isZooming_ = true;
+
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
+
+      e.preventDefault();
+    },
+
+    onUpdateZoom_: function(e) {
+      if (!this.isZooming_)
+        return;
+
+      var currentMouseViewPos = this.extractRelativeMousePosition_(e);
+
+      // Take the distance the mouse has moved and we want to zoom at about
+      // 1/1000th of that speed. 0.01 feels jumpy. This could possibly be tuned
+      // more if people feel it's too slow.
+      this.zoomScaleValue_ +=
+          ((this.lastMouseViewPos_.y - currentMouseViewPos.y) * 0.001);
+      this.zoomScaleValue_ = Math.max(this.zoomScaleValue_, 0.1);
+
+      this.drawPicture_();
+
+      this.lastMouseViewPos_ = currentMouseViewPos;
+    },
+
+    onEndZoom_: function(e) {
+      this.lastMouseViewPos_ = undefined;
+      this.isZooming_ = false;
+      e.preventDefault();
+    },
+
+    extractRelativeMousePosition_: function(e) {
+      return {
+        x: e.clientX - this.rasterArea_.offsetLeft,
+        y: e.clientY - this.rasterArea_.offsetTop
+      };
+    },
+
+    saveFile_: function(filename, rawData) {
+      if (!rawData)
+        return;
+
+      // Convert this String into an Uint8Array
+      var length = rawData.length;
+      var arrayBuffer = new ArrayBuffer(length);
+      var uint8Array = new Uint8Array(arrayBuffer);
+      for (var c = 0; c < length; c++)
+        uint8Array[c] = rawData.charCodeAt(c);
+
+      // Create a blob URL from the binary array.
+      var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
+      var blobUrl = window.URL.createObjectURL(blob);
+
+      // Create a link and click on it.
+      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      link.href = blobUrl;
+      link.download = filename;
+      var event = document.createEvent('MouseEvents');
+      event.initMouseEvent(
+          'click', true, false, window, 0, 0, 0, 0, 0,
+          false, false, false, false, 0, null);
+      link.dispatchEvent(event);
+    },
+
+    onExportDisplayListClicked_: function() {
+      var rawData = JSON.stringify(this.displayItemList_.items);
+      this.saveFile_(this.displayListFilename_.value, rawData);
+    },
+
+    onExportSkPictureClicked_: function() {
+      var rawData = atob(this.picture_.getBase64SkpData());
+      this.saveFile_(this.skpFilename_.value, rawData);
+    }
+  };
+
+  return {
+    DisplayItemDebugger: DisplayItemDebugger
+  };
+});
+</script>

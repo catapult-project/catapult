@@ -1,0 +1,43 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker {
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+}
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker > top-controls {
+  -webkit-flex: 0 0 auto;
+  background-image: -webkit-gradient(linear,
+                                     0 0, 100% 0,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
+  font-size: 14px;
+  padding-left: 2px;
+}
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker > top-controls input[type='checkbox'] {
+    vertical-align: -2px;
+}
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker > .x-list-view {
+  -webkit-flex: 1 1 auto;
+  font-family: monospace;
+  overflow: auto;
+}
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker > tr-ui-a-generic-object-view {
+  -webkit-flex: 0 0 auto;
+  height: 200px;
+  overflow: auto;
+}
+
+* /deep/ tr-ui-e-chrome-cc-layer-picker > tr-ui-a-generic-object-view * {
+  -webkit-user-select: text !important;
+  cursor: text;
+}

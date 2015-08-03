@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/ui/base/table.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  function isSelected(element) {
+    if (!element.hasAttribute('selected'))
+      return false;
+    return element.getAttribute('selected') === 'true';
+  }
+
+  function isHighlighted(element) {
+    return element.classList.contains('highlighted-row');
+  }
+
+  test('instantiateEmptyTable_withoutEmptyValue', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '300px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = [];
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // Check that the width of the first column was set correctly (despite no
+    // body rows).
+    var firstColumnHeader = table.$.head.children[0].children[0];
+    assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
+
+    // Check that the first column has a non-empty header.
+    var firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
+        firstColumnHeader, function(element) {
+      return element.textContent === 'First Column';
+    });
+    assert.isDefined(firstColumnTitle);
+
+    // Check that empty value was not appended.
+    assert.lengthOf(table.$.body.children, 0);
+  });
+
+  test('instantiateEmptyTable_withEmptyValue', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '300px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = [];
+    table.emptyValue = 'This table is left intentionally empty';
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // Check that the width of the first column was set correctly (despite no
+    // body rows).
+    var firstColumnHeader = table.$.head.children[0].children[0];
+    assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
+
+    // Check that empty value was appended.
+    assert.lengthOf(table.$.body.children, 1);
+  });
+
+  test('instantiateNestedTableNoNests', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.emptyValue = 'THIS SHOULD NOT BE VISIBLE!!!';
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // Check that empty value was not appended.
+    assert.lengthOf(table.$.body.children, 2);
+  });
+
+  test('sequentialRebuildsBehaveSanely', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+    var footerRows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.footerRows = footerRows;
+    table.rebuild();
+    table.rebuild();
+    assert.equal(table.$.body.children.length, 2);
+    assert.equal(table.$.foot.children.length, 2);
+
+    this.addHTMLOutput(table);
+  });
+
+  test('instantiateNestedTableWithNests', function() {
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '250px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2',
+        subRows: [
+          {
+            firstData: 'Sub1 A1',
+            secondData: 'Sub1 A2'
+          },
+          {
+            firstData: 'Sub2 A1',
+            secondData: 'Sub2 A2',
+            subRows: [
+              {
+                firstData: 'SubSub1 A1',
+                secondData: 'SubSub1 A2'
+              },
+              {
+                firstData: 'SubSub2 A1',
+                secondData: 'SubSub2 A2'
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3 A1',
+            secondData: 'Sub3 A2'
+          }
+        ]
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+  });
+
+  test('instantiateSortingCallbacksWithNests', function() {
+    var table = document.createElement('tr-ui-b-table');
+
+    var columns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '50%'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '250px',
+        cmp: function(rowA, rowB) {
+          return rowA.secondData.toString().localeCompare(
+              rowB.secondData.toString());
+        },
+        showExpandButtons: true
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2',
+        subRows: [
+          {
+            firstData: 'Sub1 A1',
+            secondData: 'Sub1 A2'
+          },
+          {
+            firstData: 'Sub2 A1',
+            secondData: 'Sub2 A2',
+            subRows: [
+              {
+                firstData: 'SubSub1 A1',
+                secondData: 'SubSub1 A2'
+              },
+              {
+                firstData: 'SubSub2 A1',
+                secondData: 'SubSub2 A2'
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3 A1',
+            secondData: 'Sub3 A2'
+          }
+        ]
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var footerRows = [
+      {
+        firstData: 'F1',
+        secondData: 'F2',
+        subRows: [
+          {
+            firstData: 'Sub1F1',
+            secondData: 'Sub1F2'
+          },
+          {
+            firstData: 'Sub2F1',
+            secondData: 'Sub2F2',
+            subRows: [
+              {
+                firstData: 'SubSub1F1',
+                secondData: 'SubSub1F2'
+              },
+              {
+                firstData: 'SubSub2F1',
+                secondData: 'SubSub2F2'
+              }
+            ]
+          },
+          {
+            firstData: 'Sub3F1',
+            secondData: 'Sub3F2'
+          }
+        ]
+      },
+      {
+        firstData: 'F\'1',
+        secondData: 'F\'2'
+      }
+
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.footerRows = footerRows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    var button = THIS_DOC.createElement('button');
+    button.textContent = 'Sort By Col 0';
+    button.addEventListener('click', function() {
+      table.sortDescending = !table.sortDescending;
+      table.sortColumnIndex = 0;
+    });
+    table.rebuild();
+
+    this.addHTMLOutput(button);
+  });
+
+
+  test('instantiateNestedTableAlreadyExpanded', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'a',
+        value: function(row) { return row.b; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'aToplevel',
+        b: 'bToplevel',
+        isExpanded: true,
+        subRows: [
+          {
+            a: 'a1',
+            b: 'b1'
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    var a1El = tr.b.findDeepElementMatchingPredicate(table, function(element) {
+      return element.textContent == 'a1';
+    });
+    assert.isDefined(a1El);
+
+    var bToplevelEl = tr.b.findDeepElementMatchingPredicate(
+        table,
+        function(element) {
+          return element.textContent == 'bToplevel';
+        });
+    assert.isDefined(bToplevelEl);
+    var expandButton = bToplevelEl.parentElement.querySelector('expand-button');
+    assert.isTrue(expandButton.classList.contains('button-expanded'));
+  });
+
+
+  test('subRowsThatAreRetrievedOnDemand', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '150px'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'row1',
+        subRows: [
+          {
+            b: 'row1.1',
+            get subRows() {
+              throw new Error('Shold not be called');
+            }
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+  });
+
+
+  test('instantiateTableWithHiddenHeader', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'a',
+        value: function(row) { return row.b; },
+        width: '50%'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'aToplevel',
+        b: 'bToplevel'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = false;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    var tHead = table.$.head;
+    assert.equal(table.$.head.children.length, 0);
+    assert.equal(0, tHead.getBoundingClientRect().height);
+
+    table.showHeader = true;
+    table.rebuild();
+    table.showHeader = false;
+    table.rebuild();
+    assert.equal(table.$.head.children.length, 0);
+  });
+
+
+  test('sortColumnsNotPossibleOnPercentSizedColumns', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '100%',
+        showExpandButtons: true
+      }
+    ];
+
+    var table1 = document.createElement('tr-ui-b-table');
+    table1.showHeader = true;
+
+    assert.throws(function() {
+      table1.tableColumns = columns;
+    });
+  });
+
+  test('twoTablesFirstColumnMatching', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px'
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '100%'
+      }
+    ];
+
+    var table1 = document.createElement('tr-ui-b-table');
+    table1.showHeader = true;
+    table1.tableColumns = columns;
+    table1.tableRows = [
+      {
+        a: 'first',
+        b: 'row'
+      }
+    ];
+    table1.rebuild();
+    this.addHTMLOutput(table1);
+
+    var table2 = document.createElement('tr-ui-b-table');
+    table2.showHeader = false;
+    table2.tableColumns = columns;
+    table2.tableRows = [
+      {
+        a: 'second',
+        b: 'row'
+      }
+    ];
+    table2.rebuild();
+    this.addHTMLOutput(table2);
+
+    var h1FirstCol = table1.$.head.children[0].children[0];
+    var h2FirstCol = table2.$.body.children[0].children[0];
+    assert.equal(h1FirstCol.getBoundingClientRect().width,
+                 h2FirstCol.getBoundingClientRect().width);
+  });
+
+  test('programmaticSorting', function() {
+    var table = document.createElement('tr-ui-b-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.sortDescending = true;
+    table.sortColumnIndex = 0;
+    table.rebuild();
+    var r0 = table.$.body.children[0];
+    assert.equal(r0.rowInfo.userRow, rows[1]);
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0]);
+  });
+
+  test('sortingAfterExpand', function() {
+    var table = document.createElement('tr-ui-b-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        isExpanded: true,
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.sortDescending = true;
+    table.sortColumnIndex = 0;
+    table.rebuild();
+    var r0 = table.$.body.children[0];
+    assert.equal(r0.rowInfo.userRow, rows[1]);
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0]);
+
+    var r2 = table.$.body.children[2];
+    assert.equal(r2.rowInfo.userRow, rows[0].subRows[2]);
+
+    assert.isFalse(r0.hasAttribute('tabIndex'));
+  });
+
+  function createSimpleOneColumnNestedTable() {
+    var table = document.createElement('tr-ui-b-table');
+
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        }
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'A1',
+        subRows: [
+          {
+            value: 'A1.1'
+          },
+          {
+            value: 'A1.2',
+            subRows: [
+              {
+                value: 'A1.2.1'
+              },
+              {
+                value: 'A1.2.2'
+              }
+            ]
+          },
+          {
+            value: 'A1.3'
+          }
+        ]
+      },
+      {
+        value: 'A2'
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    return table;
+  }
+
+  test('expandAfterRebuild', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.rebuild();
+    var rows = table.tableRows;
+
+    this.addHTMLOutput(table);
+
+    table.rebuild();
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    var r1 = table.$.body.children[1];
+    assert.equal(r1.rowInfo.userRow, rows[0].subRows[0]);
+  });
+
+  test('tableSelection', function() {
+    var table = createSimpleOneColumnNestedTable();
+    var rows = table.tableRows;
+
+    table.supportsSelection = true;
+    table.selectedTableRow = rows[0];
+
+    table.setExpandedForTableRow(rows[0], true);
+    table.selectedTableRow = rows[0].subRows[1];
+    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+
+    table.setExpandedForTableRow(rows[0], false);
+    assert.equal(table.selectedTableRow, rows[0]);
+
+    table.supportsSelection = false;
+    assert.equal(table.selectedTableRow, undefined);
+
+    table.supportsSelection = true;
+    table.setExpandedForTableRow(rows[0].subRows[1], true);
+    this.addHTMLOutput(table);
+
+    var r0 = table.$.body.children[0];
+    assert.isTrue(r0.hasAttribute('tabIndex'));
+  });
+
+
+  test('keyMovement', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.supportsSelection = true;
+    this.addHTMLOutput(table);
+
+    var rows = table.tableRows;
+    table.selectedTableRow = rows[0];
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.equal(table.selectedTableRow, rows[1]);
+
+    table.performKeyCommand_('ARROW_UP');
+    assert.equal(table.selectedTableRow, rows[0]);
+
+    // Arrow right on collapsed row should expand.
+    table.selectedTableRow = rows[0];
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+
+    // ARrow left on collapsed item should select parent.
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.equal(table.selectedTableRow, rows[0]);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    // Arrow right on expanded row should select first child.
+    table.selectedTableRow = rows[0];
+    table.setExpandedForTableRow(rows[0], true);
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+
+    // Arrow right on a non-expandable row should do nothing.
+    table.selectedTableRow = rows[1];
+    assert.equal(table.selectedTableRow, rows[1]);
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[1]);
+    assert.isFalse(table.getExpandedForTableRow(rows[1]));
+  });
+
+  test('reduceNumberOfColumnsAfterRebuild', function() {
+    // Create a table with two columns.
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '100px'
+      },
+      {
+        title: 'Second Column',
+        value: function(row) { return row.secondData; },
+        width: '100px'
+      }
+    ];
+
+    // Build the table.
+    table.rebuild();
+
+    // Check that reducing the number of columns doesn't throw an exception.
+    table.tableColumns = [
+      {
+        title: 'First Column',
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      }
+    ];
+  });
+
+  test('cellSelectionBasic', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Col1',
+        value: function(row) { return row.b; },
+        width: '33%'
+      },
+      {
+        title: 'Col2',
+        value: function(row) { return row.b * 2; },
+        width: '33%'
+      },
+      {
+        title: 'Col3',
+        value: function(row) { return row.b * 3; },
+        width: '33%'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.supportsSelection = true;
+    table.cellSelectionMode = true;
+    table.tableColumns = columns;
+    table.tableRows = [
+      {
+        a: 'first',
+        b: '1'
+      },
+      {
+        a: 'second',
+        b: '2'
+      }
+    ];
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    table.selectedTableRow = table.tableRows[0];
+    assert.equal(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_DOWN');
+    table.performKeyCommand_('ARROW_RIGHT');
+    table.performKeyCommand_('ARROW_RIGHT');
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.equal(table.selectedTableRow, table.tableRows[1]);
+    assert.equal(table.selectedColumnIndex, 2);
+  });
+
+  test('cellSelectionNested', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '150px'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'parent',
+        b: '1',
+        subRows: [
+          {
+            a: 'child',
+            b: '2'
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.supportsSelection = true;
+    table.cellSelectionMode = true;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    // Expand the parent row.
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+    assert.isFalse(isHighlighted(table.$.body.children[1]));
+
+    // Select the second cell in the child row.
+    table.selectedTableRow = rows[0].subRows[0];
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isFalse(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isTrue(isSelected(table.$.body.children[1].children[1]));
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+    assert.isFalse(isHighlighted(table.$.body.children[1]));
+
+    // Fold the parent row. The second cell in the parent row should be
+    // automatically selected.
+    table.setExpandedForTableRow(rows[0], false);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+
+    // Expand the parent row again. Only the second cell of the parent row
+    // should still be selected.
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1].children[1]));
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+    assert.isFalse(isHighlighted(table.$.body.children[1]));
+  });
+
+  test('cellSelectionHighlight', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.b; },
+        width: '150px'
+      }
+    ];
+
+    var rows = [
+      {
+        a: 'parent',
+        b: '1',
+        subRows: [
+          {
+            a: 'child',
+            b: '2'
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.supportsSelection = true;
+    table.cellSelectionMode = true;
+    table.rowHighlightEnabled = true;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    // Expand the parent row.
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+    assert.isFalse(isHighlighted(table.$.body.children[1]));
+
+    // Select the second cell in the child row.
+    table.selectedTableRow = rows[0].subRows[0];
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isFalse(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isTrue(isSelected(table.$.body.children[1].children[1]));
+    assert.isFalse(isHighlighted(table.$.body.children[0]));
+    assert.isTrue(isHighlighted(table.$.body.children[1]));
+
+    // Fold the parent row. The second cell in the parent row should be
+    // automatically selected.
+    table.setExpandedForTableRow(rows[0], false);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+    assert.isTrue(isHighlighted(table.$.body.children[0]));
+
+    // Expand the parent row again. Only the second cell of the parent row
+    // should still be selected.
+    table.setExpandedForTableRow(rows[0], true);
+    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isFalse(isSelected(table.$.body.children[1].children[1]));
+    assert.isTrue(isHighlighted(table.$.body.children[0]));
+    assert.isFalse(isHighlighted(table.$.body.children[1]));
+  });
+
+  test('headersWithHtmlElements', function() {
+    var firstColumnTitle = document.createTextNode('First Column');
+    var secondColumnTitle = document.createElement('span');
+    secondColumnTitle.innerText = 'Second Column';
+    secondColumnTitle.style.color = 'blue';
+
+    var columns = [
+      {
+        title: firstColumnTitle,
+        value: function(row) { return row.firstData; },
+        width: '200px'
+      },
+      {
+        title: secondColumnTitle,
+        value: function(row) { return row.secondData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: 'A1',
+        secondData: 'A2'
+      },
+      {
+        firstData: 'B1',
+        secondData: 'B2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    var firstColumnHeader = table.$.head.children[0].children[0].children[0];
+    var secondColumnHeader = table.$.head.children[0].children[1].children[0];
+    assert.equal(firstColumnHeader.cellTitle.textContent, 'First Column');
+    assert.equal(secondColumnHeader.cellTitle.textContent, 'Second Column');
+  });
+
+  test('textAlign', function() {
+    var columns = [
+      {
+        title: 'a',
+        textAlign: 'right',
+        value: function(row) {
+          return row.a;
+        }
+      }
+    ];
+    var rows = [{a: 1}];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    assert.equal('right', table.$.body.children[0].children[0].style.textAlign);
+  });
+
+  test('subRowsPropertyName', function() {
+    var columns = [
+      {
+        title: 'a',
+        value: function(row) {
+          return row.a;
+        }
+      }
+    ];
+    var rows = [
+      {
+        a: 1,
+        isExpanded: true,
+        children: [
+          {a: 2}
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.subRowsPropertyName = 'children';
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    assert.equal(2, table.$.body.children[1].children[0].textContent);
+  });
+
+  test('shouldNotRenderUndefined', function() {
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.firstData; }
+      }
+    ];
+
+    var rows = [
+      {
+        firstData: undefined,
+        secondData: 'A2'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    // check that we don't have 'undefined' anywhere
+    assert.isTrue(table.$.body.innerHTML.indexOf('undefined') < 0);
+  });
+});
+</script>

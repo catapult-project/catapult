@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var timeSpan = document.createElement('tr-ui-u-size-in-bytes-span');
+    timeSpan.numBytes = 5 * 1024;
+    assert.equal(timeSpan.numBytes, 5 * 1024);
+    this.addHTMLOutput(timeSpan);
+  });
+
+  test('instantiateWithObject', function() {
+    var timeSpan = document.createElement('tr-ui-u-size-in-bytes-span');
+    timeSpan.numBytes = new tr.b.units.SizeInBytes(5 * 1024);
+    assert.equal(timeSpan.numBytes, 5 * 1024);
+    this.addHTMLOutput(timeSpan);
+  });
+});
+</script>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/pie_chart.html">
+<link rel="import" href="/ui/base/sortable_table.html">
+<link rel="import" href="/ui/base/sunburst_chart.html">
+<link rel="import" href="/ui/base/utils.html">
+
+<template id="x-sample-summary-panel-template">
+  <style>
+    .x-sample-summary-panel {
+      display: block;
+      overflow: auto;
+      padding: 5px;
+    }
+    .x-sample-summary-panel > x-toolbar {
+      display: block;
+      border-bottom: 1px solid black;
+    }
+
+    .x-sample-summary-panel > x-left-panel {
+      position: relative;
+      width: 610px;
+      left: 0;
+      top: 0;
+      height: 610px;
+      padding: 5px;
+    }
+
+    .x-sample-summary-panel > x-left-panel > result-area {
+      display: block;
+      width: 610px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 610px;
+    }
+
+    .x-sample-summary-panel > x-left-panel > x-explanation {
+      display: block;
+      position: absolute;
+      top: 300px;
+      left: 250px;
+      width: 100px;
+      height: 100px;
+      text-align: center;
+      vertical-align:middle;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .x-sample-summary-panel > x-right-panel {
+      display: block;
+      min-height: 610px;
+      margin-left: 610px;
+      padding: 5px;
+    }
+
+    .x-sample-summary-panel > x-right-panel td {
+      color: #fff;
+      padding: 1px 5px;
+      font-size: 1.0em;
+      white-space: nowrap;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-sequence {
+      display: block;
+      overflow: auto;
+      width: 600px;
+      height: 400px;
+      font-size: 14px;
+      margin: 10px;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-sequence table {
+      min-width: 600px;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-callees {
+      display: block;
+      position: relative;
+      width: 600px;
+      height: auto;
+      overflow: auto;
+      font-size: 14px;
+      margin: 10px;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-callees .x-col-numeric {
+      width: 30px;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-callees .x-td-numeric {
+      text-align: right;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-callees table {
+      min-width: 600px;
+      max-width: 600px;
+    }
+
+    .x-sample-summary-panel > x-right-panel > x-callees {
+      display: block;
+      overflow: auto;
+      height: 300px;
+    }
+
+  </style>
+
+  <x-toolbar></x-toolbar>
+  <x-left-panel>
+    <result-area></result-area>
+    <x-explanation></x-explanation>
+  </x-left-panel>
+  <x-right-panel>
+    <x-sequence></x-sequence>
+    <x-callees></x-callees>
+  </x-right-panel>
+</template>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.analysis', function() {
+  var THIS_DOC = document.currentScript.ownerDocument;
+
+  var RequestSelectionChangeEvent = tr.model.RequestSelectionChangeEvent;
+  var getColorOfKey = tr.ui.b.getColorOfKey;
+
+  /**
+    * @constructor
+    */
+  var CallTreeNode = function(name, category) {
+    this.parent = undefined;
+    this.name = name;
+    this.category = category;
+    this.selfTime = 0.0;
+    this.children = [];
+
+    // Defined only for leaf nodes, leaf_node_id corresponds to
+    // the id of the leaf stack frame.
+    this.leaf_node_id = undefined;
+  };
+
+  CallTreeNode.prototype = {
+    addChild: function(node) {
+      this.children.push(node);
+      node.parent = this;
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  var Thread = function(thread) {
+    this.thread = thread;
+    this.rootNode = new CallTreeNode('root', 'root');
+    this.rootCategories = {};
+    this.sfToNode = {};
+    this.sfToNode['__root'] = self.rootNode;
+  };
+
+  Thread.prototype = {
+    getCallTreeNode: function(stackFrame) {
+      if (stackFrame.id in this.sfToNode)
+        return this.sfToNode[stackFrame.id];
+
+      // Create & save the node.
+      var newNode = new CallTreeNode(stackFrame.title, stackFrame.category);
+      this.sfToNode[stackFrame.id] = newNode;
+
+      // Add node to parent tree node.
+      if (stackFrame.parentFrame) {
+        var parentNode = this.getCallTreeNode(stackFrame.parentFrame);
+
+        parentNode.addChild(newNode);
+      } else {
+        // Creating a root category node for each category helps group samples
+        // that may be missing call stacks.
+        var rootCategory = this.rootCategories[stackFrame.category];
+        if (!rootCategory) {
+          rootCategory =
+              new CallTreeNode(stackFrame.category, stackFrame.category);
+          this.rootNode.addChild(rootCategory);
+          this.rootCategories[stackFrame.category] = rootCategory;
+        }
+        rootCategory.addChild(newNode);
+      }
+      return newNode;
+    },
+
+    addSample: function(sample) {
+      var leaf_node = this.getCallTreeNode(sample.leafStackFrame);
+      leaf_node.leaf_node_id = sample.leafStackFrame.id;
+      leaf_node.selfTime += sample.weight;
+    }
+  };
+
+  function genCallTree(node, isRoot) {
+    var ret = {
+      category: node.category,
+      name: node.name,
+      leaf_node_id: node.leaf_node_id
+    };
+
+    if (isRoot || node.children.length > 0) {
+      ret.children = [];
+      for (var c = 0; c < node.children.length; c++)
+        ret.children.push(genCallTree(node.children[c], false));
+      if (node.selfTime > 0.0) {
+        // say, caller (r) calls callee (e) which calls callee2 (2)
+        // and following are the samples
+        // r r r r r r r
+        //   e e e
+        //   2 2 2
+        // In this case, r has a non-zero self time (4 samples to be precise)
+        // The <self> node makes the representation resemble the following
+        // where s denotes the selftime.
+        // r r r r r r r
+        // s e e e s s s
+        //   2 2 2
+        //
+        // Among the obvious visualization benefit, this also creates the
+        // invariance that a node can not simultaneously have samples and
+        // children.
+        ret.children.push({
+          name: '<self>',
+          category: ret.category,
+          size: node.selfTime,
+          leaf_node_id: node.leaf_node_id
+        });
+        delete ret.leaf_node_id;  // ret is not a leaf node anymore.
+      }
+    }
+    else {
+      ret.size = node.selfTime;
+    }
+    if (isRoot)
+      return ret.children;
+    return ret;
+  }
+
+  function getSampleTypes(selection) {
+    var sampleDict = {};
+    var samples = selection.getEventsOrganizedByBaseType().sample;
+    for (var i = 0; i < samples.length; i++) {
+      sampleDict[samples[i].title] = null;
+    }
+    return Object.keys(sampleDict);
+  }
+
+  // Create sunburst data from the selection.
+  function createSunburstData(selection, sampleType) {
+    var threads = {};
+    function getOrCreateThread(thread) {
+      var ret = undefined;
+      if (thread.tid in threads) {
+        ret = threads[thread.tid];
+      } else {
+        ret = new Thread(thread);
+        threads[thread.tid] = ret;
+      }
+      return ret;
+    }
+
+    // Process samples.
+    var samples = selection.getEventsOrganizedByBaseType().sample;
+    for (var i = 0; i < samples.length; i++) {
+      var sample = samples[i];
+      if (sample.title == sampleType)
+        getOrCreateThread(sample.thread).addSample(sample);
+    }
+
+    // Generate sunburst data.
+    var sunburstData = {
+      name: '<All Threads>',
+      category: 'root',
+      children: []
+    };
+    for (var t in threads) {
+      if (!threads.hasOwnProperty(t)) continue;
+      var thread = threads[t];
+      var threadData = {
+        name: 'Thread ' + thread.thread.tid + ': ' + thread.thread.name,
+        category: 'Thread',
+        children: genCallTree(thread.rootNode, true)
+      };
+      sunburstData.children.push(threadData);
+    }
+    return sunburstData;
+  }
+
+  /**
+   * @constructor
+   */
+  var SamplingSummaryPanel =
+      tr.ui.b.define('x-sample-summary-panel');
+  SamplingSummaryPanel.textLabel = 'Sampling Summary';
+  SamplingSummaryPanel.supportsModel = function(m) {
+    if (m == undefined) {
+      return {
+        supported: false,
+        reason: 'Unknown tracing model'
+      };
+    }
+
+    if (m.samples.length == 0) {
+      return {
+        supported: false,
+        reason: 'No sampling data in trace'
+      };
+    }
+
+    return {
+      supported: true
+    };
+  };
+
+  // Return a dict with keys as stack-frame ids
+  // and values as selection objects which contain all the
+  // samples whose leaf stack-frame id matches the key.
+  function divideSamplesBasedOnLeafStackFrame(selection) {
+    var stackFrameIdToSamples = {};
+    for (var i = 0; i < selection.length; ++i) {
+      var sample = selection[i];
+      var id = sample.leafStackFrame.id;
+      if (!stackFrameIdToSamples[id])
+        stackFrameIdToSamples[id] = new tr.model.EventSet();
+      stackFrameIdToSamples[id].push(sample);
+    }
+    return stackFrameIdToSamples;
+  }
+
+  SamplingSummaryPanel.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.classList.add('x-sample-summary-panel');
+      this.appendChild(tr.ui.b.instantiateTemplate(
+          '#x-sample-summary-panel-template', THIS_DOC));
+
+      this.sampleType_ = undefined;
+      this.sampleTypeSelector_ = undefined;
+      this.chart_ = undefined;
+      this.selection_ = undefined;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      this.stackFrameIdToSamples_ = divideSamplesBasedOnLeafStackFrame(
+          selection);
+      this.updateContents_();
+    },
+
+    get sampleType() {
+      return this.sampleType_;
+    },
+
+    set sampleType(type) {
+      this.sampleType_ = type;
+      if (this.sampleTypeSelector_)
+        this.sampleTypeSelector_.selectedValue = type;
+      this.updateResultArea_();
+    },
+
+    updateCallees_: function(d) {
+      // Update callee table.
+      var that = this;
+      var table = document.createElement('table');
+
+      // Add column styles.
+      var col0 = document.createElement('col');
+      var col1 = document.createElement('col');
+      col0.className += 'x-col-numeric';
+      col1.className += 'x-col-numeric';
+      table.appendChild(col0);
+      table.appendChild(col1);
+
+      // Add headers.
+      var thead = table.createTHead();
+      var headerRow = thead.insertRow(0);
+      headerRow.style.backgroundColor = '#888';
+      headerRow.insertCell(0).appendChild(document.createTextNode('Samples'));
+      headerRow.insertCell(1).appendChild(document.createTextNode('Percent'));
+      headerRow.insertCell(2).appendChild(document.createTextNode('Symbol'));
+
+      // Add body.
+      var tbody = table.createTBody();
+      if (d.children) {
+        for (var i = 0; i < d.children.length; i++) {
+          var c = d.children[i];
+          var row = tbody.insertRow(i);
+          var bgColor = getColorOfKey(c.category);
+          if (bgColor == undefined)
+            bgColor = '#444444';
+          row.style.backgroundColor = bgColor;
+          var cell0 = row.insertCell(0);
+          var cell1 = row.insertCell(1);
+          var cell2 = row.insertCell(2);
+          cell0.className += 'x-td-numeric';
+          cell1.className += 'x-td-numeric';
+          cell0.appendChild(document.createTextNode(c.value.toString()));
+          cell1.appendChild(document.createTextNode(
+              (100 * c.value / d.value).toFixed(2) + '%'));
+          cell2.appendChild(document.createTextNode(c.name));
+        }
+      }
+
+      // Make it sortable.
+      tr.ui.b.SortableTable.decorate(table);
+
+      var calleeArea = that.querySelector('x-callees');
+      calleeArea.textContent = '';
+      calleeArea.appendChild(table);
+    },
+
+    updateHighlight_: function(d) {
+      var that = this;
+
+      // Update explanation.
+      var percent = 100.0;
+      if (that.chart_.selectedNode != null)
+        percent = 100.0 * d.value / that.chart_.selectedNode.value;
+      that.querySelector('x-explanation').innerHTML =
+          d.value + '<br>' + percent.toFixed(2) + '%';
+
+      // Update call stack table.
+      var table = document.createElement('table');
+      var thead = table.createTHead();
+      var tbody = table.createTBody();
+      var headerRow = thead.insertRow(0);
+      headerRow.style.backgroundColor = '#888';
+      headerRow.insertCell(0).appendChild(
+          document.createTextNode('Call Stack'));
+
+      var callStack = [];
+      var frame = d;
+      while (frame && frame.id) {
+        callStack.push(frame);
+        frame = frame.parent;
+      }
+
+      for (var i = 0; i < callStack.length; i++) {
+        var row = tbody.insertRow(i);
+        var bgColor = getColorOfKey(callStack[i].category);
+        if (bgColor == undefined)
+          bgColor = '#444444';
+        row.style.backgroundColor = bgColor;
+        if (i == 0)
+          row.style.fontWeight = 'bold';
+        row.insertCell(0).appendChild(
+            document.createTextNode(callStack[i].name));
+      }
+
+      var sequenceArea = that.querySelector('x-sequence');
+      sequenceArea.textContent = '';
+      sequenceArea.appendChild(table);
+    },
+
+    getSamplesFromNode_: function(node) {
+      // A node has samples associated with it, if it's a leaf node.
+      var selection = new tr.model.EventSet();
+      if (node.leaf_node_id !== undefined) {
+        selection.addEventSet(this.stackFrameIdToSamples_[node.leaf_node_id]);
+      }
+      else if (node.children === undefined ||
+               node.children.length === 0) {
+        throw new Error('A node should either have samples, or children');
+      }
+      else {
+        for (var i = 0; i < node.children.length; ++i)
+          selection.addEventSet(this.getSamplesFromNode_(node.children[i]));
+      }
+      return selection;
+    },
+
+    updateResultArea_: function() {
+      if (this.selection_ === undefined)
+        return;
+
+      var resultArea = this.querySelector('result-area');
+      this.chart_ = undefined;
+      resultArea.textContent = '';
+
+      var sunburstData =
+          createSunburstData(this.selection_, this.sampleType_);
+      this.chart_ = new tr.ui.b.SunburstChart();
+      this.chart_.width = 600;
+      this.chart_.height = 600;
+      this.chart_.chartTitle = 'Sampling Summary';
+
+      this.chart_.addEventListener('node-selected', (function(e) {
+        this.updateCallees_(e.node);
+      }).bind(this));
+
+      this.chart_.addEventListener('node-clicked', (function(e) {
+        var event = new RequestSelectionChangeEvent();
+        var depth = e.node.depth;
+        if (e.node.name === '<self>')
+          depth--;
+        event.selection = this.getSamplesFromNode_(e.node);
+        event.selection.sunburst_zoom_level = depth;
+        this.dispatchEvent(event);
+      }).bind(this));
+
+      this.chart_.addEventListener('node-highlighted', (function(e) {
+        this.updateHighlight_(e.node);
+      }).bind(this));
+
+      this.chart_.data = {
+        nodes: sunburstData
+      };
+
+      resultArea.appendChild(this.chart_);
+      this.chart_.setSize(this.chart_.getMinSize());
+
+      if (this.selection_.sunburst_zoom_level !== undefined) {
+        this.chart_.zoomToDepth(this.selection_.sunburst_zoom_level);
+      }
+    },
+
+    updateContents_: function() {
+      if (this.selection_ === undefined || this.selection_.length == 0)
+        return;
+
+      // Get available sample types in range.
+      var sampleTypes = getSampleTypes(this.selection_);
+      if (sampleTypes.indexOf(this.sampleType_) == -1)
+        this.sampleType_ = sampleTypes[0];
+
+      // Create sample type dropdown.
+      var sampleTypeOptions = [];
+      for (var i = 0; i < sampleTypes.length; i++)
+        sampleTypeOptions.push({label: sampleTypes[i], value: sampleTypes[i]});
+
+      var toolbarEl = this.querySelector('x-toolbar');
+      this.sampleTypeSelector_ = tr.ui.b.createSelector(
+          this,
+          'sampleType',
+          'samplingSummaryPanel.sampleType',
+          this.sampleType_,
+          sampleTypeOptions);
+      toolbarEl.textContent = 'Sample Type: ';
+      toolbarEl.appendChild(this.sampleTypeSelector_);
+    }
+  };
+
+  return {
+    SamplingSummaryPanel: SamplingSummaryPanel,
+    createSunburstData: createSunburstData
+  };
+});
+</script>

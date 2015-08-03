@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/battor_importer.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var BATTOR_LINES = [
+    '# BattOr',
+    '# voltage range [0.000000, 6144.000000] mV',
+    '# current range [0.000000, 2275.555556] mA',
+    '# sample_rate=2000Hz, gain=5.000000x',
+    '# filpot_pos=4, amppot_pos=256, timer_ovf=499, timer_div=4 ovs_bits=1',
+    '0.000000 0.000000 4000.000000',
+    '0.500000 0.000000 4000.000000',
+    '1.000000 0.000000 4000.000000',
+    '1.500000 0.000000 4000.000000',
+    '2.000000 1.000000 4000.000000'
+  ];
+
+  var SYSTRACE_LINES = [
+    '# tracer: nop',
+    '#',
+    '# entries-in-buffer/entries-written: 88819/134210   #P:1',
+    '#',
+    '#                              _-----=> irqs-off',
+    '#                             / _----=> need-resched',
+    '#                            | / _---=> hardirq/softirq',
+    '#                            || / _--=> preempt-depth',
+    '#                            ||| /     delay',
+    '#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION',
+    '#              | |       |   ||||       |         |',
+    'sh-8550  [001] ...1 0.000000: tracing_mark_write: ' +
+    'trace_event_clock_sync: name=battor regulator=test_regulator',
+    '<8520>-8520  [001] ...1 0.000000: regulator_enable: name=test_regulator',
+    '<8520>-8520  [001] ...1 0.000100: regulator_disable: name=test_regulator',
+    'sh-8550  [001] ...1     0.001000: tracing_mark_write: ' +
+    'trace_event_clock_sync: name=battor regulator=test_regulator'
+  ];
+
+  test('canImport', function() {
+    assert.isFalse(tr.e.importer.battor.BattorImporter.canImport('string'));
+    assert.isFalse(tr.e.importer.battor.BattorImporter.canImport([]));
+    assert.isTrue(tr.e.importer.battor.BattorImporter.canImport(
+        BATTOR_LINES.join('\n')));
+  });
+
+  test('importPowerSamplesAndTrace', function() {
+    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
+    m.importTraces([BATTOR_LINES.join('\n')]);
+
+    assert.isDefined(m.device.powerSeries);
+
+    // Check to see if time shifted correctly
+    m.getAllCounters().forEach(function(counter) {
+      var series = counter.getSeries(0);
+      if (counter.id === 'null.vreg test_regulator enabled')
+        assert.equal(series.getTimestamp(0), 2.0);
+    });
+    assert.equal(m.device.powerSeries.samples[1].start, 0.5);
+  });
+
+  test('importAlreadyHasPower', function() {
+    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
+    m.importTraces([BATTOR_LINES.join('\n')]);
+    assert.isFalse(m.hasImportWarnings);
+    m.importTraces([BATTOR_LINES.join('\n')]);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
+  test('importMissingLinuxTrace', function() {
+    var m = new tr.Model(BATTOR_LINES.join('\n'), false);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
+  test('importNotEnoughSamples', function() {
+    var shortLines = BATTOR_LINES.slice(0, 5);
+    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
+    m.importTraces([shortLines.join('\n')]);
+    assert.isTrue(m.hasImportWarnings);
+  });
+});
+</script>

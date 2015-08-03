@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/base/xhr.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var LinuxPerfImporter = tr.e.importer.linux_perf.LinuxPerfImporter;
+  var LinuxPerfImporterTestExports =
+      tr.e.importer.linux_perf._LinuxPerfImporterTestExports;
+  test('lineParserWithLegacyFmt', function() {
+    var p = LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
+    var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
+        'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+        'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, '<idle>');
+    assert.equal(x.pid, '0');
+    assert.equal(x.cpuNumber, '001');
+    assert.equal(x.timestamp, '4467.843475');
+    assert.equal(x.eventName, 'sched_switch');
+    assert.equal('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
+        ' ==> next_comm=SurfaceFlinger next_pid=178 next_prio=112', x.details);
+
+    var x = p('Binder-Thread #-647   [001]   260.464294: sched_switch: ' +
+        'prev_comm=Binder Thread # prev_pid=647 prev_prio=120 prev_state=D ' +
+        ' ==> next_comm=.android.chrome next_pid=1562 next_prio=120');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'Binder-Thread #');
+    assert.equal(x.pid, '647');
+  });
+
+  test('lineParserWithIRQInfo', function() {
+    var p = LinuxPerfImporterTestExports.lineParserWithIRQInfo; // @suppress longLineCheck
+    var x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+    assert.equal(x.pid, '5441');
+    assert.equal(x.cpuNumber, '001');
+    assert.equal(x.timestamp, '1031.091570');
+    assert.equal(x.eventName, 'sched_wakeup');
+    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+  });
+
+  test('lineParserWithTGID', function() {
+    var p = LinuxPerfImporterTestExports.lineParserWithTGID;
+    var x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+    assert.equal(x.pid, '5441');
+    assert.equal(x.tgid, '54321');
+    assert.equal(x.cpuNumber, '001');
+    assert.equal(x.timestamp, '1031.091570');
+    assert.equal(x.eventName, 'sched_wakeup');
+    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+
+    var x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.tgid, '321');
+
+    var x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.isUndefined(x.tgid);
+  });
+
+  test('autodetectLineCornerCases', function() {
+    var detectParser =
+        LinuxPerfImporterTestExports.autoDetectLineParser;
+    var lineParserWithLegacyFmt =
+        LinuxPerfImporterTestExports.lineParserWithLegacyFmt;
+    var lineParserWithIRQInfo =
+        LinuxPerfImporterTestExports.lineParserWithIRQInfo;
+    var lineParserWithTGID =
+        LinuxPerfImporterTestExports.lineParserWithTGID;
+
+    var lineWithLegacyFmt =
+        'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
+    var detected = detectParser(lineWithLegacyFmt);
+    assert.equal(lineParserWithLegacyFmt, detected);
+
+    var lineWithIRQInfo =
+        'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
+    var detected = detectParser(lineWithIRQInfo);
+    assert.equal(lineParserWithIRQInfo, detected);
+
+    var lineWithTGID =
+        'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
+    var detected = detectParser(lineWithTGID);
+    assert.equal(lineParserWithTGID, detected);
+  });
+
+  test('traceEventClockSyncRE', function() {
+    var re = LinuxPerfImporterTestExports.traceEventClockSyncRE; // @suppress longLineCheck
+    var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
+    assert.isNotNull(x);
+    assert.equal(x[1], '19581477508');
+
+    var x = re.exec('trace_event_clock_sync: parent_ts=123.456');
+    assert.isNotNull(x);
+    assert.equal(x[1], '123.456');
+  });
+
+  test('genericClockSync', function() {
+    var lines = [
+      '# tracer: nop',
+      '#',
+      '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#              | |       |          |         |',
+      'sh-26121 [000] ...1 107464.0: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var battorSyncs = m.getClockSyncRecordsNamed('battor');
+    assert.equal(battorSyncs.length, 1);
+    assert.equal(battorSyncs[0].ts, 107464000.0);
+    assert.equal(battorSyncs[0].args.perfTS, 107464000.0);
+    assert.equal(battorSyncs[0].args.regulator, '8941_smbb_boost');
+  });
+
+  test('canImport', function() {
+    var lines = [
+      '# tracer: nop',
+      '#',
+      '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#              | |       |          |         |',
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+
+      '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 prev_state=S ' +
+          '==> next_comm=kworker/u:2 next_pid=2844 next_prio=120',
+
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+          'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 prev_state=S ' +
+          '==> next_comm=swapper next_pid=0 next_prio=120',
+
+      '          <idle>-0     [001]  4467.844208: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=kworker/u:2 next_pid=2844 next_prio=120'
+    ];
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+
+    var lines = [
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+              'next_comm=SurfaceFlinger next_pid=178 next_prio=112'
+    ];
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+
+    var lines = [
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+
+      '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120'
+    ];
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+
+    var lines = [
+      'SomeRandomText',
+      'More random text'
+    ];
+    assert.isFalse(LinuxPerfImporter.canImport(lines.join('\n')));
+  });
+
+  test('canImport34AndLater', function() {
+    var lines = [
+      '# tracer: nop',
+      '#',
+      '# entries-in-buffer/entries-written: 55191/55191   #P:2',
+      '#',
+      '#                              _-----=> irqs-off',
+      '#                             / _----=> need-resched',
+      '#                            | / _---=> hardirq/softirq',
+      '#                            || / _--=> preempt-depth',
+      '#                            ||| /     delay',
+      '#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION',
+      '#              | |       |   ||||       |         |',
+      '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
+          'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
+      '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
+          'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
+          '==> next_comm=chrome next_pid=5418 next_prio=120'
+    ];
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+
+    var lines = [
+      '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
+          'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
+      '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
+          'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
+          '==> next_comm=chrome next_pid=5418 next_prio=120'
+    ];
+    assert.isTrue(LinuxPerfImporter.canImport(lines.join('\n')));
+  });
+
+  test('importOneSequence', function() {
+    var lines = [
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+
+      '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120',
+
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+          'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var c = m.kernel.cpus[1];
+    assert.equal(c.slices.length, 2);
+
+    assert.equal(c.slices[0].title, 'SurfaceFlinger');
+    assert.equal(c.slices[0].start, 4467843.475);
+    assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
+  });
+
+  test('importOneSequenceWithSpacyThreadName', function() {
+    var lines = [
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=Surface Flinger  next_pid=178 next_prio=112',
+
+      'Surface Flinger -178   [001]  4467.843536: sched_switch: ' +
+          'prev_comm=Surface Flinger  prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120',
+
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+          'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var c = m.kernel.cpus[1];
+    assert.equal(c.slices.length, 2);
+
+    assert.equal(c.slices[0].title, 'Surface Flinger ');
+    assert.equal(c.slices[0].start, 4467843.475);
+    assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
+  });
+
+  test('importWithNewline', function() {
+    var lines = [
+      ''
+    ];
+    var m = new tr.Model(lines.join('\n'));
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('importSystraceHtml', function() {
+    var p = tr.b.getAsync(
+        '/test_data/trivial_systrace.html');
+    return p.then(function(data) {
+      var m = new tr.Model(data, false);
+      assert.isFalse(m.hasImportWarnings);
+
+      assert.isDefined(m.processes[124]);
+      assert.isDefined(m.processes[360]);
+
+      assert.isDefined(m.processes[124].counters['android.StatusBar']);
+      assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
+                   1);
+      assert.isDefined(m.processes[124].counters['android.VSYNC']);
+      assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
+      assert.isDefined(m.processes[360].counters['android.iq']);
+      assert.equal(1, m.processes[360].counters['android.iq'].numSamples);
+    }, function(err) {
+      throw err;
+    });
+  });
+
+  test('importMultiTraceHtml', function() {
+    var lines = [
+      '<!DOCTYPE HTML>',
+      '<body>',
+      '  <div class="view">',
+      '  <\/div>',
+      '  <script class="trace-data" type="application/text">',
+      'test1',
+      'test2',
+      '  <\/script>',
+      '  <script class="trace-data" type="application/text">',
+      '# tracer: nop',
+      '#',
+      '#            TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#               | |       |          |         |',
+      '     hwc_eventmon-336   [000] 50260.929925: 0: C|124|VSYNC|1',
+      '         Binder_1-340   [000] 50260.935656: 0: C|124|StatusBar|1',
+      '     hwc_eventmon-336   [000] 50260.946573: 0: C|124|VSYNC|0',
+      '      InputReader-419   [000] 50262.538578: 0: C|360|iq|1',
+      '  <\/script>',
+      '<\/body>',
+      '<\/html>'
+    ];
+
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    assert.isDefined(m.processes[124]);
+    assert.isDefined(m.processes[360]);
+
+    assert.isDefined(m.processes[124].counters['android.StatusBar']);
+    assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
+                 1);
+    assert.isDefined(m.processes[124].counters['android.VSYNC']);
+    assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
+    assert.isDefined(m.processes[360].counters['android.iq']);
+    assert.equal(1, m.processes[360].counters['android.iq'].numSamples);
+  });
+
+  test('clockSync', function() {
+    var lines = [
+      '          <idle>-0     [001]  4467.843475: sched_switch: ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
+          '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+      '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120',
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+          'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=swapper next_pid=0 ' +
+          'next_prio=120',
+      '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
+          'trace_event_clock_sync: parent_ts=0.1'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var c = m.kernel.cpus[1];
+    assert.equal(c.slices.length, 2);
+
+    assert.closeTo(
+        (467.843475 - (467.843 - 0.1)) * 1000,
+        c.slices[0].start,
+        1e-5);
+  });
+
+  test('clockSyncMarkWrite', function() {
+    var lines = [
+      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+          'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+          'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+          'next_prio=120',
+      ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
+          'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+      '     debugd-4404  [001] 15180.979010: sched_switch: prev_comm=debugd ' +
+          'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+          'next_comm=dbus-daemon next_pid=510 next_prio=120',
+      'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
+          'trace_event_clock_sync: parent_ts=0'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var c = m.kernel.cpus[1];
+    assert.equal(c.slices.length, 2);
+
+    assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
+  });
+
+  test('tracingMarkWriteEOLCleanup', function() {
+    var lines = [
+      'systrace.sh-8182  [001] ...1 2068001.677892: tracing_mark_write: ' +
+          'B|9304|test\\n\\',
+      'systrace.sh-8182  [002] ...1 2068991.686415: tracing_mark_write: E\\n\\'
+    ];
+
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    var c = m.processes[9304].threads[8182].sliceGroup;
+    assert.equal(c.slices.length, 1);
+
+    assert.closeTo((2068001.677892 - 0) * 1000, c.slices[0].start, 1e-5);
+    assert.closeTo(
+        (2068991.686415 - 2068001.677892) * 1000,
+        c.slices[0].duration,
+        1e-5);
+  });
+
+  test('cpuCount', function() {
+    var lines = [
+      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+          'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+          'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+          'next_prio=120',
+      ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
+          'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+      '     debugd-4404  [000] 15180.979010: sched_switch: prev_comm=debugd ' +
+          'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+          'next_comm=dbus-daemon next_pid=510 next_prio=120'
+    ];
+    var m = new tr.Model(lines.join('\n'), false);
+    assert.isFalse(m.hasImportWarnings);
+
+    assert.equal(tr.b.dictionaryLength(m.kernel.cpus), 2);
+    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+  });
+});
+</script>

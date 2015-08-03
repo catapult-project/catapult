@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/chrome/chrome_auditor.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/base/color_scheme.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createModelWithChromeAuditor(customizeModelCallback) {
+    return tr.c.test_utils.newModelWithAuditor(function(m) {
+      m.browserProcess = m.getOrCreateProcess(1);
+      m.browserMain = m.browserProcess.getOrCreateThread(2);
+      m.browserMain.name = 'CrBrowserMain';
+
+      m.renderer1 = m.getOrCreateProcess(3);
+      m.renderer1Main = m.renderer1.getOrCreateThread(4);
+      m.renderer1Main.name = 'CrRendererMain';
+
+      m.renderer1Compositor = m.renderer1.getOrCreateThread(4);
+      m.renderer1Compositor.name = 'Compositor';
+
+      customizeModelCallback(m);
+    }, tr.e.audits.ChromeAuditor);
+  }
+
+  function newInputLatencyEvent(tsStart, tsEnd, opt_args) {
+    var e = new tr.model.AsyncSlice(
+        'benchmark', 'InputLatency',
+        tr.ui.b.getColorIdForGeneralPurposeString('InputLatency'),
+        tsStart, opt_args);
+    e.duration = tsEnd - tsStart;
+    return e;
+  }
+
+  function newImplRenderingStatsEvent(ts, opt_args) {
+    var e = new tr.model.ThreadSlice(
+        'benchmark', 'BenchmarkInstrumentation::ImplThreadRenderingStats',
+        tr.ui.b.getColorIdForGeneralPurposeString('x'),
+        ts, opt_args, 0);
+    return e;
+  }
+
+  test('simple', function() {
+    var m = createModelWithChromeAuditor(function(m) {
+      var bAsyncSlices = m.browserMain.asyncSliceGroup;
+      bAsyncSlices.push(newInputLatencyEvent(100, 130));
+      bAsyncSlices.push(newInputLatencyEvent(116, 150));
+      bAsyncSlices.push(newInputLatencyEvent(133, 166));
+      bAsyncSlices.push(newInputLatencyEvent(150, 183));
+      bAsyncSlices.push(newInputLatencyEvent(166, 200));
+      bAsyncSlices.push(newInputLatencyEvent(183, 216));
+
+      var rm1Slices = m.renderer1Compositor.sliceGroup;
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(113));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(130));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(147));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(163));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(180));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(197));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(213));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(230));
+      rm1Slices.pushSlice(newImplRenderingStatsEvent(247));
+    });
+  });
+});
+</script>

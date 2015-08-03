@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/statistics.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/base/range_utils.html">
+<link rel="import" href="/extras/chrome/chrome_model_helper.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Base class for trace data Auditors.
+ */
+tr.exportTo('tr.e.rail', function() {
+
+  function RAILInteractionRecord(title, railTypeName, start, duration) {
+    var colorId = tr.ui.b.getColorIdForReservedName(railTypeName);
+    this.railTypeName_ = railTypeName;
+    tr.model.InteractionRecord.call(this,
+                                    title, colorId, start, duration);
+  }
+
+  RAILInteractionRecord.prototype = {
+    __proto__: tr.model.InteractionRecord.prototype,
+
+    updateArgs: function() {
+      var args = {};
+
+      var layoutSlices = this.associatedEvents.filter(function(event) {
+        return event.title === 'FrameView::layout';
+      });
+      var timeInLayout = tr.b.Statistics.sum(layoutSlices, function(event) {
+        return event.duration;
+      });
+
+      args['layoutInfo'] = {
+        'timeInLayout': timeInLayout
+      };
+
+      this.args = args;
+    },
+
+    get railTypeName() {
+      return this.railTypeName_;
+    },
+
+    /**
+     * Returns the overall rail score, from 0 to 1.
+     *
+     * RAILScore for an interaction merges the user's pain with the
+     * efficiency, in order to create a perception-oriented measure
+     * of how users percieve speed during this interaction.
+     *
+     *  0 means a bad user experience.
+     *  1 means a perfect user experience.
+     */
+    get railScore() {
+      var happiness = 1 - this.normalizedUserPain;
+      var efficiency = this.normalizedEfficiency;
+      // The lower sub-score is more important than the higher sub-score.
+      // happiness is more important than efficiency.
+      var happinessWeight = 2 * Math.exp(1 - happiness);
+      var efficiencyWeight = Math.exp(1 - efficiency);
+      // This function is graphed at http://goo.gl/XMWUKA
+      return ((happiness * happinessWeight + efficiency * efficiencyWeight) /
+              (happinessWeight + efficiencyWeight));
+    },
+
+    /**
+     * Measures the pain the user experienced, from 0 to 1.
+     *
+     * A user performs an interaction with an expectation in mind.
+     * When we exceed their expectations, we get zero pain.
+     * When we meet their expectations, we get zero pain.
+     * As we exceed their expectations, pain goes up. Maximum pain
+     * is 1.0, aka "Switch to FireFox".
+     */
+    get normalizedUserPain() {
+      throw new Error('Not implemented');
+    },
+
+    /**
+     * Measures the efficiency of the interaction from 0 to 1.
+     *
+     * Efficiency is a notion of how well we used the machine's limited
+     * resources in service of this interaction. If we used it perfectly,
+     * we would get a 1.0. If we used everything that there was to use ---
+     * power, memory, cpu, then we'd get a zero.
+     */
+    get normalizedEfficiency() {
+      throw new Error('Not implemented');
+    }
+  };
+
+  return {
+    RAILInteractionRecord: RAILInteractionRecord
+  };
+});
+</script>

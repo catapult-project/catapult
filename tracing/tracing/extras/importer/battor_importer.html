@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/importer/importer.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
+
+<script>
+/**
+ * @fileoverview Imports text files in the BattOr format into the
+ * Model. This format is output by the BattOr executable.
+ *
+ * This importer assumes the events arrive as a string. The unit tests provide
+ * examples of the trace format.
+ */
+'use strict';
+
+tr.exportTo('tr.e.importer.battor', function() {
+  var Importer = tr.importer.Importer;
+
+  /**
+   * Imports linux perf events into a specified model.
+   * @constructor
+   */
+  function BattorImporter(model, events) {
+    this.importPriority = 3; // runs after the linux_perf importer
+    this.sampleRate_ = undefined;
+    this.model_ = model;
+    this.events_ = events;
+  }
+
+  var TestExports = {};
+
+  var battorDataLineRE = /^(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)$/;
+  var battorHeaderLineRE = /^# BattOr/;
+  var sampleRateLineRE = /^# sample_rate=(\d+)Hz/;
+
+  /**
+   * Guesses whether the provided events is a BattOr string.
+   * Looks for the magic string "# BattOr" at the start of the file,
+   *
+   * @return {boolean} True when events is a BattOr array.
+   */
+  BattorImporter.canImport = function(events) {
+    if (!(typeof(events) === 'string' || events instanceof String))
+      return false;
+
+    return battorHeaderLineRE.test(events);
+  };
+
+  BattorImporter.prototype = {
+    __proto__: Importer.prototype,
+
+    get model() {
+      return this.model_;
+    },
+
+    /**
+     * Imports the data in this.events_ into model_.
+     */
+    importEvents: function(isSecondaryImport) {
+      // Fail if the model already has a Power counter.
+      if (this.model_.device.powerSeries) {
+        this.model_.importWarning({
+          type: 'import_error',
+          message: 'Power counter exists, can not import BattOr power trace.'
+        });
+        return;
+      }
+
+      // Create series and import power samples into it.
+      var name = 'power';
+      var series = new tr.model.PowerSeries(this.model_.device);
+      this.importPowerSamples(series);
+
+      // Find the sync markers.
+      var syncMarks = this.model_.getClockSyncRecordsNamed('battor');
+      if (syncMarks.length < 1) {
+        this.model_.importWarning({
+          type: 'clock_sync',
+          message: 'Cannot import BattOr power trace without a sync signal.'
+        });
+        return;
+      }
+
+      // Try each of the clock sync techinques in order of their accuracy.
+      var shiftTs = this.correlationClockSync(syncMarks, series);
+
+      if (shiftTs === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync',
+          message: 'All of the BattOr power trace clock sync techinques failed.'
+        });
+        return;
+      }
+
+      series.shiftTimestampsForward(shiftTs);
+      this.model_.device.powerSeries = series;
+    },
+
+    /**
+     * Walks the events and populates a time series with power samples.
+     */
+    importPowerSamples: function(series) {
+      var lines = this.events_.split('\n');
+
+      // Update the model's bounds.
+      this.model_.updateBounds();
+      var minTs = 0;
+      if (this.model_.bounds.min !== undefined)
+        minTs = this.model_.bounds.min;
+
+      lines.forEach(function(line) {
+        line = line.trim();
+        if (line.length === 0)
+          return;
+
+        if (/^#/.test(line)) {
+          // Parse sample rate.
+          groups = sampleRateLineRE.exec(line);
+          if (!groups)
+            return;
+          this.sampleRate_ = parseInt(groups[1]);
+        } else {
+          // Parse power sample.
+          var groups = battorDataLineRE.exec(line);
+          if (!groups) {
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Unrecognized line: ' + line
+            });
+            return;
+          }
+
+          var time = parseFloat(groups[1]) + minTs;
+          var voltage_mV = parseFloat(groups[2]);
+          var current_mA = parseFloat(groups[3]);
+          series.addPowerSample(time, (voltage_mV * current_mA) / 1000);
+        }
+      }, this);
+    },
+
+    correlationClockSync: function(syncMarks, series) {
+      // Find the regulator counter for the sync.
+      var syncCtr = this.model_.kernel.counters[
+          'null.vreg ' + syncMarks[0].args['regulator'] + ' enabled'];
+      if (syncCtr === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync',
+          message: 'Cannot correlate BattOr power trace without sync vreg.'
+        });
+        return undefined;
+      }
+
+      // Store the sync events from the regulator counter.
+      var syncEvents = [];
+      var firstSyncEventTs = undefined;
+      syncCtr.series[0].iterateAllEvents(function(event) {
+        if (event.timestamp >= syncMarks[0].ts &&
+            event.timestamp <= syncMarks[1].ts) {
+          if (firstSyncEventTs === undefined)
+            firstSyncEventTs = event.timestamp;
+          var newEvent = {
+              'ts': (event.timestamp - firstSyncEventTs) / 1000, // msec -> sec
+              'val': event.value};
+          syncEvents.push(newEvent);
+        }
+      });
+
+      // Generate samples from sync events to be cross-correlated with power.
+      var syncSamples = [];
+      var syncNumSamples = Math.ceil(
+          syncEvents[syncEvents.length - 1].ts * this.sampleRate_
+      );
+
+      for (var i = 1; i < syncEvents.length; i++) {
+        var sampleStartIdx = Math.ceil(
+            syncEvents[i - 1].ts * this.sampleRate_
+        );
+        var sampleEndIdx = Math.ceil(
+            syncEvents[i].ts * this.sampleRate_
+        );
+
+        for (var j = sampleStartIdx; j < sampleEndIdx; j++) {
+          syncSamples[j] = syncEvents[i - 1].val;
+        }
+      }
+
+      // TODO(aschulman) Low-pass the samples to improve the cross-correlation.
+
+      var powerSamples = series.samples;
+      // Check to make sure there are enough power samples.
+      if (powerSamples.length < syncSamples.length) {
+        this.model_.importWarning({
+          type: 'not_enough_samples',
+          message: 'Not enough power samples to correlate with sync signal.'
+        });
+        return undefined;
+      }
+
+      // Cross-correlate the ground truth with the last 5s of power samples.
+      var maxShift = powerSamples.length - syncSamples.length;
+      var minShift = 0;
+      var corrNumSamples = this.sampleRate_ * 5.0;
+      if (powerSamples.length > corrNumSamples)
+        minShift = powerSamples.length - corrNumSamples;
+
+      var corr = [];
+      for (var shift = minShift; shift <= maxShift; shift++) {
+        var corrSum = 0;
+        var powerAvg = 0;
+        for (var i = 0; i < syncSamples.length; i++) {
+          corrSum += (powerSamples[i + shift].power * syncSamples[i]);
+          powerAvg += powerSamples[i + shift].power;
+        }
+        powerAvg = powerAvg / syncSamples.length;
+        corr.push(corrSum / powerAvg);
+      }
+
+      // Find the sync start time (peak of the cross-correlation).
+      var corrPeakIdx = 0;
+      var corrPeak = 0;
+      for (var i = 0; i < powerSamples.length; i++) {
+        if (corr[i] > corrPeak) {
+          corrPeak = corr[i];
+          corrPeakIdx = i;
+        }
+      }
+
+      // Shift the time of the power samples by the recovered sync start time.
+      var corrPeakTs = ((minShift + corrPeakIdx) / this.sampleRate_);
+      corrPeakTs *= 1000; // sec -> msec
+      var syncStartTs = firstSyncEventTs - this.model_.bounds.min;
+      var shiftTs = syncStartTs - corrPeakTs;
+
+      return shiftTs;
+    }
+  };
+
+  tr.importer.Importer.register(BattorImporter);
+
+  return {
+    BattorImporter: BattorImporter,
+    _BattorImporterTestExports: TestExports
+  };
+});
+
+</script>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var EventSet = tr.model.EventSet;
+  var SelectionState = tr.model.SelectionState;
+  var Task = tr.b.Task;
+
+  test('instantiate', function() {
+    var model = new tr.Model();
+    var num_threads = 500;
+    model.importTraces([], false, false, function() {
+      var p100 = model.getOrCreateProcess(100);
+      for (var i = 0; i < num_threads; i++) {
+        var t = p100.getOrCreateThread(101 + i);
+        if (i % 2 == 0) {
+          t.sliceGroup.beginSlice('cat', 'a', 100);
+          t.sliceGroup.endSlice(110);
+        } else {
+          t.sliceGroup.beginSlice('cat', 'b', 50);
+          t.sliceGroup.endSlice(120);
+        }
+      }
+    });
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+    timeline.style.maxHeight = '600px';
+    this.addHTMLOutput(timeline);
+  });
+
+  test('addAllEventsMatchingFilterToSelectionAsTask', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
+
+    var t1asg = t1.asyncSliceGroup;
+    t1asg.slices.push(
+        tr.c.test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
+    t1asg.slices.push(
+        tr.c.test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    var expected = [t1asg.slices[0],
+                    t1.sliceGroup.slices[0]];
+    var result = new tr.model.EventSet;
+    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
+        new tr.c.TitleOrCategoryFilter('a'), result);
+    Task.RunSynchronously(filterTask);
+    assert.equal(result.length, 2);
+    assert.equal(result[0], expected[0]);
+    assert.equal(result[1], expected[1]);
+
+    var expected = [t1asg.slices[1],
+                    t1.sliceGroup.slices[1]];
+    var result = new tr.model.EventSet();
+    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
+        new tr.c.TitleOrCategoryFilter('b'), result);
+    Task.RunSynchronously(filterTask);
+    assert.equal(result.length, 2);
+    assert.equal(result[0], expected[0]);
+    assert.equal(result[1], expected[1]);
+  });
+
+  test('emptyThreadsDeleted', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    assert.isFalse(timeline.hasVisibleContent);
+  });
+
+  test('filteredCounters', function() {
+    var model = new tr.Model();
+    var c1 = model.kernel.getOrCreateCpu(0);
+    c1.getOrCreateCounter('', 'b');
+
+    var p1 = model.getOrCreateProcess(1);
+    var ctr = p1.getOrCreateCounter('', 'a');
+    var series = new tr.model.CounterSeries('a', 0);
+    series.addCounterSample(0, 1);
+    ctr.addSeries(series);
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    assert.isTrue(timeline.hasVisibleContent);
+  });
+
+  test('filteredCpus', function() {
+    var model = new tr.Model();
+    var c1 = model.kernel.getOrCreateCpu(1);
+    c1.getOrCreateCounter('', 'a');
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    assert.isTrue(timeline.hasVisibleContent);
+  });
+
+  test('filteredProcesses', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    p1.getOrCreateCounter('', 'a');
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    assert.isTrue(timeline.hasVisibleContent);
+  });
+
+  test('filteredThreads', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(2);
+    t1.sliceGroup.pushSlice(tr.c.test_utils.newSlice(0, 1));
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    timeline.model = model;
+
+    assert.isTrue(timeline.hasVisibleContent);
+  });
+
+  test('interestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tr.Model(events);
+    var trackView = document.createElement('tr-ui-timeline-track-view');
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+
+    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    trackView.viewport.interestRange.setMinAndMax(slice.start, slice.end);
+  });
+
+  test('emptyInterestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tr.Model(events);
+    var trackView = document.createElement('tr-ui-timeline-track-view');
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+    trackView.viewport.interestRange.reset();
+  });
+
+
+  test('thinnestInterestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tr.Model(events);
+    var trackView = document.createElement('tr-ui-timeline-track-view');
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+    trackView.viewport.interestRange.reset();
+
+    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    trackView.viewport.interestRange.setMinAndMax(slice.start, slice.start);
+  });
+});
+</script>

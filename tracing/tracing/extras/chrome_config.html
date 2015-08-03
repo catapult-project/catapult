@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+The chrome config is heavily used:
+  - chrome://tracing,
+  - trace2html, which in turn implies
+    - adb_profile_chrome
+    - telemetry
+-->
+
+<!-- Core configs -->
+<link rel="import" href="/model/model.html">
+
+<!-- Chrome also supports systrace & lean config -->
+<link rel="import" href="/extras/systrace_config.html">
+<link rel="import" href="/extras/lean_config.html">
+
+<!-- General importers -->
+<link rel="import" href="/extras/importer/gzip_importer.html">
+<link rel="import" href="/extras/importer/zip_importer.html">
+
+<!--- Domain specific importers -->
+<link rel="import" href="/extras/importer/v8/v8_log_importer.html">
+<link rel="import" href="/extras/importer/etw/etw_importer.html">
+<link rel="import" href="/extras/importer/trace2html_importer.html">
+
+<!-- Lots of chrome-specific extras -->
+<link rel="import" href="/extras/net/net.html">
+<link rel="import" href="/extras/chrome/layout_object.html">
+
+<!-- Auditors are fun -->
+<link rel="import" href="/extras/chrome/chrome_auditor.html">
+<link rel="import" href="/extras/android/android_auditor.html">
+<link rel="import" href="/extras/vsync/vsync_auditor.html">

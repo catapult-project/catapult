@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/linux_perf/parser.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Parses regulator events in the Linux event trace format.
+ */
+tr.exportTo('tr.e.importer.linux_perf', function() {
+
+  var Parser = tr.e.importer.linux_perf.Parser;
+
+  /**
+   * Parses linux regulator trace events.
+   * @constructor
+   */
+  function RegulatorParser(importer) {
+    Parser.call(this, importer);
+
+    importer.registerEventHandler('regulator_enable',
+        RegulatorParser.prototype.regulatorEnableEvent.bind(this));
+    importer.registerEventHandler('regulator_enable_delay',
+        RegulatorParser.prototype.regulatorEnableDelayEvent.bind(this));
+    importer.registerEventHandler('regulator_enable_complete',
+        RegulatorParser.prototype.regulatorEnableCompleteEvent.bind(this));
+    importer.registerEventHandler('regulator_disable',
+        RegulatorParser.prototype.regulatorDisableEvent.bind(this));
+    importer.registerEventHandler('regulator_disable_complete',
+        RegulatorParser.prototype.regulatorDisableCompleteEvent.bind(this));
+    importer.registerEventHandler('regulator_set_voltage',
+        RegulatorParser.prototype.regulatorSetVoltageEvent.bind(this));
+    importer.registerEventHandler('regulator_set_voltage_complete',
+        RegulatorParser.prototype.regulatorSetVoltageCompleteEvent.bind(this));
+
+    this.model_ = importer.model_;
+  }
+
+  // Matches the regulator_enable record
+  var regulatorEnableRE = /name=(.+)/;
+
+  // Matches the regulator_disable record
+  var regulatorDisableRE = /name=(.+)/;
+
+  // Matches the regulator_set_voltage_complete record
+  var regulatorSetVoltageCompleteRE = /name=(\S+), val=(\d+)/;
+
+  RegulatorParser.prototype = {
+    __proto__: Parser.prototype,
+
+    /**
+     * Get or create a counter with one series.
+     */
+    getCtr_: function(ctrName, valueName) {
+      var ctr = this.model_.kernel
+        .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
+      // Initialize the counter's series fields if needed.
+      if (ctr.series[0] === undefined) {
+        ctr.addSeries(new tr.model.CounterSeries(valueName,
+        tr.ui.b.getColorIdForGeneralPurposeString(
+        ctrName + '.' + valueName)));
+      }
+      return ctr;
+    },
+
+    /**
+     * Parses regulator events and sets up state in the importer.
+     */
+    regulatorEnableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+      var event = regulatorEnableRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var name = event[1];
+
+      var ctr = this.getCtr_(name, 'enabled');
+      ctr.series[0].addCounterSample(ts, 1);
+
+      return true;
+    },
+
+    regulatorEnableDelayEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+      return true;
+    },
+
+    regulatorEnableCompleteEvent: function(eventName, cpuNum, pid, ts,
+                                           eventBase) {
+      return true;
+    },
+
+    regulatorDisableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+      var event = regulatorDisableRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var name = event[1];
+
+      var ctr = this.getCtr_(name, 'enabled');
+      ctr.series[0].addCounterSample(ts, 0);
+
+      return true;
+    },
+
+    regulatorDisableCompleteEvent: function(eventName, cpuNum, pid, ts,
+                                            eventBase) {
+      return true;
+    },
+
+    regulatorSetVoltageEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+      return true;
+    },
+
+    regulatorSetVoltageCompleteEvent: function(eventName, cpuNum, pid, ts,
+                                               eventBase) {
+      var event = regulatorSetVoltageCompleteRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var name = event[1];
+      var voltage = parseInt(event[2]);
+
+      var ctr = this.getCtr_(name, 'voltage');
+      ctr.series[0].addCounterSample(ts, voltage);
+
+      return true;
+    }
+
+  };
+
+  Parser.register(RegulatorParser);
+
+  return {
+    RegulatorParser: RegulatorParser
+  };
+});
+</script>

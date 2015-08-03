@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/ui/base/d3.html">
+<link rel="import" href="/ui/base/chart_base.html">
+<link rel="import" href="/ui/base/mouse_tracker.html">
+<link rel="stylesheet" href="/ui/base/line_chart.css">
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var ChartBase = tr.ui.b.ChartBase;
+  var getColorOfKey = tr.ui.b.getColorOfKey;
+
+  function getSampleWidth(data, index, leftSide) {
+    var leftIndex, rightIndex;
+    if (leftSide) {
+      leftIndex = Math.max(index - 1, 0);
+      rightIndex = index;
+    } else {
+      leftIndex = index;
+      rightIndex = Math.min(index + 1, data.length - 1);
+    }
+    var leftWidth = data[index].x - data[leftIndex].x;
+    var rightWidth = data[rightIndex].x - data[index].x;
+    return leftWidth * 0.5 + rightWidth * 0.5;
+  }
+
+  /**
+   * @constructor
+   */
+  var LineChart = tr.ui.b.define('line-chart', ChartBase);
+
+  LineChart.prototype = {
+    __proto__: ChartBase.prototype,
+
+    decorate: function() {
+      ChartBase.prototype.decorate.call(this);
+      this.classList.add('line-chart');
+
+      this.brushedRange_ = new tr.b.Range();
+
+      this.xScale_ = d3.scale.linear();
+      this.yScale_ = d3.scale.linear();
+      d3.select(this.chartAreaElement)
+          .append('g')
+          .attr('id', 'brushes');
+      d3.select(this.chartAreaElement)
+          .append('g')
+          .attr('id', 'series');
+
+      this.addEventListener('mousedown', this.onMouseDown_.bind(this));
+    },
+
+    /**
+     * Sets the data array for the object
+     *
+     * @param {Array} data The data. Each element must be an object, with at
+     * least an x property. All other properties become series names in the
+     * chart. The data can be sparse (i.e. every x value does not have to
+     * contain data for every series).
+     */
+    set data(data) {
+      if (data.length == 0)
+        throw new Error('Data must be nonzero. Pass undefined.');
+
+      this.data_ = data;
+      this.seriesKeys_ = this.getSeriesKeys_();
+
+      this.updateContents_();
+    },
+
+    // Note: range can only be set, not retrieved. It needs to be immutable
+    // or else odd data binding effects will result.
+    set brushedRange(range) {
+      this.brushedRange_.reset();
+      this.brushedRange_.addRange(range);
+      this.updateContents_();
+    },
+
+    computeBrushRangeFromIndices: function(indexA, indexB) {
+      var r = new tr.b.Range();
+      var leftIndex = Math.min(indexA, indexB);
+      var rightIndex = Math.max(indexA, indexB);
+      leftIndex = Math.max(0, leftIndex);
+      rightIndex = Math.min(this.data_.length - 1, rightIndex);
+      r.addValue(this.data_[leftIndex].x -
+          getSampleWidth(this.data_, leftIndex, true));
+      r.addValue(this.data_[rightIndex].x +
+          getSampleWidth(this.data_, rightIndex, false));
+      return r;
+    },
+
+    getLegendKeys_: function() {
+      if (this.seriesKeys_ &&
+          this.seriesKeys_.length > 1)
+        return this.seriesKeys_.slice();
+      return [];
+    },
+
+    getSeriesKeys_: function() {
+      if (this.data_ === undefined)
+        return undefined;
+
+      // Accumulate the keys on each data point.
+      var keySet = {};
+      this.data_.forEach(function(datum) {
+        if (datum.x === undefined)
+          throw new Error('Elements must have "x" fields.');
+
+        Object.keys(datum).forEach(function(key) {
+          // Don't count 'x': it's the domain, not an actual series.
+          if (key === 'x')
+            return;
+
+          keySet[key] = true;
+        });
+      });
+
+      return Object.keys(keySet);
+    },
+
+    updateScales_: function(width, height) {
+      if (this.data_ === undefined)
+        return;
+
+      // X.
+      this.xScale_.range([0, width]);
+      this.xScale_.domain(d3.extent(this.data_, function(d) { return d.x; }));
+
+      // Y.
+      var yRange = new tr.b.Range();
+      this.data_.forEach(function(datum) {
+        this.seriesKeys_.forEach(function(key) {
+          // Allow for sparse data
+          if (datum[key] !== undefined)
+            yRange.addValue(datum[key]);
+        });
+      }, this);
+
+      this.yScale_.range([height, 0]);
+      this.yScale_.domain([yRange.min, yRange.max]);
+    },
+
+    updateContents_: function() {
+      ChartBase.prototype.updateContents_.call(this);
+      if (!this.data_)
+        return;
+
+      var chartAreaSel = d3.select(this.chartAreaElement);
+
+      var brushes = this.brushedRange_.isEmpty ? [] : [this.brushedRange_];
+
+      var brushRectsSel = chartAreaSel.select('#brushes')
+          .selectAll('rect').data(brushes);
+      brushRectsSel.enter()
+          .append('rect');
+      brushRectsSel.exit().remove();
+      brushRectsSel
+        .attr('x', function(d) {
+            return this.xScale_(d.min);
+          }.bind(this))
+        .attr('y', 0)
+        .attr('width', function(d) {
+            return this.xScale_(d.max) - this.xScale_(d.min);
+          }.bind(this))
+        .attr('height', this.chartAreaSize.height);
+
+      var dataBySeriesKey = this.getDataBySeriesKey_();
+
+      var seriesSel = chartAreaSel.select('#series');
+      var pathsSel = seriesSel.selectAll('path').data(this.seriesKeys_);
+      pathsSel.enter()
+          .append('path')
+          .attr('class', 'line')
+          .style('stroke', function(key) {
+            return getColorOfKey(key);
+          })
+          .attr('d', function(key) {
+            var line = d3.svg.line()
+              .x(function(d) { return this.xScale_(d.x); }.bind(this))
+              .y(function(d) { return this.yScale_(d[key]); }.bind(this));
+            return line(dataBySeriesKey[key]);
+          }.bind(this));
+      pathsSel.exit().remove();
+    },
+
+    /**
+     * Returns a map of series key to the data for that series.
+     *
+     * Example:
+     * // returns {y: [{x: 1, y: 1}, {x: 3, y: 3}], z: [{x: 2, z: 2}]}
+     * this.data_ = [{x: 1, y: 1}, {x: 2, z: 2}, {x: 3, y: 3}];
+     * this.getDataBySeriesKey_();
+     * @return {Object} A map of series data by series key.
+     */
+    getDataBySeriesKey_: function() {
+      var dataBySeriesKey = {};
+      this.seriesKeys_.forEach(function(seriesKey) {
+        dataBySeriesKey[seriesKey] = [];
+      });
+
+      this.data_.forEach(function(multiSeriesDatum) {
+        var x = multiSeriesDatum.x;
+
+        d3.keys(multiSeriesDatum).forEach(function(seriesKey) {
+          // Skip 'x' - it's not a series
+          if (seriesKey === 'x')
+            return;
+
+          if (multiSeriesDatum[seriesKey] === undefined)
+            return;
+
+          var singleSeriesDatum = {x: x};
+          singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];
+          dataBySeriesKey[seriesKey].push(singleSeriesDatum);
+        });
+      });
+
+      return dataBySeriesKey;
+    },
+
+    getDataIndexAtClientPoint_: function(clientX, clientY, clipToY) {
+      var rect = this.getBoundingClientRect();
+      var margin = this.margin;
+      var chartAreaSize = this.chartAreaSize;
+
+      var x = clientX - rect.left - margin.left;
+      var y = clientY - rect.top - margin.top;
+
+      // Don't check width: let people select the left- and right-most data
+      // points.
+      if (clipToY) {
+        if (y < 0 ||
+            y >= chartAreaSize.height)
+          return undefined;
+      }
+
+      var dataX = this.xScale_.invert(x);
+
+      var index;
+      if (this.data_) {
+        var bisect = d3.bisector(function(d) { return d.x; }).right;
+        index = bisect(this.data_, dataX) - 1;
+      }
+
+      return index;
+    },
+
+    onMouseDown_: function(e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, true);
+
+      if (index !== undefined) {
+        tr.ui.b.trackMouseMovesUntilMouseUp(
+            this.onMouseMove_.bind(this, e.button),
+            this.onMouseUp_.bind(this, e.button));
+      }
+      e.preventDefault();
+      e.stopPropagation();
+
+      var event = new tr.b.Event('item-mousedown');
+      event.data = this.data_[index];
+      event.index = index;
+      event.buttons = e.buttons;
+      this.dispatchEvent(event);
+    },
+
+    onMouseMove_: function(button, e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
+      if (e.buttons !== undefined) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      var event = new tr.b.Event('item-mousemove');
+      event.data = this.data_[index];
+      event.index = index;
+      event.button = button;
+      this.dispatchEvent(event);
+    },
+
+    onMouseUp_: function(button, e) {
+      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
+      e.preventDefault();
+      e.stopPropagation();
+
+      var event = new tr.b.Event('item-mouseup');
+      event.data = this.data_[index];
+      event.index = index;
+      event.button = button;
+      this.dispatchEvent(event);
+    }
+  };
+
+  return {
+    LineChart: LineChart
+  };
+});
+</script>

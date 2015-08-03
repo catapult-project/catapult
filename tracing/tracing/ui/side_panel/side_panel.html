@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/ui.html">
+
+<polymer-element name='tr-ui-side-panel'>
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.objectInstance_ = undefined;
+    },
+
+    get rangeOfInterest() {
+      throw new Error('Not implemented');
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+      throw new Error('Not implemented');
+    },
+
+    get selection() {
+      throw new Error('Not implemented');
+    },
+
+    set selection(selection) {
+      throw new Error('Not implemented');
+    },
+
+    get model() {
+      throw new Error('Not implemented');
+    },
+
+    set model(model) {
+      throw new Error('Not implemented');
+    },
+
+    get listeningToKeys() {
+      throw new Error('Not implemented');
+    },
+
+    supportsModel: function(m) {
+      throw new Error('Not implemented');
+    }
+  });
+  </script>
+</polymer-element>

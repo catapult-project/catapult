@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-multi-async-slice-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-a-multi-event-sub-view id="content"></tr-ui-a-multi-event-sub-view>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    get selection() {
+      return this.$.content.selection;
+    },
+
+    set selection(selection) {
+      this.$.content.selection = selection;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.$.content.selection)
+        return undefined;
+      var selection = new tr.model.EventSet();
+      this.$.content.selection.forEach(function(asyncEvent) {
+        if (!asyncEvent.associatedEvents)
+          return;
+        asyncEvent.associatedEvents.forEach(function(event) {
+          selection.push(event);
+        });
+      });
+      if (selection.length)
+        return selection;
+      return undefined;
+    }
+  });
+  </script>
+</polymer-element>

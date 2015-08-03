@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import"
+      href="/ui/extras/about_tracing/mock_tracing_controller_client.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/ui/extras/about_tracing/profiling_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var testData = [
+    {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
+    {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
+    {name: 'b', args: {}, pid: 52, ts: 32000, cat: 'foo', tid: 53, ph: 'B'},
+    {name: 'b', args: {}, pid: 52, ts: 54000, cat: 'foo', tid: 53, ph: 'E'}
+  ];
+
+  var monitoringOptions = {
+    isMonitoring: false,
+    categoryFilter: '*',
+    useSystemTracing: false,
+    useContinuousTracing: false,
+    useSampling: false
+  };
+
+  var ProfilingView = tr.ui.e.about_tracing.ProfilingView;
+
+  test('recording', function() {
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+    mock.allowLooping = true;
+    mock.expectRequest('getMonitoringStatus', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
+    mock.expectRequest('endRecording', function() {
+      return '';
+    });
+    mock.expectRequest('getCategories', function() {
+      return ['a', 'b', 'c'];
+    });
+    mock.expectRequest('beginRecording', function(data) {
+      return '';
+    });
+    mock.expectRequest('endRecording', function(data) {
+      return JSON.stringify(testData);
+    });
+
+    var view = new ProfilingView(mock);
+    view.style.height = '400px';
+    view.style.border = '1px solid black';
+    this.addHTMLOutput(view);
+
+    return new Promise(function(resolve, reject) {
+      var recordingPromise = view.beginRecording();
+
+      var didAbort = false;
+      function pressRecord() {
+        if (didAbort)
+          return;
+        recordingPromise.selectionDlg.clickRecordButton();
+        setTimeout(pressStop, 60);
+      }
+      function pressStop() {
+        recordingPromise.progressDlg.clickStopButton();
+      }
+      setTimeout(pressRecord, 60);
+      recordingPromise.then(
+          function() {
+            resolve();
+          },
+          function(err) {
+            didAbort = true;
+            reject(err);
+          });
+    });
+  });
+
+  test('monitoring', function() {
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+    mock.allowLooping = true;
+    mock.expectRequest('getMonitoringStatus', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
+    mock.expectRequest('beginMonitoring', function(data) {
+      return '';
+    });
+    mock.expectRequest('captureMonitoring', function(data) {
+      return JSON.stringify(testData);
+    });
+    mock.expectRequest('endMonitoring', function(data) {
+      return '';
+    });
+
+    var view = new ProfilingView(mock);
+    view.style.height = '400px';
+    view.style.border = '1px solid black';
+    this.addHTMLOutput(view);
+
+    return new Promise(function(resolve, reject) {
+      assert.isFalse(view.monitorCheckbox_.checked);
+
+      function beginMonitoring() {
+        // Since we don't fall back to TracingController when testing,
+        // we cannot rely on TracingController to invoke a callback to change
+        // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
+        view.onMonitoringStateChanged_(true);
+        assert.isTrue(view.monitorCheckbox_.checked);
+        setTimeout(captureMonitoring, 60);
+      }
+
+      function captureMonitoring() {
+        assert.isTrue(view.monitorCheckbox_.checked);
+        view.captureButton_.click();
+        setTimeout(endMonitoring, 60);
+      }
+
+      function endMonitoring() {
+        assert.isTrue(view.monitorCheckbox_.checked);
+        view.monitorCheckbox_.click();
+        assert.isFalse(view.monitorCheckbox_.checked);
+      }
+
+      var monitoringPromise = view.beginMonitoring();
+      setTimeout(beginMonitoring, 60);
+
+      monitoringPromise.then(resolve, reject);
+    });
+  });
+
+  test('upload_compressed', function() {
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+    mock.allowLooping = true;
+    mock.expectRequest('getMonitoringStatus', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
+    var view = new ProfilingView(mock);
+    this.addHTMLOutput(view);
+    var uploadButton = view.uploadButton_;
+    assert.isNotNull(uploadButton);
+    assert.isTrue(uploadButton.disabled);
+    assert.isNull(view.uploadOverlay_);
+
+    view.setActiveTrace('testFile.gz', []);
+
+    var original_data = 'dGVzdAAA';
+    var decoded_size = tr.b.Base64.getDecodedBufferLength(original_data);
+    var buffer = new ArrayBuffer(decoded_size);
+    tr.b.Base64.DecodeToTypedArray(original_data, new DataView(buffer));
+    view.activeTrace_.data = buffer;
+    assert.isFalse(uploadButton.disabled);
+
+    var overlay = null;
+    var clickUploadAndVerify = function() {
+      view.onUploadClicked_();
+      assert.isNotNull(view.uploadOverlay_);
+      assert.isTrue(view.uploadOverlay_.visible);
+      overlay = view.uploadOverlay_;
+      assert.notEqual(view.uploadOverlay_.buttons.style.display, 'none');
+      assert.equal(view.uploadOverlay_.buttons.childNodes.length, 2);
+    };
+    clickUploadAndVerify();
+
+    var cancelButton = view.uploadOverlay_.buttons.lastChild;
+    assert.equal(cancelButton.textContent, 'Cancel');
+    cancelButton.click();
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
+
+    clickUploadAndVerify();
+    var okButton = view.uploadOverlay_.buttons.firstChild;
+    assert.equal(okButton.textContent, 'Ok');
+    var commandSent = null;
+    var dataSent = null;
+    chrome.send = function(command, data) {
+      commandSent = command;
+      dataSent = data;
+    };
+    okButton.click();
+    assert.equal(commandSent, 'doUploadBase64');
+    assert.equal(dataSent[0], original_data);
+
+    assert.isTrue(view.uploadOverlay_.visible);
+    overlay = view.uploadOverlay_;
+    assert.equal(view.uploadOverlay_.buttons.childNodes.length, 1);
+    var closeButton = view.uploadOverlay_.buttons.childNodes[0];
+    assert.equal(closeButton.textContent, 'Close');
+    closeButton.click();
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
+  });
+
+  test('upload', function() {
+    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+    mock.allowLooping = true;
+    mock.expectRequest('getMonitoringStatus', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
+    var view = new ProfilingView(mock);
+    this.addHTMLOutput(view);
+    var uploadButton = view.uploadButton_;
+    assert.isNotNull(uploadButton);
+    assert.isTrue(uploadButton.disabled);
+    assert.isNull(view.uploadOverlay_);
+
+    view.setActiveTrace('testFile', []);
+    view.activeTrace_.data = ['t', 'e', 's', 't'];
+    assert.isFalse(uploadButton.disabled);
+
+    var overlay = null;
+    var clickUploadAndVerify = function() {
+      view.onUploadClicked_();
+      assert.isNotNull(view.uploadOverlay_);
+      assert.isTrue(view.uploadOverlay_.visible);
+      overlay = view.uploadOverlay_;
+      assert.notEqual(view.uploadOverlay_.buttons.style.display, 'none');
+      assert.equal(view.uploadOverlay_.buttons.childNodes.length, 2);
+    };
+    clickUploadAndVerify();
+
+    var cancelButton = view.uploadOverlay_.buttons.lastChild;
+    assert.equal(cancelButton.textContent, 'Cancel');
+    cancelButton.click();
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
+
+    clickUploadAndVerify();
+    var okButton = view.uploadOverlay_.buttons.firstChild;
+    assert.equal(okButton.textContent, 'Ok');
+    var commandSent = null;
+    var dataSent = null;
+    chrome.send = function(command, data) {
+      commandSent = command;
+      dataSent = data;
+    };
+    okButton.click();
+    assert.equal(commandSent, 'doUpload');
+    assert.equal(dataSent[0], view.activeTrace_.data);
+
+    assert.isTrue(view.uploadOverlay_.visible);
+    overlay = view.uploadOverlay_;
+    assert.equal(view.uploadOverlay_.buttons.childNodes.length, 1);
+    var closeButton = view.uploadOverlay_.buttons.childNodes[0];
+    assert.equal(closeButton.textContent, 'Close');
+    closeButton.click();
+    assert.isNull(view.uploadOverlay_);
+    assert.isFalse(overlay.visible);
+  });
+});
+</script>
+

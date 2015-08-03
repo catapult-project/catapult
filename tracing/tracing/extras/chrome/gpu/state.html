@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/model/object_instance.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.gpu', function() {
+  var ObjectSnapshot = tr.model.ObjectSnapshot;
+
+  /**
+   * @constructor
+   */
+  function StateSnapshot() {
+    ObjectSnapshot.apply(this, arguments);
+  }
+
+  StateSnapshot.prototype = {
+    __proto__: ObjectSnapshot.prototype,
+
+    preInitialize: function() {
+      this.screenshot_ = undefined;
+    },
+
+    initialize: function() {
+      if (this.args.screenshot)
+        this.screenshot_ = this.args.screenshot;
+    },
+
+    /**
+     * @return {String} a base64 encoded screenshot if available.
+     */
+    get screenshot() {
+      return this.screenshot_;
+    }
+  };
+
+  ObjectSnapshot.register(
+    StateSnapshot,
+    {typeName: 'gpu::State'});
+
+  return {
+    StateSnapshot: StateSnapshot
+  };
+});
+</script>

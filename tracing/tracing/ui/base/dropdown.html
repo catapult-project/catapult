@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<polymer-element name="tr-ui-b-dropdown">
+  <template>
+    <style>
+    :host {
+      position: relative;
+      display: flex;
+    }
+    #outer {
+      display: flex;
+      flex: 0 0 auto;
+      padding: 1px 4px 1px 4px;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+
+    #state {
+      display: flex;
+      flex: 0 0 auto;
+      margin-left: 2px;
+      margin-right: 0px;
+      flex: 0 0 auto;
+    }
+
+    #icon {
+      display: flex;
+      flex: 0 0 auto;
+      flex: 0 0 auto;
+    }
+    dialog {
+      position: absolute;
+      padding: 0;
+      border: 0;
+      margin: 0;
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,.05);
+    }
+
+    #dialog-frame {
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      padding: 6px;
+      border: 1px solid black;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+    </style>
+    <tr-ui-b-toolbar-button id="outer"
+        on-keydown="{{ onOuterKeyDown_ }}"
+        on-click="{{ onOuterClick_ }}">
+      <div id="icon">&#9881;</div>
+      <div id="state">&#9662;</div>
+    </tr-ui-b-toolbar-button>
+    <dialog id="dialog"
+        on-click="{{ onDialogClick_ }}"
+        on-cancel="{{ onDialogCancel_ }}">
+      <div id="dialog-frame">
+        <content></content>
+      </div>
+    </dialog>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.$.outer.tabIndex = 0;
+    },
+
+    get iconElement() {
+      return this.$.icon;
+    },
+
+    onOuterKeyDown_: function(e) {
+      if (e.keyCode === ' '.charCodeAt(0)) {
+        this.toggle_();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+
+    onOuterClick_: function(e) {
+      var or = this.$.outer.getBoundingClientRect();
+      var inside = true;
+      inside &= e.clientX >= or.left;
+      inside &= e.clientX < or.right;
+      inside &= e.clientY >= or.top;
+      inside &= e.clientY < or.bottom;
+      if (!inside)
+        return;
+
+      e.preventDefault();
+      this.toggle_();
+    },
+
+    toggle_: function() {
+      if (!this.isOpen)
+        this.show();
+      else
+        this.close();
+    },
+
+    show: function() {
+      if (this.isOpen)
+        return;
+
+      this.$.outer.classList.add('open');
+
+      var ddr = this.$.outer.getBoundingClientRect();
+      var rW = Math.max(ddr.width, 150);
+      this.$.dialog.style.minWidth = rW + 'px';
+      this.$.dialog.showModal();
+
+      var ddw = this.$.outer.getBoundingClientRect().width;
+      var w = this.$.dialog.getBoundingClientRect().width;
+      this.$.dialog.style.top = ddr.bottom - 1 + 'px';
+      this.$.dialog.style.left = ddr.left + 'px';
+    },
+
+    onDialogClick_: function(e) {
+      if (!this.isOpen)
+        return;
+      if (e.srcElement !== this.$.dialog)
+        return;
+      e.preventDefault();
+      this.close();
+    },
+
+    onDialogCancel_: function(e) {
+      e.preventDefault();
+      this.close();
+    },
+
+    close: function() {
+      if (!this.isOpen)
+        return;
+      this.$.dialog.close();
+      this.$.outer.classList.remove('open');
+      this.$.outer.focus();
+    },
+
+    get isOpen() {
+      return this.$.dialog.hasAttribute('open');
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newModel = tr.c.test_utils.newModel;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+
+  test('eventSetObject', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 5, {}, 1));
+
+    var eventSet = new tr.model.EventSet();
+    eventSet.push(t1.sliceGroup.slices[0]);
+
+    assert.equal(eventSet.bounds.min, 1);
+    assert.equal(eventSet.bounds.max, 4);
+    assert.equal(eventSet[0], t1.sliceGroup.slices[0]);
+
+    eventSet.push(t1.sliceGroup.slices[1]);
+    assert.equal(eventSet.bounds.min, 1);
+    assert.equal(eventSet.bounds.max, 6);
+    assert.equal(eventSet[1], t1.sliceGroup.slices[1]);
+
+    eventSet.clear();
+    assert.equal(eventSet.length, 0);
+  });
+
+  test('uniqueContents', function() {
+    var sample1 = {guid: 1};
+    var sample2 = {guid: 2};
+
+    var eventSet = new tr.model.EventSet();
+
+    eventSet.push(sample1);
+    eventSet.push(sample2);
+    assert.equal(eventSet.length, 2);
+
+    eventSet.push(sample1);
+    assert.equal(eventSet.length, 2);
+  });
+
+  test('userFriendlyNameSingular', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    var selection = new tr.model.EventSet(t1.sliceGroup.slices[0]);
+    assert.isDefined(selection.userFriendlyName);
+  });
+
+  test('userFriendlyNamePlural', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
+    var eventSet = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1]
+    ]);
+    assert.isDefined(eventSet.userFriendlyName);
+  });
+
+  test('userFriendlyNameMixedPlural', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
+
+    var i10 = new tr.model.ObjectInstance(
+    {}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    var eventSet = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        s10
+    ]);
+    assert.isDefined(eventSet.userFriendlyName);
+  });
+
+  test('groupEventsByTitle', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'b', 0, 3, {}, 3));
+    var eventSet = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[2]
+    ]);
+
+    var eventsByTitle = eventSet.getEventsOrganizedByTitle();
+    assert.equal(2, tr.b.dictionaryLength(eventsByTitle));
+    assert.sameMembers(eventsByTitle['a'],
+                 [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
+    assert.sameMembers(eventsByTitle['b'],
+                 [t1.sliceGroup.slices[2]]);
+  });
+
+  test('intersectionIsEmpty1', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'b', 0, 3, {}, 3));
+
+    var set1 = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[2]
+    ]);
+    var set2 = new tr.model.EventSet([
+        t1.sliceGroup.slices[2]
+    ]);
+    assert.isFalse(set1.intersectionIsEmpty(set2));
+  });
+
+  test('intersectionIsNonEmpty2', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'b', 0, 3, {}, 3));
+
+    var set1 = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1]
+    ]);
+    var set2 = new tr.model.EventSet([
+        t1.sliceGroup.slices[2]
+    ]);
+    assert.isTrue(set1.intersectionIsEmpty(set2));
+  });
+
+  test('equals', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'b', 0, 2, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'c', 0, 3, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'd', 0, 4, {}, 5));
+
+    var eventSet1 = new tr.model.EventSet([
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[2]
+    ]);
+    var eventSet2 = new tr.model.EventSet([
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[2]
+    ]);
+    var eventSet3 = new tr.model.EventSet([
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[0],
+        t1.sliceGroup.slices[3]
+    ]);
+    var eventSet4 = new tr.model.EventSet([
+        t1.sliceGroup.slices[1],
+        t1.sliceGroup.slices[0]
+    ]);
+    assert.isTrue(eventSet1.equals(eventSet2));
+    assert.isFalse(eventSet1.equals(eventSet3));
+    assert.isFalse(eventSet1.equals(eventSet4));
+  });
+
+  test('filter', function() {
+    var m = newModel(function(m) {
+
+      var p = m.getOrCreateProcess(1);
+      var t = p.getOrCreateThread(1);
+
+      m.s0 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's0', start: 0.0, duration: 1.0 }));
+      m.s1 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's1', start: 0.0, duration: 1.0 }));
+      m.s2 = t.sliceGroup.pushSlice(newSliceEx(
+          { title: 's2', start: 0.0, duration: 1.0 }));
+
+      m.eventSet = new tr.model.EventSet([m.s0, m.s1, m.s2]);
+    });
+
+    var res = m.eventSet.filter(function(slice) {
+      return slice.title === 's0';
+    });
+
+    assert.isTrue(res.equals(new tr.model.EventSet([m.s0])));
+  });
+
+  test('toArray', function() {
+     var samples = [
+       {guid: 1},
+       {guid: 2}
+     ];
+     var eventSet = new tr.model.EventSet(samples);
+
+     assert.deepEqual(eventSet.toArray(), samples);
+   });
+});
+</script>

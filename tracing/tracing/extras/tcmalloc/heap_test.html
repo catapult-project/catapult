@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/tcmalloc/heap.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var HeapSnapshot = tr.e.tcmalloc.HeapSnapshot;
+
+  // Tests total allocation count.
+  test('totals', function() {
+    var snapshot = new HeapSnapshot({}, 1, [
+      {
+        'current_allocs': 10,
+        'total_allocs': 100,
+        'current_bytes': 10000,
+        'trace': '',
+        'total_bytes': 100000
+      },
+      {
+        'current_allocs': 2,
+        'total_allocs': 22,
+        'current_bytes': 200,
+        'trace': 'TestObject::TestMethod ',
+        'total_bytes': 2200
+      }
+    ]);
+    snapshot.preInitialize();
+    snapshot.initialize();
+
+    // Base class got the timestamp.
+    assert.equal(snapshot.ts, 1);
+
+    // The first entry in the list is for totals.
+    assert.equal(snapshot.total_.currentAllocs, 10);
+    assert.equal(snapshot.total_.currentBytes, 10000);
+  });
+
+  // Tests multi-level trace stacks.
+  test('multiLevel', function() {
+    var snapshot = new HeapSnapshot({}, 1, [
+      {
+        'current_allocs': 10,
+        'total_allocs': 100,
+        'current_bytes': 10000,
+        'trace': '',
+        'total_bytes': 100000
+      },
+      {
+        'current_allocs': 2,
+        'total_allocs': 22,
+        'current_bytes': 200,
+        'trace': 'TestObject::TestMethod ',
+        'total_bytes': 2200
+      },
+      {
+        'current_allocs': 3,
+        'total_allocs': 33,
+        'current_bytes': 300,
+        'trace': 'TestObject2::TestMethod2  ',
+        'total_bytes': 3300
+      },
+      {
+        'current_allocs': 5,
+        'total_allocs': 55,
+        'current_bytes': 500,
+        'trace': 'TestObject2::TestMethod2 TestObject3::TestMethod3 ',
+        'total_bytes': 5500
+      }
+    ]);
+    snapshot.preInitialize();
+    snapshot.initialize();
+
+    // Our heap has two top-level stacks.
+    var heap = snapshot.heap_;
+    var childKeys = Object.keys(heap.children);
+    assert.equal(childKeys.length, 2);
+    // Both methods exist as children.
+    assert.notEqual(childKeys.indexOf('TestObject::TestMethod'), -1);
+    assert.notEqual(childKeys.indexOf('TestObject2::TestMethod2'), -1);
+
+    // Verify the first trace entry stack.
+    var trace = heap.children['TestObject::TestMethod'];
+    assert.equal(trace.currentAllocs, 2);
+    assert.equal(trace.currentBytes, 200);
+    // One child for "(here)".
+    assert.equal(Object.keys(trace.children).length, 1);
+    assert.isDefined(trace.children['']);
+
+    // Verify the second trace entry stack.
+    trace = heap.children['TestObject2::TestMethod2'];
+    // Memory should have summed up.
+    assert.equal(trace.currentAllocs, 8);
+    assert.equal(trace.currentBytes, 800);
+    // Two children, "(here)" and another stack.
+    assert.equal(Object.keys(trace.children).length, 2);
+    assert.isDefined(trace.children['TestObject3::TestMethod3']);
+    assert.isDefined(trace.children['']);
+
+    trace = trace.children['TestObject3::TestMethod3'];
+    assert.equal(trace.currentAllocs, 5);
+    assert.equal(trace.currentBytes, 500);
+    assert.equal(Object.keys(trace.children).length, 1);
+  });
+});
+</script>

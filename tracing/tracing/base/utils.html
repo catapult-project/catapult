@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+  /**
+   * Adds a {@code getInstance} static method that always return the same
+   * instance object.
+   * @param {!Function} ctor The constructor for the class to add the static
+   *     method to.
+   */
+  function addSingletonGetter(ctor) {
+    ctor.getInstance = function() {
+      return ctor.instance_ || (ctor.instance_ = new ctor());
+    };
+  }
+
+  function normalizeException(e) {
+    if (e === undefined || e === null) {
+      return {
+        message: 'Unknown: null or undefined exception',
+        stack: 'Unknown'
+      };
+    }
+
+    if (typeof(e) == 'string') {
+      return {
+        message: e,
+        stack: [e]
+      };
+    }
+
+    var msg = e.message ? e.message : 'Unknown';
+    return {
+      message: msg,
+      stack: e.stack ? e.stack : [msg]
+    };
+  }
+
+  function stackTrace() {
+    var stack = new Error().stack + '';
+    stack = stack.split('\n');
+    return stack.slice(2);
+  }
+
+  function getUsingPath(path, from_dict) {
+    var parts = path.split('.');
+    var cur = from_dict;
+
+    for (var part; parts.length && (part = parts.shift());) {
+      if (!parts.length) {
+        return cur[part];
+      } else if (part in cur) {
+        cur = cur[part];
+      } else {
+        return undefined;
+      }
+    }
+    return undefined;
+  }
+
+  return {
+    addSingletonGetter: addSingletonGetter,
+
+    normalizeException: normalizeException,
+    stackTrace: stackTrace,
+
+    getUsingPath: getUsingPath
+  };
+});
+</script>

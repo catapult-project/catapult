@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/counter.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Counter = tr.model.Counter;
+  var CounterSeries = tr.model.CounterSeries;
+  var CounterSample = tr.model.CounterSample;
+
+  test('groupByTimestamp', function() {
+    var counter = new Counter();
+    var s0 = counter.addSeries(new CounterSeries('x', 0));
+    var s1 = counter.addSeries(new CounterSeries('y', 1));
+
+    var s0_0 = s0.addCounterSample(0, 100);
+    var s0_1 = s1.addCounterSample(0, 200);
+    var s1_0 = s0.addCounterSample(1, 100);
+    var s1_1 = s1.addCounterSample(1, 200);
+
+    var groups = CounterSample.groupByTimestamp([s0_1, s0_0,
+                                                 s1_1, s1_0]);
+    assert.equal(groups.length, 2);
+    assert.deepEqual(groups[0], [s0_0, s0_1]);
+    assert.deepEqual(groups[1], [s1_0, s1_1]);
+  });
+
+  test('getSampleIndex', function() {
+    var ctr = new Counter(null, 0, '', 'myCounter');
+    var s0 = new CounterSeries('a', 0);
+    ctr.addSeries(s0);
+
+    var s0_0 = s0.addCounterSample(0, 0);
+    var s0_1 = s0.addCounterSample(1, 100);
+    assert.equal(s0_0.getSampleIndex(), 0);
+    assert.equal(s0_1.getSampleIndex(), 1);
+  });
+});
+</script>
+

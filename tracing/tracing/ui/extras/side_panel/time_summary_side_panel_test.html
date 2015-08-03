@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/extras/side_panel/time_summary_side_panel.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+
+  function createModel(opt_options) {
+    var options = opt_options || {};
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+      if (options.provideSoftwareMeasuredCpuCount)
+        m.kernel.softwareMeasuredCpuCount = 2;
+
+      var browserProcess = m.getOrCreateProcess(1);
+      var browserMain = browserProcess.getOrCreateThread(2);
+      browserMain.name = 'CrBrowserMain';
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
+      browserMain.sliceGroup.endSlice(10, 9);
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 20, undefined, 10);
+      browserMain.sliceGroup.endSlice(30, 20);
+
+      var rendererProcess = m.getOrCreateProcess(4);
+      var rendererMain = rendererProcess.getOrCreateThread(5);
+      rendererMain.name = 'CrRendererMain';
+      rendererMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
+      rendererMain.sliceGroup.endSlice(30, 25);
+      rendererMain.sliceGroup.beginSlice('cat', 'Task', 40, undefined, 40);
+      rendererMain.sliceGroup.endSlice(60, 50);
+    });
+    return m;
+  }
+
+  test('group', function() {
+    var ts = document.createElement('tr-ui-e-s-time-summary-side-panel');
+    var m = createModel();
+    var group = ts.generateResultsForGroup(m, 'foo');
+    group.appendThreadSlices(m.bounds, m.processes[1].threads[2]);
+    assert.equal(group.wallTime, 20);
+    assert.equal(group.cpuTime, 19);
+  });
+
+  test('trim', function() {
+    var groupData = [
+      {
+        value: 2.854999999999997,
+        label: '156959'
+      },
+      {
+        value: 9.948999999999998,
+        label: '16131'
+      },
+      {
+        value: 42.314000000000725,
+        label: '51511'
+      },
+      {
+        value: 31.06900000000028,
+        label: 'AudioOutputDevice'
+      },
+      {
+        value: 1.418,
+        label: 'BrowserBlockingWorker2/50951'
+      },
+      {
+        value: 0.044,
+        label: 'BrowserBlockingWorker3/50695'
+      },
+      {
+        value: 18.52599999999993,
+        label: 'Chrome_ChildIOThread'
+      },
+      {
+        value: 2.888,
+        label: 'Chrome_FileThread'
+      },
+      {
+        value: 0.067,
+        label: 'Chrome_HistoryThread'
+      },
+      {
+        value: 25.421000000000046,
+        label: 'Chrome_IOThread'
+      },
+      {
+        value: 0.019,
+        label: 'Chrome_ProcessLauncherThread'
+      },
+      {
+        value: 643.087999999995,
+        label: 'Compositor'
+      },
+      {
+        value: 4.049999999999973,
+        label: 'CompositorRasterWorker1/22031'
+      },
+      {
+        value: 50.040000000000106,
+        label: 'CrBrowserMain'
+      },
+      {
+        value: 1256.5130000000042,
+        label: 'CrGpuMain'
+      },
+      {
+        value: 5502.19499999999,
+        label: 'CrRendererMain'
+      },
+      {
+        value: 15.552999999999862,
+        label: 'FFmpegDemuxer'
+      },
+      {
+        value: 63.706000000001524,
+        label: 'Media'
+      },
+      {
+        value: 2.7419999999999987,
+        label: 'PowerSaveBlocker'
+      },
+      {
+        value: 0.11500000000000005,
+        label: 'Watchdog'
+      }
+    ];
+
+    var ts = document.createElement('tr-ui-e-s-time-summary-side-panel');
+
+    var groups = [];
+    var m = new tr.Model();
+    m.importTraces([], false, false, function() {
+      var start = 0;
+      groupData.forEach(function(groupData) {
+        var group = ts.generateResultsForGroup(m, groupData.label);
+
+        var slice = newSliceNamed(groupData.label, start, groupData.value);
+        start += groupData.value;
+        group.allSlices.push(slice);
+        group.topLevelSlices.push(slice);
+
+        groups.push(group);
+      });
+    });
+
+    function getValueFromGroup(d) { return d.wallTime; }
+
+    var otherGroup = ts.generateResultsForGroup(m, 'Other');
+    var newGroups = ts.trimPieChartData(groups, otherGroup, getValueFromGroup);
+
+    // Visualize the data once its trimmed.
+    var ce = document.createElement('tr-ui-e-s-time-summary-side-panel');
+    var chart = ce.createPieChartFromResultGroups(
+        newGroups, 'Trimmed', getValueFromGroup);
+    this.addHTMLOutput(chart);
+    chart.setSize(chart.getMinSize());
+  });
+
+  test('basicInWallTimeMode', function() {
+    var m = createModel();
+
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
+    this.addHTMLOutput(panel);
+    panel.model = m;
+    panel.groupingUnit = 'Wall time';
+    panel.style.border = '1px solid black';
+  });
+
+  test('basicInCpuTimeModeButNoCpuData', function() {
+    var m = createModel();
+
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
+    this.addHTMLOutput(panel);
+    panel.model = m;
+    panel.groupingUnit = 'CPU time';
+    panel.style.border = '1px solid black';
+  });
+
+  test('basicInCpuTimeModeAndCpuData', function() {
+    var m = createModel({
+      provideSoftwareMeasuredCpuCount: true
+    });
+
+    var panel = document.createElement('tr-ui-e-s-time-summary-side-panel');
+    this.addHTMLOutput(panel);
+    panel.model = m;
+    panel.groupingUnit = 'CPU time';
+    panel.style.border = '1px solid black';
+  });
+});
+</script>

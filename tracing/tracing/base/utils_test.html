@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('getUsingPath', function() {
+    var z = tr.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
+    assert.equal(z, 3);
+
+    var w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
+    assert.isUndefined(w);
+  });
+});
+</script>

@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/utils.html">
+
+<!--
+@fileoverview A container that constructs a table-like container.
+-->
+<polymer-element name="tr-ui-b-table">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      table {
+        font-size: 12px;
+
+        flex: 1 1 auto;
+        align-self: stretch;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-width: 0;
+        -webkit-user-select: initial;
+      }
+
+      tr > td {
+        padding: 2px 4px 2px 4px;
+        vertical-align: text-top;
+      }
+
+      tr:focus,
+      td:focus {
+        outline: 1px dotted rgba(0,0,0,0.1);
+        outline-offset: 0;
+      }
+
+      button.toggle-button {
+        height: 15px;
+        line-height: 60%;
+        vertical-align: middle;
+        width: 100%;
+      }
+
+      button > * {
+        height: 15px;
+        vertical-align: middle;
+      }
+
+      td.button-column {
+        width: 30px;
+      }
+
+      table > thead > tr > td.sensitive:hover {
+        background-color: #fcfcfc;
+      }
+
+      table > thead > tr > td {
+        font-weight: bold;
+        text-align: left;
+
+        background-color: #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        border-top: 1px solid #ffffff;
+        border-bottom: 1px solid #aaa;
+      }
+
+      table > tfoot {
+        background-color: #eee;
+        font-weight: bold;
+      }
+
+      /* Selection. */
+      table > tbody.row-selection-mode > tr[selected],
+      table > tbody.cell-selection-mode > tr > td[selected] {
+        background-color: rgb(103, 199, 165);  /* turquoise */
+      }
+      table > tbody.cell-selection-mode.row-highlight-enabled >
+          tr.highlighted-row {
+        background-color: rgb(213, 236, 229);  /* light turquoise */
+      }
+
+      /* Hover. */
+      table > tbody.row-selection-mode >
+          tr:hover:not(.empty-row):not([selected]),
+      table > tbody.cell-selection-mode >
+          tr:not(.empty-row):not(.highlighted-row) >
+          td.supports-selection:hover:not([selected]),
+      table > tfoot > tr:hover {
+        background-color: #e6e6e6;  /* grey */
+      }
+      table > tbody.cell-selection-mode.row-highlight-enabled >
+          tr:hover:not(.empty-row):not(.highlighted-row) {
+        background-color: #f6f6f6;  /* light grey */
+      }
+
+      /* Hover on selected and highlighted elements. */
+      table > tbody.row-selection-mode > tr:hover[selected],
+      table > tbody.cell-selection-mode > tr > td:hover[selected],
+      table > tbody.cell-selection-mode > tr.highlighted-row > td:hover {
+        background-color: rgb(171, 217, 202);  /* semi-light turquoise */
+      }
+
+      table > tbody > tr.empty-row > td {
+        color: #666;
+        font-style: italic;
+        text-align: center;
+      }
+
+      table > tbody.has-footer > tr:last-child > td {
+        border-bottom: 1px solid #aaa;
+      }
+
+      table > tfoot > tr:first-child > td {
+        border-top: 1px solid #ffffff;
+      }
+
+      expand-button {
+        -webkit-user-select: none;
+        display: inline-block;
+        cursor: pointer;
+        font-size: 9px;
+        min-width: 8px;
+        max-width: 8px;
+      }
+
+      .button-expanded {
+        transform: rotate(90deg);
+      }
+    </style>
+    <table>
+      <thead id="head">
+      </thead>
+      <tbody id="body">
+      </tbody>
+      <tfoot id="foot">
+      </tfoot>
+    </table>
+  </template>
+  <script>
+  'use strict';
+  (function() {
+    var RIGHT_ARROW = String.fromCharCode(0x25b6);
+    var UNSORTED_ARROW = String.fromCharCode(0x25BF);
+    var ASCENDING_ARROW = String.fromCharCode(0x25B4);
+    var DESCENDING_ARROW = String.fromCharCode(0x25BE);
+    var BASIC_INDENTATION = 8;
+
+    Polymer({
+      created: function() {
+        this.supportsSelection_ = false;
+        this.cellSelectionMode_ = false;
+        this.selectedTableRowInfo_ = undefined;
+        this.selectedColumnIndex_ = undefined;
+
+        this.tableColumns_ = [];
+        this.tableRows_ = [];
+        this.tableRowsInfo_ = [];
+        this.tableFooterRows_ = [];
+        this.sortColumnIndex_ = undefined;
+        this.sortDescending_ = false;
+        this.columnsWithExpandButtons_ = [];
+        this.headerCells_ = [];
+        this.showHeader_ = true;
+        this.emptyValue_ = undefined;
+        this.subRowsPropertyName_ = 'subRows';
+      },
+
+      ready: function() {
+        this.$.body.addEventListener(
+            'keydown', this.onKeyDown_.bind(this), true);
+      },
+
+      clear: function() {
+        this.supportsSelection_ = false;
+        this.cellSelectionMode_ = false;
+        this.selectedTableRowInfo_ = undefined;
+        this.selectedColumnIndex_ = undefined;
+
+        this.textContent = '';
+        this.tableColumns_ = [];
+        this.tableRows_ = [];
+        this.tableRowsInfo_ = new WeakMap();
+        this.tableFooterRows_ = [];
+        this.tableFooterRowsInfo_ = new WeakMap();
+        this.sortColumnIndex_ = undefined;
+        this.sortDescending_ = false;
+        this.columnsWithExpandButtons_ = [];
+        this.headerCells_ = [];
+        this.subRowsPropertyName_ = 'subRows';
+      },
+
+      get showHeader() {
+        return this.showHeader_;
+      },
+
+      set showHeader(showHeader) {
+        this.showHeader_ = showHeader;
+        this.scheduleRebuildHeaders_();
+      },
+
+      set subRowsPropertyName(name) {
+        this.subRowsPropertyName_ = name;
+      },
+
+      get emptyValue() {
+        return this.emptyValue_;
+      },
+
+      set emptyValue(emptyValue) {
+        var previousEmptyValue = this.emptyValue_;
+        this.emptyValue_ = emptyValue;
+        if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue)
+          this.scheduleRebuildBody_();
+      },
+
+      /**
+       * Data objects should have the following fields:
+       *   mandatory: title, value
+       *   optional: width {string}, cmp {function}, colSpan {number},
+       *             showExpandButtons {boolean}, textAlign {string}
+       *
+       * @param {Array} columns An array of data objects.
+       */
+      set tableColumns(columns) {
+        // Figure out the columsn with expand buttons...
+        var columnsWithExpandButtons = [];
+        for (var i = 0; i < columns.length; i++) {
+          if (columns[i].showExpandButtons)
+            columnsWithExpandButtons.push(i);
+        }
+        if (columnsWithExpandButtons.length === 0) {
+          // First column if none have specified.
+          columnsWithExpandButtons = [0];
+        }
+
+        // Sanity check columns.
+        for (var i = 0; i < columns.length; i++) {
+          var colInfo = columns[i];
+          if (colInfo.width === undefined)
+            continue;
+
+          var hasExpandButton = columnsWithExpandButtons.indexOf(i) !== -1;
+
+          var w = colInfo.width;
+          if (w) {
+            if (/\d+px/.test(w)) {
+              continue;
+            } else if (/\d+%/.test(w)) {
+              if (hasExpandButton) {
+                throw new Error('Columns cannot be %-sized and host ' +
+                                ' an expand button');
+              }
+            } else {
+              throw new Error('Unrecognized width string');
+            }
+          }
+        }
+
+        // Commit the change.
+        this.tableColumns_ = columns;
+        this.headerCells_ = [];
+        this.columnsWithExpandButtons_ = columnsWithExpandButtons;
+        this.sortColumnIndex = undefined;
+        this.scheduleRebuildHeaders_();
+
+        // Blow away the table rows, too.
+        this.tableRows = this.tableRows_;
+      },
+
+      get tableColumns() {
+        return this.tableColumns_;
+      },
+
+      /**
+       * @param {Array} rows An array of 'row' objects with the following
+       * fields:
+       *   optional: subRows An array of objects that have the same 'row'
+       *                     structure. Set subRowsPropertyName to use an
+       *                     alternative field name.
+       */
+      set tableRows(rows) {
+        this.selectedTableRowInfo_ = undefined;
+        this.selectedColumnIndex_ = undefined;
+        this.maybeUpdateSelectedRow_();
+        this.tableRows_ = rows;
+        this.tableRowsInfo_ = new WeakMap();
+        this.scheduleRebuildBody_();
+      },
+
+      get tableRows() {
+        return this.tableRows_;
+      },
+
+      set footerRows(rows) {
+        this.tableFooterRows_ = rows;
+        this.tableFooterRowsInfo_ = new WeakMap();
+        this.scheduleRebuildFooter_();
+      },
+
+      get footerRows() {
+        return this.tableFooterRows_;
+      },
+
+      set sortColumnIndex(number) {
+        if (number === undefined) {
+          this.sortColumnIndex_ = undefined;
+          this.updateHeaderArrows_();
+          return;
+        }
+
+        if (this.tableColumns_.length <= number)
+          throw new Error('Column number ' + number + ' is out of bounds.');
+        if (!this.tableColumns_[number].cmp)
+          throw new Error('Column ' + number + ' does not have a comparator.');
+
+        this.sortColumnIndex_ = number;
+        this.updateHeaderArrows_();
+        this.scheduleRebuildBody_();
+      },
+
+      get sortColumnIndex() {
+        return this.sortColumnIndex_;
+      },
+
+      set sortDescending(value) {
+        var newValue = !!value;
+
+        if (newValue !== this.sortDescending_) {
+          this.sortDescending_ = newValue;
+          this.updateHeaderArrows_();
+          this.scheduleRebuildBody_();
+        }
+      },
+
+      get sortDescending() {
+        return this.sortDescending_;
+      },
+
+      updateHeaderArrows_: function() {
+        for (var i = 0; i < this.headerCells_.length; i++) {
+          if (!this.tableColumns_[i].cmp) {
+            this.headerCells_[i].sideContent = '';
+            continue;
+          }
+          if (i !== this.sortColumnIndex_) {
+            this.headerCells_[i].sideContent = UNSORTED_ARROW;
+            continue;
+          }
+          this.headerCells_[i].sideContent = this.sortDescending_ ?
+            DESCENDING_ARROW : ASCENDING_ARROW;
+        }
+      },
+
+      sortRows_: function(rows) {
+        rows.sort(function(rowA, rowB) {
+          if (this.sortDescending_)
+            return this.tableColumns_[this.sortColumnIndex_].cmp(
+                rowB.userRow, rowA.userRow);
+          return this.tableColumns_[this.sortColumnIndex_].cmp(
+                rowA.userRow, rowB.userRow);
+        }.bind(this));
+        // Sort expanded sub rows recursively.
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].isExpanded)
+            this.sortRows_(rows[i][this.subRowsPropertyName_]);
+        }
+      },
+
+      generateHeaderColumns_: function() {
+        this.headerCells_ = [];
+        this.$.head.textContent = '';
+        if (!this.showHeader_)
+          return;
+
+        var tr = this.appendNewElement_(this.$.head, 'tr');
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          var td = this.appendNewElement_(tr, 'td');
+
+          var headerCell = document.createElement('tr-ui-b-table-header-cell');
+
+          if (this.showHeader)
+            headerCell.cellTitle = this.tableColumns_[i].title;
+          else
+            headerCell.cellTitle = '';
+
+          // If the table can be sorted by this column, attach a tap callback
+          // to the column.
+          if (this.tableColumns_[i].cmp) {
+            td.classList.add('sensitive');
+            headerCell.tapCallback = this.createSortCallback_(i);
+            // Set arrow position, depending on the sortColumnIndex.
+            if (this.sortColumnIndex_ === i)
+              headerCell.sideContent = this.sortDescending_ ?
+                DESCENDING_ARROW : ASCENDING_ARROW;
+            else
+              headerCell.sideContent = UNSORTED_ARROW;
+          }
+
+          td.appendChild(headerCell);
+          this.headerCells_.push(headerCell);
+        }
+      },
+
+      applySizes_: function() {
+        if (this.tableRows_.length === 0 && !this.showHeader)
+          return;
+        var rowToRemoveSizing;
+        var rowToSize;
+        if (this.showHeader) {
+          rowToSize = this.$.head.children[0];
+          rowToRemoveSizing = this.$.body.children[0];
+        } else {
+          rowToSize = this.$.body.children[0];
+          rowToRemoveSizing = this.$.head.children[0];
+        }
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          if (rowToRemoveSizing && rowToRemoveSizing.children[i]) {
+            var tdToRemoveSizing = rowToRemoveSizing.children[i];
+            tdToRemoveSizing.style.minWidth = '';
+            tdToRemoveSizing.style.width = '';
+          }
+
+          // Apply sizing.
+          var td = rowToSize.children[i];
+
+          var delta;
+          if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
+            td.style.paddingLeft = BASIC_INDENTATION + 'px';
+            delta = BASIC_INDENTATION + 'px';
+          } else {
+            delta = undefined;
+          }
+
+          function calc(base, delta) {
+            if (delta)
+              return 'calc(' + base + ' - ' + delta + ')';
+            else
+              return base;
+          }
+
+          var w = this.tableColumns_[i].width;
+          if (w) {
+            if (/\d+px/.test(w)) {
+              td.style.minWidth = calc(w, delta);
+            } else if (/\d+%/.test(w)) {
+              td.style.width = w;
+            } else {
+              throw new Error('Unrecognized width string: ' + w);
+            }
+          }
+        }
+      },
+
+      createSortCallback_: function(columnNumber) {
+        return function() {
+          var previousIndex = this.sortColumnIndex;
+          this.sortColumnIndex = columnNumber;
+          if (previousIndex !== columnNumber)
+            this.sortDescending = false;
+          else
+            this.sortDescending = !this.sortDescending;
+        }.bind(this);
+      },
+
+      generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
+                                       indentation, lastAddedRow,
+                                       parentRowInfo) {
+        if (this.sortColumnIndex_ !== undefined &&
+            tableSection === this.$.body) {
+          userRows = userRows.slice(); // Don't mess with the input data.
+          userRows.sort(function(rowA, rowB) {
+            var c = this.tableColumns_[this.sortColumnIndex_].cmp(
+                  rowA, rowB);
+            if (this.sortDescending_)
+              c = -c;
+            return c;
+          }.bind(this));
+        }
+
+        for (var i = 0; i < userRows.length; i++) {
+          var userRow = userRows[i];
+          var rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
+                                                    parentRowInfo);
+          var htmlNode = this.getHTMLNodeForRowInfo_(
+              tableSection, rowInfo, rowInfoMap, indentation);
+
+          if (lastAddedRow === undefined) {
+            // Put first into the table.
+            tableSection.insertBefore(htmlNode, tableSection.firstChild);
+          } else {
+            // This is shorthand for insertAfter(htmlNode, lastAdded).
+            var nextSiblingOfLastAdded = lastAddedRow.nextSibling;
+            tableSection.insertBefore(htmlNode, nextSiblingOfLastAdded);
+          }
+          this.updateTabIndexForTableRowNode_(htmlNode);
+
+          lastAddedRow = htmlNode;
+          if (!rowInfo.isExpanded)
+            continue;
+
+          // Append subrows now.
+          lastAddedRow = this.generateTableRowNodes_(
+              tableSection, userRow[this.subRowsPropertyName_], rowInfoMap,
+              indentation + 1, lastAddedRow, rowInfo);
+        }
+        return lastAddedRow;
+      },
+
+      getOrCreateRowInfoFor_: function(rowInfoMap, userRow, parentRowInfo) {
+        if (rowInfoMap.has(userRow))
+          return rowInfoMap.get(userRow);
+
+        var rowInfo = {
+          userRow: userRow,
+          htmlNode: undefined,
+          isExpanded: userRow.isExpanded || false,
+          parentRowInfo: parentRowInfo
+        };
+        rowInfoMap.set(userRow, rowInfo);
+        return rowInfo;
+      },
+
+      getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
+                                       rowInfoMap, indentation) {
+        if (rowInfo.htmlNode)
+          return rowInfo.htmlNode;
+
+        var INDENT_SPACE = indentation * 16;
+        var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
+        var trElement = this.ownerDocument.createElement('tr');
+        rowInfo.htmlNode = trElement;
+        rowInfo.indentation = indentation;
+        trElement.rowInfo = rowInfo;
+
+        for (var i = 0; i < this.tableColumns_.length;) {
+          var td = this.appendNewElement_(trElement, 'td');
+          td.columnIndex = i;
+
+          var column = this.tableColumns_[i];
+          var value = column.value(rowInfo.userRow);
+          var colSpan = column.colSpan ? column.colSpan : 1;
+          td.style.colSpan = colSpan;
+          if (column.textAlign) {
+            td.style.textAlign = column.textAlign;
+          }
+
+          if (this.doesColumnIndexSupportSelection(i))
+            td.classList.add('supports-selection');
+
+          if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
+            if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
+              td.style.paddingLeft = INDENT_SPACE + 'px';
+              var expandButton = this.appendNewElement_(td,
+                  'expand-button');
+              expandButton.textContent = RIGHT_ARROW;
+              if (rowInfo.isExpanded)
+                expandButton.classList.add('button-expanded');
+            } else {
+              td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
+            }
+          }
+
+          if (value !== undefined)
+            td.appendChild(tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
+
+          i += colSpan;
+        }
+
+        var needsClickListener = false;
+        if (this.columnsWithExpandButtons_.length)
+          needsClickListener = true;
+        else if (tableSection == this.$.body)
+          needsClickListener = true;
+
+        if (needsClickListener) {
+          trElement.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (e.target.tagName == 'EXPAND-BUTTON') {
+              this.setExpandedForUserRow_(
+                  tableSection, rowInfoMap,
+                  rowInfo.userRow, !rowInfo.isExpanded);
+              return;
+            }
+
+            function getTD(cur) {
+              if (cur === trElement)
+                throw new Error('woah');
+              if (cur.parentElement === trElement)
+                return cur;
+              return getTD(cur.parentElement);
+            }
+
+            if (this.supportsSelection_) {
+              var isAlreadySelected = false;
+              var tdThatWasClicked = getTD(e.target);
+              if (!this.cellSelectionMode_) {
+                isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
+              } else {
+                isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
+                isAlreadySelected &= (this.selectedColumnIndex_ ===
+                                      tdThatWasClicked.columnIndex);
+              }
+              if (isAlreadySelected) {
+                if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                    rowInfo.userRow[this.subRowsPropertyName_].length) {
+                  this.setExpandedForUserRow_(
+                      tableSection, rowInfoMap,
+                      rowInfo.userRow, !rowInfo.isExpanded);
+                }
+              } else {
+                this.didTableRowInfoGetClicked_(
+                    rowInfo, tdThatWasClicked.columnIndex);
+              }
+            } else {
+              if (rowInfo.userRow[this.subRowsPropertyName_] &&
+                  rowInfo.userRow[this.subRowsPropertyName_].length) {
+                this.setExpandedForUserRow_(
+                    tableSection, rowInfoMap,
+                    rowInfo.userRow, !rowInfo.isExpanded);
+              }
+            }
+          }.bind(this));
+        }
+
+        return rowInfo.htmlNode;
+      },
+
+      removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
+        if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+          return;
+        for (var i = 0;
+             i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
+          var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
+          var subRowInfo = rowInfoMap.get(subRow);
+          if (!subRowInfo)
+            continue;
+
+          var subNode = subRowInfo.htmlNode;
+          if (subNode && subNode.parentNode === tableSection) {
+            tableSection.removeChild(subNode);
+            this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
+          }
+        }
+      },
+
+      scheduleRebuildHeaders_: function() {
+        this.headerDirty_ = true;
+        this.scheduleRebuild_();
+      },
+
+      scheduleRebuildBody_: function() {
+        this.bodyDirty_ = true;
+        this.scheduleRebuild_();
+      },
+
+      scheduleRebuildFooter_: function() {
+        this.footerDirty_ = true;
+        this.scheduleRebuild_();
+      },
+
+      scheduleRebuild_: function() {
+        if (this.rebuildPending_)
+          return;
+        this.rebuildPending_ = true;
+        setTimeout(function() {
+          this.rebuildPending_ = false;
+          this.rebuild();
+        }.bind(this), 0);
+      },
+
+      rebuildIfNeeded_: function() {
+        this.rebuild();
+      },
+
+      rebuild: function() {
+        var wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
+
+        if (this.headerDirty_) {
+          this.generateHeaderColumns_();
+          this.headerDirty_ = false;
+        }
+        if (this.bodyDirty_) {
+          this.$.body.textContent = '';
+          this.generateTableRowNodes_(
+              this.$.body,
+              this.tableRows_, this.tableRowsInfo_, 0,
+              undefined, undefined);
+          if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
+            var trElement = this.ownerDocument.createElement('tr');
+            this.$.body.appendChild(trElement);
+            trElement.classList.add('empty-row');
+            var td = this.ownerDocument.createElement('td');
+            trElement.appendChild(td);
+            td.colSpan = this.tableColumns_.length;
+            var emptyValue = this.emptyValue_;
+            td.appendChild(
+                tr.ui.b.asHTMLOrTextNode(emptyValue, this.ownerDocument));
+          }
+          this.bodyDirty_ = false;
+        }
+
+        if (wasBodyOrHeaderDirty)
+          this.applySizes_();
+
+        if (this.footerDirty_) {
+          this.$.foot.textContent = '';
+          this.generateTableRowNodes_(
+              this.$.foot,
+              this.tableFooterRows_, this.tableFooterRowsInfo_, 0,
+              undefined, undefined);
+          if (this.tableFooterRowsInfo_.length) {
+            this.$.body.classList.add('has-footer');
+          } else {
+            this.$.body.classList.remove('has-footer');
+          }
+          this.footerDirty_ = false;
+        }
+      },
+
+      appendNewElement_: function(parent, tagName) {
+        var element = parent.ownerDocument.createElement(tagName);
+        parent.appendChild(element);
+        return element;
+      },
+
+      getExpandedForTableRow: function(userRow) {
+        this.rebuildIfNeeded_();
+        var rowInfo = this.tableRowsInfo_.get(userRow);
+        if (rowInfo === undefined)
+          throw new Error('Row has not been seen, must expand its parents');
+        return rowInfo.isExpanded;
+      },
+
+      setExpandedForTableRow: function(userRow, expanded) {
+        this.rebuildIfNeeded_();
+        var rowInfo = this.tableRowsInfo_.get(userRow);
+        if (rowInfo === undefined)
+          throw new Error('Row has not been seen, must expand its parents');
+        return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
+                                           userRow, expanded);
+      },
+
+      setExpandedForUserRow_: function(tableSection, rowInfoMap,
+                                       userRow, expanded) {
+        this.rebuildIfNeeded_();
+
+        var rowInfo = rowInfoMap.get(userRow);
+        if (rowInfo === undefined)
+          throw new Error('Row has not been seen, must expand its parents');
+
+        rowInfo.isExpanded = !!expanded;
+        // If no node, then nothing further needs doing.
+        if (rowInfo.htmlNode === undefined)
+          return;
+
+        // If its detached, then nothing needs doing.
+        if (rowInfo.htmlNode.parentElement !== tableSection)
+          return;
+
+        // Otherwise, rebuild.
+        var expandButton = rowInfo.htmlNode.querySelector('expand-button');
+        if (rowInfo.isExpanded) {
+          expandButton.classList.add('button-expanded');
+          var lastAddedRow = rowInfo.htmlNode;
+          if (rowInfo.userRow[this.subRowsPropertyName_]) {
+            this.generateTableRowNodes_(
+                tableSection,
+                rowInfo.userRow[this.subRowsPropertyName_], rowInfoMap,
+                rowInfo.indentation + 1,
+                lastAddedRow, rowInfo);
+          }
+        } else {
+          expandButton.classList.remove('button-expanded');
+          this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
+        }
+
+        this.maybeUpdateSelectedRow_();
+      },
+
+      get supportsSelection() {
+        return this.supportsSelection_;
+      },
+
+      set supportsSelection(supportsSelection) {
+        this.rebuildIfNeeded_();
+        this.supportsSelection_ = !!supportsSelection;
+        this.didSelectionStateChange_();
+      },
+
+      get cellSelectionMode() {
+        return this.cellSelectionMode_;
+      },
+
+      set cellSelectionMode(cellSelectionMode) {
+        this.rebuildIfNeeded_();
+        this.cellSelectionMode_ = !!cellSelectionMode;
+        this.didSelectionStateChange_();
+      },
+
+      get rowHighlightEnabled() {
+        return this.rowHighlightEnabled_;
+      },
+
+      set rowHighlightEnabled(rowHighlightEnabled) {
+        this.rebuildIfNeeded_();
+        this.rowHighlightEnabled_ = !!rowHighlightEnabled;
+        this.didSelectionStateChange_();
+      },
+
+      didSelectionStateChange_: function() {
+        if (!this.supportsSelection_) {
+          // Selection disabled.
+          this.$.body.classList.remove('cell-selection-mode');
+          this.$.body.classList.remove('row-selection-mode');
+          this.$.body.classList.remove('row-highlight-enabled');
+        } else if (!this.cellSelectionMode_) {
+          // Row selection mode.
+          this.$.body.classList.remove('cell-selection-mode');
+          this.$.body.classList.add('row-selection-mode');
+          this.$.body.classList.remove('row-highlight-enabled');
+        } else {
+          // Cell selection mode.
+          this.$.body.classList.add('cell-selection-mode');
+          this.$.body.classList.remove('row-selection-mode');
+          if (this.rowHighlightEnabled_)
+            this.$.body.classList.add('row-highlight-enabled');
+          else
+            this.$.body.classList.remove('row-highlight-enabled');
+        }
+        for (var i = 0; i < this.$.body.children.length; i++)
+          this.updateTabIndexForTableRowNode_(this.$.body.children[i]);
+        this.maybeUpdateSelectedRow_();
+      },
+
+      maybeUpdateSelectedRow_: function() {
+        if (this.selectedTableRowInfo_ === undefined)
+          return;
+
+        // SupportsSelection may be off.
+        if (!this.supportsSelection_) {
+          this.removeSelectedState_();
+          this.selectedTableRowInfo_ = undefined;
+          return;
+        }
+
+        // selectedUserRow may not be visible
+        function isVisible(rowInfo) {
+          if (!rowInfo.htmlNode)
+            return false;
+          return !!rowInfo.htmlNode.parentElement;
+        }
+        if (isVisible(this.selectedTableRowInfo_)) {
+          this.updateSelectedState_();
+          return;
+        }
+
+        this.removeSelectedState_();
+        var curRowInfo = this.selectedTableRowInfo_;
+        while (curRowInfo && !isVisible(curRowInfo))
+          curRowInfo = curRowInfo.parentRowInfo;
+
+        this.selectedTableRowInfo_ = curRowInfo;
+        if (this.selectedTableRowInfo_)
+          this.updateSelectedState_();
+      },
+
+      didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
+        if (!this.supportsSelection_)
+          return;
+
+        if (this.cellSelectionMode_) {
+          if (!this.doesColumnIndexSupportSelection(columnIndex))
+            return;
+        }
+
+        if (this.selectedTableRowInfo_ !== rowInfo)
+          this.selectedTableRow = rowInfo.userRow;
+
+        if (this.selectedColumnIndex !== columnIndex)
+          this.selectedColumnIndex = columnIndex;
+      },
+
+      get selectedTableRow() {
+        if (!this.selectedTableRowInfo_)
+          return undefined;
+        return this.selectedTableRowInfo_.userRow;
+      },
+
+      set selectedTableRow(userRow) {
+        this.rebuildIfNeeded_();
+        if (!this.supportsSelection_)
+          throw new Error('Selection is off. Set supportsSelection=true.');
+
+        var rowInfo = this.tableRowsInfo_.get(userRow);
+        if (rowInfo === undefined)
+          throw new Error('Row has not been seen, must expand its parents');
+
+        var e = this.prepareToChangeSelection_();
+        this.selectedTableRowInfo_ = rowInfo;
+        if (this.cellSelectionMode_) {
+          if (this.selectedTableRowInfo_ &&
+              this.selectedColumnIndex_ === undefined) {
+            var i = this.getFirstSelectableColumnIndex_();
+            if (i == -1)
+              throw new Error('nope');
+            this.selectedColumnIndex_ = i;
+          }
+        } else {
+          this.selectedColumnIndex_ = undefined;
+        }
+
+        this.updateSelectedState_();
+
+        this.dispatchEvent(e);
+      },
+
+      updateTabIndexForTableRowNode_: function(row) {
+        if (this.supportsSelection_) {
+          if (!this.cellSelectionMode_) {
+            row.tabIndex = 0;
+          } else {
+            for (var i = 0; i < this.tableColumns_.length; i++) {
+              if (!this.doesColumnIndexSupportSelection(i))
+                continue;
+              row.children[i].tabIndex = 0;
+            }
+          }
+        } else {
+          if (!this.cellSelectionMode_) {
+            row.removeAttribute('tabIndex');
+          } else {
+            for (var i = 0; i < this.tableColumns_.length; i++) {
+              if (!this.doesColumnIndexSupportSelection(i))
+                continue;
+              row.children[i].removeAttribute('tabIndex');
+            }
+          }
+        }
+      },
+
+      prepareToChangeSelection_: function() {
+        var e = new tr.b.Event('selection-changed');
+        var previousSelectedRowInfo = this.selectedTableRowInfo_;
+        if (previousSelectedRowInfo)
+          e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
+        else
+          e.previousSelectedTableRow = undefined;
+
+        this.removeSelectedState_();
+
+        return e;
+      },
+
+      removeSelectedState_: function() {
+        this.setSelectedState_(false);
+      },
+
+      updateSelectedState_: function() {
+        this.setSelectedState_(true);
+      },
+
+      setSelectedState_: function(select) {
+        if (this.selectedTableRowInfo_ === undefined)
+          return;
+        var tableRowNode = this.selectedTableRowInfo_.htmlNode;
+
+        // Add/remove row highlight (if applicable).
+        if (this.cellSelectionMode_ && this.rowHighlightEnabled_) {
+          if (select)
+            tableRowNode.classList.add('highlighted-row');
+          else
+            tableRowNode.classList.remove('highlighted-row');
+        }
+
+        // Add/remove row/cell selection.
+        var node = this.getSelectableNodeGivenTableRowNode_(tableRowNode);
+        if (select)
+          node.setAttribute('selected', true);
+        else
+          node.removeAttribute('selected');
+      },
+
+      doesColumnIndexSupportSelection: function(columnIndex) {
+        var columnInfo = this.tableColumns_[columnIndex];
+        var scs = columnInfo.supportsCellSelection;
+        if (scs === false)
+          return false;
+        return true;
+      },
+
+      getFirstSelectableColumnIndex_: function() {
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          if (this.doesColumnIndexSupportSelection(i))
+            return i;
+        }
+        return -1;
+      },
+
+      getSelectableNodeGivenTableRowNode_: function(htmlNode) {
+        if (!this.cellSelectionMode_) {
+          return htmlNode;
+        } else {
+          return htmlNode.children[this.selectedColumnIndex_];
+        }
+      },
+
+      get selectedColumnIndex() {
+        if (!this.supportsSelection_)
+          return undefined;
+        if (!this.cellSelectionMode_)
+          return undefined;
+        return this.selectedColumnIndex_;
+      },
+
+      set selectedColumnIndex(selectedColumnIndex) {
+        this.rebuildIfNeeded_();
+        if (!this.supportsSelection_)
+          throw new Error('Selection is off. Set supportsSelection=true.');
+        if (selectedColumnIndex < 0 ||
+            selectedColumnIndex >= this.tableColumns_.length)
+          throw new Error('Invalid index');
+        if (!this.doesColumnIndexSupportSelection(selectedColumnIndex))
+          throw new Error('Selection is not supported on this column');
+
+        var e = this.prepareToChangeSelection_();
+        this.selectedColumnIndex_ = selectedColumnIndex;
+        if (this.selectedColumnIndex_ === undefined)
+          this.selectedTableRowInfo_ = undefined;
+        this.updateSelectedState_();
+
+        this.dispatchEvent(e);
+      },
+
+      onKeyDown_: function(e) {
+        if (this.supportsSelection_ === false)
+          return;
+        if (this.selectedTableRowInfo_ === undefined)
+          return;
+
+        var code_to_command_names = {
+          37: 'ARROW_LEFT',
+          38: 'ARROW_UP',
+          39: 'ARROW_RIGHT',
+          40: 'ARROW_DOWN'
+        };
+        var cmdName = code_to_command_names[e.keyCode];
+        if (cmdName === undefined)
+          return;
+
+        e.stopPropagation();
+        e.preventDefault();
+        this.performKeyCommand_(cmdName);
+      },
+
+      performKeyCommand_: function(cmdName) {
+        this.rebuildIfNeeded_();
+
+        var rowInfo = this.selectedTableRowInfo_;
+        var htmlNode = rowInfo.htmlNode;
+        if (cmdName === 'ARROW_UP') {
+          var prev = htmlNode.previousElementSibling;
+          if (prev) {
+            tr.ui.b.scrollIntoViewIfNeeded(prev);
+            this.selectedTableRow = prev.rowInfo.userRow;
+            this.focusSelected_();
+            return;
+          }
+          return;
+        }
+
+        if (cmdName === 'ARROW_DOWN') {
+          var next = htmlNode.nextElementSibling;
+          if (next) {
+            tr.ui.b.scrollIntoViewIfNeeded(next);
+            this.selectedTableRow = next.rowInfo.userRow;
+            this.focusSelected_();
+            return;
+          }
+          return;
+        }
+
+        if (cmdName === 'ARROW_RIGHT') {
+          if (this.cellSelectionMode_) {
+            var newIndex = this.selectedColumnIndex_ + 1;
+            if (newIndex >= this.tableColumns_.length)
+              return;
+            if (!this.doesColumnIndexSupportSelection(newIndex))
+              return;
+            this.selectedColumnIndex = newIndex;
+            this.focusSelected_();
+            return;
+
+          } else {
+            if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+              return;
+            if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+              return;
+
+            if (!rowInfo.isExpanded)
+              this.setExpandedForTableRow(rowInfo.userRow, true);
+            this.selectedTableRow =
+              rowInfo.userRow[this.subRowsPropertyName_][0];
+            this.focusSelected_();
+            return;
+          }
+        }
+
+        if (cmdName === 'ARROW_LEFT') {
+          if (this.cellSelectionMode_) {
+            var newIndex = this.selectedColumnIndex_ - 1;
+            if (newIndex < 0)
+              return;
+            if (!this.doesColumnIndexSupportSelection(newIndex))
+              return;
+            this.selectedColumnIndex = newIndex;
+            this.focusSelected_();
+            return;
+
+          } else {
+            if (rowInfo.isExpanded) {
+              this.setExpandedForTableRow(rowInfo.userRow, false);
+              this.focusSelected_();
+              return;
+            }
+
+            // Not expanded. Select parent...
+            var parentRowInfo = rowInfo.parentRowInfo;
+            if (parentRowInfo) {
+              this.selectedTableRow = parentRowInfo.userRow;
+              this.focusSelected_();
+              return;
+            }
+            return;
+          }
+        }
+        throw new Error('Unrecognized command');
+      },
+
+      focusSelected_: function() {
+        if (!this.selectedTableRowInfo_)
+          return;
+        var node = this.getSelectableNodeGivenTableRowNode_(
+            this.selectedTableRowInfo_.htmlNode);
+        node.focus();
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+<polymer-element name="tr-ui-b-table-header-cell" on-tap="onTap_">
+  <template>
+  <style>
+    :host {
+      -webkit-user-select: none;
+      display: flex;
+    }
+
+    span {
+      flex: 0 1 auto;
+    }
+
+    side-element {
+      -webkit-user-select: none;
+      flex: 1 0 auto;
+      padding-left: 4px;
+      vertical-align: top;
+      font-size: 15px;
+      font-family: sans-serif;
+      display: inline;
+      line-height: 85%;
+    }
+  </style>
+
+    <span id="title"></span><side-element id="side"></side-element>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.tapCallback_ = undefined;
+      this.cellTitle_ = '';
+    },
+
+    set cellTitle(value) {
+      this.cellTitle_ = value;
+
+      var titleNode = tr.ui.b.asHTMLOrTextNode(
+          this.cellTitle_, this.ownerDocument);
+
+      this.$.title.innerText = '';
+      this.$.title.appendChild(titleNode);
+    },
+
+    get cellTitle() {
+      return this.cellTitle_;
+    },
+
+    clearSideContent: function() {
+      this.$.side.textContent = '';
+    },
+
+    set sideContent(content) {
+      this.$.side.textContent = content;
+    },
+
+    get sideContent() {
+      return this.$.side.textContent;
+    },
+
+    set tapCallback(callback) {
+      this.style.cursor = 'pointer';
+      this.tapCallback_ = callback;
+    },
+
+    get tapCallback() {
+      return this.tapCallback_;
+    },
+
+    onTap_: function() {
+      if (this.tapCallback_)
+        this.tapCallback_();
+    }
+  });
+</script>
+</polymer-element>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+
+<polymer-element name="tr-ui-e-rail-rail-score-span">
+  <template>
+  <style>
+    :host {
+      display: span;
+    }
+  </style>
+  <span id="content">
+    <span>RAIL Score: </span><span id="score"></span>
+  </span>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.railScore_ = undefined;
+    },
+
+    ready: function() {
+      this.updateContent_();
+    },
+
+    get railScore() {
+      return this.railScore_;
+    },
+
+    set railScore(railScore) {
+      this.railScore_ = railScore;
+      this.updateContent_();
+    },
+
+    updateContent_: function() {
+      if (this.railScore_ === undefined) {
+        this.$.content.style.display = 'none';
+        return;
+      }
+      this.$.content.style.display = '';
+      var overallScore = this.railScore_.overallScore;
+      if (overallScore === undefined)
+        return;
+      this.$.score.textContent = overallScore.toLocaleString(
+          undefined,
+          {minimumFractionDigits: 3});
+    }
+  });
+  </script>
+</polymer-element>

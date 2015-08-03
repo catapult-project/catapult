@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/analysis/analysis_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var EventSet = tr.model.EventSet;
+  var ObjectInstance = tr.model.ObjectInstance;
+
+  test('instantiate_analysisWithObjects', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var objects = p1.objects;
+    var i10 = objects.idWasCreated(
+        '0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10);
+    var s10 = objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10,
+                                  'snapshot-1');
+    var s25 = objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 25,
+                                  'snapshot-2');
+    var s40 = objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 40,
+                                  'snapshot-3');
+    objects.idWasDeleted('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 45);
+
+    var track = {};
+    var selection = new EventSet();
+    selection.push(i10);
+    selection.push(s10);
+    selection.push(s25);
+    selection.push(s40);
+
+    var analysisEl = document.createElement('tr-ui-a-multi-object-sub-view');
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+});
+</script>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name='tr-ui-a-selection-summary-table'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table">
+    </tr-ui-b-table>
+    </div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.selection_ = new tr.b.Range();
+    },
+
+    ready: function() {
+      this.$.table.showHeader = false;
+      this.$.table.tableColumns = [
+        {
+          title: 'Name',
+          value: function(row) { return row.title; },
+          width: '350px'
+        },
+        {
+          title: 'Value',
+          width: '100%',
+          value: function(row) {
+            return row.value;
+          }
+        }
+      ];
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var selection = this.selection_;
+      var rows = [];
+      var hasRange;
+      if (this.selection_ && (!selection.bounds.isEmpty))
+        hasRange = true;
+      else
+        hasRange = false;
+
+      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+
+      rows.push({
+        title: 'Selection start',
+        value: hasRange ? tr.ui.units.createTimeStampSpan(
+            selection.bounds.min, timeSpanConfig) : '<empty>'
+      });
+      rows.push({
+        title: 'Selection extent',
+        value: hasRange ? tr.ui.units.createTimeDurationSpan(
+            selection.bounds.range, timeSpanConfig) : '<empty>'
+      });
+
+      this.$.table.tableRows = rows;
+      this.$.table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

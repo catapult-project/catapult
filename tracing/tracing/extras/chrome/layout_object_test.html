@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/layout_object.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function FakeSnapshot() {
+    this.layoutObjectsById = {};
+  }
+  FakeSnapshot.prototype = {
+    getLayoutObjectById: function(id) {
+      return this.layoutObjectsById[id];
+    }
+  };
+
+  test('instantiate', function() {
+    var snapshot = new FakeSnapshot();
+    var layoutObject = new tr.e.chrome.LayoutObject(snapshot, {
+      address: 'deadbeef',
+      name: 'LayoutView',
+      other: 1,
+      children: [
+        {
+          address: 'beef2',
+          name: 'LayoutBlockFlow',
+          other: 2
+        }
+      ]
+    });
+    snapshot.layoutObjectsById[layoutObject.id] = layoutObject;
+
+    assert.strictEqual(snapshot, layoutObject.snapshot);
+    assert.equal('LayoutView', layoutObject.name);
+    assert.equal('deadbeef', layoutObject.id);
+    assert.equal(1, layoutObject.otherPropertyNames.length);
+    assert.equal(1, layoutObject.getProperty('other'));
+    assert.isTrue(layoutObject.hasChildLayoutObjects);
+    var child = layoutObject.childLayoutObjects[0];
+    assert.equal('LayoutBlockFlow', child.name);
+    assert.equal('beef2', child.id);
+    assert.equal(1, child.otherPropertyNames.length);
+    assert.equal(2, child.getProperty('other'));
+
+    assert.isUndefined(layoutObject.previousSnapshotLayoutObject);
+    assert.isUndefined(layoutObject.nextSnapshotLayoutObject);
+
+    var count = 0;
+    layoutObject.traverseTree(function(node) {
+      count += 1;
+    });
+    assert.equal(2, count);
+
+    var nextSnapshot = new FakeSnapshot();
+    nextSnapshot.previousSnapshot = snapshot;
+    snapshot.nextSnapshot = nextSnapshot;
+
+    var nextLayoutObject = new tr.e.chrome.LayoutObject(nextSnapshot, {
+      address: 'deadbeef',
+      name: 'LayoutView'
+    });
+    nextSnapshot.layoutObjectsById[nextLayoutObject.id] = nextLayoutObject;
+
+    assert.strictEqual(layoutObject,
+                       nextLayoutObject.previousSnapshotLayoutObject);
+    assert.strictEqual(nextLayoutObject, layoutObject.nextSnapshotLayoutObject);
+    assert.isUndefined(layoutObject.previousSnapshotLayoutObject);
+    assert.isUndefined(nextLayoutObject.nextSnapshotLayoutObject);
+  });
+});
+</script>

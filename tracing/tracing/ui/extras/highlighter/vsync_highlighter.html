@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/highlighter.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/model_track.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Provides the VSyncHighlighter class.
+ */
+tr.exportTo('tr.ui.e.highlighter', function() {
+
+  var Highlighter = tr.ui.tracks.Highlighter;
+
+  /**
+   * Highlights VSync events on the model track (using "zebra" striping).
+   * @constructor
+   */
+  function VSyncHighlighter(viewport) {
+    Highlighter.call(this, viewport);
+    this.times_ = [];
+  }
+
+  VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR = {r: 0, g: 0, b: 255};
+  VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA = 0.1;
+
+  VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT = 0.20;
+  VSyncHighlighter.VSYNC_DENSITY_OPAQUE = 0.10;
+  VSyncHighlighter.VSYNC_DENSITY_RANGE =
+      VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT -
+      VSyncHighlighter.VSYNC_DENSITY_OPAQUE;
+
+  /**
+   * Generate a zebra striping from a list of times.
+   */
+  VSyncHighlighter.generateStripes = function(times, minTime, maxTime) {
+    var stripes = [];
+
+    // Find the lowest and highest index within the viewport.
+    var lowIndex = tr.b.findLowIndexInSortedArray(
+        times,
+        function(time) { return time; },
+        minTime);
+    if (lowIndex > times.length) {
+      lowIndex = times.length;
+    }
+    var highIndex = lowIndex - 1;
+    while (times[highIndex + 1] <= maxTime) {
+      highIndex++;
+    }
+
+    // Must start at an even index and end at an odd index.
+    for (var i = lowIndex - (lowIndex % 2); i <= highIndex; i += 2) {
+      var left = i < lowIndex ? minTime : times[i];
+      var right = i + 1 > highIndex ? maxTime : times[i + 1];
+      stripes.push([left, right]);
+    }
+
+    return stripes;
+  }
+
+  VSyncHighlighter.prototype = {
+    __proto__: Highlighter.prototype,
+
+    processModel: function(model) {
+      this.times_ = model.device.vSyncTimestamps;
+    },
+
+    drawHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
+      if (!this.viewport_.highlightVSync) {
+        return;
+      }
+
+      var stripes = VSyncHighlighter.generateStripes(
+          this.times_, viewLWorld, viewRWorld);
+      if (stripes.length == 0) {
+        return;
+      }
+
+      var stripeRange = stripes[stripes.length - 1][1] - stripes[0][0];
+      var stripeDensity = stripes.length / (dt.scaleX * stripeRange);
+      var clampedStripeDensity = tr.b.clamp(stripeDensity,
+          VSyncHighlighter.VSYNC_DENSITY_OPAQUE,
+          VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT);
+      var opacity =
+          (VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT - clampedStripeDensity) /
+          VSyncHighlighter.VSYNC_DENSITY_RANGE;
+      if (opacity == 0) {
+        return;
+      }
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var height = viewHeight * pixelRatio;
+      ctx.fillStyle = tr.ui.b.colorToRGBAString(
+          VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR,
+          VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA * opacity);
+
+      for (var i = 0; i < stripes.length; i++) {
+        var xLeftView = dt.xWorldToView(stripes[i][0]);
+        var xRightView = dt.xWorldToView(stripes[i][1]);
+        ctx.fillRect(xLeftView, 0, xRightView - xLeftView, height);
+      }
+    }
+  };
+
+  // Register the highlighter.
+  tr.ui.tracks.Highlighter.register(VSyncHighlighter);
+
+  return {
+    VSyncHighlighter: VSyncHighlighter
+  };
+});
+</script>

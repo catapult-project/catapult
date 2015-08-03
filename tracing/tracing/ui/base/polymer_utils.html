@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper code for working with Polymer.
+ */
+tr.exportTo('tr.ui.b', function() {
+
+  Object.observe(Polymer.elements, clearPolymerElementCaches);
+
+  var elementsByName = undefined;
+  var elementsThatExtend = undefined;
+  var elementSubclasses = undefined;
+  function clearPolymerElementCaches() {
+    elementsByName = {};
+    elementsThatExtend = undefined;
+    elementSubclasses = {};
+  }
+
+  function buildElementMapsIfNeeded() {
+    if (elementsThatExtend !== undefined && elementsByName !== undefined)
+      return;
+    elementsByName = {};
+    elementsThatExtend = {};
+    Polymer.elements.forEach(function(element) {
+      if (elementsByName[element.name])
+        throw new Error('Something is strange: dupe polymer element names');
+
+      elementsByName[element.name] = element;
+
+      if (element.extends) {
+        if (elementsThatExtend[element.extends] === undefined)
+          elementsThatExtend[element.extends] = [];
+        elementsThatExtend[element.extends].push(element.name);
+      }
+    });
+  }
+
+  function getPolymerElementNamed(tagName) {
+    buildElementMapsIfNeeded();
+    return elementsByName[tagName];
+  }
+
+  function getPolymerElementsThatSubclass(tagName) {
+    if (Polymer.waitingFor().length) {
+      throw new Error('There are unresolved polymer elements. ' +
+        'Wait until Polymer.whenReady');
+    }
+
+    buildElementMapsIfNeeded();
+
+    var element = getPolymerElementNamed(tagName);
+    if (!element)
+      throw new Error(tagName + ' is not a polymer element');
+
+    if (elementSubclasses === undefined)
+      elementSubclasses = {};
+
+    if (elementSubclasses[tagName] === undefined) {
+      var immediateSubElements = elementsThatExtend[element.name];
+      var allSubElements = [];
+      if (immediateSubElements !== undefined && immediateSubElements.length) {
+        immediateSubElements.forEach(function(subElement) {
+          allSubElements.push(subElement);
+          allSubElements.push.apply(
+            allSubElements, getPolymerElementsThatSubclass(subElement));
+        });
+      }
+      elementSubclasses[tagName] = allSubElements;
+    }
+    return elementSubclasses[tagName];
+  }
+
+  return {
+    getPolymerElementNamed: getPolymerElementNamed,
+    getPolymerElementsThatSubclass: getPolymerElementsThatSubclass
+  };
+});
+</script>

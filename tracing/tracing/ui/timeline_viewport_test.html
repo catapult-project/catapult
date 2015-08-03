@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/location.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_viewport.html">
+<link rel="import" href="/ui/tracks/drawing_container.html">
+<link rel="import" href="/ui/tracks/slice_track.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Location = tr.model.Location;
+  var Model = tr.Model;
+
+  test('memoization', function() {
+
+    var vp = new tr.ui.TimelineViewport(document.createElement('div'));
+
+    var slice = { guid: 1 };
+
+    vp.modelTrackContainer = {
+      addEventsToTrackMap: function(eventToTrackMap) {
+        eventToTrackMap.addEvent(slice, 'track');
+      },
+      addEventListener: function() {}
+    };
+
+    assert.isUndefined(vp.trackForEvent(slice));
+    vp.rebuildEventToTrackMap();
+
+    assert.equal(vp.trackForEvent(slice), 'track');
+  });
+
+  test('shiftedSelection', function() {
+    var model = new tr.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
+        new tr.model.ThreadSlice('', 'a', 0, 5, {}, 1));
+
+    var viewport = new tr.ui.TimelineViewport();
+    var track = new tr.ui.tracks.SliceTrack(viewport);
+    viewport.modelTrackContainer = track;
+    track.slices = t1.sliceGroup.slices;
+
+    viewport.rebuildEventToTrackMap();
+
+
+    var sel = new tr.model.EventSet();
+    sel.push(t1.sliceGroup.slices[0]);
+
+    var shifted = track.viewport.getShiftedSelection(sel, 1);
+    assert.equal(shifted.length, 1);
+    assert.equal(shifted[0], t1.sliceGroup.slices[1]);
+  });
+
+  test('locationObj', function() {
+    var model = new tr.Model();
+    var process = model.getOrCreateProcess(123);
+    var thread = process.getOrCreateThread(456);
+
+    model.importTraces([], false, false, function() {
+      thread.asyncSliceGroup.push(
+        tr.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
+      thread.asyncSliceGroup.push(
+        tr.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+    });
+
+    var timeline = document.createElement('tr-ui-timeline-track-view');
+    var vp = new tr.ui.TimelineViewport(timeline);
+    timeline.model = model;
+    timeline.style.maxHeight = '600px';
+    this.addHTMLOutput(timeline);
+
+    // Our stableId to track map is not automatically built. We need to
+    // search for the tracks and manually build the stableId map here.
+    var processTracks = document.getElementsByClassName('process-track-base');
+    vp.modelTrackContainer = {
+      addContainersToTrackMap: function(containerToTrackMap) {
+        // Invoking the process track's addContainersToTrackMap is enough to
+        // build the map for all children (i.e. Threads, AsyncSliceGroups)
+        // as well.
+        for (var i = 0; i < processTracks.length; i++)
+          processTracks[i].addContainersToTrackMap(containerToTrackMap);
+      },
+      addEventListener: function() {},
+      canvas: {
+        offsetLeft: tr.c.constants.HEADING_WIDTH,
+        offsetTop: 0
+      }
+    };
+    vp.rebuildContainerToTrackMap();
+
+    var asyncTrack =
+        vp.containerToTrackMap.getTrackByStableId('123.456.AsyncSliceGroup');
+    assert.isDefined(asyncTrack);
+    assert.isFalse(asyncTrack.expanded); // Make sure this starts unexpanded.
+
+    // Hack to allow Location to find the element we're looking for.
+    // This ensures the correct behaviour of document.elementFrompoint(x,y) of
+    // an originally off-screen element.
+    asyncTrack.scrollIntoView();
+
+    var boundRect = asyncTrack.getBoundingClientRect();
+    var viewX = boundRect.left;
+    var viewY = boundRect.top + boundRect.height / 2;
+    var location = Location.fromViewCoordinates(vp, viewX, viewY);
+    assert.equal(asyncTrack, location.getContainingTrack(vp));
+    assert.deepEqual(location.toViewCoordinates(vp),
+                     { viewX: viewX, viewY: viewY });
+
+    // Try expanding the multi-row track so that the dimensions of the thread
+    // track changes.
+    asyncTrack.expanded = true;
+    // Expanding the track causes the height to double. We can calculate the new
+    // viewY with respect to the track's old boundRect. ViewX remains unchanged.
+    var expandedViewY = boundRect.top + boundRect.height;
+    assert.deepEqual(location.toViewCoordinates(vp),
+                     { viewX: viewX, viewY: expandedViewY });
+
+    // Test the functionality of fromStableIdAndTimestamp.
+    var locationFromCoord =
+        Location.fromViewCoordinates(vp, viewX, boundRect.top);
+    var locationFromStableId =
+        Location.fromStableIdAndTimestamp(vp, '123.456.AsyncSliceGroup',
+                                          location.xWorld);
+    assert.deepEqual(locationFromCoord, locationFromStableId);
+
+    // Undo scroll.
+    document.getElementById('results-container').scrollTop = 0;
+  });
+});
+</script>
+

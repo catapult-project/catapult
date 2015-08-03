@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/units/time.html">
+
+<polymer-element name="tr-ui-u-preferred-display-unit">
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.unit_ = undefined;
+    },
+
+    attached: function() {
+      tr.b.units.Time.didPreferredUnitChange();
+    },
+
+    detached: function() {
+      tr.b.units.Time.didPreferredUnitChange();
+    },
+
+    // null means no-preference
+    get preferredDisplayUnit() {
+      return this.unit_;
+    },
+
+    set preferredDisplayUnit(v) {
+      if (this.unit_ === v)
+        return;
+      this.unit_ = v;
+      tr.b.units.Time.didPreferredUnitChange();
+    }
+
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/table.html">
+
+<!--
+This class tries to (simply) copy the telemetry Results object, but outputs
+directly to an HTML table. It takes things that look like Telemetry values,
+and updates the table internally.
+-->
+<polymer-element name="tr-ui-e-deep-reports-html-results">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.hasColumnNamed_ = {};
+      this.pageToRowMap_ = new WeakMap();
+    },
+
+    ready: function() {
+      var table = this.$.table;
+      table.tableColumns = [
+        {
+          title: 'Label',
+          value: function(row) { return row.label; },
+          width: '350px'
+        }
+      ];
+      this.clear();
+    },
+
+    clear: function() {
+      this.$.table.tableRows = [];
+    },
+
+    addColumnIfNeeded_: function(columnName) {
+      if (this.hasColumnNamed_[columnName])
+        return;
+      this.hasColumnNamed_[columnName] = true;
+
+      var column = {
+        title: columnName,
+        value: function(row) {
+          if (row[columnName] === undefined)
+            return '';
+          return row[columnName];
+        }
+      };
+
+      var columns = this.$.table.tableColumns;
+      columns.push(column);
+
+      // Update widths.
+      var colWidthPercentage;
+      if (columns.length == 1)
+        colWidthPercentage = '100%';
+      else
+        colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+
+      for (var i = 1; i < columns.length; i++)
+        columns[i].width = colWidthPercentage;
+
+      this.$.table.tableColumns = columns;
+    },
+
+    getRowForPage_: function(page) {
+      if (!this.pageToRowMap_.has(page)) {
+        var i = page.url.lastIndexOf('/');
+        var baseName = page.url.substring(i + 1);
+
+        var link = document.createElement('a');
+        link.href = 'trace_viewer.html#' + page.url;
+        link.textContent = baseName;
+
+        var row = {
+          label: link,
+          value: '',
+          subRows: [],
+          isExpanded: true
+        };
+        this.$.table.tableRows.push(row);
+        this.pageToRowMap_.set(page, row);
+
+        // Kick table rebuild.
+        this.$.table.tableRows = this.$.table.tableRows;
+      }
+      return this.pageToRowMap_.get(page);
+    },
+
+    addValue: function(value) {
+      /* Value is expected to be a scalar telemetry-style Value. */
+      if (value.type !== 'scalar')
+        throw new Error('wat');
+
+      this.addColumnIfNeeded_(value.name);
+      var rowForPage = this.getRowForPage_(value.page);
+      rowForPage[value.name] = value.value;
+
+      // Kick table rebuild.
+      this.$.table.tableRows = this.$.table.tableRows;
+    }
+  });
+  </script>
+</polymer-element>

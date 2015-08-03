@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/iteration_helpers.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/tab_view.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+
+<!-- Sub Views. -->
+<link rel="import" href="/ui/analysis/single_thread_slice_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_thread_slice_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_async_slice_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_async_slice_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_cpu_slice_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_cpu_slice_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_thread_time_slice_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_thread_time_slice_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_instant_event_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_instant_event_sub_view.html">
+
+<link rel="import" href="/ui/analysis/counter_sample_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_flow_event_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_flow_event_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_object_instance_sub_view.html">
+<link rel="import" href="/ui/analysis/single_object_snapshot_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_object_sub_view.html">
+
+<link rel="import" href="/ui/analysis/single_sample_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_sample_sub_view.html">
+
+<link rel="import"
+    href="/ui/analysis/single_interaction_record_sub_view.html">
+<link rel="import"
+    href="/ui/analysis/multi_interaction_record_sub_view.html">
+
+<link rel="import" href="/ui/analysis/alert_sub_view.html">
+
+<link rel="import"
+    href="/ui/analysis/single_frame_sub_view.html">
+<link rel="import"
+    href="/ui/analysis/multi_frame_sub_view.html">
+
+<link rel="import"
+    href="/ui/analysis/single_process_memory_dump_sub_view.html">
+<link rel="import"
+    href="/ui/analysis/multi_process_memory_dump_sub_view.html">
+<link rel="import"
+    href="/ui/analysis/single_global_memory_dump_sub_view.html">
+<link rel="import" href="/ui/analysis/multi_global_memory_dump_sub_view.html">
+
+<link rel="import" href="/ui/analysis/multi_power_sample_sub_view.html">
+
+<link rel="import" href="/ui/base/polymer_utils.html">
+
+<!--
+@fileoverview A component used to display an analysis of a selection,
+using custom elements specialized for different event types.
+-->
+<polymer-element name="tr-ui-a-analysis-view">
+  <template>
+    <style>
+      :host {
+        background-color: white;
+        display: flex;
+        flex-direction: column;
+        height: 275px;
+        overflow: auto;
+      }
+
+      :host(.tall-mode) {
+        height: 525px;
+      }
+
+      ::content > * {
+        flex: 1 0 auto;
+      }
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  (function() {
+    var EventRegistry = tr.model.EventRegistry;
+
+    Polymer({
+      ready: function() {
+        this.tabView_ = document.createElement('tr-ui-a-tab-view');
+        this.tabView_.style.flex = '1 1 auto';
+        this.appendChild(this.tabView_);
+        this.brushingStateController_ = undefined;
+        this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
+        this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+
+        this.lastSeenSelection_ = new tr.model.EventSet();
+      },
+
+      set tallMode(value) {
+        if (value)
+          this.classList.add('tall-mode');
+        else
+          this.classList.remove('tall-mode');
+      },
+
+      get tallMode() {
+        return this.classList.contains('tall-mode');
+      },
+
+      get tabView() {
+        return this.tabView_;
+      },
+
+      get brushingStateController() {
+        return this.brushingStateController_;
+      },
+
+      set brushingStateController(brushingStateController) {
+        if (this.brushingStateController) {
+          this.brushingStateController_.removeEventListener(
+              'change', this.onSelectionChanged_);
+        }
+        this.brushingStateController_ = brushingStateController;
+        if (this.brushingStateController) {
+          this.brushingStateController_.addEventListener(
+              'change', this.onSelectionChanged_);
+        }
+        this.onSelectionChanged_();
+      },
+
+      get selection() {
+        return this.brushingStateController_.selection;
+      },
+
+      onSelectionChanged_: function(e) {
+        var selection = this.brushingStateController_.selection;
+
+        var selectionHasSameValue = this.lastSeenSelection_.equals(selection);
+        this.lastSeenSelection_ = selection;
+        if (selectionHasSameValue)
+          return;
+
+        var lastSelectedTabTagName;
+        var lastSelectedTabTypeName;
+        if (this.tabView_.selectedTab) {
+          lastSelectedTabTagName = this.tabView_.selectedTab.tagName;
+          lastSelectedTabTypeName = this.tabView_.selectedTab._eventTypeName;
+        }
+
+        this.tallMode = false;
+
+        var previouslySelectedTab = this.tabView_.selectedTab;
+        this.tabView_.removeEventListener(
+          'selected-tab-change', this.onSelectedTabChange_);
+
+        var previousSubViews = {};
+        for (var i = 0; i < this.tabView_.children.length; i++) {
+          var previousSubView = this.tabView_.children[i];
+          previousSubViews[previousSubView._eventTypeName] = previousSubView;
+        }
+
+        this.tabView_.saveTabStates();
+        this.tabView_.textContent = '';
+        if (selection.length == 0) {
+          this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
+        } else if (selection.length == 1) {
+          this.tabView_.tabStripHeadingText = '1 item selected: ';
+        } else {
+          this.tabView_.tabStripHeadingText = selection.length +
+              ' items selected: ';
+        }
+
+        var eventsByBaseTypeName = selection.getEventsOrganizedByBaseType(true);
+
+        var numBaseTypesToAnalyze = tr.b.dictionaryLength(eventsByBaseTypeName);
+        for (var eventTypeName in eventsByBaseTypeName) {
+          var subSelection = eventsByBaseTypeName[eventTypeName];
+          var subView = this.createSubViewForSelection_(
+            eventTypeName, subSelection, previousSubViews[eventTypeName]);
+          // Store the eventTypeName for future tab restoration.
+          subView._eventTypeName = eventTypeName;
+          this.tabView_.appendChild(subView);
+
+          subView.selection = subSelection;
+        }
+
+        // Restore the tab type that was previously selected. First try by tag
+        // name.
+        var tab;
+        if (lastSelectedTabTagName)
+          tab = this.tabView_.querySelector(lastSelectedTabTagName);
+
+        // If that fails, look for a tab with that typeName.
+        if (!tab && lastSelectedTabTypeName) {
+          var tab = tr.b.findFirstInArray(
+              this.tabView_.children, function(tab) {
+            return tab._eventTypeName === lastSelectedTabTypeName;
+          });
+        }
+        // If all else fails, pick the first tab.
+        if (!tab)
+          tab = this.tabView_.firstChild;
+
+        this.tabView_.selectedTab = tab;
+        this.onSelectedTabChange_();
+
+        this.tabView_.addEventListener(
+          'selected-tab-change', this.onSelectedTabChange_);
+      },
+
+      createSubViewForSelection_: function(eventTypeName, subSelection,
+          previousSubView) {
+        // Find.
+        var eventTypeInfo = EventRegistry.getEventTypeInfoByTypeName(
+            eventTypeName);
+        var singleMode = subSelection.length == 1;
+        var tagName;
+        if (subSelection.length === 1)
+          tagName = eventTypeInfo.metadata.singleViewElementName;
+        else
+          tagName = eventTypeInfo.metadata.multiViewElementName;
+
+        if (!tr.ui.b.getPolymerElementNamed(tagName))
+          throw new Error('Element not registered: ' + tagName);
+
+        // Create if necessary.
+        var subView;
+        if (previousSubView &&
+            previousSubView.tagName === tagName.toUpperCase())
+          subView = previousSubView;
+        else
+          subView = document.createElement(tagName);
+
+        // Set label.
+        var camelLabel;
+        if (subSelection.length === 1)
+          camelLabel = EventRegistry.getUserFriendlySingularName(eventTypeName);
+        else
+          camelLabel = EventRegistry.getUserFriendlyPluralName(eventTypeName);
+        subView.tabLabel = camelLabel + ' (' + subSelection.length + ')';
+
+        return subView;
+      },
+
+      onSelectedTabChange_: function() {
+        var brushingStateController = this.brushingStateController_;
+        if (this.tabView_.selectedTab) {
+          var selectedTab = this.tabView_.selectedTab;
+          this.tallMode = selectedTab.requiresTallView;
+          if (brushingStateController) {
+            var rlth = selectedTab.relatedEventsToHighlight;
+            brushingStateController.changeAnalysisViewRelatedEvents(rlth);
+          }
+        } else {
+          this.tallMode = false;
+          if (brushingStateController)
+            brushingStateController.changeAnalysisViewRelatedEvents(undefined);
+        }
+      }
+    });
+  })();
+  </script>
+</polymer-element>

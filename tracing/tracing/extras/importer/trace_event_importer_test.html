@@ -1,0 +1,3566 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+  var findSliceNamed = tr.c.test_utils.findSliceNamed;
+
+  test('canImportEmpty', function() {
+    assert.isFalse(tr.e.importer.TraceEventImporter.canImport([]));
+    assert.isFalse(tr.e.importer.TraceEventImporter.canImport(''));
+  });
+
+  test('basicSingleThreadNonnestedParsing', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 2);
+    assert.equal(t.tid, 53);
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.closeTo((560 - 520) / 1000, slice.duration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+
+    slice = t.sliceGroup.slices[1];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'bar');
+    assert.closeTo((629 - 520) / 1000, slice.start, 1e-5);
+    assert.closeTo((631 - 629) / 1000, slice.duration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+  });
+
+  test('basicSingleThreadNonnestedParsingWithCpuDuration', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B', tts: 221}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E', tts: 259}, // @suppress longLineCheck
+      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'B', tts: 329}, // @suppress longLineCheck
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E', tts: 331}  // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 2);
+    assert.equal(t.tid, 53);
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.closeTo((560 - 520) / 1000, slice.duration, 1e-5);
+    assert.closeTo((259 - 221) / 1000, slice.cpuDuration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+
+    slice = t.sliceGroup.slices[1];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'bar');
+    assert.closeTo((629 - 520) / 1000, slice.start, 1e-5);
+    assert.closeTo((631 - 629) / 1000, slice.duration, 1e-5);
+    assert.closeTo((331 - 329) / 1000, slice.cpuDuration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+  });
+
+  test('argumentDupeCreatesNonFailingImportError', function() {
+    var events = [
+      {name: 'a',
+        args: {'x': 1},
+        pid: 1,
+        ts: 520,
+        cat: 'foo',
+        tid: 1,
+        ph: 'B'},
+      {name: 'a',
+        args: {'x': 2},
+        pid: 1,
+        ts: 560,
+        cat: 'foo',
+        tid: 1,
+        ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[1].threads[1];
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+
+    assert.equal(sA.args.x, 2);
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(1, m.importWarnings.length);
+  });
+
+  test('importMissingArgs', function() {
+    var events = [
+      {name: 'a', pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'I'}
+    ];
+
+    // This should not throw an exception.
+    new tr.Model(events);
+  });
+
+  test('importDoesNotChokeOnNulls', function() {
+    var events = [
+      {name: 'a', args: { foo: null }, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'}, // @suppress longLineCheck
+      {name: 'a', pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    // This should not throw an exception.
+    new tr.Model(events);
+  });
+
+  test('categoryBeginEndMismatchPrefersBegin', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 53);
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+  });
+
+  test('beginEndNameMismatch', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(m.importWarnings.length, 1);
+  });
+
+  test('nestedParsing', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, tts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, tts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 4, tts: 3, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+
+    assert.equal(sA.title, 'a');
+    assert.equal(sA.category, 'foo');
+    assert.equal(sA.start, 0.001);
+    assert.equal(sA.duration, 0.003);
+    assert.equal(sA.selfTime, 0.002);
+    assert.equal(sA.cpuSelfTime, 0.001);
+
+    assert.equal(sB.title, 'b');
+    assert.equal(sB.category, 'bar');
+    assert.equal(sB.start, 0.002);
+    assert.equal(sB.duration, 0.001);
+
+    assert.equal(1, sA.subSlices.length);
+    assert.equal(sB, sA.subSlices[0]);
+    assert.equal(sA, sB.parentSlice);
+  });
+
+  test('nestedParsingWithTwoSubSlices', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, tts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, tts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'c', args: {}, pid: 1, ts: 5, tts: 5, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 7, tts: 6, cat: 'baz', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 8, tts: 8, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+    var sC = findSliceNamed(t.sliceGroup, 'c');
+
+    assert.equal(sA.title, 'a');
+    assert.equal(sA.category, 'foo');
+    assert.equal(sA.start, 0.001);
+    assert.equal(sA.duration, 0.007);
+    assert.equal(sA.selfTime, 0.004);
+    assert.equal(sA.cpuSelfTime, 0.005);
+
+    assert.equal(sB.title, 'b');
+    assert.equal(sB.category, 'bar');
+    assert.equal(sB.start, 0.002);
+    assert.equal(sB.duration, 0.001);
+
+    assert.equal(sC.title, 'c');
+    assert.equal(sC.category, 'baz');
+    assert.equal(sC.start, 0.005);
+    assert.equal(sC.duration, 0.002);
+
+    assert.equal(sA.subSlices.length, 2);
+    assert.equal(sA.subSlices[0], sB);
+    assert.equal(sA.subSlices[1], sC);
+    assert.equal(sB.parentSlice, sA);
+    assert.equal(sC.parentSlice, sA);
+  });
+
+  test('nestedParsingWithDoubleNesting', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 3, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'E'},
+      {name: 'b', args: {}, pid: 1, ts: 7, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+    var sC = findSliceNamed(t.sliceGroup, 'c');
+
+    assert.equal(sA.title, 'a');
+    assert.equal(sA.category, 'foo');
+    assert.equal(sA.start, 0.001);
+    assert.equal(sA.duration, 0.007);
+    assert.equal(sA.selfTime, 0.002);
+
+    assert.equal(sB.title, 'b');
+    assert.equal(sB.category, 'bar');
+    assert.equal(sB.start, 0.002);
+    assert.equal(sB.duration, 0.005);
+    assert.equal(sA.selfTime, 0.002);
+
+    assert.equal(sC.title, 'c');
+    assert.equal(sC.category, 'baz');
+    assert.equal(sC.start, 0.003);
+    assert.equal(sC.duration, 0.002);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.equal(sA.subSlices[0], sB);
+    assert.equal(sB.parentSlice, sA);
+
+    assert.equal(sB.subSlices.length, 1);
+    assert.equal(sB.subSlices[0], sC);
+    assert.equal(sC.parentSlice, sB);
+  });
+
+
+  test('autoclosing', function() {
+    var events = [
+      // Slice that doesn't finish.
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+
+      // Slice that does finish to give an 'end time' to make autoclosing work.
+      {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.isTrue(slice.didNotFinish);
+    assert.equal(slice.start, 0);
+    assert.equal(slice.duration, (2 - 1) / 1000);
+  });
+
+  test('autoclosingLoneBegin', function() {
+    var events = [
+      // Slice that doesn't finish.
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.isTrue(slice.didNotFinish);
+    assert.equal(slice.start, 0);
+    assert.equal(slice.duration, 0);
+  });
+
+  test('autoclosingWithSubTasks', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b1', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b1', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
+      {name: 'b2', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'}
+    ];
+    var m = new tr.Model(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB1 = findSliceNamed(t.sliceGroup, 'b1');
+    var sB2 = findSliceNamed(t.sliceGroup, 'b2');
+
+    assert.equal(sA.end, 0.003);
+    assert.equal(sB1.end, 0.003);
+    assert.equal(sB2.end, 0.003);
+  });
+
+  test('autoclosingWithEventsOutsideBounds', function() {
+    var events = [
+      // Slice that begins before min and ends after max of the other threads.
+      {name: 'a', args: {}, pid: 1, ts: 0, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'},
+
+      // Slice that does finish to give an 'end time' to establish a basis
+      {name: 'c', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.length, 2);
+
+    var slice = findSliceNamed(t.sliceGroup, 'a');
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.equal(slice.duration, 0.003);
+
+    var t2 = p.threads[2];
+    var slice2 = findSliceNamed(t2.sliceGroup, 'c');
+    assert.equal(slice2.title, 'c');
+    assert.equal(slice2.category, 'bar');
+    assert.equal(slice2.start, 0.001);
+    assert.equal(slice2.duration, 0.001);
+
+    assert.equal(m.bounds.min, 0.000);
+    assert.equal(m.bounds.max, 0.003);
+  });
+
+  test('nestedAutoclosing', function() {
+    var events = [
+      // Tasks that don't finish.
+      {name: 'a1', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'a2', args: {}, pid: 1, ts: 1.5, cat: 'foo', tid: 1, ph: 'B'},
+
+      // Slice that does finish to give an 'end time' to make autoclosing work.
+      {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var t1 = m.processes[1].threads[1];
+    var t2 = m.processes[1].threads[2];
+
+    var sA1 = findSliceNamed(t1.sliceGroup, 'a1');
+    var sA2 = findSliceNamed(t1.sliceGroup, 'a2');
+    var sB = findSliceNamed(t2.sliceGroup, 'b');
+
+    assert.equal(sA1.end, 0.002);
+    assert.equal(sA2.end, 0.002);
+  });
+
+  test('taskColoring', function() {
+    // The test below depends on hashing of 'a' != 'b'. Fail early if that
+    // assumption is incorrect.
+    assert.notEqual(tr.ui.b.getStringHash('a'), tr.ui.b.getStringHash('b'));
+
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
+      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'a', args: {}, pid: 1, ts: 6, cat: 'baz', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    var a1 = t.sliceGroup.slices[0];
+    assert.equal(a1.title, 'a');
+    assert.equal(a1.category, 'foo');
+    var b = t.sliceGroup.slices[1];
+    assert.equal(b.title, 'b');
+    assert.equal(b.category, 'bar');
+    assert.notEqual(b.colorId, a1.colorId);
+    var a2 = t.sliceGroup.slices[2];
+    assert.equal(a2.title, 'a');
+    assert.equal(a2.category, 'baz');
+    assert.equal(a1.colorId, a2.colorId);
+  });
+
+  test('durationColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B', cname: 'thread_state_unknown'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('thread_state_unknown'));
+  });
+
+  test('durationColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B', cname: 'thread_state_sleeping'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('thread_state_unknown'));
+  });
+
+  test('completeColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, dur: 1, cat: 'foo', tid: 1, ph: 'X', cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('asyncColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'b', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.asyncSliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('asyncColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'b', id: 1, cname: 'thread_state_unknown'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.asyncSliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('instantThreadColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'I', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.slices[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('instantProcessColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'I', id: 1, s: 'p', cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    assert.equal(p.instantEvents[0].colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('counterColorArgument', function() {
+    var events = [
+      {name: 'a', args: {'cats': 10}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'C', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    assert.equal(p.counters['foo.a[1]'].series[0].color,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+    assert.equal(p.counters['foo.a[1]'].series.length, 1);
+  });
+
+  test('objectColorArgument', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'N', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'O', id: 1, cname: 'generic_work'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var i = p.objects.instanceMapsById_[1].instances[0];
+    assert.equal(i.colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('objectColorEnd', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'N', id: 1, cname: 'thread_state_sleeping'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'O', id: 1, cname: 'thread_state_unknown'}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var i = p.objects.instanceMapsById_[1].instances[0];
+    assert.equal(i.colorId,
+                 tr.ui.b.getColorIdForReservedName('generic_work'));
+  });
+
+  test('multipleThreadParsing', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
+      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
+    ];
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[1];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 2);
+
+    // Check thread 1.
+    var t = p.threads[1];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 1);
+
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.equal(slice.duration, (2 - 1) / 1000);
+    assert.equal(slice.subSlices.length, 0);
+
+    // Check thread 2.
+    var t = p.threads[2];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 2);
+
+    slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'bar');
+    assert.equal(slice.start, (3 - 1) / 1000);
+    assert.equal(slice.duration, (4 - 3) / 1000);
+    assert.equal(slice.subSlices.length, 0);
+  });
+
+  test('multiplePidParsing', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
+      {name: 'b', args: {}, pid: 2, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
+      {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
+    ];
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 2);
+    var p = m.processes[1];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+
+    // Check process 1 thread 1.
+    var t = p.threads[1];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 1);
+
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.equal(slice.duration, (2 - 1) / 1000);
+    assert.equal(slice.subSlices.length, 0);
+
+    // Check process 2 thread 2.
+    var p = m.processes[2];
+    assert.isDefined(p);
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[2];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 2);
+
+    slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'bar');
+    assert.equal(slice.start, (3 - 1) / 1000);
+    assert.equal(slice.duration, (4 - 3) / 1000);
+    assert.equal(slice.subSlices.length, 0);
+
+    // Check getAllThreads.
+    assert.deepEqual(m.getAllThreads(),
+                      [m.processes[1].threads[1], m.processes[2].threads[2]]);
+  });
+
+  // Process names.
+  test('processNames', function() {
+    var events = [
+      {name: 'process_name', args: {name: 'SomeProcessName'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_name', args: {name: 'SomeProcessName'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+    assert.equal(m.processes[1].name, 'SomeProcessName');
+  });
+
+  // Process labels.
+  test('processLabels', function() {
+    var events = [
+      {name: 'process_labels', args: {labels: 'foo,bar,bar,foo,baz'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_labels', args: {labels: 'baz'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+    assert.deepEqual(m.processes[1].labels, ['foo', 'bar', 'baz']);
+    assert.deepEqual(m.processes[2].labels, ['baz']);
+  });
+
+  // Process sort index.
+  test('processSortIndex', function() {
+    var events = [
+      {name: 'process_name', args: {name: 'First'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_name', args: {name: 'Second'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_sort_index', args: {sort_index: 1},
+        pid: 1, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+
+    // By name, p1 is before p2. But, its sort index overrides that.
+    assert.isAbove(m.processes[1].compareTo(m.processes[2]), 0);
+  });
+
+  // Thread names.
+  test('threadNames', function() {
+    var events = [
+      {name: 'thread_name', args: {name: 'Thread 1'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'thread_name', args: {name: 'Thread 2'},
+        pid: 2, ts: 0, tid: 2, ph: 'M'}
+    ];
+    var m = new tr.Model(events);
+    m.importTraces([events], false, false);
+    assert.equal(m.processes[1].threads[1].name, 'Thread 1');
+    assert.equal(m.processes[2].threads[2].name, 'Thread 2');
+  });
+
+  // Thread sort index.
+  test('threadSortIndex', function() {
+    var events = [
+      {name: 'thread_name', args: {name: 'Thread 1'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'thread_name', args: {name: 'Thread 2'},
+        pid: 1, ts: 0, tid: 2, ph: 'M'},
+      {name: 'thread_sort_index', args: {sort_index: 1},
+        pid: 1, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+
+    // By name, t1 is before t2. But, its sort index overrides that.
+    var t1 = m.processes[1].threads[1];
+    var t2 = m.processes[1].threads[2];
+    assert.isAbove(t1.compareTo(t2), 0);
+  });
+
+  // CPU counts.
+  test('cpuCounts', function() {
+    var events = [
+      {name: 'num_cpus', args: {number: 4},
+        pid: 7, ts: 0, tid: 0, ph: 'M'},
+      {name: 'num_cpus', args: {number: 4},
+        pid: 14, ts: 0, tid: 0, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
+    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+  });
+
+  test('cpuCountsWithSandboxBeingConfused', function() {
+    var events = [
+      {name: 'num_cpus', args: {number: 4},
+        pid: 7, ts: 0, tid: 0, ph: 'M'},
+      {name: 'num_cpus', args: {number: 1},
+        pid: 14, ts: 0, tid: 0, ph: 'M'}
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false, false);
+    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
+    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+  });
+
+  test('parsingWhenEndComesFirst', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.processes[1];
+    var t = p.threads[1];
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.sliceGroup.slices[0].title, 'a');
+    assert.equal(t.sliceGroup.slices[0].category, 'foo');
+    assert.equal(t.sliceGroup.slices[0].start, 0.004);
+    assert.equal(t.sliceGroup.slices[0].duration, 0.001);
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(m.importWarnings.length, 1);
+  });
+
+  test('immediateParsing', function() {
+    var events = [
+      // Need to include immediates inside a task so the timeline
+      // recentering/zeroing doesn't clobber their timestamp.
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'immediate', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'I'},
+      {name: 'slower', args: {}, pid: 1, ts: 4, cat: 'baz', tid: 1, ph: 'i'},
+      {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.processes[1];
+    var t = p.threads[1];
+
+    assert.equal(t.sliceGroup.length, 3);
+    assert.equal(t.sliceGroup.slices[0].start, 0.001);
+    assert.equal(t.sliceGroup.slices[0].duration, 0.003);
+    assert.equal(t.sliceGroup.slices[1].start, 0.002);
+    assert.equal(t.sliceGroup.slices[1].duration, 0);
+    assert.equal(t.sliceGroup.slices[2].start, 0.004);
+
+    var slice = findSliceNamed(t.sliceGroup, 'a');
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.duration, 0.003);
+
+    var immed = findSliceNamed(t.sliceGroup, 'immediate');
+    assert.equal(immed.title, 'immediate');
+    assert.equal(immed.category, 'bar');
+    assert.equal(immed.start, 0.002);
+    assert.equal(immed.duration, 0);
+
+    var slower = findSliceNamed(t.sliceGroup, 'slower');
+    assert.equal(slower.title, 'slower');
+    assert.equal(slower.category, 'baz');
+    assert.equal(slower.start, 0.004);
+    assert.equal(slower.duration, 0);
+  });
+
+  test('simpleCounter', function() {
+    var events = [
+      {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
+        ph: 'C'},
+      {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
+        ph: 'C'},
+      {name: 'ctr', args: {'value': 0}, pid: 1, ts: 20, cat: 'foo', tid: 1,
+        ph: 'C'}
+
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var ctr = m.processes[1].counters['foo.ctr'];
+
+    assert.equal(ctr.name, 'ctr');
+    assert.equal(ctr.category, 'foo');
+    assert.equal(ctr.numSamples, 3);
+    assert.equal(ctr.numSeries, 1);
+
+    assert.equal(ctr.series[0].name, 'value');
+    assert.equal(ctr.series[0].color,
+                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value'));
+
+    assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
+
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assert.deepEqual(samples, [0, 10, 0]);
+
+    assert.deepEqual(ctr.totals, [0, 10, 0]);
+    assert.equal(ctr.maxTotal, 10);
+  });
+
+  test('instanceCounter', function() {
+    var events = [
+      {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
+        ph: 'C', id: 0},
+      {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
+        ph: 'C', id: 0},
+      {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
+        ph: 'C', id: 1},
+      {name: 'ctr', args: {'value': 20}, pid: 1, ts: 15, cat: 'foo', tid: 1,
+        ph: 'C', id: 1},
+      {name: 'ctr', args: {'value': 30}, pid: 1, ts: 18, cat: 'foo', tid: 1,
+        ph: 'C', id: 1},
+      {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
+        ph: 'C', id: 2}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var ctr = m.processes[1].counters['foo.ctr[0]'];
+    assert.equal(ctr.name, 'ctr[0]');
+    assert.equal(ctr.category, 'foo');
+    assert.equal(ctr.numSamples, 2);
+    assert.equal(ctr.numSeries, 1);
+
+    assert.deepEqual(ctr.timestamps, [0, 0.01]);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assert.deepEqual(samples, [0, 10]);
+
+    ctr = m.processes[1].counters['foo.ctr[1]'];
+    assert.equal(ctr.name, 'ctr[1]');
+    assert.equal(ctr.category, 'foo');
+    assert.equal(ctr.numSamples, 3);
+    assert.equal(ctr.numSeries, 1);
+    assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.018]);
+
+    samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assert.deepEqual(samples, [10, 20, 30]);
+
+    ctr = m.processes[1].counters['bar.ctr[2]'];
+    assert.equal(ctr.name, 'ctr[2]');
+    assert.equal(ctr.category, 'bar');
+    assert.equal(ctr.numSamples, 1);
+    assert.equal(ctr.numSeries, 1);
+    assert.deepEqual(ctr.timestamps, [0.02]);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assert.deepEqual(samples, [40]);
+  });
+
+  test('multiCounterUpdateBounds', function() {
+    var ctr = new tr.model.Counter(undefined, 'testBasicCounter',
+        '', 'testBasicCounter');
+    var value1Series = new tr.model.CounterSeries(
+        'value1', 'testBasicCounter.value1');
+    var value2Series = new tr.model.CounterSeries(
+        'value2', 'testBasicCounter.value2');
+    ctr.addSeries(value1Series);
+    ctr.addSeries(value2Series);
+
+    value1Series.addCounterSample(0, 0);
+    value1Series.addCounterSample(1, 1);
+    value1Series.addCounterSample(2, 1);
+    value1Series.addCounterSample(3, 2);
+    value1Series.addCounterSample(4, 3);
+    value1Series.addCounterSample(5, 1);
+    value1Series.addCounterSample(6, 3);
+    value1Series.addCounterSample(7, 3.1);
+
+    value2Series.addCounterSample(0, 0);
+    value2Series.addCounterSample(1, 0);
+    value2Series.addCounterSample(2, 1);
+    value2Series.addCounterSample(3, 1.1);
+    value2Series.addCounterSample(4, 0);
+    value2Series.addCounterSample(5, 7);
+    value2Series.addCounterSample(6, 0);
+    value2Series.addCounterSample(7, 0.5);
+
+    ctr.updateBounds();
+
+    assert.equal(ctr.bounds.min, 0);
+    assert.equal(ctr.bounds.max, 7);
+    assert.equal(ctr.maxTotal, 8);
+    assert.deepEqual([0, 0,
+                       1, 1,
+                       1, 2,
+                       2, 3.1,
+                       3, 3,
+                       1, 8,
+                       3, 3,
+                       3.1, 3.6], ctr.totals);
+  });
+
+  test('multiCounter', function() {
+    var events = [
+      {name: 'ctr', args: {'value1': 0, 'value2': 7}, pid: 1, ts: 0, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
+      {name: 'ctr', args: {'value1': 10, 'value2': 4}, pid: 1, ts: 10, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
+      {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo', tid: 1, ph: 'C'} // @suppress longLineCheck
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[1];
+    var ctr = m.processes[1].counters['foo.ctr'];
+    assert.equal(ctr.name, 'ctr');
+
+    assert.equal(ctr.name, 'ctr');
+    assert.equal(ctr.category, 'foo');
+    assert.equal(ctr.numSamples, 3);
+    assert.equal(ctr.numSeries, 2);
+
+    assert.equal(ctr.series[0].name, 'value1');
+    assert.equal(ctr.series[1].name, 'value2');
+    assert.equal(ctr.series[0].color,
+                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value1'));
+    assert.equal(ctr.series[1].color,
+                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value2'));
+
+    assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assert.deepEqual(samples, [0, 10, 0]);
+
+    var samples1 = [];
+    ctr.series[1].samples.forEach(function(sample) {
+      samples1.push(sample.value);
+    });
+    assert.deepEqual(samples1, [7, 4, 1]);
+    assert.deepEqual([0, 7,
+                       10, 14,
+                       0, 1], ctr.totals);
+    assert.equal(ctr.maxTotal, 14);
+  });
+
+  test('importObjectInsteadOfArray', function() {
+    var events = { traceEvents: [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ] };
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('importString', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(JSON.stringify(events));
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('importStringWithLeadingSpaces', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(' ' + JSON.stringify(events));
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('importStringWithTrailingNewLine', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(JSON.stringify(events) + '\n');
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('importStringWithMissingCloseSquareBracket', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var tmp = JSON.stringify(events);
+    assert.equal(tmp[tmp.length - 1], ']');
+
+    // Drop off the trailing ]
+    var dropped = tmp.substring(0, tmp.length - 1);
+    var m = new tr.Model(dropped);
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('importStringWithEndingCommaButMissingCloseSquareBracket', function() {
+    var lines = [
+      '[',
+      '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},', // @suppress longLineCheck
+      '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},' // @suppress longLineCheck
+    ];
+    var text = lines.join('\n');
+
+    var m = new tr.Model(text);
+    assert.equal(m.numProcesses, 1);
+    assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
+  });
+
+  test('importStringWithMissingCloseSquareBracketAndNewline', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var tmp = JSON.stringify(events);
+    assert.equal(tmp[tmp.length - 1], ']');
+
+    // Drop off the trailing ] and add a newline
+    var dropped = tmp.substring(0, tmp.length - 1);
+    var m = new tr.Model(dropped + '\n');
+    assert.equal(m.numProcesses, 1);
+  });
+
+  test('ImportStringEndingCommaButMissingCloseSquareBracketCRLF', function() {
+    var lines = [
+      '[',
+      '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},', // @suppress longLineCheck
+      '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},' // @suppress longLineCheck
+    ];
+    var text = lines.join('\r\n');
+
+    var m = new tr.Model(text);
+    assert.equal(m.numProcesses, 1);
+    assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
+  });
+
+  test('importOldFormat', function() {
+    var lines = [
+      '[',
+      '{"cat":"a","pid":9,"tid":8,"ts":194,"ph":"E","name":"I","args":{}},',
+      '{"cat":"b","pid":9,"tid":8,"ts":194,"ph":"B","name":"I","args":{}}',
+      ']'
+    ];
+    var text = lines.join('\n');
+    var m = new tr.Model(text);
+    assert.equal(m.numProcesses, 1);
+    assert.equal(m.processes[9].threads[8].sliceGroup.length, 1);
+  });
+
+  test('startFinishOneSliceOneThread', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'cat', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', pid: 52, ts: 524, cat: 'cat', tid: 53,
+        ph: 'S', id: 72, args: {'foo': 'bar'}}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.equal(t.asyncSliceGroup.slices[0].title, 'a');
+    assert.equal(t.asyncSliceGroup.slices[0].category, 'cat');
+    assert.isTrue(t.asyncSliceGroup.slices[0].isTopLevel);
+    assert.equal(t.asyncSliceGroup.slices[0].id, 72);
+    assert.equal(t.asyncSliceGroup.slices[0].args.foo, 'bar');
+    assert.equal(t.asyncSliceGroup.slices[0].start, 0);
+    assert.closeTo(
+        (60 - 24) / 1000, t.asyncSliceGroup.slices[0].duration, 1e-5);
+    assert.equal(t.asyncSliceGroup.slices[0].startThread, t);
+    assert.equal(t.asyncSliceGroup.slices[0].endThread, t);
+  });
+
+  test('endArgsAddedToSlice', function() {
+    var events = [
+      {name: 'a', args: {x: 1}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.length, 1);
+    assert.equal(t.tid, 53);
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.equal(slice.subSlices.length, 0);
+    assert.equal(slice.args['x'], 1);
+    assert.equal(slice.args['y'], 2);
+  });
+
+  test('endArgOverrwritesOriginalArgValueIfDuplicated', function() {
+    var events = [
+      {name: 'b', args: {z: 3}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {z: 4}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'foo');
+    assert.equal(slice.start, 0);
+    assert.equal(slice.subSlices.length, 0);
+    assert.equal(slice.args['z'], 4);
+  });
+
+  test('asyncEndArgsAddedToSlice', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'c', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'c', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'c');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.equal(parentSlice.args['x'], 1);
+    assert.equal(parentSlice.args['y'], 2);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 0);
+  });
+
+  test('asyncEndArgOverwritesOriginalArgValueIfDuplicated', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'd', args: {z: 4}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'd', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'd');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.equal(parentSlice.args['z'], 4);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 0);
+  });
+
+  test('asyncStepsInOneThread', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'F', id: 72}, // @suppress longLineCheck
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53, ph: 'T', id: 72}, // @suppress longLineCheck
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'S', id: 72} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.equal(parentSlice.start, 0);
+    assert.equal(parentSlice.args['x'], 1);
+    assert.isUndefined(parentSlice.args['y']);
+    assert.equal(parentSlice.args['z'], 3);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 1);
+
+    var subSlice = parentSlice.subSlices[0];
+    assert.equal(subSlice.title, 'a:s1');
+    assert.equal(subSlice.category, 'foo');
+    assert.isFalse(subSlice.isTopLevel);
+    assert.closeTo((548 - 524) / 1000, subSlice.start, 1e-5);
+    assert.closeTo((560 - 548) / 1000, subSlice.duration, 1e-5);
+    assert.isUndefined(subSlice.args['x']);
+    assert.equal(subSlice.args['y'], 2);
+    assert.isUndefined(subSlice.args['z']);
+  });
+
+  test('asyncStepsMissingStart', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
+        tid: 53, ph: 'T', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isUndefined(t);
+  });
+
+  test('asyncStepsMissingFinish', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
+        tid: 53, ph: 'T', id: 72},
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isUndefined(t);
+  });
+
+  test('asyncStepEndEvent', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
+        tid: 53, ph: 'p', id: 72},
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.equal(parentSlice.start, 0);
+    assert.equal(parentSlice.args['x'], 1);
+    assert.isUndefined(parentSlice.args['y']);
+    assert.equal(parentSlice.args['z'], 3);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 1);
+    var subSlice = parentSlice.subSlices[0];
+    assert.equal(subSlice.title, 'a:s1');
+    assert.equal(subSlice.category, 'foo');
+    assert.isFalse(subSlice.isTopLevel);
+    assert.equal(subSlice.start, 0);
+    assert.closeTo((548 - 524) / 1000, subSlice.duration, 1e-5);
+    assert.isUndefined(subSlice.args['x']);
+    assert.equal(subSlice.args['y'], 2);
+    assert.isUndefined(subSlice.args['z']);
+  });
+
+  test('asyncStepMismatch', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', args: {step: 's2'}, pid: 52, ts: 548, cat: 'foo', tid: 53,
+        ph: 'T', id: 72},
+      {name: 'a', args: {step: 's1'}, pid: 52, ts: 548, cat: 'foo', tid: 53,
+        ph: 'p', id: 72},
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isUndefined(t);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
+  test('asyncSliceWithoutCPUDuration', function() {
+    var events = [
+      // Async slice without tts field.
+      {name: 'a', args: {params: ''}, pid: 52, ts: 10, cat: 'foo', tid: 53,
+        id: 72, ph: 'b'},
+      {name: 'a', args: {params: ''}, pid: 52, ts: 20, cat: 'foo', tid: 53,
+        id: 72, ph: 'e'},
+      // Async slice with tts field but without use_async_tts marker field.
+      {name: 'b', args: {params: ''}, pid: 52, ts: 30, cat: 'foo', tid: 53,
+        id: 72, ph: 'b', tts: 30000},
+      {name: 'b', args: {params: ''}, pid: 52, ts: 40, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 40000},
+      // Async slice with tts field but with use_async_tts marker set to 0.
+      {name: 'c', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
+       id: 72, ph: 'b', tts: 50000, use_async_tts: 0},
+      {name: 'c', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 60000, use_async_tts: 0}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 3);
+
+    var noTTSNoField = t.asyncSliceGroup.slices[0];
+    assert.isUndefined(noTTSNoField.cpuStart);
+    assert.isUndefined(noTTSNoField.cpuDuration);
+
+    var TTSNoField = t.asyncSliceGroup.slices[1];
+    assert.isUndefined(TTSNoField.cpuStart);
+    assert.isUndefined(TTSNoField.cpuDuration);
+
+    var TTSZeroField = t.asyncSliceGroup.slices[2];
+    assert.isUndefined(TTSZeroField.cpuStart);
+    assert.isUndefined(TTSZeroField.cpuDuration);
+  });
+
+  test('asyncSliceWithCPUDuration', function() {
+    var events = [
+      {name: 'a', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
+       id: 72, ph: 'b', tts: 100000, use_async_tts: 1},
+      {name: 'a', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
+        id: 72, ph: 'e', tts: 105000, use_async_tts: 1}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+
+    var asyncSlice = t.asyncSliceGroup.slices[0];
+    assert.isDefined(asyncSlice);
+    assert.equal(asyncSlice.duration, 10);
+    assert.equal(asyncSlice.cpuStart, 100);
+    assert.equal(asyncSlice.cpuDuration, 5);
+  });
+
+  test('nestableAsyncBasic', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 1);
+    var subSlice = parentSlice.subSlices[0];
+    assert.isFalse(subSlice.isTopLevel);
+    // Arguments should include both BEGIN and END event.
+    assert.equal(subSlice.args['x'], 1);
+    assert.equal(subSlice.args['y'], 2);
+    assert.sameMembers(subSlice.subSlices, []);
+  });
+
+
+  test('nestableAsyncNoArgs', function() {
+    var events = [
+      {name: 'name', pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'name', pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var slice = t.asyncSliceGroup.slices[0];
+    assert.equal(slice.title, 'name');
+    assert.equal(slice.category, 'foo');
+    assert.isTrue(slice.isTopLevel);
+
+    assert.isDefined(slice.subSlices);
+    assert.equal(slice.subSlices.length, 0);
+
+    assert.deepEqual(slice.args, {});
+  });
+
+  test('nestableAsyncCombinedParams', function() {
+    var events = [
+      {name: 'a', args: {x: 1, params: {p1: 'hello', p2: 123}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 72},
+      {name: 'a', args: {y: 2, params: {p3: 'hi'}}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 72},
+      {name: 'b', args: {params: {p4: 'foo'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 73},
+      {name: 'b', args: {params: ''}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 73},
+      {name: 'c', args: {params: {p5: 'bar'}},
+        pid: 52, ts: 525, cat: 'foo', tid: 53, ph: 'b', id: 74},
+      {name: 'c', args: {}, pid: 52, ts: 560,
+        cat: 'foo', tid: 53, ph: 'e', id: 74}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 3);
+
+    var sliceA = t.asyncSliceGroup.slices[0];
+    // Arguments should include both BEGIN and END event.
+    assert.equal(sliceA.args['x'], 1);
+    assert.equal(sliceA.args['y'], 2);
+    var paramsA = sliceA.args['params'];
+    assert.isDefined(paramsA);
+    assert.equal(paramsA.p1, 'hello');
+    assert.equal(paramsA.p2, 123);
+    assert.equal(paramsA.p3, 'hi');
+    assert.isTrue(sliceA.isTopLevel);
+
+    var sliceB = t.asyncSliceGroup.slices[1];
+    // Arguments should include both BEGIN and END event.
+    var paramsB = sliceB.args['params'];
+    assert.isDefined(paramsB);
+    assert.equal(paramsB.p4, 'foo');
+    assert.isTrue(sliceB.isTopLevel);
+
+    var sliceC = t.asyncSliceGroup.slices[2];
+    // Arguments should include both BEGIN and END event.
+    var paramsC = sliceC.args['params'];
+    assert.isDefined(paramsC);
+    assert.equal(paramsC.p5, 'bar');
+    assert.isTrue(sliceC.isTopLevel);
+  });
+
+  test('nestableAsyncManyLevels', function() {
+    // There are 5 nested levels.
+    var events = [
+      {name: 'l1', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l2', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l3', args: {}, pid: 52, ts: 526, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l4', args: {}, pid: 52, ts: 527, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l5', args: {}, pid: 52, ts: 528, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'l5', args: {}, pid: 52, ts: 529, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l4', args: {}, pid: 52, ts: 530, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l3', args: {}, pid: 52, ts: 531, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l2', args: {}, pid: 52, ts: 532, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'l1', args: {}, pid: 52, ts: 533, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    // Perfectly matched events should not produce a warning.
+    assert.isFalse(m.hasImportWarnings);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+
+    var l1Slice = t.asyncSliceGroup.slices[0];
+    assert.equal(l1Slice.title, 'l1');
+    assert.closeTo(0, l1Slice.start, 1e-5);
+    assert.closeTo(9 / 1000, l1Slice.duration, 1e-5);
+    assert.isTrue(l1Slice.isTopLevel);
+
+    assert.isDefined(l1Slice.subSlices);
+    assert.equal(l1Slice.subSlices.length, 1);
+    var l2Slice = l1Slice.subSlices[0];
+    assert.equal(l2Slice.title, 'l2');
+    assert.closeTo(1 / 1000, l2Slice.start, 1e-5);
+    assert.closeTo(7 / 1000, l2Slice.duration, 1e-5);
+    assert.isFalse(l2Slice.isTopLevel);
+
+    assert.isDefined(l2Slice.subSlices);
+    assert.equal(l2Slice.subSlices.length, 1);
+    var l3Slice = l2Slice.subSlices[0];
+    assert.equal(l3Slice.title, 'l3');
+    assert.closeTo(2 / 1000, l3Slice.start, 1e-5);
+    assert.closeTo(5 / 1000, l3Slice.duration, 1e-5);
+    assert.isFalse(l3Slice.isTopLevel);
+
+    assert.isDefined(l3Slice.subSlices);
+    assert.equal(l3Slice.subSlices.length, 1);
+    var l4Slice = l3Slice.subSlices[0];
+    assert.equal(l4Slice.title, 'l4');
+    assert.closeTo(3 / 1000, l4Slice.start, 1e-5);
+    assert.closeTo(3 / 1000, l4Slice.duration, 1e-5);
+    assert.isFalse(l4Slice.isTopLevel);
+
+    assert.isDefined(l4Slice.subSlices);
+    assert.equal(l4Slice.subSlices.length, 1);
+    var l5Slice = l4Slice.subSlices[0];
+    assert.equal(l5Slice.title, 'l5');
+    assert.closeTo(4 / 1000, l5Slice.start, 1e-5);
+    assert.closeTo(1 / 1000, l5Slice.duration, 1e-5);
+    assert.isFalse(l5Slice.isTopLevel);
+  });
+
+  test('nestableAsyncInstantEvent', function() {
+    var events = [
+      {name: 'c', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'n', id: 71},
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'd', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    var instantSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(instantSlice.title, 'c');
+    assert.closeTo(0, instantSlice.start, 1e-5);
+    assert.closeTo(0, instantSlice.duration, 1e-5);
+    assert.sameMembers(instantSlice.subSlices, []);
+    assert.isTrue(instantSlice.isTopLevel);
+
+    var nestedSlice = t.asyncSliceGroup.slices[1];
+    assert.equal(nestedSlice.title, 'a');
+    assert.closeTo(0, nestedSlice.start, 1e-5);
+    assert.closeTo((565 - 524) / 1000, nestedSlice.duration, 1e-5);
+    assert.isTrue(nestedSlice.isTopLevel);
+    assert.isDefined(nestedSlice.subSlices);
+    assert.equal(nestedSlice.subSlices.length, 1);
+    var nestedInstantSlice = nestedSlice.subSlices[0];
+    assert.sameMembers(nestedInstantSlice.subSlices, []);
+    assert.equal(nestedInstantSlice.title, 'd');
+    assert.isFalse(nestedInstantSlice.isTopLevel);
+  });
+
+  test('nestableAsyncUnmatchedOuterBeginEvent', function() {
+    var events = [
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    // Unmatched BEGIN should produce a warning.
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.closeTo(0, parentSlice.start, 0.0001);
+    // Unmatched BEGIN event ends at the last event of that ID.
+    assert.closeTo(36 / 1000, parentSlice.duration, 0.0001);
+    // Arguments should include only include its arguments.
+    assert.isUndefined(parentSlice.args['y']);
+    assert.equal(parentSlice.args['x'], 1);
+    assert.isDefined(parentSlice.error);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 1);
+    var subSlice = parentSlice.subSlices[0];
+    assert.isFalse(subSlice.isTopLevel);
+    assert.closeTo(1 / 1000, subSlice.start, 1e-5);
+    assert.closeTo(35 / 1000, subSlice.duration, 1e-5);
+    assert.sameMembers(subSlice.subSlices, []);
+    // Arguments should include those of the END event.
+    assert.equal(subSlice.args['y'], 2);
+    assert.sameMembers(subSlice.subSlices, []);
+  });
+
+  test('nestableAsyncUnmatchedInnerBeginEvent', function() {
+    var events = [
+      {name: 'a', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'c', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'a', args: {y: 2}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    // Unmatched BEGIN should produce a warning.
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.closeTo(0, parentSlice.start, 1e-5);
+    assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
+    // Arguments should include both BEGIN and END event.
+    assert.equal(parentSlice.args['y'], 2);
+    assert.equal(parentSlice.args['z'], 3);
+    assert.isUndefined(parentSlice.args['x']);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 2);
+    var subSliceInstant = parentSlice.subSlices[0];
+    var subSliceUnmatched = parentSlice.subSlices[1];
+    assert.equal(subSliceInstant.title, 'c');
+    assert.isFalse(subSliceInstant.isTopLevel);
+    assert.equal(subSliceUnmatched.title, 'b');
+    assert.isFalse(subSliceUnmatched.isTopLevel);
+    // Unmatched BEGIN ends at the last event of that ID.
+    assert.closeTo(1 / 1000, subSliceUnmatched.start, 1e-5);
+    assert.closeTo(40 / 1000, subSliceUnmatched.duration, 1e-5);
+    assert.sameMembers(subSliceUnmatched.subSlices, []);
+    assert.equal(subSliceUnmatched.args['x'], 1);
+    assert.isUndefined(subSliceUnmatched['y']);
+    assert.isDefined(subSliceUnmatched.error);
+    assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
+    assert.closeTo(0, subSliceInstant.duration, 1e-5);
+    assert.sameMembers(subSliceInstant.subSlices, []);
+  });
+
+  test('nestableAsyncUnmatchedOuterEndEvent', function() {
+    // Events are intentionally out-of-order.
+    var events = [
+      {name: 'b', args: {x: 1}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'b', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    // Unmatched END should produce a warning.
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    var unmatchedSlice = t.asyncSliceGroup.slices[0];
+    var slice = t.asyncSliceGroup.slices[1];
+    assert.equal(unmatchedSlice.title, 'a');
+    assert.closeTo(0, unmatchedSlice.start, 1e-5);
+    assert.isTrue(unmatchedSlice.isTopLevel);
+    // Unmatched END event begins at the first event of that ID. In this
+    // case, the first event happens to be the same unmatched event.
+    assert.closeTo(0 / 1000, unmatchedSlice.duration, 1e-5);
+    assert.isUndefined(unmatchedSlice.args['x']);
+    assert.isUndefined(unmatchedSlice.args['y']);
+    assert.equal(unmatchedSlice.args['z'], 3);
+    assert.isDefined(unmatchedSlice.error);
+    assert.sameMembers(unmatchedSlice.subSlices, []);
+
+    assert.equal(slice.title, 'b');
+    assert.isTrue(slice.isTopLevel);
+    assert.closeTo(1 / 1000, slice.start, 1e-5);
+    assert.closeTo(35 / 1000, slice.duration, 1e-5);
+    // Arguments should include both BEGIN and END event.
+    assert.equal(slice.args['x'], 1);
+    assert.equal(slice.args['y'], 2);
+    assert.sameMembers(slice.subSlices, []);
+  });
+
+  test('nestableAsyncUnmatchedInnerEndEvent', function() {
+    var events = [
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'c', args: {}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'n', id: 72},
+      {name: 'b', args: {z: 3}, pid: 52, ts: 525, cat: 'foo', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'a', args: {y: 2}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    // Unmatched END should produce a warning.
+    assert.isTrue(m.hasImportWarnings);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.closeTo(0, parentSlice.start, 1e-5);
+    assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
+    // Arguments should include both BEGIN and END event.
+    assert.equal(parentSlice.args['x'], 1);
+    assert.equal(parentSlice.args['y'], 2);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 2);
+    var subSliceInstant = parentSlice.subSlices[0];
+    var subSliceUnmatched = parentSlice.subSlices[1];
+    assert.equal(subSliceInstant.title, 'c');
+    assert.isFalse(subSliceInstant.isTopLevel);
+    assert.equal(subSliceUnmatched.title, 'b');
+    assert.isFalse(subSliceUnmatched.isTopLevel);
+    // Unmatched END begins at the first event of that ID.
+    assert.closeTo(0 / 1000, subSliceUnmatched.start, 1e-5);
+    assert.closeTo(1 / 1000, subSliceUnmatched.duration, 1e-5);
+    // Arguments should include both BEGIN and END event.
+    assert.isUndefined(subSliceUnmatched.args['x']);
+    assert.isUndefined(subSliceUnmatched.args['y']);
+    assert.equal(subSliceUnmatched.args['z'], 3);
+    assert.isDefined(subSliceUnmatched.error);
+
+    assert.sameMembers(subSliceUnmatched.subSlices, []);
+    assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
+    assert.closeTo(0, subSliceInstant.duration, 1e-5);
+    assert.sameMembers(subSliceInstant.subSlices, []);
+  });
+
+  test('nestableAsyncSameIDDifferentCategory', function() {
+    // Events with the same ID, but different categories should not be
+    // considered as nested.
+    var events = [
+      {name: 'EVENT_A', args: {}, pid: 52, ts: 500, cat: 'foo', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'EVENT_B', args: {y: 2}, pid: 52, ts: 550, cat: 'bar', tid: 53,
+        ph: 'b', id: 72},
+      {name: 'EVENT_B', args: {}, pid: 52, ts: 600, cat: 'bar', tid: 53,
+        ph: 'e', id: 72},
+      {name: 'EVENT_A', args: {x: 1}, pid: 52, ts: 650, cat: 'foo', tid: 53,
+        ph: 'e', id: 72}
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    var eventASlice = t.asyncSliceGroup.slices[0];
+    assert.equal(eventASlice.title, 'EVENT_A');
+    assert.equal(eventASlice.category, 'foo');
+    assert.equal(eventASlice.id, 'foo:72');
+    assert.isTrue(eventASlice.isTopLevel);
+    assert.equal(eventASlice.args['x'], 1);
+    assert.sameMembers(eventASlice.subSlices, []);
+
+    var eventBSlice = t.asyncSliceGroup.slices[1];
+    assert.equal(eventBSlice.title, 'EVENT_B');
+    assert.equal(eventBSlice.category, 'bar');
+    assert.equal(eventBSlice.id, 'bar:72');
+    assert.isTrue(eventBSlice.isTopLevel);
+    assert.equal(eventBSlice.args['y'], 2);
+    assert.sameMembers(eventBSlice.subSlices, []);
+  });
+
+  test('importSamples', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'b', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'a', args: {}, pid: 52, ts: 568, cat: 'test', tid: 53, ph: 'P'}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[52];
+    assert.isDefined(p);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.samples_.length, 4);
+    assert.equal(t.samples_[0].start, 0.0);
+    assert.equal(t.samples_[1].start, 0.0);
+    assert.closeTo(0.01, t.samples_[2].start, 1e-5);
+    assert.equal(t.samples_[0].leafStackFrame.title, 'a');
+    assert.equal(t.samples_[1].leafStackFrame.title, 'b');
+    assert.equal(t.samples_[2].leafStackFrame.title, 'c');
+    assert.equal(t.samples_[3].leafStackFrame, t.samples[0].leafStackFrame);
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('importSamplesWithStackFrames', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'P', sf: 7 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tr.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tr.Model(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+
+    assert.equal(t.samples.length, 1);
+    assert.equal(t.samples_[0].start, 0.0);
+    assert.equal(t.samples_[0].leafStackFrame.title, 'frame7');
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('importSamplesMissingArgs', function() {
+    var events = [
+      {name: 'a', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'b', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+      {name: 'c', pid: 52, ts: 549, cat: 'test', tid: 53, ph: 'P'}
+    ];
+    var m = new tr.Model(events);
+    var p = m.processes[52];
+    assert.isDefined(p);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.isDefined(t);
+    assert.equal(t.samples_.length, 3);
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('importSimpleObject', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 15}}, // @suppress longLineCheck
+      {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
+    ];
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    assert.equal(m.bounds.min, 10);
+    assert.equal(m.bounds.max, 50);
+    assert.isFalse(m.hasImportWarnings);
+
+    var p = m.processes[1];
+    assert.isDefined(p);
+
+    var i10 = p.objects.getObjectInstanceAt('0x1000', 10);
+    assert.equal(i10.category, 'c');
+    assert.equal(i10.creationTs, 10);
+    assert.equal(i10.deletionTs, 50);
+    assert.equal(i10.snapshots.length, 2);
+
+    var s15 = i10.snapshots[0];
+    assert.equal(s15.ts, 15);
+    assert.equal(s15.args, 15);
+
+    var s20 = i10.snapshots[1];
+    assert.equal(s20.ts, 20);
+    assert.equal(s20.args, 20);
+  });
+
+  test('importImplicitObjects', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            foo: 1
+          }
+        ]}},
+      {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            foo: 2
+          },
+          { id: 'subObject/0x2',
+            foo: 1
+          }
+        ]}}
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
+        'subObject'];
+
+    assert.equal(subObjectInstances.length, 2);
+    var subObject1 = p1.objects.getObjectInstanceAt('0x1', 15);
+    assert.equal(subObject1.name, 'subObject');
+    assert.equal(subObject1.creationTs, 15);
+
+    assert.equal(subObject1.snapshots.length, 2);
+    assert.equal(subObject1.snapshots[0].ts, 15);
+    assert.equal(subObject1.snapshots[0].args.foo, 1);
+    assert.equal(subObject1.snapshots[1].ts, 20);
+    assert.equal(subObject1.snapshots[1].args.foo, 2);
+
+    var subObject2 = p1.objects.getObjectInstanceAt('0x2', 20);
+    assert.equal(subObject2.name, 'subObject');
+    assert.equal(subObject2.creationTs, 20);
+    assert.equal(subObject2.snapshots.length, 1);
+    assert.equal(subObject2.snapshots[0].ts, 20);
+  });
+
+  test('importImplicitObjectWithCategoryOverride', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'cat', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'otherCat', id: '0x1000', name: 'a', // @suppress longLineCheck
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            cat: 'cat',
+            foo: 1
+          }
+        ]}}
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
+        'subObject'];
+
+    assert.equal(subObjectInstances.length, 1);
+  });
+
+  test('importImplicitObjectWithBaseTypeOverride', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'PictureLayerImpl', args: { // @suppress longLineCheck
+        snapshot: {
+          base_type: 'LayerImpl'
+        }
+      }},
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+    assert.equal(m.importWarnings.length, 0);
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    assert.equal(iA.snapshots.length, 1);
+  });
+
+  test('importIDRefs', function() {
+    var events = [
+      // An object with two snapshots.
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 15}}, // @suppress longLineCheck
+      {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+
+      // A slice that references the object.
+      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {my_object: {id_ref: '0x1000'}}}, // @suppress longLineCheck
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var s15 = iA.getSnapshotAt(15);
+
+    var taskSlice = p1.threads[1].sliceGroup.slices[0];
+    assert.equal(taskSlice.args.my_object, s15);
+  });
+
+  test('importIDRefsThatPointAtEachOther', function() {
+    var events = [
+      // An object.
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: { // @suppress longLineCheck
+        snapshot: { x: {
+          id: 'foo/0x1001',
+          value: 'bar'
+        }}}},
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+
+      // A slice that references the object.
+      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {my_object: {id_ref: '0x1001'}}}, // @suppress longLineCheck
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 15);
+    var iFoo = p1.objects.getObjectInstanceAt('0x1001', 15);
+    assert.isDefined(iA);
+    assert.isDefined(iFoo);
+
+    var a15 = iA.getSnapshotAt(15);
+    var foo15 = iFoo.getSnapshotAt(15);
+
+    var taskSlice = p1.threads[1].sliceGroup.slices[0];
+    assert.equal(taskSlice.args.my_object, foo15);
+  });
+
+  test('importArrayWithIDs', function() {
+    var events = [
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: { // @suppress longLineCheck
+        snapshot: { x: [
+          {id: 'foo/0x1001', value: 'bar1'},
+          {id: 'foo/0x1002', value: 'bar2'},
+          {id: 'foo/0x1003', value: 'bar3'}
+        ]}}}
+    ];
+
+    var m = new tr.Model();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var sA = p1.objects.getSnapshotAt('0x1000', 15);
+    assert.isTrue(sA.args.x instanceof Array);
+    assert.equal(sA.args.x.length, 3);
+    assert.isTrue(sA.args.x[0] instanceof tr.model.ObjectSnapshot);
+    assert.isTrue(sA.args.x[1] instanceof tr.model.ObjectSnapshot);
+    assert.isTrue(sA.args.x[2] instanceof tr.model.ObjectSnapshot);
+  });
+
+  test('importDoesNotMutateEventList', function() {
+    var events = [
+      // An object.
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: { // @suppress longLineCheck
+        snapshot: {foo: 15}}},
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+
+      // A slice that references the object.
+      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
+        my_object: {id_ref: '0x1000'}}
+      },
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
+    ];
+
+    // The A type family exists to mutate the args list provided to
+    // snapshots.
+    function ASnapshot() {
+      tr.model.ObjectSnapshot.apply(this, arguments);
+      this.args.foo = 7;
+    }
+    ASnapshot.prototype = {
+      __proto__: tr.model.ObjectSnapshot.prototype
+    };
+
+    // Import event while the A types are registered, causing the
+    // arguments of the snapshots to be mutated.
+    var m = new tr.Model();
+    try {
+      tr.model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
+      m.importTraces([events], false);
+    } finally {
+      tr.model.ObjectSnapshot.unregister(ASnapshot);
+    }
+    assert.isFalse(m.hasImportWarnings);
+
+    // Verify that the events array wasn't modified.
+    assert.deepEqual(
+        events[1].args,
+        {snapshot: {foo: 15}});
+    assert.deepEqual(
+        events[3].args,
+        {my_object: {id_ref: '0x1000'}});
+  });
+
+  test('importFlowEvent', function() {
+    var events = [
+      { name: 'aSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 547, ph: 'B', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 549, ph: 'E', args: {} },  // @suppress longLineCheck
+
+      { name: 'bSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 559, ph: 'B', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 561, ph: 'E', args: {} },  // @suppress longLineCheck
+
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'cSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 581, ph: 'B', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+
+    assert.isDefined(t);
+    assert.equal(m.flowEvents.length, 2);
+    assert.equal(m.flowIntervalTree.size, 2);
+
+    var f0 = m.flowEvents[0];
+    assert.equal(f0.title, 'a');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.closeTo(f0.start, 0.001, 1e-5);
+    assert.closeTo(12 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'aSlice');
+    assert.equal(f0.endSlice.title, 'bSlice');
+
+    // TODO(nduca): Replace this assertion with something better when
+    // flow events don't create synthetic slices on their own.
+    assert.isDefined(f0.startSlice);
+    assert.isDefined(f0.endSlice);
+
+    var f1 = m.flowEvents[1];
+    assert.equal(f1.title, f0.title);
+    assert.equal(f1.category, f0.category);
+    assert.equal(f1.id, f0.id);
+    assert.closeTo(20 / 1000, f1.duration, 1e-5);
+
+    assert.equal(f1.startSlice.title, 'bSlice');
+    assert.equal(f1.endSlice.title, 'cSlice');
+
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+    assert.deepEqual(f1.startSlice.outFlowEvents, [f1]);
+    assert.deepEqual(f1.endSlice.inFlowEvents, [f1]);
+  });
+
+  test('importOldFlowEventBindtoNext', function() {
+    // Old trace format without event.bp, and event.cat doesn't contain input
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice3');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importOldInputFlowEventBindtoParent', function() {
+    // Old trace format without event.bp, but event.cat contains input
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'input', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'input', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'input');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importOldIPCFlowEventBindtoParent', function() {
+    // Old trace format without event.bp, but event.cat contains ipc.flow
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'disabled-by-default-ipc.flow', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'disabled-by-default-ipc.flow', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'disabled-by-default-ipc.flow');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importNewFlowEventBindtoParent', function() {
+    // New trace format with event.bp
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', bp: 'e', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', bp: 'e', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'flow');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'slice1');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'slice2');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+  });
+
+  test('importNewFlowEventWithInvalidBindingPoint', function() {
+    // New trace format with event.bp, which however !== 'e'
+    var events = [
+      { name: 'slice1', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'flow', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', bp: 'z', args: {}},  // @suppress longLineCheck
+
+      { name: 'flow', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', bp: 'z', args: {}},   // @suppress longLineCheck
+      { name: 'slice2', cat: 'foo', pid: 70, tid: 71, ts: 570, ph: 'X', args: {}, 'dur': 100},   // @suppress longLineCheck
+      { name: 'slice3', cat: 'foo', pid: 70, tid: 71, ts: 770, ph: 'X', args: {}, 'dur': 1000}   // @suppress longLineCheck
+
+    ];
+
+    var m = new tr.Model(events, false, false);
+
+    assert.equal(m.flowEvents.length, 0);
+  });
+
+  // This test creates a flow event that stops on the same timestamp that
+  // the 'X' event which it triggers begins.
+  test('importFlowEventOverlaps', function() {
+    var events = [
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 547, ph: 'X', 'dur': 100},   // @suppress longLineCheck
+      { name: 'PostTask', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}},  // @suppress longLineCheck
+
+      { name: 'PostTask', cat: 'foo', id: 72, pid: 70, tid: 71, ts: 580, ph: 'f', args: { 'queue_duration': 0}},   // @suppress longLineCheck
+      // Note that RunTask has the same time-stamp as PostTask 'f'
+      { name: 'RunTask', cat: 'foo', pid: 70, tid: 71, ts: 580, ph: 'X', args: {'src_func': 'PostRunTask'}, 'dur': 1000}   // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events, false, false);
+    var startT = m.processes[52].threads[53];
+    var endT = m.processes[70].threads[71];
+
+    assert.isDefined(startT);
+    assert.equal(startT.sliceGroup.slices.length, 1);
+
+    assert.isDefined(endT);
+    assert.equal(endT.sliceGroup.slices.length, 1);
+
+    assert.equal(m.flowEvents.length, 1);
+
+    // f0 represents 's' to 'f'
+    var f0 = m.flowEvents[0];
+
+    assert.equal(f0.title, 'PostTask');
+    assert.equal(f0.category, 'foo');
+    assert.equal(f0.id, 72);
+    assert.equal(f0.start, .548);
+    assert.closeTo(32 / 1000, f0.duration, 1e-5);
+    assert.equal(f0.startSlice.title, 'SomeTask');
+    assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
+    assert.equal(f0.endSlice.title, 'RunTask');
+    assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
+
+    // TODO(nduca): Add assertions about the flow slices, esp that they were
+    // found correctly.
+  });
+
+  test('importOutOfOrderFlowEvent', function() {
+    var events = [
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 548, ph: 'X', 'dur': 10},   // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 148, ph: 'X', 'dur': 10},   // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 148, ph: 's', args: {} },  // @suppress longLineCheck
+
+      { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 570, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 571, ph: 'X', 'dur': 10},   // @suppress longLineCheck
+
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 560, ph: 'X', 'dur': 10},   // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'SomeTask', cat: 'foo', pid: 52, tid: 53, ts: 581, ph: 'X', 'dur': 10}   // @suppress longLineCheck
+    ];
+
+    var expected = [0.4, 0.0, 0.412];
+    var m = new tr.Model(events);
+    assert.equal(m.flowIntervalTree.size, 3);
+
+    var order = m.flowEvents.map(function(x) { return x.start });
+    for (var i = 0; i < expected.length; ++i)
+      assert.closeTo(expected[i], order[i], 1e-5);
+  });
+
+  test('importCompleteEvent', function() {
+    var events = [
+      { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X' }
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.slices.length, 3);
+    assert.equal(t.tid, 53);
+
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'baz');
+    assert.closeTo(0, slice.start, 1e-5);
+    assert.closeTo(1 / 1000, slice.duration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+
+    slice = t.sliceGroup.slices[1];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'foo');
+    assert.closeTo((730 - 629) / 1000, slice.start, 1e-5);
+    assert.closeTo(20 / 1000, slice.duration, 1e-5);
+    assert.equal(slice.subSlices.length, 1);
+
+    slice = t.sliceGroup.slices[2];
+    assert.equal(slice.title, 'c');
+    assert.isTrue(slice.didNotFinish);
+    assert.closeTo(10 / 1000, slice.duration, 1e-5);
+  });
+
+  test('importCompleteEventWithCpuDuration', function() {
+    var events = [
+      { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X', tts: 12, tdur: 1 },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X', tts: 110, tdur: 16 },  // @suppress longLineCheck
+      { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X', tts: 115 }  // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events);
+    assert.equal(m.numProcesses, 1);
+    var p = m.processes[52];
+    assert.isDefined(p);
+
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[53];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.slices.length, 3);
+    assert.equal(t.tid, 53);
+
+    var slice = t.sliceGroup.slices[0];
+    assert.equal(slice.title, 'a');
+    assert.equal(slice.category, 'baz');
+    assert.closeTo(0, slice.start, 1e-5);
+    assert.closeTo(1 / 1000, slice.duration, 1e-5);
+    assert.closeTo(12 / 1000, slice.cpuStart, 1e-5);
+    assert.closeTo(1 / 1000, slice.cpuDuration, 1e-5);
+    assert.equal(slice.subSlices.length, 0);
+
+    slice = t.sliceGroup.slices[1];
+    assert.equal(slice.title, 'b');
+    assert.equal(slice.category, 'foo');
+    assert.closeTo((730 - 629) / 1000, slice.start, 1e-5);
+    assert.closeTo(20 / 1000, slice.duration, 1e-5);
+    assert.closeTo(110 / 1000, slice.cpuStart, 1e-5);
+    assert.closeTo(16 / 1000, slice.cpuDuration, 1e-5);
+    assert.equal(slice.subSlices.length, 1);
+
+    slice = t.sliceGroup.slices[2];
+    assert.equal(slice.title, 'c');
+    assert.isTrue(slice.didNotFinish);
+    assert.closeTo(10 / 1000, slice.duration, 1e-5);
+  });
+
+  test('importNestedCompleteEventWithTightBounds', function() {
+    var events = [
+      { name: 'a', args: {}, pid: 52, ts: 244654227065, dur: 36075, cat: 'baz', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 244654227095, dur: 36045, cat: 'foo', tid: 53, ph: 'X' }  // @suppress longLineCheck
+    ];
+
+    var m = new tr.Model(events, false);
+    var t = m.processes[52].threads[53];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+
+    assert.equal(sA.title, 'a');
+    assert.equal(sA.category, 'baz');
+    assert.equal(sA.start, 244654227.065);
+    assert.equal(sA.duration, 36.075);
+    assert.closeTo(0.03, sA.selfTime, 1e-5);
+
+    assert.equal(sB.title, 'b');
+    assert.equal(sB.category, 'foo');
+    assert.equal(sB.start, 244654227.095);
+    assert.equal(sB.duration, 36.045);
+
+    assert.equal(sA.subSlices.length, 1);
+    assert.equal(sA.subSlices[0], sB);
+    assert.equal(sB.parentSlice, sA);
+  });
+
+
+  test('importCompleteEventWithStackFrame', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, dur: 1, cat: 'baz', tid: 2, ph: 'X', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, dur: 1, cat: 'baz', tid: 2, ph: 'X', sf: 8, esf: 9 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        },
+        '8': {
+          category: 'm2',
+          name: 'frame8',
+          parent: '1'
+        },
+        '9': {
+          category: 'm2',
+          name: 'frame9',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tr.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tr.Model(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.slices.length, 2);
+
+    var s0 = t.sliceGroup.slices[0];
+    assert.equal(s0.startStackFrame.title, 'frame7');
+    assert.isUndefined(s0.endStackFrame);
+
+    var s1 = t.sliceGroup.slices[1];
+    assert.equal(s1.startStackFrame.title, 'frame8');
+    assert.equal(s1.endStackFrame.title, 'frame9');
+  });
+
+  test('importAsyncEventWithSameTimestamp', function() {
+    var events = [];
+    // Events are added with ts 0, 1, 1, 2, 2, 3, 3 ...500, 500, 1000
+    // and use 'seq' to track the order of when the event is recorded.
+    events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 0, ph: 'S', args: {'seq': 0}});  // @suppress longLineCheck
+
+    for (var i = 1; i <= 1000; i++)
+      events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2) , ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
+
+    events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
+
+    var m = new tr.Model(events);
+    var t = m.processes[52].threads[53];
+
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+
+    assert.isDefined(parentSlice.subSlices);
+    var subSlices = parentSlice.subSlices;
+    assert.equal(subSlices.length, 1000);
+    // Slices should be sorted according to 'ts'. And if 'ts' is the same,
+    // slices should keep the order that they were recorded.
+    for (var i = 0; i < 1000; i++) {
+      assert.equal(i + 1, subSlices[i].args['seq']);
+      assert.isFalse(subSlices[i].isTopLevel);
+    }
+  });
+
+  test('sampleDataSimple', function() {
+    var events = {
+      'traceEvents': [],
+      'stackFrames': {
+        '1': {
+          'category': 'mod',
+          'name': 'main'
+        },
+        '2': {
+          'category': 'mod',
+          'name': 'a',
+          'parent': 1
+        },
+        '3': {
+          'category': 'mod',
+          'name': 'a_sub',
+          'parent': 2
+        },
+        '4': {
+          'category': 'mod',
+          'name': 'b',
+          'parent': 1
+        }
+      },
+      'samples': [
+        {
+          'cpu': 0, 'tid': 1, 'ts': 1000.0,
+          'name': 'cycles:HG', 'sf': 3, 'weight': 1
+        },
+        {
+          'cpu': 0, 'tid': 1, 'ts': 2000.0,
+          'name': 'cycles:HG', 'sf': 2, 'weight': 1
+        },
+        {
+          'cpu': 1, 'tid': 1, 'ts': 3000.0,
+          'name': 'cycles:HG', 'sf': 3, 'weight': 1
+        }
+      ]
+    };
+    var m = new tr.Model(events, false);
+    assert.isDefined(m.kernel.cpus[0]);
+    assert.equal(m.getAllThreads().length, 1);
+
+    assert.equal(tr.b.dictionaryKeys(m.stackFrames).length, 4);
+    assert.equal(m.samples.length, 3);
+
+    var t1 = m.processes[1].threads[1];
+    assert.equal(t1.samples.length, 3);
+
+    var c0 = m.kernel.cpus[0];
+    var c1 = m.kernel.cpus[1];
+    assert.equal(c0.samples.length, 2);
+    assert.equal(c1.samples.length, 1);
+
+    assert.equal(m.samples[0].cpu, c0);
+    assert.equal(m.samples[0].thread, t1);
+    assert.equal(m.samples[0].title, 'cycles:HG');
+    assert.equal(m.samples[0].start, 1);
+    assert.deepEqual(
+        ['a_sub', 'a', 'main'],
+        m.samples[0].stackTrace.map(function(x) { return x.title; }));
+    assert.equal(m.samples[0].weight, 1);
+  });
+
+  test('importMemoryDumps_verifyProcessAndGlobalMemoryDumpLinks', function() {
+    var events = [
+      // 2 process memory dump events without a global memory dump event.
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10000,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            }
+          }
+        }
+      },
+      {
+        name: 'b',
+        pid: 43,
+        ts: 11000,
+        cat: 'test',
+        tid: 54,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '200'
+            }
+          }
+        }
+      },
+      // 1 global memory dump event and 1 process memory dump event.
+      {
+        name: 'c',
+        pid: 44,
+        ts: 12000,
+        cat: 'test',
+        tid: 55,
+        ph: 'V',
+        id: '0xfffffff12345678',
+        args: {}
+      },
+      {
+        name: 'd',
+        pid: 42,
+        ts: 13000,
+        cat: 'test',
+        tid: 56,
+        ph: 'v',
+        id: '0xfffffff12345678',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '300'
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p1 = m.getProcess(42);
+    var p2 = m.getProcess(43);
+    assert.isDefined(p1);
+    assert.isDefined(p2);
+
+    // Check that Model and Process objects contain the right dumps.
+    assert.equal(m.globalMemoryDumps.length, 2);
+    assert.equal(p1.memoryDumps.length, 2);
+    assert.equal(p2.memoryDumps.length, 1);
+
+    assert.equal(m.globalMemoryDumps[0].start, 10);
+    assert.equal(p1.memoryDumps[0].start, 10);
+    assert.equal(p2.memoryDumps[0].start, 11);
+    assert.equal(m.globalMemoryDumps[0].duration, 1);
+    assert.equal(p1.memoryDumps[0].duration, 0);
+    assert.equal(p2.memoryDumps[0].duration, 0);
+
+    assert.equal(m.globalMemoryDumps[1].start, 12);
+    assert.equal(p1.memoryDumps[1].start, 13);
+    assert.equal(m.globalMemoryDumps[1].duration, 1);
+    assert.equal(p1.memoryDumps[1].duration, 0);
+
+    // Check that GlobalMemoryDump and ProcessMemoryDump objects are
+    // interconnected correctly.
+    assert.equal(p1.memoryDumps[0],
+        m.globalMemoryDumps[0].processMemoryDumps[42]);
+    assert.equal(p2.memoryDumps[0],
+        m.globalMemoryDumps[0].processMemoryDumps[43]);
+    assert.equal(p1.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
+    assert.equal(p2.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
+
+    assert.equal(p1.memoryDumps[1],
+        m.globalMemoryDumps[1].processMemoryDumps[42]);
+    assert.equal(p1.memoryDumps[1].globalMemoryDump, m.globalMemoryDumps[1]);
+  });
+
+  test('importMemoryDumps_totalResidentBytesOnly', function() {
+    var events = [
+      {
+        name: 'some_dump_name',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x01',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '1fffffffffffff'
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.totalResidentBytes, 9007199254740991);
+    assert.isUndefined(d.mostRecentVmRegions);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
+  });
+
+  test('importMemoryDumps_vmRegions', function() {
+    var events = [
+      {
+        name: 'some_dump_name',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '000',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '0'
+            },
+            process_mmaps: {
+              vm_regions: [
+                {
+                  sa: 'f0',
+                  sz: '150',
+                  pf: 6,
+                  mf: '[stack:20310]',
+                  bs: {
+                    pss: '9e',
+                    pc: '40',
+                    pd: '20',
+                    sc: '100',
+                    sd: '0',
+                    sw: '50'
+                  }
+                },
+                {
+                  sa: '350',
+                  sz: '250',
+                  pf: 5,
+                  mf: '/dev/ashmem/dalvik',
+                  bs: {
+                    pss: 'cd',
+                    pd: 'cd',
+                    sw: '0'
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.mostRecentVmRegions.length, 2);
+
+    var vr1 = d.mostRecentVmRegions[0];
+    assert.equal(vr1.startAddress, 240);
+    assert.equal(vr1.sizeInBytes, 336);
+    assert.equal(vr1.protectionFlags, 6);
+    assert.equal(vr1.protectionFlagsToString, 'rw-');
+    assert.equal(vr1.mappedFile, '[stack:20310]');
+    assert.equal(vr1.byteStats.privateCleanResident, 64);
+    assert.equal(vr1.byteStats.privateDirtyResident, 32);
+    assert.equal(vr1.byteStats.sharedCleanResident, 256);
+    assert.equal(vr1.byteStats.sharedDirtyResident, 0);
+    assert.equal(vr1.byteStats.proportionalResident, 158);
+    assert.equal(vr1.byteStats.swapped, 80);
+
+    var vr2 = d.mostRecentVmRegions[1];
+    assert.equal(vr2.startAddress, 848);
+    assert.equal(vr2.sizeInBytes, 592);
+    assert.equal(vr2.protectionFlags, 5);
+    assert.equal(vr2.protectionFlagsToString, 'r-x');
+    assert.equal(vr2.mappedFile, '/dev/ashmem/dalvik');
+    assert.equal(vr2.byteStats.proportionalResident, 205);
+    assert.isUndefined(vr2.byteStats.privateCleanResident);
+    assert.equal(vr2.byteStats.privateDirtyResident, 205);
+    assert.isUndefined(vr2.byteStats.sharedCleanResident);
+    assert.isUndefined(vr2.byteStats.sharedDirtyResident);
+    assert.equal(vr2.byteStats.swapped, 0);
+
+    assert.equal(d.totalResidentBytes, 0);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
+  });
+
+  test('importMemoryDumps_explicitMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'oilpan': {
+                guid: '1a',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '2f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '1000'},
+                  size: {type: 'scalar', units: 'bytes', value: '8000'}
+                }
+              },
+              'oilpan/heap1': {
+                guid: '2b',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '3f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
+                }
+              },
+              'oilpan/heap2': {
+                guid: '3c',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '4f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '4000'},
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
+                }
+              },
+              'oilpan/heap2/bucket1': {
+                // Deliberately missing GUID (to check that the importer does
+                // not skip memory allocator dump without GUID).
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '1f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  size: {type: 'scalar', units: 'bytes', value: '2000'}
+                }
+              },
+              'v8': {
+                guid: '5e',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '5f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '5000'},
+                  size: {type: 'scalar', units: 'bytes', value: '6000'}
+                }
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.memoryAllocatorDumps.length, 2);
+
+    var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
+    var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
+    assert.isDefined(oilpanRoot);
+    assert.isDefined(v8Root);
+    assert.include(d.memoryAllocatorDumps, oilpanRoot);
+    assert.include(d.memoryAllocatorDumps, v8Root);
+
+    assert.equal(oilpanRoot.attributes['objects_count'].value, 47);
+    assert.equal(oilpanRoot.attributes['size'].value, 32768);
+    assert.equal(oilpanRoot.attributes['inner_size'].value, 4096);
+    assert.equal(oilpanRoot.children.length, 2);
+
+    var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
+        'oilpan/heap2/bucket1');
+    assert.isDefined(oilpanBucket1);
+    assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
+    assert.equal(oilpanBucket1.name, 'bucket1');
+    assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
+    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
+    assert.equal(oilpanBucket1.children.length, 0);
+
+    assert.isDefined(oilpanBucket1.parent);
+    assert.equal(oilpanBucket1.parent.fullName, 'oilpan/heap2');
+    assert.equal(oilpanBucket1.parent.name, 'heap2');
+    assert.include(oilpanBucket1.parent.children, oilpanBucket1);
+
+    assert.isDefined(oilpanBucket1.parent.parent);
+    assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
+
+    assert.equal(d.totalResidentBytes, 256);
+    assert.isUndefined(d.mostRecentVmRegions);
+  });
+
+  test('importMemoryDumps_implicitMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'oilpan/heap1': {
+                guid: '999',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '3f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
+                  size: {type: 'scalar', units: 'bytes', value: '4000'}
+                }
+              },
+              'oilpan/heap2/bucket1': {
+                guid: '888',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '1f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  size: {type: 'scalar', units: 'bytes', value: '2000'}
+                }
+              },
+              'v8': {
+                guid: '777',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '5f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '5000'},
+                  size: {type: 'scalar', units: 'bytes', value: '6000'}
+                }
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.memoryAllocatorDumps.length, 2);
+
+    var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
+    var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
+    assert.isDefined(oilpanRoot);
+    assert.isDefined(v8Root);
+    assert.include(d.memoryAllocatorDumps, oilpanRoot);
+    assert.include(d.memoryAllocatorDumps, v8Root);
+
+    assert.equal(oilpanRoot.attributes['objects_count'].value, 94);
+    assert.equal(oilpanRoot.attributes['size'].value, 24576);
+    assert.equal(oilpanRoot.attributes['inner_size'].value, 20480);
+    assert.equal(oilpanRoot.children.length, 2);
+
+    var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
+        'oilpan/heap2/bucket1');
+    assert.isDefined(oilpanBucket1);
+    assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
+    assert.equal(oilpanBucket1.name, 'bucket1');
+    assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
+    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
+    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
+    assert.equal(oilpanBucket1.children.length, 0);
+
+    assert.isDefined(oilpanBucket1.parent);
+    assert.equal(oilpanBucket1.parent.fullName, 'oilpan/heap2');
+    assert.equal(oilpanBucket1.parent.name, 'heap2');
+    assert.include(oilpanBucket1.parent.children, oilpanBucket1);
+
+    assert.isDefined(oilpanBucket1.parent.parent);
+    assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
+
+    assert.equal(d.totalResidentBytes, 256);
+    assert.isUndefined(d.mostRecentVmRegions);
+  });
+
+  test('importMemoryDumps_globalMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'tile_manager/tile1': {
+                guid: '21',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '3f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '3000'},
+                  size: {type: 'scalar', units: 'bytes', value: '4000'},
+                  weather: {type: 'string', units: '', value: 'rainy'}
+                }
+              },
+              'global/shared_bitmap_manager/bitmap2': {
+                guid: '42',
+                attrs: {
+                  objects_count: {
+                    type: 'scalar', units: 'objects', value: '1f'
+                  },
+                  inner_size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  size: {type: 'scalar', units: 'bytes', value: '2000'},
+                  weather: {type: 'string', units: '', value: 'sunny'}
+                }
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = new tr.Model(events, false);
+    var p = m.getProcess(42);
+    var gmd = m.globalMemoryDumps[0];
+    var pmd = p.memoryDumps[0];
+
+    assert.isUndefined(gmd.totalResidentBytes);
+    assert.equal(pmd.totalResidentBytes, 256);
+
+    assert.isUndefined(gmd.mostRecentVmRegions);
+    assert.isUndefined(pmd.mostRecentVmRegions);
+
+    assert.equal(gmd.memoryAllocatorDumps.length, 1);
+    assert.equal(pmd.memoryAllocatorDumps.length, 1);
+
+    // Global memory allocator dumps.
+    var sharedBitmapManager = gmd.getMemoryAllocatorDumpByFullName(
+        'shared_bitmap_manager');
+    assert.isDefined(sharedBitmapManager);
+    assert.include(gmd.memoryAllocatorDumps, sharedBitmapManager);
+
+    assert.equal(sharedBitmapManager.attributes['objects_count'].value, 31);
+    assert.equal(sharedBitmapManager.attributes['size'].value, 8192);
+    assert.equal(sharedBitmapManager.attributes['inner_size'].value, 8192);
+    assert.isUndefined(sharedBitmapManager.attributes['weather']);
+    assert.lengthOf(sharedBitmapManager.children, 1);
+
+    var bitmap2 = gmd.getMemoryAllocatorDumpByFullName(
+        'shared_bitmap_manager/bitmap2');
+    assert.isDefined(bitmap2);
+    assert.include(sharedBitmapManager.children, bitmap2);
+    assert.strictEqual(bitmap2.parent, sharedBitmapManager);
+
+    assert.equal(bitmap2.attributes['objects_count'].value, 31);
+    assert.equal(bitmap2.attributes['size'].value, 8192);
+    assert.equal(bitmap2.attributes['inner_size'].value, 8192);
+    assert.equal(bitmap2.attributes['weather'].value, 'sunny');
+    assert.lengthOf(bitmap2.children, 0);
+
+    assert.isUndefined(gmd.getMemoryAllocatorDumpByFullName('tile_manager'));
+    assert.isUndefined(
+        gmd.getMemoryAllocatorDumpByFullName('tile_manager/tile1'));
+
+    // Process memory allocator dumps.
+    var tileManagerRoot = pmd.getMemoryAllocatorDumpByFullName('tile_manager');
+    assert.isDefined(tileManagerRoot);
+    assert.include(pmd.memoryAllocatorDumps, tileManagerRoot);
+    assert.isUndefined(tileManagerRoot.parent);
+
+    assert.equal(tileManagerRoot.attributes['objects_count'].value, 63);
+    assert.equal(tileManagerRoot.attributes['size'].value, 16384);
+    assert.equal(tileManagerRoot.attributes['inner_size'].value, 12288);
+    assert.isUndefined(tileManagerRoot.attributes['weather']);
+    assert.lengthOf(tileManagerRoot.children, 1);
+
+    var tile1 = pmd.getMemoryAllocatorDumpByFullName(
+        'tile_manager/tile1');
+    assert.isDefined(tile1);
+    assert.include(tileManagerRoot.children, tile1);
+    assert.strictEqual(tile1.parent, tileManagerRoot);
+
+    assert.equal(tile1.attributes['objects_count'].value, 63);
+    assert.equal(tile1.attributes['size'].value, 16384);
+    assert.equal(tile1.attributes['inner_size'].value, 12288);
+    assert.equal(tile1.attributes['weather'].value, 'rainy');
+    assert.lengthOf(tile1.children, 0);
+
+    assert.isUndefined(
+        pmd.getMemoryAllocatorDumpByFullName('shared_bitmap_manager'));
+    assert.isUndefined(
+        pmd.getMemoryAllocatorDumpByFullName('shared_bitmap_manager/bitmap2'));
+  });
+
+  test('importMemoryDumps_memoryAllocatorDumpEdges', function() {
+    var events = [
+      {
+        name: 'browser',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '100'
+            },
+            allocators: {
+              'local': {
+                guid: '3',
+                attrs: {
+                  mood: {type: 'string', units: '', value: 'very good'}
+                }
+              },
+              'global/shared': {
+                guid: '7',
+                attrs: {
+                  color: {type: 'string', units: '', value: 'blue'}
+                }
+              }
+            },
+            allocators_graph: [
+              {
+                source: '3',
+                target: '7',
+                type: 'ownership',
+                importance: 0
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: 'renderer',
+        pid: 43,
+        ts: 11,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '200'
+            },
+            allocators: {
+              'local': {
+                guid: '4',
+                attrs: {
+                  length: {type: 'scalar', units: 'bytes', value: '3'}
+                }
+              },
+              'global/shared': {
+                guid: '7',
+                attrs: {
+                  area: {type: 'scalar', units: 'sq ft', value: '9'}
+                }
+              }
+            },
+            allocators_graph: [
+              {
+                source: '4',
+                target: '7',
+                type: 'ownership',
+                importance: 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: 'gpu',
+        pid: 44,
+        ts: 10.5,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '300'
+            },
+            allocators: {
+              'local1': {
+                guid: '5',
+                attrs: {
+                  state: {type: 'string', units: '', value: 'ON'}
+                }
+              },
+              'local2': {
+                guid: '6',
+                attrs: {
+                  temperature: {type: 'scalar', units: 'C', value: '64'}
+                }
+              }
+            },
+            allocators_graph: [
+              {
+                source: '5',
+                target: '7',
+                type: 'ownership',
+                importance: -1
+              },
+              {
+                source: '6',
+                target: '5',
+                type: 'ownership',
+                importance: 1
+              },
+              {
+                source: '5',
+                target: '4',
+                type: 'retention'
+              }
+            ]
+          }
+        }
+      }
+    ];
+    var model = new tr.Model(events, false);
+    var browserProcess = model.getProcess(42);
+    var rendererProcess = model.getProcess(43);
+    var gpuProcess = model.getProcess(44);
+
+    assert.lengthOf(model.globalMemoryDumps, 1);
+    assert.lengthOf(browserProcess.memoryDumps, 1);
+    assert.lengthOf(rendererProcess.memoryDumps, 1);
+    assert.lengthOf(gpuProcess.memoryDumps, 1);
+
+    var globalDump = model.globalMemoryDumps[0];
+    var browserDump = browserProcess.memoryDumps[0];
+    var rendererDump = rendererProcess.memoryDumps[0];
+    var gpuDump = gpuProcess.memoryDumps[0];
+
+    // Global memory allocator dump.
+    assert.lengthOf(globalDump.memoryAllocatorDumps, 1);
+
+    var globalDumpShared = globalDump.getMemoryAllocatorDumpByFullName(
+        'shared');
+    assert.isDefined(globalDumpShared);
+    assert.include(globalDump.memoryAllocatorDumps, globalDumpShared);
+    assert.equal(globalDumpShared.attributes['color'].value, 'blue');
+    assert.equal(globalDumpShared.attributes['area'].value, 9);
+    assert.isUndefined(globalDumpShared.attributes['mood']);
+    assert.isUndefined(globalDumpShared.attributes['size']);
+    assert.isUndefined(globalDumpShared.attributes['state']);
+    assert.isUndefined(globalDumpShared.attributes['temperature']);
+    assert.lengthOf(globalDumpShared.children, 0);
+    assert.isUndefined(globalDumpShared.parent);
+
+    assert.isUndefined(globalDumpShared.owns);
+    assert.lengthOf(globalDumpShared.ownedBy, 3);
+    assert.lengthOf(globalDumpShared.retains, 0);
+    assert.lengthOf(globalDumpShared.retainedBy, 0);
+
+    // Browser memory allocator dump.
+    assert.lengthOf(browserDump.memoryAllocatorDumps, 1);
+
+    var browserDumpLocal = browserDump.getMemoryAllocatorDumpByFullName(
+        'local');
+    assert.isDefined(browserDumpLocal);
+    assert.include(browserDump.memoryAllocatorDumps, browserDumpLocal);
+    assert.equal(browserDumpLocal.attributes['mood'].value, 'very good');
+    assert.isUndefined(browserDumpLocal.attributes['color']);
+    assert.lengthOf(browserDumpLocal.children, 0);
+    assert.isUndefined(browserDumpLocal.parent);
+
+    assert.isDefined(browserDumpLocal.owns);
+    assert.lengthOf(browserDumpLocal.ownedBy, 0);
+    assert.lengthOf(browserDumpLocal.retains, 0);
+    assert.lengthOf(browserDumpLocal.retainedBy, 0);
+
+    var browserDumpLocalOwnsLink = browserDumpLocal.owns;
+    assert.include(globalDumpShared.ownedBy, browserDumpLocalOwnsLink);
+    assert.strictEqual(browserDumpLocalOwnsLink.source, browserDumpLocal);
+    assert.strictEqual(browserDumpLocalOwnsLink.target, globalDumpShared);
+    assert.equal(browserDumpLocalOwnsLink.importance, 0);
+
+    // Renderer memory allocator dump.
+    assert.lengthOf(rendererDump.memoryAllocatorDumps, 1);
+
+    var rendererDumpLocal = rendererDump.getMemoryAllocatorDumpByFullName(
+        'local');
+    assert.isDefined(rendererDumpLocal);
+    assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
+    assert.equal(rendererDumpLocal.attributes['length'].value, 3);
+    assert.isUndefined(rendererDumpLocal.attributes['area']);
+    assert.lengthOf(rendererDumpLocal.children, 0);
+    assert.isUndefined(rendererDumpLocal.parent);
+
+    assert.isDefined(rendererDumpLocal.owns);
+    assert.lengthOf(rendererDumpLocal.ownedBy, 0);
+    assert.lengthOf(rendererDumpLocal.retains, 0);
+    assert.lengthOf(rendererDumpLocal.retainedBy, 1);
+
+    var rendererDumpLocalOwnsLink = rendererDumpLocal.owns;
+    assert.include(globalDumpShared.ownedBy, rendererDumpLocalOwnsLink);
+    assert.strictEqual(rendererDumpLocalOwnsLink.source, rendererDumpLocal);
+    assert.strictEqual(rendererDumpLocalOwnsLink.target, globalDumpShared);
+    assert.equal(rendererDumpLocalOwnsLink.importance, 1);
+
+    // GPU memory allocator dumps.
+    assert.lengthOf(gpuDump.memoryAllocatorDumps, 2);
+
+    var gpuDumpLocal1 = gpuDump.getMemoryAllocatorDumpByFullName('local1');
+    assert.isDefined(gpuDumpLocal1);
+    assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal1);
+    assert.equal(gpuDumpLocal1.attributes['state'].value, 'ON');
+    assert.isUndefined(gpuDumpLocal1.attributes['temperature']);
+    assert.lengthOf(gpuDumpLocal1.children, 0);
+    assert.isUndefined(gpuDumpLocal1.parent);
+
+    assert.isDefined(gpuDumpLocal1.owns);
+    assert.lengthOf(gpuDumpLocal1.ownedBy, 1);
+    assert.lengthOf(gpuDumpLocal1.retains, 1);
+    assert.lengthOf(gpuDumpLocal1.retainedBy, 0);
+
+    var gpuDumpLocal1OwnsLink = gpuDumpLocal1.owns;
+    assert.include(globalDumpShared.ownedBy, gpuDumpLocal1OwnsLink);
+    assert.strictEqual(gpuDumpLocal1OwnsLink.source, gpuDumpLocal1);
+    assert.strictEqual(gpuDumpLocal1OwnsLink.target, globalDumpShared);
+    assert.equal(gpuDumpLocal1OwnsLink.importance, -1);
+
+    var gpuDumpLocal1RetainsLink = gpuDumpLocal1.retains[0];
+    assert.include(rendererDumpLocal.retainedBy, gpuDumpLocal1RetainsLink);
+    assert.strictEqual(gpuDumpLocal1RetainsLink.source, gpuDumpLocal1);
+    assert.strictEqual(gpuDumpLocal1RetainsLink.target, rendererDumpLocal);
+    assert.isUndefined(gpuDumpLocal1RetainsLink.importance);
+
+    var gpuDumpLocal2 = gpuDump.getMemoryAllocatorDumpByFullName('local2');
+    assert.isDefined(gpuDumpLocal2);
+    assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal2);
+    assert.equal(gpuDumpLocal2.attributes['temperature'].value, 100);
+    assert.isUndefined(gpuDumpLocal2.attributes['state']);
+    assert.lengthOf(gpuDumpLocal2.children, 0);
+    assert.isUndefined(gpuDumpLocal2.parent);
+
+    assert.isDefined(gpuDumpLocal2.owns);
+    assert.lengthOf(gpuDumpLocal2.ownedBy, 0);
+    assert.lengthOf(gpuDumpLocal2.retains, 0);
+    assert.lengthOf(gpuDumpLocal2.retainedBy, 0);
+
+    var gpuDumpLocal2OwnsLink = gpuDumpLocal2.owns;
+    assert.include(gpuDumpLocal1.ownedBy, gpuDumpLocal2OwnsLink);
+    assert.strictEqual(gpuDumpLocal2OwnsLink.source, gpuDumpLocal2);
+    assert.strictEqual(gpuDumpLocal2OwnsLink.target, gpuDumpLocal1);
+    assert.equal(gpuDumpLocal2OwnsLink.importance, 1);
+  });
+
+  test('importThreadInstantSliceWithStackFrame', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'I', s: 't', sf: 7 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tr.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tr.Model(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.slices.length, 1);
+
+    var s0 = t.sliceGroup.slices[0];
+    assert.equal(s0.startStackFrame.title, 'frame7');
+    assert.isUndefined(s0.endStackFrame);
+  });
+
+  test('importDurationEventsWithStackFrames', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'main'
+        },
+        '7': {
+          category: 'm2',
+          name: 'frame7',
+          parent: '1'
+        },
+        '8': {
+          category: 'm2',
+          name: 'frame8',
+          parent: '1'
+        }
+      }
+    };
+
+    var options = new tr.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tr.Model(eventData, options);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assert.isDefined(t);
+    assert.equal(t.sliceGroup.slices.length, 1);
+
+    var s0 = t.sliceGroup.slices[0];
+    assert.equal(s0.startStackFrame.title, 'frame7');
+    assert.equal(s0.endStackFrame.title, 'frame8');
+  });
+
+  test('annotationParsing', function() {
+    var yComponents1 = [{stableId: '52.53', yPercentOffset: 0.5},
+      {stableId: '52', yPercentOffset: 0.3}];
+    var yComponents2 = [{stableId: '52.53', yPercentOffset: 0.7},
+      {stableId: '52', yPercentOffset: 0.4}];
+    var location1 = new tr.model.Location(0.1, yComponents1);
+    var location2 = new tr.model.Location(0.2, yComponents2);
+
+    var eventData = { traceEvents: [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'}],
+      traceAnnotations: [
+        {typeName: 'xmarker', args: {timestamp: 12}},
+        {typeName: 'rect', args: {
+          start: location1.toDict(), end: location2.toDict()}},
+        {typeName: 'comment_box', args: {text: 'test',
+          location: location1.toDict()}}
+      ]};
+
+    var m = new tr.Model(eventData);
+    var annotations = m.getAllAnnotations();
+    assert.equal(annotations.length, 3);
+
+    assert.isTrue(annotations[0] instanceof tr.model.XMarkerAnnotation);
+    assert.equal(annotations[0].timestamp, 12);
+
+    assert.isTrue(annotations[1] instanceof tr.model.RectAnnotation);
+    assert.deepEqual(annotations[1].startLocation, location1);
+    assert.deepEqual(annotations[1].endLocation, location2);
+
+    assert.isTrue(
+        annotations[2] instanceof tr.model.CommentBoxAnnotation);
+    assert.equal(annotations[2].text, 'test');
+    assert.deepEqual(annotations[2].location, location1);
+  });
+
+  test('importDisplayTimeUnit', function() {
+    var eventData = {
+      traceEvents: [],
+      displayTimeUnit: 'ns'
+    };
+    var m = new tr.Model(JSON.stringify(eventData), false);
+    assert.equal(m.intrinsicTimeUnit, tr.b.units.Time.supportedUnits.ns);
+  });
+
+  test('extractBattorSubTraces', function() {
+    var battorLog = '# BattOr\n# voltage range [0.000000, 7196.484161] mV\n' +
+        '#current range [11.898481, 2110.900916] mA\n' +
+        '# sample_rate=10000Hz, gain=30.257143x\n' +
+        '# filpot_pos=3, amppot_pos=35, timer_ovf=399, timer_div=4 ovs_bits=0\n' + // @suppress longLineCheck
+        '0.0 1040.3 3984.2\n' +
+        '0.1 1081.3 3987.8\n' +
+        '0.2 1092.6 3987.8\n' +
+        '0.3 1070.0 3987.8\n' +
+        '0.4 1017.7 3994.8\n';
+
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      battorLogAsString: battorLog
+    };
+
+    var m = new tr.Model(eventData, false);
+    var importer = new tr.e.importer.TraceEventImporter(m, eventData);
+    var subTraces = importer.extractSubtraces();
+    assert.isTrue(subTraces instanceof Array);
+    assert.equal(subTraces.length, 1);
+    assert.equal(subTraces[0], battorLog);
+  });
+
+  test('metadataParsing', function() {
+    var metadataValue = {value: {}};
+    var eventData = {
+      traceEvents: [
+        { name: 'a', args: {}, pid: 1, ts: 0, cat: 'baz', tid: 2, ph: 'B', sf: 7 }, // @suppress longLineCheck
+        { name: 'b', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 2, ph: 'E', sf: 8 } // @suppress longLineCheck
+      ],
+      metadata: metadataValue
+    };
+
+    var m = new tr.Model(eventData);
+    assert.isTrue(m.metadata instanceof Array);
+    assert.equal(m.metadata.length, 1);
+    assert.equal(m.metadata[0].name, 'metadata');
+    assert.equal(m.metadata[0].value, metadataValue);
+  });
+
+  // TODO(nduca): one slice, two threads
+  // TODO(nduca): one slice, two pids
+
+});
+</script>

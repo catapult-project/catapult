@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/utils.html">
+
+<script src="/css-element-queries/src/ResizeSensor.js"></script>
+
+<!--
+@fileoverview A container that senses when its size changes.
+-->
+<polymer-element name="tr-ui-b-resize-sensor">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex: 1 1 auto;
+      }
+    </style>
+    <div id="container">
+      <content></content>
+    </div>
+  </template>
+
+  <script>
+  'use strict';
+  (function() {
+    Polymer({
+      attached: function() {
+        // ResizeSensor only works if it's rooted in a document when it's
+        // created, so wait until the tr-ui-b-resize-sensor is attached to the
+        // DOM before creating the ResizeSensor.
+        this.sensor_ = new ResizeSensor(this.$.container,
+                                        this.onResize_.bind(this));
+        // ResizeSensor appends a div to this.$.container. That div must be a
+        // direct sibling of <content>.
+        // ResizeSensor's first argument must be a Node, so it cannot be
+        // this.shadowRoot.
+      },
+
+      onResize_: function() {
+        this.dispatchEvent(new tr.b.Event('resize', false, false));
+      }
+    });
+  })();
+  </script>
+</polymer-element>

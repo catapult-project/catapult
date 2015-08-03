@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/event.html">
+<link rel="import" href="/base/interval_tree.html">
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/core/auditor.html">
+<link rel="import" href="/core/filter.html">
+<link rel="import" href="/importer/empty_importer.html">
+<link rel="import" href="/importer/importer.html">
+<link rel="import" href="/model/alert.html">
+<link rel="import" href="/model/device.html">
+<link rel="import" href="/model/flow_event.html">
+<link rel="import" href="/model/frame.html">
+<link rel="import" href="/model/global_memory_dump.html">
+<link rel="import" href="/model/instant_event.html">
+<link rel="import" href="/model/interaction_record.html">
+<link rel="import" href="/model/kernel.html">
+<link rel="import" href="/model/model_indices.html">
+<link rel="import" href="/model/process.html">
+<link rel="import" href="/model/process_memory_dump.html">
+<link rel="import" href="/model/sample.html">
+<link rel="import" href="/model/stack_frame.html">
+<link rel="import" href="/ui/base/overlay.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Model is a parsed representation of the
+ * TraceEvents obtained from base/trace_event in which the begin-end
+ * tokens are converted into a hierarchy of processes, threads,
+ * subrows, and slices.
+ *
+ * The building block of the model is a slice. A slice is roughly
+ * equivalent to function call executing on a specific thread. As a
+ * result, slices may have one or more subslices.
+ *
+ * A thread contains one or more subrows of slices. Row 0 corresponds to
+ * the "root" slices, e.g. the topmost slices. Row 1 contains slices that
+ * are nested 1 deep in the stack, and so on. We use these subrows to draw
+ * nesting tasks.
+ *
+ */
+tr.exportTo('tr', function() {
+  var Importer = tr.importer.Importer;
+  var Process = tr.model.Process;
+  var Device = tr.model.Device;
+  var Kernel = tr.model.Kernel;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var GlobalInstantEvent = tr.model.GlobalInstantEvent;
+  var FlowEvent = tr.model.FlowEvent;
+  var Alert = tr.model.Alert;
+  var InteractionRecord = tr.model.InteractionRecord;
+  var Sample = tr.model.Sample;
+
+  function ImportOptions() {
+    this.shiftWorldToZero = true;
+    this.pruneEmptyContainers = true;
+
+    // Callback called after
+    // importers run in which more data can be added to the model, before it is
+    // finalized.
+    this.customizeModelCallback = undefined;
+
+    var auditorTypes = tr.c.Auditor.getAllRegisteredTypeInfos();
+    this.auditorConstructors = auditorTypes.map(function(typeInfo) {
+      return typeInfo.constructor;
+    });
+  }
+
+  ImportOptions.fromArguments = function(args, argsStartIndex) {
+    var arg0 = args[argsStartIndex + 0];
+    if (typeof arg0 === 'object') {
+      if (!(arg0 instanceof ImportOptions))
+        throw new Error('Unexpected');
+      return arg0;
+    }
+    var options = new ImportOptions();
+    if (args[argsStartIndex] !== undefined)
+      options.shiftWorldToZero = args[argsStartIndex];
+
+    if (args[argsStartIndex + 1] !== undefined)
+      options.pruneEmptyContainers = args[argsStartIndex + 1];
+
+    if (args[argsStartIndex + 2])
+      options.customizeModelCallback = args[argsStartIndex + 2];
+
+    return options;
+  }
+
+  function ClockSyncRecord(name, ts, args) {
+    this.name = name;
+    this.ts = ts;
+    this.args = args;
+  }
+
+  /**
+   * Builds a model from an array of TraceEvent objects.
+   * @param {Object=} opt_eventData Data from a single trace to be imported into
+   *     the new model. See Model.importTraces for details on how to
+   *     import multiple traces at once.
+   * @param {ImportOptions=} opt_options Options for the import.
+   * @constructor
+   */
+  function Model(opt_eventData, opt_options) {
+    tr.model.EventContainer.call(this);
+    tr.b.EventTarget.decorate(this);
+
+    this.faviconHue = 'blue'; // Should be a key from favicons.html
+
+    this.device = new Device(this);
+    this.kernel = new Kernel(this);
+    this.processes = {};
+    this.metadata = [];
+    this.categories = [];
+    this.instantEvents = [];
+    this.flowEvents = [];
+    this.clockSyncRecords = [];
+    this.intrinsicTimeUnit_ = undefined;
+
+    this.stackFrames = {};
+    this.samples = [];
+
+    this.alerts = [];
+    this.interaction_records = [];
+
+    this.flowIntervalTree = new tr.b.IntervalTree(
+        function(f) { return f.start; },
+        function(f) { return f.end; });
+
+    this.globalMemoryDumps = [];
+
+    this.annotationsByGuid_ = {};
+
+    this.importWarnings_ = [];
+    this.reportedImportWarnings_ = {};
+
+    this.modelIndices = undefined;
+    var options = ImportOptions.fromArguments(arguments, 1);
+    if (opt_eventData)
+      this.importTraces([opt_eventData], options);
+  }
+
+  Model.prototype = {
+    __proto__: tr.model.EventContainer.prototype,
+
+    iterateAllEventsInThisContainer: function(eventTypePredicate,
+                                              callback, opt_this) {
+      if (eventTypePredicate.call(opt_this, GlobalMemoryDump))
+        this.globalMemoryDumps.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, GlobalInstantEvent))
+        this.instantEvents.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, FlowEvent))
+        this.flowEvents.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, Alert))
+        this.alerts.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, InteractionRecord))
+        this.interaction_records.forEach(callback, opt_this);
+
+      if (eventTypePredicate.call(opt_this, Sample))
+        this.samples.forEach(callback, opt_this);
+    },
+
+    iterateAllChildEventContainers: function(callback, opt_this) {
+      callback.call(opt_this, this.device);
+      callback.call(opt_this, this.kernel);
+      for (var pid in this.processes)
+        callback.call(opt_this, this.processes[pid]);
+    },
+
+    /**
+     * Some objects in the model can persist their state in ModelSettings.
+     *
+     * This iterates through them.
+     */
+    iterateAllPersistableObjects: function(callback) {
+      this.kernel.iterateAllPersistableObjects(callback);
+      for (var pid in this.processes)
+        this.processes[pid].iterateAllPersistableObjects(callback);
+    },
+
+    updateBounds: function() {
+      this.bounds.reset();
+      var bounds = this.bounds;
+
+      this.iterateAllChildEventContainers(function(ec) {
+        ec.updateBounds();
+        bounds.addRange(ec.bounds);
+      });
+      this.iterateAllEventsInThisContainer(
+          function(eventConstructor) { return true; },
+          function(event) {
+            event.addBoundsToRange(bounds);
+          });
+    },
+
+    shiftWorldToZero: function() {
+      var shiftAmount = -this.bounds.min;
+      this.iterateAllChildEventContainers(function(ec) {
+        ec.shiftTimestampsForward(shiftAmount);
+      });
+      this.iterateAllEventsInThisContainer(
+        function(eventConstructor) { return true; },
+        function(event) {
+          event.start += shiftAmount;
+        });
+      this.updateBounds();
+    },
+
+    get numProcesses() {
+      var n = 0;
+      for (var p in this.processes)
+        n++;
+      return n;
+    },
+
+    /**
+     * @return {Process} Gets a TimelineProcess for a specified pid. Returns
+     * undefined if the process doesn't exist.
+     */
+    getProcess: function(pid) {
+      return this.processes[pid];
+    },
+
+    /**
+     * @return {Process} Gets a TimelineProcess for a specified pid or
+     * creates one if it does not exist.
+     */
+    getOrCreateProcess: function(pid) {
+      if (!this.processes[pid])
+        this.processes[pid] = new Process(this, pid);
+      return this.processes[pid];
+    },
+
+    pushInstantEvent: function(instantEvent) {
+      this.instantEvents.push(instantEvent);
+    },
+
+    addStackFrame: function(stackFrame) {
+      if (this.stackFrames[stackFrame.id])
+        throw new Error('Stack frame already exists');
+      this.stackFrames[stackFrame.id] = stackFrame;
+      return stackFrame;
+    },
+
+    addInteractionRecord: function(ir) {
+      this.interaction_records.push(ir);
+      return ir;
+    },
+
+    getClockSyncRecordsNamed: function(name) {
+      return this.clockSyncRecords.filter(function(x) {
+        return x.name === name;
+      });
+    },
+
+    /**
+     * Generates the set of categories from the slices and counters.
+     */
+    updateCategories_: function() {
+      var categoriesDict = {};
+      this.device.addCategoriesToDict(categoriesDict);
+      this.kernel.addCategoriesToDict(categoriesDict);
+      for (var pid in this.processes)
+        this.processes[pid].addCategoriesToDict(categoriesDict);
+
+      this.categories = [];
+      for (var category in categoriesDict)
+        if (category != '')
+          this.categories.push(category);
+    },
+
+    getAllThreads: function() {
+      var threads = [];
+      for (var tid in this.kernel.threads) {
+        threads.push(process.threads[tid]);
+      }
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        for (var tid in process.threads) {
+          threads.push(process.threads[tid]);
+        }
+      }
+      return threads;
+    },
+
+    /**
+     * @return {Array} An array of all processes in the model.
+     */
+    getAllProcesses: function() {
+      var processes = [];
+      for (var pid in this.processes)
+        processes.push(this.processes[pid]);
+      return processes;
+    },
+
+    /**
+     * @return {Array} An array of all the counters in the model.
+     */
+    getAllCounters: function() {
+      var counters = [];
+      counters.push.apply(
+          counters, tr.b.dictionaryValues(this.device.counters));
+      counters.push.apply(
+          counters, tr.b.dictionaryValues(this.kernel.counters));
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        for (var tid in process.counters) {
+          counters.push(process.counters[tid]);
+        }
+      }
+      return counters;
+    },
+
+    getAnnotationByGUID: function(guid) {
+      return this.annotationsByGuid_[guid];
+    },
+
+    addAnnotation: function(annotation) {
+      if (!annotation.guid)
+        throw new Error('Annotation with undefined guid given');
+
+      this.annotationsByGuid_[annotation.guid] = annotation;
+      tr.b.dispatchSimpleEvent(this, 'annotationChange');
+    },
+
+    removeAnnotation: function(annotation) {
+      this.annotationsByGuid_[annotation.guid].onRemove();
+      delete this.annotationsByGuid_[annotation.guid];
+      tr.b.dispatchSimpleEvent(this, 'annotationChange');
+    },
+
+    getAllAnnotations: function() {
+      return tr.b.dictionaryValues(this.annotationsByGuid_);
+    },
+
+    /**
+     * @param {String} The name of the thread to find.
+     * @return {Array} An array of all the matched threads.
+     */
+    findAllThreadsNamed: function(name) {
+      var namedThreads = [];
+      namedThreads.push.apply(
+          namedThreads,
+          this.kernel.findAllThreadsNamed(name));
+      for (var pid in this.processes) {
+        namedThreads.push.apply(
+            namedThreads,
+            this.processes[pid].findAllThreadsNamed(name));
+      }
+      return namedThreads;
+    },
+
+    createImporter_: function(eventData) {
+      var importerConstructor = tr.importer.Importer.findImporterFor(
+          eventData);
+
+      // TODO(kphanee): Throwing same Error at 2 places. Lets try to avoid it!
+      if (!importerConstructor)
+        throw new Error(
+            'Could not find an importer for the provided eventData.');
+
+      var importer = new importerConstructor(
+          this, eventData);
+      return importer;
+    },
+
+    /**
+     * Imports the provided traces into the model. The eventData type
+     * is undefined and will be passed to all the importers registered
+     * via Importer.register. The first importer that returns true
+     * for canImport(events) will be used to import the events.
+     *
+     * The primary trace is provided via the eventData variable. If multiple
+     * traces are to be imported, specify the first one as events, and the
+     * remainder in the opt_additionalEventData array.
+     *
+     * @param {Array} traces An array of eventData to be imported. Each
+     * eventData should correspond to a single trace file and will be handled by
+     * a separate importer.
+     * @param {ImportOptions} options Options for the import, or undefined for
+     * default options.
+     */
+    importTraces: function(traces, opt_options) {
+      var progressMeter = {
+        update: function(msg) {}
+      };
+      var options = ImportOptions.fromArguments(arguments, 1);
+      var task = this.createImportTracesTask(
+          progressMeter,
+          traces,
+          options);
+      tr.b.Task.RunSynchronously(task);
+    },
+
+    /**
+     * Imports a trace with the usual options from importTraces, but
+     * does so using idle callbacks, putting up an import dialog
+     * during the import process.
+     */
+    importTracesWithProgressDialog: function(traces, opt_options) {
+      if (tr.isHeadless)
+        throw new Error('Cannot use this method in headless mode!');
+      var options = ImportOptions.fromArguments(arguments, 1);
+
+      var overlay = tr.ui.b.Overlay();
+      overlay.title = 'Importing...';
+      overlay.userCanClose = false;
+      overlay.msgEl = document.createElement('div');
+      overlay.appendChild(overlay.msgEl);
+      overlay.msgEl.style.margin = '20px';
+      overlay.update = function(msg) {
+        this.msgEl.textContent = msg;
+      }
+      overlay.visible = true;
+
+      var task = this.createImportTracesTask(
+          overlay,
+          traces,
+          options);
+      var promise = tr.b.Task.RunWhenIdle(task);
+      promise.then(
+          function() {
+            overlay.visible = false;
+          }, function(err) {
+            overlay.visible = false;
+          });
+      return promise;
+    },
+
+    hasEventDataDecoder_: function(importers) {
+      if (importers.length === 0)
+        return false;
+
+      for (var i = 0; i < importers.length; ++i) {
+        if (!importers[i].isTraceDataContainer())
+          return true;
+      }
+      return false;
+    },
+
+    /**
+     * Creates a task that will import the provided traces into the model,
+     * updating the progressMeter as it goes. Parameters are as defined in
+     * importTraces.
+     */
+    createImportTracesTask: function(progressMeter,
+                                     traces,
+                                     opt_options) {
+      var options = ImportOptions.fromArguments(arguments, 2);
+
+      if (this.importing_)
+        throw new Error('Already importing.');
+      this.importing_ = true;
+
+      // Just some simple setup. It is useful to have a nop first
+      // task so that we can set up the lastTask = lastTask.after()
+      // pattern that follows.
+      var importTask = new tr.b.Task(function() {
+        progressMeter.update('I will now import your traces for you...');
+      }, this);
+      var lastTask = importTask;
+
+      var importers = [];
+
+      lastTask = lastTask.after(function() {
+        // Copy the traces array, we may mutate it.
+        traces = traces.slice(0);
+        progressMeter.update('Creating importers...');
+        // Figure out which importers to use.
+        for (var i = 0; i < traces.length; ++i)
+          importers.push(this.createImporter_(traces[i]));
+
+        // Some traces have other traces inside them. Before doing the full
+        // import, ask the importer if it has any subtraces, and if so, create
+        // importers for them, also.
+        for (var i = 0; i < importers.length; i++) {
+          var subtraces = importers[i].extractSubtraces();
+          for (var j = 0; j < subtraces.length; j++) {
+            try {
+              traces.push(subtraces[j]);
+              importers.push(this.createImporter_(subtraces[j]));
+            } catch (error) {
+              // TODO(kphanee): Log the subtrace file which has failed.
+              console.warn(error.name + ': ' + error.message);
+              continue;
+            }
+          }
+        }
+
+        if (traces.length && !this.hasEventDataDecoder_(importers)) {
+          throw new Error('Could not find an importer for ' +
+                          'the provided eventData.');
+        }
+
+        // Sort them on priority. This ensures importing happens in a
+        // predictable order, e.g. ftrace_importer before
+        // trace_event_importer.
+        importers.sort(function(x, y) {
+          return x.importPriority - y.importPriority;
+        });
+      }, this);
+
+      // Run the import.
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          task.subTask(function() {
+            progressMeter.update(
+                'Importing ' + (index + 1) + ' of ' + importers.length);
+            importer.importEvents();
+          }, this);
+        }, this);
+      }, this);
+
+      // Run the cusomizeModelCallback if needed.
+      if (options.customizeModelCallback) {
+        lastTask = lastTask.after(function(task) {
+          options.customizeModelCallback(this);
+        }, this);
+      }
+
+      // Finalize import.
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          progressMeter.update(
+              'Importing sample data ' + (index + 1) + '/' + importers.length);
+          importer.importSampleData();
+        }, this);
+      }, this);
+
+      // Autoclose open slices and create subSlices.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Autoclosing open slices...');
+        // Sort the samples.
+        this.samples.sort(function(x, y) {
+          return x.start - y.start;
+        });
+
+        this.updateBounds();
+        this.kernel.autoCloseOpenSlices(this.bounds.max);
+        for (var pid in this.processes)
+          this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+
+        this.kernel.createSubSlices();
+        for (var pid in this.processes)
+          this.processes[pid].createSubSlices();
+      }, this);
+
+      // Finalize import.
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          progressMeter.update(
+              'Finalizing import ' + (index + 1) + '/' + importers.length);
+          importer.finalizeImport();
+        }, this);
+      }, this);
+
+      // Run preinit.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Initializing objects (step 1/2)...');
+        for (var pid in this.processes)
+          this.processes[pid].preInitializeObjects();
+      }, this);
+
+      // Prune empty containers.
+      if (options.pruneEmptyContainers) {
+        lastTask = lastTask.after(function() {
+          progressMeter.update('Pruning empty containers...');
+          this.kernel.pruneEmptyContainers();
+          for (var pid in this.processes) {
+            this.processes[pid].pruneEmptyContainers();
+          }
+        }, this);
+      }
+
+      // Merge kernel and userland slices on each thread.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Merging kernel with userland...');
+        for (var pid in this.processes)
+          this.processes[pid].mergeKernelWithUserland();
+      }, this);
+
+      // Create auditors
+      var auditors = [];
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Adding arbitrary data to model...');
+        auditors = options.auditorConstructors.map(
+          function(auditorConstructor) {
+            return new auditorConstructor(this);
+          }, this);
+        auditors.forEach(function(auditor) {
+          auditor.runAnnotate();
+        });
+      }, this);
+
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Computing final world bounds...');
+        this.updateBounds();
+        this.updateCategories_();
+
+        if (options.shiftWorldToZero)
+          this.shiftWorldToZero();
+      }, this);
+
+      // Build the flow event interval tree.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Building flow event map...');
+        for (var i = 0; i < this.flowEvents.length; ++i) {
+          var flowEvent = this.flowEvents[i];
+          this.flowIntervalTree.insert(flowEvent);
+        }
+        this.flowIntervalTree.updateHighValues();
+      }, this);
+
+      // Join refs.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Joining object refs...');
+        for (var i = 0; i < importers.length; i++)
+          importers[i].joinRefs();
+      }, this);
+
+      // Delete any undeleted objects.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Cleaning up undeleted objects...');
+        for (var pid in this.processes)
+          this.processes[pid].autoDeleteObjects(this.bounds.max);
+      }, this);
+
+      // Sort global and process memory dumps.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Sorting memory dumps...');
+        this.globalMemoryDumps.sort(function(x, y) {
+          return x.start - y.start;
+        });
+        for (var pid in this.processes)
+          this.processes[pid].sortMemoryDumps();
+      }, this);
+
+      // Calculate memory dump graph attributes.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Calculating memory dump graph attributes...');
+        this.globalMemoryDumps.forEach(function(dump) {
+          dump.calculateGraphAttributes();
+        });
+      }, this);
+
+      // Run initializers.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Initializing objects (step 2/2)...');
+        for (var pid in this.processes)
+          this.processes[pid].initializeObjects();
+      }, this);
+
+      // Build event indices mapping from an event id to all flow events.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Building flow event indices...');
+        this.modelIndices = new tr.model.ModelIndices(this);
+      }, this);
+
+      // Run audits.
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Running auditors...');
+        auditors.forEach(function(auditor) {
+          auditor.runAudit();
+        });
+
+        this.interaction_records.sort(function(x, y) {
+          return x.start - y.start;
+        });
+        this.alerts.sort(function(x, y) {
+          return x.start - y.start;
+        });
+
+        this.updateBounds();
+      }, this);
+
+      // Cleanup.
+      lastTask.after(function() {
+        this.importing_ = false;
+      }, this);
+      return importTask;
+    },
+
+    /**
+     * @param {Object} data The import warning data. Data must provide two
+     *    accessors: type, message. The types are used to determine if we
+     *    should output the message, we'll only output one message of each type.
+     *    The message is the actual warning content.
+     */
+    importWarning: function(data) {
+      this.importWarnings_.push(data);
+
+      // Only log each warning type once. We may want to add some kind of
+      // flag to allow reporting all importer warnings.
+      if (this.reportedImportWarnings_[data.type] === true)
+        return;
+
+      console.warn(data.message);
+      this.reportedImportWarnings_[data.type] = true;
+    },
+
+    /**
+     * Returns a time unit that is used to format values and determines the
+     * precision of the timestamp values.
+     */
+    get intrinsicTimeUnit() {
+      if (this.intrinsicTimeUnit_ === undefined)
+        return tr.b.units.Time.supportedUnits.ms;
+      return this.intrinsicTimeUnit_;
+    },
+
+    set intrinsicTimeUnit(value) {
+      if (this.intrinsicTimeUnit_ === value)
+        return;
+      if (this.intrinsicTimeUnit_ !== undefined)
+        throw new Error('Intrinsic time unit already set');
+      this.intrinsicTimeUnit_ = value;
+    },
+
+    get hasImportWarnings() {
+      return (this.importWarnings_.length > 0);
+    },
+
+    get importWarnings() {
+      return this.importWarnings_;
+    }
+  };
+
+  return {
+    ImportOptions: ImportOptions,
+    ClockSyncRecord: ClockSyncRecord,
+    Model: Model
+  };
+});
+</script>

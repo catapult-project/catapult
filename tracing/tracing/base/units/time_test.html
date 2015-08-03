@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/units/time.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('Time.ms.format', function() {
+    function local(v) {
+      return v.toLocaleString(undefined, { minimumFractionDigits: 3}) + ' ms';
+    }
+
+    var unit = tr.b.units.Time.supportedUnits.ms;
+    assert.equal(unit.format(1), local(1));
+    assert.equal(unit.format(1.001), local(1.001));
+    assert.equal(unit.format(1.0005), local(1.001));
+    assert.equal(unit.format(1.0004), local(1));
+    assert.equal(unit.format(0.999), local(0.999));
+    assert.equal(unit.format(0.9995), local(1));
+  });
+
+  test('Time.ns.format', function() {
+    function local(v) {
+      return v.toLocaleString(undefined, { maximumFractionDigits: 0}) + ' ns';
+    }
+
+    var unit = tr.b.units.Time.supportedUnits.ns;
+    assert.equal(unit.format(1), local(1000000));
+    assert.equal(unit.format(0.001), local(1000));
+    assert.equal(unit.format(0.000001), local(1));
+    assert.equal(unit.format(0.0000005), local(1));
+    assert.equal(unit.format(0.0000004), local(0));
+    assert.equal(unit.format(0.0000015), local(2));
+  });
+
+  test('Time.display-unit-changed', function() {
+    var Time = tr.b.units.Time;
+
+    var listenerWasCalled = false;
+    function listener(e) {
+      listenerWasCalled = true;
+    }
+
+    try {
+      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      Time.addEventListener('display-unit-changed', listener);
+
+      listenerWasCalled = false;
+      Time.currentDisplayUnit = Time.supportedUnits.ns;
+      assert.isTrue(listenerWasCalled);
+      assert.equal(Time.currentDisplayUnit, Time.supportedUnits.ns);
+    } finally {
+      Time.removeEventListener('display-unit-changed', listener);
+      Time.reset();
+    }
+  });
+});
+</script>

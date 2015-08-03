@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/android/android_auditor.html">
+<link rel="import" href="/extras/importer/linux_perf/ftrace_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
+  var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newCounterNamed = tr.c.test_utils.newCounterNamed;
+  var newCounterSeries = tr.c.test_utils.newCounterSeries;
+
+  function createSurfaceFlingerWithVsyncs(model) {
+      if (model.getProcess(2))
+        throw new Error('process already exists');
+
+      var sfProcess = model.getOrCreateProcess(2);
+      var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
+      sfThread.name = '/system/bin/surfaceflinger';
+
+      // ensure slicegroup has data
+      sfThread.sliceGroup.pushSlice(newSliceEx({
+        title: 'doComposition',
+        start: 8,
+        duration: 2
+      }));
+
+      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
+      var series = newCounterSeries();
+      for (var i = 0; i <= 10; i++) {
+        series.addCounterSample(i * 10, i % 2);
+      }
+      counter.addSeries(series);
+  }
+
+  /*
+   * List of customizeModelCallbacks which produce different 80ms frames,
+   * each starting at 10ms, and with a single important slice
+   */
+  var SINGLE_FRAME_CUSTOM_MODELS = [
+    function(model) {
+      // UI thread only
+      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 80));
+
+      model.uiThread = uiThread;
+    },
+
+    function(model) {
+      // RenderThread only
+      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 10, 80));
+
+      model.renderThread = renderThread;
+    },
+
+    function(model) {
+      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+
+      // UI thread time - 19 (from 10 to 29)
+      uiThread.asyncSliceGroup.push(
+        newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 10));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('draw', 20, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 20, 8));
+
+      // RenderThread time - 61 (from 29 to 90)
+      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 29, 61));
+      renderThread.sliceGroup.pushSlice(newSliceNamed('syncFrameState', 29, 1));
+
+      model.uiThread = uiThread;
+      model.renderThread = renderThread;
+    }
+  ];
+
+  test('getThreads', function() {
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = tr.c.test_utils.newModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+      assert.equal(helper.apps[0].uiThread, model.uiThread);
+      assert.equal(helper.apps[0].renderThread, model.renderThread);
+    });
+  });
+
+  test('iterateImportantSlices', function() {
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = tr.c.test_utils.newModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+
+      var seen = 0;
+      helper.iterateImportantSlices(function(importantSlice) {
+        assert.isTrue(importantSlice instanceof tr.model.Slice);
+        seen++;
+      });
+      assert.equal(seen, 1);
+    });
+  });
+
+  test('getFrames', function() {
+    SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
+      var model = tr.c.test_utils.newModel(customizeModelCallback);
+      var helper = new AndroidModelHelper(model);
+      assert.equal(helper.apps.length, 1);
+
+      var frames = helper.apps[0].getFrames();
+      assert.equal(frames.length, 1);
+      assert.closeTo(frames[0].totalDuration, 80, 1e-5);
+
+      assert.closeTo(frames[0].start, 10, 1e-5);
+      assert.closeTo(frames[0].end, 90, 1e-5);
+    });
+  });
+
+  test('surfaceFlingerVsyncs', function() {
+    var model = tr.c.test_utils.newModel(createSurfaceFlingerWithVsyncs);
+    var helper = new AndroidModelHelper(model);
+    assert.isTrue(helper.surfaceFlinger.hasVsyncs);
+
+    // test querying the vsyncs
+    assert.closeTo(helper.surfaceFlinger.getFrameKickoff(5), 0, 1e-5);
+    assert.closeTo(helper.surfaceFlinger.getFrameDeadline(95), 100, 1e-5);
+
+    assert.closeTo(helper.surfaceFlinger.getFrameKickoff(10), 10, 1e-5);
+    assert.closeTo(helper.surfaceFlinger.getFrameDeadline(90), 100, 1e-5);
+
+    // test undefined behavior outside of vsyncs.
+    assert.isUndefined(helper.surfaceFlinger.getFrameKickoff(-5));
+    assert.isUndefined(helper.surfaceFlinger.getFrameDeadline(105));
+  });
+
+  test('frameVsyncInterop', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      // app - 3 good, 3 bad frames
+      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 1, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 8));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 31, 11));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 45, 6));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 60, 20));
+
+      // surface flinger - vsync every 10ms
+      createSurfaceFlingerWithVsyncs(model);
+    });
+    var helper = new AndroidModelHelper(model);
+
+    var frames = helper.apps[0].getFrames();
+    assert.equal(frames.length, 6);
+    for (var i = 0; i < 6; i++) {
+      var shouldMissDeadline = i >= 3;
+      var missedDeadline = frames[i].args['deadline'] < frames[i].end;
+      assert.equal(shouldMissDeadline, missedDeadline);
+    }
+  });
+
+  test('appInputs', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var process = model.getOrCreateProcess(120);
+      var uiThread = process.getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 4));
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 4));
+
+      var counter = process.getOrCreateCounter('android', 'aq:pending:foo');
+      var series = newCounterSeries();
+      series.addCounterSample(10, 1);
+      series.addCounterSample(20, 0);
+      series.addCounterSample(30, 1);
+      series.addCounterSample(40, 2);
+      series.addCounterSample(50, 0);
+      counter.addSeries(series);
+    });
+    var helper = new AndroidModelHelper(model);
+    assert.equal(helper.apps.length, 1);
+
+    var inputSamples = helper.apps[0].getInputSamples();
+    assert.equal(inputSamples.length, 3);
+    assert.equal(inputSamples[0].timestamp, 10);
+    assert.equal(inputSamples[1].timestamp, 30);
+    assert.equal(inputSamples[2].timestamp, 40);
+  });
+
+  test('appAnimations', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var process = model.getOrCreateProcess(120);
+      var uiThread = process.getOrCreateThread(120);
+      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
+      uiThread.asyncSliceGroup.push(newAsyncSliceNamed('animator:foo', 0, 10,
+                                                       uiThread, uiThread));
+    });
+    var helper = new AndroidModelHelper(model);
+    assert.equal(helper.apps.length, 1);
+
+    var animations = helper.apps[0].getAnimationAsyncSlices();
+    assert.equal(animations.length, 1);
+    assert.equal(animations[0].start, 0);
+    assert.equal(animations[0].end, 10);
+  });
+});
+</script>

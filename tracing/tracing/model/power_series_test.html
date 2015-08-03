@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/device.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var Model = tr.Model;
+  var PowerSeries = tr.model.PowerSeries;
+
+  test('stableId', function() {
+    var device = { stableId: 'test' };
+    var series = new PowerSeries(device);
+
+    assert.equal(series.stableId, 'test.PowerSeries');
+  });
+
+  test('device', function() {
+    var device = new tr.model.Device(new Model());
+    var series = new PowerSeries(device);
+
+    assert.equal(series.device, device);
+  });
+
+  test('addPowerSample', function() {
+    var series = new PowerSeries(new Model().device);
+
+    assert.equal(series.samples.length, 0);
+
+    var sample1 = series.addPowerSample(0, 1000);
+    var sample2 = series.addPowerSample(1, 2000);
+
+    assert.deepEqual(series.samples, [sample1, sample2]);
+  });
+
+  test('shiftTimestampsForward', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+
+    series.shiftTimestampsForward(2);
+
+    assert.equal(series.samples[0].start, 2);
+    assert.equal(series.samples[1].start, 3);
+
+    series.shiftTimestampsForward(-4);
+
+    assert.equal(series.samples[0].start, -2);
+    assert.equal(series.samples[1].start, -1);
+  });
+
+
+  test('updateBounds', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.updateBounds();
+
+    assert.equal(series.bounds.min, 0);
+    assert.equal(series.bounds.max, 1);
+
+    series.addPowerSample(4, 3000);
+    series.updateBounds();
+
+    assert.equal(series.bounds.min, 0);
+    assert.equal(series.bounds.max, 4);
+  });
+
+  test('iterateAllEventsInThisContainer', function() {
+    var series = new PowerSeries(new Model().device);
+
+    var eventsInSeries = [];
+    series.iterateAllEventsInThisContainer(
+        function() { return true; },
+        function(event) {
+          eventsInSeries.push(event);
+        });
+
+    assert.deepEqual(eventsInSeries, []);
+
+    var sample1 = series.addPowerSample(0, 1000);
+    var sample2 = series.addPowerSample(1, 2000);
+
+    eventsInSeries = [];
+    series.iterateAllEventsInThisContainer(
+        function() { return true; },
+        function(event) {
+          eventsInSeries.push(event);
+        });
+
+    assert.deepEqual(eventsInSeries, [sample1, sample2]);
+  });
+});
+</script>

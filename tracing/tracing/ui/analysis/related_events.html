@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/analysis/flow_classifier.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-related-events">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.eventGroups_ = [];
+
+      this.$.table.tableColumns = [
+        {
+          title: 'Event(s)',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.type;
+            if (row.tooltip)
+              typeEl.title = row.tooltip;
+            return typeEl;
+          },
+          width: '150px'
+        },
+        {
+          title: 'Link',
+          width: '100%',
+          value: function(row) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            if (row.name)
+              linkEl.setSelectionAndContent(row.selection, row.name);
+            else
+              linkEl.selection = row.selection;
+            return linkEl;
+          }
+        }
+      ];
+    },
+
+    hasRelatedEvents: function() {
+      return (this.eventGroups_ && this.eventGroups_.length > 0);
+    },
+
+    setRelatedEvents: function(eventSet) {
+      this.eventGroups_ = [];
+      this.addConnectedFlows_(eventSet);
+      this.addConnectedEvents_(eventSet);
+      this.addOverlappingSamples_(eventSet);
+      this.updateContents_();
+    },
+
+    addConnectedFlows_: function(eventSet) {
+      var classifier = new tr.ui.analysis.FlowClassifier();
+      eventSet.forEach(function(slice) {
+        if (slice.inFlowEvents) {
+          slice.inFlowEvents.forEach(function(flow) {
+            classifier.addInFlow(flow);
+          });
+        }
+        if (slice.outFlowEvents) {
+          slice.outFlowEvents.forEach(function(flow) {
+            classifier.addOutFlow(flow);
+          });
+        }
+      });
+      if (!classifier.hasEvents())
+        return;
+
+      var addToEventGroups = function(type, flowEvent) {
+        this.eventGroups_.push({
+          type: type,
+          selection: new tr.model.EventSet(flowEvent),
+          name: flowEvent.title
+        });
+      };
+
+      classifier.inFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Incoming flow'));
+      classifier.outFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Outgoing flow'));
+      classifier.internalFlowEvents.forEach(
+          addToEventGroups.bind(this, 'Internal flow'));
+    },
+
+    addConnectedEvents_: function(eventSet) {
+      if (eventSet.length === 0)
+        return;
+
+      var precedingEvents = new tr.model.EventSet(eventSet.toArray());
+      var followingEvents = new tr.model.EventSet(eventSet.toArray());
+
+      var i = 0;
+      while (i < precedingEvents.length) {
+        var event = precedingEvents[i];
+        this.addInFlowEvents_(event, precedingEvents);
+        this.addAncestors_(event, precedingEvents);
+        if (event.startSlice)
+          precedingEvents.push(event.startSlice);
+        i++;
+      }
+
+      i = 0;
+      while (i < followingEvents.length) {
+        var event = followingEvents[i];
+        this.addOutFlowEvents_(event, followingEvents);
+        this.addDescendents_(event, followingEvents);
+        if (event.endSlice)
+          followingEvents.push(event.endSlice);
+        i++;
+      }
+
+      var allEvents = new tr.model.EventSet(precedingEvents.toArray());
+      followingEvents.forEach(function(e) {
+        allEvents.push(e);
+      });
+      i = 0;
+      while (i < allEvents.length) {
+        var event = allEvents[i];
+        this.addInFlowEvents_(event, allEvents);
+        this.addOutFlowEvents_(event, allEvents);
+        this.addAncestors_(event, allEvents);
+        this.addDescendents_(event, allEvents);
+        if (event.startSlice)
+          allEvents.push(event.startSlice);
+        if (event.endSlice)
+          allEvents.push(event.endSlice);
+        i++;
+      }
+
+      if (precedingEvents.length !== eventSet.length) {
+        this.eventGroups_.push({
+          type: 'Preceding events',
+          tooltip: 'All events that have led to the selected one(s), ' +
+                   'connected by flow arrows or by hierarchy.',
+          selection: precedingEvents
+        });
+      }
+      if (followingEvents.length !== eventSet.length) {
+        this.eventGroups_.push({
+          type: 'Following events',
+          tooltip: 'All events that have been caused by the selected one(s), ' +
+                   'connected by flow arrows or by call stack.',
+          selection: followingEvents
+        });
+      }
+      if (allEvents.length !== eventSet.length) {
+        this.eventGroups_.push({
+          type: 'All connected events',
+          tooltip: 'All events connected to the selected one(s) by flow ' +
+                   'arrows or by call stack.',
+          selection: allEvents
+        });
+      }
+    },
+
+    addInFlowEvents_: function(event, eventSet) {
+      if (!event.inFlowEvents)
+        return;
+      event.inFlowEvents.forEach(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    addOutFlowEvents_: function(event, eventSet) {
+      if (!event.outFlowEvents)
+        return;
+      event.outFlowEvents.forEach(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    addAncestors_: function(event, eventSet) {
+      if (!event.iterateAllAncestors)
+        return;
+      event.iterateAllAncestors(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    addDescendents_: function(event, eventSet) {
+      if (!event.iterateAllDescendents)
+        return;
+      event.iterateAllDescendents(function(e) {
+        eventSet.push(e);
+      });
+    },
+
+    // Find the [first, last] index of the samples overlapping slice, assuming
+    // samples are sorted. |last| is past-the-end so returned indices can be
+    // used with Array.slice.
+    findOverlappingSampleIndices_: function(samples, slice) {
+      // Binary search. |test| is a function that should return true when we
+      // need to explore the left branch and false to explore the right branch.
+      function binSearch(test) {
+        var i0 = 0;
+        var i1 = samples.length;
+        while (i0 < i1 - 1) {
+          var i = Math.trunc((i0 + i1) / 2);
+          if (test(i))
+            i1 = i;  // Explore the left branch.
+          else
+            i0 = i;  // Explore the right branch.
+        }
+        return i1;
+      }
+
+      var first = binSearch(function(i) {
+        return slice.start <= samples[i].start;
+      });
+      var sliceEnd = slice.start + slice.duration;
+      var last = binSearch(function(i) {
+        return sliceEnd < samples[i].start;
+      });
+      return [first, last];
+    },
+
+    addOverlappingSamples_: function(eventSet) {
+      var samples = new tr.model.EventSet;
+      eventSet.forEach(function(slice) {
+        if (!slice.parentContainer || !slice.parentContainer.samples)
+          return;
+        var candidates = slice.parentContainer.samples;
+        var filteredSamples = candidates.slice.apply(candidates,
+            this.findOverlappingSampleIndices_(candidates, slice));
+        filteredSamples.forEach(function(sample) {
+          samples.push(sample);
+        });
+      }.bind(this));
+      if (samples.length > 0) {
+        this.eventGroups_.push({
+          type: 'Overlapping samples',
+          tooltip: 'All samples overlapping the selected slice(s).',
+          selection: samples
+        });
+      }
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+      if (this.eventGroups_ === undefined)
+        table.tableRows = [];
+      else
+        table.tableRows = this.eventGroups_.slice();
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

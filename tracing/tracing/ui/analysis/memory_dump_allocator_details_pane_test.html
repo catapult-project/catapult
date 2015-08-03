@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import"
+    href="/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/attribute.html">
+<link rel="import" href="/model/container_memory_dump.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/memory_allocator_dump.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+
+  function createMemoryAllocatorDump() {
+    var memoryDump = new ContainerMemoryDump(-10);
+    var dump = new MemoryAllocatorDump(memoryDump, 'v8');
+    dump.addAttribute('size',
+        new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
+    dump.addAttribute('inner_size',
+        new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+    dump.addAttribute('objects_count', new ScalarAttribute('objects', 204));
+    return dump;
+  }
+
+  test('instantiate_empty', function() {
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    this.addHTMLOutput(viewEl);
+  });
+
+  test('instantiate_nonEmpty', function() {
+    var memoryAllocatorDump = createMemoryAllocatorDump();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDump = memoryAllocatorDump;
+    this.addHTMLOutput(viewEl);
+
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 1);
+    assert.lengthOf(columns, 4);
+
+    var titleColumn = columns[0];
+    var outerSizeColumn = columns[1];
+    var innerSizeColumn = columns[2];
+    var objectsCountColumn = columns[3];
+
+    // Check the rows of the table.
+    assert.equal(titleColumn.value(rows[0]), 'v8');
+    assert.equal(innerSizeColumn.value(rows[0]).numBytes, 2097152);
+    assert.equal(objectsCountColumn.value(rows[0]), 204);
+    assert.equal(outerSizeColumn.value(rows[0]).numBytes, 1073741824);
+  });
+});
+</script>

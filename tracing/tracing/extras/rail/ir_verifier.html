@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/extras/rail/rail_ir_finder.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.e.rail', function() {
+  function compareEvents(x, y) {
+    if (x.start !== y.start)
+      return x.start - y.start;
+    return x.guid - y.guid;
+  }
+
+  function IRVerifier() {
+    this.customizeModelCallback_ = undefined;
+    this.expectedIRs_ = undefined;
+  }
+
+  IRVerifier.prototype = {
+    set customizeModelCallback(cmc) {
+      this.customizeModelCallback_ = cmc;
+    },
+
+    // |irs| must be sorted by start time.
+    set expectedIRs(irs) {
+      this.expectedIRs_ = irs;
+    },
+
+    importView_: function(cb) {
+      // Dynamically import the ir-verifier-view.
+      // It is a layering violation to statically import UI from non-UI.
+      // 'Polymer' is undefined in d8, so this will fail if tr.isHeadless.
+      var viewPath = '/ui/extras/rail/ir_verifier_view.html';
+      var viewLink = document.querySelector('link[rel="import"][href="' +
+          viewPath + '"]');
+      if (viewLink) {
+        if (viewLink.isLoaded) {
+          cb();
+        } else {
+          viewLink.addEventListener('load', cb);
+        }
+        return;
+      }
+      viewLink = document.createElement('link');
+      viewLink.rel = 'import';
+      viewLink.href = viewPath;
+      viewLink.isLoaded = false;
+      viewLink.addEventListener('load', function() {
+        viewLink.isLoaded = true;
+        cb();
+      });
+      document.head.appendChild(viewLink);
+    },
+
+    maybeAddHTMLOutput_: function(model, browserHelper, actualIRs, failure) {
+      if (tr.isHeadless)
+        return;
+
+      // The view might not be available until after the test finishes.
+      // The view cannot be added to the DOM after the test finishes.
+      // Add a placeholder to the DOM now, so that whenever the view is loaded,
+      // it can be added to the placeholder.
+      var placeholder = document.createElement('div');
+      placeholder.style.minWidth = '1px';
+      placeholder.style.minHeight = '1px';
+      tr.b.unittest.addHTMLOutputForCurrentTest(placeholder);
+
+      this.importView_(function() {
+        var view = document.createElement('tr-ui-e-rail-ir-verifier-view');
+        view.bounds = model.bounds;
+        if (failure)
+          view.expectedIRs = this.expectedIRs_;
+        view.actualIRs = actualIRs;
+        view.model = browserHelper.getAllAsyncSlicesMatching(
+            function(slice) {
+              return true;
+        }).sort(compareEvents);
+        placeholder.appendChild(view);
+        view.update();
+      });
+    },
+
+    verify: function() {
+      var model = tr.e.audits.newChromeModel(this.customizeModelCallback_);
+      var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+      var rirf = new tr.e.rail.RAILIRFinder(model, modelHelper);
+      var actualIRs = rirf.findAllInteractionRecords();
+
+      // findAllInteractionRecords() doesn't sort, but we need to sort them in
+      // order to compare them to expectedIRs.
+      actualIRs.sort(compareEvents);
+
+      var failure = undefined;
+      try {
+        assert.equal(this.expectedIRs_.length, actualIRs.length);
+        for (var i = 0; i < this.expectedIRs_.length; ++i) {
+          var at = 'IRs[' + i + '].';
+          assert.equal(this.expectedIRs_[i].title, actualIRs[i].title,
+                      at + 'title');
+          assert.equal(this.expectedIRs_[i].start, actualIRs[i].start,
+                      at + 'start');
+          assert.equal(this.expectedIRs_[i].end, actualIRs[i].end, at + 'end');
+          assert.equal(this.expectedIRs_[i].eventCount,
+                      actualIRs[i].associatedEvents.length, at + 'eventCount');
+        }
+      } catch (caught) {
+        failure = caught;
+      }
+
+      var debug = !tr.isHeadless && (
+          location.search.split('&').indexOf('debug') >= 0);
+      if (!failure && !debug)
+        return;
+
+      // TODO(benjhayden): Why is the
+      // getComputedStyle(HTMLTestCaseResult).display sometimes none?
+      // this.maybeAddHTMLOutput_(
+      //    model, modelHelper.browserHelper, actualIRs, failure);
+
+      if (failure)
+        throw failure;
+    }
+  };
+
+  return {IRVerifier: IRVerifier};
+});
+</script>

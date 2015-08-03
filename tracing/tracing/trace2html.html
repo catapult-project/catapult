@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/ui/timeline_view.html">
+<script>
+'use strict';
+
+var g_timelineViewEl;
+
+(function() {
+  var styleEl = document.createElement('style');
+  var lines = [
+    'html, body {',
+    '  box-sizing: border-box;',
+    '  overflow: hidden;',
+    '  margin: 0px;',
+    '  padding: 0;',
+    '  width: 100%;',
+    '  height: 100%;',
+    '}',
+    'tr-ui-timeline-view {',
+    '  width: 100%;',
+    '  height: 100%;',
+    '}',
+    'tr-ui-timeline-view:focus {',
+    '  outline: none;',
+    '}'
+  ];
+  styleEl.textContent = lines.join('\n');
+  document.head.appendChild(styleEl);
+})();
+
+document.addEventListener('DOMContentLoaded', function() {
+  var container = document.createElement('track-view-container');
+  container.id = 'track_view_container';
+
+  g_timelineViewEl = document.createElement('tr-ui-timeline-view');
+  g_timelineViewEl.appendChild(container);
+
+  document.body.appendChild(g_timelineViewEl);
+
+  var traces = [];
+  var viewerDataScripts = document.querySelectorAll('#viewer-data');
+  for (var i = 0; i < viewerDataScripts.length; i++) {
+    var text = viewerDataScripts[i].textContent;
+    // Trim leading newlines off the text. They happen during writing.
+    while (text[0] == '\n')
+      text = text.substring(1);
+    traces.push(atob(text));
+  }
+
+  var m = new tr.Model();
+  var p = m.importTracesWithProgressDialog(traces, true);
+  p.then(
+      function() {
+        g_timelineViewEl.model = m;
+        g_timelineViewEl.updateDocumentFavicon();
+        g_timelineViewEl.globalMode = true;
+        g_timelineViewEl.viewTitle = document.title;
+      },
+      function(err) {
+        var overlay = new tr.ui.b.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
+        overlay.title = 'Import error';
+        overlay.visible = true;
+      });
+});
+</script>

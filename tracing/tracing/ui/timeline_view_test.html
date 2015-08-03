@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/timeline_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var Task = tr.b.Task;
+
+  function setupTimeline() {
+    var container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+
+    var view = document.createElement('tr-ui-timeline-view');
+    view.appendChild(container);
+    view.trackViewContainer_ = container;
+    return view;
+  }
+
+  var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
+    var withError = opt_withError !== undefined ? opt_withError : true;
+    var withMetadata = opt_withMetadata !== undefined ?
+        opt_withMetadata : true;
+
+    var num_tests = 50;
+    var testIndex = 0;
+    var startTime = 0;
+
+    var model = new tr.Model();
+    for (testIndex = 0; testIndex < num_tests; ++testIndex) {
+      var process = model.getOrCreateProcess(10000 + testIndex);
+      if (testIndex % 2 == 0) {
+        var thread = process.getOrCreateThread('Thread Name Here');
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
+            'foo', 'a', 0, startTime, {}, 1));
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
+            'bar', 'b', 0, startTime + 23, {}, 10));
+      } else {
+        var thread = process.getOrCreateThread('Name');
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
+            'foo', 'a', 0, startTime + 4, {}, 11));
+        thread.sliceGroup.pushSlice(new tr.model.Slice(
+            'bar', 'b', 0, startTime + 22, {}, 14));
+      }
+    }
+    var p1000 = model.getOrCreateProcess(1000);
+    var objects = p1000.objects;
+    objects.idWasCreated('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10);
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10,
+                        'snapshot-1');
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 25,
+                        'snapshot-2');
+    objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 40,
+                        'snapshot-3');
+    objects.idWasDeleted('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 45);
+    model.updateCategories_();
+
+    // Add a known problematic piece of data to test the import errors UI.
+    model.importWarning({
+      type: 'test_error',
+      message: 'Synthetic Import Error'
+    });
+    model.updateBounds();
+
+    // Add data with metadata information stored
+    model.metadata.push({name: 'a', value: 'testA'});
+    model.metadata.push({name: 'b', value: 'testB'});
+    model.metadata.push({name: 'c', value: 'testC'});
+
+    return model;
+  };
+
+  var visibleTracks = function(trackButtons) {
+    return trackButtons.reduce(function(numVisible, button) {
+      var style = button.parentElement.style;
+      var visible = (style.display.indexOf('none') === -1);
+      return visible ? numVisible + 1 : numVisible;
+    }, 0);
+  };
+
+  var modelsEquivalent = function(lhs, rhs) {
+    if (lhs.length !== rhs.length)
+      return false;
+    return lhs.every(function(lhsItem, index) {
+      var rhsItem = rhs[index];
+      return rhsItem.regexpText === lhsItem.regexpText &&
+          rhsItem.isOn === lhsItem.isOn;
+    });
+  };
+
+  test('instantiate', function() {
+    var model11 = createFullyPopulatedModel(true, true);
+
+    var view = setupTimeline();
+    view.style.height = '400px';
+    view.style.border = '1px solid black';
+    view.model = model11;
+
+    var simpleButton1 = document.createElement('tr-ui-b-toolbar-button');
+    simpleButton1.textContent = 'M';
+    view.leftControls.appendChild(simpleButton1);
+
+    var simpleButton2 = document.createElement('tr-ui-b-toolbar-button');
+    simpleButton2.textContent = 'am button';
+    view.leftControls.appendChild(simpleButton2);
+
+    this.addHTMLOutput(view);
+  });
+
+  test('changeModelToSomethingDifferent', function() {
+    var model00 = createFullyPopulatedModel(false, false);
+    var model11 = createFullyPopulatedModel(true, true);
+
+    var view = setupTimeline();
+    view.style.height = '400px';
+    view.model = model00;
+    view.model = undefined;
+    view.model = model11;
+    view.model = model00;
+  });
+
+  test('setModelToSameThingAgain', function() {
+    var model = createFullyPopulatedModel(false, false);
+
+    // Create a view with am model.
+    var view = setupTimeline();
+    view.style.height = '400px';
+    view.model = model;
+    var sc = view.brushingStateController;
+
+    // Mutate the model and update the view.
+    var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
+    t123.sliceGroup.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
+    view.model = model;
+
+    // Verify that the new bits of the model show up in the view.
+    var selection = new tr.model.EventSet();
+    var filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
+    var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
+        filter, selection);
+    Task.RunSynchronously(filterTask);
+    assert.equal(selection.length, 1);
+  });
+});
+</script>
+

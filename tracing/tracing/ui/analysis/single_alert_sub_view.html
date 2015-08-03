@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/dom_helpers.html">
+<link rel="import" href="/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/ui/analysis/single_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-single-alert-sub-view"
+    extends="tr-ui-a-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+    },
+
+    set selection(selection) {
+      this.currentSelection_ = selection;
+
+      this.textContent = '';
+      var realView = document.createElement('tr-ui-a-single-event-sub-view');
+      realView.addExtraRowsCallback = function(rows) {
+        // Alert description.
+        var alert = this.currentSelection_[0];
+
+        var descriptionEl = tr.ui.b.createSpan({
+          textContent: alert.info.description
+        });
+        rows.push({
+          name: 'Description',
+          value: descriptionEl
+        });
+
+        // Associated events...
+        if (alert.associatedEvents.length) {
+          var eventSubRows = [];
+          alert.associatedEvents.forEach(function(event, i) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(function() {
+              return event;
+            }, event.userFriendlyName);
+            eventSubRows.push({
+              name: i,
+              value: linkEl
+            });
+          });
+
+          rows.push({
+            name: 'Alerts', value: '',
+            isExpanded: true, subRows: eventSubRows
+          });
+        }
+      }.bind(this);
+
+      this.appendChild(realView);
+      realView.setSelectionWithoutErrorChecks(selection);
+    }
+  });
+  </script>
+</polymer-element>

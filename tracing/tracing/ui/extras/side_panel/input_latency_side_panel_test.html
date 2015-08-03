@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/extras/side_panel/input_latency_side_panel.html">
+<link rel="import" href="/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var latencyData = [
+      {
+        x: 1000,
+        latency: 16
+      },
+      {
+        x: 2000,
+        latency: 17
+      },
+      {
+        x: 3000,
+        latency: 14
+      },
+      {
+        x: 4000,
+        latency: 23
+      }
+    ];
+    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    var latencyChart = lc.createLatencyLineChart(latencyData, 'latency');
+    this.addHTMLOutput(latencyChart);
+
+    var frametimeData = [
+      {
+        x: 1000,
+        frametime: 16
+      },
+      {
+        x: 2000,
+        frametime: 17
+      },
+      {
+        x: 3000,
+        frametime: 14
+      },
+      {
+        x: 4000,
+        frametime: 23
+      }
+    ];
+    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    var frametimeChart = lc.createLatencyLineChart(frametimeData, 'frametime');
+    this.addHTMLOutput(frametimeChart);
+  });
+
+  test('brushedRangeChange', function() {
+    var events = [];
+    for (var i = 0; i < 10; i++) {
+      var start_ts = i * 10000;
+      var end_ts = start_ts + 1000 * (i % 2);
+      events.push(
+        {
+          'cat': 'benchmark',
+          'pid': 3507,
+          'tid': 3507,
+          'ts': start_ts,
+          'ph': 'S',
+          'name': 'InputLatency',
+          'id': i
+        });
+      events.push(
+        {
+          'cat': 'benchmark',
+          'pid': 3507,
+          'tid': 3507,
+          'ts': end_ts,
+          'ph': 'T',
+          'name': 'InputLatency',
+          'args': {'step': 'GestureScrollUpdate'},
+          'id': i
+        });
+      events.push(
+        {
+          'cat': 'benchmark',
+          'pid': 3507,
+          'tid': 3507,
+          'ts': end_ts,
+          'ph': 'F',
+          'name': 'InputLatency',
+          'args': {
+            'data': {
+              'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT': {
+                'time': start_ts
+              },
+              'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT': {
+                'time': end_ts
+              }
+            }
+          },
+          'id': i
+        });
+    }
+    events.push({'cat': '__metadata',
+      'pid': 3507,
+      'tid': 3507,
+      'ts': 0,
+      'ph': 'M',
+      'name': 'thread_name',
+      'args': {'name': 'CrBrowserMain'}});
+
+    var panel = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    this.addHTMLOutput(panel);
+
+    var selectionChanged = false;
+    panel.model = new tr.Model(events);
+    function listener(e) {
+      selectionChanged = true;
+      assert.equal(e.selection.length, 3);
+      assert.equal(e.selection[0].start, 20);
+      assert.equal(e.selection[1].start, 31);
+      assert.equal(e.selection[2].start, 40);
+    }
+    panel.ownerDocument.addEventListener('requestSelectionChange', listener);
+    try {
+      panel.setBrushedIndices(2, 4);
+    } finally {
+      panel.ownerDocument.removeEventListener(
+          'requestSelectionChange', listener);
+    }
+    assert.isTrue(selectionChanged);
+  });
+});
+</script>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/units/time.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var THIS_DOC = document._currentScript.ownerDocument;
+
+  test('createTimeStampSpan', function() {
+    // Default owner document.
+    var timeStamp = tr.ui.units.createTimeStampSpan(3.14);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
+    assert.strictEqual(timeStamp.timestamp, 3.14);
+    assert.strictEqual(timeStamp.ownerDocument, document);
+
+    // Custom owner document.
+    var config = {ownerDocument: THIS_DOC};
+    var timeStamp = tr.ui.units.createTimeStampSpan(-273.15, config);
+    assert.strictEqual(timeStamp.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
+    assert.strictEqual(timeStamp.timestamp, -273.15);
+    assert.strictEqual(timeStamp.ownerDocument, THIS_DOC);
+  });
+
+  test('instantiate', function() {
+    var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
+    timeStamp.timestamp = 73;
+    this.addHTMLOutput(timeStamp);
+  });
+
+  test('instantiateWithObject', function() {
+    var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
+    timeStamp.timestamp = new tr.b.units.TimeStamp(73);
+    this.addHTMLOutput(timeStamp);
+    assert.equal(timeStamp.timestamp, 73);
+  });
+
+  test('respectCurrentDisplayUnit', function() {
+    try {
+      var Time = tr.b.units.Time;
+      Time.currentDisplayUnit = Time.supportedUnits.ns;
+
+      var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
+      timeStamp.timestamp = 73;
+      this.addHTMLOutput(timeStamp);
+
+      assert.isTrue(timeStamp.shadowRoot.textContent.indexOf('ns') > 0);
+      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      assert.isTrue(timeStamp.shadowRoot.textContent.indexOf('ms') > 0);
+    } finally {
+      Time.reset();
+    }
+  });
+});
+</script>

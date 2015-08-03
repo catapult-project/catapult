@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/task.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/find_controller.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/timeline_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var Task = tr.b.Task;
+
+  /*
+   * Just enough of the BrushingStateController to support the tests below.
+   */
+  function FakeBrushingStateController() {
+    this.addAllEventsMatchingFilterToSelectionReturnValue = [];
+
+    this.viewport = undefined;
+    this.model = undefined;
+    this.selection = new tr.model.EventSet();
+    this.findMatches = new tr.model.EventSet();
+  }
+
+  FakeBrushingStateController.prototype = {
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      return new Task(function() {
+        var n = this.addAllEventsMatchingFilterToSelectionReturnValue.length;
+        for (var i = 0; i < n; i++) {
+          selection.push(
+              this.addAllEventsMatchingFilterToSelectionReturnValue[i]);
+        }
+      }, this);
+    },
+
+    uiStateFromString: function(string) {
+      return undefined;
+    },
+
+    findTextChangedTo: function(selection) {
+      this.findMatches = selection;
+      this.selection = new tr.model.EventSet();
+    },
+
+    findFocusChangedTo: function(selection) {
+      this.selection = selection;
+    },
+
+    findTextCleared: function(selection) {
+      this.selection = new tr.model.EventSet();
+      this.findMatches = new tr.model.EventSet();
+    }
+  };
+
+  function assertArrayShallowEquals(a, b, opt_message) {
+    if (a.length === b.length) {
+      var ok = true;
+      for (var i = 0; i < a.length; i++) {
+        ok &= (a[i] === b[i]);
+      }
+      if (ok)
+        return;
+    }
+
+    var message = opt_message || 'Expected array ' + a + ', got array ' + b;
+    throw new tr.b.unittest.TestError(message);
+  };
+
+  test('findControllerNoModel', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+    controller.findNext();
+    controller.findPrevious();
+  });
+
+  test('findControllerEmptyHit', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    brushingStateController.selection = new tr.model.EventSet();
+    brushingStateController.findMatches = new tr.model.EventSet();
+    controller.findNext();
+    assertArrayShallowEquals([], brushingStateController.selection);
+    assertArrayShallowEquals([], brushingStateController.findMatches);
+    controller.findPrevious();
+    assertArrayShallowEquals([], brushingStateController.selection);
+    assertArrayShallowEquals([], brushingStateController.findMatches);
+  });
+
+  test('findControllerOneHit', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    var s1 = {guid: 1};
+    brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
+      s1
+    ];
+    var promise = controller.startFiltering('asdf');
+    promise.then(function() {
+      assertArrayShallowEquals([], brushingStateController.selection);
+      assertArrayShallowEquals([s1], brushingStateController.findMatches);
+      controller.findNext();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      assertArrayShallowEquals([s1], brushingStateController.findMatches);
+      controller.findNext();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      assertArrayShallowEquals([s1], brushingStateController.findMatches);
+      controller.findPrevious();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      assertArrayShallowEquals([s1], brushingStateController.findMatches);
+    });
+    return promise;
+  });
+
+  test('findControllerMultipleHits', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+
+    brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
+    var promise = controller.startFiltering('asdf');
+    promise.then(function() {
+      // Loop through hits then when we wrap, try moving backward.
+      assertArrayShallowEquals([], brushingStateController.selection);
+      assertArrayShallowEquals([s1, s2, s3],
+          brushingStateController.findMatches);
+      controller.findNext();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s2], brushingStateController.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s3], brushingStateController.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      controller.findPrevious();
+      assertArrayShallowEquals([s3], brushingStateController.selection);
+      controller.findPrevious();
+      assertArrayShallowEquals([s2], brushingStateController.selection);
+      assertArrayShallowEquals([s1, s2, s3],
+          brushingStateController.findMatches);
+    });
+    return promise;
+  });
+
+  test('findControllerChangeFilterAfterNext', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+    var s4 = {guid: 4};
+
+    brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
+    var promise = controller.startFiltering('asdf');
+    promise.then(function() {
+      // Loop through hits then when we wrap, try moving backward.
+      controller.findNext();
+      brushingStateController.
+          addAllEventsMatchingFilterToSelectionReturnValue = [s4];
+
+      var nextPromise = controller.startFiltering('asdfsf');
+      nextPromise.then(function() {
+        controller.findNext();
+        assertArrayShallowEquals([s4], brushingStateController.selection);
+      });
+    });
+    return promise;
+  });
+
+  test('findControllerSelectsAllItemsFirst', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    var s1 = {guid: 1};
+    var s2 = {guid: 2};
+    var s3 = {guid: 3};
+    brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
+      s1, s2, s3
+    ];
+    var promise = controller.startFiltering('asdfsf');
+    promise.then(function() {
+      assertArrayShallowEquals([], brushingStateController.selection);
+      assertArrayShallowEquals([s1, s2, s3],
+          brushingStateController.findMatches);
+      controller.findNext();
+      assertArrayShallowEquals([s1], brushingStateController.selection);
+      controller.findNext();
+      assertArrayShallowEquals([s2], brushingStateController.selection);
+      assertArrayShallowEquals([s1, s2, s3],
+          brushingStateController.findMatches);
+    });
+    return promise;
+  });
+
+  test('findControllerWithRealTimeline', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+      t1.sliceGroup.pushSlice(new tr.model.ThreadSlice(
+          '', 'a', 0, 1, {}, 3));
+      model.t1 = t1;
+    });
+
+    var container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+
+    var timeline = document.createElement('tr-ui-timeline-view');
+    timeline.appendChild(container);
+
+    // This is for testing only, have to make sure things link up right.
+    timeline.trackViewContainer_ = container;
+
+    timeline.model = model;
+
+    var brushingStateController = timeline.brushingStateController;
+    var controller = timeline.findCtl_.controller;
+
+    // Test find with no filterText.
+    controller.findNext();
+
+    // Test find with filter txt.
+    var promise = controller.startFiltering('a');
+    promise = promise.then(function() {
+      assert.equal(brushingStateController.selection.length, 0);
+      assert.deepEqual(tr.b.asArray(brushingStateController.findMatches),
+                       model.t1.sliceGroup.slices);
+
+      controller.findNext();
+      assert.equal(brushingStateController.selection.length, 1);
+      assert.equal(brushingStateController.selection[0],
+                   model.t1.sliceGroup.slices[0]);
+
+      var nextPromise = controller.startFiltering('xxx');
+      nextPromise.then(function() {
+        assert.equal(brushingStateController.findMatches.length, 0);
+        assert.equal(brushingStateController.selection.length, 1);
+        controller.findNext();
+        assert.equal(brushingStateController.selection.length, 0);
+        controller.findNext();
+        assert.equal(brushingStateController.selection.length, 0);
+      });
+      return nextPromise;
+    });
+    return promise;
+  });
+
+  test('findControllerNavigation', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+
+    var navToPositionCallCount = 0;
+    var findTextClearedCallCount = 0;
+    var fakeUIState = {};
+    brushingStateController.uiStateFromString = function(string) {
+      if (string === '')
+        return undefined;
+      assert.equal(string, '2000@1.2x7');
+      return fakeUIState;
+    }
+    brushingStateController.navToPosition = function(uiState) {
+      assert.equal(uiState, fakeUIState);
+      navToPositionCallCount++;
+    };
+    brushingStateController.findTextCleared = function() {
+      findTextClearedCallCount++;
+    };
+
+    var promise = controller.startFiltering('2000@1.2x7').then(function() {
+      assert.equal(navToPositionCallCount, 1);
+    });
+    promise = promise.then(controller.startFiltering.bind(controller, ''));
+    promise = promise.then(function() {
+      assert.equal(findTextClearedCallCount, 1);
+    });
+    return promise;
+  });
+
+  test('findControllerClearAfterSet', function() {
+    var brushingStateController = new FakeBrushingStateController();
+    var controller = new tr.ui.FindController(brushingStateController);
+    var findTextChangedToCalled = false;
+    brushingStateController.findTextChangedTo = function(selection) {
+      findTextChangedToCalled = true;
+    };
+    brushingStateController.findTextCleared = function() {
+      assert.equal(findTextChangedToCalled, true);
+    };
+    controller.startFiltering('1');
+    controller.startFiltering('');
+  });
+});
+</script>

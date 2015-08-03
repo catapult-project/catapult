@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/slice.html">
+<link rel="import" href="/ui/timeline_track_view.html">
+<link rel="import" href="/ui/base/draw_helpers.html">
+<link rel="import" href="/ui/base/dom_helpers.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var EventSet = tr.model.EventSet;
+  var RectTrack = tr.ui.tracks.RectTrack;
+  var Rect = tr.ui.tracks.Rect;
+  var Slice = tr.model.Slice;
+  var Viewport = tr.ui.TimelineViewport;
+
+  test('instantiate_withRects', function() {
+    var div = document.createElement('div');
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = RectTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testBasicRects';
+    track.rects = [
+      new Rect(undefined, 'a', 0, 1, 1),
+      new Rect(undefined, 'b', 1, 2.1, 4.8),
+      new Rect(undefined, 'b', 1, 7, 0.5),
+      new Rect(undefined, 'c', 2, 7.6, 0.4)
+    ];
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 8.8, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('instantiate_withSlices', function() {
+    var div = document.createElement('div');
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = RectTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testBasicSlices';
+    track.rects = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 8.8, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('instantiate_shrinkingRectSize', function() {
+    var div = document.createElement('div');
+
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = RectTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    track.heading = 'testShrinkingRectSizes';
+    var x = 0;
+    var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
+    var slices = [];
+    for (var i = 0; i < widths.length; i++) {
+      var s = new Rect(undefined, 'a', 1, x, widths[i]);
+      x += s.duration + 0.5;
+      slices.push(s);
+    }
+    track.rects = slices;
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('instantiate_elide', function() {
+    var optDicts = [{ trackName: 'elideOff', elide: false },
+                    { trackName: 'elideOn', elide: true }];
+
+    var tooLongTitle = 'Unless eliding this SHOULD NOT BE DISPLAYED.  ';
+    var bigTitle = 'Very big title name that goes on longer ' +
+                   'than you may expect';
+
+    for (var dictIndex in optDicts) {
+      var dict = optDicts[dictIndex];
+
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(dict.trackName));
+
+      var viewport = new Viewport(div);
+      var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+      div.appendChild(drawingContainer);
+
+      var track = new RectTrack(viewport);
+      drawingContainer.appendChild(track);
+
+      this.addHTMLOutput(div);
+      drawingContainer.invalidate();
+
+      track.SHOULD_ELIDE_TEXT = dict.elide;
+      track.heading = 'Visual: ' + dict.trackName;
+      track.rects = [
+        // title, colorId, start, args, opt_duration
+        new Rect(undefined, 'a ' + tooLongTitle + bigTitle, 0, 1, 1),
+        new Rect(undefined, bigTitle, 1, 2.1, 4.8),
+        new Rect(undefined, 'cccc cccc cccc', 1, 7, 0.5),
+        new Rect(undefined, 'd', 2, 7.6, 1.0)
+      ];
+      var dt = new tr.ui.TimelineDisplayTransform();
+      dt.xSetWorldBounds(0, 9.5, track.clientWidth);
+      track.viewport.setDisplayTransformImmediately(dt);
+    }
+  });
+
+  test('findAllObjectsMatchingInRectTrack', function() {
+    var track = new RectTrack(new tr.ui.TimelineViewport());
+    track.rects = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+    var selection = new EventSet();
+    track.addAllEventsMatchingFilterToSelection(
+        new tr.c.TitleOrCategoryFilter('b'), selection);
+
+    assert.equal(2, selection.length);
+    assert.equal(track.rects[1].modelItem, selection[0]);
+    assert.equal(track.rects[2].modelItem, selection[1]);
+  });
+
+  test('selectionHitTesting', function() {
+    var testEl = document.createElement('div');
+    testEl.appendChild(tr.ui.b.createScopedStyle('heading { width: 100px; }'));
+    testEl.style.width = '600px';
+
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new RectTrack(viewport);
+    drawingContainer.appendChild(track);
+    this.addHTMLOutput(testEl);
+
+    drawingContainer.updateCanvasSizeIfNeeded_();
+
+    track.heading = 'testSelectionHitTesting';
+    track.rects = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 5, {}, 4.8)
+    ];
+    var y = track.getBoundingClientRect().top + 5;
+    var pixelRatio = window.devicePixelRatio || 1;
+    var wW = 10;
+    var vW = drawingContainer.canvas.getBoundingClientRect().width;
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, wW, vW * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    var selection = new EventSet();
+    var x = (1.5 / wW) * vW;
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
+    assert.equal(track.rects[0].modelItem, selection[0]);
+
+    var selection = new EventSet();
+    x = (2.1 / wW) * vW;
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
+    assert.equal(0, selection.length);
+
+    var selection = new EventSet();
+    x = (6.8 / wW) * vW;
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
+    assert.equal(track.rects[1].modelItem, selection[0]);
+
+    var selection = new EventSet();
+    x = (9.9 / wW) * vW;
+    track.addIntersectingEventsInRangeToSelection(
+        x, x + 1, y, y + 1, selection);
+    assert.equal(0, selection.length);
+  });
+
+  test('elide', function() {
+    var testEl = document.createElement('div');
+
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new RectTrack(viewport);
+    drawingContainer.appendChild(track);
+    this.addHTMLOutput(testEl);
+
+    drawingContainer.updateCanvasSizeIfNeeded_();
+
+    var bigtitle = 'Super duper long long title ' +
+        'holy moly when did you get so verbose?';
+    var smalltitle = 'small';
+    track.heading = 'testElide';
+    track.rects = [
+      // title, colorId, start, args, opt_duration
+      new Slice('', bigtitle, 0, 1, {}, 1),
+      new Slice('', smalltitle, 1, 2, {}, 1)
+    ];
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 3.3, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    var stringWidthPair = undefined;
+    var pixWidth = dt.xViewVectorToWorld(1);
+
+    // Small titles on big slices are not elided.
+    stringWidthPair =
+        tr.ui.b.elidedTitleCache_.get(
+            track.context(),
+            pixWidth,
+            smalltitle,
+            tr.ui.b.elidedTitleCache_.labelWidth(
+                track.context(),
+                smalltitle),
+            1);
+    assert.equal(smalltitle, stringWidthPair.string);
+
+    // Keep shrinking the slice until eliding starts.
+    var elidedWhenSmallEnough = false;
+    for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
+      stringWidthPair =
+          tr.ui.b.elidedTitleCache_.get(
+              track.context(),
+              pixWidth,
+              smalltitle,
+              tr.ui.b.elidedTitleCache_.labelWidth(
+                  track.context(),
+                  smalltitle),
+              sliceLength);
+      if (stringWidthPair.string.length < smalltitle.length) {
+        elidedWhenSmallEnough = true;
+        break;
+      }
+    }
+    assert.isTrue(elidedWhenSmallEnough);
+
+    // Big titles are elided immediately.
+    var superBigTitle = '';
+    for (var x = 0; x < 10; x++) {
+      superBigTitle += bigtitle;
+    }
+    stringWidthPair =
+        tr.ui.b.elidedTitleCache_.get(
+            track.context(),
+            pixWidth,
+            superBigTitle,
+            tr.ui.b.elidedTitleCache_.labelWidth(
+                track.context(),
+                superBigTitle),
+            1);
+    assert.isTrue(stringWidthPair.string.length < superBigTitle.length);
+
+    // And elided text ends with ...
+    var len = stringWidthPair.string.length;
+    assert.equal('...', stringWidthPair.string.substring(len - 3, len));
+  });
+
+  test('rectTrackAddItemNearToProvidedEvent', function() {
+    var track = new RectTrack(new tr.ui.TimelineViewport());
+    track.rects = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+    var sel = new EventSet();
+    track.addAllEventsMatchingFilterToSelection(
+        new tr.c.TitleOrCategoryFilter('b'), sel);
+    var ret;
+
+    // Select to the right of B.
+    var selRight = new EventSet();
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], 1, selRight);
+    assert.isTrue(ret);
+    assert.equal(track.rects[2].modelItem, selRight[0]);
+
+    // Select to the right of the 2nd b.
+    var selRight2 = new EventSet();
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], 2, selRight2);
+    assert.isTrue(ret);
+    assert.equal(track.rects[3].modelItem, selRight2[0]);
+
+    // Select to 2 to the right of the 2nd b.
+    var selRightOfRight = new EventSet();
+    ret = track.addEventNearToProvidedEventToSelection(
+        selRight[0], 1, selRightOfRight);
+    assert.isTrue(ret);
+    assert.equal(track.rects[3].modelItem, selRightOfRight[0]);
+
+    // Select to the right of the rightmost slice.
+    var selNone = new EventSet();
+    ret = track.addEventNearToProvidedEventToSelection(
+        selRightOfRight[0], 1, selNone);
+    assert.isFalse(ret);
+    assert.equal(0, selNone.length);
+
+    // Select A and then select left.
+    var sel = new EventSet();
+    track.addAllEventsMatchingFilterToSelection(
+        new tr.c.TitleOrCategoryFilter('a'), sel);
+    var ret;
+
+    selNone = new EventSet();
+    ret = track.addEventNearToProvidedEventToSelection(sel[0], -1, selNone);
+    assert.isFalse(ret);
+    assert.equal(0, selNone.length);
+  });
+
+  test('rectTrackAddClosestEventToSelection', function() {
+    var track = new RectTrack(new tr.ui.TimelineViewport());
+    track.rects = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+
+    // Before with not range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(0, 0, 0, 0, sel);
+    assert.equal(0, sel.length);
+
+    // Before with negative range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(1.5, -10, 0, 0, sel);
+    assert.equal(0, sel.length);
+
+    // Before first slice.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(0.5, 1, 0, 0, sel);
+    assert.equal(1, sel.length);
+    assert.equal(track.rects[0].modelItem, sel[0]);
+
+    // Within first slice closer to start.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
+    assert.equal(track.rects[0].modelItem, sel[0]);
+
+    // Between slices with good range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(2.08, 3, 0, 0, sel);
+    assert.equal(track.rects[1].modelItem, sel[0]);
+
+    // Between slices with bad range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(2.05, 0.03, 0, 0, sel);
+    assert.equal(0, sel.length);
+
+    // Within slice closer to end.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(6, 100, 0, 0, sel);
+    assert.equal(track.rects[1].modelItem, sel[0]);
+
+    // Within slice with bad range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(1.8, 0.1, 0, 0, sel);
+    assert.equal(0, sel.length);
+
+    // After last slice with good range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(8.5, 1, 0, 0, sel);
+    assert.equal(track.rects[3].modelItem, sel[0]);
+
+    // After last slice with bad range.
+    var sel = new EventSet();
+    track.addClosestEventToSelection(10, 1, 0, 0, sel);
+    assert.equal(0, sel.length);
+  });
+});
+</script>

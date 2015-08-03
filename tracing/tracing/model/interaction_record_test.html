@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/extras/rail/stub_rail_interaction_record.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+
+  function createModel(opt_customizeModelCallback) {
+    return test_utils.newModel(function(model) {
+      model.p1 = model.getOrCreateProcess(1);
+      model.t2 = model.p1.getOrCreateThread(2);
+
+      model.s1 = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'a', start: 10, end: 20
+      }));
+      model.s2 = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        title: 'b', start: 20, end: 30
+      }));
+
+      model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
+        start: 100, end: 200,
+        railTypeName: 'rail_response',
+        normalizedEfficiency: 1.,
+        normalizedUserPain: 0.0
+      });
+      model.addInteractionRecord(model.ir1);
+      model.ir1.associatedEvents.push(model.s1);
+      model.ir1.associatedEvents.push(model.s2);
+
+      if (opt_customizeModelCallback)
+        opt_customizeModelCallback(model);
+    });
+  }
+  test('notSelected', function() {
+    var model = createModel();
+
+    var sel = new tr.model.EventSet();
+
+    assert.equal(CompoundEventSelectionState.NOT_SELECTED,
+                 model.ir1.computeCompoundEvenSelectionState(sel));
+  });
+
+  test('directSelected', function() {
+    var model = createModel();
+
+    var sel = new tr.model.EventSet();
+    sel.push(model.ir1);
+
+    assert.equal(CompoundEventSelectionState.EVENT_SELECTED,
+                 model.ir1.computeCompoundEvenSelectionState(sel));
+  });
+
+  test('directAndSomeAssociatedSelected', function() {
+    var model = createModel();
+
+    var sel = new tr.model.EventSet();
+    sel.push(model.ir1);
+    sel.push(model.s1);
+
+    assert.equal(
+        CompoundEventSelectionState.EVENT_AND_SOME_ASSOCIATED_SELECTED,
+        model.ir1.computeCompoundEvenSelectionState(sel));
+
+  });
+
+  test('allAssociatedEventsSelected', function() {
+    var model = createModel();
+
+    var sel = new tr.model.EventSet();
+    sel.push(model.s1);
+    sel.push(model.s2);
+
+    assert.equal(CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED,
+                 model.ir1.computeCompoundEvenSelectionState(sel));
+  });
+
+  test('directAndAllAssociated', function() {
+    var model = createModel();
+
+    var sel = new tr.model.EventSet();
+    sel.push(model.ir1);
+    sel.push(model.s1);
+    sel.push(model.s2);
+
+    assert.equal(CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED,
+                 model.ir1.computeCompoundEvenSelectionState(sel));
+  });
+
+});
+</script>

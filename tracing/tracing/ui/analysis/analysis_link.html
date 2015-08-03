@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/brushing_state_controller.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<polymer-element name="tr-ui-a-analysis-link" is="a"
+    on-click="{{onClicked_}}"
+    on-mouseenter="{{onMouseEnter_}}"
+    on-mouseleave="{{onMouseLeave_}}">
+  <template>
+    <style>
+    :host {
+      display: inline;
+      color: -webkit-link;
+      cursor: pointer;
+      text-decoration: underline;
+      /* TODO(nduca): Whitespace is forced to normal here because the
+         analysis_results.css forces everything under it to pre. This is insane.
+         When that horrible evil class dies, then we can rip this white-space
+         restriction out.
+       */
+      white-space: normal;
+      cursor: pointer;
+    }
+    </style>
+    <content></content>
+  </template>
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.selection_ = undefined;
+    },
+
+    attached: function() {
+      // Save an instance of the controller since it's going to be used in
+      // detached() where it can no longer be obtained.
+      this.controller_ =
+          tr.c.BrushingStateController.getControllerForElement(this);
+    },
+
+    detached: function() {
+      // Reset highlights.
+      this.clearHighlight_();
+      this.controller_ = undefined;
+    },
+
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      // Selection can be either an EventSet or a function.
+      this.selection_ = selection;
+      this.textContent = selection.userFriendlyName;
+    },
+
+    setSelectionAndContent: function(selection, opt_textContent) {
+      this.selection_ = selection;
+      if (opt_textContent)
+        this.textContent = opt_textContent;
+    },
+
+    getCurrentSelection_: function() {
+      // Gets the current selection, invoking the selection function if needed.
+      if (typeof this.selection_ === 'function')
+        return this.selection_();
+      return this.selection_;
+    },
+
+    setHighlight_: function(opt_eventSet) {
+      if (this.controller_)
+        this.controller_.changeAnalysisLinkHoveredEvents(opt_eventSet);
+    },
+
+    clearHighlight_: function(opt_eventSet) {
+      this.setHighlight_();
+    },
+
+    onClicked_: function() {
+      if (!this.selection_)
+        return;
+
+      var event = new tr.model.RequestSelectionChangeEvent();
+      event.selection = this.getCurrentSelection_();
+      this.dispatchEvent(event);
+    },
+
+    onMouseEnter_: function() {
+      this.setHighlight_(this.getCurrentSelection_());
+    },
+
+    onMouseLeave_: function() {
+      this.clearHighlight_();
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<script src="/gl-matrix-min.js"></script>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+  function clamp(x, lo, hi) {
+    return Math.min(Math.max(x, lo), hi);
+  }
+
+  function lerp(percentage, lo, hi) {
+    var range = hi - lo;
+    return lo + percentage * range;
+  }
+
+  function normalize(value, lo, hi) {
+    return (value - lo) / (hi - lo);
+  }
+
+  function deg2rad(deg) {
+    return (Math.PI * deg) / 180.0;
+  }
+
+  var tmp_vec2 = vec2.create();
+  var tmp_vec2b = vec2.create();
+  var tmp_vec4 = vec4.create();
+  var tmp_mat2d = mat2d.create();
+
+  vec2.createFromArray = function(arr) {
+    if (arr.length != 2)
+      throw new Error('Should be length 2');
+    var v = vec2.create();
+    vec2.set(v, arr[0], arr[1]);
+    return v;
+  };
+
+  vec2.createXY = function(x, y) {
+    var v = vec2.create();
+    vec2.set(v, x, y);
+    return v;
+  };
+
+  vec2.toString = function(a) {
+    return '[' + a[0] + ', ' + a[1] + ']';
+  };
+
+  vec2.addTwoScaledUnitVectors = function(out, u1, scale1, u2, scale2) {
+    // out = u1 * scale1 + u2 * scale2
+    vec2.scale(tmp_vec2, u1, scale1);
+    vec2.scale(tmp_vec2b, u2, scale2);
+    vec2.add(out, tmp_vec2, tmp_vec2b);
+  };
+
+  vec2.interpolatePiecewiseFunction = function(points, x) {
+    if (x < points[0][0])
+      return points[0][1];
+    for (var i = 1; i < points.length; ++i) {
+      if (x < points[i][0]) {
+        var percent = normalize(x, points[i - 1][0], points[i][0]);
+        return lerp(percent, points[i - 1][1], points[i][1]);
+      }
+    }
+    return points[points.length - 1][1];
+  };
+
+  vec3.createXYZ = function(x, y, z) {
+    var v = vec3.create();
+    vec3.set(v, x, y, z);
+    return v;
+  };
+
+  vec3.toString = function(a) {
+    return 'vec3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ')';
+  }
+
+  mat2d.translateXY = function(out, x, y) {
+    vec2.set(tmp_vec2, x, y);
+    mat2d.translate(out, out, tmp_vec2);
+  }
+
+  mat2d.scaleXY = function(out, x, y) {
+    vec2.set(tmp_vec2, x, y);
+    mat2d.scale(out, out, tmp_vec2);
+  }
+
+  vec4.unitize = function(out, a) {
+    out[0] = a[0] / a[3];
+    out[1] = a[1] / a[3];
+    out[2] = a[2] / a[3];
+    out[3] = 1;
+    return out;
+  }
+
+  vec2.copyFromVec4 = function(out, a) {
+    vec4.unitize(tmp_vec4, a);
+    vec2.copy(out, tmp_vec4);
+  }
+
+  return {
+    clamp: clamp,
+    lerp: lerp,
+    normalize: normalize,
+    deg2rad: deg2rad
+  };
+
+});
+</script>

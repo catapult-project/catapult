@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/range.html">
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/tracks/chart_axis.html">
+<link rel="import" href="/ui/tracks/chart_point.html">
+<link rel="import" href="/ui/tracks/chart_series.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ChartAxis = tr.ui.tracks.ChartAxis;
+  var ChartPoint = tr.ui.tracks.ChartPoint;
+  var ChartSeries = tr.ui.tracks.ChartSeries;
+  var Range = tr.b.Range;
+
+  function buildRange() {
+    var range = new Range();
+    for (var i = 0; i < arguments.length; i++)
+      range.addValue(arguments[i]);
+    return range;
+  }
+
+  function buildSeries() {
+    var points = [];
+    for (var i = 0; i < arguments.length; i++) {
+      points.push(new ChartPoint(undefined, i, arguments[i]));
+    }
+    return new ChartSeries(points, new ChartAxis());
+  }
+
+  test('instantiate_emptyBounds', function() {
+    var axis = new ChartAxis();
+    assert.isTrue(axis.bounds.isEmpty);
+  });
+
+  test('instantiate_nonEmptyBounds', function() {
+    var axis = new ChartAxis(-2, 12);
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, -2);
+    assert.equal(axis.bounds.max, 12);
+  });
+
+  test('instantiate_equalBounds', function() {
+    var axis = new ChartAxis(2.72);
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 2.72);
+    assert.equal(axis.bounds.max, 2.72);
+  });
+
+  test('checkValueToUnitRange_emptyBounds', function() {
+    var axis = new ChartAxis();
+    assert.throws(function() { axis.valueToUnitRange(42); });
+  });
+
+  test('checkValueToUnitRange_nonEmptyBounds', function() {
+    var axis = new ChartAxis(10, 20);
+
+    assert.equal(axis.valueToUnitRange(0), -1);
+    assert.equal(axis.valueToUnitRange(10), 0);
+    assert.equal(axis.valueToUnitRange(15), 0.5);
+    assert.equal(axis.valueToUnitRange(20), 1);
+    assert.equal(axis.valueToUnitRange(30), 2);
+  });
+
+  test('checkValueToUnitRange_equalBounds', function() {
+    var axis = new ChartAxis(3.14);
+
+    assert.equal(axis.valueToUnitRange(0), 0);
+    assert.equal(axis.valueToUnitRange(3.14), 0);
+    assert.equal(axis.valueToUnitRange(6.28), 0);
+  });
+
+  test('checkAutoSetFromRange_emptyBounds', function() {
+    // Empty range.
+    var axis = new ChartAxis();
+    axis.autoSetFromRange(buildRange());
+    assert.isTrue(axis.bounds.isEmpty);
+
+    // Non-empty range.
+    var axis = new ChartAxis();
+    axis.autoSetFromRange(buildRange(-1, 3));
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, -1);
+    assert.equal(axis.bounds.max, 3);
+  });
+
+  test('checkAutoSetFromRange_nonEmptyBounds', function() {
+    // Empty range.
+    var axis = new ChartAxis(0, 1);
+    axis.autoSetFromRange(buildRange());
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 0);
+    assert.equal(axis.bounds.max, 1);
+
+    // No configuration.
+    var axis = new ChartAxis(2, 3);
+    axis.autoSetFromRange(buildRange(1, 4));
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 2);
+    assert.equal(axis.bounds.max, 3);
+
+    // Allow expanding min.
+    var axis = new ChartAxis(-2, -1);
+    axis.autoSetFromRange(buildRange(-3, 0), {expandMin: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, -3);
+    assert.equal(axis.bounds.max, -1);
+
+    // Allow shrinking min.
+    var axis = new ChartAxis(-2, -1);
+    axis.autoSetFromRange(buildRange(-1.5, 0.5), {shrinkMin: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, -1.5);
+    assert.equal(axis.bounds.max, -1);
+
+    var axis = new ChartAxis(7, 8);
+    axis.autoSetFromRange(buildRange(9, 10), {shrinkMin: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 8);
+    assert.equal(axis.bounds.max, 8);
+
+    // Allow expanding max.
+    var axis = new ChartAxis(19, 20);
+    axis.autoSetFromRange(buildRange(18, 21), {expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 19);
+    assert.equal(axis.bounds.max, 21);
+
+    // Allow shrinking max.
+    var axis = new ChartAxis(30, 32);
+    axis.autoSetFromRange(buildRange(29, 31), {shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 30);
+    assert.equal(axis.bounds.max, 31);
+
+    var axis = new ChartAxis(41, 42);
+    axis.autoSetFromRange(buildRange(39, 40), {shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 41);
+    assert.equal(axis.bounds.max, 41);
+
+    // Allow shrinking both bounds.
+    var axis = new ChartAxis(50, 53);
+    axis.autoSetFromRange(buildRange(51, 52),
+        {shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 51);
+    assert.equal(axis.bounds.max, 52);
+
+    var axis = new ChartAxis(50, 53);
+    axis.autoSetFromRange(buildRange(49, 52),
+        {shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 50);
+    assert.equal(axis.bounds.max, 52);
+
+    var axis = new ChartAxis(50, 53);
+    axis.autoSetFromRange(buildRange(51, 54),
+        {shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 51);
+    assert.equal(axis.bounds.max, 53);
+
+    var axis = new ChartAxis(50, 53);
+    axis.autoSetFromRange(buildRange(49, 54),
+        {shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 50);
+    assert.equal(axis.bounds.max, 53);
+
+    // Allow expanding both bounds.
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(0, 100),
+        {expandMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 0);
+    assert.equal(axis.bounds.max, 100);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(60.5, 100),
+        {expandMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 100);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(0, 60.5),
+        {expandMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 0);
+    assert.equal(axis.bounds.max, 61);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(60.2, 60.8),
+        {expandMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 61);
+
+    // Allow shrinking min and expanding max.
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(62, 63),
+        {shrinkMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 62);
+    assert.equal(axis.bounds.max, 63);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(59, 63),
+        {shrinkMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 63);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(60.2, 60.8),
+        {shrinkMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60.2);
+    assert.equal(axis.bounds.max, 61);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(59, 60.5),
+        {shrinkMin: true, expandMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 61);
+
+    // Allow expanding min and shrinking max.
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(62, 63),
+        {expandMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 61);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(59, 63),
+        {expandMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 59);
+    assert.equal(axis.bounds.max, 61);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(60.2, 60.8),
+        {expandMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 60);
+    assert.equal(axis.bounds.max, 60.8);
+
+    var axis = new ChartAxis(60, 61);
+    axis.autoSetFromRange(buildRange(59, 60.5),
+        {expandMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 59);
+    assert.equal(axis.bounds.max, 60.5);
+
+    // Allow everything.
+    var axis = new ChartAxis(200, 250);
+    axis.autoSetFromRange(buildRange(150, 175),
+        {expandMin: true, expandMax: true, shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 150);
+    assert.equal(axis.bounds.max, 175);
+
+    var axis = new ChartAxis(0, 0.1);
+    axis.autoSetFromRange(buildRange(0.2, 0.3),
+        {expandMin: true, expandMax: true, shrinkMin: true, shrinkMax: true});
+    assert.isFalse(axis.bounds.isEmpty);
+    assert.equal(axis.bounds.min, 0.2);
+    assert.equal(axis.bounds.max, 0.3);
+  });
+
+  test('checkAutoSetFromSeries_noSeries', function() {
+    var axis = new ChartAxis(-100, 100);
+    var series = [];
+
+    axis.autoSetFromSeries(series);
+    assert.equal(axis.bounds.min, -100);
+    assert.equal(axis.bounds.max, 100);
+  });
+
+  test('checkAutoSetFromSeries_oneSeries', function() {
+    var axis = new ChartAxis(-100, 100);
+    var series = [buildSeries(-80, 100, -40, 200)];
+
+    axis.autoSetFromSeries(series, {shrinkMin: true, expandMax: true});
+    assert.equal(axis.bounds.min, -80);
+    assert.equal(axis.bounds.max, 200);
+  });
+
+  test('checkAutoSetFromSeries_multipleSeries', function() {
+    var axis = new ChartAxis(-100, 100);
+    var series = [
+      buildSeries(0, 20, 10, 30),
+      buildSeries(),
+      buildSeries(-500)
+    ];
+
+    axis.autoSetFromSeries(series, {expandMin: true, shrinkMax: true});
+    assert.equal(axis.bounds.min, -500);
+    assert.equal(axis.bounds.max, 30);
+  });
+});
+</script>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/chrome/cc/util.html">
+<link rel="import" href="/base/quad.html">
+<link rel="import" href="/base/rect.html">
+
+<script>
+
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('nameConvert', function() {
+    assert.equal(tr.e.cc.convertNameToJSConvention('_foo'), '_foo');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_'), 'foo_');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo'), 'foo');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
+    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar_baz'),
+                 'fooBarBaz');
+  });
+
+  test('objectConvertNested', function() {
+    var object = {
+      un_disturbed: true,
+      args: {
+        foo_bar: {
+          a_field: 7
+        }
+      }
+    };
+    var expected = {
+      un_disturbed: true,
+      args: {
+        fooBar: {
+          aField: 7
+        }
+      }
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.deepEqual(object, expected);
+  });
+
+  test('arrayConvert', function() {
+    var object = {
+      un_disturbed: true,
+      args: [
+        {foo_bar: 7},
+        {foo_bar: 8}
+      ]
+    };
+    var expected = {
+      un_disturbed: true,
+      args: [
+        {fooBar: 7},
+        {fooBar: 8}
+      ]
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.deepEqual(object, expected);
+  });
+
+  test('quadCoversion', function() {
+    var object = {
+      args: {
+        some_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.someQuad, tr.b.Quad);
+  });
+
+  test('quadConversionNested', function() {
+    var object = {
+      args: {
+        nested_field: {
+          a_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        non_nested_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.nestedField.aQuad, tr.b.Quad);
+    assert.instanceOf(object.args.nonNestedQuad, tr.b.Quad);
+  });
+
+  test('rectCoversion', function() {
+    var object = {
+      args: {
+        some_rect: [1, 2, 3, 4]
+      }
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.someRect, tr.b.Rect);
+  });
+
+  test('rectCoversionNested', function() {
+    var object = {
+      args: {
+        nested_field: {
+          a_rect: [1, 2, 3, 4]
+        },
+        non_nested_rect: [1, 2, 3, 4]
+      }
+    };
+    tr.e.cc.preInitializeObject(object);
+    assert.instanceOf(object.args.nestedField.aRect, tr.b.Rect);
+    assert.instanceOf(object.args.nonNestedRect, tr.b.Rect);
+  });
+});
+</script>

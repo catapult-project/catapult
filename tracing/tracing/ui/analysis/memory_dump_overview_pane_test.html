@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/base/deep_utils.html">
+<link rel="import" href="/ui/analysis/memory_dump_overview_pane.html">
+<link rel="import" href="/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/core/brushing_state_controller.html">
+<link rel="import" href="/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createProcessMemoryDumps() {
+    var gmd = tr.ui.analysis.createTestGlobalMemoryDump();
+    return tr.b.dictionaryValues(gmd.processMemoryDumps);
+  }
+
+  test('instantiate_zeroDumps', function() {
+    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = [];
+    this.addHTMLOutput(viewEl);
+
+    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    var footerRows = table.footerRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 0);
+    assert.lengthOf(footerRows, 0);
+    assert.lengthOf(columns, 1);
+  });
+
+  test('instantiate_oneDump', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = processMemoryDumps.slice(1, 2);
+    this.addHTMLOutput(viewEl);
+
+    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    var footerRows = table.footerRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 1);
+    assert.lengthOf(footerRows, 0);
+    assert.lengthOf(columns, 8);
+
+    var titleColumn = columns[0];
+    var totalColumn = columns[1];
+    var proportionalColumn = columns[2];
+    var privateDirtyColumn = columns[3];
+    var swappedColumn = columns[4];
+    var mallocColumn = columns[5];
+    var v8Column = columns[6];
+    var tracingColumn = columns[7];
+
+    assert.equal(titleColumn.value(rows[0]).label, 'Process 2');
+    assert.equal(totalColumn.value(rows[0]).children[0].numBytes, 19398656);
+    assert.equal(
+        proportionalColumn.value(rows[0]).children[0].numBytes, 14155776);
+    assert.equal(
+        privateDirtyColumn.value(rows[0]).children[0].numBytes, 0);
+    assert.equal(
+        swappedColumn.value(rows[0]).children[0].numBytes, 32);
+    assert.equal(mallocColumn.value(rows[0]).numBytes, 2097152);
+    assert.equal(v8Column.value(rows[0]).numBytes, 5242880);
+    assert.equal(tracingColumn.value(rows[0]).children[0].numBytes, 1048576);
+  });
+
+  test('instantiate_multipleDumps', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+
+    var rows = table.tableRows;
+    var footerRows = table.footerRows;
+    var columns = table.tableColumns;
+    assert.lengthOf(rows, 3);
+    assert.lengthOf(footerRows, 1);
+    assert.lengthOf(columns, 9);
+
+    var titleColumn = columns[0];
+    var totalColumn = columns[1];
+    var proportionalColumn = columns[2];
+    var privateDirtyColumn = columns[3];
+    var swappedColumn = columns[4];
+    var mallocColumn = columns[5];
+    var v8Column = columns[6];
+    var oilpanColumn = columns[7];
+    var tracingColumn = columns[8];
+
+    // Check the rows of the table.
+    assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
+    assert.equal(totalColumn.value(rows[0]).children[0].numBytes, 31457280);
+    assert.equal(
+        proportionalColumn.value(rows[0]).children[0].numBytes, 10485760);
+    assert.equal(
+        privateDirtyColumn.value(rows[0]).children[0].numBytes, 8388608);
+    assert.equal(swappedColumn.value(rows[0]).children[0].numBytes, 0);
+    assert.equal(mallocColumn.value(rows[0]), '');
+    assert.equal(v8Column.value(rows[0]), '');
+    assert.equal(oilpanColumn.value(rows[0]), '');
+    assert.equal(tracingColumn.value(rows[0]), '');
+
+    assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
+    assert.equal(totalColumn.value(rows[1]).children[0].numBytes, 19398656);
+    assert.equal(
+        proportionalColumn.value(rows[1]).children[0].numBytes, 14155776);
+    assert.equal(
+        privateDirtyColumn.value(rows[1]).children[0].numBytes, 0);
+    assert.equal(swappedColumn.value(rows[1]).children[0].numBytes, 32);
+    assert.equal(mallocColumn.value(rows[1]).numBytes, 2097152);
+    assert.equal(v8Column.value(rows[1]).numBytes, 5242880);
+    assert.equal(oilpanColumn.value(rows[1]), '');
+    assert.equal(tracingColumn.value(rows[1]).children[0].numBytes, 1048576);
+
+    assert.equal(titleColumn.value(rows[2]).label, 'Process 3');
+    assert.equal(totalColumn.value(rows[2]), '');
+    assert.equal(proportionalColumn.value(rows[2]), '');
+    assert.equal(privateDirtyColumn.value(rows[2]), '');
+    assert.equal(swappedColumn.value(rows[2]), '');
+    assert.equal(mallocColumn.value(rows[2]), '');
+    assert.equal(v8Column.value(rows[2]).numBytes, 1073741824);
+    assert.equal(oilpanColumn.value(rows[2]).numBytes, 2147483648);
+    assert.equal(tracingColumn.value(rows[2]), '');
+
+    // Check the footer row.
+    assert.equal(titleColumn.value(footerRows[0]), 'Total');
+    assert.equal(
+        totalColumn.value(footerRows[0]).children[0].numBytes, 50855936);
+    assert.equal(
+        proportionalColumn.value(footerRows[0]).children[0].numBytes, 24641536);
+    assert.equal(
+        privateDirtyColumn.value(footerRows[0]).children[0].numBytes, 8388608);
+    assert.equal(swappedColumn.value(footerRows[0]).children[0].numBytes, 32);
+    assert.equal(mallocColumn.value(footerRows[0]).numBytes, 2097152);
+    assert.equal(v8Column.value(footerRows[0]).numBytes, 1078984704);
+    assert.equal(oilpanColumn.value(footerRows[0]).numBytes, 2147483648);
+    assert.equal(
+        tracingColumn.value(footerRows[0]).children[0].numBytes, 1048576);
+  });
+
+  test('selection', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+
+    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    viewEl.processMemoryDumps = processMemoryDumps;
+    this.addHTMLOutput(viewEl);
+
+    var didFireSelectedDumpChanged;
+    viewEl.addEventListener('selected-memory-cell-changed',
+        function(e) {
+      didFireSelectedDumpChanged = true;
+    });
+
+    var table = tr.b.findDeepElementMatching(
+        viewEl, 'tr-ui-b-table');
+
+    // Simulate clicking on the 'oilpan' cell of the second process.
+    didFireSelectedDumpChanged = false;
+    table.selectedTableRow = table.tableRows[2];
+    table.selectedColumnIndex = 7;
+    assert.isTrue(didFireSelectedDumpChanged);
+    assert.isDefined(viewEl.selectedMemoryCell);
+    assert.isDefined(viewEl.selectedMemoryCell.buildDetailsPane);
+
+    // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
+    // second process.
+    didFireSelectedDumpChanged = false;
+    table.selectedColumnIndex = 2;
+    assert.isTrue(didFireSelectedDumpChanged);
+    assert.isUndefined(viewEl.selectedMemoryCell);
+  });
+
+  test('memory', function() {
+    var processMemoryDumps = createProcessMemoryDumps();
+    var containerEl = document.createElement('div');
+    containerEl.brushingStateController =
+        new tr.c.BrushingStateController(undefined);
+
+    function simulateView(dumps, expectSelectionEventFires, callback) {
+      var view = document.createElement('tr-ui-a-memory-dump-overview-pane');
+      containerEl.textContent = '';
+      containerEl.appendChild(view);
+
+      var didFireSelectedDumpChanged = false;
+      view.addEventListener('selected-memory-cell-changed', function(e) {
+        didFireSelectedDumpChanged = true;
+      });
+
+      view.processMemoryDumps = dumps;
+
+      assert.equal(didFireSelectedDumpChanged, expectSelectionEventFires);
+
+      var table = tr.b.findDeepElementMatching(view, 'tr-ui-b-table');
+      callback(view, table);
+    }
+
+    // Show a view with all processes.
+    simulateView(processMemoryDumps, false, function(view, table) {
+      // No cell should be selected.
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Select the 'PSS' column of the second process (cell containing
+      // '14.0 MiB').
+      table.selectedTableRow = table.tableRows[1];
+      table.selectedColumnIndex = 2;
+    });
+
+    // Show a view with the second and third processes only.
+    simulateView(processMemoryDumps.slice(1, 3), true, function(view, table) {
+      // The 'PSS' column of the second process should still be selected.
+      assert.equal(view.selectedMemoryCell.attr.value, 14155776);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
+    });
+
+    // Show a view with the third processes only.
+    simulateView(processMemoryDumps.slice(2, 3), false, function(view, table) {
+      // No cell should be selected (the second process is not shown).
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+    });
+
+    // Show a view with all processes again.
+    simulateView(processMemoryDumps, true, function(view, table) {
+      // The 'PSS' column of the second process should be selected again.
+      assert.equal(view.selectedMemoryCell.attr.value, 14155776);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
+
+      // Select the 'v8' column of the first process (empty cell).
+      table.selectedTableRow = table.tableRows[0];
+      table.selectedColumnIndex = 6;
+    });
+
+    // Show a view with first process only.
+    simulateView(processMemoryDumps.slice(0, 1), false, function(view, table) {
+      // Nothing should be selected (no process with a 'v8' column value is
+      // shown).
+      assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Select 'Total resident' column of the first process (cell containing
+      // '30.0 MiB').
+      table.selectedTableRow = table.tableRows[0];
+      table.selectedColumnIndex = 1;
+    });
+
+    // Show a view with all processes again.
+    simulateView(processMemoryDumps, true, function(view, table) {
+      // The 'Total resident' column of the first process should still be
+      // selected.
+      assert.equal(view.selectedMemoryCell.attr.value, 31457280);
+      assert.strictEqual(table.selectedTableRow.title, 'Process 1');
+      assert.strictEqual(
+          table.tableColumns[table.selectedColumnIndex].name, 'Total resident');
+    });
+  });
+});
+</script>

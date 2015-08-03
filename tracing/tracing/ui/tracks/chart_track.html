@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/ui/tracks/chart_transform.html">
+<link rel="import" href="/ui/tracks/track.html">
+<link rel="import" href="/ui/base/heading.html">
+<link rel="import" href="/ui/base/ui.html">
+
+<style>
+.chart-track {
+  height: 30px;
+  position: relative;
+}
+</style>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.tracks', function() {
+
+  /**
+   * A track that displays a chart.
+   *
+   * @constructor
+   * @extends {Track}
+   */
+  var ChartTrack =
+      tr.ui.b.define('chart-track', tr.ui.tracks.Track);
+
+  ChartTrack.prototype = {
+    __proto__: tr.ui.tracks.Track.prototype,
+
+    decorate: function(viewport) {
+      tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
+      this.classList.add('chart-track');
+      this.series_ = undefined;
+
+      // GUID -> {axis: ChartAxis, series: [ChartSeries]}.
+      this.axisGuidToAxisData_ = undefined;
+
+      // The maximum top and bottom padding of all series.
+      this.topPadding_ = undefined;
+      this.bottomPadding_ = undefined;
+
+      this.heading_ = document.createElement('tr-ui-heading');
+      this.appendChild(this.heading_);
+    },
+
+    set heading(heading) {
+      this.heading_.heading = heading;
+    },
+
+    get heading() {
+      return this.heading_.heading;
+    },
+
+    set tooltip(tooltip) {
+      this.heading_.tooltip = tooltip;
+    },
+
+    get series() {
+      return this.series_;
+    },
+
+    /**
+     * Set the list of chart series to be displayed on this track. The list
+     * is assumed to be sorted in increasing z-order (i.e. the last series in
+     * the list will be drawn at the top).
+     */
+    set series(series) {
+      this.series_ = series;
+      this.calculateAxisDataAndPadding_();
+      this.invalidateDrawingContainer();
+    },
+
+    get height() {
+      return window.getComputedStyle(this).height;
+    },
+
+    set height(height) {
+      this.style.height = height;
+      this.invalidateDrawingContainer();
+    },
+
+    get hasVisibleContent() {
+      return !!this.series && this.series.length > 0;
+    },
+
+    calculateAxisDataAndPadding_: function() {
+      if (!this.series_) {
+        this.axisGuidToAxisData_ = undefined;
+        this.topPadding_ = undefined;
+        this.bottomPadding_ = undefined;
+        return;
+      }
+
+      var axisGuidToAxisData = {};
+      var topPadding = 0;
+      var bottomPadding = 0;
+
+      this.series_.forEach(function(series) {
+        var axis = series.axis;
+        var axisGuid = axis.guid;
+        if (!(axisGuid in axisGuidToAxisData)) {
+          axisGuidToAxisData[axisGuid] = {
+            axis: axis,
+            series: []
+          };
+        }
+        axisGuidToAxisData[axisGuid].series.push(series);
+        topPadding = Math.max(topPadding, series.topPadding);
+        bottomPadding = Math.max(bottomPadding, series.bottomPadding);
+      }, this);
+
+      this.axisGuidToAxisData_ = axisGuidToAxisData;
+      this.topPadding_ = topPadding;
+      this.bottomPadding_ = bottomPadding;
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tr.ui.tracks.DrawType.GENERAL_EVENT:
+          this.drawChart_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawChart_: function(viewLWorld, viewRWorld) {
+      if (!this.series_)
+        return;
+
+      var ctx = this.context();
+
+      // Get track drawing parameters.
+      var displayTransform = this.viewport.currentDisplayTransform;
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.getBoundingClientRect();
+      var highDetails = this.viewport.highDetails;
+
+      // Pre-multiply all device-independent pixel parameters with the pixel
+      // ratio to avoid unnecessary recomputation in the performance-critical
+      // drawing code.
+      var width = bounds.width * pixelRatio;
+      var height = bounds.height * pixelRatio;
+      var topPadding = this.topPadding_ * pixelRatio;
+      var bottomPadding = this.bottomPadding_ * pixelRatio;
+
+      // Set up clipping.
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, width, height);
+      ctx.clip();
+
+      // Draw all series in the increasing z-order.
+      this.series_.forEach(function(series) {
+        var chartTransform = new tr.ui.tracks.ChartTransform(
+            displayTransform, series.axis, width, height, topPadding,
+            bottomPadding, pixelRatio);
+        series.draw(ctx, chartTransform, highDetails);
+      }, this);
+
+      // Stop clipping.
+      ctx.restore();
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      // TODO(petrcermak): Consider adding the series to the track map instead
+      // of the track (a potential performance optimization).
+      this.series_.forEach(function(series) {
+        series.points.forEach(function(point) {
+          point.addToTrackMap(eventToTrackMap, this);
+        }, this);
+      }, this);
+    },
+
+    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+      this.series_.forEach(function(series) {
+        series.addIntersectingEventsInRangeToSelectionInWorldSpace(
+            loWX, hiWX, viewPixWidthWorld, selection);
+      }, this);
+    },
+
+    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+      var foundItem = false;
+      this.series_.forEach(function(series) {
+        foundItem = foundItem || series.addEventNearToProvidedEventToSelection(
+            event, offset, selection);
+      }, this);
+      return foundItem;
+    },
+
+    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+      // Do nothing.
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      this.series_.forEach(function(series) {
+        series.addClosestEventToSelection(
+            worldX, worldMaxDist, loY, hiY, selection);
+      }, this);
+    },
+
+    /**
+     * Automatically set the bounds of all axes on this track from the range of
+     * values of all series (in this track) associated with each of them.
+     *
+     * See the description of ChartAxis.autoSetFromRange for the optional
+     * configuration argument flags.
+     */
+    autoSetAllAxes: function(opt_config) {
+      tr.b.iterItems(this.axisGuidToAxisData_, function(axisGuid, axisData) {
+        var axis = axisData.axis;
+        var series = axisData.series;
+        axis.autoSetFromSeries(series, opt_config);
+      }, this);
+    },
+
+    /**
+     * Automatically set the bounds of the provided axis from the range of
+     * values of all series (in this track) associated with it.
+     *
+     * See the description of ChartAxis.autoSetFromRange for the optional
+     * configuration argument flags.
+     */
+    autoSetAxis: function(axis, opt_config) {
+      var series = this.axisGuidToAxisData_[axis.guid].series;
+      axis.autoSetFromSeries(series, opt_config);
+    }
+  };
+
+  return {
+    ChartTrack: ChartTrack
+  };
+});
+</script>

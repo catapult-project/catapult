@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/core/test_utils.html">
+<link rel="import" href="/ui/tracks/process_summary_track.html">
+<link rel="import" href="/model/slice_group.html">
+<link rel="import" href="/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ProcessSummaryTrack = tr.ui.tracks.ProcessSummaryTrack;
+  var newSlice = tr.c.test_utils.newSlice;
+  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+
+  test('buildRectSimple', function() {
+    var process;
+    var model = tr.c.test_utils.newModel(function(model) {
+      process = model.getOrCreateProcess(1);
+      // XXXX
+      //    XXXX
+      var thread1 = process.getOrCreateThread(1);
+      thread1.sliceGroup.pushSlice(newSlice(1, 4));
+      var thread2 = process.getOrCreateThread(2);
+      thread2.sliceGroup.pushSlice(newSlice(4, 4));
+    });
+
+    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+
+    assert.equal(rects.length, 1);
+    var rect = rects[0];
+    assert.closeTo(rect.start, 1, 1e-5);
+    assert.closeTo(rect.end, 8, 1e-5);
+  });
+
+  test('buildRectComplex', function() {
+    var process;
+    var model = tr.c.test_utils.newModel(function(model) {
+      process = model.getOrCreateProcess(1);
+      // XXXX    X X XX
+      //    XXXX XXX    X
+      var thread1 = process.getOrCreateThread(1);
+      thread1.sliceGroup.pushSlice(newSlice(1, 4));
+      thread1.sliceGroup.pushSlice(newSlice(9, 1));
+      thread1.sliceGroup.pushSlice(newSlice(11, 1));
+      thread1.sliceGroup.pushSlice(newSlice(13, 2));
+      var thread2 = process.getOrCreateThread(2);
+      thread2.sliceGroup.pushSlice(newSlice(4, 4));
+      thread2.sliceGroup.pushSlice(newSlice(9, 3));
+      thread2.sliceGroup.pushSlice(newSlice(16, 1));
+    });
+
+    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+
+    assert.equal(4, rects.length);
+    assert.closeTo(rects[0].start, 1, 1e-5);
+    assert.closeTo(rects[0].end, 8, 1e-5);
+    assert.closeTo(rects[1].start, 9, 1e-5);
+    assert.closeTo(rects[1].end, 12, 1e-5);
+    assert.closeTo(rects[2].start, 13, 1e-5);
+    assert.closeTo(rects[2].end, 15, 1e-5);
+    assert.closeTo(rects[3].start, 16, 1e-5);
+    assert.closeTo(rects[3].end, 17, 1e-5);
+  });
+
+  test('buildRectImportantSlice', function() {
+    var process;
+    var model = tr.c.test_utils.newModel(function(model) {
+      //    [    unimportant    ]
+      //         [important]
+      var a = newSliceNamed('unimportant', 4, 21);
+      var b = newSliceNamed('important', 9, 11);
+      b.important = true;
+      process = model.getOrCreateProcess(1);
+      process.getOrCreateThread(1).sliceGroup.pushSlices([a, b]);
+
+      model.importantSlice = b;
+    });
+
+    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+
+    assert.equal(3, rects.length);
+    assert.closeTo(rects[0].start, 4, 1e-5);
+    assert.closeTo(rects[0].end, 9, 1e-5);
+    assert.closeTo(rects[1].start, 9, 1e-5);
+    assert.closeTo(rects[1].end, 20, 1e-5);
+    assert.closeTo(rects[2].start, 20, 1e-5);
+    assert.closeTo(rects[2].end, 25, 1e-5);
+
+    // middle rect represents important slice, so colorId & title are preserved
+    assert.equal(rects[1].title, model.importantSlice.title);
+    assert.equal(rects[1].colorId, model.importantSlice.colorId);
+  });
+});
+</script>
+

@@ -1,0 +1,37 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.tr-ui-e-tcmalloc-instance-view .subhead {
+  font-size: small;
+  padding-bottom: 10px;
+}
+
+.tr-ui-e-tcmalloc-instance-view #args {
+  white-space: pre;
+}
+
+.tr-ui-e-tcmalloc-instance-view #snapshots > * {
+  display: block;
+}
+
+.tr-ui-e-tcmalloc-instance-view {
+  overflow: auto;
+}
+
+.tr-ui-e-tcmalloc-instance-view * {
+  -webkit-user-select: text;
+}
+
+.tr-ui-e-tcmalloc-instance-view .title {
+  border-bottom: 1px solid rgb(128, 128, 128);
+  font-size: 110%;
+  font-weight: bold;
+}
+
+.tr-ui-e-tcmalloc-instance-view td,
+.tr-ui-e-tcmalloc-instance-view th {
+  font-size: small;
+  text-align: right;
+}

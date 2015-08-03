@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/base.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/base/xhr.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/extras/full_config.html">
+
+<script>
+'use strict';
+
+tr.exportTo('perf_insights', function() {
+
+  var currentRunID = undefined;
+
+  function createMapSuccessValue(result) {
+    return {
+      run_id: currentRunID,
+      type: "dict",
+      name: "MapTraces result",
+      units: undefined,
+      important: false,
+      description: undefined,
+      tir_label: undefined,
+      value: result
+    }
+  }
+
+
+  function createMapFailureValue(ex) {
+    var ex = tr.b.normalizeException(ex); // yields message & stack field
+
+    return {
+      run_id: currentRunID,
+      type: 'failure',
+      units: undefined,
+      name: 'Error',
+      description: ex.message,
+      tir_label: undefined,
+      stack_str: ex.stack
+    }
+  }
+
+  function mapSingleTrace(options) {
+    try {
+      return mapSingleTraceImpl(options);
+    } catch(e) {
+      return createMapFailureValue(e);
+    }
+  }
+
+
+  function mapSingleTraceImpl(options) {
+    try {
+      currentRunID = options.run_id;
+
+      // Load the mapper.
+      mapFunction = undefined;
+      try {
+        perf_insights.defineMapFunction = function(f) {
+          mapFunction = f;
+        }
+        loadHTMLFile(options.map_file);
+      } catch(ex) {
+        return createMapFailureValue(options, ex);
+      } finally {
+        perf_insights.defineMapFunction = defineMapFunction;
+      }
+
+      // Verify a mapFunction was defined.
+      if (mapFunction === undefined) {
+        return createMapFailureValue(new Error(
+            options.map_file + " did not call defineMapFunction"));
+      }
+
+      // Data.
+      try {
+        var traceData = tr.b.getSync('file://' + options.filename_to_map);
+      } catch(e) {
+        throw e;
+        console.log(e);
+        return createMapFailureValue(new Error(
+            'Could not read file: ' + options.filename_to_map));
+      }
+      // Load the model.
+      var importOptions = new tr.ImportOptions();
+      importOptions.pruneEmptyContainers = false;
+      var model = new tr.Model();
+      model.importTraces([traceData], importOptions);
+
+      // Mixin the metadata in case its interesting to the mapper.
+      for (var k in options.metadata) {
+        if (model.metadata[k] !== undefined) {
+          return createMapFailureValue(new Error(
+              'Metadata conflict: ' + k + ' is on model and corpus tables!'));
+
+        }
+        model.metadata[k] = options.metadata[k];
+      }
+
+      // Map the function.
+      var mapResult = mapFunction(model);
+      return createMapSuccessValue(mapResult);
+    } finally {
+      currentRunID = undefined;
+    }
+  }
+
+  function defineMapFunction() {
+    // The public name of this function is overwritten when mapSingleTrace is
+    // running, so this implementation is just a general error handler.
+    throw new Error(
+        'defineMapFunction can only be called inside mapSingleTrace');
+  }
+
+  return {
+    mapSingleTrace: mapSingleTrace,
+    defineMapFunction: defineMapFunction
+  }
+});
+</script>
+

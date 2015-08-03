@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/base/rect.html">
+<link rel="import" href="/base/units/size_in_bytes.html">
+<link rel="import" href="/base/units/time_duration.html">
+<link rel="import" href="/base/units/time_stamp.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/object_instance.html">
+<link rel="import" href="/model/object_snapshot.html">
+<link rel="import" href="/ui/analysis/analysis_link.html">
+<link rel="import" href="/ui/base/table.html">
+<link rel="import" href="/ui/base/ui.html">
+<link rel="import" href="/ui/units/size_in_bytes_span.html">
+<link rel="import" href="/ui/units/time_duration_span.html">
+<link rel="import" href="/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-generic-object-view"
+    is="HTMLUnknownElement">
+  <template>
+    <style>
+    :host {
+      display: block;
+      font-family: monospace;
+    }
+    </style>
+    <div id="content">
+    </div>
+  </template>
+
+  <script>
+  'use strict';
+
+  function isTable(object) {
+    if (!(object instanceof Array) ||
+        (object.length < 2)) return false;
+    for (var colName in object[0]) {
+      if (typeof colName !== 'string') return false;
+    }
+    for (var i = 0; i < object.length; ++i) {
+      if (!(object[i] instanceof Object)) return false;
+      for (var colName in object[i]) {
+        if (i && (object[0][colName] === undefined)) return false;
+        var cellType = typeof object[i][colName];
+        if (cellType !== 'string' && cellType != 'number') return false;
+      }
+      if (i) {
+        for (var colName in object[0]) {
+          if (object[i][colName] === undefined) return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  Polymer({
+    ready: function() {
+      this.object_ = undefined;
+    },
+
+    get object() {
+      return this.object_;
+    },
+
+    set object(object) {
+      this.object_ = object;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.$.content.textContent = '';
+      this.appendElementsForType_('', this.object_, 0, 0, 5, '');
+    },
+
+    appendElementsForType_: function(
+        label, object, indent, depth, maxDepth, suffix) {
+      if (depth > maxDepth) {
+        this.appendSimpleText_(
+            label, indent, '<recursion limit reached>', suffix);
+        return;
+      }
+
+      if (object === undefined) {
+        this.appendSimpleText_(label, indent, 'undefined', suffix);
+        return;
+      }
+
+      if (object === null) {
+        this.appendSimpleText_(label, indent, 'null', suffix);
+        return;
+      }
+
+      if (!(object instanceof Object)) {
+        var type = typeof object;
+        if (type == 'string') {
+          var objectReplaced = false;
+          if ((object[0] == '{' && object[object.length - 1] == '}') ||
+              (object[0] == '[' && object[object.length - 1] == ']')) {
+            try {
+              object = JSON.parse(object);
+              objectReplaced = true;
+            } catch (e) {
+            }
+          }
+          if (!objectReplaced) {
+            if (object.indexOf('\n') !== -1) {
+              var lines = object.split('\n');
+              lines.forEach(function(line, i) {
+                var text, ioff, ll, ss;
+                if (i == 0) {
+                  text = '"' + line;
+                  ioff = 0;
+                  ll = label;
+                  ss = '';
+                } else if (i < lines.length - 1) {
+                  text = line;
+                  ioff = 1;
+                  ll = '';
+                  ss = '';
+                } else {
+                  text = line + '"';
+                  ioff = 1;
+                  ll = '';
+                  ss = suffix;
+                }
+
+                var el = this.appendSimpleText_(
+                    ll, indent + ioff * label.length + ioff, text, ss);
+                el.style.whiteSpace = 'pre';
+                return el;
+              }, this);
+              return;
+            } else {
+              this.appendSimpleText_(
+                  label, indent, '"' + object + '"', suffix);
+              return;
+            }
+          }
+          else {
+            /* Fall through to the flow below */
+          }
+        } else {
+          return this.appendSimpleText_(label, indent, object, suffix);
+        }
+      }
+
+      if (object instanceof tr.model.ObjectSnapshot) {
+        var link = document.createElement('tr-ui-a-analysis-link');
+        link.selection = new tr.model.EventSet(object);
+        this.appendElementWithLabel_(label, indent, link, suffix);
+        return;
+      }
+
+      if (object instanceof tr.model.ObjectInstance) {
+        var link = document.createElement('tr-ui-a-analysis-link');
+        link.selection = new tr.model.EventSet(object);
+        this.appendElementWithLabel_(label, indent, link, suffix);
+        return;
+      }
+
+      if (object instanceof tr.b.Rect) {
+        this.appendSimpleText_(label, indent, object.toString(), suffix);
+        return;
+      }
+
+      if (object instanceof tr.b.units.SizeInBytes) {
+        var el = this.ownerDocument.createElement('tr-ui-u-size-in-bytes-span');
+        el.numBytes = object.numBytes;
+        this.appendElementWithLabel_(label, indent, el, suffix);
+        return;
+      }
+
+      if (object instanceof tr.b.units.TimeDuration) {
+        var el = this.ownerDocument.createElement('tr-ui-u-time-duration-span');
+        el.duration = object.duration;
+        this.appendElementWithLabel_(label, indent, el, suffix);
+        return;
+      }
+
+      if (object instanceof tr.b.units.TimeStamp) {
+        var el = this.ownerDocument.createElement('tr-ui-u-time-stamp-span');
+        el.timestamp = object.timestamp;
+        this.appendElementWithLabel_(label, indent, el, suffix);
+        return;
+      }
+
+      if (object instanceof Array) {
+        this.appendElementsForArray_(
+            label, object, indent, depth, maxDepth, suffix);
+        return;
+      }
+
+      this.appendElementsForObject_(
+          label, object, indent, depth, maxDepth, suffix);
+    },
+
+    appendElementsForArray_: function(
+        label, object, indent, depth, maxDepth, suffix) {
+      if (object.length == 0) {
+        this.appendSimpleText_(label, indent, '[]', suffix);
+        return;
+      }
+
+      if (isTable(object)) {
+        var table = document.createElement('tr-ui-b-table');
+        var columns = [];
+        tr.b.iterItems(object[0], function(colName) {
+          columns.push({title: colName, value: function(row) {
+            return row[colName];
+          }});
+        });
+        table.tableColumns = columns;
+        table.tableRows = object;
+        this.appendElementWithLabel_(label, indent, table, suffix);
+        table.rebuild();
+        return;
+      }
+
+      this.appendElementsForType_(
+          label + '[',
+          object[0],
+          indent, depth + 1, maxDepth,
+          object.length > 1 ? ',' : ']' + suffix);
+      for (var i = 1; i < object.length; i++) {
+        this.appendElementsForType_(
+            '',
+            object[i],
+            indent + label.length + 1, depth + 1, maxDepth,
+            i < object.length - 1 ? ',' : ']' + suffix);
+      }
+      return;
+    },
+
+    appendElementsForObject_: function(
+        label, object, indent, depth, maxDepth, suffix) {
+      var keys = tr.b.dictionaryKeys(object);
+      if (keys.length == 0) {
+        this.appendSimpleText_(label, indent, '{}', suffix);
+        return;
+      }
+
+      this.appendElementsForType_(
+          label + '{' + keys[0] + ': ',
+          object[keys[0]],
+          indent, depth, maxDepth,
+          keys.length > 1 ? ',' : '}' + suffix);
+      for (var i = 1; i < keys.length; i++) {
+        this.appendElementsForType_(
+            keys[i] + ': ',
+            object[keys[i]],
+            indent + label.length + 1, depth + 1, maxDepth,
+            i < keys.length - 1 ? ',' : '}' + suffix);
+      }
+    },
+
+    appendElementWithLabel_: function(label, indent, dataElement, suffix) {
+      var row = document.createElement('div');
+
+      var indentSpan = document.createElement('span');
+      indentSpan.style.whiteSpace = 'pre';
+      for (var i = 0; i < indent; i++)
+        indentSpan.textContent += ' ';
+      row.appendChild(indentSpan);
+
+      var labelSpan = document.createElement('span');
+      labelSpan.textContent = label;
+      row.appendChild(labelSpan);
+
+      row.appendChild(dataElement);
+      var suffixSpan = document.createElement('span');
+      suffixSpan.textContent = suffix;
+      row.appendChild(suffixSpan);
+
+      row.dataElement = dataElement;
+      this.$.content.appendChild(row);
+    },
+
+    appendSimpleText_: function(label, indent, text, suffix) {
+      var el = this.ownerDocument.createElement('span');
+      el.textContent = text;
+      this.appendElementWithLabel_(label, indent, el, suffix);
+      return el;
+    }
+  });
+  </script>
+</polymer-element>
+
+<polymer-element name="tr-ui-a-generic-object-view-with-label"
+    is="HTMLUnknownElement">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.labelEl_ = document.createElement('div');
+      this.genericObjectView_ =
+          document.createElement('tr-ui-a-generic-object-view');
+      this.shadowRoot.appendChild(this.labelEl_);
+      this.shadowRoot.appendChild(this.genericObjectView_);
+    },
+
+    get label() {
+      return this.labelEl_.textContent;
+    },
+
+    set label(label) {
+      this.labelEl_.textContent = label;
+    },
+
+    get object() {
+      return this.genericObjectView_.object;
+    },
+
+    set object(object) {
+      this.genericObjectView_.object = object;
+    }
+  });
+  </script>
+</polymer-element>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/extras/chrome/cc/tile.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.cc', function() {
+
+  var knownRasterTaskNames = [
+      'TileManager::RunRasterTask',
+      'RasterWorkerPoolTaskImpl::RunRasterOnThread',
+      'RasterWorkerPoolTaskImpl::Raster',
+      'RasterTaskImpl::Raster',
+      'cc::RasterTask',
+      'RasterTask'
+  ];
+
+  var knownAnalysisTaskNames = [
+      'TileManager::RunAnalyzeTask',
+      'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
+      'RasterWorkerPoolTaskImpl::Analyze',
+      'RasterTaskImpl::Analyze',
+      'cc::AnalyzeTask',
+      'AnalyzeTask'
+  ];
+
+  function getTileFromRasterTaskSlice(slice) {
+    if (!(isSliceDoingRasterization(slice) || isSliceDoingAnalysis(slice)))
+      return undefined;
+
+    var tileData;
+    if (slice.args.data)
+      tileData = slice.args.data;
+    else
+      tileData = slice.args.tileData;
+    if (tileData === undefined)
+      return undefined;
+    if (tileData.tile_id)
+      return tileData.tile_id;
+
+    var tile = tileData.tileId;
+    if (!(tile instanceof tr.e.cc.TileSnapshot))
+      return undefined;
+    return tileData.tileId;
+  }
+
+  function isSliceDoingRasterization(slice) {
+    if (knownRasterTaskNames.indexOf(slice.title) !== -1)
+      return true;
+    return false;
+  }
+
+  function isSliceDoingAnalysis(slice) {
+    if (knownAnalysisTaskNames.indexOf(slice.title) !== -1)
+      return true;
+    return false;
+  }
+
+  return {
+    getTileFromRasterTaskSlice: getTileFromRasterTaskSlice,
+    isSliceDoingRasterization: isSliceDoingRasterization,
+    isSliceDoingAnalysis: isSliceDoingAnalysis
+  };
+});
+</script>

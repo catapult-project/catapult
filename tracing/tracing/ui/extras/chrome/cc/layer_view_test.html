@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/extras/importer/trace_event_importer.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/ui/extras/chrome/cc/cc.html">
+<link rel="import" href="/ui/extras/chrome/cc/layer_view.html">
+
+<script src="/extras/chrome/cc/layer_tree_host_impl_test_data.js"></script>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = m.processes[1];
+
+    var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    var lthi = instance.snapshots[0];
+    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
+
+    var view = new tr.ui.e.chrome.cc.LayerView();
+    view.style.height = '500px';
+    view.layerTreeImpl = lthi.activeTree;
+    view.selection = new tr.ui.e.chrome.cc.LayerSelection(layer);
+
+    this.addHTMLOutput(view);
+  });
+
+  test('instantiate_withTileHighlight', function() {
+    var m = new tr.Model(g_catLTHIEvents);
+    var p = m.processes[1];
+
+    var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    var lthi = instance.snapshots[0];
+    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
+    var tile = lthi.activeTiles[0];
+
+    var view = new tr.ui.e.chrome.cc.LayerView();
+    view.style.height = '500px';
+    view.layerTreeImpl = lthi.activeTree;
+    view.selection = new tr.ui.e.chrome.cc.TileSelection(tile);
+    this.addHTMLOutput(view);
+  });
+});
+</script>
