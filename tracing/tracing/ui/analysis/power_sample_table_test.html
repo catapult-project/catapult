@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    assert.lengthOf(table.$.table.tableRows, 1);
+    assert.sameDeepMembers(table.$.table.tableRows, series.samples);
   });
 
   test('instantiate_twoPowerSamples', function() {
@@ -61,7 +61,29 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    assert.lengthOf(table.$.table.tableRows, 2);
+    assert.sameDeepMembers(table.$.table.tableRows, series.samples);
+  });
+
+  test('instantiate_columnsInitialized', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1000);
+
+    var table = document.createElement('tr-ui-a-power-sample-table');
+    table.samples = new EventSet(series.samples);
+
+    this.addHTMLOutput(table);
+
+    var columns = table.$.table.tableColumns;
+    assert.lengthOf(columns, 2);
+
+    assert.equal(columns[0].title, 'Time');
+    assert.equal(columns[0].width, '150px');
+    assert.equal(columns[0].value(series.samples[0]), 0);
+
+    assert.equal(columns[1].title, 'Power (mW)');
+    assert.equal(columns[1].width, '100%');
+    assert.equal(columns[1].value(series.samples[0]), 1000);
   });
 });
 </script>
