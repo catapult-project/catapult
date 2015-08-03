@@ -5,15 +5,11 @@
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
 import collections
-import contextlib
-import cStringIO
 import hashlib
 import logging
 import os
 import subprocess
 import sys
-import tarfile
-import urllib2
 
 from telemetry.core import util
 from telemetry import decorators
@@ -34,8 +30,9 @@ BUCKET_ALIASES = collections.OrderedDict((
 ))
 
 
-_GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
-_DOWNLOAD_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutil')
+_GSUTIL_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutilz',
+                            'gsutil')
+
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
 #     http://crbug.com/359293. See |_RunCommand|.
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
@@ -43,27 +40,28 @@ _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
 
 class CloudStorageError(Exception):
   @staticmethod
-  def _GetConfigInstructions(gsutil_path):
+  def _GetConfigInstructions():
+    command = _GSUTIL_PATH
     if util.IsRunningOnCrosDevice():
-      gsutil_path = ('HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, gsutil_path))
+      command = 'HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, _GSUTIL_PATH)
     return ('To configure your credentials:\n'
             '  1. Run "%s config" and follow its instructions.\n'
             '  2. If you have a @google.com account, use that account.\n'
-            '  3. For the project-id, just enter 0.' % gsutil_path)
+            '  3. For the project-id, just enter 0.' % command)
 
 
 class PermissionError(CloudStorageError):
-  def __init__(self, gsutil_path):
+  def __init__(self):
     super(PermissionError, self).__init__(
         'Attempted to access a file from Cloud Storage but you don\'t '
-        'have permission. ' + self._GetConfigInstructions(gsutil_path))
+        'have permission. ' + self._GetConfigInstructions())
 
 
 class CredentialsError(CloudStorageError):
-  def __init__(self, gsutil_path):
+  def __init__(self):
     super(CredentialsError, self).__init__(
         'Attempted to access a file from Cloud Storage but you have no '
-        'configured credentials. ' + self._GetConfigInstructions(gsutil_path))
+        'configured credentials. ' + self._GetConfigInstructions())
 
 
 class NotFoundError(CloudStorageError):
@@ -84,37 +82,7 @@ def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
   return None
 
 
-def _DownloadGsutil():
-  logging.info('Downloading gsutil')
-  with contextlib.closing(urllib2.urlopen(_GSUTIL_URL, timeout=60)) as response:
-    with tarfile.open(fileobj=cStringIO.StringIO(response.read())) as tar_file:
-      tar_file.extractall(os.path.dirname(_DOWNLOAD_PATH))
-  logging.info('Downloaded gsutil to %s' % _DOWNLOAD_PATH)
-
-  return os.path.join(_DOWNLOAD_PATH, 'gsutil')
-
-
-def FindGsutil():
-  """Return the gsutil executable path. If we can't find it, download it."""
-  # Look for a depot_tools installation.
-  # FIXME: gsutil in depot_tools is not working correctly. crbug.com/413414
-  #gsutil_path = _FindExecutableInPath(
-  #    os.path.join('third_party', 'gsutil', 'gsutil'), _DOWNLOAD_PATH)
-  #if gsutil_path:
-  #  return gsutil_path
-
-  # Look for a gsutil installation.
-  gsutil_path = _FindExecutableInPath('gsutil', _DOWNLOAD_PATH)
-  if gsutil_path:
-    return gsutil_path
-
-  # Failed to find it. Download it!
-  return _DownloadGsutil()
-
-
 def _RunCommand(args):
-  gsutil_path = FindGsutil()
-
   # On cros device, as telemetry is running as root, home will be set to /root/,
   # which is not writable. gsutil will attempt to create a download tracker dir
   # in home dir and fail. To avoid this, override HOME dir to something writable
@@ -129,10 +97,10 @@ def _RunCommand(args):
 
   if os.name == 'nt':
     # If Windows, prepend python. Python scripts aren't directly executable.
-    args = [sys.executable, gsutil_path] + args
+    args = [sys.executable, _GSUTIL_PATH] + args
   else:
     # Don't do it on POSIX, in case someone is using a shell script to redirect.
-    args = [gsutil_path] + args
+    args = [_GSUTIL_PATH] + args
 
   gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, env=gsutil_env)
@@ -142,10 +110,10 @@ def _RunCommand(args):
     if stderr.startswith((
         'You are attempting to access protected data with no configured',
         'Failure: No handler was ready to authenticate.')):
-      raise CredentialsError(gsutil_path)
+      raise CredentialsError()
     if ('status=403' in stderr or 'status 403' in stderr or
         '403 Forbidden' in stderr):
-      raise PermissionError(gsutil_path)
+      raise PermissionError()
     if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
         'No URLs matched' in stderr or 'One or more URLs matched no' in stderr):
       raise NotFoundError(stderr)
