@@ -36,7 +36,9 @@ tr.exportTo('tr.b', function() {
         if (req.readyState == 4) {
           window.setTimeout(function() {
             if (req.status == 200) {
-              resolve(isBinary ? req.response : req.responseText);
+              if (req.responseType === 'arraybuffer')
+                return resolve(req.response);
+              return resolve(req.responseText);
             } else {
               reject(new Error('XHR failed with status ' + req.status));
             }
