@@ -36,7 +36,7 @@ def _GetTagsForRelPath(relpath):
 
 def _GetMetadataForFilename(base_directory, filename):
   relpath = os.path.relpath(filename, base_directory)
-  tags = _GetTagsForRelPath(base_directory, filename)
+  tags = _GetTagsForRelPath(relpath)
 
   metadata = {'tags': tags}
 
