@@ -56,6 +56,11 @@ def FindPath(binary_name, arch_name, platform_name):
     if command and os.path.exists(command):
       os.chmod(command,
                stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
+  if not command and platform_name == 'win' and arch_name != 'AMD64':
+    # This is an awful, awful hack to temporarily fix cloud_storage downloads
+    # on XP until the binary_manager is finished and migrated to.
+    # Please don't try this at home.
+    return FindPath(binary_name, 'AMD64', platform_name)
 
   # Return an absolute path consistently.
   if command:
