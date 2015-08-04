@@ -19,7 +19,7 @@ from telemetry import value as value_module
 
 # Bring in tv module for transforming raw trace to html form.
 util.AddDirToPythonPath(
-    util.GetChromiumSrcDir(), 'third_party', 'trace-viewer')
+    util.GetChromiumSrcDir(), 'third_party', 'catapult')
 
 from tracing.build import trace2html
 

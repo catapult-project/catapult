@@ -11,5 +11,5 @@ src/tools/telemetry/find_dependencies \
   src/tools/perf/run_benchmark \
   src/tools/perf/record_wpr \
   src/content/test/gpu/run_gpu_test.py \
-  --exclude=*/third_party/trace-viewer/test_data/* \
+  --exclude=*/third_party/catapult/test_data/* \
   -z $1

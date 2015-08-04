@@ -36,7 +36,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(chromium_src_dir, 'build', 'android'),
       input_api.os_path.join(
           chromium_src_dir, 'third_party', 'py_trace_event', 'src'),
-      input_api.os_path.join(chromium_src_dir, 'third_party', 'trace-viewer'),
+      input_api.os_path.join(chromium_src_dir, 'third_party', 'catapult'),
       input_api.os_path.join(chromium_src_dir, 'third_party', 'webpagereplay'),
   ]
 
