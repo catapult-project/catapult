@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_sample.html">
+<link rel="import" href="/model/power_series.html">
+<link rel="import" href="/ui/analysis/frame_power_usage_chart.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate_noSamples', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(undefined, [0]);
+
+    assert.isUndefined(chart.chart);
+  });
+
+  test('instantiate_noVSyncs', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), []);
+
+    assert.isUndefined(chart.chart);
+  });
+
+  test('instantiate_noSamplesOrVSyncs', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(undefined, []);
+
+    assert.isUndefined(chart.chart);
+  });
+
+  test('instantiate_oneFrame', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [0];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 1000 },
+      { x: 1, f1: 2000 },
+      { x: 2, f1: 3000 },
+      { x: 3, f1: 2000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+
+  test('instantiate_twoFrames', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [0, 4];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+    series.addPowerSample(4, 2000);
+    series.addPowerSample(5, 3000);
+    series.addPowerSample(6, 4000);
+    series.addPowerSample(7, 3000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 1000 },
+      { x: 1, f1: 2000 },
+      { x: 2, f1: 3000 },
+      { x: 3, f1: 2000 },
+      { x: 0, f2: 2000 },
+      { x: 1, f2: 3000 },
+      { x: 2, f2: 4000 },
+      { x: 3, f2: 3000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+
+  test('instantiate_twoFramesDifferentXValues', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    // Power samples taken at 0, 1, 2, and 3s after frame start.
+    var vSyncTimestamps = [0, 4];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+    // Power samples taken at 0.5, 1.5, 2.5, and 3.5s after frame start.
+    series.addPowerSample(4.5, 2000);
+    series.addPowerSample(5.5, 3000);
+    series.addPowerSample(6.5, 4000);
+    series.addPowerSample(7.5, 3000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 1000 },
+      { x: 1, f1: 2000 },
+      { x: 2, f1: 3000 },
+      { x: 3, f1: 2000 },
+      { x: 0.5, f2: 2000 },
+      { x: 1.5, f2: 3000 },
+      { x: 2.5, f2: 4000 },
+      { x: 3.5, f2: 3000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+
+  test('instantiate_samplesBeforeFirstVSync', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [4];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+    series.addPowerSample(4, 2000);
+    series.addPowerSample(5, 3000);
+    series.addPowerSample(6, 4000);
+    series.addPowerSample(7, 3000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 2000 },
+      { x: 1, f1: 3000 },
+      { x: 2, f1: 4000 },
+      { x: 3, f1: 3000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+
+  test('instantiate_allSamplesBeforeFirstVSync', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [4];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    var expectedChartData = [
+      { x: 0, f1: 2000 },
+      { x: 1, f1: 3000 },
+      { x: 2, f1: 4000 },
+      { x: 3, f1: 3000 }
+    ];
+    assert.isUndefined(chart.chart);
+  });
+
+  test('instantiate_vSyncsAfterLastPowerSample', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [0, 4, 8, 12];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+    series.addPowerSample(4, 2000);
+    series.addPowerSample(5, 3000);
+    series.addPowerSample(6, 4000);
+    series.addPowerSample(7, 3000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 1000 },
+      { x: 1, f1: 2000 },
+      { x: 2, f1: 3000 },
+      { x: 3, f1: 2000 },
+      { x: 0, f2: 2000 },
+      { x: 1, f2: 3000 },
+      { x: 2, f2: 4000 },
+      { x: 3, f2: 3000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+
+  test('instantiate_onlyVSyncAfterLastPowerSample', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [8];
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+    series.addPowerSample(4, 2000);
+    series.addPowerSample(5, 3000);
+    series.addPowerSample(6, 4000);
+    series.addPowerSample(7, 3000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    assert.isUndefined(chart.chart);
+  });
+
+
+  test('instantiate_samplesNotInChronologicalOrder', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var vSyncTimestamps = [0, 4];
+    series.addPowerSample(4, 2000);
+    series.addPowerSample(5, 3000);
+    series.addPowerSample(6, 4000);
+    series.addPowerSample(7, 3000);
+    series.addPowerSample(0, 1000);
+    series.addPowerSample(1, 2000);
+    series.addPowerSample(2, 3000);
+    series.addPowerSample(3, 2000);
+
+    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
+
+    this.addHTMLOutput(chart);
+
+    var expectedChartData = [
+      { x: 0, f1: 1000 },
+      { x: 1, f1: 2000 },
+      { x: 2, f1: 3000 },
+      { x: 3, f1: 2000 },
+      { x: 0, f2: 2000 },
+      { x: 1, f2: 3000 },
+      { x: 2, f2: 4000 },
+      { x: 3, f2: 3000 }
+    ];
+    assert.sameDeepMembers(chart.chart.data, expectedChartData);
+  });
+});
+</script>

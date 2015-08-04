@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/ui/base/line_chart.html">
+
+<!--
+@fileoverview A line chart showing milliseconds since the start of the frame on
+the x-axis and power consumption on the y-axis. Each frame is shown as a
+separate line in the chart. Vertical sync events are used as the start of each
+frame.
+
+This chart aims to help users understand the shape of the power consumption
+curve over the course of a frame or set of frames.
+-->
+<polymer-element name="tr-ui-a-frame-power-usage-chart">
+  <template>
+    <div id="content"></div>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+
+var EventSet = tr.model.EventSet;
+
+var CHART_TITLE = 'Power (in mW) by ms since vertical sync';
+var CHART_WIDTH_FRACTION_OF_BODY = 0.9;
+
+Polymer('tr-ui-a-frame-power-usage-chart', {
+  ready: function() {
+    this.chart_ = undefined;
+    this.samples_ = new EventSet();
+    this.vSyncTimestamps_ = [];
+  },
+
+  get chart() {
+    return this.chart_;
+  },
+
+  get samples() {
+    return this.samples_;
+  },
+
+  get vSyncTimestamps() {
+    return this.vSyncTimestamps_;
+  },
+
+  /**
+   * Sets the data that powers the chart. Vsync timestamps must be in
+   * chronological order.
+   */
+  setData: function(samples, vSyncTimestamps) {
+    this.samples_ = (samples === undefined) ? new EventSet() : samples;
+    this.vSyncTimestamps_ =
+        (vSyncTimestamps === undefined) ? [] : vSyncTimestamps;
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    this.clearChart_();
+
+    var data = this.getDataForLineChart_();
+
+    if (data.length === 0)
+      return;
+
+    this.chart_ = this.createChart_(data);
+    this.$.content.appendChild(this.chart_);
+  },
+
+  createChart_: function(data) {
+    var chart = new tr.ui.b.LineChart();
+    var width = document.body.clientWidth * CHART_WIDTH_FRACTION_OF_BODY;
+    chart.setSize({width: width, height: chart.height});
+    chart.chartTitle = CHART_TITLE;
+    chart.data = data;
+
+    return chart;
+  },
+
+  clearChart_: function() {
+    var content = this.$.content;
+    while (content.firstChild)
+      content.removeChild(content.firstChild);
+
+    this.chart_ = undefined;
+  },
+
+  // TODO(charliea): Limit the ms since vsync to the median frame length. The
+  // vertical syncs are not 100% regular and highlighting any sample that's
+  // in one of these 'vertical sync lulls' makes the x-axis have a much larger
+  // scale than it should, effectively squishing the other samples into the
+  // left side of the chart.
+  /**
+   * Returns an array of data points for the chart. Each element in the array
+   * is of the form { x: <ms since vsync>, f<frame#>: <power in mW> }.
+   */
+  getDataForLineChart_: function() {
+    var sortedSamples = this.sortSamplesByTimestampAscending_(this.samples);
+    var vSyncTimestamps = this.vSyncTimestamps.slice();
+
+    var lastVSyncTimestamp = undefined;
+    var points = [];
+
+    // For each power sample, find and record the frame number that it belongs
+    // to as well as the amount of time elapsed since that frame began.
+    var frameNumber = 0;
+    sortedSamples.forEach(function(sample) {
+      while (vSyncTimestamps.length > 0 && vSyncTimestamps[0] <= sample.start) {
+        lastVSyncTimestamp = vSyncTimestamps.shift();
+        frameNumber++;
+      }
+
+      // If no vertical sync occurred before the power sample, don't use the
+      // power sample.
+      if (lastVSyncTimestamp === undefined)
+        return;
+
+      var point = { x: sample.start - lastVSyncTimestamp };
+      point['f' + frameNumber] = sample.power;
+      points.push(point);
+    });
+
+    return points;
+  },
+
+  sortSamplesByTimestampAscending_: function(samples) {
+    return samples.toArray().sort(function(smpl1, smpl2) {
+      return smpl1.start - smpl2.start;
+    });
+  }
+});
+</script>

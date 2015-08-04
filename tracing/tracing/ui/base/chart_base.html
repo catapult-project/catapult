@@ -197,6 +197,9 @@ tr.exportTo('tr.ui.b', function() {
       this.updateLegend_();
     },
 
+    // TODO(charliea): We should change updateLegend_ so that it ellipsizes the
+    // series names after a certain point. Otherwise, the series names start
+    // dipping below the x-axis and continue on outside of the viewport.
     updateLegend_: function() {
       var keys = this.getLegendKeys_();
       if (keys === undefined)

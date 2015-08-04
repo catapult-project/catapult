@@ -223,6 +223,7 @@
       'tracing/ui/analysis/analysis_view.html',
       'tracing/ui/analysis/counter_sample_sub_view.html',
       'tracing/ui/analysis/flow_classifier.html',
+      'tracing/ui/analysis/frame_power_usage_chart.html',
       'tracing/ui/analysis/generic_object_view.html',
       'tracing/ui/analysis/memory_dump_allocator_details_pane.html',
       'tracing/ui/analysis/memory_dump_overview_pane.html',
