@@ -10,26 +10,15 @@ found in the LICENSE file.
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/extras/full_config.html">
 
+<link rel="import" href="/perf_insights/value/value.html">
+
 <script>
 'use strict';
 
 tr.exportTo('perf_insights', function() {
 
   var currentRunID = undefined;
-
-  function createMapSuccessValue(result) {
-    return {
-      run_id: currentRunID,
-      type: "dict",
-      name: "MapTraces result",
-      units: undefined,
-      important: false,
-      description: undefined,
-      tir_label: undefined,
-      value: result
-    }
-  }
-
+  var FailureValue = perf_insights.v.FailureValue;
 
   function createMapFailureValue(ex) {
     var ex = tr.b.normalizeException(ex); // yields message & stack field
@@ -40,74 +29,72 @@ tr.exportTo('perf_insights', function() {
       units: undefined,
       name: 'Error',
       description: ex.message,
-      tir_label: undefined,
+      ir_stable_id: undefined,
       stack_str: ex.stack
     }
   }
 
-  function mapSingleTrace(options) {
+  function mapSingleTrace(results, options) {
     try {
-      return mapSingleTraceImpl(options);
+      currentRunID = options.run_info.run_id;
+      mapSingleTraceImpl(results, options);
     } catch(e) {
-      return createMapFailureValue(e);
+      results.addValue(FailureValue.fromError(options.run_info,
+                                              e));
+    } finally {
+      currentRunID = undefined;
     }
   }
 
 
-  function mapSingleTraceImpl(options) {
+  function mapSingleTraceImpl(results, options) {
+    // Load the mapper.
+    mapFunction = undefined;
     try {
-      currentRunID = options.run_id;
-
-      // Load the mapper.
-      mapFunction = undefined;
-      try {
-        perf_insights.defineMapFunction = function(f) {
-          mapFunction = f;
-        }
-        loadHTMLFile(options.map_file);
-      } catch(ex) {
-        return createMapFailureValue(options, ex);
-      } finally {
-        perf_insights.defineMapFunction = defineMapFunction;
+      perf_insights.defineMapFunction = function(f) {
+        mapFunction = f;
       }
-
-      // Verify a mapFunction was defined.
-      if (mapFunction === undefined) {
-        return createMapFailureValue(new Error(
-            options.map_file + " did not call defineMapFunction"));
-      }
-
-      // Data.
-      try {
-        var traceData = tr.b.getSync('file://' + options.filename_to_map);
-      } catch(e) {
-        throw e;
-        console.log(e);
-        return createMapFailureValue(new Error(
-            'Could not read file: ' + options.filename_to_map));
-      }
-      // Load the model.
-      var importOptions = new tr.ImportOptions();
-      importOptions.pruneEmptyContainers = false;
-      var model = new tr.Model();
-      model.importTraces([traceData], importOptions);
-
-      // Mixin the metadata in case its interesting to the mapper.
-      for (var k in options.metadata) {
-        if (model.metadata[k] !== undefined) {
-          return createMapFailureValue(new Error(
-              'Metadata conflict: ' + k + ' is on model and corpus tables!'));
-
-        }
-        model.metadata[k] = options.metadata[k];
-      }
-
-      // Map the function.
-      var mapResult = mapFunction(model);
-      return createMapSuccessValue(mapResult);
+      loadHTMLFile(options.map_file);
+    } catch(ex) {
+      results.addValue(FailureValue.fromError(options.run_info, ex));
+      return;
     } finally {
-      currentRunID = undefined;
+      perf_insights.defineMapFunction = defineMapFunction;
     }
+
+    // Verify a mapFunction was defined.
+    if (mapFunction === undefined) {
+      return createMapFailureValue(options.run_info, new Error(
+          options.map_file + " did not call defineMapFunction"));
+    }
+
+    // Data.
+    try {
+      var traceData = tr.b.getSync('file://' + options.filename_to_map);
+    } catch(e) {
+      results.addValue(FailureValue.fromError(options.run_info, new Error(
+          'Could not read file: ' + options.filename_to_map)));
+      return;
+    }
+
+    // Load the model.
+    var importOptions = new tr.ImportOptions();
+    importOptions.pruneEmptyContainers = false;
+    var model = new tr.Model();
+    model.importTraces([traceData], importOptions);
+
+    // Mixin the metadata in case its interesting to the mapper.
+    for (var k in options.metadata) {
+      if (model.metadata[k] !== undefined) {
+        results.addValue(FailureValue.fromError(options.run_info, new Error(
+            'Metadata conflict: ' + k + ' is on model and corpus tables!')));
+        return;
+      }
+      model.metadata[k] = options.metadata[k];
+    }
+
+    // Map the function.
+    mapFunction(results, options.run_info, model);
   }
 
   function defineMapFunction() {

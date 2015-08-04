@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/guid.html">
+<link rel="import" href="/base/utils.html">
+<link rel="import" href="/perf_insights/value/run_info.html">
+<script>
+'use strict';
+
+tr.exportTo('perf_insights.v', function() {
+  function Value(run_info, name, opt_options) {
+    var options = opt_options || {};
+    this.guid =  tr.b.GUID.allocate();
+    this.run_info = run_info;
+    this.name = name;
+    this.units = options.units;
+    this.description = options.description;
+    this.important = options.important !== undefined ?
+        options.important : false;
+    this.ir_stable_id = options.ir_stable_id;
+  }
+
+  Value.fromDict = function(run_info, d) {
+    if(d.run_id !== run_info.run_id)
+       throw new Error('run_ids mismatch');
+
+    if (d.type === 'dict')
+      return DictValue.fromDict(run_info, d);
+
+    if (d.type == 'failure')
+      return FailureValue.fromDict(run_info, d);
+
+    if (d.type === 'skip')
+      return SkipValue.fromDict(run_info, d);
+
+    throw new Error('Not implemented');
+  };
+
+  Value.prototype = {
+    asDict: function() {
+      d = {
+        'run_id': this.run_info.run_id,
+        'name': this.name,
+        'units': this.units,
+        'description': this.description,
+        'important': this.important,
+        'ir_stable_id': this.ir_stable_id
+      }
+      this._asDictInto(d)
+      if (d.type === undefined)
+        throw new Error('_asDictInto must set type field');
+      return d
+    },
+
+    _asDictInto: function(d) {
+      throw new Error('Not implemented');
+    }
+  };
+
+
+  function DictValue(run_info, name, value, opt_options) {
+    var options = opt_options || {};
+    Value.call(this, run_info, name, options);
+    this.value = value;
+  }
+
+  DictValue.fromDict = function(run_info, d) {
+    if (d.units !== undefined)
+      throw new Error('Expected units to be undefined');
+    if (d.value === undefined)
+      throw new Error('Expected value to be provided');
+    return DictValue(run_info, d.name, d.value, d);
+  }
+
+  DictValue.prototype = {
+    __proto__: Value.prototype,
+
+    _asDictInto: function(d) {
+      d.type = 'dict';
+      d.value = this.value;
+    }
+  };
+
+
+  function FailureValue(run_info, name, opt_options) {
+    var options = opt_options || {};
+
+    var stack;
+    if (options.stack === undefined) {
+      if (options.stack_str === undefined) {
+        throw new Error('Expected stack_str or stack to be provided');
+      } else {
+        stack = options.stack_str
+      }
+    } else {
+      stack = options.stack;
+    }
+
+    if (typeof stack !== 'string')
+      throw new Error('stack must be provided as a string');
+
+    Value.call(this, run_info, name, options);
+    this.stack = stack
+  }
+
+  FailureValue.fromError = function(run_info, e) {
+    var ex = tr.b.normalizeException(e);
+    return new FailureValue(run_info,
+                            'Error',
+                            {description: ex.message,
+                             stack: ex.stack});
+
+  }
+
+  FailureValue.fromDict = function(run_info, d) {
+    if (d.units !== undefined)
+      throw new Error('Expected units to be undefined');
+    if (d.name === undefined)
+      throw new Error('Expected stack_str to be provided');
+    return DictValue(run_info, d.name, d2);
+  }
+
+  FailureValue.prototype = {
+    __proto__: Value.prototype,
+
+    _asDictInto: function(d) {
+      d.type = 'failure'
+      d.stack_str = this.stack
+    }
+  };
+
+
+  function SkipValue(run_info, name, opt_options) {
+    var options = opt_options || {};
+    Value.call(this, run_info, name, options);
+  }
+
+  SkipValue.fromDict = function(run_info, d) {
+    if (d.units !== undefined)
+      throw new Error('Expected units to be undefined');
+    if (d.name === undefined)
+      throw new Error('Expected name to be provided');
+    return DictValue(run_info, d.name, d);
+  }
+
+  SkipValue.prototype = {
+    __proto__: Value.prototype,
+
+    _asDictInto: function(d) {
+      d.type = 'skip'
+    }
+  }
+
+
+
+  return {
+    Value: Value,
+    DictValue: DictValue,
+    FailureValue: FailureValue,
+    SkipValue: SkipValue
+  }
+});
+</script>

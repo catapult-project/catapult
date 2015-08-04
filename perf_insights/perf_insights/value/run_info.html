@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/base/guid.html">
+<script>
+'use strict';
+
+tr.exportTo('perf_insights.v', function() {
+  function RunInfo(url, opt_display_name, opt_run_id, opt_metadata) {
+    if (opt_run_id !== undefined)
+      this.run_id = opt_run_id;
+    else
+      this.run_id = 'perf_info.v.RunInfo-' + tr.b.GUID.allocate();
+    this.url = url
+
+    if (opt_display_name !== undefined)
+      this.display_name = opt_display_name;
+    else
+      this.display_name = this.url;
+
+    if (opt_metadata !== undefined)
+      this.metadata = opt_metadata;
+    else
+      this.metadata = {};
+  }
+
+  RunInfo.fromDict = function(d) {
+    if (d.type !== 'perf_insights.value.RunInfo')
+      throw new Error('Unsupported run_info format: ' + d.type);
+    if (d.run_id === undefined)
+      throw new Error('Must contain run_id');
+    if (d.url === undefined)
+      throw new Error('Must contain url');
+    return new RunInfo(d.url, d.display_name, d.run_id, d.metadata);
+  };
+
+  RunInfo.prototype = {
+    asDict: function() {
+      return {
+        type: 'perf_insights.value.RunInfo',
+        run_id: this.run_id,
+        url: this.url,
+        metadata: this.metadata
+      }
+    }
+  };
+
+  return {
+    RunInfo: RunInfo
+  }
+});
+</script>

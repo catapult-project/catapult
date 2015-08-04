@@ -4,9 +4,8 @@
 import uuid
 
 class TraceHandle(object):
-  def __init__(self, run_info, metadata):
+  def __init__(self, run_info):
     self.run_info = run_info
-    self.metadata = metadata
 
   def Open():
     # Returns a with-able object containing a name.

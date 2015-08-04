@@ -173,6 +173,7 @@ found in the LICENSE file.
         this.showHeader_ = true;
         this.emptyValue_ = undefined;
         this.subRowsPropertyName_ = 'subRows';
+        this.customizeTableRowCallback_ = undefined;
       },
 
       ready: function() {
@@ -210,6 +211,16 @@ found in the LICENSE file.
 
       set subRowsPropertyName(name) {
         this.subRowsPropertyName_ = name;
+      },
+
+      /**
+       * This callback will be called whenever a body row is built.
+       * The callback's return value is ignored.
+       * @param {function(userRow, trElement)} cb The callback.
+       */
+      set customizeTableRowCallback(cb) {
+        this.customizeTableRowCallback_ = cb;
+        this.scheduleRebuildBody_();
       },
 
       get emptyValue() {
@@ -530,10 +541,18 @@ found in the LICENSE file.
         return rowInfo;
       },
 
+      customizeTableRow_: function(userRow, trElement) {
+        if (!this.customizeTableRowCallback_)
+          return;
+        this.customizeTableRowCallback_(userRow, trElement);
+      },
+
       getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
                                        rowInfoMap, indentation) {
-        if (rowInfo.htmlNode)
+        if (rowInfo.htmlNode) {
+          this.customizeTableRow_(rowInfo.userRow, rowInfo.htmlNode);
           return rowInfo.htmlNode;
+        }
 
         var INDENT_SPACE = indentation * 16;
         var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
@@ -541,6 +560,7 @@ found in the LICENSE file.
         rowInfo.htmlNode = trElement;
         rowInfo.indentation = indentation;
         trElement.rowInfo = rowInfo;
+        this.customizeTableRow_(rowInfo.userRow, trElement);
 
         for (var i = 0; i < this.tableColumns_.length;) {
           var td = this.appendNewElement_(trElement, 'td');

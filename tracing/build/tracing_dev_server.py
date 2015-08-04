@@ -85,6 +85,16 @@ class DirectoryListingHandler(webapp2.RequestHandler):
     self.response.content_type = 'application/json'
     return self.response.write(files_as_json)
 
+class FileAppWithGZipHandling(fileapp.FileApp):
+  def guess_type(self):
+    content_type, content_encoding = \
+        super(FileAppWithGZipHandling, self).guess_type()
+    if not self.filename.endswith('.gz'):
+      return content_type, content_encoding
+    # By default, FileApp serves gzip files as their underlying type with
+    # Content-Encoding of gzip. That causes them to show up on the client
+    # decompressed. That ends up being surprising to our xhr.html system.
+    return None, None
 
 class SourcePathsHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):
@@ -98,7 +108,7 @@ class SourcePathsHandler(webapp2.RequestHandler):
       rel = os.path.relpath(path, '/')
       candidate = os.path.join(mapped_path, rel)
       if os.path.exists(candidate):
-        app = fileapp.FileApp(candidate)
+        app = FileAppWithGZipHandling(candidate)
         app.cache_control(no_cache=True)
         return app
     self.abort(404)

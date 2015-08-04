@@ -42,13 +42,13 @@ found in the LICENSE file.
     }
     </style>
 
-    <tr-ui-e-rail-rail-score-span id='score'></tr-ui-e-rail-rail-score-span>
+    <tr-ui-e-rail-rail-score-span id="score"></tr-ui-e-rail-rail-score-span>
     <tr-ui-b-table id="table"></tr-ui-b-table>
 
     <div id="coverage">
       <b>Coverage:</b><br>
-      <tr-ui-a-analysis-link id='associated-events'></tr-ui-a-analysis-link><br>
-      <tr-ui-a-analysis-link id='unassociated-events'></tr-ui-a-analysis-link>
+      <tr-ui-a-analysis-link id="associated-events"></tr-ui-a-analysis-link><br>
+      <tr-ui-a-analysis-link id="unassociated-events"></tr-ui-a-analysis-link>
     </div>
   </template>
 </polymer-element>
@@ -75,8 +75,7 @@ found in the LICENSE file.
     // guess I'll set it inline here?
     cpuMsSpan.style.display = 'inline';
     cpuMsSpan.duration = cpuMs;
-    // Style the content like the analysis-link.
-    cpuMsSpan.$.content.style.textDecoration = 'underline';
+    cpuMsSpan.contentTextDecoration = 'underline';
     link.appendChild(cpuMsSpan);
 
     var cpuString = ' (' + parseInt(100 * cpuRatio) + '%)';

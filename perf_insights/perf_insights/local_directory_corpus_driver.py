@@ -5,7 +5,7 @@ import os
 
 from perf_insights import corpus_driver
 from perf_insights import local_file_trace_handle
-from perf_insights import trace_run_info
+from perf_insights.value import run_info as run_info_module
 
 
 def _GetFilesIn(basedir):
@@ -36,7 +36,7 @@ def _GetTagsForRelPath(relpath):
 
 def _GetMetadataForFilename(base_directory, filename):
   relpath = os.path.relpath(filename, base_directory)
-  tags = _GetTagsForRelPath(base_directory, filename)
+  tags = _GetTagsForRelPath(relpath)
 
   metadata = {'tags': tags}
 
@@ -55,15 +55,16 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
     for rel_filename in files:
       filename = os.path.join(self.directory, rel_filename)
       metadata = _GetMetadataForFilename(self.directory, filename)
-      if not query.IsMetadataInteresting(metadata):
+
+      if not query.Eval(metadata):
         continue
 
-      run_info = trace_run_info.TraceRunInfo(
+      run_info = run_info_module.RunInfo(
           url="file://%s" % filename,
-          display_name=rel_filename)
+          display_name=rel_filename,
+          metadata=metadata)
 
-      th = local_file_trace_handle.LocalFileTraceHandle(run_info, metadata,
-                                                        filename)
+      th = local_file_trace_handle.LocalFileTraceHandle(run_info, filename)
       trace_handles.append(th)
 
     return trace_handles

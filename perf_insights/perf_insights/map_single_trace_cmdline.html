@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/map_single_trace.html">
+<link rel="import" href="/perf_insights/value/run_info.html">
+<link rel="import" href="/perf_insights/results/results.html">
 
 <script>
 'use strict';
@@ -13,14 +15,32 @@ found in the LICENSE file.
   if (sys.argv.length !== 5)
     throw new Error('Must provide four arguments');
   var options = {
-    run_id: sys.argv[1],
+    run_info: perf_insights.v.RunInfo.fromDict(JSON.parse(sys.argv[1])),
     map_file: sys.argv[2],
     filename_to_map: sys.argv[3],
     filename_metadata: JSON.parse(sys.argv[4])
   };
 
-  var mappedValue = perf_insights.mapSingleTrace(options);
-  console.log("MAP_RESULT: " + JSON.stringify(mappedValue));
+  function PyGlueOuptutFormatter() {
+    perf_insights.r.OutputFormatter.call(this);
+  }
+  PyGlueOuptutFormatter.prototype = {
+    __proto__: perf_insights.r.OutputFormatter.prototype,
+
+    format: function(results) {
+      results.all_values.forEach(function(value) {
+        valueAsDict = value.asDict();
+        console.log("MAP_RESULT_VALUE: " + JSON.stringify(valueAsDict));
+      });
+    }
+  };
+
+  var results = new perf_insights.r.Results([new PyGlueOuptutFormatter()]);
+
+  results.willRun(options.run_info);
+  var mappedValue = perf_insights.mapSingleTrace(results, options);
+  results.didRun(options.run_info);
+  results.didFinishAllRuns();
 })();
 </script>
 

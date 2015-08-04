@@ -1122,5 +1122,47 @@ tr.b.unittest.testSuite(function() {
     // check that we don't have 'undefined' anywhere
     assert.isTrue(table.$.body.innerHTML.indexOf('undefined') < 0);
   });
+
+  test('customizeTableRowCallback', function() {
+    var columns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.data; }
+      }
+    ];
+
+    var rows = [
+      {
+        data: 'data'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    var callbackCalled = false;
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.customizeTableRowCallback = function(userRow, trElement) {
+      callbackCalled = (userRow === rows[0]);
+    };
+    table.rebuild();
+    assert.isTrue(callbackCalled);
+
+    this.addHTMLOutput(table);
+
+    // The callback can also be set after the table is first built.
+    table.customizeTableRowCallback = function(userRow, trElement) {
+      callbackCalled = (userRow === rows[0]);
+    };
+
+    // Setting the customize callback should set the body dirty.
+    assert.isTrue(table.bodyDirty_);
+
+    callbackCalled = false;
+
+    // Don't bother waiting for the timeout.
+    table.rebuild();
+
+    assert.isTrue(callbackCalled);
+  });
 });
 </script>
