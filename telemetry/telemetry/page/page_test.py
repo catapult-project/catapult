@@ -5,7 +5,6 @@
 import logging
 
 from telemetry.core import exceptions
-from telemetry import decorators
 from telemetry.page import action_runner as action_runner_module
 
 
@@ -144,11 +143,6 @@ class PageTest(object):
   def DidNavigateToPage(self, page, tab):
     """Override to do operations right after the page is navigated and after
     all waiting for completion has occurred."""
-
-  @decorators.Deprecated(
-    2015, 8, 10, 'This hook is deprecated. Please use DidRunPage hook instead')
-  def CleanUpAfterPage(self, page, tab):
-    """Called after the test run method was run, even if it failed."""
 
   def DidRunPage(self, platform):
     """Called after the test run method was run, even if it failed."""

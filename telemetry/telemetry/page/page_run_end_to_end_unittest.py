@@ -409,7 +409,8 @@ class PageRunEndToEndTests(unittest.TestCase):
       def ValidateAndMeasurePage(self, *_):
         raise page_test.Failure
 
-      def CleanUpAfterPage(self, page, tab):
+      def DidRunPage(self, platform):
+        del platform  # unused
         self.did_call_clean_up = True
 
 
