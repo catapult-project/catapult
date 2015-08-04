@@ -20,3 +20,7 @@ https://github.com/Polymer/<component>
 Note on Bower:
 New components can be added by editing bower.json and running `bower update`,
 which requires first installing bower (see http://bower.io/).
+
+Local Modifications:
+Removed unused file with no license header:
+components/web-animations-js/.travis-setup.sh
