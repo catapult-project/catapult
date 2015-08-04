@@ -14,13 +14,19 @@ found in the LICENSE file.
   <template>
     <style>
     :host {
-       display: flex;
-       flex-direction: column;
+      display: flex;
+      flex-direction: row;
+    }
+    #table {
+      width: 50%;
+    }
+    #chart {
+      width: 50%;
     }
     </style>
+    <tr-ui-a-power-sample-table id="table"></tr-ui-a-power-sample-table>
     <tr-ui-a-frame-power-usage-chart id="chart">
     </tr-ui-a-frame-power-usage-chart>
-    <tr-ui-a-power-sample-table id="table"></tr-ui-a-power-sample-table>
   </template>
 </polymer-element>
 
