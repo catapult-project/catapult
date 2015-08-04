@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/ui/base/color_scheme.html">
 <link rel="import" href="/base/quad.html">
 <link rel="import" href="/base/range.html">
+<link rel="import" href="/base/utils.html">
 <link rel="import" href="/base/units/time.html">
 <link rel="import" href="/importer/importer.html">
 <link rel="import" href="/model/attribute.html">
@@ -34,35 +35,7 @@ tr.exportTo('tr.e.importer', function() {
 
   var Importer = tr.importer.Importer;
 
-  function deepCopy(value) {
-    if (!(value instanceof Object)) {
-      if (value === undefined || value === null)
-        return value;
-      if (typeof value == 'string')
-        return value.substring();
-      if (typeof value == 'boolean')
-        return value;
-      if (typeof value == 'number')
-        return value;
-      throw new Error('Unrecognized: ' + typeof value);
-    }
-
-    var object = value;
-    if (object instanceof Array) {
-      var res = new Array(object.length);
-      for (var i = 0; i < object.length; i++)
-        res[i] = deepCopy(object[i]);
-      return res;
-    }
-
-    if (object.__proto__ != Object.prototype)
-      throw new Error('Can only clone simple types');
-    var res = {};
-    for (var key in object) {
-      res[key] = deepCopy(object[key]);
-    }
-    return res;
-  }
+  var deepCopy = tr.b.deepCopy;
 
   function getEventColor(event, opt_customName) {
     if (event.cname)

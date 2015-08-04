@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/results/progress_reporter.html">
+<link rel="import" href="/perf_insights/results/output_formatter.html">
+
+<script>
+'use strict';
+
+tr.exportTo('perf_insights.r', function() {
+  var ProgressReporter = perf_insights.r.ProgressReporter;
+
+  function Results(opt_output_formatters, opt_progress_reporter) {
+    this.output_formatters = opt_output_formatters || [];
+    if (!(this.output_formatters instanceof Array))
+      throw new Error('output_formatters must be array');
+
+    this.progress_reporter = opt_progress_reporter ||
+        new ProgressReporter();
+    if (!(this.progress_reporter instanceof ProgressReporter))
+      throw new Error('output_formatters must be array');
+
+    this.all_values = [];
+    this._run_infos_that_have_failures_by_guid = {};
+  }
+
+  Results.prototype = {
+    willRun: function(run_info) {
+      this.progress_reporter.willRun(run_info);
+    },
+
+    addValue: function(value) {
+      this.all_values.push(value);
+      this.progress_reporter.didAddValue(value);
+    },
+
+    didRun: function(run_info) {
+      this.progress_reporter.didRun(run_info);
+    },
+
+    didFinishAllRuns: function() {
+      this.progress_reporter.didFinishAllRuns();
+      this.output_formatters.forEach(function(of) {
+        of.format(this);
+      }, this);
+    }
+  }
+
+
+  return {
+    Results: Results
+  }
+});
+</script>

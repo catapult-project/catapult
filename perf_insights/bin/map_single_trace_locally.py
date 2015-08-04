@@ -18,28 +18,17 @@ from perf_insights.results import gtest_progress_reporter
 
 def Main(args):
   parser = argparse.ArgumentParser(
-      description='Local bulk trace processing')
-  parser.add_argument('trace_directory')
-  parser.add_argument('--query')
+      description='Local single trace processing')
+  parser.add_argument('trace_file')
   parser.add_argument('map_file')
 
   parser.add_argument('-o', '--output-file')
-  parser.add_argument('-s', '--stop-on-error',
-                      action='store_true')
   args = parser.parse_args(args)
 
   if not os.path.exists(args.trace_directory):
     args.error('trace_directory does not exist')
   if not os.path.exists(args.map_file):
     args.error('map does not exist')
-
-  corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-      os.path.abspath(os.path.expanduser(args.trace_directory)))
-  if args.query is None:
-    query = get_trace_handles_query.GetTraceHandlesQuery.FromString('True')
-  else:
-    query = get_trace_handles_query.GetTraceHandlesQuery.FromString(
-        args.query)
 
   if args.output_file:
     ofile = open(args.output_file, 'w')
@@ -49,10 +38,8 @@ def Main(args):
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
   progress_reporter = gtest_progress_reporter.GTestProgressReporter(sys.stdout)
   results = results_module.Results([output_formatter], progress_reporter)
-
   try:
-    trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
-    _Run(results, trace_handles, args.map_file,
+    _Run(results, corpus_driver, query, args.map_file,
          stop_on_error=args.stop_on_error)
   finally:
     if ofile != sys.stdout:
@@ -62,8 +49,10 @@ def Main(args):
     return 255
   return 0
 
-def _Run(results, trace_handles, map_file,
+def _Run(results, corpus_driver, query, map_file,
          stop_on_error=False):
+
+  trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
 
   failed_run_info_to_dump = None
   for trace_handle in trace_handles:
