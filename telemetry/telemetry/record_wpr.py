@@ -8,13 +8,13 @@ import sys
 
 from telemetry import benchmark
 from telemetry import story
+from telemetry.core import discover
 from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import page_test
-from telemetry.util import classes_util
 from telemetry.util import wpr_modes
 
 
@@ -71,13 +71,15 @@ def _GetSubclasses(base_dir, cls):
   Returns:
     dict of {underscored_class_name: benchmark class}
   """
-  return classes_util.DiscoverClassesByClassName(base_dir, base_dir, cls)
+  return discover.DiscoverClasses(base_dir, base_dir, cls,
+                                  index_by_class_name=True)
 
 
 def _MaybeGetInstanceOfClass(target, base_dir, cls):
   if isinstance(target, cls):
     return target
-  return classes_util.MaybeGetInstanceOfClass(target, base_dir, base_dir, cls)
+  classes = _GetSubclasses(base_dir, cls)
+  return classes[target]() if target in classes else None
 
 
 def _PrintAllImpl(all_items, item_name, output_stream):
