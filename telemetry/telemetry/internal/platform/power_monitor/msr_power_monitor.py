@@ -118,7 +118,11 @@ class MsrPowerMonitorLinux(MsrPowerMonitor):
       logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
       return False
 
-    return self._CheckMSRs()
+    if not self._CheckMSRs():
+      logging.info('Try running tools/telemetry/build/linux_setup_msr.py.')
+      return False
+
+    return True
 
 
 class MsrPowerMonitorWin(MsrPowerMonitor):
