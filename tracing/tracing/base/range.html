@@ -84,6 +84,12 @@ tr.exportTo('tr.b', function() {
       return (this.min_ + this.max_) * 0.5;
     },
 
+    get duration() {
+      if (this.isEmpty_)
+        return 0;
+      return this.max_ - this.min_;
+    },
+
     equals: function(that) {
       if (this.isEmpty && that.isEmpty)
         return true;
@@ -93,6 +99,8 @@ tr.exportTo('tr.b', function() {
           this.max === that.max;
     },
 
+    // TODO(charliea): Reimplement the below four functions in terms of
+    // findIntersection().
     containsRange: function(range) {
       if (this.isEmpty || range.isEmpty)
         return false;
@@ -117,6 +125,19 @@ tr.exportTo('tr.b', function() {
         return false;
       return !(max < this.min ||
                min > this.max);
+    },
+
+    findIntersection: function(range) {
+      if (this.isEmpty || range.isEmpty)
+        return new Range();
+
+      var min = Math.max(this.min, range.min);
+      var max = Math.min(this.max, range.max);
+
+      if (max < min)
+        return new Range();
+
+      return Range.fromExplicitRange(min, max);
     }
   };
 

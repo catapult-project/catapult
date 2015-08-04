@@ -11,8 +11,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var Range = tr.b.Range;
+
   test('addValue', function() {
-    var range = new tr.b.Range();
+    var range = new Range();
     assert.isTrue(range.isEmpty);
     range.addValue(1);
     assert.isFalse(range.isEmpty);
@@ -26,20 +28,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addNonEmptyRange', function() {
-    var r1 = new tr.b.Range();
+    var r1 = new Range();
     r1.addValue(1);
     r1.addValue(2);
 
-    var r = new tr.b.Range();
+    var r = new Range();
     r.addRange(r1);
     assert.equal(1, r.min);
     assert.equal(2, r.max);
   });
 
   test('addEmptyRange', function() {
-    var r1 = new tr.b.Range();
+    var r1 = new Range();
 
-    var r = new tr.b.Range();
+    var r = new Range();
     r.addRange(r1);
     assert.isTrue(r.isEmpty);
     assert.isUndefined(r.min);
@@ -47,17 +49,72 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addRangeToRange', function() {
-    var r1 = new tr.b.Range();
+    var r1 = new Range();
     r1.addValue(1);
     r1.addValue(2);
 
-    var r = new tr.b.Range();
+    var r = new Range();
     r.addValue(3);
     r.addRange(r1);
 
     assert.isFalse(r.isEmpty);
     assert.equal(1, r.min);
     assert.equal(3, r.max);
+  });
+
+  test('duration', function() {
+    assert.equal(Range.fromExplicitRange(2, 4).duration, 2);
+  });
+
+  test('duration_singlePointRange', function() {
+    assert.equal(Range.fromExplicitRange(2, 2).duration, 0);
+  });
+
+  test('duration_emptyRange', function() {
+    assert.equal(new Range().duration, 0);
+  });
+
+  test('findIntersection_overlapping', function() {
+    var r1 = Range.fromExplicitRange(0, 2);
+    var r2 = Range.fromExplicitRange(1, 3);
+
+    var result = Range.fromExplicitRange(1, 2);
+    assert.deepEqual(r1.findIntersection(r2), result);
+    assert.deepEqual(r2.findIntersection(r1), result);
+  });
+
+  test('findIntersection_bordering', function() {
+    var r1 = Range.fromExplicitRange(0, 2);
+    var r2 = Range.fromExplicitRange(2, 4);
+
+    var result = Range.fromExplicitRange(2, 2);
+    assert.deepEqual(r1.findIntersection(r2), result);
+    assert.deepEqual(r2.findIntersection(r1), result);
+  });
+
+  test('findIntersection_singlePointRange', function() {
+    var r1 = Range.fromExplicitRange(0, 2);
+    var r2 = Range.fromExplicitRange(2, 2);
+
+    var result = Range.fromExplicitRange(2, 2);
+    assert.deepEqual(r1.findIntersection(r2), result);
+    assert.deepEqual(r2.findIntersection(r1), result);
+  });
+
+  test('findIntersection_disjoint', function() {
+    var r1 = Range.fromExplicitRange(0, 2);
+    var r2 = Range.fromExplicitRange(3, 5);
+
+    assert.isTrue(r1.findIntersection(r2).isEmpty);
+    assert.isTrue(r2.findIntersection(r1).isEmpty);
+  });
+
+  test('findIntersection_emptyRange', function() {
+    var r1 = Range.fromExplicitRange(0, 2);
+    var r2 = new Range();
+
+    assert.isTrue(r1.findIntersection(r2).isEmpty);
+    assert.isTrue(r2.findIntersection(r1).isEmpty);
   });
 });
 </script>
