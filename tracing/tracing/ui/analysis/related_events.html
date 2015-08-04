@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/task.html">
 <link rel="import" href="/model/event_set.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/analysis/flow_classifier.html">
@@ -106,74 +107,75 @@ found in the LICENSE file.
     },
 
     addConnectedEvents_: function(eventSet) {
-      if (eventSet.length === 0)
-        return;
+      this.createEventsLinkIfNeeded_(
+          'Preceding events',
+          'Add all events that have led to the selected one(s), connected by ' +
+              'flow arrows or by call stack.',
+          eventSet,
+          function(event, events) {
+            this.addInFlowEvents_(event, events);
+            this.addAncestors_(event, events);
+            if (event.startSlice)
+              events.push(event.startSlice);
+          }.bind(this));
+      this.createEventsLinkIfNeeded_(
+          'Following events',
+          'Add all events that have been caused by the selected one(s), ' +
+              'connected by flow arrows or by call stack.',
+          eventSet,
+          function(event, events) {
+            this.addOutFlowEvents_(event, events);
+            this.addDescendents_(event, events);
+            if (event.endSlice)
+              events.push(event.endSlice);
+          }.bind(this));
+      this.createEventsLinkIfNeeded_(
+          'All connected events',
+          'Add all events connected to the selected one(s) by flow arrows or ' +
+              'by call stack.',
+          eventSet,
+          function(event, events) {
+            this.addInFlowEvents_(event, events);
+            this.addOutFlowEvents_(event, events);
+            this.addAncestors_(event, events);
+            this.addDescendents_(event, events);
+            if (event.startSlice)
+              events.push(event.startSlice);
+            if (event.endSlice)
+              events.push(event.endSlice);
+          }.bind(this));
+    },
 
-      var precedingEvents = new tr.model.EventSet(eventSet.toArray());
-      var followingEvents = new tr.model.EventSet(eventSet.toArray());
-
-      var i = 0;
-      while (i < precedingEvents.length) {
-        var event = precedingEvents[i];
-        this.addInFlowEvents_(event, precedingEvents);
-        this.addAncestors_(event, precedingEvents);
-        if (event.startSlice)
-          precedingEvents.push(event.startSlice);
-        i++;
-      }
-
-      i = 0;
-      while (i < followingEvents.length) {
-        var event = followingEvents[i];
-        this.addOutFlowEvents_(event, followingEvents);
-        this.addDescendents_(event, followingEvents);
-        if (event.endSlice)
-          followingEvents.push(event.endSlice);
-        i++;
-      }
-
-      var allEvents = new tr.model.EventSet(precedingEvents.toArray());
-      followingEvents.forEach(function(e) {
-        allEvents.push(e);
-      });
-      i = 0;
-      while (i < allEvents.length) {
-        var event = allEvents[i];
-        this.addInFlowEvents_(event, allEvents);
-        this.addOutFlowEvents_(event, allEvents);
-        this.addAncestors_(event, allEvents);
-        this.addDescendents_(event, allEvents);
-        if (event.startSlice)
-          allEvents.push(event.startSlice);
-        if (event.endSlice)
-          allEvents.push(event.endSlice);
-        i++;
-      }
-
-      if (precedingEvents.length !== eventSet.length) {
+    createEventsLinkIfNeeded_: function(title, tooltip, events, addFunction) {
+      events = new tr.model.EventSet(events);
+      var lengthBefore = events.length;
+      var task;
+      function addEventsUntilTimeout(startingIndex) {
+        var startingTime = window.performance.now();
+        while (startingIndex < events.length) {
+          addFunction(events[startingIndex], events);
+          startingIndex++;
+          // Let's grant ourselves a budget of 8ms.
+          if (window.performance.now() - startingTime > 8) {
+            var newTask = new tr.b.Task(
+                addEventsUntilTimeout.bind(this, startingIndex), this);
+            task.after(newTask);
+            task = newTask;
+            return;
+          }
+        }
+        // Went through all events, add the link.
+        if (lengthBefore === events.length)
+          return;
         this.eventGroups_.push({
-          type: 'Preceding events',
-          tooltip: 'All events that have led to the selected one(s), ' +
-                   'connected by flow arrows or by hierarchy.',
-          selection: precedingEvents
+          type: title,
+          tooltip: tooltip,
+          selection: events
         });
-      }
-      if (followingEvents.length !== eventSet.length) {
-        this.eventGroups_.push({
-          type: 'Following events',
-          tooltip: 'All events that have been caused by the selected one(s), ' +
-                   'connected by flow arrows or by call stack.',
-          selection: followingEvents
-        });
-      }
-      if (allEvents.length !== eventSet.length) {
-        this.eventGroups_.push({
-          type: 'All connected events',
-          tooltip: 'All events connected to the selected one(s) by flow ' +
-                   'arrows or by call stack.',
-          selection: allEvents
-        });
-      }
+        this.updateContents_();
+      };
+      task = new tr.b.Task(addEventsUntilTimeout.bind(this, 0), this);
+      tr.b.Task.RunWhenIdle(task);
     },
 
     addInFlowEvents_: function(event, eventSet) {
