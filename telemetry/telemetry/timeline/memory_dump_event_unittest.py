@@ -72,6 +72,32 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
 
 
 class MemoryDumpEventUnitTest(unittest.TestCase):
+  def testRepr(self):
+    process_dump1 = TestProcessDumpEvent(
+        mmaps={'/dev/ashmem/other-ashmem': {'pss': 5}},
+        allocators={'v8': {'size': 10}})
+    process_dump2 = TestProcessDumpEvent(
+        mmaps={'/dev/ashmem/libc malloc': {'pss': 42, 'pd': 27}},
+        allocators={'v8': {'size': 20}, 'oilpan': {'size': 40}})
+    global_dump = memory_dump_event.GlobalMemoryDump(
+        [process_dump1, process_dump2])
+
+    self.assertEquals(
+        repr(process_dump1),
+        'ProcessMemoryDumpEvent[pid=1234, allocator_v8=10, mmaps_ashmem=5,'
+        ' mmaps_java_heap=0, mmaps_native_heap=0, mmaps_overall_pss=5,'
+        ' mmaps_private_dirty=0]')
+    self.assertEquals(
+        repr(process_dump2),
+        'ProcessMemoryDumpEvent[pid=1234, allocator_oilpan=40, allocator_v8=20,'
+        ' mmaps_ashmem=0, mmaps_java_heap=0, mmaps_native_heap=42,'
+        ' mmaps_overall_pss=42, mmaps_private_dirty=27]')
+    self.assertEquals(
+        repr(global_dump),
+        'GlobalMemoryDump[id=123456ABCDEF, allocator_oilpan=40,'
+        ' allocator_v8=30, mmaps_ashmem=5, mmaps_java_heap=0,'
+        ' mmaps_native_heap=42, mmaps_overall_pss=47, mmaps_private_dirty=27]')
+
   def testDumpEventsTiming(self):
     memory_dump = memory_dump_event.GlobalMemoryDump([
         TestProcessDumpEvent(pid=3, start=8),
@@ -89,7 +115,7 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     self.assertAlmostEquals(9.0,
                             memory_dump.duration)
 
-  def testGetStatsSummary(self):
+  def testGetMemoryUsage(self):
     ALL = [2 ** x for x in range(7)]
     (JAVA_HEAP_1, JAVA_HEAP_2, ASHMEM_1, ASHMEM_2, NATIVE,
      DIRTY_1, DIRTY_2) = ALL
@@ -113,7 +139,7 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                        'mmaps_native_heap': NATIVE},
                       memory_dump.GetMemoryUsage())
 
-  def testGetStatsSummaryDiscountsTracing(self):
+  def testGetMemoryUsageDiscountsTracing(self):
     ALL = [2 ** x for x in range(5)]
     (HEAP, DIRTY, MALLOC, TRACING_1, TRACING_2) = ALL
 

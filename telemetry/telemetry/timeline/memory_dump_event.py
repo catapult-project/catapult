@@ -144,7 +144,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     dump_id: A string to identify events belonging to the same global dump.
     process: The timeline.Process object that owns this memory dump event.
     has_mmaps: True if the memory dump has mmaps information. If False then
-        GetStatsSummary will report all zeros.
+        GetMemoryUsage will report all zeros.
   """
   def __init__(self, process, event):
     assert event['ph'] == 'v' and process.pid == event['pid']
@@ -202,8 +202,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
       category = category.GetMatchingChild(mapped_file)
 
   def __repr__(self):
-    values = ['pid=%d' % self.pid]
-    for key, value in sorted(self.GetStatsSummary().iteritems()):
+    values = ['pid=%d' % self.process.pid]
+    for key, value in sorted(self.GetMemoryUsage().iteritems()):
       values.append('%s=%d' % (key, value))
     values = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values)
@@ -256,7 +256,7 @@ class GlobalMemoryDump(object):
   Attributes:
     dump_id: A string identifying this dump.
     has_mmaps: True if the memory dump has mmaps information. If False then
-        GetStatsSummary will report all zeros.
+        GetMemoryUsage will report all zeros.
   """
   def __init__(self, process_dumps):
     assert process_dumps
@@ -290,7 +290,7 @@ class GlobalMemoryDump(object):
 
   def __repr__(self):
     values = ['id=%s' % self.dump_id]
-    for key, value in sorted(self.GetStatsSummary().iteritems()):
+    for key, value in sorted(self.GetMemoryUsage().iteritems()):
       values.append('%s=%d' % (key, value))
     values = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values)
