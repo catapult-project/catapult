@@ -2,15 +2,42 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import unittest
 
+from telemetry import decorators
 from telemetry.internal.platform.tracing_agent import (
     chrome_devtools_tracing_backend)
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_config
+from telemetry.timeline import tracing_options
+
+from pylib.device import device_utils
 
 
 class FakePlatformBackend(object):
   pass
+
+class FakeAndroidPlatformBackend(FakePlatformBackend):
+  def __init__(self):
+    devices = device_utils.DeviceUtils.HealthyDevices()
+    self.device = devices[0]
+
+  def GetOSName(self):
+    return 'android'
+
+class FakeLinuxPlatformBackend(FakePlatformBackend):
+  def GetOSName(self):
+    return 'linux'
+
+class FakeMacPlatformBackend(FakePlatformBackend):
+  def GetOSName(self):
+    return 'mac'
+
+class FakeWinPlatformBackend(FakePlatformBackend):
+  def GetOSName(self):
+    return 'win'
 
 
 class FakeDevtoolsClient(object):
@@ -178,3 +205,61 @@ class ChromeTracingAgentUnittest(unittest.TestCase):
     # Start & Stop tracing on platform 1 should work just fine.
     tracing_agent2 = self.StartTracing(self.platform1)
     self.StopTracing(tracing_agent2)
+
+  @decorators.Enabled('android')
+  def testCreateAndRemoveTraceConfigFileOnAndroid(self):
+    platform_backend = FakeAndroidPlatformBackend()
+    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
+    config = tracing_config.TracingConfig(
+        tracing_options.TracingOptions(),
+        tracing_category_filter.TracingCategoryFilter())
+    config_file_path = os.path.join(
+        chrome_tracing_agent._CHROME_TRACE_CONFIG_DIR_ANDROID,
+        chrome_tracing_agent._CHROME_TRACE_CONFIG_FILE_NAME)
+
+    agent._CreateTraceConfigFileOnAndroid(config)
+    config_file_str = platform_backend.device.ReadFile(config_file_path,
+                                                       as_root=True)
+    self.assertTrue(platform_backend.device.PathExists(config_file_path))
+    self.assertEqual(config.GetTraceConfigJsonString(),
+                     config_file_str.strip())
+
+    agent._RemoveTraceConfigFileOnAndroid()
+    self.assertFalse(platform_backend.device.PathExists(config_file_path))
+    # robust to multiple file removal
+    agent._RemoveTraceConfigFileOnAndroid()
+    self.assertFalse(platform_backend.device.PathExists(config_file_path))
+
+  def CreateAndRemoveTraceConfigFileOnDesktop(self, platform_backend):
+    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
+    config = tracing_config.TracingConfig(
+        tracing_options.TracingOptions(),
+        tracing_category_filter.TracingCategoryFilter())
+    config_file_path = os.path.join(
+        chrome_tracing_agent._CHROME_TRACE_CONFIG_DIR_DESKTOP,
+        chrome_tracing_agent._CHROME_TRACE_CONFIG_FILE_NAME)
+
+    agent._CreateTraceConfigFileOnDesktop(config)
+    self.assertTrue(os.path.exists(config_file_path))
+    with open(config_file_path, 'r') as f:
+      config_file_str = f.read()
+      self.assertEqual(config.GetTraceConfigJsonString(),
+                       config_file_str.strip())
+
+    agent._RemoveTraceConfigFileOnDesktop()
+    self.assertFalse(os.path.exists(config_file_path))
+    # robust to multiple file removal
+    agent._RemoveTraceConfigFileOnDesktop()
+    self.assertFalse(os.path.exists(config_file_path))
+
+  @decorators.Enabled('linux')
+  def testCreateAndRemoveTraceConfigFileOnLinux(self):
+    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeLinuxPlatformBackend())
+
+  @decorators.Enabled('mac')
+  def testCreateAndRemoveTraceConfigFileOnMac(self):
+    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeMacPlatformBackend())
+
+  @decorators.Enabled('win')
+  def testCreateAndRemoveTraceConfigFileOnWin(self):
+    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeWinPlatformBackend())
