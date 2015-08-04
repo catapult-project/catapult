@@ -101,7 +101,6 @@ class SourcePathsHandler(webapp2.RequestHandler):
     source_paths = kwargs.pop('_source_paths', [])
 
     path = self.request.path
-
     # This is how we do it. Its... strange, but its what we've done since
     # the dawn of time. Aka 4 years ago, lol.
     for mapped_path in source_paths:
@@ -112,6 +111,22 @@ class SourcePathsHandler(webapp2.RequestHandler):
         app.cache_control(no_cache=True)
         return app
     self.abort(404)
+
+
+class SimpleDirectoryHandler(webapp2.RequestHandler):
+  def get(self, *args, **kwargs):
+    top_path = os.path.abspath(kwargs.pop('_top_path', None))
+    if not top_path.endswith(os.path.sep):
+      top_path += os.path.sep
+
+    joined_path = os.path.abspath(
+        os.path.join(top_path, kwargs.pop('rest_of_path')))
+    if not joined_path.startswith(top_path):
+      self.response.set_status(403)
+      return
+    app = FileAppWithGZipHandling(joined_path)
+    app.cache_control(no_cache=True)
+    return app
 
 
 def CreateApp(project=None,
@@ -137,6 +152,8 @@ def CreateApp(project=None,
                           '_source_path': test_data_path,
                           '_mapped_path': '/test_data/'
                       }))
+  routes.append(Route('/test_data/<rest_of_path:.+>', SimpleDirectoryHandler,
+                      defaults={'_top_path': test_data_path}))
 
   if not skp_data_path:
     skp_data_path = project.skp_data_path
@@ -145,6 +162,8 @@ def CreateApp(project=None,
                           '_source_path': skp_data_path,
                           '_mapped_path': '/skp_data/'
                       }))
+  routes.append(Route('/skp_data/<rest_of_path:.+>', SimpleDirectoryHandler,
+                      defaults={'_top_path': skp_data_path}))
 
   # This must go last, because its catch-all.
   #
@@ -202,7 +221,6 @@ def Main(args):
       default=os.path.abspath(os.path.join(project.skp_data_path)))
   parser.add_argument('-p', '--port', default=8003, type=int)
   args = parser.parse_args(args=args)
-
   app = CreateApp(project,
                   test_data_path=args.data_dir,
                   skp_data_path=args.skp_data_dir)
