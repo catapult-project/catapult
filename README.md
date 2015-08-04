@@ -6,15 +6,20 @@
 Catapult
 ========
 
-Catapult is currently under construction! But when it is here, it will be a set
-of tools for performance analysis, testing, and monitoring:
- * [Trace-viewer](
-    https://www.chromium.org/developers/how-tos/trace-event-profiling-tool)
+Catapult is the home for several performance tools that span from gathering,
+displaying and analyzing performance data. This includes:
+
+ * [Trace-viewer](https://github.com/catapult-project/catapult/blob/master/tracing/README.md)
+ * [Performance Insights](https://github.com/catapult-project/catapult/blob/master/perf_insights/README.md)
  * [Telemetry](https://www.chromium.org/developers/telemetry)
- * [Performance Dashboard](https://chromeperf.appspot.com/)
+ * [Performance Dashboard](https://github.com/catapult-project/catapult/blob/master/dashboard/README.md)
 
-These tools were created by Chromium developers for performance debugging and
-testing of Chrome, but they can also be used for analyzing and monitoring
-websites, and eventually Android apps.
+These tools were created by Chromium developers for performance analysis,
+testing, and monitoring of Chrome, but they can also be used for analyzing and
+monitoring websites, and eventually Android apps.
 
-For background, see [Chrome Speed Infra](http://www.chromium.org/developers/speed-infra)
+Contributing
+============
+Please see [our contributor's guide](https://github.com/catapult-project/catapult/blob/master/CONTRIBUTING.md)
+
+**[Current build status](https://build.chromium.org/p/client.catapult/waterfall)**
