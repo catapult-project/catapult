@@ -14,10 +14,7 @@ class ValueTests(unittest.TestCase):
       'run_id': run_info.run_id,
       'type': 'dict',
       'name': 'MyDictValue',
-      'units': None,
       'important': False,
-      'description': None,
-      'ir_stable_id': None,
       'value': {'a': 1, 'b': 'b'}
     }
     v = value_module.Value.FromDict(run_info, d)
@@ -35,10 +32,8 @@ class ValueTests(unittest.TestCase):
       'run_id': run_info.run_id,
       'type': 'failure',
       'name': 'Error',
-      'units': None,
       'important': False,
       'description': 'Some error message',
-      'ir_stable_id': None,
       'stack_str': 'Some stack string'
     }
     v = value_module.Value.FromDict(run_info, d)
