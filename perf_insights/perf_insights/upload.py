@@ -45,6 +45,7 @@ class UploadPage(webapp2.RequestHandler):
 
     trace_object = trace_info.TraceInfo(id=trace_uuid)
     trace_object.prod = self.request.get('prod')
+    trace_object.network_type = self.request.get('network_type')
     trace_object.remote_addr = os.environ["REMOTE_ADDR"]
     tags_string = self.request.get('tags')
     if re.match('^[a-zA-Z0-9,]+$', tags_string): # ignore non alpha-numeric tags
