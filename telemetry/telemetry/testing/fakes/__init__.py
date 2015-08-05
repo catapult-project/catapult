@@ -231,6 +231,9 @@ class _FakeTab(object):
   def CloseConnections(self):
     pass
 
+  def Close(self):
+    pass
+
 
 class _FakeTabList(object):
   _current_tab_id = 0
