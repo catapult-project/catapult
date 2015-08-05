@@ -275,3 +275,14 @@ class PlatformBackend(object):
     Returns True if it is believed the attempt succeeded.
     """
     raise NotImplementedError()
+
+  def PathExists(self, path, timeout=None, retries=None):
+    """Tests whether the given path exists on the target platform.
+    Args:
+      path: path in request.
+      timeout: timeout.
+      retries: num of retries.
+    Return:
+      Whether the path exists on the target platform.
+    """
+    raise NotImplementedError()

@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
 from telemetry.core import cros_interface
 from telemetry.core import platform
 from telemetry.core import util
@@ -142,3 +144,9 @@ class CrosPlatformBackend(
 
   def StopMonitoringPower(self):
     return self._powermonitor.StopMonitoringPower()
+
+  def PathExists(self, path, timeout=None, retries=None):
+    if timeout or retries:
+      logging.warning(
+          'PathExists: params timeout and retries are not support on CrOS.')
+    return self._cri.FileExistsOnDevice(path)
