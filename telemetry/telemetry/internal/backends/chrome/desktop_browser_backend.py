@@ -201,7 +201,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
     env['CHROME_BREAKPAD_PIPE_NAME'] = self._GetCrashServicePipeName()
     self._crash_service = self._StartCrashService()
-    logging.debug('Starting Chrome %s', args)
+    logging.info('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
       self._proc = subprocess.Popen(
