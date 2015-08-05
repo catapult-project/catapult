@@ -26,6 +26,7 @@ EXCLUDED_BOTS = {
     'linux_perf_tester',
     'linux_perf_bisector',
     'win_perf_bisect_builder',
+    'win64_nv_tester',
     'win_x64_perf_bisect_builder',
     'linux_perf_bisect_builder',
     'mac_perf_bisect_builder',
