@@ -17,31 +17,20 @@ _TEMPERATURE_FILE = '/sys/class/thermal/thermal_zone0/temp'
 
 class AndroidTemperatureMonitor(power_monitor.PowerMonitor):
   """
-  Delegates monitoring to another PowerMonitor and adds temperature measurements
-  to overall results.
+  Returns temperature results in power monitor dictionary format.
   """
-  def __init__(self, monitor, device):
+  def __init__(self, device):
     super(AndroidTemperatureMonitor, self).__init__()
     self._device = device
-    self._power_monitor = monitor
-    self._can_monitor_with_power_monitor = None
 
   def CanMonitorPower(self):
-    self._can_monitor_with_power_monitor = (
-        self._power_monitor.CanMonitorPower())
-    # Always report ability to monitor power to be able to provide temperature
-    # metrics and other useful power-related data from sensors.
-    return True
+    return self._GetBoardTemperatureCelsius() is not None
 
   def StartMonitoringPower(self, browser):
-    if self._can_monitor_with_power_monitor:
-      self._power_monitor.StartMonitoringPower(browser)
+    pass
 
   def StopMonitoringPower(self):
-    if self._can_monitor_with_power_monitor:
-      power_data = self._power_monitor.StopMonitoringPower()
-    else:
-      power_data = {'identifier': 'android_temperature_monitor'}
+    power_data = {'identifier': 'android_temperature_monitor'}
 
     # Take the current temperature as average based on the assumption that the
     # temperature changes slowly during measurement time.

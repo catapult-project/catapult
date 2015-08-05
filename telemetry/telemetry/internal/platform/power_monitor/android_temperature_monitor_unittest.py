@@ -10,61 +10,41 @@ from telemetry.testing import simple_mock
 _ = simple_mock.DONT_CARE
 
 
-class TemperatureMonitorForTesting(
-    android_temperature_monitor.AndroidTemperatureMonitor):
-  """Overrides interaction with ADB to test the rest."""
-
-  def __init__(self, power_monitor, expected_temperature):
-    super(TemperatureMonitorForTesting, self).__init__(power_monitor, None)
-    self._expected_temperature = expected_temperature
-
-  def _GetBoardTemperatureCelsius(self):
-    return self._expected_temperature
-
-  def PowerMeasurementsConsistent(self, power_measurements):
-    platform_info = power_measurements.get('platform_info', {})
-    expected_temperature = platform_info.get('average_temperature_c')
-    return expected_temperature == self._expected_temperature
-
-
 class AndroidTemperatureMonitorTest(unittest.TestCase):
-  def testNoAttmptToMonitorIfIncapable(self):
-    mock_power_monitor = simple_mock.MockObject()
-    mock_power_monitor.ExpectCall('CanMonitorPower').WillReturn(False)
-
-    temperature_monitor = TemperatureMonitorForTesting(mock_power_monitor, 42.0)
-    self.assertTrue(temperature_monitor.CanMonitorPower())
-    temperature_monitor.StartMonitoringPower(None)
-    power_results = temperature_monitor.StopMonitoringPower()
-    self.assertTrue(
-        temperature_monitor.PowerMeasurementsConsistent(power_results))
 
   def testPowerMonitoringResultsWereUpdated(self):
-    mock_power_monitor = simple_mock.MockObject()
-    mock_power_monitor.ExpectCall('CanMonitorPower').WillReturn(True)
-    fake_measurement = {'identifier' : '123'}
-    mock_power_monitor.ExpectCall('StartMonitoringPower', _)
-    mock_power_monitor.ExpectCall('StopMonitoringPower').WillReturn(
-        fake_measurement)
-
-    temperature_monitor = TemperatureMonitorForTesting(mock_power_monitor, 24.0)
-    self.assertTrue(temperature_monitor.CanMonitorPower())
-    temperature_monitor.StartMonitoringPower(None)
-    measurements = temperature_monitor.StopMonitoringPower()
-    self.assertTrue(
-        temperature_monitor.PowerMeasurementsConsistent(measurements))
-    self.assertEqual('123', measurements['identifier'])
-
-  def testSysfsReadFailed(self):
-    mock_power_monitor = simple_mock.MockObject()
-    mock_power_monitor.ExpectCall('CanMonitorPower').WillReturn(False)
     mock_device_utils = simple_mock.MockObject()
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('')
+    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('0')
+    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('24')
 
     monitor = android_temperature_monitor.AndroidTemperatureMonitor(
-        mock_power_monitor, mock_device_utils)
+        mock_device_utils)
+    self.assertTrue(monitor.CanMonitorPower())
+    monitor.StartMonitoringPower(None)
+    measurements = monitor.StopMonitoringPower()
+    expected_return = {
+        'identifier': 'android_temperature_monitor',
+        'platform_info': {'average_temperature_c': 24.0}
+    }
+    self.assertDictEqual(expected_return, measurements)
+
+  def testSysfsReadFailed(self):
+    mock_device_utils = simple_mock.MockObject()
+    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('24')
+    mock_device_utils.ExpectCall('ReadFile', _).WillReturn(None)
+
+    monitor = android_temperature_monitor.AndroidTemperatureMonitor(
+        mock_device_utils)
     self.assertTrue(monitor.CanMonitorPower())
     monitor.StartMonitoringPower(None)
     measurements = monitor.StopMonitoringPower()
     self.assertTrue('identifier' in measurements)
-    self.assertTrue('component_utilization' not in measurements)
+    self.assertTrue('platform_info' not in measurements)
+
+  def testSysfsReadFailedCanMonitor(self):
+    mock_device_utils = simple_mock.MockObject()
+    mock_device_utils.ExpectCall('ReadFile', _).WillReturn(None)
+
+    monitor = android_temperature_monitor.AndroidTemperatureMonitor(
+        mock_device_utils)
+    self.assertFalse(monitor.CanMonitorPower())
