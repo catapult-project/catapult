@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import sys
 
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
@@ -118,10 +117,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '(1) Flashing to a userdebug build OR '
             '(2) Manually enabling web debugging in Chrome at '
             'Settings > Developer tools > Enable USB Web debugging.')
-        sys.exit(1)
+        self.Close()
+        raise
       except:
-        import traceback
-        traceback.print_exc()
         self.Close()
         raise
 

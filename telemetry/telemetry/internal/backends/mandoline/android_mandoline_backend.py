@@ -103,12 +103,9 @@ class AndroidMandolineBackend(
       self._InitDevtoolsClientBackend(self._port)
     except exceptions.BrowserGoneException:
       logging.critical('Failed to connect to browser.')
-      # TODO(yzshen): It seems wrong to catch exception and then exit, but this
-      # matches the behavior of AndroidBrowserBackend. Consider fixing both.
-      sys.exit(1)
+      self.Close()
+      raise
     except:
-      import traceback
-      traceback.print_exc()
       self.Close()
       raise
 
