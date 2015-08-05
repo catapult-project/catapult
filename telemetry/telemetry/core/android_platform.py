@@ -42,3 +42,8 @@ class AndroidPlatform(platform.Platform):
         self._platform_backend, start_intent, is_app_ready_predicate,
         app_has_webviews)
     return android_app.AndroidApp(app_backend, self._platform_backend)
+
+  def RelaxMemory(self):
+    """Request kernel to drop clean caches and reclaimable slab objects."""
+    self._platform_backend.device.RunShellCommand(
+        'echo 3 > /proc/sys/vm/drop_caches', check_return=True)

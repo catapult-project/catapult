@@ -62,7 +62,7 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     results.WillRunPage(test_page)
     metric = memory_timeline.MemoryTimelineMetric()
     metric.AddResults(model, None, interactions, results)
-    result_dict = {strip_prefix(v.name, 'memory_'): v.value
+    result_dict = {strip_prefix(v.name, 'memory_'): v.values
                    for v in results.current_page_run.values}
     results.DidRunPage(test_page)
     return result_dict
@@ -76,14 +76,14 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, 123)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals(123, self.getOverallPssTotal(model, interactions))
+    self.assertEquals([123], self.getOverallPssTotal(model, interactions))
 
   def testMultipleMemoryDumps(self):
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, 123),
         MockProcessDumpEvent('dump2', 'browser', 5, 456)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals(456, self.getOverallPssTotal(model, interactions))
+    self.assertEquals([123, 456], self.getOverallPssTotal(model, interactions))
 
   def testMultipleInteractions(self):
     model = MockTimelineModel([
@@ -92,7 +92,8 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
         MockProcessDumpEvent('dump3', 'browser', 13, 789)])
     interactions = [TestInteraction(1, 10),
                     TestInteraction(12, 15)]
-    self.assertEquals(789, self.getOverallPssTotal(model, interactions))
+    self.assertEquals([123, 456, 789],
+                      self.getOverallPssTotal(model, interactions))
 
   def testDumpsOutsideInteractionsAreFilteredOut(self):
     model = MockTimelineModel([
@@ -103,14 +104,14 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
         MockProcessDumpEvent('dump5', 'browser', 17, 789)])
     interactions = [TestInteraction(3, 10),
                     TestInteraction(12, 15)]
-    self.assertEquals(555, self.getOverallPssTotal(model, interactions))
+    self.assertEquals([123, 555], self.getOverallPssTotal(model, interactions))
 
   def testDumpsWithNoMemoryMapsAreFilteredOut(self):
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, 123),
         MockProcessDumpEvent('dump2', 'browser', 5, None)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals(123, self.getOverallPssTotal(model, interactions))
+    self.assertEquals([123], self.getOverallPssTotal(model, interactions))
 
   def testReturnsNoneWhenAllDumpsAreFilteredOut(self):
     model = MockTimelineModel([
@@ -126,11 +127,11 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     total = len(metrics) - 1
 
     expected = {}
-    expected.update(('%s_browser' % metric, value)
+    expected.update(('%s_browser' % metric, [value])
                     for metric, value in stats1.iteritems())
-    expected.update(('%s_renderer' % metric, value)
+    expected.update(('%s_renderer' % metric, [value])
                     for metric, value in stats2.iteritems())
-    expected.update(('%s_total' % metric, total) for metric in metrics)
+    expected.update(('%s_total' % metric, [total]) for metric in metrics)
 
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, stats1),
