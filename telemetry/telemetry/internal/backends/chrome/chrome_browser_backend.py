@@ -4,7 +4,7 @@
 
 import logging
 import pprint
-import re
+import shlex
 import sys
 
 from telemetry.core import exceptions
@@ -286,10 +286,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return 'renderer'
     if ':privileged_process' in cmd_line:
       return 'gpu-process'
-    m = re.match(r'.* --type=([^\s]*) .*', cmd_line)
-    if not m:
+    args = shlex.split(cmd_line)
+    types = [arg.split('=')[1] for arg in args if arg.startswith('--type=')]
+    if not types:
       return 'browser'
-    return m.group(1)
+    return types[0]
 
   def Close(self):
     if self._devtools_client:
