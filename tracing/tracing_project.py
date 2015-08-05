@@ -151,14 +151,16 @@ class TracingProject(project_module.Project):
     if affected_file.AbsoluteLocalPath().startswith(cls.test_data_path):
       return True
 
+    # Is OWNERS file?
+    if os.path.basename(affected_file.LocalPath()) == 'OWNERS':
+      return True
+
     if (affected_file.LocalPath().startswith('.gitignore') or
         affected_file.LocalPath().startswith('codereview.settings') or
         affected_file.LocalPath().startswith('LICENSE') or
-        affected_file.LocalPath().startswith('OWNERS') or
         affected_file.LocalPath().startswith('tracing/.allow-devtools-save') or
         affected_file.LocalPath().startswith('tracing/AUTHORS') or
         affected_file.LocalPath().startswith('tracing/LICENSE') or
-        affected_file.LocalPath().startswith('tracing/OWNERS') or
         affected_file.LocalPath().startswith('tracing/bower.json') or
         affected_file.LocalPath().startswith('tracing/.gitignore') or
         affected_file.LocalPath().startswith('tracing/.bowerrc') or
