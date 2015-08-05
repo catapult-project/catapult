@@ -537,6 +537,7 @@ class PageRunEndToEndTests(unittest.TestCase):
       self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
     self.assertFormattedExceptionOnlyHas('AppCrashException')
 
+  @decorators.Disabled('chromeos')  # crbug.com/516738
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()
     body = []
