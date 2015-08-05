@@ -99,32 +99,26 @@ tr.exportTo('tr.b', function() {
           this.max === that.max;
     },
 
-    // TODO(charliea): Reimplement the below four functions in terms of
-    // findIntersection().
     containsRange: function(range) {
       if (this.isEmpty || range.isEmpty)
         return false;
-      return this.min <= range.min && this.max >= range.max;
+
+      return this.findIntersection(range).duration == range.duration;
     },
 
     containsExplicitRange: function(min, max) {
-      if (this.isEmpty)
-        return false;
-      return this.min <= min && this.max >= max;
+      return this.containsRange(Range.fromExplicitRange(min, max));
     },
 
     intersectsRange: function(range) {
       if (this.isEmpty || range.isEmpty)
         return false;
-      return !(range.max < this.min ||
-               range.min > this.max);
+
+      return !this.findIntersection(range).isEmpty;
     },
 
     intersectsExplicitRange: function(min, max) {
-      if (this.isEmpty)
-        return false;
-      return !(max < this.min ||
-               min > this.max);
+      return this.intersectsRange(Range.fromExplicitRange(min, max));
     },
 
     findIntersection: function(range) {
