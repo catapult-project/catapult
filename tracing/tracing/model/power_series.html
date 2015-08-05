@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/range.html">
 <link rel="import" href="/model/event_container.html">
 <link rel="import" href="/model/power_sample.html">
 
@@ -54,8 +55,30 @@ tr.exportTo('tr.model', function() {
       return sample;
     },
 
-    // TODO(charliea): Add a function that allows us to measure the total energy
-    // consumed between two timestamps.
+    /**
+     * Returns the total energy (in Joules) consumed between the specified
+     * start and end timestamps (in milliseconds).
+     */
+    getEnergyConsumed: function(start, end) {
+      var measurementRange = tr.b.Range.fromExplicitRange(start, end);
+
+      var energyConsumed = 0;
+      for (var i = 0; i < this.samples.length; i++) {
+        var sample = this.samples[i];
+        var nextSample = this.samples[i + 1];
+
+        var sampleRange = new tr.b.Range();
+        sampleRange.addValue(sample.start);
+        sampleRange.addValue(nextSample ? nextSample.start : Infinity);
+
+        var timeIntersection = measurementRange.findIntersection(sampleRange);
+
+        // Divide by 1000 to convert milliseconds to seconds.
+        energyConsumed += timeIntersection.duration / 1000 * sample.power;
+      }
+
+      return energyConsumed;
+    },
 
     shiftTimestampsForward: function(amount) {
       for (var i = 0; i < this.samples_.length; ++i)
