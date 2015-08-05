@@ -119,7 +119,7 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertTrue(found_video_start_event)
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('mac')  # crbug.com/499207.
+  @decorators.Disabled('mac', 'linux')  # crbug.com/499207.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
