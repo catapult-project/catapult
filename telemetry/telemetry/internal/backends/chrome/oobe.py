@@ -95,21 +95,19 @@ class Oobe(web_contents.WebContents):
 
   def _NavigateWebViewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen"""
-    self._NavigateWebViewEntry('identifierId', username)
-    self._GaiaWebviewContext().WaitForJavaScriptExpression(
-        "document.getElementById('identifierId') == null", 20)
-    self._NavigateWebViewEntry('password', password)
+    self._NavigateWebViewEntry('identifierId', username, 'identifierNext')
+    self._NavigateWebViewEntry('password', password, 'next')
     if wait_for_close:
       util.WaitFor(lambda: not self._GaiaWebviewContext(), 20)
 
-  def _NavigateWebViewEntry(self, field, value):
+  def _NavigateWebViewEntry(self, field, value, nextField):
     self._WaitForField(field)
-    self._WaitForField('next')
+    self._WaitForField(nextField)
     gaia_webview_context = self._GaiaWebviewContext()
     gaia_webview_context.EvaluateJavaScript("""
        document.getElementById('%s').value='%s';
-       document.getElementById('next').click()"""
-           % (field, value))
+       document.getElementById('%s').click()"""
+           % (field, value, nextField))
 
   def _WaitForField(self, field_id):
     gaia_webview_context = util.WaitFor(self._GaiaWebviewContext, 5)
