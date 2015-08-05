@@ -649,12 +649,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         ' Thread Name: ' + this.pid2name(to_trans.calling_pid);
 
       var ts = from.start;
-      var flow = new tr.model.FlowEvent('binder', ts, title, 1, ts, []);
+      var flow = new tr.model.FlowEvent('binder', 'binder',
+          title, 1, ts, []);
       flow.startSlice = from;
       flow.endSlice = to;
       flow.start = from.start;
       flow.duration = to.start - ts;
-      flow.colorId = 1;
 
       from.outFlowEvents.push(flow);
       to.inFlowEvents.push(flow);
