@@ -52,40 +52,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   MemReclaimParser.prototype = {
     __proto__: Parser.prototype,
 
-    openAsyncSlice: function(ts, category, threadName, pid, key, name) {
-      var kthread = this.importer.getOrCreateKernelThread(
-          category + ':' + threadName, pid);
-      var slice = new tr.model.AsyncSlice(
-          category, name,
-          tr.c.getColorIdForGeneralPurposeString(name),
-          ts);
-      slice.startThread = kthread.thread;
-
-      if (!kthread.openAsyncSlices) {
-        kthread.openAsyncSlices = { };
-      }
-      kthread.openAsyncSlices[key] = slice;
-    },
-
-    closeAsyncSlice: function(ts, category, threadName, pid, key, args) {
-      var kthread = this.importer.getOrCreateKernelThread(
-          category + ':' + threadName, pid);
-      if (kthread.openAsyncSlices) {
-        var slice = kthread.openAsyncSlices[key];
-        if (slice) {
-          slice.duration = ts - slice.start;
-          slice.args = args;
-          slice.endThread = kthread.thread;
-          slice.subSlices = [
-            new tr.model.Slice(category, slice.title,
-                slice.colorId, slice.start, slice.args, slice.duration)
-          ];
-          kthread.thread.asyncSliceGroup.push(slice);
-          delete kthread.openAsyncSlices[key];
-        }
-      }
-    },
-
     /**
      * Parses memreclaim events and sets up state in the importer.
      */
@@ -94,12 +60,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event)
         return false;
 
+      var tgid = parseInt(eventBase.tgid);
+
       var nid = parseInt(event[1]);
       var order = parseInt(event[2]);
 
       var kthread = this.importer.getOrCreateKernelThread(
-          'kswapd: ' + eventBase.threadName,
-          pid, pid);
+          eventBase.threadName, tgid, pid);
+
       if (kthread.openSliceTS) {
         if (order > kthread.order) {
           kthread.order = order;
@@ -112,19 +80,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     kswapdSleep: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var kthread = this.importer.getOrCreateKernelThread(
-          'kswapd: ' + eventBase.threadName,
-          pid, pid);
-      if (kthread.openSliceTS) {
-        var slice = new tr.model.Slice('', eventBase.threadName,
-            tr.ui.b.getColorIdForGeneralPurposeString(eventBase.threadName),
-            kthread.openSliceTS,
-            {
-                order: kthread.order
-            },
-            ts - kthread.openSliceTS);
+      var tgid = parseInt(eventBase.tgid);
 
-        kthread.thread.sliceGroup.pushSlice(slice);
+      var kthread = this.importer.getOrCreateKernelThread(
+          eventBase.threadName, tgid, pid);
+
+      if (kthread.openSliceTS) {
+
+        kthread.thread.sliceGroup.pushCompleteSlice(
+            'memreclaim', eventBase.threadName, kthread.openSliceTS,
+            ts - kthread.openSliceTS, 0, 0,
+            {
+              order: kthread.order
+            });
       }
       kthread.openSliceTS = undefined;
       kthread.order = undefined;
@@ -138,10 +106,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       var order = parseInt(event[1]);
       var gfp = event[2];
+      var tgid = parseInt(eventBase.tgid);
 
       var kthread = this.importer.getOrCreateKernelThread(
-          'direct reclaim: ' + eventBase.threadName,
-          pid, pid);
+          eventBase.threadName, tgid, pid);
+
       kthread.openSliceTS = ts;
       kthread.order = order;
       kthread.gfp = gfp;
@@ -154,22 +123,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         return false;
 
       var nr_reclaimed = parseInt(event[1]);
+      var tgid = parseInt(eventBase.tgid);
 
       var kthread = this.importer.getOrCreateKernelThread(
-          'direct reclaim: ' + eventBase.threadName,
-          pid, pid);
+          eventBase.threadName, tgid, pid);
+
       if (kthread.openSliceTS !== undefined) {
-        var slice = new tr.model.Slice(
-            '', 'direct reclaim',
-            tr.ui.b.getColorIdForGeneralPurposeString(eventBase.threadName),
-            kthread.openSliceTS,
+        kthread.thread.sliceGroup.pushCompleteSlice('memreclaim',
+            'direct reclaim', kthread.openSliceTS, ts - kthread.openSliceTS,
+            0, 0,
             {
-                order: kthread.order,
-                gfp: kthread.gfp,
-                nr_reclaimed: nr_reclaimed
-            },
-            ts - kthread.openSliceTS);
-        kthread.thread.sliceGroup.pushSlice(slice);
+              order: kthread.order,
+              gfp: kthread.gfp,
+              nr_reclaimed: nr_reclaimed
+            });
       }
       kthread.openSliceTS = undefined;
       kthread.order = undefined;
