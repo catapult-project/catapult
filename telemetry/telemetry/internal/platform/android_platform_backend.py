@@ -10,7 +10,7 @@ import stat
 import subprocess
 import tempfile
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import platform

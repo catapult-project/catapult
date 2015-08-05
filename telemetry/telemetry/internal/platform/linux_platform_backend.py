@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 from catapult_base import cloud_storage
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import os_version
 from telemetry.core import util
 from telemetry import decorators

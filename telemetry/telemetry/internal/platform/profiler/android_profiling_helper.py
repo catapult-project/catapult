@@ -11,7 +11,7 @@ import re
 import shutil
 import subprocess
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import platform as telemetry_platform
 from telemetry.core import util
 from telemetry import decorators

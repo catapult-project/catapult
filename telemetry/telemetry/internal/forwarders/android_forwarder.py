@@ -9,7 +9,7 @@ import socket
 import struct
 import subprocess
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal import forwarders

@@ -15,7 +15,7 @@ import sys
 import tempfile
 import time
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.backends import browser_backend

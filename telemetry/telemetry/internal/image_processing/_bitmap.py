@@ -12,7 +12,7 @@ import cStringIO
 import struct
 import subprocess
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.util import color_histogram

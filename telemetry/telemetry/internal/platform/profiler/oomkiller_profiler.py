@@ -4,7 +4,7 @@
 
 import os
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler

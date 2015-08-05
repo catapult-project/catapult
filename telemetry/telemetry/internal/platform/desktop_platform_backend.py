@@ -5,7 +5,7 @@
 import os
 import subprocess
 
-from catapult_base import binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.internal.platform import platform_backend
 
 
