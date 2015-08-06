@@ -43,6 +43,10 @@ tr.exportTo('tr.e.rail', function() {
   var INPUT_MERGE_THRESHOLD_MS = 200;
   var ANIMATION_MERGE_THRESHOLD_MS = 1;
 
+  // If two MouseWheel events begin this close together, then they're an
+  // Animation, not two responses.
+  var MOUSE_WHEEL_THRESHOLD_MS = 40;
+
   var INSIGNIFICANT_MS = 1;
 
   var KEYBOARD_TYPE_NAMES = [
@@ -52,9 +56,11 @@ tr.exportTo('tr.e.rail', function() {
     INPUT_TYPE.KEY_UP
   ];
   var MOUSE_RESPONSE_TYPE_NAMES = [
-    INPUT_TYPE.MOUSE_WHEEL,
     INPUT_TYPE.CLICK,
     INPUT_TYPE.CONTEXT_MENU
+  ];
+  var MOUSE_WHEEL_TYPE_NAMES = [
+    INPUT_TYPE.MOUSE_WHEEL
   ];
   var MOUSE_DRAG_TYPE_NAMES = [
     INPUT_TYPE.MOUSE_DOWN,
@@ -88,6 +94,7 @@ tr.exportTo('tr.e.rail', function() {
   var ALL_HANDLED_TYPE_NAMES = [].concat(
     KEYBOARD_TYPE_NAMES,
     MOUSE_RESPONSE_TYPE_NAMES,
+    MOUSE_WHEEL_TYPE_NAMES,
     MOUSE_DRAG_TYPE_NAMES,
     PINCH_TYPE_NAMES,
     TAP_TYPE_NAMES,
@@ -273,6 +280,7 @@ tr.exportTo('tr.e.rail', function() {
       // This order is not important. Handlers are independent.
       protoIRs.push.apply(protoIRs, this.handleKeyboardEvents());
       protoIRs.push.apply(protoIRs, this.handleMouseResponseEvents());
+      protoIRs.push.apply(protoIRs, this.handleMouseWheelEvents());
       protoIRs.push.apply(protoIRs, this.handleMouseDragEvents());
       protoIRs.push.apply(protoIRs, this.handleTapResponseEvents());
       protoIRs.push.apply(protoIRs, this.handlePinchEvents());
@@ -313,11 +321,49 @@ tr.exportTo('tr.e.rail', function() {
     // Some mouse events can be translated directly into Responses.
     handleMouseResponseEvents: function() {
       var protoIRs = [];
-      this.getSortedInputEvents(MOUSE_RESPONSE_TYPE_NAMES).forEach(
-          function(event) {
-            var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+      var mouseEvents = this.getSortedInputEvents(MOUSE_RESPONSE_TYPE_NAMES);
+      mouseEvents.forEach(function(event) {
+        var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+        pir.pushEvent(event);
+        protoIRs.push(pir);
+      });
+      return protoIRs;
+    },
+
+    // MouseWheel events are caused either by a physical wheel on a physical
+    // mouse, or by a touch-drag gesture on a track-pad. The physical wheel
+    // causes MouseWheel events that are much more spaced out, and have no
+    // chance of hitting 60fps, so they are each turned into separate Response
+    // IRs. The track-pad causes MouseWheel events that are much closer
+    // together, and are expected to be 60fps, so the first event in a sequence
+    // is turned into a Response, and the rest are merged into an Animation.
+    // NB this threshold uses the two events' start times, unlike
+    // ProtoIR.isNear, which compares the end time of the previous event with
+    // the start time of the next.
+    handleMouseWheelEvents: function() {
+      var protoIRs = [];
+      var currentPIR = undefined;
+      var prevEvent_ = undefined;
+      var wheelEvents = this.getSortedInputEvents(MOUSE_WHEEL_TYPE_NAMES);
+      wheelEvents.forEach(function(event) {
+        // Switch prevEvent in one place so that we can early-return later.
+        var prevEvent = prevEvent_;
+        prevEvent_ = event;
+
+        if (currentPIR &&
+            (prevEvent.start + MOUSE_WHEEL_THRESHOLD_MS) >= event.start) {
+          if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
+            currentPIR.pushEvent(event);
+          } else {
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          }
+          return;
+        }
+        currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+        currentPIR.pushEvent(event);
+        protoIRs.push(currentPIR);
       });
       return protoIRs;
     },

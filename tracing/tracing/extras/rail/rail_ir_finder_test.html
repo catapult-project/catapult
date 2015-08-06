@@ -126,6 +126,35 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('mouseWheelAnimation', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 0, end: 20});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 16, end: 36});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 55, end: 75});
+
+      // This threshold uses both events' start times, not end...start.
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 100, end: 150});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 141, end: 191});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+          {start: 182, end: 200});
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 20, eventCount: 1},
+      {title: 'Animation', start: 20, end: 75, eventCount: 2},
+      {title: 'Idle', start: 75, end: 100, eventCount: 0},
+      {title: 'Response', start: 100, end: 150, eventCount: 1},
+      {title: 'Response', start: 141, end: 191, eventCount: 1},
+      {title: 'Response', start: 182, end: 200, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
   test('mouseDownUpResponse', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
