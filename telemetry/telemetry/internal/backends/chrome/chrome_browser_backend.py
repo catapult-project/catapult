@@ -73,6 +73,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return None
     return extension_backend.ExtensionBackendDict(self)
 
+  def _ArgsNeedProxyServer(self, args):
+    """Returns True if args for Chrome indicate the need for proxy server."""
+    if '--enable-spdy-proxy-auth' in args:
+      return True
+    return [arg for arg in args if arg.startswith('--proxy-server=')]
+
   def GetBrowserStartupArgs(self):
     args = []
     args.extend(self.browser_options.extra_browser_args)
@@ -90,8 +96,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     # Set --no-proxy-server to work around some XP issues unless
     # some other flag indicates a proxy is needed.
-    if not '--enable-spdy-proxy-auth' in args:
-      args.append('--no-proxy-server')
+    if not self._ArgsNeedProxyServer(args):
+      self.browser_options.no_proxy_server = True
 
     if self.browser_options.disable_background_networking:
       args.append('--disable-background-networking')
