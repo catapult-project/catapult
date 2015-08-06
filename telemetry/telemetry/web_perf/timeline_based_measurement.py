@@ -54,9 +54,15 @@ class InvalidInteractions(Exception):
 # TODO(nednguyen): Get rid of this results wrapper hack after we add interaction
 # record to telemetry value system (crbug.com/453109)
 class ResultsWrapperInterface(object):
-  def __init__(self, results, label):
+  def __init__(self):
+    self._tir_label = None
+    self._results = None
+
+  def SetResults(self, results):
     self._results = results
-    self._result_prefix = label
+
+  def SetTirLabel(self, tir_label):
+    self._tir_label = tir_label
 
   @property
   def current_page(self):
@@ -69,7 +75,8 @@ class ResultsWrapperInterface(object):
 class _TBMResultWrapper(ResultsWrapperInterface):
 
   def AddValue(self, value):
-    value.name = '%s-%s' % (self._result_prefix, value.name)
+    assert self._tir_label
+    value.name = '%s-%s' % (self._tir_label, value.name)
     self._results.AddValue(value)
 
 
@@ -100,11 +107,11 @@ def _GetRendererThreadsToInteractionRecordsMap(model):
 
 class _TimelineBasedMetrics(object):
   def __init__(self, model, renderer_thread, interaction_records,
-              results_wrapper_class=_TBMResultWrapper):
+               results_wrapper):
     self._model = model
     self._renderer_thread = renderer_thread
     self._interaction_records = interaction_records
-    self._results_wrapper_class = results_wrapper_class
+    self._results_wrapper = results_wrapper
 
   def AddResults(self, results):
     interactions_by_label = defaultdict(list)
@@ -116,8 +123,9 @@ class _TimelineBasedMetrics(object):
       if not all(are_repeatable) and len(interactions) > 1:
         raise InvalidInteractions('Duplicate unrepeatable interaction records '
                                   'on the page')
-      wrapped_results = self._results_wrapper_class(results, label)
-      self.UpdateResultsByMetric(interactions, wrapped_results)
+      self._results_wrapper.SetResults(results)
+      self._results_wrapper.SetTirLabel(label)
+      self.UpdateResultsByMetric(interactions, self._results_wrapper)
 
   def UpdateResultsByMetric(self, interactions, wrapped_results):
     if not interactions:
@@ -208,14 +216,14 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
   Args:
       options: an instance of timeline_based_measurement.Options.
-      results_wrapper_class: A class that has the __init__ method takes in
+      results_wrapper: A class that has the __init__ method takes in
         the page_test_results object and the interaction record label. This
         class follows the ResultsWrapperInterface. Note: this class is not
         supported long term and to be removed when crbug.com/453109 is resolved.
   """
-  def __init__(self, options, results_wrapper_class=_TBMResultWrapper):
+  def __init__(self, options, results_wrapper=None):
     self._tbm_options = options
-    self._results_wrapper_class = results_wrapper_class
+    self._results_wrapper = results_wrapper or _TBMResultWrapper()
 
   def WillRunStory(self, platform):
     """Set up test according to the tbm options."""
@@ -260,7 +268,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         threads_to_records_map.iteritems()):
       meta_metrics = _TimelineBasedMetrics(
           model, renderer_thread, interaction_records,
-          self._results_wrapper_class)
+          self._results_wrapper)
       meta_metrics.AddResults(results)
 
   def DidRunStoryForPageTest(self, tracing_controller):

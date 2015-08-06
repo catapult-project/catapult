@@ -45,6 +45,7 @@ class TimelineBasedMetricTestData(object):
     self._foo_thread = renderer_process.GetOrCreateThread(3)
     self._foo_thread.name = 'CrFoo'
 
+    self._results_wrapper = tbm_module._TBMResultWrapper()
     self._results = page_test_results.PageTestResults()
     self._story_set = None
     self._threads_to_records_map = None
@@ -88,7 +89,7 @@ class TimelineBasedMetricTestData(object):
   def AddResults(self):
     for thread, records in self._threads_to_records_map.iteritems():
       metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-        self._model, thread, records)
+          self._model, thread, records, self._results_wrapper)
       metric.AddResults(self._results)
     self._results.DidRunPage(self._story_set.stories[0])
 

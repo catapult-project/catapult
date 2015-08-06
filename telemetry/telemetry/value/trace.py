@@ -23,6 +23,7 @@ util.AddDirToPythonPath(
 
 from tracing.build import trace2html
 
+
 class TraceValue(value_module.Value):
   def __init__(self, page, trace_data, important=False, description=None):
     """A value that contains a TraceData object and knows how to
