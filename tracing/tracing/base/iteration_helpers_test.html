@@ -115,6 +115,33 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(Object.keys(dstDict), 0);
   });
 
+  test('filterItemsSimple', function() {
+    var someThisArg = {};
+    var srcDict = {a: 0, b: 30};
+    var dstDict = tr.b.filterItems(srcDict, function(key, value) {
+      assert.equal(this, someThisArg);
+      return value >= 30;
+    }, someThisArg);
+    assert.lengthOf(Object.keys(dstDict), 1);
+    assert.equal(dstDict.b, 30);
+  });
+
+  test('filterItemsInheritedProps', function() {
+    var srcDict = {
+      a: 0,
+      b: 30,
+      __proto__: {
+        c: 40
+      }
+    };
+    var dstDict = tr.b.filterItems(srcDict, function(key, value) {
+      return value >= 30;
+    });
+    assert.lengthOf(Object.keys(dstDict), 1);
+    assert.equal(dstDict.b, 30);
+  });
+
+
   test('identity', function() {
     // Undefined value.
     assert.isUndefined(tr.b.identity(undefined));

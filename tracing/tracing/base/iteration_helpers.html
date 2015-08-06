@@ -141,6 +141,19 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  function filterItems(dict, predicate, opt_this) {
+    opt_this = opt_this || this;
+    var result = {};
+    var keys = Object.keys(dict);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var value = dict[key];
+      if (predicate.call(opt_this, key, value))
+        result[key] = value;
+    }
+    return result;
+  }
+
   function iterObjectFieldsRecursively(object, func) {
     if (!(object instanceof Object))
       return;
@@ -201,6 +214,7 @@ tr.exportTo('tr.b', function() {
     group: group,
     iterItems: iterItems,
     mapItems: mapItems,
+    filterItems: filterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
     identity: identity,
     findFirstIndexInArray: findFirstIndexInArray,
