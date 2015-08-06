@@ -919,6 +919,10 @@ tr.exportTo('tr.e.importer', function() {
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;
+
+          slice.startStackFrame = this.getStackFrameForEvent_(startState.event);
+          slice.endStackFrame = this.getStackFrameForEvent_(endState.event);
+
           slice.id = key;
           if (sliceError !== undefined)
             slice.error = sliceError;
