@@ -53,18 +53,19 @@ Correct listing:
 
 
 def GetKnownFiles():
-  p = tracing_project.TracingProject()
-  m = p.loader.LoadModule(module_name='ui.extras.about_tracing.about_tracing')
+  project = tracing_project.TracingProject()
+
+  vulcanizer = project.CreateVulcanizer()
+  m = vulcanizer.loader.LoadModule(
+      module_name='ui.extras.about_tracing.about_tracing')
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 
-  return list(set([os.path.relpath(f, p.tracing_root_path)
+  return list(set([os.path.relpath(f, project.tracing_root_path)
                    for f in absolute_filenames]))
 
 
 def CheckCommon(file_name, listed_files):
-  tracing_project.TracingProject()
-
   known_files = GetKnownFiles()
   u = set(listed_files).union(set(known_files))
   i = set(listed_files).intersection(set(known_files))

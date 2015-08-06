@@ -18,11 +18,14 @@ from tracing import tracing_project
 import vinn
 
 
+def _RelPathToUnixPath(p):
+  return p.replace(os.sep, '/')
+
+
 def Main(args):
   project = tracing_project.TracingProject()
-  d8_test_module_resources = project.FindAllD8TestModuleResources()
-  d8_test_module_filenames = [x.unix_style_relative_path
-                              for x in d8_test_module_resources]
+  d8_test_module_filenames = [_RelPathToUnixPath(x)
+                              for x in project.FindAllD8TestModuleRelPaths()]
   d8_test_module_filenames.sort()
 
   cmd = """

@@ -81,11 +81,13 @@ def WriteTraceViewer(output_file,
   module_names = [project.GetModuleNameForConfigName(config_name)]
   if extra_module_names_to_load:
     module_names += extra_module_names_to_load
-  load_sequence = project.CalcLoadSequenceForModuleNames(
+
+  vulcanizer = project.CreateVulcanizer()
+  load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(
       module_names)
 
   if report_deps:
-    sys.stdout.write(project.GetDepsGraphFromModuleNames(module_names))
+    sys.stdout.write(vulcanizer.GetDepsGraphFromModuleNames(module_names))
 
   generate.GenerateStandaloneHTMLToFile(
       output_file, load_sequence,

@@ -88,7 +88,8 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
       project.GetModuleNameForConfigName(config_name)
   ]
 
-  load_sequence = project.CalcLoadSequenceForModuleNames(modules)
+  vulcanizer = project.CreateVulcanizer()
+  load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(modules)
 
   scripts = []
   for trace_data in trace_data_list:

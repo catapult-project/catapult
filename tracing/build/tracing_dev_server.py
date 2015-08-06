@@ -40,12 +40,13 @@ def _GetFilesIn(basedir):
   return data_files
 
 
+def _RelPathToUnixPath(p):
+  return p.replace(os.sep, '/')
+
 class TestListHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):
-    test_module_resources = self.app.project.FindAllTestModuleResources()
-
-    test_relpaths = [x.unix_style_relative_path
-                     for x in test_module_resources]
+    test_relpaths = [_RelPathToUnixPath(x)
+                     for x in self.app.project.FindAllTestModuleRelPaths()]
 
     tests = {'test_relpaths': test_relpaths}
     tests_as_json = json.dumps(tests)

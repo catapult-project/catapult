@@ -6,6 +6,7 @@ import sys
 import os
 import re
 
+
 from tvcm import project as project_module
 
 
@@ -21,7 +22,7 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
-def _IsFilenameATest(loader, x):  # pylint: disable=unused-argument
+def _IsFilenameATest(x):  # pylint: disable=unused-argument
   if x.endswith('_test.js'):
     return True
 
@@ -38,7 +39,7 @@ def _IsFilenameATest(loader, x):  # pylint: disable=unused-argument
   return False
 
 
-class TracingProject(project_module.Project):
+class TracingProject():
   tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
   tracing_root_path = os.path.abspath(os.path.join(tracing_path, 'tracing'))
   tracing_src_path = os.path.abspath(os.path.join(tracing_root_path, 'tracing'))
@@ -68,8 +69,8 @@ class TracingProject(project_module.Project):
   rcssmin_path = os.path.abspath(os.path.join(
       tracing_third_party_path, 'tvcm', 'third_party', 'rcssmin'))
 
-  def __init__(self, *args, **kwargs):
-    super(TracingProject, self).__init__(*args, **kwargs)
+  def __init__(self):
+    self.source_paths = []
     self.source_paths.append(self.tracing_src_path)
     self.source_paths.append(self.tracing_root_path)
     self.source_paths.append(self.tracing_third_party_path)
@@ -79,24 +80,26 @@ class TracingProject(project_module.Project):
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
 
+  def CreateVulcanizer(self):
+    return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):
     return not filename.startswith(self.ui_path)
 
-  def FindAllTestModuleResources(self):
+  def FindAllTestModuleRelPaths(self, pred=None):
+    if pred is None:
+      pred = lambda x: True
+
     all_filenames = _FindAllFilesRecursive([self.tracing_src_path])
     test_module_filenames = [x for x in all_filenames if
-                             _IsFilenameATest(self.loader, x)]
+                             _IsFilenameATest(x) and pred(x)]
     test_module_filenames.sort()
 
-    # Find the equivalent resources.
-    return [self.loader.FindResourceGivenAbsolutePath(x)
+    return [os.path.relpath(x, self.tracing_src_path)
             for x in test_module_filenames]
 
-  def FindAllD8TestModuleResources(self):
-    all_test_module_resources = self.FindAllTestModuleResources()
-    return [x for x in all_test_module_resources
-            if self.IsD8CompatibleFile(x.absolute_path)]
+  def FindAllD8TestModuleRelPaths(self):
+    return self.FindAllTestModuleRelPaths(pred=self.IsD8CompatibleFile)
 
   def GetConfigNames(self):
     config_files = [

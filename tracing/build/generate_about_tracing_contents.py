@@ -33,7 +33,9 @@ def main(args):
 
   names = ["ui.extras.about_tracing.about_tracing"]
   project = tracing_project.TracingProject()
-  load_sequence = project.CalcLoadSequenceForModuleNames(names)
+
+  vulcanizer = project.CreateVulcanizer()
+  load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(names)
 
   olddir = os.getcwd()
   try:
