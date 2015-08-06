@@ -167,6 +167,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._KillBrowser()
 
+    self.platform_backend.StopForwardingHost(self._port)
+
     if self._output_profile_path:
       self.platform_backend.PullProfile(
           self._backend_settings.package, self._output_profile_path)
