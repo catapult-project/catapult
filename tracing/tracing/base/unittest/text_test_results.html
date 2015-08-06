@@ -79,7 +79,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     write_: function(msg) {
-      if (!tr.isD8)
+      if (!tr.isVinn)
         throw new Error('Unsupported');
       global.write(msg);
     }

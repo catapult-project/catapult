@@ -6,6 +6,9 @@
  * @fileoverview Boostrap for loading javascript/html files using d8_runner.
  */
 (function(global, v8arguments) {
+
+  global.isVinn = true;
+
   // Save the argv in a predictable and stable location.
   global.sys = {
     argv: []

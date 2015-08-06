@@ -160,12 +160,12 @@ this.tr = (function() {
    * Initialization which must be deferred until run-time.
    */
   function initialize() {
-    if (global.version && global.version()) {
-      tr.isD8 = true;
+    if (global.isVinn) {
+      tr.isVinn = true;
     } else if (global.process && global.process.versions.node) {
       tr.isNode = true;
     } else {
-      tr.isD8 = false;
+      tr.isVinn = false;
       tr.isNode = false;
       tr.doc = document;
 
@@ -174,7 +174,7 @@ this.tr = (function() {
       tr.isChromeOS = /CrOS/.test(navigator.userAgent);
       tr.isLinux = /Linux/.test(navigator.userAgent);
     }
-    tr.isHeadless = tr.isD8 || tr.isNode;
+    tr.isHeadless = tr.isVinn || tr.isNode;
   }
 
   return {

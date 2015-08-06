@@ -104,7 +104,7 @@ tr.exportTo('tr.b.unittest', function() {
     this.testSuites = [];
 
     if (tr.isHeadless) {
-      if (!tr.isD8)
+      if (!tr.isVinn)
         throw new Error('No module loader exists fro this platform');
       this.currentModuleLoader_ = new D8ModuleLoader();
     } else {
