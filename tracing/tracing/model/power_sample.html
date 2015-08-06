@@ -51,6 +51,10 @@ tr.exportTo('tr.model', function() {
 
     set power(value) {
       this.power_ = value;
+    },
+
+    addBoundsToRange: function(range) {
+      range.addValue(this.start);
     }
   };
 

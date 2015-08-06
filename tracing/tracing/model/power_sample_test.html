@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/base/range.html">
 <link rel="import" href="/model/model.html">
 <link rel="import" href="/model/power_sample.html">
 
@@ -28,6 +29,24 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sample2.series, series);
     assert.equal(sample2.start, 1.0);
     assert.equal(sample2.power, 2000.0);
+  });
+
+  test('addBoundsToRange', function() {
+    var series = new tr.model.PowerSeries(new tr.Model().device);
+
+    var sample1 = new PowerSample(series, 0.0, 1000.0);
+    var sample2 = new PowerSample(series, 1.0, 2000.0);
+
+    var range = new tr.b.Range();
+    sample1.addBoundsToRange(range);
+
+    assert.equal(range.min, 0);
+    assert.equal(range.max, 0);
+
+    sample2.addBoundsToRange(range);
+
+    assert.equal(range.min, 0);
+    assert.equal(range.max, 1);
   });
 });
 </script>
