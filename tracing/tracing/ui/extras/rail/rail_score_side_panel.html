@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/extras/rail/rail_score.html">
+<link rel="import" href="/extras/rail/rail_ir_finder.html">
 <link rel="import" href="/model/ir_coverage.html">
 <link rel="import" href="/ui/analysis/analysis_link.html">
 <link rel="import" href="/ui/base/color_legend.html">
@@ -50,6 +51,7 @@ found in the LICENSE file.
       <tr-ui-a-analysis-link id="associated-events"></tr-ui-a-analysis-link><br>
       <tr-ui-a-analysis-link id="unassociated-events"></tr-ui-a-analysis-link>
     </div>
+    <button id="test">Create Test</button>
   </template>
 </polymer-element>
 
@@ -88,6 +90,21 @@ found in the LICENSE file.
       this.model_ = undefined;
       this.railScore_ = undefined;
       this.selection_ = new tr.model.EventSet();
+      this.$.test.addEventListener('click', this.createTest_.bind(this));
+    },
+
+    createTest_: function() {
+      var overlay = new tr.ui.b.Overlay();
+      overlay.title = 'RAILIRFinder test';
+      var textarea = document.createElement('textarea');
+      textarea.textContent = tr.e.rail.createIRFinderTestCaseStringFromModel(
+          this.model_);
+      textarea.rows = textarea.textContent.split('\n').length;
+      textarea.cols = 80;
+      overlay.appendChild(textarea);
+      overlay.visible = true;
+      textarea.select();
+      textarea.focus();
     },
 
     get textLabel() {

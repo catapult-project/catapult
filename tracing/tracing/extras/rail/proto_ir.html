@@ -74,6 +74,8 @@ tr.exportTo('tr.e.rail', function() {
 
       var ir = new constructor(this.start, this.end - this.start);
 
+      ir.sourceEvents.addEventSet(this.associatedEvents);
+
       function pushAssociatedEvents(event) {
         ir.associatedEvents.push(event);
 

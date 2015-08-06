@@ -940,8 +940,105 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
+  function createCustomizeModelLinesFromModel(model) {
+    var modelLines = [];
+    modelLines.push('      audits.addEvent(model.browserMain,');
+    modelLines.push('          {title: \'model start\', start: 0, end: 1});');
+
+    var typeNames = {};
+    for (var typeName in tr.e.cc.INPUT_EVENT_TYPE_NAMES) {
+      typeNames[tr.e.cc.INPUT_EVENT_TYPE_NAMES[typeName]] = typeName;
+    }
+
+    var modelEvents = new tr.model.EventSet();
+    model.interaction_records.forEach(function(ir, index) {
+      modelEvents.addEventSet(ir.sourceEvents);
+    });
+    modelEvents = modelEvents.toArray();
+    modelEvents.sort(compareEvents);
+
+    modelEvents.forEach(function(event) {
+      var startAndEnd = 'start: ' + parseInt(event.start) + ', ' +
+                        'end: ' + parseInt(event.end) + '});';
+      if (event instanceof tr.e.cc.InputLatencyAsyncSlice) {
+        modelLines.push('      audits.addInputEvent(model, INPUT_TYPE.' +
+                        typeNames[event.typeName] + ',');
+      } else if (event.title === 'RenderFrameImpl::didCommitProvisionalLoad') {
+        modelLines.push('      audits.addCommitLoadEvent(model,');
+      } else if (event.title ===
+                 'InputHandlerProxy::HandleGestureFling::started') {
+        modelLines.push('      audits.addFlingAnimationEvent(model,');
+      } else if (event.title === tr.e.audits.IMPL_RENDERING_STATS) {
+        modelLines.push('      audits.addFrameEvent(model,');
+      } else if (event.title === 'Animation') {
+        modelLines.push('      audits.addEvent(model.rendererMain, {');
+        modelLines.push('        title: \'Animation\', ' + startAndEnd);
+        return;
+      } else {
+        throw ('You must extend createCustomizeModelLinesFromModel()' +
+               'to support this event:\n' + event.title + '\n');
+      }
+      modelLines.push('          {' + startAndEnd);
+    });
+
+    modelLines.push('      audits.addEvent(model.browserMain,');
+    modelLines.push('          {' +
+                    'title: \'model end\', ' +
+                    'start: ' + (parseInt(model.bounds.max) - 1) + ', ' +
+                    'end: ' + parseInt(model.bounds.max) + '});');
+    return modelLines;
+  }
+
+  function createExpectedIRLinesFromModel(model) {
+    var expectedLines = [];
+    var irCount = model.interaction_records.length;
+    model.interaction_records.forEach(function(ir, index) {
+      var irString = '      {';
+      irString += 'title: \'' + ir.title + '\', ';
+      irString += 'start: ' + parseInt(ir.start) + ', ';
+      irString += 'end: ' + parseInt(ir.end) + ', ';
+      irString += 'eventCount: ' + ir.sourceEvents.length;
+      irString += '}';
+      if (index < (irCount - 1))
+        irString += ',';
+      expectedLines.push(irString);
+    });
+    return expectedLines;
+  }
+
+  function createIRFinderTestCaseStringFromModel(model) {
+    var filename = window.location.hash.substr(1);
+    var testName = filename.substr(filename.lastIndexOf('/') + 1);
+    testName = testName.substr(0, testName.indexOf('.'));
+
+    // createCustomizeModelLinesFromModel() throws an error if there's an
+    // unsupported event.
+    try {
+      var testLines = [];
+      testLines.push('  /*');
+      testLines.push('    This test was generated from');
+      testLines.push('    ' + filename + '');
+      testLines.push('   */');
+      testLines.push('  test(\'' + testName + '\', function() {');
+      testLines.push('    var verifier = new IRVerifier();');
+      testLines.push('    verifier.customizeModelCallback = function(model) {');
+      testLines.push.apply(testLines,
+          createCustomizeModelLinesFromModel(model));
+      testLines.push('    };');
+      testLines.push('    verifier.expectedIRs = [');
+      testLines.push.apply(testLines, createExpectedIRLinesFromModel(model));
+      testLines.push('    ];');
+      testLines.push('    verifier.verify();');
+      testLines.push('  });');
+      return testLines.join('\n');
+    } catch (error) {
+      return error;
+    }
+  }
+
   return {
-    RAILIRFinder: RAILIRFinder
+    RAILIRFinder: RAILIRFinder,
+    createIRFinderTestCaseStringFromModel: createIRFinderTestCaseStringFromModel
   };
 });
 </script>

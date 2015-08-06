@@ -23,7 +23,11 @@ tr.exportTo('tr.model', function() {
     this.duration = duration;
     this.args = {};
     this.associatedEvents = new tr.model.EventSet();
+
+    // sourceEvents are the ones that caused the IR Finder to create this IR.
+    this.sourceEvents = new tr.model.EventSet();
   }
+
   InteractionRecord.prototype = {
     __proto__: tr.model.TimedEvent.prototype,
 

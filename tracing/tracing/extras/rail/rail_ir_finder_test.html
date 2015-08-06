@@ -519,5 +519,61 @@ tr.b.unittest.testSuite(function() {
     ];
     verifier.verify();
   });
+
+  /*
+    This test was generated from
+    /test_data/measurmt-traces/mobile/fling_HN_to_rest.json
+   */
+  test('fling_HN_to_rest', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addEvent(model.browserMain,
+          {title: 'model start', start: 0, end: 1});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+          {start: 1274, end: 1297});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+          {start: 1274, end: 1305});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1343, end: 1350});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1359, end: 1366});
+      audits.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+          {start: 1359, end: 1366});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 1359, end: 1367});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1359, end: 1387});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1375, end: 1385});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1375, end: 1416});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1389, end: 1404});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1389, end: 1429});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1405, end: 1418});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1405, end: 1449});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+          {start: 1419, end: 1432});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 1419, end: 1474});
+      audits.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+          {start: 1427, end: 1435});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 1427, end: 1474});
+      audits.addFlingAnimationEvent(model, {start: 1440, end: 2300});
+      audits.addEvent(model.browserMain,
+          {title: 'model end', start: 3184, end: 3185});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 1274, eventCount: 0},
+      {title: 'Response', start: 1274, end: 1387, eventCount: 6},
+      {title: 'Animation', start: 1387, end: 2300, eventCount: 12},
+      {title: 'Idle', start: 2300, end: 3185, eventCount: 0}
+    ];
+    verifier.verify();
+  });
 });
 </script>
