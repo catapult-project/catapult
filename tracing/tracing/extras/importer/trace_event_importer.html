@@ -203,7 +203,8 @@ tr.exportTo('tr.e.importer', function() {
       this.allAsyncEvents_.push({
         sequenceNumber: this.allAsyncEvents_.length,
         event: event,
-        thread: thread});
+        thread: thread
+      });
     },
 
     /**
@@ -1151,6 +1152,10 @@ tr.exportTo('tr.e.importer', function() {
             timestampFromUs(event.ts),
             that.deepCopyIfNeeded_(event.args));
         flowEvent.startSlice = startSlice;
+
+        flowEvent.startStackFrame = that.getStackFrameForEvent_(event);
+        flowEvent.endStackFrame = undefined;
+
         startSlice.outFlowEvents.push(flowEvent);
         return flowEvent;
       }
@@ -1172,6 +1177,7 @@ tr.exportTo('tr.e.importer', function() {
         // Modify the flowEvent with the new data.
         flowEvent.endSlice = endSlice;
         flowEvent.duration = ts - flowEvent.start;
+        flowEvent.endStackFrame = that.getStackFrameForEvent_(event);
         that.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
         return true;
       }

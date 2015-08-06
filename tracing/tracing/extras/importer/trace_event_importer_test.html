@@ -2400,6 +2400,52 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.closeTo(10 / 1000, slice.duration, 1e-5);
   });
 
+  test('importFlowEventsWithStackFrame', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'aSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 547, ph: 'B', args: {} },  // @suppress longLineCheck
+        { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {}, sf: 1 },  // @suppress longLineCheck
+        { id: 72, pid: 52, tid: 53, ts: 549, ph: 'E', args: {} },  // @suppress longLineCheck
+
+        { name: 'bSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 559, ph: 'B', args: {} },  // @suppress longLineCheck
+        { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {}, sf: 2 },  // @suppress longLineCheck
+        { id: 72, pid: 52, tid: 53, ts: 561, ph: 'E', args: {} },  // @suppress longLineCheck
+
+        { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {}, sf: 3 },   // @suppress longLineCheck
+        { name: 'cSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 581, ph: 'B', args: {} },  // @suppress longLineCheck
+        { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
+      ],
+      stackFrames: {
+        '1': {
+          category: 'm1',
+          name: 'fn1'
+        },
+        '2': {
+          category: 'm2',
+          name: 'fn2'
+        },
+        '3': {
+          category: 'm3',
+          name: 'fn3'
+        }
+      }
+    };
+
+    var options = new tr.ImportOptions();
+    options.shiftWorldToZero = false;
+    var m = new tr.Model(eventData, options);
+
+    assert.equal(m.flowEvents.length, 2);
+
+    var f0 = m.flowEvents[0];
+    assert.equal(f0.startStackFrame.title, 'fn1');
+    assert.equal(f0.endStackFrame.title, 'fn2');
+
+    var f1 = m.flowEvents[1];
+    assert.equal(f1.startStackFrame.title, 'fn2');
+    assert.equal(f1.endStackFrame.title, 'fn3');
+  });
+
   test('importCompleteEventWithCpuDuration', function() {
     var events = [
       { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X', tts: 12, tdur: 1 },  // @suppress longLineCheck
