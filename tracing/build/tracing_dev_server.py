@@ -45,7 +45,7 @@ def _RelPathToUnixPath(p):
 
 class TestListHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):
-    test_relpaths = [_RelPathToUnixPath(x)
+    test_relpaths = ['/' + _RelPathToUnixPath(x)
                      for x in self.app.project.FindAllTestModuleRelPaths()]
 
     tests = {'test_relpaths': test_relpaths}
