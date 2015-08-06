@@ -66,8 +66,11 @@ class ChartJsonTest(unittest.TestCase):
         summary_values)
 
     self.assertEquals(d['format_version'], '0.1')
-    self.assertEquals(d['benchmark_name'], 'benchmark_name')
-    self.assertEquals(d['benchmark_description'], 'benchmark_description')
+    self.assertEquals(d['next_version'], '0.2')
+    self.assertEquals(d['benchmark_metadata']['name'], 'benchmark_name')
+    self.assertEquals(d['benchmark_metadata']['description'],
+                      'benchmark_description')
+    self.assertEquals(d['benchmark_metadata']['type'], 'telemetry_benchmark')
 
   def testAsChartDictNoDescription(self):
     page_specific_values = []
@@ -78,7 +81,7 @@ class ChartJsonTest(unittest.TestCase):
         page_specific_values,
         summary_values)
 
-    self.assertEquals('', d['benchmark_description'])
+    self.assertEquals('', d['benchmark_metadata']['description'])
 
   def testAsChartDictPageSpecificValuesSamePage(self):
     v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3)

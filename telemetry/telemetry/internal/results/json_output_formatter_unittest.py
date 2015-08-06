@@ -59,7 +59,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
         self._formatter.benchmark_metadata)
 
     self.assertEquals(d['format_version'], '0.2')
-    self.assertEquals(d['benchmark_name'], 'benchmark_name')
+    self.assertEquals(d['next_version'], '0.3')
+    self.assertEquals(d['benchmark_metadata']['name'], 'benchmark_name')
 
   def testAsDictWithOnePage(self):
     results = page_test_results.PageTestResults()

@@ -37,6 +37,14 @@ class BenchmarkMetadata(object):
   def rerun_options(self):
     return self._rerun_options
 
+  def AsDict(self):
+    return {
+      'type': 'telemetry_benchmark',
+      'name': self._name,
+      'description': self._description,
+      'rerun_options': self._rerun_options,
+    }
+
 
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.

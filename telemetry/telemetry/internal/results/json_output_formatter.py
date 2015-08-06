@@ -21,7 +21,11 @@ def ResultsAsDict(page_test_results, benchmark_metadata):
   """
   result_dict = {
     'format_version': '0.2',
+    'next_version': '0.3',
+    # TODO(sullivan): benchmark_name should be removed when updating
+    # format_version to 0.3.
     'benchmark_name': benchmark_metadata.name,
+    'benchmark_metadata': benchmark_metadata.AsDict(),
     'summary_values': [v.AsDict() for v in
                        page_test_results.all_summary_values],
     'per_page_values': [v.AsDict() for v in
