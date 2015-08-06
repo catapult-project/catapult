@@ -137,8 +137,10 @@ def CreateApp(project=None,
     project = tracing_project.TracingProject()
 
   routes = [
-    Route('', RedirectHandler, defaults={'_uri': '/base/tests.html'}),
-    Route('/', RedirectHandler, defaults={'_uri': '/base/tests.html'}),
+    Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
+    Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
+    Route('/base/tests.html', RedirectHandler,
+          defaults={'_uri': '/tests.html'}),
     Route('/tr/json/tests', TestListHandler),
     Route('/tr/json/notify_test_result', TestResultHandler),
     Route('/tr/json/notify_tests_completed', TestsCompletedHandler)

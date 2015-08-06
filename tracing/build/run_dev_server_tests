@@ -164,7 +164,8 @@ def main():
         '--no-experiments',
         '--no-first-run',
         '--noerrdialogs',
-        'http://localhost:8003/base/tests.html?headless=true&testTypeToRun=all',
+        'http://localhost:8003/tests.html?' +
+            'headless=true&testTypeToRun=all',
     ]
     chrome_process = subprocess.Popen(
         chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

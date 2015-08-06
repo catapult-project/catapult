@@ -11,7 +11,7 @@ import webapp2
 class TracingDevServerTests(unittest.TestCase):
   def testStaticDirectoryHandling(self):
     app = tracing_dev_server.CreateApp()
-    request = webapp2.Request.blank('/base/tests.html')
+    request = webapp2.Request.blank('/tests.html')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
