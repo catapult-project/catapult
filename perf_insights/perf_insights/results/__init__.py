@@ -7,7 +7,6 @@ from perf_insights import value as value_module
 class _CurrentRunState(object):
   def __init__(self, run_info):
     self.run_info = run_info
-    self.has_failure = False
 
 class Results(object):
   def __init__(self, output_formatters=None, progress_reporter=None):
@@ -16,6 +15,7 @@ class Results(object):
 
     self.all_values = []
     self._run_infos_that_have_failures = set()
+    self._current_run_state = None
 
   @property
   def had_failures(self):
@@ -46,19 +46,24 @@ class Results(object):
     self._current_run_state = _CurrentRunState(run_info)
 
   def AddValue(self, value):
-    assert value.run_info == self._current_run_state.run_info
+    if self._current_run_state is not None:
+      assert value.run_info == self._current_run_state.run_info
 
     self.all_values.append(value)
     if isinstance(value, value_module.FailureValue):
-      self._current_run_state.has_failure = True
-      self._run_infos_that_have_failures.add(self._current_run_state.run_info)
+      self._run_infos_that_have_failures.add(value.run_info)
     self.progress_reporter.DidAddValue(value)
+
+  def Merge(self, results):
+    for value in results.all_values:
+      self.AddValue(value)
 
   def DidRun(self, run_info):
     crs = self._current_run_state
     self._current_run_state = None
 
-    self.progress_reporter.DidRun(run_info, crs.has_failure)
+    had_failure = run_info in self._run_infos_that_have_failures
+    self.progress_reporter.DidRun(run_info, had_failure)
 
   def DidFinishAllRuns(self):
     self.progress_reporter.DidFinishAllRuns(self)

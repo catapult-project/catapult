@@ -4,7 +4,10 @@
 import argparse
 import os
 import sys
+import time
 import traceback
+import threading
+import Queue as queue
 
 import perf_insights
 from perf_insights import local_directory_corpus_driver
@@ -23,6 +26,7 @@ def Main(args):
   parser.add_argument('--query')
   parser.add_argument('map_file')
 
+  parser.add_argument('-j', '--jobs', type=int, default=1)
   parser.add_argument('-o', '--output-file')
   parser.add_argument('-s', '--stop-on-error',
                       action='store_true')
@@ -52,8 +56,9 @@ def Main(args):
 
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
-    _Run(results, trace_handles, args.map_file,
-         stop_on_error=args.stop_on_error)
+    runner = _Runner(trace_handles, args.map_file,
+                    stop_on_error=args.stop_on_error)
+    runner.Run(results, jobs=args.jobs)
   finally:
     if ofile != sys.stdout:
       ofile.close()
@@ -62,30 +67,69 @@ def Main(args):
     return 255
   return 0
 
-def _Run(results, trace_handles, map_file,
-         stop_on_error=False):
+class _Runner:
+  def __init__(self, trace_handles, map_file,
+               stop_on_error=False):
+    self._map_file = map_file
+    self._work_queue = queue.Queue()
+    self._result_queue = queue.Queue()
+    self._stop_on_error = stop_on_error
+    self._abort = False
+    self._failed_run_info_to_dump = None
+    for trace_handle in trace_handles:
+      self._work_queue.put(trace_handle)
 
-  failed_run_info_to_dump = None
-  for trace_handle in trace_handles:
+  def _ProcessTrace(self, trace_handle):
     run_info = trace_handle.run_info
-    results.WillRun(run_info)
+    subresults = results_module.Results(
+       [],
+       gtest_progress_reporter.GTestProgressReporter(sys.stdout))
+    subresults.WillRun(run_info)
     map_single_trace.MapSingleTrace(
-        results,
+        subresults,
         trace_handle,
-        os.path.abspath(map_file))
-    results.DidRun(run_info)
-    had_failure = results.DoesRunContainFailure(run_info)
-    if stop_on_error and had_failure:
-      failed_run_info_to_dump = run_info
-      break
-  results.DidFinishAllRuns()
+        os.path.abspath(self._map_file))
+    subresults.DidRun(run_info)
+    self._result_queue.put(subresults)
+    had_failure = subresults.DoesRunContainFailure(run_info)
+    if self._stop_on_error and had_failure:
+      self._failed_run_info_to_dump = run_info
+      self._abort = True
 
-  if failed_run_info_to_dump:
-    sys.stderr.write('\n\nWhile mapping %s:\n' %
-                     failed_run_info_to_dump.display_name)
-    failures = [v for v in results.all_values
-                if (v.run_info == failed_run_info_to_dump and
-                    isinstance(v, value_module.FailureValue))]
-    for failure in failures:
-      print failure.GetGTestPrintString()
-      sys.stderr.write('\n')
+  def _WorkLoop(self):
+    while not self._abort and not self._work_queue.empty():
+      self._ProcessTrace(self._work_queue.get())
+      self._work_queue.task_done()
+
+  def Run(self, results, jobs=1):
+    if jobs == 1:
+      self._WorkLoop()
+    else:
+      for i in range(jobs):
+        t = threading.Thread(target=self._WorkLoop)
+        t.setDaemon(True)
+        t.start()
+
+    while True:
+      if not self._result_queue.empty():
+        subresults = self._result_queue.get()
+        results.Merge(subresults)
+      elif self._abort:
+        break
+      elif self._work_queue.empty():
+        self._work_queue.join()
+        self._abort = True
+      else:
+        time.sleep(0.1)
+
+    results.DidFinishAllRuns()
+
+    if self._failed_run_info_to_dump:
+      sys.stderr.write('\n\nWhile mapping %s:\n' %
+                       self._failed_run_info_to_dump.display_name)
+      failures = [v for v in results.all_values
+                  if (v.run_info == self._failed_run_info_to_dump and
+                      isinstance(v, value_module.FailureValue))]
+      for failure in failures:
+        sys.stderr.write(failure.GetGTestPrintString())
+        sys.stderr.write('\n')
