@@ -289,3 +289,15 @@ class Browser(app.App):
 
   def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     return self._browser_backend.DumpMemory(timeout)
+
+  @property
+  def supports_cpu_metrics(self):
+    return self._browser_backend.supports_cpu_metrics
+
+  @property
+  def supports_memory_metrics(self):
+    return self._browser_backend.supports_memory_metrics
+
+  @property
+  def supports_power_metrics(self):
+    return self._browser_backend.supports_power_metrics

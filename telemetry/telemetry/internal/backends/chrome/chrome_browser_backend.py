@@ -322,3 +322,15 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     return self.devtools_client.DumpMemory(timeout)
+
+  @property
+  def supports_cpu_metrics(self):
+    return True
+
+  @property
+  def supports_memory_metrics(self):
+    return True
+
+  @property
+  def supports_power_metrics(self):
+    return True

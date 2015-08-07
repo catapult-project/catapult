@@ -133,3 +133,15 @@ class BrowserBackend(app_backend.AppBackend):
 
   def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
+
+  @property
+  def supports_cpu_metrics(self):
+    raise NotImplementedError()
+
+  @property
+  def supports_memory_metrics(self):
+    raise NotImplementedError()
+
+  @property
+  def supports_power_metrics(self):
+    raise NotImplementedError()

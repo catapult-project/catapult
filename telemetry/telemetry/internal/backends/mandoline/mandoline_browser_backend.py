@@ -135,6 +135,18 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
   def supports_system_info(self):
     return False
 
+  @property
+  def supports_cpu_metrics(self):
+    return False
+
+  @property
+  def supports_memory_metrics(self):
+    return False
+
+  @property
+  def supports_power_metrics(self):
+    return False
+
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""
     if not cmd_line:
