@@ -108,8 +108,29 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
       remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
           self.device)
-      self.platform_backend.ForwardHostToDevice(self._port,
-                                                remote_devtools_port)
+      try:
+        self.platform_backend.ForwardHostToDevice(
+            self._port, remote_devtools_port)
+      except Exception:
+        logging.warning('Failed to forward %s to %s. Currently forwarding:',
+            str(self._port), str(remote_devtools_port))
+        try:
+          for line in self.device.adb.ForwardList().splitlines():
+            logging.warning('  %s', line)
+        except Exception:
+          logging.warning('Exception raised while listing forwarded '
+                          'connections.')
+
+        logging.warning('Device unix domain sockets in use:')
+        try:
+          for line in self.device.ReadFile('/proc/net/unix', as_root=True,
+                                           force_pull=True).splitlines():
+            logging.warning('  %s', line)
+        except Exception:
+          logging.warning('Exception raised while listing unix domain sockets.')
+
+        raise
+
       try:
         self._WaitForBrowserToComeUp()
         self._InitDevtoolsClientBackend(remote_devtools_port)

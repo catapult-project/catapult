@@ -40,14 +40,23 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
         return AndroidRndisForwarder(self._device, self._rndis_configurator,
                                      port_pairs)
       return AndroidForwarder(self._device, port_pairs)
-    except: # pylint: disable=bare-except
+    except Exception:
       try:
         logging.warning('Failed to create forwarder. '
                         'Currently forwarded connections:')
         for line in self._device.adb.ForwardList().splitlines():
           logging.warning('  %s', line)
-      except: # pylint: disable=bare-except
+      except Exception:
         logging.warning('Exception raised while listing forwarded connections.')
+
+      logging.warning('Device tcp sockets in use:')
+      try:
+        for line in self.device.ReadFile('/proc/net/tcp', as_root=True,
+                                         force_pull=True).splitlines():
+          logging.warning('  %s', line)
+      except Exception:
+        logging.warning('Exception raised while listing tcp sockets.')
+
       raise
 
   @property
