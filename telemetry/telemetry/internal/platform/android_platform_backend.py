@@ -186,6 +186,10 @@ class AndroidPlatformBackend(
 
     _FixPossibleAdbInstability()
 
+  @property
+  def log_file_path(self):
+    return None
+
   @classmethod
   def SupportsDevice(cls, device):
     return isinstance(device, android_device.AndroidDevice)

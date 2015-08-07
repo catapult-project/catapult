@@ -55,6 +55,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
                                 '--user=%s' % self._username])
 
+  @property
+  def log_file_path(self):
+    return None
+
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
     args.extend([

@@ -68,8 +68,22 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
     self._crash_service = None
+    if self.browser_options.enable_logging:
+      self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
+    else:
+      self._log_file_path = None
 
     self._SetupProfile()
+
+  @property
+  def log_file_path(self):
+    return self._log_file_path
+
+  @property
+  def supports_uploading_logs(self):
+    return (self.browser_options.logs_cloud_bucket and
+            self.browser_options.logs_cloud_remote_path and
+            os.path.isfile(self.log_file_path))
 
   def _SetupProfile(self):
     if not self.browser_options.dont_override_profile:
@@ -200,6 +214,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
     env['CHROME_BREAKPAD_PIPE_NAME'] = self._GetCrashServicePipeName()
+    if self.browser_options.enable_logging:
+      sys.stderr.write(
+        'Chrome log file will be saved in %s\n' % self.log_file_path)
+      env['CHROME_LOG_FILE'] = self.log_file_path
     self._crash_service = self._StartCrashService()
     logging.info('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:

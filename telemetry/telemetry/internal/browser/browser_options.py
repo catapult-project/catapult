@@ -244,6 +244,12 @@ class BrowserOptions(object):
     # remove this setting and the old code path. http://crbug.com/379980
     self.use_devtools_active_port = False
 
+    self.enable_logging = False
+    # The cloud storage bucket & path for uploading logs data produced by the
+    # browser to.
+    self.logs_cloud_bucket = None
+    self.logs_cloud_remote_path = None
+
     # TODO(danduong): Find a way to store target_os here instead of
     # finder_options.
     self._finder_options = None
@@ -300,6 +306,12 @@ class BrowserOptions(object):
     group.add_option('--use-devtools-active-port',
         action='store_true',
         help=optparse.SUPPRESS_HELP)
+    group.add_option('--enable-browser-logging',
+        dest='enable_logging',
+        action='store_true',
+        help=('Enable browser logging. The log file is saved in temp directory.'
+              "Note that enabling this flag affects the browser's "
+              'performance'))
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
@@ -307,13 +319,12 @@ class BrowserOptions(object):
         help='Ignored argument for compatibility with runtest.py harness')
     parser.add_option_group(group)
 
-
-
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
     browser_options_list = [
         'extra_browser_args_as_string',
         'extra_wpr_args_as_string',
+        'enable_logging',
         'netsim',
         'profile_dir',
         'profile_type',

@@ -71,6 +71,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.platform_backend.SetDebugApp(self._backend_settings.package)
 
   @property
+  def log_file_path(self):
+    return None
+
+  @property
   def device(self):
     return self.platform_backend.device
 

@@ -33,6 +33,8 @@ class FakeBrowserOptions(object):
     self.disable_default_apps = False
     self.extra_browser_args = []
     self.no_proxy_server = False
+    self.enable_logging = False
+
 
 class FakeForwarderFactory(object):
   host_ip = '127.0.0.1'

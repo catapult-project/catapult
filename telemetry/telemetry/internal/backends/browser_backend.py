@@ -1,9 +1,11 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import sys
 
 from telemetry.core import platform
 from telemetry import decorators
+from catapult_base import cloud_storage
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
 from telemetry.internal.platform import profiling_controller_backend
@@ -36,6 +38,24 @@ class BrowserBackend(app_backend.AppBackend):
         host_platform.InstallApplication('ipfw')
 
   @property
+  def log_file_path(self):
+    # Specific browser backend is responsible for overriding this properly.
+    raise NotImplementedError
+
+  @property
+  def UploadLogsToCloudStorage(self):
+    """ Uploading log files produce by this browser instance to cloud storage.
+
+    Check supports_uploading_logs before calling this method.
+    """
+    assert self.supports_uploading_logs
+    cloud_url = cloud_storage.Insert(
+        bucket=self.browser_options.logs_cloud_bucket,
+        remote_path=self.browser_options.logs_cloud_remote_path,
+        local_path=self.log_file_path)
+    sys.stderr.write('Uploading browser log to %s' % cloud_url)
+
+  @property
   def browser(self):
     return self.app
 
@@ -46,6 +66,11 @@ class BrowserBackend(app_backend.AppBackend):
   @property
   def browser_type(self):
     return self.app_type
+
+  @property
+  def supports_uploading_logs(self):
+    # Specific browser backend is responsible for overriding this properly.
+    return False
 
   @property
   def supports_extensions(self):

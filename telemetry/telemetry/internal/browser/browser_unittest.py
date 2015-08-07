@@ -146,6 +146,17 @@ class DirtyProfileBrowserTest(browser_test_case.BrowserTestCase):
     self.assertEquals(1, len(self._browser.tabs))
 
 
+class BrowserLoggingTest(browser_test_case.BrowserTestCase):
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.enable_logging = True
+
+  @decorators.Disabled('chromeos', 'android')
+  def testLogFileExist(self):
+    self.assertTrue(
+       os.path.isfile(self._browser._browser_backend.log_file_path))
+
+
 def _GenerateBrowserProfile(number_of_tabs):
   """ Generate a browser profile which browser had |number_of_tabs| number of
   tabs opened before it was closed.
@@ -199,3 +210,5 @@ class BrowserRestoreSessionTest(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls._profile_dir)
+
+

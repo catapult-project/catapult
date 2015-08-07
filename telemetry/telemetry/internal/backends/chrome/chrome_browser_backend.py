@@ -130,6 +130,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.disable_default_apps:
       args.append('--disable-default-apps')
 
+    if self.browser_options.enable_logging:
+      args.append('--enable-logging')
+      args.append('--v=1')
     return args
 
   def _UseHostResolverRules(self):
