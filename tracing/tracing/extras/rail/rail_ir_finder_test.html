@@ -85,9 +85,11 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 0},
       {title: 'Response', start: 919, end: 1054, eventCount: 6},
-      {title: 'Animation', start: 1054, end: 1432, eventCount: 10},
+      {title: 'Animation', start: 1054, end: 1068, eventCount: 8},
+      {title: 'Animation', start: 1054, end: 1432, eventCount: 2},
       {title: 'Response', start: 1432, end: 2605, eventCount: 5},
-      {title: 'Animation', start: 2605, end: 3000, eventCount: 2}
+      {title: 'Animation', start: 1549, end: 2310, eventCount: 1},
+      {title: 'Animation', start: 2605, end: 3000, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -257,7 +259,8 @@ tr.b.unittest.testSuite(function() {
       audits.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', start: 0, end: 300, eventCount: 3}
+      {title: 'Animation', start: 0, end: 200, eventCount: 2},
+      {title: 'Animation', start: 150, end: 300, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -315,7 +318,8 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedIRs = [
       {title: 'Animation', start: 0, end: 100, eventCount: 2},
       {title: 'Response', start: 100, end: 140, eventCount: 2},
-      {title: 'Animation', start: 140, end: 240, eventCount: 3}
+      {title: 'Animation', start: 140, end: 210, eventCount: 2},
+      {title: 'Animation', start: 200, end: 240, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -544,7 +548,26 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 0},
       {title: 'Response', start: 20, end: 110, eventCount: 9},
-      {title: 'Animation', start: 110, end: 220, eventCount: 7}
+      {title: 'Animation', start: 110, end: 210, eventCount: 6},
+      {title: 'Animation', start: 180, end: 220, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
+  test('ScrollThenFling', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 0, end: 40});
+      audits.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 50, end: 100});
+      audits.addInputEvent(model, INPUT_TYPE.FLING_START,
+          {start: 80, end: 100});
+      audits.addFrameEvent(model, {start: 190, end: 200});
+    };
+    verifier.expectedIRs = [
+      {title: 'Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'Animation', start: 80, end: 200, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -599,7 +622,8 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1274, eventCount: 0},
       {title: 'Response', start: 1274, end: 1387, eventCount: 6},
-      {title: 'Animation', start: 1387, end: 2300, eventCount: 12},
+      {title: 'Animation', start: 1387, end: 1474, eventCount: 10},
+      {title: 'Animation', start: 1427, end: 2300, eventCount: 2},
       {title: 'Idle', start: 2300, end: 3185, eventCount: 0}
     ];
     verifier.verify();

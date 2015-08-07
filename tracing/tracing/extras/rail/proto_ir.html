@@ -51,6 +51,14 @@ tr.exportTo('tr.e.rail', function() {
       return false;
     },
 
+    containsSliceTitle: function(title) {
+      for (var i = 0; i < this.associatedEvents.length; ++i) {
+        if (title === this.associatedEvents[i].title)
+          return true;
+      }
+      return false;
+    },
+
     getIRConstructor: function() {
       switch (this.irType) {
         case ProtoIR.RESPONSE_TYPE:

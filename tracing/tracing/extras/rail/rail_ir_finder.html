@@ -104,6 +104,7 @@ tr.exportTo('tr.e.rail', function() {
   );
 
   var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
+  var CSS_ANIMATION_TITLE = 'Animation';
 
   function RAILIRFinder(model, modelHelper) {
     this.model = model;
@@ -805,7 +806,7 @@ tr.exportTo('tr.e.rail', function() {
     handleCSSAnimations: function() {
       var animationEvents = this.modelHelper.browserHelper.
           getAllAsyncSlicesMatching(function(event) {
-            return event.title === 'Animation';
+            return event.title === CSS_ANIMATION_TITLE;
       });
 
       var animationRanges = [];
@@ -908,13 +909,24 @@ tr.exportTo('tr.e.rail', function() {
         if (pir.irType !== ProtoIR.ANIMATION_TYPE)
           continue;
 
+        var isCSS = pir.containsSliceTitle(CSS_ANIMATION_TITLE);
+        var isFling = pir.containsTypeNames([INPUT_TYPE.FLING_START]);
+
         for (var i = 0; i < protoIRs.length; ++i) {
           var otherPIR = protoIRs[i];
 
           if (otherPIR.irType !== pir.irType)
             continue;
 
+          // Don't merge CSS Animations with any other types.
+          if (isCSS != otherPIR.containsSliceTitle(CSS_ANIMATION_TITLE))
+            continue;
+
           if (!otherPIR.intersects(pir))
+            continue;
+
+          // Don't merge Fling Animations with any other types.
+          if (isFling != otherPIR.containsTypeNames([INPUT_TYPE.FLING_START]))
             continue;
 
           pir.merge(otherPIR);
@@ -1016,7 +1028,7 @@ tr.exportTo('tr.e.rail', function() {
         modelLines.push('      audits.addFlingAnimationEvent(model,');
       } else if (event.title === tr.e.audits.IMPL_RENDERING_STATS) {
         modelLines.push('      audits.addFrameEvent(model,');
-      } else if (event.title === 'Animation') {
+      } else if (event.title === CSS_ANIMATION_TITLE) {
         modelLines.push('      audits.addEvent(model.rendererMain, {');
         modelLines.push('        title: \'Animation\', ' + startAndEnd);
         return;
