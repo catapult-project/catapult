@@ -41,7 +41,8 @@ class Link(object):
         return
       else:
         sys.stdout.write('ERROR\n\n')
-        sys.stdout.write('  Cannot install %s, because %s is linked elsewhere.\n' % (
+        sys.stdout.write(
+          '  Cannot install %s, because %s is linked elsewhere.\n' % (
           os.path.basename(self.src_path),
           os.path.relpath(full_dst_path)))
         sys.stdout.write('\n\n')

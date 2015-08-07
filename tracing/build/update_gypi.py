@@ -18,10 +18,10 @@ from tracing import tracing_project
 
 class _Token(object):
 
-  def __init__(self, data, id=None):
+  def __init__(self, data, token_id=None):
     self.data = data
-    if id:
-      self.id = id
+    if token_id:
+      self.id = token_id
     else:
       self.id = 'plain'
 
@@ -63,13 +63,13 @@ class BuildFile(object):
       f.write(token.data)
 
   def _ProcessMatch(self, match):
-    raise Exception("Not implemented.")
+    raise NotImplementedError
 
   def _TokenRegex(self):
-    raise Exception("Not implemented.")
+    raise NotImplementedError
 
   def _GetReplacementListAsString(self, existing_list_as_string, filelist):
-    raise Exception("Not implemented.")
+    raise NotImplementedError
 
 
 class GypiFile(BuildFile):
@@ -78,7 +78,7 @@ class GypiFile(BuildFile):
     min_index = match.start(2)
     end_index = match.end(2)
     token = _Token(match.string[min_index:end_index],
-                   id=match.groups()[0])
+                   token_id=match.groups()[0])
     return min_index, end_index, token
 
   def _TokenRegex(self):
@@ -95,7 +95,7 @@ class GypiFile(BuildFile):
 
   def _GetReplacementListAsString(self, existing_list_as_string, filelist):
     list_entry = existing_list_as_string.splitlines()[0]
-    prefix, entry, suffix = list_entry.split("'")
+    prefix, _, suffix = list_entry.split("'")
     return "".join(["'".join([prefix, filename, suffix + '\n'])
                     for filename in filelist])
 

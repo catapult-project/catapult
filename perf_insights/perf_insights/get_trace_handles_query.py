@@ -1,15 +1,13 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import operator
-import re
-import datetime
-
-"""
-GetTraccHandlesQuery is designed to be either evaluable directly
+"""GetTraccHandlesQuery is designed to be either evaluable directly
 from python, or be convertable to an Appengine datastore query. As a result,
 exercise discretion when adding features to this class.
 """
+import operator
+import re
+import datetime
 
 def _InOp(a, b):
   return a in b
@@ -26,13 +24,14 @@ class _Constant(object):
     self.constant = constant
 
   def Eval(self, metadata):
+    # pylint: disable=unused-argument
     return self.constant
 
 def _StringToValue(s):
   try:
     constant = eval(s, {}, {})
     return _Constant(constant)
-  except:
+  except:  # pylint: disable=bare-except
     pass
 
   # Barewords are assumed to be fields.

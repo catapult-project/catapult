@@ -7,6 +7,7 @@ import os
 import re
 
 from tracing import tracing_project
+from tvcm import project as project_module
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -59,7 +60,7 @@ class PerfInsightsProject(object):
   perf_insights_ui_path = os.path.abspath(
       os.path.join(perf_insights_src_path, 'ui'))
 
-  def __init__(self, *args, **kwargs):
+  def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
     self.source_paths = []
     self.source_paths.append(self.perf_insights_root_path)
 

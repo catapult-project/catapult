@@ -105,7 +105,7 @@ class _Runner:
     if jobs == 1:
       self._WorkLoop()
     else:
-      for i in range(jobs):
+      for _ in range(jobs):
         t = threading.Thread(target=self._WorkLoop)
         t.setDaemon(True)
         t.start()

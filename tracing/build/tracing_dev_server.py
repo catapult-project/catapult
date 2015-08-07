@@ -44,7 +44,7 @@ def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
 
 class TestListHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     test_relpaths = ['/' + _RelPathToUnixPath(x)
                      for x in self.app.project.FindAllTestModuleRelPaths()]
 
@@ -55,7 +55,7 @@ class TestListHandler(webapp2.RequestHandler):
 
 
 class TestResultHandler(webapp2.RequestHandler):
-  def post(self, *args, **kwargs):
+  def post(self, *args, **kwargs):  # pylint: disable=unused-argument
     msg = self.request.body
     ostream = sys.stdout if 'PASSED' in msg else sys.stderr
     ostream.write(msg + '\n')
@@ -63,7 +63,7 @@ class TestResultHandler(webapp2.RequestHandler):
 
 
 class TestsCompletedHandler(webapp2.RequestHandler):
-  def post(self, *args, **kwargs):
+  def post(self, *args, **kwargs):  # pylint: disable=unused-argument
     msg = self.request.body
     sys.stdout.write(msg + '\n')
     exit_code=(0 if 'ALL_PASSED' in msg else 1)
@@ -73,7 +73,7 @@ class TestsCompletedHandler(webapp2.RequestHandler):
 
 
 class DirectoryListingHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     source_path = kwargs.pop('_source_path', None)
     mapped_path = kwargs.pop('_mapped_path', None)
     assert mapped_path.endswith('/')
@@ -98,7 +98,7 @@ class FileAppWithGZipHandling(fileapp.FileApp):
     return None, None
 
 class SourcePathsHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     source_paths = kwargs.pop('_source_paths', [])
 
     path = self.request.path
@@ -115,7 +115,7 @@ class SourcePathsHandler(webapp2.RequestHandler):
 
 
 class SimpleDirectoryHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     top_path = os.path.abspath(kwargs.pop('_top_path', None))
     if not top_path.endswith(os.path.sep):
       top_path += os.path.sep

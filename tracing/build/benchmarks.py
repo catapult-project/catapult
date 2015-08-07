@@ -45,6 +45,7 @@ def Main(args):
     sys.stderr.write('\n'.join([b.__name__ for b in benches]))
     return 1
 
+  # pylint: disable=undefined-loop-variable
   b = [b for b in benches if b.__name__ == args[0]]
   if len(b) != 1:
     sys.stderr.write('Oops')
@@ -55,7 +56,7 @@ def Main(args):
   try:
     pr = cProfile.Profile()
     pr.enable(builtins=False)
-    for i in range(options.repeat_count):
+    for _ in range(options.repeat_count):
       bench.Run()
     pr.disable()
     s = StringIO.StringIO()

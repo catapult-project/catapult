@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import progress_reporter as pr
 from perf_insights import value as value_module
 
 class _CurrentRunState(object):
@@ -11,7 +12,7 @@ class _CurrentRunState(object):
 class Results(object):
   def __init__(self, output_formatters=None, progress_reporter=None):
     self.output_formatters = output_formatters or []
-    self.progress_reporter = progress_reporter or ProgressReporter()
+    self.progress_reporter = progress_reporter or pr.ProgressReporter()
 
     self.all_values = []
     self._run_infos_that_have_failures = set()
@@ -59,7 +60,6 @@ class Results(object):
       self.AddValue(value)
 
   def DidRun(self, run_info):
-    crs = self._current_run_state
     self._current_run_state = None
 
     had_failure = run_info in self._run_infos_that_have_failures

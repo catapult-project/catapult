@@ -55,7 +55,7 @@ class JSChecker(object):
     """
     return start * ' ' + length * '^'
 
-  def _makeErrorOrWarning(self, error_text, filename):
+  def _makeErrorOrWarning(self, error_text):
     return error_text
 
   def RunChecks(self):
@@ -92,8 +92,9 @@ class JSChecker(object):
 
       def __init__(self):
         self._errors = []
+        self._filename = None
 
-      def HandleFile(self, filename, first_token):
+      def HandleFile(self, filename, _):
         self._filename = filename
 
       def HandleError(self, error):
@@ -127,7 +128,7 @@ class JSChecker(object):
       affected_files = self.input_api.AffectedFiles(
           file_filter=self.file_filter,
           include_deletes=False)
-    except:
+    except:  # pylint: disable=bare-except
       affected_files = []
 
     def ShouldCheck(f):
@@ -170,8 +171,7 @@ class JSChecker(object):
         error_lines = [
             'Found JavaScript style violations in %s:' %
             f.LocalPath()] + error_lines
-        results.append(self._makeErrorOrWarning(
-            '\n'.join(error_lines), f.LocalPath()))
+        results.append(self._makeErrorOrWarning('\n'.join(error_lines)))
 
     return results
 

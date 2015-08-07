@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 import webapp2
 
-def MapTrace(trace_corpus_driver):
-
+def MapTrace(trace_corpus_driver):  # pylint: disable=unused-argument
+  pass
 
 class MapTracesHandler(webapp2.RequestHandler):
-  def post(self, *args, **args):
+  def post(self, *args, **kwargs):  # pylint: disable=unused-argument
     pass

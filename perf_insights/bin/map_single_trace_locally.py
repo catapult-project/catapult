@@ -38,6 +38,8 @@ def Main(args):
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
   progress_reporter = gtest_progress_reporter.GTestProgressReporter(sys.stdout)
   results = results_module.Results([output_formatter], progress_reporter)
+  corpus_driver = None  # TODO(nduca): Fill this in
+  query = None  # TODO(nduca): Fill this in
   try:
     _Run(results, corpus_driver, query, args.map_file,
          stop_on_error=args.stop_on_error)

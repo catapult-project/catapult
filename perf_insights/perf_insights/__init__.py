@@ -20,5 +20,5 @@ def _AddWebApp2PathsIfNeeded():
 
 try:
   import webapp2
-except:
+except:  # pylint: disable=bare-except
   _AddWebApp2PathsIfNeeded()

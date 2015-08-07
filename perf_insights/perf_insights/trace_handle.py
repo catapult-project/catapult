@@ -7,7 +7,7 @@ class TraceHandle(object):
   def __init__(self, run_info):
     self.run_info = run_info
 
-  def Open():
+  def Open(self):
     # Returns a with-able object containing a name.
-    raise NotImplemented()
+    raise NotImplementedError()
 
