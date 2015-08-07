@@ -8,6 +8,7 @@ import collections
 import hashlib
 import logging
 import os
+import stat
 import subprocess
 import sys
 
@@ -81,6 +82,11 @@ def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
       return executable_path
   return None
 
+def _EnsureExecutable(gsutil):
+  """chmod +x if gsutil is not executable."""
+  st = os.stat(gsutil)
+  if not st.st_mode & stat.S_IEXEC:
+    os.chmod(gsutil, st.st_mode | stat.S_IEXEC)
 
 def _RunCommand(args):
   # On cros device, as telemetry is running as root, home will be set to /root/,
@@ -101,6 +107,7 @@ def _RunCommand(args):
   else:
     # Don't do it on POSIX, in case someone is using a shell script to redirect.
     args = [_GSUTIL_PATH] + args
+    _EnsureExecutable(_GSUTIL_PATH)
 
   gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, env=gsutil_env)
