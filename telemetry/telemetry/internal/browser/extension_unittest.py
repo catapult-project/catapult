@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 from telemetry.core import util
-from telemetry.decorators import Disabled
+from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import extension_to_load
 from telemetry.testing import options_for_unittests
@@ -66,6 +66,7 @@ class ExtensionTest(unittest.TestCase):
     self.assertTrue(
         ext[0].EvaluateJavaScript('chrome.runtime != null'))
 
+  @decorators.Disabled('mac')
   def testWebApp(self):
     """Tests GetByExtensionId for a web app with multiple pages."""
     if not self.CreateBrowserWithExtension('simple_app'):
@@ -186,7 +187,7 @@ class ComponentExtensionTest(unittest.TestCase):
 class WebviewInExtensionTest(ExtensionTest):
 
   # Flaky on windows, hits an exception: http://crbug.com/508325
-  @Disabled('win', 'linux')
+  @decorators.Disabled('win', 'linux')
   def testWebviewInExtension(self):
     """Tests GetWebviewContext() for a web app containing <webview> element."""
     if not self.CreateBrowserWithExtension('webview_app'):
