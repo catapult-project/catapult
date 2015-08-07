@@ -9,6 +9,31 @@ for more details about the presubmit API built into depot_tools.
 """
 import sys
 
+_EXCLUDED_PATHS = (
+    r'.+\.png$',
+    r'.+\.svg$',
+    r'.+\.skp$',
+    r'.+\.gypi$',
+    r'.+\.gyp$',
+    r'.+\.gn$',
+    r'.*\.gitignore$',
+    r'.*codereview.settings$',
+    r'.*AUTHOR$',
+    r'^CONTRIBUTORS\.md$',
+    r'.*LICENSE$',
+    r'.*OWNERS$',
+    r'.*README\.md$',
+    r'^dashboard[\\\/]third_party[\\\/].*',
+    r'^perf_insights[\\\/]third_party[\\\/].*',
+    r'^third_party[\\\/].*',
+    r'^tracing[\\\/]\.allow-devtools-save$',
+    r'^tracing[\\\/]bower\.json$',
+    r'^tracing[\\\/]\.bowerrc$',
+    r'^tracing[\\\/]examples[\\\/]string_convert\.js$',
+    r'^tracing[\\\/]test_data[\\\/].*',
+    r'^tracing[\\\/]third_party[\\\/].*',
+)
+
 
 def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
   return {
@@ -20,19 +45,14 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
   }
 
 
-def RunChecks(input_api, output_api):
-  from build import presubmit_checks
-  return map(output_api.PresubmitError, presubmit_checks.RunChecks(input_api))
-
-
 def CheckChange(input_api, output_api):
   results = []
-  results.extend(
-      input_api.canned_checks.PanProjectChecks(input_api, output_api))
   original_sys_path = sys.path
   try:
     sys.path += [input_api.PresubmitLocalPath()]
-    results.extend(RunChecks(input_api, output_api))
+    from build import presubmit_checks
+    results += presubmit_checks.RunChecks(
+        input_api, output_api, _EXCLUDED_PATHS)
   finally:
     sys.path = original_sys_path
   return results
