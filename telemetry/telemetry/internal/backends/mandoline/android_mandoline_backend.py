@@ -154,8 +154,7 @@ class AndroidMandolineBackend(
     self._KillBrowser()
 
     if self._port:
-      # TODO(yzshen): Consider remove the port forwarding. Currently AdbWrapper
-      # doesn't expose necessary API.
+      self.platform_backend.StopForwardingHost(self._port)
       self._port = None
       self._device_port = None
 
