@@ -9,10 +9,14 @@ def _AddToPathIfNeeded(path):
   if path not in sys.path:
     sys.path.insert(0, path)
 
-def _UpdatePathsIfNeeded():
+def _AddWebApp2PathsIfNeeded():
   catapult_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                          '..', '..'))
 
-  _AddToPathIfNeeded(os.path.join(catapult_dir))
+  _AddToPathIfNeeded(os.path.join(catapult_dir, 'third_party', 'WebOb'))
+  _AddToPathIfNeeded(os.path.join(catapult_dir, 'third_party', 'Paste'))
+  _AddToPathIfNeeded(os.path.join(catapult_dir, 'third_party', 'six'))
+  _AddToPathIfNeeded(os.path.join(catapult_dir, 'third_party', 'webapp2'))
 
-_UpdatePathsIfNeeded()
+
+_AddWebApp2PathsIfNeeded()

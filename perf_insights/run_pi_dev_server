@@ -11,7 +11,8 @@ if hooks_path not in sys.path:
   sys.path.append(hooks_path)
 
 from hooks import install
-from perf_insights.build import tracing_dev_server
+
+from build import perf_insights_dev_server
 
 if __name__ == '__main__':
   dev_server_args = sys.argv[1:]
@@ -22,4 +23,4 @@ if __name__ == '__main__':
     install.InstallHooks()
   else:
     dev_server_args.remove('--no-install-hooks')
-  sys.exit(tracing_dev_server.Main(dev_server_args))
+  sys.exit(perf_insights_dev_server.Main(dev_server_args))

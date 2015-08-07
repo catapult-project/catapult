@@ -7,12 +7,7 @@ import json
 import os
 import sys
 
-catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            '..', '..'))
-if catapult_path not in sys.path:
-  sys.path.append(catapult_path)
-
-from tracing import tracing_project
+from build import perf_insights_project
 
 from paste import httpserver
 from paste import fileapp
@@ -114,65 +109,26 @@ class SourcePathsHandler(webapp2.RequestHandler):
     self.abort(404)
 
 
-class SimpleDirectoryHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):
-    top_path = os.path.abspath(kwargs.pop('_top_path', None))
-    if not top_path.endswith(os.path.sep):
-      top_path += os.path.sep
 
-    joined_path = os.path.abspath(
-        os.path.join(top_path, kwargs.pop('rest_of_path')))
-    if not joined_path.startswith(top_path):
-      self.response.set_status(403)
-      return
-    app = FileAppWithGZipHandling(joined_path)
-    app.cache_control(no_cache=True)
-    return app
-
-
-def CreateApp(project=None,
-              test_data_path=None,
-              skp_data_path=None):
+def CreateApp(project=None):
   if project is None:
-    project = tracing_project.TracingProject()
+    project = perf_insights_project.PerfInsightsProject()
 
   routes = [
-    Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
-    Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
-    Route('/base/tests.html', RedirectHandler,
-          defaults={'_uri': '/tests.html'}),
-    Route('/tr/json/tests', TestListHandler),
-    Route('/tr/json/notify_test_result', TestResultHandler),
-    Route('/tr/json/notify_tests_completed', TestsCompletedHandler)
+    Route('', RedirectHandler, defaults={'_uri': '/perf_insights/tests.html'}),
+    Route('/', RedirectHandler, defaults={'_uri': '/perf_insights/tests.html'}),
+    Route('/tests.html', RedirectHandler,
+          defaults={'_uri': '/perf_insights/tests.html'}),
+    Route('/perf_insights/tests', TestListHandler),
+    Route('/perf_insights/notify_test_result', TestResultHandler),
+    Route('/perf_insights/notify_tests_completed', TestsCompletedHandler)
   ]
-
-
-  # Test data system.
-  if not test_data_path:
-    test_data_path = project.test_data_path
-  routes.append(Route('/test_data/__file_list__', DirectoryListingHandler,
-                      defaults={
-                          '_source_path': test_data_path,
-                          '_mapped_path': '/test_data/'
-                      }))
-  routes.append(Route('/test_data/<rest_of_path:.+>', SimpleDirectoryHandler,
-                      defaults={'_top_path': test_data_path}))
-
-  if not skp_data_path:
-    skp_data_path = project.skp_data_path
-  routes.append(Route('/skp_data/__file_list__', DirectoryListingHandler,
-                      defaults={
-                          '_source_path': skp_data_path,
-                          '_mapped_path': '/skp_data/'
-                      }))
-  routes.append(Route('/skp_data/<rest_of_path:.+>', SimpleDirectoryHandler,
-                      defaults={'_top_path': skp_data_path}))
 
   # This must go last, because its catch-all.
   #
   # Its funky that we have to add in the root path. The long term fix is to
   # stop with the crazy multi-source-pathing thing.
-  all_paths = list(project.source_paths) + [project.tracing_root_path]
+  all_paths = list(project.source_paths)
   routes.append(
     Route('/<:.+>', SourcePathsHandler,
           defaults={'_source_paths': all_paths}))
@@ -213,20 +169,13 @@ def _AddPleaseExitMixinToServer(server):
 
 
 def Main(args):
-  project = tracing_project.TracingProject()
+  project = perf_insights_project.PerfInsightsProject()
 
-  parser = argparse.ArgumentParser(description='Run tracing development server')
-  parser.add_argument(
-      '-d', '--data-dir',
-      default=os.path.abspath(os.path.join(project.test_data_path)))
-  parser.add_argument(
-      '-s', '--skp-data-dir',
-      default=os.path.abspath(os.path.join(project.skp_data_path)))
-  parser.add_argument('-p', '--port', default=8003, type=int)
+  parser = argparse.ArgumentParser(
+      description='Run perf_insights development server')
+  parser.add_argument('-p', '--port', default=8009, type=int)
   args = parser.parse_args(args=args)
-  app = CreateApp(project,
-                  test_data_path=args.data_dir,
-                  skp_data_path=args.skp_data_dir)
+  app = CreateApp(project)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
                             start_loop=False)

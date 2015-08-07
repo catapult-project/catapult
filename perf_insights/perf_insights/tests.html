@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-  <title>Trace-Viewer Tests: loading...</title>
+  <title>PerfInsights Tests: loading...</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
   <link rel="shortcut icon" href="data:image/x-icon;base64,"
@@ -33,18 +33,15 @@ found in the LICENSE file.
 
     window.addEventListener('load', function() {
       tr.b.unittest.loadAndRunTests({
-        title: 'All Trace-Viewer Tests',
+        title: 'All PerfInsights Tests',
         getAllSuiteRelPathsAsync: function() {
-          return tr.b.getAsync('/tr/json/tests').then(function(json) {
+          return tr.b.getAsync('/perf_insights/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch (function(e) {
            throw e;
           });
         },
-        testLinks: [
-          {linkPath: '/examples/skia_debugger.html', title: 'Skia Debugger'},
-          {linkPath: '/examples/trace_viewer.html', title: 'Trace File Viewer'}
-        ]
+        testLinks: []
       });
     });
 

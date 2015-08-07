@@ -24,11 +24,11 @@ _UpdatePathsIfNeeded()
 
 
 import vinn
-from tracing import tracing_project
+from build import perf_insights_project
 
 
 def MapSingleTrace(results, trace_handle, map_file):
-  project = tracing_project.TracingProject()
+  project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
 
