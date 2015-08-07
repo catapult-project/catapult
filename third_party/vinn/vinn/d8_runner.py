@@ -52,6 +52,8 @@ def _GetBootStrapJsContent(source_paths):
 
   bsc = _BOOTSTRAP_JS_CONTENT
 
+  # Ensure that source paths are unique.
+  source_paths = list(set(source_paths))
   source_path_string = json.dumps(source_paths)
   bsc = bsc.replace('<%source_paths%>', source_path_string)
   bsc = bsc.replace('<%current_working_directory%>', os.getcwd())

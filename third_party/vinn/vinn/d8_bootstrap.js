@@ -215,10 +215,14 @@
       if (d8_path_utils.exists(candidate))
         candidates.push(candidate);
     }
-    if (candidates.length > 1)
-      throw new Error('Multiple candidates found for ' + href);
-    if (candidates.length === 0)
-      throw new Error(href + ' not found!');
+    if (candidates.length > 1) {
+      throw new Error('Multiple candidates found for ' + href + ': ' +
+          candidates + '\nSource paths:\n' + sourcePaths.join(',\n'));
+    }
+    if (candidates.length === 0) {
+      throw new Error(href + ' not found!' +
+          '\nSource paths:\n' + sourcePaths.join(',\n'));
+    }
     return candidates[0];
   }
 

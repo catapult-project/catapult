@@ -103,6 +103,16 @@ class D8RunnerUnittest(unittest.TestCase):
     self.assertIn(
         'This is file contains only data for testing.\n1 2 3 4', output)
 
+  def testDuplicateSourcePaths(self):
+    file_path = self.GetTestFilePath('print_file_content.js')
+    dummy_test_path = self.GetTestFilePath('dummy_test_file')
+    output = d8_runner.ExcecuteJsString(
+      "loadHTML('/load_simple_html.html');",
+      source_paths=[self.test_data_dir]*100,
+      js_args=[dummy_test_path])
+    self.assertIn(
+        'load_simple_html.html is loaded', output)
+
   def testJsFileLoadHtmlFile(self):
     file_path = self.GetTestFilePath('load_simple_html.js')
     output = d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
