@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/model/event_set.html">
+<link rel="import" href="/model/model.html">
+<link rel="import" href="/model/power_series.html">
+<link rel="import" href="/ui/analysis/power_sample_summary_table.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var EventSet = tr.model.EventSet;
+  var Model = tr.Model;
+  var PowerSeries = tr.model.PowerSeries;
+
+  test('instantiate', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1000, 2);
+    series.addPowerSample(2000, 3);
+    series.addPowerSample(3000, 4);
+
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet(series.samples);
+
+    this.addHTMLOutput(table);
+  });
+
+  test('setSamples_undefinedPowerSamples', function() {
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = undefined;
+
+    assert.lengthOf(table.$.table.tableRows, 0);
+  });
+
+  test('setSamples_noPowerSamples', function() {
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet([]);
+
+    assert.lengthOf(table.$.table.tableRows, 0);
+  });
+
+  test('setSamples_onePowerSample', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1);
+
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet(series.samples);
+
+    assert.lengthOf(table.$.table.tableRows, 1);
+    assert.equal(table.$.table.tableRows[0].min, 1);
+    assert.equal(table.$.table.tableRows[0].max, 1);
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 'N/A');
+    assert.equal(table.$.table.tableRows[0].energyConsumed, 'N/A');
+    assert.equal(table.$.table.tableRows[0].sampleCount, 1);
+  });
+
+  test('setSamples_twoPowerSamples', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1000, 2);
+
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet(series.samples);
+
+    assert.lengthOf(table.$.table.tableRows, 1);
+    assert.equal(table.$.table.tableRows[0].min, 1);
+    assert.equal(table.$.table.tableRows[0].max, 2);
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1);
+    assert.equal(table.$.table.tableRows[0].energyConsumed, 1);
+    assert.equal(table.$.table.tableRows[0].sampleCount, 2);
+  });
+
+  test('setSamples_threePowerSamples', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1000, 2);
+    series.addPowerSample(2000, 3);
+
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet(series.samples);
+
+    assert.lengthOf(table.$.table.tableRows, 1);
+    assert.equal(table.$.table.tableRows[0].min, 1);
+    assert.equal(table.$.table.tableRows[0].max, 3);
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1.5);
+    assert.equal(table.$.table.tableRows[0].energyConsumed, 3);
+    assert.equal(table.$.table.tableRows[0].sampleCount, 3);
+  });
+
+  test('setSamples_columnsInitialized', function() {
+    var series = new PowerSeries(new Model().device);
+
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1000, 2);
+    series.addPowerSample(2000, 3);
+
+    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    table.samples = new EventSet(series.samples);
+
+    var row = table.$.table.tableRows[0];
+    var columns = table.$.table.tableColumns;
+
+    assert.lengthOf(columns, 5);
+
+    assert.equal(columns[0].title, 'Min power');
+    assert.equal(columns[0].width, '100px');
+    assert.equal(columns[0].value(row), '1.000 mW');
+
+    assert.equal(columns[1].title, 'Max power');
+    assert.equal(columns[1].width, '100px');
+    assert.equal(columns[1].value(row), '3.000 mW');
+
+    assert.equal(columns[2].title, 'Time-weighted average');
+    assert.equal(columns[2].width, '100px');
+    assert.equal(columns[2].value(row), '1.500 mW');
+
+    assert.equal(columns[3].title, 'Energy consumed');
+    assert.equal(columns[3].width, '100px');
+    assert.equal(columns[3].value(row), '3.000 J');
+
+    assert.equal(columns[4].title, 'Sample count');
+    assert.equal(columns[4].width, '100%');
+    assert.equal(columns[4].value(row), 3);
+  });
+});
+</script>

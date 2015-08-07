@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(columns, 2);
 
     assert.equal(columns[0].title, 'Time');
-    assert.equal(columns[0].width, '150px');
+    assert.equal(columns[0].width, '100px');
     var timestampSpan = columns[0].value(series.samples[0]);
     assert.equal(timestampSpan.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
     assert.equal(timestampSpan.timestamp, 0);
