@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
   var ThreadSlice = tr.model.ThreadSlice;
   var Process = tr.model.Process;
   var Thread = tr.model.Thread;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
   var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
   var newThreadSlice = tr.c.test_utils.newThreadSlice;
   var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   test('threadBounds_Cpu', function() {
     var model = new tr.Model();
     var t = new Thread(new Process(model, 7), 1);
-    t.timeSlices = [newSliceNamed('x', 0, 1)];
+    t.timeSlices = [newSliceEx({title: 'x', start: 0, duration: 1})];
     t.updateBounds();
     assert.equal(t.bounds.min, 0);
     assert.equal(t.bounds.max, 1);
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     var t = new Thread(new Process(model, 7), 1);
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
     t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
-    t.timeSlices = [newSliceNamed('x', 0, 1)];
+    t.timeSlices = [newSliceEx({title: 'x', start: 0, duration: 1})];
 
     var shiftCount = 0;
     t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
@@ -99,10 +99,12 @@ tr.b.unittest.testSuite(function() {
     var unscheduledThread = undefined;
     var model = tr.c.test_utils.newModel(function(model) {
       unscheduledThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      unscheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+      unscheduledThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'work', start: 0, duration: 20}));
 
       scheduledThread = model.getOrCreateProcess(2).getOrCreateThread(2);
-      scheduledThread.sliceGroup.pushSlice(newSliceNamed('work', 0, 20));
+      scheduledThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'work', start: 0, duration: 20}));
       scheduledThread.timeSlices = [
           newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 0, 3),
           newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNABLE, 3, 5),

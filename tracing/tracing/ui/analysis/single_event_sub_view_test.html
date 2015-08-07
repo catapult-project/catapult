@@ -18,8 +18,7 @@ tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
   var Thread = tr.model.Thread;
   var EventSet = tr.model.EventSet;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
-  var newSliceCategory = tr.c.test_utils.newSliceCategory;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection(customizeThreadCallback) {
     var model = new Model();
@@ -50,11 +49,8 @@ tr.b.unittest.testSuite(function() {
         var fB = tr.c.test_utils.newStackTrace(model, 'cat', ['b1', 'b2']);
       }
 
-      var slice;
-      if (options.withCategory)
-        slice = newSliceCategory('foo', 'b', 0, 0.002);
-      else
-        slice = newSliceNamed('b', 0, 0.002);
+      var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+      slice.category = options.withCategory ? 'foo' : '';
 
       if (options.withStartStackFrame)
         slice.startStackFrame = options.withStartStackFrame === 'a' ? fA : fB;
@@ -75,7 +71,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('alerts', function() {
-    var slice = newSliceNamed('b', 0, 0.002);
+    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
     var ALERT_INFO_1 = new tr.model.EventInfo(
         'Alert 1', 'Critical alert');
@@ -92,7 +88,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withSingleSliceWithArg', function() {
     var selection = createSelection(function(t53) {
-      var slice = newSliceNamed('my_slice', 0, 1.0);
+      var slice = newSliceEx({title: 'my_slice', start: 0, duration: 1.0});
       slice.args = {
         'complex': {
           'b': '2 as a string',
@@ -191,6 +187,7 @@ tr.b.unittest.testSuite(function() {
     var selection = createSelectionWithSingleSlice();
     var subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
+    this.addHTMLOutput(subView);
 
     var table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
@@ -205,6 +202,7 @@ tr.b.unittest.testSuite(function() {
 
     var subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
+    this.addHTMLOutput(subView);
 
     var table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
@@ -222,7 +220,7 @@ tr.b.unittest.testSuite(function() {
         '0x1000', 'cat', 'my_object', 0);
 
     var t1 = p1.getOrCreateThread(1);
-    t1.sliceGroup.pushSlice(newSliceCategory('cat', 'b', 0, 2));
+    t1.sliceGroup.pushSlice(newSliceEx({title: 'b', start: 0, duration: 2}));
     t1.sliceGroup.slices[0].args.my_object = myObjectSlice;
 
     var t1track = {};
@@ -242,7 +240,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withSingleSliceContainingInfo', function() {
-    var slice = newSliceNamed('b', 0, 1);
+    var slice = newSliceEx({title: 'b', start: 0, duration: 1});
     slice.info = new tr.model.EventInfo(
         'Info title', 'Description');
 

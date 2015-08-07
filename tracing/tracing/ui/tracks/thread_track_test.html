@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
   var Viewport = tr.ui.TimelineViewport;
   var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
   var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
 
   test('selectionHitTestingWithThreadTrack', function() {
     var model = new tr.Model();
@@ -73,7 +73,8 @@ tr.b.unittest.testSuite(function() {
   test('filterThreadSlices', function() {
     var model = new tr.Model();
     var thread = new Thread(new Process(model, 7), 1);
-    thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
+    thread.sliceGroup.pushSlice(newSliceEx(
+        {title: 'a', start: 0, duration: 0}));
     thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
     var t = new ThreadTrack(new tr.ui.TimelineViewport());

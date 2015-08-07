@@ -18,16 +18,19 @@ tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
   var Thread = tr.model.Thread;
   var EventSet = tr.model.EventSet;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceEx = tr.c.test_utils.newSliceEx;
   var newSliceCategory = tr.c.test_utils.newSliceCategory;
   var Slice = tr.model.Slice;
 
   test('differentTitles', function() {
     var model = new Model();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.sliceGroup.pushSlice(newSliceNamed('a', 0.0, 0.04));
-    t53.sliceGroup.pushSlice(newSliceNamed('a', 0.12, 0.06));
-    t53.sliceGroup.pushSlice(newSliceNamed('aa', 0.5, 0.5));
+    t53.sliceGroup.pushSlice(newSliceEx(
+        {title: 'a', start: 0.0, duration: 0.04}));
+    t53.sliceGroup.pushSlice(newSliceEx(
+        {title: 'a', start: 0.12, duration: 0.06}));
+    t53.sliceGroup.pushSlice(newSliceEx(
+        {title: 'aa', start: 0.5, duration: 0.5}));
     t53.sliceGroup.createSubSlices();
 
     var t53track = {};
@@ -62,8 +65,10 @@ tr.b.unittest.testSuite(function() {
   test('sameTitles', function() {
     var model = new Model();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.0, 0.04));
-    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.12, 0.06));
+    t53.sliceGroup.pushSlice(newSliceEx(
+        {title: 'c', start: 0.0, duration: 0.04}));
+    t53.sliceGroup.pushSlice(newSliceEx(
+        {title: 'c', start: 0.12, duration: 0.06}));
     t53.sliceGroup.createSubSlices();
 
     var t53track = {};
