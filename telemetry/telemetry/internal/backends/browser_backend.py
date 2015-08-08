@@ -42,7 +42,6 @@ class BrowserBackend(app_backend.AppBackend):
     # Specific browser backend is responsible for overriding this properly.
     raise NotImplementedError
 
-  @property
   def UploadLogsToCloudStorage(self):
     """ Uploading log files produce by this browser instance to cloud storage.
 
@@ -53,7 +52,7 @@ class BrowserBackend(app_backend.AppBackend):
         bucket=self.browser_options.logs_cloud_bucket,
         remote_path=self.browser_options.logs_cloud_remote_path,
         local_path=self.log_file_path)
-    sys.stderr.write('Uploading browser log to %s' % cloud_url)
+    sys.stderr.write('Uploading browser log to %s\n' % cloud_url)
 
   @property
   def browser(self):
