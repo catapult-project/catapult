@@ -15,7 +15,6 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
   var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newSliceEx = tr.c.test_utils.newSliceEx;
   var newCounterNamed = tr.c.test_utils.newCounterNamed;
   var newCounterSeries = tr.c.test_utils.newCounterSeries;
@@ -51,7 +50,8 @@ tr.b.unittest.testSuite(function() {
     function(model) {
       // UI thread only
       var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 80));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 10, duration: 80}));
 
       model.uiThread = uiThread;
     },
@@ -60,7 +60,8 @@ tr.b.unittest.testSuite(function() {
       // RenderThread only
       var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
-      renderThread.sliceGroup.pushSlice(newSliceNamed('doFrame', 10, 80));
+      renderThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'doFrame', start: 10, duration: 80}));
 
       model.renderThread = renderThread;
     },
@@ -71,15 +72,20 @@ tr.b.unittest.testSuite(function() {
       // UI thread time - 19 (from 10 to 29)
       uiThread.asyncSliceGroup.push(
         newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 10));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('draw', 20, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('Record View#draw()', 20, 8));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 20, duration: 10}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'draw', start: 20, duration: 8}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'Record View#draw()', start: 20, duration: 8}));
 
       // RenderThread time - 61 (from 29 to 90)
       var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
-      renderThread.sliceGroup.pushSlice(newSliceNamed('DrawFrame', 29, 61));
-      renderThread.sliceGroup.pushSlice(newSliceNamed('syncFrameState', 29, 1));
+      renderThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'DrawFrame', start: 29, duration: 61}));
+      renderThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'syncFrameState', start: 29, duration: 1}));
 
       model.uiThread = uiThread;
       model.renderThread = renderThread;
@@ -145,12 +151,18 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.test_utils.newModel(function(model) {
       // app - 3 good, 3 bad frames
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 1, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 8));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 31, 11));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 45, 6));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 60, 20));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 1, duration: 8}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 10, duration: 8}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 20, duration: 8}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 31, duration: 11}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 45, duration: 6}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 60, duration: 20}));
 
       // surface flinger - vsync every 10ms
       createSurfaceFlingerWithVsyncs(model);
@@ -170,8 +182,10 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.test_utils.newModel(function(model) {
       var process = model.getOrCreateProcess(120);
       var uiThread = process.getOrCreateThread(120);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 20, 4));
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 40, 4));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 20, duration: 4}));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 40, duration: 4}));
 
       var counter = process.getOrCreateCounter('android', 'aq:pending:foo');
       var series = newCounterSeries();
@@ -196,7 +210,8 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.test_utils.newModel(function(model) {
       var process = model.getOrCreateProcess(120);
       var uiThread = process.getOrCreateThread(120);
-      uiThread.sliceGroup.pushSlice(newSliceNamed('performTraversals', 10, 10));
+      uiThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'performTraversals', start: 10, duration: 10}));
       uiThread.asyncSliceGroup.push(newAsyncSliceNamed('animator:foo', 0, 10,
                                                        uiThread, uiThread));
     });

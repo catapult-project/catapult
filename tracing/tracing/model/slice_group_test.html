@@ -17,7 +17,6 @@ tr.b.unittest.testSuite(function() {
   var SliceGroup = tr.model.SliceGroup;
   var newSlice = tr.c.test_utils.newSlice;
   var newSliceEx = tr.c.test_utils.newSliceEx;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
   var newThreadSlice = tr.c.test_utils.newThreadSlice;
   var newModel = tr.c.test_utils.newModel;
   var newFakeThread = tr.c.test_utils.newFakeThread;
@@ -38,8 +37,8 @@ tr.b.unittest.testSuite(function() {
 
   test('subSlicesBuilderBasic', function() {
     var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
-    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
 
     group.createSubSlices();
 
@@ -55,8 +54,8 @@ tr.b.unittest.testSuite(function() {
 
   test('subSlicesBuilderBasic2', function() {
     var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
-    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
 
     group.createSubSlices();
 
@@ -74,8 +73,8 @@ tr.b.unittest.testSuite(function() {
 
   test('subSlicesBuilderNestedExactly', function() {
     var group = new SliceGroup(newFakeThread());
-    var sB = group.pushSlice(newSliceNamed('b', 1, 4));
-    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 4}));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
 
     group.createSubSlices();
 
@@ -99,8 +98,8 @@ tr.b.unittest.testSuite(function() {
 
   test('subSlicesBuilderInstantEvents', function() {
     var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
-    var sB = group.pushSlice(newSliceNamed('b', 2, 0));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0}));
 
     group.createSubSlices();
 
@@ -113,8 +112,8 @@ tr.b.unittest.testSuite(function() {
 
   test('subSlicesBuilderTwoInstantEvents', function() {
     var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
-    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0}));
 
     group.createSubSlices();
 
@@ -138,8 +137,8 @@ tr.b.unittest.testSuite(function() {
     // Pattern being tested:
     // [    a     ][   b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
-    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
 
     group.createSubSlices();
 
@@ -155,8 +154,8 @@ tr.b.unittest.testSuite(function() {
     // [    a     ]
     //   [  b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
-    var sA = group.pushSlice(newSliceNamed('a', 1, 5));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 5}));
 
     group.createSubSlices();
 
@@ -183,9 +182,9 @@ tr.b.unittest.testSuite(function() {
     // Pattern being tested:
     // [    a    ]
     // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
-    var sB1 = group.pushSlice(newSliceNamed('b1', 1, 2));
-    var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    var sB1 = group.pushSlice(newSliceEx({title: 'b1', start: 1, duration: 2}));
+    var sB2 = group.pushSlice(newSliceEx({title: 'b2', start: 4, duration: 0}));
 
     group.createSubSlices();
 
@@ -208,9 +207,9 @@ tr.b.unittest.testSuite(function() {
     // Pattern being tested:
     // [    a     ]   [  c   ]
     //   [  b   ]
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
-    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
-    var sC = group.pushSlice(newSliceNamed('c', 5, 0));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
+    var sC = group.pushSlice(newSliceEx({title: 'c', start: 5, duration: 0}));
 
     group.createSubSlices();
 
@@ -236,10 +235,12 @@ tr.b.unittest.testSuite(function() {
     // [    a     ]   [  d   ]
     //   [  b   ]
     //    [ c ]
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
-    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
-    var sC = group.pushSlice(newSliceNamed('c', 1.75, 0.5));
-    var sD = group.pushSlice(newSliceNamed('d', 5, 0.25));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
+    var sC = group.pushSlice(newSliceEx(
+        {title: 'c', start: 1.75, duration: 0.5}));
+    var sD = group.pushSlice(newSliceEx(
+        {title: 'd', start: 5, duration: 0.25}));
 
     group.createSubSlices();
 
@@ -284,8 +285,9 @@ tr.b.unittest.testSuite(function() {
     // Pattern being tested:
     // [  a  ]
     // [  b  ] where b.end contains a tiny FP calculation error.
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
-    var sB = group.pushSlice(newSliceNamed('b', 1, 3.0000000001));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    var sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1, duration: 3.0000000001}));
 
     group.createSubSlices();
 
@@ -634,7 +636,7 @@ tr.b.unittest.testSuite(function() {
     var group = new SliceGroup(newFakeThread());
     assert.equal(0, group.openSliceCount);
 
-    group.pushSlice(newSliceNamed('a', 1, 0.5));
+    group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0.5}));
 
     group.beginSlice('', 'b', 2);
     group.beginSlice('', 'c', 2.5);
@@ -717,9 +719,9 @@ tr.b.unittest.testSuite(function() {
     var expected = [];
 
     for (var i = 0; i < 10; i++) {
-      var aSlice = newSliceNamed('a', i, i + 1);
+      var aSlice = newSliceEx({title: 'a', start: i, duration: i + 1});
       group.pushSlice(aSlice);
-      group.pushSlice(newSliceNamed('b', i + 1, i + 2));
+      group.pushSlice(newSliceEx({title: 'b', start: i + 1, duration: i + 2}));
       expected.push(aSlice);
     }
 
@@ -731,7 +733,7 @@ tr.b.unittest.testSuite(function() {
     var expected = [];
 
     for (var i = 0; i < 10; i++) {
-      var slice = newSliceNamed('a', i, 1);
+      var slice = newSliceEx({title: 'a', start: i, duration: 1});
       group.pushSlice(slice);
       if (4 <= i && i <= 7)
         expected.push(slice);
@@ -753,8 +755,8 @@ tr.b.unittest.testSuite(function() {
                     newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
                     newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
     var group = new SliceGroup(t);
-    group.pushSlice(newSliceNamed('draw', 0, 20));
-    group.pushSlice(newSliceNamed('render', 60, 20));
+    group.pushSlice(newSliceEx({title: 'draw', start: 0, duration: 20}));
+    group.pushSlice(newSliceEx({title: 'render', start: 60, duration: 20}));
     group.createSubSlices();
     assert.equal(group.slices[0].cpuDuration, 0);
     assert.equal(group.slices[1].cpuDuration, 0);
@@ -769,8 +771,8 @@ tr.b.unittest.testSuite(function() {
                     newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
                     newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
     var group = new SliceGroup(t);
-    group.pushSlice(newSliceNamed('draw', 10, 30));
-    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.pushSlice(newSliceEx({title: 'draw', start: 10, duration: 30}));
+    group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
     group.createSubSlices();
     assert.equal(group.slices[0].cpuDuration, 20);
     assert.equal(group.slices[1].cpuDuration, 10);
@@ -785,8 +787,8 @@ tr.b.unittest.testSuite(function() {
                     newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
                     newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
     var group = new SliceGroup(t);
-    group.pushSlice(newSliceNamed('draw', 20, 30));
-    group.pushSlice(newSliceNamed('render', 50, 20));
+    group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
+    group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
     group.createSubSlices();
     assert.equal(group.slices[0].cpuDuration, 20);
     assert.equal(group.slices[1].cpuDuration, 20);
@@ -801,9 +803,9 @@ tr.b.unittest.testSuite(function() {
                     newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
                     newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
     var group = new SliceGroup(t);
-    group.pushSlice(newSliceNamed('draw', 20, 30));
-    group.pushSlice(newSliceNamed('render', 21, 8));
-    group.pushSlice(newSliceNamed('flush', 29, 11));
+    group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
+    group.pushSlice(newSliceEx({title: 'render', start: 21, duration: 8}));
+    group.pushSlice(newSliceEx({title: 'flush', start: 29, duration: 11}));
     group.createSubSlices();
     assert.equal(group.slices[0].cpuDuration, 20);
     assert.equal(group.slices[0].cpuSelfTime, 1);
@@ -830,9 +832,12 @@ tr.b.unittest.testSuite(function() {
                     newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
                     newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
     var group = new SliceGroup(t);
-    group.pushSlice(newSliceNamed('draw', 20, 11)); // 20,[22,24,26,28],30
-    group.pushSlice(newSliceNamed('render', 22, 8)); // 22,[24, 26, 28]
-    group.pushSlice(newSliceNamed('flush', 24, 6)); // 24, 26, 28
+    group.pushSlice(newSliceEx(
+        {title: 'draw', start: 20, duration: 11})); // 20,[22,24,26,28],30
+    group.pushSlice(newSliceEx(
+        {title: 'render', start: 22, duration: 8})); // 22,[24, 26, 28]
+    group.pushSlice(newSliceEx(
+        {title: 'flush', start: 24, duration: 6})); // 24, 26, 28
     group.createSubSlices();
     assert.equal(group.slices[0].cpuDuration, 6);
     assert.equal(group.slices[0].cpuSelfTime, 2);
