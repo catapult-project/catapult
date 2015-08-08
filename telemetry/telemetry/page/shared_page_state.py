@@ -294,8 +294,6 @@ class SharedPageState(story.SharedState):
       self._test.ValidateAndMeasurePage(
           self._current_page, self._current_tab, results)
     except exceptions.Error:
-      if self.browser and self.browser._browser_backend.supports_uploading_logs:
-        self.browser._browser_backend.UploadLogsToCloudStorage()
       if self._test.is_multi_tab_test:
         # Avoid trying to recover from an unknown multi-tab state.
         exception_formatter.PrintFormattedException(

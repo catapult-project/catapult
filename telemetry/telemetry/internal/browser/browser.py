@@ -2,7 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
+
+from catapult_base import cloud_storage
 
 from telemetry.core import exceptions
 from telemetry.core import local_server
@@ -218,6 +221,11 @@ class Browser(app.App):
 
     self._local_server_controller.Close()
     self._browser_backend.profiling_controller_backend.WillCloseBrowser()
+    if self._browser_backend.supports_uploading_logs:
+      try:
+        self._browser_backend.UploadLogsToCloudStorage()
+      except cloud_storage.CloudStorageError as e:
+        logging.error('Cannot upload browser log: %s' % str(e))
     self._browser_backend.Close()
     self.credentials = None
 
