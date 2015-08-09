@@ -83,8 +83,8 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
     config_name = project.GetDefaultConfigName()
 
   modules = [
-      'trace2html',
-      'extras.importer.gzip_importer',  # Must have this regardless of config.
+      'tracing.trace2html',
+      'tracing.extras.importer.gzip_importer',  # Must have for all configs.
       project.GetModuleNameForConfigName(config_name)
   ]
 

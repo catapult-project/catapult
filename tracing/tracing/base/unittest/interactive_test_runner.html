@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/base/base.html">
-<link rel="import" href="/base/unittest.html">
-<link rel="import" href="/base/unittest/suite_loader.html">
-<link rel="import" href="/base/unittest/test_runner.html">
-<link rel="import" href="/base/unittest/html_test_results.html">
-<link rel="import" href="/ui/base/utils.html">
+<link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/unittest.html">
+<link rel="import" href="/tracing/base/unittest/suite_loader.html">
+<link rel="import" href="/tracing/base/unittest/test_runner.html">
+<link rel="import" href="/tracing/base/unittest/html_test_results.html">
+<link rel="import" href="/tracing/ui/base/utils.html">
 
 <style>
   x-base-interactive-test-runner {
@@ -513,7 +513,7 @@ tr.exportTo('tr.b.unittest', function() {
       if (state.testSuiteName) {
         return new Promise(function(resolve) {
           var parts = state.testSuiteName.split('.');
-          var testSuiteRelPath = '/' + parts.join('/') + '.html';
+          var testSuiteRelPath = '/tracing/' + parts.join('/') + '.html';
 
           var suiteRelpathsToLoad = [testSuiteRelPath];
           resolve(suiteRelpathsToLoad);

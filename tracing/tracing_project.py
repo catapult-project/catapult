@@ -71,7 +71,6 @@ class TracingProject():
 
   def __init__(self):
     self.source_paths = []
-    self.source_paths.append(self.tracing_src_path)
     self.source_paths.append(self.tracing_root_path)
     self.source_paths.append(self.tracing_third_party_path)
     self.source_paths.append(self.jszip_path)
@@ -129,7 +128,7 @@ class TracingProject():
     return choices
 
   def GetModuleNameForConfigName(self, config_name):
-    return 'ui.extras.%s_config' % config_name
+    return 'tracing.ui.extras.%s_config' % config_name
 
   @classmethod
   def IsIgnoredFile(cls, affected_file):

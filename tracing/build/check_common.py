@@ -57,7 +57,7 @@ def GetKnownFiles():
 
   vulcanizer = project.CreateVulcanizer()
   m = vulcanizer.loader.LoadModule(
-      module_name='ui.extras.about_tracing.about_tracing')
+      module_name='tracing.ui.extras.about_tracing.about_tracing')
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 

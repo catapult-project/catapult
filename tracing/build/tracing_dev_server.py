@@ -45,7 +45,7 @@ def _RelPathToUnixPath(p):
 
 class TestListHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
-    test_relpaths = ['/' + _RelPathToUnixPath(x)
+    test_relpaths = ['/tracing/' + _RelPathToUnixPath(x)
                      for x in self.app.project.FindAllTestModuleRelPaths()]
 
     tests = {'test_relpaths': test_relpaths}
@@ -137,10 +137,10 @@ def CreateApp(project=None,
     project = tracing_project.TracingProject()
 
   routes = [
-    Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
-    Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
+    Route('', RedirectHandler, defaults={'_uri': '/tracing/tests.html'}),
+    Route('/', RedirectHandler, defaults={'_uri': '/tracing/tests.html'}),
     Route('/base/tests.html', RedirectHandler,
-          defaults={'_uri': '/tests.html'}),
+          defaults={'_uri': '/tracing/tests.html'}),
     Route('/tr/json/tests', TestListHandler),
     Route('/tr/json/notify_test_result', TestResultHandler),
     Route('/tr/json/notify_tests_completed', TestsCompletedHandler)

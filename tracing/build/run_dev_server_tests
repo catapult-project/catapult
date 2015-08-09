@@ -164,7 +164,7 @@ def main():
         '--no-experiments',
         '--no-first-run',
         '--noerrdialogs',
-        'http://localhost:8003/tests.html?' +
+        'http://localhost:8003/tracing/tests.html?' +
             'headless=true&testTypeToRun=all',
     ]
     chrome_process = subprocess.Popen(

@@ -31,7 +31,7 @@ def main(args):
     parser.print_help()
     return 1
 
-  names = ["ui.extras.about_tracing.about_tracing"]
+  names = ["tracing.ui.extras.about_tracing.about_tracing"]
   project = tracing_project.TracingProject()
 
   vulcanizer = project.CreateVulcanizer()

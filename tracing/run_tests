@@ -43,7 +43,7 @@ def _RunDevServer(chrome_command):
   args = [
     chrome_command, '--no-sandbox', '--no-experiments', '--no-first-run',
     '--noerrdialogs',
-    'http://localhost:8003/tests.html?headless=true&testTypeToRun=all']
+    'http://localhost:8003/tracing/tests.html?headless=true&testTypeToRun=all']
   chrome_proc = subprocess.Popen(args)
   exit_code = subprocess.call([_RUN_DEV_SERVER_DIR])
   chrome_proc.terminate()
