@@ -8,6 +8,7 @@ import os
 import sys
 
 import tracing_project
+from hooks import install
 
 from paste import httpserver
 from paste import fileapp
@@ -207,10 +208,12 @@ def _AddPleaseExitMixinToServer(server):
 
 
 
-def Main(args):
+def Main(argv):
   project = tracing_project.TracingProject()
 
   parser = argparse.ArgumentParser(description='Run tracing development server')
+  parser.add_argument(
+    '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument(
       '-d', '--data-dir',
       default=os.path.abspath(os.path.join(project.test_data_path)))
@@ -218,7 +221,11 @@ def Main(args):
       '-s', '--skp-data-dir',
       default=os.path.abspath(os.path.join(project.skp_data_path)))
   parser.add_argument('-p', '--port', default=8003, type=int)
-  args = parser.parse_args(args=args)
+  args = parser.parse_args(args=argv[1:])
+
+  if args.install_hooks:
+    install.InstallHooks()
+
   app = CreateApp(project,
                   test_data_path=args.data_dir,
                   skp_data_path=args.skp_data_dir)

@@ -10,9 +10,10 @@ import subprocess
 import sys
 
 
-_RUN_PY_TESTS_DIR = os.path.join(os.path.dirname(__file__), 'run_py_tests')
-_RUN_D8_TESTS_DIR = os.path.join(os.path.dirname(__file__), 'run_d8_tests')
-_RUN_DEV_SERVER_DIR = os.path.join(os.path.dirname(__file__), 'run_dev_server')
+_THIS_PATH = os.path.dirname(__file__)
+_RUN_PY_TESTS_PATH = os.path.join(_THIS_PATH, 'run_py_tests')
+_RUN_VINN_TESTS_PATH = os.path.join(_THIS_PATH, 'run_vinn_tests')
+_RUN_DEV_SERVER_PATH = os.path.join(_THIS_PATH, 'run_dev_server')
 
 
 class bcolors(object):
@@ -27,11 +28,11 @@ class bcolors(object):
 
 
 def _RunPyTests():
-  return subprocess.call([_RUN_PY_TESTS_DIR])
+  return subprocess.call([_RUN_PY_TESTS_PATH])
 
 
-def _RunD8Tests():
-  return subprocess.call([_RUN_D8_TESTS_DIR])
+def _RunVinnTests():
+  return subprocess.call([_RUN_VINN_TESTS_PATH])
 
 
 def _RunDevServer(chrome_command):
@@ -45,7 +46,7 @@ def _RunDevServer(chrome_command):
     '--noerrdialogs',
     'http://localhost:8003/tracing/tests.html?headless=true&testTypeToRun=all']
   chrome_proc = subprocess.Popen(args)
-  exit_code = subprocess.call([_RUN_DEV_SERVER_DIR])
+  exit_code = subprocess.call([_RUN_DEV_SERVER_PATH])
   chrome_proc.terminate()
   if chrome_proc.poll() is None:
     chrome_proc.kill()
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     chrome_command = _TryGettingChromeCommand()
 
   run_py_tests_exit_code = _RunPyTests()
-  run_d8_tests_exit_code = _RunD8Tests()
+  run_vinn_tests_exit_code = _RunVinnTests()
   if chrome_command:
     run_dev_server_exit_code = _RunDevServer(chrome_command)
   else:
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     run_dev_server_exit_code = 0
 
   exit_code = (run_py_tests_exit_code | run_dev_server_exit_code |
-               run_d8_tests_exit_code)
+               run_vinn_tests_exit_code)
   if exit_code:
     print (bcolors.FAIL +
            'Oooops! Looks like some of your tests have failed.' +
@@ -106,9 +107,9 @@ if __name__ == '__main__':
     sys.stderr.write(
       'run_py_tests have some failed tests. Rerun run_py_tests script '
       'to see those.\n')
-  if run_d8_tests_exit_code:
+  if run_vinn_tests_exit_code:
     sys.stderr.write(
-      'run_d8_tests have some failed tests. Rerun run_d8_tests script '
+      'run_vinn_tests have some failed tests. Rerun run_vinn_tests script '
       'to see those.\n')
   if run_dev_server_exit_code:
     sys.stderr.write(

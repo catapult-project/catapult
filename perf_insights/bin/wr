@@ -3,11 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# TODO(anniesullie): Remove this file when the test recipes are updated.
-
 import os
 import sys
 
 if __name__ == '__main__':
-  from tracing_build import run_vinn_tests
-  sys.exit(run_vinn_tests.Main(sys.argv))
+  perf_insights_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                    '..'))
+  sys.path.append(perf_insights_path)
+  raise NotImplementedError('Not yet, sorry')

@@ -15,6 +15,8 @@ from paste import fileapp
 import webapp2
 from webapp2 import Route, RedirectHandler
 
+from hooks import install
+
 def _GetFilesIn(basedir):
   data_files = []
   for dirpath, dirnames, filenames in os.walk(basedir, followlinks=True):
@@ -168,13 +170,19 @@ def _AddPleaseExitMixinToServer(server):
 
 
 
-def Main(args):
+def Main(argv):
   project = perf_insights_project.PerfInsightsProject()
 
   parser = argparse.ArgumentParser(
       description='Run perf_insights development server')
+  parser.add_argument(
+    '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument('-p', '--port', default=8009, type=int)
-  args = parser.parse_args(args=args)
+  args = parser.parse_args(args=argv[1:])
+
+  if args.install_hooks:
+    install.InstallHooks()
+
   app = CreateApp(project)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,

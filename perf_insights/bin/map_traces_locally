@@ -6,7 +6,9 @@
 import os
 import sys
 
-
 if __name__ == '__main__':
+  perf_insights_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                    '..'))
+  sys.path.append(perf_insights_path)
   from perf_insights import map_traces_locally
-  sys.exit(map_traces_locally.Main(sys.argv[1:]))
+  sys.exit(map_traces_locally.Main(sys.argv))

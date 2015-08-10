@@ -7,17 +7,16 @@ import argparse
 import os
 import sys
 
-import perf_insights_project
-perf_insights_project.UpdateSysPathIfNeeded()
-
 from hooks import install
+import perf_insights_project
 import vinn
+
 
 def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
 
 
-def Main(args):
+def RunTests():
   project = perf_insights_project.PerfInsightsProject()
   d8_test_module_filenames = ['/' + _RelPathToUnixPath(x)
                               for x in project.FindAllD8TestModuleRelPaths()]
@@ -31,14 +30,14 @@ def Main(args):
     js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
 
-if __name__ == '__main__':
+def Main(argv):
   parser = argparse.ArgumentParser(
       description='Run d8 tests.')
   parser.add_argument(
     '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.set_defaults(install_hooks=True)
-  args = parser.parse_args()
+  args = parser.parse_args(argv[1:])
   if args.install_hooks:
     install.InstallHooks()
 
-  sys.exit(Main(sys.argv[1:]))
+  sys.exit(RunTests())

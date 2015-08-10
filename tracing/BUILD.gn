@@ -12,7 +12,7 @@ gypi_values = exec_script("//build/gypi_to_gn.py",
 output_resource_dir = "$root_gen_dir/content/browser/tracing"
 
 action("generate_about_tracing") {
-  script = "build/generate_about_tracing_contents"
+  script = "bin/generate_about_tracing_contents"
 
   inputs = gypi_values.tracing_css_files + gypi_values.tracing_js_html_files +
       gypi_values.tracing_img_files

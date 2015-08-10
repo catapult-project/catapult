@@ -143,7 +143,7 @@ def Main(argv):
     user_data_dir = tempfile.mkdtemp()
     tmpdir, version = DownloadChromeStable()
     server_path = os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), os.pardir, 'run_dev_server')
+        os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
     server_command = [server_path, '--no-install-hooks']
     if sys.platform.startswith('win'):
         server_command = ['python.exe'] + server_command

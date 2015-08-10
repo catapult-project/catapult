@@ -11,7 +11,7 @@ import tracing_project
 from tvcm import generate
 
 
-def Main(args):
+def Main(argv):
 
   parser = optparse.OptionParser(
       usage="%prog <options>",
@@ -35,7 +35,7 @@ trace viewer.""")
       help='Where to put the generated result. If not ' +
            'given, $TRACING/tracing/bin/trace_viewer.html is used.')
 
-  options, args = parser.parse_args(args)
+  options, args = parser.parse_args(argv[1:])
   if len(args) != 0:
     parser.error('No arguments needed.')
 

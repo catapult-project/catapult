@@ -16,7 +16,7 @@ import tracing_project
 from tvcm import generate
 
 
-def Main(args):
+def Main(argv):
 
   parser = optparse.OptionParser(
       usage="%prog <options> trace_file1 [trace_file2 ...]",
@@ -33,7 +33,7 @@ file that contains both the trace and the trace viewer.""")
   parser.add_option(
       "--quiet", action='store_true',
       help='Dont print the output file name')
-  options, args = parser.parse_args(args)
+  options, args = parser.parse_args(argv[1:])
   if len(args) == 0:
     parser.error('At least one trace file required')
 

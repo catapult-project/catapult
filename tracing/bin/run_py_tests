@@ -7,6 +7,8 @@ import os
 import sys
 
 if __name__ == '__main__':
-  top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-  sys.path.append(top_dir)
-  raise NotImplementedError('Not yet, sorry')
+  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                 '..'))
+  sys.path.append(tracing_path)
+  from tracing_build import run_py_tests
+  sys.exit(run_py_tests.Main(sys.argv))
