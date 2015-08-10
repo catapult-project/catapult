@@ -40,7 +40,7 @@ tr.exportTo('pi.wr', function() {
 
   function getAllEventsGroupedByRAILTypeName(model) {
     var railIRs = model.interaction_records.filter(function(ir) {
-      return ir instanceof tr.e.RAIL.RAILInteractionRecord;
+      return ir instanceof tr.e.rail.RAILInteractionRecord;
     });
 
     var unassociatedEventsByGUID = {};

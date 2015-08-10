@@ -14,10 +14,7 @@ tr.exportTo('pi.wr', function() {
   function weatherReportMapFunction(results, run_info, model) {
     var wr = pi.wr.getWeatherReportFromModel(model);
     results.addValue(new pi.v.DictValue(
-      run_info,
-      'load_info', {
-        numProcesses: model.getAllProcesses().length
-      }));
+      run_info, 'wr', pi.wr.getWeatherReportFromModel(model)));
   }
   pi.MapFunction.register(weatherReportMapFunction);
 
