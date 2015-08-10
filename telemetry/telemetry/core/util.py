@@ -45,6 +45,7 @@ def AddDirToPythonPath(*path_parts):
   if os.path.isdir(path) and path not in sys.path:
     sys.path.insert(0, path)
 
+
 _counter = [0]
 def _GetUniqueModuleName():
   _counter[0] += 1

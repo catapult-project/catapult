@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -64,3 +65,17 @@ class TestGetSequentialFileName(unittest.TestCase):
 
   def tearDown(self):
     shutil.rmtree(self.test_directory)
+
+class TestAddDirToPythonPath(unittest.TestCase):
+  def setUp(self):
+    self._test_dir = (util.GetTelemetryDir(), 'telemetry', 'internal',
+                      'testing', 'add_dir_to_python_path_test_dir')
+
+  def testDirAddedToPythonPath(self):
+    old_sys_path = sys.path
+    expected_path = os.path.abspath(os.path.join(*self._test_dir))
+
+    util.AddDirToPythonPath(*self._test_dir)
+
+    self.assertEquals(sys.path[0], expected_path)
+    sys.path = old_sys_path
