@@ -112,8 +112,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self.platform_backend.ForwardHostToDevice(
             self._port, remote_devtools_port)
       except Exception:
-        logging.warning('Failed to forward %s to %s. Currently forwarding:',
+        logging.exception('Failed to forward %s to %s.',
             str(self._port), str(remote_devtools_port))
+        logging.warning('Currently forwarding:')
         try:
           for line in self.device.adb.ForwardList().splitlines():
             logging.warning('  %s', line)
