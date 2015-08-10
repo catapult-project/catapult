@@ -51,8 +51,8 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
 
       logging.warning('Device tcp sockets in use:')
       try:
-        for line in self.device.ReadFile('/proc/net/tcp', as_root=True,
-                                         force_pull=True).splitlines():
+        for line in self._device.ReadFile('/proc/net/tcp', as_root=True,
+                                          force_pull=True).splitlines():
           logging.warning('  %s', line)
       except Exception:
         logging.warning('Exception raised while listing tcp sockets.')
