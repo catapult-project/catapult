@@ -216,7 +216,7 @@ def Main(argv):
     '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument(
       '-d', '--data-dir',
-      default=os.path.abspath(os.path.join(project.test_data_path)))
+      default=project.test_data_path)
   parser.add_argument(
       '-s', '--skp-data-dir',
       default=os.path.abspath(os.path.join(project.skp_data_path)))

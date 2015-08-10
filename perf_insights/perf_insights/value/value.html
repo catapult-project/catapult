@@ -41,7 +41,7 @@ tr.exportTo('pi.v', function() {
 
   Value.prototype = {
     asDict: function() {
-      d = {
+      var d = {
         'run_id': this.run_info.run_id,
         'name': this.name,
         'units': this.units,

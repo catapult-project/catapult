@@ -60,6 +60,8 @@ class PerfInsightsProject(object):
       os.path.join(perf_insights_root_path, 'perf_insights'))
   perf_insights_ui_path = os.path.abspath(
       os.path.join(perf_insights_src_path, 'ui'))
+  perf_insights_test_data_path = os.path.abspath(
+      os.path.join(perf_insights_root_path, 'test_data'))
   perf_insights_examples_path = os.path.abspath(
       os.path.join(perf_insights_root_path, 'perf_insights_examples'))
 

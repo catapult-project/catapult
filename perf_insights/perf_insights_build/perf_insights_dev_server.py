@@ -111,8 +111,24 @@ class SourcePathsHandler(webapp2.RequestHandler):
     self.abort(404)
 
 
+class SimpleDirectoryHandler(webapp2.RequestHandler):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
+    top_path = os.path.abspath(kwargs.pop('_top_path', None))
+    if not top_path.endswith(os.path.sep):
+      top_path += os.path.sep
 
-def CreateApp(project=None):
+    joined_path = os.path.abspath(
+        os.path.join(top_path, kwargs.pop('rest_of_path')))
+    if not joined_path.startswith(top_path):
+      self.response.set_status(403)
+      return
+    app = FileAppWithGZipHandling(joined_path)
+    app.cache_control(no_cache=True)
+    return app
+
+
+def CreateApp(project=None,
+              perf_insights_test_data_path=None):
   if project is None:
     project = perf_insights_project.PerfInsightsProject()
 
@@ -125,6 +141,19 @@ def CreateApp(project=None):
     Route('/perf_insights/notify_test_result', TestResultHandler),
     Route('/perf_insights/notify_tests_completed', TestsCompletedHandler)
   ]
+
+  # Test data system.
+  if not perf_insights_test_data_path:
+    perf_insights_test_data_path = project.perf_insights_test_data_path
+  routes.append(Route('/perf_insights/test_data/__file_list__',
+                      DirectoryListingHandler,
+                      defaults={
+                          '_source_path': perf_insights_test_data_path,
+                          '_mapped_path': '/perf_insights/test_data/'
+                      }))
+  routes.append(Route('/perf_insights/test_data/<rest_of_path:.+>',
+                      SimpleDirectoryHandler,
+                      defaults={'_top_path': perf_insights_test_data_path}))
 
   # This must go last, because its catch-all.
   #
@@ -176,6 +205,9 @@ def Main(argv):
   parser = argparse.ArgumentParser(
       description='Run perf_insights development server')
   parser.add_argument(
+      '--perf-insights-data-path',
+      default=project.perf_insights_test_data_path)
+  parser.add_argument(
     '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument('-p', '--port', default=8009, type=int)
   args = parser.parse_args(args=argv[1:])
@@ -183,7 +215,7 @@ def Main(argv):
   if args.install_hooks:
     install.InstallHooks()
 
-  app = CreateApp(project)
+  app = CreateApp(project, args.perf_insights_data_path)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
                             start_loop=False)
