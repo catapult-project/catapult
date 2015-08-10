@@ -10,7 +10,6 @@ from perf_insights import value as value_module
 
 import vinn
 import perf_insights_project
-import cloudstorage as gcs
 
 
 def MapSingleTrace(results, trace_handle, map_file):
