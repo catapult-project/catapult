@@ -400,9 +400,10 @@ tr.exportTo('tr.ui.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
+      var instantEventWidth = 3 * viewPixWidthWorld;
       tr.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
-          function(x) { return x.duration; },
+          function(x) { return x.duration + instantEventWidth; },
           loWX, hiWX,
           onPickHit.bind(this));
 

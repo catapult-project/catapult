@@ -160,9 +160,12 @@ tr.exportTo('tr.ui.tracks', function() {
         rect.addToSelection(selection);
       }
       onRect = onRect.bind(this);
+      var instantEventWidth = 2 * viewPixWidthWorld;
       tr.b.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
-          function(x) { return x.duration; },
+          function(x) { return x.duration == 0 ?
+                               x.duration + instantEventWidth :
+                               x.duration; },
           loWX, hiWX,
           onRect);
     },
