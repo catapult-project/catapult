@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import argparse
+import logging
 import os
 import platform
 import shutil
@@ -226,8 +227,13 @@ def main():
                       nargs='+', type=str)
 
   args = parser.parse_args()
-
-  args.source_paths = [os.path.abspath(x) for x in args.source_paths]
+  if args.source_paths:
+    args.source_paths = [os.path.abspath(x) for x in args.source_paths]
+  else:
+    args.source_paths = [os.path.abspath(os.path.dirname(args.file_name))]
+    logging.warning(
+      '--source_paths is not specified. Use %s for search path.' %
+      args.source_paths)
   res = RunFile(args.file_name, source_paths=args.source_paths,
                 js_args=args.js_args, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
