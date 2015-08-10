@@ -44,7 +44,6 @@ tr.exportTo('tr.model', function() {
 
     tr.model.EventContainer.call(this);
     this.parent = parent;
-    this.guid_ = tr.b.GUID.allocate();
     this.sortIndex = 0;
     this.tid = tid;
     this.name = undefined;
@@ -61,10 +60,6 @@ tr.exportTo('tr.model', function() {
 
   Thread.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get model() {
       return this.parent.model;

@@ -27,7 +27,6 @@ tr.exportTo('tr.model', function() {
    */
   function Counter(parent, id, category, name) {
     tr.model.EventContainer.call(this);
-    this.guid_ = tr.b.GUID.allocate();
 
     this.parent_ = parent;
     this.id_ = id;
@@ -40,10 +39,6 @@ tr.exportTo('tr.model', function() {
 
   Counter.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get parent() {
       return this.parent_;

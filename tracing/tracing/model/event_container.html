@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/range.html">
 
 <script>
@@ -23,11 +24,15 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function EventContainer() {
+    this.guid_ = tr.b.GUID.allocate();
     this.important = true;
     this.bounds_ = new tr.b.Range();
   }
 
   EventContainer.prototype = {
+    get guid() {
+      return this.guid_;
+    },
 
     /**
      * @return {String} A stable and unique identifier that describes this

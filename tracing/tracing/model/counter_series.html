@@ -26,7 +26,6 @@ tr.exportTo('tr.model', function() {
    */
   function CounterSeries(name, color) {
     tr.model.EventContainer.call(this);
-    this.guid_ = tr.b.GUID.allocate();
 
     this.name_ = name;
     this.color_ = color;
@@ -41,10 +40,6 @@ tr.exportTo('tr.model', function() {
 
   CounterSeries.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get length() {
       return this.timestamps_.length;

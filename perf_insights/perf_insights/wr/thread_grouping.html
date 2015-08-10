@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/perf_insights/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pi.wr', function() {
+  function ThreadGrouping() {
+    this.groupNameForThreadGUID_ = {};
+  }
+
+  ThreadGrouping.prototype = {
+    autoInitUsingHelpers: function(model) {
+      // Everything is 'other' by default.
+      model.getAllThreads().forEach(function(thread) {
+        this.groupNameForThreadGUID_[thread.guid] = 'other';
+      }, this);
+
+      if (tr.e.audits.ChromeModelHelper.supportsModel(model)) {
+        var chromeHelper = new tr.e.audits.ChromeModelHelper(model);
+
+        var browserHelper = chromeHelper.browserHelper;
+        this.addThreadsInProcessToGroup_(browserHelper.process, 'browser');
+
+        // TODO(nduca): Detect clank browser gpu thread and assign it to the GPU
+        // group.
+        for (var pid in chromeHelper.rendererHelpers) {
+          var rendererHelper = chromeHelper.rendererHelpers[pid];
+          this.addThreadsInProcessToGroup_(rendererHelper.process, 'renderer');
+        }
+
+        // TODO(nduca): Modify the helpers to detect plugin and gpu processes
+        // and include those in separate processes.
+      }
+
+      // It would be very easy to add processes recognized by android helper
+      // here, too.
+    },
+
+    addThreadsInProcessToGroup_: function(process, groupName,
+                                          opt_predicate, opt_this) {
+      var predicate = opt_predicate || tr.b.identity;
+
+      for (var tid in process.threads) {
+        var thread = process.threads[tid];
+        if (predicate.call(opt_this, thread))
+          this.groupNameForThreadGUID_[thread.guid] = groupName;
+      }
+    },
+
+    divideEventSetIntoSubGroups: function(eventSet) {
+      var resultingEventSets = {
+        other: new tr.model.EventSet()
+      };
+      tr.b.iterItems(this.groupNameForThreadGUID_, function(guid, groupName) {
+        if (resultingEventSets[groupName] !== undefined)
+          return;
+        resultingEventSets[groupName] = new tr.model.EventSet();
+      });
+
+      eventSet.forEach(function(event) {
+        var parentContainer = event.parentContainer;
+        if (parentContainer === undefined)
+          return;
+
+        if (!(parentContainer instanceof tr.model.EventContainer))
+          return;
+
+        var groupName = this.groupNameForThreadGUID_[parentContainer.guid];
+        if (groupName === undefined)
+          groupName = 'other';
+        resultingEventSets[groupName].push(event);
+
+      }, this);
+
+      return resultingEventSets;
+    }
+  }
+
+  return {
+    ThreadGrouping: ThreadGrouping
+  };
+});
+</script>

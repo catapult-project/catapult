@@ -19,7 +19,25 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.rail', function() {
 
+  // We need an up-front list of all IR types in order to keep various groupings
+  // stable, in presence of only a portion of interactions in a given trace.
+  var ALL_RAIL_TYPE_NAMES = [
+    'rail_response',
+    'rail_animate',
+    'rail_idle',
+    'rail_load'
+  ];
+
+  var DOES_RAIL_TYPE_NAME_EXIST = {};
+  ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
+    DOES_RAIL_TYPE_NAME_EXIST[railTypeName] = true;
+  });
+
+
   function RAILInteractionRecord(title, railTypeName, start, duration) {
+    if (!DOES_RAIL_TYPE_NAME_EXIST[railTypeName])
+      throw new Error(railTypeName + ' is not listed in ALL_RAIL_TYPE_NAMES');
+
     var colorId = tr.ui.b.getColorIdForReservedName(railTypeName);
     this.railTypeName_ = railTypeName;
     tr.model.InteractionRecord.call(this,
@@ -99,7 +117,8 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   return {
-    RAILInteractionRecord: RAILInteractionRecord
+    RAILInteractionRecord: RAILInteractionRecord,
+    ALL_RAIL_TYPE_NAMES: ALL_RAIL_TYPE_NAMES
   };
 });
 </script>

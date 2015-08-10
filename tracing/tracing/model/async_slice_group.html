@@ -25,7 +25,6 @@ tr.exportTo('tr.model', function() {
   function AsyncSliceGroup(parentContainer, opt_name) {
     tr.model.EventContainer.call(this);
     this.parentContainer_ = parentContainer;
-    this.guid_ = tr.b.GUID.allocate();
     this.slices = [];
     this.name_ = opt_name;
     this.viewSubGroups_ = undefined;
@@ -33,10 +32,6 @@ tr.exportTo('tr.model', function() {
 
   AsyncSliceGroup.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get parentContainer() {
       return this.parentContainer_;

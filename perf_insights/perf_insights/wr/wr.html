@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/wr/thread_grouping.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+
+<script>
+tr.exportTo('pi.wr', function() {
+
+  function getWeatherReportFromModel(model) {
+    var threadGrouping = new pi.wr.ThreadGrouping();
+    threadGrouping.autoInitUsingHelpers(model);
+
+    // First, report by every event.
+    var wr = {
+      full_trace: getCostReportSplayedByThreadGrouping(getAllEvents(model),
+                                                       threadGrouping),
+    }
+    var eventsByRTN = getAllEventsGroupedByRAILTypeName(model);
+    for (var rtn in eventsByRTN)
+      wr[rtn] = getCostReportSplayedByThreadGrouping(eventsByRTN[rtn],
+                                                     threadGrouping);
+    return wr;
+  }
+
+
+  function getAllEvents(model) {
+    var res = new tr.model.EventSet();
+    model.iterateAllEvents(function(event) {
+      res.push(event);
+    });
+    return res;
+  }
+
+
+  function getAllEventsGroupedByRAILTypeName(model) {
+    var railIRs = model.interaction_records.filter(function(ir) {
+      return ir instanceof tr.e.RAIL.RAILInteractionRecord;
+    });
+
+    var unassociatedEventsByGUID = {};
+    model.iterateAllEvents(function(event) {
+      unassociatedEventsByGUID[event.guid] = event;
+    });
+
+    var eventsByRTN = {};
+    tr.e.rail.ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
+      eventsByRTN[railTypeName] = new tr.model.EventSet();
+    });
+    railIRs.forEach(function(ir) {
+      ir.associatedEvents.forEach(function(event) {
+        eventsByRTN[ir.railTypeName].push(event);
+        delete unassociatedEventsByGUID[event.guid];
+      }, this);
+    }, this);
+
+    // Remember all the unassociated.
+    eventsByRTN.unassociated = new tr.model.EventSet();
+    tr.b.iterItems(unassociatedEventsByGUID, function(guid, event) {
+      eventsByRTN.unassociated.push(event);
+    }, this);
+
+    return eventsByRTN;
+  }
+
+
+  function getCostReportSplayedByThreadGrouping(eventSet, threadGrouping) {
+    // Do it once for the full set, then broken out by threadGroupName.
+    splayedCR = {
+      all: getCostReportFor(eventSet)
+    }
+    threadGroups = threadGrouping.divideEventSetIntoSubGroups(eventSet);
+    for (var groupName in threadGroups)
+      splayedCR[groupName] = getCostReportFor(threadGroups[groupName]);
+
+    return splayedCR;
+  }
+
+  function getCostReportFor(eventSet) {
+    sliceSet = eventSet.filter(function(event) {
+      return event instanceof tr.model.ThreadSlice;
+    });
+
+    // Thread report.
+    var sliceStatsByTitle = {};
+    sliceSet.forEach(function(threadSlice) {
+      var sliceStats = sliceStatsByTitle[threadSlice.analysisTypeName];
+      if (sliceStats === undefined) {
+        sliceStatsByTitle[threadSlice.analysisTypeName] = {
+          selfTime: 0,
+          cpuSelfTime: 0
+        };
+        sliceStats = sliceStatsByTitle[threadSlice.analysisTypeName];
+      }
+
+      if (threadSlice.selfTime !== undefined)
+        sliceStats.selfTime += threadSlice.cpuSelfTime;
+      if (threadSlice.cpuSelfTime !== undefined)
+        sliceStats.cpuSelfTime += threadSlice.cpuSelfTime;
+    });
+
+    return {
+      sliceStatsByTitle: sliceStatsByTitle
+    };
+  }
+
+
+  return {
+    getWeatherReportFromModel: getWeatherReportFromModel,
+    getCostReportFor: getCostReportFor
+  }
+});
+
+</script>

@@ -34,7 +34,6 @@ tr.exportTo('tr.model', function() {
     if (!model)
       throw new Error('Must provide a model');
     tr.model.EventContainer.call(this);
-    this.guid_ = tr.b.GUID.allocate();
     this.model = model;
     this.threads = {};
     this.counters = {};
@@ -48,10 +47,6 @@ tr.exportTo('tr.model', function() {
 
   ProcessBase.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get stableId() {
       throw new Error('Not implemented');

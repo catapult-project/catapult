@@ -42,7 +42,6 @@ tr.exportTo('tr.model', function() {
    */
   function SliceGroup(parentContainer, opt_sliceConstructor, opt_name) {
     tr.model.EventContainer.call(this);
-    this.guid_ = tr.b.GUID.allocate();
 
     this.parentContainer_ = parentContainer;
 
@@ -62,10 +61,6 @@ tr.exportTo('tr.model', function() {
 
   SliceGroup.prototype = {
     __proto__: tr.model.EventContainer.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
 
     get parentContainer() {
       return this.parentContainer_;

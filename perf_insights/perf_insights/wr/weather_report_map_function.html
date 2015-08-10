@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/wr/wr.html">
+<link rel="import" href="/perf_insights/map_function.html">
+
+<script>
+tr.exportTo('pi.wr', function() {
+
+  function weatherReportMapFunction(results, run_info, model) {
+    var wr = pi.wr.getWeatherReportFromModel(model);
+    results.addValue(new pi.v.DictValue(
+      run_info,
+      'load_info', {
+        numProcesses: model.getAllProcesses().length
+      }));
+  }
+  pi.MapFunction.register(weatherReportMapFunction);
+
+  return {
+    weatherReportMapFunction: weatherReportMapFunction
+  }
+});
+
+</script>
