@@ -259,7 +259,6 @@
     if (loadedModulesByFilePath[absPath])
       return;
     loadedModulesByFilePath[absPath] = true;
-
     try {
       var html_content = read(absPath);
     } catch (err) {

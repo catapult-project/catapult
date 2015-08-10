@@ -61,6 +61,7 @@ def _GetBootStrapJsContent(source_paths):
   bsc = bsc.replace('<%html_to_js_generator_js_path%>',
                     _HTML_TO_JS_GENERATOR_JS_DIR)
   bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
+  bsc += '\n//@ sourceURL=%s\n' % _BOOTSTRAP_JS_DIR
   return bsc
 
 
@@ -135,7 +136,7 @@ def RunFile(file_path, source_paths=None, js_args=None, stdout=subprocess.PIPE,
     with open(temp_boostrap_file, 'w') as f:
       f.write(_GetBootStrapJsContent(source_paths))
       if extension == '.html':
-        f.write('\nloadHTMLFile("%s");' % abs_file_path)
+        f.write('\nloadHTMLFile("%s", "%s");' % (abs_file_path, abs_file_path))
       else:
         f.write('\nloadFile("%s");' % abs_file_path)
     return _RunFileWithD8(temp_boostrap_file, js_args, stdout, stdin)
