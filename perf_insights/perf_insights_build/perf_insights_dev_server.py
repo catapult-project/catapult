@@ -7,7 +7,7 @@ import json
 import os
 import sys
 
-from build import perf_insights_project
+import perf_insights_project
 
 from paste import httpserver
 from paste import fileapp

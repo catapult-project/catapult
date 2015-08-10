@@ -5,7 +5,7 @@
 import os
 import sys
 
-from tracing import tracing_project
+import tracing_project
 
 
 def Main(paths_to_lint):

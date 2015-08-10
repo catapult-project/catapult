@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import progress_reporter as pr
+from perf_insights import progress_reporter as pr
 from perf_insights import value as value_module
 
 class _CurrentRunState(object):

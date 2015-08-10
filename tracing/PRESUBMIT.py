@@ -7,12 +7,12 @@ import sys
 
 def RunChecks(input_api, output_api):
   results = []
-  from tracing.build import check_gypi
+  from tracing_build import check_gypi
   err = check_gypi.GypiCheck()
   if err:
     results += [err]
 
-  from tracing.build import js_checks
+  from tracing_build import js_checks
   results += js_checks.RunChecks(input_api)
 
   return map(output_api.PresubmitError, results)

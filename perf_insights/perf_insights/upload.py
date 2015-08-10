@@ -10,7 +10,6 @@ import uuid
 
 from perf_insights import trace_info
 
-sys.path.append('third_party')
 import cloudstorage as gcs
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,

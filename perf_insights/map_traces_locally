@@ -6,9 +6,7 @@
 import os
 import sys
 
+
 if __name__ == '__main__':
-  top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-  sys.path.append(top_dir)
-  from tracing import tracing_project
-  from tracing.build import update_gypi
-  sys.exit(update_gypi.Update())
+  from perf_insights import map_traces_locally
+  sys.exit(map_traces_locally.Main(sys.argv[1:]))

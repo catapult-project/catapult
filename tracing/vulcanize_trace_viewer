@@ -5,7 +5,7 @@
 
 import sys
 
-from build import vulcanize_trace_viewer
+from tracing_build import vulcanize_trace_viewer
 
 if __name__ == '__main__':
   sys.exit(vulcanize_trace_viewer.Main(sys.argv[1:]))

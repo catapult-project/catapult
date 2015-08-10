@@ -5,7 +5,7 @@
 import os
 import re
 
-from tracing import tracing_project
+import tracing_project
 
 
 class JSChecker(object):

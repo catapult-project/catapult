@@ -7,25 +7,13 @@ import argparse
 import os
 import sys
 
-hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if hooks_path not in sys.path:
-  sys.path.append(hooks_path)
+import perf_insights_project
+perf_insights_project.UpdateSysPathIfNeeded()
 
 from hooks import install
-
-
-def _SetupTVCMPath():
-  tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', 'tracing',
-                                           'third_party', 'tvcm'))
-  if tvcm_path not in sys.path:
-    sys.path.append(tvcm_path)
-
-_SetupTVCMPath()
-
-
 from tvcm import test_runner
 import perf_insights
+import perf_insights_build
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(
@@ -39,5 +27,6 @@ if __name__ == '__main__':
     install.InstallHooks()
 
   runner = test_runner.TestRunner()
+  runner.AddModule(perf_insights_build)
   runner.AddModule(perf_insights)
   sys.exit(runner.Run(args.filters))

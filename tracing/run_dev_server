@@ -6,12 +6,11 @@
 import os
 import sys
 
-hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if hooks_path not in sys.path:
-  sys.path.append(hooks_path)
+import tracing_project
+tracing_project.UpdateSysPathIfNeeded()
 
 from hooks import install
-from tracing.build import tracing_dev_server
+from tracing_build import tracing_dev_server
 
 if __name__ == '__main__':
   dev_server_args = sys.argv[1:]

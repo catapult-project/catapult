@@ -5,7 +5,7 @@ import unittest
 import json
 
 
-from build import tracing_dev_server
+from tracing_build import tracing_dev_server
 import webapp2
 
 class TracingDevServerTests(unittest.TestCase):
@@ -43,7 +43,7 @@ class TracingDevServerTests(unittest.TestCase):
 
   def testTestListingHandler(self):
     app = tracing_dev_server.CreateApp()
-    request = webapp2.Request.blank('/tr/json/tests')
+    request = webapp2.Request.blank('/tracing/tests')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)

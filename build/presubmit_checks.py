@@ -7,9 +7,10 @@ import re
 def CheckChangeLogBug(input_api, output_api):
   if input_api.change.BUG is None or re.match('\#\d+$', input_api.change.BUG):
     return []
-  return output_api.PresubmitError(
+  err = output_api.PresubmitError(
       ('Invalid bug "%s". BUG= should either not be present or start with # '
        'for a github issue.' % input_api.change.BUG))
+  return [err]
 
 
 def RunChecks(input_api, output_api, excluded_paths):

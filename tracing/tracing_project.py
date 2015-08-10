@@ -7,7 +7,21 @@ import os
 import re
 
 
-from tvcm import project as project_module
+def _AddToPathIfNeeded(path):
+  if path not in sys.path:
+    sys.path.insert(0, path)
+
+
+def UpdateSysPathIfNeeded():
+  p = TracingProject()
+  _AddToPathIfNeeded(p.catapult_path)
+  _AddToPathIfNeeded(p.tvcm_path)
+  _AddToPathIfNeeded(p.vinn_path)
+
+  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'WebOb'))
+  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'Paste'))
+  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'six'))
+  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'webapp2'))
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -40,14 +54,20 @@ def _IsFilenameATest(x):  # pylint: disable=unused-argument
 
 
 class TracingProject():
-  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-  tracing_root_path = os.path.abspath(os.path.join(tracing_path, 'tracing'))
+  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  tracing_root_path = os.path.abspath(os.path.join(catapult_path, 'tracing'))
   tracing_src_path = os.path.abspath(os.path.join(tracing_root_path, 'tracing'))
   extras_path = os.path.join(tracing_src_path, 'extras')
   ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
 
+
+  catapult_third_party_path = os.path.abspath(os.path.join(
+      catapult_path, 'third_party'))
+
   tracing_third_party_path = os.path.abspath(os.path.join(
       tracing_root_path, 'third_party'))
+  tvcm_path = os.path.abspath(os.path.join(tracing_third_party_path, 'tvcm'))
+  vinn_path = os.path.abspath(os.path.join(catapult_third_party_path, 'vinn'))
 
   jszip_path = os.path.abspath(os.path.join(tracing_third_party_path, 'jszip'))
 
@@ -58,8 +78,6 @@ class TracingProject():
   d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
   chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
   mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
-  parse5_path = os.path.abspath(os.path.join(
-      tracing_third_party_path, 'vinn', 'third_party', 'parse5'))
 
   test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
@@ -80,6 +98,7 @@ class TracingProject():
     self.source_paths.append(self.mocha_path)
 
   def CreateVulcanizer(self):
+    from tvcm import project as project_module
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):
@@ -94,7 +113,7 @@ class TracingProject():
                              _IsFilenameATest(x) and pred(x)]
     test_module_filenames.sort()
 
-    return [os.path.relpath(x, self.tracing_src_path)
+    return [os.path.relpath(x, self.tracing_root_path)
             for x in test_module_filenames]
 
   def FindAllD8TestModuleRelPaths(self):

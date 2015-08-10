@@ -6,8 +6,19 @@ import sys
 import os
 import re
 
-from tracing import tracing_project
-from tvcm import project as project_module
+def _AddToPathIfNeeded(path):
+  if path not in sys.path:
+    sys.path.insert(0, path)
+
+
+def UpdateSysPathIfNeeded():
+  p = PerfInsightsProject()
+  _AddToPathIfNeeded(p.catapult_path)
+  _AddToPathIfNeeded(p.tracing_root_path)
+  _AddToPathIfNeeded(p.perf_insights_third_party_path)
+
+  import tracing_project
+  tracing_project.UpdateSysPathIfNeeded()
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -41,33 +52,43 @@ def _IsFilenameATest(x):  # pylint: disable=unused-argument
 
 class PerfInsightsProject(object):
   catapult_path = os.path.abspath(
-      os.path.join(os.path.dirname(__file__), '..', '..'))
+      os.path.join(os.path.dirname(__file__), '..'))
+
   perf_insights_root_path = os.path.abspath(
       os.path.join(catapult_path, 'perf_insights'))
   perf_insights_src_path = os.path.abspath(
       os.path.join(perf_insights_root_path, 'perf_insights'))
-
-
-  tracing_root_path = os.path.abspath(
-      os.path.join(perf_insights_root_path, 'tracing'))
-  tracing_third_party_path = os.path.abspath(os.path.join(
-      tracing_root_path, 'third_party'))
-
-  catapult_third_party_path = os.path.abspath(os.path.join(
-      catapult_path, 'third_party'))
-
-
   perf_insights_ui_path = os.path.abspath(
       os.path.join(perf_insights_src_path, 'ui'))
 
-  def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
-    self.source_paths = []
-    self.source_paths.append(self.perf_insights_root_path)
+  perf_insights_third_party_path = os.path.abspath(
+      os.path.join(perf_insights_root_path, 'third_party'))
 
-    self.tracing_project = tracing_project.TracingProject()
-    self.source_paths.extend(self.tracing_project.source_paths)
+  tracing_root_path = os.path.abspath(
+      os.path.join(catapult_path, 'tracing'))
+
+  def __init__(self):  # pylint: disable=unused-argument
+    self._source_paths = None
+
+  @property
+  def source_paths(self):
+    # We lazily init of source_paths because for perf_insights_project's
+    # UpdateSysPathIfNeeded to run, the PerfInsightsProject must be __init__'d,
+    # because thats where we centralize the various directory names.
+    # And, for source_paths to be set up, we need the UpdateSysPathIfNeeded to
+    # have run! We use laziness to resolve this cyclic dependency.
+    if self._source_paths is None:
+      self._source_paths = []
+      self._source_paths.append(self.perf_insights_root_path)
+
+      import tracing_project as tracing_project_module
+      tracing_project = tracing_project_module.TracingProject()
+      self._source_paths.extend(tracing_project.source_paths)
+
+    return self._source_paths
 
   def CreateVulcanizer(self):
+    from tvcm import project as project_module
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):

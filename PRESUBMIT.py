@@ -7,6 +7,7 @@
 See https://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into depot_tools.
 """
+import os
 import sys
 
 _EXCLUDED_PATHS = (
@@ -47,14 +48,13 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
 
 def CheckChange(input_api, output_api):
   results = []
-  original_sys_path = sys.path
   try:
     sys.path += [input_api.PresubmitLocalPath()]
     from build import presubmit_checks
     results += presubmit_checks.RunChecks(
         input_api, output_api, _EXCLUDED_PATHS)
   finally:
-    sys.path = original_sys_path
+    sys.path.remove(input_api.PresubmitLocalPath())
   return results
 
 

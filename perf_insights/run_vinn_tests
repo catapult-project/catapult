@@ -7,31 +7,11 @@ import argparse
 import os
 import sys
 
-hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if hooks_path not in sys.path:
-  sys.path.append(hooks_path)
+import perf_insights_project
+perf_insights_project.UpdateSysPathIfNeeded()
 
 from hooks import install
-
-
-
-def _AddToPathIfNeeded(path):
-  if path not in sys.path:
-    sys.path.insert(0, path)
-
-def _UpdatePathsIfNeeded():
-  top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         '..'))
-
-  _AddToPathIfNeeded(os.path.join(top_dir, 'third_party', 'vinn'))
-
-_UpdatePathsIfNeeded()
-
-
 import vinn
-
-from build import perf_insights_project
-
 
 def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
@@ -39,12 +19,12 @@ def _RelPathToUnixPath(p):
 
 def Main(args):
   project = perf_insights_project.PerfInsightsProject()
-  d8_test_module_filenames = [_RelPathToUnixPath(x)
+  d8_test_module_filenames = ['/' + _RelPathToUnixPath(x)
                               for x in project.FindAllD8TestModuleRelPaths()]
   d8_test_module_filenames.sort()
 
   cmd = """
-  loadHTML('/base/d8_tests.html');
+  loadHTML('/tracing/base/d8_tests.html');
   """
   res = vinn.RunJsString(
     cmd, source_paths=list(project.source_paths),

@@ -18,7 +18,8 @@ $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
 import sys
 import optparse
 
-from tracing import tracing_project
+import tracing_project
+tracing_project.UpdateSysPathIfNeeded()
 
 def Main(args):
   project = tracing_project.TracingProject()
@@ -30,12 +31,12 @@ def Main(args):
   options, args = parser.parse_args(args)
 
   if options.config:
-    names = ['tracing',
-             project.GetModuleNameForConfigName(options.config)]
-    load_sequence = project.CalcLoadSequenceForModuleNames(names)
+    names = [project.GetModuleNameForConfigName(options.config)]
+    vulcanizer = project.CreateVulcanizer()
+    load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(names)
   else:
-    parser.parse_err('Unsupported')
-  print project.GetDominatorGraphForModulesNamed(args, load_sequence)
+    parser.error('Unsupported')
+  print vulcanizer.GetDominatorGraphForModulesNamed(args, load_sequence)
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@
 
 import unittest
 
-from tracing.build.update_gypi import GypiFile
+from tracing_build.update_gypi import GypiFile
 
 
 class UpdateGypiTests(unittest.TestCase):

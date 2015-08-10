@@ -8,23 +8,9 @@ import re
 
 from perf_insights import value as value_module
 
-
-def _AddToPathIfNeeded(path):
-  if path not in sys.path:
-    sys.path.insert(0, path)
-
-def _UpdatePathsIfNeeded():
-  top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         '..', '..'))
-
-  _AddToPathIfNeeded(top_dir) # pull in tracing.
-  _AddToPathIfNeeded(os.path.join(top_dir, 'third_party', 'vinn'))
-
-_UpdatePathsIfNeeded()
-
-
 import vinn
-from build import perf_insights_project
+import perf_insights_project
+import cloudstorage as gcs
 
 
 def MapSingleTrace(results, trace_handle, map_file):

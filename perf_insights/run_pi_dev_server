@@ -6,13 +6,12 @@
 import os
 import sys
 
-hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if hooks_path not in sys.path:
-  sys.path.append(hooks_path)
+import perf_insights_project
+perf_insights_project.UpdateSysPathIfNeeded()
 
 from hooks import install
 
-from build import perf_insights_dev_server
+from perf_insights_build import perf_insights_dev_server
 
 if __name__ == '__main__':
   dev_server_args = sys.argv[1:]

@@ -10,12 +10,7 @@ import optparse
 import sys
 import os
 
-tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            '..', '..'))
-if tracing_path not in sys.path:
-  sys.path.append(tracing_path)
-
-from tracing import tracing_project
+import tracing_project
 from tvcm import generate
 from tvcm import project
 

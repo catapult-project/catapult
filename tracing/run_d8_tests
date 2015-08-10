@@ -7,14 +7,11 @@ import argparse
 import os
 import sys
 
-hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if hooks_path not in sys.path:
-  sys.path.append(hooks_path)
+import tracing_project
+tracing_project.UpdateSysPathIfNeeded()
 
 from hooks import install
 
-
-from tracing import tracing_project
 import vinn
 
 
@@ -24,7 +21,7 @@ def _RelPathToUnixPath(p):
 
 def Main(args):
   project = tracing_project.TracingProject()
-  d8_test_module_filenames = [_RelPathToUnixPath(x)
+  d8_test_module_filenames = ['/' + _RelPathToUnixPath(x)
                               for x in project.FindAllD8TestModuleRelPaths()]
   d8_test_module_filenames.sort()
 

@@ -9,15 +9,10 @@ import sys
 
 import tvcm
 
-tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            '..', '..'))
-if tracing_path not in sys.path:
-  sys.path.append(tracing_path)
-
-from tracing import tracing_project
+import tracing_project
 
 
-def main(args):
+def Main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
   parser.add_option("--outdir", dest="out_dir",
                     help="Where to place generated content")

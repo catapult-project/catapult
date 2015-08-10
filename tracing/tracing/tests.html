@@ -35,7 +35,7 @@ found in the LICENSE file.
       tr.b.unittest.loadAndRunTests({
         title: 'All Trace-Viewer Tests',
         getAllSuiteRelPathsAsync: function() {
-          return tr.b.getAsync('/tr/json/tests').then(function(json) {
+          return tr.b.getAsync('/tracing/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch (function(e) {
            throw e;

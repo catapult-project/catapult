@@ -6,7 +6,7 @@
 import sys
 import os
 
-from build import trace2html
+from tracing_build import trace2html
 
 if __name__ == '__main__':
   sys.exit(trace2html.Main(sys.argv[1:]))

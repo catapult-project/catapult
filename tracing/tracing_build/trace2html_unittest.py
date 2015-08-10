@@ -7,7 +7,7 @@ import os
 import tempfile
 import unittest
 
-from tracing.build import trace2html
+from tracing_build import trace2html
 
 
 class Trace2HTMLTests(unittest.TestCase):

@@ -4,7 +4,7 @@
 
 import unittest
 
-from tracing.build import check_common
+from tracing_build import check_common
 
 
 class CheckCommonUnittTest(unittest.TestCase):

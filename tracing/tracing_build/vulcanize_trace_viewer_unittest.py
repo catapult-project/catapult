@@ -7,7 +7,7 @@ import os
 import unittest
 import tempfile
 
-from tracing.build import vulcanize_trace_viewer
+from tracing_build import vulcanize_trace_viewer
 
 
 class Trace2HTMLTests(unittest.TestCase):
