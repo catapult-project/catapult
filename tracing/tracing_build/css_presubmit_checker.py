@@ -239,11 +239,4 @@ class CSSChecker(object):
         results.append(self.output_api.PresubmitPromptWarning(
             '%s:\n%s' % (f[0], '\n\n'.join(file_errors))))
 
-    if results:
-      # Add your name if you're here often mucking around in the code.
-      authors = ['dbeam@chromium.org']
-      results.append(self.output_api.PresubmitNotifyResult(
-          'Was the CSS checker useful? Send feedback or hate mail to %s.' %
-          ', '.join(authors)))
-
     return results
