@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/full_config.html">
 
 <link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/map_function.html">
 
 <script>
 'use strict';
@@ -31,11 +32,9 @@ tr.exportTo('pi', function() {
 
   function mapSingleTraceImpl(results, options) {
     // Load the mapper.
-    mapFunction = undefined;
+    var allTypeInfos = pi.MapFunction.getAllRegisteredTypeInfos();
     try {
-      pi.defineMapFunction = function(f) {
-        mapFunction = f;
-      }
+      var numTypeInfosBefore = allTypeInfos.length;
       loadHTMLFile(options.map_file, options.map_file);
     } catch(ex) {
       var ex = tr.b.normalizeException(ex);
@@ -44,17 +43,21 @@ tr.exportTo('pi', function() {
           {description: ex.message, stack: ex.stack}));
       return;
     } finally {
-      pi.defineMapFunction = defineMapFunction;
+      if (numTypeInfosNow !== numTypeInfosBefore) {
+      }
     }
 
     // Verify a mapFunction was defined.
-    if (mapFunction === undefined) {
+    var numTypeInfosNow = allTypeInfos.length;
+    if (numTypeInfosNow !== (numTypeInfosBefore + 1)) {
       results.addValue(new FailureValue(
           options.run_info, 'MapFunctionNotDefinedError',
           {description: options.map_file + ' did not call defineMapFunction',
            stack: tr.b.stackTraceAsString()}));
       return;
     }
+
+    var mapFunction = allTypeInfos[allTypeInfos.length - 1].constructor;
 
     // Data.
     try {
@@ -115,16 +118,8 @@ tr.exportTo('pi', function() {
     }
   }
 
-  function defineMapFunction() {
-    // The public name of this function is overwritten when mapSingleTrace is
-    // running, so this implementation is just a general error handler.
-    throw new Error(
-        'defineMapFunction can only be called inside mapSingleTrace');
-  }
-
   return {
-    mapSingleTrace: mapSingleTrace,
-    defineMapFunction: defineMapFunction
+    mapSingleTrace: mapSingleTrace
   }
 });
 </script>

@@ -60,6 +60,8 @@ class PerfInsightsProject(object):
       os.path.join(perf_insights_root_path, 'perf_insights'))
   perf_insights_ui_path = os.path.abspath(
       os.path.join(perf_insights_src_path, 'ui'))
+  perf_insights_examples_path = os.path.abspath(
+      os.path.join(perf_insights_root_path, 'perf_insights_examples'))
 
   perf_insights_third_party_path = os.path.abspath(
       os.path.join(perf_insights_root_path, 'third_party'))
@@ -92,13 +94,15 @@ class PerfInsightsProject(object):
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):
-    return not filename.startswith(self.perf_insights_ui_path)
+    if filename.startswith(self.perf_insights_ui_path):
+      return False
+    return True
 
   def FindAllTestModuleRelPaths(self, pred=None):
     if pred is None:
       pred = lambda x: True
-
-    all_filenames = _FindAllFilesRecursive([self.perf_insights_src_path])
+    all_filenames = _FindAllFilesRecursive([self.perf_insights_src_path,
+                                            self.perf_insights_examples_path])
     test_module_filenames = [x for x in all_filenames if
                              _IsFilenameATest(x) and pred(x)]
     test_module_filenames.sort()

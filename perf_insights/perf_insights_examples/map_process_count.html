@@ -5,13 +5,22 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/map_function.html">
 
 <script>
-pi.defineMapFunction(function(results, run_info, model) {
-  results.addValue(new pi.v.DictValue(
-      run_info,
-      'load_info', {
-        numProcesses: model.getAllProcesses().length
-      }));
+tr.exportTo('pie', function() {
+  function mapProcessCount(results, run_info, model) {
+    results.addValue(new pi.v.DictValue(
+        run_info,
+        'load_info', {
+          numProcesses: model.getAllProcesses().length
+        }));
+  }
+
+  pi.MapFunction.register(mapProcessCount);
+
+  return {
+    mapProcessCount: mapProcessCount
+  };
 });
 </script>

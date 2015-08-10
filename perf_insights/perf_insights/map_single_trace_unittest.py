@@ -28,7 +28,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.defineMapFunction(function(results, run_info, model) {
+      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
         results.addValue(new pi.v.DictValue(
             run_info,
             'result', {
@@ -52,7 +52,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.defineMapFunction(function(results, run_info, model) {
+      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
@@ -77,7 +77,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.defineMapFunction(function(results, run_info, model) {
+      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
         throw new Error('Expected error');
       });
     """) as map_script:
@@ -152,7 +152,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.defineMapFunction(function(results, run_info, model) {
+      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
