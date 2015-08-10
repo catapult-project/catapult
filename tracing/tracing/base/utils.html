@@ -56,6 +56,7 @@ tr.exportTo('tr.b', function() {
   function normalizeException(e) {
     if (e === undefined || e === null) {
       return {
+        typeName: 'UndefinedError',
         message: 'Unknown: null or undefined exception',
         stack: 'Unknown'
       };
@@ -63,20 +64,36 @@ tr.exportTo('tr.b', function() {
 
     if (typeof(e) == 'string') {
       return {
+        typeName: 'StringError',
         message: e,
         stack: [e]
       };
     }
 
+    var typeName;
+    if (e.constructor) {
+      if (e.constructor.name) {
+        typeName = e.constructor.name;
+      } else {
+        typeName = 'AnonymousError';
+      }
+    } else {
+      typeName = 'ErrorWithNoConstructor';
+    }
+
     var msg = e.message ? e.message : 'Unknown';
     return {
+      typeName: typeName,
       message: msg,
       stack: e.stack ? e.stack : [msg]
     };
   }
 
+  function stackTraceAsString() {
+    return new Error().stack + '';
+  }
   function stackTrace() {
-    var stack = new Error().stack + '';
+    var stack = stackTraceAsString();
     stack = stack.split('\n');
     return stack.slice(2);
   }
@@ -104,6 +121,7 @@ tr.exportTo('tr.b', function() {
 
     normalizeException: normalizeException,
     stackTrace: stackTrace,
+    stackTraceAsString: stackTraceAsString,
 
     getUsingPath: getUsingPath
   };

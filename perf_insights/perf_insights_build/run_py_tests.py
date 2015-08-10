@@ -13,6 +13,7 @@ from tvcm import test_runner
 
 import perf_insights
 import perf_insights_build
+import perf_insights_examples
 
 def Main(argv):
   parser = argparse.ArgumentParser(
@@ -28,4 +29,5 @@ def Main(argv):
   runner = test_runner.TestRunner()
   runner.AddModule(perf_insights_build)
   runner.AddModule(perf_insights)
+  runner.AddModule(perf_insights_examples)
   return runner.Run(args.filters)

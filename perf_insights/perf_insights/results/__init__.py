@@ -41,3 +41,15 @@ class Results(object):
   def Merge(self, results):
     for value in results.all_values:
       self.AddValue(value)
+
+  def FindValueMatching(self, predicate):
+    for v in self.all_values:
+      if predicate(v):
+        return v
+    return None
+
+  def FindValueNamed(self, name):
+    return self.FindValueMatching(lambda v: v.name == name)
+
+  def __repr__(self):
+    return 'Results(%s)' % repr(self.all_values)

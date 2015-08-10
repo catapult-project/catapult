@@ -39,8 +39,8 @@ class Value(object):
   def _AsDictInto(self, d):
     raise NotImplementedError()
 
-  @staticmethod
-  def FromDict(run_info, d):
+  @classmethod
+  def FromDict(cls, run_info, d):
     assert d['run_id'] == run_info.run_id
     if d['type'] == 'dict':
       return DictValue.FromDict(run_info, d)
@@ -62,18 +62,29 @@ class DictValue(Value):
                                     ir_stable_id=ir_stable_id)
     self._value = value
 
+  def __repr__(self):
+    return '%s("%s", "%s")' % (self.__class__.__name__,
+                           self.name, self.value)
+
   def _AsDictInto(self, d):
     d['type'] = 'dict'
     d['value'] = self._value
 
-  @staticmethod
-  def FromDict(run_info, d):
+  @classmethod
+  def FromDict(cls, run_info, d):
     assert d.get('units', None) == None
-    return DictValue(run_info, name=d['name'],
-                     description=d.get('description', None),
-                     value=d['value'],
-                     important=d['important'],
-                     ir_stable_id=d.get('ir_stable_id', None))
+    return cls(run_info, name=d['name'],
+               description=d.get('description', None),
+               value=d['value'],
+               important=d['important'],
+               ir_stable_id=d.get('ir_stable_id', None))
+
+  @property
+  def value(self):
+      return self._value
+
+  def __getitem__(self, key):
+    return self._value[key]
 
 
 class FailureValue(Value):
@@ -88,23 +99,26 @@ class FailureValue(Value):
     assert isinstance(stack, basestring)
     self.stack = stack
 
+  def __repr__(self):
+    return '%s("%s", "%s")' % (self.__class__.__name__,
+                           self.name, self.description)
+
   def _AsDictInto(self, d):
     d['type'] = 'failure'
     d['stack_str'] = self.stack
 
-  @staticmethod
-  def FromDict(run_info, d):
+  @classmethod
+  def FromDict(cls, run_info, d):
     assert d.get('units', None) == None
-    return FailureValue(run_info,
-                        failure_type_name=d['name'],
-                        description=d.get('description', None),
-                        stack=d['stack_str'],
-                        important=d.get('important', False),
-                        ir_stable_id=d.get('ir_stable_id', None))
+    return cls(run_info,
+               failure_type_name=d['name'],
+               description=d.get('description', None),
+               stack=d['stack_str'],
+               important=d.get('important', False),
+               ir_stable_id=d.get('ir_stable_id', None))
 
   def GetGTestPrintString(self):
     return self.stack
-
 
 
 class SkipValue(Value):

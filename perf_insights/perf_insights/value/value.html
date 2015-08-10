@@ -109,7 +109,7 @@ tr.exportTo('pi.v', function() {
   FailureValue.fromError = function(run_info, e) {
     var ex = tr.b.normalizeException(e);
     return new FailureValue(run_info,
-                            'Error',
+                            ex.typeName,
                             {description: ex.message,
                              stack: ex.stack});
 
