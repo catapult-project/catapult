@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import re
 
 from telemetry.core import exceptions
@@ -162,9 +163,15 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
       self._devtools_client = None
 
   def _CheckUnsupportedBrowserOptions(self, browser_options):
+    def _GetMessage(name):
+      return ('BrowserOptions.%s is ignored. Value: %r'
+                  % (name, getattr(browser_options, name)))
+
     def _RaiseForUnsupportedOption(name):
-      raise Exception('BrowserOptions.%s is ignored. Value: %r'
-                          % (name, getattr(browser_options, name)))
+      raise Exception(_GetMessage(name))
+
+    def _WarnForUnsupportedOption(name):
+      logging.warning(_GetMessage(name))
 
     if browser_options.dont_override_profile:
       _RaiseForUnsupportedOption('dont_override_profile')
@@ -184,8 +191,8 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
     if browser_options.no_proxy_server:
       _RaiseForUnsupportedOption('no_proxy_server')
 
-    if browser_options.browser_user_agent_type:
-      _RaiseForUnsupportedOption('browser_user_agent_type')
-
     if browser_options.use_devtools_active_port:
       _RaiseForUnsupportedOption('use_devtools_active_port')
+
+    if browser_options.browser_user_agent_type:
+      _WarnForUnsupportedOption('browser_user_agent_type')

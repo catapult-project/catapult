@@ -60,11 +60,7 @@ class DesktopMandolineBackend(
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if self.browser_options.startup_url:
-      # TODO(yzshen): For now "about:blank" is not supported yet.
-      if self.browser_options.startup_url != "about:blank":
-        args.append(self.browser_options.startup_url)
-      else:
-        logging.warning('Ignoring startup URL about:blank.')
+      args.append(self.browser_options.startup_url)
     env = os.environ.copy()
     logging.debug('Starting Mandoline %s', args)
 
