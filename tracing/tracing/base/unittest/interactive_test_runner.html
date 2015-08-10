@@ -513,7 +513,7 @@ tr.exportTo('tr.b.unittest', function() {
       if (state.testSuiteName) {
         return new Promise(function(resolve) {
           var parts = state.testSuiteName.split('.');
-          var testSuiteRelPath = '/tracing/' + parts.join('/') + '.html';
+          var testSuiteRelPath = '/' + parts.join('/') + '.html';
 
           var suiteRelpathsToLoad = [testSuiteRelPath];
           resolve(suiteRelpathsToLoad);
