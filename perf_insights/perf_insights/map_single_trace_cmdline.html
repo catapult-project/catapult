@@ -15,17 +15,17 @@ found in the LICENSE file.
   if (sys.argv.length !== 5)
     throw new Error('Must provide four arguments');
   var options = {
-    run_info: perf_insights.v.RunInfo.fromDict(JSON.parse(sys.argv[1])),
+    run_info: pi.v.RunInfo.fromDict(JSON.parse(sys.argv[1])),
     map_file: sys.argv[2],
     filename_to_map: sys.argv[3],
     filename_metadata: JSON.parse(sys.argv[4])
   };
 
   function PyGlueOuptutFormatter() {
-    perf_insights.r.OutputFormatter.call(this);
+    pi.r.OutputFormatter.call(this);
   }
   PyGlueOuptutFormatter.prototype = {
-    __proto__: perf_insights.r.OutputFormatter.prototype,
+    __proto__: pi.r.OutputFormatter.prototype,
 
     format: function(results) {
       results.all_values.forEach(function(value) {
@@ -35,10 +35,10 @@ found in the LICENSE file.
     }
   };
 
-  var results = new perf_insights.r.Results([new PyGlueOuptutFormatter()]);
+  var results = new pi.r.Results([new PyGlueOuptutFormatter()]);
 
   results.willRun(options.run_info);
-  var mappedValue = perf_insights.mapSingleTrace(results, options);
+  var mappedValue = pi.mapSingleTrace(results, options);
   results.didRun(options.run_info);
   results.didFinishAllRuns();
 })();

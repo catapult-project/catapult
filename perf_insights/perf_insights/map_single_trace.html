@@ -18,7 +18,7 @@ found in the LICENSE file.
 tr.exportTo('perf_insights', function() {
 
   var currentRunID = undefined;
-  var FailureValue = perf_insights.v.FailureValue;
+  var FailureValue = pi.v.FailureValue;
 
   function createMapFailureValue(ex) {
     var ex = tr.b.normalizeException(ex); // yields message & stack field
@@ -51,7 +51,7 @@ tr.exportTo('perf_insights', function() {
     // Load the mapper.
     mapFunction = undefined;
     try {
-      perf_insights.defineMapFunction = function(f) {
+      pi.defineMapFunction = function(f) {
         mapFunction = f;
       }
       loadHTMLFile(options.map_file);
@@ -59,7 +59,7 @@ tr.exportTo('perf_insights', function() {
       results.addValue(FailureValue.fromError(options.run_info, ex));
       return;
     } finally {
-      perf_insights.defineMapFunction = defineMapFunction;
+      pi.defineMapFunction = defineMapFunction;
     }
 
     // Verify a mapFunction was defined.

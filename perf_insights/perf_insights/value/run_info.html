@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('perf_insights.v', function() {
+tr.exportTo('pi.v', function() {
   function RunInfo(url, opt_display_name, opt_run_id, opt_metadata) {
     if (opt_run_id !== undefined)
       this.run_id = opt_run_id;
@@ -28,7 +28,7 @@ tr.exportTo('perf_insights.v', function() {
   }
 
   RunInfo.fromDict = function(d) {
-    if (d.type !== 'perf_insights.value.RunInfo')
+    if (d.type !== 'pi.value.RunInfo')
       throw new Error('Unsupported run_info format: ' + d.type);
     if (d.run_id === undefined)
       throw new Error('Must contain run_id');
@@ -40,7 +40,7 @@ tr.exportTo('perf_insights.v', function() {
   RunInfo.prototype = {
     asDict: function() {
       return {
-        type: 'perf_insights.value.RunInfo',
+        type: 'pi.value.RunInfo',
         run_id: this.run_id,
         url: this.url,
         metadata: this.metadata
