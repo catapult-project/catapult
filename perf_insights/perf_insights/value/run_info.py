@@ -4,6 +4,11 @@
 import uuid
 
 
+# This value must stay sync'd with the constant of the same name
+# in run_info.py.
+PI_VALUE_RUN_INFO_ID = 'perf_insights.value.RunInfo'
+
+
 class RunInfo(object):
   def __init__(self, url, display_name=None, run_id=None, metadata=None):
     if run_id is not None:
@@ -18,7 +23,7 @@ class RunInfo(object):
   def AsDict(self):
     return {
       'run_id': self.run_id,
-      'type': 'perf_insights.value.RunInfo',
+      'type': PI_VALUE_RUN_INFO_ID,
       'url': self.url,
       'metadata': self.metadata
     }
@@ -26,7 +31,7 @@ class RunInfo(object):
 
   @staticmethod
   def FromDict(d):
-    if d['type'] != 'perf_insights.results.RunInfo':
+    if d['type'] != PI_VALUE_RUN_INFO_ID:
       raise Exception('Unsupported run_info format')
     return RunInfo(d['url'],
                    d['display_name'],

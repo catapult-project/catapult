@@ -13,7 +13,7 @@ from perf_insights import map_runner
 from perf_insights.results import json_output_formatter
 
 
-def Main(args):
+def Main(argv):
   parser = argparse.ArgumentParser(
       description='Local bulk trace processing')
   parser.add_argument('trace_directory')
@@ -24,7 +24,7 @@ def Main(args):
   parser.add_argument('-o', '--output-file')
   parser.add_argument('-s', '--stop-on-error',
                       action='store_true')
-  args = parser.parse_args(args)
+  args = parser.parse_args(argv[1:])
 
   if not os.path.exists(args.trace_directory):
     args.error('trace_directory does not exist')
