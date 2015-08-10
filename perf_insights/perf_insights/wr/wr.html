@@ -44,7 +44,7 @@ tr.exportTo('pi.wr', function() {
     });
 
     var unassociatedEventsByGUID = {};
-    model.iterateAllEvents(function(event) {
+    model.iterateAllEvents(function storeEventToUnassociatedSet(event) {
       unassociatedEventsByGUID[event.guid] = event;
     });
 
@@ -52,17 +52,18 @@ tr.exportTo('pi.wr', function() {
     tr.e.rail.ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
       eventsByRTN[railTypeName] = new tr.model.EventSet();
     });
-    railIRs.forEach(function(ir) {
-      ir.associatedEvents.forEach(function(event) {
+    railIRs.forEach(function applyAssociatedToRTN(ir) {
+      ir.associatedEvents.forEach(function applyEventToRTN(event) {
         eventsByRTN[ir.railTypeName].push(event);
-        delete unassociatedEventsByGUID[event.guid];
+        unassociatedEventsByGUID[event.guid] = undefined;
       }, this);
     }, this);
 
     // Remember all the unassociated.
     eventsByRTN.unassociated = new tr.model.EventSet();
     tr.b.iterItems(unassociatedEventsByGUID, function(guid, event) {
-      eventsByRTN.unassociated.push(event);
+      if (event)
+        eventsByRTN.unassociated.push(event);
     }, this);
 
     return eventsByRTN;
