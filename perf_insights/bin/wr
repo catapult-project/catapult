@@ -10,4 +10,6 @@ if __name__ == '__main__':
   perf_insights_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                     '..'))
   sys.path.append(perf_insights_path)
-  raise NotImplementedError('Not yet, sorry')
+
+  from perf_insights.wr import wr_cmdline
+  sys.exit(wr_cmdline.Main(sys.argv))

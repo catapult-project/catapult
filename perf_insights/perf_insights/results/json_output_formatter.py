@@ -13,13 +13,6 @@ class JSONOutputFormatter(output_formatter.OutputFormatter):
     self.output_file = output_file
 
   def Format(self, results):
-    run_dict = dict([(run_info.run_id, run_info.AsDict()) for run_info
-                     in results.all_run_infos])
-    all_values_list = [v.AsDict() for v in results.all_values]
-    full_result = {
-      'runs': run_dict,
-      'values': all_values_list
-    }
-
-    json.dump(full_result, self.output_file, indent=2)
+    d = results.AsDict()
+    json.dump(d, self.output_file, indent=2)
     self.output_file.flush()

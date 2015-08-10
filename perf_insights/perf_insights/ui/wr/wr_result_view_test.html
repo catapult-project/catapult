@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/value/run_info.html">
+<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/ui/wr/wr_result_view.html">
+
+<link rel="import" href="/perf_insights/perf_insights_full_config.html">
+<link rel="import" href="/tracing/base/xhr.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+  test('savedData', function() {
+    // TODO(nduca): #1219, stop reading an actual wr file as our test data and
+    // use synthetic data.
+    var dataString = tr.b.getSync(
+        '/perf_insights/ui/wr/wr_result_view_test_data.json');
+    var results = pi.r.Results.fromDict(JSON.parse(dataString));
+
+    var view = document.createElement('pi-ui-wr-wr-result-view');
+    view.mapResults = results;
+    this.addHTMLOutput(view);
+  });
+});
+</script>
+

@@ -53,3 +53,12 @@ class Results(object):
 
   def __repr__(self):
     return 'Results(%s)' % repr(self.all_values)
+
+  def AsDict(self):
+    run_dict = dict([(run_info.run_id, run_info.AsDict()) for run_info
+                     in self.all_run_infos])
+    all_values_list = [v.AsDict() for v in self.all_values]
+    return {
+      'runs': run_dict,
+      'values': all_values_list
+    }

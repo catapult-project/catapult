@@ -72,7 +72,7 @@ tr.exportTo('pi.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.value === undefined)
       throw new Error('Expected value to be provided');
-    return DictValue(run_info, d.name, d.value, d);
+    return new DictValue(run_info, d.name, d.value, d);
   }
 
   DictValue.prototype = {
@@ -120,7 +120,7 @@ tr.exportTo('pi.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.name === undefined)
       throw new Error('Expected stack_str to be provided');
-    return DictValue(run_info, d.name, d2);
+    return new FailureValue(run_info, d.name, d2);
   }
 
   FailureValue.prototype = {
@@ -143,7 +143,7 @@ tr.exportTo('pi.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.name === undefined)
       throw new Error('Expected name to be provided');
-    return DictValue(run_info, d.name, d);
+    return new SkipValue(run_info, d.name, d);
   }
 
   SkipValue.prototype = {

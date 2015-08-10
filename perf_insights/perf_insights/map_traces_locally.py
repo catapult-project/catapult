@@ -50,7 +50,8 @@ def Main(argv):
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
     runner = map_runner.MapRunner(trace_handles, args.map_file,
                     stop_on_error=args.stop_on_error)
-    if runner.Run(jobs=args.jobs, output_formatters=[output_formatter]):
+    results = runner.Run(jobs=args.jobs, output_formatters=[output_formatter])
+    if not results.had_failures:
       return 0
     else:
       return 255

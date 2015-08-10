@@ -89,4 +89,4 @@ class MapRunner:
         sys.stderr.write(failure.GetGTestPrintString())
         sys.stderr.write('\n')
 
-    return not results.had_failures
+    return results
