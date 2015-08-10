@@ -22,3 +22,22 @@ indexes:
   - name: ver
   - name: date
     direction: desc
+
+- kind: TraceInfo
+  properties:
+  - name: tags
+  - name: date
+    direction: desc
+
+- kind: TraceInfo
+  properties:
+  - name: network_type
+  - name: date
+    direction: desc
+
+- kind: TraceInfo
+  properties:
+  - name: tags
+  - name: network_type
+  - name: date
+    direction: desc
