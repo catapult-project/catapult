@@ -358,6 +358,18 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('LoadMainRunner', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addMainRunnerEvent(model, {start: 0, end: 10});
+      audits.addFrameEvent(model, {start: 11, end: 20});
+    };
+    verifier.expectedIRs = [
+      {title: 'Load', start: 0, end: 20, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
   test('totalIdle', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {

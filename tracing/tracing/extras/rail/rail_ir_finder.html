@@ -209,91 +209,76 @@ tr.exportTo('tr.e.rail', function() {
           isFailLoadSlice).sort(compareEvents);
     },
 
+    // Main runner events are emitted very early on in the lifetime of browser
+    // and renderer processes. It's emitted in the Initialize method of
+    // ContentMainRunner as soon as TRACE_EVENT is available.
+    getMainRunnerEvents: function() {
+      function isMainRunnerSlice(slice) {
+        return slice.title === 'ContentMainRunnerImpl::Initialize';
+      }
+      return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
+          isMainRunnerSlice).sort(compareEvents);
+    },
+
+    // Match every event in |openingEvents| to the first following event from
+    // |closingEvents| and return an array containing a load interaction record
+    // for each pair.
+    findLoadInteractionRecords_: function(openingEvents, closingEvents) {
+      var lirs = [];
+      openingEvents.forEach(function(openingEvent) {
+        closingEvents.forEach(function(closingEvent) {
+          // Ignore opening event thatalready have a closing event.
+          if (openingEvent.closingEvent)
+            return;
+
+          // Ignore closing events that already belong to an opening event.
+          if (closingEvent.openingEvent)
+            return;
+
+          // Ignore closing events before |openingEvent|.
+          if (closingEvent.start <= openingEvent.start)
+            return;
+
+          // Ignore events from different threads.
+          if (openingEvent.parentContainer.parent.pid !==
+               closingEvent.parentContainer.parent.pid)
+            return;
+
+          // This is the first closing event for this opening event, record it.
+          openingEvent.closingEvent = closingEvent;
+          closingEvent.openingEvent = openingEvent;
+          var lir = new tr.e.rail.LoadInteractionRecord(
+              openingEvent.start, closingEvent.end - openingEvent.start);
+          lir.associatedEvents.push(openingEvent);
+          lir.associatedEvents.push(closingEvent);
+          lirs.push(lir);
+        });
+      });
+      return lirs;
+    },
+
     // Match up RenderFrameImpl events with frame render events.
     findLoadInteractionRecords: function() {
+      var mainRunnerEvents = this.getMainRunnerEvents();
       var commitLoadEvents =
           this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
               this.model.bounds);
       var frameEvents = this.getAllFrameEvents();
       var startLoadEvents = this.getStartLoadEvents();
       var failLoadEvents = this.getFailLoadEvents();
-
-      commitLoadEvents.forEach(function(commitLoad, commitLoadIndex) {
-        frameEvents.forEach(function(frameEvent) {
-          // Stop looking if this |commitLoad| already has its firstFrame.
-          if (commitLoad.firstFrame)
-            return;
-
-          // Ignore frame events before |commitLoad|.
-          if (frameEvent.start <= commitLoad.start)
-            return;
-
-          // Ignore frame events from different threads.
-          if (frameEvent.parentContainer.parent.pid !==
-               commitLoad.parentContainer.parent.pid)
-            return;
-
-          // Give up looking if the first frame event belongs to a different
-          // commitLoadEvent.
-          if (frameEvent.commitLoadEvent)
-            return;
-
-          // This appears to be the first frame event for this load, although
-          // this is just a heuristic.
-          commitLoad.firstFrame = frameEvent;
-          frameEvent.commitLoadEvent = commitLoad;
-        });
-      });
-
-      startLoadEvents.forEach(function(startLoad) {
-        failLoadEvents.forEach(function(failLoad) {
-          // Stop looking if this |startLoad| already has its |failLoadEvent|.
-          if (startLoad.failLoadEvent)
-            return;
-
-          // Ignore events from different threads.
-          if (startLoad.parentContainer.parent.pid !==
-              failLoad.parentContainer.parent.pid)
-            return;
-
-          // Ignore failLoad events before |startLoad|.
-          if (failLoad.start <= startLoad.start)
-            return;
-
-          // Give up looking if |failLoad| belongs to a different
-          // |startLoadEvent|.
-          if (failLoad.startLoadEvent)
-            return;
-
-          // This |failLoad| appears to go with |startLoad|, although this is
-          // just a heuristic.
-          failLoad.startLoadEvent = startLoad;
-          startLoad.failLoadEvent = failLoad;
-        });
-      });
-
       var lirs = [];
-      commitLoadEvents.forEach(function(commitLoad, commitLoadIndex) {
-        if (!commitLoad.firstFrame)
-          return;
 
-        var lir = new tr.e.rail.LoadInteractionRecord(
-            commitLoad.start, commitLoad.firstFrame.end - commitLoad.start);
-        lir.associatedEvents.push(commitLoad);
-        lir.associatedEvents.push(commitLoad.firstFrame);
-        lirs.push(lir);
-      });
+      // Attach frame events to every main runner events.
+      lirs.push.apply(lirs, this.findLoadInteractionRecords_(mainRunnerEvents,
+          frameEvents));
 
-      failLoadEvents.forEach(function(failLoad) {
-        if (!failLoad.startLoadEvent)
-          return;
-        var lir = new tr.e.rail.LoadInteractionRecord(
-            failLoad.startLoadEvent.start,
-            failLoad.start - failLoad.startLoadEvent.start);
-        lir.associatedEvents.push(failLoad.startLoadEvent);
-        lir.associatedEvents.push(failLoad);
-        lirs.push(lir);
-      });
+      // Attach frame events to every commit load events.
+      lirs.push.apply(lirs, this.findLoadInteractionRecords_(commitLoadEvents,
+          frameEvents));
+
+      // Attach fail load events to every start load events.
+      lirs.push.apply(lirs, this.findLoadInteractionRecords_(startLoadEvents,
+          failLoadEvents));
 
       return lirs;
     },

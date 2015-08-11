@@ -79,15 +79,22 @@ tr.exportTo('tr.e.audits', function() {
     model.rendererMain.asyncSliceGroup.push(slice);
   }
 
+  function addMainRunnerEvent(model, dict) {
+    dict.title = 'ContentMainRunnerImpl::Initialize';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+  }
+
   return {
     newChromeModel: newChromeModel,
     addEvent: addEvent,
     addInputEvent: addInputEvent,
+    addFlingAnimationEvent: addFlingAnimationEvent,
     addFrameEvent: addFrameEvent,
     addLoadingEvent: addLoadingEvent,
     addNetworkEvent: addNetworkEvent,
     addCommitLoadEvent: addCommitLoadEvent,
-    addFlingAnimationEvent: addFlingAnimationEvent
+    addMainRunnerEvent: addMainRunnerEvent
   };
 });
 </script>
