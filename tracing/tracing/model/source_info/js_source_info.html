@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/model/source_info/source_info.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.model.source_info', function() {
+  function JSSourceInfo(file, line, isNative, scriptId) {
+    tr.model.source_info.SourceInfo.call(this, file, line);
+
+    this.isNative_ = isNative;
+    this.scriptId_ = scriptId;
+  }
+
+  JSSourceInfo.prototype = {
+    __proto__: tr.model.source_info.SourceInfo.prototype,
+
+    get isNative() {
+      return this.isNative_;
+    },
+
+    get scriptId() {
+      return this.scriptId_;
+    },
+
+    toString: function() {
+      var str = this.isNative_ ? '[native v8] ' : '';
+      return str +
+          tr.model.source_info.SourceInfo.prototype.toString.call(this);
+    }
+  };
+
+  return {
+    JSSourceInfo: JSSourceInfo
+  };
+});
+</script>
+

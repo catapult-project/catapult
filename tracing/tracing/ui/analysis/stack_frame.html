@@ -54,26 +54,33 @@ found in the LICENSE file.
       });
 
       var cols = [];
-      if (hasCategory)
+      if (hasCategory) {
         cols.push({
           title: 'Category',
           value: function(row) { return row.category; }
         });
+      }
 
-      if (hasName)
+      if (hasName) {
         cols.push({
           title: 'Name',
           value: function(row) { return row.name; }
         });
+      }
 
-      if (hasTitle)
+      if (hasTitle) {
         cols.push({
           title: 'Title',
           value: function(row) { return row.title; }
         });
+      }
 
       table.tableColumns = cols;
       table.rebuild();
+    },
+
+    tableForTesting: function() {
+      return this.$.table;
     }
   });
   </script>

@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/source_info/js_source_info.html">
 <link rel="import" href="/tracing/ui/extras/analysis/sampling_summary.html">
 
 <script>
@@ -28,7 +29,9 @@ tr.b.unittest.testSuite(function() {
     var fA = new StackFrame(undefined, 0, 'Chrome', 'a', 7);
     var fAB = new StackFrame(fA, 1, 'Chrome', 'b', 7);
     var fABC = new StackFrame(fAB, 2, 'Chrome', 'c', 7);
-    var fAD = new StackFrame(fA, 3, 'GPU Driver', 'd', 7);
+    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7,
+        new tr.model.source_info.JSSourceInfo(
+            'http://example.com/foo.js', 24, true));
 
     selection.push(new Sample(undefined, thread, 'cycles',
                               10, fABC, 10));
@@ -90,8 +93,8 @@ tr.b.unittest.testSuite(function() {
                     },
                     {
                       category: 'GPU Driver',
-                      name: 'd',
-                      leaf_node_id: 3,
+                      name: 'd [native v8] http://example.com/foo.js:24',
+                      leaf_node_id: 4,
                       size: 20
                     }
                   ]
@@ -116,7 +119,9 @@ tr.b.unittest.testSuite(function() {
     var fA = new StackFrame(undefined, 1, 'Chrome', 'a', 7);
     var fAB = new StackFrame(fA, 2, 'Chrome', 'b', 7);
     var fABC = new StackFrame(fAB, 3, 'Chrome', 'c', 7);
-    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7);
+    var fAD = new StackFrame(fA, 4, 'GPU Driver', 'd', 7,
+        new tr.model.source_info.JSSourceInfo(
+            'http://example.com/foo.js', 24, true));
 
     selection.push(new Sample(undefined, thread, 'cycles',
                               10, fABC, 10));
@@ -142,7 +147,7 @@ tr.b.unittest.testSuite(function() {
                   children: [
                     {
                       category: 'GPU Driver',
-                      name: 'd',
+                      name: 'd [native v8] http://example.com/foo.js:24',
                       leaf_node_id: 4,
                       size: 9
                     }
@@ -192,8 +197,8 @@ tr.b.unittest.testSuite(function() {
                   children: [
                     {
                       category: 'GPU Driver',
-                      name: 'd',
-                      leaf_node_id: 3,
+                      name: 'd [native v8] http://example.com/foo.js:24',
+                      leaf_node_id: 4,
                       size: 16
                     }
                   ]

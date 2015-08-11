@@ -9,15 +9,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  function StackFrame(parentFrame, id, category, title, colorId) {
+  function StackFrame(parentFrame, id, category, title,
+      colorId, opt_sourceInfo) {
     if (id === undefined)
       throw new Error('id must be given');
     this.parentFrame_ = parentFrame;
     this.id = id;
     this.category = category || '';
-    this.title = title;
+    this.title_ = title;
     this.colorId = colorId;
     this.children = [];
+    this.sourceInfo_ = opt_sourceInfo;
 
     if (this.parentFrame_)
       this.parentFrame_.addChild(this);
@@ -26,6 +28,12 @@ tr.exportTo('tr.model', function() {
   StackFrame.prototype = {
     get parentFrame() {
       return this.parentFrame_;
+    },
+
+    get title() {
+      if (this.sourceInfo_)
+        return this.title_ + ' ' + this.sourceInfo_.toString();
+      return this.title_;
     },
 
     set parentFrame(parentFrame) {
