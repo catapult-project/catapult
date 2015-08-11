@@ -7,8 +7,7 @@ import os
 import sys
 
 if __name__ == '__main__':
-  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                 '..'))
-  sys.path.append(tracing_path)
-  from tracing_build import fixjsstyle
-  sys.exit(fixjsstyle.Main())
+  top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+  sys.path.append(top_dir)
+  from tracing.build import fixjsstyle
+  sys.exit(fixjsstyle.main())

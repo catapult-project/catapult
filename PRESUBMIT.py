@@ -7,7 +7,7 @@
 See https://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into depot_tools.
 """
-import os
+import re
 import sys
 
 _EXCLUDED_PATHS = (
@@ -25,6 +25,8 @@ _EXCLUDED_PATHS = (
     r'.*OWNERS$',
     r'.*README\.md$',
     r'^dashboard[\\\/]third_party[\\\/].*',
+    r'^experimental[\\\/]heatmap[\\\/].*',
+    r'^perf_insights[\\\/]test_data[\\\/].*',
     r'^perf_insights[\\\/]third_party[\\\/].*',
     r'^third_party[\\\/].*',
     r'^tracing[\\\/]\.allow-devtools-save$',
@@ -46,13 +48,26 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
   }
 
 
+def CheckChangeLogBug(input_api, output_api):
+  if input_api.change.BUG is None or re.match('\#\d+$', input_api.change.BUG):
+    return []
+  return output_api.PresubmitError(
+      ('Invalid bug "%s". BUG= should either not be present or start with # '
+       'for a github issue.' % input_api.change.BUG))
+
+
 def CheckChange(input_api, output_api):
   results = []
   try:
     sys.path += [input_api.PresubmitLocalPath()]
-    from build import presubmit_checks
-    results += presubmit_checks.RunChecks(
-        input_api, output_api, _EXCLUDED_PATHS)
+    from build import js_checks
+    results += input_api.canned_checks.PanProjectChecks(
+        input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
+    results += input_api.canned_checks.RunPylint(
+        input_api, output_api, black_list=_EXCLUDED_PATHS)
+    results += CheckChangeLogBug(input_api, output_api)
+    print 'RUNNING js_checks'
+    results += js_checks.RunChecks(input_api, output_api)
   finally:
     sys.path.remove(input_api.PresubmitLocalPath())
   return results

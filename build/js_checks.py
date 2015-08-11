@@ -5,13 +5,12 @@
 import os
 import re
 
-import tracing_project
-
 
 class JSChecker(object):
 
-  def __init__(self, input_api, file_filter=None):
+  def __init__(self, input_api, output_api, file_filter=None):
     self.input_api = input_api
+    self.output_api = output_api
     if file_filter:
       self.file_filter = file_filter
     else:
@@ -55,8 +54,8 @@ class JSChecker(object):
     """
     return start * ' ' + length * '^'
 
-  def _makeErrorOrWarning(self, error_text):
-    return error_text
+  def _makeErrorOrWarning(self, output_api, error_text):
+    return output_api.PresubmitError(error_text)
 
   def RunChecks(self):
     """Check for violations of the Chromium JavaScript style guide. See
@@ -70,11 +69,11 @@ class JSChecker(object):
 
     try:
       base_path = os.path.abspath(os.path.join(
-          os.path.dirname(__file__), '..', '..'))
+          os.path.dirname(__file__), '..'))
       closure_linter_path = os.path.join(
-          base_path, 'tracing', 'third_party', 'closure_linter')
+          base_path, 'third_party', 'closure_linter')
       gflags_path = os.path.join(
-          base_path, 'tracing', 'third_party', 'python_gflags')
+          base_path, 'third_party', 'python_gflags')
       sys.path.insert(0, closure_linter_path)
       sys.path.insert(0, gflags_path)
 
@@ -132,8 +131,6 @@ class JSChecker(object):
       affected_files = []
 
     def ShouldCheck(f):
-      if tracing_project.TracingProject.IsIgnoredFile(f):
-        return False
       if f.LocalPath().endswith('.js'):
         return True
       if f.LocalPath().endswith('.html'):
@@ -142,6 +139,7 @@ class JSChecker(object):
 
     affected_js_files = filter(ShouldCheck, affected_files)
     for f in affected_js_files:
+      print 'CHECKING ', f.LocalPath()
       error_lines = []
 
       for i, line in enumerate(f.NewContents(), start=1):
@@ -171,10 +169,11 @@ class JSChecker(object):
         error_lines = [
             'Found JavaScript style violations in %s:' %
             f.LocalPath()] + error_lines
-        results.append(self._makeErrorOrWarning('\n'.join(error_lines)))
+        results.append(
+            self._makeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
 
     return results
 
 
-def RunChecks(input_api):
-  return JSChecker(input_api).RunChecks()
+def RunChecks(input_api, output_api):
+  return JSChecker(input_api, output_api).RunChecks()

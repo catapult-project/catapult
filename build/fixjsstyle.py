@@ -5,10 +5,15 @@
 import os
 import sys
 
-import tracing_project
+tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                            '..', '..'))
+if tracing_path not in sys.path:
+  sys.path.append(tracing_path)
+
+from tracing import tracing_project
 
 
-def Main():
+def main():
   project = tracing_project.TracingProject()
 
   sys.path.append(os.path.join(
