@@ -36,6 +36,14 @@ tr.exportTo('tr.e.rail', function() {
     return 0;
   }
 
+  function causedFrame(event) {
+    for (var i = 0; i < event.associatedEvents.length; ++i) {
+      if (event.associatedEvents[i].title === tr.e.audits.IMPL_RENDERING_STATS)
+        return true;
+    }
+    return false;
+  }
+
   // If there's less than this much time between the end of one event and the
   // start of the next, then they might be merged.
   // There was not enough thought given to this value, so if you have any slight
@@ -412,9 +420,16 @@ tr.exportTo('tr.e.rail', function() {
       this.getSortedInputEvents(MOUSE_DRAG_TYPE_NAMES).forEach(function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.MOUSE_DOWN:
-            // Responses typically don't start until the mouse up event.
-            mouseDownEvent = event;
-            moveCount = 0;
+            if (causedFrame(event)) {
+              var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              pir.pushEvent(event);
+              protoIRs.push(pir);
+            } else {
+              // Responses typically don't start until the mouse up event.
+              // Add this MouseDown to the Response that starts at the MouseUp.
+              mouseDownEvent = event;
+              moveCount = 0;
+            }
             break;
             // There may be more than 100ms between the start of the mouse down
             // and the start of the mouse up. Chrome and the web don't start to
@@ -429,7 +444,8 @@ tr.exportTo('tr.e.rail', function() {
 
           case INPUT_TYPE.MOUSE_MOVE:
             if (!mouseDownEvent) {
-              var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+              var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
+                  ProtoIR.IGNORED_TYPE);
               pir.pushEvent(event);
               protoIRs.push(pir);
               break;
@@ -439,7 +455,8 @@ tr.exportTo('tr.e.rail', function() {
             if (moveCount === 1) {
               currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
               currentPIR.pushEvent(event);
-              currentPIR.associatedEvents.push(mouseDownEvent);
+              if (mouseDownEvent)
+                currentPIR.associatedEvents.push(mouseDownEvent);
               protoIRs.push(currentPIR);
             } else if (moveCount === 2) {
               currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
@@ -452,7 +469,8 @@ tr.exportTo('tr.e.rail', function() {
 
           case INPUT_TYPE.MOUSE_UP:
             if (!mouseDownEvent) {
-              var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+              var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
+                  ProtoIR.IGNORED_TYPE);
               pir.pushEvent(event);
               protoIRs.push(pir);
               break;
@@ -462,7 +480,8 @@ tr.exportTo('tr.e.rail', function() {
               currentPIR.pushEvent(event);
             } else {
               currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
-              currentPIR.associatedEvents.push(mouseDownEvent);
+              if (mouseDownEvent)
+                currentPIR.associatedEvents.push(mouseDownEvent);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
             }

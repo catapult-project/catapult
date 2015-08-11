@@ -25,6 +25,68 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('MouseEventResponses', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      var mouseDown = audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+          {start: 0, end: 50, id: '0x100'});
+      var mouseDownFrame = audits.addFrameEvent(model,
+          {start: 40, end: 50, isTopLevel: true});
+      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
+        id: '0x100',
+        start: 0,
+        end: 40,
+        startSlice: mouseDownFrame,
+        endSlice: mouseDownFrame
+      }));
+
+      var mouseUp = audits.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+          {start: 50, end: 100, id: '0x101'});
+      var mouseUpFrame = audits.addFrameEvent(model,
+          {start: 240, end: 250, isTopLevel: true});
+      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
+        id: '0x101',
+        start: 50,
+        end: 240,
+        startSlice: mouseUpFrame,
+        endSlice: mouseUpFrame
+      }));
+
+      var mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 200, end: 250, id: '0x102'});
+      var mouseMoveFrame = audits.addFrameEvent(model,
+          {start: 240, end: 250, isTopLevel: true});
+      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
+        id: '0x102',
+        start: 200,
+        end: 240,
+        startSlice: mouseMoveFrame,
+        endSlice: mouseMoveFrame
+      }));
+    };
+    verifier.expectedIRs = [
+      {title: 'Response', start: 0, end: 50, eventCount: 3},
+      {title: 'Response', start: 50, end: 100, eventCount: 3},
+      {title: 'Idle', start: 100, end: 200, eventCount: 0},
+      {title: 'Response', start: 200, end: 250, eventCount: 3}
+    ];
+    verifier.verify();
+  });
+
+  test('MouseEventsIgnored', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 0, end: 50});
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+          {start: 50, end: 100});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 100, eventCount: 0}
+    ];
+    verifier.verify();
+  });
+
   test('unassociatedEvents', function() {
     // Unassociated ThreadSlices that start during an Idle should be associated
     // with it. Expect the Idle IR to have 2 associated events: both of the

@@ -37,7 +37,9 @@ tr.exportTo('tr.e.audits', function() {
   }
 
   function addEvent(thread, dict) {
-    thread.asyncSliceGroup.push(tr.c.test_utils.newAsyncSliceEx(dict));
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    thread.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addInputEvent(model, typeName, dict) {
@@ -46,24 +48,29 @@ tr.exportTo('tr.e.audits', function() {
     dict.startThread = model.browserMain;
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addFlingAnimationEvent(model, dict) {
     dict.title = 'InputHandlerProxy::HandleGestureFling::started';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererCompositor.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addFrameEvent(model, dict) {
     dict.title = tr.e.audits.IMPL_RENDERING_STATS;
-    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    dict.type = tr.model.ThreadSlice;
+    var slice = tr.c.test_utils.newSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addLoadingEvent(model, dict) {
     dict.title = 'WebContentsImpl Loading';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addNetworkEvent(model, dict) {
@@ -71,12 +78,14 @@ tr.exportTo('tr.e.audits', function() {
     dict.title = 'Generic Network event';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.browserMain.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addCommitLoadEvent(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
   }
 
   function addMainRunnerEvent(model, dict) {
