@@ -63,6 +63,7 @@ tr.exportTo('tr', function() {
   function ImportOptions() {
     this.shiftWorldToZero = true;
     this.pruneEmptyContainers = true;
+    this.showImportWarnings = true;
 
     // Callback called after
     // importers run in which more data can be added to the model, before it is
@@ -112,6 +113,8 @@ tr.exportTo('tr', function() {
   function Model(opt_eventData, opt_options) {
     tr.model.EventContainer.call(this);
     tr.b.EventTarget.decorate(this);
+
+    this.importOptions_ = undefined;
 
     this.faviconHue = 'blue'; // Should be a key from favicons.html
 
@@ -397,10 +400,7 @@ tr.exportTo('tr', function() {
         update: function(msg) {}
       };
       var options = ImportOptions.fromArguments(arguments, 1);
-      var task = this.createImportTracesTask(
-          progressMeter,
-          traces,
-          options);
+      var task = this.createImportTracesTask(progressMeter, traces, options);
       tr.b.Task.RunSynchronously(task);
     },
 
@@ -412,6 +412,7 @@ tr.exportTo('tr', function() {
     importTracesWithProgressDialog: function(traces, opt_options) {
       if (tr.isHeadless)
         throw new Error('Cannot use this method in headless mode!');
+
       var options = ImportOptions.fromArguments(arguments, 1);
 
       var overlay = tr.ui.b.Overlay();
@@ -425,10 +426,7 @@ tr.exportTo('tr', function() {
       }
       overlay.visible = true;
 
-      var task = this.createImportTracesTask(
-          overlay,
-          traces,
-          options);
+      var task = this.createImportTracesTask(overlay, traces, options);
       var promise = tr.b.Task.RunWhenIdle(task);
       promise.then(
           function() {
@@ -455,14 +453,15 @@ tr.exportTo('tr', function() {
      * updating the progressMeter as it goes. Parameters are as defined in
      * importTraces.
      */
-    createImportTracesTask: function(progressMeter,
-                                     traces,
-                                     opt_options) {
-      var options = ImportOptions.fromArguments(arguments, 2);
-
+    createImportTracesTask: function(progressMeter, traces, opt_options) {
       if (this.importing_)
         throw new Error('Already importing.');
       this.importing_ = true;
+
+      if (this.importOptions_ !== undefined)
+        throw new Error('Already imported.');
+
+      this.importOptions_ = ImportOptions.fromArguments(arguments, 2);
 
       // Just some simple setup. It is useful to have a nop first
       // task so that we can set up the lastTask = lastTask.after()
@@ -524,9 +523,9 @@ tr.exportTo('tr', function() {
       }, this);
 
       // Run the cusomizeModelCallback if needed.
-      if (options.customizeModelCallback) {
+      if (this.importOptions_.customizeModelCallback) {
         lastTask = lastTask.after(function(task) {
-          options.customizeModelCallback(this);
+          this.importOptions_.customizeModelCallback(this);
         }, this);
       }
 
@@ -574,7 +573,7 @@ tr.exportTo('tr', function() {
       }, this);
 
       // Prune empty containers.
-      if (options.pruneEmptyContainers) {
+      if (this.importOptions_.pruneEmptyContainers) {
         lastTask = lastTask.after(function() {
           progressMeter.update('Pruning empty containers...');
           this.kernel.pruneEmptyContainers();
@@ -595,7 +594,7 @@ tr.exportTo('tr', function() {
       var auditors = [];
       lastTask = lastTask.after(function() {
         progressMeter.update('Adding arbitrary data to model...');
-        auditors = options.auditorConstructors.map(
+        auditors = this.importOptions_.auditorConstructors.map(
           function(auditorConstructor) {
             return new auditorConstructor(this);
           }, this);
@@ -609,7 +608,7 @@ tr.exportTo('tr', function() {
         this.updateBounds();
         this.updateCategories_();
 
-        if (options.shiftWorldToZero)
+        if (this.importOptions_.shiftWorldToZero)
           this.shiftWorldToZero();
       }, this);
 
@@ -706,7 +705,9 @@ tr.exportTo('tr', function() {
       if (this.reportedImportWarnings_[data.type] === true)
         return;
 
-      console.warn(data.message);
+      if (this.importOptions_.showImportWarnings)
+        console.warn(data.message);
+
       this.reportedImportWarnings_[data.type] = true;
     },
 
@@ -726,6 +727,10 @@ tr.exportTo('tr', function() {
       if (this.intrinsicTimeUnit_ !== undefined)
         throw new Error('Intrinsic time unit already set');
       this.intrinsicTimeUnit_ = value;
+    },
+
+    set importOptions(importOptions) {
+      this.importOptions_ = importOptions;
     },
 
     get hasImportWarnings() {

@@ -55,8 +55,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importPowerSamplesAndTrace', function() {
-    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
-    m.importTraces([BATTOR_LINES.join('\n')]);
+    var m = new tr.Model();
+    m.importTraces([SYSTRACE_LINES.join('\n'), BATTOR_LINES.join('\n')]);
 
     assert.isDefined(m.device.powerSeries);
 
@@ -69,14 +69,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.device.powerSeries.samples[1].start, 0.5);
   });
 
-  test('importAlreadyHasPower', function() {
-    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
-    m.importTraces([BATTOR_LINES.join('\n')]);
-    assert.isFalse(m.hasImportWarnings);
-    m.importTraces([BATTOR_LINES.join('\n')]);
-    assert.isTrue(m.hasImportWarnings);
-  });
-
   test('importMissingLinuxTrace', function() {
     var m = new tr.Model(BATTOR_LINES.join('\n'), false);
     assert.isTrue(m.hasImportWarnings);
@@ -84,7 +76,7 @@ tr.b.unittest.testSuite(function() {
 
   test('importNotEnoughSamples', function() {
     var shortLines = BATTOR_LINES.slice(0, 5);
-    var m = new tr.Model(SYSTRACE_LINES.join('\n'), false);
+    var m = new tr.Model();
     m.importTraces([shortLines.join('\n')]);
     assert.isTrue(m.hasImportWarnings);
   });

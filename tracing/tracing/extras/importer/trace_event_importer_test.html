@@ -687,7 +687,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'thread_name', args: {name: 'Thread 2'},
         pid: 2, ts: 0, tid: 2, ph: 'M'}
     ];
-    var m = new tr.Model(events);
+    var m = new tr.Model();
     m.importTraces([events], false, false);
     assert.equal(m.processes[1].threads[1].name, 'Thread 1');
     assert.equal(m.processes[2].threads[2].name, 'Thread 2');

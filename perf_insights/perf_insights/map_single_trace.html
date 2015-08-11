@@ -73,6 +73,7 @@ tr.exportTo('pi', function() {
     // Load the model.
     var importOptions = new tr.ImportOptions();
     importOptions.pruneEmptyContainers = false;
+    importOptions.showImportWarnings = false;
     var model = new tr.Model();
     try {
       model.importTraces([traceData], importOptions);

@@ -100,7 +100,12 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createContainerDumps(processMemoryDumpCount, opt_model) {
-    var model = opt_model || new Model();
+    var model = opt_model;
+    if (model === undefined) {
+      model = new Model();
+      model.importOptions = new tr.ImportOptions();
+    }
+
     var gmd = new GlobalMemoryDump(model, 0);
     model.globalMemoryDumps.push(gmd);
 
