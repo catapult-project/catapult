@@ -5,6 +5,7 @@
 
 import logging
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -20,6 +21,9 @@ OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=stable'
 # URL in cloud storage to download Chrome zip from.
 CLOUDSTORAGE_URL = ('https://commondatastorage.googleapis.com/chrome-unsigned'
                     '/desktop-W15K3Y/%s/%s/chrome-%s.zip')
+
+# Default port to run on if not auto-assigning from OS
+DEFAULT_PORT = '8111'
 
 # Mapping of sys.platform -> platform-specific names and paths.
 PLATFORM_MAPPING = {
@@ -144,12 +148,22 @@ def Main(argv):
     tmpdir, version = DownloadChromeStable()
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
-    server_command = [server_path, '--no-install-hooks']
+    # TODO(anniesullie): Make OS selection of port work on Windows. See #1235.
+    if sys.platform == 'win32':
+      port = DEFAULT_PORT
+    else:
+      port = '0'
+    server_command = [server_path, '--no-install-hooks', '--port', port]
     if sys.platform.startswith('win'):
         server_command = ['python.exe'] + server_command
     server_process = subprocess.Popen(
-        server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        bufsize=1)
     time.sleep(5)
+    if sys.platform != 'win32':
+      output = server_process.stderr.readline()
+      port = re.search(
+          'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
     chrome_path = os.path.join(
         tmpdir, platform_data['chromepath'])
@@ -166,7 +180,7 @@ def Main(argv):
         '--no-experiments',
         '--no-first-run',
         '--noerrdialogs',
-        'http://localhost:8003/tracing/tests.html?' +
+        ('http://localhost:%s/tracing/tests.html?' % port) +
             'headless=true&testTypeToRun=all',
     ]
     chrome_process = subprocess.Popen(

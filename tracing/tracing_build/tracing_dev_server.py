@@ -235,6 +235,6 @@ def Main(argv):
   _AddPleaseExitMixinToServer(server)
   app.server = server
 
-  sys.stderr.write('Now running on http://127.0.0.1:%i\n' % args.port)
+  sys.stderr.write('Now running on http://127.0.0.1:%i\n' % server.server_port)
 
   return server.serve_forever()
