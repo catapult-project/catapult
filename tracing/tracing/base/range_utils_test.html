@@ -91,14 +91,12 @@ tr.b.unittest.testSuite(function() {
       return tr.b.Range.fromExplicitRange(event, event);
     });
     var timestampMerger = function(timestamps) {
-      console.log(timestamps);
       return {
         min: timestamps[0].min,
         max: timestamps[timestamps.length - 1].max
       };
     };
     var merged = tr.b.mergeRanges(inEvents, 15, timestampMerger);
-    console.log(merged);
     assert.equal(merged.length, 2);
     assert.deepEqual(merged[0], {min: 0, max: 20});
     assert.deepEqual(merged[1], {min: 50, max: 60});

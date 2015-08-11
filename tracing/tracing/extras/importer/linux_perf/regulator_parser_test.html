@@ -34,7 +34,6 @@ tr.b.unittest.testSuite(function() {
         'regulator_disable_complete: name=8941_smbb_boost'
     ];
     var m = new tr.Model(lines.join('\n'), false);
-    console.log(m.importWarnings);
     assert.isFalse(m.hasImportWarnings);
 
     assert.property(m.kernel.counters, 'null.vreg krait0 voltage');

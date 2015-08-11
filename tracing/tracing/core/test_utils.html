@@ -283,6 +283,7 @@ tr.exportTo('tr.c.test_utils', function() {
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
+    io.showImportWarnings = false;
     io.auditorConstructors = [];
     return new tr.Model([], io);
   }
@@ -292,6 +293,7 @@ tr.exportTo('tr.c.test_utils', function() {
     io.customizeModelCallback = customizeModelCallback;
     io.shiftWorldToZero = false;
     io.pruneEmptyContainers = false;
+    io.showImportWarnings = false;
     io.auditorConstructors = [auditor];
     return new tr.Model([], io);
   }

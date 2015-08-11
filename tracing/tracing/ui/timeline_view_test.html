@@ -38,7 +38,10 @@ tr.b.unittest.testSuite(function() {
     var startTime = 0;
 
     var model = new tr.Model();
-    model.importOptions = new tr.ImportOptions();
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+    model.importOptions = io;
+
     for (testIndex = 0; testIndex < num_tests; ++testIndex) {
       var process = model.getOrCreateProcess(10000 + testIndex);
       if (testIndex % 2 == 0) {

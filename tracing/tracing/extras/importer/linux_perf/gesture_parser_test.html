@@ -197,7 +197,10 @@ tr.b.unittest.testSuite(function() {
       'X-30368 [000] ...1 1819362.481988: tracing_mark_write: ' +
           'HandleTimer: end: IntegralGestureFilterInterpreter'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+    var m = new tr.Model(lines.join('\n'), io);
+
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings.length, 7);
   });

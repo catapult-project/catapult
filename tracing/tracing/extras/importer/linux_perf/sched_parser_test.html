@@ -108,7 +108,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     var m;
     assert.doesNotThrow(function() {
-      m = new tr.Model(lines.join('\n'), false);
+      var io = new tr.ImportOptions();
+      io.showImportWarnings = false;
+      m = new tr.Model(lines.join('\n'), io);
     });
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings[0].message, 'Unrecognized sleep state: F|O');

@@ -70,14 +70,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMissingLinuxTrace', function() {
-    var m = new tr.Model(BATTOR_LINES.join('\n'), false);
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+    var m = new tr.Model(BATTOR_LINES.join('\n'), io);
     assert.isTrue(m.hasImportWarnings);
   });
 
   test('importNotEnoughSamples', function() {
     var shortLines = BATTOR_LINES.slice(0, 5);
+
     var m = new tr.Model();
-    m.importTraces([shortLines.join('\n')]);
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+
+    m.importTraces([shortLines.join('\n')], io);
     assert.isTrue(m.hasImportWarnings);
   });
 });

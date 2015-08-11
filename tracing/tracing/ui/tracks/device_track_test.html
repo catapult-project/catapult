@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel='import' href='/tracing/core/constants.html'>
 <link rel='import' href='/tracing/model/device.html'>
 <link rel='import' href='/tracing/model/model.html'>
 <link rel='import' href='/tracing/ui/timeline_display_transform.html'>
@@ -126,8 +127,10 @@ tr.b.unittest.testSuite(function() {
     device.powerSeries.addPowerSample(0, 1);
     device.powerSeries.addPowerSample(0.5, 2);
 
-    var drawingContainer = createDrawingContainer(device.powerSeries);
-    var track = new DeviceTrack(drawingContainer.viewport);
+    var div = document.createElement('div');
+    var viewport = new tr.ui.TimelineViewport(div);
+
+    var track = new DeviceTrack(viewport);
     track.device = device;
 
     var eventToTrackMap = new tr.ui.tracks.EventToTrackMap();

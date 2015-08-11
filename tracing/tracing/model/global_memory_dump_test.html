@@ -772,7 +772,12 @@ tr.b.unittest.testSuite(function() {
    * details about the structure of tree recipes.
    */
   function testSizesCalculation(allTreeRecipes) {
-    var containerDumps = buildDumpTrees(allTreeRecipes);
+    var m = new tr.Model();
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+    m.importOptions = io;
+
+    var containerDumps = buildDumpTrees(allTreeRecipes, m);
     var gmd = containerDumps[0];
     gmd.calculateSizes();
     gmd.calculateEffectiveSizes();

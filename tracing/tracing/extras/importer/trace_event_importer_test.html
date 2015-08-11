@@ -15,6 +15,17 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   var findSliceNamed = tr.c.test_utils.findSliceNamed;
 
+  var makeModel = function(events, opt_shift, opt_prune) {
+    var shift = opt_shift === undefined ? true : opt_shift;
+    var prune = opt_prune === undefined ? true : opt_prune;
+
+    var io = new tr.ImportOptions();
+    io.showImportWarnings = false;
+    io.shiftWorldToZero = shift;
+    io.pruneEmptyContainers = prune;
+    return new tr.Model(events, io);
+  }
+
   test('canImportEmpty', function() {
     assert.isFalse(tr.e.importer.TraceEventImporter.canImport([]));
     assert.isFalse(tr.e.importer.TraceEventImporter.canImport(''));
@@ -28,7 +39,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -61,7 +72,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E', tts: 331}  // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -106,7 +117,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[1].threads[1];
     var sA = findSliceNamed(t.sliceGroup, 'a');
 
@@ -123,7 +134,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     // This should not throw an exception.
-    new tr.Model(events);
+    makeModel(events);
   });
 
   test('importDoesNotChokeOnNulls', function() {
@@ -133,7 +144,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     // This should not throw an exception.
-    new tr.Model(events);
+    makeModel(events);
   });
 
   test('categoryBeginEndMismatchPrefersBegin', function() {
@@ -142,7 +153,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -163,7 +174,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings.length, 1);
   });
@@ -175,7 +186,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 4, tts: 3, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -207,7 +218,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 1, ts: 7, tts: 6, cat: 'baz', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 8, tts: 8, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -247,7 +258,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 7, cat: 'bar', tid: 1, ph: 'E'},
       {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -290,7 +301,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var slice = t.sliceGroup.slices[0];
@@ -306,7 +317,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       // Slice that doesn't finish.
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var slice = t.sliceGroup.slices[0];
@@ -324,7 +335,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b1', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
       {name: 'b2', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t = m.processes[1].threads[1];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -346,7 +357,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'c', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.length, 2);
@@ -378,7 +389,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t1 = m.processes[1].threads[1];
     var t2 = m.processes[1].threads[2];
 
@@ -403,7 +414,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
       {name: 'a', args: {}, pid: 1, ts: 6, cat: 'baz', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     var a1 = t.sliceGroup.slices[0];
@@ -425,7 +436,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
@@ -438,7 +449,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E', cname: 'thread_state_unknown'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
@@ -450,7 +461,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 1, dur: 1, cat: 'foo', tid: 1, ph: 'X', cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
@@ -463,7 +474,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
@@ -476,7 +487,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'e', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
@@ -488,7 +499,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'I', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
@@ -500,7 +511,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'I', id: 1, s: 'p', cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.instantEvents[0].colorId,
                  tr.ui.b.getColorIdForReservedName('generic_work'));
@@ -511,7 +522,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {'cats': 10}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'C', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.counters['foo.a[1]'].series[0].color,
                  tr.ui.b.getColorIdForReservedName('generic_work'));
@@ -525,7 +536,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var i = p.objects.instanceMapsById_[1].instances[0];
     assert.equal(i.colorId,
@@ -539,7 +550,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'D', id: 1, cname: 'generic_work'} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var i = p.objects.instanceMapsById_[1].instances[0];
     assert.equal(i.colorId,
@@ -553,7 +564,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
@@ -594,7 +605,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {}, pid: 2, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
       {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 2);
     var p = m.processes[1];
     assert.isDefined(p);
@@ -643,8 +654,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_name', args: {name: 'SomeProcessName'},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events);
     assert.equal(m.processes[1].name, 'SomeProcessName');
   });
 
@@ -656,8 +666,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_labels', args: {labels: 'baz'},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events);
     assert.deepEqual(m.processes[1].labels, ['foo', 'bar', 'baz']);
     assert.deepEqual(m.processes[2].labels, ['baz']);
   });
@@ -672,8 +681,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'process_sort_index', args: {sort_index: 1},
         pid: 1, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events);
 
     // By name, p1 is before p2. But, its sort index overrides that.
     assert.isAbove(m.processes[1].compareTo(m.processes[2]), 0);
@@ -687,8 +695,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'thread_name', args: {name: 'Thread 2'},
         pid: 2, ts: 0, tid: 2, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events, false, false);
     assert.equal(m.processes[1].threads[1].name, 'Thread 1');
     assert.equal(m.processes[2].threads[2].name, 'Thread 2');
   });
@@ -703,8 +710,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'thread_sort_index', args: {sort_index: 1},
         pid: 1, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events, false, false);
 
     // By name, t1 is before t2. But, its sort index overrides that.
     var t1 = m.processes[1].threads[1];
@@ -720,8 +726,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'num_cpus', args: {number: 4},
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events);
     assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
     assert.equal(m.kernel.bestGuessAtCpuCount, 4);
   });
@@ -733,8 +738,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'num_cpus', args: {number: 1},
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = makeModel(events);
     assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
     assert.equal(m.kernel.bestGuessAtCpuCount, 4);
   });
@@ -745,7 +749,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
       {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.length, 1);
@@ -766,7 +770,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'slower', args: {}, pid: 1, ts: 4, cat: 'baz', tid: 1, ph: 'i'},
       {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
 
@@ -805,7 +809,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'C'}
 
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
 
@@ -845,7 +849,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
         ph: 'C', id: 2}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr[0]'];
     assert.equal(ctr.name, 'ctr[0]');
@@ -935,7 +939,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'ctr', args: {'value1': 10, 'value2': 4}, pid: 1, ts: 10, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
       {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo', tid: 1, ph: 'C'} // @suppress longLineCheck
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
     assert.equal(ctr.name, 'ctr');
@@ -976,7 +980,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ] };
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
   });
 
@@ -986,7 +990,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(JSON.stringify(events));
+    var m = makeModel(JSON.stringify(events));
     assert.equal(m.numProcesses, 1);
   });
 
@@ -996,7 +1000,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(' ' + JSON.stringify(events));
+    var m = makeModel(' ' + JSON.stringify(events));
     assert.equal(m.numProcesses, 1);
   });
 
@@ -1006,7 +1010,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(JSON.stringify(events) + '\n');
+    var m = makeModel(JSON.stringify(events) + '\n');
     assert.equal(m.numProcesses, 1);
   });
 
@@ -1021,7 +1025,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Drop off the trailing ]
     var dropped = tmp.substring(0, tmp.length - 1);
-    var m = new tr.Model(dropped);
+    var m = makeModel(dropped);
     assert.equal(m.numProcesses, 1);
   });
 
@@ -1033,7 +1037,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
     var text = lines.join('\n');
 
-    var m = new tr.Model(text);
+    var m = makeModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
   });
@@ -1049,7 +1053,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Drop off the trailing ] and add a newline
     var dropped = tmp.substring(0, tmp.length - 1);
-    var m = new tr.Model(dropped + '\n');
+    var m = makeModel(dropped + '\n');
     assert.equal(m.numProcesses, 1);
   });
 
@@ -1061,7 +1065,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
     var text = lines.join('\r\n');
 
-    var m = new tr.Model(text);
+    var m = makeModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
   });
@@ -1074,7 +1078,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       ']'
     ];
     var text = lines.join('\n');
-    var m = new tr.Model(text);
+    var m = makeModel(text);
     assert.equal(m.numProcesses, 1);
     assert.equal(m.processes[9].threads[8].sliceGroup.length, 1);
   });
@@ -1088,7 +1092,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72, args: {'foo': 'bar'}}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1110,7 +1114,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -1135,7 +1139,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', args: {z: 4}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -1160,7 +1164,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1184,7 +1188,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1206,7 +1210,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'S', id: 72} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1242,7 +1246,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         tid: 53, ph: 'T', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
   });
@@ -1256,7 +1260,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
   });
@@ -1272,7 +1276,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1311,7 +1315,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'S', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isUndefined(t);
     assert.isTrue(m.hasImportWarnings);
@@ -1336,7 +1340,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         id: 72, ph: 'e', tts: 60000, use_async_tts: 0}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 3);
@@ -1362,7 +1366,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         id: 72, ph: 'e', tts: 105000, use_async_tts: 1}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1386,7 +1390,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1414,7 +1418,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1445,7 +1449,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         cat: 'foo', tid: 53, ph: 'e', id: 74}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 3);
@@ -1501,7 +1505,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Perfectly matched events should not produce a warning.
@@ -1559,7 +1563,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 2);
@@ -1593,7 +1597,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
@@ -1635,7 +1639,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
@@ -1683,7 +1687,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched END should produce a warning.
@@ -1725,7 +1729,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     // Unmatched END should produce a warning.
@@ -1777,7 +1781,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ph: 'e', id: 72}
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 2);
@@ -1819,7 +1823,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -1836,7 +1840,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'},
       {name: 'a', args: {}, pid: 52, ts: 568, cat: 'test', tid: 53, ph: 'P'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[52];
     assert.isDefined(p);
     var t = p.threads[53];
@@ -1870,9 +1874,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tr.ImportOptions();
-    options.shiftWorldToZero = false;
-    var m = new tr.Model(eventData, options);
+    var m = makeModel(eventData);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -1889,7 +1891,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {name: 'b', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
       {name: 'c', pid: 52, ts: 549, cat: 'test', tid: 53, ph: 'P'}
     ];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var p = m.processes[52];
     assert.isDefined(p);
     var t = p.threads[53];
@@ -1906,7 +1908,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
     ];
-    var m = new tr.Model();
+    var m = makeModel();
     m.importTraces([events], false);
     assert.equal(m.bounds.min, 10);
     assert.equal(m.bounds.max, 50);
@@ -1950,8 +1952,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events, false);
     var p1 = m.processes[1];
 
     var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
@@ -1988,8 +1989,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events);
     var p1 = m.processes[1];
 
     var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
@@ -2009,8 +2009,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events);
     var p1 = m.processes[1];
     assert.equal(m.importWarnings.length, 0);
 
@@ -2031,8 +2030,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events, false);
     var p1 = m.processes[1];
 
     var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
@@ -2058,8 +2056,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events);
     var p1 = m.processes[1];
 
     var iA = p1.objects.getObjectInstanceAt('0x1000', 15);
@@ -2084,8 +2081,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         ]}}}
     ];
 
-    var m = new tr.Model();
-    m.importTraces([events], false);
+    var m = makeModel(events, false);
     var p1 = m.processes[1];
 
     var sA = p1.objects.getSnapshotAt('0x1000', 15);
@@ -2123,10 +2119,10 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     // Import event while the A types are registered, causing the
     // arguments of the snapshots to be mutated.
-    var m = new tr.Model();
+    var m;
     try {
       tr.model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
-      m.importTraces([events], false);
+      m = makeModel(events);
     } finally {
       tr.model.ObjectSnapshot.unregister(ASnapshot);
     }
@@ -2156,7 +2152,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
 
     assert.isDefined(t);
@@ -2204,8 +2200,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tr.Model(events, false, false);
-
+    var m = makeModel(events, false, false);
     assert.equal(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
@@ -2233,8 +2228,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tr.Model(events, false, false);
-
+    var m = makeModel(events, false, false);
     assert.equal(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
@@ -2262,8 +2256,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tr.Model(events, false, false);
-
+    var m = makeModel(events, false, false);
     assert.equal(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
@@ -2291,8 +2284,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tr.Model(events, false, false);
-
+    var m = makeModel(events, false, false);
     assert.equal(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
@@ -2320,7 +2312,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     ];
 
-    var m = new tr.Model(events, false, false);
+    var m = makeModel(events);
 
     assert.equal(m.flowEvents.length, 0);
   });
@@ -2337,7 +2329,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'RunTask', cat: 'foo', pid: 70, tid: 71, ts: 580, ph: 'X', args: {'src_func': 'PostRunTask'}, 'dur': 1000}   // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events, false, false);
+    var m = makeModel(events, false);
     var startT = m.processes[52].threads[53];
     var endT = m.processes[70].threads[71];
 
@@ -2385,7 +2377,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     ];
 
     var expected = [0.4, 0.0, 0.412];
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.flowIntervalTree.size, 3);
 
     var order = m.flowEvents.map(function(x) { return x.start });
@@ -2400,7 +2392,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X' }
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -2462,9 +2454,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tr.ImportOptions();
-    options.shiftWorldToZero = false;
-    var m = new tr.Model(eventData, options);
+    var m = makeModel(eventData);
 
     assert.equal(m.flowEvents.length, 2);
 
@@ -2484,7 +2474,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X', tts: 115 }  // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     assert.equal(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
@@ -2525,7 +2515,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       { name: 'b', args: {}, pid: 52, ts: 244654227095, dur: 36045, cat: 'foo', tid: 53, ph: 'X' }  // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var t = m.processes[52].threads[53];
 
     var sA = findSliceNamed(t.sliceGroup, 'a');
@@ -2577,9 +2567,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tr.ImportOptions();
-    options.shiftWorldToZero = false;
-    var m = new tr.Model(eventData, options);
+    var m = makeModel(eventData);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -2606,7 +2594,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
 
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
 
-    var m = new tr.Model(events);
+    var m = makeModel(events);
     var t = m.processes[52].threads[53];
 
     assert.equal(t.asyncSliceGroup.slices.length, 1);
@@ -2665,7 +2653,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       ]
     };
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     assert.isDefined(m.kernel.cpus[0]);
     assert.equal(m.getAllThreads().length, 1);
 
@@ -2753,7 +2741,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events, false);
     var p1 = m.getProcess(42);
     var p2 = m.getProcess(43);
     assert.isDefined(p1);
@@ -2809,7 +2797,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2866,7 +2854,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -2974,7 +2962,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -3065,7 +3053,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
@@ -3148,7 +3136,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var m = new tr.Model(events, false);
+    var m = makeModel(events);
     var p = m.getProcess(42);
     var gmd = m.globalMemoryDumps[0];
     var pmd = p.memoryDumps[0];
@@ -3348,7 +3336,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
         }
       }
     ];
-    var model = new tr.Model(events, false);
+    var model = makeModel(events);
     var browserProcess = model.getProcess(42);
     var rendererProcess = model.getProcess(43);
     var gpuProcess = model.getProcess(44);
@@ -3496,9 +3484,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tr.ImportOptions();
-    options.shiftWorldToZero = false;
-    var m = new tr.Model(eventData, options);
+    var m = makeModel(eventData);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -3534,9 +3520,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       }
     };
 
-    var options = new tr.ImportOptions();
-    options.shiftWorldToZero = false;
-    var m = new tr.Model(eventData, options);
+    var m = makeModel(eventData);
 
     var p = m.processes[1];
     var t = p.threads[2];
@@ -3566,7 +3550,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           location: location1.toDict()}}
       ]};
 
-    var m = new tr.Model(eventData);
+    var m = makeModel(eventData);
     var annotations = m.getAllAnnotations();
     assert.equal(annotations.length, 3);
 
@@ -3588,7 +3572,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       traceEvents: [],
       displayTimeUnit: 'ns'
     };
-    var m = new tr.Model(JSON.stringify(eventData), false);
+    var m = makeModel(JSON.stringify(eventData));
     assert.equal(m.intrinsicTimeUnit, tr.b.units.Time.supportedUnits.ns);
   });
 
@@ -3611,7 +3595,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       battorLogAsString: battorLog
     };
 
-    var m = new tr.Model(eventData, false);
+    var m = makeModel(eventData);
     var importer = new tr.e.importer.TraceEventImporter(m, eventData);
     var subTraces = importer.extractSubtraces();
     assert.isTrue(subTraces instanceof Array);
@@ -3629,7 +3613,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       metadata: metadataValue
     };
 
-    var m = new tr.Model(eventData);
+    var m = makeModel(eventData);
     assert.isTrue(m.metadata instanceof Array);
     assert.equal(m.metadata.length, 1);
     assert.equal(m.metadata[0].name, 'metadata');

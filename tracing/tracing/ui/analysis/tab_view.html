@@ -179,10 +179,8 @@ found in the LICENSE file.
           break;
         }
 
-      if (contentTabId === undefined) {
-        console.warn('Tab not in tabs list. Ignoring changed selection.');
+      if (contentTabId === undefined)
         return;
-      }
 
       this.changeSelectedTabById_(contentTabId);
     },
