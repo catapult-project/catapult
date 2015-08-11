@@ -37,7 +37,7 @@ def Main(argv):
 
   project = perf_insights_project.PerfInsightsProject()
 
-  results = MapTracesWithWeatherReprot(project, args.trace_directory,
+  results = MapTracesWithWeatherReport(project, args.trace_directory,
                                        stop_on_error=args.stop_on_error,
                                        jobs=args.jobs)
   if args.stop_on_error and results.had_failures:
@@ -53,7 +53,7 @@ def Main(argv):
   return 0
 
 
-def MapTracesWithWeatherReprot(project, trace_directory,
+def MapTracesWithWeatherReport(project, trace_directory,
                                stop_on_error=False,
                                jobs=1):
   map_file = os.path.join(project.perf_insights_src_path,
