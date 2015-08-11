@@ -13,7 +13,7 @@ found in the LICENSE file.
 tr.exportTo('pi.v', function() {
   function Value(run_info, name, opt_options) {
     var options = opt_options || {};
-    this.guid =  tr.b.GUID.allocate();
+    this.guid = tr.b.GUID.allocate();
     this.run_info = run_info;
     this.name = name;
     this.units = options.units;
@@ -24,7 +24,7 @@ tr.exportTo('pi.v', function() {
   }
 
   Value.fromDict = function(run_info, d) {
-    if(d.run_id !== run_info.run_id)
+    if (d.run_id !== run_info.run_id)
        throw new Error('run_ids mismatch');
 
     if (d.type === 'dict')
@@ -48,11 +48,11 @@ tr.exportTo('pi.v', function() {
         'description': this.description,
         'important': this.important,
         'ir_stable_id': this.ir_stable_id
-      }
-      this._asDictInto(d)
+      };
+      this._asDictInto(d);
       if (d.type === undefined)
         throw new Error('_asDictInto must set type field');
-      return d
+      return d;
     },
 
     _asDictInto: function(d) {
@@ -93,7 +93,7 @@ tr.exportTo('pi.v', function() {
       if (options.stack_str === undefined) {
         throw new Error('Expected stack_str or stack to be provided');
       } else {
-        stack = options.stack_str
+        stack = options.stack_str;
       }
     } else {
       stack = options.stack;
@@ -103,7 +103,7 @@ tr.exportTo('pi.v', function() {
       throw new Error('stack must be provided as a string');
 
     Value.call(this, run_info, name, options);
-    this.stack = stack
+    this.stack = stack;
   }
 
   FailureValue.fromError = function(run_info, e) {
@@ -127,8 +127,8 @@ tr.exportTo('pi.v', function() {
     __proto__: Value.prototype,
 
     _asDictInto: function(d) {
-      d.type = 'failure'
-      d.stack_str = this.stack
+      d.type = 'failure';
+      d.stack_str = this.stack;
     }
   };
 
@@ -150,9 +150,9 @@ tr.exportTo('pi.v', function() {
     __proto__: Value.prototype,
 
     _asDictInto: function(d) {
-      d.type = 'skip'
+      d.type = 'skip';
     }
-  }
+  };
 
 
 
@@ -161,6 +161,6 @@ tr.exportTo('pi.v', function() {
     DictValue: DictValue,
     FailureValue: FailureValue,
     SkipValue: SkipValue
-  }
+  };
 });
 </script>

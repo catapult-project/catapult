@@ -19,8 +19,8 @@ tr.exportTo('pi.wr', function() {
     // First, report by every event.
     var wr = {
       full_trace: getCostReportSplayedByThreadGrouping(getAllEvents(model),
-                                                       threadGrouping),
-    }
+                                                       threadGrouping)
+    };
     var eventsByRTN = getAllEventsGroupedByRAILTypeName(model);
     for (var rtn in eventsByRTN)
       wr[rtn] = getCostReportSplayedByThreadGrouping(eventsByRTN[rtn],
@@ -74,7 +74,7 @@ tr.exportTo('pi.wr', function() {
     // Do it once for the full set, then broken out by threadGroupName.
     splayedCR = {
       all: getCostReportFor(eventSet)
-    }
+    };
     threadGroups = threadGrouping.divideEventSetIntoSubGroups(eventSet);
     for (var groupName in threadGroups)
       splayedCR[groupName] = getCostReportFor(threadGroups[groupName]);
@@ -114,7 +114,7 @@ tr.exportTo('pi.wr', function() {
   return {
     getWeatherReportFromModel: getWeatherReportFromModel,
     getCostReportFor: getCostReportFor
-  }
+  };
 });
 
 </script>

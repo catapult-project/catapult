@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var results;
   try {
     results = pi.r.Results.fromDict(data);
-  } catch(ex) {
+  } catch (ex) {
     var overlay = new tr.ui.b.Overlay();
     overlay.textContent = tr.b.normalizeException(ex).stack;
     overlay.title = 'Import error';

@@ -18,7 +18,7 @@ tr.exportTo('pi.v', function() {
       this.run_id = opt_run_id;
     else
       this.run_id = 'pi.v.RunInfo-' + tr.b.GUID.allocate();
-    this.url = url
+    this.url = url;
 
     if (opt_display_name !== undefined)
       this.display_name = opt_display_name;
@@ -48,12 +48,12 @@ tr.exportTo('pi.v', function() {
         run_id: this.run_id,
         url: this.url,
         metadata: this.metadata
-      }
+      };
     }
   };
 
   return {
     RunInfo: RunInfo
-  }
+  };
 });
 </script>

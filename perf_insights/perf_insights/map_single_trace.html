@@ -36,7 +36,7 @@ tr.exportTo('pi', function() {
     try {
       var numTypeInfosBefore = allTypeInfos.length;
       loadHTMLFile(options.map_file, options.map_file);
-    } catch(ex) {
+    } catch (ex) {
       var ex = tr.b.normalizeException(ex);
       results.addValue(new FailureValue(
           options.run_info, 'MapFunctionLoadingError',
@@ -62,7 +62,7 @@ tr.exportTo('pi', function() {
     // Data.
     try {
       var traceData = tr.b.getSync('file://' + options.filename_to_map);
-    } catch(ex) {
+    } catch (ex) {
       results.addValue(new FailureValue(
           options.run_info, 'TraceImportError',
           {description: 'Could not open ' + options.filename_to_map,
@@ -77,7 +77,7 @@ tr.exportTo('pi', function() {
     var model = new tr.Model();
     try {
       model.importTraces([traceData], importOptions);
-    } catch(ex) {
+    } catch (ex) {
       var ex = tr.b.normalizeException(ex);
       results.addValue(new FailureValue(
           options.run_info, 'TraceImportError',
@@ -101,7 +101,7 @@ tr.exportTo('pi', function() {
     var numResultsBeforeMapping = results.all_values.length;
     try {
       mapFunction(results, options.run_info, model);
-    } catch(ex) {
+    } catch (ex) {
       var ex = tr.b.normalizeException(ex);
       results.addValue(new FailureValue(
           options.run_info, 'MapFunctionError',
@@ -121,7 +121,7 @@ tr.exportTo('pi', function() {
 
   return {
     mapSingleTrace: mapSingleTrace
-  }
+  };
 });
 </script>
 

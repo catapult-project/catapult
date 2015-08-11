@@ -32,7 +32,7 @@ tr.exportTo('pi.r', function() {
   Results.fromDict = function(dict) {
     if (dict.runs  === undefined)
       throw new Error('Expected: run_info');
-    if (dict.values  === undefined)
+    if (dict.values === undefined)
       throw new Error('Expected: run_info');
 
     var runInfosById = tr.b.mapItems(dict.runs, function(run_id, dict) {
@@ -72,11 +72,11 @@ tr.exportTo('pi.r', function() {
         of.format(this);
       }, this);
     }
-  }
+  };
 
 
   return {
     Results: Results
-  }
+  };
 });
 </script>
