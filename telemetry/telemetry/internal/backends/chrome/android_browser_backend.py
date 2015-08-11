@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import subprocess
 
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
@@ -121,6 +122,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         except Exception:
           logging.warning('Exception raised while listing forwarded '
                           'connections.')
+
+        logging.warning('Host tcp ports in use:')
+        try:
+          for line in subprocess.check_output(['netstat', '-t']).splitlines():
+            logging.warning('  %s', line)
+        except Exception:
+          logging.warning('Exception raised while listing tcp ports.')
 
         logging.warning('Device unix domain sockets in use:')
         try:
