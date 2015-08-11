@@ -5,14 +5,38 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/value/run_info.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('basicSuccess', function() {
-    assert.equal(1, 1);
+  test('dictValueBasic', function() {
+    var run_info = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.DictValue(run_info, 'MyFailure',
+                               {my_key: 'my_value'});
+    var d = v.asDict();
+
+    var v2 = pi.v.Value.fromDict(run_info, d);
+    assert.instanceOf(v2, pi.v.DictValue);
+    assert.equal(v.name, v2.name);
+    assert.deepEqual(v.value, v2.value);
+  });
+
+  test('failureValueBasic', function() {
+    var run_info = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.FailureValue(run_info, 'MyFailure',
+                                  {description: 'Description',
+                                   stack: tr.b.stackTraceAsString()});
+    var d = v.asDict();
+
+    var v2 = pi.v.Value.fromDict(run_info, d);
+    assert.instanceOf(v2, pi.v.FailureValue);
+    assert.equal(v.name, v2.name);
+    assert.equal(v.description, v2.description);
+    assert.equal(v.name, v2.name);
   });
 });
 

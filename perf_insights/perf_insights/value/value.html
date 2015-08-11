@@ -120,7 +120,7 @@ tr.exportTo('pi.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.name === undefined)
       throw new Error('Expected stack_str to be provided');
-    return new FailureValue(run_info, d.name, d2);
+    return new FailureValue(run_info, d.name, d);
   }
 
   FailureValue.prototype = {
