@@ -33,16 +33,24 @@ tr.b.unittest.testSuite(function() {
     sensor.style.fontSize = '20pt';
     forceLayout(sensor);
 
-    // The event doesn't fire synchronously, so return a Promise for a task that
-    // will be run when the main thread is Idle after the resize event fires.
-    return tr.b.Task.RunWhenIdle(new tr.b.Task(function(task) {
-      assert.equal(1, resizeCount);
-      sensor.removeEventListener('resize', onResize);
-      sensor.style.fontSize = '12pt';
-      forceLayout(sensor);
-    }, this)).then(tr.b.Task.RunWhenIdle(new tr.b.Task(function(task) {
-      assert.equal(1, resizeCount);
-    }, this)));
+    // The event doesn't fire synchronously, so return a Promise that will
+    // resolve whenever the test is done.
+    return new Promise(function(resolve, reject) {
+      // The resize event fires when the sensor is re-laid-out.
+      // Use requestAnimationFrame to wait until after the sensor is
+      // re-laid-out.
+      // This doesn't work if the page becomes invisible.
+      window.requestAnimationFrame(function() {
+        assert.equal(1, resizeCount);
+        sensor.removeEventListener('resize', onResize);
+        sensor.style.fontSize = '12pt';
+        forceLayout(sensor);
+        window.requestAnimationFrame(function() {
+          assert.equal(1, resizeCount);
+          resolve();
+        });
+      });
+    });
   });
 });
 </script>
