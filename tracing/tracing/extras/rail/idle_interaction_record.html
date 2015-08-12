@@ -27,7 +27,14 @@ tr.exportTo('tr.e.rail', function() {
       return 0;
     },
 
-    get normalizedEfficiency() {
+    // Unlike during active IRs, while the user is idle, the CPU should not be
+    // utilized much.
+
+    get minCpuFraction() {
+      return 0.1;
+    },
+
+    get maxCpuFraction() {
       return 1;
     }
   };

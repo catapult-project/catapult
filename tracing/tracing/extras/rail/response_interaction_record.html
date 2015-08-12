@@ -83,10 +83,6 @@ tr.exportTo('tr.e.rail', function() {
       // than PAIN_BEGINS_AT_MS, and it might be greater than 1 if this.duration
       // is greater than PAIN_PEAKS_AT_MS, so clamp it to between 0 and 1.
       return tr.b.clamp(normalizedUserPain, 0, 1);
-    },
-
-    get normalizedEfficiency() {
-      return 1;
     }
   };
 

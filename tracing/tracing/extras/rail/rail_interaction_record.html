@@ -104,6 +104,49 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     /**
+     * Returns the sum of the number of CPU ms spent by this IR.
+     */
+    get rawCpuMs() {
+      var cpuMs = 0;
+      this.associatedEvents.forEach(function(event) {
+        if (event.cpuSelfTime)
+          cpuMs += event.cpuSelfTime;
+      });
+      return cpuMs;
+    },
+
+    /**
+     * Returns a number between 0 and 1 representing how efficiently this IR
+     * used CPU resources. 0 is maximally in-efficient, 1 is maximally
+     * efficient.
+     */
+    get normalizedCpuEfficiency() {
+      var minCpuMs = this.duration * this.minCpuFraction;
+      var maxCpuMs = this.duration * this.maxCpuFraction;
+      var normalizedCpu = tr.b.normalize(this.rawCpuMs, minCpuMs, maxCpuMs);
+      return 1 - tr.b.clamp(normalizedCpu, 0, 1);
+    },
+
+    /**
+     * The minimum fraction of a CPU that can be spent on this IR before the
+     * efficiency score will be impacted.
+     * If less CPU ms than this is spent on this IR, then
+     * normalizedCpuEfficiency will be 1.
+     */
+    get minCpuFraction() {
+      return 0.5;
+    },
+
+    /**
+     * The maximum fraction of a CPU that can be spent on this IR.
+     * If more CPU ms than this is spent on this IR, then
+     * normalizedCpuEfficiency will be 0.
+     */
+    get maxCpuFraction() {
+      return 1.5;
+    },
+
+    /**
      * Measures the efficiency of the interaction from 0 to 1.
      *
      * Efficiency is a notion of how well we used the machine's limited
@@ -112,7 +155,7 @@ tr.exportTo('tr.e.rail', function() {
      * power, memory, cpu, then we'd get a zero.
      */
     get normalizedEfficiency() {
-      throw new Error('Not implemented');
+      return this.normalizedCpuEfficiency;
     }
   };
 
