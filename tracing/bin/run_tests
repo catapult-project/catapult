@@ -13,7 +13,7 @@ import sys
 _THIS_PATH = os.path.dirname(__file__)
 _RUN_PY_TESTS_PATH = os.path.join(_THIS_PATH, 'run_py_tests')
 _RUN_VINN_TESTS_PATH = os.path.join(_THIS_PATH, 'run_vinn_tests')
-_RUN_DEV_SERVER_PATH = os.path.join(_THIS_PATH, 'run_dev_server')
+_RUN_DEV_SERVER_TESTS_PATH = os.path.join(_THIS_PATH, 'run_dev_server_tests')
 
 
 class bcolors(object):
@@ -28,49 +28,25 @@ class bcolors(object):
 
 
 def _RunPyTests():
-  return subprocess.call([_RUN_PY_TESTS_PATH])
+  command = [_RUN_PY_TESTS_PATH]
+  if sys.platform == 'win32':
+    command = ['python'] + command
+  return subprocess.call(command)
 
 
 def _RunVinnTests():
+  if sys.platform == 'win32':  # Vinn doesn't work on Windows yet.
+    return 0
   return subprocess.call([_RUN_VINN_TESTS_PATH])
 
 
-def _RunDevServer(chrome_command):
-  if (sys.platform.startswith('linux') and os.getenv('DISPLAY') is None):
-    logging.warning(
-      'Browser found but cannot run browser tests because you do not have a '
-      'DISPLAY environment set.')
-    return 0
-  args = [
-    chrome_command, '--no-sandbox', '--no-experiments', '--no-first-run',
-    '--noerrdialogs',
-    'http://localhost:8003/tracing/tests.html?headless=true&testTypeToRun=all']
-  chrome_proc = subprocess.Popen(args)
-  exit_code = subprocess.call([_RUN_DEV_SERVER_PATH])
-  chrome_proc.terminate()
-  if chrome_proc.poll() is None:
-    chrome_proc.kill()
-  return exit_code
-
-
-def _TryGettingChromeCommand():
-  if sys.platform.startswith('darwin'):  # Mac
-    chrome_path = (
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
-    if os.path.isfile(chrome_path):
-      return chrome_path
-  elif sys.platform.startswith('linux'):
-    found = False
-    try:
-      with open(os.devnull, 'w') as devnull:
-        found = subprocess.call(['google-chrome', '--version'],
-                                stdout=devnull, stderr=devnull) == 0
-    except OSError:
-      pass
-    if found:
-      return 'google-chrome'
-  # TODO(nedn): Find the default path to chrome on win platform.
-  return None
+def _RunDevServerTests(chrome_command):
+  command = [_RUN_DEV_SERVER_TESTS_PATH]
+  if chrome_command:
+    command += ['--chrome_path', chrome_command]
+  if sys.platform == 'win32':
+    command = ['python'] + command
+  return subprocess.call(command)
 
 
 if __name__ == '__main__':
@@ -79,18 +55,9 @@ if __name__ == '__main__':
   parser.add_argument('--chrome_path', type=str,
                       help='Path to Chrome browser binary.')
   args = parser.parse_args()
-  chrome_command = args.chrome_path
-  if not chrome_command:
-    chrome_command = _TryGettingChromeCommand()
-
   run_py_tests_exit_code = _RunPyTests()
   run_vinn_tests_exit_code = _RunVinnTests()
-  if chrome_command:
-    run_dev_server_exit_code = _RunDevServer(chrome_command)
-  else:
-    logging.warning(
-      'Could not run browser tests because chrome is missing.')
-    run_dev_server_exit_code = 0
+  run_dev_server_exit_code = _RunDevServerTests(args.chrome_path)
 
   exit_code = (run_py_tests_exit_code | run_dev_server_exit_code |
                run_vinn_tests_exit_code)
@@ -113,7 +80,7 @@ if __name__ == '__main__':
       'to see those.\n')
   if run_dev_server_exit_code:
     sys.stderr.write(
-      'run_dev_server have some failed tests. Rerun run_dev_server script '
+      'run_dev_server have some failed tests. Rerun run_dev_server_test script '
       'and open the browser to see those.\n')
 
   sys.exit(exit_code)

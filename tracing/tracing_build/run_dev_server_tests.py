@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import logging
 import os
 import re
@@ -14,6 +15,8 @@ import tempfile
 import time
 import urllib2
 import zipfile
+
+from hooks import install
 
 # URL on omahaproxy.appspot.com which lists cloud storage buckets.
 OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=stable'
@@ -138,14 +141,57 @@ def DownloadChromeStable():
   return tmpdir, version
 
 
+def GetLocalChromePath(path_from_command_line):
+  if path_from_command_line:
+    return path_from_command_line
+
+  if sys.platform == 'darwin':  # Mac
+    chrome_path = (
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+    if os.path.isfile(chrome_path):
+      return chrome_path
+  elif sys.platform.startswith('linux'):
+    found = False
+    try:
+      with open(os.devnull, 'w') as devnull:
+        found = subprocess.call(['google-chrome', '--version'],
+                                stdout=devnull, stderr=devnull) == 0
+    except OSError:
+      pass
+    if found:
+      return 'google-chrome'
+  elif sys.platform == 'win32':
+    search_paths = [os.getenv('PROGRAMFILES(X86)'),
+                    os.getenv('PROGRAMFILES'),
+                    os.getenv('LOCALAPPDATA')]
+    chrome_path = os.path.join('Google', 'Chrome', 'Application', 'chrome.exe')
+    for search_path in search_paths:
+      test_path = os.path.join(search_path, chrome_path)
+      if os.path.isfile(test_path):
+        return test_path
+  return None
+
+
 def Main(argv):
-  del argv
   try:
+    parser = argparse.ArgumentParser(
+        description='Run dev_server tests for tracing project.')
+    parser.add_argument('--chrome_path', type=str,
+                        help='Path to Chrome browser binary.')
+    parser.add_argument('--no-use-local-chrome',
+                        dest='use_local_chrome', action='store_false')
+    parser.add_argument(
+        '--no-install-hooks', dest='install_hooks', action='store_false')
+    parser.set_defaults(install_hooks=True)
+    parser.set_defaults(use_local_chrome=True)
+    args = parser.parse_args(argv[1:])
+
+    if args.install_hooks:
+      install.InstallHooks()
+
     platform_data = PLATFORM_MAPPING[sys.platform]
-    if platform_data.get('use_xfvb'):
-      StartXvfb()
     user_data_dir = tempfile.mkdtemp()
-    tmpdir, version = DownloadChromeStable()
+    tmpdir = None
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
     # TODO(anniesullie): Make OS selection of port work on Windows. See #1235.
@@ -159,20 +205,29 @@ def Main(argv):
     server_process = subprocess.Popen(
         server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         bufsize=1)
-    time.sleep(5)
+    time.sleep(1)
     if sys.platform != 'win32':
       output = server_process.stderr.readline()
       port = re.search(
           'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
-    chrome_path = os.path.join(
-        tmpdir, platform_data['chromepath'])
-    os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
-    if platform_data.get('additional_paths'):
-      for path in platform_data.get('additional_paths'):
-        path = path.replace('%VERSION%', version)
-        path = os.path.join(tmpdir, path)
-        os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+    if args.use_local_chrome:
+      chrome_path = GetLocalChromePath(args.chrome_path)
+      if not chrome_path:
+        logging.error('Could not find path to chrome.')
+        sys.exit(1)
+    else:
+      tmpdir, version = DownloadChromeStable()
+      if platform_data.get('use_xfvb'):
+        StartXvfb()
+      chrome_path = os.path.join(
+          tmpdir, platform_data['chromepath'])
+      os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
+      if platform_data.get('additional_paths'):
+        for path in platform_data.get('additional_paths'):
+          path = path.replace('%VERSION%', version)
+          path = os.path.join(tmpdir, path)
+          os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
     chrome_command = [
         chrome_path,
         '--user-data-dir=%s' % user_data_dir,
@@ -196,9 +251,12 @@ def Main(argv):
     else:
       print server_out
   finally:
-    # Wait for Chrome to be killed before deleting temp Chrome dir.
-    time.sleep(5)
-    shutil.rmtree(tmpdir)
+    # Wait for Chrome to be killed before deleting temp Chrome dir. Only have
+    # this timing issue on Windows.
+    if sys.platform == 'win32':
+      time.sleep(5)
+    if tmpdir:
+      shutil.rmtree(tmpdir)
     shutil.rmtree(user_data_dir)
 
   sys.exit(server_process.returncode)
