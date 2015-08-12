@@ -272,9 +272,16 @@
       throw new Error('Error in loading html file ' + href + ': ' + err);
     }
 
-    // Add "//@ sourceURL=|file_path|" to the end of generated js to preserve
-    // the line numbers
-    stripped_js = stripped_js + '\n//@ sourceURL=' + href;
+    // If there is blank line at the beginning of generated js, we add
+    // "//@ sourceURL=|file_path|" to the beginning of generated source so
+    // the stack trace show the source file even in case of syntax error.
+    // If not, we add it to the end of generated source to preserve the line
+    // number.
+    if (stripped_js.startsWith('\n')) {
+      stripped_js = '//@ sourceURL=' + href + stripped_js;
+    } else {
+      stripped_js = stripped_js + '\n//@ sourceURL=' + href;
+    }
     eval(stripped_js);
   };
 

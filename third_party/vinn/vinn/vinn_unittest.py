@@ -14,7 +14,7 @@ from vinn import d8_runner
 
 @unittest.skipIf(sys.platform.startswith('win'),
                  'd8 not yet supported on Windows.')
-class D8RunnerUnittest(unittest.TestCase):
+class VinnUnittest(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
@@ -222,6 +222,17 @@ class D8RunnerUnittest(unittest.TestCase):
     self.assertIn('Error: /does_not_exist.html not found', exception_message)
     self.AssertHasNamedFrame('eval', 'load_error_2.html:21', exception_message)
     self.AssertHasNamedFrame('eval', 'load_error.html:23', exception_message)
+
+  def testStackTraceOfErroWhenSyntaxErrorOccurs(self):
+    file_path = self.GetTestFilePath('syntax_error.html')
+    with self.assertRaises(RuntimeError) as context:
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
+
+    # Assert error stack trace contain src files' info.
+    exception_message = context.exception.message
+
+    self.assertIn('syntax_error.html:23: SyntaxError: Unexpected identifier',
+                  exception_message)
 
   def testStackTraceOfErroWhenLoadingJS(self):
     file_path = self.GetTestFilePath('load_js_error.html')
