@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  function getAllAssociatedEvents(irs) {
+  function getAssociatedEvents(irs) {
     var allAssociatedEvents = new tr.model.EventSet();
     irs.forEach(function(ir) {
       ir.associatedEvents.forEach(function(event) {
@@ -47,16 +47,15 @@ tr.exportTo('tr.model', function() {
   function getTotalCpuDuration(events) {
     var cpuMs = 0;
     events.forEach(function(event) {
-      // Add up events' cpu duration if they have any.
-      // Avoid double-counting cpu duration by only counting top-level events.
-      if (event.cpuDuration && event.isTopLevel)
-        cpuMs += event.cpuDuration;
+      // Add up events' cpu self time if they have any.
+      if (event.cpuSelfTime)
+        cpuMs += event.cpuSelfTime;
     });
     return cpuMs;
   }
 
   function getIRCoverageFromModel(model) {
-    var associatedEvents = getAllAssociatedEvents(model.interaction_records);
+    var associatedEvents = getAssociatedEvents(model.interaction_records);
 
     if (!associatedEvents.length)
       return undefined;
@@ -69,28 +68,20 @@ tr.exportTo('tr.model', function() {
 
     var totalEventCount = associatedEvents.length + unassociatedEvents.length;
     var totalCpuMs = associatedCpuMs + unassociatedCpuMs;
-    var coveredCpuRatio = undefined;
-    var uncoveredCpuRatio = undefined;
-    if (totalCpuMs) {
-      coveredCpuRatio = associatedCpuMs / totalCpuMs;
-      uncoveredCpuRatio = 1 - coveredCpuRatio;
-    }
 
     return {
-      associatedEvents: associatedEvents,
-      unassociatedEvents: unassociatedEvents,
-      associatedCpuMs: associatedCpuMs,
-      unassociatedCpuMs: unassociatedCpuMs,
-      coveredEventsRatio: associatedEvents.length / totalEventCount,
-      uncoveredEventsRatio: unassociatedEvents.length / totalEventCount,
-      coveredCpuRatio: coveredCpuRatio,
-      uncoveredCpuRatio: uncoveredCpuRatio
+      associatedEventsCount: associatedEvents.length,
+      unassociatedEventsCount: unassociatedEvents.length,
+      associatedEventsCpuTimeMs: associatedCpuMs,
+      unassociatedEventsCpuTimeMs: unassociatedCpuMs,
+      coveredEventsCountRatio: associatedEvents.length / totalEventCount,
+      coveredEventsCpuTimeRatio: associatedCpuMs / totalCpuMs
     };
   }
 
   return {
     getIRCoverageFromModel: getIRCoverageFromModel,
-    getAllAssociatedEvents: getAllAssociatedEvents,
+    getAssociatedEvents: getAssociatedEvents,
     getUnassociatedEvents: getUnassociatedEvents
   };
 });

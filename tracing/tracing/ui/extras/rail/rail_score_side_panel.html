@@ -143,18 +143,21 @@ found in the LICENSE file.
 
       var coverage = tr.model.getIRCoverageFromModel(model);
       if (coverage) {
+        var associatedEvents =
+            tr.model.getAssociatedEvents(model.interaction_records);
+
         setCoverageLink(this.shadowRoot.querySelector('#associated-events'),
                         'Associated',
-                        coverage.associatedEvents,
-                        coverage.coveredEventsRatio,
-                        coverage.associatedCpuMs,
-                        coverage.coveredCpuRatio);
+                        associatedEvents,
+                        coverage.coveredEventsCountRatio,
+                        coverage.associatedEventsCpuTimeMs,
+                        coverage.coveredEventsCpuTimeRatio);
         setCoverageLink(this.shadowRoot.querySelector('#unassociated-events'),
                         'Unassociated',
-                        coverage.unassociatedEvents,
-                        coverage.uncoveredEventsRatio,
-                        coverage.unassociatedCpuMs,
-                        coverage.uncoveredCpuRatio);
+                        tr.model.getUnassociatedEvents(model, associatedEvents),
+                        1.0 - coverage.coveredEventsCountRatio,
+                        coverage.unassociatedEventsCpuTimeMs,
+                        1.0 - coverage.coveredEventsCpuTimeRatio);
       }
 
       this.updateTable_();

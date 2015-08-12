@@ -58,14 +58,12 @@ tr.b.unittest.testSuite(function() {
     });
 
     var coverage = tr.model.getIRCoverageFromModel(model);
-    assert.equal(3, coverage.associatedEvents.length);
-    assert.equal(1, coverage.unassociatedEvents.length);
-    assert.closeTo(0.75, coverage.coveredEventsRatio, 1e-3);
-    assert.closeTo(0.25, coverage.uncoveredEventsRatio, 1e-3);
-    assert.closeTo(0.8, coverage.associatedCpuMs, 1e-3);
-    assert.closeTo(0.8, coverage.unassociatedCpuMs, 1e-3);
-    assert.closeTo(0.5, coverage.coveredCpuRatio, 1e-3);
-    assert.closeTo(0.5, coverage.uncoveredCpuRatio, 1e-3);
+    assert.equal(3, coverage.associatedEventsCount);
+    assert.equal(1, coverage.unassociatedEventsCount);
+    assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);
+    assert.closeTo(0.8, coverage.associatedEventsCpuTimeMs, 1e-3);
+    assert.closeTo(0.8, coverage.unassociatedEventsCpuTimeMs, 1e-3);
+    assert.closeTo(0.5, coverage.coveredEventsCpuTimeRatio, 1e-3);
   });
 });
 </script>

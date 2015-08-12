@@ -147,7 +147,7 @@ tr.exportTo('tr.e.rail', function() {
       if (vacuumIRs.length === 0)
         return;
 
-      var allAssociatedEvents = tr.model.getAllAssociatedEvents(rirs);
+      var allAssociatedEvents = tr.model.getAssociatedEvents(rirs);
       var unassociatedEvents = tr.model.getUnassociatedEvents(
           this.model, allAssociatedEvents);
 
