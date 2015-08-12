@@ -49,11 +49,12 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
 
 
 def CheckChangeLogBug(input_api, output_api):
-  if input_api.change.BUG is None or re.match('\#\d+$', input_api.change.BUG):
+  if input_api.change.BUG is None or re.match(
+      '(\#\d+)(,\s*\#\d+)*$', input_api.change.BUG):
     return []
-  return output_api.PresubmitError(
+  return [output_api.PresubmitError(
       ('Invalid bug "%s". BUG= should either not be present or start with # '
-       'for a github issue.' % input_api.change.BUG))
+       'for a github issue.' % input_api.change.BUG))]
 
 
 def CheckChange(input_api, output_api):
@@ -66,7 +67,6 @@ def CheckChange(input_api, output_api):
     results += input_api.canned_checks.RunPylint(
         input_api, output_api, black_list=_EXCLUDED_PATHS)
     results += CheckChangeLogBug(input_api, output_api)
-    print 'RUNNING js_checks'
     results += js_checks.RunChecks(input_api, output_api)
   finally:
     sys.path.remove(input_api.PresubmitLocalPath())

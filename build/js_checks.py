@@ -139,7 +139,6 @@ class JSChecker(object):
 
     affected_js_files = filter(ShouldCheck, affected_files)
     for f in affected_js_files:
-      print 'CHECKING ', f.LocalPath()
       error_lines = []
 
       for i, line in enumerate(f.NewContents(), start=1):
