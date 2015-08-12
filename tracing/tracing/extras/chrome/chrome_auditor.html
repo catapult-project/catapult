@@ -61,22 +61,27 @@ tr.exportTo('tr.e.audits', function() {
       if (!this.modelHelper)
         return;
 
-      // ChromeAuditor is disabled when used directly inside about://tracing,
-      // for now.
-      if (tr.isExported('profilingView'))
+      if (!tr.e.rail.RAILIRFinder.supportsModelHelper(this.modelHelper))
         return;
 
-      if (tr.e.rail.RAILIRFinder.supportsModelHelper(this.modelHelper)) {
-        var rirf = new tr.e.rail.RAILIRFinder(this.model, this.modelHelper);
-        rirf.findAllInteractionRecords().forEach(function(ir) {
-          this.model.addInteractionRecord(ir);
-
-          var alerts = this.createAlertsForIR_(ir);
-          alerts.forEach(function(alert) {
-            this.model.alerts.push(alert);
-          }, this);
-        }, this);
+      var rirf = new tr.e.rail.RAILIRFinder(this.model, this.modelHelper);
+      var rirs = undefined;
+      try {
+        rirs = rirf.findAllInteractionRecords();
+        // There are not currently any known cases when this could throw.
+      } catch (error) {
+        this.model.importWarning(error);
+        return;
       }
+
+      rirs.forEach(function(ir) {
+        this.model.addInteractionRecord(ir);
+
+        var alerts = this.createAlertsForIR_(ir);
+        alerts.forEach(function(alert) {
+          this.model.alerts.push(alert);
+        }, this);
+      }, this);
     },
 
     createAlertsForIR_: function(ir) {
