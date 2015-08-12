@@ -207,6 +207,7 @@ class ChromeTracingAgentUnittest(unittest.TestCase):
     self.StopTracing(tracing_agent2)
 
   @decorators.Enabled('android')
+  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnAndroid(self):
     platform_backend = FakeAndroidPlatformBackend()
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
@@ -253,13 +254,16 @@ class ChromeTracingAgentUnittest(unittest.TestCase):
     self.assertFalse(os.path.exists(config_file_path))
 
   @decorators.Enabled('linux')
+  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnLinux(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeLinuxPlatformBackend())
 
   @decorators.Enabled('mac')
+  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnMac(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeMacPlatformBackend())
 
   @decorators.Enabled('win')
+  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnWin(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeWinPlatformBackend())
