@@ -4,6 +4,7 @@
 
 import logging
 import os
+import sys
 
 from catapult_base import cloud_storage
 
@@ -43,22 +44,33 @@ class Browser(app.App):
     self.credentials.credentials_path = credentials_path
     self._platform_backend.DidCreateBrowser(self, self._browser_backend)
 
-    browser_options = self._browser_backend.browser_options
-    self.platform.FlushDnsCache()
-    if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-      if self.platform.CanFlushIndividualFilesFromSystemCache():
-        self.platform.FlushSystemCacheForDirectory(
-            self._browser_backend.profile_directory)
-        self.platform.FlushSystemCacheForDirectory(
-            self._browser_backend.browser_directory)
-      else:
-        self.platform.FlushEntireSystemCache()
+    try:
+      browser_options = self._browser_backend.browser_options
+      self.platform.FlushDnsCache()
+      if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
+        if self.platform.CanFlushIndividualFilesFromSystemCache():
+          self.platform.FlushSystemCacheForDirectory(
+              self._browser_backend.profile_directory)
+          self.platform.FlushSystemCacheForDirectory(
+              self._browser_backend.browser_directory)
+        else:
+          self.platform.FlushEntireSystemCache()
 
-    self._browser_backend.SetBrowser(self)
-    self._browser_backend.Start()
-    self._platform_backend.DidStartBrowser(self, self._browser_backend)
-    self._profiling_controller = profiling_controller.ProfilingController(
-        self._browser_backend.profiling_controller_backend)
+      self._browser_backend.SetBrowser(self)
+      self._browser_backend.Start()
+      self._platform_backend.DidStartBrowser(self, self._browser_backend)
+      self._profiling_controller = profiling_controller.ProfilingController(
+          self._browser_backend.profiling_controller_backend)
+    except Exception:
+      logging.exception('Failure while starting browser backend.')
+      original_exception = sys.exc_info()
+
+      try:
+        self._platform_backend.WillCloseBrowser(self, self._browser_backend)
+      except Exception:
+        logging.exception('Secondary failure while closing platform backend')
+
+      raise original_exception
 
   @property
   def profiling_controller(self):

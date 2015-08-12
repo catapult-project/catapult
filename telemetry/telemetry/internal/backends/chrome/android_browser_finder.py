@@ -6,6 +6,7 @@
 
 import logging
 import os
+import sys
 
 from telemetry.core import exceptions
 from telemetry.core import platform
@@ -119,8 +120,20 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         output_profile_path=finder_options.output_profile_path,
         extensions_to_load=finder_options.extensions_to_load,
         target_arch=finder_options.target_arch)
-    return browser.Browser(
-        browser_backend, self._platform_backend, self._credentials_path)
+    try:
+      return browser.Browser(
+          browser_backend, self._platform_backend, self._credentials_path)
+    except Exception:
+      logging.exception('Failure while creating Android browser.')
+      original_exception = sys.exc_info()
+
+      try:
+        browser_backend.Close()
+      except Exception:
+        logging.exception('Secondary failure while closing browser backend.')
+
+      raise original_exception
+
 
   def SupportsOptions(self, finder_options):
     if len(finder_options.extensions_to_load) != 0:
