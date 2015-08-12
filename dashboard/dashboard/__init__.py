@@ -13,6 +13,7 @@ _THIRD_PARTY_DIR = os.path.join(
 THIRD_PARTY_LIBRARIES = [
     'apiclient',
     'beautifulsoup4',
+    'httplib2',
     'graphy',
     'mapreduce',
     'mock',
