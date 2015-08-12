@@ -4,21 +4,36 @@
 
 import sys
 import os
-import re
+
 
 def _AddToPathIfNeeded(path):
   if path not in sys.path:
     sys.path.insert(0, path)
 
 
+def _IsRunningInAppEngine():
+  if 'SERVER_SOFTWARE' not in os.environ:
+    return False
+  if os.environ['SERVER_SOFTWARE'].startswith('Google App Engine/'):
+    return True
+  if os.environ['SERVER_SOFTWARE'].startswith('Development/'):
+    return True
+  return False
+
+
 def UpdateSysPathIfNeeded():
   p = PerfInsightsProject()
-  _AddToPathIfNeeded(p.catapult_path)
-  _AddToPathIfNeeded(p.tracing_root_path)
+
   _AddToPathIfNeeded(p.perf_insights_third_party_path)
 
-  import tracing_project
-  tracing_project.UpdateSysPathIfNeeded()
+  # TODO(fmeawad): We should add catapult projects even inside
+  # appengine, see issue #1246
+  if not _IsRunningInAppEngine():
+    _AddToPathIfNeeded(p.catapult_path)
+    _AddToPathIfNeeded(p.tracing_root_path)
+
+    import tracing_project
+    tracing_project.UpdateSysPathIfNeeded()
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -32,6 +47,7 @@ def _FindAllFilesRecursive(source_paths):
         x = os.path.abspath(os.path.join(dirpath, f))
         all_filenames.add(x)
   return all_filenames
+
 
 def _IsFilenameATest(x):  # pylint: disable=unused-argument
   if x.endswith('_test.js'):

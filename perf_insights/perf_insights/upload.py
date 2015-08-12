@@ -4,13 +4,12 @@
 
 import os
 import re
-import sys
 import webapp2
 import uuid
 
 from perf_insights import trace_info
 
-import cloudstorage as gcs
+import third_party.cloudstorage as gcs
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_delay=5.0,
