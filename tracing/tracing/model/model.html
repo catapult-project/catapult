@@ -115,6 +115,7 @@ tr.exportTo('tr', function() {
     tr.b.EventTarget.decorate(this);
 
     this.importOptions_ = undefined;
+    this.timestampShiftToZeroAmount_ = 0;
 
     this.faviconHue = 'blue'; // Should be a key from favicons.html
 
@@ -210,6 +211,7 @@ tr.exportTo('tr', function() {
 
     shiftWorldToZero: function() {
       var shiftAmount = -this.bounds.min;
+      this.timestampShiftToZeroAmount_ = shiftAmount;
       this.iterateAllChildEventContainers(function(ec) {
         ec.shiftTimestampsForward(shiftAmount);
       });
