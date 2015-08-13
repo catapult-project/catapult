@@ -5,7 +5,6 @@
   ],
   "directory_deps": [
     "build/android/pylib/",
-    "third_party/android_testrunner/",
     "third_party/android_tools/sdk/platform-tools/",
     "third_party/catapult/",
     "third_party/pexpect/",
