@@ -46,7 +46,7 @@ def Main(argv):
 
   if args.json:
     with open(args.output_file, 'w') as ofile:
-      json.dump(results.AsDict(), ofile)
+      json.dump(results.AsDict(), ofile, indent=2)
   else:
     with codecs.open(args.output_file, mode='w', encoding='utf-8') as ofile:
       WriteResultsToFile(ofile, project, results)

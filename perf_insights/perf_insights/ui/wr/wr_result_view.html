@@ -4,7 +4,12 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/wr/reduce.html">
+<link rel="import" href="/perf_insights/wr/slice_cost.html">
 
 <polymer-element name="pi-ui-wr-wr-result-view">
   <template>
@@ -22,8 +27,8 @@ found in the LICENSE file.
     </style>
     <top-controls>
     </top-controls>
-    <div id="table">
-    </div>
+    <tr-ui-b-table id="table">
+    </tr-ui-b-table>
   </template>
   <script>
   'use strict';
@@ -47,10 +52,142 @@ found in the LICENSE file.
 
     updateContents_: function() {
       var table = this.$.table;
+
       var results = this.mapResults_;
       if (!results)
         results = new tr.r.Results();
-      table.textContent = results.all_values.length + ' values';
+
+      function compareTimestamps(x, y) {
+        return x - y;
+      }
+      table.tableColumns = [
+        {
+          title: 'Title',
+          value: function(row) {
+            return row.title;
+          },
+          width: '500px'
+        },
+        {
+          title: 'Self time',
+          value: function(row) {
+            if (row.sliceCostInfo.selfTime === undefined)
+              return;
+            return tr.ui.units.createTimeDurationSpan(
+                  row.sliceCostInfo.selfTime);
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(
+                a.sliceCostInfo.selfTime, b.sliceCostInfo.selfTime,
+                compareTimestamps);
+          }
+        },
+        {
+          title: 'CPU Self time',
+          value: function(row) {
+            if (row.sliceCostInfo.cpuSelfTime === undefined)
+              return;
+            return tr.ui.units.createTimeDurationSpan(
+                row.sliceCostInfo.cpuSelfTime);
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(
+                a.sliceCostInfo.cpuSelfTime, b.sliceCostInfo.cpuSelfTime,
+                compareTimestamps);
+          }
+        }
+      ];
+      table.sortColumnIndex = 2;
+      table.sortDescending = true;
+
+      function Row(title, data, groupingKeyFuncs) {
+        this.title = title;
+        this.data_ = data;
+        if (groupingKeyFuncs === undefined)
+          groupingKeyFuncs = [];
+        this.groupingKeyFuncs_ = groupingKeyFuncs;
+        this.sliceCostInfo_ = undefined;
+
+        this.subRowsBuilt_ = false;
+        this.subRows_ = undefined;
+      }
+      Row.prototype = {
+        get sliceCostInfo() {
+          if (this.sliceCostInfo_ === undefined) {
+            this.sliceCostInfo_ = new pi.wr.SliceCostInfo();
+
+            this.data_.forEach(function(v) {
+              this.sliceCostInfo_.push(undefined, v);
+            }, this);
+
+          }
+          return this.sliceCostInfo_;
+        },
+
+        getCurrentGroupingKeyFunc_: function() {
+          if (this.groupingKeyFuncs_.length === 0)
+            return undefined;
+          return this.groupingKeyFuncs_[0];
+        },
+
+        rebuildSubRowsIfNeeded_: function() {
+          if (this.subRowsBuilt_)
+            return;
+          this.subRowsBuilt_ = true;
+
+          var groupingKeyFunc = this.getCurrentGroupingKeyFunc_();
+          if (groupingKeyFunc === undefined) {
+            this.subRows_ = undefined;
+            return;
+          }
+
+          var dataByKey = {};
+          this.data_.forEach(function(datum) {
+            var key = groupingKeyFunc(datum);
+            if (dataByKey[key] === undefined)
+              dataByKey[key] = [];
+            dataByKey[key].push(datum);
+          });
+
+          this.subRows_ = [];
+          for (var key in dataByKey) {
+            var row = new Row(key,
+                           dataByKey[key],
+                           this.groupingKeyFuncs_.slice(1));
+            this.subRows_.push(row);
+          }
+        },
+
+        get subRows() {
+          this.rebuildSubRowsIfNeeded_();
+          return this.subRows_;
+        }
+
+      };
+
+      var allRows = [];
+      results.all_values.forEach(function(result) {
+        result.value.sliceCosts.forEach(function(item) {
+          var sliceCostInfo = pi.wr.SliceCostInfo.fromDict(item);
+          allRows.push(sliceCostInfo);
+        });
+      });
+
+      var superRow = new Row(
+          '', allRows,
+          [
+            function(datum) {
+              return datum.threadGroup;
+            },
+            function(datum) {
+              return datum.railTypeName;
+            },
+            function(datum) {
+              return datum.title;
+            }
+          ]);
+      table.tableRows = superRow.subRows;
+      table.rebuild();
     }
   });
   </script>

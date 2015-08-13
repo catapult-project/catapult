@@ -17,15 +17,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var test_utils = tr.c.test_utils;
+  var ThreadSlice = tr.model.ThreadSlice;
+
   test('basicWrTest', function() {
     var m = test_utils.newModel(function(m) {
       var p1 = m.getOrCreateProcess(1);
       var t2 = p1.getOrCreateThread(2);
-      var t2_s2 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+      var t2_s1 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        type: ThreadSlice,
         name: 'some_slice',
         start: 0, end: 10
       }));
       var t2_s2 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        type: ThreadSlice,
         name: 'some_slice',
         start: 20, end: 30
       }));
@@ -36,9 +40,8 @@ tr.b.unittest.testSuite(function() {
     });
 
     var wr = pi.wr.getWeatherReportFromModel(m);
-    assert.isDefined(wr.full_trace);
-    assert.isDefined(wr.rail_idle);
-    assert.isDefined(wr.unassociated);
+    assert.isDefined(wr.sliceCosts);
+    assert.equal(wr.sliceCosts.length, 2);
   });
 });
 

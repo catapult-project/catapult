@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/wr/reduce.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pi.wr', function() {
+  function SliceCostInfo() {
+    this.threadGroup = undefined;
+    this.railTypeName = undefined;
+    this.title = undefined;
+
+    this.selfTime = 0;
+    this.cpuSelfTime = 0;
+  }
+
+  SliceCostInfo.asReduceTarget = function(key, firstValue) {
+    var sliceCostInfo = new SliceCostInfo();
+    sliceCostInfo.threadGroup = firstValue.threadGroup;
+    sliceCostInfo.railTypeName = firstValue.railTypeName;
+    sliceCostInfo.title = firstValue.title;
+    return sliceCostInfo;
+  }
+
+  SliceCostInfo.fromDict = function(d) {
+    var sliceCostInfo = new SliceCostInfo();
+    sliceCostInfo.threadGroup = d.threadGroup;
+    sliceCostInfo.railTypeName = d.railTypeName;
+    sliceCostInfo.title = d.title;
+    sliceCostInfo.selfTime = d.selfTime;
+    sliceCostInfo.cpuSelfTime = d.cpuSelfTime;
+    return sliceCostInfo;
+  }
+
+  SliceCostInfo.prototype = {
+    push: function(sliceCostKey, threadSlice) {
+      if (threadSlice.selfTime !== undefined)
+        this.selfTime += threadSlice.selfTime;
+      if (threadSlice.cpuSelfTime !== undefined)
+        this.cpuSelfTime += threadSlice.cpuSelfTime;
+    },
+
+    finalizeAndGetResult: function() {
+      return this;
+    }
+  };
+
+
+  function getSliceCostReport(model, threadGrouping, railTypeNameByGUID) {
+    var reduce = new pi.wr.StreamingReducer(SliceCostInfo.asReduceTarget);
+    model.iterateAllEvents(function(event) {
+      if (!(event instanceof tr.model.ThreadSlice))
+        return;
+      var threadSlice = event;
+
+      var sliceCostInfo = new SliceCostInfo();
+
+      sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(
+          threadSlice);
+      sliceCostInfo.railTypeName = railTypeNameByGUID[threadSlice.guid];
+      sliceCostInfo.title = threadSlice.title;
+
+      sliceCostInfo.selfTime = threadSlice.selfTime;
+      sliceCostInfo.cpuSelfTime = threadSlice.cpuSelfTime;
+
+
+      var key = sliceCostInfo.threadGroup + '/' +
+                sliceCostInfo.railTypeName + '/' +
+                sliceCostInfo.title;
+      reduce.push(key, sliceCostInfo);
+    });
+
+    var sliceCostInfos = [];
+    reduce.finalizeAndIterResults(function(key, sliceCostInfo) {
+      sliceCostInfos.push(sliceCostInfo);
+    });
+    return sliceCostInfos;
+  }
+
+  return {
+    SliceCostInfo: SliceCostInfo,
+
+    getSliceCostReport: getSliceCostReport
+  };
+});
+</script>

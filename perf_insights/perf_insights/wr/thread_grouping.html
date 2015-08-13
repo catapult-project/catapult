@@ -45,6 +45,20 @@ tr.exportTo('pi.wr', function() {
       // here, too.
     },
 
+    getGroupNameForEvent: function(event) {
+      var parentContainer = event.parentContainer;
+      if (parentContainer === undefined)
+        return 'unknown';
+
+      if (!(parentContainer instanceof tr.model.EventContainer))
+        return 'error';
+
+      var groupName = this.groupNameForThreadGUID_[parentContainer.guid];
+      if (groupName === undefined)
+        return 'other';
+      return groupName;
+    },
+
     addThreadsInProcessToGroup_: function(process, groupName,
                                           opt_predicate, opt_this) {
       var predicate = opt_predicate || tr.b.identity;
