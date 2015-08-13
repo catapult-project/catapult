@@ -41,3 +41,9 @@ indexes:
   - name: network_type
   - name: date
     direction: desc
+
+- kind: TraceInfo
+  properties:
+  - name: user_agent
+  - name: date
+    direction: desc
