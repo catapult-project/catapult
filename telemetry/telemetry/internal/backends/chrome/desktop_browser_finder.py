@@ -107,6 +107,7 @@ def FindAllBrowserTypes(_):
       'release_x64',
       'debug',
       'debug_x64',
+      'default',
       'stable',
       'beta',
       'dev',
@@ -115,6 +116,7 @@ def FindAllBrowserTypes(_):
       'content-shell-debug_x64',
       'content-shell-release',
       'content-shell-release_x64',
+      'content-shell-default',
       'system']
 
 def FindAllAvailableBrowsers(finder_options, device):

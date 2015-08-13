@@ -116,7 +116,7 @@ def GetBuildDirectories():
                 os.path.basename(os.environ.get('CHROMIUM_OUT_DIR', 'out')),
                 'xcodebuild']
 
-  build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64']
+  build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64', 'Default']
 
   for build_dir in build_dirs:
     for build_type in build_types:
