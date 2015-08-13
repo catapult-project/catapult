@@ -5,11 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
+<link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
@@ -23,6 +24,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/base/color_scheme.html">
 
 <script>
 'use strict';
@@ -32,9 +34,7 @@ found in the LICENSE file.
  * into the provided model.
  */
 tr.exportTo('tr.e.importer', function() {
-
   var Importer = tr.importer.Importer;
-
   var deepCopy = tr.b.deepCopy;
 
   function getEventColor(event, opt_customName) {
@@ -59,10 +59,15 @@ tr.exportTo('tr.e.importer', function() {
     this.battorData_ = undefined;
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
+
     this.allAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
+
     this.traceEventSampleStackFramesByName_ = {};
+
+    this.v8ProcessCodeMaps_ = {};
+    this.v8ProcessRootStackFrame_ = {};
 
     // Dump ID -> {global: (event | undefined), process: [events]}
     this.allMemoryDumpEvents_ = {};
@@ -401,7 +406,37 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
+    processJitCodeEvent: function(event) {
+      if (this.v8ProcessCodeMaps_[event.pid] === undefined)
+        this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.v8.CodeMap();
+      var map = this.v8ProcessCodeMaps_[event.pid];
+
+      var data = event.args.data;
+      var startAddr = parseInt(data.code_start, 16);
+      if (event.name === 'JitCodeMoved') {
+        try {
+          map.moveCode(startAddr, parseInt(data.new_code_start, 16));
+        } catch (err) {
+          // Ignore moved error. Means we didn't find the original block.
+          // We won't know the name if we try to insert the code here.
+        }
+      } else {
+        map.addCode(startAddr,
+            new tr.e.importer.TraceCodeEntry(data.code_len, data.name));
+      }
+    },
+
     processInstantEvent: function(event) {
+      // V8 JIT events are logged as phase 'I' so we need to separate them out
+      // and handle specially.
+      //
+      // TODO(dsinclair): There are _a lot_ of JitCode events so I'm skipping
+      // the display for now. Can revisit later if we want to show them.
+      if (event.name === 'JitCodeAdded' || event.name === 'JitCodeMoved') {
+        this.processJitCodeEvent(event);
+        return;
+      }
+
       // Thread-level instant events are treated as zero-duration slices.
       if (event.s == 't' || event.s === undefined) {
         this.processDurationEvent(event);
@@ -443,9 +478,94 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processTraceSampleEvent: function(event) {
+    processV8Sample: function(event) {
+      var data = event.args.data;
+
+      var rootStackFrame = this.v8ProcessRootStackFrame_[event.pid];
+      if (!rootStackFrame) {
+        rootStackFrame = new tr.model.StackFrame(
+            undefined /* parent */, 'v8-root-stack-frame' /* id */,
+            'v8' /* category */, 'v8-root-stack-frame' /* title */,
+            0 /* colorId */);
+        this.v8ProcessRootStackFrame_[event.pid] = rootStackFrame;
+      }
+
+      function findChildWithEntryID(stackFrame, entryID) {
+        return tr.b.findFirstInArray(stackFrame.children, function(child) {
+          return child.entryID === entryID;
+        });
+      }
+
+      var model = this.model_;
+      function addStackFrame(lastStackFrame, entry) {
+        var childFrame = findChildWithEntryID(lastStackFrame, entry.id);
+        if (childFrame)
+          return childFrame;
+
+        var frame = new tr.model.StackFrame(
+            lastStackFrame, tr.b.GUID.allocate(),
+            'v8', entry.name,
+            tr.ui.b.getColorIdForGeneralPurposeString(entry.name),
+            entry.sourceInfo);
+
+        frame.entryID = entry.id;
+        model.addStackFrame(frame);
+        return frame;
+      }
+
+      var lastStackFrame = rootStackFrame;
+
+      // There are several types of v8 sample events, gc, native, compiler, etc.
+      // Some of these types have stacks and some don't, we handle those two
+      // cases differently. For types that don't have any stack frames attached
+      // we synthesize one based on the type of thing that's happening so when
+      // we view all the samples we'll see something like 'external' or 'gc'
+      // as a fraction of the time spent.
+      if (data.stack.length > 0 && this.v8ProcessCodeMaps_[event.pid]) {
+        var map = this.v8ProcessCodeMaps_[event.pid];
+
+        // Stacks have the leaf node first, flip them around so the root
+        // comes first.
+        data.stack.reverse();
+
+        for (var i = 0; i < data.stack.length; i++) {
+          var addr = parseInt(data.stack[i], 16);
+          var entry = map.findEntry(addr);
+
+          if (entry === null) {
+            entry = {
+              id: 'unknown',
+              name: 'unknown',
+              sourceInfo: undefined
+            };
+          }
+
+          lastStackFrame = addStackFrame(lastStackFrame, entry);
+        }
+      } else {
+        var entry = {
+          id: data.vm_state,
+          name: data.vm_state,
+          sourceInfo: undefined
+        };
+        lastStackFrame = addStackFrame(lastStackFrame, entry);
+      }
+
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
+
+      var sample = new tr.model.Sample(
+          undefined /* cpu */, thread, 'V8 Sample',
+          timestampFromUs(event.ts), lastStackFrame, 1 /* weight */,
+          this.deepCopyIfNeeded_(event.args));
+      this.model_.samples.push(sample);
+    },
+
+    processTraceSampleEvent: function(event) {
+      if (event.name === 'V8Sample') {
+        this.processV8Sample(event);
+        return;
+      }
 
       var stackFrame = this.getStackFrameForEvent_(event);
       if (stackFrame === undefined) {
@@ -462,8 +582,11 @@ tr.exportTo('tr.e.importer', function() {
         this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
       }
 
+      var thread = this.model_.getOrCreateProcess(event.pid)
+        .getOrCreateThread(event.tid);
+
       var sample = new tr.model.Sample(
-          undefined, thread, 'TRACE_EVENT_SAMPLE',
+          undefined, thread, 'Trace Event Sample',
           timestampFromUs(event.ts), stackFrame, 1,
           this.deepCopyIfNeeded_(event.args));
       this.model_.samples.push(sample);
@@ -570,6 +693,12 @@ tr.exportTo('tr.e.importer', function() {
           });
         }
       }
+
+      // Remove all the root stack frame children as they should
+      // already be added.
+      tr.b.iterItems(this.v8ProcessRootStackFrame_, function(name, frame) {
+        frame.removeAllChildren();
+      });
     },
 
     importStackFrames_: function() {
@@ -860,7 +989,7 @@ tr.exportTo('tr.e.importer', function() {
               });
             } else {
               // Include args for both END and BEGIN for a matched pair.
-              var concatenateArguments = function(args1, args2) {
+              function concatenateArguments(args1, args2) {
                 if (args1.params === undefined || args2.params === undefined)
                   return tr.b.concatenateObjects(args1, args2);
                 // Make an argument object to hold the combined params.

@@ -26,9 +26,12 @@ tr.exportTo('tr.model.source_info', function() {
     },
 
     toString: function() {
+      var str = '';
+      if (this.file_)
+        str += this.file_;
       if (this.line_ > 0)
-        return this.file_ + ':' + this.line_;
-      return this.file_;
+        str += ':' + this.line_;
+      return str;
     }
   };
 

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.test_utils.findSliceNamed;
 
   var makeModel = function(events, opt_shift, opt_prune) {
@@ -1899,6 +1899,33 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     assert.isDefined(t);
     assert.equal(t.samples_.length, 3);
     assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('importV8Samples', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'JitCodeAdded', args: {data: {code_len: 2, name: 'LazyCompile:~foo http://example.com/bar.js:23', code_start: '0x123'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'JitCodeAdded', args: {data: {code_len: 20, name: 'bar', code_start: '0x223'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'JitCodeMoved', args: {data: {code_len: 2, old_code_start: '0x226', new_code_start: '0x224'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'V8Sample', args: {data: {stack: ['0x124', '0x224']}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'P' }, // @suppress longLineCheck
+        { name: 'V8Sample', args: {data: {stack: [], vm_state: 'gc'}}, pid: 1, ts: 10, cat: 'test', tid: 2, ph: 'P' } // @suppress longLineCheck
+      ]
+    };
+
+    var m = makeModel(eventData);
+    var p = m.processes[1];
+    var t = p.threads[2];
+
+    assert.isFalse(m.hasImportWarnings);
+    assert.equal(t.samples.length, 2);
+
+    var sample = t.samples_[0];
+    assert.equal(sample.leafStackFrame.title,
+        'foo http://example.com/bar.js:23');
+    assert.equal(sample.leafStackFrame.parentFrame.title, 'bar');
+
+    var sample = t.samples_[1];
+    assert.equal(sample.leafStackFrame.title, 'gc');
   });
 
   test('importSimpleObject', function() {

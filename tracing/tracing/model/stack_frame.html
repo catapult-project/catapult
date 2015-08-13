@@ -31,8 +31,10 @@ tr.exportTo('tr.model', function() {
     },
 
     get title() {
-      if (this.sourceInfo_)
-        return this.title_ + ' ' + this.sourceInfo_.toString();
+      if (this.sourceInfo_) {
+        var src = this.sourceInfo_.toString();
+        return this.title_ + (src === '' ? '' : ' ' + src);
+      }
       return this.title_;
     },
 

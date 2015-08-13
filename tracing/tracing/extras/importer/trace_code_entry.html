@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/extras/importer/v8/codemap.html">
+<link rel="import" href="/tracing/model/source_info/js_source_info.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview TraceCodeEntry is a wrapper around the V8 CodeEntry that
+ * extracts extra context information for each item. This includes things like
+ * the source file, line and if the function is a native method or not.
+ */
+tr.exportTo('tr.e.importer', function() {
+  function TraceCodeEntry(size, name, scriptId) {
+    var methodName = undefined;
+    var script = undefined;
+    var lineNum = -1;
+    var isNative = false;
+
+    if (name.startsWith('LazyCompile:')) {
+      var cleanName = name.replace(/LazyCompile:~?/, '');
+      var idx = cleanName.lastIndexOf(' ');
+      if (idx < 0) {
+        methodName = cleanName;
+      } else {
+        methodName = cleanName.substring(0, idx);
+        script = cleanName.substring(idx + 1);
+
+        var matches = script.match(/(.*):(\d+)$/);
+        if (matches !== null) {
+          script = matches[1];
+          lineNum = parseInt(matches[2]);
+        }
+      }
+
+      if (methodName.endsWith(' native')) {
+        isNative = true;
+        methodName = methodName.replace(/\s+native$/, '');
+      }
+
+      if (methodName === '')
+        methodName = 'unknown';
+    } else {
+      methodName = name;
+    }
+
+    tr.e.importer.v8.CodeMap.CodeEntry.call(this, size, methodName);
+
+    this.sourceInfo_ = new tr.model.source_info.JSSourceInfo(
+        script, lineNum, isNative, scriptId);
+  };
+
+  TraceCodeEntry.prototype = {
+    __proto__: tr.e.importer.v8.CodeMap.CodeEntry.prototype,
+
+    get sourceInfo() {
+      return this.sourceInfo_;
+    }
+  };
+
+  return {
+    TraceCodeEntry: TraceCodeEntry
+  };
+});
+</script>
+
