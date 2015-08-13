@@ -4,6 +4,7 @@
 
 import unittest
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
@@ -126,6 +127,7 @@ class TracingBackendMemoryTest(TracingBackendTest):
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
+  @decorators.Disabled
   def testDumpMemorySuccess(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
