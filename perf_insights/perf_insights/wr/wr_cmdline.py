@@ -32,7 +32,7 @@ def Main(argv):
     parser.error('Must provide -o')
 
   if not os.path.exists(args.trace_directory):
-    args.error('trace_directory does not exist')
+    parser.error('trace_directory does not exist')
 
 
   project = perf_insights_project.PerfInsightsProject()

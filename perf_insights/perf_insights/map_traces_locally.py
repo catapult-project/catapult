@@ -27,9 +27,9 @@ def Main(argv):
   args = parser.parse_args(argv[1:])
 
   if not os.path.exists(args.trace_directory):
-    args.error('trace_directory does not exist')
+    parser.error('trace_directory does not exist')
   if not os.path.exists(args.map_file):
-    args.error('map does not exist')
+    parser.error('map does not exist')
 
   corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
       os.path.abspath(os.path.expanduser(args.trace_directory)))
