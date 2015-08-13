@@ -223,6 +223,12 @@ tr.exportTo('tr', function() {
       this.updateBounds();
     },
 
+    convertTimestampToModelTime: function(sourceClockDomainName, ts) {
+      if (clockDomainName !== 'traceEventClock')
+        throw new Error('Only traceEventClock is supported.');
+      return ts - this.timestampShiftToZeroAmount_;
+    },
+
     get numProcesses() {
       var n = 0;
       for (var p in this.processes)
