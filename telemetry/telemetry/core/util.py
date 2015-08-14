@@ -96,6 +96,27 @@ def WaitFor(condition, timeout):
     time.sleep(poll_interval)
 
 
+class PortKeeper(object):
+  """Port keeper hold an available port on the system.
+
+  Before actually use the port, you must call Release().
+  """
+  def __init__(self):
+    self._temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self._temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    self._temp_socket.bind(('', 0))
+    self._port = self._temp_socket.getsockname()[1]
+
+  @property
+  def port(self):
+    return self._port
+
+  def Release(self):
+    assert self._temp_socket, 'Already released'
+    self._temp_socket.close()
+    self._temp_socket = None
+
+
 def GetUnreservedAvailableLocalPort():
   """Returns an available port on the system.
 

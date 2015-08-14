@@ -65,7 +65,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Content shell does not support extensions.')
 
     self._browser_directory = browser_directory
-    self._port = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
     self._crash_service = None
     if self.browser_options.enable_logging:
@@ -190,8 +189,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     if self.browser_options.use_devtools_active_port:
       self._port = 0
-    else:
-      self._port = util.GetUnreservedAvailableLocalPort()
     logging.info('Requested remote debugging port: %d' % self._port)
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
@@ -222,6 +219,11 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
+      # Release the reserved port right before launching browser if needed.
+      if self._port:
+        assert self._port == self._port_keeper.port, (
+            'None zero port must be the one reserved by _port_keeper')
+      self._port_keeper.Release()
       self._proc = subprocess.Popen(
           args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
     else:
