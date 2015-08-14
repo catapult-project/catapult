@@ -20,9 +20,7 @@ tr.exportTo('tr.e.audits', function() {
   }
 
   ChromeBrowserHelper.isBrowserProcess = function(process) {
-    if (!process.findAtMostOneThreadNamed('CrBrowserMain'))
-      return false;
-    return true;
+    return !!process.findAtMostOneThreadNamed('CrBrowserMain');
   };
 
   ChromeBrowserHelper.prototype = {

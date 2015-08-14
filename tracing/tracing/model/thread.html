@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/model/event_container.html">
-<link rel="import" href="/tracing/model/thread_slice.html">
-<link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/async_slice_group.html">
+<link rel="import" href="/tracing/model/slice_group.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/range.html">
 
@@ -221,6 +221,10 @@ tr.exportTo('tr.model', function() {
       if (!parentKey)
         return undefined;
       return parentKey + '.' + this.name;
+    },
+
+    getProcess: function() {
+      return this.parent;
     },
 
     /*

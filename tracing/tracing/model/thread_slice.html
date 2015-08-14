@@ -18,7 +18,7 @@ tr.exportTo('tr.model', function() {
 
   /**
    * A ThreadSlice represents an interval of time on a thread resource
-   * with associated nestinged slice information.
+   * with associated nesting slice information.
    *
    * ThreadSlices are typically associated with a specific trace event pair on a
    * specific thread.
@@ -40,7 +40,14 @@ tr.exportTo('tr.model', function() {
   }
 
   ThreadSlice.prototype = {
-    __proto__: Slice.prototype
+    __proto__: Slice.prototype,
+
+    getProcess: function() {
+      var thread = this.parentContainer;
+      if (thread && thread.getProcess)
+        return thread.getProcess();
+      return undefined;
+    }
   };
 
   tr.model.EventRegistry.register(
