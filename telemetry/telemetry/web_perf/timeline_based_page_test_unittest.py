@@ -122,6 +122,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'JankThreadJSRun-responsive-total_big_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
 
+  @decorators.Disabled('win') # www.crbug.com/520781
   def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(
