@@ -11,15 +11,34 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
   @decorators.Isolated
   def testModifiedConsoleTime(self):
+    tracing_controller = self._tab.browser.platform.tracing_controller
     category_filter = tracing_category_filter.TracingCategoryFilter()
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
-    self._tab.browser.platform.tracing_controller.Start(options,
-                                                        category_filter)
+    tracing_controller.Start(options, category_filter)
     self.Navigate('blank.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
-    self._tab.EvaluateJavaScript('console.time = function() { };')
+
+    self._tab.EvaluateJavaScript("""
+        window.__console_time = console.time;
+        console.time = function() { };
+        """)
     with self.assertRaisesRegexp(Exception, 'Page stomped on console.time'):
-      self._tab.browser.platform.tracing_controller.Stop()
+      tracing_controller.Stop()
+
+    # Restore console.time and stop tracing so that any subsequent tests will
+    # be able to use tracing normally. See crbug.com/520663.
+    self._tab.EvaluateJavaScript("""
+        console.time = window.__console_time;
+        delete window.__console_time;
+        """)
+    tracing_controller.Stop()
+
+    # Check that subsequent tests will be able to use tracing normally.
+    self.assertFalse(tracing_controller.is_tracing_running)
+    tracing_controller.Start(options, category_filter)
+    self.assertTrue(tracing_controller.is_tracing_running)
+    tracing_controller.Stop()
+    self.assertFalse(tracing_controller.is_tracing_running)
