@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 
 <polymer-element name="tr-ui-a-memory-dump-allocator-details-pane">
@@ -119,8 +120,24 @@ found in the LICENSE file.
               function(attrName, attrValue) {
             return new tr.ui.analysis.MemoryCell(attrValue);
           });
+
+          var title = allocatorDump.name;
+          if (title.startsWith('__') && allocatorDump.ownedBy.length === 1) {
+            var owner = allocatorDump.ownedBy[0].source;
+            // The owner dump must be in the same process. Otherwise, the
+            // modified title would be ambiguous.
+            if (owner.containerMemoryDump ===
+                allocatorDump.containerMemoryDump) {
+              title = tr.ui.b.createSpan({
+                textContent: 'suballocation by ' + owner.fullName,
+                tooltip: 'Suballocation name: ' + allocatorDump.fullName,
+                italic: true
+              });
+            }
+          }
+
           var row = {
-            title: allocatorDump.name,
+            title: title,
             cells: cells
           };
           if (allocatorDump.children.length > 0)
