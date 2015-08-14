@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import tempfile
+import traceback
 
 
 from perf_insights import value as value_module
@@ -64,12 +65,21 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
 }
 
 def MapSingleTrace(results, trace_handle, map_file):
+  # Catch all exceptions and return a failure so map_runner doesn't hang.
+  try:
+    MapSingleTraceImpl(results, trace_handle, map_file)
+  except Exception:
+    results.AddValue(value_module.FailureValue(
+        trace_handle.run_info,
+        'Error', 'Unexpected exception.', traceback.format_exc()))
+
+def MapSingleTraceImpl(results, trace_handle, map_file):
   project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
 
   pi_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          '..'))
+                                         '..'))
   all_source_paths.append(pi_path)
   run_info = trace_handle.run_info
 
@@ -87,11 +97,11 @@ def MapSingleTrace(results, trace_handle, map_file):
       js_args=js_args)
 
   if res.returncode != 0:
-    sys.stderr.write(res.stdout.read())
-    results.Add(value_module.FailureValue(
+    sys.stderr.write(res.stdout)
+    results.AddValue(value_module.FailureValue(
         run_info,
         'Error', 'vinn runtime error while mapping trace.',
-        'vinn runtime error while mapping trace.\nUnknown stack'))
+        'vinn runtime error while mapping trace.', 'Unknown stack'))
     return
 
 
