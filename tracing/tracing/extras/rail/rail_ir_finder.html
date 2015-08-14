@@ -135,6 +135,12 @@ tr.exportTo('tr.e.rail', function() {
       return rirs;
     },
 
+    setIRNames_: function(name, irs) {
+      irs.forEach(function(ir) {
+        ir.name = name;
+      });
+    },
+
     // Find all unassociated top-level ThreadSlices. If they start during an
     // Idle or Load IR, then add their entire hierarchy to that IR.
     collectUnassociatedEvents_: function(rirs) {
@@ -277,16 +283,22 @@ tr.exportTo('tr.e.rail', function() {
       var lirs = [];
 
       // Attach frame events to every main runner events.
-      lirs.push.apply(lirs, this.findLoadInteractionRecords_(mainRunnerEvents,
-          frameEvents));
+      var startupLIRs = this.findLoadInteractionRecords_(mainRunnerEvents,
+          frameEvents);
+      this.setIRNames_('Startup', startupLIRs);
+      lirs.push.apply(lirs, startupLIRs);
 
       // Attach frame events to every commit load events.
-      lirs.push.apply(lirs, this.findLoadInteractionRecords_(commitLoadEvents,
-          frameEvents));
+      var succesfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
+          frameEvents);
+      this.setIRNames_('Succeeded', succesfulLIRs);
+      lirs.push.apply(lirs, succesfulLIRs);
 
       // Attach fail load events to every start load events.
-      lirs.push.apply(lirs, this.findLoadInteractionRecords_(startLoadEvents,
-          failLoadEvents));
+      var failedLIRs = this.findLoadInteractionRecords_(startLoadEvents,
+          failLoadEvents);
+      this.setIRNames_('Failed', failedLIRs);
+      lirs.push.apply(lirs, failedLIRs);
 
       return lirs;
     },

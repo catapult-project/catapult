@@ -40,6 +40,7 @@ tr.exportTo('tr.e.rail', function() {
 
     var colorId = tr.ui.b.getColorIdForReservedName(railTypeName);
     this.railTypeName_ = railTypeName;
+    this.name = '';
     tr.model.InteractionRecord.call(this,
                                     title, colorId, start, duration);
   }

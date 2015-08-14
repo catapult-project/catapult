@@ -103,6 +103,10 @@ tr.exportTo('tr.e.rail', function() {
           var at = 'IRs[' + i + '].';
           assert.equal(this.expectedIRs_[i].title, actualIRs[i].title,
                       at + 'title');
+          if (this.expectedIRs_[i].name !== undefined) {
+            assert.equal(this.expectedIRs_[i].name, actualIRs[i].name,
+                        at + 'name');
+          }
           assert.equal(this.expectedIRs_[i].start, actualIRs[i].start,
                       at + 'start');
           assert.equal(this.expectedIRs_[i].end, actualIRs[i].end, at + 'end');

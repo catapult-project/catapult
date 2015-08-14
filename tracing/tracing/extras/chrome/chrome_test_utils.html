@@ -88,6 +88,20 @@ tr.exportTo('tr.e.audits', function() {
     return slice;
   }
 
+  function addStartProvisionalLoadEvent(model, dict) {
+    dict.title = 'RenderFrameImpl::didStartProvisionalLoad';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
+  function addFailProvisionalLoadEvent(model, dict) {
+    dict.title = 'RenderFrameImpl::didFailProvisionalLoad';
+    var slice = tr.c.test_utils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
   function addMainRunnerEvent(model, dict) {
     dict.title = 'ContentMainRunnerImpl::Initialize';
     var slice = tr.c.test_utils.newAsyncSliceEx(dict);
@@ -103,6 +117,8 @@ tr.exportTo('tr.e.audits', function() {
     addLoadingEvent: addLoadingEvent,
     addNetworkEvent: addNetworkEvent,
     addCommitLoadEvent: addCommitLoadEvent,
+    addStartProvisionalLoadEvent: addStartProvisionalLoadEvent,
+    addFailProvisionalLoadEvent: addFailProvisionalLoadEvent,
     addMainRunnerEvent: addMainRunnerEvent
   };
 });

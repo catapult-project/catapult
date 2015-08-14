@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/tracing/extras/rail/ir_verifier.html">
 
 <script>
@@ -415,7 +416,19 @@ tr.b.unittest.testSuite(function() {
       audits.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', start: 0, end: 20, eventCount: 2}
+      {title: 'Load', name: 'Succeeded', start: 0, end: 20, eventCount: 2}
+    ];
+    verifier.verify();
+  });
+
+  test('LoadFailed', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addStartProvisionalLoadEvent(model, {start: 0, end: 10});
+      audits.addFailProvisionalLoadEvent(model, {start: 11, end: 20});
+    };
+    verifier.expectedIRs = [
+      {title: 'Load', name: 'Failed', start: 0, end: 20, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -427,7 +440,7 @@ tr.b.unittest.testSuite(function() {
       audits.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', start: 0, end: 20, eventCount: 2}
+      {title: 'Load', name: 'Startup', start: 0, end: 20, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -457,11 +470,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 0},
-      {title: 'Load', start: 1, end: 4, eventCount: 2},
+      {title: 'Load', name: 'Succeeded', start: 1, end: 4, eventCount: 2},
       {title: 'Idle', start: 4, end: 5, eventCount: 0},
-      {title: 'Load', start: 5, end: 8, eventCount: 2},
+      {title: 'Load', name: 'Succeeded', start: 5, end: 8, eventCount: 2},
       {title: 'Idle', start: 8, end: 9, eventCount: 0},
-      {title: 'Load', start: 9, end: 12, eventCount: 2},
+      {title: 'Load', name: 'Succeeded', start: 9, end: 12, eventCount: 2},
       {title: 'Idle', start: 12, end: 13, eventCount: 0}
     ];
     verifier.verify();

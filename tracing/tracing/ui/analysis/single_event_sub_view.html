@@ -79,6 +79,9 @@ found in the LICENSE file.
       if (event.category)
         rows.push({ name: 'Category', value: event.category });
 
+      if (event.name)
+        rows.push({ name: 'Name', value: event.name });
+
       var startEl = document.createElement('tr-ui-u-time-stamp-span');
       startEl.timestamp = event.start;
       rows.push({ name: 'Start', value: startEl });
