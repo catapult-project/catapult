@@ -175,13 +175,15 @@ def GetLocalChromePath(path_from_command_line):
 def Main(argv):
   try:
     parser = argparse.ArgumentParser(
-        description='Run dev_server tests for tracing project.')
+        description='Run dev_server tests for a project.')
     parser.add_argument('--chrome_path', type=str,
                         help='Path to Chrome browser binary.')
     parser.add_argument('--no-use-local-chrome',
                         dest='use_local_chrome', action='store_false')
     parser.add_argument(
         '--no-install-hooks', dest='install_hooks', action='store_false')
+    parser.add_argument('--tests', type=str,
+                        help='Set of tests to run (tracing or perf_insights)')
     parser.set_defaults(install_hooks=True)
     parser.set_defaults(use_local_chrome=True)
     args = parser.parse_args(argv[1:])
@@ -235,7 +237,7 @@ def Main(argv):
         '--no-experiments',
         '--no-first-run',
         '--noerrdialogs',
-        ('http://localhost:%s/tracing/tests.html?' % port) +
+        ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
             'headless=true&testTypeToRun=all',
     ]
     chrome_process = subprocess.Popen(

@@ -7,15 +7,27 @@ import json
 import os
 import sys
 
-import perf_insights_project
+from hooks import install
 
-from paste import httpserver
 from paste import fileapp
+from paste import httpserver
 
 import webapp2
 from webapp2 import Route, RedirectHandler
 
-from hooks import install
+from perf_insights_build import perf_insights_dev_server_config
+from tracing_build import tracing_dev_server_config
+
+_UNIT_TEST_HTML = """<html><body>
+<h1>Run Unit Tests</h1>
+<ul>
+%s
+</ul>
+</body></html>
+"""
+
+_UNIT_TEST_LINK = '<li><a href="%s">%s</a></li>'
+
 
 def _GetFilesIn(basedir):
   data_files = []
@@ -35,20 +47,6 @@ def _GetFilesIn(basedir):
 
   data_files.sort()
   return data_files
-
-
-def _RelPathToUnixPath(p):
-  return p.replace(os.sep, '/')
-
-class TestListHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
-    test_relpaths = ['/' + _RelPathToUnixPath(x)
-                     for x in self.app.project.FindAllTestModuleRelPaths()]
-
-    tests = {'test_relpaths': test_relpaths}
-    tests_as_json = json.dumps(tests)
-    self.response.content_type = 'application/json'
-    return self.response.write(tests_as_json)
 
 
 class TestResultHandler(webapp2.RequestHandler):
@@ -82,6 +80,7 @@ class DirectoryListingHandler(webapp2.RequestHandler):
     files_as_json = json.dumps(data_files)
     self.response.content_type = 'application/json'
     return self.response.write(files_as_json)
+
 
 class FileAppWithGZipHandling(fileapp.FileApp):
   def guess_type(self):
@@ -127,45 +126,54 @@ class SimpleDirectoryHandler(webapp2.RequestHandler):
     return app
 
 
-def CreateApp(project=None,
-              perf_insights_test_data_path=None):
-  if project is None:
-    project = perf_insights_project.PerfInsightsProject()
+class TestOverviewHandler(webapp2.RequestHandler):
+  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
+    links = []
+    for name, path in kwargs.pop('pds').iteritems():
+      links.append(_UNIT_TEST_LINK % (path, name))
+    self.response.out.write(_UNIT_TEST_HTML % '\n'.join(links))
 
+
+def CreateApp(pds, args):
+  default_tests = dict((pd.GetName(), pd.GetRunUnitTestsUrl()) for pd in pds)
   routes = [
-    Route('', RedirectHandler, defaults={'_uri': '/perf_insights/tests.html'}),
-    Route('/', RedirectHandler, defaults={'_uri': '/perf_insights/tests.html'}),
-    Route('/tests.html', RedirectHandler,
-          defaults={'_uri': '/perf_insights/tests.html'}),
-    Route('/perf_insights/tests', TestListHandler),
-    Route('/perf_insights/notify_test_result', TestResultHandler),
-    Route('/perf_insights/notify_tests_completed', TestsCompletedHandler)
+    Route('/tests.html', TestOverviewHandler, defaults={'pds': default_tests}),
+    Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
+    Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
   ]
+  for pd in pds:
+    routes += pd.GetRoutes(args)
+    routes += [
+      Route('/%s/notify_test_result' % pd.GetName(), TestResultHandler),
+      Route('/%s/notify_tests_completed' % pd.GetName(), TestsCompletedHandler)
+    ]
 
-  # Test data system.
-  if not perf_insights_test_data_path:
-    perf_insights_test_data_path = project.perf_insights_test_data_path
-  routes.append(Route('/perf_insights/test_data/__file_list__',
-                      DirectoryListingHandler,
-                      defaults={
-                          '_source_path': perf_insights_test_data_path,
-                          '_mapped_path': '/perf_insights/test_data/'
-                      }))
-  routes.append(Route('/perf_insights/test_data/<rest_of_path:.+>',
-                      SimpleDirectoryHandler,
-                      defaults={'_top_path': perf_insights_test_data_path}))
+  for pd in pds:
+    # Test data system.
+    for mapped_path, source_path in pd.GetTestDataPaths(args):
+      routes.append(Route('%s__file_list__' % mapped_path,
+                          DirectoryListingHandler,
+                          defaults={
+                              '_source_path': source_path,
+                              '_mapped_path': mapped_path
+                          }))
+      routes.append(Route('%s<rest_of_path:.+>' % mapped_path,
+                          SimpleDirectoryHandler,
+                          defaults={'_top_path': source_path}))
 
   # This must go last, because its catch-all.
   #
   # Its funky that we have to add in the root path. The long term fix is to
   # stop with the crazy multi-source-pathing thing.
-  all_paths = list(project.source_paths)
+  all_paths = []
+  for pd in pds:
+    all_paths += pd.GetSourcePaths(args)
   routes.append(
     Route('/<:.+>', SourcePathsHandler,
           defaults={'_source_paths': all_paths}))
 
+
   app = webapp2.WSGIApplication(routes=routes, debug=True)
-  app.project = project
   return app
 
 def _AddPleaseExitMixinToServer(server):
@@ -200,28 +208,30 @@ def _AddPleaseExitMixinToServer(server):
 
 
 def Main(argv):
-  project = perf_insights_project.PerfInsightsProject()
+  pds = [
+      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
+      tracing_dev_server_config.TracingDevServerConfig(),
+  ]
 
-  parser = argparse.ArgumentParser(
-      description='Run perf_insights development server')
-  parser.add_argument(
-      '--perf-insights-data-path',
-      default=project.perf_insights_test_data_path)
+  parser = argparse.ArgumentParser(description='Run development server')
   parser.add_argument(
     '--no-install-hooks', dest='install_hooks', action='store_false')
-  parser.add_argument('-p', '--port', default=8009, type=int)
+  parser.add_argument('-p', '--port', default=8003, type=int)
+  for pd in pds:
+    g = parser.add_argument_group(pd.GetName())
+    pd.AddOptionstToArgParseGroup(g)
   args = parser.parse_args(args=argv[1:])
 
   if args.install_hooks:
     install.InstallHooks()
 
-  app = CreateApp(project, args.perf_insights_data_path)
+  app = CreateApp(pds, args)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
                             start_loop=False)
   _AddPleaseExitMixinToServer(server)
   app.server = server
 
-  sys.stderr.write('Now running on http://127.0.0.1:%i\n' % args.port)
+  sys.stderr.write('Now running on http://127.0.0.1:%i\n' % server.server_port)
 
   return server.serve_forever()

@@ -11,4 +11,4 @@ if __name__ == '__main__':
                                  '..', '..'))
   sys.path.append(catapult_path)
   from build import run_dev_server_tests
-  sys.exit(run_dev_server_tests.Main(sys.argv + ['--tests=tracing']))
+  sys.exit(run_dev_server_tests.Main(sys.argv + ['--tests=perf_insights']))

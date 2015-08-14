@@ -1,48 +1,63 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import unittest
+import argparse
 import json
+import unittest
 
 
+from build import dev_server
+from perf_insights_build import perf_insights_dev_server
 from tracing_build import tracing_dev_server
 import webapp2
 
-class TracingDevServerTests(unittest.TestCase):
+class DevServerTests(unittest.TestCase):
+
+  def setUp(self):
+    self.pds = [
+      perf_insights_dev_server.PerfInsightsDevServer(),
+      tracing_dev_server.TracingDevServer(),
+    ]
+    parser = argparse.ArgumentParser(description='Run development server')
+    parser.add_argument(
+      '--no-install-hooks', dest='install_hooks', action='store_false')
+    parser.add_argument('-p', '--port', default=8003, type=int)
+    self.args = parser.parse_args(args=[])
+
   def testStaticDirectoryHandling(self):
-    app = tracing_dev_server.CreateApp()
+    app = dev_server.CreateApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/tests.html')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
 
   def testTestDataDirectory(self):
-    app = tracing_dev_server.CreateApp()
-    request = webapp2.Request.blank('/test_data/trivial_trace.json')
+    app = dev_server.CreateApp(self.pds, self.args)
+    request = webapp2.Request.blank('/tracing/test_data/trivial_trace.json')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
 
   def testTestDataDirectoryListing(self):
-    app = tracing_dev_server.CreateApp()
-    request = webapp2.Request.blank('/test_data/__file_list__')
+    app = dev_server.CreateApp(self.pds, self.args)
+    request = webapp2.Request.blank('/tracing/test_data/__file_list__')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
     res = json.loads(response.body)
-    assert '/test_data/trivial_trace.json' in res
+    assert '/tracing/test_data/trivial_trace.json' in res
 
   def testSkpDataDirectoryListing(self):
-    app = tracing_dev_server.CreateApp()
-    request = webapp2.Request.blank('/skp_data/__file_list__')
+    app = dev_server.CreateApp(self.pds, self.args)
+    request = webapp2.Request.blank('/tracing/skp_data/__file_list__')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
     res = json.loads(response.body)
-    assert '/skp_data/lthi_cats.skp' in res
+    assert '/tracing/skp_data/lthi_cats.skp' in res
 
   def testTestListingHandler(self):
-    app = tracing_dev_server.CreateApp()
+    app = dev_server.CreateApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/tests')
     response = request.get_response(app)
 

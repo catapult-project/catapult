@@ -19,7 +19,7 @@ Its easy to [extend trace viewer](https://github.com/google/trace-viewer/wiki/Ex
 Contributing, quick version
 ===========================================================================
 We welcome contributions! To hack on this code, from toplevel:
-  ./tracing/run_dev_server
+  ./bin/run_dev_server
 
 In any browser, navigate to
   http://localhost:8003/
