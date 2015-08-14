@@ -224,7 +224,7 @@ tr.exportTo('tr', function() {
     },
 
     convertTimestampToModelTime: function(sourceClockDomainName, ts) {
-      if (clockDomainName !== 'traceEventClock')
+      if (sourceClockDomainName !== 'traceEventClock')
         throw new Error('Only traceEventClock is supported.');
       return ts - this.timestampShiftToZeroAmount_;
     },
