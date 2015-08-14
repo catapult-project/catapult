@@ -97,6 +97,11 @@ class IntentionalException(Error):
   """Represent an exception raised by a unittest which is not printed."""
 
 
+class InitializationError(Error):
+  def __init__(self, string):
+    super(InitializationError, self).__init__(string)
+
+
 class LoginException(Error):
   pass
 

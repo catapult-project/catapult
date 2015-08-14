@@ -9,6 +9,7 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import device_finder
+from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
@@ -45,6 +46,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     parser.add_option('--exact-test-filter', action='store_true', default=False,
                       help='Treat test filter as exact matches (default is '
                            'substring matches).')
+    parser.add_option('--client-config', dest='client_config', default=None)
 
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
@@ -78,6 +80,10 @@ class RunTestsCommand(command_line.OptparseCommand):
     cls.AddCommandLineArgs(parser, None)
     options, positional_args = parser.parse_args(args)
     options.positional_args = positional_args
+
+    # Must initialize the DependencyManager before calling
+    # browser_finder.FindBrowser(args)
+    binary_manager.InitDependencyManager(options.client_config)
     cls.ProcessCommandLineArgs(parser, options, None)
 
     obj = cls()
@@ -168,6 +174,11 @@ def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
 
 
 def _SetUpProcess(child, context): # pylint: disable=W0613
+  if binary_manager.NeedsInit():
+    # Typ doesn't keep the DependencyManager initialization in the child
+    # processes.
+    binary_manager.InitDependencyManager(context.client_config)
+
   args = context
   if args.device and args.device == 'android':
     android_devices = device_finder.GetDevicesMatchingOptions(args)
