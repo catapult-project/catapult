@@ -36,6 +36,11 @@ tr.b.unittest.testSuite(function() {
     r.addRange(r1);
     assert.equal(1, r.min);
     assert.equal(2, r.max);
+
+    var r2 = Range.fromDict(r.toJSON());
+    assert.equal(r2.isEmpty, r.isEmpty);
+    assert.equal(r2.max, r.max);
+    assert.equal(r2.min, r.min);
   });
 
   test('addEmptyRange', function() {
@@ -46,6 +51,11 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(r.isEmpty);
     assert.isUndefined(r.min);
     assert.isUndefined(r.max);
+
+    var r2 = Range.fromDict(r.toJSON());
+    assert.equal(r2.isEmpty, r.isEmpty);
+    assert.isUndefined(r2.max);
+    assert.isUndefined(r2.min);
   });
 
   test('addRangeToRange', function() {
