@@ -72,20 +72,21 @@ class Oobe(web_contents.WebContents):
   def _NavigateGaiaLogin(self, username, password, enterprise_enroll):
     """Invokes NavigateIFrameLogin or NavigateWebViewLogin as appropriate."""
     def _GetGaiaFunction():
-      if not enterprise_enroll:
-        self._ExecuteOobeApi('Oobe.showAddUserForTesting')
-      if self._GaiaIFrameContext() is not None:
-        return Oobe._NavigateIFrameLogin
-      elif self._GaiaWebviewContext():
+      if self._GaiaWebviewContext() is not None:
         return partial(Oobe._NavigateWebViewLogin,
                        wait_for_close=not enterprise_enroll)
+      elif self._GaiaIFrameContext() is not None:
+        return partial(Oobe._NavigateIFrameLogin,
+                       add_user_for_testing=not enterprise_enroll)
       return None
     util.WaitFor(_GetGaiaFunction, 20)(self, username, password)
 
-  def _NavigateIFrameLogin(self, username, password):
+  def _NavigateIFrameLogin(self, username, password, add_user_for_testing):
     """Logs into the IFrame-based GAIA screen"""
     gaia_iframe_context = util.WaitFor(self._GaiaIFrameContext, timeout=30)
 
+    if add_user_for_testing:
+      self._ExecuteOobeApi('Oobe.showAddUserForTesting')
     self.ExecuteJavaScriptInContext("""
         document.getElementById('Email').value='%s';
         document.getElementById('Passwd').value='%s';
