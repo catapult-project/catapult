@@ -122,6 +122,27 @@ class FailureValue(Value):
 
 
 class SkipValue(Value):
-  # TODO(nduca): Implement when it starts seeming necessary.
+  def __init__(self, run_info, skipped_result_name,
+               description=None, important=False, ir_stable_id=None):
+    super(SkipValue, self).__init__(run_info,
+                                    name=skipped_result_name,
+                                    units=None,
+                                    description=description,
+                                    important=important,
+                                    ir_stable_id=ir_stable_id)
+
+  def __repr__(self):
+    return '%s("%s", "%s")' % (self.__class__.__name__,
+                               self.name, self.description)
+
   def _AsDictInto(self, d):
-    d.type = 'skip'
+    d['type'] = 'skip'
+
+  @classmethod
+  def FromDict(cls, run_info, d):
+    assert d.get('units', None) == None
+    return cls(run_info,
+               skipped_result_name=d['name'],
+               description=d.get('description', None),
+               important=d.get('important', False),
+               ir_stable_id=d.get('ir_stable_id', None))

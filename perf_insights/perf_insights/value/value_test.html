@@ -36,8 +36,21 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(v2, pi.v.FailureValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);
-    assert.equal(v.name, v2.name);
+    assert.equal(v.stack, v2.stack);
   });
+
+  test('skipValueBasic', function() {
+    var run_info = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.SkipValue(run_info, 'MySkip',
+                                  {description: 'WhySkipped'});
+    var d = v.asDict();
+
+    var v2 = pi.v.Value.fromDict(run_info, d);
+    assert.instanceOf(v2, pi.v.SkipValue);
+    assert.equal(v.name, v2.name);
+    assert.equal(v.description, v2.description);
+  });
+
 });
 
 </script>

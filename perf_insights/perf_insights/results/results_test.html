@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/perf_insights/results/results.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('resultsAllSuccessful', function() {
+    var run_info1 = new pi.v.RunInfo('file1.json');
+    var run_info2 = new pi.v.RunInfo('file2.json');
+
+    var results = new pi.r.Results();
+    results.addValue(new pi.v.DictValue(run_info1, 'res',
+                                        {my_key: 'my_value'}));
+    results.addValue(new pi.v.DictValue(run_info2, 'res',
+                                        {my_key: 'my_value'}));
+    assert.isFalse(results.hadFailures);
+    assert.equal(results.allValuesFromFailureFreeRuns.length, 2);
+    assert.equal(results.getValuesFromFailureFreeRunsNamed('res').length, 2);
+  });
+
+  test('oneFailed', function() {
+    var run_info1 = new pi.v.RunInfo('file1.json');
+    var run_info2 = new pi.v.RunInfo('file2.json');
+
+    var results = new pi.r.Results();
+    results.addValue(new pi.v.DictValue(run_info1, 'res',
+                                        {my_key: 'my_value'}));
+    results.addValue(new pi.v.FailureValue(run_info2, 'res',
+                                           {description: 'blah',
+                                            stack: 'stack'}));
+    assert.isTrue(results.hadFailures);
+    assert.isTrue(results.doesRunContainFailure(run_info2));
+    assert.equal(results.allValuesFromFailureFreeRuns.length, 1);
+    assert.equal(results.getValuesFromFailureFreeRunsNamed('res').length, 1);
+  });
+});
+
+</script>

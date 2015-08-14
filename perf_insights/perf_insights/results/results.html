@@ -26,11 +26,11 @@ tr.exportTo('pi.r', function() {
       throw new Error('output_formatters must be array');
 
     this.all_values = [];
-    this._run_infos_that_have_failures_by_guid = {};
+    this._run_ids_that_have_failures = {};
   }
 
   Results.fromDict = function(dict) {
-    if (dict.runs  === undefined)
+    if (dict.runs === undefined)
       throw new Error('Expected: run_info');
     if (dict.values === undefined)
       throw new Error('Expected: run_info');
@@ -47,7 +47,7 @@ tr.exportTo('pi.r', function() {
         throw new Error('run_info not found');
       }
       var value = pi.v.Value.fromDict(runInfo, valueDict);
-      results.all_values.push(value);
+      results.addValue(value);
     });
     return results;
   }
@@ -58,6 +58,8 @@ tr.exportTo('pi.r', function() {
     },
 
     addValue: function(value) {
+      if (value instanceof pi.v.FailureValue)
+        this._run_ids_that_have_failures[value.run_info.run_id] = true;
       this.all_values.push(value);
       this.progress_reporter.didAddValue(value);
     },
@@ -71,9 +73,36 @@ tr.exportTo('pi.r', function() {
       this.output_formatters.forEach(function(of) {
         of.format(this);
       }, this);
+    },
+
+    get hadFailures() {
+      return this.failureValues.length > 0;
+    },
+
+    get failureValues() {
+      return this.all_values.filter(function(x) {
+        return x instanceof pi.v.FailureValue;
+      });
+    },
+
+    doesRunContainFailure: function(run_info) {
+      return this._run_ids_that_have_failures[run_info.run_id] === true;
+    },
+
+    get allValuesFromFailureFreeRuns() {
+      return this.all_values.filter(function(x) {
+        if (this.doesRunContainFailure(x.run_info))
+          return false;
+        return true;
+      }, this);
+    },
+
+    getValuesFromFailureFreeRunsNamed: function(name) {
+      return this.allValuesFromFailureFreeRuns.filter(function(value) {
+        return value.name === name;
+      });
     }
   };
-
 
   return {
     Results: Results
