@@ -78,6 +78,7 @@ def StartXvfb():
     os.environ['DISPLAY'] = display
   else:
     logging.error('Xvfb did not start, returncode: %s', returncode)
+  return xvfb_process
 
 
 def IsDepotToolsPath(path):
@@ -213,6 +214,7 @@ def Main(argv):
       port = re.search(
           'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
+    xvfb_process = None
     if args.use_local_chrome:
       chrome_path = GetLocalChromePath(args.chrome_path)
       if not chrome_path:
@@ -221,7 +223,7 @@ def Main(argv):
     else:
       tmpdir, version = DownloadChromeStable()
       if platform_data.get('use_xfvb'):
-        StartXvfb()
+        xvfb_process = StartXvfb()
       chrome_path = os.path.join(
           tmpdir, platform_data['chromepath'])
       os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
@@ -260,5 +262,7 @@ def Main(argv):
     if tmpdir:
       shutil.rmtree(tmpdir)
     shutil.rmtree(user_data_dir)
+    if xvfb_process:
+      xvfb_process.kill()
 
   sys.exit(server_process.returncode)
