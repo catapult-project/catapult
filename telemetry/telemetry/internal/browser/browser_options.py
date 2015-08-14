@@ -98,8 +98,7 @@ class BrowserFinderOptions(optparse.Values):
         help='The SSH port of the remote ChromeOS device (requires --remote).')
     identity = None
     testing_rsa = os.path.join(
-        util.GetChromiumSrcDir(),
-        'third_party', 'chromite', 'ssh_keys', 'testing_rsa')
+        util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')
     if os.path.exists(testing_rsa):
       identity = testing_rsa
     group.add_option('--identity',

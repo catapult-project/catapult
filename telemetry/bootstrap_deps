@@ -10,8 +10,6 @@
 
 deps = {
     "src/tools/telemetry": "",
-    "src/third_party/android_tools/sdk/platform-tools": "",
-    "src/third_party/chromite/ssh_keys": "",
     "src/third_party/webpagereplay": "",
     "src/third_party/catapult": "",
 }

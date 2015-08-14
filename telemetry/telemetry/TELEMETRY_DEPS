@@ -5,13 +5,10 @@
   ],
   "directory_deps": [
     "build/android/pylib/",
-    "third_party/android_tools/sdk/platform-tools/",
+    "third_party/android_testrunner/",
     "third_party/catapult/",
-    "third_party/pexpect/",
-    "third_party/ply/",
     "third_party/webpagereplay/",
-    "tools/telemetry/",
-    "third_party/chromite/ssh_keys/"
+    "tools/telemetry/"
   ],
   "file_deps": [
   ]
