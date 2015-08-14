@@ -115,8 +115,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri.RunCmdOnDevice(args)
 
     if not self._cri.local:
-      self._port = self._port_keeper.port
-      self._port_keeper.Release()
+      self._port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
           forwarders.PortPairs(
               http=forwarders.PortPair(self._port, self._remote_debugging_port),

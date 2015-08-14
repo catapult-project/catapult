@@ -35,9 +35,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         supports_extensions=supports_extensions,
         browser_options=browser_options,
         tab_list_backend=tab_list_backend.TabListBackend)
-    self._port_keeper = util.PortKeeper()
-    # Use the port hold by _port_keeper by default.
-    self._port = self._port_keeper.port
+    self._port = None
 
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None

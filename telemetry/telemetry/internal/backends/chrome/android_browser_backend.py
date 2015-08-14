@@ -40,6 +40,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._target_arch = target_arch
     self._saved_sslflag = ''
 
+    # TODO(tonyg): This is flaky because it doesn't reserve the port that it
+    # allocates. Need to fix this.
+    self._port = util.GetUnreservedAvailableLocalPort()
+
     # TODO(wuhu): Move to network controller backend.
     self.platform_backend.InstallTestCa()
 
@@ -106,10 +110,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
           self.device)
       try:
-        # Release reserved port right before forwarding host to device.
-        self._port_keeper.Release()
-        assert self._port == self._port_keeper.port, (
-          'Android browser backend must use reserved port by _port_keeper')
         self.platform_backend.ForwardHostToDevice(
             self._port, remote_devtools_port)
       except Exception:
