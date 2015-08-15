@@ -18,6 +18,7 @@ from telemetry.core import discover
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
+from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 
 
@@ -75,17 +76,14 @@ class ProjectConfig(object):
     benchmark_dirs: A list of dirs containing benchmarks.
     benchmark_aliases: A dict of name:alias string pairs to be matched against
         exactly during benchmark selection.
+    client_config: A path to a ProjectDependencies json file.
   """
   def __init__(self, top_level_dir, benchmark_dirs=None,
-               benchmark_aliases=None):
+               benchmark_aliases=None, client_config=None):
     self._top_level_dir = top_level_dir
     self._benchmark_dirs = benchmark_dirs or []
     self._benchmark_aliases = benchmark_aliases or dict()
-
-    if benchmark_aliases:
-      self._benchmark_aliases = benchmark_aliases
-    else:
-      self._benchmark_aliases = {}
+    self._client_config = client_config or ''
 
   @property
   def top_level_dir(self):
@@ -99,6 +97,9 @@ class ProjectConfig(object):
   def benchmark_aliases(self):
     return self._benchmark_aliases
 
+  @property
+  def client_config(self):
+    return self._client_config
 
 class Help(command_line.OptparseCommand):
   """Display help information about a command"""
@@ -407,6 +408,8 @@ def main(environment):
     command = commands[0]
   else:
     command = Run
+
+  binary_manager.InitDependencyManager(environment.client_config)
 
   # Parse and run the command.
   parser = command.CreateParser()
