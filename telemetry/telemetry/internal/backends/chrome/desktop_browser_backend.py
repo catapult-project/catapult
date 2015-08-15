@@ -118,7 +118,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _GetCrashServicePipeName(self):
     # Ensure a unique pipe name by using the name of the temp dir.
-    return r'\\.\pipe\%s_service' % os.path.basename(self._tmp_minidump_dir)
+    pipe = r'\\.\pipe\%s_service' % os.path.basename(self._tmp_minidump_dir)
+    return pipe
 
   def _StartCrashService(self):
     os_name = self.browser.platform.GetOSName()
@@ -130,11 +131,24 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.warning('crash_service.exe not found for %s %s',
                       arch_name, os_name)
       return None
-    return subprocess.Popen([
-        command,
-        '--no-window',
-        '--dumps-dir=%s' % self._tmp_minidump_dir,
-        '--pipe-name=%s' % self._GetCrashServicePipeName()])
+    if not os.path.exists(command):
+      logging.warning('crash_service.exe not found for %s %s',
+                      arch_name, os_name)
+      return None
+
+    try:
+      crash_service = subprocess.Popen([
+          command,
+          '--no-window',
+          '--dumps-dir=%s' % self._tmp_minidump_dir,
+          '--pipe-name=%s' % self._GetCrashServicePipeName()])
+    except:
+      logging.error(
+          'Failed to run %s --no-window --dump-dir=%s --pip-name=%s' % (
+            command, self._tmp_minidump_dir, self._GetCrashServicePipeName()))
+      logging.error('Running on platform: %s and arch: %s.' %os_name, arch_name)
+      raise
+    return crash_service
 
   def _GetCdbPath(self):
     possible_paths = (
