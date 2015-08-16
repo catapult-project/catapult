@@ -107,7 +107,7 @@ found in the LICENSE file.
   }
 
   function cleanFilename(file) {
-    var m = /\/test_data\/(.+)/.exec(file);
+    var m = /\/tracing\/test_data\/(.+)/.exec(file);
     var rest = m[1];
 
     function upcase(letter) {
@@ -133,7 +133,7 @@ found in the LICENSE file.
     selectEl = document.createElement('select');
     timelineViewEl.leftControls.appendChild(selectEl);
 
-    getAsync('/test_data/__file_list__', function(data) {
+    getAsync('/tracing/test_data/__file_list__', function(data) {
       var files = JSON.parse(data);
       for (var i = 0; i < files.length; ++i) {
         var opt = document.createElement('option');
