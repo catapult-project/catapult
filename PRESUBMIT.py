@@ -67,7 +67,8 @@ def CheckChange(input_api, output_api):
     results += input_api.canned_checks.RunPylint(
         input_api, output_api, black_list=_EXCLUDED_PATHS)
     results += CheckChangeLogBug(input_api, output_api)
-    results += js_checks.RunChecks(input_api, output_api)
+    results += js_checks.RunChecks(
+        input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
   finally:
     sys.path.remove(input_api.PresubmitLocalPath())
   return results

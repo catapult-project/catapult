@@ -174,5 +174,8 @@ class JSChecker(object):
     return results
 
 
-def RunChecks(input_api, output_api):
-  return JSChecker(input_api, output_api).RunChecks()
+def RunChecks(input_api, output_api, excluded_paths=None):
+  file_filter=None
+  if excluded_paths:
+    file_filter = lambda x: any(re.match(p, x) for p in excluded_paths)
+  return JSChecker(input_api, output_api, file_filter=file_filter).RunChecks()
