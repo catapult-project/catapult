@@ -10,8 +10,19 @@ actually running the benchmark is in Benchmark and PageRunner."""
 import hashlib
 import inspect
 import json
+import logging
 import os
 import sys
+
+
+# We need to set logging format here to make sure that any other modules
+# imported by telemetry doesn't set the logging format before this, which will
+# make this a no-op call.
+# (See: https://docs.python.org/2/library/logging.html#logging.basicConfig)
+logging.basicConfig(
+  format=('(%(levelname)s) %(filename)s:%(funcName)s:%(lineno)d '
+          '%(asctime)s:%(message)s'))
+
 
 from telemetry import benchmark
 from telemetry.core import discover
