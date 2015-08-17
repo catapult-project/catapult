@@ -1,0 +1,121 @@
+<!--
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE
+The complete set of authors may be found at http://polymer.github.io/AUTHORS
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS
+-->
+
+<!--
+
+Material Design: <a href="http://www.google.com/design/spec/components/text-fields.html#text-fields-character-counter">Character counter</a>
+
+`paper-char-counter` adds a character counter for paper input fields with a character restriction in place.
+
+Example:
+
+    <paper-input-decorator>
+      <input id="input1" is="core-input" maxlength="5">
+      <paper-char-counter class="footer" target="input1"></paper-char-counter>
+    </paper-input-decorator>
+
+Theming
+-------
+
+`paper-char-counter` uses `paper-input-decorator`'s error `core-style` for global theming.
+
+@group Paper Elements
+@element paper-char-counter
+@homepage github.io
+-->
+<link href="../polymer/polymer.html" rel="import">
+<link href="../core-style/core-style.html" rel="import">
+
+<core-style id="paper-char-counter">
+:host(.invalid) {
+  color: {{g.paperInput.invalidColor}};
+}
+</core-style>
+
+<polymer-element name="paper-char-counter">
+
+<template>
+
+  <style>
+    :host {
+      display: inline-block;
+      float: right;
+      color: #757575;
+      font-size: 0.75em;
+      padding: 0.5em 0 0.5em 0.5em;
+    }
+  </style>
+
+  <core-style ref="paper-char-counter"></core-style>
+
+  <div class="counter-text" aria-hidden="true" hidden?="{{!showCounter || !_maxChars}}">
+    <span>{{_charCount}} / {{_maxChars}}</span>
+  </div>
+
+</template>
+
+<script>
+
+  Polymer({
+
+    publish: {
+      /**
+       * The id of the textinput or textarea that should be monitored.
+       *
+       * @attribute target
+       * @type string
+       * @default null
+       */
+      target: null,
+
+      /**
+       * If false, don't show the character counter. Used in conjunction with
+       * `paper-input-decorator's` `error` field.
+       *
+       * @attribute showCounter
+       * @type boolean
+       * @default true
+       */
+      showCounter: true
+    },
+
+    /* Number of characters in the current input */
+    _charCount: 0,
+
+    /* Equal to the target element's maxLength attribute. */
+    _maxChars: 0,
+
+    /* True if the number of characters in the input exceeds _maxChars */
+    _isCounterInvalid: false,
+
+    ready: function() {
+      if (!this.target)
+        return;
+      var targetElement = document.getElementById(this.target);
+      this._maxChars = targetElement.maxLength;
+      targetElement.addEventListener('input', this.inputAction.bind(this));
+		},
+
+    inputAction: function(e) {
+      this._charCount = e.target.value.length;
+      this._isCounterInvalid = this._maxChars && this._charCount >= this._maxChars;
+    },
+
+    _isCounterInvalidChanged: function() {
+      debugger
+      this.classList.toggle('invalid', this._isCounterInvalid);
+      this.fire('char-counter-error',
+                {"hasError": this._isCounterInvalid,
+                 "hideErrorIcon": this.showCounter});
+    }
+  });
+
+</script>
+
+</polymer-element>

@@ -2,11 +2,22 @@
   "name": "catapult",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#0.5.5",
+    "core-collapse": "Polymer/core-collapse#0.5.5",
+    "core-icon-button": "Polymer/core-icon-button#0.5.5",
+    "core-icon": "Polymer/core-icon#0.5.5",
+    "core-icons": "Polymer/core-icons#0.5.5",
+    "core-item": "Polymer/core-item#0.5.5",
+    "core-menu": "Polymer/core-menu#0.5.5",
+    "core-overlay": "Polymer/core-overlay#0.5.5",
+    "core-selector": "Polymer/core-selector#0.5.5",
     "paper-button": "Polymer/paper-button#0.5.5",
-    "paper-dropdown": "Polymer/paper-dropdown#0.5.5",
+    "paper-dialog": "Polymer/paper-dialog#0.5.5",
     "paper-dropdown-menu": "Polymer/paper-dropdown-menu#0.5.5",
+    "paper-dropdown": "Polymer/paper-dropdown#0.5.5",
+    "paper-input": "Polymer/paper-input#0.5.5",
+    "paper-progress": "Polymer/paper-progress#0.5.5",
     "paper-shadow": "Polymer/paper-shadow#0.5.5",
-    "core-overlay": "Polymer/core-overlay#0.5.5"
+    "paper-spinner": "Polymer/paper-spinner#0.5.5",
+    "polymer": "Polymer/polymer#0.5.5"
   }
 }

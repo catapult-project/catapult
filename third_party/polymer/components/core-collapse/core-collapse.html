@@ -12,17 +12,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 will be collapsed.  Use `opened` or `toggle()` to show/hide the content.
 
     <button on-click="{{toggle}}">toggle collapse</button>
-
+    
     <core-collapse id="collapse">
       Content goes here...
     </core-collapse>
-
+    
     ...
 
     toggle: function() {
       this.$.collapse.toggle();
     }
-
+    
 `core-collapse` adjusts the height/width of the collapsible element to show/hide
 the content.  So avoid putting padding/margin/border on the collapsible directly,
 and instead put a div inside and style that.
@@ -46,8 +46,6 @@ and instead put a div inside and style that.
 
 <link rel="import" href="../polymer/polymer.html">
 
-<link rel="import" href="../core-resizable/core-resizable.html">
-
 <link rel="stylesheet" href="core-collapse.css" shim-shadowdom>
 
 <polymer-element name="core-collapse" attributes="target horizontal opened duration fixedSize allowOverflow">
@@ -58,23 +56,23 @@ and instead put a div inside and style that.
 </template>
 <script>
 
-  Polymer('core-collapse', Polymer.mixin({
+  Polymer('core-collapse', {
 
     /**
      * Fired when the `core-collapse`'s `opened` property changes.
-     *
+     * 
      * @event core-collapse-open
      */
 
     /**
      * Fired when the target element has been resized as a result of the opened
      * state changing.
-     *
+     * 
      * @event core-resize
      */
 
     /**
-     * The target element that will be opened when the `core-collapse` is
+     * The target element that will be opened when the `core-collapse` is 
      * opened. If unspecified, the `core-collapse` itself is the target.
      *
      * @attribute target
@@ -112,7 +110,7 @@ and instead put a div inside and style that.
 
     /**
      * If true, the size of the target element is fixed and is set
-     * on the element.  Otherwise it will try to
+     * on the element.  Otherwise it will try to 
      * use auto to determine the natural size to use
      * for collapsing/expanding.
      *
@@ -121,11 +119,11 @@ and instead put a div inside and style that.
      * @default false
      */
     fixedSize: false,
-
+    
     /**
      * By default the collapsible element is set to overflow hidden. This helps
      * avoid element bleeding outside the region and provides consistent overflow
-     * style across opened and closed states. Set this property to true to allow
+     * style across opened and closed states. Set this property to true to allow 
      * the collapsible element to overflow when it's opened.
      *
      * @attribute allowOverflow
@@ -137,7 +135,7 @@ and instead put a div inside and style that.
     created: function() {
       this.transitionEndListener = this.transitionEnd.bind(this);
     },
-
+    
     ready: function() {
       this.target = this.target || this;
     },
@@ -148,15 +146,10 @@ and instead put a div inside and style that.
       });
     },
 
-    attached: function() {
-      this.resizerAttachedHandler();
-    },
-
     detached: function() {
       if (this.target) {
         this.removeListeners(this.target);
       }
-      this.resizableDetachedHandler();
     },
 
     targetChanged: function(old) {
@@ -218,14 +211,13 @@ and instead put a div inside and style that.
       this.toggleOpenedStyle(this.opened);
       this.toggleClosedClass(!this.opened);
       this.asyncFire('core-resize', null, this.target);
-      this.notifyResize();
     },
 
     toggleClosedClass: function(closed) {
       this.hasClosedClass = closed;
       this.target.classList.toggle('core-collapse-closed', closed);
     },
-
+    
     toggleOpenedStyle: function(opened) {
       this.target.style.overflow = this.allowOverflow && opened ? '' : 'hidden';
     },
@@ -247,11 +239,10 @@ and instead put a div inside and style that.
         return;
       }
       if (!this.isTargetReady) {
-        this.targetChanged();
+        this.targetChanged(); 
       }
       this.horizontalChanged();
       this[this.opened ? 'show' : 'hide']();
-      this.notifyResize();
     },
 
     calcSize: function() {
@@ -301,7 +292,7 @@ and instead put a div inside and style that.
       });
     }
 
-  }, Polymer.CoreResizer));
+  });
 
 </script>
 </polymer-element>

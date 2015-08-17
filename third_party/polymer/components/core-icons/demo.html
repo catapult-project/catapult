@@ -81,14 +81,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template is="auto-binding">
     <template repeat="{{iconset in $.meta.metaArray}}">
       <h2>{{iconset.id}}</h2>
-      <template if="{{iconset.id === 'icons'}}">
-        <h5>The Default Set</h5>
-        <small>Specified as &lt;core-icon icon="name"&gt;&lt;/core-icon&gt;</small>
-      </template>
-      <template if="{{iconset.id !== 'icons'}}">
-        <h5>Import {{iconset.id}}-icons.html</h5>
-          <small>Specified as &lt;core-icon icon="{{iconset.id}}:name"&gt;&lt;/core-icon&gt;</small>
-      </template>
+      <h5>{{iconset.id === 'icons' ? 'The Default Set' : 'Import ' + iconset.id + '-icons.html'}}</h5>
       <div class="set" horizontal wrap justified layout>
         <template repeat="{{ icon in iconset.iconNames }}">
           <span class="container" vertical center layout>

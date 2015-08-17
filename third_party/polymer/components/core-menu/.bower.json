@@ -7,15 +7,15 @@
     "core-a11y-keys": "Polymer/core-a11y-keys#^0.5",
     "core-item": "Polymer/core-item#^0.5"
   },
-  "version": "0.5.6",
+  "version": "0.5.5",
   "homepage": "https://github.com/Polymer/core-menu",
-  "_release": "0.5.6",
+  "_release": "0.5.5",
   "_resolution": {
     "type": "version",
-    "tag": "0.5.6",
-    "commit": "7f6cb190cfb7d0b82210f1b376a8a8b03659c0b7"
+    "tag": "0.5.5",
+    "commit": "b887973c1f0f95b926d135dafbdf6e47dffb38b6"
   },
   "_source": "git://github.com/Polymer/core-menu.git",
-  "_target": "^0.5",
+  "_target": "0.5.5",
   "_originalSource": "Polymer/core-menu"
 }

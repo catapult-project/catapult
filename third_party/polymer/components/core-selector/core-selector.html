@@ -283,7 +283,6 @@ Fired when an item element is tapped.
        * Returns an array of all items.
        *
        * @property items
-       * @type array
        */
       get items() {
         if (!this.target) {
@@ -353,9 +352,9 @@ Fired when an item element is tapped.
       updateSelected: function() {
         this.validateSelected();
         if (this.multi) {
-          this.clearSelection(this.selected);
+          this.clearSelection(this.selected)
           this.selected && this.selected.forEach(function(s) {
-            this.setValueSelected(s, true);
+            this.setValueSelected(s, true)
           }, this);
         } else {
           this.valueToSelection(this.selected);
@@ -521,7 +520,7 @@ Fired when an item element is tapped.
        *
        * @method selectPrevious
        * @param {boolean} wrapped if true and it is already at the first item,
-       * wrap to the end
+       *                  wrap to the end
        * @returns the previous item or undefined if there is none
        */
       selectPrevious: function(wrapped) {
@@ -535,7 +534,7 @@ Fired when an item element is tapped.
        *
        * @method selectNext
        * @param {boolean} wrapped if true and it is already at the last item,
-       * wrap to the front
+       *                  wrap to the front
        * @returns the next item or undefined if there is none
        */
       selectNext: function(wrapped) {

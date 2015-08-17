@@ -13,20 +13,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../webcomponentsjs/webcomponents.js"></script>
   <link rel="import" href="../core-icons/core-icons.html">
   <link rel="import" href="core-icon.html">
-
+  
   <style>
-    .box {
-      display: block;
-      position: relative;
-      -webkit-box-sizing: border-box;
-      -ms-box-sizing: border-box;
-      box-sizing: border-box;
-      margin: 1em 0.5em;
-      padding: 1em;
-      background-color: white;
-      -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
-      box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.1);
-      border-radius: 5px 5px 5px 5px;
+    segment {
       min-width: 200px;
     }
 
@@ -41,9 +30,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <template is="auto-binding">
   <div wrap horizontal layout>
     <template repeat="{{icon in $.meta.metaData.icons.iconNames}}">
-      <div class="box">
-        <core-icon icon="{{icon}}"></core-icon> {{icon}}
-      </div>
+      <segment><core-icon icon="{{icon}}"></core-icon> {{icon}}</segment>
     </template>
   </div>
   <core-iconset id="meta"></core-iconset>
