@@ -18,6 +18,7 @@ THIRD_PARTY_LIBRARIES = [
     'mapreduce',
     'mock',
     'oauth2client',
+    'pipeline',
     'six',
     'uritemplate',
     'webtest',
