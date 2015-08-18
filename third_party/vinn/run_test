@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 import os
 import unittest
-from vinn import d8_runner_unittest
 
 if __name__ == '__main__':
   suite = unittest.TestSuite()
