@@ -11,6 +11,48 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Statistics = tr.b.Statistics;
 
+  /**
+   * Lloyd relaxation in 1D.
+   *
+   * Keeps the position of the first and last sample.
+   **/
+  function relax(samples, opt_iterations) {
+    opt_iterations = opt_iterations || 10;
+    for (var i = 0; i < opt_iterations; i++) {
+      var voronoi_boundaries = [];
+      for (var j = 1; j < samples.length; j++)
+        voronoi_boundaries.push((samples[j] + samples[j - 1]) * 0.5)
+
+      var relaxed_samples = []
+      relaxed_samples.push(samples[0]);
+      for (var j = 1; j < samples.length - 1; j++) {
+        relaxed_samples.push(
+            (voronoi_boundaries[j-1] + voronoi_boundaries[j]) * 0.5);
+      }
+      relaxed_samples.push(samples[samples.length - 1]);
+      samples = relaxed_samples;
+    }
+    return samples;
+  }
+
+  function createRandomSamples(num_samples) {
+    var samples = [];
+    var position = 0.0;
+    samples.push(position)
+    for (var i = 1; i < num_samples; i++) {
+      position += Math.random();
+      samples.push(position);
+    };
+    return samples
+  }
+
+  test('divideIfPossibleOrZero', function() {
+    assert.equal(Statistics.divideIfPossibleOrZero(1, 2), 0.5);
+    assert.equal(Statistics.divideIfPossibleOrZero(0, 2), 0);
+    assert.equal(Statistics.divideIfPossibleOrZero(1, 0), 0);
+    assert.equal(Statistics.divideIfPossibleOrZero(0, 0), 0);
+  });
+
   test('sumBasic', function() {
     assert.equal(Statistics.sum([1, 2, 3]), 6);
   });
@@ -109,6 +151,163 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
     assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
     assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
+  });
+
+  test('normalizeSamples', function() {
+    var samples = [];
+    var results = Statistics.normalizeSamples(samples);
+    assert.deepEqual(results.normalized_samples, []);
+    assert.deepEqual(results.scale, 1.0);
+
+    samples = [0.0, 0.0];
+    results = Statistics.normalizeSamples(samples);
+    assert.deepEqual(results.normalized_samples, [0.5, 0.5]);
+    assert.deepEqual(results.scale, 1.0);
+
+    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0];
+    results = Statistics.normalizeSamples(samples);
+    assert.deepEqual(results.normalized_samples,
+      [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0]);
+    assert.deepEqual(results.scale, 0.75);
+
+    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0];
+    results = Statistics.normalizeSamples(samples);
+    assert.deepEqual(results.normalized_samples, samples);
+    assert.deepEqual(results.scale, 1.0);
+  });
+
+  /**
+   *Tests NormalizeSamples and Discrepancy with random samples.
+   *
+   *  Generates 10 sets of 10 random samples, computes the discrepancy,
+   *  relaxes the samples using Llloyd's algorithm in 1D, and computes the
+   *  discrepancy of the relaxed samples. Discrepancy of the relaxed samples
+   *  must be less than or equal to the discrepancy of the original samples.
+   **/
+  test('discrepancy_Random', function() {
+    for (var i = 0; i < 10; i++) {
+      var samples = createRandomSamples(10);
+      var samples = Statistics.normalizeSamples(samples).normalized_samples;
+      var d = Statistics.discrepancy(samples);
+      var relaxed_samples = relax(samples);
+      var d_relaxed = Statistics.discrepancy(relaxed_samples);
+      assert.isBelow(d_relaxed, d);
+    }
+  });
+
+
+  /* Computes discrepancy for sample sets with known statistics. */
+  test('discrepancy_Analytic', function() {
+    var samples = [];
+    var d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.0);
+
+    samples = [0.5];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.5);
+
+    samples = [0.0, 1.0];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 1.0);
+
+    samples = [0.5, 0.5, 0.5];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 1.0);
+
+    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.25);
+
+    samples = [1.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.5);
+
+    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.4);
+
+    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0];
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.5);
+
+    samples = Statistics.normalizeSamples(samples).normalized_samples;
+    d = Statistics.discrepancy(samples);
+    assert.equal(d, 0.25);
+  });
+
+  test('timestampsDiscrepancy', function() {
+    var time_stamps = [];
+    var d_abs = Statistics.timestampsDiscrepancy(time_stamps, true);
+    assert.equal(d_abs, 0.0);
+
+    time_stamps = [4];
+    d_abs = Statistics.timestampsDiscrepancy(time_stamps, true);
+    assert.equal(d_abs, 0.5);
+
+    var time_stamps_a = [0, 1, 2, 3, 5, 6];
+    var time_stamps_b = [0, 1, 2, 3, 5, 7];
+    var time_stamps_c = [0, 2, 3, 4];
+    var time_stamps_d = [0, 2, 3, 4, 5];
+
+
+    var d_abs_a = Statistics.timestampsDiscrepancy(time_stamps_a, true);
+    var d_abs_b = Statistics.timestampsDiscrepancy(time_stamps_b, true);
+    var d_abs_c = Statistics.timestampsDiscrepancy(time_stamps_c, true);
+    var d_abs_d = Statistics.timestampsDiscrepancy(time_stamps_d, true);
+    var d_rel_a = Statistics.timestampsDiscrepancy(time_stamps_a, false);
+    var d_rel_b = Statistics.timestampsDiscrepancy(time_stamps_b, false);
+    var d_rel_c = Statistics.timestampsDiscrepancy(time_stamps_c, false);
+    var d_rel_d = Statistics.timestampsDiscrepancy(time_stamps_d, false);
+
+
+    assert.isBelow(d_abs_a, d_abs_b);
+    assert.isBelow(d_rel_a, d_rel_b);
+    assert.isBelow(d_rel_d, d_rel_c);
+    assert.closeTo(d_abs_d, d_abs_c, 0.0001);
+  });
+
+  test('discrepancyMultipleRanges', function() {
+    var samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]]
+    var d_0 = Statistics.timestampsDiscrepancy(samples[0]);
+    var d_1 = Statistics.timestampsDiscrepancy(samples[1]);
+    var d_2 = Statistics.timestampsDiscrepancy(samples[2]);
+    var d = Statistics.timestampsDiscrepancy(samples);
+    assert.equal(d, Math.max(d_0, d_1, d_2));;
+  });
+
+  /**
+   * Tests approimate discrepancy implementation by comparing to exact
+   * solution.
+   **/
+  test('approximateDiscrepancy', function() {
+    for (var i = 0; i < 5; i++) {
+      var samples = createRandomSamples(10);
+      samples = Statistics.normalizeSamples(samples).normalized_samples;
+      var d = Statistics.discrepancy(samples);
+      var d_approx = Statistics.discrepancy(samples, 500);
+      assert.closeTo(d, d_approx, 0.01);
+    }
+  });
+
+  test('durationsDiscrepancy', function() {
+    var durations = [];
+    var d = Statistics.durationsDiscrepancy(durations);
+    assert.equal(d, 0.0);
+
+    durations = [4]
+    d = Statistics.durationsDiscrepancy(durations)
+    assert.equal(d, 4.0)
+
+    var durations_a = [1, 1, 1, 1, 1]
+    var durations_b = [1, 1, 2, 1, 1]
+    var durations_c = [1, 2, 1, 2, 1]
+
+    var d_a = Statistics.durationsDiscrepancy(durations_a);
+    var d_b = Statistics.durationsDiscrepancy(durations_b);
+    var d_c = Statistics.durationsDiscrepancy(durations_c);
+
+    assert.isBelow(d_a, d_b);
+    assert.isBelow(d_b, d_c);
   });
 
 });
