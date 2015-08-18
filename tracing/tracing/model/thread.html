@@ -240,6 +240,45 @@ tr.exportTo('tr.model', function() {
       return i;
     },
 
+    /*
+     * Returns an object with the CPU number used as keys,
+     * and the value of each key object is the amount of milliseconds spent
+     * running on this CPU.
+     * Additionally, stats.total contains the total time
+     * spent running on all CPUs.
+     */
+    getCpuStatsForRange: function(range) {
+      var stats = {};
+      stats.total = 0;
+
+      if (!this.timeSlices)
+        return stats;
+
+      function addStatsForSlice(threadTimeSlice) {
+        var freqRange = tr.b.Range.fromExplicitRange(threadTimeSlice.start,
+            threadTimeSlice.end);
+        var intersection = freqRange.findIntersection(range);
+
+        if (threadTimeSlice.schedulingState ==
+            tr.model.SCHEDULING_STATE.RUNNING) {
+          var cpu = threadTimeSlice.cpuOnWhichThreadWasRunning;
+          if (!(cpu.cpuNumber in stats))
+            stats[cpu.cpuNumber] = 0;
+
+          stats[cpu.cpuNumber] += intersection.duration;
+          stats.total += intersection.duration;
+        }
+      }
+
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
+                                            function(x) { return x.start; },
+                                            function(x) { return x.end; },
+                                            range.min,
+                                            range.max,
+                                            addStatsForSlice);
+      return stats;
+    },
+
     getSchedulingStatsForRange: function(start, end) {
       var stats = {};
 

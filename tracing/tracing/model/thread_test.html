@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -134,6 +135,48 @@ tr.b.unittest.testSuite(function() {
     expected[SCHEDULING_STATE.RUNNABLE] = 5;
     expected[SCHEDULING_STATE.SLEEPING] = 10;
     assert.deepEqual(stats, expected);
+  });
+
+  test('getCpuStatsForRange', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var cpu0 = model.kernel.getOrCreateCpu(0);
+      var cpu1 = model.kernel.getOrCreateCpu(1);
+      var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      thread.timeSlices = [
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 3, cpu0),
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 8, 2, cpu1),
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 20, 5, cpu1)
+      ];
+      var range = tr.b.Range.fromExplicitRange(1, 22);
+      var stats = thread.getCpuStatsForRange(range);
+      assert.deepEqual(stats, {
+        0: 2,
+        1: 4,
+        total: 6
+      });
+    });
+  });
+
+  test('getCpuStatsForRange_excludesNotRunningThreads', function() {
+    var model = tr.c.test_utils.newModel(function(model) {
+      var cpu0 = model.kernel.getOrCreateCpu(0);
+      var cpu1 = model.kernel.getOrCreateCpu(1);
+      var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      thread.timeSlices = [
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 8, cpu0),
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNABLE, 8, 3),
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 11, 4, cpu1),
+          newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 15, 10),
+          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 25, 10, cpu1)
+      ];
+      var range = tr.b.Range.fromExplicitRange(1, 26);
+      var stats = thread.getCpuStatsForRange(range);
+      assert.deepEqual(stats, {
+        0: 7,
+        1: 5,
+        total: 12
+      });
+    });
   });
 });
 </script>

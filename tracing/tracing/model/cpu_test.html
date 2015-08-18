@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -174,6 +175,26 @@ tr.b.unittest.testSuite(function() {
     assert.equal(cpu.slices[4].start, 60);
     assert.equal(cpu.slices[4].duration, 10);
     assert.equal(Object.keys(cpu.slices[4].args).length, 0);
+  });
+
+  test('getFrequencyStats', function()  {
+    var m = new tr.Model();
+    var cpu = m.kernel.getOrCreateCpu(1);
+    var powerCounter = cpu.getOrCreateCounter('', 'Clock Frequency');
+    var series = powerCounter.addSeries(new tr.model.CounterSeries('state',
+        tr.ui.b.getColorIdForGeneralPurposeString('test')));
+
+    series.addCounterSample(0, 100000);
+    series.addCounterSample(20, 300000);
+    series.addCounterSample(30, 100000);
+    series.addCounterSample(80, 500000);
+    series.addCounterSample(100, 300000);
+
+    var range = tr.b.Range.fromExplicitRange(10, 90);
+    var stats = cpu.getFreqStatsForRange(range);
+    assert.equal(stats[100000], 60);
+    assert.equal(stats[300000], 10);
+    assert.equal(stats[500000], 10);
   });
 });
 </script>

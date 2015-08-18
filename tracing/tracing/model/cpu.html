@@ -85,6 +85,17 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
+     * @return {Counter} the counter on this CPU with the given category/name
+     * combination, or undefined if it doesn't exist.
+     */
+    getCounter: function(cat, name) {
+      var id = cat + '.' + name;
+      if (!this.counters[id])
+        return undefined;
+      return this.counters[id];
+    },
+
+    /**
      * Shifts all the timestamps inside this CPU forward by the amount
      * specified.
      */
@@ -193,6 +204,50 @@ tr.exportTo('tr.model', function() {
       this.lastActiveThread_ = new_thread_id;
       this.lastActiveName_ = new_thread_name;
       this.lastActiveArgs_ = new_thread_args;
+    },
+
+    /**
+     * Returns the frequency statistics for this CPU;
+     * the returned object contains the frequencies as keys,
+     * and the duration at this frequency in milliseconds as the value,
+     * for the range that was specified.
+     */
+    getFreqStatsForRange: function(range) {
+      var stats = {};
+
+      function addStatsForFreq(freqSample, index) {
+        // Counters don't have an explicit end or duration;
+        // calculate the end by looking at the starting point
+        // of the next value in the series, or if that doesn't
+        // exist, assume this frequency is held until the end.
+        var freqEnd = (index < freqSample.series_.length - 1) ?
+            freqSample.series_.samples_[index + 1].timestamp : range.max;
+
+        var freqRange = tr.b.Range.fromExplicitRange(freqSample.timestamp,
+            freqEnd);
+        var intersection = freqRange.findIntersection(range);
+        if (!(freqSample.value in stats))
+          stats[freqSample.value] = 0;
+        stats[freqSample.value] += intersection.duration;
+      }
+
+      var freqCounter = this.getCounter('', 'Clock Frequency');
+      if (freqCounter !== undefined) {
+        var freqSeries = freqCounter.getSeries(0);
+        if (!freqSeries)
+          return;
+
+        tr.b.iterateOverIntersectingIntervals(freqSeries.samples_,
+            function(x) { return x.timestamp; },
+            function(x, index) { return index < freqSeries.length - 1 ?
+                                     freqSeries.samples_[index + 1].timestamp :
+                                     range.max; },
+            range.min,
+            range.max,
+            addStatsForFreq);
+      }
+
+      return stats;
     }
   };
 
