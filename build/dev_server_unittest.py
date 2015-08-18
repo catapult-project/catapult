@@ -18,11 +18,8 @@ class DevServerTests(unittest.TestCase):
       perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
       tracing_dev_server_config.TracingDevServerConfig(),
     ]
-    parser = argparse.ArgumentParser(description='Run development server')
-    parser.add_argument(
-      '--no-install-hooks', dest='install_hooks', action='store_false')
-    parser.add_argument('-p', '--port', default=8003, type=int)
-    self.args = parser.parse_args(args=[])
+
+    self.args = dev_server._AddCommandLineArguments(self.pds, [])
 
   def testStaticDirectoryHandling(self):
     app = dev_server.CreateApp(self.pds, self.args)

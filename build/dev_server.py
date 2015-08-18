@@ -206,13 +206,7 @@ def _AddPleaseExitMixinToServer(server):
   server.serve_forever = serve_forever
 
 
-
-def Main(argv):
-  pds = [
-      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
-      tracing_dev_server_config.TracingDevServerConfig(),
-  ]
-
+def _AddCommandLineArguments(pds, argv):
   parser = argparse.ArgumentParser(description='Run development server')
   parser.add_argument(
     '--no-install-hooks', dest='install_hooks', action='store_false')
@@ -221,6 +215,16 @@ def Main(argv):
     g = parser.add_argument_group(pd.GetName())
     pd.AddOptionstToArgParseGroup(g)
   args = parser.parse_args(args=argv[1:])
+  return args
+
+
+def Main(argv):
+  pds = [
+      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
+      tracing_dev_server_config.TracingDevServerConfig(),
+  ]
+
+  args = _AddCommandLineArguments(pds, argv)
 
   if args.install_hooks:
     install.InstallHooks()

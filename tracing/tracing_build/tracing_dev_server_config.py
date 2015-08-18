@@ -42,8 +42,9 @@ class TracingDevServerConfig(object):
   def GetRunUnitTestsUrl(self):
     return '/tracing/tests.html'
 
-  def AddOptionstToArgParseGroup(self, g):  # pylint: disable=unused-argument
-    pass
+  def AddOptionstToArgParseGroup(self, g):
+    g.add_argument('-d', '--data-dir', default=self.project.test_data_path)
+    g.add_argument('-s', '--skp-data-dir', default=self.project.skp_data_path)
 
   def GetRoutes(self, args):  # pylint: disable=unused-argument
     return [Route('/tracing/tests', TestListHandler)]
@@ -53,6 +54,6 @@ class TracingDevServerConfig(object):
 
   def GetTestDataPaths(self, args):  # pylint: disable=unused-argument
     return [
-      ('/tracing/test_data/', self.project.test_data_path),
-      ('/tracing/skp_data/', self.project.skp_data_path),
+      ('/tracing/test_data/', args.data_dir),
+      ('/tracing/skp_data/', args.skp_data_dir),
     ]
