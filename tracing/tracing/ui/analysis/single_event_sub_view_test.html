@@ -21,16 +21,14 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.test_utils.newSliceEx;
 
   function createSelection(customizeThreadCallback) {
-    var model = new Model();
-    var importOptions = new tr.ImportOptions();
-    importOptions.customizeModelCallback = function() {
-      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      customizeThreadCallback(t53, model);
-    }
-    model.importTraces([], importOptions);
+    var model = tr.c.test_utils.newModelWithEvents([], {
+      customizeModelCallback: function(model) {
+        var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+        customizeThreadCallback(t53, model);
+      }
+    });
 
     var t53 = model.processes[52].threads[53];
-
     var t53track = {};
     t53track.thread = t53;
 

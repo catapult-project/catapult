@@ -12,6 +12,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('gestureImport', function() {
     var lines = [
       '<...>-1837  [000] ...1 875292.741648: tracing_mark_write: ' +
@@ -99,7 +105,7 @@ tr.b.unittest.testSuite(function() {
       '<...>-1837  [000] ...1 875292.795231: tracing_mark_write: ' +
           'log: end: LogHardwareState'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
     assert.equal(threads.length, 1);
@@ -172,7 +178,7 @@ tr.b.unittest.testSuite(function() {
       'X-30368 [000] ...1 1819362.482053: tracing_mark_write: ' +
           'log: end: TimerLogOutputs'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
     assert.equal(threads.length, 1);
@@ -197,9 +203,7 @@ tr.b.unittest.testSuite(function() {
       'X-30368 [000] ...1 1819362.481988: tracing_mark_write: ' +
           'HandleTimer: end: IntegralGestureFilterInterpreter'
     ];
-    var io = new tr.ImportOptions();
-    io.showImportWarnings = false;
-    var m = new tr.Model(lines.join('\n'), io);
+    var m = newModel(lines.join('\n'));
 
     assert.isTrue(m.hasImportWarnings);
     assert.equal(m.importWarnings.length, 7);

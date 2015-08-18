@@ -20,18 +20,21 @@ tr.b.unittest.testSuite(function() {
   var Task = tr.b.Task;
 
   test('instantiate', function() {
-    var model = new tr.Model();
     var num_threads = 500;
-    model.importTraces([], false, false, function() {
-      var p100 = model.getOrCreateProcess(100);
-      for (var i = 0; i < num_threads; i++) {
-        var t = p100.getOrCreateThread(101 + i);
-        if (i % 2 == 0) {
-          t.sliceGroup.beginSlice('cat', 'a', 100);
-          t.sliceGroup.endSlice(110);
-        } else {
-          t.sliceGroup.beginSlice('cat', 'b', 50);
-          t.sliceGroup.endSlice(120);
+    var model = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(model) {
+        var p100 = model.getOrCreateProcess(100);
+        for (var i = 0; i < num_threads; i++) {
+          var t = p100.getOrCreateThread(101 + i);
+          if (i % 2 == 0) {
+            t.sliceGroup.beginSlice('cat', 'a', 100);
+            t.sliceGroup.endSlice(110);
+          } else {
+            t.sliceGroup.beginSlice('cat', 'b', 50);
+            t.sliceGroup.endSlice(120);
+          }
         }
       }
     });
@@ -153,7 +156,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.Model(events);
+    var model = tr.c.test_utils.newModelWithEvents([events]);
     var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
@@ -171,7 +174,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.Model(events);
+    var model = tr.c.test_utils.newModelWithEvents([events]);
     var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
@@ -188,7 +191,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = new tr.Model(events);
+    var model = tr.c.test_utils.newModelWithEvents([events]);
     var trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);

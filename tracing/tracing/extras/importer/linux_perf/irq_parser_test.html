@@ -23,7 +23,9 @@ tr.b.unittest.testSuite(function() {
       ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477246: ' +
         'softirq_exit: vec=9 [action=RCU]'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

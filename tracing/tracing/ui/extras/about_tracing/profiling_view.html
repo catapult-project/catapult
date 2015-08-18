@@ -12,6 +12,7 @@ found in the LICENSE file.
       href="/tracing/ui/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import"
       href="/tracing/ui/extras/about_tracing/xhr_based_tracing_controller_client.html">
+<link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/hotkey_controller.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
@@ -351,7 +352,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.timelineView_.viewTitle = filename;
 
       var m = new tr.Model();
-      var p = m.importTracesWithProgressDialog([data], true);
+      var i = new tr.importer.Import(m);
+      var p = i.importTracesWithProgressDialog([data]);
       p.then(
           function() {
             this.timelineView_.model = m;

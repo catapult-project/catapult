@@ -12,6 +12,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('exynosBusfreqImport', function() {
     var lines = [
       '     kworker/1:0-4177  [001] ....  2803.129806: ' +
@@ -23,7 +29,7 @@ tr.b.unittest.testSuite(function() {
       '     kworker/1:0-4177  [001] ....  2805.729039: ' +
           'exynos_busfreq_target_mif: frequency=200000'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
@@ -51,7 +57,7 @@ tr.b.unittest.testSuite(function() {
       '     kworker/0:1-25931 [000] .... 1000.000007: ' +
           'exynos_page_flip_state: pipe=0, fb=25, state=flipped'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -98,7 +104,7 @@ tr.b.unittest.testSuite(function() {
       '          <idle>-0     [000] d.h. 1000.000011: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_apply'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

@@ -46,35 +46,38 @@ tr.b.unittest.testSuite(function() {
 
 
   test('withSamples', function() {
-    var model = new tr.Model();
     var thread;
     var cpu;
-    model.importTraces([], false, false, function() {
-      cpu = model.kernel.getOrCreateCpu(1);
-      thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    var model = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(model) {
+        cpu = model.kernel.getOrCreateCpu(1);
+        thread = model.getOrCreateProcess(1).getOrCreateThread(2);
 
-      var fA = model.addStackFrame(new StackFrame(
-          undefined, 1, 'cat', 'a', 7));
-      var fAB = model.addStackFrame(new StackFrame(
-          fA, 2, 'cat', 'b', 7));
-      var fABC = model.addStackFrame(new StackFrame(
-          fAB, 3, 'cat', 'c', 7));
-      var fAD = model.addStackFrame(new StackFrame(
-          fA, 4, 'cat', 'd', 7));
+        var fA = model.addStackFrame(new StackFrame(
+            undefined, 1, 'cat', 'a', 7));
+        var fAB = model.addStackFrame(new StackFrame(
+            fA, 2, 'cat', 'b', 7));
+        var fABC = model.addStackFrame(new StackFrame(
+            fAB, 3, 'cat', 'c', 7));
+        var fAD = model.addStackFrame(new StackFrame(
+            fA, 4, 'cat', 'd', 7));
 
-      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                    10, fABC, 10));
-      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                    20, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                    30, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                    40, fAD, 10));
+        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                      10, fABC, 10));
+        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                      20, fAB, 10));
+        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                      30, fAB, 10));
+        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                      40, fAD, 10));
 
-      model.samples.push(new Sample(undefined, thread, 'page_fault',
-                                    25, fAB, 10));
-      model.samples.push(new Sample(undefined, thread, 'page_fault',
-                                    35, fAD, 10));
+        model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                      25, fAB, 10));
+        model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                      35, fAD, 10));
+      }
     });
 
     var testEl = document.createElement('div');

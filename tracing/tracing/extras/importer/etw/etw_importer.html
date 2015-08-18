@@ -52,8 +52,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.etw', function() {
-  var Importer = tr.importer.Importer;
-
   // GUID and opcode of a Thread DCStart event, as defined at the link above.
   var kThreadGuid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
   var kThreadDCStartOpcode = 3;
@@ -300,7 +298,7 @@ tr.exportTo('tr.e.importer.etw', function() {
   };
 
   EtwImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     get model() {
       return this.model_;

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/slice.html">
@@ -279,23 +280,42 @@ tr.exportTo('tr.c.test_utils', function() {
   }
 
   function newModel(customizeModelCallback) {
-    var io = new tr.ImportOptions();
-    io.customizeModelCallback = customizeModelCallback;
-    io.shiftWorldToZero = false;
-    io.pruneEmptyContainers = false;
+    return newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneEmptyContainers: false,
+      customizeModelCallback: customizeModelCallback
+    });
+  }
+
+  function newModelWithEvents(events, opts) {
+    if (!(events instanceof Array))
+      events = [events];
+
+    opts = opts || {};
+
+    var io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
-    io.auditorConstructors = [];
-    return new tr.Model([], io);
+    io.customizeModelCallback = opts.customizeModelCallback;
+    io.shiftWorldToZero = opts.shiftWorldToZero === undefined ?
+        true : opts.shiftWorldToZero;
+    io.pruneEmptyContainers = opts.pruneEmptyContainers === undefined ?
+        true : opts.pruneEmptyContainers;
+    io.auditorConstructors = opts.auditorConstructors === undefined ?
+        [] : opts.auditorConstructors;
+
+    var m = new tr.Model();
+    var i = new tr.importer.Import(m, io);
+    i.importTraces(events);
+    return m;
   }
 
   function newModelWithAuditor(customizeModelCallback, auditor) {
-    var io = new tr.ImportOptions();
-    io.customizeModelCallback = customizeModelCallback;
-    io.shiftWorldToZero = false;
-    io.pruneEmptyContainers = false;
-    io.showImportWarnings = false;
-    io.auditorConstructors = [auditor];
-    return new tr.Model([], io);
+    return newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneEmptyContainers: false,
+      customizeModelCallback: customizeModelCallback,
+      auditorConstructors: [auditor]
+    });
   }
 
   function newFakeThread() {
@@ -323,6 +343,7 @@ tr.exportTo('tr.c.test_utils', function() {
     newStackTrace: newStackTrace,
     newModel: newModel,
     newModelWithAuditor: newModelWithAuditor,
+    newModelWithEvents: newModelWithEvents,
     findSliceNamed: findSliceNamed
   };
 });

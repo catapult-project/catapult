@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/side_panel/input_latency_side_panel.html">
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
-<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/extras/side_panel/input_latency_side_panel.html">
 
 <script>
 'use strict';
@@ -120,7 +120,8 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(panel);
 
     var selectionChanged = false;
-    panel.model = new tr.Model(events);
+
+    panel.model = tr.c.test_utils.newModelWithEvents([events]);
     function listener(e) {
       selectionChanged = true;
       assert.equal(e.selection.length, 3);

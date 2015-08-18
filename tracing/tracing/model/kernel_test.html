@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/kernel.html">
 
@@ -12,16 +13,21 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('bestGuessAtCpuCountWithNoData', function() {
-    var m = new tr.Model();
-    m.importTraces([], false, false, function() {
+  function newModel(events, callback) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: callback
     });
+  }
+
+  test('bestGuessAtCpuCountWithNoData', function() {
+    var m = newModel([]);
     assert.isUndefined(m.kernel.bestGuessAtCpuCount);
   });
 
   test('bestGuessAtCpuCountWithCpuData', function() {
-    var m = new tr.Model();
-    m.importTraces([], false, false, function() {
+    var m = newModel([], function(m) {
       var c1 = m.kernel.getOrCreateCpu(1);
       var c2 = m.kernel.getOrCreateCpu(2);
     });
@@ -29,22 +35,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
-    var m = new tr.Model();
-    m.importTraces([], false, false, function() {
+    var m = newModel([], function(m) {
       m.kernel.softwareMeasuredCpuCount = 2;
     });
     assert.equal(m.kernel.bestGuessAtCpuCount, 2);
   });
 
   test('kernelStableId', function() {
-    var model = new tr.Model();
-
+    var model = newModel([]);
     assert.equal(model.kernel.stableId, 'Kernel');
   });
 
   test('kernelTimeShifting', function() {
-    var m = new tr.Model([]);
-
+    var m = newModel([]);
     var ctr1 = m.kernel.getOrCreateCounter('cat', 'ctr1');
     var series1 = new tr.model.CounterSeries('a', 0);
     series1.addCounterSample(100, 5);

@@ -20,8 +20,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
       generalModel;
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
     var events = tr.b.getSync(fileUrl);
-    generalModel = new tr.Model();
-    generalModel.importTraces([events], true);
+    generalModel = tr.c.test_utils.newModelWithEvents([events]);
     return generalModel;
   }
 

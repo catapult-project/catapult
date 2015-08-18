@@ -16,8 +16,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.ddms', function() {
-  var Importer = tr.importer.Importer;
-
   var kPid = 0;
   var kCategory = 'java';
   var kMethodLutEndMarker = '\n*end\n';
@@ -112,7 +110,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
   };
 
   DdmsImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     get model() {
       return this.model_;

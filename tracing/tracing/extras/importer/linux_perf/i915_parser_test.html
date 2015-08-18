@@ -46,7 +46,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
               'intel_gpu_freq_change: new_freq=350'
 
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var i915GemThread = undefined;

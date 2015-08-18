@@ -23,7 +23,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' kworker/1:2-7269  [001]  2784.805975: workqueue_execute_end: ' +
                  'work struct ffff88014fb0f158'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     assert.equal(m.processes['6880'].threads['6880'].sliceGroup.length, 1);

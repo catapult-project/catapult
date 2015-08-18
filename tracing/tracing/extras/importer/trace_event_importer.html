@@ -34,7 +34,6 @@ found in the LICENSE file.
  * into the provided model.
  */
 tr.exportTo('tr.e.importer', function() {
-  var Importer = tr.importer.Importer;
   var deepCopy = tr.b.deepCopy;
 
   function getEventColor(event, opt_customName) {
@@ -174,8 +173,7 @@ tr.exportTo('tr.e.importer', function() {
   };
 
   TraceEventImporter.prototype = {
-
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     extractSubtraces: function() {
       var systemEventsTmp = this.systemTraceEvents_;

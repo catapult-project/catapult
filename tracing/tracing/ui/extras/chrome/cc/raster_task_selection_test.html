@@ -4,7 +4,9 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -18,7 +20,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var m = new tr.Model(g_catLTHIEvents);
+    var m = tr.c.test_utils.newModelWithEvents([g_catLTHIEvents]);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'RasterTask';

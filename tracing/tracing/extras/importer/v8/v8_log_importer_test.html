@@ -15,11 +15,17 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var V8LogImporter = tr.e.importer.v8.V8LogImporter;
 
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('tickEventInSharedLibrary', function() {
     var lines = [
       'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
       'tick,0x99d8aae4,12158,0,0x0,5'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 1);
@@ -33,7 +39,7 @@ tr.b.unittest.testSuite(function() {
       'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
       'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
       'tick,0x5b60ce84,12158,0,0x0,5'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
@@ -46,7 +52,7 @@ tr.b.unittest.testSuite(function() {
       'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
       'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
       'tick,0x4,0xbff02f08,12158,0,0x0,5'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
@@ -58,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     var lines = [
       'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
       'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 1);
@@ -72,7 +78,7 @@ tr.b.unittest.testSuite(function() {
       'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
       'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304',
       'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 2);
@@ -94,7 +100,7 @@ tr.b.unittest.testSuite(function() {
       'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
       'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304,0x2904d6e8',
       'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 2);
@@ -127,7 +133,7 @@ tr.b.unittest.testSuite(function() {
       'tick,0x7fd7f75c,518328,0,0x81d86da8,2,0x2904d6e8',
       'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304,0x2904d6e8',
       'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
 
@@ -168,7 +174,7 @@ tr.b.unittest.testSuite(function() {
       'tick,0xb6f51d30,794049,0,0xb6f7b368,2,0x2906a914',
       'tick,0xb6f51d30,799146,0,0xb6f7b368,0,0x2906a914'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
@@ -214,7 +220,7 @@ tr.b.unittest.testSuite(function() {
 
   test('timerEventSliceCreation', function() {
     var lines = ['timer-event,"V8.External",38189483,3'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8 Timers');
     assert.isDefined(threads);
@@ -225,7 +231,7 @@ tr.b.unittest.testSuite(function() {
 
   test('processThreadCreation', function() {
     var lines = ['timer-event,"V8.External",38189483,3'];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isDefined(m);
     var p = m.processes[-32];
     assert.isDefined(p);

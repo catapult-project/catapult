@@ -20,12 +20,15 @@ tr.b.unittest.testSuite(function() {
   var newSampleNamed = tr.c.test_utils.newSampleNamed;
 
   test('instantiate_withSingleSample', function() {
-    var model = new Model();
     var t53;
-    model.importTraces([], false, false, function() {
-      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      model.samples.push(newSampleNamed(t53, 'X', 'my-category',
-                                        ['a', 'b', 'c'], 0.184));
+    var model = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(model) {
+        t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+        model.samples.push(newSampleNamed(t53, 'X', 'my-category',
+                                          ['a', 'b', 'c'], 0.184));
+      }
     });
 
     var t53track = {};

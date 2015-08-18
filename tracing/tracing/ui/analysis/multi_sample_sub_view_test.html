@@ -15,29 +15,30 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var EventSet = tr.model.EventSet;
   var newSampleNamed = tr.c.test_utils.newSampleNamed;
 
   test('instantiate_withMultipleSamples', function() {
-    var model = new Model();
     var t53;
-    model.importTraces([], false, false, function() {
-      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.02));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.04));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.06));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0.08));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.10));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['CCC'], 0.12));
-      model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.14));
+    var m = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(model) {
+        t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.02));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.04));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.06));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['BBB'], 0.08));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['AAA'], 0.10));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['CCC'], 0.12));
+        model.samples.push(newSampleNamed(t53, 'X', 'cat', ['Sleeping'], 0.14));
+      }
     });
 
     var t53track = {};
     t53track.thread = t53;
 
-    var selection = new EventSet();
+    var selection = new tr.model.EventSet();
     for (var i = 0; i < t53.samples.length; i++)
       selection.push(t53.samples[i]);
 

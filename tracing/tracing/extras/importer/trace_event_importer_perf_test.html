@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {
   var eventStrings = {};
 
   // @const
@@ -50,15 +50,19 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
   n110100.forEach(function(val) {
     timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
       var events = getEvents(TEST_FILES_PATHS[0]);
-      var m = new tr.Model();
-      m.importTraces([events], false, false);
+      var m = tr.c.test_utils.newModelWithEvents([events], {
+        shiftWorldToZero: false,
+        pruneContainers: false
+      });
     }, {iterations: val});
   });
 
   timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
     var events = getEvents(TEST_FILES_PATHS[1]);
-    var m = new tr.Model();
-    m.importTraces([events], false, false);
+    var m = tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false,
+      pruneContainers: false
+    });
   }, {iterations: 1});
 });
 </script>

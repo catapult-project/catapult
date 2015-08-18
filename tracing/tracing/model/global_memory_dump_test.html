@@ -101,10 +101,8 @@ tr.b.unittest.testSuite(function() {
 
   function createContainerDumps(processMemoryDumpCount, opt_model) {
     var model = opt_model;
-    if (model === undefined) {
+    if (model === undefined)
       model = new Model();
-      model.importOptions = new tr.ImportOptions();
-    }
 
     var gmd = new GlobalMemoryDump(model, 0);
     model.globalMemoryDumps.push(gmd);
@@ -773,7 +771,7 @@ tr.b.unittest.testSuite(function() {
    */
   function testSizesCalculation(allTreeRecipes) {
     var m = new tr.Model();
-    var io = new tr.ImportOptions();
+    var io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     m.importOptions = io;
 

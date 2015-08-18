@@ -46,7 +46,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var Importer = tr.importer.Importer;
   var ClockSyncRecord = tr.ClockSyncRecord;
 
   /**
@@ -311,7 +310,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
 
   LinuxPerfImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     get model() {
       return this.model_;

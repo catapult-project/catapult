@@ -18,8 +18,6 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tr.exportTo('tr.e.importer', function() {
-  var Importer = tr.importer.Importer;
-
   function ZipImporter(model, eventData) {
     if (eventData instanceof ArrayBuffer)
       eventData = new Uint8Array(eventData);
@@ -43,7 +41,7 @@ tr.exportTo('tr.e.importer', function() {
   };
 
   ZipImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     isTraceDataContainer: function() {
       return true;

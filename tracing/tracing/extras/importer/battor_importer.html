@@ -20,8 +20,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.battor', function() {
-  var Importer = tr.importer.Importer;
-
   /**
    * Imports linux perf events into a specified model.
    * @constructor
@@ -53,7 +51,7 @@ tr.exportTo('tr.e.importer.battor', function() {
   };
 
   BattorImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     get model() {
       return this.model_;

@@ -14,7 +14,6 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data importers.
  */
 tr.exportTo('tr.importer', function() {
-  var Importer = tr.importer.Importer;
   /**
    * Importer for empty strings and arrays.
    * @constructor
@@ -33,10 +32,10 @@ tr.exportTo('tr.importer', function() {
   };
 
   EmptyImporter.prototype = {
-    __proto__: Importer.prototype
+    __proto__: tr.importer.Importer.prototype
   };
 
-  Importer.register(EmptyImporter);
+  tr.importer.Importer.register(EmptyImporter);
 
   return {
     EmptyImporter: EmptyImporter

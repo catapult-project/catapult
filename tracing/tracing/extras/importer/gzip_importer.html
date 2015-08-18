@@ -17,8 +17,6 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tr.exportTo('tr.e.importer', function() {
-  var Importer = tr.importer.Importer;
-
   var GZIP_MEMBER_HEADER_ID_SIZE = 3;
 
   var GZIP_HEADER_ID1 = 0x1f;
@@ -119,7 +117,7 @@ tr.exportTo('tr.e.importer', function() {
   },
 
   GzipImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     /**
      * Called by the Model to check whether the importer just encapsulates

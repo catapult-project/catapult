@@ -11,7 +11,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('maliDDKImport', function() {
     var linesNoThread = [
       // Row 1 open
@@ -180,10 +186,8 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
           'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
     ];
-    var traceNoThread =
-        new tr.Model(linesNoThread.join('\n'), false);
-    var traceWithThread =
-        new tr.Model(linesWithThread.join('\n'), false);
+    var traceNoThread = newModel(linesNoThread.join('\n'));
+    var traceWithThread = newModel(linesWithThread.join('\n'));
     assert.isFalse(traceNoThread.hasImportWarnings);
     assert.isFalse(traceWithThread.hasImportWarnings);
 
@@ -207,7 +211,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_set_clock: ' +
                      'frequency=400'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -225,7 +229,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '    kworker/u:0-5     [000] ....  1183.840009: mali_dvfs_set_voltage: ' +
                      'voltage=1100000'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -243,7 +247,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_event: ' +
                      'utilization=37'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
@@ -463,7 +467,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:0-5     [000] ....    79.046851: ' +
                      'mali_hwc_VCACHE_MISS: val=70'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

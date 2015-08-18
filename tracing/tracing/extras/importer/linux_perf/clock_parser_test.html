@@ -45,7 +45,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'fout_apll state=500000000 cpu_id=0'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();

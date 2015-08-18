@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/full_config.html">
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/extras/full_config.html">
 
 <script>
 'use strict';
@@ -42,8 +43,7 @@ tr.b.unittest.testSuite(function() {
         return;
       var fileUrl = '/test_data/counter_tracks.html';
       var events = getSynchronous(fileUrl);
-      model = new tr.Model();
-      model.importTraces([events], true);
+      model = tr.c.test_utils.newModelWithEvents([events]);
     }
 
     function setUp() {

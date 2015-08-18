@@ -11,7 +11,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('memreclaimImport', function() {
     var lines = [
       ' surfaceflinger-1155  ( 1155) [001] ...1 12839.528756: mm_vmscan_direct_reclaim_begin: order=0 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_ZERO|0x2', // @suppress longLineCheck
@@ -20,7 +26,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12838.529770: mm_vmscan_kswapd_wake: nid=0 order=2', // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12840.545737: mm_vmscan_kswapd_sleep: nid=0'// @suppress longLineCheck
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.equal(m.processes['1155'].threads['1155'].sliceGroup.length, 1);
@@ -47,7 +53,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'touch_fusion-88    (   88) [000] ...1  1736.530857: mm_vmscan_direct_reclaim_end: nr_reclaimed=39'// @suppress longLineCheck
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -145,7 +151,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1740.876601: mm_vmscan_kswapd_sleep: nid=0'// @suppress longLineCheck
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

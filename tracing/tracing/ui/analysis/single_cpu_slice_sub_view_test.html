@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -25,7 +26,9 @@ tr.b.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tr.Model(lines.join('\n'), false);
+    return tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
   }
 
   test('cpuSliceView_withCpuSliceOnExistingThread', function() {

@@ -12,10 +12,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() { // @suppress longLineCheck
+tr.b.unittest.testSuite(function() {
   var LinuxPerfImporter = tr.e.importer.linux_perf.LinuxPerfImporter;
   var LinuxPerfImporterTestExports =
       tr.e.importer.linux_perf._LinuxPerfImporterTestExports;
+
+  function newModel(events) {
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: false
+    });
+  }
+
   test('lineParserWithLegacyFmt', function() {
     var p = LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
     var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
@@ -129,7 +136,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '#              | |       |          |         |',
       'sh-26121 [000] ...1 107464.0: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var battorSyncs = m.getClockSyncRecordsNamed('battor');
@@ -235,7 +242,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -261,7 +268,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -276,7 +283,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var lines = [
       ''
     ];
-    var m = new tr.Model(lines.join('\n'));
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -284,7 +291,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var p = tr.b.getAsync(
         '/test_data/trivial_systrace.html');
     return p.then(function(data) {
-      var m = new tr.Model(data, false);
+      var m = newModel(data);
       assert.isFalse(m.hasImportWarnings);
 
       assert.isDefined(m.processes[124]);
@@ -326,7 +333,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '<\/html>'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.isDefined(m.processes[124]);
@@ -357,7 +364,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
           'trace_event_clock_sync: parent_ts=0.1'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -384,7 +391,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
           'trace_event_clock_sync: parent_ts=0'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
@@ -400,7 +407,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'systrace.sh-8182  [002] ...1 2068991.686415: tracing_mark_write: E\\n\\'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.processes[9304].threads[8182].sliceGroup;
@@ -426,7 +433,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
           'next_comm=dbus-daemon next_pid=510 next_prio=120'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.equal(tr.b.dictionaryLength(m.kernel.cpus), 2);

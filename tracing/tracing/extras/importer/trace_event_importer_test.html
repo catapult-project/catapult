@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/units/time.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/importer/import.html">
 
 <script>
 'use strict';
@@ -16,14 +17,10 @@ tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.test_utils.findSliceNamed;
 
   var makeModel = function(events, opt_shift, opt_prune) {
-    var shift = opt_shift === undefined ? true : opt_shift;
-    var prune = opt_prune === undefined ? true : opt_prune;
-
-    var io = new tr.ImportOptions();
-    io.showImportWarnings = false;
-    io.shiftWorldToZero = shift;
-    io.pruneEmptyContainers = prune;
-    return new tr.Model(events, io);
+    return tr.c.test_utils.newModelWithEvents([events], {
+      shiftWorldToZero: opt_shift,
+      pruneEmptyContainers: opt_prune
+    });
   }
 
   test('canImportEmpty', function() {
@@ -1935,8 +1932,7 @@ tr.b.unittest.testSuite(function() {
       {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
     ];
-    var m = makeModel();
-    m.importTraces([events], false);
+    var m = makeModel(events, false);
     assert.equal(m.bounds.min, 10);
     assert.equal(m.bounds.max, 50);
     assert.isFalse(m.hasImportWarnings);

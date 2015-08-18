@@ -45,7 +45,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'ContactsProvide-1184 [000] ...1 66.613733: f2fs_write_end: ' +
           'dev = (253,2), ino = 3342, pos = 0, len = 75, copied = 75'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var blockThread = undefined;

@@ -26,7 +26,9 @@ tr.b.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=Android.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    return new tr.Model(lines.join('\n'), false);
+    return tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
   }
 
   test('instantiate', function() {

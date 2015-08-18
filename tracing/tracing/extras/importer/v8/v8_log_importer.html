@@ -20,8 +20,6 @@ found in the LICENSE file.
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 tr.exportTo('tr.e.importer.v8', function() {
-  var Importer = tr.importer.Importer;
-
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
     this.model_ = model;
@@ -75,7 +73,7 @@ tr.exportTo('tr.e.importer.v8', function() {
 
   V8LogImporter.prototype = {
 
-    __proto__: Importer.prototype,
+    __proto__: tr.importer.Importer.prototype,
 
     processTimerEvent_: function(name, start, length) {
       var args = TimerEventDefaultArgs[name];

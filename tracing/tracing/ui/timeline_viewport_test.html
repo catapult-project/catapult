@@ -56,7 +56,6 @@ tr.b.unittest.testSuite(function() {
 
     viewport.rebuildEventToTrackMap();
 
-
     var sel = new tr.model.EventSet();
     sel.push(t1.sliceGroup.slices[0]);
 
@@ -66,15 +65,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('locationObj', function() {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(123);
-    var thread = process.getOrCreateThread(456);
+    var process;
+    var thread;
+    var model = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(model) {
+        process = model.getOrCreateProcess(123);
+        thread = process.getOrCreateThread(456);
 
-    model.importTraces([], false, false, function() {
-      thread.asyncSliceGroup.push(
-        tr.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
-      thread.asyncSliceGroup.push(
-        tr.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+        thread.asyncSliceGroup.push(
+          tr.c.test_utils.newAsyncSliceNamed('a', 80, 20, thread, thread));
+        thread.asyncSliceGroup.push(
+          tr.c.test_utils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+      }
     });
 
     var timeline = document.createElement('tr-ui-timeline-track-view');

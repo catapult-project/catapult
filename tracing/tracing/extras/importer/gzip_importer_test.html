@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     var gzip_data = atob(gzip_data_base64);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = new tr.Model(gzip_data);
+    var model = tr.c.test_utils.newModelWithEvents(gzip_data);
     var threads = model.getAllThreads();
     assert.equal(threads.length, 1);
 

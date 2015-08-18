@@ -165,6 +165,7 @@
       'tracing/extras/tquery/tquery.html',
       'tracing/extras/vsync/vsync_auditor.html',
       'tracing/importer/empty_importer.html',
+      'tracing/importer/import.html',
       'tracing/importer/importer.html',
       'tracing/importer/simple_line_reader.html',
       'tracing/model/alert.html',

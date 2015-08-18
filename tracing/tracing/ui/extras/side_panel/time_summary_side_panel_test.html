@@ -17,26 +17,29 @@ tr.b.unittest.testSuite(function() {
 
   function createModel(opt_options) {
     var options = opt_options || {};
-    var m = new tr.Model();
-    m.importTraces([], false, false, function() {
-      if (options.provideSoftwareMeasuredCpuCount)
-        m.kernel.softwareMeasuredCpuCount = 2;
+    var m = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(m) {
+        if (options.provideSoftwareMeasuredCpuCount)
+          m.kernel.softwareMeasuredCpuCount = 2;
 
-      var browserProcess = m.getOrCreateProcess(1);
-      var browserMain = browserProcess.getOrCreateThread(2);
-      browserMain.name = 'CrBrowserMain';
-      browserMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
-      browserMain.sliceGroup.endSlice(10, 9);
-      browserMain.sliceGroup.beginSlice('cat', 'Task', 20, undefined, 10);
-      browserMain.sliceGroup.endSlice(30, 20);
+        var browserProcess = m.getOrCreateProcess(1);
+        var browserMain = browserProcess.getOrCreateThread(2);
+        browserMain.name = 'CrBrowserMain';
+        browserMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
+        browserMain.sliceGroup.endSlice(10, 9);
+        browserMain.sliceGroup.beginSlice('cat', 'Task', 20, undefined, 10);
+        browserMain.sliceGroup.endSlice(30, 20);
 
-      var rendererProcess = m.getOrCreateProcess(4);
-      var rendererMain = rendererProcess.getOrCreateThread(5);
-      rendererMain.name = 'CrRendererMain';
-      rendererMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
-      rendererMain.sliceGroup.endSlice(30, 25);
-      rendererMain.sliceGroup.beginSlice('cat', 'Task', 40, undefined, 40);
-      rendererMain.sliceGroup.endSlice(60, 50);
+        var rendererProcess = m.getOrCreateProcess(4);
+        var rendererMain = rendererProcess.getOrCreateThread(5);
+        rendererMain.name = 'CrRendererMain';
+        rendererMain.sliceGroup.beginSlice('cat', 'Task', 0, undefined, 0);
+        rendererMain.sliceGroup.endSlice(30, 25);
+        rendererMain.sliceGroup.beginSlice('cat', 'Task', 40, undefined, 40);
+        rendererMain.sliceGroup.endSlice(60, 50);
+      }
     });
     return m;
   }
@@ -137,19 +140,22 @@ tr.b.unittest.testSuite(function() {
     var ts = document.createElement('tr-ui-e-s-time-summary-side-panel');
 
     var groups = [];
-    var m = new tr.Model();
-    m.importTraces([], false, false, function() {
-      var start = 0;
-      groupData.forEach(function(groupData) {
-        var group = ts.generateResultsForGroup(m, groupData.label);
+    var m = tr.c.test_utils.newModelWithEvents([], {
+      shiftWorldToZero: false,
+      pruneContainers: false,
+      customizeModelCallback: function(m) {
+        var start = 0;
+        groupData.forEach(function(groupData) {
+          var group = ts.generateResultsForGroup(m, groupData.label);
 
-        var slice = newSliceNamed(groupData.label, start, groupData.value);
-        start += groupData.value;
-        group.allSlices.push(slice);
-        group.topLevelSlices.push(slice);
+          var slice = newSliceNamed(groupData.label, start, groupData.value);
+          start += groupData.value;
+          group.allSlices.push(slice);
+          group.topLevelSlices.push(slice);
 
-        groups.push(group);
-      });
+          groups.push(group);
+        });
+      }
     });
 
     function getValueFromGroup(d) { return d.wallTime; }

@@ -32,7 +32,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       's3c-fb-92            (     0) [000] ...1  7206.591244: sync_wait: end name=vb2 state=1' // @suppress longLineCheck
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

@@ -17,7 +17,9 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       ' chrome-2465  [000]    71.653157: drm_vblank_event: crtc=0, seq=4233',
       ' <idle>-0     [000]    71.669851: drm_vblank_event: crtc=0, seq=4234'
     ];
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();

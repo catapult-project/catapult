@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
 
-
 <script>
 'use strict';
 
@@ -49,7 +48,9 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+        shfitWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
@@ -57,9 +58,7 @@ tr.b.unittest.testSuite(function() {
 
   });
 
-
   test('binderRecursiveTest', function() {
-
     var lines = [
      'binderLibTest-10619 (10619) [001] ...1 25191.335749: binder_transaction' +
         ': transaction=489053 dest_node=489048 dest_proc=10670 dest_thread=0 ' +
@@ -95,7 +94,9 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+        shfitWorldToZero: false
+    });
     var threads = m.getAllThreads();
 
     var thread = threads[0];
@@ -115,7 +116,6 @@ tr.b.unittest.testSuite(function() {
     /* check name of slice */
     assert.equal(main_slice.title, 'binder reply');
 
-
     /* check binderLibTest */
     thread = threads[1];
     assert.equal(thread.parent.pid, 10619);
@@ -131,7 +131,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(internal_slice.inFlowEvents.length, 1);
 
     assert.equal(main_slice.title, 'binder transaction');
-
 
     /* check Binder_4 */
     thread = threads[2];
@@ -191,7 +190,9 @@ tr.b.unittest.testSuite(function() {
         ' binder_transaction_received: transaction=923419'
     ];
 
-    var m = new tr.Model(lines.join('\n'), false);
+    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+        shfitWorldToZero: false
+    });
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads(0);
