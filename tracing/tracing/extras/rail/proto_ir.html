@@ -22,8 +22,9 @@ found in the LICENSE file.
 tr.exportTo('tr.e.rail', function() {
   // This is an intermediate data format between InputLatencyAsyncSlices and
   // Response and Animation IRs.
-  function ProtoIR(irType) {
+  function ProtoIR(irType, name) {
     this.irType = irType;
+    this.names = new Set(name ? [name] : undefined);
     this.start = Infinity;
     this.end = -Infinity;
     this.associatedEvents = new tr.model.EventSet();
@@ -81,6 +82,9 @@ tr.exportTo('tr.e.rail', function() {
         return undefined;
 
       var ir = new constructor(this.start, this.end - this.start);
+      var names = [];
+      this.names.forEach(function(name) { names.push(name); });
+      ir.name = names.sort().join(',');
 
       ir.sourceEvents.addEventSet(this.associatedEvents);
 
@@ -109,6 +113,8 @@ tr.exportTo('tr.e.rail', function() {
     merge: function(other) {
       if (this.irType !== other.irType)
         console.error('Merging', this.debug(), other.debug());
+
+      other.names.forEach(function(name) { this.names.add(name); }.bind(this));
 
       // Don't use pushEvent(), which would lose special start, end.
       this.associatedEvents.addEventSet(other.associatedEvents);

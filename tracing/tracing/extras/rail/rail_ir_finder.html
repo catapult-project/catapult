@@ -119,6 +119,20 @@ tr.exportTo('tr.e.rail', function() {
   var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
   var CSS_ANIMATION_TITLE = 'Animation';
 
+  // Strings used to name IRs.
+  var LOAD_STARTUP_IR_NAME = 'Startup';
+  var LOAD_SUCCEEDED_IR_NAME = 'Succeeded';
+  var LOAD_FAILED_IR_NAME = 'Failed';
+  var KEYBOARD_IR_NAME = 'Keyboard';
+  var MOUSE_IR_NAME = 'Mouse';
+  var MOUSEWHEEL_IR_NAME = 'MouseWheel';
+  var TAP_IR_NAME = 'Tap';
+  var PINCH_IR_NAME = 'Pinch';
+  var FLING_IR_NAME = 'Fling';
+  var TOUCH_IR_NAME = 'Touch';
+  var SCROLL_IR_NAME = 'Scroll';
+  var CSS_IR_NAME = 'CSS';
+
   function RAILIRFinder(model, modelHelper) {
     this.model = model;
     this.modelHelper = modelHelper;
@@ -245,7 +259,7 @@ tr.exportTo('tr.e.rail', function() {
       var lirs = [];
       openingEvents.forEach(function(openingEvent) {
         closingEvents.forEach(function(closingEvent) {
-          // Ignore opening event thatalready have a closing event.
+          // Ignore opening event that already have a closing event.
           if (openingEvent.closingEvent)
             return;
 
@@ -289,19 +303,19 @@ tr.exportTo('tr.e.rail', function() {
       // Attach frame events to every main runner events.
       var startupLIRs = this.findLoadInteractionRecords_(mainRunnerEvents,
           frameEvents);
-      this.setIRNames_('Startup', startupLIRs);
+      this.setIRNames_(LOAD_STARTUP_IR_NAME, startupLIRs);
       lirs.push.apply(lirs, startupLIRs);
 
       // Attach frame events to every commit load events.
       var succesfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
           frameEvents);
-      this.setIRNames_('Succeeded', succesfulLIRs);
+      this.setIRNames_(LOAD_SUCCEEDED_IR_NAME, succesfulLIRs);
       lirs.push.apply(lirs, succesfulLIRs);
 
       // Attach fail load events to every start load events.
       var failedLIRs = this.findLoadInteractionRecords_(startLoadEvents,
           failLoadEvents);
-      this.setIRNames_('Failed', failedLIRs);
+      this.setIRNames_(LOAD_FAILED_IR_NAME, failedLIRs);
       lirs.push.apply(lirs, failedLIRs);
 
       return lirs;
@@ -358,7 +372,7 @@ tr.exportTo('tr.e.rail', function() {
     handleKeyboardEvents: function() {
       var protoIRs = [];
       this.getSortedInputEvents(KEYBOARD_TYPE_NAMES).forEach(function(event) {
-        var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+        var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, KEYBOARD_IR_NAME);
         pir.pushEvent(event);
         protoIRs.push(pir);
       });
@@ -370,7 +384,7 @@ tr.exportTo('tr.e.rail', function() {
       var protoIRs = [];
       var mouseEvents = this.getSortedInputEvents(MOUSE_RESPONSE_TYPE_NAMES);
       mouseEvents.forEach(function(event) {
-        var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+        var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
         pir.pushEvent(event);
         protoIRs.push(pir);
       });
@@ -402,13 +416,14 @@ tr.exportTo('tr.e.rail', function() {
           if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
             currentPIR.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+                MOUSEWHEEL_IR_NAME);
             currentPIR.pushEvent(event);
             protoIRs.push(currentPIR);
           }
           return;
         }
-        currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+        currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSEWHEEL_IR_NAME);
         currentPIR.pushEvent(event);
         protoIRs.push(currentPIR);
       });
@@ -436,7 +451,7 @@ tr.exportTo('tr.e.rail', function() {
         switch (event.typeName) {
           case INPUT_TYPE.MOUSE_DOWN:
             if (causedFrame(event)) {
-              var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
               pir.pushEvent(event);
               protoIRs.push(pir);
             } else {
@@ -467,7 +482,7 @@ tr.exportTo('tr.e.rail', function() {
                        !currentPIR.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
               // The first MouseMove after a MouseDown or after a while is a
               // Response.
-              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
               currentPIR.pushEvent(event);
               if (mouseDownEvent) {
                 currentPIR.associatedEvents.push(mouseDownEvent);
@@ -479,7 +494,7 @@ tr.exportTo('tr.e.rail', function() {
               if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
                 currentPIR.pushEvent(event);
               } else {
-                currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+                currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, MOUSE_IR_NAME);
                 currentPIR.pushEvent(event);
                 protoIRs.push(currentPIR);
               }
@@ -489,7 +504,7 @@ tr.exportTo('tr.e.rail', function() {
           case INPUT_TYPE.MOUSE_UP:
             if (!mouseDownEvent) {
               var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
-                  ProtoIR.IGNORED_TYPE);
+                  ProtoIR.IGNORED_TYPE, MOUSE_IR_NAME);
               pir.pushEvent(event);
               protoIRs.push(pir);
               break;
@@ -498,7 +513,7 @@ tr.exportTo('tr.e.rail', function() {
             if (currentPIR) {
               currentPIR.pushEvent(event);
             } else {
-              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
               if (mouseDownEvent)
                 currentPIR.associatedEvents.push(mouseDownEvent);
               currentPIR.pushEvent(event);
@@ -542,7 +557,7 @@ tr.exportTo('tr.e.rail', function() {
       this.getSortedInputEvents(TAP_TYPE_NAMES).forEach(function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.TAP_DOWN:
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
             currentPIR.pushEvent(event);
             protoIRs.push(currentPIR);
             break;
@@ -553,7 +568,7 @@ tr.exportTo('tr.e.rail', function() {
             } else {
               // Sometimes we get Tap events with no TapDown, sometimes we get
               // TapDown events. Handle both.
-              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
             }
@@ -571,7 +586,7 @@ tr.exportTo('tr.e.rail', function() {
             if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
               currentPIR.pushEvent(event);
             } else {
-              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
             }
@@ -601,7 +616,7 @@ tr.exportTo('tr.e.rail', function() {
               currentPIR.pushEvent(event);
               break;
             }
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, PINCH_IR_NAME);
             currentPIR.pushEvent(event);
             protoIRs.push(currentPIR);
             sawFirstUpdate = false;
@@ -617,7 +632,7 @@ tr.exportTo('tr.e.rail', function() {
                 ((currentPIR.irType === ProtoIR.RESPONSE_TYPE) &&
                  sawFirstUpdate) ||
                 !currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, PINCH_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
             } else {
@@ -671,7 +686,7 @@ tr.exportTo('tr.e.rail', function() {
           if (currentPIR) {
             currentPIR.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
             currentPIR.pushEvent(event);
             protoIRs.push(currentPIR);
           }
@@ -684,7 +699,7 @@ tr.exportTo('tr.e.rail', function() {
               console.error('Another FlingStart? File a bug with this trace!');
               currentPIR.pushEvent(event);
             } else {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
               currentPIR.pushEvent(event);
               // Set end to an invalid value so that it can be noticed and fixed
               // later.
@@ -747,7 +762,7 @@ tr.exportTo('tr.e.rail', function() {
               // are on the screen, so this is probably a pinch gesture.
               currentPIR.pushEvent(event);
             } else {
-              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TOUCH_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
               sawFirstMove = false;
@@ -756,7 +771,7 @@ tr.exportTo('tr.e.rail', function() {
 
           case INPUT_TYPE.TOUCH_MOVE:
             if (!currentPIR) {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
               break;
@@ -771,7 +786,7 @@ tr.exportTo('tr.e.rail', function() {
               // If there's already a touchmove in the currentPIR or it's not
               // near event, then finish it and start a new animation.
               var prevEnd = currentPIR.end;
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
               currentPIR.pushEvent(event);
               // It's possible for there to be a gap between TouchMoves, but
               // that doesn't mean that there should be an Idle IR there.
@@ -819,7 +834,7 @@ tr.exportTo('tr.e.rail', function() {
           case INPUT_TYPE.SCROLL_BEGIN:
             // Always begin a new PIR even if there already is one, unlike
             // PinchBegin.
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, SCROLL_IR_NAME);
             currentPIR.pushEvent(event);
             protoIRs.push(currentPIR);
             sawFirstUpdate = false;
@@ -833,13 +848,14 @@ tr.exportTo('tr.e.rail', function() {
                 currentPIR.pushEvent(event);
                 sawFirstUpdate = true;
               } else {
-                currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+                currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+                    SCROLL_IR_NAME);
                 currentPIR.pushEvent(event);
                 protoIRs.push(currentPIR);
               }
             } else {
               // ScrollUpdate without ScrollBegin.
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, SCROLL_IR_NAME);
               currentPIR.pushEvent(event);
               protoIRs.push(currentPIR);
             }
@@ -878,7 +894,7 @@ tr.exportTo('tr.e.rail', function() {
       });
 
       function merge(ranges) {
-        var protoIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+        var protoIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, CSS_IR_NAME);
         ranges.forEach(function(range) {
           protoIR.pushEvent(range.event);
         });
