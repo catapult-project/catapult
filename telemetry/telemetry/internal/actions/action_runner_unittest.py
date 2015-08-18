@@ -4,18 +4,15 @@
 import unittest
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.page import action_runner as action_runner_module
 from telemetry.testing import tab_test_case
+from telemetry.third_party import mock
 from telemetry.timeline import model
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
 from telemetry.web_perf import timeline_interaction_record as tir_module
-
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock
 
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):

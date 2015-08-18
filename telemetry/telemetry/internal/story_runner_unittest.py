@@ -20,16 +20,13 @@ from telemetry.page import page_test
 from telemetry import story as story_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
+from telemetry.third_party import mock
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
-
-# Import Python mock module (https://pypi.python.org/pypi/mock)
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock  # pylint: disable=import-error
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call

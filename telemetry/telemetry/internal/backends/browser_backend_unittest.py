@@ -5,11 +5,7 @@ import unittest
 
 from telemetry.internal.backends import browser_backend
 from telemetry.testing import options_for_unittests
-
-
-from telemetry.core import util
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock
+from telemetry.third_party import mock
 
 
 class BrowserBackendLogsUploadingUnittest(unittest.TestCase):

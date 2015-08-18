@@ -6,13 +6,11 @@ import unittest
 
 from telemetry import benchmark as benchmark_module
 from telemetry import page as page_module
-from telemetry.core import util
 from telemetry.page import page_test
 from telemetry import story as story_module
 from telemetry.testing import fakes
+from telemetry.third_party import mock
 
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=import-error
 
 # pylint: disable=abstract-method
 class DummyPageTest(page_test.PageTest):

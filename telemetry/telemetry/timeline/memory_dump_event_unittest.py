@@ -4,11 +4,8 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry.timeline import memory_dump_event
-
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock
+from telemetry.third_party import mock
 
 
 def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,

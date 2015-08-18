@@ -6,5 +6,8 @@ from telemetry.core import util
 # To expose modules from third_party through telemetry.third_party, follow the
 # example below.
 
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=unused-import
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
+import mock  # pylint: disable=unused-import
+
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
+import png  # pylint: disable=unused-import,import-error

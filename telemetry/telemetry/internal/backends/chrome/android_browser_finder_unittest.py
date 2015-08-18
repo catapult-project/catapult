@@ -4,13 +4,10 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.testing import system_stub
-
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock
+from telemetry.third_party import mock
 
 
 class FakeAndroidPlatform(object):

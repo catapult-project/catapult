@@ -6,11 +6,8 @@ import unittest
 
 from telemetry import benchmark
 from telemetry import benchmark_runner
-from telemetry.core import util
 from telemetry.testing import stream
-
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'mock')
-import mock # pylint: disable=F0401
+from telemetry.third_party import mock
 
 
 class BenchmarkFoo(benchmark.Benchmark):
