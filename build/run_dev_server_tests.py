@@ -245,7 +245,12 @@ def Main(argv):
     chrome_process = subprocess.Popen(
         chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     server_out, server_err = server_process.communicate()
-    chrome_process.kill()
+    if sys.platform == 'win32':
+      # Use taskkill on Windows to make sure Chrome and all subprocesses are
+      # killed.
+      subprocess.call(['taskkill', '/F', '/T', '/PID', str(chrome_process.pid)])
+    else:
+      chrome_process.kill()
     if server_process.returncode != 0:
       logging.error('Tests failed!')
       logging.error('Server stderr:')
@@ -260,8 +265,12 @@ def Main(argv):
     if sys.platform == 'win32':
       time.sleep(5)
     if tmpdir:
-      shutil.rmtree(tmpdir)
-    shutil.rmtree(user_data_dir)
+      try:
+        shutil.rmtree(tmpdir)
+        shutil.rmtree(user_data_dir)
+      except OSError as e:
+        logging.error('Error cleaning up temp dirs %s and %s: %s' % (
+            tmpdir, user_data_dir, e))
     if xvfb_process:
       xvfb_process.kill()
 
