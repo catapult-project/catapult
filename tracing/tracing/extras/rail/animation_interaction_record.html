@@ -36,6 +36,9 @@ tr.exportTo('tr.e.rail', function() {
 
   // If the number of long frames is greater than this times the total number of
   // frames in the animation, then long-frame-pain is maximized.
+  // TODO(benjhayden): Modify LONG_FRAME_PAIN_PEAK_FRACTION once we've observed
+  //   the actual distribution of frames per animation and long-frames per
+  //   animation in a given corpus of traces.
   var LONG_FRAME_PAIN_PEAK_FRACTION = 0.1;
 
   // This is the lowest reasonable value for the number of long frames that
