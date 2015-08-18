@@ -160,6 +160,21 @@ class ParseTests(unittest.TestCase):
     parser = parse_html_deps.HTMLModuleParser()
     self.assertRaises(lambda: parser.Parse(html))
 
+  def test_nested_templates(self):
+    html = """<template>
+                  <template>
+                    <div id="foo"></div>
+                  </template>
+                </template>"""
+    parser = parse_html_deps.HTMLModuleParser()
+    res = parser.Parse(html)
+    html = res.html_contents_without_links_and_script
+    self.assertEquals(html, """<template>
+<template>
+<div id="foo"></div>
+</template>
+</template>""")
+
   def test_html_contents_basic(self):
     html = """<a b="c">d</a>"""
     parser = parse_html_deps.HTMLModuleParser()
