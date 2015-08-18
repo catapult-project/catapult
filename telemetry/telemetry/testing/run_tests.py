@@ -1,6 +1,7 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import sys
 
 from telemetry.core import util
@@ -123,14 +124,15 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
     runner.args.test_type = args.test_type
-    # Always print out test's timing info.
-    runner.args.timing = True
     runner.args.top_level_dir = args.top_level_dir
-    runner.args.verbose = args.verbosity
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
 
     runner.args.path.append(util.GetUnittestDataDir())
+
+    # Always print out these info for the ease of debugging.
+    runner.args.timing = True
+    runner.args.verbose = 2
 
     runner.classifier = GetClassifier(args, possible_browser)
     runner.context = args
@@ -178,7 +180,12 @@ def _SetUpProcess(child, context): # pylint: disable=W0613
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
     binary_manager.InitDependencyManager(context.client_config)
-
+  # We need to reset the handlers in case some other parts of telemetry already
+  # set it to make this work.
+  logging.getLogger().handlers = []
+  logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s:%(filename)s:%(funcName)s:%(message)s')
   args = context
   if args.device and args.device == 'android':
     android_devices = device_finder.GetDevicesMatchingOptions(args)
