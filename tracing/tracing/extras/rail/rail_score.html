@@ -65,7 +65,7 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   RAILScore.fromModel = function(model) {
-    var rirs = model.interaction_records.filter(function(ir) {
+    var rirs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.RAILInteractionRecord;
     });
     if (rirs.length === 0)

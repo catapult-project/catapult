@@ -35,7 +35,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     set model(model) {
-      this.setItemsToGroup(model.interaction_records, {
+      this.setItemsToGroup(model.interactionRecords, {
         guid: tr.b.GUID.allocate(),
         model: model,
         getSettingsKey: function() {

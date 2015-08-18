@@ -89,7 +89,7 @@ tr.exportTo('tr', function() {
     this.samples = [];
 
     this.alerts = [];
-    this.interaction_records = [];
+    this.interactionRecords = [];
 
     this.flowIntervalTree = new tr.b.IntervalTree(
         function(f) { return f.start; },
@@ -122,7 +122,7 @@ tr.exportTo('tr', function() {
         this.alerts.forEach(callback, opt_this);
 
       if (eventTypePredicate.call(opt_this, InteractionRecord))
-        this.interaction_records.forEach(callback, opt_this);
+        this.interactionRecords.forEach(callback, opt_this);
 
       if (eventTypePredicate.call(opt_this, Sample))
         this.samples.forEach(callback, opt_this);
@@ -218,7 +218,7 @@ tr.exportTo('tr', function() {
     },
 
     addInteractionRecord: function(ir) {
-      this.interaction_records.push(ir);
+      this.interactionRecords.push(ir);
       return ir;
     },
 
@@ -455,7 +455,7 @@ tr.exportTo('tr', function() {
     },
 
     sortInteractionRecords: function() {
-      this.interaction_records.sort(function(x, y) {
+      this.interactionRecords.sort(function(x, y) {
         return x.start - y.start;
       });
     },

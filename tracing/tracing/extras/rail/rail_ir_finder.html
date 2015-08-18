@@ -1068,7 +1068,7 @@ tr.exportTo('tr.e.rail', function() {
     }
 
     var modelEvents = new tr.model.EventSet();
-    model.interaction_records.forEach(function(ir, index) {
+    model.interactionRecords.forEach(function(ir, index) {
       modelEvents.addEventSet(ir.sourceEvents);
     });
     modelEvents = modelEvents.toArray();
@@ -1108,8 +1108,8 @@ tr.exportTo('tr.e.rail', function() {
 
   function createExpectedIRLinesFromModel(model) {
     var expectedLines = [];
-    var irCount = model.interaction_records.length;
-    model.interaction_records.forEach(function(ir, index) {
+    var irCount = model.interactionRecords.length;
+    model.interactionRecords.forEach(function(ir, index) {
       var irString = '      {';
       irString += 'title: \'' + ir.title + '\', ';
       irString += 'start: ' + parseInt(ir.start) + ', ';

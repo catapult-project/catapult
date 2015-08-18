@@ -27,15 +27,15 @@ tr.b.unittest.testSuite(function() {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       thread.sliceGroup.pushSlice(tr.c.test_utils.newSlice(0, 200));
-      model.interaction_records.push(new tr.model.InteractionRecord(
+      model.interactionRecords.push(new tr.model.InteractionRecord(
             'a', 0, 100, 100));
-      model.interaction_records.push(new tr.model.InteractionRecord(
+      model.interactionRecords.push(new tr.model.InteractionRecord(
             'b', 1, 0, 100));
-      model.interaction_records.push(new tr.model.InteractionRecord(
+      model.interactionRecords.push(new tr.model.InteractionRecord(
             'c', 2, 150, 50));
-      model.interaction_records.push(new tr.model.InteractionRecord(
+      model.interactionRecords.push(new tr.model.InteractionRecord(
             'd', 3, 50, 100));
-      model.interaction_records.push(new tr.model.InteractionRecord(
+      model.interactionRecords.push(new tr.model.InteractionRecord(
             'e', 4, 0, 50));
       // Model.createImportTracesTask() automatically sorts IRs by start time.
     });

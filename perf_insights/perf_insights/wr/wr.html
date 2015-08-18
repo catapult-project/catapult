@@ -29,7 +29,7 @@ tr.exportTo('pi.wr', function() {
   }
 
   function getRAILTypeNameForEventsByGUID(model) {
-    var railIRs = model.interaction_records.filter(function(ir) {
+    var railIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.RAILInteractionRecord;
     });
 
