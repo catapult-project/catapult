@@ -7,6 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/units/time.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/annotation.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -155,6 +157,18 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.bounds.max, 5);
   });
 
+
+  test('modelConvertsTimestampToModelTime', function() {
+    var m = new tr.Model();
+    var traceEvents = [
+      {ts: 1000, pid: 1, tid: 1, ph: 'B', cat: 'a', name: 'taskA', args: {}},
+      {ts: 2000, pid: 1, tid: 1, ph: 'E', cat: 'a', name: 'taskA', args: {}}
+    ];
+    var i = new tr.importer.Import(m);
+    i.importTraces([traceEvents]);
+    assert.equal(m.convertTimestampToModelTime('traceEventClock', 1000), 0);
+    assert.equal(m.convertTimestampToModelTime('traceEventClock', 2000), 1);
+  });
 
   test('TitleOrCategoryFilter', function() {
     var s0 = tr.c.test_utils.newSlice(1, 3);
