@@ -5,8 +5,8 @@
 import os
 import subprocess
 
+from telemetry.core import util
 from telemetry.internal.platform import profiler
-from telemetry.internal import util
 from telemetry.internal.backends.chrome import android_browser_finder
 
 
