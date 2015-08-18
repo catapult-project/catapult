@@ -18,6 +18,19 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.rail', function() {
+  // When computing an IR's RAIL score, the IR's pain and efficiency are
+  // averaged together such that the lower score has a higher weight.
+  // Without knowing which sub-score is lower, happiness (1 - pain) is
+  // theoretically twice as important as efficiency. If the entire web were to
+  // eventually achieve relatively low pain scores such that pain was less of a
+  // concern than efficiency, then this number could be lowered. If further
+  // thought suggests that pain is even more than twice as important as
+  // efficiency, then this number could be raised.
+  // Must be greater than 0.
+  var HAPPINESS_IMPORTANCE = 2;
+
+  // This is another parameter that affects the shape of computeRawPain().
+  var DEFAULT_PAIN_BASE = Math.exp(1);
 
   // We need an up-front list of all IR types in order to keep various groupings
   // stable, in presence of only a portion of interactions in a given trace.
@@ -82,13 +95,7 @@ tr.exportTo('tr.e.rail', function() {
     get railScore() {
       var happiness = 1 - this.normalizedUserPain;
       var efficiency = this.normalizedEfficiency;
-      // The lower sub-score is more important than the higher sub-score.
-      // happiness is more important than efficiency.
-      var happinessWeight = 2 * Math.exp(1 - happiness);
-      var efficiencyWeight = Math.exp(1 - efficiency);
-      // This function is graphed at http://goo.gl/XMWUKA
-      return ((happiness * happinessWeight + efficiency * efficiencyWeight) /
-              (happinessWeight + efficiencyWeight));
+      return weightedAverage2(happiness, efficiency, HAPPINESS_IMPORTANCE);
     },
 
     /**
@@ -160,8 +167,78 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
+  // The following functions are useful for sub-classes to override
+  // normalizedUserPain.
+
+  // Any computable value related to an IR can be used to define the pain of
+  // that IR: its duration, its FPS, etc.
+  function computeNormalizedPain(value, opts) {
+    opts.min = Math.max(opts.min, 0);
+    opts.max = Math.max(opts.max, 0);
+    opts.base = Math.max(opts.base || DEFAULT_PAIN_BASE, 0);
+
+    if (opts.min >= opts.max)
+      throw 'computeNormalizedPain invalid range';
+
+    var rawPain = computeRawPain(value, opts);
+    var minPain = computeRawPain(opts.min, opts);
+    var maxPain = computeRawPain(opts.max, opts);
+
+    var normalizedPain = tr.b.normalize(
+        rawPain, minPain, maxPain);
+
+    // It's possible for normalizedPain to be negative if value < opts.min,
+    // or greater than 1 if value > opts.max, so clamp it.
+    return tr.b.clamp(normalizedPain, 0, 1);
+  }
+
+  // Returns a raw pain score based on |value| and options |opts|.
+  // |value| can be any number.
+  function computeRawPain(value, opts) {
+    // Pre-normalize value so that large numbers won't be passed to
+    // Math.pow() and cause it to run out of IEEE754 exponent bits and
+    // return Infinity.
+    value = tr.b.normalize(value, opts.min, opts.max);
+
+    // Don't raise a negative number to a fractional power. That produces
+    // NaN.
+    value = Math.max(value, 0);
+
+    // Raising value to a non-unity power affords a tunable parameter to change
+    // the shape of this function.
+    var tunedValue = Math.pow(value, opts.power);
+
+    return Math.pow(opts.base, tunedValue);
+
+    // If you modify this function to be non-monotonic anywhere, then you
+    // should consider how that affects the clamp() at the end of
+    // computeNormalizedPain.
+  }
+
+  // Returns a weighted average of numbers between 0 and 1.
+  // The lower input has a higher weight.
+  // If the first input should have a higher weight a priori its relationship to
+  // the other input, then set opt_apriori > 1.
+  // This function is graphed at http://goo.gl/XMWUKA
+  function weightedAverage2(x, y, opt_apriori) {
+    var numerator = 0;
+    var denominator = 0;
+
+    var xWeight = (opt_apriori || 1) * Math.exp(1 - x);
+    numerator += xWeight * x;
+    denominator += xWeight;
+
+    var yWeight = Math.exp(1 - y);
+    numerator += yWeight * y;
+    denominator += yWeight;
+
+    return numerator / denominator;
+  }
+
   return {
     RAILInteractionRecord: RAILInteractionRecord,
+    computeNormalizedPain: computeNormalizedPain,
+    weightedAverage2: weightedAverage2,
     ALL_RAIL_TYPE_NAMES: ALL_RAIL_TYPE_NAMES
   };
 });

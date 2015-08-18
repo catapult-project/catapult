@@ -4,6 +4,8 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
+<link rel="import" href="/tracing/extras/chrome/chrome_process_helper.html">
 <link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
 
 <script>
@@ -13,17 +15,98 @@ found in the LICENSE file.
  * @fileoverview The Animation phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
+  // If FPS is greater than this, then the FPS-pain is minimized.
+  var PAIN_BEGINS_AT_FPS = 60;
+
+  // If FPS is less than this, then the FPS-pain is maximized.
+  var PAIN_PEAKS_AT_FPS = 10;
+
+  // PAIN_POWER is a tunable parameter that affects the shape of
+  // computeRawPain() in rail_interaction_record.html.  It must be greater than
+  // 0.
+  var PAIN_POWER = 1.5;
+
+  // A frame is long if it starts more than this much time after the previous
+  // frame.
+  var LONG_FRAME_MS = 50;
+
+  // If the number of long frames is less than this, then long-frame-pain is
+  // minimized.
+  var MIN_LONG_FRAMES = 0;
+
+  // If the number of long frames is greater than this times the total number of
+  // frames in the animation, then long-frame-pain is maximized.
+  var LONG_FRAME_PAIN_PEAK_FRACTION = 0.1;
+
+  // This is the lowest reasonable value for the number of long frames that
+  // would maximize long-frame-pain.
+  var MIN_MAX_LONG_FRAMES = 2;
+
   function AnimationInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
         this, 'Animation', 'rail_animate',
         start, duration);
+    this.frameEvents_ = undefined;
   }
 
   AnimationInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
+    get frameEvents() {
+      if (this.frameEvents_)
+        return this.frameEvents_;
+
+      this.frameEvents_ = new tr.model.EventSet();
+
+      this.associatedEvents.forEach(function(event) {
+        if (event.title === tr.e.audits.IMPL_RENDERING_STATS)
+          this.frameEvents_.push(event);
+      }, this);
+
+      return this.frameEvents_;
+    },
+
     get normalizedUserPain() {
-      return 0;
+      return tr.e.rail.weightedAverage2(
+          this.normalizedLongFramePain, this.normalizedFPSPain);
+    },
+
+    get normalizedFPSPain() {
+      var durationSeconds = this.duration / 1000;
+      var avgFps = this.frameEvents.length / durationSeconds;
+      var avgSpf = 1 / avgFps;
+      return tr.e.rail.computeNormalizedPain(avgSpf, {
+        min: 1 / PAIN_BEGINS_AT_FPS,
+        max: 1 / PAIN_PEAKS_AT_FPS,
+        power: PAIN_POWER
+      });
+    },
+
+    get normalizedLongFramePain() {
+      var frameTimestamps = this.frameEvents.toArray().map(function(event) {
+        return event.start;
+      });
+
+      var longFrameCount = 0;
+      var prevStart = frameTimestamps[0];
+      for (var i = 1; i < frameTimestamps.length; ++i) {
+        var frameStartMs = frameTimestamps[i];
+        var frameMs = frameStartMs - prevStart;
+        if (frameMs > LONG_FRAME_MS)
+          ++longFrameCount;
+        prevStart = frameStartMs;
+      }
+
+      // Long Frame Pain peaks at this fraction of the total number of frames.
+      var maxLongFrames = (LONG_FRAME_PAIN_PEAK_FRACTION *
+                           frameTimestamps.length);
+      maxLongFrames = Math.max(MIN_MAX_LONG_FRAMES, parseInt(maxLongFrames));
+
+      return tr.e.rail.computeNormalizedPain(longFrameCount, {
+        min: MIN_LONG_FRAMES,
+        max: maxLongFrames,
+        power: PAIN_POWER
+      });
     }
   };
 
