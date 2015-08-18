@@ -32,7 +32,7 @@ _EXCLUDED_PATHS = (
     r'^tracing[\\\/]\.allow-devtools-save$',
     r'^tracing[\\\/]bower\.json$',
     r'^tracing[\\\/]\.bowerrc$',
-    r'^tracing[\\\/]examples[\\\/]string_convert\.js$',
+    r'^tracing[\\\/]tracing_examples[\\\/]string_convert\.js$',
     r'^tracing[\\\/]test_data[\\\/].*',
     r'^tracing[\\\/]third_party[\\\/].*',
 )
