@@ -17,6 +17,18 @@ tr.b.unittest.testSuite(function() {
   var audits = tr.e.audits;
   var IRVerifier = tr.e.rail.IRVerifier;
 
+  function addFrameEventForInput(model, event) {
+    var frame = audits.addFrameEvent(model,
+        {start: event.start, end: event.end, isTopLevel: true});
+    model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
+      id: event.id,
+      start: event.start,
+      end: event.end,
+      startSlice: frame,
+      endSlice: frame
+    }));
+  }
+
   test('empty', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
@@ -26,44 +38,48 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('slowMouseMoveResponses', function() {
+    var verifier = new IRVerifier();
+    verifier.customizeModelCallback = function(model) {
+      audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+          {start: 0, end: 10});
+      var mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 10, end: 20, id: '0x100'});
+      addFrameEventForInput(model, mouseMove);
+
+      mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 70, end: 80, id: '0x101'});
+      addFrameEventForInput(model, mouseMove);
+
+      mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+          {start: 130, end: 140, id: '0x102'});
+      addFrameEventForInput(model, mouseMove);
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 10, eventCount: 0},
+      {title: 'Response', start: 10, end: 20, eventCount: 4},
+      {title: 'Idle', start: 20, end: 70, eventCount: 0},
+      {title: 'Response', start: 70, end: 80, eventCount: 3},
+      {title: 'Idle', start: 80, end: 130, eventCount: 0},
+      {title: 'Response', start: 130, end: 140, eventCount: 3}
+    ];
+    verifier.verify();
+  });
+
   test('MouseEventResponses', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
       var mouseDown = audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 0, end: 50, id: '0x100'});
-      var mouseDownFrame = audits.addFrameEvent(model,
-          {start: 40, end: 50, isTopLevel: true});
-      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
-        id: '0x100',
-        start: 0,
-        end: 40,
-        startSlice: mouseDownFrame,
-        endSlice: mouseDownFrame
-      }));
+      addFrameEventForInput(model, mouseDown);
 
       var mouseUp = audits.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
           {start: 50, end: 100, id: '0x101'});
-      var mouseUpFrame = audits.addFrameEvent(model,
-          {start: 240, end: 250, isTopLevel: true});
-      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
-        id: '0x101',
-        start: 50,
-        end: 240,
-        startSlice: mouseUpFrame,
-        endSlice: mouseUpFrame
-      }));
+      addFrameEventForInput(model, mouseUp);
 
       var mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 200, end: 250, id: '0x102'});
-      var mouseMoveFrame = audits.addFrameEvent(model,
-          {start: 240, end: 250, isTopLevel: true});
-      model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
-        id: '0x102',
-        start: 200,
-        end: 240,
-        startSlice: mouseMoveFrame,
-        endSlice: mouseMoveFrame
-      }));
+      addFrameEventForInput(model, mouseMove);
     };
     verifier.expectedIRs = [
       {title: 'Response', start: 0, end: 50, eventCount: 3},
@@ -274,19 +290,20 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       audits.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 0, end: 100});
-      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+      var mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 200, end: 215});
-      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+      addFrameEventForInput(model, mouseMove);
+      mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 210, end: 220});
-      audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+      addFrameEventForInput(model, mouseMove);
+      mouseMove = audits.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 221, end: 240});
-      audits.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
-          {start: 400, end: 410});
+      addFrameEventForInput(model, mouseMove);
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
-      {title: 'Response', start: 200, end: 215, eventCount: 2},
-      {title: 'Animation', start: 215, end: 410, eventCount: 3}
+      {title: 'Response', start: 200, end: 215, eventCount: 4},
+      {title: 'Animation', start: 215, end: 240, eventCount: 6}
     ];
     verifier.verify();
   });

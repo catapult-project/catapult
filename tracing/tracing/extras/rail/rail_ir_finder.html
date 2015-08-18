@@ -56,6 +56,10 @@ tr.exportTo('tr.e.rail', function() {
   // Animation, not two responses.
   var MOUSE_WHEEL_THRESHOLD_MS = 40;
 
+  // If two MouseMoves are more than this far apart, then they're two Responses,
+  // not Animation.
+  var MOUSE_MOVE_THRESHOLD_MS = 40;
+
   var INSIGNIFICANT_MS = 1;
 
   var KEYBOARD_TYPE_NAMES = [
@@ -427,7 +431,6 @@ tr.exportTo('tr.e.rail', function() {
     handleMouseDragEvents: function() {
       var protoIRs = [];
       var currentPIR = undefined;
-      var moveCount = 0;
       var mouseDownEvent = undefined;
       this.getSortedInputEvents(MOUSE_DRAG_TYPE_NAMES).forEach(function(event) {
         switch (event.typeName) {
@@ -440,7 +443,6 @@ tr.exportTo('tr.e.rail', function() {
               // Responses typically don't start until the mouse up event.
               // Add this MouseDown to the Response that starts at the MouseUp.
               mouseDownEvent = event;
-              moveCount = 0;
             }
             break;
             // There may be more than 100ms between the start of the mouse down
@@ -455,27 +457,32 @@ tr.exportTo('tr.e.rail', function() {
             // vast majority of mouse downs are not responses.
 
           case INPUT_TYPE.MOUSE_MOVE:
-            if (!mouseDownEvent) {
-              var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
-                  ProtoIR.IGNORED_TYPE);
+            if (!causedFrame(event)) {
+              // Ignore MouseMoves that do not affect the screen. They are not
+              // part of an interaction record by definition.
+              var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
               pir.pushEvent(event);
               protoIRs.push(pir);
-              break;
-            }
-
-            moveCount++;
-            if (moveCount === 1) {
+            } else if (!currentPIR ||
+                       !currentPIR.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
+              // The first MouseMove after a MouseDown or after a while is a
+              // Response.
               currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE);
               currentPIR.pushEvent(event);
-              if (mouseDownEvent)
+              if (mouseDownEvent) {
                 currentPIR.associatedEvents.push(mouseDownEvent);
-              protoIRs.push(currentPIR);
-            } else if (moveCount === 2) {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
-              currentPIR.pushEvent(event);
+                mouseDownEvent = undefined;
+              }
               protoIRs.push(currentPIR);
             } else {
-              currentPIR.pushEvent(event);
+              // Merge this event into an Animation.
+              if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
+                currentPIR.pushEvent(event);
+              } else {
+                currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE);
+                currentPIR.pushEvent(event);
+                protoIRs.push(currentPIR);
+              }
             }
             break;
 
@@ -498,7 +505,6 @@ tr.exportTo('tr.e.rail', function() {
               protoIRs.push(currentPIR);
             }
             mouseDownEvent = undefined;
-            moveCount = 0;
             currentPIR = undefined;
             break;
         }
