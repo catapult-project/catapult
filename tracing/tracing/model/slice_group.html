@@ -214,13 +214,13 @@ tr.exportTo('tr.model', function() {
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
                                 cpuDuration, opt_args, opt_argsStripped,
-                                opt_colorId) {
+                                opt_colorId, opt_bind_id) {
       var colorId = opt_colorId ||
           tr.ui.b.getColorIdForGeneralPurposeString(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration, tts, cpuDuration,
-                                            opt_argsStripped);
+                                            opt_argsStripped, opt_bind_id);
       if (duration === undefined)
         slice.didNotFinish = true;
       this.pushSlice(slice);

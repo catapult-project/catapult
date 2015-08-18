@@ -22,7 +22,8 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function Slice(category, title, colorId, start, args, opt_duration,
-                 opt_cpuStart, opt_cpuDuration, opt_argsStripped) {
+                 opt_cpuStart, opt_cpuDuration, opt_argsStripped,
+                 opt_bind_id) {
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -40,6 +41,8 @@ tr.exportTo('tr.model', function() {
     this.important = false;
     this.parentContainer = undefined;
     this.argsStripped = false;
+
+    this.bind_id_ = opt_bind_id;
 
     // parentSlice and isTopLevel will be set by SliceGroup.
     this.parentSlice = undefined;

@@ -48,6 +48,10 @@ tr.exportTo('tr.e.importer', function() {
   var timestampFromUs = tr.b.units.Time.timestampFromUs;
   var maybeTimestampFromUs = tr.b.units.Time.maybeTimestampFromUs;
 
+  var PRODUCER = 'producer';
+  var CONSUMER = 'consumer';
+  var STEP = 'step';
+
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
@@ -198,6 +202,15 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     /**
+     * Always perform deep copying.
+     */
+    deepCopyAlways_: function(obj) {
+      if (obj === undefined)
+        obj = {};
+      return deepCopy(obj);
+    },
+
+    /**
      * Helper to process an async event.
      */
     processAsyncEvent: function(event) {
@@ -213,13 +226,14 @@ tr.exportTo('tr.e.importer', function() {
     /**
      * Helper to process a flow event.
      */
-    processFlowEvent: function(event) {
+    processFlowEvent: function(event, opt_slice) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
         refGuid: tr.b.GUID.getLastGuid(),
         sequenceNumber: this.allFlowEvents_.length,
         event: event,
+        slice: opt_slice,  // slice for events that have flow info
         thread: thread
       });
     },
@@ -352,6 +366,16 @@ tr.exportTo('tr.e.importer', function() {
     processCompleteEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateThread(event.tid);
+
+      if (event.flow_out) {
+        if (event.flow_in)
+          event.flowPhase = STEP;
+        else
+          event.flowPhase = PRODUCER;
+      } else if (event.flow_in) {
+        event.flowPhase = CONSUMER;
+      }
+
       var slice = thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
           timestampFromUs(event.ts),
           maybeTimestampFromUs(event.dur),
@@ -359,9 +383,12 @@ tr.exportTo('tr.e.importer', function() {
           maybeTimestampFromUs(event.tdur),
           this.deepCopyIfNeeded_(event.args),
           event.argsStripped,
-          getEventColor(event));
+          getEventColor(event),
+          event.bind_id);
       slice.startStackFrame = this.getStackFrameForEvent_(event);
       slice.endStackFrame = this.getStackFrameForEvent_(event, true);
+
+      return slice;
     },
 
     processMetadataEvent: function(event) {
@@ -653,7 +680,12 @@ tr.exportTo('tr.e.importer', function() {
           this.processDurationEvent(event);
 
         } else if (event.ph === 'X') {
-          this.processCompleteEvent(event);
+          var slice = this.processCompleteEvent(event);
+          // TODO(yuhaoz): If Chrome supports creating other events with flow,
+          // we will need to call processFlowEvent for them also.
+          // https://github.com/catapult-project/catapult/issues/1259
+          if (event.bind_id !== undefined)
+            this.processFlowEvent(event, slice);
 
         } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
                    event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
@@ -1259,58 +1291,146 @@ tr.exportTo('tr.e.importer', function() {
           return false;
         }
 
-        if (event.id === undefined) {
-          that.model_.importWarning({
-            type: 'flow_slice_parse_error',
-            message: 'Flow events (ph: s, t or f) require an id parameter.'
-          });
-          return false;
+        // Support Flow API v1.
+        if (event.ph === 's' || event.ph === 'f' || event.ph === 't') {
+          if (event.id === undefined) {
+            that.model_.importWarning({
+              type: 'flow_slice_parse_error',
+              message: 'Flow events (ph: s, t or f) require an id parameter.'
+            });
+            return false;
+          }
+          return true;
         }
-        return true;
+
+        // Support Flow API v2.
+        if (event.bind_id) {
+          if (event.flow_in === undefined && event.flow_out === undefined) {
+            that.model_.importWarning({
+              type: 'flow_slice_parse_error',
+              message: 'Flow producer or consumer require flow_in or flow_out.'
+            });
+            return false;
+          }
+          return true;
+        }
+
+        return false;
       }
 
-      function createFlowEvent(thread, event, refGuid) {
-        var ts = timestampFromUs(event.ts);
-        var startSlice = thread.sliceGroup.findSliceAtTs(ts);
-        if (startSlice === undefined)
-          return undefined;
+      function createFlowEvent(thread, event, opt_slice) {
+        var startSlice, flowId, flowStartTs;
+
+        if (event.bind_id) {
+          // Support Flow API v2.
+          startSlice = opt_slice;
+          flowId = event.bind_id;
+          flowStartTs = timestampFromUs(event.ts + event.dur);
+        } else {
+          // Support Flow API v1.
+          var ts = timestampFromUs(event.ts);
+          startSlice = thread.sliceGroup.findSliceAtTs(ts);
+          if (startSlice === undefined)
+            return undefined;
+          flowId = event.id;
+          flowStartTs = ts;
+        }
 
         var flowEvent = new tr.model.FlowEvent(
             event.cat,
-            event.id,
+            flowId,
             event.name,
             getEventColor(event),
-            timestampFromUs(event.ts),
-            that.deepCopyIfNeeded_(event.args));
+            flowStartTs,
+            that.deepCopyAlways_(event.args));
         flowEvent.startSlice = startSlice;
-
         flowEvent.startStackFrame = that.getStackFrameForEvent_(event);
         flowEvent.endStackFrame = undefined;
-
         startSlice.outFlowEvents.push(flowEvent);
         return flowEvent;
       }
 
       function finishFlowEventWith(flowEvent, thread, event,
-                                   refGuid, bindToParent) {
-        // TODO(nduca): Figure out endSlice from ts and binding point.
+                                   refGuid, bindToParent, opt_slice) {
         var endSlice;
-        var ts = timestampFromUs(event.ts);
-        if (bindToParent) {
-          endSlice = thread.sliceGroup.findSliceAtTs(ts);
-        } else {
-          endSlice = thread.sliceGroup.findNextSliceAfter(ts, refGuid);
-        }
-        if (endSlice === undefined)
-          return false;
-        endSlice.inFlowEvents.push(flowEvent);
 
-        // Modify the flowEvent with the new data.
+        if (event.bind_id) {
+          // Support Flow API v2.
+          endSlice = opt_slice;
+        } else {
+          // Support Flow API v1.
+          var ts = timestampFromUs(event.ts);
+          if (bindToParent) {
+            endSlice = thread.sliceGroup.findSliceAtTs(ts);
+          } else {
+            endSlice = thread.sliceGroup.findNextSliceAfter(ts, refGuid);
+          }
+          if (endSlice === undefined)
+            return false;
+        }
+
+        endSlice.inFlowEvents.push(flowEvent);
         flowEvent.endSlice = endSlice;
-        flowEvent.duration = ts - flowEvent.start;
+        flowEvent.duration = timestampFromUs(event.ts) - flowEvent.start;
         flowEvent.endStackFrame = that.getStackFrameForEvent_(event);
         that.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
         return true;
+      }
+
+      function processFlowConsumer(flowIdToEvent, sliceGuidToEvent, event,
+          slice) {
+        var flowEvent = flowIdToEvent[event.bind_id];
+        if (flowEvent === undefined) {
+          that.model_.importWarning({
+              type: 'flow_slice_ordering_error',
+              message: 'Flow consumer ' + event.bind_id + ' does not have ' +
+                  'a flow producer'});
+          return false;
+        } else if (flowEvent.endSlice) {
+          // One flow producer can have more than one flow consumers.
+          // In this case, create a new flow event using the flow producer.
+          var flowProducer = flowEvent.startSlice;
+          flowEvent = createFlowEvent(undefined,
+              sliceGuidToEvent[flowProducer.guid], flowProducer);
+        }
+
+        var ok = finishFlowEventWith(flowEvent, undefined, event,
+                                     refGuid, undefined, slice);
+        if (ok) {
+          that.model_.flowEvents.push(flowEvent);
+        } else {
+          that.model_.importWarning({
+              type: 'flow_slice_end_error',
+              message: 'Flow consumer ' + event.bind_id + ' does not end ' +
+                  'at an actual slice, so cannot be created.'});
+          return false;
+        }
+
+        return true;
+      }
+
+      function processFlowProducer(flowIdToEvent, flowStatus, event, slice) {
+        if (flowIdToEvent[event.bind_id] &&
+            flowStatus[event.bind_id]) {
+          // Can't open the same flow again while it's still open.
+          // This is essentially the multi-producer case which we don't support
+          that.model_.importWarning({
+              type: 'flow_slice_start_error',
+              message: 'Flow producer ' + event.bind_id + ' already seen'});
+          return false;
+        }
+
+        var flowEvent = createFlowEvent(undefined, event, slice);
+        if (!flowEvent) {
+          that.model_.importWarning({
+              type: 'flow_slice_start_error',
+              message: 'Flow producer ' + event.bind_id + ' does not start' +
+                  'a flow'});
+          return false;
+        }
+        flowIdToEvent[event.bind_id] = flowEvent;
+
+        return;
       }
 
       // Actual import.
@@ -1322,6 +1442,8 @@ tr.exportTo('tr.e.importer', function() {
       });
 
       var flowIdToEvent = {};
+      var sliceGuidToEvent = {};
+      var flowStatus = {}; // true: open; false: closed.
       for (var i = 0; i < this.allFlowEvents_.length; ++i) {
         var data = this.allFlowEvents_[i];
         var refGuid = data.refGuid;
@@ -1330,6 +1452,33 @@ tr.exportTo('tr.e.importer', function() {
         if (!validateFlowEvent(event))
           continue;
 
+        // Support for Flow API v2.
+        if (event.bind_id) {
+          var slice = data.slice;
+          sliceGuidToEvent[slice.guid] = event;
+
+          if (event.flowPhase === PRODUCER) {
+            if (!processFlowProducer(flowIdToEvent, flowStatus, event, slice))
+              continue;
+            flowStatus[event.bind_id] = true; // open the flow.
+          }
+          else {
+            if (!processFlowConsumer(flowIdToEvent, sliceGuidToEvent,
+                event, slice))
+              continue;
+            flowStatus[event.bind_id] = false; // close the flow.
+
+            if (event.flowPhase === STEP) {
+              if (!processFlowProducer(flowIdToEvent, flowStatus,
+                  event, slice))
+                continue;
+              flowStatus[event.bind_id] = true; // open the flow again.
+            }
+          }
+          continue;
+        }
+
+        // Support for Flow API v1.
         var flowEvent;
         if (event.ph === 's') {
           if (flowIdToEvent[event.id]) {
@@ -1339,7 +1488,7 @@ tr.exportTo('tr.e.importer', function() {
                   'encountering start of flow event.'});
             continue;
           }
-          flowEvent = createFlowEvent(thread, event, refGuid);
+          flowEvent = createFlowEvent(thread, event);
           if (!flowEvent) {
             this.model_.importWarning({
               type: 'flow_slice_start_error',
@@ -1364,22 +1513,11 @@ tr.exportTo('tr.e.importer', function() {
 
           if (event.ph === 'f') {
             if (event.bp === undefined) {
-              // Hack: input latency flow events used to be issued
-              // without bp='e' letter in old traces. But, we still want their
-              // flow events to parse "properly." This adjusts their binding
-              // point so that they parse.
-              //
-              // TODO(nduca): Removal of this hack is tracked in
+              // TODO(yuhaoz): In flow V2, there is no notion of binding point.
+              // Removal of binding point is tracked in
               // https://github.com/google/trace-viewer/issues/991.
               if (event.cat.indexOf('input') > -1)
                 bindToParent = true;
-              // Hack: ipc flow events used to be issued
-              // without bp='e' letter in old traces. But, we still want their
-              // flow events to parse "properly." This adjusts their binding
-              // point so that they parse.
-              //
-              // TODO: Removal of this hack is tracked in
-              // https://github.com/google/trace-viewer/issues/991.
               else if (event.cat.indexOf('ipc.flow') > -1)
                 bindToParent = true;
             } else {
@@ -1400,11 +1538,10 @@ tr.exportTo('tr.e.importer', function() {
             that.model_.flowEvents.push(flowEvent);
           } else {
             this.model_.importWarning({
-              type: 'flow_slice_start_error',
+              type: 'flow_slice_end_error',
               message: 'event id ' + event.id + ' does not end ' +
                   'at an actual slice, so cannot be created.'});
           }
-
           flowIdToEvent[event.id] = undefined;
 
           // If this is a step, then create another flow event.
