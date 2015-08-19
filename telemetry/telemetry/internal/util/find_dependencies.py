@@ -53,7 +53,6 @@ def FindPythonDependencies(module_path):
     if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
       continue
 
-    logging.info('Found dependency module path: %s' % module_path)
     yield module_path
 
 
