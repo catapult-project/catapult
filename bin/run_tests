@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import os
+import sys
+
+
+_THIS_PATH = os.path.dirname(__file__)
+_TESTS = [
+    {'path': os.path.join(_THIS_PATH, '..', 'tracing', 'bin', 'run_tests')},
+    {'path': os.path.join(_THIS_PATH, '..', 'perf_insights', 'bin', 'run_tests')},
+    {'path': os.path.join(_THIS_PATH, 'run_py_tests')},
+    {'path': os.path.join(_THIS_PATH, '..', 'base', 'util', 'run_tests.py')},
+    {'path': os.path.join(_THIS_PATH, '..', 'third_party', 'vinn', 'run_test')},
+    # TODO(anniesullie): Add dashboard tests when SDK issues are sorted out.
+]
+
+
+if __name__ == '__main__':
+  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  sys.path.append(catapult_path)
+  from build import test_runner
+  sys.exit(test_runner.Main('project', _TESTS, sys.argv))
