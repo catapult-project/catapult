@@ -205,6 +205,7 @@ def Main(argv):
     server_command = [server_path, '--no-install-hooks', '--port', port]
     if sys.platform.startswith('win'):
         server_command = ['python.exe'] + server_command
+    print "Starting dev_server..."
     server_process = subprocess.Popen(
         server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         bufsize=1)
@@ -242,9 +243,12 @@ def Main(argv):
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
             'headless=true&testTypeToRun=all',
     ]
+    print "Starting Chrome..."
     chrome_process = subprocess.Popen(
         chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print "Waiting for tests to finish..."
     server_out, server_err = server_process.communicate()
+    print "Killing Chrome..."
     if sys.platform == 'win32':
       # Use taskkill on Windows to make sure Chrome and all subprocesses are
       # killed.
