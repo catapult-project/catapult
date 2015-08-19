@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="autocomplete.html">
+</head>
+<body>
+
+<script>
+
+suite('autocomplete', function() {
+
+  test('basic search', function() {
+    var dataList = [{name: 'apple'}, {name: 'bannana'}, {name: 'blueberry'},
+                    {name: 'blackberry'}, {name: 'Grape'}];
+
+    var a = new autocomplete.Trie(dataList);
+    assert.deepEqual([{name: 'bannana'},
+                      {name: 'blueberry'},
+                      {name: 'blackberry'}],
+                     a.search('b'));
+
+    assert.deepEqual([{name: 'apple'}], a.search('a'));
+
+    assert.deepEqual([{name: 'blueberry'}, {name: 'blackberry'}],
+                     a.search('bl'));
+
+    assert.deepEqual([{name: 'Grape'}], a.search('grape'));
+
+    assert.deepEqual(dataList, a.search(''));
+  });
+
+  test('search with substring', function() {
+    var dataList = [{name: 'apple'},
+                    {name: 'appleseed'},
+                    {name: 'deep fried apple pie'},
+                    {name: 'apple pie'},
+                    {name: 'caramel apple pie'},
+                    {name: 'blueberry muffin'},
+                    {name: 'blackberry muffin'}];
+    var a = new autocomplete.Trie(dataList);
+
+    assert.deepEqual(
+        [{name: 'apple'},
+         {name: 'apple pie'},
+         {name: 'appleseed'},
+         {name: 'caramel apple pie'},
+         {name: 'deep fried apple pie'}
+        ],
+        a.search('apple'));
+
+    assert.deepEqual(
+        [{name: 'apple pie'},
+         {name: 'apple'},
+         {name: 'appleseed'},
+         {name: 'caramel apple pie'},
+         {name: 'deep fried apple pie'}],
+        a.search('apple pie'));
+
+    assert.deepEqual(
+       [{name: 'apple pie'},
+        {name: 'caramel apple pie'},
+        {name: 'deep fried apple pie'}],
+       a.search('pie'));
+
+    assert.deepEqual(dataList, a.search(''));
+  });
+
+  test('search with grouping', function() {
+    var dataList = [{name: 'pie', head: true},
+                    {name: 'deep fried apple pie', group: 'pie'},
+                    {name: 'apple pie', group: 'pie'},
+                    {name: 'blueberry apple pie', group: 'pie'},
+                    {name: 'muffin', head: true},
+                    {name: 'blueberry muffin', group: 'muffin'},
+                    {name: 'blackberry muffin', group: 'muffin'}];
+    var a = new autocomplete.Trie(dataList);
+
+    assert.deepEqual(
+        [{name: 'pie', head: true},
+         {name: 'apple pie', group: 'pie'},
+         {name: 'blueberry apple pie', group: 'pie'},
+         {name: 'deep fried apple pie', group: 'pie'}],
+        a.search('apple'));
+
+    assert.deepEqual(
+        [{name: 'muffin', head: true},
+         {name: 'blueberry muffin', group: 'muffin'},
+         {name: 'pie', head: true},
+         {name: 'blueberry apple pie', group: 'pie'}],
+        a.search('blueberry'));
+
+    assert.deepEqual(dataList, a.search(''));
+  });
+
+});
+
+</script>
+</body>
+</html>

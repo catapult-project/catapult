@@ -15,6 +15,10 @@ from dashboard.models import graph_data
 
 class UtilsTest(testing_common.TestCase):
 
+  def setUp(self):
+    super(UtilsTest, self).setUp()
+    testing_common.SetInternalDomain('google.com')
+
   def _AssertMatches(self, test_path, pattern):
     """Asserts that a test path matches a pattern with MatchesPattern."""
     test_key = utils.TestKey(test_path)
@@ -123,6 +127,22 @@ class UtilsTest(testing_common.TestCase):
   def testTestSuiteName_KeyNotLongEnough_ReturnsNone(self):
     key = ndb.Key('Master', 'M', 'Bot', 'b')
     self.assertIsNone(utils.TestSuiteName(key))
+
+  def testMinimumRange_Empty_ReturnsNone(self):
+    self.assertIsNone(utils.MinimumRange([]))
+
+  def testMinimumRange_NotOverlapping_ReturnsNone(self):
+    self.assertIsNone(utils.MinimumRange([(5, 10), (15, 20)]))
+
+  def testMinimumRange_OneRange_ReturnsSameRange(self):
+    self.assertEqual((5, 10), utils.MinimumRange([(5, 10)]))
+
+  def testMinimumRange_OverlapsForOneNumber_ReturnsRangeWithOneNumber(self):
+    self.assertEqual((5, 5), utils.MinimumRange([(2, 5), (5, 10)]))
+
+  def testMinimumRange_MoreThanTwoRanges_ReturnsIntersection(self):
+    self.assertEqual((6, 14), utils.MinimumRange(
+        [(3, 20), (5, 15), (6, 25), (3, 14)]))
 
 
 if __name__ == '__main__':

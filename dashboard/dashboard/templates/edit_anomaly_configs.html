@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Edit Anomaly Configs</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <script>
+  'use strict';
   // This should be an Object mapping anomaly config names to Objects
   // which have the properties "config" and "patterns".
-  var ANOMALY_CONFIG_DATA = {{anomaly_config_json|safe}};
+  var ANOMALY_CONFIG_DATA = {{anomaly_config_json | safe}};
   var XSRF_TOKEN = '{{xsrf_token}}';
 
   /**
@@ -15,7 +15,7 @@
     var addListener = function(elementId, eventName, callback) {
       var element = document.getElementById(elementId);
       element.addEventListener(eventName, callback, true);
-    }
+    };
     addListener('edit-name', 'change', onEditConfigSelect);
     addListener('edit-name', 'focus', onEditConfigSelect);
     addListener('add-name', 'focus', onAddConfigFocus);
@@ -68,7 +68,7 @@
   <code>ChromiumPerf/*/foo.baz/*/*.</code></p>
 
   <form method="POST">
-    {{xsrf_input|safe}}
+    {{xsrf_input | safe}}
     <label>
       <input type="radio" name="add-edit" id="add-radio" value="add" checked>
       Add a new config named:
@@ -83,9 +83,10 @@
       <option value="{{name}}">{{name}}</option>
     {% endfor %}
     </select><br>
-    <textarea name="config" id="config-textarea" rows="8" cols="72">{}</textarea><br>
-    <textarea name="patterns" id="patterns-textarea" rows="20" cols="72"></textarea><br>
+    <textarea name="config" id="config-textarea"
+              rows="8" cols="72">{}</textarea><br>
+    <textarea name="patterns" id="patterns-textarea"
+              rows="20" cols="72"></textarea><br>
     <input type="submit">
   </form>
-
 {% endblock %}

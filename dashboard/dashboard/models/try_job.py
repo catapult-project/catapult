@@ -4,7 +4,7 @@
 
 """A Model that represents one bisect or perf test try job.
 
-TryJob entities are checked in /update_bug_from_rietveld to check completed
+TryJob entities are checked in /update_bug_with_results to check completed
 bisect jobs and update bugs with results.
 
 They are also used in /auto_bisect to restart unsuccessful bisect jobs.
@@ -17,9 +17,10 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_stats
 from dashboard.models import bug_data
+from dashboard.models import internal_only_model
 
 
-class TryJob(ndb.Model):
+class TryJob(internal_only_model.InternalOnlyModel):
   """Stores config and tracking info about a single try job."""
   bot = ndb.StringProperty()
   config = ndb.TextProperty()
@@ -30,8 +31,6 @@ class TryJob(ndb.Model):
   master_name = ndb.StringProperty(default='ChromiumPerf', indexed=False)
   buildbucket_job_id = ndb.StringProperty()
   use_buildbucket = ndb.BooleanProperty(default=False, indexed=True)
-
-  # TODO(qyearsley) Make this model a subclass of InternalOnlyModel.
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
   # Bisect run status (e.g., started, failed).

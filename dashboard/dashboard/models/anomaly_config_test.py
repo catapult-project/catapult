@@ -18,7 +18,7 @@ from dashboard.models import anomaly_config
 class AnomalyConfigTest(testing_common.TestCase):
 
   def testGetAnomalyConfigDict(self):
-    testing_common.AddDataToMockDataStore(['M'], ['b'], {'foo': {'bar': {}}})
+    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
     test = utils.TestKey('M/b/foo/bar').get()
 
     # The sample test has no overridden config.
@@ -46,7 +46,7 @@ class AnomalyConfigTest(testing_common.TestCase):
   @mock.patch('logging.warning')
   def testGetAnomalyConfigDict_OverriddenConfigNotFound(
       self, mock_logging_warning):
-    testing_common.AddDataToMockDataStore(['M'], ['b'], {'foo': {'bar': {}}})
+    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
     test = utils.TestKey('M/b/foo/bar').get()
     test.overridden_anomaly_config = ndb.Key('AnomalyConfig', 'Non-existent')
     self.assertEqual({}, anomaly_config.GetAnomalyConfigDict(test))

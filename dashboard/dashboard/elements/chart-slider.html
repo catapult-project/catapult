@@ -9,6 +9,7 @@
     <div id="revisions_container"></div>
   </template>
   <script>
+    'use strict';
     Polymer('chart-slider', {
       edgeDist: 2,
 
@@ -105,26 +106,24 @@
         this.revisionToIndexMap = {};
         var chartData = [];
         for (var i = 0; i < this.data.length; i++) {
-          chartData.push([i, this.data[i][1]])
-          var rev = this.data[i][0]
+          chartData.push([i, this.data[i][1]]);
+          var rev = this.data[i][0];
           this.revisionToIndexMap[rev] = i;
         }
         this.chart = $.plot(
-            this.$.revisions_container,
-            [{data: chartData}],
-            this.chartOptions);
+            this.$.revisions_container, [{data: chartData}], this.chartOptions);
         this.updateSelection();
       },
 
       /**
-       * Updates the selection state when this.startrev is changed.
+       * Updates the selection state when |this.startrev| is changed.
        */
       startrevChanged: function() {
         this.updateSelection();
       },
 
       /**
-       * Updates the selection state when this.endrev is changed.
+       * Updates the selection state when |this.endrev| is changed.
        */
       endrevChanged: function() {
         this.updateSelection();
@@ -134,9 +133,10 @@
        * Updates the selection state when the startrev attribute is changed.
        */
       updateSelection: function() {
-        if (!this.startrev
-            || !this.endrev || !this.revisionToIndexMap
-            || !this.chart) {
+        if (!this.startrev ||
+            !this.endrev ||
+            !this.revisionToIndexMap ||
+            !this.chart) {
           return;
         }
 
@@ -182,16 +182,19 @@
 
       /**
        * Formats the labels on the X-axis.
-       * @param {(string|number)} val An X-value.
-       * @param {Object} axis Not used.
+       * @param {string|number} xValue An X-value on the mini-plot.
+       * @param {Object=} opt_axis Not used.
        * @return {string} A string to display at one point a long the X-axis.
        */
-      tickFormatter: function(val, axis) {
-        val = Math.max(0, Math.round(val));
-        val = Math.min(val, this.data.length - 1);
-        // Otherwise show the timestamp.
-        var d = new Date(this.data[val][2]);
-        return d.toISOString().substring(0,10);  // yyyy-mm-dd.
+      tickFormatter: function(xValue, opt_axis) {
+        xValue = Math.max(0, Math.round(xValue));
+        xValue = Math.min(xValue, this.data.length - 1);
+        if (this.data[xValue] && this.data[xValue][2]) {
+          var d = new Date(this.data[xValue][2]);
+          return d.toISOString().substring(0, 10);  // yyyy-mm-dd.
+        }
+        logging.warn('No timestamp found in chart-slider data at', xValue);
+        return String(xValue);
       },
 
 
@@ -228,7 +231,7 @@
        * @return {string} One of "move", "col-resize", or "auto".
        */
       getCursorForDragType: function(dragType) {
-        switch(dragType) {
+        switch (dragType) {
           case 'move':
            return 'move';
           case 'start':
@@ -278,7 +281,8 @@
         var pos = this.getGraphPosFromMouseEvent(event);
         var diff = this.selectionStart.index - pos.index;
         var startIndex = Math.max(0, this.selectionStart.from - diff);
-        var endIndex = Math.min(this.selectionStart.to - diff, this.selectionMax);
+        var endIndex = Math.min(
+            this.selectionStart.to - diff, this.selectionMax);
 
         // Note: There used to be a constant that determined the max number of
         // selectable points, and this function would return early here if the
@@ -338,8 +342,8 @@
           return;
         }
         var detail = {
-            startrev: this.startrev,
-            endrev: this.endrev,
+            start_rev: this.startrev,
+            end_rev: this.endrev,
         };
         this.fire('revisionrange', detail);
       },

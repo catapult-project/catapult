@@ -13,73 +13,57 @@ from dashboard.models import anomaly
 
 class UnitsToDirectionTest(testing_common.TestCase):
 
-  def testBasic(self):
+  def testUpdateFromJson_SetsImprovementDirections(self):
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
-        'bar': {'improvement_direction': 'up'},
+        'description': 'this is ignored',
+        'ms': {'improvement_direction': 'down'},
+        'score': {'improvement_direction': 'up'},
     })
-
-    self.assertEqual(anomaly.DOWN,
-                     units_to_direction.GetImprovementDirectionForUnit('foo'))
-    self.assertEqual(anomaly.UP,
-                     units_to_direction.GetImprovementDirectionForUnit('bar'))
+    self.assertEqual(
+        anomaly.DOWN, units_to_direction.GetImprovementDirection('ms'))
+    self.assertEqual(
+        anomaly.UP, units_to_direction.GetImprovementDirection('score'))
     self.assertEqual(
         anomaly.UNKNOWN,
-        units_to_direction.GetImprovementDirectionForUnit('does-not-exist'))
+        units_to_direction.GetImprovementDirection('does-not-exist'))
 
-  def testAdd(self):
+  def testUpdateFromJson_UnknownUnit_Added(self):
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
+        'ms': {'improvement_direction': 'down'},
     })
-
-    self.assertEqual(anomaly.UNKNOWN,
-                     units_to_direction.GetImprovementDirectionForUnit('bar'))
-
+    self.assertEqual(
+        anomaly.UNKNOWN, units_to_direction.GetImprovementDirection('runs/s'))
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
-        'bar': {'improvement_direction': 'up'},
+        'ms': {'improvement_direction': 'down'},
+        'runs/s': {'improvement_direction': 'up'},
     })
+    self.assertEqual(
+        anomaly.UP, units_to_direction.GetImprovementDirection('runs/s'))
 
-    self.assertEqual(anomaly.UP,
-                     units_to_direction.GetImprovementDirectionForUnit('bar'))
-
-  def testRemove(self):
+  def testUpdateFromJson_ExistingUnitNotInNewList_RemovesUnit(self):
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
-        'bar': {'improvement_direction': 'up'},
+        'ms': {'improvement_direction': 'down'},
+        'score': {'improvement_direction': 'up'},
     })
-
-    self.assertEqual(anomaly.UP,
-                     units_to_direction.GetImprovementDirectionForUnit('bar'))
-
+    self.assertEqual(
+        anomaly.UP, units_to_direction.GetImprovementDirection('score'))
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
+        'ms': {'improvement_direction': 'down'},
     })
+    self.assertEqual(
+        anomaly.UNKNOWN, units_to_direction.GetImprovementDirection('score'))
 
-    self.assertEqual(anomaly.UNKNOWN,
-                     units_to_direction.GetImprovementDirectionForUnit('bar'))
-
-  def testUpdate(self):
+  def testUpdateFromJson_ExistingUnit_ChangesDirection(self):
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'down'},
+        'ms': {'improvement_direction': 'down'},
     })
-
-    self.assertEqual(anomaly.DOWN,
-                     units_to_direction.GetImprovementDirectionForUnit('foo'))
-
+    self.assertEqual(
+        anomaly.DOWN, units_to_direction.GetImprovementDirection('ms'))
     units_to_direction.UpdateFromJson({
-        'description': 'foo',
-        'foo': {'improvement_direction': 'up'},
+        'ms': {'improvement_direction': 'up'},
     })
-
-    self.assertEqual(anomaly.UP,
-                     units_to_direction.GetImprovementDirectionForUnit('foo'))
+    self.assertEqual(
+        anomaly.UP, units_to_direction.GetImprovementDirection('ms'))
 
 
 if __name__ == '__main__':

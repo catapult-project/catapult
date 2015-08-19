@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Anomaly Detection Function Debugger</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
-  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
-  <script type="text/javascript">CLOSURE_NO_DEPS = true;</script>
+
+  <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.min.js"></script>
+
+  <script>var CLOSURE_NO_DEPS = true;</script>
   <style>
     /* The content container contains all the content after the title. */
     #content {
@@ -68,33 +70,48 @@
       </table>
       <p>Sheriff: {{sheriff_name}}</p>
       <label>Threshold configuration: {{config_name}}<br>
-        <textarea name="config" rows="7" cols="60">{{config_json|safe}}</textarea>
+        <textarea name="config" rows="7" cols="60">{{config_json | safe}}</textarea>
       </label>
       <input type="submit" value="Update">
     </form>
 
     <h2>About the threshold parameters</h2>
     <ul>
-      <li><code>max_window_size</code> is the number of points that's
-      analyzed at once, aka the "window". A larger window size generally means
-      that more points before a change-point are considered. The window size
-      must be at least twice as big as the <code>min_segment_size</code>.</li>
-      <li><code>min_segment_size</code> determines how many points must
-      be on either side of the change-point before an alert is fired. A
-      larger value makes it less sensitive to noise, but it also increases
-      the time before an alert is fired.</li>
-      <li><code>min_relative_change</code> is the minimum "regression size"
-      that's reported. For example, to disallow alerts for a change of less
-      than 5%, this can be set to 0.05.</li>
-      <li><code>min_absolute_change</code> sets a threshold on the absolute
-      numerical difference before and after an anomaly.</li>
-      <li><code>multiple_of_std_dev</code> is the only threshold
-      that directly takes noise into account. It was originally set
-      to 3.0 because, if the points within each "segment" have a normal
-      distribution, then a new point that is more than 3 standard deviations
-      from the mean has a 0.03 probability of belonging to that segment,
-      which strongly indicates that should belong to a new segment.
-      In general, a higher value means less sensitivity to noise.</li>
+      <li>
+        <code>max_window_size</code> is the number of points
+        that's analyzed at once. A larger window size means that more
+        points before a change-point can be considered. The window is
+        split into two segments.  Must be at least twice as big as the
+        <code>min_segment_size</code>.
+      </li>
+      <li>
+        <code>min_segment_size</code> determines how many points must
+        be on both sides of the change-point. A larger value makes it less
+        sensitive to noise, but it also increases the time before an alert
+        is fired.
+      </li>
+      <li>
+        <code>min_relative_change</code> is the minimum relative
+        difference between the median of the points before and the median
+        of the points after.  that's reported. For example, to disallow
+        alerts for a change of less than 5%, this can be set to 0.05.
+      </li>
+      <li>
+        <code>min_absolute_change</code> sets a threshold on the absolute
+        difference before and after.
+      </li>
+      <li>
+        <code>multiple_of_std_dev</code> is a threshold on the jump
+        size measured in multiples of the standard deviation of the
+        points. For example, a value of 3.0 means that only a jump 3
+        or more times larger than a sample of points around the change
+        point is considered.
+      </li>
+      <li>
+        <code>min_steppiness</code> is a measure of how similar the change
+        is to a perfect step, where 0.0 corresponds to a flat line or
+        completely random noise, and 1.0 corresponds to a any perfect step.
+      </li>
     </ul>
 
     {% if csv_url %}
@@ -133,21 +150,26 @@
   </div>
 
   {% if plot_data and lookup %}
-  <script src="{{static_dir}}/debug_alert_bin.js"></script>
+
+  <link rel="import" href="/static/debug_alert.html">
+
   <script>
+    'use strict';
     // Array with data series in Flot format. Expected series are:
     //  [0] Chart data series.
     //  [1] Anomaly points.
     //  [2..] Segments and their medians.
-    var DATA = {{plot_data|safe}};
+    var DATA = {{plot_data | safe}};
 
     // Map of indexes to revision numbers.
-    var LOOKUP = {{lookup|safe}};
+    var LOOKUP = {{lookup | safe}};
 
     // Information returned from the anomaly detection algorithm.
-    var ANOMALIES = {{anomalies|safe}};
+    var ANOMALIES = {{anomalies | safe}};
 
-    {% if rev %}var REVISION = {{rev}};{% endif %}
+    {% if rev %}
+    var REVISION = {{rev}};
+    {% endif %}
   </script>
   {% endif %}
 {% endblock %}

@@ -1,0 +1,237 @@
+<link rel="import" href="/static/testselection.html">
+
+<script>
+
+/**
+ * Main JavaScript file for group reporting page.
+ */
+var group_report = (function() {
+
+  // Dictionary of alert key to 'chart-element' element.
+  var graphElements_ = {};
+
+  // 'alerts-table' element.
+  var table_ = null;
+
+  /**
+   * Unchecks the checkbox in the alerts-table when a graph is closed.
+   * This is the handler for the 'closeGraph' event, fired by chart-container.
+   * @param {Event} event
+   */
+  var onGraphClose_ = function(event) {
+    // Un-check the alert in the table.
+    var key = event.target['alertKey'];
+    var alertList = table_['alertList'];
+    for (var i = 0; i < alertList.length; i++) {
+      if (alertList[i].key == key) {
+        alertList[i].selected = false;
+        break;
+      }
+    }
+
+    // Make the table update its list of checked alerts.
+    // This is necessary so that the triage dialog will get a correct list of
+    // alerts that should be affected by a triage action.
+    table_['onCheckboxChange']();
+
+    // Remove the graph from the set of currently-displayed graph elements.
+    delete graphElements_[key];
+  };
+
+  /**
+   * Get series to graph for an alert.
+   * @param {Object} alert
+   * @return {Array} A two-item Array, which contains a test path and list of
+   *     selected series for tests under that test path.
+   */
+  var getTestPathAndSelectedSeries_ = function(alert) {
+    var botName = alert['master'] + '/' + alert['bot'];
+    // Traverse to the chart name, which is the second-last part of the
+    // test path.
+    var testParts = alert['test'].split('/');
+    var lastTestPart = testParts[testParts.length - 1];
+    if (testParts.length > 1) {
+      testParts = testParts.slice(0, -1);
+    }
+
+    // Traverse to the last part of the test path.
+    var selectedSeries = [];
+    var subtestDict = window['SUBTESTS'][botName][alert['testsuite']];
+    for (var level = 0; level < testParts.length; level++) {
+      var name = testParts[level];
+      if (!(name in subtestDict)) {
+        break;
+      }
+      // Last level test.
+      if (level == testParts.length - 1 && subtestDict[name]['has_rows']) {
+        selectedSeries.push(name);
+      }
+      subtestDict = subtestDict[name]['sub_tests'];
+    }
+
+    // Add important sub-tests.
+    var testPath = alert['testsuite'] + '/' + alert['test'];
+    for (var i in subtestDict) {
+      if (subtestDict[i]['has_rows']) {
+        if (testselection.isImportant(testPath + '/' + i)) {
+          selectedSeries.push(i);
+        }
+      }
+    }
+
+    // We always want to add the test of the target alert regardless of whether
+    // or not it is in the global SUBTESTS.
+    if (selectedSeries.indexOf(lastTestPart) == -1) {
+      selectedSeries.push(lastTestPart);
+    }
+
+    var fullTestPath = [alert['master'], alert['bot'], alert['testsuite'],
+                        alert['test']].join('/');
+
+    return [fullTestPath, selectedSeries];
+  };
+
+  /**
+   * Toggles whether improvement alerts are displayed.
+   * Regardless of whether this is toggled on or off, any improvement
+   * alerts specified in the keys parameter are always displayed.
+   * @param {Event} event The event for the button click.
+   */
+  var onToggleImprovements_ = function(event) {
+    var improvementsToggle = document.getElementById('improvements-toggle');
+    if (improvementsToggle.hasAttribute('active')) {
+      table_['alertList'].forEach(function(alert) {
+        if (alert['improvement']) {
+          alert['hideRow'] = false;
+        }
+      });
+    } else {
+      table_['alertList'].forEach(function(alert) {
+        if (alert['improvement'] && !alert['selected']) {
+          alert['hideRow'] = true;
+          alert['selected'] = false;
+        }
+      });
+      // Make the table update its list of checked alerts.
+      table_['onCheckboxChange']();
+    }
+  };
+
+  /**
+   * Updates alerts table when user nudges an anomaly on the graph.
+   * @param {Event} event The event of nudge.
+   */
+  var alertChangedRevisions_ = function(event) {
+    var alertList = table_['alertList'];
+    var nudgedAlert = event.detail['alerts'][0];
+    for (var i = 0; i < alertList.length; i++) {
+      if (alertList[i]['key'] == nudgedAlert['key']) {
+        alertList[i]['start_revision'] = event.detail['startRev'];
+        alertList[i]['end_revision'] = event.detail['endRev'];
+        // Make the table update its list of checked alerts.
+        table_['onCheckboxChange']();
+        return;
+      }
+    }
+  };
+
+  /**
+   * Add graphs for tests in 'alerts' to the given element.
+   * @param {Element} containerElement The element that contains all the chart
+   *     UI elements.
+   * @param {Array.<Object>} alerts
+   * @param {boolean} insertBefore True for adding graphs in prepending order.
+   */
+  var addGraph_ = function(containerElement, alerts, insertBefore) {
+    if (!alerts) {
+      return;
+    }
+
+    for (var i = 0; i < alerts.length; i++) {
+      var alert = alerts[i];
+      var chart = document.createElement('chart-container');
+      graphElements_[alert['key']] = chart;
+      chart['revisionInfo'] = window['REVISION_INFO'];
+      chart['xsrfToken'] = window['XSRF_TOKEN'];
+      if (insertBefore != 'undefined') {
+        containerElement.insertBefore(chart, containerElement.firstChild);
+      } else {
+        containerElement.appendChild(chart);
+      }
+
+      // Set graph params.
+      var graphParams = {
+        'rev': alert['end_revision']
+      };
+      chart['graphParams'] = graphParams;
+      chart['alertKey'] = alert['key'];
+      chart['addSeriesGroup']([getTestPathAndSelectedSeries_(alert)]);
+      chart.addEventListener('chartclosed', onGraphClose_, false);
+      chart.addEventListener('alertChangedRevisions',
+                             alertChangedRevisions_, true);
+    }
+  };
+
+  /**
+   * On alert checkbox change, remove or add graphs.
+   * @param {Event} e
+   */
+  var onAlertSelectionChange_ = function(e) {
+    // Make a set of all alerts that are checked in the table.
+    var alerts = {};
+    table_['checkedAlerts'].forEach(function(a) {
+      alerts[a.key] = a;
+    });
+    // Add graphs that are checked in the table but not added yet.
+    for (var key in alerts) {
+      if (!(key in graphElements_)) {
+        addGraph_(document.getElementById('charts-container'),
+                  [alerts[key]], true);
+      }
+    }
+    // Remove graphs that are no longer checked in the table.
+    for (var key in graphElements_) {
+      if (!(key in alerts) && key in graphElements_) {
+        var chartContainer = document.getElementById('charts-container');
+        if (graphElements_[key].parentNode == chartContainer) {
+          chartContainer.removeChild(graphElements_[key]);
+          delete graphElements_[key];
+        }
+      }
+    }
+  };
+
+  /**
+   * Sets up event listeners.
+   */
+  var initialize = function() {
+    table_ = document.getElementById('alerts-table');
+    table_['alertList'] = window['ALERT_LIST'];
+    table_['extraColumns'] = [
+      {'key': 'percent_changed', 'label': 'Delta %'},
+    ];
+    table_['initialize']();
+    table_.addEventListener('changeselection', onAlertSelectionChange_, false);
+
+    var improvementsToggle = document.getElementById('improvements-toggle');
+    improvementsToggle.addEventListener('click', onToggleImprovements_);
+
+    var bugId = uri.getParameter('bug_id');
+    if (bugId) {
+      var bugInfo = document.getElementById('bug-info');
+      bugInfo['initialize'](bugId, table_, window['OWNER_INFO']);
+    }
+
+    // Load graphs for checked alerts.
+    addGraph_(document.getElementById('charts-container'),
+              table_['checkedAlerts'], false);
+  };
+
+  return {
+    initialize: initialize
+  };
+})();
+
+document.addEventListener('polymer-ready', group_report.initialize);
+
+</script>

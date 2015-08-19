@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block head %}
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <style>
     form, ul {
       margin-left: 20px;
@@ -123,15 +122,24 @@
                                        background-color:white; color: black;">
         </div>
       </div>
-      <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+
+      <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
+      <script src="/third_party/flot/jquery.flot.min.js"></script>
+      <script src="/third_party/flot/jquery.flot.pie.min.js"></script>
+      <script src="/third_party/flot/jquery.flot.stack.min.js"></script>
+
       <script>
+        'use strict';
+
         function labelFormatter(label, series) {
           return ('<div style="font-size:8pt; text-align:center; ' +
                   'padding:2px; color:white;">' + label + '<br>' +
                   Math.round(series.percent) + '%</div>');
         }
-        axis_map = {{stats.axis_map|safe}};
-        summaries = {{stats.overall_summaries|safe}};
+
+        var axis_map = {{stats.axis_map | safe}};
+        var summaries = {{stats.overall_summaries | safe}};
+
         for (var key in summaries) {
           $.plot('#' + key + '-pie', summaries[key], {
             series: {
@@ -140,7 +148,7 @@
                 radius: 1,
                 label: {
                   show: true,
-                  radius: 2/3,
+                  radius: 2 / 3,
                   formatter: labelFormatter,
                   threshold: 0.1
                 }
@@ -153,10 +161,12 @@
               hoverable: true
             }
           });
+
           $('#' + key + '-pie').bind('plothover', function(event, pos, item) {
             var tooltip = document.getElementById('chart-tooltip');
             if (item) {
-              tooltip.textContent = item.series.label + ': ' + item.datapoint[0].toFixed(2);
+              tooltip.textContent = (
+                  item.series.label + ': ' + item.datapoint[0].toFixed(2));
               tooltip.style.left = (pos.pageX + 15) + 'px';
               tooltip.style.top = pos.pageY + 'px';
               tooltip.style.display = '';
@@ -165,9 +175,10 @@
             }
           });
         }
-        daily = {{stats.daily_summaries|safe}};
+
+        var daily = {{stats.daily_summaries | safe}};
         for (var d in daily) {
-          $.plot("#" + d + "-daily", daily[d], {
+          $.plot('#' + d + '-daily', daily[d], {
             series: {
               stack: true,
               lines: {
@@ -190,6 +201,7 @@
               hoverable: true
             }
           });
+
           $('#' + d + '-daily').bind('plothover', function(event, pos, item) {
             var tooltip = document.getElementById('chart-tooltip');
             var x = Math.round(pos.x);
@@ -222,17 +234,19 @@
     {% endif %}
   {% else %}
     <script>
+      'use strict';
+
       function updateSubForm() {
-        sel = document.getElementById('type-select');
-        val = sel.options[sel.selectedIndex].value;
-        rev_form = document.getElementById('around_revision_form')
-        alert_form = document.getElementById('alert_summary_form')
+        var sel = document.getElementById('type-select');
+        var val = sel.options[sel.selectedIndex].value;
+        var revForm = document.getElementById('around_revision_form');
+        var alertForm = document.getElementById('alert_summary_form');
         if (val == 'around_revision') {
-          rev_form.style.display = '';
-          alert_form.style.display = 'none';
+          revForm.style.display = '';
+          alertForm.style.display = 'none';
         } else {
-          rev_form.style.display = 'none';
-          alert_form.style.display = '';
+          revForm.style.display = 'none';
+          alertForm.style.display = '';
         }
       }
     </script>
@@ -248,7 +262,10 @@
       <div class="sub-form" id="around_revision_form">
         Bots:<br>
         {% for bot in bots %}
-        <label><input type="checkbox" checked name="bots" value="{{bot}}">{{bot}}</label><br>
+        <label>
+          <input type="checkbox" checked name="bots" value="{{bot}}">
+          {{bot}}
+        </label><br>
         {% endfor %}
         <br>
         Revision to check:<br>
@@ -263,8 +280,8 @@
           <option value="{{sheriff}}">{{sheriff}}</option>
         {% endfor %}
         </select><br><br>
-        Start date:  <input type="date" name="start_date"><br><br>
-        End date:  <input type="date" name="end_date"><br><br>
+        Start date: <input type="date" name="start_date"><br><br>
+        End date: <input type="date" name="end_date"><br><br>
       </div>
       <input type="submit" value="Submit">
     </form>

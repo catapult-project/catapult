@@ -1,4 +1,4 @@
-<link rel="import" href="bisect-button.html">
+<link rel="import" href="/dashboard/elements/bisect-button.html">
 
 <polymer-element name="bug-info">
   <template>
@@ -44,6 +44,7 @@
     </div>
   </template>
   <script>
+    'use strict';
     Polymer('bug-info', {
       alertsTable: null,
       bugId: null,
@@ -111,9 +112,6 @@
       /**
        * Displays a bisect button.
        *
-       * TODO(qyearsley) Change this to use a test path based on a response
-       * from /bisect_group.
-       *
        * @param {Array.<Object>} alerts List of alerts.
        * @param {Object} minRevRange Minimum revision range.
        */
@@ -133,7 +131,7 @@
        *
        * @param {Number} start_revision A start revision number.
        *
-       * @return {(String|null)} The test path.
+       * @return {?string} The test path.
        */
       getTestpathFromStartRev: function(alerts, startRevision) {
         for (var i = 0; i < alerts.length; i++) {

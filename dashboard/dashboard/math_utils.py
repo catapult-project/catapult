@@ -34,7 +34,7 @@ def Variance(values):
 
 
 def StandardDeviation(values):
-  """Returns the population std dev, or NaN if the input is empty."""
+  """Returns the population std. dev., or NaN if the input is empty."""
   if not values:
     return float('nan')
   return math.sqrt(Variance(values))

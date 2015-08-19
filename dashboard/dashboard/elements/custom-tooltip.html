@@ -1,5 +1,5 @@
 <!--
-The 'custom-tooltip' displays overlayed popup above target.
+The 'custom-tooltip' displays overlaid pop-up above a target.
 
 By default 'custom-tooltip' will close whenever other elements are focused
 as well as automatically disappear after 'duration'.
@@ -10,8 +10,8 @@ Example usage:
   var tooltip = document.getElementById("tooltip");
   tooltip.set('A tooltip message', bound.left, bound.top);
 -->
-<link rel="import" href="../../third_party/polymer/components/paper-shadow/paper-shadow.html">
-<link rel="import" href="../../third_party/polymer/components/core-overlay/core-overlay.html">
+<link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/third_party/polymer/components/core-overlay/core-overlay.html">
 <polymer-element
     name="custom-tooltip"
     attributes="autoCloseDisabled transition duration maxWidth">
@@ -32,12 +32,12 @@ Example usage:
         margin: 3px;
       }
 
-      .message-content a {
+      .message-content a, .message-content /deep/ a {
         color: #EADE90;
         text-decoration: none;
       }
 
-      .message-content a:hover {
+      .message-content a:hover, .message-content /deep/ a:hover {
         text-decoration: underline;
       }
     </style>
@@ -58,6 +58,7 @@ Example usage:
   </template>
 
   <script>
+    'use strict';
     Polymer('custom-tooltip', {
 
       /**
@@ -72,7 +73,7 @@ Example usage:
 
       /**
        * Add event handler.
-       * https://www.polymer-project.org/0.5/docs/polymer/polymer.html#imperative-event-mapping
+       * See: https://goo.gl/QIYbsB
        */
       eventDelegates: {
         'core-resize': 'positionChanged',
@@ -87,9 +88,18 @@ Example usage:
       /**
        * Sets and opens tooltip. If tooltip is already opened, it will close
        * then re-open.
+       *
+       * @param {string|HTMLElement} content Either string or HTMLElement.
+       * @param {number} targetXpos target x position
+       * @param {number} targetYpos target y position
        */
       set: function(content, targetXpos, targetYpos) {
-        this.$.content.innerHTML = content;
+        if (typeof content === 'string') {
+          this.$.content.innerHTML = content;
+        } else {
+          this.$.content.innerHTML = '';
+          this.$.content.appendChild(content);
+        }
         this.targetXpos = targetXpos;
         this.targetYpos = targetYpos;
         this.style.opacity = 0;

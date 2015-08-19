@@ -1,5 +1,5 @@
 <!--
-The revision-range element is an inline element that shows a revision range.
+The revision-range element is an in-line element that shows a revision range.
 TODO(qyearsley) Expand this element to take information about revision types
 (including changelog viewer links, revision type names, etc.) in order
 to allow it to show links).
@@ -9,78 +9,80 @@ to allow it to show links).
     <span>{{displayRevisionRange}}</span>
   </template>
   <script>
-  (function() {
-    /** Returns a date string for the given timestamp. */
-    function dateDisplay(secondsSinceEpoch) {
-      var d = new Date(secondsSinceEpoch * 1000);
-      return d.toISOString();
-    }
+    'use strict';
+    (function() {
+      /** Returns a date string for the given timestamp. */
+      function dateDisplay(secondsSinceEpoch) {
+        var d = new Date(secondsSinceEpoch * 1000);
+        return d.toISOString();
+      }
 
-    /**
-     * Returns a string to display for the given encoded Cr + CrOS point ID.
-     *
-     * Point IDs for Chrome OS data are of the following form:
-     * [aaaaa][bbb][ccccc][ddd][ee], where:
-     *   aaaaa is the Chrome build number
-     *   bbb is the Chrome patch number.
-     *   ccccc is the Chrome OS tip build number.
-     *   ddd is the Chrome OS branch build number.
-     *   ee is the Chrome OS branch branch build number.
-     */
-    function crosDisplay(pointId) {
-      var digits = zeroFill(pointId, 18);
-      var crBuild = Number(digits.substring(0, 5));
-      var crPatch = Number(digits.substring(5, 8));
-      var crosTipBuild = Number(digits.substring(8, 13));
-      var crosBranchBuild = Number(digits.substring(13, 16));
-      var crosSubbranchBuild = Number(digits.substring(16, 18));
-      return ('Cr ' + crBuild + '.' + crPatch +
-              ' / CrOS ' + crosTipBuild + '.' +
-              crosBranchBuild + '.' + crosSubbranchBuild);
-    }
+      /**
+       * Returns a string to display for the given encoded Cr + CrOS point ID.
+       *
+       * Point IDs for Chrome OS data are of the following form:
+       * [aaaaa][bbb][ccccc][ddd][ee], where:
+       *   aaaaa is the Chrome build number
+       *   bbb is the Chrome patch number.
+       *   ccccc is the Chrome OS tip build number.
+       *   ddd is the Chrome OS branch build number.
+       *   ee is the Chrome OS branch branch build number.
+       */
+      function crosDisplay(pointId) {
+        var digits = zeroFill(pointId, 18);
+        var crBuild = Number(digits.substring(0, 5));
+        var crPatch = Number(digits.substring(5, 8));
+        var crosTipBuild = Number(digits.substring(8, 13));
+        var crosBranchBuild = Number(digits.substring(13, 16));
+        var crosSubbranchBuild = Number(digits.substring(16, 18));
+        return ('Cr ' + crBuild + '.' + crPatch +
+                ' / CrOS ' + crosTipBuild + '.' +
+                crosBranchBuild + '.' + crosSubbranchBuild);
+      }
 
-    /** Pads a number with zeroes; returns a string. */
-    function zeroFill(num, minWidth) {
-      var widthToFill = minWidth - num.toString().length;
-      if (widthToFill <= 0) {
+      /** Pads a number with zeroes; returns a string. */
+      function zeroFill(num, minWidth) {
+        var widthToFill = minWidth - num.toString().length;
+        if (widthToFill <= 0) {
+          return num.toString();
+        }
+        for (var i = 0; i < widthToFill; i++) {
+          num = '0' + num;
+        }
         return num.toString();
       }
-      for (var i = 0; i < widthToFill; i++) {
-        num = '0' + num;
-      }
-      return num.toString();
-    }
 
-    /**
-     * Returns the string to display for a single revision number.
-     * @param {number|string} revision
-     * @return {string} Display revision.
-     */
-    function displayRevision(revision) {
-      if (revision.toString().length >= 16) {
-        return crosDisplay(revision);
-      }
-      if (revision.toString().length == 10) {
-        return dateDisplay(revision);
-      }
-      return revision.toString();
-    }
-
-    Polymer('revision-range', {
-      ready: function() {
-        this.displayRevisionRange = this.getDisplayRevisionRange();
-      },
-
-      getDisplayRevisionRange: function() {
-        if (!this.start || !this.end) {
-          return '';
+      /**
+       * Returns the string to display for a single revision number.
+       * @param {number|string} revision
+       * @return {string} Display revision.
+       */
+      function displayRevision(revision) {
+        if (revision.toString().length >= 16) {
+          return crosDisplay(revision);
         }
-        if (this.start == this.end) {
-          return displayRevision(this.end);
+        if (revision.toString().length == 10) {
+          return dateDisplay(revision);
         }
-        return displayRevision(this.start) + ' - ' + displayRevision(this.end);
+        return revision.toString();
       }
-    });
-  })();
+
+      Polymer('revision-range', {
+        ready: function() {
+          this.displayRevisionRange = this.getDisplayRevisionRange();
+        },
+
+        getDisplayRevisionRange: function() {
+          if (!this.start || !this.end) {
+            return '';
+          }
+          if (this.start == this.end) {
+            return displayRevision(this.end);
+          }
+          return (displayRevision(this.start) + ' - ' +
+                  displayRevision(this.end));
+        }
+      });
+    })();
   </script>
 </polymer-element>

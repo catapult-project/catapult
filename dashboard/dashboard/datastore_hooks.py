@@ -14,8 +14,7 @@ from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import users
 from google.appengine.datastore import datastore_pb
 
-from dashboard import check_whitelisted_ip
-from dashboard import request_handler
+from dashboard import utils
 
 # The list below contains all kinds that have an internal_only property.
 # IMPORTANT: any new data types with internal_only properties must be added
@@ -26,6 +25,8 @@ _INTERNAL_ONLY_KINDS = [
     'Row',
     'Sheriff',
     'Anomaly',
+    'StoppageAlert',
+    'TryJob',
 ]
 
 # Permissions namespaces.
@@ -63,32 +64,33 @@ def _IsServicingPrivilegedRequest():
     # This only happens in unit tests, when the code gets called outside of
     # a request.
     return False
-  if not request or (
+  if (not request or
       hasattr(request, 'path') and request.path.startswith('/mapreduce')):
     # Running a mapreduce.
     return True
   if request.registry.get('privileged', False):
     return True
-  if hasattr(request, 'remote_addr'):
-    return check_whitelisted_ip.CheckWhiteListedIp(request.remote_addr)
+  whitelist = utils.GetIpWhitelist()
+  if whitelist and hasattr(request, 'remote_addr'):
+    return request.remote_addr in whitelist
   return False
 
 
 def IsUnalteredQueryPermitted():
   """Checks if the current user is internal, or the request is privileged.
 
-  Google users are assumed to be internal; privileged requests allow for task
-  queue tasks like find_anomalies to work correctly.
+  "Internal users" are users whose email address belongs to a certain
+  privileged domain; but some privileged requests, such as task queue tasks,
+  are also considered privileged.
 
   Returns:
     True for users with google.com emails and privileged requests.
   """
-  if request_handler.IsLoggedInWithGoogleAccount():
+  if utils.IsInternalUser():
     return True
   if users.is_current_user_admin():
-    # It's only possible to be an admin with a non-google.com account on a dev
-    # box. But the default login on dev boxes is test@example.com, so it's
-    # confusing when people run locally and can't see their data.
+    # It's possible to be an admin with a non-internal account; For example,
+    # the default login for dev appserver instances is test@example.com.
     return True
   return _IsServicingPrivilegedRequest()
 
@@ -127,9 +129,8 @@ def _DatastorePreHook(service, call, request, _):
     # Production and unit tests use proto2
     external_filter = request.filter_list().add()
   except AttributeError:
-    # The app.sh framework uses dev_appserver_internal_main, which uses the old
-    # dev_appserver, which uses proto1. This should go away when it switches to
-    # devappserver2_internal_main, which is tracked in http://b/8449518
+    # This is required to support the old dev_appserver, which uses proto1.
+    # TODO(qyearsley): Remove this after switching to catapult.
     external_filter = request.add_filter()
   external_filter.set_op(datastore_pb.Query_Filter.EQUAL)
   new_property = external_filter.add_property()

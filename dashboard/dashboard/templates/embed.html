@@ -7,7 +7,11 @@
     var REVISION_INFO = {{revision_info|safe}};
     var XSRF_TOKEN = '{{xsrf_token}}';
   </script>
-  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+
+  <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.crosshair.min.js"></script>
+
   <style>
     html {
       height: 100%;
@@ -46,10 +50,8 @@
 <body>
   <div id="chart"></div>
   <div id="legend" style="display: none;"></div>
-  <script src={{static_dir}}/embed_bin.js></script>
-  <script>
-    // The initialize function is defined in the JS file loaded above.
-    document.addEventListener('DOMContentLoaded', initialize);
-  </script>
+
+  <link rel="import" href="/static/embed.html">
+
 </body>
 </html>

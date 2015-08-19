@@ -55,8 +55,6 @@ Daily Backup url in cron.yaml in order for them to be properly backed up.
 See: https://developers.google.com/appengine/articles/scheduled_backups
 """
 
-__author__ = 'sullivan@google.com (Annie Sullivan)'
-
 import logging
 
 from google.appengine.ext import ndb
@@ -66,7 +64,8 @@ from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import internal_only_model
-from dashboard.models import sheriff
+from dashboard.models import sheriff as sheriff_module
+from dashboard.models import stoppage_alert as stoppage_alert_module
 
 # Maximum level of nested tests.
 MAX_TEST_ANCESTORS = 10
@@ -74,7 +73,6 @@ MAX_TEST_ANCESTORS = 10
 # Keys to the datastore-based cache. See layered_cache.
 LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
 LIST_TESTS_SUBTEST_CACHE_KEY = 'list_tests_get_tests_%s_%s_%s'
-GRAPH_REVISIONS_MULTIPART_CACHE_KEY = 'num_revisions_%s'
 
 _MAX_STRING_LENGTH = 500
 
@@ -121,7 +119,7 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
 
   # Sheriff rotation for this test. Rotations are specified by regular
   # expressions that can be edited at /edit_sheriffs.
-  sheriff = ndb.KeyProperty(kind=sheriff.Sheriff, indexed=True)
+  sheriff = ndb.KeyProperty(kind=sheriff_module.Sheriff, indexed=True)
 
   # There is a default anomaly threshold config (in anomaly.py), and it can
   # be overridden for a group of tests by using /edit_sheriffs.
@@ -149,14 +147,14 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
   # Whether or not the test has child rows. Set by hook on Row class put.
   has_rows = ndb.BooleanProperty(default=False, indexed=True)
 
-  # A "deprecated" test is one for which no new has been received for a while.
+  # If there is a currently a StoppageAlert that indicates that data hasn't
+  # been received for some time, then will be set. Otherwise, it is None.
+  stoppage_alert = ndb.KeyProperty(
+      kind=stoppage_alert_module.StoppageAlert, indexed=True)
+
+  # A test is marked "deprecated" if no new points have been received for
+  # a long time; these tests should usually not be listed.
   deprecated = ndb.BooleanProperty(default=False, indexed=True)
-
-  # The Buildbot master, e.g. "chromium.perf". Optional, used for stdio link.
-  masterid = ndb.StringProperty(indexed=False)
-
-  # The name of the builder for this test. Optional, used for stdio link.
-  buildername = ndb.StringProperty(indexed=False)
 
   # For top-level test entities, this is a list of sub-tests that are checked
   # for alerts (i.e. they have a sheriff). For other tests, this is empty.
@@ -261,7 +259,7 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
     # Set the sheriff to the first sheriff (alphabetically by sheriff name)
     # that has a test pattern that matches this test.
     self.sheriff = None
-    for sheriff_entity in sheriff.Sheriff.query().fetch():
+    for sheriff_entity in sheriff_module.Sheriff.query().fetch():
       for pattern in sheriff_entity.patterns:
         if utils.TestMatchesPattern(self, pattern):
           self.sheriff = sheriff_entity.key
@@ -331,7 +329,7 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
     d_: A data point, such as d_1st_run or d_50th_percentile. FloatProperty.
     r_: Revision such as r_webkit or r_v8. StringProperty, limited to 25
         characters, '0-9' and '.'.
-    a_: Annotation such as a_chrome_bugid. StringProperty.
+    a_: Annotation such as a_chrome_bugid or a_gasp_anomaly. StringProperty.
   """
   # Don't index by default (only explicitly indexed properties are indexed).
   _default_indexed = False

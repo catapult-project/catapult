@@ -36,7 +36,8 @@ class IssueTrackerService(object):
     self._service = discovery.build('projecthosting', 'v2')
 
   def AddBugComment(self, bug_id, comment, status=None,
-                    cc_list=None, merge_issue=None, labels=None):
+                    cc_list=None, merge_issue=None, labels=None,
+                    owner=None):
     """Adds a comment with the bisect results to the given bug.
 
     Args:
@@ -47,6 +48,7 @@ class IssueTrackerService(object):
       merge_issue: ID of the issue to be merged into; specifying this option
           implies that the status should be "Duplicate".
       labels: List of labels for bug.
+      owner: Owner of the bug.
 
     Returns:
       True if successful, False otherwise.
@@ -68,6 +70,8 @@ class IssueTrackerService(object):
       updates['cc'] = cc_list
     if labels:
       updates['labels'] = labels
+    if owner:
+      updates['owner'] = owner
     body['updates'] = updates
 
     return self._MakeCommentRequest(bug_id, body)

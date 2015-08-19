@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>revision-range test</title>
-  <link type="text/css" rel="stylesheet" href="../../third_party/mocha/mocha.css">
-  <script src="../../third_party/mocha/mocha.js"></script>
-  <script src="../../third_party/chai/chai.js"></script>
-  <link rel="import" href="../../third_party/polymer/components/polymer/polymer.html">
-  <link rel="import" href="revision-range.html">
+  <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/2.1.1/chai.min.js"></script>
+  <link rel="import" href="//www.polymer-project.org/0.5/components/polymer/polymer.html">
+  <link rel="import" href="/dashboard/elements/revision-range.html">
 </head>
 <body>
 <div id="mocha"></div>
@@ -53,7 +53,7 @@ suite('revision-range', function() {
       range.setAttribute('end', 1420001111);
       assert.equal(
           range.getDisplayRevisionRange(),
-          '2014-12-31T04:45:11.000Z')
+          '2014-12-31T04:45:11.000Z');
     });
   });
 });

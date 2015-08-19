@@ -1,0 +1,228 @@
+<script>
+
+/** Support for autocomplete suggestions. */
+var autocomplete = (function() {
+
+  // These are characters that are ignored in substring matching.
+  var UNIMPORTANT_CHAR_REGEX_ = /[ ._-]/;
+
+  /**
+   * This class is used to get autocomplete suggestions.  On instantiation,
+   * this class builds a trie which is used to get matches.
+   * sourceList have the following properties:
+   *
+   *    [{name: 'Skydiving'}, {name: 'Snowboarding'}]
+   *
+   * With grouping:
+   *    [
+   *        {
+   *            name: 'Outdoor',
+   *            head: true
+   *        },
+   *        {
+   *            name: 'Skydiving',
+   *            group: 'Outdoor'
+   *        }
+   *    ]
+   * @param {Array.<Object>} sourceList List of object.
+   * @constructor
+   */
+  var Trie = function(sourceList) {
+    this.trie_ = [[], {}];
+    this.headItems_ = {};
+    this.sourceList_ = sourceList;
+    this.buildTrie_();
+  };
+
+  /**
+   * Searches for matching terms and returns their indexes.
+   * @param {string} target A string to search for.
+   * @return {Array} List of matched items.
+   */
+  Trie.prototype.search = function(target) {
+    var resultDict = {};
+    target = target.toLowerCase().trim();
+
+    if (target.length == 0) {
+      return this.sourceList_;
+    }
+
+    // Search substring.
+    var targetParts = target.split(UNIMPORTANT_CHAR_REGEX_);
+    for (var i = 0; i < targetParts.length; i++) {
+      if (targetParts[i].length > 0) {
+        this.searchTrie_(targetParts[i], resultDict);
+      }
+    }
+
+    return this.buildResults(resultDict);
+  };
+
+  /**
+   * Gets list of result items from resultDict after sorting.
+   * @param {Object} resultDict Dictionary of source object index to its score.
+   * @return {Array} List of matched items.
+   */
+  Trie.prototype.buildResults = function(resultDict) {
+    var resultTuples = [];
+    for (var index in resultDict) {
+      resultTuples.push([this.sourceList_[index], resultDict[index]]);
+    }
+
+    var resultList = [];
+    // If this sourceDatalist contain grouping, include head item in
+    // results.
+    if (Object.keys(this.headItems_).length > 0) {
+      resultTuples.sort(this.compareGroup_);
+      var groupName = null;
+      for (var i = 0; i < resultTuples.length; i++) {
+        var item = resultTuples[i][0];
+        if (item.group != groupName) {
+          groupName = item.group;
+          resultList.push(this.headItems_[groupName]);
+        }
+        resultList.push(item);
+      }
+    } else {
+      resultTuples.sort(this.compareScore_);
+      resultTuples.forEach(function(tuple) {
+        resultList.push(tuple[0]);
+      });
+    }
+    return resultList;
+  };
+
+  /**
+   * Searches from the root of the trie for a target string.
+   * @param {string} target A string to search for.
+   * @param {Object} resultDict Dictionary of source object index to its score.
+   */
+  Trie.prototype.searchTrie_ = function(
+      target, resultDict) {
+    var chars = target.split('');
+    var node = this.trie_;
+    for (var i = 0; i < chars.length; i++) {
+      var char = chars[i];
+      if (char in node[1]) {
+        node = node[1][char];
+      } else {
+        return;
+      }
+    }
+
+    this.searchAllSubNodes_(node, resultDict, chars.length);
+  };
+
+  /**
+   * Searches all sub-nodes and sum up scores for source string that are found.
+   * @param {Object} node A trie node.
+   * @param {Object} resultDict Dictionary of source object index to its score.
+   * @param {number} targetLength Length of the target string.
+   */
+  Trie.prototype.searchAllSubNodes_ = function(
+      node, resultDict, targetLength) {
+    if (!node) {
+      return;
+    }
+
+    for (var i = 0; i < node[0].length; i++) {
+      var data = node[0][i];
+      if (!(data[0] in resultDict)) {
+        resultDict[data[0]] = 0;
+      }
+      resultDict[data[0]] += this.getScore_(targetLength, data);
+    }
+
+    for (var char in node[1]) {
+      this.searchAllSubNodes_(node[1][char], resultDict, targetLength);
+    }
+  };
+
+  /**
+   * Builds a trie out of the sourceList.
+   */
+  Trie.prototype.buildTrie_ = function() {
+    for (var i = 0; i < this.sourceList_.length; i++) {
+      var source = this.sourceList_[i];
+      if (source.head) {
+        this.headItems_[source.name] = source;
+        continue;
+      }
+      var words = source.name.split(UNIMPORTANT_CHAR_REGEX_);
+      var position = 1;
+      for (var j = 0; j < words.length; j++) {
+        this.addWord_(this.trie_, words[j], i, source.name.length, position);
+        position += words[j].length;
+      }
+    }
+  };
+
+  /**
+   * Adds a word to the trie.
+   * @param {Object} node A trie node.
+   * @param {string} word A string to add.
+   * @param {number} index The word's index within the sourceList.
+   * @param {number} totalLength Total length of a source string.
+   * @param {number} position Integer position of the word within the source
+   *     string.
+   */
+  Trie.prototype.addWord_ = function(node, word, index, totalLength,
+                                     position) {
+    var characters = word.toLowerCase().split('');
+    for (var i = 0; i < characters.length; i++) {
+      var letter = characters[i];
+      if (!(letter in node[1])) {
+        node[1][letter] = [[], {}];
+      }
+      node = node[1][letter];
+    }
+    node[0].push([index, characters.length, totalLength, position]);
+  };
+
+  /**
+   * Gets the score for a match.
+   * Scoring is base on the ratio of the target word length to the source word
+   * length to the ratio of total source string length plus the inverse of
+   * the position of the target word.  Basically, the more characters matched
+   * at the beginning and the shorter the string, the higher the score.
+   * @param {number} targetLength Length of target word.
+   * @param {Array} data A trie node data.
+   * @return {number} The score.
+   */
+  Trie.prototype.getScore_ = function(targetLength, data) {
+    // (target length / source length) / total source length + 1 / position.
+    return (targetLength / data[1]) / data[2] + 1.0 / data[3];
+  };
+
+  /**
+   * Compares by score.
+   * @param {Array} tupleA A tuple of source object and its score.
+   * @param {Array} tupleB A tuple of source object and its score.
+   * @return {number}
+   */
+  Trie.prototype.compareScore_ = function(tupleA, tupleB) {
+    return tupleB[1] - tupleA[1];
+  };
+
+  /**
+   * Compares by group and then by score.
+   * @param {Array} tupleA A tuple of source object and its score.
+   * @param {Array} tupleB A tuple of source object and its score.
+   * @return {number}
+   */
+  Trie.prototype.compareGroup_ = function(tupleA, tupleB) {
+    if (tupleA[0].group < tupleB[0].group) {
+      return -1;
+    }
+    if (tupleA[0].group > tupleB[0].group) {
+      return 1;
+    }
+    return tupleB[1] - tupleA[1];
+  };
+
+  return {
+    Trie: Trie,
+  };
+})();
+
+</script>

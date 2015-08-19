@@ -28,10 +28,11 @@ class ListTestsTest(testing_common.TestCase):
         [('/list_tests', list_tests.ListTestsHandler)])
     self.testapp = webtest.TestApp(app)
     datastore_hooks.InstallHooks()
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
+    testing_common.SetInternalDomain('google.com')
 
   def _AddSampleData(self):
-    testing_common.AddDataToMockDataStore(
+    testing_common.AddTests(
         ['Chromium'],
         ['win7', 'mac'],
         {
@@ -197,7 +198,7 @@ class ListTestsTest(testing_common.TestCase):
 
   def testGetSubTests_InternalData(self):
     """Checks that internal data is not returned for unauthorized users."""
-    # When the user has a @google.com account, internal-only data is given.
+    # When the user has a an internal account, internal-only data is given.
     self.SetCurrentUser('foo@google.com')
     self._AddSampleData()
 

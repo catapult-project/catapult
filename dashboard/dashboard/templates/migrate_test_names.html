@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Migrate Test Names</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <script>
+  'use strict';
     var XSRF_TOKEN = '{{xsrf_token}}';
 
     /**
      * Loads and displays tests that match the "old pattern".
+     * @return {boolean} false (to prevent default click handler behavior).
      */
     function listTests() {
       function showPatternMatch() {
@@ -33,7 +34,8 @@
 {% block content %}
   <h1>Migrate Test Names</h1>
 
-  <h2 style="color:red">If a test name has changed, make sure to update all alerting!</h2>
+  <h2 style="color:red">If a test name has changed,
+  make sure to update all alerting!</h2>
 
   <p>This page is a tool for migrating old data to a new test name.</p>
 

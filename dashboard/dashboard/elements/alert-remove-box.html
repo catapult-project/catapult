@@ -2,43 +2,66 @@
 The alert-remove-box element provides the functionality of dis-associating
 an alert from an issue on the issue tracker.
 -->
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-spinner/paper-spinner.html">
 
 <polymer-element name="alert-remove-box" attributes="xsrfToken key">
   <template>
     <style>
-      .closebox {
-        cursor: pointer;
-        vertical-align: middle;
-        margin-bottom: 2px;
+
+      /* By default, the size of a core-icon-button is quite large;
+       * to make it smaller we need to make the core-icon inside of
+       * it smaller. */
+      #icon::shadow core-icon[role=img] {
+        height: 14px;
+        width: 14px;
+        padding: 1px;
+        margin: 1px;
+      }
+
+      #icon {
+        padding: 1px;
+        margin: 1px;
+      }
+
+      #spinner {
+        height: 14px;
+        width: 14px;
+      }
+
+      #spinner::shadow .circle {
+        border-color: #4285f4;
+      }
+
+      #spinner:not([active]) {
+        display: none;
       }
     </style>
     <xhr-element id="xhr"></xhr-element>
-    <img src="/closebox.png"
-         id="icon"
-         class="closebox"
-         on-click="{{onRemoveBug}}"
-         alt="Undo alert triage">
+    <core-icon-button id="icon" icon="close" hidden?="{{loading}}" on-click="{{onRemoveBug}}"></core-icon-button>
+    <paper-spinner id="spinner" active?="{{loading}}"></paper-spinner>
   </template>
   <script>
+    'use strict';
     Polymer('alert-remove-box', {
       /**
        * Sends a request to /edit_anomalies to reset the bug ID of this alert.
        */
       onRemoveBug: function(event, detail, sender) {
         event.preventDefault();
-        this.$.icon.src = '//www.google.com/images/spin-10.gif';
+        this.loading = true;
         var params = {
           'keys': this.key,
           'bug_id': 'REMOVE'
-        }
+        };
         this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
           function(info) {
-            this.$.icon.src = '/closebox.png';
+            this.loading = false;
             this.fire('untriaged', {'key': this.key});
           }.bind(this),
           function(msg) {
-            this.$.icon.src = '/closebox.png';
+            this.loading = false;
             alert(msg);
           }.bind(this)
         );

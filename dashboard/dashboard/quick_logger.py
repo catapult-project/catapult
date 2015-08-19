@@ -130,7 +130,11 @@ class QuickLog(ndb.Model):
                      for i in xrange(self.size)]
     log_parts = ndb.get_multi(log_part_keys)
     serialized = ''.join(l.value for l in log_parts if l is not None)
-    return pickle.loads(serialized)
+    try:
+      return pickle.loads(serialized)
+    except ImportError:
+      logging.error('Failed to load QuickLog "%s".', string_id)
+    return None
 
   def SetRecords(self, key, records):
     """Sets records for this log and put into datastore.

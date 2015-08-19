@@ -4,16 +4,22 @@ including a legend listing different traces that can be plotted on the same
 chart, a revision range selecting mini-chart at the bottom, and all of the alert
 triaging functionality in the chart.
 -->
-<link rel="import" href="../../third_party/polymer/components/core-collapse/core-collapse.html">
-<link rel="import" href="../../third_party/polymer/components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="chart-legend.html">
-<link rel="import" href="chart-slider.html">
-<link rel="import" href="chart-tooltip.html">
+<link rel="import" href="/third_party/polymer/components/core-collapse/core-collapse.html">
+<link rel="import" href="/third_party/polymer/components/core-icon/core-icon.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+
+<link rel="import" href="/dashboard/elements/chart-legend.html">
+<link rel="import" href="/dashboard/elements/chart-slider.html">
+<link rel="import" href="/dashboard/elements/chart-tooltip.html">
+<link rel="import" href="/static/graph.html">
+<link rel="import" href="/static/testselection.html">
+<link rel="import" href="/static/uri.html">
 
 <polymer-element name="chart-container"
-                 attributes="showCloseGraphButton chartTitle graphParams graphUncheckedParams
-                             revisionInfo coreTraces selectedTraces indicesToGraph xsrfToken
-                             warning alertKey showCompact collapseLegend">
+                 attributes="graphParams revisionInfo xsrfToken alertKey
+                             showCompact collapseLegend"
+                 on-drop="{{onDrop}}"
+                 on-dragover="{{allowDrop}}">
   <template>
     <style>
     #container {
@@ -62,7 +68,7 @@ triaging functionality in the chart.
     #plot {
       -webkit-flex-grow: 1;
       flex-grow: 1;
-      min-height: 240px;
+      height: 240px;
       min-width: 500px;
     }
 
@@ -87,61 +93,12 @@ triaging functionality in the chart.
       margin-left: -15px;
     }
 
-    #rhs {
-      margin-bottom: 20px;
-      margin-top: 8px;
-      margin-left: 5px;
-      margin-right: 10px;
-      padding: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-      outline: 1px solid rgba(0,0,0,0.2);
-      font-size: 11px;
-      height: 246px;
-      width: 312px;
-      overflow: auto;
-    }
-
-    #rhs[compact] {
-      width: 125px;
-    }
-
-    #rhs[collapse-legend] {
-      margin-top: 8px;
-      height: 25px;
-      width: 25px;
-      padding: 0;
-    }
-
-    #expand-legend-btn {
-      position: absolute;
-      right: 2px;
-      top: 1px;
-      opacity: .75;
-    }
-
-    #delta-off, #delta-drag {
-      margin-bottom: 10px;
-    }
-
-    #traces {
-      margin-bottom: 10px;
-    }
-
-    .trace-link {
-      text-decoration: none;
-    }
-
-    .trace-selected {
-      text-decoration: underline;
-    }
-
     #loading-div {
-      position: absolute;
+      position: relative;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: white;
       display: flex;
       display: -webkit-flex;
       align-items: center;
@@ -150,7 +107,7 @@ triaging functionality in the chart.
       -webkit-justify-content: center;
     }
 
-    #anomaly-container {
+    #alert-icon-container {
       width: 0px;
       height: 0px;
       left: 0px;
@@ -158,97 +115,79 @@ triaging functionality in the chart.
       position: relative;
     }
 
-    .anomaly {
+    .alert-icon {
       position: absolute;
       margin-top: -5px;
       margin-left: -1px;
       z-index: 1000;
     }
 
-    .anomaly.highlighted {
-      border: 3px solid #FFBA02;
-      border-radius: 12px;
+    .alert-icon.highlighted {
+      box-shadow: 0px 0px 5px #ffba02;
+      border: 2px solid #ffba02;
+      border-radius: 14px;
     }
 
-    #tooltip {
-      position: absolute;
-      z-index: 2000;
+    #close-chart {
+      color: #e91e63;
     }
 
-    #close-graph {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      opacity: 0;
+    #close-chart > core-icon {
+      margin-right: 4px;
     }
 
-    #container:hover #close-graph {
-      opacity: .75;
-    }
-
-    #container #close-graph:hover {
-      opacity: 1;
-      cursor: pointer;
+    #top-bar {
+      height: 48px;
+      width: 100%;
     }
     </style>
-    <div id="container" on-mouseleave="{{onMouseLeave}}" compact?="{{showCompact}}">
-      <h3 id="chart-title">{{chartTitle}}</h3>
-      <img src="/closebox_large.png"
-           hidden?="{{!showCloseGraphButton}}"
-           id="close-graph"
-           on-click="{{closeGraphClicked}}">
+    <div id="container" compact?="{{showCompact}}">
+      <div id="top-bar" horizontal layout>
+        <div flex horizontal center-justified layout>
+          <h3 id="chart-title">{{chartTitle}}</h3>
+        </div>
+        <div horizontal layout center>
+          <paper-button id="close-chart" on-click="{{closeChartClicked}}">
+            Close
+          </paper-button>
+        </div>
+      </div>
       <div id="horizontal">
         <div id="chart-yaxis-container">
           <div id="chart-yaxis-label">{{chartYAxisLabel}}</div>
         </div>
-        <div id="anomaly-container"></div>
+        <div id="alert-icon-container"></div>
         <chart-tooltip id="tooltip"
-                       xsrfToken="{{xsrfToken}}"
-                       hidden></chart-tooltip>
-        <div id="plots-container">
-          <div id="plot"></div>
+                       xsrfToken="{{xsrfToken}}"></chart-tooltip>
+        <div id="plots-container" on-mouseleave="{{onMouseLeave}}">
+          <div id="plot">
+            <div id="loading-div">
+              <img src="//www.google.com/images/loading.gif">
+            </div>
+          </div>
           <chart-slider id="slider" on-revisionrange="{{onRevisionRange}}"></chart-slider>
         </div>
         <span hidden?="{{!warning}}" id="warning">{{warning}}</span>
+
         <a hidden id="original"
            on-click="{{onViewOriginal}}"
            href="javascript:void(0);">View original graph</a>
 
-        <div id="rhs" compact?="{{showCompact}}" collapse-legend?="{{collapseLegend}}">
-          <paper-icon-button id="expand-legend-btn" icon="arrow-drop-down" title="legend" role="button"
-                             aria-label="menu" on-click="{{toggleLegend}}"></paper-icon-button>
-          <core-collapse id="collapsible-legend" opened?="{{!collapseLegend}}">
-            <div id="delta-off">Click and drag graph to measure or zoom.</div>
-            <div id="delta-drag" hidden>
-              Delta: {{deltaAbsolute}} or {{deltaPercent}}%.<br>
-              Click selected range to zoom.
-            </div>
-            <div id="traces">Traces:
-              <a href="javascript:void(0);"
-                 class="trace-link"
-                 on-click="{{onSelectAll}}">select all</a>
-              &#124;
-              <a href="javascript:void(0);"
-                 class="trace-link"
-                 on-click="{{onDeselectAll}}">deselect all</a>
-              &#124;
-              <a href="javascript:void(0);"
-                 class="trace-link"
-                 on-click="{{onSelectCore}}">core only</a>
-            </div>
-            <chart-legend tests={{legendTests}}
-                          indicesToGraph={{indicesToGraph}}
-                          coreEndIndex={{coreEndIndex}}
-                          disableUnselected={{loadingUnselected}}>
-          </core-collapse>
-        </div>
+        <chart-legend id="legend"
+                      seriesGroupList={{seriesGroupList}}
+                      indicesToGraph={{indicesToGraph}}
+                      collapseLegend={{collapseLegend}}
+                      on-dragstart={{legendSeriesDragStart}}
+                      on-dragend={{legendSeriesDragEnd}}
+                      deltaAbsolute={{deltaAbsolute}}
+                      deltaPercent={{deltaPercent}}
+                      showDelta={{showDelta}}>
       </div>
-      <div id="loading-div">
-        <img src="//www.google.com/images/loading.gif">
-      </div>
+
     </div>
   </template>
   <script>
+    'use strict';
     (function() {
 
       // Minimum multiple standard deviation for a value to be considered
@@ -319,7 +258,7 @@ triaging functionality in the chart.
       /**
        * Returns a date corresponding to the given timestamp, or null.
        * @param {string} rev A string that may contain a timestamp.
-       * @return {(Date|null)} A date object if a timestamp was given, or
+       * @return {?Date} A date object if a timestamp was given, or
        *     null.
        */
       function getDateDisplay(rev) {
@@ -332,7 +271,7 @@ triaging functionality in the chart.
           d = new Date(rev);
         }
         if (d) {
-          return d.toISOString();
+          return d.toLocaleString();
         }
         return null;
       };
@@ -362,36 +301,61 @@ triaging functionality in the chart.
 
       /**
        * Formats numbers in a human-readable way.
-       * @param {(number|string)} val
+       * @param {number|string} val
        * @return {string}
        */
       function formatNumber(val) {
-        // Truncate to at most 3 decimal points. Don't use toFixed() because
-        // we don't want to add precision if it's not there.
-        val = Math.round(val * 1000) / 1000;
-        return val.toLocaleString()
+        var num = Number(val);
+        var options = {
+          minimumSignificantDigits: 2,
+          maximumSignificantDigits: 6
+        };
+        return num.toLocaleString('en-US', options);
+      };
+
+      /**
+       * Deep compares two dictionary parameters.
+       * This function converts dictionary parameters to sorted list of pairs
+       * of key and values and compares their JSON string.
+       * @param {Object} param1
+       * @param {Object} param2
+       * @return {boolean}
+       */
+      function graphParamEquals(param1, param2) {
+        if (!param1 || !param2) {
+          return param1 == param2;
+        }
+        param1 = Object.keys(param1).sort().map(function(k) {
+          return [k, param1[k]];
+        });
+        param2 = Object.keys(param2).sort().map(function(k) {
+          return [k, param2[k]];
+        });
+        return JSON.stringify(param1) == JSON.stringify(param2);
+      };
+
+      function arrayUnique(array) {
+        var dict = {};
+        array.forEach(function(item) {
+          dict[item] = true;
+        });
+        return Object.keys(dict);
       };
 
       Polymer('chart-container', {
-        // The data fetched from the graph_json handler for this chart.
-        /** @type {(Object|null)} */
-        json: null,
 
-        // The data from graph_json for unselected series.
-        unselectedJson: null,
+        SERIES_SELECTION_OPTIONS: ['important', 'all', 'none'],
 
-        // The colors of the series lines, used in the chart options.
-        // Colors should be updated both here and in the chart-legend CSS.
-        lineColors: [
-          '#4d90fe', '#ffe83b', '#8e4efe', '#ffb83b', '#194fa5',
-          '#a69413', '#4c19a5', '#a67113', '#9dc3ff', '#fff293',
-          '#c19dff', '#ffd893', '#5b81bf', '#bfb251', '#805bbf',
-          '#bf9751', '#79adff', '#ffee6c', '#aa7aff', '#ffca6c',
-          '#3415b0', '#04819e', '#b40097', '#ffcf00', '#1c0772',
-          '#38b2ce', '#750062', '#a68700', '#846fd7', '#60b9ce',
-          '#d962c7', '#ffe573', '#3e2d84', '#206676', '#872277',
-          '#bfa430', '#6549d7', '#015367', '#d936c0', '#ffdb40'
-        ],
+        // Regex for links in series annotation which are shown in tooltip.
+        TOOLTIP_LINK_REGEX: /\[(.+?)\]\((.+?)\)/g,
+
+        // Default values for reverting series highlighting.
+        DEFAULT_SERIES_PROPERTIES: {
+            lineWidth: 2,
+            opacity: 1,
+            fill: 0.2,
+            shadowSize: 3,
+        },
 
         /**
          * Initializes the chart-container element and all of its properties.
@@ -406,25 +370,31 @@ triaging functionality in the chart.
          * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
          */
         ready: function() {
+
+          // A list of series group dictionary. A series group contains test
+          // path and list of test information. This is displayed in
+          // chart-legend, where each test is a checkable series.
+          // seriesGroupList has the form:
+          //   [{
+          //         'path': 'ChromiumPerf/linux/dromaeo/Total',
+          //         'tests': [{
+          //              name: 'Total',
+          //              direction: 'Lower is better',
+          //              units: 'm/s',
+          //              description: 'Total time',
+          //              etc.
+          //         }]
+          //   }]
+          this.seriesGroupList = [],
+
           // Data series index of the point that was most recently clicked.
           this.currentItem = null;
-
-          // The data fetched from the graph_json handler for this chart,
-          // for selected and non-selected series.
-          this.json = null;
-          this.unselectedJson = null;
-
-          // Whether or not the non-selected traces are currently being loaded.
-          this.loadingUnselected = false;
 
           // Meta-data about tests, which will be displayed in the legend.
           this.legendTests = [];
 
           // List of indices of series which are selected and will be plotted.
           this.indicesToGraph = [];
-
-          // See updateIndiciesToGraph and indicesToGraphChanged.
-          this.sendCheckedEvent = true;
 
           // Text to display above this chart and next to the y-axis.
           this.chartTitle = '';
@@ -466,6 +436,26 @@ triaging functionality in the chart.
           // Timeout ID of the timer used by this.resizeHandler.
           this.resizeTimer = null;
 
+          // Maintain the next series index as new graph json comes in.
+          this.nextSeriesIndex = null;
+
+          // Whether this chart-container allows a series group to be dropped
+          // on-to it.
+          this.droppable = true;
+
+          // Whether to show delta in chart-legend.
+          this.showDelta = false;
+
+          // The data fetched from the graph_json handler for this chart.
+          this.json = {
+            annotations: {
+              series: {}
+            },
+            data: {},
+            error_bars: {},
+            warning: null,
+          };
+
           // Chart options to be given when initializing the Flot chart.
           // See: https://github.com/flot/flot/blob/master/API.md#plot-options
           this.chartOptions = {
@@ -490,8 +480,15 @@ triaging functionality in the chart.
             selection: {
               mode: 'y'
             },
-            colors: this.lineColors
           };
+
+          // List of XMLHttpRequests sent for graph json.
+          this.graphJsonRequests = [];
+
+          this.$.legend.addEventListener(
+              'seriesmouseover', this.seriesMouseover.bind(this), true);
+          this.$.legend.addEventListener(
+              'seriesmouseout', this.seriesMouseout.bind(this), true);
 
           this.$.tooltip.addEventListener(
               'triaged', this.onBugTriaged.bind(this), true);
@@ -499,19 +496,18 @@ triaging functionality in the chart.
               'alertChangedRevisions', this.onAlertChangedRevisions.bind(this),
               true);
 
+          this.$.legend.addEventListener(
+              'seriesgroupclosed', this.onSeriesGroupClosed.bind(this), true);
+
           window.addEventListener('resize', this.resizeHandler);
-          if (this.graphParams && Object.keys(this.graphParams).length) {
-            this.graphParamsChanged();
-          }
-          if (this.graphUncheckedParams && Object.keys(this.graphUncheckedParams).length) {
-            this.graphUncheckedParamsChanged();
-          }
 
           this.initializePlotEventListeners();
+
+          window.addEventListener('urichange', this.onUriChanged.bind(this));
         },
 
         /**
-         * Binds event handlers for events that are fired by flot.
+         * Binds event handlers for events that are fired by Flot.
          */
         initializePlotEventListeners: function() {
           var plot = $(this.$.plot);
@@ -520,6 +516,406 @@ triaging functionality in the chart.
           plot.bind('plotunselected', this.onPlotUnselected.bind(this));
           plot.bind('plotclick', this.onPlotClick.bind(this));
           plot.bind('plothover', this.onPlotHover.bind(this));
+        },
+
+        /**
+         * Adds series group to graph.
+         *
+         * If test path already exist, it will be ignored.
+         *
+         * @param {Array.<Array>} testPathAndSelected A list of
+         *     pair of test path and a list of selected series.
+         * @return {boolean} collapse Whether unchecked and unimportant
+         *     series should start off hidden.
+         */
+        addSeriesGroup: function(testPathAndSelected, collapse) {
+          // Checks if test path already exists.
+          var testPathSet = {};
+          this.seriesGroupList.forEach(function(group) {
+            testPathSet[group.path] = true;
+          });
+
+          testPathAndSelected = testPathAndSelected.filter(function(value) {
+            return !(value[0] in testPathSet);
+          });
+          if (testPathAndSelected.length == 0) {
+            return;
+          }
+
+          // We want to send two requests, one for selected and unselected
+          // series, so there would be a quicker response for the selected
+          // series. But, if the selected series is unknown, we default to
+          // send an unselected series.
+          var selectedTestPathDict = {};
+          var unSelectedTestPathDict = {};
+          for (var i = 0; i < testPathAndSelected.length; i++) {
+            var testPath = testPathAndSelected[i][0];
+            var selectedTraces = testPathAndSelected[i][1];
+            selectedTraces = arrayUnique(selectedTraces);
+            var seriesGroup = {
+              path: testPath,
+              tests: [],
+              collapse: collapse
+            };
+            if (selectedTraces.length > 0) {
+              var selected = selectedTraces[0];
+              if (this.SERIES_SELECTION_OPTIONS.indexOf(selected) != -1) {
+                seriesGroup.selection = selectedTraces[0];
+                unSelectedTestPathDict[testPath] = [];
+              } else {
+                // Create test data here for selected traces so they can
+                // be initialy shown in chart legend.
+                for (var j = 0; j < selectedTraces.length; j++) {
+                  var testData = {
+                    name: selectedTraces[j],
+                    selected: true,
+                  };
+                  seriesGroup.tests.push(testData);
+                }
+                selectedTestPathDict[testPath] = selectedTraces;
+                unSelectedTestPathDict[testPath] = selectedTraces;
+              }
+            } else {
+              unSelectedTestPathDict[testPath] = [];
+            }
+            this.seriesGroupList.push(seriesGroup);
+          }
+          if (Object.keys(selectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(selectedTestPathDict, true);
+          }
+          if (Object.keys(unSelectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(unSelectedTestPathDict, false);
+          }
+          this.updateSlider();
+          this.updateChartTitle();
+        },
+
+        /**
+         * Sends a request for graph JSON.
+         *
+         * @param {Object} testPathDict Dictionary of test path to list of
+         *     selected series.
+         * @return {boolean} isSelected Whether this request is for selected
+         *     or unselected series.
+         */
+        sendGraphJsonRequest: function(testPathDict, isSelected) {
+          var params = JSON.parse(JSON.stringify(this.graphParams));
+          params['test_path_dict'] = testPathDict;
+          if (isSelected) {
+            params['is_selected'] = true;
+          }
+          var postdata =
+              'graphs=' + encodeURIComponent(JSON.stringify(params));
+          var req = new XMLHttpRequest();
+          var self = this;
+          req.onload = function() {
+            var json = JSON.parse(req.responseText);
+            if (!json) {
+              this.warning = 'Failed to load graph data.';
+              return;
+            }
+            if (isSelected) {
+              this.warning = json.warning;
+            }
+
+            if (Object.keys(json.data).length > 0) {
+              self.updateJson(json, isSelected);
+            }
+          };
+          req.open('post', '/graph_json', true);
+          req.setRequestHeader('Content-type',
+                               'application/x-www-form-urlencoded');
+          req.send(postdata);
+          this.graphJsonRequests.push(req);
+        },
+
+        /**
+         * Updates graph data for newJson.
+         *
+         * Merge newJson with this.json and update this.seriesGroupList.
+         *
+         * @param {Object} newJson JSON data from /graph_json request.
+         * @param {boolean} isSelected Whether this should be selected or
+         *     unselected set of series.
+         */
+        updateJson: function(newJson, isSelected) {
+          if (this.json.warning && !newJson.warning) {
+            // Some data is stale/non-existent in the checked traces, but not
+            // in unchecked.
+            this.json.warning = null;
+            this.warning = null;
+          }
+
+          if (!this.nextSeriesIndex) {
+            this.nextSeriesIndex = Object.keys(this.json.data).length;
+          }
+
+          var testPathToSeriesIndex = {};
+          var series = this.json.annotations.series;
+          for (var i in series) {
+            testPathToSeriesIndex[series[i].path] = parseInt(i);
+          }
+
+          var newSeries = {};
+          for (var index in newJson.data) {
+            var testPath = newJson.annotations.series[index].path;
+            var nextIndex = null;
+            if (testPath in testPathToSeriesIndex) {
+              nextIndex = testPathToSeriesIndex[testPath];
+            } else {
+              nextIndex = this.nextSeriesIndex;
+              this.nextSeriesIndex++;
+            }
+
+            var color = graph.stringToColor(testPath);
+            newJson.data[index].color = color;
+            this.updateJsonDataIndex(newJson.data[index], nextIndex);
+            this.json.data[nextIndex] = newJson.data[index];
+
+            // Flot's getData() method can return the data series out of order,
+            // so maintain an index so that we can get back to the original
+            // data series on click and hover events.
+            this.json.data[nextIndex].index = nextIndex;
+
+            this.json.annotations.series[nextIndex] =
+                newJson.annotations.series[index];
+            this.json.annotations[nextIndex] = newJson.annotations[index];
+            newSeries[nextIndex] = newJson.annotations.series[index];
+
+            this.updateErrorBarsIndex(newJson['error_bars'][index], nextIndex,
+                                      color);
+            this.json['error_bars'][nextIndex] = newJson['error_bars'][index];
+          }
+
+          this.updateForNewSeries(newSeries, isSelected);
+        },
+
+        /**
+         * Updates chart for new list of series.
+         *
+         * @param {Array} series A list of series data.
+         * @param {boolean} isSelected Whether this should be selected or
+         *     unselected set of series.
+         */
+        updateForNewSeries: function(series, isSelected) {
+          if (!this.drawable) {
+            return;
+          }
+
+          this.$['loading-div'].style.display = 'none';
+
+          if (Object.keys(series).length == 0) {
+            return;
+          }
+
+          var testList = [];
+          for (var i in series) {
+            i = parseInt(i);
+            var test = {
+              name: series[i].name,
+              path: series[i].path,
+              direction: series[i].better,
+              units: series[i].units,
+              description: series[i].description,
+              color: this.json.data[i].color,
+              index: i,
+              important: testselection.isImportant(
+                  series[i].path.split('/').slice(2).join('/')),
+              selected: isSelected,
+            };
+
+            testList.push(test);
+          }
+
+          this.updateSeriesGroupList(testList);
+          this.updateSlider();
+          this.updateYAxisLabel();
+          this.updateSmartAutoscaleMap();
+
+          if (isSelected) {
+            this.updateIndicesToGraph();
+          }
+        },
+
+        /**
+         * Updates this.seriesGrouplist for a list of series object.
+         *
+         * @param {Array} testList List of test object.
+         */
+        updateSeriesGroupList: function(testList) {
+          var testPathToGroup = {};
+          this.seriesGroupList.forEach(function(group) {
+            testPathToGroup[group.path] = group;
+          });
+
+          for (var i = 0; i < testList.length; i++) {
+            var test = testList[i];
+            this.updateSeriesGroup(testPathToGroup, test);
+          }
+        },
+
+        /**
+         * Updates a given test in seriesGroup.
+         *
+         * At the time that this function is called, tests in a series
+         * group are either partially created or not yet added. This
+         * function replaces the existing test in its series group
+         * with passed |test|, or inserts if it doesn't exist.
+         *
+         * @param {Object} testPathToGroup
+         * @param {Object} test Contains information about a series displayed
+         *     in chart-legend.
+         */
+        updateSeriesGroup: function(testPathToGroup, test) {
+          var seriesGroup = null;
+          if (test.path in testPathToGroup) {
+            seriesGroup = testPathToGroup[test.path];
+          } else {
+            var parentPath = test.path.substring(0, test.path.lastIndexOf('/'));
+            if (parentPath in testPathToGroup) {
+              seriesGroup = testPathToGroup[parentPath];
+            }
+          }
+          if (seriesGroup == null) {
+            return;
+          }
+
+          if (seriesGroup.selection == 'all' ||
+              seriesGroup.selection == 'important' && test.important) {
+            test.selected = true;
+          }
+
+          // Update series if its data has not been loaded.
+          var tests = seriesGroup.tests;
+          for (var i = 0; i < tests.length; i++) {
+            if (test.name == tests[i].name) {
+              if (tests[i].index == undefined) {
+                tests[i] = test;
+              }
+              return;
+            }
+          }
+
+          // Test has not been added; add it and determine if it should
+          // start out hidden.
+          if (seriesGroup.collapse && !test.selected && !test.important) {
+            test.hidden = true;
+            if (seriesGroup.numHidden == undefined) {
+              seriesGroup.numHidden = 0;
+            }
+            seriesGroup.numHidden++;
+          }
+          tests.push(test);
+          tests.sort(this.compareTest);
+        },
+
+        /**
+         * Reloads chart with current graph parameters and seriesGroupList.
+         *
+         * This is called on graph revision range changed.
+         */
+        reloadChart: function() {
+          this.graphJsonRequests.forEach(function(request) {
+            request.abort();
+          });
+          this.hideTooltipEvenIfSticky();
+          this.clearAlertIcons();
+          this.$['loading-div'].style.display = '';
+          this.indicesToGraph = [];
+
+          // Create params out of seriesGroupList to make /graph_json request.
+          var selectedTestPathDict = {};
+          var unSelectedTestPathDict = {};
+          for (var i = 0; i < this.seriesGroupList.length; i++) {
+            var testPath = this.seriesGroupList[i].path;
+            var tests = this.seriesGroupList[i].tests;
+            var selectedTraces = [];
+            for (var j = 0; j < tests.length; j++) {
+              var test = tests[j];
+              if (test.selected) {
+                selectedTraces.push(test.name);
+              } else {
+                // Disable unselected series in chart-legend during loading.
+                test.index = undefined;
+              }
+            }
+            if (selectedTraces.length > 0) {
+              selectedTestPathDict[testPath] = selectedTraces;
+              unSelectedTestPathDict[testPath] = selectedTraces;
+            } else {
+              unSelectedTestPathDict[testPath] = [];
+            }
+          }
+
+          if (Object.keys(selectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(selectedTestPathDict, true);
+          }
+          if (Object.keys(unSelectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(unSelectedTestPathDict, false);
+          }
+        },
+
+        updateJsonDataIndex: function(jsonData, index) {
+          jsonData.index = 'line_' + index;
+          jsonData.id = 'line_' + index;
+        },
+
+        updateErrorBarsIndex: function(errorBarsData, index, color) {
+          var top = errorBarsData[0];
+          var bottom = errorBarsData[1];
+          top.id = 'top_' + index;
+          top.fillBetween = 'line_' + index;
+          top.color = color;
+          bottom.fillBetween = 'bottom_' + index;
+          bottom.fillBetween = 'line_' + index;
+          bottom.color = color;
+        },
+
+        /**
+         * Updates the list of indices of traces to plot with seriesGroupList.
+         */
+        updateIndicesToGraph: function() {
+          // Update this.indicesToGraph without causing a
+          // 'checkedTracesChanged' event to be fired.
+          this.indicesToGraph = [];
+          for (var i = 0; i < this.seriesGroupList.length; i++) {
+            var tests = this.seriesGroupList[i].tests;
+            for (var j = 0; j < tests.length; j++) {
+              if (tests[j].selected && tests[j].index != undefined) {
+                this.indicesToGraph.push(tests[j].index);
+              }
+            }
+          }
+        },
+
+        /**
+         * Sorts by tests by important and then by name.
+         */
+        compareTest: function(testA, testB) {
+          if (testA.important && !testB.important) {
+            return -1;
+          }
+          if (testB.important && !testA.important) {
+            return 1;
+          }
+          if (testA.name > testB.name) {
+            return 1;
+          }
+          if (testA.name < testB.name) {
+            return -1;
+          }
+          return 0;
+        },
+
+        updateSlider: function() {
+          if (this.seriesGroupList.length == 0 ||
+              this.seriesGroupList[0].tests.length == 0) {
+            return;
+          }
+          var firstTestPath = this.seriesGroupList[0].tests[0].path;
+          if (firstTestPath && firstTestPath != this.$.slider.testpath) {
+            this.$.slider.testpath = firstTestPath;
+          }
         },
 
         /**
@@ -535,187 +931,40 @@ triaging functionality in the chart.
         /**
          * Handler for the click event of X button on the top-right corner.
          */
-        closeGraphClicked: function() {
-           this.parentNode.removeChild(this);
-           this.fire('closeGraph')
+        closeChartClicked: function() {
+          this.parentNode.removeChild(this);
+          this.fire('chartclosed', {
+            target: this,
+            stateName: 'chartclosed',
+            params: {
+              seriesGroupList: this.seriesGroupList
+            }
+          });
         },
 
         /**
          * Handler for 'revisionrange' event, fired when revision range
          * changes.
          *
-         * This event is fired by the chart-slider element. When this
+         * This event is fired by the chart-revision-range element. When this
          * event is fired, it indicates that a new start and end revision have
          * been selected.
-         * Note: The properties 'graphParams' and 'graphUncheckedParams' are
-         * both set in graph.js.
          *
          * @param {Event} event The revisionrange event.
          * @param {Object} detail The detail object given when firing the
-         *     event. This is set in graph.js and it contains 'startrev' and
-         *     'endrev'.
+         *     event. This is set in graph.js and it contains 'start_rev' and
+         *     'end_rev'.
          * @param {Object} sender
          */
         onRevisionRange: function(event, detail, sender) {
-          newGraphParams = deepCopy(this.graphParams);
-          newUncheckedParams = deepCopy(this.graphUncheckedParams);
-          delete newGraphParams['rev'];
-          delete newUncheckedParams['rev'];
-          delete newGraphParams['num_points'];
-          delete newUncheckedParams['num_points'];
-          newGraphParams['start_rev'] = detail.startrev;
-          newUncheckedParams['start_rev'] = detail.startrev;
-          newGraphParams['end_rev'] = detail.endrev;
-          newUncheckedParams['end_rev'] = detail.endrev;
+          var newGraphParams = deepCopy(this.graphParams);
+          newGraphParams['rev'] = null;
+          newGraphParams['num_points'] = null;
+          newGraphParams['start_rev'] = detail.start_rev;
+          newGraphParams['end_rev'] = detail.end_rev;
           this.graphParams = newGraphParams;
-          this.graphUncheckedParams = newUncheckedParams;
-        },
-
-        /**
-         * Updates the chart based on the graphParams property.
-         *
-         * This method is called when the graphParams property changes;
-         * It's also called directly when the chart is first initialized.
-         * The graphParams property should be set by the page that created
-         * this chart-container element.
-         */
-        graphParamsChanged: function() {
-          console.debug('graphParamsChanged', this);
-          if (!this.graphParams || !Object.keys(this.graphParams).length) {
-            return;
-          }
-          this.hideTooltipEvenIfSticky();
-          this.$['anomaly-container'].innerHTML = '';
-          this.$['loading-div'].style.display = '';
-          this.json = null;
-          this.indicesToGraph = [];
-          var firstTestTestPath = this.graphParams.masters[0] + '/' +
-                                  this.graphParams.bots[0] + '/' +
-                                  this.graphParams.tests[0];
-          this.$.slider.testpath = firstTestTestPath;
-
-          // Make a request to /graph_json for the new set of checked graphs.
-          var postdata =
-              'graphs=' + encodeURIComponent(JSON.stringify(this.graphParams));
-          var req = new XMLHttpRequest();
-          var self = this;
-          req.onload = function() {
-            self.json = JSON.parse(req.responseText);
-            if (self.unselectedJson) {
-              self.mergeJson();
-            }
-            self.updateForNewJson();
-          };
-          req.open('post', '/graph_json', true);
-          req.setRequestHeader('Content-type',
-                               'application/x-www-form-urlencoded');
-          req.send(postdata);
-        },
-
-        /**
-         * This is called when the property 'graphUncheckedParams' changes.
-         * Note: The property 'graphUncheckedParams' is set in graph.js.
-         */
-        graphUncheckedParamsChanged: function() {
-          if (!this.graphUncheckedParams ||
-              !Object.keys(this.graphUncheckedParams).length) {
-            return;
-          }
-          this.unselectedJson = null;
-          this.loadingUnselected = true;
-
-          // Make a request to /graph_json for the new set of unchecked graphs.
-          var postdata = 'graphs=' +
-              encodeURIComponent(JSON.stringify(this.graphUncheckedParams));
-          var req = new XMLHttpRequest();
-          var self = this;
-          req.onload = function() {
-            self.unselectedJson = JSON.parse(req.responseText);
-            self.loadingUnselected = false;
-            if (self.json) {
-              self.mergeJson();
-            }
-          };
-          req.open('post', '/graph_json', true);
-          req.setRequestHeader('Content-type',
-                               'application/x-www-form-urlencoded');
-          req.send(postdata);
-        },
-
-        /**
-         * Updates the contents of this.json with the contents of
-         * this.unselectedJson.
-         */
-        mergeJson: function() {
-          if (this.json.warning && !this.unselectedJson.warning) {
-            // Some data is stale/non-existent in the checked traces, but not
-            // in unchecked.
-            this.json.warning = null;
-            this.warning = null;
-          }
-          for (var series = 0; series < this.json.data.length; series++) {
-            if (this.json.data[series].data.length == 0) {
-              // The main json was empty for this index;
-              // copy it from unselected.
-              this.json.data[series].data =
-                  this.unselectedJson.data[series].data;
-              this.json.annotations[series] =
-                  this.unselectedJson.annotations[series];
-              this.json['error_bars'][series] =
-                  this.unselectedJson['error_bars'][series];
-            }
-          }
-          this.updateSmartAutoscaleMap();
-        },
-
-        /**
-         * Updates the chart when new data has been received from /graph_json.
-         * Note: Properties 'coreTraces' and 'selectedTraces' are set in
-         * graph.js.
-         */
-        updateForNewJson: function() {
-          console.debug('updateForNewJson', this);
-          if (!this.drawable) {
-            return;
-          }
-
-          this.warning = this.json.warning;
-          var tests = [];
-          var series = this.json.annotations.series;
-
-          if (series.length == 0) {
-            this.$['loading-div'].style.display = 'none';
-            return;
-          }
-
-          this.coreEndIndex = -1;
-          for (var i = 0; i < series.length; i++) {
-            if (this.coreTraces[series[i].name]) {
-              this.coreEndIndex = i;
-            }
-            tests.push({
-              name: series[i].name,
-              path: series[i].path,
-              direction: series[i].better,
-              units: series[i].units,
-              description: series[i].description,
-              testColorClass: 'line-color-' + i,
-              index: i,
-              selected: true
-            });
-            if (this.selectedTraces[series[i].name]) {
-              this.indicesToGraph.push(i);
-            }
-            // Flot's getData() method can return the data series out of order,
-            // so maintain an index so that we can get back to the original
-            // data series on click and hover events.
-            this.json.data[i].index = i;
-          }
-          this.legendTests = tests;
-          this.updateYAxisLabel();
-          this.updateSmartAutoscaleMap();
-          this.updateChart();
-          this.$['loading-div'].style.display = 'none';
+          this.reloadChart();
+          this.fireChartStateChangedEvent(null);
         },
 
         /**
@@ -726,27 +975,35 @@ triaging functionality in the chart.
           // be at least one entry and it will have the properties 'units' and
           // 'better'. All traces in one chart should have the same units.
           var series = this.json.annotations.series;
+          var seriesIndices = Object.keys(series);
+          if (seriesIndices.length == 0) {
+            return;
+          }
+          // For now get the first series sorted by index.
+          seriesIndices.sort(function(a, b) {
+            return a - b;
+          });
+          var seriesData = series[seriesIndices[0]];
 
-          if (series[0].units) {
-            this.chartYAxisLabel = series[0].units;
+          if (seriesData.units) {
+            this.chartYAxisLabel = seriesData.units;
             // Some unit names have improvement direction information in them.
-            if (series[0].units.indexOf('is better') == -1 &&
-                series[0].better) {
-              this.chartYAxisLabel += ' (' + series[0].better.toLowerCase();
+            if (seriesData.units.indexOf('is better') == -1 &&
+                seriesData.better) {
+              this.chartYAxisLabel += ' (' + seriesData.better.toLowerCase();
               this.chartYAxisLabel += ' is better)';
             }
           }
         },
 
         /**
-         *  Updates the map of series index to the adjusted scale.
+         * Updates the map of series index to the adjusted scale.
          *
-         *  This map is used to update y-axis scale base on selected traces.
+         * This map is used to update y-axis scale base on selected traces.
          */
         updateSmartAutoscaleMap: function() {
           this.yAxisScaleMap = {};
-          var numSeries = this.json.data.length;
-          for (var seriesIndex = 0; seriesIndex < numSeries; seriesIndex++) {
+          for (var seriesIndex in this.json.data) {
             var data = this.json.data[seriesIndex].data;
             var values = [];
             for (var dataIndex = 0; dataIndex < data.length; dataIndex++) {
@@ -774,7 +1031,7 @@ triaging functionality in the chart.
           var outlierDirections = getOutlierDirections(values);
 
           // Exclude value that is a stand-alone spike which has either
-          // outlier direction 1 or -1 in between zeroes. Also include
+          // outlier direction 1 or -1 in between zeros. Also include
           // points that has an Anomaly.
           var resultValues = [];
           for (var i = 0; i < outlierDirections.length; i++) {
@@ -782,8 +1039,8 @@ triaging functionality in the chart.
             if (direction == 0 || this.hasAnomaly(seriesIndex, i)) {
               resultValues.push(values[i]);
             } else if (i > 0 && i < outlierDirections.length - 1) {
-              if (direction == outlierDirections[i-1] ||
-                  direction == outlierDirections[i+1]) {
+              if (direction == outlierDirections[i - 1] ||
+                  direction == outlierDirections[i + 1]) {
                 resultValues.push(values[i]);
               }
             }
@@ -863,78 +1120,42 @@ triaging functionality in the chart.
         },
 
         /**
-         * Updates the list of indices of traces to plot without firing an
-         * event. Note: This method is called in graph.js.
-         * @param {Array.<number>} indices List of indices of traces.
-         */
-        updateIndicesToGraph: function(indices) {
-          // Update this.indicesToGraph without causing a
-          // 'checkedTracesChanged' event to be fired.
-          this.sendCheckedEvent = false;
-          this.indicesToGraph = indices;
-          this.updateChart();
-        },
-
-        /**
          * This method is called when the property 'indicesToGraph' changes.
-         * @param {(Array.<number>|null)} oldValue Old value of indicesToGraph.
+         * @param {?Array.<number>} oldValue Old value of indicesToGraph.
          */
         indicesToGraphChanged: function(oldValue) {
           if (!oldValue || !this.json) {
             // Just initializing.
             return;
           }
+
           this.updateChart();
           this.updateChartTitle();
-          var tests = [];
-          var series = this.json.annotations.series;
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            if (series[this.indicesToGraph[i]]) {
-              tests.push(series[this.indicesToGraph[i]].name);
-            }
-          }
-
-          // If indicesToGraph was changed in some way other than through the
-          // updateIndicesToGraph method, fire a checkedTracesChanged event.
-          // Note: The 'checkedTracesChanged' event is listened for and handled
-          // in graph.js.
-          if (this.sendCheckedEvent) {
-            this.fire('checkedTracesChanged', {
-              'indices': this.indicesToGraph,
-              'tests': tests
-            });
-          }
-          this.sendCheckedEvent = true;
         },
 
         /**
          * Sets the title of the chart based on the current state of the chart.
          */
         updateChartTitle: function() {
-          this.chartTitle = makeChartTitle(
-              this.getTestPaths(),
-              this.getSelectedTestPaths());
-        },
-
-        getTestPaths: function() {
           var testPaths = [];
-          var series = this.json.annotations.series;
-          for (var i = 0; i < series.length; i++) {
-            testPaths.push(series[i].path);
-          }
-          return testPaths;
-        },
-
-        getSelectedTestPaths: function() {
-          var testPaths = [];
-          var series = this.json.annotations.series;
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var selectedIndex = this.indicesToGraph[i];
-            if (series[selectedIndex]) {
-              testPaths.push(series[selectedIndex].path);
+          var selectedTestPaths = [];
+          for (var i = 0; i < this.seriesGroupList.length; i++) {
+            var tests = this.seriesGroupList[i].tests;
+            for (var j = 0; j < tests.length; j++) {
+              var test = tests[j];
+              if (test.path) {
+                if (test.selected) {
+                  selectedTestPaths.push(test.path);
+                }
+                testPaths.push(test.path);
+              }
+            }
+            var testPath = this.seriesGroupList[i].path;
+            if (testPaths.indexOf(testPath) == -1) {
+              testPaths.push(testPath);
             }
           }
-          return testPaths;
+          this.chartTitle = graph.makeChartTitle(testPaths, selectedTestPaths);
         },
 
         /**
@@ -943,14 +1164,10 @@ triaging functionality in the chart.
          * chart.
          */
         warningChanged: function() {
-          if (this.warning) {
-            this.chartOptions.grid.backgroundColor = '#e6e6e6';
-          } else {
-            this.chartOptions.grid.backgroundColor = null;
-          }
+          var backgroundColor = ((this.warning) ? '#e6e6e6' : null);
+          this.chartOptions.grid.backgroundColor = backgroundColor;
           if (this.chart) {
-            this.chart.getOptions().grid.backgroundColor =
-                this.chartOptions.grid.backgroundColor;
+            this.chart.getOptions().grid.backgroundColor = backgroundColor;
             this.chart.setupGrid();
             this.chart.draw();
           }
@@ -967,10 +1184,11 @@ triaging functionality in the chart.
           var data = this.getDataForFlot();
           if (data.length == 0) {
             this.chart = $.plot(this.$.plot, data, this.chartOptions);
+            this.clearAlertIcons();
             return;
           }
 
-          var startRev = uri.getParameter('start_rev')
+          var startRev = uri.getParameter('start_rev');
           var endRev = uri.getParameter('end_rev');
           var firstSeriesIsEmpty = data[0].data.length == 0;
           if (startRev && endRev && firstSeriesIsEmpty) {
@@ -1055,14 +1273,18 @@ triaging functionality in the chart.
           // Make a map of all revisions for all data series to a series index
           // and data index.
           var allRevisions = {};
-          if (!this.json || !this.json.data) {
-            console.debug('createFixedXAxis: !this.json or !this.json.data.');
+          if (!this.json ||
+              !this.json.data ||
+              this.indicesToGraph.length == 0) {
+            console.debug('createFixedXAxis: !this.json, !this.json.data or ' +
+                          'this.indicesToGraph.length == 0');
             return;
           }
-          for (var jsonSeriesIndex = 0;
-               jsonSeriesIndex < this.json.data.length;
-               jsonSeriesIndex++) {
-            var series = this.json.data[jsonSeriesIndex];
+
+          // Only create axis for selected series.
+          for (var i = 0; i < this.indicesToGraph.length; i++) {
+            var index = this.indicesToGraph[i];
+            var series = this.json.data[index];
             var numPoints = series.data.length;
             for (var dataIndex = 0; dataIndex < numPoints; dataIndex++) {
               var revision = series.data[dataIndex][0];
@@ -1151,7 +1373,7 @@ triaging functionality in the chart.
 
         /**
          * Formats numbers that are displayed at ticks on the Y-axis.
-         * @param {(number|string)} val A Y value.
+         * @param {(number|string)} val A Y-value.
          * @param {Object} axis Not used.
          * @return {string}
          */
@@ -1160,77 +1382,113 @@ triaging functionality in the chart.
         },
 
         /**
-         * Displays alerts on the chart.
+         * Adds all of the alert icons to the chart and sets their positions.
          */
         showAlerts: function() {
-          // Clear out old anomalies.
-          var container = this.$['anomaly-container'];
-          container.innerHTML = '';
-
+          this.clearAlertIcons();
           var minHeight = this.chart.getAxes().yaxis.min;
           var maxHeight = this.chart.getAxes().yaxis.max;
           var xOffset = this.chartOptions.yaxis.labelWidth;
 
           var flotData = this.chart.getData();
           var annotations = this.json.annotations;
-          for (var flotSeriesIndex = 0;
-               flotSeriesIndex < flotData.length;
-               flotSeriesIndex++) {
-            var jsonSeriesIndex = flotData[flotSeriesIndex].index;
+          for (var flotIndex = 0; flotIndex < flotData.length; flotIndex++) {
+            var jsonSeriesIndex = flotData[flotIndex].index;
             if (jsonSeriesIndex == null || !annotations[jsonSeriesIndex]) {
               continue;
             }
-            for (var dataIndex = 0;
-                 dataIndex < flotData[flotSeriesIndex].data.length;
-                 dataIndex++) {
-              // TODO(qyearsley): Extract the inside of this loop.
+            var dataLength = flotData[flotIndex].data.length;
+            for (var dataIndex = 0; dataIndex < dataLength; dataIndex++) {
+              var a = annotations[jsonSeriesIndex][dataIndex];
               if (!annotations[jsonSeriesIndex][dataIndex] ||
                   !annotations[jsonSeriesIndex][dataIndex]['g_anomaly'] ||
-                  flotData[flotSeriesIndex].data[dataIndex][1] < minHeight ||
-                  flotData[flotSeriesIndex].data[dataIndex][1] > maxHeight) {
+                  flotData[flotIndex].data[dataIndex][1] < minHeight ||
+                  flotData[flotIndex].data[dataIndex][1] > maxHeight) {
                 continue;
               }
-              var annotation = annotations[jsonSeriesIndex]
-                  [dataIndex]['g_anomaly'];
-              var bugId = annotation['bug_id'];
-              var improvement = annotation['improvement'];
-              var recovered = annotation['recovered'];
-              var key = annotation.key;
-              var src = '/black_alert.png';
-              if (!bugId && !improvement) {
-                src = '/red_alert.png';
-              } else if (!bugId && improvement) {
-                src = '/green_alert.png';
-              }
-
+              var alertIcon = this.addAlertIcon(
+                  annotations[jsonSeriesIndex][dataIndex]['g_anomaly']);
               var left = xOffset + Math.round(
-                  flotData[flotSeriesIndex].xaxis.p2c(
-                      flotData[flotSeriesIndex].data[dataIndex][0]));
+                  flotData[flotIndex].xaxis.p2c(
+                      flotData[flotIndex].data[dataIndex][0]));
               var top = Math.round(
-                  flotData[flotSeriesIndex].yaxis.p2c(
-                      flotData[flotSeriesIndex].data[dataIndex][1]));
-
-              var img = document.createElement('img');
-              img.src = src;
-              img.style.left = left + 'px';
-              img.style.top = top + 'px';
-              if (bugId && bugId < 0 || recovered) {
-                // Triaged as invalid, ignored, or recovered; lower opacity.
-                img.style.opacity = 0.4;
-              }
-              img.classList.add('anomaly');
-              // alertKey is an optional attribute to specify that this chart
-              // is associated with an alert.
-              if (this.alertKey == key) {
-                 img.classList.add('highlighted');
-              }
-              img.onmouseover = this.showTooltip.bind(
-                  this, flotSeriesIndex, dataIndex);
-              img.onclick = this.onAlertClick.bind(
-                  this, flotSeriesIndex, dataIndex);
-              this.$['anomaly-container'].appendChild(img);
+                  flotData[flotIndex].yaxis.p2c(
+                      flotData[flotIndex].data[dataIndex][1]));
+              alertIcon.style.left = left + 'px';
+              alertIcon.style.top = top + 'px';
+              alertIcon.onmouseover = this.showTooltip.bind(
+                  this, flotIndex, dataIndex);
+              alertIcon.onclick = this.onAlertClick.bind(
+                  this, flotIndex, dataIndex);
             }
           }
+        },
+
+        clearAlertIcons: function() {
+          this.$['alert-icon-container'].innerHTML = '';
+        },
+
+        addAlertIcon: function(alertAnnotation) {
+          var bugId = alertAnnotation['bug_id'];
+          var improvement = alertAnnotation['improvement'];
+          var recovered = alertAnnotation['recovered'];
+          var key = alertAnnotation['key'];
+
+          var alertIcon = document.createElement('core-icon');
+
+          var icon = 'report';
+          var color = 'black';
+          if (!bugId && !improvement) {
+            color = 'red';
+          } else if (!bugId && improvement) {
+            color = 'green';
+            icon = 'info';
+          }
+          alertIcon.style.color = color;
+          alertIcon.icon = icon;
+
+          if (bugId && bugId < 0 || recovered) {
+            // Triaged as invalid, ignored, or recovered; lower opacity.
+            alertIcon.style.opacity = 0.4;
+          }
+
+          alertIcon.classList.add('alert-icon');
+          // alertKey is an optional attribute to specify that this chart
+          // is associated with an alert. If this alert is the one alert that
+          // this chart is meant to draw attention to, we want to distinguish
+          // this alert from any others on the chart.
+          if (this.alertKey == key) {
+             alertIcon.classList.add('highlighted');
+          }
+
+          this.$['alert-icon-container'].appendChild(alertIcon);
+          return alertIcon;
+        },
+
+        /**
+         * Handler for 'onSeriesGroupClosed' event.
+         */
+        onSeriesGroupClosed: function(event) {
+          var groupIndex = event.detail.groupIndex;
+          var seriesGroup = this.seriesGroupList.splice(groupIndex, 1)[0];
+
+          var tests = seriesGroup.tests;
+          for (var i = 0; i < tests.length; i++) {
+            var indexToRemove = tests[i].index;
+            delete this.json.data[indexToRemove];
+            delete this.json.annotations.series[indexToRemove];
+            delete this.json.annotations[indexToRemove];
+            delete this.json['error_bars'][indexToRemove];
+            if (this.indicesToGraph.indexOf(indexToRemove) != -1) {
+              this.indicesToGraph.splice(
+                  this.indicesToGraph.indexOf(indexToRemove), 1);
+            }
+          }
+          this.updateSlider();
+          this.updateYAxisLabel();
+          this.updateSmartAutoscaleMap();
+          this.updateChart();
+          this.fireChartStateChangedEvent(this.seriesGroupList);
         },
 
         /**
@@ -1266,8 +1524,9 @@ triaging functionality in the chart.
             this.firstSelectedValue = ranges.yaxis.from;
             this.selecting = true;
           }
-          this.$['delta-off'].hidden = true;
-          this.$['delta-drag'].hidden = false;
+
+          this.showDelta = true;
+
           var delta = Math.abs(ranges.yaxis.to - ranges.yaxis.from);
           this.deltaAbsolute = delta.toFixed(2);
           this.deltaPercent =
@@ -1280,8 +1539,7 @@ triaging functionality in the chart.
          */
         onPlotUnselected: function() {
           this.selecting = false;
-          this.$['delta-off'].hidden = false;
-          this.$['delta-drag'].hidden = true;
+          this.showDelta = false;
         },
 
         /**
@@ -1347,7 +1605,7 @@ triaging functionality in the chart.
           // information about a point.
           var nudgeList = [];
           for (var i = Math.max(1, dataIndex - 5);
-               i < Math.min(dataIndex + 5, data.length -1);
+               i < Math.min(dataIndex + 5, data.length - 1);
                i++) {
             // Get annotation information about this nearby point.
             // This might be null if there are gaps in the data series.
@@ -1375,7 +1633,7 @@ triaging functionality in the chart.
               selected: i == dataIndex,
               dataIndex: i,
               amount: amount
-            })
+            });
           }
 
           // Get the anomaly info object, and add a few fields.
@@ -1408,9 +1666,10 @@ triaging functionality in the chart.
           var jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
           var dataIndex = event.detail.alerts[0].dataIndex;
           var bugId = event.detail.bugid;
+
           // Update the bug id locally.
-          this.json.annotations[jsonSeriesIndex][dataIndex]
-              ['g_anomaly']['bug_id'] = bugId;
+          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          annotation['g_anomaly']['bug_id'] = bugId;
           this.$.tooltip.bugId = bugId;
           if (!bugId) {
             this.$.tooltip.alerts = this.$.tooltip.triagedAlerts;
@@ -1464,22 +1723,25 @@ triaging functionality in the chart.
             this.hideTooltip();
             return;
           }
-          // If the current tooltip isn't sticky and we're over a datapoint,
+          // If the current tooltip isn't sticky and we're over a data point,
           // show the tooltip.
           this.showTooltip(item.seriesIndex, item.dataIndex);
         },
 
         /**
          * Displays a tooltip for the given point on the graph.
-         * TODO(qyearsley): Refactor, extract sub-functions.
+         *
+         * TODO(qyearsley): Refactor. http://crbug.com/508991.
+         *
          * NOTE: Instead of taking lists of alerts and triaged alerts, it
          * would be possible for this function to just take one alert, since
          * there should never generally be more than one alert at one point.
+         *
          * @param {number} flotSeriesIndex The index of the series in
          *     `this.chart.getData()`.
          * @param {number} dataIndex The index of the data in the series.
-         * @param {Array} opt_alerts Array of alerts.
-         * @param {Array} opt_triaged
+         * @param {Array=} opt_alerts Array of alerts.
+         * @param {Array=} opt_triaged
          */
         showTooltip: function(
             flotSeriesIndex, dataIndex, opt_alerts, opt_triaged) {
@@ -1525,7 +1787,8 @@ triaging functionality in the chart.
           this.$.tooltip.pointId = pointId;
           this.$.tooltip.revisions = this.getRevisions(
               jsonSeriesIndex, dataIndex);
-          this.$.tooltip.links = this.getTooltipLinks(annotation, pointId);
+          this.$.tooltip.links = this.getTooltipLinks(annotation, series.path,
+                                                      pointId);
           if (annotation.timestamp) {
             var d = new Date(annotation.timestamp);
             this.$.tooltip.timestamp = d.toISOString();
@@ -1544,13 +1807,6 @@ triaging functionality in the chart.
             this.$.tooltip.recovered = annotation['g_anomaly']['recovered'];
           }
 
-          // Show information in the tooltip for use by the bisect button.
-          if (series.path.lastIndexOf('ref') + 3 == series.path.length) {
-            hideBisect = true;
-          }
-          bisectRevisions = this.getRevisionForBisect(
-              jsonSeriesIndex, dataIndex, series.path);
-
           var traceRerunInfo = [];
           if (annotation['a_trace_rerun_options']) {
             for (var i in annotation['a_trace_rerun_options']) {
@@ -1567,19 +1823,18 @@ triaging functionality in the chart.
               });
           }
           this.$.tooltip.bisectInfo = {
-            badRev: bisectRevisions['bad_revision'],
-            goodRev: bisectRevisions['good_revision'],
+            badRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex),
+            goodRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex - 1),
             testPath: series.path,
             traceRerunInfo: traceRerunInfo
           };
 
           // Un-hide and position the tooltip box.
-          this.$.tooltip.hidden = false;
-          this.$.tooltip.style.left =
-              flotData[flotSeriesIndex].xaxis.p2c(xValue) +
-              this.chartOptions.yaxis.labelWidth + 20 + 'px';
-          this.$.tooltip.style.top =
-              flotData[flotSeriesIndex].yaxis.p2c(yValue) + 20 + 'px';
+          var top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
+          var left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
+              this.chartOptions.yaxis.labelWidth;
+          this.$.tooltip.setPosition(top, left);
+          this.$.tooltip.open();
         },
 
         /**
@@ -1602,64 +1857,27 @@ triaging functionality in the chart.
         },
 
         /**
-         * Returns good and bad revisions for bisect.
+         * Gets a revision value to use when populating the bisect form.
+         *
+         * @param {number} jsonSeriesIndex An index in this.json.data.
+         * @param {number} dataIndex The index of the point in the series.
+         * @return {?(number|string)} A revision to put in the bisect form.
          */
-        getRevisionForBisect: function(index, dataIndex, testPath) {
-          bisectRange = this.getDefaultRevRangeFromAnnotations(
-              index, dataIndex);
-          if (bisectRange) {
-            return bisectRange;
+        getRevisionForBisect: function(jsonSeriesIndex, dataIndex) {
+          // If the data point contains a default revision type, use that.
+          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          if (!annotation) {
+            return null;
           }
-          var dataPoint = this.json.data[index];
-          var badRev = dataPoint.data[dataIndex][0];
-          if (getDateDisplay(badRev)) {
-            for (var i in this.$.tooltip.revisions) {
-              var revObj = this.$.tooltip.revisions[i];
-              if (revObj.hasOwnProperty('name') &&
-                  revObj['name'].indexOf('Chromium Git Hash') != -1) {
-                return {
-                  'bad_revision': revObj['end'],
-                  'good_revision': revObj['start'] ? revObj['start'] : null,
-                }
-              }
-            }
+          var defaultRevType = annotation['a_default_rev'];
+          if (defaultRevType && annotation[defaultRevType]) {
+            return annotation[defaultRevType];
           }
-          return {
-            'bad_revision': badRev,
-            'good_revision': dataIndex ? dataPoint.data[dataIndex - 1][0] : null,
-          }
-        },
 
-        /**
-         * Returns good and bad revisions for bisect by checking a_default_rev.
-         * @param {number} seriesIndex Index into the this.json.annotations.
-         * @param {number} dataIndex The index of the point within the series.
-         * @return {Object} A map object with the keys "bad_revision" and
-         *     "good_revision".
-         */
-        getDefaultRevRangeFromAnnotations: function(seriesIndex, dataIndex) {
-          var annotations = this.json.annotations;
-          if (annotations[seriesIndex] && annotations[seriesIndex][dataIndex]) {
-            var badAnnotation = annotations[seriesIndex][dataIndex];
-            var badDefaultRevType = badAnnotation['a_default_rev'];
-            if (badDefaultRevType && badAnnotation[badDefaultRevType]) {
-              if (!dataIndex) {
-                return {
-                    'bad_revision': badAnnotation[badDefaultRevType],
-                    'good_revision': null,
-                  }
-              }
-              var goodAnnotation = annotations[seriesIndex][dataIndex - 1];
-              if (goodAnnotation) {
-                var goodDefaultRevType = goodAnnotation['a_default_rev'];
-                if (goodDefaultRevType == badDefaultRevType) {
-                  return {
-                    'bad_revision': badAnnotation[badDefaultRevType],
-                    'good_revision': goodAnnotation[goodDefaultRevType],
-                  }
-                }
-              }
-            }
+          // Otherwise, use the x-value of the point (aka the point ID).
+          var point = this.json.data[jsonSeriesIndex].data[dataIndex];
+          if (point && point[0]) {
+            return point[0];
           }
           return null;
         },
@@ -1671,7 +1889,7 @@ triaging functionality in the chart.
           if (this.stickyTooltip) {
             return;
           }
-          this.$.tooltip.hidden = true;
+          this.$.tooltip.close();
         },
 
         /**
@@ -1685,34 +1903,35 @@ triaging functionality in the chart.
         /**
          * Gets a list of obj about links to put in the tooltip.
          * @param {Object} annotation Annotation object for this point.
+         * @param {string} testPath Test path.
          * @param {number} pointId Main revision at the given point.
          * @return {Array.<Object>} List of objects with properties text and
          *     url.
          */
-        getTooltipLinks: function(annotation, pointId) {
+        getTooltipLinks: function(annotation, testPath, pointId) {
           var links = [];
-          if (annotation.a_stdio_uri) {
-            links.push({
-                'text': 'Buildbot stdio',
-                'url': annotation['a_stdio_uri']
-            });
-          }
-          if (annotation['g_anomaly']) {
-            var testPath = this.graphParams.masters[0] + '/' +
-                           this.graphParams.bots[0] + '/' +
-                           this.graphParams.tests[0];
-            var debugUrl = '/debug_alert?test_path=' + testPath +
-                           '&rev=' + pointId;
-            links.push({
-              'text': 'Debug alert',
-              'url': debugUrl
-            });
-          }
-          if (annotation['a_tracing_uri']) {
-            links.push({
-                'text': 'Trace',
-                'url': annotation['a_tracing_uri']
-            })
+          for (var key in annotation) {
+            if (key == 'g_anomaly') {
+              var debugUrl = '/debug_alert?test_path=' + testPath +
+                             '&rev=' + pointId;
+              links.push({
+                  'text': 'Debug alert',
+                  'url': debugUrl
+              });
+            } else if (key == 'a_tracing_uri') {
+              links.push({
+                  'text': 'Trace',
+                  'url': annotation['a_tracing_uri']
+              });
+            } else if (key.indexOf('a_') === 0) {
+              var match = this.TOOLTIP_LINK_REGEX.exec(annotation[key]);
+              if (match) {
+                links.push({
+                    'text': match[1],
+                    'url': match[2]
+                });
+              }
+            }
           }
           return links;
         },
@@ -1730,7 +1949,7 @@ triaging functionality in the chart.
          *       end: 216538,
          *       displayStart: 216441,
          *       displayEnd: 216538,
-         *       url: "http://x.chromium.org/changelog.html?range=216441:216538",
+         *       url: "http://x.foo.org/changelog.html?range=216441:216538",
          *     },
          *     ...
          *   ]
@@ -1751,7 +1970,8 @@ triaging functionality in the chart.
               continue;  // Not a revision.
             }
             if (!this.revisionInfo[revisionTypeKey]) {
-              console.warn('No entry', revisionTypeKey, 'in', this.revisionInfo);
+              console.warn(
+                  'No entry', revisionTypeKey, 'in', this.revisionInfo);
               continue;
             }
             var end = annotation[revisionTypeKey];
@@ -1882,51 +2102,6 @@ triaging functionality in the chart.
         },
 
         /**
-         * Handler for the click event of the select all traces button.
-         * Updates this.indicesToGraph to contain all traces.
-         * @param {Event} opt_noEvent The click event, not used.
-         */
-        onSelectAll: function(opt_noEvent) {
-          if (this.loadingUnselected) {
-            // Still loading.
-            return;
-          }
-          var series = this.json.annotations.series, indices = [];
-          for (var i = 0; i < series.length; i++) {
-            indices.push(i);
-          }
-          this.indicesToGraph = indices;
-        },
-
-        /**
-         * Handler for the click event of the deselect all traces button.
-         * @param {Event} opt_noEvent The click event, not used.
-         */
-        onDeselectAll: function(opt_noEvent) {
-          this.indicesToGraph = [];
-        },
-
-        /**
-         * Handler for the click event of the select core traces button.
-         * Selects only the core traces (i.e. important and ref traces).
-         * Note: The property 'coreTraces' is set in graph.js.
-         * @param {Event} opt_event The click event, not used.
-         */
-        onSelectCore: function(opt_noEvent) {
-          if (this.loadingUnselected) {
-            // Still loading.
-            return;
-          }
-          var series = this.json.annotations.series, indices = [];
-          for (var i = 0; i < series.length; i++) {
-            if (this.coreTraces[series[i].name]) {
-              indices.push(i);
-            }
-          }
-          this.indicesToGraph = indices;
-        },
-
-        /**
          * Handler for resize event.
          * @param {Event} event
          */
@@ -1955,13 +2130,205 @@ triaging functionality in the chart.
           this.$.slider.onResize();
         },
 
+        seriesMouseover: function(event) {
+          var index = event.detail.index;
+          if (this.indicesToGraph.indexOf(index) != -1) {
+            this.highlightSeries([index]);
+          }
+        },
+
+        seriesMouseout: function(event) {
+          this.undoSeriesHighlighting();
+        },
+
         /**
-         * Toggles legend window to collapse or expand.
+         * Highlights each series in |targetIndices|.
+         * Highlighting makes a series line width and shadow thicker and lowers
+         * the opacity of unhighlighted series.
+         *
+         * @param {Array.<number>} targetIndices List of series indices to
+         *     highlight.
          */
-        toggleLegend: function() {
-          this.$['collapsible-legend'].toggle();
-          this.collapseLegend = !this.collapseLegend;
-        }
+        highlightSeries: function(targetIndices) {
+          var flotData = this.chart.getData();
+          if (!flotData) {
+            return;
+          }
+
+          for (var i = 0; i < flotData.length; i++) {
+            var series = flotData[i];
+            if (targetIndices.indexOf(this.getSeriesFillIndex(series)) != -1) {
+              continue;
+            }
+            if (targetIndices.indexOf(series.index) != -1) {
+              this.updateSeriesHighlighting(series, 2.5, 1, 0.2, 4);
+            } else {
+               this.updateSeriesHighlighting(series, 2, 0.25, 0, 0);
+            }
+          }
+
+          this.chart.setData(flotData);
+          this.chart.draw();
+        },
+
+        undoSeriesHighlighting: function() {
+          if (!this.chart) {
+            return;
+          }
+          var flotData = this.chart.getData();
+          if (!flotData) {
+            return;
+          }
+          for (var i = 0; i < flotData.length; i++) {
+            this.updateSeriesHighlighting(
+                flotData[i],
+                this.DEFAULT_SERIES_PROPERTIES.lineWidth,
+                this.DEFAULT_SERIES_PROPERTIES.opacity,
+                this.DEFAULT_SERIES_PROPERTIES.fill,
+                this.DEFAULT_SERIES_PROPERTIES.shadowSize);
+          }
+          this.chart.setData(flotData);
+          this.chart.draw();
+        },
+
+        /**
+         * Gets series's target index if series is a filled line.
+         * Filled lines are series that shade the upper and lower bounds
+         * (e.g. error bar regions).
+         *
+         * @param {Object} series The data series
+         * @return {?number} The index of the series that filled line
+         * correspond to, null if series is not a filled line.
+         */
+        getSeriesFillIndex: function(series) {
+          if (!series.fillBetween) {
+            return null;
+          }
+          // fillBetween is a string 'line_X' (labeled by graph_json.py),
+          // where X is a series index that filled line correspond to.
+          var index = series.fillBetween.replace(/[^0-9]/g, '');
+          return parseInt(index);
+        },
+
+        updateSeriesHighlighting: function(series, lineWidth, opacity,
+                                           fill, shadowSize) {
+          if (series.fillBetween) {
+            series.lines.fill = fill;
+          } else {
+            series.shadowSize = shadowSize;
+            series.lines.lineWidth = lineWidth;
+          }
+          var rgb = series.color.split(/[\(\)]/g)[1];
+          rgb = rgb.split(',');
+          rgb[3] = opacity;
+          series.color = 'rgba(' + rgb.join(',') + ')';
+        },
+
+        /**
+         * Allows onDrop to be triggered.
+         */
+        allowDrop: function(event) {
+          if (this.droppable) {
+            event.preventDefault();
+          }
+        },
+
+        /**
+         * Handler for on-drop event, fired when a series group is dropped
+         * onto this chart-container.
+         */
+        onDrop: function(event) {
+          event.preventDefault();
+          var dataTransfer = event.dataTransfer;
+          if (dataTransfer.getData('type') != 'seriesdnd') {
+            return;
+          }
+          var data = JSON.parse(dataTransfer.getData('data'));
+          if (data) {
+            this.addSeriesGroup(data, true);
+          }
+          this.fireChartStateChangedEvent(this.seriesGroupList);
+        },
+
+        legendSeriesDragStart: function(event) {
+          this.droppable = false;
+        },
+
+        legendSeriesDragEnd: function(event) {
+          this.droppable = true;
+        },
+
+        /**
+         * Gets series's target index if series is a filled line.
+         * Filled lines are series that shade the upper and lower bounds
+         * (e.g. error bar regions).
+         *
+         * @param {?Object} state Chart state to send to URI controller which
+         *    is used to generate state ID.  If none is specified, only
+         *    'this.graphParams' is sent.
+         */
+        fireChartStateChangedEvent: function(state) {
+          this.fire('chartstatechanged', {
+            target: this,
+            stateName: 'chartstatechanged',
+            params: this.graphParams,
+            state: state
+          });
+        },
+
+        onUriChanged: function(event) {
+          var detail = event.detail;
+          if (detail.stateName != 'chartstatechanged') {
+            return;
+          }
+
+          var isSameTarget = (detail.id == this.getAttribute('uniqueid') ||
+              detail.id == this.$.legend.getAttribute('uniqueid'));
+          var shouldReload = false;
+          if (isSameTarget) {
+            this.seriesGroupList = detail.state;
+            shouldReload = true;
+          }
+
+          if (!graphParamEquals(this.graphParams, detail.params)) {
+            this.graphParams = detail.params;
+            shouldReload = true;
+          }
+          if (shouldReload) {
+            this.reloadChart();
+          }
+        },
+
+        /**
+         * Gets the current state of the chart.
+         * This is called by 'report-container.html' to create page state.
+         *
+         * @return {Array} List of pair of test path and selected series.
+         */
+        getState: function() {
+          var state = [];
+          this.seriesGroupList.forEach(function(seriesGroup) {
+            var selected = [];
+            var unselected = [];
+            var tests = seriesGroup.tests;
+            for (var i = 0; i < tests.length; i++) {
+              if (tests[i].selected) {
+                selected.push(tests[i].name);
+              } else {
+                unselected.push(tests[i].name);
+              }
+            }
+
+            if (selected.length == 0 && unselected.length == 0) {
+              selected = ['none'];
+            } else if (seriesGroup.selection) {
+              selected = [seriesGroup.selection];
+            }
+            selected = arrayUnique(selected);
+            state.push([seriesGroup.path, selected]);
+          });
+          return state;
+        },
       });
     })();
   </script>

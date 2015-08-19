@@ -4,10 +4,9 @@
 
 """URL endpoint for the main page which lists recent anomalies and bugs."""
 
-__author__ = 'sullivan@google.com (Annie Sullivan)'
-
 import datetime
 import json
+import logging
 import urllib
 
 from google.appengine.api import urlfetch
@@ -96,7 +95,6 @@ def _GetKeyToTestDict(anomalies):
 
 def _GetColorClass(percent_changed):
   """Returns a CSS class name for the anomaly, based on percent changed."""
-  # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
   if percent_changed > 50:
     return 'over-50'
   if percent_changed > 40:
@@ -123,7 +121,10 @@ def _AnomalyInfoDicts(anomalies, tests):
   anomaly_list = []
   for anomaly_entity in anomalies:
     # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
-    test = tests[anomaly_entity.test]
+    test = tests.get(anomaly_entity.test)
+    if not test:
+      logging.warning('No Test entity for key: %s.', anomaly_entity.test)
+      continue
     subtest_path = '/'.join(test.test_path.split('/')[3:])
     graph_link = email_template.GetGroupReportPageLink(anomaly_entity)
     anomaly_list.append({
@@ -203,10 +204,8 @@ def _GetTopBugsResult(rpc):
       if bugs and bugs.get('items'):
         return bugs['items']
   except urlfetch_errors.DeadlineExceededError:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     pass
   except urlfetch.DownloadError:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     pass
   return []
 

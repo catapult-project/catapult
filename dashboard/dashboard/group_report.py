@@ -14,15 +14,14 @@ from dashboard import list_tests
 from dashboard import request_handler
 from dashboard import test_owner
 from dashboard import utils
-from dashboard.models import alert_group
 from dashboard.models import anomaly
-from dashboard.models import bug_data
+from dashboard.models import stoppage_alert
 
-# This is the max queried anomalies, not necessary the displayed anomalies,
-# as they get filtered by minimum range.
-_MAX_ANOMALIES = 2000
+# This is the max number of alerts to query at once. This is used in cases
+# when we may want to query more many more alerts than actually get displayed.
+_QUERY_LIMIT = 2000
 
-# Maximum number of anomalies that we might want to try display at once.
+# Maximum number of alerts that we might want to try display in one table.
 _DISPLAY_LIMIT = 500
 
 
@@ -70,9 +69,13 @@ class GroupReportHandler(chart_handler.ChartHandler):
     if not _IsInt(bug_id):
       raise request_handler.InvalidInputError('Invalid bug ID "%s".' % bug_id)
     bug_id = int(bug_id)
-    query = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == bug_id)
-    anomalies = query.fetch(limit=_DISPLAY_LIMIT)
-    self._ShowAlerts(anomalies, bug_id)
+    anomaly_query = anomaly.Anomaly.query(
+        anomaly.Anomaly.bug_id == bug_id)
+    anomalies = anomaly_query.fetch(limit=_DISPLAY_LIMIT)
+    stoppage_alert_query = stoppage_alert.StoppageAlert.query(
+        stoppage_alert.StoppageAlert.bug_id == bug_id)
+    stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
+    self._ShowAlerts(anomalies + stoppage_alerts, bug_id)
 
   def _ShowAlertsAroundRevision(self, rev):
     """Shows a alerts whose revision range includes the given revision.
@@ -87,11 +90,14 @@ class GroupReportHandler(chart_handler.ChartHandler):
     # We can't make a query that has two inequality filters on two different
     # properties (start_revision and end_revision). Therefore we first query
     # Anomaly entities based on one of these, then filter the resulting list.
-    query = anomaly.Anomaly.query(anomaly.Anomaly.end_revision >= rev)
-    query = query.order(anomaly.Anomaly.end_revision)
-    anomalies = query.fetch(limit=_MAX_ANOMALIES)
+    anomaly_query = anomaly.Anomaly.query(anomaly.Anomaly.end_revision >= rev)
+    anomaly_query = anomaly_query.order(anomaly.Anomaly.end_revision)
+    anomalies = anomaly_query.fetch(limit=_QUERY_LIMIT)
     anomalies = [a for a in anomalies if a.start_revision <= rev]
-    self._ShowAlerts(anomalies)
+    stoppage_alert_query = stoppage_alert.StoppageAlert.query(
+        stoppage_alert.StoppageAlert.end_revision == rev)
+    stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
+    self._ShowAlerts(anomalies + stoppage_alerts)
 
   def _ShowAlertsForKeys(self, keys):
     """Show alerts for |keys|.
@@ -123,12 +129,12 @@ class GroupReportHandler(chart_handler.ChartHandler):
       raise request_handler.InvalidInputError('No anomalies found.')
 
     sheriff_key = requested_anomalies[0].sheriff
-    min_range = alert_group.GetMinimumRange(requested_anomalies)
+    min_range = utils.MinimumAlertRange(requested_anomalies)
     if min_range:
       query = anomaly.Anomaly.query(
           anomaly.Anomaly.sheriff == sheriff_key)
       query = query.order(-anomaly.Anomaly.timestamp)
-      anomalies = query.fetch(limit=_MAX_ANOMALIES)
+      anomalies = query.fetch(limit=_QUERY_LIMIT)
 
       # Filter out anomalies that have been marked as invalid or ignore.
       # Include all anomalies with an overlapping revision range that have
@@ -158,8 +164,8 @@ class GroupReportHandler(chart_handler.ChartHandler):
         [a for a in alert_list if a.key.kind() == 'StoppageAlert'])
     alert_dicts = anomaly_dicts + stoppage_alert_dicts
     owner_info = None
-    if bug_id:
-      owner_info = _GetOwnerInfo(bug_id, alert_dicts)
+    if bug_id and ndb.Key('Bug', bug_id).get():
+      owner_info = _GetOwnerInfo(alert_dicts)
 
     self.RenderHtml('group_report.html', {
         'alert_list': json.dumps(alert_dicts[:_DISPLAY_LIMIT]),
@@ -208,34 +214,19 @@ def _GetOverlaps(anomalies, start, end):
           if a.start_revision <= end and a.end_revision >= start]
 
 
-def _GetOwnerInfo(bug_id, alert_dicts):
+def _GetOwnerInfo(alert_dicts):
   """Gets a list of owner info for list of alerts for bug with bisect result.
 
   Test owners are retrieved by a set of master and test suite name from each
   alert in alert_dicts.
 
   Args:
-    bug_id: Integer bug ID.
-    alert_dicts: List of alert data dictionary.
+    alert_dicts: List of alert data dictionaries.
 
   Returns:
     A list of dictionary containing owner information.
   """
-  bug = ndb.Key('Bug', bug_id).get()
-  if not bug:
-    return None
-
-  if (bug.latest_bisect_status not in
-      (bug_data.BISECT_STATUS_COMPLETED, bug_data.BISECT_STATUS_FAILED)):
-    return None
-
-  owner_info = []
   test_suite_paths = {'%s/%s' % (a['master'], a['testsuite'])
                       for a in alert_dicts}
   owners = test_owner.GetOwners(test_suite_paths)
-  if not owners:
-    return None
-
-  for owner in owners:
-    owner_info.append({'email': owner})
-  return owner_info
+  return [{'email': owner} for owner in owners]

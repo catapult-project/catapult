@@ -1,5 +1,7 @@
-<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
-<link rel="import" href="bisect-form.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="/dashboard/elements/bisect-form.html">
+
+<link rel="import" href="/static/bisect_utils.html">
 
 <polymer-element name="bisect-button" attributes="bisectInfo bugId xsrfToken">
   <template>
@@ -35,12 +37,14 @@
     <bisect-form
         id="bisect"
         xsrfToken="{{xsrfToken}}"
-        goodRevision="{{bisectInfo.goodRev}}"
-        badRevision="{{bisectInfo.badRev}}"
+        earlierRevision="{{bisectInfo.goodRev}}"
+        laterRevision="{{bisectInfo.badRev}}"
         testPath="{{bisectInfo.testPath}}"
         bugId="{{bugId}}"></bisect-form>
   </template>
   <script>
+    'use strict';
+
     (function() {
       Polymer('bisect-button', {
         /**

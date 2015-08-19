@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 {% block head %}
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
-
   <link rel="import" href="/third_party/polymer/components/polymer/polymer.html">
   <link rel="import" href="/dashboard/elements/quick-log.html">
 
@@ -45,12 +43,13 @@
             onclick="loadLogs();">Load log</button>
 
     <quick-log id="quick-log"
-               xsrfToken="{{xsrf_token|safe}}"
+               xsrfToken="{{xsrf_token | safe}}"
                logLabel="Log:"
                expandOnReady="true"></quick-log>
   </div>
 
   <script>
+    'use strict';
     /**
      * @return {Object.<string, string>} The URL parameters.
      */

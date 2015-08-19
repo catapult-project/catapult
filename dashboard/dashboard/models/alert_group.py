@@ -40,42 +40,12 @@ class AlertGroup(ndb.Model):
       grouped_alerts: Alert entities that belong to this group. These
           are only given here so that they don't need to be fetched.
     """
-    min_rev_range = GetMinimumRange(grouped_alerts)
+    min_rev_range = utils.MinimumAlertRange(grouped_alerts)
     start, end = min_rev_range if min_rev_range else (None, None)
     if self.start_revision != start or self.end_revision != end:
       self.start_revision = start
       self.end_revision = end
       self.put()
-
-
-def GetMinimumRange(alerts):
-  """Gets the intersection of the revision ranges for |alerts|.
-
-  For example, if there were two checked alerts with the ranges
-  (200, 400) and (300, 500), this function will return an object which
-  represents the range (300, 400).
-
-  Args:
-    alerts: The list of alerts.
-
-  Returns:
-    A tuple (start revision, end revision).
-  """
-  # TODO(qyearsley): Refactor/simplify this function.
-  if not alerts or alerts[0] is None:
-    return None
-  start = alerts[0].start_revision
-  end = alerts[0].end_revision
-  for a in alerts[1:]:
-    if a.start_revision > start:
-      if a.start_revision >= end:
-        return None
-      start = a.start_revision
-    if a.end_revision < end:
-      if a.end_revision <= start:
-        return None
-      end = a.end_revision
-  return start, end
 
 
 def GroupAlerts(alerts, test_suite, kind):
@@ -106,14 +76,6 @@ def _FetchAlertGroups(max_start_revision):
   query = AlertGroup.query(AlertGroup.start_revision <= max_start_revision)
   query = query.order(-AlertGroup.start_revision)
   groups = query.fetch(limit=_MAX_GROUPS_TO_FETCH)
-
-  # TODO(qyearsley): Remove this when the "AnomalyGroup" entities
-  # are older and no new alert groups have the kind "AnomalyGroup".
-  legacy_query = ndb.Query(kind='AnomalyGroup')
-  legacy_query = legacy_query.filter(
-      ndb.GenericProperty('start_revision') <= max_start_revision)
-  legacy_query = query.order(-ndb.GenericProperty('start_revision'))
-  groups.extend(legacy_query.fetch(limit=_MAX_GROUPS_TO_FETCH))
 
   return groups
 

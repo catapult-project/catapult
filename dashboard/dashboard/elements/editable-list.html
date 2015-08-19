@@ -1,7 +1,6 @@
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
 
-<polymer-element
-    name="editable-list" attributes="xsrfToken">
+<polymer-element name="editable-list" attributes="xsrfToken">
   <template>
     <style>
       .item-container {
@@ -122,6 +121,7 @@
     <xhr-element id="xhr"></xhr-element>
   </template>
   <script>
+    'use strict';
     Polymer('editable-list', {
 
       init: function(editable_list, handlerURL, itemLabel, subItemLabel) {
@@ -156,7 +156,7 @@
         var params = {
           item: item['name'],
           action: 'remove',
-        }
+        };
         if (subItem) {
           params['sub_item'] = subItem['name'];
         }
@@ -180,8 +180,7 @@
                 item['sub_items'][i].removing = false;
               }
             }
-          }.bind(this)
-        );
+          }.bind(this));
       },
 
       /**
@@ -196,7 +195,7 @@
         var params = {
           item: itemValue,
           action: 'add',
-        }
+        };
         if (subItemValue) {
           params['sub_item'] = subItemValue;
         }
@@ -219,7 +218,7 @@
         if (!itemMap) {
           itemMap = {
             'name': itemValue,
-          }
+          };
           this.editable_list.push(itemMap);
           this.editable_list.sort(this.itemCompare);
         }

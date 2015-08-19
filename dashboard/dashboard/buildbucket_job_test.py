@@ -15,7 +15,7 @@ class BuildbucketJobTest(testing_common.TestCase):
   def setUp(self):
     super(BuildbucketJobTest, self).setUp()
     self._args_base = {
-        'platform': 'linux',
+        'original_bot_name': 'chrome-rel-linux',
         'good_revision': '1',
         'bad_revision': '2',
         'test_command': 'tools/perf/dummy_command',
@@ -55,7 +55,7 @@ class BuildbucketJobTest(testing_common.TestCase):
       _ = job.GetBuildParameters()
 
   def testUnsupportedPlatform(self):
-    self._args_base['platform'] = 'MSDOS'
+    self._args_base['original_bot_name'] = 'MSDOS'
     with self.assertRaises(NotImplementedError):
       job = buildbucket_job.BisectJob(**self._args_base)
       _ = job.GetBuildParameters()

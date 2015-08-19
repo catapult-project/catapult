@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-{% block head %}
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
-{% endblock %}
+
 {% block content %}
 {% if error %}
   <pre>
@@ -22,8 +20,8 @@
   Buildbot link: <a href="{{build.url}}">{{build.url}}</a>
   </pre>
 
-  <p><a href="/cancel_buildbot_job/{{job_id}}">Click here to cancel this job. (Not Yet Implemented)</a></p>
-
-  {% endif %}
+  <p><a href="/cancel_buildbot_job/{{job_id}}">Click here to cancel this job.
+  (Not Yet Implemented)</a></p>
+{% endif %}
   <pre> {{status_text}} </pre>
 {% endblock %}

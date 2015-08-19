@@ -3,15 +3,17 @@
 <head>
   <meta charset="utf-8">
   <title>alert-remove-box test</title>
-  <link type="text/css" rel="stylesheet" href="../../third_party/mocha.css">
-  <script src="../../third_party/mocha/mocha.js"></script>
-  <script src="../../third_party/chai/chai.js"></script>
-  <link rel="import" href="../../third_party/polymer/components/polymer/polymer.html">
-  <link rel="import" href="alert-remove-box.html">
+  <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/2.1.1/chai.min.js"></script>
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/components/alert-remove-box.html">
 </head>
 <body>
 <div id="mocha"></div>
-
+<div>
+  <alert-remove-box id="demo-box" key="alert-key" xsrfToken="xsrf-token"></alert-remove-box>
+</div>
 <script>
 'use strict';
 
@@ -20,6 +22,9 @@ mocha.setup('tdd');
 
 /**
  * Mock XMLHttpRequest which returns a canned response.
+ * @param {string} responseText Text to put in mock XHR response.
+ * @param {Object} expectedData Parameter data expected by the test.
+ * @return {Function} A fake constructor for XMLHttpRequest.
  */
 function XMLHttpRequestMock(responseText, expectedData) {
   return function() {
@@ -34,7 +39,7 @@ function XMLHttpRequestMock(responseText, expectedData) {
         assert.equal(data, expectedData);
       }
       this.onload();
-    }
+    };
   }
 }
 
@@ -47,9 +52,7 @@ suite('alert-remove-box', function() {
     });
 
     test('The expected request parameters are used.', function(done) {
-      var box = document.createElement('alert-remove-box');
-      box.key = 'alert-key';
-      box.xsrfToken = 'xsrf-token';
+      var box = document.getElementById('demo-box');
       window.XMLHttpRequest = new XMLHttpRequestMock(
           '{"bug_id": "REMOVE"}',
           'xsrf_token=xsrf-token&keys=alert-key&bug_id=REMOVE');
@@ -62,9 +65,7 @@ suite('alert-remove-box', function() {
     });
 
     test('An "untriaged" event is fired when the XHR completes.', function() {
-      var box = document.createElement('alert-remove-box');
-      box.key = 'alert-key';
-      box.xsrfToken = 'xsrf-token';
+      var box = document.getElementById('demo-box');
       window.XMLHttpRequest = new XMLHttpRequestMock('{"bug_id": "REMOVE"}');
       box.addEventListener('untriaged', function() {
         window.untriagedEventFired = true;

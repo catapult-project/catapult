@@ -1,0 +1,178 @@
+<link rel="import" href="/static/uri.html">
+
+<script>
+
+/**
+ * Module for alerts page.
+ * TODO(chrisphan): Convert this to Polymer element.
+ */
+var alerts = (function() {
+
+  var sheriffSelect_ = null;
+  var anomalyTable_ = null;
+  var stoppageAlertTable_ = null;
+  var triagedToggle_ = null;
+  var improvementsToggle_ = null;
+
+  /**
+   * Redirects to the page for the new sheriff when a new sheriff is selected.
+   * @param {Event} e The event for the select.
+   */
+  var onSheriffChange_ = function(e) {
+    var sheriff = e['detail']['item'].getAttribute('label');
+    if (!sheriff) {
+      return;
+    }
+    var params = uri.getAllParameters();
+    params['sheriff'] = sheriff;
+    window.location.href = uri.getCurrentPathWithParams(params);
+  };
+
+  /**
+   * Updates an alerts-table elemenet from the URI parameters.
+   * @param {Element} alertsTable The alerts-table element to update.
+   */
+  var updateFromURIParameters_ = function(alertsTable) {
+    if (!alertsTable) {
+      return;
+    }
+    alertsTable['sortBy'] = uri.getParameter('sortby', 'end_revision');
+    alertsTable['sortDirection'] = uri.getParameter('sortdirection', 'down');
+    var sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
+    sheriffSelect_.select(sheriff);
+
+    // The show improvements and show triaged toggles are initially "off"; set
+    // them to on if the corresponding query parameter is set.
+    // The buttons are displayed differently if they have the "active"
+    // attribute.
+    if (uri.getParameter('improvements')) {
+      improvementsToggle_.setAttribute('active', '');
+    }
+    if (uri.getParameter('triaged')) {
+      triagedToggle_.setAttribute('active', '');
+    }
+  };
+
+  /**
+   * Pushes a new state into the history when an alerts-table is updated.
+   * @param {Element} alertsTable The alerts-table element that's being
+   *     updated.
+   */
+  var pushHistoryState_ = function(alertsTable) {
+    if (!alertsTable) {
+      return;
+    }
+    var params = uri.getAllParameters();
+    params['sortby'] = alertsTable['sortBy'];
+    params['sortdirection'] = alertsTable['sortDirection'];
+    var newUri = uri.getCurrentPathWithParams(params);
+    history.pushState(params, '', newUri);
+  };
+
+  /**
+   * Refreshes the UI from URI parameters when the history state is popped.
+   * @param {Event} e PopStateEvent.
+   * @private
+   */
+  var onPopState_ = function(e) {
+    // Pop State event will have a non-null state if this came from an actual
+    // pop instead of the load event.
+    if (e['state']) {
+      updateFromURIParameters_(anomalyTable_);
+      updateFromURIParameters_(stoppageAlertTable_);
+    }
+  };
+
+  /**
+   * Updates the table content to include or exclude triaged alerts.
+   * @param {Event} e
+   */
+  var onToggleTriaged_ = function(e) {
+    var params = uri.getAllParameters();
+    if (params['triaged']) {
+      delete params['triaged'];
+    } else {
+      params['triaged'] = 'true';
+    }
+    window.location.href = uri.getCurrentPathWithParams(params);
+  };
+
+  /**
+   * Updates the table to include or exclude improvement anomalies.
+   * @param {Event} e
+   */
+  var onToggleImprovements_ = function(e) {
+    var params = uri.getAllParameters();
+    if (params['improvements']) {
+      delete params['improvements'];
+    } else {
+      params['improvements'] = 'true';
+    }
+    window.location.href = uri.getCurrentPathWithParams(params);
+  };
+
+  /**
+   * Finds an element in the DOM and initializes it with some properties.
+   * The element with the given ID is assumed to be an alerts-table element.
+   * @param {string} id
+   * @param {Array.<Object>} alertList
+   * @param {Array.<Object>} extraColumns
+   * @return {Element} The alerts-table element.
+   */
+  var initializeAlertsTable_ = function(id, alertList, extraColumns) {
+    var table = document.getElementById(id);
+    if (!table) {
+      return null;
+    }
+    var pushHistory = function() {
+      pushHistoryState_(table);
+    };
+    table.addEventListener('sortby', pushHistory, false);
+    table.addEventListener('sortdirection', pushHistory, false);
+    table['alertList'] = alertList;
+    table['extraColumns'] = extraColumns;
+    table['initialize']();
+    return table;
+  };
+
+  /**
+   * Initializes the page on the window load event.
+   * @param {Event} e The load event.
+   */
+  var initialize = function(e) {
+    anomalyTable_ = initializeAlertsTable_(
+        'anomaly-table',
+        window['ANOMALY_LIST'],
+        [{'key': 'percent_changed', 'label': 'Delta %'}]);
+    stoppageAlertTable_ = initializeAlertsTable_(
+        'stoppage-alert-table',
+        window['STOPPAGE_ALERT_LIST'],
+        [{'key': 'last_row_date', 'label': 'Date'}]);
+
+    triagedToggle_ = document.getElementById('triaged-toggle');
+    triagedToggle_.addEventListener('click', onToggleTriaged_);
+
+    improvementsToggle_ = document.getElementById('improvements-toggle');
+    improvementsToggle_.addEventListener('click', onToggleImprovements_);
+
+    sheriffSelect_ = document.getElementById('sheriff-select');
+    sheriffSelect_['menuItems'] = window['SHERIFF_LIST'];
+    sheriffSelect_.addEventListener('core-activate', onSheriffChange_);
+
+    updateFromURIParameters_(anomalyTable_);
+    updateFromURIParameters_(stoppageAlertTable_);
+    window.addEventListener('popstate', onPopState_, true);
+
+    var autoTriageLog = document.getElementById('auto-triage-log');
+    var sheriff = sheriffSelect_['selected'];
+    autoTriageLog['initialize']('Auto triage', 'auto_triage', sheriff);
+  };
+
+  return {
+    initialize: initialize
+  };
+})();
+
+document.addEventListener('polymer-ready', alerts.initialize, false);
+
+</script>

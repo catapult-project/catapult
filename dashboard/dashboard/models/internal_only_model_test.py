@@ -31,26 +31,24 @@ class CreateHookModelExample(internal_only_model.CreateHookInternalOnlyModel):
 
 class InternalOnlyModelTest(testing_common.TestCase):
 
-  def _SetUserExternal(self):
-    self.SetCurrentUser('x@foo.com', user_id='12345', is_admin=False)
-
-  def _SetUserInternal(self):
-    self.SetCurrentUser('x@google.com', user_id='12345', is_admin=False)
+  def setUp(self):
+    super(InternalOnlyModelTest, self).setUp()
+    testing_common.SetInternalDomain('google.com')
 
   def testInternalOnlyModel_InternalUser_EntityFetched(self):
     key = InternalOnlyModelExample(internal_only=True).put()
-    self._SetUserInternal()
+    self.SetCurrentUser('x@google.com')
     self.assertEqual(key, key.get().key)
 
   def testInternalOnlyModel_ExternalUserInternalEntity_AssertionRaised(self):
     key = InternalOnlyModelExample(internal_only=True).put()
-    self._SetUserExternal()
+    self.SetCurrentUser('x@foo.com')
     with self.assertRaises(AssertionError):
       key.get()
 
   def testInternalOnlyModel_ExternalUserExternalEntity_EntityFetched(self):
     key = InternalOnlyModelExample(internal_only=False).put()
-    self._SetUserExternal()
+    self.SetCurrentUser('x@foo.com')
     self.assertEqual(key, key.get().key)
 
   @mock.patch.object(CreateHookModelExample, 'CreateCallback')
@@ -69,18 +67,18 @@ class InternalOnlyModelTest(testing_common.TestCase):
 
   def testCreateHookEntity_InternalUserInternalEntity_EntityFetched(self):
     key = CreateHookModelExample(internal_only=True).put()
-    self._SetUserInternal()
+    self.SetCurrentUser('x@google.com')
     self.assertEqual(key, key.get().key)
 
   def testCreateHookEntity_ExternalUserInternalEntity_AssertionRaised(self):
     key = CreateHookModelExample(internal_only=True).put()
-    self._SetUserExternal()
+    self.SetCurrentUser('x@foo.com')
     with self.assertRaises(AssertionError):
       key.get()
 
   def testCreateHookEntity_ExternalUserExternalEntity_EntityFetched(self):
     key = CreateHookModelExample(internal_only=False).put()
-    self._SetUserExternal()
+    self.SetCurrentUser('x@foo.com')
     self.assertEqual(key, key.get().key)
 
 

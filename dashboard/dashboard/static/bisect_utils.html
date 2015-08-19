@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<script>
+
+/**
+ * Module for bisect/trace buttons.
+ */
+var bisect_utils = (function() {
+
+  var unBisectableSuites = {
+      'arc-perf-test': true,
+      'browser_tests': true,
+      'content_browsertests': true,
+      'sizes': true,
+      'v8': true,
+  };
+
+  /**
+   * @param {string} testPath A test's full test path.
+   * @param {string} rev A sample revision from the test.
+   * @return {boolean} Whether a bisect can be done for the given test.
+   */
+  var canBisect = function(testPath, rev) {
+    if (!testPath || !rev) {
+      return false;
+    }
+    var testPathParts = testPath.split('/');
+    if (testPathParts.length < 3) {
+      return false;
+    }
+    if (unBisectableSuites[testPathParts[2]]) {
+      return false;
+    }
+    if (!looksLikeSupportedRevision_(rev)) {
+      return false;
+    }
+    if (isRefTest_(testPath)) {
+      return false;
+    }
+    return true;
+  };
+
+  /**
+   * Checks whether the input could be a Chromium revision.
+   * @param {string} rev A sample revision from the test.
+   * @return {boolean} Whether the given revision looks valid.
+   */
+  var looksLikeSupportedRevision_ = function(rev) {
+    return (/^[a-fA-F0-9]{40}$/.test(rev) || (/^[\d]{5,7}$/.test(rev)));
+  };
+
+  /**
+   * Checks whether the given test path is for a reference build.
+   * @param {string} testPath A test's full test path.
+   * @return {boolean} Whether the given test is a reference test.
+   */
+  var isRefTest_ = function(testPath) {
+    return (testPath.lastIndexOf('/ref') + 4 == testPath.length ||
+            testPath.lastIndexOf('_ref') + 4 == testPath.length);
+  };
+
+  return {
+    canBisect: canBisect
+  };
+})();
+
+</script>

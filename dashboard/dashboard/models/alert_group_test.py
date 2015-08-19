@@ -12,7 +12,6 @@ from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
-from dashboard.models import graph_data
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
 
@@ -22,7 +21,7 @@ class AnomalyGroupingTest(testing_common.TestCase):
 
   def _AddAnomalies(self):
     """Adds a set of sample data used in the tests below."""
-    testing_common.AddDataToMockDataStore(
+    testing_common.AddTests(
         ['ChromiumGPU'], ['linux-release'],
         {'scrolling_benchmark': {'first_paint': {}}})
     first_paint_key = utils.TestKey(
@@ -177,7 +176,7 @@ class StoppageAlertGroupingTest(testing_common.TestCase):
   """Test case for the behavior of updating StoppageAlert groups."""
 
   def _AddStoppageAlerts(self):
-    testing_common.AddDataToMockDataStore(
+    testing_common.AddTests(
         ['ChromiumGPU'], ['linux-release'],
         {
             'scrolling_benchmark': {
@@ -189,22 +188,18 @@ class StoppageAlertGroupingTest(testing_common.TestCase):
     bar_path = 'ChromiumGPU/linux-release/scrolling_benchmark/dropped_bar'
     foo_test = utils.TestKey(foo_path).get()
     bar_test = utils.TestKey(bar_path).get()
-    testing_common.AddRows(foo_path, [{'id': 200}])
-    testing_common.AddRows(bar_path, [{'id': 200}])
-    foo_row = graph_data.Row.query(
-        graph_data.Row.parent_test == foo_test.key).get()
-    bar_row = graph_data.Row.query(
-        graph_data.Row.parent_test == bar_test.key).get()
+    foo_row = testing_common.AddRows(foo_path, {200})[0]
+    bar_row = testing_common.AddRows(bar_path, {200})[0]
     foo_alert_key = stoppage_alert.CreateStoppageAlert(foo_test, foo_row).put()
     bar_alert_key = stoppage_alert.CreateStoppageAlert(bar_test, bar_row).put()
     return [foo_alert_key.get(), bar_alert_key.get()]
 
   def testStoppageAlertGroup_GroupAssignedUponCreation(self):
     """In CreateStoppageAlert, a group should be found and and assigned."""
-    foo_alert, bar_alert = self._AddStoppageAlerts()
-    self.assertIsNotNone(foo_alert.group)
-    self.assertIsNotNone(bar_alert.group)
-    self.assertEqual('StoppageAlert', foo_alert.group.get().alert_kind)
+    foo_test, bar_test = self._AddStoppageAlerts()
+    self.assertIsNotNone(foo_test.group)
+    self.assertIsNotNone(bar_test.group)
+    self.assertEqual('StoppageAlert', foo_test.group.get().alert_kind)
 
 
 class GroupAlertsTest(testing_common.TestCase):
@@ -234,10 +229,8 @@ class GroupAlertsTest(testing_common.TestCase):
             'capture': {},
         }
     }
-    testing_common.AddDataToMockDataStore(['ChromiumGPU'], ['linux-release'],
-                                          test_data)
-    testing_common.AddDataToMockDataStore(['QAPerf'], ['linux-release'],
-                                          test_data)
+    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], test_data)
+    testing_common.AddTests(['QAPerf'], ['linux-release'], test_data)
     scrolling_test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/first_paint')
     tab_capture_test = utils.TestKey(

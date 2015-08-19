@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Buildbucket PUT Test</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <style>
-  table {
-    border-spacing: 0px;
-    padding-top: 20px;
-  }
+    table {
+      border-spacing: 0px;
+      padding-top: 20px;
+    }
 
-  td {
-    border: 1px solid #eeeeee;
-    border-bottom: 2px solid #cccccc;
-    padding-right: 7px;
-    padding-left: 7px;
-  }
+    td {
+      border: 1px solid #eeeeee;
+      border-bottom: 2px solid #cccccc;
+      padding-right: 7px;
+      padding-left: 7px;
+    }
 
-  tr:first-child td {
-    border-top: 0px;
-  }
+    tr:first-child td {
+      border-top: 0px;
+    }
 
-  tr:last-child td {
-    border-bottom: 0px;
-  }
-
+    tr:last-child td {
+      border-bottom: 0px;
+    }
   </style>
 {% endblock %}
 {% block content %}
@@ -52,7 +50,8 @@
     <label>Timeout in minutes for each test run
       <input type="text" name="max_time_minutes" value="5">
     </label><br/>
-    <label>Truncate percent, each end [25 for interquartile, 10 for interdecile, 0 for total range]
+    <label>Truncate percent, each end
+      [25 for interquartile, 10 for interdecile, 0 for total range]
       <input type="text" name="truncate_percent" value="25">
     </label><br/>
     <label>Built images GS bucket

@@ -1,0 +1,113 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""Send alert summary emails to sheriffs on duty."""
+
+import datetime
+import sys
+
+from google.appengine.api import mail
+
+from dashboard import email_template
+from dashboard import request_handler
+from dashboard.models import anomaly
+from dashboard.models import sheriff
+
+# The string to use as the header in an alert summary email.
+_EMAIL_HTML_TOTAL_ANOMALIES = """
+<br><b><u>%d Total Anomalies</b></u><br>
+<b>+++++++++++++++++++++++++++++++</b><br>
+"""
+
+_EMAIL_SUBJECT = '%s: %d anomalies found at %d:%d.'
+
+
+class EmailSummaryHandler(request_handler.RequestHandler):
+  """Summarizes alerts and sends e-mail to sheriff on duty.
+
+  Identifies sheriffs who have the "summarize" property set to True, and gets
+  anomalies related to that sheriff that were triggered in the past 24 hours.
+  """
+
+  def get(self):
+    """Emails sheriffs with anomalies identified in most-recent 24 hours."""
+
+    # Get all Sheriffs that have requested an e-mail summary.
+    sheriffs_to_email_query = sheriff.Sheriff.query(
+        sheriff.Sheriff.summarize == True)
+
+    # Start time after which to get anomalies.
+    start_time = datetime.datetime.now() - datetime.timedelta(hours=24)
+
+    for sheriff_entity in sheriffs_to_email_query.fetch():
+      _SendSummaryEmail(sheriff_entity, start_time)
+
+
+def _SendSummaryEmail(sheriff_entity, start_time):
+  """Sends a summary email for the given sheriff rotation.
+
+  Args:
+    sheriff_entity: A Sheriff entity.
+    start_time: A starting datetime for anomalies to fetch.
+  """
+  receivers = email_template.GetSheriffEmails(sheriff_entity)
+  anomalies = _RecentUntriagedAnomalies(sheriff_entity, start_time)
+  if not anomalies:
+    return
+  subject = _EmailSubject(sheriff_entity, anomalies)
+  html, text = _EmailBody(anomalies)
+  mail.send_mail(
+      sender='gasper-alerts@google.com', to=receivers,
+      subject=subject, body=text, html=html)
+
+
+def _RecentUntriagedAnomalies(sheriff_entity, start_time):
+  """Returns untriaged anomalies for |sheriff| after |start_time|."""
+  recent_anomalies = anomaly.Anomaly.query(
+      anomaly.Anomaly.sheriff == sheriff_entity.key,
+      anomaly.Anomaly.timestamp > start_time).fetch()
+  return [a for a in recent_anomalies
+          if not a.is_improvement and a.bug_id is None]
+
+
+def _EmailSubject(sheriff_entity, anomalies):
+  """Returns the email subject string for a summary email."""
+  lowest_revision, highest_revision = _MaximalRevisionRange(anomalies)
+  return _EMAIL_SUBJECT % (sheriff_entity.key.string_id(), len(anomalies),
+                           lowest_revision, highest_revision)
+
+
+def _MaximalRevisionRange(anomalies):
+  """Get the lowest start and highest end revision for |anomalies|."""
+  lowest_revision = sys.maxint
+  highest_revision = 1
+  for anomaly_entity in anomalies:
+    if anomaly_entity.start_revision < lowest_revision:
+      lowest_revision = anomaly_entity.start_revision
+    if anomaly_entity.end_revision > highest_revision:
+      highest_revision = anomaly_entity.end_revision
+  return lowest_revision, highest_revision
+
+
+def _EmailBody(anomalies):
+  """Returns the html and text versions of the email body."""
+  assert anomalies
+  html_body = []
+  text_body = []
+  html_body.append(_EMAIL_HTML_TOTAL_ANOMALIES % len(anomalies))
+
+  anomaly_info = {}
+  for anomaly_entity in anomalies:
+    test = anomaly_entity.test.get()
+    anomaly_info = email_template.GetAlertInfo(anomaly_entity, test)
+    html_body.append(anomaly_info['email_html'])
+    text_body.append(anomaly_info['email_text'])
+
+  assert anomaly_info
+  html_body.append(anomaly_info['alerts_link'])
+
+  # Join details for all anomalies to generate e-mail body.
+  html = ''.join(html_body)
+  text = ''.join(text_body)
+  return html, text

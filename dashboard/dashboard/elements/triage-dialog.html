@@ -2,50 +2,75 @@
 The triage-dialog element is the dialog box that is shown when a user clicks
 on an alert, or clicks on a "triage" button on the alerts page. It allows the
 -->
-<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/dashboard/elements/base-form.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
 
-<polymer-element name="triage-dialog" attributes="xsrfToken alerts">
+<polymer-element name="triage-dialog" extends="base-form"
+                 attributes="xsrfToken alerts">
   <template>
     <style>
-      #dialog {
-        background: white;
-        padding: 16px 20px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
-        border: solid 1px #acacac;
-        border-bottom-color: #999;
-        margin-bottom: 0.5em;
-      }
-
-      .error {
-        color: #dd4b39;
-        font-weight: bold;
-      }
-
-      fieldset {
-        margin: 0.5em;
-        border: 1px solid #ebebeb;
-      }
-
-      /* Form controls outside of a fieldset that we want to line up with
-         controls inside the fieldset. */
-      .outside-fieldset {
-        margin-left: 1.75em;
-      }
-
-      .submit-button {
-        background-color: #4285f4;
-        color: white;
+      #container {
+        position: relative;
+        margin: 0 0 10px 0;
       }
     </style>
-    <form id="dialog" onSubmit="return false;">
-      <xhr-element id="xhr"></xhr-element>
-      <template bind if="{{stepTriage}}">
+
+    <xhr-element id="xhr"></xhr-element>
+
+    <paper-action-dialog id="container" layered="false">
+      <!-- Styling for paper-action-dialog's children. -->
+      <style>
+        #loading {
+          background-color: white;
+          height: 100%;
+          width: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-align-items: center;
+          align-items: center;
+          justify-content: center;
+          -webkit-justify-content: center;
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+
+        paper-button[affirmative] {
+          background: #4285f4;
+          color: #fff;
+        }
+
+        paper-spinner::shadow .circle {
+          border-color: #4285f4;
+        }
+
+        fieldset {
+          border: 1px solid #ebebeb;
+        }
+
+        .submit-button {
+          background-color: #4285f4;
+          color: white;
+        }
+
+        form {
+          margin-bottom: 0;
+        }
+      </style>
+
+      <form>
         <fieldset name="Triage">
           <legend>Triage</legend>
-          <paper-button class="submit-button" raised on-click="{{fileNewBug}}">New bug</paper-button>
-          <paper-button class="submit-button" raised on-click="{{associateWithBug}}">Existing bug</paper-button>
-          <paper-button class="submit-button" raised on-click="{{markIgnored}}">Ignore</paper-button>
+          <paper-button class="submit-button" raised affirmative
+                        on-click="{{fileNewBug}}">New bug</paper-button>
+          <paper-button class="submit-button" raised affirmative
+                        on-click="{{associateWithBug}}">Existing bug</paper-button>
+          <paper-button class="submit-button" raised affirmative
+                        on-click="{{markIgnored}}">Ignore</paper-button>
         </fieldset>
         <fieldset name="Fix-up alert">
           <legend>Fix-up</legend>
@@ -56,27 +81,21 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           </select>
           <paper-button raised on-click="{{markInvalid}}">Invalid</paper-button>
         </fieldset>
-        <paper-button class="outside-fieldset" raised on-click="{{hide}}">Cancel</paper-button>
+      </form>
+
+      <paper-button dismissive raised>Close</paper-button>
+
+      <template if="{{loading}}">
+        <div id="loading">
+          <paper-spinner active></paper-spinner>
+        </div>
       </template>
-      <template bind if="{{stepLoading}}">
-        <img src="//www.google.com/images/loading.gif">
-      </template>
-      <template bind if="{{stepFinished}}">
-        <template bind if="{{successMessage}}">
-          {{successMessage}}
-        </template>
-        <template bind if="{{errorMessage}}">
-          <div class="error">There was a problem triaging the bug:</div>
-          {{errorMessage}}
-        </template>
-        <br>
-        <paper-button class="outside-fieldset" raised on-click="{{hide}}">Cancel</paper-button>
-      </template>
-    </form>
+    </paper-action-dialog>
+
   </template>
   <script>
+    'use strict';
     Polymer('triage-dialog', {
-
       // A string describing the magnitude of change from zero to non-zero.
       FREAKIN_HUGE: 'zero-to-nonzero',
 
@@ -86,7 +105,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        */
       ready: function() {
         this.bugWindow = null;
-        this.hide();
+        this.close();
         // Event listener for the message event.
         // The message event can be fired when another window, such as the
         // create bug dialog window, uses window.postMessage().
@@ -102,10 +121,10 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
               this.bugWindow.close();
             }
             this.showCreatedBugResult(data);
-            this.hide();
+            this.close();
             this.fire('triaged', {
               'alerts': this.alerts,
-              'bugid': data['bugid']
+              'bugid': data['bug_id']
             });
             e.preventDefault();
             e.stopPropagation();
@@ -114,24 +133,22 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       },
 
       /**
-       * Show popup message for filed bug result.
+       * Shows a pop-up message for filed bug result.
        *
        * @param {object} dataObject with info about filed bug set from
        *     bug_result.html.
        */
       showCreatedBugResult: function(data) {
-        var message = 'Bug <a href="http://crbug.com/{{bugid}}" target="_blank">' +
-                      '{{bugid}}</a> created/updated. ';
-        if (data['bisect_error'].length > 0) {
-          message += '<\ br>Failed to start bisect: {{bisect_error}}';
-        } else {
-          message += 'Rietveld issue <a href="{{rietveld_url}}/' +
-                     '{{rietveld_issue_id}}"' +
-                     ' target="_blank">{{rietveld_issue_id}}</a>';
+        var message = ('Bug <a href="http://crbug.com/{{bug_id}}" ' +
+                       'target="_blank">{{bug_id}}</a> created/updated. ');
+        if (data['issue_id']) {
+          message += ('Bisect job <a href="{{issue_url}}" target="_blank">' +
+                      '{{issue_id}}</a> started.');
         }
-        message = this.template(message, data);
-        var messageBar = document.getElementById('message-bar');
-        messageBar.updateContent(message);
+        if (data['bisect_error']) {
+          message += 'No bisect automatically started. {{bisect_error}}';
+        }
+        this.showMessage(message, data);
       },
 
       /**
@@ -143,32 +160,17 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         } else {
           this.nudgeList = null;
         }
-        this.setState('triage');
+        this.open();
         this.bugid = null;
-        this.errorMessage = null;
-        this.successMessage = null;
-        this.checkedNudge = false;
-        this.$.dialog.style.display = '';
       },
 
       /**
-       * Hides the triage dialog.
-       */
-      hide: function() {
-        if (this.bugWindow) {
-          this.bugWindow.close();
-        }
-        this.$.dialog.style.display = 'none';
-        return false;
-      },
-
-      /**
-       * Updates the this.fileBugKeys based on this.alerts.
+       * Updates the this.alertKeys based on this.alerts.
        */
       alertsChanged: function() {
-        this.fileBugKeys = [];
+        this.alertKeys = [];
         if (this.alerts && this.alerts.length) {
-          this.fileBugKeys = this.alerts.map(function(a) { return a.key; });
+          this.alertKeys = this.alerts.map(function(a) { return a.key; });
         }
       },
 
@@ -176,10 +178,10 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Opens a window with the /file_bug page, and fills in the form.
        */
       fileNewBug: function() {
-        var details = this.getBugDetails();
+        var bugTitle = this.getBugTitle();
         var data = [
-          {name: 'keys', value: this.fileBugKeys.join(',')},
-          {name: 'summary', value: details.summary},
+          {name: 'keys', value: this.alertKeys.join(',')},
+          {name: 'summary', value: bugTitle},
         ];
         this.bugWindow = this.openAndPost('/file_bug', data, 'edit_bugs');
       },
@@ -190,48 +192,47 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        */
       associateWithBug: function() {
         this.bugWindow = this.openAndPost('/associate_alerts',
-            [{name: 'keys', value: this.fileBugKeys.join(',')}], 'edit_bugs');
+            [{name: 'keys', value: this.alertKeys.join(',')}], 'edit_bugs');
       },
 
       /**
        * Marks an alert as invalid.
        */
       markInvalid: function() {
-        this.changeBugId(-1);
-        if (!this.errorMessage) {
-          this.successMessage = 'Alert(s) marked invalid.';
-        }
+        this.changeBugId(-1, 'Alert(s) marked invalid.');
       },
 
       /**
        * Marks an alert as invalid.
        */
       markIgnored: function() {
-        this.changeBugId(-2);
-        if (!this.errorMessage) {
-          this.successMessage = 'Alert(s) marked ignored.';
-        }
+        this.changeBugId(-2, 'Alert(s) marked ignored.');
       },
 
       /**
        * Changes the bug ID of the selected alerts.
        */
-      changeBugId: function(bugId) {
-        var params = {keys: this.fileBugKeys};
+      changeBugId: function(bugId, successMessage) {
+        var params = {keys: this.alertKeys};
         this.bugid = bugId;
         params.bug_id = this.bugid;
-        this.setState('loading');
+
+        this.loading = true;
         this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
           function() {
             this.fire('triaged', {
               'alerts': this.alerts,
               'bugid': this.bugid
             });
-            this.setState('finished');
+            this.loading = false;
+            if (successMessage) {
+              this.showMessage(successMessage);
+            }
           }.bind(this),
           function(msg) {
-            this.errorMessage = msg;
-            this.setState('finished');
+            this.showErrorMessage('There was a problem triaging the bug',
+                                  msg);
+            this.loading = false;
           }.bind(this));
       },
 
@@ -241,26 +242,26 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       nudgeAlert: function() {
         var info = this.getNudgedInfo();
         var params = {
-          'keys': this.fileBugKeys,
+          'keys': this.alertKeys,
           'new_start_revision': info.startRevision,
           'new_end_revision': info.endRevision,
         };
-        this.setState('loading');
+        this.loading = true;
         this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
           function() {
-            this.errorMessage = null;
             this.fire('alertChangedRevisions', {
               'startRev': info.startRevision,
               'endRev': info.endRevision,
               'newDataIndex': info.dataIndex,
               'alerts': this.alerts
             });
-            this.successMessage = 'Alert moved.';
-            this.setState('finished');
+            this.showMessage('Alert moved.');
+            this.loading = false;
           }.bind(this),
           function(msg) {
-            this.errorMessage = msg;
-            this.setState('finished');
+            this.showErrorMessage('There was a problem triaging the bug',
+                                  msg);
+            this.loading = false;
           }.bind(this));
       },
 
@@ -274,30 +275,18 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       },
 
       /**
-       * Sets the state of the triage dialog.
-       *
-       * The state affects the contents of the triage-dialog element through
-       * affecting conditionally-bound templates. See:
-       * http://www.polymer-project.org/platform/template.html#if
-       *
-       * The possible states are:
-       *   triage: The dialog has been opened and the form is ready.
-       *   loading: Action has just been taken, and we're waiting for response.
-       *   finished: The dialog is finished now,
-       *
-       * @param {string} The new state.
+       * Returns a default bug title to use when filing a new bug.
+       * @return {string}
        */
-      setState: function(state) {
-        this.stepTriage = state == 'triage';
-        this.stepLoading = state == 'loading';
-        this.stepFinished = state == 'finished';
+      getBugTitle: function() {
+        if (this.alerts[0].percent_changed) {
+          return this.getBugTitleForAnomaly();
+        } else {
+          return this.getBugTitleForStoppageAlert();
+        }
       },
 
-      /**
-       * Gets information to fill in when filing a new bug.
-       * @return {Object}
-       */
-      getBugDetails: function() {
+      getBugTitleForAnomaly: function() {
         var type = 'improvement';
         var percentMin = Infinity;
         var percentMax = -Infinity;
@@ -310,7 +299,8 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             type = 'regression';
           }
           var percent = Infinity;
-          if (alert.percent_changed == this.FREAKIN_HUGE && !maxRegressionFound) {
+          if (alert.percent_changed == this.FREAKIN_HUGE &&
+              !maxRegressionFound) {
             maxRegressionFound = true;
           }
           else
@@ -333,7 +323,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         percentMin = Math.round(percentMin * 10) / 10;
         percentMax = Math.round(percentMax * 10) / 10;
         var minMax = percentMin + '%-' + percentMax + '%';
-        if (maxRegressionFound ) {
+        if (maxRegressionFound) {
           if (percentMin == Infinity) {
             // Both percentMin and percentMax were at Infinity.
             // Record a "freakin' huge" (TM) regression.
@@ -349,16 +339,28 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         }
 
         var alert = this.alerts[0];
-        var summary = ('MIN-MAX CHANGE in TESTSUITE at START:END'
-            .replace('MIN-MAX', minMax)
-            .replace('CHANGE', type)
-            .replace('MASTER', alert.master)
-            .replace('TESTSUITE', alert.testsuite)
-            .replace('START', String(startRev))
-            .replace('END', String(endRev)));
-        return {
-          summary: summary,
-        }
+        var summary = this.template(
+            '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}',
+            {
+              'range': minMax,
+              'type': type,
+              'suite': alert.testsuite,
+              'start': String(startRev),
+              'end': String(endRev)
+            });
+        return summary;
+      },
+
+      getBugTitleForStoppageAlert: function() {
+        var alert = this.alerts[0];
+        var summary = this.template(
+            'No data received for {{suite}} from {{bot}} since {{rev}}',
+            {
+              'suite': alert.testsuite,
+              'bot': alert.bot,
+              'rev': alert.end_revision
+            });
+        return summary;
       },
 
       /**
@@ -394,20 +396,13 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         return popup;
       },
 
-      /**
-       * String substitution using "{{" and "}}" for placeholders.
-       *
-       * @param {string} str String template.
-       * @param {Object} data Dictionary with values to replace.
-       * @return {string} The replaced string.
-       */
-      template: function(str, data) {
-        for (var key in data) {
-          var find = '{{' + key + '}}';
-          str = str.replace(new RegExp(find, 'g'), data[key]);
-        }
-        return str;
+      open: function() {
+        this.$.container.open();
       },
+
+      close: function() {
+        this.$.container.close();
+      }
     });
   </script>
 </polymer-element>

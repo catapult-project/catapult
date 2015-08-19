@@ -4,11 +4,7 @@
 
 """Provides the web interface for displaying an overview of alerts."""
 
-__author__ = 'sullivan@google.com (Annie Sullivan)'
-
-import datetime
 import json
-import os
 
 from google.appengine.ext import ndb
 
@@ -153,6 +149,7 @@ def _GetStoppageAlertDict(stoppage_alert_entity):
   alert_dict = _AlertDict(stoppage_alert_entity)
   alert_dict.update({
       'mail_sent': stoppage_alert_entity.mail_sent,
+      'last_row_date': str(stoppage_alert_entity.last_row_date.date()),
       'recovered': stoppage_alert_entity.recovered,
   })
   return alert_dict

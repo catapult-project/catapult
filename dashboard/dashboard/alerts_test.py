@@ -13,7 +13,6 @@ from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.models import graph_data
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
 
@@ -33,7 +32,7 @@ class AlertsTest(testing_common.TestCase):
 
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='sullivan@google.com').put()
-    testing_common.AddDataToMockDataStore(['ChromiumGPU'], ['linux-release'], {
+    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
             'mean_frame_time': {},
@@ -95,7 +94,7 @@ class AlertsTest(testing_common.TestCase):
   def testGet_NoParametersSet_UntriagedAlertsListed(self):
     key_map = self._AddAlertsToDataStore()
     response = self.testapp.get('/alerts')
-    anomaly_list = testing_common.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
     self.assertEqual(12, len(anomaly_list))
     # The test below depends on the order of the items, but the order is not
     # guaranteed; it depends on the timestamps, which depend on put order.
@@ -120,7 +119,7 @@ class AlertsTest(testing_common.TestCase):
   def testGet_TriagedParameterSet_TriagedListed(self):
     self._AddAlertsToDataStore()
     response = self.testapp.get('/alerts', {'triaged': 'true'})
-    anomaly_list = testing_common.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
     # The alerts listed should contain those added above, including alerts
     # that have a bug ID that is not None.
     self.assertEqual(14, len(anomaly_list))
@@ -141,7 +140,7 @@ class AlertsTest(testing_common.TestCase):
   def testGet_ImprovementsParameterSet_ListsImprovements(self):
     self._AddAlertsToDataStore()
     response = self.testapp.get('/alerts', {'improvements': 'true'})
-    anomaly_list = testing_common.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
     self.assertEqual(18, len(anomaly_list))
 
   def testGet_SheriffParameterSet_OtherSheriffAlertsListed(self):
@@ -159,8 +158,8 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity.put()
 
     response = self.testapp.get('/alerts', {'sheriff': 'Sheriff2'})
-    anomaly_list = testing_common.GetEmbeddedVariable(response, 'ANOMALY_LIST')
-    sheriff_list = testing_common.GetEmbeddedVariable(response, 'SHERIFF_LIST')
+    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    sheriff_list = self.GetEmbeddedVariable(response, 'SHERIFF_LIST')
     for alert in anomaly_list:
       self.assertEqual('mean_frame_time', alert['test'])
     self.assertEqual(2, len(sheriff_list))
@@ -169,21 +168,20 @@ class AlertsTest(testing_common.TestCase):
 
   def testGet_StoppageAlerts_EmbedsStoppageAlertListAndOneTable(self):
     sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
-    testing_common.AddDataToMockDataStore(
-        ['M'], ['b'], {'foo': {'bar': {}}})
+    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
     test_key = utils.TestKey('M/b/foo/bar')
-    testing_common.AddRows(
-        'M/b/foo/bar', [{'id': 9800, 'value': 1}, {'id': 9802, 'value': 2}])
-    for row in graph_data.Row.query():
+    rows = testing_common.AddRows('M/b/foo/bar', {9800, 9802})
+    for row in rows:
       stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
     response = self.testapp.get('/alerts?sheriff=Sheriff')
-    stoppage_alert_list = testing_common.GetEmbeddedVariable(
+    stoppage_alert_list = self.GetEmbeddedVariable(
         response, 'STOPPAGE_ALERT_LIST')
     self.assertEqual(2, len(stoppage_alert_list))
     self.assertEqual(1, len(response.html('alerts-table')))
 
   def testGet_WithNoAlerts_HasImageAndNoAlertsTable(self):
     response = self.testapp.get('/alerts')
+    self.assertEqual(1, len(response.html('img')))
     self.assertEqual(0, len(response.html('alerts-table')))
 
 

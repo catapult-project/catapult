@@ -17,6 +17,16 @@ from google.appengine.ext import vendor
 
 import dashboard
 
+from dashboard import datastore_hooks
+
+datastore_hooks.InstallHooks()
+
+appstats_SHELL_OK = True
+
+# Allows remote_api from the peng team to support the crosbolt dashboard.
+remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = (
+    'LOAS_PEER_USERNAME', ['chromeos-peng-performance'])
+
 # The path to the symlink to the third_party directory.
 _THIRD_PARTY_LINK = os.path.join(os.path.dirname(__file__), 'third_party')
 

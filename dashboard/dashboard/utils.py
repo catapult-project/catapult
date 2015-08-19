@@ -7,9 +7,14 @@
 import re
 import time
 
+from google.appengine.api import users
 from google.appengine.ext import ndb
 
-from dashboard import request_handler
+from dashboard import stored_object
+
+INTERNAL_DOMAIN_KEY = 'internal_domain_key'
+SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
+IP_WHITELIST_KEY = 'ip_whitelist'
 
 
 def TestPath(key):
@@ -134,7 +139,7 @@ def GetMulti(keys):
   Returns:
     A list of entities, but no internal_only ones if the user is not logged in.
   """
-  if request_handler.IsLoggedInWithGoogleAccount():
+  if IsInternalUser():
     return ndb.get_multi(keys)
   # Not logged in. Check each key individually.
   entities = []
@@ -144,3 +149,48 @@ def GetMulti(keys):
     except AssertionError:
       continue
   return entities
+
+
+def MinimumAlertRange(alerts):
+  """Returns the intersection of the revision ranges for a set of alerts.
+
+  Args:
+    alerts: An iterable of Alerts (Anomaly or StoppageAlert entities).
+
+  Returns:
+    A pair (start, end) if there is a valid minimum range,
+    or None if the ranges are not overlapping.
+  """
+  ranges = [(a.start_revision, a.end_revision) for a in alerts if a]
+  return MinimumRange(ranges)
+
+
+def MinimumRange(ranges):
+  """Returns the intersection of the given ranges, or None."""
+  if not ranges:
+    return None
+  starts, ends = zip(*ranges)
+  start, end = (max(starts), min(ends))
+  if start > end:
+    return None
+  return start, end
+
+
+def IsInternalUser():
+  """Checks whether the user should be able to see internal-only data."""
+  user = users.get_current_user()
+  domain = stored_object.Get(INTERNAL_DOMAIN_KEY)
+  return user and domain and user.email().endswith('@' + domain)
+
+
+def IsValidSheriffUser():
+  """Checks whether the user should be allowed to triage alerts."""
+  user = users.get_current_user()
+  sheriff_domains = stored_object.Get(SHERIFF_DOMAINS_KEY)
+  return user and sheriff_domains and any(
+      user.email().endswith('@' + domain) for domain in sheriff_domains)
+
+
+def GetIpWhitelist():
+  """Returns a list of IP address strings in the whitelist."""
+  return stored_object.Get(IP_WHITELIST_KEY)

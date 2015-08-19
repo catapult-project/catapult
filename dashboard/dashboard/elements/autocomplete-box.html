@@ -1,6 +1,6 @@
 <!--
-The 'autocomplete-box' is a input box with autocomplete dropdown menu.
-Dropdown menu has support for multi-select, grouping, and tag name.
+The 'autocomplete-box' is a input box with autocomplete drop-down menu.
+The drop-down menu has support for multi-select, grouping, and tag name.
 
 Example usage:
 
@@ -36,11 +36,14 @@ property 'group' sets to the header item name.
         ...
     ]
 -->
-<link rel="import" href="../../third_party/polymer/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="../../third_party/polymer/components/core-item/core-item.html">
-<link rel="import" href="../../third_party/polymer/components/core-menu/core-menu.html">
-<link rel="import" href="../../third_party/polymer/components/paper-input/paper-input-decorator.html">
-<link rel="import" href="../../third_party/polymer/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/third_party/polymer/components/core-item/core-item.html">
+<link rel="import" href="/third_party/polymer/components/core-menu/core-menu.html">
+<link rel="import" href="/third_party/polymer/components/paper-input/paper-input-decorator.html">
+<link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
+
+<link rel="import" href="/static/autocomplete.html">
+
 <polymer-element name="autocomplete-box"
                  attributes="placeholder dataList disabled multi value">
   <template>
@@ -123,6 +126,7 @@ property 'group' sets to the header item name.
 
   </template>
   <script>
+    'use strict';
     Polymer('autocomplete-box', {
 
       TEXTBOX_MIN_WIDTH: 152,
@@ -156,7 +160,7 @@ property 'group' sets to the header item name.
       },
 
       /**
-       * Handles typing text in textbox and navigating drop-down menu with
+       * Handles typing text in the textbox and navigating drop-down menu with
        * arrow keys.
        * @param {Event} event.
        */
@@ -197,9 +201,9 @@ property 'group' sets to the header item name.
         var isSelected = detail.item.classList.contains('core-selected');
         if (this.multi) {
           if (item.head) {
-            this.onHeadItemSelected(item, isSelected);
+            this.onHeadItemSelected(item.name, isSelected);
           } else {
-            this.onItemSelected(item, isSelected);
+            this.onItemSelected(item.name, isSelected);
           }
         }
 
@@ -208,8 +212,8 @@ property 'group' sets to the header item name.
       },
 
       /**
-       * On head item selected, either selects or unselects all of the subsequent
-       * non-head items.
+       * On head item selected, either selects or unselects all of the
+       * subsequent non-head items.
        * @param {string} headName Name of the head item.
        * @param {boolean} isSelected Whether the head item was checked or not.
        */
@@ -352,7 +356,7 @@ property 'group' sets to the header item name.
 
       /**
        * Updates drop-down menu with autocomplete suggestion items base on
-       * current value in textbox.
+       * current value in the textbox.
        */
       updateAutocomplete: function() {
         var selectedValue = null;
@@ -374,7 +378,7 @@ property 'group' sets to the header item name.
       },
 
       /**
-       * Adjusts textbox size to fit the first selected item.
+       * Adjusts the textbox size to fit the first selected item.
        */
       updateTextboxSize: function() {
         var values = this.getSelectedValues();

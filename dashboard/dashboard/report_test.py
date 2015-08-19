@@ -4,8 +4,7 @@
 
 """Unit tests for report module."""
 
-__author__ = 'sullivan@google.com (Annie Sullivan)'
-
+import json
 import unittest
 
 import webapp2
@@ -16,6 +15,7 @@ from google.appengine.ext import ndb
 from dashboard import report
 from dashboard import testing_common
 from dashboard import update_test_suites
+from dashboard.models import page_state
 
 
 class ReportTest(testing_common.TestCase):
@@ -40,6 +40,7 @@ class ReportTest(testing_common.TestCase):
     ]
     tests = {
         'scrolling_benchmark': {
+            'a_first_listed_test': {},
             'average_commit_time': {
                 'answers.yahoo.com': {},
                 'www.cnn.com': {},
@@ -48,7 +49,7 @@ class ReportTest(testing_common.TestCase):
         },
         'dromaeo': {},
     }
-    testing_common.AddDataToMockDataStore(masters, bots, tests)
+    testing_common.AddTests(masters, bots, tests)
     for m in masters:
       for b in bots:
         for t in tests:
@@ -85,8 +86,86 @@ class ReportTest(testing_common.TestCase):
         },
     }
     response = self.testapp.get('/report')
-    actual_suites = testing_common.GetEmbeddedVariable(response, 'TEST_SUITES')
+    actual_suites = self.GetEmbeddedVariable(response, 'TEST_SUITES')
     self.assertEqual(expected_suites, actual_suites)
+
+  def testGet_OldUri(self):
+    expected_state = {
+        'charts': [
+            [['ChromiumGPU/linux/scrolling/num_layers', ['num_layers']]],
+            [['ChromiumGPU/linux/scrolling/num_layers/about.com',
+              ['num_layers']]],
+            [['ChromiumGPU/win/scrolling/num_layers', ['num_layers']]],
+            [['ChromiumGPU/win/scrolling/num_layers/about.com',
+              ['num_layers']]],
+        ]
+    }
+
+    response = self.testapp.get(
+        '/report'
+        '?masters=ChromiumGPU&bots=linux,win'
+        '&tests=scrolling/num_layers,scrolling/num_layers/about.com'
+        '&checked=num_layers')
+
+    # We expect to get a URL redirect with an sid.
+    location = response.headers.get('location')
+    self.assertIn('sid=', location)
+
+    state_id = location.split('sid=')[1]
+    state = ndb.Key(page_state.PageState, state_id).get()
+    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
+                     state.value)
+
+  def testGet_OldUriMissingTestParam(self):
+    response = self.testapp.get(
+        '/report'
+        '?masters=ChromiumGPU&bots=linux,win'
+        '&checked=num_layers')
+
+    location = response.headers.get('location')
+    self.assertIsNone(location)
+
+    states = page_state.PageState.query().fetch()
+    self.assertEqual(0, len(states))
+
+  def testGet_OldUriMissingSubTest(self):
+    self._AddTestSuites()
+    testing_common.AddRows(
+        'ChromiumGPU/linux-release/scrolling_benchmark/a_first_listed_test',
+        {200})
+
+    expected_state = {
+        'charts': [
+            [[('ChromiumGPU/linux-release/scrolling_benchmark/'
+               'a_first_listed_test'),
+              ['a_first_listed_test']]],
+        ]
+    }
+
+    response = self.testapp.get(
+        '/report'
+        '?masters=ChromiumGPU&bots=linux-release'
+        '&tests=scrolling_benchmark')
+
+    # We expect to get a URL redirect with an sid.
+    location = response.headers.get('location')
+    self.assertIn('sid=', location)
+
+    state_id = location.split('sid=')[1]
+    state = ndb.Key(page_state.PageState, state_id).get()
+    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
+                     state.value)
+
+  def testGet_OldUriWithRevisionParams(self):
+    response = self.testapp.get(
+        '/report'
+        '?masters=ChromiumGPU&bots=linux,win'
+        '&tests=scrolling/num_layers,scrolling/num_layers/about.com'
+        '&checked=num_layers&start_rev=1234&end_rev=5678')
+    location = response.headers.get('location')
+    self.assertIn('sid=', location)
+    self.assertIn('start_rev=1234', location)
+    self.assertIn('end_rev=5678', location)
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@
 import difflib
 import hashlib
 import json
+import logging
 import re
 
 import httplib2
@@ -15,6 +16,7 @@ from google.appengine.api import users
 
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
+from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import rietveld_service
@@ -35,86 +37,62 @@ diff --git a/%(filename_a)s b/%(filename_b)s
 index %(hash_a)s..%(hash_b)s 100644
 """
 
-# These should be kept consistent with the constants used in auto-bisect.
-_PERF_BUILDER_TYPE = 'perf'
+_BISECT_BOT_MAP_KEY = 'bisect_bot_map'
+_BUILDER_TYPES_KEY = 'bisect_builder_types'
 
-# A set of suites for which we can't do performance bisects.
-# This list currently also exists in elements/bisect-button.html.
-_UNBISECTABLE_SUITES = [
-    'arc-perf-test',
-    'audio-e2e-test',
-    'audioproc_perf',
-    'browser_tests',
-    'endure',
-    'isac_fixed_perf',
-    'mach_ports',
-    'media_tests_av_perf',
-    'page_cycler_2012Q2-netsim',
-    'pyauto_webrtc_quality_tests',
-    'pyauto_webrtc_tests',
-    'scroll_telemetry_top_25',
-    'sizes',
-    'startup_test',
-    'vie_auto_test',
-    'webrtc_manual_browser_tests_test',
-    'webrtc_perf_content_unittests_test',
-    'webrtc_pyauto_quality',
-    'webrtc_pyauto',
-]
-
-# Available bisect bots on tryserver.chromium.perf waterfall.
-_BISECT_BOTS = [
-    'android_motoe_perf_bisect',
-    'android_nexus4_perf_bisect',
-    'android_nexus5_perf_bisect',
-    'android_nexus6_perf_bisect',
-    'android_nexus7_perf_bisect',
-    'android_nexus9_perf_bisect',
-    'android_nexus10_perf_bisect',
-    'linux_perf_bisect',
-    'mac_perf_bisect',
-    'mac_10_9_perf_bisect',
-    'win_perf_bisect',
-    'win_x64_perf_bisect',
-    'win_x64_ati_gpu_perf_bisect',
-    'win_x64_nvidia_gpu_perf_bisect',
-    'win_xp_perf_bisect',
-    'win_8_perf_bisect',
-]
+_NON_TELEMETRY_TEST_COMMANDS = {
+    'angle_perftests': [
+        './out/Release/angle_perftests',
+        '--test-launcher-print-test-stdio=always',
+        '--test-launcher-jobs=1',
+    ],
+    'cc_perftests': [
+        './out/Release/cc_perftests',
+        '--test-launcher-print-test-stdio=always',
+    ],
+    'idb_perf': [
+        './out/Release/performance_ui_tests',
+        '--gtest_filter=IndexedDBTest.Perf',
+    ],
+    'load_library_perf_tests': [
+        './out/Release/load_library_perf_tests',
+        '--single-process-tests',
+    ],
+    'media_perftests': [
+        './out/Release/media_perftests',
+        '--single-process-tests',
+    ],
+    'performance_browser_tests': [
+        './out/Release/performance_browser_tests',
+        '--test-launcher-print-test-stdio=always',
+        '--enable-gpu',
+    ],
+}
 
 
 class StartBisectHandler(request_handler.RequestHandler):
   """URL endpoint for AJAX requests for bisect config handling.
 
-  Requests are made to /bisect by the bisect-form Polymer element for a few
-  different types of data. This handler returns three different types of output
-  depending on the value of the 'step' parameter posted. In the order that
-  they're requested in the process of using the bisect button feature:
-    (1) prefill-info: Returns JSON with some info to fill into the initial form.
-    (2) get-config: Returns text to fill in for the bisect job config.
-    (3) perform-bisect: Send a patch to Rietveld to start a bisect job.
+  Requests are made to this end-point by bisect and trace forms. This handler
+  does several different types of things depending on what is given as the
+  value of the "step" parameter:
+    "prefill-info": Returns JSON with some info to fill into the form.
+    "perform-bisect": Triggers a bisect job.
+    "perform-perf-try": Triggers a perf try job.
   """
 
   def post(self):
     """Performs one of several bisect-related actions depending on parameters.
 
-    The only required parameter is "step", which indicates which action is to
-    be performed.
+    The only required parameter is "step", which indicates what to do.
 
-    Outputs JSON, with different information depending on "step".
+    This end-point should always output valid JSON with different contents
+    depending on the value of "step".
     """
     user = users.get_current_user()
-    if not user:
-      self.response.out.write(json.dumps({
-          'error': 'You must be logged in to run a bisect job.'}))
-      return
-    if (not user.email().endswith('google.com') and
-        not user.email().endswith('chromium.org')):
-      # Require a login from the start so we don't forget when we add support
-      # for actually kicking off bisect jobs.
-      self.response.out.write(json.dumps({
-          'error': ('You must be logged in to either a chromium.org'
-                    ' or google.com account to run a bisect job.')}))
+    if not utils.IsValidSheriffUser():
+      message = 'User "%s" not authorized.' % user
+      self.response.out.write(json.dumps({'error': message}))
       return
 
     step = self.request.get('step')
@@ -122,62 +100,86 @@ class StartBisectHandler(request_handler.RequestHandler):
     if step == 'prefill-info':
       result = _PrefillInfo(self.request.get('test_path'))
     elif step == 'perform-bisect':
-      bisect_config = GetBisectConfig(self.request.get('bisect_bot'),
-                                      self.request.get('suite'),
-                                      self.request.get('metric'),
-                                      self.request.get('good_revision'),
-                                      self.request.get('bad_revision'),
-                                      self.request.get('repeat_count', 10),
-                                      self.request.get('max_time_minutes', 20),
-                                      self.request.get('truncate_percent', 25),
-                                      self.request.get('bug_id', -1),
-                                      self.request.get('use_archive'),
-                                      self.request.get('bisect_mode', 'mean'))
-      if not bisect_config.get('error'):
-        bug_id = self.request.get('bug_id', None)
-        if bug_id:
-          bug_id = int(bug_id)
-
-        master_name = self.request.get('master', 'ChromiumPerf')
-        internal_only = False
-        if self.request.get('internal_only') == 'true':
-          internal_only = True
-
-        use_buildbucket = self.request.get('use_recipe') == 'true'
-        bisect_job = try_job.TryJob(bot=self.request.get('bisect_bot'),
-                                    config=bisect_config.get('config'),
-                                    bug_id=bug_id,
-                                    email=user.email(),
-                                    master_name=master_name,
-                                    internal_only=internal_only,
-                                    job_type='bisect',
-                                    use_buildbucket=use_buildbucket)
-
-        try:
-          result = PerformBisect(bisect_job)
-        except request_handler.InvalidInputError as iie:
-          result = {'error': iie.message}
-      else:
-        result = bisect_config
+      result = self._PerformBisectStep(user)
     elif step == 'perform-perf-try':
-      perf_config = _GetPerfTryConfig(self.request.get('bisect_bot'),
-                                      self.request.get('suite'),
-                                      self.request.get('good_revision'),
-                                      self.request.get('bad_revision'),
-                                      self.request.get('rerun_option'))
-      if not perf_config.get('error'):
-        perf_job = try_job.TryJob(bot=self.request.get('bisect_bot'),
-                                  config=perf_config.get('config'),
-                                  bug_id=-1,
-                                  email=user.email(),
-                                  job_type='perf-try')
-        result = _PerformPerfTryJob(perf_job)
-      else:
-        result = perf_config
+      result = self._PerformPerfTryStep(user)
     else:
       result = {'error': 'Invalid parameters.'}
 
     self.response.write(json.dumps(result))
+
+  def _PerformBisectStep(self, user):
+    """Gathers the parameters for a bisect job and triggers the job."""
+    bug_id = int(self.request.get('bug_id', -1))
+    master_name = self.request.get('master', 'ChromiumPerf')
+    internal_only = self.request.get('internal_only') == 'true'
+    use_buildbucket = self.request.get('use_recipe') == 'true'
+
+    bisect_config = GetBisectConfig(
+        bisect_bot=self.request.get('bisect_bot'),
+        master_name=master_name,
+        suite=self.request.get('suite'),
+        metric=self.request.get('metric'),
+        good_revision=self.request.get('good_revision'),
+        bad_revision=self.request.get('bad_revision'),
+        repeat_count=self.request.get('repeat_count', 10),
+        max_time_minutes=self.request.get('max_time_minutes', 20),
+        truncate_percent=self.request.get('truncate_percent', 25),
+        bug_id=bug_id,
+        use_archive=self.request.get('use_archive'),
+        bisect_mode=self.request.get('bisect_mode', 'mean'),
+        original_bot_name=self.request.get('bisect_bot'),
+        use_buildbucket=use_buildbucket)
+
+    if 'error' in bisect_config:
+      return bisect_config
+
+    config_python_string = 'config = %s\n' % json.dumps(
+        bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
+
+    # Forcing recipe by default for linux jobs.
+    if self.request.get('bisect_bot') == 'linux_perf_bisect':
+      use_buildbucket = True
+
+    bisect_job = try_job.TryJob(
+        bot=self.request.get('bisect_bot'),
+        config=config_python_string,
+        bug_id=bug_id,
+        email=user.email(),
+        master_name=master_name,
+        internal_only=internal_only,
+        job_type='bisect',
+        use_buildbucket=use_buildbucket)
+
+    try:
+      result = PerformBisect(bisect_job)
+    except request_handler.InvalidInputError as iie:
+      result = {'error': iie.message}
+    return result
+
+  def _PerformPerfTryStep(self, user):
+    """Gathers the parameters required for a perf try job and starts the job."""
+    perf_config = _GetPerfTryConfig(
+        bisect_bot=self.request.get('bisect_bot'),
+        suite=self.request.get('suite'),
+        good_revision=self.request.get('good_revision'),
+        bad_revision=self.request.get('bad_revision'),
+        rerun_option=self.request.get('rerun_option'))
+
+    if 'error' in perf_config:
+      return perf_config
+
+    config_python_string = 'config = %s\n' % json.dumps(
+        perf_config, sort_keys=True, indent=2, separators=(',', ': '))
+
+    perf_job = try_job.TryJob(
+        bot=self.request.get('bisect_bot'),
+        config=config_python_string,
+        bug_id=-1,
+        email=user.email(),
+        job_type='perf-try')
+
+    return _PerformPerfTryJob(perf_job)
 
 
 def _PrefillInfo(test_path):
@@ -207,15 +209,15 @@ def _PrefillInfo(test_path):
   info['internal_only'] = suite.internal_only
   info['use_archive'] = _CanDownloadBuilds(suite.master_name)
 
-  info['all_bots'] = _BISECT_BOTS
-  info['bisect_bot'] = GuessBisectBot(suite.bot.string_id())
+  info['all_bots'] = _GetAvailableBisectBots(suite.master_name)
+  info['bisect_bot'] = GuessBisectBot(suite.master_name, suite.bot_name)
 
   user = users.get_current_user()
   if not user:
     return {'error': 'User not logged in.'}
 
   # Secondary check for bisecting internal only tests.
-  if suite.internal_only and not request_handler.IsLoggedInWithGoogleAccount():
+  if suite.internal_only and not utils.IsInternalUser():
     return {'error': 'Unauthorized access, please use corp account to login.'}
 
   info['email'] = user.email()
@@ -234,19 +236,17 @@ def _PrefillInfo(test_path):
   return info
 
 
-def _IsGitHash(revision):
-  git_pattern = re.compile(r'[a-fA-F0-9]{40}$')
-  return git_pattern.match(str(revision))
-
-
-def GetBisectConfig(bisect_bot, suite, metric, good_revision, bad_revision,
-                    repeat_count, max_time_minutes, truncate_percent, bug_id,
-                    use_archive=None, bisect_mode='mean'):
+def GetBisectConfig(
+    bisect_bot, master_name, suite, metric, good_revision, bad_revision,
+    repeat_count, max_time_minutes, truncate_percent, bug_id,
+    original_bot_name=None, use_archive=None, bisect_mode='mean',
+    use_buildbucket=False):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
     bisect_bot: Bisect bot name.
-    suite: Test suite name.
+    master_name: Master name of the test being bisected.
+    suite: Test suite name of the test being bisected.
     metric: Bisect bot "metric" parameter, in the form "chart/trace".
     good_revision: Known good revision number.
     bad_revision: Known bad revision number.
@@ -254,16 +254,25 @@ def GetBisectConfig(bisect_bot, suite, metric, good_revision, bad_revision,
     max_time_minutes: Max time to run the test.
     truncate_percent: How many high and low values to discard.
     bug_id: The Chromium issue tracker bug ID.
+    original_bot_name: The name of the bot that originated the alert, required
+      when using buildbucket (i.e. recipe bisect).
     use_archive: Specifies whether to use build archives or not to bisect.
         If this is not empty or None, then we want to use archived builds.
     bisect_mode: What aspect of the test run to bisect on; possible options are
         "mean", "std_dev", and "return_code".
+    use_buildbucket: Whether this job will started using buildbucket,
+        this should be used for bisects using the bisect recipe.
 
   Returns:
     A dictionary with the result; if successful, this will contain "config",
     which is a config string; if there's an error, this will contain "error".
   """
-  command = GuessCommand(bisect_bot, suite, metric=metric)
+  command = GuessCommand(
+      bisect_bot, suite, metric=metric, use_buildbucket=use_buildbucket)
+  if not command:
+    return {'error': 'Could not guess command for %r.' % suite}
+  if use_buildbucket and not original_bot_name:
+    return {'error': 'Original bot name is required for buildbucket jobs.'}
 
   try:
     if not _IsGitHash(good_revision):
@@ -278,14 +287,10 @@ def GetBisectConfig(bisect_bot, suite, metric, good_revision, bad_revision,
     return {'error': ('repeat count, max time, and truncate percent '
                       'must all be integers and revision as git hash or int.')}
 
-  can_bisect_result = CheckBisectability(good_revision, bad_revision,
-                                         bot=bisect_bot)
-  if can_bisect_result is not None:
-    return can_bisect_result
-
-  builder_type = ''
-  if use_archive:
-    builder_type = _PERF_BUILDER_TYPE
+  if not IsValidRevisionForBisect(good_revision):
+    return {'error': 'Invalid "good" revision "%s".' % good_revision}
+  if not IsValidRevisionForBisect(bad_revision):
+    return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
       'command': command,
@@ -296,13 +301,40 @@ def GetBisectConfig(bisect_bot, suite, metric, good_revision, bad_revision,
       'max_time_minutes': str(max_time_minutes),
       'truncate_percent': str(truncate_percent),
       'bug_id': str(bug_id),
-      'builder_type': builder_type,
-      'target_arch': 'x64' if 'x64' in bisect_bot else 'ia32',
+      'builder_type': _BuilderType(master_name, use_archive),
+      'target_arch': GuessTargetArch(bisect_bot),
       'bisect_mode': bisect_mode,
+      'original_bot_name': original_bot_name,
   }
-  config_python_string = 'config = %s\n' % json.dumps(
-      config_dict, sort_keys=True, indent=2, separators=(',', ': '))
-  return {'config': config_python_string, 'config_dict': config_dict}
+  return config_dict
+
+
+def _BuilderType(master_name, use_archive):
+  """Returns the builder_type string to use in the bisect config.
+
+  Args:
+    master_name: The test master name.
+    use_archive: Whether or not to use archived builds.
+
+  Returns:
+    A string which indicates where the builds should be obtained from.
+  """
+  if not use_archive:
+    return ''
+  builder_types = namespaced_stored_object.Get(_BUILDER_TYPES_KEY)
+  if not builder_types or master_name not in builder_types:
+    return 'perf'
+  return builder_types[master_name]
+
+
+def GuessTargetArch(bisect_bot):
+  """Return target architecture for the bisect job."""
+  if 'x64' in bisect_bot:
+    return 'x64'
+  elif bisect_bot in ['android_nexus9_perf_bisect']:
+    return 'arm64'
+  else:
+    return 'ia32'
 
 
 def _GetPerfTryConfig(
@@ -322,20 +354,12 @@ def _GetPerfTryConfig(
   """
   command = GuessCommand(bisect_bot, suite, rerun_option=rerun_option)
   if not command:
-    return {'error': 'Only telemetry is supported at the moment.'}
+    return {'error': 'Only Telemetry is supported at the moment.'}
 
-  try:
-    if not _IsGitHash(good_revision):
-      good_revision = int(good_revision)
-    if not _IsGitHash(bad_revision):
-      bad_revision = int(bad_revision)
-  except ValueError:
-    return {'error': ('revisions must be git hashes or integers.')}
-
-  can_bisect_result = CheckBisectability(good_revision, bad_revision,
-                                         bot=bisect_bot)
-  if can_bisect_result is not None:
-    return can_bisect_result
+  if not IsValidRevisionForBisect(good_revision):
+    return {'error': 'Invalid "good" revision "%s".' % good_revision}
+  if not IsValidRevisionForBisect(bad_revision):
+    return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
       'command': command,
@@ -345,138 +369,95 @@ def _GetPerfTryConfig(
       'max_time_minutes': '60',
       'truncate_percent': '0',
   }
-  config_python_string = 'config = %s\n' % json.dumps(
-      config_dict, sort_keys=True, indent=2, separators=(',', ': '))
-  return {'config': config_python_string}
+  return config_dict
+
+
+def IsValidRevisionForBisect(revision):
+  """Checks whether a revision looks like a valid revision for bisect."""
+  return _IsGitHash(revision) or re.match(r'^[0-9]{5,7}$', str(revision))
+
+
+def _IsGitHash(revision):
+  """Checks whether the input looks like a SHA1 hash."""
+  return re.match(r'[a-fA-F0-9]{40}$', str(revision))
+
+
+def _GetAvailableBisectBots(master_name):
+  """Get all available bisect bots corresponding to a master name."""
+  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  for master, platform_bot_pairs in bisect_bot_map.iteritems():
+    if master_name.startswith(master):
+      return sorted({bot for _, bot in platform_bot_pairs})
+  return []
 
 
 def _CanDownloadBuilds(master_name):
   """Check whether bisecting using archives is supported."""
-  return master_name == 'ChromiumPerf'
+  return master_name.startswith('ChromiumPerf')
 
 
-def GuessBisectBot(bot_name):
+def GuessBisectBot(master_name, bot_name):
   """Returns a bisect bot name based on |bot_name| (perf_id) string."""
-  bot_name = bot_name.lower()
-
-  # Specific platforms which have an exact matching bisect bot.
-  #
-  # TODO(tonyg): This mapping shouldn't be hardcoded in the dashboard. That's
-  # likely best fixed by achieving full coverage and switching to a predictable
-  # naming pattern.
-  platform_bots = [
-      ('linux', 'linux_perf_bisect'),
-      ('mac8', 'mac_perf_bisect'),
-      ('mac9', 'mac_10_9_perf_bisect'),
-      ('motoe', 'android_motoe_perf_bisect'),
-      ('one', 'android_one_perf_bisect'),
-      ('nexus4', 'android_nexus4_perf_bisect'),
-      ('nexus5', 'android_nexus5_perf_bisect'),
-      ('nexus6', 'android_nexus6_perf_bisect'),
-      ('nexus7', 'android_nexus7_perf_bisect'),
-      ('nexus9', 'android_nexus9_perf_bisect'),
-      ('nexus10', 'android_nexus10_perf_bisect'),
-      ('win7-gpu-ati', 'win_x64_ati_gpu_perf_bisect'),
-      ('win7-gpu-nvidia', 'win_x64_nvidia_gpu_perf_bisect'),
-      ('win7-x64', 'win_x64_perf_bisect'),
-      ('win7', 'win_perf_bisect'),
-      ('win8', 'win_8_perf_bisect'),
-      ('xp', 'win_xp_perf_bisect'),
-  ]
-  # Fallbacks to related platforms when there's no exact match (with a
-  # preference for historically reliable platforms).
-  platform_fallbacks = [
-      ('android', 'android_nexus10_perf_bisect'),
-      ('linux', 'linux_perf_bisect'),
-      ('mac', 'mac_perf_bisect'),
-      ('win', 'win_perf_bisect'),
-  ]
-
-  # Last resort fallback to the most reliable bisector (but totally unrelated).
   fallback = 'linux_perf_bisect'
-
-  for platform, bisect_bot in platform_bots + platform_fallbacks:
-    if platform in bot_name:
-      return bisect_bot
+  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  if not bisect_bot_map:
+    return fallback
+  bot_name = bot_name.lower()
+  for master, platform_bot_pairs in bisect_bot_map.iteritems():
+    # Treat ChromiumPerfFyi (etc.) the same as ChromiumPerf.
+    if master_name.startswith(master):
+      for platform, bisect_bot in platform_bot_pairs:
+        if platform in bot_name:
+          return bisect_bot
+  # Nothing was found; log a warning and return a fall-back name.
+  logging.warning('No bisect bot for %s/%s.', master_name, bot_name)
   return fallback
 
 
-# TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
-# See: http://crbug.com/448628
-def GuessCommand(bisect_bot, suite, metric=None, rerun_option=None):  # pylint: disable=unused-argument
+def GuessCommand(
+    bisect_bot, suite, metric=None, rerun_option=None, use_buildbucket=False):
   """Returns a command to use in the bisect configuration."""
   platform = bisect_bot.split('_')[0]
+  if suite in _NON_TELEMETRY_TEST_COMMANDS:
+    return _GuessCommandNonTelemetry(suite, platform)
+  return _GuessCommandTelemetry(
+      suite, platform, metric, rerun_option, use_buildbucket)
 
-  non_telemetry_tests = {
-      'angle_perftests': [
-          './out/Release/angle_perftests',
-          '--test-launcher-print-test-stdio=always',
-          '--test-launcher-jobs=1',
-      ],
-      'cc_perftests': [
-          './out/Release/cc_perftests',
-          '--test-launcher-print-test-stdio=always',
-      ],
-      'idb_perf': [
-          './out/Release/performance_ui_tests',
-          '--gtest_filter=IndexedDBTest.Perf',
-      ],
-      'load_library_perf_tests': [
-          './out/Release/load_library_perf_tests',
-          '--single-process-tests',
-      ],
-      'media_perftests': [
-          './out/Release/media_perftests',
-          '--single-process-tests',
-      ],
-      'performance_browser_tests': [
-          './out/Release/performance_browser_tests',
-          '--test-launcher-print-test-stdio=always',
-          '--enable-gpu',
-      ],
-  }
 
+def _GuessCommandNonTelemetry(suite, platform):
+  """Returns a command string to use for non-Telemetry tests."""
+  if suite not in _NON_TELEMETRY_TEST_COMMANDS:
+    return None
   if suite == 'cc_perftests' and platform == 'android':
     return 'build/android/test_runner.py gtest --release -s cc_perftests'
-  if suite in non_telemetry_tests:
-    command = non_telemetry_tests[suite]
-    if platform == 'win':
-      command[0] = command[0].replace('/', '\\')
-      command[0] += '.exe'
-    return ' '.join(command)
 
+  command = _NON_TELEMETRY_TEST_COMMANDS[suite]
+  if platform.startswith('win'):
+    command[0] = command[0].replace('/', '\\')
+    command[0] += '.exe'
+  return ' '.join(command)
+
+
+def _GuessCommandTelemetry(
+    suite, platform, metric,  # pylint: disable=unused-argument
+    rerun_option, use_buildbucket):
+  """Returns a command to use given that |suite| is a Telemetry benchmark."""
+  # TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
+  # See: http://crbug.com/448628
   command = []
-
-  # On Windows, Python scripts should be prefixed with the python command.
-  if platform == 'win':
+  if platform.startswith('win'):
     command.append('python')
 
-  command.append('tools/perf/run_benchmark')
-  command.append('-v')
+  command.extend([
+      'tools/perf/run_benchmark',
+      '-v',
+      '--browser=%s' % _GuessBrowserName(platform),
+      '--output-format=%s' % ('chartjson' if use_buildbucket else 'buildbot'),
+      '--also-run-disabled-tests',
+  ])
 
-  # For Telemetry tests, we need to specify the browser,
-  # and the browser to use may depend on the platform.
-  if platform == 'android':
-    # Prior to crrev.com/274857 *only* android-chromium-testshell
-    # Then until crrev.com/276628 *both* (android-chromium-testshell and
-    # android-chrome-shell) work. After that revision *only*
-    # android-chrome-shell works. bisect-perf-reggresion.py script should
-    # handle these cases and set appropriate browser type based on revision,
-    # dashboard will always set to 'android-chrome-shell' since it sets for
-    # revision range not per revision.
-    browser = 'android-chrome-shell'
-  else:
-    browser = 'release'
-  command.append('--browser=%s' % browser)
-
-  # Some tests require a pre-generated Chrome profile.
-  uses_profile = (
-      suite == 'startup.warm.dirty.blank_page' or
-      suite == 'startup.cold.dirty.blank_page' or
-      suite.startswith('session_restore'))
-  if uses_profile:
-    # Profile directory relative to chromium/src.
-    profile_dir = 'out/Release/generated_profile/small_profile'
+  profile_dir = _GuessProfileDir(suite)
+  if profile_dir:
     command.append('--profile-dir=%s' % profile_dir)
 
   # Test command might be a little different from the test name on the bots.
@@ -494,6 +475,25 @@ def GuessCommand(bisect_bot, suite, metric=None, rerun_option=None):  # pylint: 
     command.append(rerun_option)
 
   return ' '.join(command)
+
+
+def _GuessBrowserName(platform):
+  """Returns a browser name string for Telemetry to use."""
+  if platform == 'android':
+    return 'android-chromium'
+  if platform == 'clankium':
+    return 'android-chrome'
+  return 'release'
+
+
+def _GuessProfileDir(suite):
+  """Returns a profile directory string for Telemetry, or None."""
+  if (suite == 'startup.warm.dirty.blank_page' or
+      suite == 'startup.cold.dirty.blank_page' or
+      suite.startswith('session_restore')):
+    # Profile directory relative to chromium/src.
+    return 'out/Release/generated_profile/small_profile'
+  return None
 
 
 def GuessMetric(test_path):
@@ -578,7 +578,7 @@ def PerformBisect(bisect_job):
 
   Returns:
     A dictionary containing the result; if successful, this dictionary contains
-    the field "issue_id", otherwise it contains "error".
+    the field "issue_id" and "issue_url", otherwise it contains "error".
   """
   assert bisect_job.bot and bisect_job.config
 
@@ -598,7 +598,7 @@ def PerformBisect(bisect_job):
       base_config, config, _BISECT_CONFIG_PATH)
 
   # Check if bisect is for internal only tests.
-  bisect_internal = False
+  bisect_internal = _IsBisectInternalOnly(bisect_job)
 
   # Upload the patch to Rietveld.
   server = rietveld_service.RietveldService(bisect_internal)
@@ -623,10 +623,10 @@ def PerformBisect(bisect_job):
     issue_url = '%s/%s' % (server.Config().server_url.strip('/bots'), issue_id)
 
   # Tell Rietveld to try the patch.
-  master = 'tryserver.chromium.perf'
+  master = _GetTryServerMaster(bisect_job)
   trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
   if trypatch_success:
-    # Create TryJob entity.  update_bug_from_rietveld and auto_bisect
+    # Create TryJob entity.  update_bug_with_results and auto_bisect
     # cron job will be tracking/starting/restarting bisect.
     if bug_id and bug_id > 0:
       bisect_job.rietveld_issue_id = int(issue_id)
@@ -637,6 +637,19 @@ def PerformBisect(bisect_job):
       LogBisectResult(bug_id, bug_comment)
     return {'issue_id': issue_id, 'issue_url': issue_url}
   return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
+
+
+def _IsBisectInternalOnly(bisect_job):
+  """Checks if the bisect is for an internal-only test."""
+  return (bisect_job.internal_only and
+          bisect_job.master_name.startswith('Clank'))
+
+
+def _GetTryServerMaster(bisect_job):
+  """Returns the try server master to be used for bisecting."""
+  if bisect_job.internal_only and bisect_job.master_name.startswith('Clank'):
+    return 'tryserver.clankium'
+  return 'tryserver.chromium.perf'
 
 
 def _PerformPerfTryJob(perf_job):
@@ -681,67 +694,13 @@ def _PerformPerfTryJob(perf_job):
   master = 'tryserver.chromium.perf'
   trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
   if trypatch_success:
-    # Create TryJob entity. The update_bug_from_rietveld and auto_bisect
+    # Create TryJob entity. The update_bug_with_results and auto_bisect
     # cron jobs will be tracking, or restarting the job.
     perf_job.rietveld_issue_id = int(issue_id)
     perf_job.rietveld_patchset_id = int(patchset_id)
     perf_job.SetStarted()
     return {'issue_id': issue_id}
   return {'error': 'Error starting try job. Try to fix at %s' % url}
-
-
-def CheckBisectability(good_revision, bad_revision, test_path=None, bot=None):
-  """Whether a bisect can be done for the given testpath, bot and revision.
-
-  Checks for following conditions:
-  1. Given revisions are integer.
-  2. Non-bisectable revisions for android bots (refer to crbug.com/385324).
-  3. Non-bisectable revisions for Windows bots (refer to crbug.com/405274).
-  4. Non-bisectable test suites.
-
-  Args:
-    good_revision: Known good revision.
-    bad_revision: known bad revision.
-    test_path: A string test path.
-    bot: Name of the bisect bot.
-
-  Returns:
-    None if bisectable, otherwise a dictionary with key "error" and the reason
-    why.
-  """
-  # Checks whether the input is SHA1 hash or 5 to 7 digit number.
-  for revision in [good_revision, bad_revision]:
-    if (not re.match(r'^[a-fA-F0-9]{40}$', str(revision)) and
-        not re.match(r'^[\d]{5,7}$', str(revision))):
-      return {'error': 'Not a Chromium revision.'}
-
-  if bot and 'android' in bot and good_revision < 265549:
-    return {'error': ('Oops! Cannot bisect the given revision range.'
-                      'It is impossible to bisect Android regressions prior '
-                      'to r265549, which allows the bisect bot to rely on '
-                      'Telemetry to do apk installation of the most recently '
-                      'built local ChromeShell (refer to crbug.com/385324). '
-                      'Please try bisecting revisions greater than or '
-                      'equal to r265549.')}
-
-  if (bot and 'win' in bot and
-      (289987 <= good_revision < 290716 or 289987 <= bad_revision < 290716)):
-    return {'error': ('Oops! Revision between r289987 and r290716 are marked '
-                      'as dead zone for Windows due to crbug.com/405274.'
-                      'Please try another range.')}
-  if test_path:
-    test_path_parts = test_path.split('/')
-    if len(test_path_parts) < 4:
-      return {'error': 'Invalid test path.'}
-
-    if test_path_parts[2] in _UNBISECTABLE_SUITES:
-      return {'error': 'Unbisectable test suite.'}
-
-    # Check whether the given test path is for a reference build.
-    if test_path.endswith('/ref') or test_path.endswith('_ref'):
-      return {'error': 'Test path is for a reference build.'}
-
-  return None
 
 
 def LogBisectResult(bug_id, comment):
@@ -771,17 +730,14 @@ def _MakeBuildbucketBisectJob(bisect_job):
     to pass it to the buildbucket service to start the job.
   """
   config = bisect_job.GetConfigDict()
-  if not bisect_job.bot.startswith('linux'):
-    raise request_handler.InvalidInputError(
-        'Only linux is supported at this time.')
   if bisect_job.job_type != 'bisect':
     raise request_handler.InvalidInputError(
         'Recipe only supports bisect jobs at this time.')
-  if bisect_job.master_name != 'ChromiumPerf':
+  if not bisect_job.master_name.startswith('ChromiumPerf'):
     raise request_handler.InvalidInputError(
-        'Recipe is only implemented on ChromiumPerf.')
+        'Recipe is only implemented on for tests run on chromium.perf '
+        '(and chromium.perf.fyi).')
   return buildbucket_job.BisectJob(
-      platform='linux',
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],
       test_command=config['command'],
@@ -790,7 +746,9 @@ def _MakeBuildbucketBisectJob(bisect_job):
       timeout_minutes=config['max_time_minutes'],
       truncate=config['truncate_percent'],
       bug_id=bisect_job.bug_id,
-      gs_bucket='chrome-perf')
+      gs_bucket='chrome-perf',
+      original_bot_name=config['original_bot_name'],
+  )
 
 
 def PerformBuildbucketBisect(bisect_job):
@@ -807,3 +765,4 @@ def PerformBuildbucketBisect(bisect_job):
         'error': ('Could not start job because of the following exception: ' +
                   e.message),
     }
+

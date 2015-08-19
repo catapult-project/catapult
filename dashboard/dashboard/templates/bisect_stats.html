@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block head %}
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <style>
     #content {
       margin-left: 20px;
@@ -40,7 +39,7 @@
 
     <h2>Infra Failures</h2>
     <quick-log id="bisect-infra-failure-log"
-               xsrfToken="{{xsrf_token|safe}}"
+               xsrfToken="{{xsrf_token | safe}}"
                logLabel="Logs"
                logNamespace="bisect_failures"
                logName="infra"
@@ -49,9 +48,14 @@
                style="width:900px; height: 600px; display:block;"></quick-log>
   </div>
 
-  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
+  <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.time.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.stack.min.js"></script>
 
   <script>
+    'use strict';
+
     var ONE_WEEK_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
 
     var GRAPH_WIDTH_PX = 900;
@@ -68,22 +72,24 @@
     //       bot_name: [[week_timestamp, count], [week_timestamp, count]],
     //   }
     // }
-    var SERIES_DATA = {{series_data|safe}};
+    var SERIES_DATA = {{series_data | safe}};
 
     // Data object for total bisect results in the form:
     // {
     //   'failed': [[week_timestamp, count], [week_timestamp, count]],
     //   'completed': [[week_timestamp, count], [week_timestamp, count]]
     // }
-    var TOTAL_SERIES_DATA = {{total_series_data|safe}};
+    var TOTAL_SERIES_DATA = {{total_series_data | safe}};
 
     /**
      * Calculates bar width to make room for gap between each bar.
+     * @param {number} numPoints Number of points on in the chart.
+     * @return {number} Bar width to use in the Flot options.
      */
-    function getBarWidth(numPoint) {
-      if (numPoint < 1)
-        return 1
-      var gapPercent = GAP_SIZE_PX / (GRAPH_WIDTH_PX / numPoint);
+    function getBarWidth(numPoints) {
+      if (numPoints < 1)
+        return 1;
+      var gapPercent = GAP_SIZE_PX / (GRAPH_WIDTH_PX / numPoints);
       if (gapPercent > 0.25) {
         return ONE_WEEK_MILLISECONDS * 0.75;
       } else {
@@ -95,9 +101,9 @@
      * Loads chart for bisect total failed and success runs.
      */
     function addChartForBisectSummary() {
-      var numPoint = Math.max(TOTAL_SERIES_DATA['completed'].length,
+      var numPoints = Math.max(TOTAL_SERIES_DATA['completed'].length,
                               TOTAL_SERIES_DATA['failed'].length);
-      var barWidth = getBarWidth(numPoint);
+      var barWidth = getBarWidth(numPoints);
       var data = [
         {
           label: 'Successes',
@@ -140,19 +146,19 @@
       series_names.sort();
 
       // Determine bar width.
-      var numPoint = 0;
+      var numPoints = 0;
       var barWidth = 1;
       for (var i = 0; i < series_names.length; i++) {
         var name = series_names[i];
-        numPoint = Math.max(SERIES_DATA['completed'][name].length,
-                            numPoint);
+        numPoints = Math.max(SERIES_DATA['completed'][name].length,
+                            numPoints);
         if (name in SERIES_DATA['failed']) {
-          numPoint = Math.max(SERIES_DATA['failed'][name].length,
-                              numPoint);
+          numPoints = Math.max(SERIES_DATA['failed'][name].length,
+                              numPoints);
         }
       }
-      if (numPoint > 0) {
-        barWidth = getBarWidth(numPoint);
+      if (numPoints > 0) {
+        barWidth = getBarWidth(numPoints);
         barWidth = barWidth / series_names.length;
       }
 
@@ -193,8 +199,14 @@
           timeformat: '%y/%m/%d',
         },
         legend: {container: $('#platform-legend')},
-        colors: ['#4D90FE', '#37731c', '#654ea6', '#e38e39', '#a34d77',
-                 '#630000'],
+        colors: [
+          '#4d90fe',
+          '#37731c',
+          '#654ea6',
+          '#e38e39',
+          '#a34d77',
+          '#630000'
+        ]
       };
       $.plot('#platform-chart', data, options);
     }
@@ -203,4 +215,3 @@
     addChartForBisectRunByPlatform();
   </script>
 {% endblock %}
-

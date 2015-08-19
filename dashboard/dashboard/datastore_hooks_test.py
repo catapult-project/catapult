@@ -27,6 +27,7 @@ class DatastoreHooksTest(testing_common.TestCase):
 
   def setUp(self):
     super(DatastoreHooksTest, self).setUp()
+    testing_common.SetInternalDomain('google.com')
     self._AddDataToDatastore()
     datastore_hooks.InstallHooks()
     get_request_patcher = mock.patch(
@@ -37,16 +38,16 @@ class DatastoreHooksTest(testing_common.TestCase):
 
   def tearDown(self):
     super(DatastoreHooksTest, self).tearDown()
-    self.SetCurrentUser(None, None, False)
+    self.UnsetCurrentUser()
 
   def _AddDataToDatastore(self):
     """Puts a set of entities; some internal-only, some not."""
     # Need to be privileged to add Test and Row objects to the datastore because
     # there is a get() for the parent_test in the pre_put_hook. This should work
     # correctly in production because Rows and Tests should only be added by
-    # /add_point, which is privileged
+    # /add_point, which is privileged.
     self.SetCurrentUser('foo@google.com')
-    testing_common.AddDataToMockDataStore(
+    testing_common.AddTests(
         ['ChromiumPerf'],
         ['Win7External', 'FooInternal'], {
             'TestInternal': {'SubTestInternal': {}},
@@ -86,7 +87,7 @@ class DatastoreHooksTest(testing_common.TestCase):
           internal_only=True).put()
       graph_data.Row(
           parent=external_test_container_key, id=i, value=float(i * 2)).put()
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     sheriff.Sheriff(
         id='external', email='external@chromium.org', internal_only=False).put()
     sheriff.Sheriff(
@@ -162,23 +163,19 @@ class DatastoreHooksTest(testing_common.TestCase):
       self.assertEqual('external@chromium.org', sheriffs[0].email)
 
   def testQuery_NoUser_InternalOnlyNotFetched(self):
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     self._CheckQueryResults(include_internal=False)
 
   def testQuery_ExternalUser_InternalOnlyNotFetched(self):
     self.SetCurrentUser('foo@yahoo.com')
     self._CheckQueryResults(include_internal=False)
 
-  def testQuery_ChromiumUser_InternalOnlyNotFetched(self):
-    self.SetCurrentUser('foo@chromium.org')
-    self._CheckQueryResults(include_internal=False)
-
-  def testQuery_GoogleUser_InternalOnlyFetched(self):
+  def testQuery_InternalUser_InternalOnlyFetched(self):
     self.SetCurrentUser('foo@google.com')
     self._CheckQueryResults(True)
 
   def testQuery_PrivilegedRequest_InternalOnlyFetched(self):
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     datastore_hooks.SetPrivilegedRequest()
     self._CheckQueryResults(True)
 
@@ -217,15 +214,11 @@ class DatastoreHooksTest(testing_common.TestCase):
           AssertionError, sheriff.Sheriff.get_by_id, 'internal')
 
   def testGet_NoUser(self):
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     self._CheckGet(include_internal=False)
 
   def testGet_ExternalUser(self):
     self.SetCurrentUser('foo@yahoo.com')
-    self._CheckGet(include_internal=False)
-
-  def testGet_ChromiumUser(self):
-    self.SetCurrentUser('foo@chromium.org')
     self._CheckGet(include_internal=False)
 
   def testGet_InternalUser(self):
@@ -237,7 +230,7 @@ class DatastoreHooksTest(testing_common.TestCase):
     self._CheckGet(include_internal=True)
 
   def testGet_PrivilegedRequest(self):
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     datastore_hooks.SetPrivilegedRequest()
     self._CheckGet(include_internal=True)
 

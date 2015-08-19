@@ -30,15 +30,16 @@ class XsrfTest(testing_common.TestCase):
     super(XsrfTest, self).setUp()
     app = webapp2.WSGIApplication([('/example', ExampleHandler)])
     self.testapp = webtest.TestApp(app)
-    self.SetCurrentUser('foo@bar.com')
 
   def testGenerateToken_CanBeValidatedWithSameUser(self):
+    self.SetCurrentUser('foo@bar.com')
     token = xsrf.GenerateToken(users.get_current_user())
     self.assertTrue(xsrf._ValidateToken(token, users.get_current_user()))
 
   def testGenerateToken_CanNotBeValidatedWithDifferentUser(self):
+    self.SetCurrentUser('foo@bar.com', user_id='x')
     token = xsrf.GenerateToken(users.get_current_user())
-    self.SetCurrentUser('other@bar.com', user_id='y')
+    self.SetCurrentUser('foo@other.com', user_id='y')
     self.assertFalse(xsrf._ValidateToken(token, users.get_current_user()))
 
   def testTokenRequired_NoToken_Returns403(self):

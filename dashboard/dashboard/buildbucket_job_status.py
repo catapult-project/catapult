@@ -70,7 +70,7 @@ def _ConvertTimes(dictionary):
 def _ParseJsonKeys(dictionary):
   """Replaces values with json strings with objects parsed from them.
 
-  Certain nested json objects are returned as strings. We parse them to acess
+  Certain nested json objects are returned as strings. We parse them to access
   their properties. Note this method is not recursive and only parses objects
   in the topmost level, i.e. only string values in the given dictionary and
   not in nested dictionaries it might contain.

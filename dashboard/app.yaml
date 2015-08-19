@@ -1,11 +1,10 @@
 # Python Application Configuration
 # https://developers.google.com/appengine/docs/python/config/appconfig
 
-runtime: python27  # Which runtime to use.
-api_version: 1     # Which version of the API to use for that runtime.
-threadsafe: false  # Disable threading.
+runtime: python27
+api_version: 1
+threadsafe: false
 
-# Third party libraries loaded from the App Engine environment.
 libraries:
 - name: jinja2
   version: "2.6"
@@ -23,8 +22,16 @@ inbound_services:
 - warmup
 
 handlers:
+
 - url: /mapreduce(/.*)?
   script: mapreduce.main.APP
+  login: admin
+
+- url: /_ah/pipeline(/.*)?
+  script: pipeline.handlers._APP
+
+- url: /_ah/queue/deferred
+  script: google.appengine.ext.deferred.application
   login: admin
 
 - url: /_ah/dev_console(/.*)?
@@ -33,7 +40,8 @@ handlers:
   secure: always
 
 - url: /favicon.ico
-  static_dir: dashboard/static/favicon.ico
+  static_files: dashboard/static/favicon.ico
+  upload: dashboard/static/favicon.ico
   secure: always
 
 - url: /static/
@@ -50,7 +58,132 @@ handlers:
   upload: third_party/polymer/components/.*/.*\.(html|js|css)$
   secure: always
 
+- url: /third_party/flot/(.*\.js)$
+  static_files: third_party/flot/\1
+  upload: third_party/flot/.*\.js$
+  secure: always
+
+- url: /third_party/jquery/(.*\.js)$
+  static_files: third_party/jquery/\1
+  upload: third_party/jquery/.*\.js$
+  secure: always
+
+- url: /add_point_queue
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /associate_alerts
+  script: dashboard.dispatcher.app
+  login: required
+  secure: always
+
+- url: /auto_bisect
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /auto_triage
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /bisect
+  script: dashboard.dispatcher.app
+  login: required
+  secure: always
+
+- url: /bot_whitelist
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /change_internal_only
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /delete_expired_entities
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /edit_anomaly_configs
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /edit_bug_labels
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /edit_sheriffs
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /edit_anomalies
+  script: dashboard.dispatcher.app
+  login: required
+  secure: always
+
+- url: /email_summary
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /file_bug
+  script: dashboard.dispatcher.app
+  login: required
+  secure: always
+
 - url: /ip_whitelist
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /load_from_prod
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /migrate_test_names
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /mr_deprecate_tests
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /put_entities_task
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /send_stoppage_alert_emails
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /stats_around_revision
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /update_bug_with_results
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /update_test_metadata
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
+- url: /update_test_suites
   script: dashboard.dispatcher.app
   login: admin
   secure: always

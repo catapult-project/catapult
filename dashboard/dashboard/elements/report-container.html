@@ -1,0 +1,197 @@
+<link rel="import" href="/dashboard/elements/test-picker.html">
+<link rel="import" href="/static/uri.html">
+
+<polymer-element name="report-container" attributes="hasChart">
+  <template>
+    <style>
+      #nav-container {
+        display: flex;
+        margin: 5px;
+      }
+    </style>
+
+    <div id="nav-container">
+      <test-picker id="test-picker"></test-picker>
+    </div>
+
+  </template>
+
+  <script>
+    'use strict';
+    Polymer('report-container', {
+
+      ready: function() {
+        this.charts = [];
+        this.graphParams = {};
+
+        window.addEventListener('uriload', this.onUriLoad.bind(this));
+        this.uriController = new uri.Controller(this.getPageState.bind(this));
+        this.uriController.load();
+
+        window.addEventListener('pagestaterequest', this.onPageStateRequest);
+
+        this.testPicker = this.$['test-picker'];
+        this.testPicker.addEventListener(
+            'add', this.onAddChartButtonClicked.bind(this));
+      },
+
+      /**
+       * On 'uriload' event, adds charts from the current query parameters.
+       * @param {Object} event
+       */
+      onUriLoad: function(event) {
+        var params = event.detail.params;
+        var pageState = event.detail.state;
+        if (!pageState) {
+          return;
+        }
+        // Set page level parameters.
+        this.graphParams = {};
+        for (var key in params) {
+          this.graphParams[key] = params[key];
+        }
+
+        // Add charts.
+        var chartStates = pageState['charts'];
+        for (var i = 0; i < chartStates.length; i++) {
+          this.addChart(chartStates[i], false);
+        }
+      },
+
+      /**
+       * Adds a chart.
+       * @param {Array.<Array>} testPathAndSelected A list of two-element
+       *     Arrays, each containing a test path and selected series to plot.
+       * @param {boolean} isPrepend True for prepend, false for append.
+       */
+      addChart: function(testPathAndSelected, isPrepend) {
+        var container = document.getElementById('charts-container');
+        var chart = document.createElement('chart-container');
+        if (isPrepend) {
+          this.charts.unshift(chart);
+          container.insertBefore(chart, container.firstChild);
+        } else {
+          this.charts.push(chart);
+          container.appendChild(chart);
+        }
+
+        chart.addEventListener(
+            'chartclosed', this.onChartClosed.bind(this), true);
+        chart.addEventListener(
+            'chartstatechanged',
+            this.uriController.onPageStateChanged.bind(this.uriController));
+        chart.addEventListener(
+            'revisionrange', this.onRevisionRangeChanged.bind(this));
+
+        chart.revisionInfo = window['REVISION_INFO'];
+        chart.xsrfToken = window['XSRF_TOKEN'];
+        chart.graphParams = this.graphParams;
+        chart.addSeriesGroup(testPathAndSelected, true);
+        this.testPicker.hasChart = true;
+      },
+
+      /**
+       * On chart closed, update URI.
+       */
+      onChartClosed: function(event) {
+        var chart = event.target;
+        var index = this.charts.indexOf(chart);
+        if (index > -1) {
+          this.charts.splice(index, 1);
+        }
+
+        this.firenNumChartChangedEvent();
+      },
+
+      /**
+       * Triggers page state change handler with 'numchartchanged' event.
+       */
+      firenNumChartChangedEvent: function() {
+        // Send page state change event.
+        var event = document.createEvent('Event');
+        event.initEvent('numchartchanged', true, true);
+        event.detail = {
+          'stateName': 'numchartchanged',
+          'params': this.graphParams,
+          'state': {}
+        };
+
+        if (this.charts.length == 0) {
+          event.detail['params'] = null;
+          this.graphParams = {};
+          this.testPicker.hasChart = false;
+        }
+
+        this.uriController.onPageStateChanged(event);
+      },
+
+      /**
+       * When the revision range changes for one graph, update the rest of
+       * the graphs and the URI.
+       */
+      onRevisionRangeChanged: function(event) {
+        for (var i = 0; i < this.charts.length; i++) {
+          var chart = this.charts[i];
+          if (chart == event.target) {
+            continue;
+          }
+          chart.onRevisionRange(event, event['detail'], null);
+        }
+      },
+
+      /**
+       * On 'Add' button clicked, add a chart for the current selection.
+       */
+      onAddChartButtonClicked: function(event) {
+        var selection = this.testPicker.getCurrentSelection();
+        if (selection && selection.isValid()) {
+          this.addChart(selection.getTestPathAndSelectedSeries(), true);
+        }
+        this.firenNumChartChangedEvent();
+      },
+
+      /**
+       * Gets report page state.
+       *
+       * @return {Object} Dictionary of page state data.
+       */
+      getPageState: function() {
+        var chartStates = [];
+        for (var i = 0; i < this.charts.length; i++) {
+          var chart = this.charts[i];
+          chartStates.push(chart.getState());
+        }
+
+        if (chartStates.length === 0) {
+          return null;
+        }
+
+        return {
+          'charts': chartStates
+        };
+      },
+
+      /**
+       * Handles displaying loading messages on 'pagestaterequest' event.
+       */
+      onPageStateRequest: function(event) {
+        var status = event.detail.status;
+        var messageBar = document.getElementById('message-bar');
+        var messageConfig = {
+          'autoCloseDisabled': true,
+          'duration': 0,
+          'delay': 200
+        };
+        if (status == 'loading') {
+          messageBar.updateContent('Saving report...', messageConfig);
+        } else if (status == 'complete') {
+          messageBar['hide']();
+        } else if (status == 'error') {
+          messageBar.updateContent(
+              '<span style="color: red;">Failed to save report</span>',
+              messageConfig);
+        }
+      },
+    });
+  </script>
+</polymer-element>

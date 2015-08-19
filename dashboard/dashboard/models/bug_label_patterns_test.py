@@ -39,8 +39,7 @@ class BugLabelPatternsTest(testing_common.TestCase):
   def testGetBugLabelsForTest(self):
     bug_label_patterns.AddBugLabelPattern('foo', '*/*/foo')
     bug_label_patterns.AddBugLabelPattern('f-prefix', '*/*/f*')
-    testing_common.AddDataToMockDataStore(
-        ['M'], ['b'], {'foo': {}, 'bar': {}})
+    testing_common.AddTests(['M'], ['b'], {'foo': {}, 'bar': {}})
     foo_test = utils.TestKey('M/b/foo').get()
     bar_test = utils.TestKey('M/b/bar').get()
     self.assertEqual(

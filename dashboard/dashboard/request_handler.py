@@ -2,9 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Base class for all request handlers in the perf dashboard."""
-
-__author__ = 'sullivan@google.com (Annie Sullivan)'
+"""Simple Request handler using Jinja2 templates."""
 
 import logging
 import os
@@ -14,14 +12,12 @@ import webapp2
 
 from google.appengine.api import users
 
+from dashboard import utils
 from dashboard import xsrf
 
-_TEMPLATE_PATHS = [
-    os.path.join(os.path.dirname(__file__), 'templates'),
-    os.path.join(os.path.dirname(__file__), 'elements'),
-]
 JINJA2_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(_TEMPLATE_PATHS),
+    loader=jinja2.FileSystemLoader(
+        [os.path.join(os.path.dirname(__file__), 'templates')]),
     # Security team suggests that autoescaping be enabled.
     autoescape=True,
     extensions=['jinja2.ext.autoescape'])
@@ -41,7 +37,6 @@ class RequestHandler(webapp2.RequestHandler):
     """
     self.response.set_status(status)
     template = JINJA2_ENVIRONMENT.get_template(template_file)
-    # Always provide versioned static URI for templates.
     user_info = ''
     xsrf_token = ''
     user = users.get_current_user()
@@ -64,7 +59,7 @@ class RequestHandler(webapp2.RequestHandler):
         login_url, title, display_username)
     template_values['user_info'] = user_info
     template_values['is_admin'] = is_admin
-    template_values['is_google_user'] = IsLoggedInWithGoogleAccount()
+    template_values['is_internal_user'] = utils.IsInternalUser()
     template_values['xsrf_token'] = xsrf_token
     template_values['xsrf_input'] = (
         '<input type="hidden" name="xsrf_token" value="%s">' % xsrf_token)
@@ -92,12 +87,6 @@ class RequestHandler(webapp2.RequestHandler):
     logging.warning(warning_message)
     self.response.set_status(status)
     self.response.out.write('%s\n' % warning_message)
-
-
-def IsLoggedInWithGoogleAccount():
-  """Checks whether the user is logged in with a Google.com account."""
-  user = users.get_current_user()
-  return user and user.email().endswith('@google.com')
 
 
 class InvalidInputError(Exception):

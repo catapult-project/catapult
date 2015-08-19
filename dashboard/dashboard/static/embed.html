@@ -1,0 +1,411 @@
+<script>
+
+/**
+ * Functions for the embed page.
+ *
+ * The overall purpose of these functions is to process the output of the
+ * graph_json handler so that it can be used by Flot.
+ *
+ * Some aspects of the embed page are similar to the chart-container; both
+ * involve preparing chart data, options, and callback functions for Flot.
+ * The embed page, however, is intended to be simple, lightweight, and
+ * compatible with older browsers that don't fully support polymer.
+ */
+var embed = (function() {
+
+  /**
+   * Initializes the chart and legend elements for displaying graph data.
+   * This method should be called when the embed page is loaded.
+   *
+   * Preconditions:
+   *   The jQuery and Flot libraries are loaded.
+   *   The chart and legend elements exist on the page.
+   *   The globals GRAPH_DATA and REVISION_INFO are present.
+   */
+  var initialize = function() {
+    var data = window['GRAPH_DATA']['data'];
+    var annotations = window['GRAPH_DATA']['annotations'];
+    var seriesAnnotations = annotations['series'];
+    var revisionInfo = window['REVISION_INFO'];
+
+    // First, compile data that can be used to look up revision numbers
+    // from data series indexes.
+    var revisionDetails = getRevisionDetails(data, annotations, revisionInfo);
+    var revisionLookup = getRevisionLookup(revisionDetails);
+
+    // Then, convert the x-values in the data from revision numbers to indexes.
+    // This is done so that values are more evenly-spaced on the x-axis.
+    // Note that revision numbers aren't necessarily very meaningful, and so
+    // spacing values on the x-axis by revision number can be misleading.
+    changeXValuesToIndexes(data, revisionLookup);
+
+    // Chart options are made, including the x-axis tick formatter function,
+    // which depends on the revision details compiled above.
+    var chartOptions = getChartOptions(revisionDetails, revisionLookup);
+
+    // Finally, plot the chart and listen for hover events.
+    // The plot method is defined externally when the Flot library is loaded.
+    $['plot']($('#chart'), data, chartOptions);
+    $('#chart').bind('plothover', function(hoverEvent, pos, item) {
+      plotHoverCallback(pos, item, revisionDetails, revisionLookup, data,
+                        seriesAnnotations);
+    });
+  };
+
+  /**
+   * Makes a map of revision numbers to Arrays of Objects with revision info.
+   *
+   * This revision info consists of revision numbers and names for different
+   * revision types (e.g. chromium, blink, v8 revisions). Generally, this
+   * information comes from the annotations passed in. However, even if some
+   * entries in this data are missing, a revision details object will still be
+   * returned, containing the x-values in the data.
+   *
+   * @param {Array.<Object>} data Array of series objects (in Flot format).
+   * @param {?(Object)} annotations A mapping of series indexes to data
+   * @param {?(Object)} revisionInfo A mapping of keys to revision info.
+   *     point indexes to Objects with revision info.
+   * @return {!Object} An Object mapping revisions to Arrays of Objects,
+   *     each of which has the properties 'name' (name of a revision type)
+   *     and 'value' (value for this revision type for this point).
+   */
+  var getRevisionDetails = function getRevisionDetails(data, annotations,
+      revisionInfo) {
+    var revisionDetails = {};
+
+    for (var seriesIndex = 0; seriesIndex < data.length; seriesIndex++) {
+      var seriesData = data[seriesIndex]['data'];
+      for (var dataIndex = 0; dataIndex < seriesData.length; dataIndex++) {
+
+        // Save the original x-value in the data series, and use it as the
+        // default in the revision details to return. Normally, this is expected
+        // to be a Chromium revision, but in the case of single-revision charts,
+        // it may be something else.
+        var xValue = seriesData[dataIndex][0];
+
+        // If this x-value already has an entry, no need to re-add it.
+        if (revisionDetails[xValue])
+          continue;
+
+        var defaultRevDetails = {
+          'name': getRevisionName(xValue, null, revisionInfo),
+          'value': getDisplayRevision(xValue)
+        };
+        var thisPointRevDetails = [];
+
+        if (annotations && annotations[seriesIndex] &&
+            annotations[seriesIndex][dataIndex]) {
+          var pointAnnotations = annotations[seriesIndex][dataIndex];
+          var defaultRevKey = pointAnnotations['a_default_rev'];
+
+          // If there's another "default revision" specified, use that.
+          if (defaultRevKey && pointAnnotations[defaultRevKey]) {
+            var defaultRev = pointAnnotations[defaultRevKey];
+            defaultRevDetails = {
+              'name': getRevisionName(defaultRev, defaultRevKey, revisionInfo),
+              'value': getDisplayRevision(defaultRev)
+            };
+          }
+
+          // Also collect details about all other kinds of revisions in the
+          // annotations for this point.
+          for (var key in pointAnnotations) {
+            if (key.indexOf('r_') == 0 && key != defaultRevKey) {
+              thisPointRevDetails.push({
+                'name': getRevisionName(
+                    pointAnnotations[key], key, revisionInfo),
+                'value': getDisplayRevision(pointAnnotations[key])
+              });
+            }
+          }
+        }
+
+        thisPointRevDetails.unshift(defaultRevDetails);
+        revisionDetails[xValue] = thisPointRevDetails;
+      }
+    }
+
+    return revisionDetails;
+  };
+
+  /**
+   * Gets the value that a revision will be displayed as; In the case of a hash,
+   * this will be a truncation of the hash.
+   * @param {(string|number)} rev The revision value.
+   * @return {(string|number)} The value to display for revision number.
+   */
+  var getDisplayRevision = function(rev) {
+    // SHA1 hashes have 40 hex digits. Truncate it to 7 characters.
+    var gitRegex = /^[a-f0-9]{40}$/;
+    if (gitRegex.test(rev)) {
+      return rev.substring(0, 7);
+    }
+    return rev;
+  };
+
+  /**
+   * Gets the name of a type of revision.
+   * @param {(string|number)} rev A revision number.
+   * @param {?(string)} key A key in the revisionInfo Object (optional).
+   * @param {?(Object)} revisionInfo A mapping of keys to revision info.
+   * @return {string} The name of the revision type.
+   */
+  var getRevisionName = function(rev, key, revisionInfo) {
+    if (revisionInfo && key && revisionInfo[key]) {
+      return revisionInfo[key]['name'];
+    }
+    return 'X-Value';
+  };
+
+  /**
+   * Returns an Array of revision numbers (as strings) in numerical order.
+   *
+   * @param {!Object} revisionDetails Mapping of rev numbers to detail info.
+   * @return {Array.<string>} Revision numbers, in order.
+   */
+  var getRevisionLookup = function(revisionDetails) {
+    var revisionNumbers = Object.keys(revisionDetails);
+    var numericCompare = function(a, b) {
+      return a - b;
+    };
+    return revisionNumbers.sort(numericCompare);
+  };
+
+  /**
+   * Constructs an Object mapping Array values to indexes.
+   * (If a value occurs multiple times, the higher index will be used.)
+   *
+   * @param {Array.<(string|number)>} array Array of values.
+   * @return {Object.<string, number>} Map of values to indexes.
+   */
+  var makeReverseLookup = function(array) {
+    var reverseLookup = {};
+    for (var i = 0; i < array.length; i++) {
+      reverseLookup[array[i]] = i;
+    }
+    return reverseLookup;
+  };
+
+  /**
+   * Changes all x-values in each data series to integers starting from zero.
+   *
+   * @param {Array.<Object>} data Flot series data. This will be modified.
+   * @param {Array.<string>} revisionLookup Array of revision numbers.
+   */
+  var changeXValuesToIndexes = function(data, revisionLookup) {
+    var reverseRevisionLookup = makeReverseLookup(revisionLookup);
+    for (var seriesIndex = 0; seriesIndex < data.length; seriesIndex++) {
+      var seriesData = data[seriesIndex]['data'];
+      for (var dataIndex = 0; dataIndex < seriesData.length; dataIndex++) {
+        seriesData[dataIndex][0] =
+            reverseRevisionLookup[seriesData[dataIndex][0]];
+      }
+    }
+  };
+
+  /**
+   * Determines how labels on the x-axis are displayed.
+   * @param {number} val An x-value (which is assumed to be an index).
+   * @param {Object} revisionDetails An Object mapping rev numbers to detail
+   *     info.
+   * @param {Array.<string>} revisionLookup An Array of rev numbers.
+   * @return {string} The value to display at each tick on the axis.
+   */
+  var xAxisTickFormatter = function(val, revisionDetails, revisionLookup) {
+    // The value must be a nonnegative integer.
+    var xIndex = Math.max(0, Math.round(val));
+    var info = revisionDetails[revisionLookup[xIndex]];
+    if (info && info.length) {
+      // The first item in the list of revision details is the default.
+      return String(info[0].value);
+    }
+    // This point shouldn't be reached. If 'undefined' is displayed on the
+    // x-axis, then some data is missing from revisionDetails.
+    return 'undefined';
+  };
+
+  /**
+   * Determines how labels along the y-axis are displayed.
+   * @param {number} val A y-value.
+   * @return {string} The string to display at each tick on the axis.
+   */
+  var yAxisTickFormatter = function(val) {
+    // Truncate to at most 3 decimal points. Don't use toFixed() because
+    // we don't want to add precision if it's not there.
+    val = Math.round(val * 1000) / 1000;
+    // Add commas for thousands marker.
+    var parts = val.toString().split('.');
+    return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') +
+         (parts[1] ? ('.' + parts[1]) : '');
+  };
+
+  /**
+   * Returns the chart options object for Flot.
+   *
+   * The x-axis tickFormatter function depends on having an Array which
+   * maps indexes to revision numbers, because it is assumed that all x-values
+   * for all the data series have been converted to integers starting from 0.
+   * (This is done by changeXValuesToIndexes.)
+   *
+   * For more information about the flot chart options object:
+   * https://github.com/flot/flot/blob/master/API.md#plot-options
+   *
+   * @param {Object} revisionDetails An Object mapping revision numbers to
+         detail info objects.
+   * @param {Array.<string>} revisionLookup An Array of to rev numbers.
+   * @return {!Object} A flot chart options object.
+   */
+  var getChartOptions = function(revisionDetails, revisionLookup) {
+    return {
+      'grid': {
+        'hoverable': true,
+        'borderWidth': 1,
+        'borderColor': 'rgba(0, 0, 0, 128)'
+      },
+      'crosshair': {
+        'mode': 'xy',
+        'color': 'rgba(34, 34, 34, 80)',
+        'lineWidth': 0.3
+      },
+      'xaxis': {
+        'tickFormatter': function(val) {
+          return xAxisTickFormatter(val, revisionDetails, revisionLookup);
+        }
+      },
+      'yaxis': {
+        'tickFormatter': yAxisTickFormatter
+      },
+      'colors': [
+        '#4D90FE',
+        '#FFE83B',
+        '#8E4EFE',
+        '#FFB83B',
+        '#194FA5',
+        '#A69413',
+        '#4C19A5',
+        '#A67113'
+      ]
+    };
+  };
+
+  /**
+   * A callback function called when hovering over a new position on the chart.
+   *
+   * Here, it displays information about the point that's being hovered over
+   * in a DOM element with id 'legend'. It assumes that elements with id 'chart'
+   * and 'legend' exist. For more details about hover events and callbacks in
+   * Flot, see: https://github.com/flot/flot/blob/master/API.md
+   *
+   * @param {Object} pos Position information.
+   * @param {Object} item Nearest item to the mouse.
+   * @param {Object} revisionDetails An Object mapping revision numbers to
+   *     detail info objects.
+   * @param {Array.<string>} revisionLookup An Array of rev numbers.
+   * @param {Array.<Object>} data Array of series objects (in Flot format).
+   * @param {Array.<Object>} seriesAnnotations Metadata about each series.
+   */
+  var plotHoverCallback = function(pos, item, revisionDetails, revisionLookup,
+                                   data, seriesAnnotations) {
+     var xIndex = Math.max(0, Math.round(pos['x1']));
+     var xValue = revisionLookup[xIndex];
+
+     var legendContents = document.createElement('dl');
+
+     var xUnits = getXUnits(seriesAnnotations);
+     if (xUnits) {
+       addNameValuePair(legendContents, xUnits, xValue);
+     }
+
+     if (!xUnits && revisionDetails[xValue]) {
+       for (var i = 0; i < revisionDetails[xValue].length; i++) {
+         var revisionTypeName = revisionDetails[xValue][i]['name'];
+         var revisionValue = revisionDetails[xValue][i]['value'];
+         addNameValuePair(legendContents, revisionTypeName, revisionValue);
+       }
+     }
+
+     for (var seriesIndex = 0; seriesIndex < data.length; seriesIndex++) {
+       var seriesData = data[seriesIndex]['data'];
+       for (var dataIndex = 0; dataIndex < seriesData.length; dataIndex++) {
+         if (seriesData[dataIndex][0] == xIndex) {
+           var yUnits = seriesAnnotations[seriesIndex]['units'];
+           var seriesName = seriesAnnotations[seriesIndex]['name'];
+           var yValue = seriesData[dataIndex][1];
+
+           // If the user is hovering over one of the series lines, mark it so
+           // that the user knows which line they're hovering over.
+           if (item && item['seriesIndex'] == seriesIndex) {
+             seriesName = '* ' + seriesName;
+           }
+
+           addNameValuePair(legendContents, seriesName, yValue + ' ' + yUnits);
+         }
+       }
+     }
+
+     // Populate the legend element and position it in the right corner.
+     var legend = document.getElementById('legend');
+     var chart = document.getElementById('chart');
+     if (legend.hasChildNodes()) {
+        legend.removeChild(legend.firstChild);
+     }
+     legend.appendChild(legendContents);
+     legend.style.left = ((chart.offsetWidth - legend.offsetWidth) - 20) + 'px';
+     legend.style.display = 'block';
+  };
+
+  /**
+   * Gets the units for the X-value for this chart if there is one.
+   * It is assumed that if there are multiple series plotted on one chart, they
+   * should all have the same X units. If there are no X units specified for any
+   * of the series, then this function will return null, indicating that the
+   * units are supposed to be revisions.
+   * @param {Array.<Object>} seriesAnnotations
+   * @return {?(string)}
+   */
+  var getXUnits = function(seriesAnnotations) {
+    for (var i = 0; i < seriesAnnotations.length; i++) {
+      if (seriesAnnotations[i]['units_x']) {
+        return seriesAnnotations[i]['units_x'];
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Adds a name-value pair to a container element.
+   * @param {Element} containerElement A DOM element;
+   *     assumed to be a dl element.
+   * @param {string} name
+   * @param {string} value
+   */
+  var addNameValuePair = function(containerElement, name, value) {
+    var dt = document.createElement('dt');
+    dt.appendChild(document.createTextNode(name));
+    containerElement.appendChild(dt);
+    var dd = document.createElement('dd');
+    dd.appendChild(document.createTextNode(value));
+    containerElement.appendChild(dd);
+  };
+
+  return {
+    initialize: initialize,
+    getRevisionDetails: getRevisionDetails,
+    getRevisionName: getRevisionName,
+    getDisplayRevision: getDisplayRevision,
+    getRevisionLookup: getRevisionLookup,
+    makeReverseLookup: makeReverseLookup,
+    changeXValuesToIndexes: changeXValuesToIndexes,
+    xAxisTickFormatter: xAxisTickFormatter,
+    yAxisTickFormatter: yAxisTickFormatter,
+    getChartOptions: getChartOptions,
+    plotHoverCallback: plotHoverCallback,
+    getXUnits: getXUnits,
+    addNameValuePair: addNameValuePair
+  };
+
+})();
+
+document.addEventListener('DOMContentLoaded', embed.initialize);
+
+</script>

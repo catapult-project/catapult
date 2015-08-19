@@ -25,6 +25,9 @@ unpickles.
 When an item is removed from the the cache, it is removed from both internal and
 external caches, since removals are usually caused by large changes that affect
 both caches.
+
+Although this module contains ndb.Model classes, these are not intended
+to be used directly by other modules.
 """
 
 import cPickle
@@ -85,9 +88,9 @@ def Prewarm(keys):
   to_get = []
   for key in keys:
     to_get.append(ndb.Key('CachedPickledString',
-                          _NamespaceKey(key, 'externally_visible')))
+                          _NamespaceKey(key, datastore_hooks.EXTERNAL)))
     to_get.append(ndb.Key('CachedPickledString',
-                          _NamespaceKey(key, 'internal_only')))
+                          _NamespaceKey(key, datastore_hooks.INTERNAL)))
   ndb.get_multi_async(to_get)
 
 
@@ -103,7 +106,7 @@ def Get(key):
 
 def GetExternal(key):
   """Gets the value from the datastore for the externally namespaced key."""
-  namespaced_key = _NamespaceKey(key, 'externally_visible')
+  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
   entity = ndb.Key('CachedPickledString', namespaced_key).get(
       read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
@@ -146,7 +149,7 @@ def SetExternal(key, value):
     key: The key name, which will be namespaced as externally_visible.
     value: The value to set.
   """
-  namespaced_key = _NamespaceKey(key, 'externally_visible')
+  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
   try:
     CachedPickledString(id=namespaced_key,
                         value=cPickle.dumps(value)).put()
@@ -156,8 +159,8 @@ def SetExternal(key, value):
 
 def Delete(key):
   """Clears the value from the datastore."""
-  internal_key = _NamespaceKey(key, namespace='internal_only')
-  external_key = _NamespaceKey(key, namespace='externally_visible')
+  internal_key = _NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
+  external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
   ndb.delete_multi([ndb.Key('CachedPickledString', internal_key),
                     ndb.Key('CachedPickledString', external_key)])
 

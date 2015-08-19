@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 {% block head %}
-  <link type="text/css" rel="stylesheet"
-        href="{{static_dir}}/group_report_style.css">
   <title>Chrome Performance Dashboard</title>
+
   <script>
-    var ALERT_LIST = {{alert_list|safe}};
-    var OWNER_INFO = {{owner_info|safe}};
-    var SUBTESTS = {{subtests|safe}};
-    var TEST_SUITES = {{test_suites|safe}};
-    var REVISION_INFO = {{revision_info|safe}};
+    var ALERT_LIST = {{alert_list | safe}};
+    var OWNER_INFO = {{owner_info | safe}};
+    var SUBTESTS = {{subtests | safe}};
+    var TEST_SUITES = {{test_suites | safe}};
+    var REVISION_INFO = {{revision_info | safe}};
     var XSRF_TOKEN = '{{xsrf_token}}';
   </script>
   {# Following line needed to avoid a spurious 404 for deps.js due to the use
      --streamed_compiled_js flag used in app.sh in development environment. #}
-  <script type="text/javascript">CLOSURE_NO_DEPS = true;</script>
+  <script>var CLOSURE_NO_DEPS = true;</script>
 
-  <script src="{{static_dir}}/jquery_flot_bundle.js"></script>
-  <script src="{{static_dir}}/group_report_bin.js"></script>
-  <script src="{{static_dir}}/bisect_utils_bin.js"></script>
+  <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.crosshair.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.fillbetween.min.js"></script>
+  <script src="/third_party/flot/jquery.flot.selection.min.js"></script>
 
   <script>
     // Workaround for document.contains returning false for elements in the
@@ -26,31 +27,89 @@
     // https://github.com/Polymer/polymer/issues/162 and
     // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22141
     jQuery.contains = function(doc, elem) {
-      shadowElems = document.getElementsByTagName('chart-container');
+      var shadowElems = document.getElementsByTagName('chart-container');
       for (var i = 0; i < shadowElems.length; i++) {
         if (shadowElems[i].shadowRoot.contains(elem)) {
           return true;
         }
       }
       return doc.contains(elem);
-    }
+    };
   </script>
+
+  <style>
+    body {
+      align-items: center;
+      -webkit-align-items: center;
+    }
+
+    /* The action bar contains the graph button and triage button. */
+    #action-bar {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    /* The top container contains the action bar and alerts list. */
+    #top {
+      display: inline-flex;
+      display: -webkit-inline-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      align-items: flex-start;
+      -webkit-align-items: flex-start;
+      margin-bottom: 15px;
+      width: 100%
+    }
+
+    /* The bottom container contains the charts. */
+    #bottom {
+      display: flex;
+      display: -webkit-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      min-width: 100%;
+      min-height: 100%;
+    }
+
+    /* Triage dialog at the top level when the user clicks the triage button. */
+    triage-dialog {
+      position: absolute;
+      margin-top: 30px;
+      z-index: 1000;
+    }
+
+    /* This class indicates a button toggled on (e.g. show improvements). */
+    .alert-togglebutton {
+      float: right;
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    #bisect-result-log {
+      width: 100%;
+      display: block;
+    }
+  </style>
 
   <link rel="import" href="/third_party/polymer/components/polymer/polymer.html">
   <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+
   <link rel="import" href="/dashboard/elements/alerts-table.html">
   <link rel="import" href="/dashboard/elements/bug-info.html">
   <link rel="import" href="/dashboard/elements/chart-container.html">
+  <link rel="import" href="/dashboard/elements/custom-tooltip.html">
   <link rel="import" href="/dashboard/elements/login-warning.html">
   <link rel="import" href="/dashboard/elements/overlay-message.html">
   <link rel="import" href="/dashboard/elements/quick-log.html">
   <link rel="import" href="/dashboard/elements/triage-dialog.html">
+  <link rel="import" href="/static/group_report.html">
 
 {% endblock %}
 {% block content %}
   <h1>Chrome Performance Dashboard</h1>
+  <overlay-message id="message-bar"></overlay-message>
   {% if warning_message %}
-    <overlay-message id="message-bar" opened="true" autoCloseDisabled duration="-1">
+    <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
     {{warning_message}}
     {% if warning_bug %}
       <a href="http://crbug.com/{{warning_bug}}">See bug {{warning_bug}}.</a>
@@ -58,7 +117,7 @@
     </overlay-message>
   {% endif %}
   <login-warning id="login-warning" loginLink="{{login_url}}"
-                 {% if is_google_user %}hidden="true"{% endif %}>
+                 {% if is_internal_user %}hidden="true"{% endif %}>
   </login-warning>
   <div id="top">
     <div id="action-bar">
@@ -66,23 +125,23 @@
         Show all improvements
       </paper-button>
     </div>
-    <bug-info id="bug-info" xsrfToken="{{xsrf_token|safe}}"></bug-info>
+    <bug-info id="bug-info" xsrfToken="{{xsrf_token | safe}}"></bug-info>
     {% if bug_id %}
     <quick-log id="bisect-result-log"
-               xsrfToken="{{xsrf_token|safe}}"
+               xsrfToken="{{xsrf_token | safe}}"
                logNamespace="bisect_result"
                logName="{{bug_id}}"
                logLabel="Bisect results"
                loadOnReady="true"
                expandOnReady="true"></quick-log>
     {% endif %}
-    <alerts-table id="alerts-table"
-        showdetails="true"
-        xsrfToken="{{xsrf_token|safe}}">
-    </alerts-table>
+    <alerts-table id="alerts-table" xsrfToken="{{xsrf_token | safe}}"></alerts-table>
   </div>
+
   <div id="bottom">
-  <section id="charts-container"></section>
+    <section id="charts-container"></section>
   </div>
+
+  <custom-tooltip id="tooltip"></custom-tooltip>
 {% endblock %}
 {% include 'analytics.html' %}

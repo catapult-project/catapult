@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="bisect_utils.html">
+</head>
+<body>
+
+<script>
+
+suite('bisect_utils', function() {
+
+  test('canBisect', function() {
+    var testPath = 'ChromiumPerf/mac/blink_perf.parser/simple-url';
+    assert.isTrue(bisect_utils.canBisect(testPath, 123456));
+  });
+
+});
+
+</script>
+</body>
+</html>

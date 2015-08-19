@@ -5,17 +5,30 @@
 """URL endpoint for a cron job to automatically run bisects."""
 
 import datetime
+import json
 
-from dashboard import bisect_group
 from dashboard import datastore_hooks
 from dashboard import request_handler
 from dashboard import start_try_job
+from dashboard import utils
 from dashboard.models import anomaly
+from dashboard.models import graph_data
 from dashboard.models import try_job
 
 # Days between successive bisect restarts.
 _BISECT_RESTART_PERIOD_DAYS = [0, 1, 7, 14]
 
+# A set of suites for which we can't do performance bisects.
+# This list currently also exists in the front-end code.
+_UNBISECTABLE_SUITES = [
+    'arc-perf-test',
+    'browser_tests',
+    'content_browsertests',
+    'sizes',
+    'v8',
+]
+
+_FORCED_RECIPE_BOTS = ['linux_perf_bisect']
 
 class AutoBisectHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically run bisects."""
@@ -30,15 +43,18 @@ class AutoBisectHandler(request_handler.RequestHandler):
       self.RenderHtml('result.html', _PrintStartedAndFailedBisectJobs())
       return
     datastore_hooks.SetPrivilegedRequest()
-    _RestartBisects()
+    _RestartFailedBisectJobs()
 
 
-def _RestartBisects():
+class NotBisectableError(Exception):
+  """An error indicating that a bisect couldn't be automatically started."""
+  pass
+
+
+def _RestartFailedBisectJobs():
   """Restarts failed bisect jobs.
 
-  For bisect job that failed for the first time, restart it immediately.
-  For following retries, use bisect_group to craft different bisect config
-  and restart the bisect. Bisect jobs that ran out of retries will be deleted.
+  Bisect jobs that ran out of retries will be deleted.
   """
   bisect_jobs = try_job.TryJob.query(try_job.TryJob.status == 'failed').fetch()
   for job in bisect_jobs:
@@ -48,7 +64,7 @@ def _RestartBisects():
           if job.run_count == 1:
             start_try_job.PerformBisect(job)
           elif job.bug_id:
-            StartBisect(job)
+            _RestartBisect(job)
       else:
         if job.bug_id:
           comment = ('Failed to run bisect %s times.'
@@ -58,62 +74,256 @@ def _RestartBisects():
         job.key.delete()
 
 
-def StartBisect(bisect_job):
-  """Chooses a bisect config depending on job's run count and run bisect.
-
-  In this function we're setting the "config" property of the TryJob entity
-  that gets passed in, so it's OK to pass in a TryJob entity whose "config"
-  property is None.
+def _RestartBisect(bisect_job):
+  """Re-starts a bisect-job after modifying it's config based on run count.
 
   Args:
     bisect_job: TryJob entity with initialized bot name and config.
+  """
+  if bisect_job.use_buildbucket and (bisect_job.bot_name not in
+                                     _FORCED_RECIPE_BOTS):
+    # Buildbucket bisects other than thos in _FORCED_RECIPE_BOTS are not
+    # automatically retried.
+    return
+  try:
+    new_bisect_job = _MakeBisectTryJob(
+        bisect_job.bug_id, bisect_job.run_count)
+  except NotBisectableError:
+    return
+  bisect_job.config = new_bisect_job.config
+  bisect_job.bot = new_bisect_job.bot
+  bisect_job.put()
+  start_try_job.PerformBisect(bisect_job)
+
+
+def StartNewBisectForBug(bug_id):
+  """Tries to trigger a bisect job for the alerts associated with a bug.
+
+  Args:
+    bug_id: A bug ID number.
 
   Returns:
-    A dictionary containing the result; if successful, this dictionary contains
-    the field "issue_id", otherwise it contains "error".
+    If successful, a dict containing "issue_id" and "issue_url" for the
+    bisect job. Otherwise, a dict containing "error".
   """
-  if bisect_job.use_buildbucket:
-    return {'error': 'Buildbucket not yet supported for 3 or more retries.'}
-  anomalies = anomaly.Anomaly.query(
-      anomaly.Anomaly.bug_id == bisect_job.bug_id).fetch()
+  try:
+    bisect_job = _MakeBisectTryJob(bug_id)
+  except NotBisectableError as e:
+    return {'error': e.message}
+  bisect_job_key = bisect_job.put()
+
+  bisect_result = start_try_job.PerformBisect(bisect_job)
+  if 'error' in bisect_result:
+    bisect_job_key.delete()
+  return bisect_result
+
+
+def _MakeBisectTryJob(bug_id, run_count=0):
+  """Tries to automatically select parameters for a bisect job.
+
+  Args:
+    bug_id: A bug ID which some alerts are associated with.
+    run_count: An integer; this is supposed to represent the number of times
+        that a bisect has been tried for this bug; it is used to try different
+        config parameters on different re-try attempts.
+
+  Returns:
+    A TryJob entity, which has not yet been put in the datastore.
+
+  Raises:
+    NotBisectableError: A valid bisect config could not be created.
+  """
+  anomalies = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == bug_id).fetch()
   if not anomalies:
-    return {'error': 'No alerts found for this bug.'}
+    raise NotBisectableError('No Anomaly alerts found for this bug.')
 
-  good_revision, bad_revision = bisect_group.ChooseRevisionRange(anomalies)
-  if not good_revision or not bad_revision:
-    return {'error': 'No good or bad revision found.'}
+  # Note: This check for bisectability is parallel to that in bisect_utils.js.
+  good_revision, bad_revision = _ChooseRevisionRange(anomalies)
+  if not start_try_job.IsValidRevisionForBisect(good_revision):
+    raise NotBisectableError('Invalid "good" revision: %s.' % good_revision)
+  if not start_try_job.IsValidRevisionForBisect(bad_revision):
+    raise NotBisectableError('Invalid "bad" revision: %s.' % bad_revision)
 
-  # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
-  test = bisect_group.ChooseTest(anomalies, bisect_job.run_count)
-  if not test:
-    return {'error': 'Cannot figure out a test.'}
+  test = _ChooseTest(anomalies, run_count)
+  if not test or not _IsValidTestForBisect(test.test_path):
+    raise NotBisectableError('Could not select a test.')
 
   metric = start_try_job.GuessMetric(test.test_path)
 
-  bisect_bot = start_try_job.GuessBisectBot(test.bot_name)
+  bisect_bot = start_try_job.GuessBisectBot(test.master_name, test.bot_name)
   if not bisect_bot or '_' not in bisect_bot:
-    return {'error': 'Cannot figure out a bisect bot.'}
+    raise NotBisectableError('Could not select a bisect bot.')
 
   new_bisect_config = start_try_job.GetBisectConfig(
-      bisect_bot, test.suite_name, metric, good_revision, bad_revision,
-      10, 20, 25, bisect_job.bug_id, use_archive='true')
+      bisect_bot=bisect_bot,
+      master_name=test.master_name,
+      suite=test.suite_name,
+      metric=metric,
+      good_revision=good_revision,
+      bad_revision=bad_revision,
+      repeat_count=10,
+      max_time_minutes=20,
+      truncate_percent=25,
+      bug_id=bug_id,
+      original_bot_name=test.bot_name,
+      use_archive='true')
 
-  if new_bisect_config.get('error'):
-    return new_bisect_config
+  if 'error' in new_bisect_config:
+    raise NotBisectableError('Could not make a valid config.')
 
-  bisect_job.config = new_bisect_config['config']
-  bisect_job.bot = bisect_bot
-  result = start_try_job.PerformBisect(bisect_job)
-  return result
+  config_python_string = 'config = %s\n' % json.dumps(
+      new_bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
+
+  # Forcing recipe by default for linux bisects.
+  use_buildbucket = bisect_bot in _FORCED_RECIPE_BOTS
+
+  bisect_job = try_job.TryJob(
+      bot=bisect_bot,
+      config=config_python_string,
+      bug_id=bug_id,
+      master_name=test.master_name,
+      internal_only=test.internal_only,
+      job_type='bisect',
+      use_buildbucket=use_buildbucket)
+
+  return bisect_job
 
 
 def _IsBisectJobDueForRestart(bisect_job):
   """Whether bisect job is due for restart."""
   old_timestamp = (datetime.datetime.now() - datetime.timedelta(
       days=_BISECT_RESTART_PERIOD_DAYS[bisect_job.run_count - 1]))
-  if bisect_job.last_ran_timestamp < old_timestamp:
-    return True
-  return False
+  return bisect_job.last_ran_timestamp < old_timestamp
+
+
+def _ChooseTest(anomalies, index=0):
+  """Chooses a test to use for a bisect job.
+
+  The particular Test chosen determines the command and metric name that is
+  chosen. The test to choose could depend on which of the anomalies has the
+  largest regression size.
+
+  Ideally, the choice of bisect bot to use should be based on bisect bot queue
+  length, and the choice of metric should be based on regression size and noise
+  level.
+
+  However, we don't choose bisect bot and metric independently, since some
+  regressions only happen for some tests on some platforms; we should generally
+  only bisect with a given bisect bot on a given metric if we know that the
+  regression showed up on that platform for that metric.
+
+  Args:
+    anomalies: A non-empty list of Anomaly entities.
+    index: Index of the first Anomaly entity to look at. If this is greater
+        than the number of Anomalies, it will wrap around. This is used to
+        make it easier to get different suggestions for what test to use given
+        the same list of alerts.
+
+  Returns:
+    A Test entity, or None if no valid Test could be chosen.
+  """
+  if not anomalies:
+    return None
+  index %= len(anomalies)
+  anomalies.sort(cmp=_CompareAnomalyBisectability)
+  for anomaly_entity in anomalies[index:]:
+    if _IsValidTestForBisect(utils.TestPath(anomaly_entity.test)):
+      return anomaly_entity.test.get()
+  return None
+
+
+def _CompareAnomalyBisectability(a1, a2):
+  """Compares two Anomalies to decide which Anomaly's Test is better to use.
+
+  TODO(qyearsley): Take other factors into account:
+   - Consider bisect bot queue length. Note: If there's a simple API to fetch
+     this from build.chromium.org, that would be best; even if there is not,
+     it would be possible to fetch the HTML page for the builder and check the
+     pending list from that.
+   - Prefer some platforms over others. For example, bisects on Linux may run
+     faster; also, if we fetch info from build.chromium.org, we can check recent
+     failures.
+   - Consider test run time. This may not be feasible without using a list
+     of approximate test run times for different test suites.
+   - Consider stddev of test; less noise -> more reliable bisect.
+
+  Args:
+    a1: The first Anomaly entity.
+    a2: The second Anomaly entity.
+
+  Returns:
+    Negative integer if a1 is better than a2, positive integer if a2 is better
+    than a1, or zero if they're equally good.
+  """
+  if a1.percent_changed > a2.percent_changed:
+    return -1
+  elif a1.percent_changed < a2.percent_changed:
+    return 1
+  return 0
+
+
+def _IsValidTestForBisect(test_path):
+  """Checks whether a test is valid for bisect."""
+  if not test_path:
+    return False
+  path_parts = test_path.split('/')
+  if len(path_parts) < 3:
+    return False
+  if path_parts[2] in _UNBISECTABLE_SUITES:
+    return False
+  if test_path.endswith('/ref') or test_path.endswith('_ref'):
+    return False
+  return True
+
+
+def _ChooseRevisionRange(anomalies):
+  """Chooses a revision range to use for a bisect job.
+
+  Note that the first number in the chosen revision range is the "last known
+  good" revision, whereas the start_revision property of an Anomaly is the
+  "first possible bad" revision.
+
+  If the given set of anomalies is non-overlapping, the revision range chosen
+  should be the intersection of the ranges.
+
+  Args:
+    anomalies: A non-empty list of Anomaly entities.
+
+  Returns:
+    A pair of revision numbers (good, bad), or (None, None) if no valid
+    revision range can be chosen.
+
+  Raises:
+    NotBisectableError: A valid revision range could not be returned.
+  """
+  good_rev, good_test = max((a.start_revision - 1, a.test) for a in anomalies)
+  bad_rev, bad_test = min((a.end_revision, a.test) for a in anomalies)
+  if good_rev < bad_rev:
+    good_rev = _GetRevisionForBisect(good_rev, good_test)
+    bad_rev = _GetRevisionForBisect(bad_rev, bad_test)
+    return (good_rev, bad_rev)
+  raise NotBisectableError(
+      'Good rev %s not smaller than bad rev %s.' % (good_rev, bad_rev))
+
+
+def _GetRevisionForBisect(revision, test_key):
+  """Gets a start or end revision value which can be used when bisecting.
+
+  Note: This logic is parallel to that in elements/chart-container.html
+  in the method getRevisionForBisect.
+
+  Args:
+    revision: The ID of a Row, not necessarily an actual revision number.
+    test_key: The ndb.Key for a Test.
+
+  Returns:
+    An int or string value which can be used when bisecting.
+  """
+  row_parent_key = utils.GetTestContainerKey(test_key)
+  row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
+  if row and hasattr(row, 'a_default_rev') and hasattr(row, row.a_default_rev):
+    return getattr(row, row.a_default_rev)
+  return revision
 
 
 def _PrintStartedAndFailedBisectJobs():

@@ -1,0 +1,185 @@
+<script>
+
+/**
+ * JavaScript for the debug_alert page.
+ *
+ * This file defines an initialize function which should be called
+ * when the debug_alert page is loaded.
+ */
+var debug_alert = (function() {
+
+  var ANOMALY_POINTS_INDEX = 1;
+
+  /**
+   * Plots the main data series and related anomaly information.
+   *
+   * This depends on several global variables being set:
+   *   DATA: All data to be passed to Flot $.plot function.
+   *   ANOMALY_POINTS_INDEX: The index in the above array which contains the
+   *       [x, y] pairs of the anomalies to show.
+   *   LOOKUP: An array of revision numbers.
+   *   ANOMALIES: An array of objects which contain details about the anomalies
+   *       that we want to show.
+   *
+   * There is also expected to be an element on the page with ID "plot".
+   */
+  var initialize = function() {
+    var chartOptions = {
+      xaxis: {
+        tickFormatter: xAxisTickFormatter
+      }
+    };
+    if (window['REVISION']) {
+      addVerticalLine_(chartOptions, window['REVISION']);
+    }
+    // $ not present in unit tests, declared by jQuery.
+    if (window['$']) {
+      var container = window['$']('#plot');
+      var plot = window['$']['plot'](container, window['DATA'], chartOptions);
+      var anomalyPoints = window['DATA'][ANOMALY_POINTS_INDEX].data;
+      addAnomalyLabels(container, plot, anomalyPoints);
+    }
+  };
+
+  /**
+   * Modifies a Flot options object to add a vertical line at some x-value.
+   *
+   * This is used to highlight the place on the graph where the user-input
+   * revision is located; we want to highlight this because it's the place
+   * where we're expecting to possibly find an anomaly in the series.
+   *
+   * http://stackoverflow.com/questions/3802162/flot-add-marker-to-line-on-graph
+   *
+   * @param {Object} chartOptions A Flot chart options object.
+   * @param {number} revision The revision at which to put the vertical line.
+   */
+  var addVerticalLine = function(chartOptions, revision) {
+    if (!window['LOOKUP'] || !revision) {
+      // Can't get the index of the given revision.
+      return;
+    }
+    var x = indexOfClosest(window['LOOKUP'], revision);
+    chartOptions['grid'] = {
+      'markings': [
+        {
+          'xaxis': {'from': x, 'to': x},
+          'lineWidth': 2,
+          'color': 'blue'
+        }
+      ]
+    };
+  };
+
+  /**
+   * Returns the index of the number that's closest to the target.
+   * @param {Array.<number>} numArray
+   * @param {number} target
+   * @return {number} The index of the closest number in the list.
+   */
+  var indexOfClosest = function(numArray, target) {
+    var distances = numArray.map(function(x) {
+      return Math.abs(x - target);
+    });
+    var minDistance = Math.min.apply(window, distances);
+    return distances.indexOf(minDistance);
+  };
+
+  /**
+   * Determines how values along the x-axis are shown.
+   *
+   * We want to show revision numbers on the axis, but the x-values in the data
+   * series to plot are indexes 0, 1, 2, etc, because we want the points to be
+   * distanced evenly regardless of how far about the revision numbers are.
+   *
+   * @param {number} val An index in the data series to plot.
+   * @param {Object} unused_axis
+   * @return {number|undefined} A revision number to display.
+   */
+  var xAxisTickFormatter = function(val, unused_axis) {
+    val = Math.round(val);
+    val = Math.max(0, val);
+    return window['LOOKUP'][val];
+  };
+
+  /**
+   * Adds label elements over the plot canvas for each of the anomalies.
+   * @param {jQuery} container The container to add labels to.
+   * @param {Object} plot The Plot object returned by $.plot.
+   * @param {Array} anomalyPoints array of [x, y] points for each anomaly.
+   */
+  var addAnomalyLabels = function(container, plot, anomalyPoints) {
+    // First we need to get a few attributes of the plot; for details,
+    // see https://github.com/flot/flot/blob/master/API.md#plot-methods.
+    var axes = plot['getAxes']();
+    var xp2c = axes['xaxis']['p2c'];
+    var yp2c = axes['yaxis']['p2c'];
+    var flotTickLabelWidth = axes['yaxis']['labelWidth'];
+
+    for (var i = 0; i < anomalyPoints.length; i++) {
+      // Calculate the distance from the left to position the label. Here we
+      // take into account some extra space on the left side of the canvas.
+      var anomalyX = anomalyPoints[i][0];
+      var leftBasePos = Math.round(xp2c(anomalyX));
+      var leftPos = leftBasePos + flotTickLabelWidth + 6;
+
+      // Calculate the distance from the top of the canvas to position
+      // the label. Here we alternate showing the label below and above
+      // the point, so that the labels can be seen more clearly.
+      var anomalyY = anomalyPoints[i][1];
+      var topBasePos = Math.round(yp2c(anomalyY));
+      var offset = (i % 2 == 0 ? 20 : -50);
+      var topPos = topBasePos + offset;
+
+      // Below we are assuming that the anomaly data series and
+      // ANOMALIES array are the same size and contain information about
+      // corresponding anomalies.
+      var anomaly = window['ANOMALIES'][i];
+      var labelContent = anomalyDescription(anomaly);
+      var labelElement = makeLabel(labelContent, leftPos, topPos);
+      container.append(labelElement);
+    }
+  };
+
+  /**
+   * Makes a description to show in a label over the plot.
+   * @param {Object} anomaly An object with anomaly information.
+   * @return {string} An HTML string to put in a label.
+   */
+  var anomalyDescription = function(anomaly) {
+    var index = anomaly['x_value'];
+    var revision = window['LOOKUP'][index];
+    var percentChanged = 100 * anomaly['relative_change'];
+    return revision + '<br>' + percentChanged.toFixed(2) + '%';
+  };
+
+  /**
+   * Makes a label element and sets its position and content.
+   * @param {string} content HTML content of the label.
+   * @param {number} leftPos distance from the left of the canvas in px.
+   * @param {number} topPos Distance from the top of the canvas in px.
+   * @return {Element} An element with its position and contents set.
+   */
+  var makeLabel = function(content, leftPos, topPos) {
+    var div = document.createElement('div');
+    div.className = 'label';
+    div.innerHTML = content;
+    var halfWidth = Math.round(div.offsetWidth / 2);
+    var halfHeight = Math.round(div.offsetHeight / 2);
+    div.style.left = leftPos - halfWidth + 'px';
+    div.style.top = topPos - halfHeight + 'px';
+    return div;
+  };
+
+  return {
+    initialize: initialize,
+    addVerticalLine: addVerticalLine,
+    indexOfClosest: indexOfClosest,
+    xAxisTickFormatter: xAxisTickFormatter,
+    anomalyDescription: anomalyDescription,
+    makeLabel: makeLabel
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', debug_alert.initialize);
+
+</script>

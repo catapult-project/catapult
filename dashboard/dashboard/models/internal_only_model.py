@@ -10,7 +10,7 @@ from dashboard import datastore_hooks
 
 
 class InternalOnlyModel(ndb.Model):
-  """A superclass for Models which may have an internal_only property."""
+  """A superclass for Models that have an internal_only property."""
 
   @classmethod
   def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
@@ -18,8 +18,7 @@ class InternalOnlyModel(ndb.Model):
     entity = future.get_result()
     if entity is None:
       return
-    # Internal-only objects should never be accessed by non-internal accounts;
-    # See datastore_hooks.py.
+    # Internal-only objects should never be accessed by non-internal accounts!
     if (getattr(entity, 'internal_only', False) and
         not datastore_hooks.IsUnalteredQueryPermitted()):
       # Keep info about the fact that we're doing an access check out of the

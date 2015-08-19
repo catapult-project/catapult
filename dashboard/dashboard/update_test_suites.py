@@ -11,14 +11,14 @@ from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import request_handler
+from dashboard import stored_object
 from dashboard.models import graph_data
-from dashboard.models import multipart_entity
 
 
 def FetchCachedTestSuites():
   """Fetches cached test suite data."""
   key = _NamespaceKey(graph_data.LIST_SUITES_CACHE_KEY)
-  return multipart_entity.Get(key)
+  return stored_object.Get(key)
 
 
 class UpdateTestSuitesHandler(request_handler.RequestHandler):
@@ -46,7 +46,7 @@ def UpdateTestSuites(permissions_namespace):
   suite_dict = _CreateTestSuiteDict()
   key = _NamespaceKey(
       graph_data.LIST_SUITES_CACHE_KEY, namespace=permissions_namespace)
-  multipart_entity.Set(key, suite_dict)
+  stored_object.Set(key, suite_dict)
 
 
 def _NamespaceKey(key, namespace=None):

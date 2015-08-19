@@ -25,26 +25,26 @@ def _GetTests(args):
 
 def _FixPath():
   dev_appserver.fix_sys_path()
-  sys.path.append(os.path.dirname(__file__))
-  # The __init__.py in the dashboard package should add third party
-  # libraries to the path.
+  sys.path.insert(0, os.path.dirname(__file__))
+  # Loading __init__.py when importing dashboard adds libraries to sys.path.
   import dashboard  # pylint: disable=unused-variable
 
 
 def main():
   _FixPath()
   parser = argparse.ArgumentParser(description='Run the test suite.')
-  parser.add_argument(
-      'tests', nargs='*', help='Fully-qualified names of tests to run.')
+  parser.add_argument('tests', nargs='*', help='Fully-qualified test name.')
+  parser.add_argument('-v', '--verbose', action='store_true')
   args = parser.parse_args()
-  runner = unittest.TextTestRunner(verbosity=1)
-  logging.basicConfig(level=logging.CRITICAL)
-  result = runner.run(_GetTests(args))
-  if result.wasSuccessful():
-    sys.exit(0)
-  else:
-    sys.exit(1)
+  tests = _GetTests(args)
+  runner_verbosity = 2
+  if not args.verbose:
+    runner_verbosity = 1
+    logging.basicConfig(format='', level=logging.CRITICAL)
+  runner = unittest.TextTestRunner(verbosity=runner_verbosity)
+  result = runner.run(tests)
+  return 0 if result.wasSuccessful() else 1
 
 
 if __name__ == '__main__':
-  main()
+  sys.exit(main())

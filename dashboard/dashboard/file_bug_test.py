@@ -11,8 +11,6 @@ import mock
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-
 # Importing mock_oauth2_decorator before file_bug mocks out
 # OAuth2Decorator usage in that file.
 # pylint: disable=unused-import
@@ -24,7 +22,6 @@ from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import sheriff
-from dashboard.models import try_job
 
 
 class FileBugTest(testing_common.TestCase):
@@ -34,42 +31,36 @@ class FileBugTest(testing_common.TestCase):
     app = webapp2.WSGIApplication([(
         '/file_bug', file_bug.FileBugHandler)])
     self.testapp = webtest.TestApp(app)
-    self.SetCurrentUser('foo@google.com', is_admin=True)
+    testing_common.SetSheriffDomains(['chromium.org', 'google.com'])
+    testing_common.SetInternalDomain('google.com')
+    self.SetCurrentUser('foo@chromium.org')
 
   def tearDown(self):
     super(FileBugTest, self).tearDown()
     mock_oauth2_decorator.MockOAuth2Decorator.past_bodies = []
+    self.UnsetCurrentUser()
 
-  def _AddAlertsToDataStore(self, first_fake_rev=10000):
+  def _AddSampleAlerts(self):
     """Adds sample data and returns a dict of rev to anomaly key."""
     # Add sample sheriff, masters, bots, and tests.
-    sheriff_key = sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='sullivan@google.com').put()
-    testing_common.AddDataToMockDataStore(['ChromiumGPU'], ['linux-release'], {
-        'scrolling-benchmark': {
+    sheriff_key = sheriff.Sheriff(id='Sheriff').put()
+    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
+        'scrolling': {
             'first_paint': {},
             'mean_frame_time': {},
         }
     })
+    test_key1 = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
+    test_key2 = utils.TestKey('ChromiumPerf/linux/scrolling/mean_frame_time')
+    anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
+    anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
+    return (anomaly_key1, anomaly_key2)
 
-    # Get the keys of the two tests that were added.
-    test_keys = map(utils.TestKey, [
-        'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
-        'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time',
-    ])
-
-    key_map = {}
-
-    # Add Anomaly entities to the two tests alternately.
-    for end_rev in range(first_fake_rev, first_fake_rev + 20, 10):
-      test_key = test_keys[0] if end_rev % 20 == 0 else test_keys[1]
-      anomaly_key = anomaly.Anomaly(
-          start_revision=(end_rev - 5), end_revision=end_rev, test=test_key,
-          median_before_anomaly=100, median_after_anomaly=200,
-          sheriff=sheriff_key).put()
-      key_map[end_rev] = anomaly_key.urlsafe()
-
-    return key_map
+  def _AddAnomaly(self, start_rev, end_rev, test_key, sheriff_key):
+    return anomaly.Anomaly(
+        start_revision=start_rev, end_revision=end_rev, test=test_key,
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key).put()
 
   def testGet_WithNoKeys_ShowsError(self):
     # When a request is made and no keys parameter is given,
@@ -83,32 +74,37 @@ class FileBugTest(testing_common.TestCase):
     # When a GET request is sent with keys specified but the finish parameter
     # is not given, the response should contain a form for the sheriff to fill
     # in bug details (summary, description, etc).
-    key_map = self._AddAlertsToDataStore()
+    alert_keys = self._AddSampleAlerts()
     response = self.testapp.get(
-        '/file_bug?summary=s&description=d&keys=%s' % key_map[10000])
+        '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
     self.assertEqual(1, len(response.html('form')))
 
   def testInternalBugLabel(self):
     # If any of the alerts are marked as internal-only, which should happen
     # when the corresponding test is internal-only, then the create bug dialog
     # should suggest adding a Restrict-View-Google label.
-    key_map = self._AddAlertsToDataStore()
-    anomaly_entity = ndb.Key(urlsafe=key_map[10000]).get()
+    self.SetCurrentUser('foo@google.com')
+    alert_keys = self._AddSampleAlerts()
+    anomaly_entity = alert_keys[0].get()
     anomaly_entity.internal_only = True
     anomaly_entity.put()
     response = self.testapp.get(
-        '/file_bug?summary=s&description=d&keys=%s' % key_map[10000])
+        '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
     self.assertIn('Restrict-View-Google', response.body)
 
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
       mock.MagicMock(return_value='chromeperf.appspot.com'))
-  def _PostSampleBug(self, fake_rev=10000):
-    key_map = self._AddAlertsToDataStore(fake_rev)
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  def _PostSampleBug(self):
+    alert_keys = self._AddSampleAlerts()
     response = self.testapp.post(
         '/file_bug',
         [
-            ('keys', '%s,%s' % (key_map[fake_rev], key_map[fake_rev + 10])),
+            ('keys', '%s,%s' % (alert_keys[0].urlsafe(),
+                                alert_keys[1].urlsafe())),
             ('summary', 's'),
             ('description', 'd\n'),
             ('finish', 'true'),
@@ -120,6 +116,9 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
   def testGet_WithFinish_CreatesBug(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
@@ -133,38 +132,38 @@ class FileBugTest(testing_common.TestCase):
 
     # The anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
-      if anomaly_entity.end_revision in [10000, 10010]:
+      if anomaly_entity.end_revision in [112005, 112010]:
         self.assertEqual(277761, anomaly_entity.bug_id)
       else:
         self.assertIsNone(anomaly_entity.bug_id)
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = json.loads(mock_oauth2_decorator.HTTP_MOCK.body)['content']
-    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
-                  comment)
+    self.assertIn(
+        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?keys=', comment)
-    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\n'
-                  'linux-release', comment)
-
-    # A bisect job should be added.
-    bisect_jobs = try_job.TryJob.query().fetch()
-    self.assertEqual(1, len(bisect_jobs))
+    self.assertIn(
+        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
 
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
           {
               'versions': [
-                  {'branch_base_position': '10000', 'current_version': '2.0'},
-                  {'branch_base_position': '9990', 'current_version': '1.0'}
+                  {'branch_base_position': '112000', 'current_version': '2.0'},
+                  {'branch_base_position': '111990', 'current_version': '1.0'}
               ]
           }
       ]))
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
   def testGet_WithFinish_LabelsBugWithMilestone(self):
-    # Here, we expect the bug to have the following start revisions: [9995,
-    # 10005] and the milestones are M-1 for rev 9990 and M-2 for 10000. Hence
-    # the expected behavior is to label the bug M-2 since 9995 (lowest possible
-    # revision introducing regression) is less than 10000 (revision for M-2).
+    # Here, we expect the bug to have the following start revisions:
+    # [111995, 112005] and the milestones are M-1 for rev 111990 and
+    # M-2 for 11200. Hence the expected behavior is to label the bug
+    # M-2 since 111995 (lowest possible revision introducing regression)
+    # is less than 112000 (revision for M-2).
     self._PostSampleBug()
     self.assertIn(u'M-2', json.loads(
         mock_oauth2_decorator.MockOAuth2Decorator.past_bodies[-1])['labels'])
@@ -175,20 +174,21 @@ class FileBugTest(testing_common.TestCase):
           200, json.dumps([
               {
                   'versions': [
-                      {'branch_base_position': '9999',
+                      {'branch_base_position': '111999',
                        'current_version': '3.0.1234.32'},
-                      {'branch_base_position': '10000',
+                      {'branch_base_position': '112000',
                        'current_version': '2.0'},
-                      {'branch_base_position': '9990',
+                      {'branch_base_position': '111990',
                        'current_version': '1.0'}
                   ]
               }
           ]))))
   def testGet_WithFinish_LabelsBugWithLowestMilestonePossible(self):
-    # Here, we expect the bug to have the following start revisions: [9995,
-    # 10005] and the milestones are M-1 for rev 9990, M-2 for 10000 and M-3 for
-    # 9999. Hence the expected behavior is to label the bug M-2 since 9995
-    # is less than 10000 (M-2) and 9999 (M-3) AND M-2 is lower than M-3.
+    # Here, we expect the bug to have the following start revisions:
+    # [111995, 112005] and the milestones are M-1 for rev 111990, M-2
+    # for 112000 and M-3 for 111999. Hence the expected behavior is to
+    # label the bug M-2 since 111995 is less than 112000 (M-2) and 111999
+    # (M-3) AND M-2 is lower than M-3.
     self._PostSampleBug()
     self.assertIn(u'M-2', json.loads(
         mock_oauth2_decorator.MockOAuth2Decorator.past_bodies[-1])['labels'])

@@ -4,8 +4,6 @@
 
 """Unit tests for start_try_job module."""
 
-__author__ = 'sullivan@google.com (Annie Sullivan)'
-
 import base64
 import json
 import unittest
@@ -17,6 +15,7 @@ import webtest
 
 from google.appengine.ext import ndb
 
+from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
 from dashboard import testing_common
@@ -39,10 +38,11 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
 +  "builder_type": "",
-+  "command": "tools/perf/run_benchmark -v --browser=release dromaeo.jslibstylejquery",
++  "command": "python tools/perf/run_benchmark -v --browser=release --output-format=buildbot --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
++  "original_bot_name": "win_perf_bisect",
 +  "repeat_count": "20",
 +  "target_arch": "ia32",
 +  "truncate_percent": "25"
@@ -61,7 +61,7 @@ _EXPECTED_BISECT_CONFIG_DIFF_FOR_INTERNAL_TEST = """config = {
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
 +  "builder_type": "",
-+  "command": "tools/perf/run_benchmark -v --browser=android-chrome start_with_url.cold.startup_pages",
++  "command": "tools/perf/run_benchmark -v --browser=android-chrome --also-run-disabled-tests start_with_url.cold.startup_pages",
 +  "good_revision": "d82ccc77c8a86ce9893a8035fb55aca666f044c8",
 +  "max_time_minutes": "20",
 +  "metric": "foreground_tab_request_start/foreground_tab_request_start",
@@ -83,7 +83,7 @@ _EXPECTED_BISECT_CONFIG_DIFF_WITH_ARCHIVE = """config = {
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
 +  "builder_type": "perf",
-+  "command": "tools/perf/run_benchmark -v --browser=release dromaeo.jslibstylejquery",
++  "command": "tools/perf/run_benchmark -v --browser=release --output-format=buildbot --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
@@ -100,7 +100,7 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
 -  'max_time_minutes': '',
 -  'truncate_percent': '',
 +  "bad_revision": "215828",
-+  "command": "tools/perf/run_benchmark -v --browser=release dromaeo.jslibstylejquery",
++  "command": "tools/perf/run_benchmark -v --browser=release --output-format=buildbot --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "60",
 +  "repeat_count": "1",
@@ -329,6 +329,25 @@ class StartBisectTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/start_try_job', start_try_job.StartBisectHandler)])
     self.testapp = webtest.TestApp(app)
+    namespaced_stored_object.Set(
+        start_try_job._BISECT_BOT_MAP_KEY,
+        {
+            'ChromiumPerf': [
+                ('nexus4', 'android_nexus4_perf_bisect'),
+                ('nexus7', 'android_nexus7_perf_bisect'),
+                ('win8', 'win_8_perf_bisect'),
+                ('xp', 'win_xp_perf_bisect'),
+                ('android', 'android_nexus7_perf_bisect'),
+                ('mac', 'mac_perf_bisect'),
+                ('win', 'win_perf_bisect'),
+                ('linux', 'linux_perf_bisect'),
+                ('', 'linux_perf_bisect'),
+            ],
+        })
+    namespaced_stored_object.Set(
+        start_try_job._BUILDER_TYPES_KEY,
+        {'ChromiumPerf': 'perf', 'OtherMaster': 'foo'})
+    testing_common.SetSheriffDomains(['chromium.org'])
 
   def testPost_InvalidUser_ShowsErrorMessage(self):
     self.SetCurrentUser('foo@yahoo.com')
@@ -337,16 +356,15 @@ class StartBisectTest(testing_common.TestCase):
         'step': 'prefill-info',
     })
     self.assertEqual(
-        {'error': ('You must be logged in to either a chromium.org'
-                   ' or google.com account to run a bisect job.')},
+        {'error': 'User "foo@yahoo.com" not authorized.'},
         json.loads(response.body))
 
   def testPost_PrefillInfoStep(self):
-    self.SetCurrentUser('foo@google.com')
-    testing_common.AddDataToMockDataStore(
+    self.SetCurrentUser('foo@chromium.org')
+    testing_common.AddTests(
         ['ChromiumPerf'],
         ['win7',
-         'android-nexus10',
+         'android-nexus7',
          'chromium-rel-win8-dual',
          'chromium-rel-xp-single'], {
              'page_cycler.morejs': {
@@ -383,20 +401,30 @@ class StartBisectTest(testing_common.TestCase):
     })
     info = json.loads(response.body)
     self.assertEqual('win_perf_bisect', info['bisect_bot'])
-    self.assertEqual('foo@google.com', info['email'])
+    self.assertEqual('foo@chromium.org', info['email'])
     self.assertEqual('page_cycler.morejs', info['suite'])
     self.assertEqual('times/page_load_time', info['default_metric'])
     self.assertEqual('ChromiumPerf', info['master'])
     self.assertFalse(info['internal_only'])
     self.assertTrue(info['use_archive'])
-    self.assertEqual(start_try_job._BISECT_BOTS, info['all_bots'])
-
     self.assertEqual(
-        ['times/blog.chromium.org',
-         'times/dev.chromium.org',
-         'times/http___test.com_',
-         'times/page_load_time',
-         'times/test.blogspot.com'],
+        [
+            'android_nexus4_perf_bisect',
+            'android_nexus7_perf_bisect',
+            'linux_perf_bisect',
+            'mac_perf_bisect',
+            'win_8_perf_bisect',
+            'win_perf_bisect',
+            'win_xp_perf_bisect',
+        ], info['all_bots'])
+    self.assertEqual(
+        [
+            'times/blog.chromium.org',
+            'times/dev.chromium.org',
+            'times/http___test.com_',
+            'times/page_load_time',
+            'times/test.blogspot.com'
+        ],
         info['all_metrics'])
 
     response = self.testapp.post('/start_try_job', {
@@ -418,11 +446,11 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual('Animation_balls/Animation_balls', info['default_metric'])
 
     response = self.testapp.post('/start_try_job', {
-        'test_path': 'ChromiumPerf/android-nexus10/blink_perf/Animation_balls',
+        'test_path': 'ChromiumPerf/android-nexus7/blink_perf/Animation_balls',
         'step': 'prefill-info',
     })
     info = json.loads(response.body)
-    self.assertEqual('android_nexus10_perf_bisect', info['bisect_bot'])
+    self.assertEqual('android_nexus7_perf_bisect', info['bisect_bot'])
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/chromium-rel-win8-dual/'
@@ -443,12 +471,13 @@ class StartBisectTest(testing_common.TestCase):
   def _TestGetBisectConfig(self, parameters, expected_config_dict):
     """Helper method to test get-config requests."""
     response = start_try_job.GetBisectConfig(**parameters)
-    self.assertEqual(expected_config_dict, response['config_dict'])
+    self.assertEqual(expected_config_dict, response)
 
   def testGetConfig_EmptyUseArchiveParameter_GivesEmptyBuilderType(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'linux_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.moz',
             'metric': 'times/page_load_time',
             'good_revision': '265549',
@@ -457,11 +486,13 @@ class StartBisectTest(testing_common.TestCase):
             'max_time_minutes': '8',
             'truncate_percent': '30',
             'bug_id': '-1',
-            'use_archive': ''
+            'use_archive': '',
         },
         {
             'command': ('tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.moz'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
             'good_revision': '265549',
             'bad_revision': '265556',
             'metric': 'times/page_load_time',
@@ -472,6 +503,42 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
+            'original_bot_name': None,
+        })
+
+  def testGetConfig_UseBuildbucket_ChangesTelemetryOutputFormat(self):
+    self._TestGetBisectConfig(
+        {
+            'bisect_bot': 'linux_perf_bisect',
+            'master_name': 'ChromiumPerf',
+            'suite': 'page_cycler.moz',
+            'metric': 'times/page_load_time',
+            'good_revision': '265549',
+            'bad_revision': '265556',
+            'repeat_count': '15',
+            'max_time_minutes': '8',
+            'truncate_percent': '30',
+            'bug_id': '-1',
+            'use_archive': 'true',
+            'original_bot_name': 'chrome-rel-linux',
+            'use_buildbucket': True,
+        },
+        {
+            'command': ('tools/perf/run_benchmark -v '
+                        '--browser=release --output-format=chartjson '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
+            'good_revision': '265549',
+            'bad_revision': '265556',
+            'metric': 'times/page_load_time',
+            'repeat_count': '15',
+            'max_time_minutes': '8',
+            'truncate_percent': '30',
+            'bug_id': '-1',
+            'builder_type': 'perf',
+            'target_arch': 'ia32',
+            'bisect_mode': 'mean',
+            'original_bot_name': 'chrome-rel-linux',
         })
 
   def testGetConfig_NonEmptyUseArchiveParameter_GivesNonEmptyBuilderType(self):
@@ -480,6 +547,7 @@ class StartBisectTest(testing_common.TestCase):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'linux_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.moz',
             'metric': 'times/page_load_time',
             'good_revision': '265549',
@@ -488,11 +556,13 @@ class StartBisectTest(testing_common.TestCase):
             'max_time_minutes': '8',
             'truncate_percent': '30',
             'bug_id': '-1',
-            'use_archive': ''
+            'use_archive': '',
         },
         {
             'command': ('tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.moz'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
             'good_revision': '265549',
             'bad_revision': '265556',
             'metric': 'times/page_load_time',
@@ -503,6 +573,7 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
+            'original_bot_name': None,
         })
 
   def testGetConfig_Telemetry(self):
@@ -510,6 +581,7 @@ class StartBisectTest(testing_common.TestCase):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.morejs',
             'metric': 'times/page_load_time',
             'good_revision': '12345',
@@ -521,7 +593,9 @@ class StartBisectTest(testing_common.TestCase):
         },
         {
             'command': ('python tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.morejs'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.morejs'),
             'good_revision': '12345',
             'bad_revision': '23456',
             'metric': 'times/page_load_time',
@@ -532,6 +606,7 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
+            'original_bot_name': None,
         })
 
   def testGetConfig_BisectModeAsReturnCode(self):
@@ -539,6 +614,7 @@ class StartBisectTest(testing_common.TestCase):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'linux_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.moz',
             'metric': 'times/page_load_time',
             'good_revision': '265549',
@@ -548,11 +624,13 @@ class StartBisectTest(testing_common.TestCase):
             'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': '',
-            'bisect_mode': 'return_code'
+            'bisect_mode': 'return_code',
         },
         {
             'command': ('tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.moz'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
             'good_revision': '265549',
             'bad_revision': '265556',
             'metric': 'times/page_load_time',
@@ -563,6 +641,7 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'return_code',
+            'original_bot_name': None,
         })
 
   def _TestGetConfigCommand(self, expected_command, **params_to_override):
@@ -571,6 +650,7 @@ class StartBisectTest(testing_common.TestCase):
         {
             'bisect_bot': 'linux_perf_bisect',
             'suite': 'page_cycler.moz',
+            'master_name': 'ChromiumPerf',
             'metric': 'times/page_load_time',
             'good_revision': '265549',
             'bad_revision': '265556',
@@ -581,15 +661,16 @@ class StartBisectTest(testing_common.TestCase):
             'use_archive': ''
         }, **params_to_override)
     response = start_try_job.GetBisectConfig(**parameters)
-    self.assertEqual(expected_command, response['config_dict'].get('command'))
+    self.assertEqual(expected_command, response.get('command'))
 
   def testGetConfig_AndroidTelemetry(self):
     """Tests that the right config is returned for an android bot."""
     self._TestGetConfigCommand(
         ('tools/perf/run_benchmark -v '
-         '--browser=android-chrome-shell '
+         '--browser=android-chromium --output-format=buildbot '
+         '--also-run-disabled-tests '
          'page_cycler.morejs'),
-        bisect_bot='android_motoe_perf_bisect',
+        bisect_bot='android_nexus7_perf_bisect',
         suite='page_cycler.morejs')
 
   def testGetConfig_CCPerftests(self):
@@ -604,7 +685,7 @@ class StartBisectTest(testing_common.TestCase):
     """Tests the command returned for cc_perftests tests on android."""
     self._TestGetConfigCommand(
         'build/android/test_runner.py gtest --release -s cc_perftests',
-        bisect_bot='android_motoe_perf_bisect',
+        bisect_bot='android_nexus7_perf_bisect',
         suite='cc_perftests')
 
   def testGetConfig_IdbPerf(self):
@@ -619,7 +700,8 @@ class StartBisectTest(testing_common.TestCase):
     """Tests that a custom flag is added for startup tests."""
     self._TestGetConfigCommand(
         ('python tools/perf/run_benchmark -v '
-         '--browser=release '
+         '--browser=release --output-format=buildbot '
+         '--also-run-disabled-tests '
          '--profile-dir=out/Release/generated_profile/small_profile '
          'startup.cold.blank_page'),
         bisect_bot='win_perf_bisect',
@@ -629,7 +711,8 @@ class StartBisectTest(testing_common.TestCase):
     """Tests that a custom flag is added for session_restore tests."""
     self._TestGetConfigCommand(
         ('python tools/perf/run_benchmark -v '
-         '--browser=release '
+         '--browser=release --output-format=buildbot '
+         '--also-run-disabled-tests '
          '--profile-dir=out/Release/generated_profile/small_profile '
          'session_restore.warm.typical_25'),
         bisect_bot='win_perf_bisect',
@@ -643,14 +726,48 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='linux_perf_bisect',
         suite='performance_browser_tests')
 
+  def testGetConfig_ClankTelemetry(self):
+    """Tests that the right config is returned for an clank bot."""
+    self._TestGetConfigCommand(
+        ('tools/perf/run_benchmark -v '
+         '--browser=android-chrome --output-format=buildbot '
+         '--also-run-disabled-tests '
+         'page_cycler.morejs'),
+        bisect_bot='clankium_nexus4_perf_bisect',
+        suite='page_cycler.morejs')
+
+  def testGuessBisectBot_FetchesNameFromBisectBotMap(self):
+    namespaced_stored_object.Set(
+        start_try_job._BISECT_BOT_MAP_KEY,
+        {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
+    self.assertEqual(
+        'super_foo_bisect_bot',
+        start_try_job.GuessBisectBot('OtherMaster', 'foo'))
+
+  def testGuessBisectBot_PlatformNotFound_UsesFallback(self):
+    namespaced_stored_object.Set(
+        start_try_job._BISECT_BOT_MAP_KEY,
+        {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
+    self.assertEqual(
+        'linux_perf_bisect',
+        start_try_job.GuessBisectBot('OtherMaster', 'bar'))
+
+  def testGuessBisectBot_TreatsMasterNameAsPrefix(self):
+    namespaced_stored_object.Set(
+        start_try_job._BISECT_BOT_MAP_KEY,
+        {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
+    self.assertEqual(
+        'super_foo_bisect_bot',
+        start_try_job.GuessBisectBot('OtherMasterFyi', 'foo'))
+
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
   def testPerformBuildbucketBisect(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('foo@chromium.org')
     # Fake Rietveld auth info
     cfg = rietveld_service.RietveldConfig(
         id='default_rietveld_config',
-        client_email='sullivan@google.com',
+        client_email='sullivan@chromium.org',
         service_account_key='Fake Account Key',
         server_url='https://test-rietveld.appspot.com')
     cfg.put()
@@ -688,11 +805,11 @@ class StartBisectTest(testing_common.TestCase):
       start_try_job.rietveld_service.RietveldService, '_MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisect(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('foo@chromium.org')
     # Fake Rietveld auth info
     cfg = rietveld_service.RietveldConfig(
         id='default_rietveld_config',
-        client_email='sullivan@google.com',
+        client_email='sullivan@chromium.org',
         service_account_key='Fake Account Key',
         server_url='https://test-rietveld.appspot.com')
     cfg.put()
@@ -701,7 +818,7 @@ class StartBisectTest(testing_common.TestCase):
     bug_data.Bug(id=12345).put()
 
     query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
+        'bisect_bot': 'win_perf_bisect',
         'suite': 'dromaeo.jslibstylejquery',
         'metric': 'jslib/jslib',
         'good_revision': '215806',
@@ -717,7 +834,7 @@ class StartBisectTest(testing_common.TestCase):
     global _TEST_EXPECTED_BOT
     global _TEST_EXPECTED_CONFIG_CONTENTS
     _EXPECTED_CONFIG_DIFF = _EXPECTED_BISECT_CONFIG_DIFF
-    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
+    _TEST_EXPECTED_BOT = 'win_perf_bisect'
     _TEST_EXPECTED_CONFIG_CONTENTS = _BISECT_CONFIG_CONTENTS
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(
@@ -732,11 +849,11 @@ class StartBisectTest(testing_common.TestCase):
       start_try_job.rietveld_service.RietveldService, '_MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformPerfTry(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('foo@chromium.org')
     # Fake Rietveld auth info
     cfg = rietveld_service.RietveldConfig(
         id='default_rietveld_config',
-        client_email='sullivan@google.com',
+        client_email='sullivan@chromium.org',
         service_account_key='Fake Account Key',
         server_url='https://test-rietveld.appspot.com/')
     cfg.put()
@@ -751,26 +868,20 @@ class StartBisectTest(testing_common.TestCase):
     }
     global _EXPECTED_CONFIG_DIFF
     global _TEST_EXPECTED_CONFIG_CONTENTS
+    global _TEST_EXPECTED_BOT
     _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
     _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
+    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
+                     mock.MagicMock(return_value='1234567'))
   def testPerformBisectWithArchive(self):
-    self.SetCurrentUser('foo@google.com')
-    # Fake Rietveld auth info
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@google.com',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com')
-    cfg.put()
+    self.SetCurrentUser('foo@chromium.org')
 
     # Create bug.
     bug_data.Bug(id=12345).put()
@@ -789,14 +900,10 @@ class StartBisectTest(testing_common.TestCase):
         'bisect_mode': 'mean',
         'step': 'perform-bisect',
     }
-    global _EXPECTED_CONFIG_DIFF
-    _EXPECTED_CONFIG_DIFF = _EXPECTED_BISECT_CONFIG_DIFF_WITH_ARCHIVE
-    global _TEST_EXPECTED_BOT
-    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(
-        json.dumps({'issue_id': '33001',
-                    'issue_url': 'https://test-rietveld.appspot.com/33001'}),
+        json.dumps({'issue_id': '1234567',
+                    'issue_url': '/buildbucket_job_status/1234567'}),
         response.body)
 
   def testGetConfigWithArchive(self):
@@ -804,6 +911,7 @@ class StartBisectTest(testing_common.TestCase):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.morejs',
             'metric': 'times/page_load_time',
             'good_revision': '12345',
@@ -816,7 +924,9 @@ class StartBisectTest(testing_common.TestCase):
         },
         {
             'command': ('python tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.morejs'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.morejs'),
             'good_revision': '12345',
             'bad_revision': '23456',
             'metric': 'times/page_load_time',
@@ -827,12 +937,14 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
+            'original_bot_name': None,
         })
 
   def testGetConfigWithTargetArch(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_x64_perf_bisect',
+            'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.moz',
             'metric': 'times/page_load_time',
             'good_revision': '265549',
@@ -845,7 +957,9 @@ class StartBisectTest(testing_common.TestCase):
         },
         {
             'command': ('python tools/perf/run_benchmark -v '
-                        '--browser=release page_cycler.moz'),
+                        '--browser=release --output-format=buildbot '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
             'good_revision': '265549',
             'bad_revision': '265556',
             'metric': 'times/page_load_time',
@@ -856,48 +970,8 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'x64',
             'bisect_mode': 'mean',
+            'original_bot_name': None,
         })
-
-  def testCheckBisectability(self):
-    """Tests CheckBisectability function."""
-    bisectable_test_path = 'ChromiumPerf/linux-release/sunspider/Total'
-    not_bisectable_test_path = 'ChromiumPerf/linux-release/sizes/chrome'
-    bisectable_good_rev = 200000
-    not_bisectable_good_rev = 1400000000
-    bisectable_bad_rev = 200002
-    self.assertIsNone(start_try_job.CheckBisectability(
-        bisectable_good_rev, bisectable_bad_rev, bisectable_test_path))
-    self.assertIsNotNone(start_try_job.CheckBisectability(
-        not_bisectable_good_rev, bisectable_bad_rev, bisectable_test_path))
-    self.assertIsNotNone(start_try_job.CheckBisectability(
-        bisectable_good_rev, bisectable_bad_rev, not_bisectable_test_path))
-
-  def testCheckBisectabilityForAndroid(self):
-    # Test android builds prior to 265549
-    not_bisectable_good_rev = 265548
-    bisectable_bad_rev = 265560
-    bot = 'android_nexus7_perf_bisect'
-    bisectable_test_path = 'ChromiumPerf/linux-release/sunspider/Total'
-    self.assertIsNotNone(start_try_job.CheckBisectability(
-        not_bisectable_good_rev, bisectable_bad_rev, bisectable_test_path, bot))
-    bisectable_good_rev = 265549
-    self.assertIsNone(start_try_job.CheckBisectability(
-        bisectable_good_rev, bisectable_bad_rev, bisectable_test_path, bot))
-
-  def testCheckBisectabilityForWindows(self):
-    # Test windows builds range 289987-290716
-    not_bisectable_good_rev = 289987
-    not_bisectable_bad_rev = 290716
-    bisectable_test_path = 'ChromiumPerf/linux-release/sunspider/Total'
-    bot = 'win_xp_perf_bisect'
-    self.assertIsNotNone(start_try_job.CheckBisectability(
-        not_bisectable_good_rev, not_bisectable_bad_rev,
-        bisectable_test_path, bot))
-    bisectable_good_rev = 290716
-    bisectable_bad_rev = 290800
-    bot = 'win_xp_perf_bisect'
-    self.assertIsNone(start_try_job.CheckBisectability(
-        bisectable_good_rev, bisectable_bad_rev, bisectable_test_path, bot))
 
 
 if __name__ == '__main__':

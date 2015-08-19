@@ -2,295 +2,299 @@
 The bisect-form element includes the form for all of the different stages of
 the bisect process after the user clicks on the bisect button.
 -->
-<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
-<link rel="import" href="base-form.html">
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/third_party/polymer/components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/dashboard/elements/base-form.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
 
-<polymer-element name="bisect-form" extends="base-form">
+<polymer-element name="bisect-form" extends="base-form"
+                 attributes="xsrfToken testPath
+                             earlierRevision laterRevision bugId">
   <template>
-    <style>
-      #ui-container {
-        background: white;
-        border-bottom-color: #999;
-        border: solid 1px #acacac;
-        box-shadow: 0 4px 16px rgba(0,0,0,.2);
-        padding: 16px 20px;
-        position: fixed;
-        z-index: 10000;
-      }
 
-      #loading {
-        background-color: white;
-        height: 100%;
-        width: 100%;
-        position: absolute;
-        left: 0;
-        top: 0;
-        display: -webkit-flex;
-        display: flex;
-        -webkit-align-items: center;
-        align-items: center;
-        justify-content: center;
-        -webkit-justify-content: center;
-      }
+    <xhr-element id="xhr"></xhr-element>
 
-      input[type=text], input[type=number] {
-        border-radius: 1px;
-        border: 1px solid #d9d9d9;
-        border-top: 1px solid #c0c0c0;
-        font-size: 13px;
-        height: 25px;  /* 29px total height incl padding+border */
-        width: 300px;
-        padding: 1px 2px;
-      }
+    <paper-action-dialog id="container" autoCloseDisabled="true">
+      <!-- Styling for paper-action-dialog's children. -->
+      <style>
+        #loading {
+          background-color: white;
+          height: 100%;
+          width: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-align-items: center;
+          align-items: center;
+          justify-content: center;
+          -webkit-justify-content: center;
+        }
 
-      .error {
-        color: #dd4b39;
-        font-weight: bold;
-      }
+        select, input[type=text], input[type=number] {
+          border-radius: 1px;
+          border: 1px solid #d9d9d9;
+          border-top: 1px solid #c0c0c0;
+          font-size: 13px;
+          height: 25px;  /* 29 px total height incl padding + border */
+          width: 300px;
+          padding: 1px 2px;
+        }
 
-      .submit-button {
-        background-color: #4285f4;
-        color: white;
-      }
-    </style>
-    <div id="ui-container" style="display:none">
-      <xhr-element id="xhr"></xhr-element>
+        paper-button[affirmative] {
+          background: #4285f4;
+          color: #fff;
+        }
 
-      <form hidden?="{{!enterData}}">
+        paper-spinner::shadow .circle {
+          border-color: #4285f4;
+        }
+
+        .error {
+          color: #dd4b39;
+        }
+      </style>
+
+      <form>
         <table>
           <tr>
             <td>Bisect bot:</td>
             <td>
-              <input type="text" list="bot-list" id="bot" value="{{bot}}">
-              <datalist id="bot-list">
+              <select id="bot" value="{{bot}}">
                 <template repeat="{{name in botList}}">
-                  <option value="{{name}}"></option>
+                <option value="{{name}}">{{name}}</option>
                 </template>
-              </datalist>
+              </select>
             </td>
           </tr>
           <tr>
             <td>Metric:</td>
             <td>
-              <input type="text" list="metric-list" id="metric" value="{{metric}}">
-              <datalist id="metric-list">
+              <select id="metric" value="{{metric}}">
                 <template repeat="{{name in metricList}}">
-                  <option value="{{name}}"></option>
+                <option value="{{name}}">{{name}}</option>
                 </template>
-              </datalist>
+              </select>
             </td>
           </tr>
           <tr>
             <td>Bug ID:</td>
-            <td><input type="number"
-                       name="bug_id"
-                       value="{{bugId}}"></td>
+            <td><input type="number" value="{{bugId}}"></td>
           </tr>
           <tr>
-            <td>Good revision:</td>
-            <td><input type="text"
-                       name="good_revision"
-                       value="{{goodRevision}}"
-                       pattern="\d{6}|[0-9a-fA-F]{40}"></td>
+            <td>Earlier revision:</td>
+            <td><input type="text" value="{{earlierRevision}}"></td>
           </tr>
           <tr>
-            <td>Bad revision:</td>
-            <td><input type="text"
-                       name="bad_revision"
-                       value="{{badRevision}}"
-                       pattern="\d{6}|[0-9a-fA-F]{40}"></td>
+            <td>Later revision:</td>
+            <td><input type="text" value="{{laterRevision}}"></td>
           </tr>
           <tr>
             <td>Repeat count:</td>
-            <td><input type="number"
-                       name="repeat_count"
-                       min="1"
-                       max="100"
-                       value="{{repeatCount}}"></td>
+            <td><input type="number" min="1" max="100" value="{{REPEAT_COUNT}}"></td>
           </tr>
           <tr>
             <td>Max time (min):</td>
-            <td><input type="number"
-                       name="max_time_minutes"
-                       min="1"
-                       max="60"
-                       value="{{maxTimeMinutes}}"></td>
+            <td><input type="number" min="1" max="60" value="{{MAX_TIME_MINUTES}}"></td>
           </tr>
           <tr>
             <td>Truncate percent:</td>
-            <td><input type="number"
-                       min="1"
-                       max="49"
-                       name="truncate_percent"
-                       value="{{truncatePercent}}"></td>
+            <td><input type="number" min="1" max="49" value="{{TRUNCATE_PERCENT}}"></td>
           </tr>
-          <tr id="use-archive">
-            <td>Use archive:</td>
-            <td><input type="checkbox"
-                       id="use-archive-checkbox"
-                       on-change="{{onUseArchiveChange}}"
-                       checked>
-            </td>
-          </tr>
+
+          <template if="{{canUseArchive}}">
+            <tr>
+              <td>Use archive:</td>
+              <td><input type="checkbox"
+                         on-change="{{onUseArchiveChange}}"
+                         checked="{{useArchive}}">
+              </td>
+            </tr>
+          </template>
+
           <tr>
             <td>Bisect mode:</td>
             <td>
-              <input type="text"
-                     list="bisect-mode-list"
-                     value="{{bisectMode}}"
-                     pattern="mean|std_dev|return_code">
-              <datalist id="bisect-mode-list">
-                <option value="mean"></option>
-                <option value="std_dev"></option>
-                <option value="return_code"></option>
-              </datalist>
-              <p class="error" hidden?="{{bisectMode != 'return_code'}}">
+              <select type="text" value="{{BISECT_MODE}}">
+                <option value="mean">mean</option>
+                <option value="std_dev">std_dev</option>
+                <option value="return_code">return_code</option>
+              </select>
+              <p class="error" hidden?="{{BISECT_MODE != 'return_code'}}">
                 If you would like to bisect on a test failure, please carefully
                 check the revision range on the buildbot status page and update
-                the <b>Good Revision</b> and <b>Bad Revision</b> fields above
+                the <b>Earlier Revision</b> and <b>Later Revision</b> fields above
                 accordingly. Note that the revisions for a test failure will
                 <b>not</b> show up on the graph.
               </p>
             </td>
           </tr>
-          <tr id="use-recipe">
-            <td>Use recipe (beta):</td>
-            <td><input type="checkbox"
-                       id="use-recipe-checkbox"
-                       on-change="{{onUseRecipeChange}}"></td>
-          </tr>
           <tr>
-            <td colspan="2">
-              <paper-button class="submit-button" raised on-click="{{onSendToTrybot}}">Start bisect</paper-button>
-              <paper-button raised on-click="{{hide}}">Close</paper-button>
-            </td>
+            <td>Use recipe (beta):</td>
+            <td><input type="checkbox" checked="{{useRecipe}}"></td>
           </tr>
         </table>
       </form>
 
-      <div hidden?="{{!jobSubmitted}}">
-        <p><b>Job submitted!</b></p>
-        <p><a href="{{issueUrl}}" target="_blank">View job {{issueId}}.</a></p>
-        <paper-button raised on-click="{{hide}}">Close</paper-button>
-      </div>
+      <p class="error">{{error}}</p>
 
-      <div hidden?="{{!errorMessage}}">
-        <p class="error">An error occurred: {{errorMessage}}</p>
-        <paper-button raised on-click="{{hide}}">Close</paper-button>
-      </div>
-      <div id="loading"><img src="//www.google.com/images/loading.gif"></div>
-    </div>
+      <paper-button affirmative raised autofocus disabled?="{{error}}"
+                    on-click="{{onSendToTrybot}}">Start bisect</paper-button>
+      <paper-button dismissive raised>Close</paper-button>
+
+      <template if="{{loading}}">
+        <div id="loading">
+          <paper-spinner active></paper-spinner>
+        </div>
+      </template>
+    </paper-action-dialog>
+
   </template>
   <script>
-    Polymer('bisect-form', {
-
-      // Default values of variables that are bound to inputs in the form.
-      // See: http://www.chromium.org/developers/speed-infra/perf-try-bots-bisect-bots/config
-      repeatCount: 20,
-      maxTimeMinutes: 20,
-      truncatePercent: 25,
-      useArchive: true,
-      useRecipe: false,
-      bisectMode: 'mean',
-
+    'use strict';
+    (function() {
       /**
-       * Initializes and shows the bisect form.
+       * Checks whether a revision appears to be OK to use for bisect.
+       * TODO(qyearsley): Extract common code in trace-form and bisect-form.
        */
-      show: function() {
-        this.$.loading.style.display = '';
-        this.$['ui-container'].style.display = '';
-        this.setStep('enterData');
-        this.$.xhr.send('/start_try_job', this.xsrfToken,
-          {
-            'test_path': this.testPath,
-            'step': 'prefill-info'
-          },
-          function successCallback(info) {
-            this.bot = info['bisect_bot']
-            this.botList = info['all_bots'];
-            this.metric = info['default_metric'];
-            this.metricList = info['all_metrics'];
-            this.setUseArchive(info['use_archive']);
-
-            // Platform.performMicrotaskCheckpoint signals Polymer to update
-            // bound elements based on their model objects.
-            Platform.performMicrotaskCheckpoint();
-
-            this.email = info['email'];
-            this.suite = info['suite'];
-            this.master = info['master'];
-            this.internalOnly = info['internal_only'];
-
-            this.updateSize();  // <select> fields may now be much wider.
-            this.$.loading.style.display = 'none';
-          }.bind(this),
-          function errorCallback(msg) {
-            this.setError(msg);
-          }.bind(this));
-      },
-
-      /**
-       * Shows or hides the use-archive checkbox.
-       * @param {string} canUseArchive A boolean specifying whether
-       *     it is possible to use archived builds according to /start_try_job.
-       */
-      setUseArchive: function(canUseArchive) {
-        this.$['use-archive'].style.display = (canUseArchive ? '' : 'none');
-        this.useArchive = canUseArchive;
-      },
-
-      onUseArchiveChange: function() {
-        this.useArchive = this.$['use-archive-checkbox'].checked;
-      },
-
-      onUseRecipeChange: function() {
-        this.useRecipe = this.$['use-recipe-checkbox'].checked;
-      },
-
-      /**
-       * Makes a request to /start_try_job to perform a bisect.
-       */
-      onSendToTrybot: function(event) {
-        event.preventDefault();
-        this.$.loading.style.display = '';
-        var params = {
-            'step': 'perform-bisect',
-            'bisect_bot': this.bot,
-            'suite': this.suite,
-            'metric': this.metric,
-            'good_revision': this.goodRevision,
-            'bad_revision': this.badRevision,
-            'repeat_count': this.repeatCount,
-            'max_time_minutes': this.maxTimeMinutes,
-            'truncate_percent': this.truncatePercent,
-            'use_archive': this.useArchive ? 'true' : '',
-            'use_recipe': this.useRecipe ? 'true' : '',
-            'master': this.master,
-            'internal_only': this.internalOnly,
-            'bisect_mode': this.bisectMode,
-        };
-        if (this.bugId) {
-          params['bug_id'] = this.bugId;
+      function validateRev(rev) {
+        if (/^[a-fA-F0-9]{40}$/.test(rev)) {
+          return true;
         }
-        this.$.xhr.send(
-            '/start_try_job', this.xsrfToken, params,
-            function successCallback(info) {
-              this.issueId = info['issue_id'];
-              this.issueUrl = info['issue_url'];
-              this.setStep('jobSubmitted');
-              this.$.loading.style.display = 'none';
+        if (!/^\d+/.test(rev)) {
+          return false;
+        }
+        rev = Number(rev);
+        return rev > 200000 && rev < 500000;
+      }
 
-              // Refresh bisect result log element.
-              var bisectLog = document.getElementById('bisect-result-log');
-              if (bisectLog) {
-                bisectLog['refresh']();
-              }
+      Polymer('bisect-form', {
+        // Default values of variables that are bound to inputs in the form.
+        // See: http://goo.gl/I94Kyj
+        REPEAT_COUNT: 20,
+        MAX_TIME_MINUTES: 20,
+        TRUNCATE_PERCENT: 25,
+        BISECT_MODE: 'mean',
+
+        /**
+         * Initializes and shows the bisect form.
+         */
+        show: function() {
+          this.canUseArchive = false,
+          this.useArchive = true,
+          this.useRecipe = false,
+          this.loading = true;
+          this.open();
+          this.$.xhr.send('/start_try_job', this.xsrfToken,
+            {
+              'test_path': this.testPath,
+              'step': 'prefill-info'
+            },
+            function successCallback(info) {
+              this.bot = info['bisect_bot'];
+              this.botList = info['all_bots'];
+              this.metric = info['default_metric'];
+              this.metricList = info['all_metrics'];
+              this.canUseArchive = info['use_archive'];
+              this.email = info['email'];
+              this.suite = info['suite'];
+              this.master = info['master'];
+              this.internalOnly = info['internal_only'];
+
+              this.loading = false;
             }.bind(this),
             function errorCallback(msg) {
-              this.setError(msg);
+              this.showErrorMessage('An error occurred', msg);
+              this.close();
             }.bind(this));
+        },
+
+        /**
+         * Makes a request to /start_try_job to perform a bisect.
+         */
+        onSendToTrybot: function(event) {
+          event.preventDefault();
+          this.loading = true;
+          var params = {
+              'step': 'perform-bisect',
+              'bisect_bot': this.bot,
+              'suite': this.suite,
+              'metric': this.metric,
+              'good_revision': this.earlierRevision,
+              'bad_revision': this.laterRevision,
+              'repeat_count': this.REPEAT_COUNT,
+              'max_time_minutes': this.MAX_TIME_MINUTES,
+              'truncate_percent': this.TRUNCATE_PERCENT,
+              'use_archive': this.useArchive ? 'true' : '',
+              'use_recipe': this.useRecipe ? 'true' : '',
+              'master': this.master,
+              'internal_only': this.internalOnly,
+              'bisect_mode': this.BISECT_MODE,
+          };
+          if (this.bugId) {
+            params['bug_id'] = this.bugId;
+          }
+          this.$.xhr.send(
+              '/start_try_job', this.xsrfToken, params,
+              function successCallback(info) {
+                var message = '<b>Job submitted!</b> ' +
+                              '<a href="{{issue_url}}" target="_blank">' +
+                              'View job {{issue_id}}.</a>';
+                this.showMessage(message, info);
+
+                // Refresh bisect result log element.
+                var bisectLog = document.getElementById('bisect-result-log');
+                if (bisectLog) {
+                  bisectLog['refresh']();
+                }
+
+                this.close();
+              }.bind(this),
+              function errorCallback(msg) {
+                this.showErrorMessage('An error occurred', msg);
+                this.close();
+              }.bind(this));
+        },
+
+        earlierRevisionChanged: function() {
+          this.error = '';
+          if (!validateRev(this.earlierRevision)) {
+            this.error = 'Revisions should be git commit positions or hashes.';
+            return;
+          }
+          this.onRevisionsChange();
+        },
+
+        laterRevisionChanged: function() {
+          this.error = '';
+          if (!validateRev(this.laterRevision)) {
+            this.error = 'Revisions should be git commit positions or hashes.';
+            return;
+          }
+          this.onRevisionsChange();
+        },
+
+        onRevisionsChange: function() {
+          if (!/^\d+$/.test(this.earlierRevision) ||
+              !/^\d+$/.test(this.laterRevision)) {
+            return;
+          }
+          if (Number(this.earlierRevision) > Number(this.laterRevision)) {
+            this.error = (
+                '"Earlier revision" should be less than "later revision".');
+          }
+        },
+
+        open: function() {
+          this.$.container.open();
+        },
+
+        close: function() {
+          this.$.container.close();
         }
       });
+    })();
   </script>
 </polymer-element>

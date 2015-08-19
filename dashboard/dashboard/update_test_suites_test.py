@@ -9,11 +9,11 @@ import unittest
 import webapp2
 import webtest
 
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import update_test_suites
 from dashboard import utils
 from dashboard.models import graph_data
-from dashboard.models import multipart_entity
 
 
 class ListTestSuitesTest(testing_common.TestCase):
@@ -28,7 +28,7 @@ class ListTestSuitesTest(testing_common.TestCase):
   def testFetchCachedTestSuites_NotEmpty(self):
     # If the cache is set, then whatever's there is returned.
     key = update_test_suites._NamespaceKey(graph_data.LIST_SUITES_CACHE_KEY)
-    multipart_entity.Set(key, {'foo': 'bar'})
+    stored_object.Set(key, {'foo': 'bar'})
     self.assertEqual(
         {'foo': 'bar'},
         update_test_suites.FetchCachedTestSuites())
@@ -41,7 +41,7 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertIsNone(update_test_suites.FetchCachedTestSuites())
 
   def _AddSampleData(self):
-    testing_common.AddDataToMockDataStore(
+    testing_common.AddTests(
         ['Chromium'],
         ['win7', 'mac'],
         {

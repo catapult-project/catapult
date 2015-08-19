@@ -1,0 +1,470 @@
+<link rel="import" href="/dashboard/elements/autocomplete-box.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+
+<link rel="import" href="/static/testselection.html">
+
+<polymer-element name="test-picker" attributes="hasChart">
+  <template>
+    <style>
+      #container * {
+        margin-right: 3px;
+      }
+
+      #dnd-btn {
+        padding: 1px 2px;
+        margin: 2px 4px 2px 2px;
+        font-size: 11px;
+        cursor:grabbing;
+        cursor:-moz-grabbing;
+        cursor:-webkit-grabbing;
+      }
+
+      paper-button {
+        height: 35px;
+      }
+
+      paper-button:not([disabled]) {
+        color: #4285f4;
+      }
+
+      paper-button[raised]:not([disabled]) {
+        background: #4285f4;
+        color: #fff;
+      }
+
+      core-icon{
+        height: 25px;
+      }
+
+      #suite-description {
+        padding: 10px;
+      }
+    </style>
+
+    <div id="container" horizontal layout center wrap>
+      <template repeat="{{box, index in selectionModels}}">
+        <autocomplete-box datalist={{box.datalist}}
+                          placeholder="{{box.placeholder}}"
+                          disabled={{box.disabled}}
+                          multi={{box.multi}}
+                          on-dropdownselect="{{onDropdownSelect}}"
+                          id="selection-{{index}}"></autocomplete-box>
+      </template>
+
+      <core-icon-button id="dnd-btn"
+                        icon="open-with"
+                        disabled?="{{!enableAddSeries || !hasChart}}"
+                        draggable="{{enableAddSeries && hasChart}}"
+                        on-dragstart="{{onSeriesButtonDragStart}}">
+        Drag me
+      </core-icon-button>
+
+      <paper-button raised
+                    id="add-graph-btn"
+                    on-click="{{onAddButtonClicked}}"
+                    disabled?="{{!enableAddSeries}}">Add</paper-button>
+    </div>
+
+    <div id="suite-description"></div>
+
+    <xhr-element id="xhr"></xhr-element>
+  </template>
+
+
+  <script>
+    'use strict';
+    Polymer('test-picker', {
+
+      TESTSUITE_LABEL: 'Test suite',
+      BOT_LABEL: 'Bot',
+      SUBTEST_LABEL: 'Subtest',
+
+      TEST_SUITES: window['TEST_SUITES'],
+
+      ready: function() {
+        this.pageStateLoading = true;
+        this.hasChart = false;
+        this.enableAddSeries = false;
+        this.selectedSuite = null;
+        this.suiteDescription = null;
+        this.selectionModels = [
+          {
+            placeholder: this.TESTSUITE_LABEL,
+            datalist: this.getSuiteItems()
+          },
+          {
+            placeholder: this.BOT_LABEL,
+            disabled: true,
+            multi: true
+          },
+        ];
+      },
+
+      /**
+       * Gets a list of menu items for test suites.
+       */
+      getSuiteItems: function() {
+        var suiteMenuItems = [];
+        var self = this;
+        var isMonitored = function(suite) {
+          // A suite is considered monitored if any of subtests are monitored.
+          var suiteInfo = self.TEST_SUITES[suite];
+          return suiteInfo['monitored'] && suiteInfo['monitored'].length;
+        };
+        var isDeprecated = function(suite) {
+          return self.TEST_SUITES[suite]['deprecated'];
+        };
+
+        for (var suite in this.TEST_SUITES) {
+          if (isDeprecated(suite)) {
+            continue;
+          }
+          var suiteItem = {
+            name: suite
+          };
+          if (!isMonitored(suite)) {
+            suiteItem.tag = 'unmonitored';
+          } else {
+            suiteItem.monitored = true;
+          }
+          suiteMenuItems.push(suiteItem);
+        }
+        suiteMenuItems.sort(this.compareTestSuite);
+        return suiteMenuItems;
+      },
+
+      /**
+       * Gets a list of bot menu items base on the selected test suite.
+       */
+      getBotItems: function() {
+        var suite = this.getSelectionMenu(0).value;
+        if (!this.TEST_SUITES[suite]) {
+          return [];
+        }
+        var dict = this.TEST_SUITES[suite]['masters'];
+        var botMenuItems = [];
+        var masters = Object.keys(dict).sort();
+        for (var i = 0; i < masters.length; i++) {
+          var groupItem = {
+            name: masters[i],
+            suite: suite,
+            head: true
+          };
+          botMenuItems.push(groupItem);
+          var bots = dict[masters[i]];
+          for (var j = 0; j < bots.length; j++) {
+            var botItem = {
+              name: bots[j],
+              group: masters[i]
+            };
+            botMenuItems.push(botItem);
+          }
+        }
+        return botMenuItems;
+      },
+
+      /**
+       * Handles dropdown menu select; updates the subsequent menu accordingly.
+       */
+      onDropdownSelect: function(event) {
+        var model = event.target.templateInstance.model;
+        var boxIndex = model.index;
+        if (boxIndex == 0) {
+          this.updateTestSuiteDescription();
+          this.updateBotMenu();
+        } else if (boxIndex == 1) {
+          this.sendSubtestRequest();
+        } else {
+          // Update all the next dropdown menus for subtests.
+          this.updateSubtestMenus(boxIndex + 1);
+        }
+      },
+
+      updateTestSuiteDescription: function() {
+        // Display the test suite description if there is one.
+        var descriptionElement = this.$['suite-description'];
+        var suite = this.getSelectionMenu(0).value;
+        if (!suite) {
+          descriptionElement.innerHTML = '';
+          return;
+        }
+
+        var description = this.TEST_SUITES[suite]['description'];
+        if (description) {
+          var descriptionHTML = '<b>' + suite + '</b>: ';
+          descriptionHTML += this.convertMarkdownLinks(description);
+          descriptionElement.innerHTML = descriptionHTML;
+        } else {
+          descriptionElement.innerHTML = '';
+        }
+      },
+
+      /**
+       * Updates bot dropdown menu with bot items.
+       */
+      updateBotMenu: function() {
+        var model = this.selectionModels[1];
+        var menu = this.getSelectionMenu(1);
+        var botItems = this.getBotItems();
+        menu.setDataList(botItems);
+        menu.disabled = false;
+        this.subtestDict = null;
+        // If there's a selection, send a subtest request.
+        if (menu.value && menu.value.length > 0) {
+          this.sendSubtestRequest();
+        } else {
+          // Clear all subtest menus.
+          this.selectionModels.splice(2);
+        }
+        this.updateAddButtonState();
+      },
+
+      /**
+       * Sends a request for subtestDict base on selected test suite and bots.
+       */
+      sendSubtestRequest: function() {
+        if (this.subtestXhr) {
+          this.subtestXhr.abort();
+          this.subtestXhr = null;
+        }
+        var bots = this.getCheckedBots();
+        // If no bots are selected, just leave the current subtests.
+        if (bots.length == 0) {
+          return;
+        }
+        var suite = this.getCheckedSuite();
+        if (!suite) {
+          return;
+        }
+
+        var params = {
+          type: 'sub_tests',
+          suite: suite,
+          bots: bots.join(',')
+        };
+        this.subtestXhr = this.$.xhr.send(
+            '/list_tests',
+            this.xsrfToken,
+            params,
+            function(response) {
+              this.subtestDict = response;
+              // Start at first subtest menu.
+              this.updateSubtestMenus(2);
+            }.bind(this),
+            function(error) {
+              console.log('Error from sendSubtestRequest.');
+            }.bind(this)
+        );
+      },
+
+      /**
+       * Updates all subtest menus starting at 'startIndex'.
+       */
+      updateSubtestMenus: function(startIndex) {
+        var subtestDict = this.getSubtestAtIndex(startIndex);
+
+        // Update existing subtest menu.
+        for (var i = startIndex; i < this.selectionModels.length; i++) {
+          // Remove the rest of the menu if no subtestDict.
+          if (!subtestDict || Object.keys(subtestDict).length == 0) {
+            this.selectionModels.splice(i);
+            this.updateAddButtonState();
+            return;
+          }
+          var subtestItems = this.getSubtestItems(subtestDict);
+          var menu = this.getSelectionMenu(i);
+          menu.setDataList(subtestItems);
+
+          // If there are selected item, update next menu.
+          if (menu.value && menu.value.length > 0) {
+            subtestDict = subtestDict[menu.value]['sub_tests'];
+          } else {
+            subtestDict = null;
+          }
+        }
+
+        // Check if we still need to add a subtest menu.
+        if (subtestDict && Object.keys(subtestDict).length > 0) {
+          var subtestItems = this.getSubtestItems(subtestDict);
+          this.selectionModels.push({
+            placeholder: this.SUBTEST_LABEL,
+            datalist: subtestItems,
+          });
+        }
+
+        this.updateAddButtonState();
+      },
+
+      updateAddButtonState: function() {
+        var selection = this.getCurrentSelection();
+        this.enableAddSeries = selection != null && selection.isValid();
+      },
+
+      getSubtestAtIndex: function(index) {
+        var subtestDict = this.subtestDict;
+        for (var i = 2; i < index; i++) {
+          var test = this.getSelectionMenu(i).value;
+          if (test in subtestDict) {
+            subtestDict = subtestDict[test]['sub_tests'];
+          } else {
+            return null;
+          }
+        }
+        return subtestDict;
+      },
+
+      getSubtestItems: function(subtestDict) {
+        var subtestItems = [];
+        var subtestNames = Object.keys(subtestDict).sort();
+        for (var i = 0; i < subtestNames.length; i++) {
+          subtestItems.push({
+            name: subtestNames[i],
+          });
+        }
+        return subtestItems;
+      },
+
+      getCheckedBots: function() {
+        var bots = [];
+        var botMenu = this.getSelectionMenu(1);
+        var botItems = botMenu.getSelectedItems();
+        for (var i = 0; i < botItems.length; i++) {
+          bots.push(botItems[i]['group'] + '/' + botItems[i]['name']);
+        }
+        return bots;
+      },
+
+      getCheckedSuite: function() {
+        var suiteMenu = this.getSelectionMenu(0);
+        return suiteMenu.value;
+      },
+
+      getSelectionMenu: function(index) {
+        return this.$.container.querySelector('#selection-' + index);
+      },
+
+      /**
+       * Handler for drag start event for series drag button.
+       */
+      onSeriesButtonDragStart: function(event, detail, sender) {
+        var selection = this.getCurrentSelection();
+        var testPathAndSelected = selection.getTestPathAndSelectedSeries();
+        event.dataTransfer.setData('type', 'seriesdnd');
+        event.dataTransfer.setData(
+            'data', JSON.stringify(testPathAndSelected));
+        event.dataTransfer.effectAllowed = 'copy';
+      },
+
+      /**
+       * Fires add event on 'Add' button clicked.
+       */
+      onAddButtonClicked: function(event, detail, sender) {
+        this.fire('add');
+      },
+
+      /**
+       * Gets the current selection from the menus. Returns null unless there
+       * are valid test selection.
+       */
+      getCurrentSelection: function() {
+        // Up to subtest menu.
+        for (var i = 0; i < 3; i++) {
+          var menu = this.getSelectionMenu(i);
+          if (!menu || menu.getSelectedItems().length == 0) {
+            return null;
+          }
+        }
+
+        var suite = this.getSelectionMenu(0).getSelectedItems()[0];
+        var selection = new testselection.TestSelection();
+        var testPathAndSelected = this.addTestPathFromSubtestDict(
+            this.subtestDict, suite.name, 2);
+        var bots = this.getCheckedBots();
+        for (var i = 0; i < bots.length; i++) {
+          for (var j = 0; j < testPathAndSelected.length; j++) {
+            var fullTestPath = bots[i] + '/' + testPathAndSelected[j][0];
+            selection.addTestPath(fullTestPath, testPathAndSelected[j][1]);
+          }
+        }
+
+        return selection;
+      },
+
+      /**
+       * This method recursively add test path from a subtestDict.  Selected
+       * series are added at the last level of the menu.
+       * @return {Array} List of pair of test path to list of selected series
+       *     name.
+       */
+      addTestPathFromSubtestDict: function(subtestDict, testPath, level) {
+        if (!subtestDict) {
+          return [];
+        }
+        var testPathAndSelected = [];
+        var nextMenu = this.getSelectionMenu(level + 1);
+        // If this is the last menu with selection.
+        var isLastLevel = (level == this.selectionModels.length - 1 ||
+                           !nextMenu ||
+                           nextMenu.getSelectedItems().length == 0);
+
+        var items = this.getSelectionMenu(level).getSelectedItems();
+        for (var i = 0; i < items.length; i++) {
+          var name = items[i].name;
+          var nextTestPath = testPath + '/' + name;
+          var selectedSeries = [];
+          if (isLastLevel) {
+            if (subtestDict[name]['has_rows']) {
+              selectedSeries.push(name);
+            }
+            // Select important traces by default.
+            var nextSubtestDict = subtestDict[name]['sub_tests'];
+            for (var subName in nextSubtestDict) {
+              if (nextSubtestDict[subName]['has_rows'] &&
+                  testselection.isImportant(nextTestPath + '/' + subName)) {
+                selectedSeries.push(subName);
+              }
+            }
+            testPathAndSelected.push([nextTestPath, selectedSeries]);
+          } else {
+            var results = this.addTestPathFromSubtestDict(
+                subtestDict[name]['sub_tests'], nextTestPath, level + 1);
+            testPathAndSelected.push.apply(testPathAndSelected, results);
+          }
+        }
+        return testPathAndSelected;
+      },
+
+      /**
+       * Sorts by tests by monitored and then by name.
+       */
+      compareTestSuite: function(suiteA, suiteB) {
+        if (suiteA.monitored && !suiteB.monitored) {
+          return -1;
+        }
+        if (suiteB.monitored && !suiteA.monitored) {
+          return 1;
+        }
+        var nameALower = suiteA.name.toLowerCase();
+        var nameBLower = suiteB.name.toLowerCase();
+        if (nameALower > nameBLower) {
+          return 1;
+        }
+        if (nameALower < nameBLower) {
+          return -1;
+        }
+        return 0;
+      },
+
+      /**
+       * Converts links in markdown format to HTML links (anchor elements).
+       * @param {string} text
+       * @return {string}
+       */
+      convertMarkdownLinks: function(text) {
+        return text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+      },
+    });
+  </script>
+</polymer-element>

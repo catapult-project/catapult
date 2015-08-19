@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Result</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
 {% endblock %}
 {% block content %}
   {% if errors %}
@@ -12,7 +11,8 @@
     <h1>{{headline}}</h1>
     <dl class="results">
       {% for item in results %}
-      <dt>{{item.name}}</dt><dd {% if item.class %}class="{{item.class}}"{% endif %}>{{item.value}}</dd>
+      <dt>{{item.name}}</dt>
+        <dd {% if item.class %}class="{{item.class}}"{% endif %}>{{item.value}}</dd>
       {% endfor %}
     </dl>
   {% endif %}

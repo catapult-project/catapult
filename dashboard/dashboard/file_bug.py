@@ -16,11 +16,10 @@ from dashboard import auto_bisect
 from dashboard import issue_tracker_service
 from dashboard import oauth2_decorator
 from dashboard import request_handler
-from dashboard import rietveld_service
+from dashboard import utils
 from dashboard.models import alert
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
-from dashboard.models import try_job
 
 # A list of bug labels to suggest for all performance regression bugs.
 _DEFAULT_LABELS = [
@@ -54,12 +53,11 @@ class FileBugHandler(request_handler.RequestHandler):
     Outputs:
       HTML, using the template 'bug_result.html'.
     """
-    user = users.get_current_user()
-    if not user or (not user.email().endswith('google.com') and
-                    not user.email().endswith('chromium.org')):
-      self.ReportError('Attempt to change bugs while not logged in'
-                       ' (Should be disallowed in app.yaml)')
+    if not utils.IsValidSheriffUser():
+      user = users.get_current_user()
+      self.ReportError('User "%s" not authorized.' % user, status=403)
       return
+
     summary = self.request.get('summary')
     description = self.request.get('description')
     labels = self.request.get_all('label')
@@ -141,25 +139,13 @@ class FileBugHandler(request_handler.RequestHandler):
     self._AddAdditionalDetailsToBug(bug_id, alerts)
 
     template_params = {'bug_id': bug_id}
-    template_params.update(self._AddAndStartBisectJob(bug_id))
+    if all(k.kind() == 'Anomaly' for k in alert_keys):
+      bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
+      if 'error' in bisect_result:
+        template_params['bisect_error'] = bisect_result['error']
+      else:
+        template_params.update(bisect_result)
     self.RenderHtml('bug_result.html', template_params)
-
-  def _AddAndStartBisectJob(self, bug_id):
-    """Adds and starts a bisect job."""
-    bisect_job = try_job.TryJob(bug_id=bug_id)
-    bisect_job.put()
-
-    bisect_result = auto_bisect.StartBisect(bisect_job)
-    if 'error' in bisect_result:
-      return {'bisect_error': bisect_result['error']}
-
-    server = rietveld_service.RietveldService()
-    rietveld_url = server.Config().server_url
-    issue_id = bisect_result['issue_id']
-    return {
-        'rietveld_url': rietveld_url,
-        'rietveld_issue_id': issue_id,
-    }
 
   def _AddAdditionalDetailsToBug(self, bug_id, alerts):
     """Adds additional data to the bug as a comment.
@@ -202,6 +188,9 @@ def _FetchLabels(alert_keys):
   labels = set(_DEFAULT_LABELS)
   alerts = ndb.get_multi(alert_keys)
   if any(a.internal_only for a in alerts):
+    # This is a Chrome-specific behavior, and should ideally be made
+    # more general (maybe there should be a list in datastore of bug
+    # labels to add for internal bugs).
     labels.add('Restrict-View-Google')
   for test in {a.test for a in alerts}:
     labels.update(bug_label_patterns.GetBugLabelsForTest(test))

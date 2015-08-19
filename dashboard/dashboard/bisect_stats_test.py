@@ -52,8 +52,8 @@ class BisectStatsTest(testing_common.TestCase):
     }
 
     response = self.testapp.get('/bisect_stats')
-    series_data = testing_common.GetEmbeddedVariable(response, 'SERIES_DATA')
-    total_series_data = testing_common.GetEmbeddedVariable(
+    series_data = self.GetEmbeddedVariable(response, 'SERIES_DATA')
+    total_series_data = self.GetEmbeddedVariable(
         response, 'TOTAL_SERIES_DATA')
 
     self.assertEqual(expected_series_data, series_data)

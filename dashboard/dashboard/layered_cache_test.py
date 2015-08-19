@@ -25,7 +25,8 @@ class LayeredCacheTest(testing_common.TestCase):
         '/delete_expired_entities',
         layered_cache.DeleteExpiredEntitiesHandler)])
     self.testapp = webtest.TestApp(app)
-    self.SetCurrentUser(None, None, False)
+    self.UnsetCurrentUser()
+    testing_common.SetInternalDomain('google.com')
 
   def testSetAndGet(self):
     self.SetCurrentUser('foo@google.com')

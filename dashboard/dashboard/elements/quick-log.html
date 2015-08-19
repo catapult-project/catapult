@@ -1,4 +1,5 @@
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
 
 <polymer-element name="quick-log"
                  attributes="logLabel logNamespace logName logFilter
@@ -9,7 +10,7 @@
        * These are the intended layouts for quick-log element:
        * 1. Height grows with logs and keep a maximum height.
        * 2. Width is inherit by parent container unless specified.
-       * 3. Holds HTML logs and preverses line-break.
+       * 3. Holds HTML logs and preserves line-break.
        */
       #container {
         min-width: 800px;
@@ -23,26 +24,20 @@
         padding-right: 2px;
       }
 
-      .arrow-right {
-        background-image: url(/arrow_right.png);
+      .arrow-right::after {
+        content: '▸';
       }
 
-      .arrow-down {
-        background-image: url(/arrow_down.png);
+      .arrow-down::after {
+        content: '▾';
       }
 
       .toggle-arrow {
-        background-repeat: no-repeat;
         height: 100%;
         width: 20px;
         margin-top: 2px;
         display: block;
         cursor: pointer;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: moz-none;
-        -ms-user-select: none;
         user-select: none;
       }
 
@@ -50,39 +45,15 @@
         padding-left: 18px;
         background-position: left center;
         background-repeat: no-repeat;
-        cursor: pointer;
         vertical-align: middle;
         color: #15c;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: moz-none;
-        -ms-user-select: none;
         user-select: none;
-      }
-
-      #refresh-btn {
-        background: url(/refresh-21.png);
-        background-color: transparent;
-        background-repeat: no;
-        cursor: pointer;
-        border: none;
-        width: 21px;
-        height: 21px;
-        text-decoration: none;
-        outline-style: none;
-        vertical-align: middle;
-      }
-
-      #refresh-btn:disabled {
-        cursor: default;
-        opacity: 0.5;
       }
 
       #content {
         display: block;
-        position:relative;
-        width:100%;
+        position: relative;
+        width: 100%;
       }
 
       #inner-content {
@@ -94,8 +65,6 @@
       .content-bar {
         display: block;
         background-color: #f5f5f5;
-        height: 25px;
-        line-height: 25px;
         padding: 0 5px 0 10px;
         border-bottom: 1px solid #ebebeb;
         text-align: right;
@@ -173,15 +142,16 @@
       <xhr-element id="xhr"></xhr-element>
 
       <div class="label-container">
-        <span id="log-label"
-              class="arrow-right"
-              on-click="{{toggleView}}">{{logLabel}}</span>
+        <core-icon-button id="log-label" icon="expand-more" on-click="{{toggleView}}">
+          {{logLabel}}
+        </core-icon-button>
       </div>
 
       <div id="content" style="display:none">
         <div id="inner-content">
           <div class="content-bar">
-             <input id="refresh-btn" type="button" on-click="{{refresh}}"/>
+            <core-icon-button id="refresh-btn" icon="refresh" on-click="{{refresh}}">
+            </core-icon-button>
           </div>
           <div id="wrapper">
             <table id="logs"></table>
@@ -189,7 +159,7 @@
               <img class="loading-img"
                    height="25"
                    width="25"
-                   src="//www.google.com/images/loading.gif"/>
+                   src="//www.google.com/images/loading.gif">
             </template>
             <template bind if="{{errorMessage}}">
               <div class="error">{{errorMessage}}</div>
@@ -200,6 +170,7 @@
     </div>
   </template>
   <script>
+    'use strict';
     Polymer('quick-log', {
 
       MAX_LOG_SIZE: 100,
@@ -242,7 +213,7 @@
        * @param {Number} size Number of logs to retrieve.
        */
       getLogs: function(latest, size) {
-        latest = (latest == undefined ? true : latest);
+        latest = ((latest == undefined) ? true : latest);
         size = size || this.MAX_LOG_SIZE;
         if (this.xhr) {
           this.xhr.abort();
@@ -253,7 +224,7 @@
            namespace: this.logNamespace,
            name: this.logName,
            size: size
-        }
+        };
         if (this.logFilter) {
           params['filter'] = this.logFilter;
         }
@@ -261,7 +232,7 @@
           if (latest) {
             params['after_index'] = this.logList[0].index;
           } else {
-            var lastIndex = this.logList[this.logList.length-1].index;
+            var lastIndex = this.logList[this.logList.length - 1].index;
             params['before_index'] = lastIndex;
           }
         }
@@ -290,7 +261,7 @@
           this.insertLogRows(this.logList);
           return;
         }
-        var lastIndex = this.logList[this.logList.length-1].index;
+        var lastIndex = this.logList[this.logList.length - 1].index;
         var newIndex = newLogs[0].index;
         if (lastIndex >= newIndex) {
           // Prepend new logs.
@@ -306,8 +277,7 @@
       /**
        * Inserts list of logs into HTML table.
        * @param {Array.<Object>} logs Array of log objects.
-       * @param {boolean} insertBefore True to insert pre-pend,
-                          False to append.
+       * @param {boolean} insertBefore true to prepend, false to append.
        */
       insertLogRows: function(logs, insertBefore) {
         var table = this.$.logs;
@@ -362,7 +332,7 @@
        * Specifies loading state.
        */
       setState: function(state) {
-        switch(state) {
+        switch (state) {
           case 'loading':
             this.stepLoading = true;
             this.$['refresh-btn'].disabled = true;
@@ -412,7 +382,7 @@
        * Shows log container.
        */
       show: function() {
-        this.$['log-label'].className = 'arrow-down';
+        this.$['log-label'].icon = 'expand-less';
         this.$.content.style.display = '';
         if (!this.stepLoading) {
           this.$['refresh-btn'].disabled = false;
@@ -424,7 +394,7 @@
        * Hides log container.
        */
       hide: function() {
-        this.$['log-label'].className = 'arrow-right'
+        this.$['log-label'].icon = 'expand-more';
         this.$.content.style.display = 'none';
         this.$['refresh-btn'].disabled = true;
       },
@@ -439,12 +409,12 @@
 
       /**
        * Since we use absolute inner div, we'll keep the parent div updated
-       * to make sure this element doesn't overlape elements below.
+       * to make sure this element doesn't overlap with elements below.
        */
       updateHeight: function() {
-        this.$.content.style.height = this.$['inner-content'].offsetHeight +
-            'px';
-      },
+        this.$.content.style.height = (
+            this.$['inner-content'].offsetHeight + 'px');
+      }
     });
   </script>
 </polymer-element>

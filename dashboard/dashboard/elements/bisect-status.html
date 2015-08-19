@@ -31,10 +31,11 @@ for a bug succeeded or failed, or is currently in progress. */
     <span class="bisect-status {{status}}" title="{{status}}">&#8226;</span>
   </template>
   <script>
-  Polymer('bisect-status', {
-    publish: {
-      status: null
-    }
-  });
+    'use strict';
+    Polymer('bisect-status', {
+      publish: {
+        status: null
+      }
+    });
   </script>
 </polymer-element>

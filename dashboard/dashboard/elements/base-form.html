@@ -1,71 +1,42 @@
-<polymer-element
-    name="base-form"
-    attributes="xsrfToken testPath goodRevision badRevision bugId">
+<!--
+Base element for form.
+
+This element uses overlay-message element on the page with the ID
+"message-bar".
+-->
+<polymer-element name="base-form">
   <script>
+    'use strict';
     Polymer('base-form', {
-        /**
-         * Hides the bisect form.
-         */
-        hide: function() {
-          this.$['ui-container'].style.display = 'none';
-        },
 
-        /**
-         * Shows an error message.
-         */
-        setError: function(msg) {
-          this.$.loading.style.display = 'none';
-          this.setStep('errorMessage', msg);
-        },
-
-        /**
-         * Transitions to another step in the bisect process.
-         *
-         * @param {string} step Name of the step to transition to.
-         * @param {string} opt_msg Error message.
-         */
-        setStep: function(step, opt_msg) {
-          switch (step) {
-            case 'enterData':
-              this.enterData = true;
-              this.performBisect = false;
-              this.errorMessage = null;
-              break;
-            case 'performBisect':
-              this.enterData = false;
-              this.performBisect = true;
-              this.errorMessage = null;
-              break;
-            case 'jobSubmitted':
-              this.enterData = false;
-              this.performBisect = false;
-              this.jobSubmitted = true;
-              this.errorMessage = null;
-              break;
-            case 'errorMessage':
-              this.enterData = false;
-              this.performBisect = false;
-              this.errorMessage = opt_msg;
-              break;
-          }
-          this.updateSize();
-        },
-
-        /**
-         * Updates the size of the bisect form box.
-         */
-        updateSize: function() {
-          // Ensure widths/heights are correct.
-          Platform.performMicrotaskCheckpoint();
-
-          // Position the UI container box.
-          var halfDocWidth = document.documentElement.offsetWidth / 2;
-          var halfDocHeight = document.documentElement.offsetHeight / 2;
-          var halfBoxWidth = this.$['ui-container'].offsetWidth / 2;
-          var halfBoxHeight = this.$['ui-container'].offsetHeight / 2;
-          this.$['ui-container'].style.left = (halfDocWidth - halfBoxWidth) + 'px';
-          this.$['ui-container'].style.top = (halfDocHeight - halfBoxHeight) + 'px';
+      /**
+       * String substitution using "{{" and "}}" for placeholders.
+       *
+       * @param {string} str String template.
+       * @param {Object} data Dictionary with values to replace.
+       * @return {string} The replaced string.
+       */
+      template: function(str, data) {
+        for (var key in data) {
+          var find = '{{' + key + '}}';
+          str = str.replace(new RegExp(find, 'g'), data[key]);
         }
+        return str;
+      },
+
+      showErrorMessage: function(label, message) {
+        message = '<span style="color: #dd4b39; font-weight: bold;">' +
+                  label + ': ' + message + '</span>';
+        this.showMessage(message);
+      },
+
+      showMessage: function(message, templateDict) {
+        if (templateDict) {
+          message = this.template(message, templateDict);
+        }
+        var messageBar = document.getElementById('message-bar');
+        messageBar.updateContent(message);
+      },
     });
   </script>
 </polymer-element>

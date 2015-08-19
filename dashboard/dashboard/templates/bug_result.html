@@ -29,7 +29,7 @@ This template contains HTML for the following things:
       }
 
       .bug-list {
-        /* Note: popup window size 600x480 is set in triage-dialog.html. */
+        /* Note: pop-up window size 600x480 is set in triage-dialog.html. */
         box-sizing: border-box;
         max-width: 550px;
         overflow-x: visible;
@@ -109,11 +109,11 @@ This template contains HTML for the following things:
       }
 
       input[type=checkbox]:checked::after, .fakecheckbox.checked::after {
-        content: url(/check_no_box.png);
-        display: block;
+        font-size: 1.3em;
+        content: "✓";
         position: absolute;
-        left: -5px;
-        top: -6px;
+        top: -5px;
+        left: -1px;
       }
 
       input[type=submit] {
@@ -209,9 +209,11 @@ This template contains HTML for the following things:
       <input type="hidden" name="finish" value="true">
       <input type="hidden" name="keys" value="{{keys}}">
       <b>Summary:</b><br>
-      <input name="summary" value="{{summary}}" size=83><br><br>
+      <input name="summary" value="{{summary}}" size=83>
+      <br><br>
       <b>Description:</b><br>
-      <textarea rows=10 cols=60 name="description">{{description}}</textarea><br><br>
+      <textarea rows=10 cols=60 name="description">{{description}}</textarea>
+      <br><br>
       <b>Labels:</b><br>
       {% for label in labels %}
       <label>
@@ -239,11 +241,11 @@ This template contains HTML for the following things:
       <script>
         function postClose() {
           var data = {
-              'action': 'bug_create_result',
-              'bugid': {{bug_id}},
-              'bisect_error': '{{bisect_error}}',
-              'rietveld_url': '{{rietveld_url}}',
-              'rietveld_issue_id': '{{rietveld_issue_id}}',
+            'action': 'bug_create_result',
+            'bug_id': {{bug_id}},
+            'bisect_error': '{{bisect_error}}',
+            'issue_url': '{{issue_url}}',
+            'issue_id': '{{issue_id}}',
           };
           window.opener.postMessage(JSON.stringify(data), '*');
           window.close();

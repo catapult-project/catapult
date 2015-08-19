@@ -1,5 +1,5 @@
 <!--
-The 'overlay-message' displays overlayed popup ontop of content.
+The 'overlay-message' displays an overlaid pop-up on top of the content.
 
 By default 'overlay-message' will close whenever other elements are focused
 as well as automatically disappear after 'duration'.
@@ -22,23 +22,23 @@ by overriding style attributes:
   }
 
 -->
-<link rel="import" href="../../third_party/polymer/components/core-overlay/core-overlay.html">
-<link rel="import" href="../../third_party/polymer/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/third_party/polymer/components/core-overlay/core-overlay.html">
+<link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
 
 <polymer-element
     name="overlay-message"
-    attributes="text autoCloseDisabled transition duration opened maxWidth">
+    attributes="text autoCloseDisabled transition duration opened maxWidth
+                delay">
   <template>
     <style>
       :host {
         border: 1px solid #f0c36d;
         background-color: #f9edbe;
-        padding: 4px;
-        position: static !important;
       }
 
       #container {
         overflow: hidden;
+        margin: 5px;
       }
     </style>
 
@@ -59,6 +59,7 @@ by overriding style attributes:
   </template>
 
   <script>
+    'use strict';
     Polymer('overlay-message', {
 
       /**
@@ -71,42 +72,49 @@ by overriding style attributes:
        */
       autoCloseDisabled: false,
 
+      /**
+       * Number of milliseconds to wait before opening.
+       */
+      delay: 0,
+
       ready: function() {
-        this.$.overlay.addEventListener(
-            'core-overlay-close-completed',
-            this.onCoreOverlayClosed.bind(this), false);
+        this.defaultConfig = {
+          'duration': this.duration,
+          'autoCloseDisabled': this.autoCloseDisabled,
+          'delay': this.delay
+        };
       },
 
       /**
        * Update content and open 'overlay-message'.  If 'overlay-message' is
        * already opened, it will close then re-open.
+       * @param {string} content String message to display.
+       * @param {Object} config Dictionary of 'overlay-message' attributes to
+       *    use for this message.
        */
-      updateContent: function(content) {
+      updateContent: function(content, config) {
+        this.setConfig(config);
         this.$.content.innerHTML = content;
-        if (this.opened) {
-          this.shouldOpen = true;
+        if (this.delay > 0) {
+          if (this.showJob) {
+            this.showJob.stop();
+          }
+          this.showJob = this.job(this.showJob, this.show, this.delay);
         } else {
           this.show();
         }
       },
 
-      /**
-       * On "opened" changed, add a timer to hide overlay.
-       */
-      openedChanged: function() {
-        if (this.opened && this.duration > 0) {
-          this.hideJob && this.hideJob.stop();
-          this.hideJob = this.job(this.hideJob, this.hide, this.duration);
+      setConfig: function(config) {
+        config = config || this.defaultConfig;
+        if ('duration' in config) {
+          this.duration = config['duration'];
         }
-      },
-
-      /**
-       * Handler for core overlay closed event.
-       */
-      onCoreOverlayClosed: function(event) {
-        if (this.shouldOpen) {
-          this.shouldOpen = false;
-          this.show();
+        if ('autoCloseDisabled' in config) {
+          this.autoCloseDisabled = config['autoCloseDisabled'];
+        }
+        if ('delay' in config) {
+          this.delay = config['delay'];
         }
       },
 
@@ -114,6 +122,9 @@ by overriding style attributes:
        * Hide this overlay message.
        */
       hide: function() {
+        if (this.showJob) {
+          this.showJob.stop();
+        }
         this.opened = false;
       },
 
@@ -121,6 +132,15 @@ by overriding style attributes:
        * Show this overlay message.
        */
       show: function() {
+        if (this.hideJob) {
+          this.hideJob.stop();
+        }
+        if (this.showJob) {
+          this.showJob.stop();
+        }
+        if (this.duration > 0) {
+          this.hideJob = this.job(this.hideJob, this.hide, this.duration);
+        }
         this.opened = true;
       },
     });

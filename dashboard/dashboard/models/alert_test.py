@@ -15,20 +15,16 @@ from dashboard.models import anomaly
 class AlertTest(testing_common.TestCase):
   """Test case for some functions in anomaly."""
 
-  def _AddDataForTests(self):
-    testing_common.AddDataToMockDataStore(
-        ['SuperGPU'], ['Bot1', 'Bot2', 'Bot3'], {'foo': {'bar': {}}})
-
   def testGetBotNamesFromAlerts_EmptyList_ReturnsEmptySet(self):
     """Tests that an empty set is returned when nothing is passed."""
     self.assertEqual(set(), alert.GetBotNamesFromAlerts([]))
 
   def testGetBotNamesFromAlerts_RemovesDuplicates(self):
     """Tests that duplicates are removed from the result."""
-    self._AddDataForTests()
-    test_key_1 = utils.TestKey('SuperGPU/Bot1/foo/bar')
-    anomaly.Anomaly(test=test_key_1).put()
-    anomaly.Anomaly(test=test_key_1).put()
+    testing_common.AddTests(
+        ['SuperGPU'], ['Bot1'], {'foo': {'bar': {}}})
+    anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
+    anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
     anomalies = anomaly.Anomaly.query().fetch()
     bot_names = alert.GetBotNamesFromAlerts(anomalies)
     self.assertEqual(2, len(anomalies))
@@ -36,13 +32,11 @@ class AlertTest(testing_common.TestCase):
 
   def testGetBotNamesFromAlerts_TypicalCase(self):
     """Tests that we can get the name of the bots for a list of anomalies."""
-    self._AddDataForTests()
-    test_key_1 = utils.TestKey('SuperGPU/Bot1/foo/bar')
-    test_key_2 = utils.TestKey('SuperGPU/Bot2/foo/bar')
-    test_key_3 = utils.TestKey('SuperGPU/Bot3/foo/bar')
-    anomaly.Anomaly(test=test_key_1).put()
-    anomaly.Anomaly(test=test_key_2).put()
-    anomaly.Anomaly(test=test_key_3).put()
+    testing_common.AddTests(
+        ['SuperGPU'], ['Bot1', 'Bot2', 'Bot3'], {'foo': {'bar': {}}})
+    anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
+    anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot2/foo/bar')).put()
+    anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot3/foo/bar')).put()
     anomalies = anomaly.Anomaly.query().fetch()
     bot_names = alert.GetBotNamesFromAlerts(anomalies)
     self.assertEqual({'Bot1', 'Bot2', 'Bot3'}, bot_names)

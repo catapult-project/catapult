@@ -43,9 +43,6 @@ class Bug(ndb.Model):
       ],
       indexed=True)
 
-  # List of owner's email that was cced.
-  cced_owners = ndb.StringProperty(repeated=True)
-
   # The time that the Bug entity was created.
   timestamp = ndb.DateTimeProperty(indexed=True, auto_now_add=True)
 

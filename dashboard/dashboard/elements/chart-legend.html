@@ -1,39 +1,32 @@
 <!--
 Attributes:
-  tests: A list of trace names.
+  seriesGroupList: A list of trace names.
   indicesToGraph: List of indices of traces that are selected.
-  coreEndIndex: Index of the last "core" trace, or -1 if none.
-  disableUnselected: Whether non-selected traces should be non-selectable
-      (i.e. if they're still loading)
 -->
-<polymer-element name="chart-legend" attributes="tests indicesToGraph coreEndIndex disableUnselected">
+<link rel="import" href="/third_party/polymer/components/core-selector/core-selector.html">
+<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="/third_party/polymer/components/paper-progress/paper-progress.html">
+<link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
+
+<link rel="import" href="/dashboard/elements/tooltip-test-description.html">
+
+<polymer-element name="chart-legend"
+                 attributes="seriesGroupList indicesToGraph showCompact
+                             collapseLegend deltaAbsolute deltaPercent showDelta">
   <template>
     <style>
-      .header {
-        margin-bottom: 1em;
+      .row {
+        margin-bottom: 2px;
+        opacity: 1;
       }
 
-      .header input[type=checkbox] {
-        vertical-align: top;
+      .row:hover core-icon.info {
+        visibility: visible;
       }
 
-      div[loading] {
+      .row[loading] {
         opacity: 0.5;
-      }
-
-      .test-name {
-        font-weight: bold;
-        margin-left: 10px;
-        word-break: break-all;
-      }
-
-      .dots {
-        float: right;
-      }
-
-      .test-description {
-        margin-bottom: 1em;
-        margin-top: 1em;
       }
 
       .last-important-test {
@@ -41,164 +34,544 @@ Attributes:
         margin-bottom: 10px;
       }
 
-      /* Make sure to update chartOptions.colors in chart-container.html too! */
-      .line-color-0 {color: #4D90FE;}
-      .line-color-1 {color: #FFE83B;}
-      .line-color-2 {color: #8E4EFE;}
-      .line-color-3 {color: #FFB83B;}
-      .line-color-4 {color: #194FA5;}
-      .line-color-5 {color: #A69413;}
-      .line-color-6 {color: #4C19A5;}
-      .line-color-7 {color: #A67113;}
-      .line-color-8 {color: #9DC3FF;}
-      .line-color-9 {color: #FFF293;}
-      .line-color-10 {color: #C19DFF;}
-      .line-color-11 {color: #FFD893;}
-      .line-color-12 {color: #5B81BF;}
-      .line-color-13 {color: #BFB251;}
-      .line-color-14 {color: #805BBF;}
-      .line-color-15 {color: #BF9751;}
-      .line-color-16 {color: #79ADFF;}
-      .line-color-17 {color: #FFEE6C;}
-      .line-color-18 {color: #AA7AFF;}
-      .line-color-19 {color: #FFCA6C;}
-      .line-color-20 {color: #3415B0;}
-      .line-color-21 {color: #04819E;}
-      .line-color-22 {color: #B40097;}
-      .line-color-23 {color: #FFCF00;}
-      .line-color-24 {color: #1C0772;}
-      .line-color-25 {color: #38B2CE;}
-      .line-color-26 {color: #750062;}
-      .line-color-27 {color: #A68700;}
-      .line-color-28 {color: #846FD7;}
-      .line-color-29 {color: #60B9CE;}
-      .line-color-30 {color: #D962C7;}
-      .line-color-31 {color: #FFE573;}
-      .line-color-32 {color: #3E2D84;}
-      .line-color-33 {color: #206676;}
-      .line-color-34 {color: #872277;}
-      .line-color-35 {color: #BFA430;}
-      .line-color-36 {color: #6549D7;}
-      .line-color-37 {color: #015367;}
-      .line-color-38 {color: #D936C0;}
-      .line-color-39 {color: #FFDB40;}
+      .series-set {
+        background: #f5f5f5;
+        box-sizing: border-box;
+        margin: 1px 1px 5px 1px;
+        padding: 3px;
+        width: 293px;
+      }
+
+      core-icon.info {
+        height: 15px;
+        width: 15px;
+        opacity: .75;
+        margin-left: 5px;
+        cursor: pointer;
+        visibility: hidden;
+      }
+
+      core-icon-button {
+        height: 18px;
+        width: 18px;
+        cursor: pointer;
+        margin: 0 0 0 3px;
+        padding: 0;
+      }
+
+      core-icon-button::shadow core-icon {
+        height: 18px;
+        width: 18px;
+      }
+
+      .test-name {
+        font-weight: normal;
+        word-break: break-all;
+        width: 100%;
+        margin-right: 2px;
+      }
+
+      .test-name[important] {
+        font-size: 105%;
+        font-weight: bolder;
+      }
+
+      /* Checkboxes */
+      input[type=checkbox]:checked::after {
+        font-size: 1.3em;
+        content: "✓";
+        position: absolute;
+        top: -5px;
+        left: -1px;
+      }
+
+      input[type=checkbox]:focus {
+        outline: none;
+        border-color: #4d90fe;
+      }
+
+      input[type=checkbox] {
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        border: 1px solid #c6c6c6;
+        border-radius: 1px;
+        box-sizing: border-box;
+        cursor: default;
+        position: relative;
+        padding: 0 10px 0 0;
+        margin-right: 10px;
+      }
+
+      .checkbox-container {
+        display: inline-table;
+      }
+
+      .bottom-more-btn {
+        color: blue;
+      }
+
+      .expand-link {
+        text-decoration: none;
+      }
+
+      #rhs {
+        margin: 8px 10px 20px 5px;
+        padding: 16px 2px 0 16px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        outline: 1px solid rgba(0,0,0,0.2);
+        font-size: 11px;
+        height: 246px;
+        width: 312px;
+        overflow-y: hidden;
+      }
+
+      #rhs[compact] {
+        width: 125px;
+      }
+
+      #rhs[collapse-legend] {
+        margin-top: 8px;
+        height: 25px;
+        width: 25px;
+        padding: 0;
+      }
+
+      #expand-legend-btn {
+        position: absolute;
+        right: 2px;
+        top: 1px;
+        opacity: .75;
+      }
+
+      #delta-off, #delta-drag {
+        margin-bottom: 5px;
+      }
+
+      #traces {
+        margin-bottom: 10px;
+      }
+
+      .trace-link {
+        text-decoration: none;
+      }
+
+      #sg-container {
+        width: 312px;
+        height: 205px;
+        overflow: auto;
+      }
+
+      #expand {
+        display: inline;
+      }
+
 
     </style>
-    <div id="checkboxes">
-      <template repeat={{tests}}>
-        <div id="{{index}}" loading?="{{loading}}">
-          <div class="header">
-            <label>
-              <input type="checkbox"
-                     checked="{{selected}}"
-                     on-change="{{onCheckboxChanged}}"
-                     disabled?="{{loading}}">
-              <span class="{{testColorClass}}"><span class="test-name">{{name}}</span></span>
-            </label>
-            <img class="dots" src="/dots.png" on-click="{{toggleDescription}}" data-test="{{name}}"></div>
-          <div class="details" id="{{name}}" hidden>
-            <div class="test-info">{{direction}} is better</div>
-            <div class="test-info">Units: {{units}}</div>
-            <div class="test-info test-description">{{description}}</div>
-            <div><a href="/new_points?pattern={{path}}">See new points</a></div>
-            <div><a href="/graph_csv?test_path={{path}}">Download as CSV</a></div>
-            <div><a href="/debug_alert?test_path={{path}}">Debug alert page</a></div>
-          </div>
+
+    <div id="rhs" compact?="{{showCompact}}" collapse-legend?="{{collapseLegend}}">
+      <paper-icon-button id="expand-legend-btn" icon="arrow-drop-down"
+                         title="legend" role="button"
+                         on-click="{{toggleLegend}}"></paper-icon-button>
+
+      <core-collapse id="collapsible-legend" opened?="{{!collapseLegend}}">
+
+        <template bind if="{{!showDelta}}">
+          <div id="delta-off">Click and drag graph to measure or zoom.</div>
+        </template>
+        <template bind if="{{showDelta}}">
+          Delta: {{deltaAbsolute}} or {{deltaPercent}}%.<br>
+          Click selected range to zoom.
+        </template>
+
+        <div id="traces">Traces:
+          <a href="javascript:void(0);"
+             class="trace-link"
+             on-click="{{onSelectAll}}">select all</a>
+          &#124;
+          <a href="javascript:void(0);"
+             class="trace-link"
+             on-click="{{onDeselectAll}}">deselect all</a>
+          &#124;
+          <a href="javascript:void(0);"
+             class="trace-link"
+             on-click="{{onSelectCore}}">core only</a>
         </div>
-      </template>
+
+        <!-- List of series group boxes starts here. -->
+        <div id="sg-container">
+          <template repeat="{{seriesGroup, groupIndex in seriesGroupList}}">
+
+            <paper-shadow z="1"
+                          class="series-set"
+                          draggable="true"
+                          on-dragstart="{{onSeriesDragStart}}"
+                          on-dragend="{{onSeriesDragEnd}}">
+
+              <div horizontal layout>
+                <input type="checkbox"
+                       on-change="{{onCheckAllCheckboxClicked}}"
+                       checked="{{seriesGroup.selection == 'all'}}"
+                       hidden?="{{seriesGroup.tests.length == 0}}">
+                <span flex four></span>
+                <core-icon-button icon="close"
+                                  on-click="{{onCloseSeriesGroupClicked}}"></core-icon-button>
+              </div>
+
+              <core-selector class="list" selected="{{multiSelected}}" multi>
+
+                <template repeat="{{test, testIndex in seriesGroup.tests}}">
+                  <div class="row" id="{{test.index}}"
+                       loading?="{{test.index == undefined}}"
+                       hidden?="{{test.hidden}}">
+
+                    <label horizontal layout center>
+
+                      <input type="checkbox"
+                             checked="{{test.selected}}"
+                             on-change="{{onCheckboxClicked}}"
+                             disabled?="{{test.index == undefined}}">
+                      <span class="test-name"
+                            important?="{{test.important}}"
+                            style="color:{{test.color}};"
+                            on-mouseover='{{seriesMouseover}}'
+                            on-mouseout='{{seriesMouseout}}'>
+                        {{test.name}}
+                        <core-icon icon="info-outline" class="info"
+                                   on-click="{{toggleDescription}}"></core-icon>
+                      </span>
+                    </label>
+
+                  </div>
+
+                </template>
+
+              </core-selector>
+
+              <div horizontal end-justified layout>
+                <template if="{{seriesGroup.numHidden > 0}}">
+                  <a href="javascript:void(0);" class="expand-link"
+                     on-click="{{onExpandSeriesClicked}}">{{seriesGroup.numHidden}} more</a>
+                </template>
+                <template if="{{seriesGroup.numHidden == 0}}">
+                  <a href="javascript:void(0);" class="expand-link"
+                     on-click="{{onExpandSeriesClicked}}">less</a>
+                </template>
+              </div>
+
+            </paper-shadow>
+
+          </template>
+        </div>
+
+
+      </core-collapse>
     </div>
+
   </template>
   <script>
+    'use strict';
     Polymer('chart-legend', {
-
-      /**
-       * Initializes this Polymer element.
-       */
-      ready: function() {
-        this.tests = [];
-      },
 
       /**
        * Shows or hides the detailed description for an item in the legend.
        */
       toggleDescription: function(event, detail, sender) {
-        var description = sender.parentNode.nextElementSibling;
-        description.hidden = !description.hidden;
-      },
-
-      /**
-       * Event handler for the change event for the checkboxes.
-       * Sets this.indicesToGraph to the set of currently selected indices.
-       */
-      onCheckboxChanged: function(event, detail, sender) {
-        // Update the indices to graph based on which ones are selected.
-        this.indicesToGraph = this.tests.reduce(
-          function(previousValue, currentValue, index, array) {
-            if (currentValue.selected) {
-              previousValue.push(index);
-            }
-            return previousValue;
-        }, []);
-      },
-
-      /**
-       * Changed watcher for this.indicesToGraph.
-       * Updates the state of this.tests.
-       */
-      indicesToGraphChanged: function() {
-        this.updateSelected();
-      },
-
-      /**
-       * Updates the state of this.tests based on this.indicesToGraph.
-       */
-      updateSelected: function() {
-        for (var i = 0; i < this.tests.length; i++) {
-          this.tests[i].selected = this.indicesToGraph.indexOf(i) != -1;
-        }
-      },
-
-      /**
-       * Changed watcher for this.disableUnselected.
-       * Marks unselected traces as loading, and thus disabled.
-       */
-      disableUnselectedChanged: function() {
-        for (var i = 0; i < this.tests.length; i++) {
-          if (this.disableUnselected && !this.tests[i].selected) {
-            this.tests[i].loading = true;
-          } else {
-            this.tests[i].loading = false;
-          }
-        }
-      },
-
-      /**
-       * Changed watcher for this.tests.
-       * Updates the legend element when test data arrives.
-       */
-      testsChanged: function() {
-        this.updateSelected();
-        this.disableUnselectedChanged();
-
-        // Show a line after the core traces in the appropriate spot.
-        var checkboxes = this.$.checkboxes;
-        if (!checkboxes) {
+        event.preventDefault();
+        var model = event.target.templateInstance.model;
+        var seriesGroup = this.seriesGroupList[model.groupIndex];
+        var test = seriesGroup.tests[model.testIndex];
+        if (test.index == undefined) {
           return;
         }
-        var coreEndIndex = this.coreEndIndex;
-        if (coreEndIndex == -1) {
-          return;  // No core traces.
-        }
-        // After update, show a line after the core traces.
-        window.setTimeout(function() {
-          // The first child in the checkboxes isn't a legend item.
-          var index = coreEndIndex + 1;
-          if (!checkboxes.children[index]) {
-            return;
+
+        var description = document.createElement('tooltip-test-description');
+        description.test = test;
+        document.getElementById('tooltip').set(
+            description, event.pageX, event.pageY);
+      },
+
+      /**
+       * Event handler for the change event of any of the checkboxes.
+       */
+      onCheckboxClicked: function(event, detail, sender) {
+        var model = event.target.templateInstance.model;
+        this.updateIndicesToGraph(model.test.index, sender.checked);
+        this.updateSeriesGroupCheckedState(model.seriesGroup);
+        this.updateNumHidden(model.seriesGroup);
+        this.fireChartStateChangedEvent();
+      },
+
+      /**
+       * Updates seriesGroup based on its tests selection state.
+       * A series group is a dictionary that describe the selection state
+       * for a set of series within a test path.
+       *
+       * seriesGroup has the following properties:
+       *   {
+       *        'path': 'ChromiumPerf/linux/dromaeo/Total',
+       *        'tests': [{
+       *             name: 'Total',
+       *             direction: 'Lower is better',
+       *             units: 'm/s',
+       *             etc...
+       *        }],
+       *        'selection': 'all',
+       *        'numHidden': null
+       *   }
+       *
+       * @param {Object} seriesGroup A group of series.
+       */
+      updateSeriesGroupCheckedState: function(seriesGroup) {
+        var allSelected = [];
+        var allUnselected = [];
+        seriesGroup.tests.forEach(function(test) {
+          if (test.selected) {
+            allSelected.push(test);
+          } else {
+            allUnselected.push(test);
           }
-          checkboxes.children[index].classList.add('last-important-test');
-        }, 0);
-      }
+        });
+
+        if (this.importantSelected(seriesGroup.tests)) {
+          seriesGroup.selection = 'important';
+        } else if (allSelected.length == seriesGroup.tests.length) {
+          seriesGroup.selection = 'all';
+        } else if (allUnselected.length == seriesGroup.tests.length) {
+          seriesGroup.selection = 'none';
+        } else {
+          seriesGroup.selection = null;
+        }
+      },
+
+      /**
+       * Returns true if only important series are selected.
+       */
+      importantSelected: function(tests) {
+        var hasImportant = false;
+        for (var i = 0; i < tests.length; i++) {
+          var test = tests[i];
+          if (test.important) {
+            if (!test.selected) {
+              return false;
+            }
+            hasImportant = true;
+          } else if (test.selected) {
+            return false;
+          }
+        }
+        return hasImportant;
+      },
+
+      /**
+       * Updates numHidden properties for a seriesGroup.  This is to show the
+       * number of hidden series link.
+       */
+      updateNumHidden: function(seriesGroup) {
+        var numHidden = 0;
+        var numCanHide = 0;
+        seriesGroup.tests.forEach(function(test) {
+          if (test.hidden) {
+            numHidden++;
+          } else if (!test.important && !test.checked) {
+            numCanHide++;
+          }
+        });
+
+        // Don't show more/less link if the only series shown are the important.
+        if (numHidden > 0) {
+          seriesGroup.numHidden = numHidden;
+        } else if (numCanHide > 0) {
+          seriesGroup.numHidden = 0;
+        } else {
+          seriesGroup.numHidden = null;
+        }
+      },
+
+      /**
+       * Event handler for the change event of check all checkboxes.
+       */
+      onCheckAllCheckboxClicked: function(event, detail, sender) {
+        var model = event.target.templateInstance.model;
+        var groupIndex = model.groupIndex;
+
+        this.seriesGroupList[groupIndex].selection = (
+            sender.checked ? 'all' : 'none');
+        var tests = this.seriesGroupList[groupIndex].tests;
+        for (var i = 0; i < tests.length; i++) {
+          if (tests[i].index != undefined) {
+            tests[i].selected = sender.checked;
+            this.updateIndicesToGraph(tests[i].index, sender.checked);
+          }
+        }
+
+        this.fireChartStateChangedEvent();
+      },
+
+      /**
+       * Event handler for series group close button clicked.
+       */
+      onCloseSeriesGroupClicked: function(event, detail, sender) {
+        var model = event.target.templateInstance.model;
+        this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
+      },
+
+      /**
+       * Event handler for click event of expand link.
+       */
+      onExpandSeriesClicked: function(event, detail, sender) {
+        var groupIndex = event.target.templateInstance.model.groupIndex;
+        var isCollapse = sender.text == 'less' ? true : false;
+        var seriesGroup = this.seriesGroupList[groupIndex];
+        seriesGroup.tests.forEach(function(test) {
+          if (isCollapse) {
+            if (!test.selected && !test.important) {
+              test.hidden = true;
+            }
+          } else {
+            test.hidden = false;
+          }
+        });
+        this.updateNumHidden(seriesGroup);
+      },
+
+      /**
+       * On series group box drag-start, set data to be transferred to on
+       * drop event.
+       */
+      onSeriesDragStart: function(event, detail, sender) {
+        var groupIndex = event.target.templateInstance.model.groupIndex;
+        var testPath = this.seriesGroupList[groupIndex].path;
+        var selectedTests = [];
+        var tests = this.seriesGroupList[groupIndex].tests;
+        for (var i = 0; i < tests.length; i++) {
+          if (tests[i].selected) {
+            selectedTests.push(tests[i].name);
+          }
+        }
+        event.dataTransfer.setData('type', 'seriesdnd');
+        // chart-container takes a list of test path and selected tests pair.
+        event.dataTransfer.setData(
+          'data', JSON.stringify([[testPath, selectedTests]]));
+        event.dataTransfer.effectAllowed = 'copy';
+      },
+
+      /**
+       * On series group box drag-end, checks if drop target is valid,
+       * and remove series group.
+       */
+      onSeriesDragEnd: function(event, detail, sender) {
+        // Successful drop.
+        if (event.dataTransfer.dropEffect == 'copy') {
+          var model = event.target.templateInstance.model;
+          // Let chart-container handle removing this group series.
+          this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
+        }
+      },
+
+      fireChartStateChangedEvent: function() {
+        this.fire('chartstatechanged', {
+          target: this,
+          stateName: 'chartstatechanged',
+          state: this.seriesGroupList
+        });
+      },
+
+      /**
+       * Handler for the click event of the select all traces button.
+       * Updates this.indicesToGraph to contain all traces.
+       * @param {Event} opt_noEvent The click event, not used.
+       */
+      onSelectAll: function(opt_noEvent) {
+        this.indicesToGraph = [];
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          var group = this.seriesGroupList[i];
+          for (var i = 0; i < group.tests.length; i++) {
+            group.tests[i].selected = true;
+            this.indicesToGraph.push(group.tests[i].index);
+          }
+          this.updateSeriesGroupCheckedState(group);
+          this.updateNumHidden(group);
+        }
+        this.fireChartStateChangedEvent();
+      },
+
+      /**
+       * Handler for the click event of the deselect all traces button.
+       * @param {Event} opt_noEvent The click event, not used.
+       */
+      onDeselectAll: function(opt_noEvent) {
+        this.indicesToGraph = [];
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          var group = this.seriesGroupList[i];
+          for (var i = 0; i < group.tests.length; i++) {
+            group.tests[i].selected = false;
+          }
+          this.updateSeriesGroupCheckedState(group);
+          this.updateNumHidden(group);
+        }
+        this.fireChartStateChangedEvent();
+      },
+
+      /**
+       * Handler for the click event of the select core traces button.
+       * Selects only the core traces (i.e. important and ref traces).
+       * Note: The property 'coreTraces' is set in graph.js.
+       * @param {Event} opt_event The click event, not used.
+       */
+      onSelectCore: function(opt_noEvent) {
+        this.indicesToGraph = [];
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          var group = this.seriesGroupList[i];
+          for (var i = 0; i < group.tests.length; i++) {
+            var test = group.tests[i];
+            test.selected = test.important;
+            this.updateIndicesToGraph(test.index, test.selected);
+          }
+          this.updateSeriesGroupCheckedState(group);
+          this.updateNumHidden(group);
+        }
+        this.fireChartStateChangedEvent();
+      },
+
+      seriesMouseover: function(event, detail, sender) {
+        var model = event.target.templateInstance.model;
+        this.fire('seriesmouseover', {
+          'index': model.test.index
+        });
+      },
+
+      seriesMouseout: function(event, detail, sender) {
+        var model = event.target.templateInstance.model;
+        this.fire('seriesmouseout', {
+          'index': model.test.index
+        });
+      },
+
+      /**
+       * Adds or removes a series index from |this.indicesToGraph|.
+       * @param {number} index The index to add or remove.
+       * @param {boolean} selected Whether to add the index.
+       */
+      updateIndicesToGraph: function(index, selected) {
+        if (selected) {
+          if (this.indicesToGraph.indexOf(index) == -1) {
+            this.indicesToGraph.push(index);
+          }
+        } else {
+          if (this.indicesToGraph.indexOf(index) != -1) {
+            this.indicesToGraph.splice(this.indicesToGraph.indexOf(index), 1);
+          }
+        }
+      },
+
+      /**
+       * Toggles legend window to collapse or expand.
+       */
+      toggleLegend: function() {
+        this.$['collapsible-legend'].toggle();
+        this.collapseLegend = !this.collapseLegend;
+      },
     });
   </script>
 </polymer-element>

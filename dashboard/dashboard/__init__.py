@@ -26,4 +26,4 @@ THIRD_PARTY_LIBRARIES = [
 
 
 for library_dir in THIRD_PARTY_LIBRARIES:
-  sys.path.append(os.path.join(_THIRD_PARTY_DIR, library_dir))
+  sys.path.insert(0, os.path.join(_THIRD_PARTY_DIR, library_dir))

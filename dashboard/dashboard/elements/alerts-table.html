@@ -1,8 +1,10 @@
-<link rel="import" href="../../third_party/polymer/components/paper-button/paper-button.html">
-<link rel="import" href="bisect-status.html">
-<link rel="import" href="bug-info-span.html">
-<link rel="import" href="revision-range.html">
-<link rel="import" href="triage-dialog.html">
+<link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
+
+<link rel="import" href="/dashboard/elements/bisect-status.html">
+<link rel="import" href="/dashboard/elements/bug-info-span.html">
+<link rel="import" href="/dashboard/elements/revision-range.html">
+<link rel="import" href="/dashboard/elements/triage-dialog.html">
+<link rel="import" href="/static/uri.html">
 
 <polymer-element name="alerts-table"
                  attributes="sortBy sortDirection xsrfToken">
@@ -12,6 +14,8 @@
         border-collapse: collapse;
         border-spacing: 0;
         font-size: small;
+        table-layout: fixed;
+        width: 100%;
       }
 
       #alerts thead {
@@ -20,6 +24,7 @@
 
       #alerts thead th {
         font-weight: bold;
+        text-align: left;
       }
 
       #alerts thead th,
@@ -33,8 +38,27 @@
         outline: none;
       }
 
-      #alerts #checkheader {
+      #alerts #groupheader {
+        padding: 3px;
+        width: 23px;
+      }
+
+      #alerts #checkheader, #alerts #graphheader {
         padding: 0;
+        width: 30px;
+      }
+
+      #alerts #bug_id {
+        width: 75px;
+      }
+
+      #alerts #end_revision, #alerts #master {
+        width: 100px;
+      }
+
+      #alerts #percent_changed {
+        text-align: right;
+        width: 50px;
       }
 
       #alerts tbody tr {
@@ -49,6 +73,7 @@
       #alerts tbody td {
         padding: 3px 5px 3px 5px;
         position: relative;
+        word-wrap: break-word;
       }
 
       #alerts tbody td:first-child {
@@ -99,40 +124,32 @@
         padding: 0;
       }
 
-      th[data-sort-direction=down] {
-        background-image: url('/down_icon.png');
-        background-origin: padding-box;
-        background-position: right;
-        background-repeat: no-repeat;
-        background-size: 10px;
+      th[data-sort-direction=down]::after {
+        content: " ▼";
       }
 
-      th[data-sort-direction=up] {
-        background-image: url('/up_icon.png');
-        background-origin: padding-box;
-        background-position: right;
-        background-repeat: no-repeat;
-        background-size: 10px;
+      th[data-sort-direction=up]::after {
+        content: " ▲";
       }
 
-      .delta {
+      .percent_changed {
         color: #a00;
         width: 70px;
         text-align: right;
         word-wrap: break-word;
       }
 
-      tr[improvement] .delta {
+      tr[improvement] .percent_changed {
         color: #0a0;
       }
 
       /* Checkboxes */
       input[type=checkbox]:checked::after {
-        content: url(/check_no_box.png);
-        display: block;
+        font-size: 1.3em;
+        content: "✓";
         position: absolute;
-        top: -6px;
-        left: -5px;
+        top: -5px;
+        left: -1px;
       }
 
       input[type=checkbox]:focus {
@@ -177,6 +194,8 @@
       .graph-icon {
         vertical-align: middle;
         opacity: 0.6;
+        height: 14px;
+        width: 14px;
       }
 
       /* The kd-button class is used for the numbers next to rows
@@ -250,11 +269,11 @@
     <table id="alerts">
       <thead>
       <tr>
-        <th hidden?={{!isGroupView}}></th>
+        <th id="groupheader" hidden?={{!isGroupView}}></th>
         <th id="checkheader">
           <input type="checkbox" id="header-checkbox" on-change="{{onHeaderCheckboxChange}}">
         </th>
-        <th></th>
+        <th id="graphheader"></th>
         <th id="bug_id" on-click="{{columnHeaderClicked}}">Bug ID</valth>
         <th id="end_revision" on-click="{{columnHeaderClicked}}">Revisions</th>
         <th id="master" on-click="{{columnHeaderClicked}}">Master</th>
@@ -291,13 +310,14 @@
 
           <td>
             <a href="{{dashboard_link}}" target="_blank">
-              <img class="graph-icon" src="/graph.png" alt="Open Graph">
+              <core-icon class="graph-icon" icon="launch" alt="Open Graph"></core-icon>
             </a>
           </td>
 
           <td hidden?="{{hide_bug_id}}">
             <bug-info-span bugId="{{bug_id}}"
                            key="{{key}}"
+                           recovered?="{{recovered}}"
                            xsrfToken="{{xsrfToken}}"
                            on-untriaged="{{onUntriaged}}">
             </bug-info-span>
@@ -322,6 +342,8 @@
     </table>
   </template>
   <script>
+  'use strict';
+
   (function() {
 
     /**
@@ -383,8 +405,8 @@
        */
       initialize: function() {
         this.alertList.forEach(function(alert) {
-          // The xsrf token is set for each row of the table here so that the
-          // alert-remove-box in each row can also have the xsrf token.
+          // The XSRF token is set for each row of the table here so that the
+          // alert-remove-box in each row can also have the XSRF token.
           alert.xsrfToken = this.xsrfToken;
         }, this);
         this.initRowsBasedOnQueryParameters();
@@ -454,7 +476,8 @@
         }
         var orderedAlertList = [];
         for (var i = alertOrder.length - 1; i >= 0; i--) {
-          orderedAlertList.push.apply(orderedAlertList, groupMap[alertOrder[i]]);
+          orderedAlertList.push.apply(
+              orderedAlertList, groupMap[alertOrder[i]]);
         }
         this.alertList = orderedAlertList;
         this.addEllipsis();
@@ -535,7 +558,7 @@
         // to see the graphs right away, but we also don't want to select too
         // many alerts at once.
         if (uri.getParameter('bug_id') &&
-            this.alertList.length <= this.NUM_ALERTS_TO_CHECK_ON_INIT)  {
+            this.alertList.length <= this.NUM_ALERTS_TO_CHECK_ON_INIT) {
           this.selectFirstNAlerts(this.NUM_ALERTS_TO_CHECK_ON_INIT);
         }
 
@@ -727,7 +750,8 @@
          * Compares two alert Objects to determine which should come first.
          * @param {Object} alertA The first alert.
          * @param {Object} alertB The second alert.
-         * @return A negative number if alertA is first, positive otherwise.
+         * @return {number} A negative number if alertA is first, or a
+         *      positive number otherwise.
          */
         var compareAlerts = function(alertA, alertB) {
           var valA = String(alertA[sortBy]).toLowerCase();
@@ -737,8 +761,8 @@
           // numerically. Otherwise, compare lexically.
           var parseNumber = function(str) {
             return Number(str.match(/^\d*(\.\d+)?/)[0]);
-          }
-          var numA = parseNumber(valA)
+          };
+          var numA = parseNumber(valA);
           var numB = parseNumber(valB);
           if (numA && numB) {
             var result = numA - numB;
@@ -780,9 +804,8 @@
        * revision range for alerts with ranges [110, 120] and [120, 130] is
        * [120, 120].
        *
-       * @param {Array.<Object>}
-       *
-       * @return {(Object|null)} An object containing start and end revision,
+       * @param {Array.<Object>} alerts
+       * @return {?Object} An object containing start and end revision,
        *     or null if the checked alerts don't overlap.
        */
       getMinimumRevisionRange: function(alerts) {
@@ -827,7 +850,7 @@
       },
 
       /**
-       * Highlights alerts that overlap with checked alerts minimum revision range.
+       * Highlights alerts that overlap with checked alerts revision range.
        */
       updateHighlights: function() {
         this.alertList.forEach(function(alertRow) {
@@ -935,8 +958,8 @@
       },
 
       /**
-       * Disables or enables the triage and graph buttons depending on whether there
-       * are any alerts currently checked.
+       * Disables or enables the triage and graph buttons depending on whether
+       * there are any alerts currently checked.
        */
       maybeDisableButtons: function() {
         var buttonsDisabled = this.checkedAlerts.length == 0;
@@ -945,7 +968,8 @@
       },
 
       /**
-       * Opens a new window on the /report page for the currently checked alerts.
+       * Opens a new window on the /report page for the currently checked
+       * alerts.
        */
       showGraphs: function() {
         window.open(getGraphUri(this.checkedAlerts));

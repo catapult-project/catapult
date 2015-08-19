@@ -51,7 +51,7 @@ class MrTest(testing_common.TestCase):
 
   def _AddMockDataForDeprecatedTests(self):
     """Adds some sample data, some of which only has old timestamps."""
-    testing_common.AddDataToMockDataStore(['ChromiumPerf'], ['win7'], _TESTS)
+    testing_common.AddTests(['ChromiumPerf'], ['win7'], _TESTS)
 
     trace_a = utils.TestKey('ChromiumPerf/win7/suite/graph_a/trace_a').get()
     trace_b = utils.TestKey('ChromiumPerf/win7/suite/graph_b/trace_b').get()

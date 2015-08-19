@@ -4,10 +4,6 @@
 
 """Updates the metadata for tests from descriptions in Chromium source.
 
-Reads this file from src/tools/perf from git.chromium.org via HTTP:
-
-  tools/perf/unit-info.json  - Units, and improvement direction for each unit.
-
 TODO(qyearsley): Remove this request handler when units are updated from
     metadata that is sent along with test results.
 """
@@ -23,7 +19,7 @@ from dashboard import request_handler
 from dashboard import units_to_direction
 
 # Paths to the unit and test description metadata files in chromium/src.
-_UNIT_JSON_PATH = 'tools/perf/unit-info.json'
+_UNIT_JSON_PATH = 'tools/telemetry/telemetry/value/unit-info.json'
 
 
 class UpdateTestMetadataHandler(request_handler.RequestHandler):
@@ -47,7 +43,6 @@ class UpdateTestMetadataHandler(request_handler.RequestHandler):
     if units_data:
       units_to_direction.UpdateFromJson(units_data)
     else:
-      # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
       self.ReportError('Could not fetch or parse unit data.')
 
 
@@ -55,12 +50,10 @@ def _GetAndParseChromiumJsonFile(path):
   """Fetches and parses JSON file in the chromium/src repository."""
   downloaded_json = DownloadChromiumFile(path)
   if not downloaded_json:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     return None
   try:
     return json.loads(downloaded_json)
   except ValueError:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     logging.error('Failed to load JSON "%s" from "%s".', downloaded_json, path)
     return None
 
@@ -68,18 +61,14 @@ def _GetAndParseChromiumJsonFile(path):
 def DownloadChromiumFile(path):
   """Downloads a file in the chromium/src repository.
 
-  This used to be done using the gitweb interface (at git.chromium.org), but
-  this changed at some point. Instead of using that, we can also use gitiles
-  (at chromium.googlesource.com).
-
-  As of August 2014, gitiles doesn't seem to support fetching files as plain
-  text, but supports fetching base-64 encodings of files, so we use that.
-  used. If it supports fetching plain text in the future, that could also be
-  used, and may be simpler.
+  This function uses gitiles to fetch files. As of August 2014, gitiles
+  doesn't seem to support fetching files as plain text, but supports
+  fetching base-64 encodings of files, so we use that.  used. If it
+  supports fetching plain text in the future, that could also be used,
+  and may be simpler.
 
   Args:
-    path: Path to a file in the main chromium/src repository (without a leading
-        slash or a leading "src/").
+    path: Path to a file in src repository, without a leading slash or "src/".
 
   Returns:
     The contents of the file as a string or None on failure.
@@ -88,13 +77,11 @@ def DownloadChromiumFile(path):
   url = '%s%s?format=TEXT' % (base_url, path)
   response = urlfetch.fetch(url)
   if response.status_code != 200:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     logging.error('Got %d fetching "%s".', response.status_code, url)
     return None
   try:
     plaintext_content = base64.decodestring(response.content)
   except binascii.Error:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
     logging.error('Failed to decode "%s" from "%s".', response.content, url)
     return None
   return plaintext_content

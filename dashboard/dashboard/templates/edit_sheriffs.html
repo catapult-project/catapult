@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block head %}
   <title>Edit Sheriff Rotations</title>
-  <link type="text/css" rel="stylesheet" href="{{static_dir}}/main_style.css">
   <script>
+  'use strict';
   // This should be an Object mapping sheriff names to Objects which
   // have the properties for each sheriff rotation, including
   // "url", "email", "patterns", "internal_only", and "summarize".
-  var SHERIFF_DATA = {{sheriffs_json|safe}};
+  var SHERIFF_DATA = {{sheriffs_json | safe}};
   var XSRF_TOKEN = '{{xsrf_token}}';
 
   /**
@@ -16,7 +16,7 @@
     var addListener = function(elementId, eventName, callback) {
       var element = document.getElementById(elementId);
       element.addEventListener(eventName, callback, true);
-    }
+    };
     addListener('edit-name', 'change', onEditFocus);
     addListener('edit-name', 'focus', onEditFocus);
     addListener('edit-radio', 'focus', onEditFocus);
@@ -66,6 +66,7 @@
 
   /**
    * Shows a list of all the tests for a given sheriff.
+   * @param {Event} clickEvent The click event that this function handles.
    */
   function listTests(clickEvent) {
     var selectMenu = document.getElementById('edit-name');
@@ -81,7 +82,7 @@
     };
     xhr.open(
         'GET', '/list_monitored_tests?get-sheriffed-by=' +
-        encodeURIComponent(sheriffName))
+        encodeURIComponent(sheriffName));
     xhr.send();
     document.getElementById('matching-list').innerHTML =
         '<img src="//www.google.com/images/loading.gif">';
@@ -100,7 +101,7 @@
   name comes first according to lexicographical sort order will apply.</p>
 
   <form method="POST">
-    {{xsrf_input|safe}}
+    {{xsrf_input | safe}}
     <label>
       <input type="radio" name="add-edit" id="add-radio" value="add" checked>
       Add a new config named:
@@ -124,7 +125,8 @@
         <td><input type="email" name="email" id="email" size=75></td>
       </tr>
       </tr>
-        <td><label for="email">Days before alerting on missing data (-1 for no alerts):</label></td>
+        <td><label for="email">Days before alerting on missing data
+        (-1 for no alerts):</label></td>
         <td><input type="number"
                    name="stoppage-alert-delay"
                    id="stoppage-alert-delay"
@@ -133,15 +135,19 @@
       <tr>
         <td>Internal-only:</td>
         <td>
-          <label><input type="radio" name="internal-only" id="internal-only-yes" value="true" checked>yes</label>
-          <label><input type="radio" name="internal-only" id="internal-only-no" value="false">no</label>
+          <label><input type="radio" name="internal-only" id="internal-only-yes"
+                        value="true" checked>yes</label>
+          <label><input type="radio" name="internal-only" id="internal-only-no"
+                        value="false">no</label>
         </td>
       </tr>
       <tr>
         <td>Summarize Email:</td>
         <td>
-          <label><input type="radio" name="summarize" id="summarize-yes" value="true">yes</label>
-          <label><input type="radio" name="summarize" id="summarize-no" value="false" checked>no</label>
+          <label><input type="radio" name="summarize" id="summarize-yes"
+                        value="true">yes</label>
+          <label><input type="radio" name="summarize" id="summarize-no"
+                        value="false" checked>no</label>
         </td>
       </tr>
     </table>

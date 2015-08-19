@@ -1,19 +1,22 @@
 <polymer-element name="xhr-element">
   <script>
+    'use strict';
     Polymer('xhr-element', {
       LOGIN_ERROR_MESSAGE: 'Please check if you are logged in with a ' +
                            'google.com or chromium.org account in the ' +
                            'upper right corner of the page.',
-      handleError: function(req, callback) {
+
+      handleError: function(request, callback) {
         callback(this.LOGIN_ERROR_MESSAGE);
       },
-      handleLoad: function(req, loadCallback, errorCallback) {
-        if (req.status != 200) {
-          errorCallback('HTTP error ' + req.status);
+
+      handleLoad: function(request, loadCallback, errorCallback) {
+        if (request.status != 200) {
+          errorCallback('HTTP error ' + request.status);
           return;
         }
         try {
-          var response = JSON.parse(req.responseText);
+          var response = JSON.parse(request.responseText);
         } catch (e) {
           errorCallback(this.LOGIN_ERROR_MESSAGE);
           return;
@@ -24,19 +27,21 @@
         }
         loadCallback(response);
       },
+
       send: function(url, xsrfToken, params, loadCallback, errorCallback) {
         var postdata = 'xsrf_token=' + encodeURIComponent(xsrfToken);
         for (var name in params) {
           postdata += '&' + name + '=' + encodeURIComponent(params[name]);
         }
-        var req = new XMLHttpRequest();
-        req.onerror = this.handleError.bind(this, req, errorCallback);
-        req.onload = this.handleLoad.bind(this, req, loadCallback, errorCallback);
-        req.open('post', url, true);
-        req.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
-        req.send(postdata);
-        return req;
+        var request = new XMLHttpRequest();
+        request.onerror = this.handleError.bind(this, request, errorCallback);
+        request.onload = this.handleLoad.bind(
+            this, request, loadCallback, errorCallback);
+        request.open('post', url, true);
+        request.setRequestHeader(
+            'Content-type', 'application/x-www-form-urlencoded');
+        request.send(postdata);
+        return request;
       }
     });
   </script>

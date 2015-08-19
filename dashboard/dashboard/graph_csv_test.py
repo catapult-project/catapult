@@ -13,7 +13,6 @@ import webtest
 
 from dashboard import datastore_hooks
 from dashboard import graph_csv
-from dashboard import ip_whitelist
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import graph_data
@@ -26,14 +25,6 @@ class GraphCsvTest(testing_common.TestCase):
     app = webapp2.WSGIApplication([('/graph_csv', graph_csv.GraphCsvHandler)])
     self.testapp = webtest.TestApp(app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
-
-  def _SetUpIpWhitelist(self):
-    """Adds an IP whitelist and returns whitelisted IP."""
-    whitelisted_ip = '123.45.67.89'
-    whitelist = ip_whitelist.IpWhitelist(
-        id=ip_whitelist.WHITELIST_KEY, ips=[whitelisted_ip])
-    whitelist.put()
-    return whitelisted_ip
 
   def _AddMockData(self):
     master = graph_data.Master(id='ChromiumPerf').put()
@@ -151,18 +142,18 @@ class GraphCsvTest(testing_common.TestCase):
 
   def testGet_WithNonInternalUserAndWhitelistedIP(self):
     self._AddMockInternalData()
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     datastore_hooks.InstallHooks()
-    self._SetUpIpWhitelist()
+    testing_common.SetIpWhitelist(['123.45.67.89'])
     query = '/graph_csv?test_path=ChromiumPerf/win7/dromaeo/dom&num_points=3'
     expected = [['revision', 'value']]
     self._CheckGet(query, expected)
 
   def testGet_WhitelistedIPOnly(self):
     self._AddMockInternalData()
-    self.SetCurrentUser(None, user_id=None, is_admin=False)
+    self.UnsetCurrentUser()
     datastore_hooks.InstallHooks()
-    whitelisted_ip = self._SetUpIpWhitelist()
+    testing_common.SetIpWhitelist(['123.45.67.89'])
     query = '/graph_csv?test_path=ChromiumPerf/win7/dromaeo/dom&num_points=3'
     expected = [
         ['revision', 'value'],
@@ -170,13 +161,13 @@ class GraphCsvTest(testing_common.TestCase):
         ['48', '96.0'],
         ['49', '98.0']
     ]
-    self._CheckGet(query, expected, whitelisted_ip=whitelisted_ip)
+    self._CheckGet(query, expected, whitelisted_ip='123.45.67.89')
 
   def testGet_NoTestPathGiven_GivesError(self):
-    whitelisted_ip = self._SetUpIpWhitelist()
+    testing_common.SetIpWhitelist(['123.45.67.89'])
     self.testapp.get(
         '/graph_csv',
-        extra_environ={'REMOTE_ADDR': whitelisted_ip},
+        extra_environ={'REMOTE_ADDR': '123.45.67.89'},
         status=400)
 
 
