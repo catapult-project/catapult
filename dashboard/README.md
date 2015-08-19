@@ -30,26 +30,17 @@ for example `./run_tests.py dashboard.utils_test`.
 
 ## To run locally
 
-To run a local App Engine server, you can run `dev\_appserver.py .`.
-This requires installing the App Engine SDK. See [dev\_appserver](
-https://cloud.google.com/appengine/docs/python/tools/devserver)
-documentation.
+TODO: Fill in this section when a custom dev server script is added.
 
 ## Deploying to production
 
-To deploy, you can run `./deploy.sh`, which prepares the code to be
+To deploy, you can run `./deploy.py`, which prepares the code to be
 deployed and runs `appcfg.py`. This requires having the App Engine SDK
 directory in your `PATH`.
 
-This doesn't set the app as the default version, however. To do this,
-you can use the versions page on the
-[Google Developers Console](https://console.developers.google.com/),
-or you can run `appcfg.py --application=<appid> --version=<version>
-
-Other changes to production can be executed by running appcfg.py directly.
-See [appcfg](
-https://cloud.google.com/appengine/docs/python/tools/uploadinganapp)
-documentation.
+This doesn't set the new version as the default version.
+To do this, you can use the versions page on the
+[Google Developers Console](https://console.developers.google.com/).
 
 WARNING: Some changes to production may not be easily reversible; for example
 `appcfg.py ... vacuum\_indexes` will remove datastore indexes that are
