@@ -21,7 +21,7 @@ class FakePlatformBackend(object):
 
 class FakeAndroidPlatformBackend(FakePlatformBackend):
   def __init__(self):
-    devices = device_utils.DeviceUtils.HealthyDevices()
+    devices = device_utils.DeviceUtils.HealthyDevices(None)
     self.device = devices[0]
 
   def GetOSName(self):

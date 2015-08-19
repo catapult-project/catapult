@@ -22,7 +22,7 @@ class IOSDevice(device.Device):
     super(IOSDevice, self).__init__(name='ios', guid='ios')
 
   @classmethod
-  def GetAllConnectedDevices(cls):
+  def GetAllConnectedDevices(cls, blacklist):
     return []
 
 

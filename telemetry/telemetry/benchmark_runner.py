@@ -175,7 +175,8 @@ class List(command_line.OptparseCommand):
       with open(args.json_output_file, 'w') as f:
         f.write(_GetJsonBenchmarkList(possible_browser,
                                       possible_reference_browser,
-                                      args.benchmarks, args.num_shards))
+                                      args.benchmarks, args.num_shards,
+                                      args.blacklist_file))
     else:
       PrintBenchmarkList(args.benchmarks, possible_browser)
     return 0

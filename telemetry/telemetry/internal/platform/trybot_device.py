@@ -10,7 +10,7 @@ class TrybotDevice(device.Device):
     super(TrybotDevice, self).__init__(name='trybot', guid='trybot')
 
   @classmethod
-  def GetAllConnectedDevices(cls):
+  def GetAllConnectedDevices(cls, blacklist):
     return []
 
 

@@ -28,5 +28,5 @@ class Device(object):
     return self._guid
 
   @classmethod
-  def GetAllConnectedDevices(cls):
+  def GetAllConnectedDevices(cls, blacklist):
     raise NotImplementedError()

@@ -411,15 +411,19 @@ doit &
     """
     my_device = str(self._device)
     addresses = []
-    for device_serial in android_device.GetDeviceSerials():
-      device = device_utils.DeviceUtils(device_serial)
-      if device_serial == my_device:
-        excluded = excluded_iface
-      else:
-        excluded = 'no interfaces excluded on other devices'
-      addresses += [line.split()[3]
-                    for line in device.RunShellCommand('ip -o -4 addr')
-                    if excluded not in line]
+    for device_serial in android_device.GetDeviceSerials(None):
+      try:
+        device = device_utils.DeviceUtils(device_serial)
+        if device_serial == my_device:
+          excluded = excluded_iface
+        else:
+          excluded = 'no interfaces excluded on other devices'
+        addresses += [line.split()[3]
+                      for line in device.RunShellCommand('ip -o -4 addr')
+                      if excluded not in line]
+      except device_errors.CommandFailedError:
+        logging.warning('Unable to determine IP addresses for %s',
+                        device_serial)
     return addresses
 
   def _ConfigureNetwork(self, device_iface, host_iface):
