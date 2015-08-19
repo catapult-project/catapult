@@ -12,7 +12,6 @@ from telemetry.internal.platform.profiler import monsoon
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import constants
-from pylib.device import device_blacklist
 from pylib.device import device_errors
 from pylib.device import device_utils
 
@@ -34,8 +33,8 @@ class AndroidDevice(device.Device):
     self._enable_performance_mode = enable_performance_mode
 
   @classmethod
-  def GetAllConnectedDevices(cls, blacklist):
-    device_serials = GetDeviceSerials(blacklist)
+  def GetAllConnectedDevices(cls):
+    device_serials = GetDeviceSerials()
     return [cls(s) for s in device_serials]
 
   @property
@@ -47,20 +46,20 @@ class AndroidDevice(device.Device):
     return self._enable_performance_mode
 
 
-def _ListSerialsOfHealthyOnlineDevices(blacklist):
+def _ListSerialsOfHealthyOnlineDevices():
   return [d.adb.GetDeviceSerial()
-          for d in device_utils.DeviceUtils.HealthyDevices(blacklist)
-          if d.IsOnline()]
+          for d in device_utils.DeviceUtils.HealthyDevices() if
+          d.IsOnline()]
 
 
-def GetDeviceSerials(blacklist):
+def GetDeviceSerials():
   """Return the list of device serials of healthy devices.
 
   If a preferred device has been set with ANDROID_SERIAL, it will be first in
   the returned list. The arguments specify what devices to include in the list.
   """
 
-  device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
+  device_serials = _ListSerialsOfHealthyOnlineDevices()
 
   # The monsoon provides power for the device, so for devices with no
   # real battery, we need to turn them on after the monsoon enables voltage
@@ -82,8 +81,8 @@ The Monsoon's power output has been enabled. Please now ensure that:
 
 Waiting for device...
 """)
-      util.WaitFor(_ListSerialsOfHealthyOnlineDevices(blacklist), 600)
-      device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
+      util.WaitFor(_ListSerialsOfHealthyOnlineDevices(), 600)
+      device_serials = _ListSerialsOfHealthyOnlineDevices()
     except IOError:
       return []
 
@@ -104,19 +103,12 @@ def GetDevice(finder_options):
         'No adb command found. Will not try searching for Android browsers.')
     return None
 
-  if (finder_options.device
-      and finder_options.device in GetDeviceSerials(finder_options)):
+  if finder_options.device and finder_options.device in GetDeviceSerials():
     return AndroidDevice(
         finder_options.device,
         enable_performance_mode=not finder_options.no_performance_mode)
 
-  if finder_options.android_blacklist_file:
-    blacklist = device_blacklist.Blacklist(
-        finder_options.android_blacklist_file)
-  else:
-    blacklist = None
-
-  devices = AndroidDevice.GetAllConnectedDevices(blacklist)
+  devices = AndroidDevice.GetAllConnectedDevices()
   if len(devices) == 0:
     logging.info('No android devices found.')
     return None
@@ -150,22 +142,17 @@ def CanDiscoverDevices():
   try:
     os.environ['PATH'] = os.pathsep.join(
         [os.path.dirname(adb_path), os.environ['PATH']])
-    device_utils.DeviceUtils.HealthyDevices(None)
+    device_utils.DeviceUtils.HealthyDevices()
     return True
   except (device_errors.CommandFailedError, device_errors.CommandTimeoutError,
           OSError):
     return False
 
 
-def FindAllAvailableDevices(options):
+def FindAllAvailableDevices(_):
   """Returns a list of available devices.
   """
-  if options.android_blacklist_file:
-    blacklist = device_blacklist.Blacklist(options.android_blacklist_file)
-  else:
-    blacklist = None
-
   if not CanDiscoverDevices():
     return []
   else:
-    return AndroidDevice.GetAllConnectedDevices(blacklist)
+    return AndroidDevice.GetAllConnectedDevices()

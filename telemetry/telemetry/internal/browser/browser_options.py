@@ -49,7 +49,6 @@ class BrowserFinderOptions(optparse.Values):
     self.browser_options = BrowserOptions()
     self.output_file = None
 
-    self.android_blacklist_file = None
     self.android_rndis = False
     self.no_performance_mode = False
 
@@ -136,8 +135,6 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--no-android-rndis', dest='android_rndis',
         action='store_false', help='Do not use RNDIS forwarding on Android.'
         ' [default]')
-    group.add_option('--android-blacklist-file',
-                     help='Device blacklist JSON file.')
     parser.add_option_group(group)
 
     # Browser options.

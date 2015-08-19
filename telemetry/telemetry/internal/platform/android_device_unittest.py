@@ -42,7 +42,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
     self.assertEquals(
         set(['01', '02']),
         set(device.device_id for device in
-            android_device.AndroidDevice.GetAllConnectedDevices(None)))
+            android_device.AndroidDevice.GetAllConnectedDevices()))
 
   def testNoAdbReturnsNone(self):
     finder_options = browser_options.BrowserFinderOptions()

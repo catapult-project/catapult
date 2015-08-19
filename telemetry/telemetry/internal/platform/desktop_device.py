@@ -11,7 +11,7 @@ class DesktopDevice(device.Device):
     super(DesktopDevice, self).__init__(name='desktop', guid='desktop')
 
   @classmethod
-  def GetAllConnectedDevices(cls, blacklist):
+  def GetAllConnectedDevices(cls):
     return []
 
 
