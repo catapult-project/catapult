@@ -18,7 +18,6 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.utils import apk_helper
 
 

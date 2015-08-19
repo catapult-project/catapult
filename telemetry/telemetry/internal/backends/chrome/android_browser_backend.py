@@ -14,7 +14,6 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal import forwarders
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import intent
 
 

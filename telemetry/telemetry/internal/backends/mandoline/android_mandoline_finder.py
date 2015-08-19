@@ -7,14 +7,12 @@
 import os
 
 from telemetry.core import platform
-from telemetry.core import util
 from telemetry.internal.backends.mandoline import android_mandoline_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 from telemetry.internal.util import path
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.utils import apk_helper
 
 

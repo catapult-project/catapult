@@ -10,7 +10,6 @@ from telemetry.core import util
 from telemetry.internal.platform import device
 from telemetry.internal.platform.profiler import monsoon
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import constants
 from pylib.device import device_errors
 from pylib.device import device_utils

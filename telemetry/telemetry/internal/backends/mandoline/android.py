@@ -16,9 +16,7 @@ import threading
 import time
 
 from .paths import Paths
-from telemetry.core import util
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import constants
 from pylib.device import device_errors
 from pylib.device import device_utils

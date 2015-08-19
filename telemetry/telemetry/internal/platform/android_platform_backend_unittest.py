@@ -4,7 +4,6 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import android_platform_backend
@@ -12,7 +11,6 @@ from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 from telemetry.third_party import mock
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import battery_utils
 from pylib.device import device_utils
 

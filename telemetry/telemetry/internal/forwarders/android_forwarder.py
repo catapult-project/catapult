@@ -15,7 +15,6 @@ from telemetry.core import util
 from telemetry.internal import forwarders
 from telemetry.internal.platform import android_device
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import forwarder
 except ImportError:

@@ -14,11 +14,9 @@ from pylib.device import device_errors  # pylint: disable=F0401
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import platform
-from telemetry.core import util
 from telemetry.internal.platform import profiler
 from telemetry.internal.platform.profiler import android_profiling_helper
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.perf import perf_control  # pylint: disable=F0401
 
 

@@ -36,8 +36,6 @@ import adb_install_cert
 import certutils
 import platformsettings
 
-# Get build/android scripts into our path.
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import constants
 from pylib import screenshot
 from pylib.device import battery_utils

@@ -16,7 +16,6 @@ from telemetry.internal.backends.mandoline import mandoline_browser_backend
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import constants
 except ImportError:

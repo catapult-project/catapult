@@ -11,7 +11,6 @@ from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import constants  # pylint: disable=F0401
   from pylib.device import device_errors  # pylint: disable=F0401

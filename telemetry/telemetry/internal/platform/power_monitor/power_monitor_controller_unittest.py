@@ -4,11 +4,9 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry.internal.platform import power_monitor as power_monitor
 from telemetry.internal.platform.power_monitor import power_monitor_controller
 from telemetry.third_party import mock
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import battery_utils  # pylint: disable=import-error
 
 

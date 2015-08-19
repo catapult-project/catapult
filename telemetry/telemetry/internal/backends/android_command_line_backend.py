@@ -6,9 +6,6 @@ import logging
 import pipes
 import sys
 
-from telemetry.core import util
-
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_errors  # pylint: disable=F0401
 
 

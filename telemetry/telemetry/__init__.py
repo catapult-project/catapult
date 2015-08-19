@@ -13,3 +13,7 @@ if sys.version_info < (2, 7):
 
 from telemetry.internal.util import global_hooks
 global_hooks.InstallHooks()
+
+# Add depdendencies into our path.
+from telemetry.core import util
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')

@@ -4,13 +4,11 @@
 
 import unittest
 
-from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import android_device
 from telemetry.testing import system_stub
 from telemetry.third_party import mock
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.device import device_utils
 
 

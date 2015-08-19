@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import web_contents
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import ports
 except ImportError:

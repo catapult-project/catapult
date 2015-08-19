@@ -17,7 +17,6 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib.utils import md5sum  # pylint: disable=F0401
 
 

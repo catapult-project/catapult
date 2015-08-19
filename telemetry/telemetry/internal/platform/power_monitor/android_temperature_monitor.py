@@ -3,9 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.internal.platform import power_monitor
-from telemetry.core import util
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib.device import device_errors  # pylint: disable=F0401
 except ImportError:
