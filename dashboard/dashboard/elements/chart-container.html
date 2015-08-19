@@ -561,7 +561,7 @@ triaging functionality in the chart.
               var selected = selectedTraces[0];
               if (this.SERIES_SELECTION_OPTIONS.indexOf(selected) != -1) {
                 seriesGroup.selection = selectedTraces[0];
-                unSelectedTestPathDict[testPath] = [];
+                selectedTestPathDict[testPath] = [];
               } else {
                 // Create test data here for selected traces so they can
                 // be initialy shown in chart legend.
@@ -720,8 +720,7 @@ triaging functionality in the chart.
               color: this.json.data[i].color,
               index: i,
               important: testselection.isImportant(
-                  series[i].path.split('/').slice(2).join('/')),
-              selected: isSelected,
+                  series[i].path.split('/').slice(2).join('/'))
             };
 
             testList.push(test);
@@ -750,54 +749,56 @@ triaging functionality in the chart.
 
           for (var i = 0; i < testList.length; i++) {
             var test = testList[i];
-            this.updateSeriesGroup(testPathToGroup, test);
+            var seriesGroup = null;
+            if (test.path in testPathToGroup) {
+              seriesGroup = testPathToGroup[test.path];
+            } else {
+              var parentPath = test.path.substring(0,
+                  test.path.lastIndexOf('/'));
+              if (parentPath in testPathToGroup) {
+                seriesGroup = testPathToGroup[parentPath];
+              }
+            }
+            if (seriesGroup) {
+              this.updateSeriesGroup(seriesGroup, test);
+            }
           }
         },
 
         /**
-         * Updates a given test in seriesGroup.
+         * Updates a given test in seriesGroup or adds test if not found.
          *
          * At the time that this function is called, tests in a series
          * group are either partially created or not yet added. This
          * function replaces the existing test in its series group
          * with passed |test|, or inserts if it doesn't exist.
          *
-         * @param {Object} testPathToGroup
-         * @param {Object} test Contains information about a series displayed
-         *     in chart-legend.
+         * @param {Object} seriesGroup
+         * @param {Object} newTest Contains information about a series
+         * displayed in chart-legend.
          */
-        updateSeriesGroup: function(testPathToGroup, test) {
-          var seriesGroup = null;
-          if (test.path in testPathToGroup) {
-            seriesGroup = testPathToGroup[test.path];
-          } else {
-            var parentPath = test.path.substring(0, test.path.lastIndexOf('/'));
-            if (parentPath in testPathToGroup) {
-              seriesGroup = testPathToGroup[parentPath];
+        updateSeriesGroup: function(seriesGroup, newTest) {
+          // Update series if its data has not been loaded.
+          var test = this.getTestInSeriesGroup(seriesGroup, newTest.name);
+          if (test) {
+            for (var key in newTest) {
+              test[key] = newTest[key];
             }
-          }
-          if (seriesGroup == null) {
-            return;
+          } else {
+            this.addTestToSeriesGroup(seriesGroup, newTest);
+            test = newTest;
           }
 
           if (seriesGroup.selection == 'all' ||
               seriesGroup.selection == 'important' && test.important) {
             test.selected = true;
           }
+        },
 
-          // Update series if its data has not been loaded.
-          var tests = seriesGroup.tests;
-          for (var i = 0; i < tests.length; i++) {
-            if (test.name == tests[i].name) {
-              if (tests[i].index == undefined) {
-                tests[i] = test;
-              }
-              return;
-            }
-          }
-
-          // Test has not been added; add it and determine if it should
-          // start out hidden.
+        /**
+         * Adds a test to seriesGroup and determines if it should be hidden.
+         */
+        addTestToSeriesGroup: function(seriesGroup, test) {
           if (seriesGroup.collapse && !test.selected && !test.important) {
             test.hidden = true;
             if (seriesGroup.numHidden == undefined) {
@@ -805,8 +806,18 @@ triaging functionality in the chart.
             }
             seriesGroup.numHidden++;
           }
-          tests.push(test);
-          tests.sort(this.compareTest);
+          seriesGroup.tests.push(test);
+          seriesGroup.tests.sort(this.compareTest);
+        },
+
+        getTestInSeriesGroup: function(seriesGroup, name) {
+          var tests = seriesGroup.tests;
+          for (var i = 0; i < tests.length; i++) {
+            if (name == tests[i].name) {
+              return tests[i];
+            }
+          }
+          return null;
         },
 
         /**
