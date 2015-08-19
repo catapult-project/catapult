@@ -6,7 +6,6 @@
   "directory_deps": [
     "build/android/pylib/",
     "third_party/catapult/",
-    "third_party/ply/",
     "tools/telemetry/"
   ],
   "file_deps": [
