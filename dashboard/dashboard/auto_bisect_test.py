@@ -5,6 +5,7 @@
 """Unit test for auto_bisect module."""
 
 import datetime
+import sys
 import unittest
 
 import mock
@@ -43,6 +44,7 @@ class AutoBisectTest(testing_common.TestCase):
     mock_perform_bisect.assert_called_once_with(
         try_job.TryJob.query(try_job.TryJob.bug_id == 111).get())
 
+  @unittest.skipIf(sys.platform.startswith('win'), 'Flaky on Windows (#1285)')
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunOnce_JobRestarted(self, mock_perform_bisect):
     try_job.TryJob(
