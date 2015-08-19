@@ -7,7 +7,6 @@
     "build/android/pylib/",
     "third_party/catapult/",
     "third_party/ply/",
-    "third_party/webpagereplay/",
     "tools/telemetry/"
   ],
   "file_deps": [

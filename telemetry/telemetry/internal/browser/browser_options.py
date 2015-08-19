@@ -20,7 +20,7 @@ from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.util import wpr_modes
 
 util.AddDirToPythonPath(
-    util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
+    util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 import net_configs  # pylint: disable=F0401
 
 

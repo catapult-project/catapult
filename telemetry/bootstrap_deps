@@ -10,6 +10,5 @@
 
 deps = {
     "src/tools/telemetry": "",
-    "src/third_party/webpagereplay": "",
     "src/third_party/catapult": "",
 }

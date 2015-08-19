@@ -17,7 +17,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 
 _REPLAY_DIR = os.path.join(
-    util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
+    util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 
 
 class ReplayError(Exception):

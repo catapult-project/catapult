@@ -31,8 +31,7 @@ from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import external_modules
 
 psutil = external_modules.ImportOptionalModule('psutil')
-util.AddDirToPythonPath(util.GetChromiumSrcDir(),
-                        'third_party', 'webpagereplay')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 import adb_install_cert
 import certutils
 import platformsettings
