@@ -24,17 +24,22 @@ to both `PATH` and `PYTHONPATH`.
 
 ## Running the tests
 
-To run all of the unit tests, you can run `./run_tests.py`. You can
+To run all of the unit tests, you can run `bin/run_tests`. You can
 also pass the import path to the test module to run a particular test,
-for example `./run_tests.py dashboard.utils_test`.
+for example `bin/run_tests dashboard.utils_test`.
 
 ## To run locally
 
-TODO: Fill in this section when a custom dev server script is added.
+Run `bin/dev_server`; this sets up a temporary directory, adds links
+to required libraries, and calls `dev_appserver.py` on that directory.
+By default, this starts a server on localhost:8080.
+
+To load sample graph or alert data from production, navigate to
+`http://localhost:8080/load_from_prod`.
 
 ## Deploying to production
 
-To deploy, you can run `./deploy.py`, which prepares the code to be
+To deploy, you can run `bin/deploy`, which prepares the code to be
 deployed and runs `appcfg.py`. This requires having the App Engine SDK
 directory in your `PATH`.
 

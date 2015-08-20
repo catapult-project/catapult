@@ -5,35 +5,43 @@
 
 """Runs the unit test suite for perf dashboard."""
 
-# TODO(qyearsley): Remove this file after the catapult recipe is updated
-# to use dashboard/bin/run_tests instead of dashboard/run_tests.py.
-
 import argparse
-import dev_appserver
 import logging
 import os
 import sys
 import unittest
 
-_DASHBOARD_PARENT = os.path.join(os.path.dirname(__file__))
-_DASHBOARD = os.path.join(_DASHBOARD_PARENT, 'dashboard')
+_DASHBOARD = os.path.join(os.path.dirname(__file__), os.path.pardir)
+
+
+def _AddToPathIfNeeded(path):
+  if path not in sys.path:
+    sys.path.insert(0, path)
 
 
 def _GetTests(args):
   loader = unittest.TestLoader()
   if args.tests:
     return loader.loadTestsFromNames(args.tests)
-  return loader.discover(_DASHBOARD, pattern='*_test.py')
+  dashboard_package_path = os.path.join(_DASHBOARD, 'dashboard')
+  return loader.discover(dashboard_package_path, pattern='*_test.py')
 
 
 def _FixPath():
+  try:
+    import dev_appserver
+  except ImportError:
+    # TODO(qyearsley): Put the App Engine SDK in the path with the
+    # binary dependency manager.
+    print 'This script requires the App Engine SDK to be in PYTHONPATH.'
+    sys.exit(1)
   dev_appserver.fix_sys_path()
-  sys.path.insert(0, os.path.dirname(__file__))
-  # Loading __init__.py when importing dashboard adds libraries to sys.path.
+  _AddToPathIfNeeded(_DASHBOARD)
+  # Importing dashboard adds libraries to sys.path.
   import dashboard  # pylint: disable=unused-variable
 
 
-def main():
+def Main():
   _FixPath()
   parser = argparse.ArgumentParser(description='Run the test suite.')
   parser.add_argument('tests', nargs='*', help='Fully-qualified test name.')
@@ -50,4 +58,4 @@ def main():
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+  sys.exit(Main())
