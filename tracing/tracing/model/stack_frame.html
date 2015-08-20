@@ -38,6 +38,19 @@ tr.exportTo('tr.model', function() {
       return this.title_;
     },
 
+    /**
+     * Attempts to find the domain of the origin of the script either from this
+     * stack trace or from its ancestors.
+     */
+    get domain() {
+      var result = 'unknown';
+      if (this.sourceInfo_ && this.sourceInfo_.domain)
+        result = this.sourceInfo_.domain;
+      if (result === 'unknown' && this.parentFrame)
+        result = this.parentFrame.domain;
+      return result;
+    },
+
     set parentFrame(parentFrame) {
       if (this.parentFrame_)
         this.parentFrame_.removeChild(this);
