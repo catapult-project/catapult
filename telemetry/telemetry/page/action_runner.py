@@ -18,6 +18,7 @@ from telemetry.internal.actions.pinch import PinchAction
 from telemetry.internal.actions.play import PlayAction
 from telemetry.internal.actions.repaint_continuously import (
     RepaintContinuouslyAction)
+from telemetry.internal.actions.repeatable_scroll import RepeatableScrollAction
 from telemetry.internal.actions.scroll import ScrollAction
 from telemetry.internal.actions.scroll_bounce import ScrollBounceAction
 from telemetry.internal.actions.seek import SeekAction
@@ -357,6 +358,30 @@ class ActionRunner(object):
         direction=direction, distance=distance, distance_expr=distance_expr,
         speed_in_pixels_per_second=speed_in_pixels_per_second,
         use_touch=use_touch, synthetic_gesture_source=synthetic_gesture_source))
+
+  def RepeatableBrowserDrivenScroll(self, x_scroll_distance_ratio=0.0,
+                                    y_scroll_distance_ratio=0.5,
+                                    repeat_count=0,
+                                    repeat_delay_ms=250):
+    """Perform a browser driven repeatable scroll gesture.
+
+    The scroll gesture is driven from the browser, this is useful because the
+    main thread often isn't resposive but the browser process usually is, so the
+    delay between the scroll gestures should be consistent.
+
+    Args:
+      x_scroll_distance_ratio: The horizontal lenght of the scroll as a fraction
+          of the screen width.
+      y_scroll_distance_ratio: The vertical lenght of the scroll as a fraction
+          of the screen height.
+      repeat_count: The number of additional times to repeat the gesture.
+      repeat_delay_ms: The delay in milliseconds between each scroll gesture.
+    """
+    self._RunAction(RepeatableScrollAction(
+        x_scroll_distance_ratio=x_scroll_distance_ratio,
+        y_scroll_distance_ratio=y_scroll_distance_ratio,
+        repeat_count=repeat_count,
+        repeat_delay_ms=repeat_delay_ms))
 
   def ScrollElement(self, selector=None, text=None, element_function=None,
                     left_start_ratio=0.5, top_start_ratio=0.5,

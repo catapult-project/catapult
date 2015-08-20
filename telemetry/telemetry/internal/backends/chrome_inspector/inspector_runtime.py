@@ -67,3 +67,14 @@ class InspectorRuntime(object):
       self._inspector_websocket.SyncRequest({'method': 'Runtime.enable'},
                                             timeout=30)
     return self._max_context_id
+
+  def RunInspectorCommand(self, command, timeout):
+    """Runs an inspector command.
+
+    Raises:
+      exceptions.WebSocketDisconnected
+      websocket.WebSocketException
+      socket.error
+    """
+    res = self._inspector_websocket.SyncRequest(command, timeout)
+    return res

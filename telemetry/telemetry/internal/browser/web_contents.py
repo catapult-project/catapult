@@ -296,3 +296,35 @@ class WebContents(object):
     self.ExecuteJavaScript('window.chrome && chrome.benchmarking &&'
                            'chrome.benchmarking.closeConnections()')
 
+  def SynthesizeScrollGesture(self, x=100, y=800, xDistance=0, yDistance=-500,
+                              xOverscroll=None, yOverscroll=None,
+                              preventFling=True, speed=None,
+                              gestureSourceType=None, repeatCount=None,
+                              repeatDelayMs=None, interactionMarkerName=None):
+    """Runs an inspector command that causes a repeatable browser driven scroll.
+
+    Args:
+      x: X coordinate of the start of the gesture in CSS pixels.
+      y: Y coordinate of the start of the gesture in CSS pixels.
+      xDistance: Distance to scroll along the X axis (positive to scroll left).
+      yDistance: Ddistance to scroll along the Y axis (positive to scroll up).
+      xOverscroll: Number of additional pixels to scroll back along the X axis.
+      xOverscroll: Number of additional pixels to scroll back along the Y axis.
+      preventFling: Prevents a fling gesture.
+      speed: Swipe speed in pixels per second.
+      gestureSourceType: Which type of input events to be generated.
+      repeatCount: Number of additional repeats beyond the first scroll.
+      repeatDelayMs: Number of milliseconds delay between each repeat.
+      interactionMarkerName: The name of the interaction markers to generate.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.SynthesizeScrollGesture(
+        x=x, y=y, xDistance=xDistance, yDistance=yDistance,
+        xOverscroll=xOverscroll, yOverscroll=yOverscroll,
+        preventFling=preventFling, speed=speed,
+        gestureSourceType=gestureSourceType, repeatCount=repeatCount,
+        repeatDelayMs=repeatDelayMs,
+        interactionMarkerName=interactionMarkerName)

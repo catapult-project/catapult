@@ -54,6 +54,13 @@ class BrowserInfo(object):
         self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
     return branch_num >= 2332
 
+  def HasRepeatableSynthesizeScrollGesture(self):
+    # Repeatable SynthesizeScrollGesture scrolling was not supported until
+    # Chromium branch number 2480
+    branch_num = (
+        self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
+    return branch_num >= 2480
+
   @property
   def browser_type(self):
     return self._browser.browser_type
