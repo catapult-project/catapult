@@ -11,152 +11,51 @@ found in the LICENSE file.
 
 <script src="/components/webcomponentsjs/webcomponents.js"></script>
 
-<link rel="import" href="/tracing/base/xhr.html">
-<link rel="import" href="/tracing/importer/import.html">
-<link rel="import" href="/components/polymer/polymer.html">
-<link rel="import" href="/tracing/ui/extras/full_config.html">
-<link rel="import" href="/tracing/ui/timeline_view.html">
-<link rel="import" href="/perf_insights/perf_insights_full_config.html">
-<link rel="import" href="/perf_insights/ui/perf_insights_view.html">
-
 <style>
   html,
   body {
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 0px;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+  }
+
+  body > pi-ui-pi-app-main {
+    width: 100%;
     height: 100%;
   }
-
-  body {
-    -webkit-flex-direction: column;
-    display: -webkit-flex;
-    margin: 0;
-    padding: 0;
-  }
-
-  body > tr-ui-timeline-view {
-    -webkit-flex: 1 1 auto;
-    min-height: 0;
-  }
-  body > tr-ui-timeline-view:focus {
-    outline: none;
-  }
 </style>
+
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/perf_insights/ui/perf_insights_full_config.html">
+<link rel="import" href="/perf_insights/ui/pi_app_main.html">
+<link rel="import" href="/tracing/base/xhr.html">
+
 </head>
 <body>
-  <tr-ui-timeline-view>
-    <track-view-container id='track_view_container'></track-view-container>
-  </tr-ui-timeline-view>
+  <pi-ui-pi-app-main>
+  </pi-ui-pi-app-main>
 
   <script>
   'use strict';
 
-  var timelineViewEl;
-  var selectEl;
+  var g_appMain;
 
-  function loadTraces(filenames, onTracesLoaded) {
-    var traces = [];
-    for (var i = 0; i < filenames.length; i++) {
-      traces.push(undefined);
-    }
-    var numTracesPending = filenames.length;
-
-    filenames.forEach(function(filename, i) {
-      getAsync(filename, function(trace) {
-        traces[i] = trace;
-        numTracesPending--;
-        if (numTracesPending == 0)
-          onTracesLoaded(filenames, traces);
-      });
-    });
-  }
-
-
-  function getAsync(url, cb) {
-    tr.b.getAsync(url).then(cb);
-  }
-
-  function createViewFromTraces(filenames, traces) {
-    var m = new tr.Model();
-    var i = new tr.importer.Import(m);
-    var p = i.importTracesWithProgressDialog(traces);
-    p.then(
-      function() {
-        timelineViewEl.model = m;
-        timelineViewEl.updateDocumentFavicon();
-        timelineViewEl.globalMode = true;
-        timelineViewEl.viewTitle = '';
-      },
-      function(err) {
-        var overlay = new tr.ui.b.Overlay();
-        overlay.textContent = tr.b.normalizeException(err).message;
-        overlay.title = 'Import error';
-        overlay.visible = true;
-      });
-  }
-
-  function onSelectionChange() {
-    window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
-  }
-
-  function onHashChange() {
-    var file = window.location.hash.substr(1);
-    if (selectEl[selectEl.selectedIndex].value != file) {
-      for (var i = 0; i < selectEl.children.length; i++) {
-        if (selectEl.children[i].value === file) {
-          selectEl.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    reload();
-  }
-
-  function cleanFilename(file) {
-    var m = /\/perf_insights\/test_data\/(.+)/.exec(file);
-    var rest = m[1];
-
-    function upcase(letter) {
-      return ' ' + letter.toUpperCase();
+  function domContentLoaded() {
+    function devServerDriver(mapFunctionName, corpusQuery) {
+      return tr.b.getAsync(
+          '/perf_insights_examples/run_map_function/' +
+          mapFunctionName + '?corpus_query=' + encodeURIComponent(corpusQuery));
     }
 
-    return rest.replace(/_/g, ' ')
-               .replace(/\.[^\.]*$/, '')
-               .replace(/ ([a-z])/g, upcase)
-               .replace(/^[a-z]/, upcase);
+    g_appMain = document.body.querySelector('pi-ui-pi-app-main');
+    g_appMain.mapTracesDrivers = [devServerDriver];
   }
 
-  function reload() {
-    loadTraces([window.location.hash.substr(1)], createViewFromTraces);
-  }
-
-  window.addEventListener('hashchange', onHashChange);
-
-  function onLoad() {
-    timelineViewEl = document.querySelector('tr-ui-timeline-view');
-    timelineViewEl.globalMode = true;
-
-    selectEl = document.createElement('select');
-    timelineViewEl.leftControls.appendChild(selectEl);
-
-    getAsync('/perf_insights/test_data/__file_list__', function(data) {
-      var files = JSON.parse(data);
-      for (var i = 0; i < files.length; ++i) {
-        var opt = document.createElement('option');
-        opt.value = files[i];
-        opt.textContent = cleanFilename(files[i]);
-        selectEl.appendChild(opt);
-      }
-      selectEl.selectedIndex = 0;
-      selectEl.onchange = onSelectionChange;
-
-      if (!window.location.hash) {
-        // This will trigger an onHashChange so no need to reload directly.
-        window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
-      } else {
-        onHashChange();
-      }
-    });
-  }
-  window.addEventListener('load', onLoad);
+  document.addEventListener('DOMContentLoaded', domContentLoaded);
   </script>
 </body>
 </html>

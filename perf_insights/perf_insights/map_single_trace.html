@@ -19,58 +19,22 @@ found in the LICENSE file.
 
 tr.exportTo('pi', function() {
 
-  var currentRunID = undefined;
   var FailureValue = pi.v.FailureValue;
 
-  function mapSingleTrace(results, options) {
+  function runAndConvertErrorsToFailureValues(results, run_info, cb, opt_this) {
     try {
-      currentRunID = options.run_info.run_id;
-      mapSingleTraceImpl(results, options);
-    } finally {
-      currentRunID = undefined;
+      cb.call(opt_this);
+    } catch (err) {
+      var err = tr.b.normalizeException(err);
+      results.addValue(new FailureValue(
+          run_info, err.typeName,
+          {description: err.message,
+           stack: err.stack}));
     }
   }
 
-  function mapSingleTraceImpl(results, options) {
-    // Load the mapper.
-    var allTypeInfos = pi.MapFunction.getAllRegisteredTypeInfos();
-    try {
-      var numTypeInfosBefore = allTypeInfos.length;
-      loadHTMLFile(options.map_file, options.map_file);
-    } catch (ex) {
-      var ex = tr.b.normalizeException(ex);
-      results.addValue(new FailureValue(
-          options.run_info, 'MapFunctionLoadingError',
-          {description: ex.message, stack: ex.stack}));
-      return;
-    } finally {
-      if (numTypeInfosNow !== numTypeInfosBefore) {
-      }
-    }
-
-    // Verify a mapFunction was defined.
-    var numTypeInfosNow = allTypeInfos.length;
-    if (numTypeInfosNow !== (numTypeInfosBefore + 1)) {
-      results.addValue(new FailureValue(
-          options.run_info, 'MapFunctionNotDefinedError',
-          {description: options.map_file + ' did not call defineMapFunction',
-           stack: tr.b.stackTraceAsString()}));
-      return;
-    }
-
-    var mapFunction = allTypeInfos[allTypeInfos.length - 1].constructor;
-
-    // Data.
-    try {
-      var traceData = tr.b.getSync('file://' + options.filename_to_map);
-    } catch (ex) {
-      results.addValue(new FailureValue(
-          options.run_info, 'TraceImportError',
-          {description: 'Could not open ' + options.filename_to_map,
-           stack: tr.b.stackTraceAsString()}));
-      return;
-    }
-
+  function mapSingleTrace(results, run_info, traceData, mapFunction,
+                          opt_metadata) {
     // Load the model.
     var model = new tr.Model();
     try {
@@ -81,49 +45,41 @@ tr.exportTo('pi', function() {
       var i = new tr.importer.Import(model, importOptions);
       i.importTraces([traceData]);
     } catch (ex) {
-      var ex = tr.b.normalizeException(ex);
-      results.addValue(new FailureValue(
-          options.run_info, 'TraceImportError',
-          {description: ex.message, stack: ex.stack}));
-      return;
+      ex.name = 'TraceImportError';
+      throw ex;
     }
 
     // Mixin the metadata in case its interesting to the mapper.
-    for (var k in options.metadata) {
+    var metadata = opt_metadata || {};
+    for (var k in metadata) {
       if (model.metadata[k] !== undefined) {
-        results.addValue(new FailureValue(
-            options.run_info, 'TraceImportError',
-            {description: k + ' is on model and corpus tables!',
-             stack: tr.b.stackTraceAsString()}));
-        return;
+        var err = new Error(k + ' is on model and corpus tables!');
+        err.name = 'TraceImportError';
+        throw err;
       }
-      model.metadata[k] = options.metadata[k];
+      model.metadata[k] = metadata[k];
     }
 
     // Map the function.
     var numResultsBeforeMapping = results.all_values.length;
     try {
-      mapFunction(results, options.run_info, model);
+      mapFunction(results, run_info, model);
     } catch (ex) {
-      var ex = tr.b.normalizeException(ex);
-      results.addValue(new FailureValue(
-          options.run_info, 'MapFunctionError',
-          {description: ex.message, stack: ex.stack}));
-      return;
+      ex.name = 'MapFunctionError';
+      throw ex;
     }
 
     if (results.all_values.length === numResultsBeforeMapping) {
-      results.addValue(new FailureValue(
-          options.run_info, 'NoResultsAddedError',
-          {'description': options.map_file + ' did not add any results! ' +
-              'Add a SkipValue if this was intentional.',
-           stack: tr.b.stackTraceAsString()}));
-      return;
+      var err = new Error('Mapper did not add any results! ' +
+              'Add a SkipValue if this was intentional.');
+      err.name = 'NoResultsAddedError';
+      throw err;
     }
   }
 
   return {
-    mapSingleTrace: mapSingleTrace
+    mapSingleTrace: mapSingleTrace,
+    runAndConvertErrorsToFailureValues: runAndConvertErrorsToFailureValues
   };
 });
 </script>

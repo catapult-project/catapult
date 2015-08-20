@@ -11,12 +11,19 @@ import perf_insights_project
 import webapp2
 from webapp2 import Route
 
+from perf_insights import local_directory_corpus_driver
+from perf_insights import corpus_query
+from perf_insights import map_runner
+from perf_insights import map_function_handle as map_function_handle_module
+from perf_insights import progress_reporter
+from perf_insights.results import json_output_formatter
+
 
 def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
 
 class TestListHandler(webapp2.RequestHandler):
-  def get(self, *args, **kwargs):  # pylint: disable=unused-argument
+  def get(self, *args, **kwargs): # pylint: disable=unused-argument
     project = perf_insights_project.PerfInsightsProject()
     test_relpaths = ['/' + _RelPathToUnixPath(x)
                      for x in project.FindAllTestModuleRelPaths()]
@@ -25,6 +32,36 @@ class TestListHandler(webapp2.RequestHandler):
     tests_as_json = json.dumps(tests)
     self.response.content_type = 'application/json'
     return self.response.write(tests_as_json)
+
+
+class RunMapFunctionHandler(webapp2.RequestHandler):
+  def get(self, *args, **kwargs): # pylint: disable=unused-argument
+    map_function = kwargs.pop('map_function')
+
+    map_function_handle = map_function_handle_module.MapFunctionHandle(
+      map_function_name=map_function)
+
+    # TODO(nduca): pass self.request.params to the map function [maybe].
+    query_string = self.request.params.get('corpus_query', 'True')
+    print query_string
+    query = corpus_query.CorpusQuery.FromString(query_string)
+    self._RunMapper(map_function_handle, query)
+
+  def _RunMapper(self, map_function_handle, query):
+    project = perf_insights_project.PerfInsightsProject()
+
+    corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
+        project.perf_insights_test_data_path)
+
+    self.response.content_type = 'application/json'
+    output_formatter = json_output_formatter.JSONOutputFormatter(
+        self.response.out)
+
+    trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
+    runner = map_runner.MapRunner(
+        trace_handles, map_function_handle)
+    runner.Run(jobs=map_runner.AUTO_JOB_COUNT,
+               output_formatters=[output_formatter])
 
 
 class PerfInsightsDevServerConfig(object):
@@ -41,7 +78,11 @@ class PerfInsightsDevServerConfig(object):
     pass
 
   def GetRoutes(self, args):  # pylint: disable=unused-argument
-    return [Route('/perf_insights/tests', TestListHandler)]
+    return [
+      Route('/perf_insights/tests', TestListHandler),
+      Route('/perf_insights_examples/run_map_function/<map_function:.+>',
+            RunMapFunctionHandler)
+    ]
 
   def GetSourcePaths(self, args):  # pylint: disable=unused-argument
     return list(self.project.source_paths)

@@ -8,8 +8,9 @@ import traceback
 
 import perf_insights
 from perf_insights import local_directory_corpus_driver
-from perf_insights import get_trace_handles_query
+from perf_insights import corpus_query
 from perf_insights import map_runner
+from perf_insights import map_function_handle as map_function_handle_module
 from perf_insights.results import json_output_formatter
 
 
@@ -34,9 +35,9 @@ def Main(argv):
   corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
       os.path.abspath(os.path.expanduser(args.trace_directory)))
   if args.query is None:
-    query = get_trace_handles_query.GetTraceHandlesQuery.FromString('True')
+    query = corpus_query.CorpusQuery.FromString('True')
   else:
-    query = get_trace_handles_query.GetTraceHandlesQuery.FromString(
+    query = corpus_query.CorpusQuery.FromString(
         args.query)
 
   if args.output_file:
@@ -46,9 +47,11 @@ def Main(argv):
 
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
 
+  map_function_handle = map_function_handle_module.MapFunctionHandle(
+      filename=os.path.abspath(args.map_file))
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
-    runner = map_runner.MapRunner(trace_handles, args.map_file,
+    runner = map_runner.MapRunner(trace_handles, map_function_handle,
                     stop_on_error=args.stop_on_error)
     results = runner.Run(jobs=args.jobs, output_formatters=[output_formatter])
     if not results.had_failures:

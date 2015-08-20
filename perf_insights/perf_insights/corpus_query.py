@@ -107,24 +107,37 @@ class Filter(object):
                   _OPERATORS[found_op_key],
                   rvalue)
 
-class GetTraceHandlesQuery(object):
-  def __init__(self, filters=None):
-    if filters is None:
-      self.filters = []
-    else:
-        self.filters = filters
+class CorpusQuery(object):
+  def __init__(self):
+    self.max_trace_handles = None
+    self.filters = []
 
   @staticmethod
   def FromString(filterString):
     """This follows the same filter rules as GQL"""
     if filterString == 'True' or filterString == '':
-      return GetTraceHandlesQuery()
-    filter_strings = filterString.split(' AND ')
-    filters = [Filter.FromString(s) for s in filter_strings]
-    return GetTraceHandlesQuery(filters)
+      return CorpusQuery()
 
-  def Eval(self, metadata):
+    q = CorpusQuery()
+    exprs = filterString.split(' AND ')
+    for expr in exprs:
+      m = re.match('MAX_TRACE_HANDLES\s*=\s*(\d+)', expr)
+      if m:
+        q.max_trace_handles = int(m.group(1))
+        continue
+
+      f = Filter.FromString(expr)
+      q.filters.append(f)
+
+    return q
+
+  def Eval(self, metadata, num_trace_handles_so_far=0):
+    if self.max_trace_handles:
+      if num_trace_handles_so_far >= self.max_trace_handles:
+        return False
+
     for flt in self.filters:
       if not flt.Eval(metadata):
         return False
+
     return True

@@ -7,10 +7,14 @@ import unittest
 
 from perf_insights import in_memory_trace_handle
 from perf_insights import map_single_trace
+from perf_insights import map_function_handle as map_function_handle_module
 from perf_insights import results as results_module
 from perf_insights import value as value_module
 from perf_insights.value import run_info as run_info_module
 
+
+def _Handle(filename):
+  return map_function_handle_module.MapFunctionHandle(filename=filename)
 
 class MapSingleTraceTests(unittest.TestCase):
   def testPassingMapScript(self):
@@ -37,7 +41,7 @@ class MapSingleTraceTests(unittest.TestCase):
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     v = results.FindValueNamed('result')
     self.assertEquals(v['numProcesses'], 1)
@@ -56,7 +60,7 @@ class MapSingleTraceTests(unittest.TestCase):
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
@@ -82,7 +86,7 @@ class MapSingleTraceTests(unittest.TestCase):
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
@@ -106,7 +110,7 @@ class MapSingleTraceTests(unittest.TestCase):
       throw new Error('Expected load error');
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
@@ -130,7 +134,7 @@ class MapSingleTraceTests(unittest.TestCase):
     with map_single_trace.TemporaryMapScript("""
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
@@ -156,7 +160,7 @@ class MapSingleTraceTests(unittest.TestCase):
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
@@ -185,7 +189,7 @@ class MapSingleTraceTests(unittest.TestCase):
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
-                                      map_script.filename)
+                                      _Handle(map_script.filename))
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]

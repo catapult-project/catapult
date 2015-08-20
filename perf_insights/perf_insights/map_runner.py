@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import Queue as queue
 import os
+import multiprocessing
 import sys
 import threading
 import time
@@ -13,10 +14,12 @@ from perf_insights import value as value_module
 
 from perf_insights.results import gtest_progress_reporter
 
+AUTO_JOB_COUNT = 'auto-job-count'
+
 class MapRunner:
-  def __init__(self, trace_handles, map_file,
+  def __init__(self, trace_handles, map_function_handle,
                stop_on_error=False):
-    self._map_file = map_file
+    self._map_function_handle = map_function_handle
     self._work_queue = queue.Queue()
     self._result_queue = queue.Queue()
     self._stop_on_error = stop_on_error
@@ -38,7 +41,7 @@ class MapRunner:
     map_single_trace.MapSingleTrace(
         subresults,
         trace_handle,
-        os.path.abspath(self._map_file))
+        self._map_function_handle)
     self._result_queue.put(subresults)
     had_failure = subresults.DoesRunContainFailure(run_info)
     progress_reporter.DidRun(run_info, had_failure)
@@ -52,6 +55,9 @@ class MapRunner:
       self._work_queue.task_done()
 
   def Run(self, jobs=1, output_formatters=None):
+    if jobs == AUTO_JOB_COUNT:
+      jobs = multiprocessing.cpu_count()
+
     if jobs == 1:
       self._WorkLoop()
     else:

@@ -6,25 +6,12 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/results/progress_reporter.html">
-<link rel="import" href="/perf_insights/results/output_formatter.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pi.r', function() {
-  var ProgressReporter = pi.r.ProgressReporter;
-
-  function Results(opt_output_formatters, opt_progress_reporter) {
-    this.output_formatters = opt_output_formatters || [];
-    if (!(this.output_formatters instanceof Array))
-      throw new Error('output_formatters must be array');
-
-    this.progress_reporter = opt_progress_reporter ||
-        new ProgressReporter();
-    if (!(this.progress_reporter instanceof ProgressReporter))
-      throw new Error('output_formatters must be array');
-
+  function Results() {
     this.all_values = [];
     this._run_ids_that_have_failures = {};
   }
@@ -54,25 +41,18 @@ tr.exportTo('pi.r', function() {
 
   Results.prototype = {
     willRun: function(run_info) {
-      this.progress_reporter.willRun(run_info);
     },
 
     addValue: function(value) {
       if (value instanceof pi.v.FailureValue)
         this._run_ids_that_have_failures[value.run_info.run_id] = true;
       this.all_values.push(value);
-      this.progress_reporter.didAddValue(value);
     },
 
     didRun: function(run_info) {
-      this.progress_reporter.didRun(run_info);
     },
 
     didFinishAllRuns: function() {
-      this.progress_reporter.didFinishAllRuns();
-      this.output_formatters.forEach(function(of) {
-        of.format(this);
-      }, this);
     },
 
     get hadFailures() {

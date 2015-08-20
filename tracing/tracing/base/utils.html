@@ -71,7 +71,9 @@ tr.exportTo('tr.b', function() {
     }
 
     var typeName;
-    if (e.constructor) {
+    if (e.name) {
+      typeName = e.name;
+    } else if (e.constructor) {
       if (e.constructor.name) {
         typeName = e.constructor.name;
       } else {

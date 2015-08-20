@@ -130,6 +130,10 @@ class Project(object):
     return [self.loader.LoadModule(module_filename=filename) for
             filename in filenames]
 
+  def LoadModule(self, module_name=None, module_filename=None):
+    return self.loader.LoadModule(module_name=module_name,
+                                  module_filename=module_filename)
+
   def CalcLoadSequenceForModuleNames(self, module_names):
     modules = [self.loader.LoadModule(module_name=name) for
                name in module_names]

@@ -17,5 +17,14 @@ tr.b.unittest.testSuite(function() {
     var w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
     assert.isUndefined(w);
   });
+
+  test('testExceptionNaming', function() {
+    var err = new Error('asdf');
+    err.name = 'MyError';
+
+    var ex = tr.b.normalizeException(err);
+    assert.equal(ex.typeName, 'MyError');
+  });
+
 });
 </script>

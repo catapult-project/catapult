@@ -56,7 +56,7 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
       filename = os.path.join(self.directory, rel_filename)
       metadata = _GetMetadataForFilename(self.directory, filename)
 
-      if not query.Eval(metadata):
+      if not query.Eval(metadata, len(trace_handles)):
         continue
 
       run_info = run_info_module.RunInfo(

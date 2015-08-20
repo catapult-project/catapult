@@ -100,3 +100,9 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertFalse(f.Eval({'date': end}))
     self.assertFalse(f.Eval({'date': way_after}))
 
+
+  def testSimpleOp(self):
+    q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
+    self.assertTrue(q.Eval({'a': 3}, 0))
+    self.assertFalse(q.Eval({'a': 3}, 3))
+    self.assertFalse(q.Eval({'a': 3}, 4))

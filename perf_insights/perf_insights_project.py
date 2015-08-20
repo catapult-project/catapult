@@ -31,6 +31,7 @@ def UpdateSysPathIfNeeded():
   if not _IsRunningInAppEngine():
     _AddToPathIfNeeded(p.catapult_path)
     _AddToPathIfNeeded(p.tracing_root_path)
+    _AddToPathIfNeeded(p.beautifulsoup_path)
 
     import tracing_project
     tracing_project.UpdateSysPathIfNeeded()
@@ -87,6 +88,11 @@ class PerfInsightsProject(object):
   tracing_root_path = os.path.abspath(
       os.path.join(catapult_path, 'tracing'))
 
+  beautifulsoup_path = os.path.abspath(
+      os.path.join(tracing_root_path, 'third_party', 'tvcm',
+                   'third_party', 'beautifulsoup'))
+
+
   def __init__(self):  # pylint: disable=unused-argument
     self._source_paths = None
 
@@ -106,6 +112,13 @@ class PerfInsightsProject(object):
       self._source_paths.extend(tracing_project.source_paths)
 
     return self._source_paths
+
+  def GetAbsPathFromHRef(self, href):
+    for source_path in self.source_paths:
+      candidate = os.path.abspath(os.path.join(source_path, href[1:]))
+      if os.path.exists(candidate):
+        return candidate
+    return None
 
   def CreateVulcanizer(self):
     from tvcm import project as project_module

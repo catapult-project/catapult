@@ -15,4 +15,5 @@ class JSONOutputFormatter(output_formatter.OutputFormatter):
   def Format(self, results):
     d = results.AsDict()
     json.dump(d, self.output_file, indent=2)
-    self.output_file.flush()
+    if hasattr(self.output_file, 'flush'):
+      self.output_file.flush()

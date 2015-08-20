@@ -11,36 +11,104 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-(function() {
-  if (sys.argv.length !== 5)
-    throw new Error('Must provide four arguments');
-  var options = {
-    run_info: pi.v.RunInfo.fromDict(JSON.parse(sys.argv[1])),
-    map_file: sys.argv[2],
-    filename_to_map: sys.argv[3],
-    filename_metadata: JSON.parse(sys.argv[4])
-  };
+tr.exportTo('pi', function() {
 
-  function PyGlueOuptutFormatter() {
-    pi.r.OutputFormatter.call(this);
-  }
-  PyGlueOuptutFormatter.prototype = {
-    __proto__: pi.r.OutputFormatter.prototype,
+  var FailureValue = pi.v.FailureValue;
 
-    format: function(results) {
-      results.all_values.forEach(function(value) {
-        valueAsDict = value.asDict();
-        console.log('MAP_RESULT_VALUE: ' + JSON.stringify(valueAsDict));
-      });
+  function getMapFunctionFromMapFunctionHandle(mapFunctionHandle) {
+    if (mapFunctionHandle.mapFunctionFileName !== undefined)
+      return loadMapFunctionFromFileName(mapFunctionHandle.mapFunctionFileName);
+
+    // Find the mapper by name.
+    loadHTML('/perf_insights/perf_insights_full_config.html')
+    var typeInfo = pi.MapFunction.findTypeInfoMatching(function(typeInfo) {
+      return typeInfo.constructor.name === mapFunctionHandle.mapFunctionName;
+    })
+    if (typeInfo === undefined)  {
+      var err = new Error(
+          'No mapper registered in perf_insights_full_config named ' +
+          mapFunctionHandle.mapFunctionName);
+      err.name = 'MapFunctionLoadingError';
+      throw err;
     }
+
+    return typeInfo.constructor;
+  }
+
+  function loadMapFunctionFromFileName(mapFunctionFileName) {
+    // Load the mapper.
+    var allTypeInfos = pi.MapFunction.getAllRegisteredTypeInfos();
+    try {
+      var numTypeInfosBefore = allTypeInfos.length;
+      loadHTMLFile(mapFunctionFileName, mapFunctionFileName);
+    } catch (err) {
+      err.name = 'MapFunctionLoadingError';
+      throw err;
+    }
+
+    // Verify a mapFunction was defined.
+    var numTypeInfosNow = allTypeInfos.length;
+    if (numTypeInfosNow !== (numTypeInfosBefore + 1)) {
+      var err = new Error(mapFunctionFileName + ' did not call defineMapFunction');
+      err.name = 'MapFunctionNotDefinedError';
+      throw err;
+    }
+
+    var mapFunction = allTypeInfos[allTypeInfos.length - 1].constructor;
+    return mapFunction;
+  }
+
+
+  function mapSingleTraceMain(args) {
+    if (args.length !== 4)
+      throw new Error('Must provide four arguments');
+
+    var options = {
+      run_info: pi.v.RunInfo.fromDict(JSON.parse(args[0])),
+      mapFunctionHandle: JSON.parse(args[1]),
+      filenameToMap: args[2],
+      metadata: JSON.parse(args[3])
+    };
+
+    var results = new pi.r.Results();
+    results.willRun(options.run_info);
+
+    pi.runAndConvertErrorsToFailureValues(
+        results, options.run_info,
+        function() {
+          var mapFunction = getMapFunctionFromMapFunctionHandle(
+              options.mapFunctionHandle)
+
+          // Read the mapfile.
+          try {
+            var traceData = tr.b.getSync('file://' + options.filenameToMap);
+          } catch (ex) {
+            var err = new Error('Could not open ' + options.filenameToMap);
+            err.name = 'TraceImportError';
+            throw err;
+          }
+
+          pi.mapSingleTrace(results, options.run_info, traceData,
+                            mapFunction, options.metadata);
+        });
+
+    results.didRun(options.run_info);
+    results.didFinishAllRuns();
+
+    results.all_values.forEach(function(value) {
+      valueAsDict = value.asDict();
+      console.log('MAP_RESULT_VALUE: ' + JSON.stringify(valueAsDict));
+    });
+    return 0;
+  }
+
+  return {
+    mapSingleTraceMain: mapSingleTraceMain
   };
+});
 
-  var results = new pi.r.Results([new PyGlueOuptutFormatter()]);
+if (tr.isHeadless)
+  quit(pi.mapSingleTraceMain(sys.argv.slice(1)));
 
-  results.willRun(options.run_info);
-  var mappedValue = pi.mapSingleTrace(results, options);
-  results.didRun(options.run_info);
-  results.didFinishAllRuns();
-})();
 </script>
 

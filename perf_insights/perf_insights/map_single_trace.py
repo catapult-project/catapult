@@ -64,16 +64,7 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
   'NoResultsAddedError': NoResultsAddedErrorValue
 }
 
-def MapSingleTrace(results, trace_handle, map_file):
-  # Catch all exceptions and return a failure so map_runner doesn't hang.
-  try:
-    MapSingleTraceImpl(results, trace_handle, map_file)
-  except Exception:
-    results.AddValue(value_module.FailureValue(
-        trace_handle.run_info,
-        'Error', 'Unexpected exception.', traceback.format_exc()))
-
-def MapSingleTraceImpl(results, trace_handle, map_file):
+def MapSingleTrace(results, trace_handle, map_function_handle):
   project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
@@ -86,7 +77,7 @@ def MapSingleTraceImpl(results, trace_handle, map_file):
   with trace_handle.Open() as trace_file:
     js_args = [
       json.dumps(run_info.AsDict()),
-      os.path.abspath(map_file),
+      json.dumps(map_function_handle.AsDict()),
       os.path.abspath(trace_file.name),
       json.dumps(run_info.metadata)
     ]
@@ -97,7 +88,10 @@ def MapSingleTraceImpl(results, trace_handle, map_file):
       js_args=js_args)
 
   if res.returncode != 0:
-    sys.stderr.write(res.stdout)
+    try:
+      sys.stderr.write(res.stdout)
+    except Exception:
+      pass
     results.AddValue(value_module.FailureValue(
         run_info,
         'Error', 'vinn runtime error while mapping trace.',
@@ -122,8 +116,9 @@ def MapSingleTraceImpl(results, trace_handle, map_file):
       found_at_least_one_result = True
 
     else:
-      sys.stderr.write(line)
-      sys.stderr.write('\n')
+      if len(line) > 0:
+        sys.stderr.write(line)
+        sys.stderr.write('\n')
 
   if found_at_least_one_result == False:
     raise InternalMapError('Internal error: No results were produced!')

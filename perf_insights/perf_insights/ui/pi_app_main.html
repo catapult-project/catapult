@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/polymer_utils.html">
+<link rel="import" href="/perf_insights/ui/pi_report.html">
+<link rel="import" href="/perf_insights/map_function.html">
+
+<polymer-element name="pi-ui-pi-app-main">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      top-controls {
+        display: flex;
+        flex: 0 0 auto;
+        background-color: rgb(236, 236, 236);
+        border-bottom: 1px solid #8e8e8e;
+        padding: 4px;
+      }
+
+      report-container {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow: auto;
+      }
+    </style>
+    <top-controls>
+    </top-controls>
+    <report-container>
+    </report-container>
+  </template>
+</polymer-element>
+<script>
+'use strict';
+
+tr.exportTo('pi.ui', function() {
+  function areMappingStatesSame(a, b) {
+    for (var k in a)
+      if (a[k] !== b[k])
+        return false;
+    return true;
+  }
+
+  Polymer('pi-ui-pi-app-main', {
+    created: function() {
+      // Non-mapping state.
+      this.mapTracesDrivers_ = undefined;
+
+      // Mapping state.
+      this.currentMapTracesDriver_ = undefined;
+      this.corpusQuery_ = undefined;
+      this.piReportElementName_ = undefined;
+    },
+
+    ready: function() {
+      var topControls = this.shadowRoot.querySelector('top-controls');
+
+      var mapTracesDriverSelector = document.createElement('select');
+      mapTracesDriverSelector.classList.add('map-traces-driver-selector');
+      // This selector is actually populated in the mapTracesDrivers setter.
+      topControls.appendChild(mapTracesDriverSelector);
+
+      var cannedCorpusQueries = [
+        {
+          'label': 'All traces',
+          'value': 'True'
+        },
+        {
+          'label': 'At most one trace',
+          'value': 'MAX_TRACE_HANDLES=1'
+        },
+        {
+          'label': 'At most two traces',
+          'value': 'MAX_TRACE_HANDLES=2'
+        }
+      ];
+      var corpusQuerySelector = tr.ui.b.createSelector(
+          this, 'corpusQuery',
+          'pi.app_main.corpusQuery',
+          cannedCorpusQueries[0].value,
+          cannedCorpusQueries);
+      topControls.appendChild(corpusQuerySelector);
+
+      var piReportPolymerElementNames = tr.ui.b.getPolymerElementsThatSubclass(
+          'pi-ui-pi-report');
+      var piReportElementOptions = piReportPolymerElementNames.map(
+          function(peTagName) {
+            return {
+              label: peTagName,
+              value: peTagName
+            };
+          });
+      var reportSelector = tr.ui.b.createSelector(
+          this, 'piReportElementName',
+          'pi.app_main.piReportElementName',
+          piReportElementOptions[0].value,
+          piReportElementOptions);
+      topControls.appendChild(reportSelector);
+    },
+
+    get mapTracesDrivers() {
+      return this.mapTracesDrivers_;
+    },
+
+    set mapTracesDrivers(mapTracesDrivers) {
+      this.mapTracesDrivers_ = mapTracesDrivers;
+
+      var topControls = this.shadowRoot.querySelector('top-controls');
+      var oldSelector = topControls.querySelector('.map-traces-driver-selector');
+      var options = mapTracesDrivers.map(function(mapTracesDriver) {
+        return {
+          label: mapTracesDriver.name,
+          value: mapTracesDriver
+        };
+      });
+      var newSelector = tr.ui.b.createSelector(
+          this, 'currentMapTracesDriver',
+          'pi.app_main.currentMapTracesDriver',
+          options[0].value,
+          options);
+      newSelector.classList.add('map-traces-driver-selector');
+      topControls.replaceChild(newSelector, oldSelector);
+    },
+
+
+    get mappingState() {
+      return {
+        currentMapTracesDriver: this.currentMapTracesDriver_,
+        corpusQuery: this.corpusQuery_,
+        piReportElementName: this.piReportElementName_
+      };
+    },
+
+    set mappingState(mappingState) {
+      if (areMappingStatesSame(this.mappingState, mappingState))
+        return;
+      this.currentMapTracesDriver_ = mappingState.currentMapTracesDriver;
+      this.corpusQuery_ = mappingState.corpusQuery;
+      this.piReportElementName_ = mappingState.piReportElementName;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+    get currentMapTracesDriver() {
+      return this.currentMapTracesDriver_;
+    },
+
+    set currentMapTracesDriver(currentMapTracesDriver) {
+      this.currentMapTracesDriver_ = currentMapTracesDriver;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+
+    get corpusQuery() {
+      return this.corpusQuery_;
+    },
+
+    set corpusQuery(corpusQuery) {
+      this.corpusQuery_ = corpusQuery;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+    get piReportElementName() {
+      return this.piReportElementName_;
+    },
+
+    set piReportElementName(piReportElementName) {
+      this.piReportElementName_ = piReportElementName;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+    get mapClientSide() {
+      return this.mapClientSide_;
+    },
+
+    set mapClientSide(mapClientSide) {
+      this.mapClientSide_ = mapClientSide;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+    scheduleUpdateContents_: function() {
+      if (this.pendingUpdateContentsPromise_)
+        return;
+
+      var mappingState = this.mappingState;
+
+      var that = this;
+      var p = this.beginUpdatingContents_(mappingState);
+      p = p.catch(function(err) {
+        tr.showPanic('Something is wrong', err);
+      });
+      p = p.then(updateDone);
+
+      function updateDone() {
+        that.pendingUpdateContentsPromise_ = undefined;
+        if (!areMappingStatesSame(that.mappingState, mappingState))
+          that.scheduleUpdateContents_();
+      }
+      this.pendingUpdateContentsPromise_ = p;
+    },
+
+    beginUpdatingContents_: function(mappingState) {
+      var that = this;
+      var p = Promise.resolve();
+
+      var pe = tr.ui.b.getPolymerElementNamed(mappingState.piReportElementName);
+      var reportContainer = that.shadowRoot.querySelector('report-container');
+
+      p = p.then(function indicateThinking() {
+        reportContainer.textContent = '... thinking...';
+      });
+
+      p = p.then(function doMapping() {
+        if (mappingState.currentMapTracesDriver === undefined ||
+            mappingState.piReportElementName === undefined ||
+            mappingState.corpusQuery === undefined) {
+          return undefined;
+        }
+
+        var mapFunctionName = pe.getAttribute('map-function-name');
+        if (mapFunctionName === undefined)
+          throw new Error('nope');
+
+        var typeInfo = pi.MapFunction.findTypeInfoMatching(function(typeInfo) {
+          return typeInfo.constructor.name === mapFunctionName;
+        });
+        var mapFunction = typeInfo.constructor;
+
+        if (mappingState.mapClientSide) {
+          throw new Error('Currently unsupported');
+        }
+        return mappingState.currentMapTracesDriver(mapFunctionName,
+                                                   mappingState.corpusQuery);
+      });
+      p = p.then(function responseToResults(responseText) {
+        if (responseText === undefined)
+          return undefined;
+
+        var data = JSON.parse(responseText);
+        return pi.r.Results.fromDict(data);
+      });
+
+      p = p.then(function showMappingResults(mapResults) {
+        reportContainer.textContent = '';
+
+        if (mapResults === undefined) {
+          reportContainer.textContent = 'Cannot map';
+          return;
+        }
+
+        var reportEl = document.createElement(mappingState.piReportElementName);
+        reportEl.mapResults = mapResults;
+        reportContainer.appendChild(reportEl);
+      });
+
+      return p;
+    }
+  });
+
+  return {
+  };
+});
+</script>
+
