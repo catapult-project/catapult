@@ -14,6 +14,7 @@ tr.exportTo('pi.wr', function() {
     this.threadGroup = undefined;
     this.railTypeName = undefined;
     this.title = undefined;
+    this.domain = undefined;
 
     this.selfTime = 0;
     this.cpuSelfTime = 0;
@@ -24,6 +25,7 @@ tr.exportTo('pi.wr', function() {
     sliceCostInfo.threadGroup = firstValue.threadGroup;
     sliceCostInfo.railTypeName = firstValue.railTypeName;
     sliceCostInfo.title = firstValue.title;
+    sliceCostInfo.domain = firstValue.domain;
     return sliceCostInfo;
   }
 
@@ -32,6 +34,7 @@ tr.exportTo('pi.wr', function() {
     sliceCostInfo.threadGroup = d.threadGroup;
     sliceCostInfo.railTypeName = d.railTypeName;
     sliceCostInfo.title = d.title;
+    sliceCostInfo.domain = d.domain;
     sliceCostInfo.selfTime = d.selfTime;
     sliceCostInfo.cpuSelfTime = d.cpuSelfTime;
     return sliceCostInfo;
@@ -53,21 +56,49 @@ tr.exportTo('pi.wr', function() {
 
   function getSliceCostReport(model, threadGrouping, railTypeNameByGUID) {
     var reduce = new pi.wr.StreamingReducer(SliceCostInfo.asReduceTarget);
+    
+    function generateDomainCosts(slice) {
+      // V8.Execute events may generate several sliceCostInfo, based on the
+      // origin of the JS being executed.
+      var range = new tr.b.Range();
+      slice.addBoundsToRange(range);
+      var filtered = range.filterArray(
+          slice.parentContainer.samples,
+          function(sample) {return sample.start;});
+      filtered.forEach(function(sample) {
+        var sliceCostInfo = new SliceCostInfo();
+        sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(slice);
+        sliceCostInfo.railTypeName = railTypeNameByGUID[slice.guid];
+        sliceCostInfo.title = slice.title;
+        sliceCostInfo.domain = sample.leafStackFrame.domain;
+        sliceCostInfo.selfTime = sample.weight;
+        sliceCostInfo.cpuSelfTime = sample.weight;
+        var key = sliceCostInfo.threadGroup + '/' +
+                  sliceCostInfo.railTypeName + '/' +
+                  sliceCostInfo.title + '/' +
+                  sliceCostInfo.domain;
+        reduce.push(key, sliceCostInfo);
+      });
+    }
+
     model.iterateAllEvents(function(event) {
       if (!(event instanceof tr.model.ThreadSlice))
         return;
+
       var threadSlice = event;
+      if (threadSlice.title === 'V8.Execute') {
+        generateDomainCosts(threadSlice);
+        return;
+      }
 
       var sliceCostInfo = new SliceCostInfo();
-
       sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(
           threadSlice);
       sliceCostInfo.railTypeName = railTypeNameByGUID[threadSlice.guid];
       sliceCostInfo.title = threadSlice.title;
-
+      // For all other events, just generate one sliceCostInfo.
       sliceCostInfo.selfTime = threadSlice.selfTime;
       sliceCostInfo.cpuSelfTime = threadSlice.cpuSelfTime;
-
 
       var key = sliceCostInfo.threadGroup + '/' +
                 sliceCostInfo.railTypeName + '/' +
