@@ -48,7 +48,8 @@ def Main(argv, pi_report_file=None):
     query = corpus_query.CorpusQuery.FromString(
         args.query)
 
-  return PiReportToHTML(args.output_file, args.trace_directory,
+  with codecs.open(args.output_file, mode='w', encoding='utf-8') as ofile:
+    return PiReportToHTML(ofile, args.trace_directory,
                         pi_report_file, query, args.json,
                         args.stop_on_error, args.jobs)
 
@@ -73,7 +74,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
   raise Exception('No element that extends pi-ui-pi-report was found')
 
 
-def PiReportToHTML(output_file, trace_directory, pi_report_file,
+def PiReportToHTML(ofile, trace_directory, pi_report_file,
                    query, json_output=False,
                    stop_on_error=False, jobs=1):
   project = perf_insights_project.PerfInsightsProject()
@@ -96,13 +97,12 @@ def PiReportToHTML(output_file, trace_directory, pi_report_file,
     sys.stderr.write('There were mapping errors. Aborting.');
     return 255
 
-  with codecs.open(output_file, mode='w', encoding='utf-8') as ofile:
-    if json_output:
-      json.dump(results.AsDict(), ofile, indent=2)
-    else:
-      WriteResultsToFile(ofile, project,
-                         pi_report_file, pi_report_element_name,
-                         results)
+  if json_output:
+    json.dump(results.AsDict(), ofile, indent=2)
+  else:
+    WriteResultsToFile(ofile, project,
+                       pi_report_file, pi_report_element_name,
+                       results)
   return 0
 
 
