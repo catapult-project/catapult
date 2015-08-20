@@ -219,7 +219,7 @@ tr.exportTo('tr.ui.b', function() {
   var nextCheckboxId = 1;
   function createCheckBox(targetEl, targetElProperty,
                           settingsKey, defaultValue,
-                          label) {
+                          label, opt_changeCb) {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
 
@@ -232,6 +232,8 @@ tr.exportTo('tr.ui.b', function() {
       tr.b.Settings.set(settingsKey, buttonEl.checked);
       if (targetEl)
         targetEl[targetElProperty] = buttonEl.checked;
+      if (opt_changeCb)
+        opt_changeCb.call();
     }
 
     buttonEl.addEventListener('change', onChange);

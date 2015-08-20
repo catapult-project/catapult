@@ -25,8 +25,12 @@ found in the LICENSE file.
         display: flex;
         flex-direction: column;
       }
-      #top-controls {
+      top-controls {
+        display: flex;
         flex: 0 0 auto;
+        background-color: rgb(236, 236, 236);
+        border-bottom: 1px solid #8e8e8e;
+        padding: 4px;
       }
       #table {
         flex: 1 1 auto;
@@ -46,6 +50,28 @@ found in the LICENSE file.
     },
 
     ready: function() {
+      var topControls = this.shadowRoot.querySelector('top-controls');
+
+      this.groupByThreadName_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'pi.ui.wr.weather_report.gropuByThreadName', true,
+          'Group by thread name',
+          this.updateContents_.bind(this));
+      topControls.appendChild(this.groupByThreadName_);
+
+      this.groupByRAILTypeName_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'pi.ui.wr.weather_report.gropuByRAILTypeName', true,
+          'Group by RAIL Stage',
+          this.updateContents_.bind(this));
+      topControls.appendChild(this.groupByRAILTypeName_);
+
+      this.groupByDomain_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'pi.ui.wr.weather_report.gropuByDomain', true,
+          'Group by Domain',
+          this.updateContents_.bind(this));
+      topControls.appendChild(this.groupByDomain_);
     },
 
     get mapResults() {
@@ -83,20 +109,37 @@ found in the LICENSE file.
         });
       });
 
-      table.groupBy = [
-            function(datum) {
-              return datum.threadGroup;
-            },
-            function(datum) {
-              return datum.railTypeName;
-            },
-            function(datum) {
-              return datum.title;
-            },
-            function(datum) {
-              return datum.domain;
-            }
-      ];
+      var groupBy = [];
+      if (this.groupByThreadName_.checked) {
+        groupBy.push(function(datum) {
+          return datum.threadGroup;
+        });
+      }
+      if (this.groupByRAILTypeName_.checked) {
+        groupBy.push(function(datum) {
+          return datum.railTypeName;
+        });
+      }
+
+      var didGroupByDomain;
+      if (groupBy.length === 0 && this.groupByDomain_.checked) {
+        groupBy.push(function(datum) {
+          return datum.domain;
+        });
+        didGroupByDomain = true;
+      }
+
+      groupBy.push(function(datum) {
+        return datum.title;
+      });
+
+      if (this.groupByDomain_.checked && !didGroupByDomain) {
+        groupBy.push(function(datum) {
+          return datum.domain;
+        });
+      }
+
+      table.groupBy = groupBy;
       table.dataToGroup = allSliceCosts;
       table.rebuild();
     },
