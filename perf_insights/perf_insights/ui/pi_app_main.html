@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/perf_insights/ui/pi_report.html">
 <link rel="import" href="/perf_insights/map_function.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 
 <polymer-element name="pi-ui-pi-app-main">
   <template>
@@ -26,6 +27,17 @@ found in the LICENSE file.
         padding: 4px;
       }
 
+      top-controls > span.spacer {
+        flex: 1 1 auto;
+      }
+
+      top-left-controls {
+        display: flex;
+      }
+      top-right-controls {
+        display: flex;
+      }
+
       report-container {
         display: flex;
         flex: 1 1 auto;
@@ -35,6 +47,10 @@ found in the LICENSE file.
       }
     </style>
     <top-controls>
+      <top-left-controls></top-left-controls>
+      <span class="spacer"></span>
+      <top-right-controls>
+      </top-right-controls>
     </top-controls>
     <report-container>
     </report-container>
@@ -60,15 +76,18 @@ tr.exportTo('pi.ui', function() {
       this.currentMapTracesDriver_ = undefined;
       this.corpusQuery_ = undefined;
       this.piReportElementName_ = undefined;
+      this.showRawResults_ = false;
     },
 
     ready: function() {
-      var topControls = this.shadowRoot.querySelector('top-controls');
+      var topLeftControls = this.shadowRoot.querySelector('top-left-controls');
+      var topRightControls = this.shadowRoot.querySelector(
+          'top-right-controls');
 
       var mapTracesDriverSelector = document.createElement('select');
       mapTracesDriverSelector.classList.add('map-traces-driver-selector');
       // This selector is actually populated in the mapTracesDrivers setter.
-      topControls.appendChild(mapTracesDriverSelector);
+      topLeftControls.appendChild(mapTracesDriverSelector);
 
       var cannedCorpusQueries = [
         {
@@ -89,7 +108,7 @@ tr.exportTo('pi.ui', function() {
           'pi.app_main.corpusQuery',
           cannedCorpusQueries[0].value,
           cannedCorpusQueries);
-      topControls.appendChild(corpusQuerySelector);
+      topLeftControls.appendChild(corpusQuerySelector);
 
       var piReportPolymerElementNames = tr.ui.b.getPolymerElementsThatSubclass(
           'pi-ui-pi-report');
@@ -105,7 +124,13 @@ tr.exportTo('pi.ui', function() {
           'pi.app_main.piReportElementName',
           piReportElementOptions[0].value,
           piReportElementOptions);
-      topControls.appendChild(reportSelector);
+      topLeftControls.appendChild(reportSelector);
+
+      var showRawResultsCheckbox = tr.ui.b.createCheckBox(
+          this, 'showRawResults',
+          'pi.app_main.showRawResults', false,
+          'Show raw results');
+      topRightControls.appendChild(showRawResultsCheckbox);
     },
 
     get mapTracesDrivers() {
@@ -115,8 +140,9 @@ tr.exportTo('pi.ui', function() {
     set mapTracesDrivers(mapTracesDrivers) {
       this.mapTracesDrivers_ = mapTracesDrivers;
 
-      var topControls = this.shadowRoot.querySelector('top-controls');
-      var oldSelector = topControls.querySelector('.map-traces-driver-selector');
+      var topLeftControls = this.shadowRoot.querySelector('top-left-controls');
+      var oldSelector = topLeftControls.querySelector(
+          '.map-traces-driver-selector');
       var options = mapTracesDrivers.map(function(mapTracesDriver) {
         return {
           label: mapTracesDriver.name,
@@ -129,7 +155,7 @@ tr.exportTo('pi.ui', function() {
           options[0].value,
           options);
       newSelector.classList.add('map-traces-driver-selector');
-      topControls.replaceChild(newSelector, oldSelector);
+      topLeftControls.replaceChild(newSelector, oldSelector);
     },
 
 
@@ -137,18 +163,9 @@ tr.exportTo('pi.ui', function() {
       return {
         currentMapTracesDriver: this.currentMapTracesDriver_,
         corpusQuery: this.corpusQuery_,
-        piReportElementName: this.piReportElementName_
+        piReportElementName: this.piReportElementName_,
+        showRawResults: this.showRawResults_
       };
-    },
-
-    set mappingState(mappingState) {
-      if (areMappingStatesSame(this.mappingState, mappingState))
-        return;
-      this.currentMapTracesDriver_ = mappingState.currentMapTracesDriver;
-      this.corpusQuery_ = mappingState.corpusQuery;
-      this.piReportElementName_ = mappingState.piReportElementName;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     get currentMapTracesDriver() {
@@ -160,7 +177,6 @@ tr.exportTo('pi.ui', function() {
       this.scheduleUpdateContents_();
       this.fire('ui-state-changed');
     },
-
 
     get corpusQuery() {
       return this.corpusQuery_;
@@ -188,6 +204,16 @@ tr.exportTo('pi.ui', function() {
 
     set mapClientSide(mapClientSide) {
       this.mapClientSide_ = mapClientSide;
+      this.scheduleUpdateContents_();
+      this.fire('ui-state-changed');
+    },
+
+    get showRawResults() {
+      return this.showRawResults_;
+    },
+
+    set showRawResults(showRawResults) {
+      this.showRawResults_ = showRawResults;
       this.scheduleUpdateContents_();
       this.fire('ui-state-changed');
     },
@@ -262,7 +288,12 @@ tr.exportTo('pi.ui', function() {
           return;
         }
 
-        var reportEl = document.createElement(mappingState.piReportElementName);
+        var reportEl;
+        if (mappingState.showRawResults) {
+          reportEl = document.createElement('pi-ui-generic-results-view');
+        } else {
+          reportEl = document.createElement(mappingState.piReportElementName);
+        }
         reportEl.mapResults = mapResults;
         reportContainer.appendChild(reportEl);
       });

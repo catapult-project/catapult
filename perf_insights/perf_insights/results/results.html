@@ -65,6 +65,30 @@ tr.exportTo('pi.r', function() {
       });
     },
 
+    get failedRunInfos() {
+      var failedRunInfos = [];
+      var hasAddedRunInfo = {};
+      this.failureValues.forEach(function(v) {
+        if (hasAddedRunInfo[v.run_info.run_id])
+          return;
+        hasAddedRunInfo[v.run_info.run_id] = true;
+        failedRunInfos.push(v.run_info);
+      });
+      return failedRunInfos;
+    },
+
+    get allRunInfos() {
+      var allRunInfos = [];
+      var hasAddedRunInfo = {};
+      this.all_values.forEach(function(v) {
+        if (hasAddedRunInfo[v.run_info.run_id])
+          return;
+        hasAddedRunInfo[v.run_info.run_id] = true;
+        allRunInfos.push(v.run_info);
+      });
+      return allRunInfos;
+    },
+
     doesRunContainFailure: function(run_info) {
       return this._run_ids_that_have_failures[run_info.run_id] === true;
     },
@@ -75,6 +99,12 @@ tr.exportTo('pi.r', function() {
           return false;
         return true;
       }, this);
+    },
+
+    getValuesForRunInfo: function(run_info) {
+      return this.all_values.filter(function(value) {
+        return value.run_info === run_info;
+      });
     },
 
     getValuesFromFailureFreeRunsNamed: function(name) {

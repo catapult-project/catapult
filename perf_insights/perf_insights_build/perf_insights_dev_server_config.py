@@ -41,23 +41,23 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
     map_function_handle = map_function_handle_module.MapFunctionHandle(
       map_function_name=map_function)
 
+    pi_data_dir = kwargs.pop('_pi_data_dir')
+    corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
+        pi_data_dir)
+
     # TODO(nduca): pass self.request.params to the map function [maybe].
     query_string = self.request.params.get('corpus_query', 'True')
-    print query_string
     query = corpus_query.CorpusQuery.FromString(query_string)
-    self._RunMapper(map_function_handle, query)
 
-  def _RunMapper(self, map_function_handle, query):
-    project = perf_insights_project.PerfInsightsProject()
+    trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
 
-    corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-        project.perf_insights_test_data_path)
+    self._RunMapper(trace_handles, map_function_handle)
 
+  def _RunMapper(self, trace_handles, map_function_handle):
     self.response.content_type = 'application/json'
     output_formatter = json_output_formatter.JSONOutputFormatter(
         self.response.out)
 
-    trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
     runner = map_runner.MapRunner(
         trace_handles, map_function_handle)
     runner.Run(jobs=map_runner.AUTO_JOB_COUNT,
@@ -74,14 +74,19 @@ class PerfInsightsDevServerConfig(object):
   def GetRunUnitTestsUrl(self):
     return '/perf_insights/tests.html'
 
-  def AddOptionstToArgParseGroup(self, g):  # pylint: disable=unused-argument
-    pass
+  def AddOptionstToArgParseGroup(self, g):
+    g.add_argument('--pi-data-dir',
+                   default=self.project.perf_insights_test_data_path)
 
   def GetRoutes(self, args):  # pylint: disable=unused-argument
     return [
       Route('/perf_insights/tests', TestListHandler),
       Route('/perf_insights_examples/run_map_function/<map_function:.+>',
-            RunMapFunctionHandler)
+            RunMapFunctionHandler,
+            defaults={
+              '_pi_data_dir':
+                  os.path.abspath(os.path.expanduser(args.pi_data_dir))
+            })
     ]
 
   def GetSourcePaths(self, args):  # pylint: disable=unused-argument

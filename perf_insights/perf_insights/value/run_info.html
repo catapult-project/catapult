@@ -43,12 +43,15 @@ tr.exportTo('pi.v', function() {
 
   RunInfo.prototype = {
     asDict: function() {
-      return {
+      var d = {
         type: PI_VALUE_RUN_INFO_ID,
         run_id: this.run_id,
         url: this.url,
         metadata: this.metadata
       };
+      if (this.display_name !== this.url)
+        d.display_name = this.display_name;
+      return d;
     }
   };
 

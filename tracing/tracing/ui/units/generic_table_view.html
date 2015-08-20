@@ -32,6 +32,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.units', function() {
   var TEXT_COLUMN_MODE = 1;
   var NUMERIC_COLUMN_MODE = 2;
+  var ELEMENT_COLUMN_MODE = 3;
 
   function isNumeric(value) {
     // TODO(nduca): Also consider other units that are numeric.
@@ -66,6 +67,9 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     cmp: function(a, b) {
+      if (this.columnMode_ === ELEMENT_COLUMN_MODE)
+        return 0;
+
       return tr.b.comparePossiblyUndefinedValues(a, b, function(a, b) {
         var vA = a[this.fieldName];
         var vB = b[this.fieldName];
@@ -82,10 +86,17 @@ tr.exportTo('tr.ui.units', function() {
         if (fieldValue === undefined || fieldValue === null)
           return;
 
-        if (isNumeric(fieldValue))
+        if (isNumeric(fieldValue)) {
           this.columnMode_ = NUMERIC_COLUMN_MODE;
-        else
-          this.columnMode_ = TEXT_COLUMN_MODE;
+          return;
+        }
+
+        if (fieldValue instanceof HTMLElement) {
+          this.columnMode_ = ELEMENT_COLUMN_MODE;
+          return;
+        }
+
+        this.columnMode_ = TEXT_COLUMN_MODE;
         return;
       }
 
@@ -99,7 +110,13 @@ tr.exportTo('tr.ui.units', function() {
       if (isNumeric(fieldValue))
         return;
 
-      this.columnMode_ = TEXT_COLUMN_MODE;
+      if (fieldValue instanceof HTMLElement) {
+        this.columnMode_ = ELEMENT_COLUMN_MODE;
+        return;
+      }
+
+      if (this.columnMode_ === NUMERIC_COLUMN_MODE)
+        this.columnMode_ = TEXT_COLUMN_MODE;
     },
 
     value: function(item) {
@@ -113,6 +130,9 @@ tr.exportTo('tr.ui.units', function() {
 
       if (fieldValue === undefined)
         return '-';
+
+      if (fieldValue instanceof HTMLElement)
+        return fieldValue;
 
       if (fieldValue instanceof Object) {
         var gov = document.createElement('tr-ui-a-generic-object-view');
@@ -128,6 +148,7 @@ tr.exportTo('tr.ui.units', function() {
   Polymer('tr-ui-u-generic-table-view', {
     created: function() {
       this.items_ = undefined;
+      this.importantColumNames_ = [];
     },
 
     get items() {
@@ -142,6 +163,15 @@ tr.exportTo('tr.ui.units', function() {
       } else if (itemsOrGenericTable instanceof tr.b.units.GenericTable) {
         this.items_ = itemsOrGenericTable.items;
       }
+      this.updateContents_();
+    },
+
+    get importantColumNames() {
+      return this.importantColumNames_;
+    },
+
+    set importantColumNames(importantColumNames) {
+      this.importantColumNames_ = importantColumNames;
       this.updateContents_();
     },
 
@@ -166,7 +196,16 @@ tr.exportTo('tr.ui.units', function() {
         return undefined;
 
       // Sort by name.
+      var isColumnNameImportant = {};
+      var importantColumNames = this.importantColumNames || [];
+      importantColumNames.forEach(function(icn) {
+        isColumnNameImportant[icn] = true;
+      });
       columns.sort(function(a, b) {
+        var iA = isColumnNameImportant[a.title] ? 1 : 0;
+        var iB = isColumnNameImportant[b.title] ? 1 : 0;
+        if ((iB - iA) !== 0)
+          return iB - iA;
         return a.title.localeCompare(b.title);
       });
 

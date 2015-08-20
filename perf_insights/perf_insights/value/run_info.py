@@ -21,13 +21,16 @@ class RunInfo(object):
     self.metadata = metadata or {}
 
   def AsDict(self):
-    return {
+    d = {
       'run_id': self.run_id,
       'type': PI_VALUE_RUN_INFO_ID,
       'url': self.url,
       'metadata': self.metadata
     }
+    if self.display_name != self.url:
+      d['display_name'] = self.display_name
 
+    return d
 
   @staticmethod
   def FromDict(d):

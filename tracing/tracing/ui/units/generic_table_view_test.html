@@ -150,6 +150,23 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
   });
 
+  test('tableWithElement', function() {
+    var table = document.createElement('tr-ui-u-generic-table-view');
+    table.items = [
+      {
+        a: 1
+      },
+      {
+        a: tr.ui.b.createSpan({textContent: 'ohai'})
+      },
+      {
+        b: 'c'
+      }
+    ];
+    this.addHTMLOutput(table);
+  });
+
+
   test('emptyTable', function() {
     var table = document.createElement('tr-ui-u-generic-table-view');
     table.items = [{}];

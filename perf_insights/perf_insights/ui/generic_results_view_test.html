@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+  test('basic', function() {
+    var run1 = new pi.v.RunInfo('my_test.json');
+    var run2 = new pi.v.RunInfo('test2.json');
+    var run3 = new pi.v.RunInfo('something.json');
+
+    var results = new pi.r.Results();
+
+    // Run 1. One failure.
+    results.addValue(new pi.v.FailureValue(run1, 'SomeFailureType',
+                                           {description: 'Description',
+                                            stack: tr.b.stackTraceAsString()}));
+    results.addValue(new pi.v.SkipValue(run1, 'col2',
+                                        {description: 'WhySkipped'}));
+
+
+    // Run 2. Successful but had skip.
+    results.addValue(new pi.v.SkipValue(run2, 'col1',
+                                        {description: 'WhySkipped'}));
+    results.addValue(new pi.v.DictValue(run2, 'col2',
+                                        {my_key: 'my_value'}));
+
+    // Run 3. Two failures.
+    results.addValue(new pi.v.DictValue(run3, 'col1',
+                                        {my_key: 'my_value'}));
+    results.addValue(new pi.v.FailureValue(run3, 'SomeOtherFailureType',
+                                           {description: 'Description',
+                                            stack: tr.b.stackTraceAsString()}));
+    results.addValue(new pi.v.FailureValue(run3, 'RunThreeHadABadDay',
+                                           {description: 'Description',
+                                            stack: tr.b.stackTraceAsString()}));
+
+    var grv = document.createElement('pi-ui-generic-results-view');
+    grv.mapResults = results;
+    this.addHTMLOutput(grv);
+  });
+});
+</script>
+
