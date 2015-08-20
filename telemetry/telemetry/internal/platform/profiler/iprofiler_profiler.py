@@ -10,8 +10,6 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.platform import profiler
 
-# pexpect is not available on all platforms so use the third_party version.
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
 try:
   import pexpect  # pylint: disable=F0401
 except ImportError:

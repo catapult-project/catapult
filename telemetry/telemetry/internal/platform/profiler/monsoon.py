@@ -15,11 +15,8 @@ import select
 import struct
 import time
 
-from telemetry.core import util
-
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'pyserial')
-import serial  # pylint: disable=F0401
-import serial.tools.list_ports  # pylint: disable=F0401,E0611
+import serial  # pylint: disable=no-name-in-module
+import serial.tools.list_ports  # pylint: disable=import-error,no-name-in-module
 
 
 Power = collections.namedtuple('Power', ['amps', 'volts'])

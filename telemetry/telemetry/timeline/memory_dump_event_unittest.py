@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.timeline import memory_dump_event
-from telemetry.third_party import mock
+import mock
 
 
 def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,

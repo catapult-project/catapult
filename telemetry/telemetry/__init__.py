@@ -16,4 +16,12 @@ global_hooks.InstallHooks()
 
 # Add depdendencies into our path.
 from telemetry.core import util
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
+
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'catapult')

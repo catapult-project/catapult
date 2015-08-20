@@ -12,14 +12,10 @@ import sys
 import tempfile
 
 from catapult_base import cloud_storage
-from telemetry.core import util
 from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry import value as value_module
 
-# Bring in tv module for transforming raw trace to html form.
-util.AddDirToPythonPath(
-    util.GetChromiumSrcDir(), 'third_party', 'catapult')
 
 from tracing.build import trace2html
 

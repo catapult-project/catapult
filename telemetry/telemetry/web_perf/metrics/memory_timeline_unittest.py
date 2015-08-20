@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.internal.results import page_test_results
 from telemetry.page import page
-from telemetry.third_party import mock
+import mock
 from telemetry.timeline import memory_dump_event
 from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf import timeline_interaction_record

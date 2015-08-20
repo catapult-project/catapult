@@ -5,7 +5,7 @@ import unittest
 
 from telemetry.internal.backends import browser_backend
 from telemetry.testing import options_for_unittests
-from telemetry.third_party import mock
+import mock
 
 
 class BrowserBackendLogsUploadingUnittest(unittest.TestCase):

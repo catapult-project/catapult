@@ -14,12 +14,10 @@ import subprocess
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import platform
-from telemetry.core import util
 from telemetry.util import color_histogram
 from telemetry.util import rgba_color
 
-util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
-import png  # pylint: disable=F0401
+import png
 
 
 class _BitmapTools(object):

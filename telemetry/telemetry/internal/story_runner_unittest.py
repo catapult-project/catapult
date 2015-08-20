@@ -20,7 +20,7 @@ from telemetry.page import page_test
 from telemetry import story as story_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
-from telemetry.third_party import mock
+import mock
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module

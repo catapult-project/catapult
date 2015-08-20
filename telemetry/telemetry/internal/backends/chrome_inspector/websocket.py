@@ -5,10 +5,6 @@ from __future__ import absolute_import
 
 import socket
 
-from telemetry.core import util
-
-util.AddDirToPythonPath(
-    util.GetTelemetryDir(), 'third_party', 'websocket-client')
 # pylint: disable=unused-import
 from websocket import create_connection as _create_connection
 from websocket import WebSocketException

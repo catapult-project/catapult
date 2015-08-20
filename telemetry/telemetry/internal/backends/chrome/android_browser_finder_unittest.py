@@ -7,7 +7,7 @@ import unittest
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.testing import system_stub
-from telemetry.third_party import mock
+import mock
 
 
 class FakeAndroidPlatform(object):

@@ -7,7 +7,7 @@ from __future__ import division
 from telemetry.internal.util import external_modules
 from telemetry.util import color_histogram
 from telemetry.util import rgba_color
-from telemetry.third_party import png
+import png
 
 cv2 = external_modules.ImportOptionalModule('cv2')
 np = external_modules.ImportRequiredModule('numpy')

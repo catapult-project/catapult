@@ -8,7 +8,7 @@ import unittest
 
 from telemetry.core import util
 from telemetry.internal.platform import linux_based_platform_backend
-from telemetry.third_party import mock
+import mock
 
 
 class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):

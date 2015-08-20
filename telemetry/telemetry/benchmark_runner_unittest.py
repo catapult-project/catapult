@@ -7,7 +7,7 @@ import unittest
 from telemetry import benchmark
 from telemetry import benchmark_runner
 from telemetry.testing import stream
-from telemetry.third_party import mock
+import mock
 
 
 class BenchmarkFoo(benchmark.Benchmark):

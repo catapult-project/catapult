@@ -19,9 +19,7 @@ from telemetry.internal.platform import device_finder
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.util import wpr_modes
 
-util.AddDirToPythonPath(
-    util.GetTelemetryThirdPartyDir(), 'webpagereplay')
-import net_configs  # pylint: disable=F0401
+import net_configs
 
 
 class BrowserFinderOptions(optparse.Values):

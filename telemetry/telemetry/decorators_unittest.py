@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry import decorators
-from telemetry.third_party import mock
+import mock
 
 
 class FakePlatform(object):

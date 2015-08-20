@@ -11,7 +11,7 @@ from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
-from telemetry.third_party import mock
+import mock
 
 
 class FakeInspectorWebsocket(object):

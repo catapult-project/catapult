@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager
-from telemetry.third_party import mock
+import mock
 
 
 class BinaryManagerTest(unittest.TestCase):

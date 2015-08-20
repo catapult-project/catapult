@@ -30,6 +30,7 @@ def _GetPathsToPrepend(input_api):
   return [
       telemetry_dir,
       input_api.os_path.join(telemetry_dir, 'third_party', 'mock'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'png'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'typ'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'webpagereplay'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
