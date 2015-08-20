@@ -175,7 +175,11 @@ class JSChecker(object):
 
 
 def RunChecks(input_api, output_api, excluded_paths=None):
-  file_filter=None
-  if excluded_paths:
-    file_filter = lambda x: any(re.match(p, x) for p in excluded_paths)
-  return JSChecker(input_api, output_api, file_filter=file_filter).RunChecks()
+
+  def ShouldCheck(affected_file):
+    if not excluded_paths:
+      return True
+    path = affected_file.LocalPath()
+    return not any(re.match(pattern, path) for pattern in excluded_paths)
+
+  return JSChecker(input_api, output_api, file_filter=ShouldCheck).RunChecks()

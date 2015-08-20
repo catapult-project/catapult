@@ -24,7 +24,7 @@ _EXCLUDED_PATHS = (
     r'.*LICENSE$',
     r'.*OWNERS$',
     r'.*README\.md$',
-    r'^dashboard[\\\/]third_party[\\\/].*',
+    r'^dashboard[\\\/]dashboard[\\\/]templates[\\\/].*',
     r'^experimental[\\\/]heatmap[\\\/].*',
     r'^perf_insights[\\\/]test_data[\\\/].*',
     r'^perf_insights[\\\/]third_party[\\\/].*',
