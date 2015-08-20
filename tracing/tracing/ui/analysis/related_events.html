@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
@@ -210,43 +211,16 @@ found in the LICENSE file.
       });
     },
 
-    // Find the [first, last] index of the samples overlapping slice, assuming
-    // samples are sorted. |last| is past-the-end so returned indices can be
-    // used with Array.slice.
-    findOverlappingSampleIndices_: function(samples, slice) {
-      // Binary search. |test| is a function that should return true when we
-      // need to explore the left branch and false to explore the right branch.
-      function binSearch(test) {
-        var i0 = 0;
-        var i1 = samples.length;
-        while (i0 < i1 - 1) {
-          var i = Math.trunc((i0 + i1) / 2);
-          if (test(i))
-            i1 = i;  // Explore the left branch.
-          else
-            i0 = i;  // Explore the right branch.
-        }
-        return i1;
-      }
-
-      var first = binSearch(function(i) {
-        return slice.start <= samples[i].start;
-      });
-      var sliceEnd = slice.start + slice.duration;
-      var last = binSearch(function(i) {
-        return sliceEnd < samples[i].start;
-      });
-      return [first, last];
-    },
-
     addOverlappingSamples_: function(eventSet) {
       var samples = new tr.model.EventSet;
       eventSet.forEach(function(slice) {
         if (!slice.parentContainer || !slice.parentContainer.samples)
           return;
         var candidates = slice.parentContainer.samples;
-        var filteredSamples = candidates.slice.apply(candidates,
-            this.findOverlappingSampleIndices_(candidates, slice));
+        var range = tr.b.Range.fromExplicitRange(
+            slice.start, slice.start + slice.duration);
+        var filteredSamples = range.filterArray(
+            candidates, function(value) {return value.start;});
         filteredSamples.forEach(function(sample) {
           samples.push(sample);
         });

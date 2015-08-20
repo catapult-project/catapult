@@ -302,5 +302,31 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(r1.findIntersection(r2).isEmpty);
     assert.isTrue(r2.findIntersection(r1).isEmpty);
   });
+
+  test('filter_numericField', function() {
+    var r = Range.fromExplicitRange(2, 3);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 2}, {start: 3}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('filter_noNumericField', function() {
+    var r = Range.fromExplicitRange(2, 3);
+    assert.deepEqual([2, 3], r.filterArray([1, 2, 3, 4]));
+  });
+
+  test('filter_empty', function() {
+    var r = new Range();
+    assert.deepEqual([], r.filterArray([1, 2, 3, 4]));
+  });
+
+  test('filter_oneSided', function() {
+    var r = new Range();
+    r.min = 2;
+    assert.deepEqual([2, 3, 4], r.filterArray([1, 2, 3, 4]));
+  });
 });
 </script>

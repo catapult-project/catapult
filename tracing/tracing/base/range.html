@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 
 <script>
 'use strict';
@@ -142,6 +143,50 @@ tr.exportTo('tr.b', function() {
         max: this.max,
         min: this.min
       };
+    },
+
+    /**
+     * Returns a slice of the input array that intersects with this range. If
+     * the range does not have a min, it is treated as unbounded from below.
+     * Similarly, if max is undefined, the range is unbounded from above.
+     *
+     * @param {Array} array The array of elements to be filtered.
+     * @param {Funcation=} opt_keyFunc A function that extracts a numeric value,
+     *        to be used in comparisons, from an element of the array. If not
+     *        specified, array elements themselves will be used.
+     * @param {Object=} opt_this An optional this argument to be passed to
+     *        opt_keyFunc.
+     */
+    filterArray: function(array, opt_keyFunc, opt_this) {
+      if (this.isEmpty_)
+        return [];
+      // Binary search. |test| is a function that should return true when we
+      // need to explore the left branch and false to explore the right branch.
+      function binSearch(test) {
+        var i0 = 0;
+        var i1 = array.length;
+        while (i0 < i1 - 1) {
+          var i = Math.trunc((i0 + i1) / 2);
+          if (test(i))
+            i1 = i;  // Explore the left branch.
+          else
+            i0 = i;  // Explore the right branch.
+        }
+        return i1;
+      }
+
+      var keyFunc = opt_keyFunc || tr.b.identity;
+      function getValue(index) {
+        return keyFunc.call(opt_this, array[index]);
+      }
+
+      var first = binSearch(function(i) {
+        return this.min_ === undefined || this.min_ <= getValue(i);
+      }.bind(this));
+      var last = binSearch(function(i) {
+        return this.max_ !== undefined && this.max_ < getValue(i);
+      }.bind(this));
+      return array.slice(first, last);
     }
   };
 
