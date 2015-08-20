@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
-<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/pi_report.html">
+<link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/wr/reduce.html">
 <link rel="import" href="/perf_insights/wr/slice_cost.html">
@@ -35,8 +35,7 @@ found in the LICENSE file.
     <top-controls>
     </top-controls>
     <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
-    <tr-ui-b-table id="table">
-    </tr-ui-b-table>
+    <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
   </template>
   <script>
   'use strict';
@@ -68,131 +67,23 @@ found in the LICENSE file.
       this.$.infobars.clearMessages();
       this.maybeAddFailuresInfoBarMessage_(results);
 
-      function compareTimestamps(x, y) {
-        return x - y;
-      }
-      table.tableColumns = [
-        {
-          title: 'Title',
-          value: function(row) {
-            return row.title;
-          },
-          width: '500px'
-        },
-        {
-          title: 'Self time',
-          value: function(row) {
-            if (row.sliceCostInfo.selfTime === undefined)
-              return;
-            return tr.ui.units.createTimeDurationSpan(
-                  row.sliceCostInfo.selfTime);
-          },
-          cmp: function(a, b) {
-            return tr.b.comparePossiblyUndefinedValues(
-                a.sliceCostInfo.selfTime, b.sliceCostInfo.selfTime,
-                compareTimestamps);
-          }
-        },
-        {
-          title: 'CPU Self time',
-          value: function(row) {
-            if (row.sliceCostInfo.cpuSelfTime === undefined)
-              return;
-            return tr.ui.units.createTimeDurationSpan(
-                row.sliceCostInfo.cpuSelfTime);
-          },
-          cmp: function(a, b) {
-            return tr.b.comparePossiblyUndefinedValues(
-                a.sliceCostInfo.cpuSelfTime, b.sliceCostInfo.cpuSelfTime,
-                compareTimestamps);
-          }
-        }
-      ];
+      var columns = this.createColumns_();
+      table.tableColumns = columns;
       table.sortColumnIndex = 2;
       table.sortDescending = true;
 
-      function Row(title, data, groupingKeyFuncs) {
-        this.title = title;
-        this.data_ = data;
-        if (groupingKeyFuncs === undefined)
-          groupingKeyFuncs = [];
-        this.groupingKeyFuncs_ = groupingKeyFuncs;
-        this.sliceCostInfo_ = undefined;
-
-        this.subRowsBuilt_ = false;
-        this.subRows_ = undefined;
-      }
-      Row.prototype = {
-        get sliceCostInfo() {
-          if (this.sliceCostInfo_ === undefined) {
-            this.sliceCostInfo_ = new pi.wr.SliceCostInfo();
-
-            this.data_.forEach(function(v) {
-              this.sliceCostInfo_.push(undefined, v);
-            }, this);
-
-          }
-          return this.sliceCostInfo_;
-        },
-
-        getCurrentGroupingKeyFunc_: function() {
-          if (this.groupingKeyFuncs_.length === 0)
-            return undefined;
-          return this.groupingKeyFuncs_[0];
-        },
-
-        rebuildSubRowsIfNeeded_: function() {
-          if (this.subRowsBuilt_)
-            return;
-          this.subRowsBuilt_ = true;
-
-          var groupingKeyFunc = this.getCurrentGroupingKeyFunc_();
-          if (groupingKeyFunc === undefined) {
-            this.subRows_ = undefined;
-            return;
-          }
-
-          var dataByKey = {};
-          var hasValues = false;
-          this.data_.forEach(function(datum) {
-            var key = groupingKeyFunc(datum);
-            hasValues = hasValues || (key !== undefined);
-            if (dataByKey[key] === undefined)
-              dataByKey[key] = [];
-            dataByKey[key].push(datum);
-          });
-          if (!hasValues) {
-            this.subRows_ = undefined;
-            return;
-          }
-
-          this.subRows_ = [];
-          for (var key in dataByKey) {
-            var row = new Row(key,
-                           dataByKey[key],
-                           this.groupingKeyFuncs_.slice(1));
-            this.subRows_.push(row);
-          }
-        },
-
-        get subRows() {
-          this.rebuildSubRowsIfNeeded_();
-          return this.subRows_;
-        }
-
-      };
-
-      var allRows = [];
+      var allSliceCosts = [];
       results.allValuesFromFailureFreeRuns.forEach(function(result) {
+        if (result.name != 'wr')
+          return;
+
         result.value.sliceCosts.forEach(function(item) {
           var sliceCostInfo = pi.wr.SliceCostInfo.fromDict(item);
-          allRows.push(sliceCostInfo);
+          allSliceCosts.push(sliceCostInfo);
         });
       });
 
-      var superRow = new Row(
-          '', allRows,
-          [
+      table.groupBy = [
             function(datum) {
               return datum.threadGroup;
             },
@@ -205,8 +96,8 @@ found in the LICENSE file.
             function(datum) {
               return datum.domain;
             }
-          ]);
-      table.tableRows = superRow.subRows;
+      ];
+      table.dataToGroup = allSliceCosts;
       table.rebuild();
     },
 
@@ -235,6 +126,78 @@ found in the LICENSE file.
               onClick: onTellMeMore
             }
           ]);
+    },
+
+    createColumns_: function() {
+
+      function compareTimestamps(x, y) {
+        return x - y;
+      }
+
+      function getStatsForRow(row) {
+        if (row.stats_ === undefined) {
+          var stats = {
+            cpuSelfTime: tr.b.Statistics.mean(
+                row.data,
+                function(sliceCostInfo) {
+                  return sliceCostInfo.cpuSelfTime;
+                }),
+            selfTime: tr.b.Statistics.mean(
+                row.data,
+                function(sliceCostInfo) {
+                  return sliceCostInfo.selfTime;
+                }),
+          }
+          row.stats_ = stats;
+        }
+        return row.stats_;
+      }
+
+
+      var columns = [
+        {
+          title: 'Title',
+          value: function(row) {
+            return row.title;
+          },
+          width: '500px'
+        },
+        {
+          title: 'Self time',
+          value: function(row) {
+            var stats = getStatsForRow(row);
+            if (stats.selfTime === undefined)
+              return;
+            return tr.ui.units.createTimeDurationSpan(
+                  stats.selfTime);
+          },
+          cmp: function(a, b) {
+            var sA = getStatsForRow(a);
+            var sB = getStatsForRow(b);
+            return tr.b.comparePossiblyUndefinedValues(
+                sA.selfTime, sB.selfTime,
+                compareTimestamps);
+          }
+        },
+        {
+          title: 'CPU Self time',
+          value: function(row) {
+            var stats = getStatsForRow(row);
+            if (stats.cpuSelfTime === undefined)
+              return;
+            return tr.ui.units.createTimeDurationSpan(
+                stats.cpuSelfTime);
+          },
+          cmp: function(a, b) {
+            var sA = getStatsForRow(a);
+            var sB = getStatsForRow(b);
+            return tr.b.comparePossiblyUndefinedValues(
+                sA.cpuSelfTime, sB.cpuSelfTime,
+                compareTimestamps);
+          }
+        }
+      ];
+      return columns;
     }
   });
   </script>
