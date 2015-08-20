@@ -142,12 +142,18 @@ found in the LICENSE file.
           }
 
           var dataByKey = {};
+          var hasValues = false;
           this.data_.forEach(function(datum) {
             var key = groupingKeyFunc(datum);
+            hasValues = hasValues || (key !== undefined);
             if (dataByKey[key] === undefined)
               dataByKey[key] = [];
             dataByKey[key].push(datum);
           });
+          if (!hasValues) {
+            this.subRows_ = undefined;
+            return;
+          }
 
           this.subRows_ = [];
           for (var key in dataByKey) {
@@ -184,6 +190,9 @@ found in the LICENSE file.
             },
             function(datum) {
               return datum.title;
+            },
+            function(datum) {
+              return datum.domain;
             }
           ]);
       table.tableRows = superRow.subRows;
