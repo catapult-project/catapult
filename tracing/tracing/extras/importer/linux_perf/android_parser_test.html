@@ -202,5 +202,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Math.round((253.780659 - (255.663276 - 128)) * 1000),
                  Math.round(thread.sliceGroup.slices[0].start));
   });
+
+  test('androidNeedReschedImport', function() {
+    var lines = [
+      'RenderThread-3894  [001] ...1   253.780659: tracing_mark_write: B|3586|DrawFrame', // @suppress longLineCheck
+      'RenderThread-3894  [001] ...1   253.780671: tracing_mark_write: B|3586|waitForTask', // @suppress longLineCheck
+      'RenderThread-3894  [001] .N.1   253.780671: tracing_mark_write: E', // @suppress longLineCheck
+      'RenderThread-3894  [001] ...1   253.780671: tracing_mark_write: B|3586|waitForTask', // @suppress longLineCheck
+      'RenderThread-3894  [001] .n.1   253.780671: tracing_mark_write: E', // @suppress longLineCheck
+      'RenderThread-3894  [001] ...1   253.780671: tracing_mark_write: B|3586|waitForTask', // @suppress longLineCheck
+      'RenderThread-3894  [001] .p.1   253.780671: tracing_mark_write: E', // @suppress longLineCheck
+      'RenderThread-3894  [001] ...1   253.780686: tracing_mark_write: E', // @suppress longLineCheck
+    ];
+    var m = newModel(lines.join('\n'));
+    assert.isFalse(m.hasImportWarnings, 'hasImportWarnings');
+
+    var threads = m.getAllThreads();
+    assert.equal(threads.length, 1);
+
+    var thread = threads[0];
+    assert.equal(thread.parent.pid, 3586);
+    assert.equal(thread.tid, 3894);
+    assert.equal(thread.name, 'RenderThread');
+    assert.equal(thread.sliceGroup.length, 4);
+  });
 });
 </script>

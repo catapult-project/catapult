@@ -58,6 +58,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
   });
 
+  test('lineParserWithIRQInfoNeedResched', function() {
+    var p = LinuxPerfImporterTestExports.lineParserWithIRQInfo; // @suppress longLineCheck
+    var x = p('     systrace.sh-5441  [001] .N..  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+    assert.equal(x.pid, '5441');
+    assert.equal(x.cpuNumber, '001');
+    assert.equal(x.timestamp, '1031.091570');
+    assert.equal(x.eventName, 'sched_wakeup');
+    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+
+    var x = p('     systrace.sh-5441  [001] .n..  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+
+    var x = p('     systrace.sh-5441  [001] .p..  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+  });
+
   test('lineParserWithTGID', function() {
     var p = LinuxPerfImporterTestExports.lineParserWithTGID;
     var x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
@@ -77,6 +100,30 @@ tr.b.unittest.testSuite(function() {
     assert.equal(x.tgid, '321');
 
     var x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.isUndefined(x.tgid);
+  });
+
+  test('lineParserWithTGIDNeedResched', function() {
+    var p = LinuxPerfImporterTestExports.lineParserWithTGID;
+    var x = p('     systrace.sh-5441  (54321) [001] .N..  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.threadName, 'systrace.sh');
+    assert.equal(x.pid, '5441');
+    assert.equal(x.tgid, '54321');
+    assert.equal(x.cpuNumber, '001');
+    assert.equal(x.timestamp, '1031.091570');
+    assert.equal(x.eventName, 'sched_wakeup');
+    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+
+    var x = p('     systrace.sh-5441  (  321) [001] .n..  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+    assert.isNotNull(x);
+    assert.equal(x.tgid, '321');
+
+    var x = p('     systrace.sh-5441  (-----) [001] .p..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.isUndefined(x.tgid);
