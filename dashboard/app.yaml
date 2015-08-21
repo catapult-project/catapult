@@ -54,18 +54,18 @@ handlers:
   secure: always
 
 - url: /third_party/polymer/components/(.*)/(.*\.(html|js|css))$
-  static_files: third_party/polymer/components/\1/\2
-  upload: third_party/polymer/components/.*/.*\.(html|js|css)$
+  static_files: polymer/components/\1/\2
+  upload: polymer/components/.*/.*\.(html|js|css)$
   secure: always
 
 - url: /third_party/flot/(.*\.js)$
-  static_files: third_party/flot/\1
-  upload: third_party/flot/.*\.js$
+  static_files: flot/\1
+  upload: flot/.*\.js$
   secure: always
 
 - url: /third_party/jquery/(.*\.js)$
-  static_files: third_party/jquery/\1
-  upload: third_party/jquery/.*\.js$
+  static_files: jquery/\1
+  upload: jquery/.*\.js$
   secure: always
 
 - url: /add_point_queue

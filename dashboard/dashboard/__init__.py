@@ -5,7 +5,7 @@
 import os
 
 
-# Libraries in catapult/third_party.
+# Directories in catapult/third_party required by dashboard.
 THIRD_PARTY_LIBRARIES = [
     'apiclient',
     'beautifulsoup4',
@@ -15,6 +15,9 @@ THIRD_PARTY_LIBRARIES = [
     'pipeline',
     'uritemplate',
     'webtest',
+    'flot',
+    'jquery',
+    'polymer',
 ]
 
 # Libraries bundled with the App Engine SDK.
