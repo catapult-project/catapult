@@ -19,10 +19,14 @@ def Main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--appid', default='chromeperf')
   args = parser.parse_args()
+
+  _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
+  import dashboard
+  paths = dashboard.PathsForDeployment()
+
   _AddToPathIfNeeded(catapult_path)
   from build import appengine_deploy
-  dashboard_path = os.path.join(catapult_path, 'dashboard')
-  appengine_deploy.AppcfgUpdate(dashboard_path, app_id=args.appid)
+  appengine_deploy.AppcfgUpdate(paths, app_id=args.appid)
 
 
 if __name__ == '__main__':

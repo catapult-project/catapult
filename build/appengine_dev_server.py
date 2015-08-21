@@ -10,11 +10,12 @@ import sys
 from build import temp_deployment_dir
 
 
-def DevAppserver(app_dir):
+def DevAppserver(paths):
   """Starts a dev server for an App Engine app.
 
   Args:
-    app_dir: Path of the directory that contains app.yaml.
+    paths: List of paths to files and directories that should be linked
+        (or copied) in the deployment directory.
   """
   try:
     import dev_appserver
@@ -23,7 +24,7 @@ def DevAppserver(app_dir):
     # binary dependency manager.
     print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
-  with temp_deployment_dir.TempDeploymentDir(app_dir) as temp_dir:
+  with temp_deployment_dir.TempDeploymentDir(paths) as temp_dir:
     print 'Running dev server on "%s".' % temp_dir
     subprocess.call([
         dev_appserver.__file__,

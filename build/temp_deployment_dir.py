@@ -7,39 +7,23 @@ import contextlib
 import os
 import tempfile
 
-_CATAPULT_THIRD_PARTY = os.path.abspath(
-  os.path.join(os.path.dirname(__file__), os.path.pardir, 'third_party'))
-
 
 @contextlib.contextmanager
-def TempDeploymentDir(app_dir):
+def TempDeploymentDir(paths):
   """Sets up and tears down a directory for deploying an app."""
   try:
     deployment_dir = tempfile.mkdtemp(prefix='deploy-')
-    _PopulateDeploymentDir(app_dir, deployment_dir)
+    _PopulateDeploymentDir(deployment_dir, paths)
     yield deployment_dir
   finally:
     _CleanUp(deployment_dir)
 
 
-def _PopulateDeploymentDir(app_dir, deployment_dir):
-  """Fills the deployment directory with symlinks.
-
-  This populates the deployment directory with only symlinks; this could
-  potentially be made more flexible by taking as input the list of paths
-  to make symlinks for.
-
-  TODO(qyearsley): Later I think I'd like to add symlinks for all of
-  the libraries in the app engine SDK lib/ directory, which would mean
-  we could remove httplib2 and oauth2client from catapult/third_party/.
-  """
-  for name in os.listdir(app_dir):
-    os.symlink(
-        os.path.join(app_dir, name),
-        os.path.join(deployment_dir, name))
-  os.symlink(
-      _CATAPULT_THIRD_PARTY,
-      os.path.join(deployment_dir, 'third_party'))
+def _PopulateDeploymentDir(deployment_dir, paths):
+  """Fills the deployment directory with symlinks."""
+  for path in paths:
+    destination = os.path.join(deployment_dir, os.path.basename(path))
+    os.symlink(path, destination)
 
 
 def _CleanUp(deployment_dir):

@@ -35,13 +35,13 @@ def _AddThirdPartyLibraries():
   runtime environment, they must be added with vendor.add. The directories
   added this way must be inside the App Engine project directory.
   """
-  # The deploy script is expected to add a link to third_party in this directory
-  # before deploying. If the directory isn't there (e.g. for tests), then ignore
-  # it; the libraries should be set up in run_tests.py.
-  third_party_dir = os.path.join(os.path.dirname(__file__), 'third_party')
-  if os.path.exists(third_party_dir):
-    for library_dir in dashboard.THIRD_PARTY_LIBRARIES:
-      vendor.add(os.path.join(third_party_dir, library_dir))
+  # The deploy script is expected to add links to third party libraries
+  # before deploying. If the directories aren't there (e.g. when running tests)
+  # then just ignore it.
+  for library_dir in (dashboard.THIRD_PARTY_LIBRARIES +
+                      dashboard.THIRD_PARTY_LIBRARIES_IN_SDK):
+    if os.path.exists(library_dir):
+      vendor.add(os.path.join(os.path.dirname(__file__), library_dir))
 
 
 _AddThirdPartyLibraries()

@@ -11,7 +11,8 @@ import os
 import sys
 import unittest
 
-_DASHBOARD = os.path.join(os.path.dirname(__file__), os.path.pardir)
+_CATAPULT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
 
 
 def _AddToPathIfNeeded(path):
@@ -23,7 +24,7 @@ def _GetTests(args):
   loader = unittest.TestLoader()
   if args.tests:
     return loader.loadTestsFromNames(args.tests)
-  dashboard_package_path = os.path.join(_DASHBOARD, 'dashboard')
+  dashboard_package_path = os.path.join(_CATAPULT, 'dashboard', 'dashboard')
   return loader.discover(dashboard_package_path, pattern='*_test.py')
 
 
@@ -36,9 +37,10 @@ def _FixPath():
     print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
   dev_appserver.fix_sys_path()
-  _AddToPathIfNeeded(_DASHBOARD)
-  # Importing dashboard adds libraries to sys.path.
-  import dashboard  # pylint: disable=unused-variable
+  _AddToPathIfNeeded(os.path.join(_CATAPULT, 'dashboard'))
+  import dashboard
+  for library in dashboard.THIRD_PARTY_LIBRARIES:
+    _AddToPathIfNeeded(os.path.join(_CATAPULT, 'third_party', library))
 
 
 def Main():

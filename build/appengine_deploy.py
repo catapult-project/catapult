@@ -13,11 +13,12 @@ import tempfile
 from build import temp_deployment_dir
 
 
-def AppcfgUpdate(app_dir, app_id):
+def AppcfgUpdate(paths, app_id):
   """Deploys a new version of an App Engine app from a temporary directory.
 
   Args:
-    app_dir: Path of the directory containing app.yaml.
+    paths: List of paths to files and directories that should be linked
+        (or copied) in the deployment directory.
     app_id: The application ID to use.
   """
   try:
@@ -27,7 +28,7 @@ def AppcfgUpdate(app_dir, app_id):
     # binary dependency manager.
     print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
-  with temp_deployment_dir.TempDeploymentDir(app_dir) as temp_dir:
+  with temp_deployment_dir.TempDeploymentDir(paths) as temp_dir:
     print 'Deploying from "%s".' % temp_dir
     _Run([
         appcfg.__file__,
