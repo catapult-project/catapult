@@ -49,14 +49,19 @@ def FindPythonDependencies(module_path):
     if not node.filename:
       continue
     module_path = os.path.realpath(node.filename)
-    if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
-      continue
 
     _, incoming_edges = graph.get_edges(node)
     message = 'Discovered %s (Imported by: %s)' % (
         node.filename, ', '.join(
-            d.filename for d in incoming_edges if d is not None))
+            d.filename for d in incoming_edges
+            if d is not None and d.filename is not None))
     print message
+
+    # This check is done after the logging/printing above to make sure that we
+    # also print out the dependency edges that include python packages that are
+    # not in chromium.
+    if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
+      continue
 
     yield module_path
     if node.packagepath is not None:
