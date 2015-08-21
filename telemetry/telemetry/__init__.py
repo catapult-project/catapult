@@ -26,4 +26,5 @@ util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'catapult')
+util.AddDirToPythonPath(util.GetChromiumSrcDir(),
+                        'third_party', 'catapult', 'tracing')

@@ -16,8 +16,7 @@ from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry import value as value_module
 
-
-from tracing.build import trace2html
+from tracing_build import trace2html
 
 
 class TraceValue(value_module.Value):
