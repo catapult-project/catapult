@@ -78,7 +78,6 @@ class AnomalyGroupingTest(testing_common.TestCase):
     return anomalies
 
   def testUpdateAnomalyBugId_UpdatesGroupOfAnomaly(self):
-    """Tests that updating an alert's bug ID can put it in another group."""
     anomalies = self._AddAnomalies()
 
     # At first, two anomalies are in separate groups, and the second anomaly
@@ -93,7 +92,6 @@ class AnomalyGroupingTest(testing_common.TestCase):
     self.assertEqual(anomalies[1].bug_id, anomalies[2].bug_id)
 
   def testMarkAnomalyInvalid_AnomalyIsRemovedFromGroup(self):
-    """Tests that marking an alert invalid removes it from its group."""
     anomalies = self._AddAnomalies()
 
     # At first, two anomalies are in the same group.
@@ -113,7 +111,6 @@ class AnomalyGroupingTest(testing_common.TestCase):
     self.assertEqual(4000, group.end_revision)
 
   def testUpdateAnomalyRevisionRange_UpdatesGroupRevisionRange(self):
-    """Tests that updating an anomaly's revision range updates its group."""
     anomalies = self._AddAnomalies()
 
     # Add another anomaly to the same group as the first two anomalies,
@@ -136,7 +133,6 @@ class AnomalyGroupingTest(testing_common.TestCase):
     self.assertEqual(3020, group.end_revision)
 
   def testUpdateGroup_InvalidRange_PropertiesAreUpdated(self):
-    """Tests that a group's properties updated when its range is invalid."""
     anomalies = self._AddAnomalies()
 
     # Add another anomaly to the same group as the first two anomalies
@@ -193,7 +189,6 @@ class StoppageAlertGroupingTest(testing_common.TestCase):
     return [foo_alert_key.get(), bar_alert_key.get()]
 
   def testStoppageAlertGroup_GroupAssignedUponCreation(self):
-    """In CreateStoppageAlert, a group should be found and and assigned."""
     foo_test, bar_test = self._AddStoppageAlerts()
     self.assertIsNotNone(foo_test.group)
     self.assertIsNotNone(bar_test.group)
@@ -239,8 +234,7 @@ class GroupAlertsTest(testing_common.TestCase):
       test.put()
     return [scrolling_test, tab_capture_test]
 
-  def testGroupAlerts_WithNoAssociation(self):
-    """Tests the GroupAlerts function creating AlertGroup."""
+  def testGroupAlerts_WithNoAssociation_MakesNewGroup(self):
     sheriffs = self._AddSheriffs()
     tests = self._AddTests()
 
@@ -265,12 +259,17 @@ class GroupAlertsTest(testing_common.TestCase):
         revision_range=(1000, 2000), test=tests[0], sheriff_key=sheriffs[0],
         bug_id=None, is_improvement=False)
     test_suite = 'scrolling_benchmark'
+
     alert_group.GroupAlerts(
         [regression_anomaly, improvement_anomaly], test_suite, 'Anomaly')
-    self.assertEqual(regression_anomaly.bug_id, None)
+
+    # The regression Anomaly was not grouped with a group that has a bug ID,
+    # so the bug ID is not changed.
+    self.assertIsNone(regression_anomaly.bug_id)
 
     # Improvement Anomaly should not be auto-triaged.
     self.assertIsNone(improvement_anomaly.group)
+
     alert_groups = alert_group.AlertGroup.query().fetch()
     self.assertEqual(3, len(alert_groups))
     self.assertEqual(
@@ -280,7 +279,6 @@ class GroupAlertsTest(testing_common.TestCase):
     self.assertEqual(alert_groups[2].test_suites, [test_suite])
 
   def testGroupAlerts_WithExistingGroup(self):
-    """Tests the GroupAlerts function associating anomalies with group."""
     sheriffs = self._AddSheriffs()
     tests = self._AddTests()
 
@@ -307,6 +305,7 @@ class GroupAlertsTest(testing_common.TestCase):
 
     alert_group.GroupAlerts(
         [regression_anomaly, improvement_anomaly], 'tab_capture', 'Anomaly')
+
     # The regression Anomaly's bug ID is changed because it has been grouped.
     self.assertEqual(104, regression_anomaly.bug_id)
     self.assertEqual(tab_capture_group, regression_anomaly.group)

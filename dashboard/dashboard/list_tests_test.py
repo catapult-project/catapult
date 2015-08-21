@@ -61,7 +61,6 @@ class ListTestsTest(testing_common.TestCase):
     self.testbed.deactivate()
 
   def testGetSubTests_FetchAndCacheBehavior(self):
-    """Tests the behavior of GetSubTests and interaction with layered cache."""
     self._AddSampleData()
 
     # Set the has_rows flag to true on two of the Test entities.
@@ -137,12 +136,8 @@ class ListTestsTest(testing_common.TestCase):
     self.assertEqual(expected, json.loads(response.body))
 
   def testGetSubTests_ReturnsOnlyNonDeprecatedTests(self):
-    """Checks that only data not marked as deprecated is returned.
-
-    Sub-tests with the same name may be deprecated on one bot (indicating that
-    that bot has not sent data recently with that name and not deprecated on
-    another bot.
-    """
+    # Sub-tests with the same name may be deprecated on only one bot, and not
+    # deprecated on another bot; only non-deprecated tests should be returned.
     self._AddSampleData()
 
     # Set the deprecated flag to True for one test on one platform.
@@ -194,8 +189,7 @@ class ListTestsTest(testing_common.TestCase):
     }
     self.assertEqual(expected, json.loads(response.body))
 
-  def testGetSubTests_InternalData(self):
-    """Checks that internal data is not returned for unauthorized users."""
+  def testGetSubTests_InternalData_OnlyReturnedForAuthorizedUsers(self):
     # When the user has a an internal account, internal-only data is given.
     self.SetCurrentUser('foo@google.com')
     self._AddSampleData()

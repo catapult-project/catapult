@@ -192,8 +192,7 @@ class ProcessAlertsTest(testing_common.TestCase):
       mock.MagicMock(return_value=[
           _MakeSampleChangePoint(10011, 100, 50)
       ]))
-  def testProcessTest_DownImprovementDirection_IsImprovementPropertySet(self):
-    """Tests the Anomaly improvement direction when lower is better."""
+  def testProcessTest_ImprovementMarkedAsImprovement(self):
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
@@ -240,7 +239,6 @@ class ProcessAlertsTest(testing_common.TestCase):
       ]))
   @mock.patch.object(find_anomalies.email_sheriff, 'EmailSheriff')
   def testProcessTest_InternalOnlyTest(self, mock_email_sheriff):
-    """Verifies that internal-only tests are processed."""
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
@@ -318,7 +316,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(len(new_anomalies), 1)
 
   def testProcessTest_CreatesAnAnomaly(self):
-    """Tests that a particular anomaly is created for a sample data series."""
     testing_common.AddTests(
         ['ChromiumGPU'], ['linux-release'], {
             'scrolling_benchmark': {'ref': {}},

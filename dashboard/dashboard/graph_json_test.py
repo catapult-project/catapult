@@ -151,8 +151,7 @@ class GraphJsonTest(testing_common.TestCase):
         self.assertEqual(rev, col['data'][index][0])
         self.assertEqual(rev * 2, col['data'][index][1])
 
-  def testBasicRequest(self):
-    """Tests the post method of the request handler."""
+  def testPost_ValidRequest(self):
     self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
         'test_path_dict': {
@@ -167,13 +166,12 @@ class GraphJsonTest(testing_common.TestCase):
     self.CheckFlotJson(flot_json_str, 150, 2, 15850, 16000, step=1)
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
 
-    # Errors are reported when the request is invalid.
+  def testPost_InvalidRequest_ReportsError(self):
     self.testapp.post('/graph_json', {}, status=500)
     self.testapp.post('/graph_json', {'graphs': ''}, status=500)
     self.testapp.post('/graph_json', {'graphs': '{}'}, status=500)
 
-  def testRequest_LongTestPathWithSelected(self):
-    """Tests the post method of the request handler."""
+  def testPost_LongTestPathWithSelected(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
         'test_path_dict': {
@@ -187,8 +185,7 @@ class GraphJsonTest(testing_common.TestCase):
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 1, 15850, 16000, step=1)
 
-  def testRequest_LongTestPathWithUnSelected(self):
-    """Tests the post method of the request handler."""
+  def testPost_LongTestPathWithUnSelected(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
         'test_path_dict': {
@@ -201,8 +198,7 @@ class GraphJsonTest(testing_common.TestCase):
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 1, 15850, 16000, step=1)
 
-  def testRequest_LongTestPathWithUnSelectedAndNoSubTest_NoGraphData(self):
-    """Tests the post method of the request handler."""
+  def testPost_LongTestPathWithUnSelectedAndNoSubTest_NoGraphData(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
         'test_path_dict': {

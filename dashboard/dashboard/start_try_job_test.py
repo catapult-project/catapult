@@ -574,8 +574,7 @@ class StartBisectTest(testing_common.TestCase):
             'original_bot_name': None,
         })
 
-  def testGetConfig_Telemetry(self):
-    """Tests that the right config is returned for a normal Telemetry test."""
+  def testGetConfig_TelemetryTest(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_perf_bisect',
@@ -607,8 +606,7 @@ class StartBisectTest(testing_common.TestCase):
             'original_bot_name': None,
         })
 
-  def testGetConfig_BisectModeAsReturnCode(self):
-    """Tests that the right config is returned for return_code bisect mode."""
+  def testGetConfig_BisectModeSetToReturnCode(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'linux_perf_bisect',
@@ -661,8 +659,7 @@ class StartBisectTest(testing_common.TestCase):
     response = start_try_job.GetBisectConfig(**parameters)
     self.assertEqual(expected_command, response.get('command'))
 
-  def testGetConfig_AndroidTelemetry(self):
-    """Tests that the right config is returned for an android bot."""
+  def testGetConfig_AndroidTelemetryTest(self):
     self._TestGetConfigCommand(
         ('tools/perf/run_benchmark -v '
          '--browser=android-chromium --output-format=buildbot '
@@ -672,7 +669,6 @@ class StartBisectTest(testing_common.TestCase):
         suite='page_cycler.morejs')
 
   def testGetConfig_CCPerftests(self):
-    """Tests the config returned for a cc_perftests test on linux."""
     self._TestGetConfigCommand(
         ('./out/Release/cc_perftests '
          '--test-launcher-print-test-stdio=always'),
@@ -680,22 +676,19 @@ class StartBisectTest(testing_common.TestCase):
         suite='cc_perftests')
 
   def testGetConfig_AndroidCCPerftests(self):
-    """Tests the command returned for cc_perftests tests on android."""
     self._TestGetConfigCommand(
         'build/android/test_runner.py gtest --release -s cc_perftests',
         bisect_bot='android_nexus7_perf_bisect',
         suite='cc_perftests')
 
   def testGetConfig_IdbPerf(self):
-    """Tests the command returned for idb_perf tests on windows."""
     self._TestGetConfigCommand(
         (r'.\out\Release\performance_ui_tests.exe '
          '--gtest_filter=IndexedDBTest.Perf'),
         bisect_bot='win_perf_bisect',
         suite='idb_perf')
 
-  def testGetConfig_Startup(self):
-    """Tests that a custom flag is added for startup tests."""
+  def testGetConfig_Startup_ProfileDirFlagAdded(self):
     self._TestGetConfigCommand(
         ('python tools/perf/run_benchmark -v '
          '--browser=release --output-format=buildbot '
@@ -705,8 +698,7 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='win_perf_bisect',
         suite='startup.cold.dirty.blank_page')
 
-  def testGetConfig_SessionRestore(self):
-    """Tests that a custom flag is added for session_restore tests."""
+  def testGetConfig_SessionRestore_ProfileDirFlagAdded(self):
     self._TestGetConfigCommand(
         ('python tools/perf/run_benchmark -v '
          '--browser=release --output-format=buildbot '
@@ -723,16 +715,6 @@ class StartBisectTest(testing_common.TestCase):
          '--enable-gpu'),
         bisect_bot='linux_perf_bisect',
         suite='performance_browser_tests')
-
-  def testGetConfig_ClankTelemetry(self):
-    """Tests that the right config is returned for an clank bot."""
-    self._TestGetConfigCommand(
-        ('tools/perf/run_benchmark -v '
-         '--browser=android-chrome --output-format=buildbot '
-         '--also-run-disabled-tests '
-         'page_cycler.morejs'),
-        bisect_bot='clankium_nexus4_perf_bisect',
-        suite='page_cycler.morejs')
 
   def testGuessBisectBot_FetchesNameFromBisectBotMap(self):
     namespaced_stored_object.Set(
@@ -762,7 +744,6 @@ class StartBisectTest(testing_common.TestCase):
                      mock.MagicMock(return_value='1234567'))
   def testPerformBuildbucketBisect(self):
     self.SetCurrentUser('foo@chromium.org')
-    # Fake Rietveld auth info
     cfg = rietveld_service.RietveldConfig(
         id='default_rietveld_config',
         client_email='sullivan@chromium.org',
@@ -770,7 +751,6 @@ class StartBisectTest(testing_common.TestCase):
         server_url='https://test-rietveld.appspot.com')
     cfg.put()
 
-    # Create bug.
     bug_data.Bug(id=12345).put()
 
     query_parameters = {
@@ -904,8 +884,7 @@ class StartBisectTest(testing_common.TestCase):
                     'issue_url': '/buildbucket_job_status/1234567'}),
         response.body)
 
-  def testGetConfigWithArchive(self):
-    """Tests GetConfig method with use_archive attribute set."""
+  def testGetBisectconfig_UseArchive(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_perf_bisect',
@@ -938,7 +917,7 @@ class StartBisectTest(testing_common.TestCase):
             'original_bot_name': None,
         })
 
-  def testGetConfigWithTargetArch(self):
+  def testGetBisectConfig_WithTargetArch(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_x64_perf_bisect',

@@ -48,11 +48,9 @@ def Main():
   parser.add_argument('-v', '--verbose', action='store_true')
   args = parser.parse_args()
   tests = _GetTests(args)
-  runner_verbosity = 2
   if not args.verbose:
-    runner_verbosity = 1
     logging.basicConfig(format='', level=logging.CRITICAL)
-  runner = unittest.TextTestRunner(verbosity=runner_verbosity)
+  runner = unittest.TextTestRunner(verbosity=2)
   result = runner.run(tests)
   return 0 if result.wasSuccessful() else 1
 

@@ -108,8 +108,8 @@ class FindChangePointsTest(unittest.TestCase):
     self.assertTrue(self._PassesThresholds(left, 5, multiple_of_std_dev=7))
     self.assertTrue(self._PassesThresholds(right, 5, multiple_of_std_dev=7))
 
-  def testZeroMedian(self):
-    """The _ZeroMedian function adjusts values so that the median is zero."""
+  def testZeroMedian_ReturnsValuesWithMedianEqualToZero(self):
+    # The _ZeroMedian function adjusts values so that the median is zero.
     self.assertEqual([0, 0, 1], find_change_points._ZeroMedian([1, 1, 2]))
     self.assertEqual([-0.5, 0.5], find_change_points._ZeroMedian([45, 46]))
 
@@ -153,7 +153,6 @@ class FindChangePointsTest(unittest.TestCase):
     self.assertEqual(expected_indexes, actual_indexes)
 
   def testFindChangePoints_ShortSequences(self):
-    """Tests the behavior of FindChangePoints on some short sequences."""
     self._AssertFindsChangePoints(
         [1, 1, 1, 5, 5, 5, 5, 9, 9, 9], [3],
         max_window_size=10, min_segment_size=3)
@@ -170,8 +169,7 @@ class FindChangePointsTest(unittest.TestCase):
         [1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 9], [6],
         max_window_size=11, min_segment_size=3)
 
-  def testChangePoint(self):
-    """Tests MakeChangePoint and conversion to dict."""
+  def testChangePoint_CanBeMadeAndConvertedToDict(self):
     series = list(enumerate([4, 4, 4, 8, 8, 8, 8]))
     change_point = find_change_points.MakeChangePoint(series, 3)
     self.assertEqual(

@@ -110,8 +110,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
         actual = [t.test_path for t in tests]
         self.assertEqual(expected, actual)
 
-  def testPost_MigrateTraceLevelTestForSeveralGraphs(self):
-    """Tests that one trace can be renamed for several graphs."""
+  def testPost_MigrateTraceLevelTest(self):
     self._AddMockData()
     self.testapp.post('/migrate_test_names', {
         'old_pattern': '*/*/*/*/t',
@@ -161,7 +160,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self._CheckTests(expected_tests)
 
   def testPost_MigrateChartLevelTest(self):
-    """Tests that a graph can be renamed and its traces will be migrated."""
     self._AddMockData()
 
     self.testapp.post('/migrate_test_names', {
@@ -188,7 +186,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self._CheckTests(expected_tests)
 
   def testPost_MigrateSuiteLevelTest(self):
-    """Tests that a test suite can be renamed and traces will be migrated."""
     self._AddMockData()
 
     self.testapp.post('/migrate_test_names', {
@@ -215,7 +212,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self._CheckTests(expected_tests)
 
   def testPost_MigrateSeriesToChartLevelTest(self):
-    """Tests that a Test's rows can be migrated up to the parent Test."""
     self._AddMockData()
 
     self.testapp.post('/migrate_test_names', {
@@ -225,8 +221,11 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks(
         '/migrate_test_names', migrate_test_names._TASK_QUEUE_NAME)
 
+    # The Row and Anomaly entities have been moved.
     self._CheckRows('ChromiumPerf/mac/SunSpider/Total')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider/Total')
+
+    # There is no SunSpider/Total/time any more.
     expected_tests = [
         'SunSpider',
         'SunSpider/3d-cube',
@@ -241,7 +240,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self._CheckTests(expected_tests)
 
   def testPost_MigrationFinished_EmailsSheriff(self):
-    """Tests that an email is sent about a migrated test."""
     self._AddMockData()
 
     # Add a sheriff for one test.
@@ -293,7 +291,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'migrated to ChromiumPerf/win7/moz/read_operations_browser', body)
     self.assertIn('sheriffed by Perf Sheriff Win', body)
 
-  def testGetNewTestPathWithAsterisks(self):
+  def testGetNewTestPath_WithAsterisks(self):
     self.assertEqual(
         'A/b/c/X',
         migrate_test_names._GetNewTestPath('A/b/c/d', '*/*/*/X'))
@@ -304,7 +302,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'A/b/c',
         migrate_test_names._GetNewTestPath('A/b/c/d', '*/*/*'))
 
-  def testGetNewTestPathWithBrackets(self):
+  def testGetNewTestPath_WithBrackets(self):
     # Brackets are just used to delete parts of names, no other functionality.
     self.assertEqual(
         'A/b/c/x',
@@ -319,7 +317,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'A/b/c/d',
         migrate_test_names._GetNewTestPath('AA/bb/cc/dd', '[A]/[b]/[c]/[d]'))
 
-  def testGetNewTestPathShorterOrLonger(self):
+  def testGetNewTestPath_NewPathHasDifferentLength(self):
     self.assertEqual(
         'A/b/c',
         migrate_test_names._GetNewTestPath('A/b/c/d', 'A/*/c'))
@@ -330,7 +328,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
         migrate_test_names.BadInputPatternError,
         migrate_test_names._GetNewTestPath, 'A/b/c', 'A/b/c/*')
 
-  def testGetNewTestPathInvalidArgs(self):
+  def testGetNewTestPath_InvalidArgs(self):
     self.assertRaises(
         AssertionError,
         migrate_test_names._GetNewTestPath, 'A/b/*/d', 'A/b/c/d')

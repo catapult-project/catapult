@@ -18,7 +18,6 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def testGetOrCreateAncestors_GetsExistingEntities(self):
-    """Tests that _GetOrCreateAncestors doesn't add if entity already exists."""
     master_key = graph_data.Master(id='ChromiumPerf', parent=None).put()
     bot_key = graph_data.Bot(id='win7', parent=master_key).put()
     suite_key = graph_data.Test(id='dromaeo', parent=bot_key).put()
@@ -34,7 +33,6 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     self.assertEqual(3, len(graph_data.Test.query().fetch()))
 
   def testGetOrCreateAncestors_CreatesAllExpectedEntities(self):
-    """Tests that _GetOrCreateAncestors adds if entity already exists."""
     parent = add_point_queue._GetOrCreateAncestors(
         'ChromiumPerf', 'win7', 'dromaeo/dom/modify')
     self.assertEqual('modify', parent.key.id())

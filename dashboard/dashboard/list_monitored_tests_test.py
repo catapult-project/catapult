@@ -41,8 +41,7 @@ class ListMonitoredTestsTest(testing_common.TestCase):
         id=name, email=email, url=url, internal_only=internal_only,
         summarize=summarize, patterns=patterns or []).put()
 
-  def testGet_ValidSheriff(self):
-    """A list of monitored tests can be requested for a Sheriff."""
+  def testGet_ValidSheriff_ReturnsJSONListOfTests(self):
     self._AddSheriff('X', patterns=['*/*/Suite1/*'])
     self._AddSampleTestData()
     response = self.testapp.get(

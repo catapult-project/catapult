@@ -70,8 +70,7 @@ class MrTest(testing_common.TestCase):
 
     return trace_a, trace_b, suite
 
-  def testDeprecateTestsMapper_TraceUpdated(self):
-    """Tests basic functionality of DeprecateTestsMapper."""
+  def testDeprecateTestsMapper_UpdatesTest(self):
     trace_a, trace_b, suite = self._AddMockDataForDeprecatedTests()
 
     for operation in mr.DeprecateTestsMapper(trace_a):
@@ -83,8 +82,7 @@ class MrTest(testing_common.TestCase):
     self.assertFalse(trace_b.deprecated)
     self.assertFalse(suite.deprecated)
 
-  def testDeprecateTestsMapper_SuiteUpdated(self):
-    """Tests that DeprecateTestsMapper deprecates suites."""
+  def testDeprecateTestsMapper_AllSubtestsDeprecated_UpdatesSuite(self):
     (trace_a, trace_b, suite) = self._AddMockDataForDeprecatedTests()
     last_b = graph_data.Row.query(
         graph_data.Row.parent_test == trace_b.key,

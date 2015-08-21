@@ -52,7 +52,6 @@ class EditSheriffsTest(testing_common.TestCase):
         stoppage_alert_delay=stoppage_alert_delay).put()
 
   def testPost_AddNewSheriff(self):
-    """Tests creating a new Sheriff entity."""
     self.testapp.post('/edit_sheriffs', {
         'add-edit': 'add',
         'add-name': 'New Sheriff',
@@ -70,7 +69,6 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertTrue(sheriffs[0].summarize)
 
   def testPost_EditExistingSheriff(self):
-    """Tests editing the email, url, and summarize properties of a Sheriff."""
     self._AddSampleTestData()
     self._AddSheriff('Old Sheriff')
     self.testapp.post('/edit_sheriffs', {
@@ -102,7 +100,6 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertIsNone(ddd.sheriff)
 
   def testEditSheriff_EditPatternsList(self):
-    """Tests editing the patterns list of a Sheriff."""
     self._AddSampleTestData()
     self._AddSheriff('Sheriff', patterns=['*/*/*/*'])
     self.testapp.post('/edit_sheriffs', {
@@ -127,7 +124,6 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertEqual(sheriff_entity.key, ddd.sheriff)
 
   def testPost_EditSheriffWithNoXSRFToken_NoChangeIsMade(self):
-    """Tests that editing cannot be done without an xsrf token."""
     self._AddSheriff('Sheriff', patterns=['*/*/*'])
     self.testapp.post('/edit_sheriffs', {
         'add-edit': 'edit',
@@ -138,8 +134,7 @@ class EditSheriffsTest(testing_common.TestCase):
     sheriff_entity = sheriff.Sheriff.query().fetch()[0]
     self.assertEqual(['*/*/*'], sheriff_entity.patterns)
 
-  def testPost_WithInvalidActionParameter_ShowsErrorMessage(self):
-    """If an invalid value is given for "add-edit", an error page is shown."""
+  def testPost_WithInvalidAddEditParameter_ShowsErrorMessage(self):
     response = self.testapp.post('/edit_sheriffs', {
         'add-edit': '',
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
@@ -183,7 +178,6 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertIn(expected_message, response.body)
 
   def testGet_SheriffDataIsEmbeddedOnPage(self):
-    """Sheriff data should be embedded on the page in a JS variable."""
     self._AddSheriff('Foo Sheriff', email='foo@x.org', patterns=['*/*/*/*'])
     self._AddSheriff('Bar Sheriff', summarize=True, stoppage_alert_delay=5,
                      patterns=['x/y/z', 'a/b/c'])

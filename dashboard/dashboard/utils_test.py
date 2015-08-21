@@ -100,20 +100,17 @@ class UtilsTest(testing_common.TestCase):
     ]
     return keys
 
-  def testGetMulti_NotLoggedIn_OnlySome(self):
-    """Tests that GetMulti gets some of the entities when not logged in."""
+  def testGetMulti_NotLoggedIn_ReturnsSomeEntities(self):
     keys = self._PutEntitiesHalfInternal()
     self.SetCurrentUser('x@hotmail.com')
     self.assertEqual(len(keys) / 2, len(utils.GetMulti(keys)))
 
-  def testGetMulti_LoggedIn(self):
-    """Tests that GetMulti gets all of the entities when logged in."""
+  def testGetMulti_LoggedIn_ReturnsAllEntities(self):
     keys = self._PutEntitiesHalfInternal()
     self.SetCurrentUser('x@google.com')
     self.assertEqual(len(keys), len(utils.GetMulti(keys)))
 
-  def testGetMulti_AllExternal(self):
-    """Tests that GetMulti gets all of the entities when logged in."""
+  def testGetMulti_AllExternal_ReturnsAllEntities(self):
     keys = self._PutEntitiesAllExternal()
     self.SetCurrentUser('x@hotmail.com')
     self.assertEqual(len(keys), len(utils.GetMulti(keys)))
