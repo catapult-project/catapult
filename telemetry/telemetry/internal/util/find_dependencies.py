@@ -34,7 +34,7 @@ def FindBootstrapDependencies(base_dir):
 
 
 def FindPythonDependencies(module_path):
-  logging.info('Finding Python dependencies of %s' % module_path)
+  print 'Finding Python dependencies of %s' % module_path
 
   # Load the module to inherit its sys.path modifications.
   imp.load_source(
@@ -56,7 +56,7 @@ def FindPythonDependencies(module_path):
     message = 'Discovered %s (Imported by: %s)' % (
         node.filename, ', '.join(
             d.filename for d in incoming_edges if d is not None))
-    logging.info(message)
+    print message
 
     yield module_path
     if node.packagepath is not None:

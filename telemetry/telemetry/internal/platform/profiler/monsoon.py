@@ -15,7 +15,7 @@ import select
 import struct
 import time
 
-import serial  # pylint: disable=no-name-in-module
+import serial  # pylint: disable=import-error,no-name-in-module
 import serial.tools.list_ports  # pylint: disable=import-error,no-name-in-module
 
 
