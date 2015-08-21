@@ -33,18 +33,16 @@ class MapRunner:
   def _ProcessTrace(self, trace_handle):
     run_info = trace_handle.run_info
     subresults = results_module.Results()
-    # TODO: Modify ProgressReporter API to deal with interleaving runs so
-    # that we can use self._progress_reporter here.
-    progress_reporter = gtest_progress_reporter.GTestProgressReporter(
-                            sys.stdout)
-    progress_reporter.WillRun(run_info)
+    run_reporter = self._progress_reporter.WillRun(run_info)
     map_single_trace.MapSingleTrace(
         subresults,
         trace_handle,
         self._map_function_handle)
+    for v in subresults.all_values:
+      run_reporter.DidAddValue(v)
     self._result_queue.put(subresults)
     had_failure = subresults.DoesRunContainFailure(run_info)
-    progress_reporter.DidRun(run_info, had_failure)
+    run_reporter.DidRun(had_failure)
     if self._stop_on_error and had_failure:
       self._failed_run_info_to_dump = run_info
       self._abort = True
