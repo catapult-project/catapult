@@ -264,6 +264,22 @@ tr.exportTo('tr.ui.units', function() {
       this.$.table.tableRows = this.items_;
       this.$.table.footerRows = this.createFooterRowsIfNeeded_(columns);
       this.$.table.rebuild();
+    },
+
+    get supportsSelection() {
+      return this.$.supportsSelection;
+    },
+
+    set supportsSelection(supportsSelection) {
+      this.$.table.supportsSelection = supportsSelection;
+    },
+
+    get rowHighlightEnabled() {
+      return this.$.rowHighlightEnabled;
+    },
+
+    set rowHighlightEnabled(rowHighlightEnabled) {
+      this.$.table.rowHighlightEnabled = rowHighlightEnabled;
     }
   });
 

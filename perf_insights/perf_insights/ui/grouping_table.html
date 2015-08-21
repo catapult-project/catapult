@@ -116,6 +116,14 @@ tr.exportTo('pi.ui', function() {
       this.$.table.sortDescending = sortDescending;
     },
 
+    get rowHighlightEnabled() {
+      return this.$.rowHighlightEnabled;
+    },
+
+    set rowHighlightEnabled(rowHighlightEnabled) {
+      this.$.table.rowHighlightEnabled = rowHighlightEnabled;
+    },
+
     get groupBy() {
       return this.groupBy_;
     },
@@ -146,6 +154,6 @@ tr.exportTo('pi.ui', function() {
   });
 
   return {
-  }
+  };
 });
 </script>
