@@ -18,16 +18,23 @@ from webapp2 import Route, RedirectHandler
 from perf_insights_build import perf_insights_dev_server_config
 from tracing_build import tracing_dev_server_config
 
-_UNIT_TEST_HTML = """<html><body>
+_MAIN_HTML = """<html><body>
 <h1>Run Unit Tests</h1>
+<ul>
+%s
+</ul>
+<h1>Quick links</h1>
 <ul>
 %s
 </ul>
 </body></html>
 """
 
-_UNIT_TEST_LINK = '<li><a href="%s">%s</a></li>'
+_QUICK_LINKS = [
+  ('Trace File Viewer', '/tracing_examples/trace_viewer.html')
+]
 
+_LINK_ITEM = '<li><a href="%s">%s</a></li>'
 
 def _GetFilesIn(basedir):
   data_files = []
@@ -128,10 +135,14 @@ class SimpleDirectoryHandler(webapp2.RequestHandler):
 
 class TestOverviewHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
-    links = []
+    test_links = []
     for name, path in kwargs.pop('pds').iteritems():
-      links.append(_UNIT_TEST_LINK % (path, name))
-    self.response.out.write(_UNIT_TEST_HTML % '\n'.join(links))
+      test_links.append(_LINK_ITEM % (path, name))
+    quick_links = []
+    for name, path in _QUICK_LINKS:
+      quick_links.append(_LINK_ITEM % (path, name))
+    self.response.out.write(_MAIN_HTML % ('\n'.join(test_links),
+        '\n'.join(quick_links)))
 
 
 def CreateApp(pds, args):
