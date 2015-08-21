@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/value/run_info.html">
+<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights_examples/map_task_info.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.test_utils;
+
+  test('mapTaskInfoTest', function() {
+    var m = test_utils.newModel(function(m) {
+      var p1 = m.getOrCreateProcess(1);
+      p1.name = 'Process';
+      var t2 = p1.getOrCreateThread(2);
+      t2.name = 'Thread';
+      var t2_s0 = test_utils.newSliceEx({ start: 0, duration: 9.7 });
+      var t2_s1 = test_utils.newSliceEx({ start: 11, duration: 20.1 });
+      var t2_s2 = test_utils.newSliceEx({ start: 15, duration: 10.4 });
+      var t2_s3 = test_utils.newSliceEx({ start: 17, duration: 2.4 });
+      t2.sliceGroup.pushSlice(t2_s0);
+      t2.sliceGroup.pushSlice(t2_s1);
+      t2.sliceGroup.pushSlice(t2_s2);
+      t2.sliceGroup.pushSlice(t2_s3);
+      var f1 = test_utils.newFlowEventEx({
+        start: 0, duration: 18.1, startSlice: t2_s0, endSlice: t2_s3
+      });
+      var f2 = test_utils.newFlowEventEx({
+        start: 9, duration: 7.2, startSlice: t2_s0, endSlice: t2_s2
+      });
+      m.flowEvents.push(f1);
+      m.flowEvents.push(f2);
+    });
+
+    var results = new pi.r.Results();
+    var run_info = new pi.v.RunInfo('my_test.json');
+    pie.mapTaskInfoForTest(results, run_info, m);
+
+    assert.equal(results.all_values.length, 2);
+    var value = results.all_values[0];
+    assert.equal(value.name, 'time_spent_in_queue');
+    assert.equal(Object.keys(value.value['Process/Thread']).length, 2);
+    assert.equal(value.value['Process/Thread'][5], 1);
+    assert.equal(value.value['Process/Thread'][15], 1);
+    value = results.all_values[1];
+    assert.equal(value.name, 'time_spent_in_top_level_task');
+    assert.equal(Object.keys(value.value['Process/Thread']).length, 1);
+    assert.equal(value.value['Process/Thread'][10], 1);
+  });
+});
+
+</script>

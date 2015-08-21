@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var run_info = new pi.v.RunInfo('my_test.json');
-    pie.mapProcessCount(results, run_info, m);
+    pie.mapProcessCountForTest(results, run_info, m);
 
     assert.equal(results.all_values.length, 1);
     assert.isTrue(results.all_values[0] instanceof pi.v.DictValue);

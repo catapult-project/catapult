@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/map_function.html">
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/model/flow_event.html">
+<link rel="import" href="/tracing/model/slice.html">
+
+<script>
+tr.exportTo('pie', function() {
+  // Granularity of the bins for the histogram.
+  var BIN_SIZES_MS = 5;
+
+  function mapTaskInfo(results, run_info, model) {
+    addTimeInQueue(results, run_info, model);
+    addTopLevelTasksDuration(results, run_info, model);
+  }
+
+  function addTimeInQueue(results, run_info, model) {
+    var timeInQueue = {};
+    model.flowEvents.forEach(function(flowEvent) {
+      if (!flowEvent.endSlice instanceof tr.model.Slice)
+        return;
+      var thread = flowEvent.endSlice && flowEvent.endSlice.parentContainer;
+      if (!thread)
+        return;
+      var process = thread.getProcess();
+      if (!process)
+        return;
+      var threadName = thread.name || thread.tid;
+      var processName = process.name || process.pid;
+      var bin = Math.floor(flowEvent.duration / BIN_SIZES_MS) * BIN_SIZES_MS;
+      addOneToBin(timeInQueue, processName, threadName, bin);
+    });
+    results.addValue(new pi.v.DictValue(
+        run_info,
+        'time_spent_in_queue',
+        timeInQueue));
+  }
+
+  function addTopLevelTasksDuration(results, run_info, model) {
+    var timeInTask = {};
+    model.getAllThreads().forEach(function(thread) {
+      var process = thread.getProcess();
+      if (!process)
+        return;
+      var threadName = thread.name || thread.tid;
+      var processName = process.name || process.pid;
+      if (!thread.sliceGroup.length)
+        return;
+      thread.sliceGroup.slices.forEach(function(slice) {
+        if (!isTopLevelTask(slice))
+          return;
+        var bin = findBin(slice.duration);
+        addOneToBin(timeInTask, processName, threadName, bin);
+      });
+    });
+    results.addValue(new pi.v.DictValue(
+        run_info,
+        'time_spent_in_top_level_task',
+        timeInTask));
+  }
+
+  function findBin(duration) {
+    return Math.floor(duration / BIN_SIZES_MS) * BIN_SIZES_MS;
+  }
+
+  // A slice is top level if it's on the receiving end of a post task and no
+  // slice above it is.
+  function isTopLevelTask(slice) {
+    if (!slice.inFlowEvents.length)
+      return false;
+    return !slice.parentSlice || !isTopLevelTask(slice.parentSlice);
+  }
+
+  function addOneToBin(dict, processName, threadName, bin) {
+    var key = processName + '/' + threadName;
+    dict[key] = dict[key] || {};
+    dict[key][bin] = dict[key][bin] || 0;
+    dict[key][bin] += 1;
+  }
+
+  pi.MapFunction.register(mapTaskInfo);
+
+  // Exporting for tests.
+  return {
+    mapTaskInfoForTest: mapTaskInfo
+  };
+});
+</script>
