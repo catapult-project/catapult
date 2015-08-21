@@ -12,6 +12,7 @@ from perf_insights import corpus_query
 from perf_insights import local_directory_corpus_driver
 from perf_insights import map_function_handle as map_function_handle_module
 from perf_insights import map_runner
+from perf_insights import progress_reporter as progress_reporter_module
 from perf_insights.results import json_output_formatter
 from tvcm import generate
 import perf_insights
@@ -70,7 +71,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
 
 def PiReportToHTML(ofile, trace_directory, pi_report_file,
                    query, json_output=False,
-                   stop_on_error=False, jobs=1):
+                   stop_on_error=False, jobs=1, quiet=False):
   project = perf_insights_project.PerfInsightsProject()
 
   with open(pi_report_file, 'r') as f:
@@ -86,7 +87,7 @@ def PiReportToHTML(ofile, trace_directory, pi_report_file,
     raise Exception('Could not find %s' % map_function_href)
 
   results = _MapTraces(trace_directory, map_function_handle,
-                       query, stop_on_error, jobs)
+                       query, stop_on_error, jobs, quiet)
   if stop_on_error and results.had_failures:
     sys.stderr.write('There were mapping errors. Aborting.');
     return 255
@@ -102,13 +103,18 @@ def PiReportToHTML(ofile, trace_directory, pi_report_file,
 
 def _MapTraces(trace_directory, map_function_handle, query,
                stop_on_error=False,
-               jobs=1):
+               jobs=1, quiet=False):
   corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
       os.path.abspath(os.path.expanduser(trace_directory)))
 
   trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
+  if quiet:
+    alt_progress_reporter = progress_reporter_module.ProgressReporter()
+  else:
+    alt_progress_reporter = None
   runner = map_runner.MapRunner(trace_handles, map_function_handle,
-                  stop_on_error=stop_on_error)
+                  stop_on_error=stop_on_error,
+                  progress_reporter=alt_progress_reporter)
   return runner.Run(jobs=jobs)
 
 

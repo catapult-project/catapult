@@ -18,15 +18,18 @@ AUTO_JOB_COUNT = 'auto-job-count'
 
 class MapRunner:
   def __init__(self, trace_handles, map_function_handle,
-               stop_on_error=False):
+               stop_on_error=False, progress_reporter=None):
     self._map_function_handle = map_function_handle
     self._work_queue = queue.Queue()
     self._result_queue = queue.Queue()
     self._stop_on_error = stop_on_error
     self._abort = False
     self._failed_run_info_to_dump = None
-    self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
-                                  sys.stdout)
+    if progress_reporter is None:
+      self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
+                                    sys.stdout)
+    else:
+      self._progress_reporter = progress_reporter
     for trace_handle in trace_handles:
       self._work_queue.put(trace_handle)
 
