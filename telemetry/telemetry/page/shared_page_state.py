@@ -77,7 +77,7 @@ class SharedPageState(story.SharedState):
     self._current_tab = None
     self._migrated_profile = None
 
-    self._pregenerated_profile_archive = None
+    self._pregenerated_profile_archive_dir = None
     self._test.SetOptions(self._finder_options)
 
   @property
@@ -379,10 +379,10 @@ class SharedPageState(story.SharedState):
     logging.info("Finished migration of pregenerated profile to %s",
         self._migrated_profile)
 
-  def GetPregeneratedProfileArchive(self):
-    return self._pregenerated_profile_archive
+  def GetPregeneratedProfileArchiveDir(self):
+    return self._pregenerated_profile_archive_dir
 
-  def SetPregeneratedProfileArchive(self, archive):
+  def SetPregeneratedProfileArchiveDir(self, archive_path):
     """
     Benchmarks can set a pre-generated profile archive to indicate that when
     Chrome is launched, it should have a --user-data-dir set to the
@@ -391,12 +391,12 @@ class SharedPageState(story.SharedState):
     If the benchmark is invoked with the option --profile-dir=<dir>, that
     option overrides this value.
     """
-    self._pregenerated_profile_archive = archive
+    self._pregenerated_profile_archive_dir = archive_path
 
   def _ShouldDownloadPregeneratedProfileArchive(self):
     """Whether to download a pre-generated profile archive."""
     # There is no pre-generated profile archive.
-    if not self.GetPregeneratedProfileArchive():
+    if not self.GetPregeneratedProfileArchiveDir():
       return False
 
     # If profile dir is specified on command line, use that instead.
@@ -419,12 +419,7 @@ class SharedPageState(story.SharedState):
     the directory of the extracted profile.
     """
     # Download profile directory from cloud storage.
-    test_data_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', 'perf',
-        'generated_profiles',
-        self._possible_browser.target_os)
-    archive_name = self.GetPregeneratedProfileArchive()
-    generated_profile_archive_path = os.path.normpath(
-        os.path.join(test_data_dir, archive_name))
+    generated_profile_archive_path = self.GetPregeneratedProfileArchiveDir()
 
     try:
       cloud_storage.GetIfChanged(generated_profile_archive_path,
