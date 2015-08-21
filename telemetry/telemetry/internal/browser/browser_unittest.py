@@ -10,6 +10,7 @@ import unittest
 
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal.browser import browser as browser_module
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.platform import gpu_device
 from telemetry.internal.platform import gpu_info
@@ -19,6 +20,12 @@ from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
+
+import mock
+
+
+class IntentionalException(Exception):
+  pass
 
 
 class BrowserTest(browser_test_case.BrowserTestCase):
@@ -179,6 +186,31 @@ def _GenerateBrowserProfile(number_of_tabs):
       tab.WaitForDocumentReadyStateToBeComplete()
   return profile_dir
 
+
+class BrowserCreationTest(unittest.TestCase):
+  def setUp(self):
+    self.mock_browser_backend = mock.MagicMock()
+    self.mock_platform_backend = mock.MagicMock()
+
+  def testCleanedUpCalledWhenExceptionRaisedInBrowserCreation(self):
+    self.mock_platform_backend.platform.FlushDnsCache.side_effect = (
+        IntentionalException('Boom!'))
+    with self.assertRaises(IntentionalException):
+      browser_module.Browser(
+         self.mock_browser_backend, self.mock_platform_backend,
+         credentials_path=None)
+    self.assertTrue(self.mock_platform_backend.WillCloseBrowser.called)
+
+  def testOriginalExceptionNotSwallow(self):
+    self.mock_platform_backend.platform.FlushDnsCache.side_effect = (
+        IntentionalException('Boom!'))
+    self.mock_platform_backend.WillCloseBrowser.side_effect = (
+        IntentionalException('Cannot close browser!'))
+    with self.assertRaises(IntentionalException) as context:
+      browser_module.Browser(
+         self.mock_browser_backend, self.mock_platform_backend,
+         credentials_path=None)
+    self.assertIn('Boom!', context.exception.message)
 
 class BrowserRestoreSessionTest(unittest.TestCase):
 

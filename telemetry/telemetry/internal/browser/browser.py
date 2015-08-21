@@ -19,6 +19,7 @@ from telemetry.internal.browser import browser_credentials
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
 from telemetry.internal.browser import web_contents
+from telemetry.internal.util import exception_formatter
 
 
 class Browser(app.App):
@@ -62,15 +63,14 @@ class Browser(app.App):
       self._profiling_controller = profiling_controller.ProfilingController(
           self._browser_backend.profiling_controller_backend)
     except Exception:
+      exc_info = sys.exc_info()
       logging.exception('Failure while starting browser backend.')
-      original_exception = sys.exc_info()
-
       try:
         self._platform_backend.WillCloseBrowser(self, self._browser_backend)
       except Exception:
-        logging.exception('Secondary failure while closing platform backend')
-
-      raise original_exception
+        exception_formatter.PrintFormattedException(
+            msg='Exception raised while closing platform backend')
+      raise exc_info[0], exc_info[1], exc_info[2]
 
   @property
   def profiling_controller(self):
