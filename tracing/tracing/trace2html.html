@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var m = new tr.Model();
-  var p = m.importTracesWithProgressDialog(traces, true);
+  var i = new tr.importer.Import(m);
+  var p = i.importTracesWithProgressDialog(traces);
   p.then(
       function() {
         g_timelineViewEl.model = m;
