@@ -10,5 +10,5 @@ if __name__ == '__main__':
   catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                  '..', '..'))
   sys.path.append(catapult_path)
-  from build import run_dev_server_tests
+  from catapult_build import run_dev_server_tests
   sys.exit(run_dev_server_tests.Main(sys.argv + ['--tests=perf_insights']))

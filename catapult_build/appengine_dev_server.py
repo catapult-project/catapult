@@ -7,8 +7,8 @@ import os
 import subprocess
 import sys
 
-from build import module_finder
-from build import temp_deployment_dir
+from catapult_build import module_finder
+from catapult_build import temp_deployment_dir
 
 
 def DevAppserver(paths):

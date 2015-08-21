@@ -25,7 +25,7 @@ def Main():
   paths = dashboard.PathsForDeployment()
 
   _AddToPathIfNeeded(catapult_path)
-  from build import appengine_deploy
+  from catapult_build import appengine_deploy
   appengine_deploy.AppcfgUpdate(paths, app_id=args.appid)
 
 

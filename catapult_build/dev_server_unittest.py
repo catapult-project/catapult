@@ -6,7 +6,7 @@ import json
 import unittest
 
 
-from build import dev_server
+from catapult_build import dev_server
 from perf_insights_build import perf_insights_dev_server_config
 from tracing_build import tracing_dev_server_config
 import webapp2

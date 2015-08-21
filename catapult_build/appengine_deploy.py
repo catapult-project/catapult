@@ -10,8 +10,8 @@ import subprocess
 import sys
 import tempfile
 
-from build import module_finder
-from build import temp_deployment_dir
+from catapult_build import module_finder
+from catapult_build import temp_deployment_dir
 
 
 def AppcfgUpdate(paths, app_id):
