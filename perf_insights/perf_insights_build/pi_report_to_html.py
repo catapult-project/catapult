@@ -16,7 +16,7 @@ from perf_insights.results import json_output_formatter
 from tvcm import generate
 import perf_insights
 import perf_insights_project
-import polymer_soup
+import bs4
 
 
 def Main(argv, pi_report_file=None):
@@ -53,21 +53,15 @@ def Main(argv, pi_report_file=None):
                         pi_report_file, query, args.json,
                         args.stop_on_error, args.jobs)
 
-def _GetAttr(n, attr, defaultValue=None):
-  for pair in n.attrs:
-    if pair[0] == attr:
-      return pair[1]
-  return defaultValue
-
 def _GetMapFunctionHrefFromPiReport(html_contents):
-  soup = polymer_soup.PolymerSoup(html_contents)
+  soup = bs4.BeautifulSoup(html_contents)
   elements = soup.findAll('polymer-element')
   for element in elements:
-    if _GetAttr(element, 'extends').lower() == 'pi-ui-pi-report':
-      map_function_href = _GetAttr(element, 'map-function-href')
+    if element.attrs.get('extends').lower() == 'pi-ui-pi-report':
+      map_function_href = element.attrs.get('map-function-href', None)
       if map_function_href is None:
         raise Exception('Report is missing map-function-href attribute')
-      pi_report_element_name = _GetAttr(element, 'name', None)
+      pi_report_element_name = element.attrs.get('name', None)
       if pi_report_element_name is None:
         raise Exception('Report is missing name attribute')
       return map_function_href, pi_report_element_name
