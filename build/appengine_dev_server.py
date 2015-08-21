@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 
+from build import module_finder
 from build import temp_deployment_dir
 
 
@@ -18,7 +19,7 @@ def DevAppserver(paths):
         (or copied) in the deployment directory.
   """
   try:
-    import dev_appserver
+    import dev_appserver  # pylint: disable=unused-variable
   except ImportError:
     # TODO(qyearsley): Put the App Engine SDK in the path with the
     # binary dependency manager.
@@ -27,6 +28,6 @@ def DevAppserver(paths):
   with temp_deployment_dir.TempDeploymentDir(paths) as temp_dir:
     print 'Running dev server on "%s".' % temp_dir
     subprocess.call([
-        dev_appserver.__file__,
+        module_finder.FindModule('dev_appserver'),
         temp_dir,
     ])

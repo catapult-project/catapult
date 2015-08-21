@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 
+from build import module_finder
 from build import temp_deployment_dir
 
 
@@ -22,7 +23,7 @@ def AppcfgUpdate(paths, app_id):
     app_id: The application ID to use.
   """
   try:
-    import appcfg
+    import appcfg  # pylint: disable=unused-variable
   except ImportError:
     # TODO(qyearsley): Put the App Engine SDK in the path with the
     # binary dependency manager.
@@ -31,7 +32,7 @@ def AppcfgUpdate(paths, app_id):
   with temp_deployment_dir.TempDeploymentDir(paths) as temp_dir:
     print 'Deploying from "%s".' % temp_dir
     _Run([
-        appcfg.__file__,
+        module_finder.FindModule('appcfg'),
         '--application=%s' % app_id,
         '--version=%s' % _VersionName(),
         'update',
