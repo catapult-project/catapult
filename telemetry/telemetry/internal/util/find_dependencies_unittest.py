@@ -17,7 +17,8 @@ class FindDependenciesTest(unittest.TestCase):
     cat_module_path = os.path.join(
         util.GetUnittestDataDir(),
         'dependency_test_dir', 'other_animals', 'cat', 'cat')
+    cat_module_init_path = os.path.join(cat_module_path, '__init__.py')
     cat_object_path = os.path.join(cat_module_path, 'cat_object.py')
     self.assertEquals(
       set(p for p in find_dependencies.FindPythonDependencies(dog_object_path)),
-      {dog_object_path, cat_module_path, cat_object_path})
+      {dog_object_path, cat_module_path, cat_module_init_path, cat_object_path})

@@ -5,7 +5,6 @@
 import fnmatch
 import imp
 import logging
-import modulefinder
 import optparse
 import os
 import sys
@@ -17,6 +16,9 @@ from telemetry.internal.util import bootstrap
 from telemetry.internal.util import command_line
 from telemetry.internal.util import path
 from telemetry.internal.util import path_set
+
+from modulegraph import modulegraph
+
 
 DEPS_FILE = 'bootstrap_deps'
 
@@ -39,22 +41,27 @@ def FindPythonDependencies(module_path):
       os.path.splitext(os.path.basename(module_path))[0], module_path)
 
   # Analyze the module for its imports.
-  finder = modulefinder.ModuleFinder()
-  finder.run_script(module_path)
+  graph = modulegraph.ModuleGraph()
+  graph.run_script(module_path)
 
   # Filter for only imports in Chromium.
-  for module in finder.modules.itervalues():
-    # If it's an __init__.py, module.__path__ gives the package's folder.
-    module_path = module.__path__[0] if module.__path__ else module.__file__
-    if not module_path:
+  for node in graph.nodes():
+    if not node.filename:
       continue
-
-    module_path = os.path.realpath(module_path)
+    module_path = os.path.realpath(node.filename)
     if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
       continue
 
-    logging.info('Found dependency module path: %s' % module_path)
+    _, incoming_edges = graph.get_edges(node)
+    message = 'Discovered %s (Imported by: %s)' % (
+        node.filename, ', '.join(
+            d.filename for d in incoming_edges if d is not None))
+    logging.info(message)
+
     yield module_path
+    if node.packagepath is not None:
+      for p in node.packagepath:
+        yield p
 
 
 def FindPageSetDependencies(base_dir):

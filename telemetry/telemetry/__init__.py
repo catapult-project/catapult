@@ -22,6 +22,8 @@ util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
 util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
+util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'catapult')
