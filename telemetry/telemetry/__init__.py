@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 """A library for cross-platform browser tests."""
-
+import os
 import sys
 
 # Ensure Python >= 2.7.
@@ -16,15 +16,24 @@ global_hooks.InstallHooks()
 
 # Add depdendencies into our path.
 from telemetry.core import util
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 
-util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-util.AddDirToPythonPath(util.GetChromiumSrcDir(),
-                        'third_party', 'catapult', 'tracing')
+def _AddDirToPythonPath(*path_parts):
+  path = os.path.abspath(os.path.join(*path_parts))
+  if os.path.isdir(path) and path not in sys.path:
+    # Some callsite that use telemetry assumes that sys.path[0] is the directory
+    # containing the script, so we add these extra paths to right after it.
+    sys.path.insert(1, path)
+
+
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
+
+_AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+_AddDirToPythonPath(util.GetChromiumSrcDir(),
+                    'third_party', 'catapult', 'tracing')
