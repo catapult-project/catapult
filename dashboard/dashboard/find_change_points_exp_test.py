@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Unit tests for find_change_points_exp module."""
-
 import unittest
 
 from google.appengine.ext import ndb

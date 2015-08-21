@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Unit test for 'main' module (the request handler for the front page)."""
-
 import unittest
 
 import mock

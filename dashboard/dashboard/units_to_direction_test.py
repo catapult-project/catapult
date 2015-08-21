@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Unit tests for units_to_direction module."""
-
 import unittest
 
 from dashboard import testing_common

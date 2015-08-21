@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Tests for the buildbucket_job_status request handler."""
-
 import json
 import re
 import unittest

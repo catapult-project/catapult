@@ -2,13 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Unit tests for debug_alert handler.
-
-Note: This unit test isn't responsible for verifying any aspect of anomaly
-detection or use of different anomaly configs; it only checks that the handler
-is returning some HTML.
-"""
-
 import unittest
 
 import mock

@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Tests for dashboard.stored_object."""
-
 import unittest
 
 from google.appengine.api import memcache
