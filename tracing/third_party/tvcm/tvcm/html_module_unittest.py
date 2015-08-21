@@ -202,7 +202,7 @@ console.log('Logging without strict mode is no fun.');
 
 
 class HTMLModuleTests(unittest.TestCase):
-  def testBasic(self):
+  def testBasicModuleGeneration(self):
     file_contents = {}
     file_contents[os.path.normpath('/tmp/a/b/start.html')] = """
 <!DOCTYPE html>
@@ -371,4 +371,3 @@ console.log('/raw/raw_script.js was written');
     background-image: url(data:image/jpg;base64,anBnZGF0YQ==);
 }
 """.rstrip()
-      print html

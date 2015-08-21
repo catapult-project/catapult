@@ -111,11 +111,7 @@ def GetPolymerElementNameFromOpenTags(open_tags):
   if not found_tag:
     return None
 
-  for attr in found_tag.attrs:
-    if attr[0] == 'name':
-      return attr[1]
-
-  return None
+  return found_tag.attrs.get('name', None)
 
 _POLYMER_RE_1 = 'Polymer(\s*?)\((\s*?)\{'
 _POLYMER_RE_2 = 'Polymer(\s*?)\((\s*?)\)'

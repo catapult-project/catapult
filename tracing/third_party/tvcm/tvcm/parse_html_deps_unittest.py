@@ -27,7 +27,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
 
-  def test_parse_script_src(self):
+  def test_parse_script_src_basic(self):
     html = """<!DOCTYPE html>
               <html>
                 <head>
@@ -88,8 +88,8 @@ class ParseTests(unittest.TestCase):
     inner_script = """tvcm.require("foo");tvcm.require('bar');"""
     self.assertEquals(inner_script, val)
 
-    self.assertEquals(1, len(script0.open_tags))
-    self.assertEquals('polymer-element', script0.open_tags[0].tag)
+    self.assertEquals(3, len(script0.open_tags))
+    self.assertEquals('polymer-element', script0.open_tags[2].tag)
 
     self.assertNotIn(
         'tvcm.require("foo");',
@@ -100,7 +100,8 @@ class ParseTests(unittest.TestCase):
 <script src="blah.js"></script>
 """
     module = parse_html_deps.HTMLModuleParser().Parse(html)
-    self.assertEquals('', module.html_contents_without_links_and_script)
+    self.assertEquals('',
+                      module.html_contents_without_links_and_script)
 
   def test_parse_link_rel_stylesheet(self):
     html = """<polymer-element name="hi">
@@ -124,10 +125,10 @@ class ParseTests(unittest.TestCase):
 
     gen_html = module.GenerateHTML(Ctl())
     ghtm = """<polymer-element name="hi">
-<template>
-<style>FRAMEWORK</style>
-</template>
-</polymer-element>"""
+                <template>
+                  <style>FRAMEWORK</style>
+                </template>
+              </polymer-element>"""
     self.assertEquals(ghtm, gen_html)
 
   def test_parse_inline_style(self):
@@ -161,19 +162,15 @@ class ParseTests(unittest.TestCase):
     self.assertRaises(lambda: parser.Parse(html))
 
   def test_nested_templates(self):
-    html = """<template>
+    orig_html = """<template>
                   <template>
                     <div id="foo"></div>
                   </template>
                 </template>"""
     parser = parse_html_deps.HTMLModuleParser()
-    res = parser.Parse(html)
+    res = parser.Parse(orig_html)
     html = res.html_contents_without_links_and_script
-    self.assertEquals(html, """<template>
-<template>
-<div id="foo"></div>
-</template>
-</template>""")
+    self.assertEquals(html, orig_html)
 
   def test_html_contents_basic(self):
     html = """<a b="c">d</a>"""
@@ -185,25 +182,29 @@ class ParseTests(unittest.TestCase):
     html = """<a>&rarr;</a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(html, module.html_contents_without_links_and_script)
+    self.assertEquals(u'<a>\u2192</a>',
+                      module.html_contents_without_links_and_script)
 
   def test_html_content_with_charref(self):
     html = """<a>&#62;</a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(html, module.html_contents_without_links_and_script)
+    self.assertEquals('<a>&gt;</a>',
+                      module.html_contents_without_links_and_script)
 
   def test_html_content_start_end_br(self):
     html = """<a><br /></a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(html, module.html_contents_without_links_and_script)
+    self.assertEquals('<a><br/></a>',
+                      module.html_contents_without_links_and_script)
 
   def test_html_content_start_end_img(self):
     html = """<a><img src="foo.png" id="bar" /></a>"""
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse(html)
-    self.assertEquals(html, module.html_contents_without_links_and_script)
+    self.assertEquals('<a><img id="bar" src="foo.png"/></a>',
+                      module.html_contents_without_links_and_script)
 
   def test_html_contents_with_link_stripping(self):
     html = """<a b="c">d</a>

@@ -10,18 +10,23 @@ from tvcm import strip_js_comments
 from tvcm import html_generation_controller
 
 
+def _AddToPathIfNeeded(path):
+  if path not in sys.path:
+    sys.path.insert(0, path)
+
+
 def _InitBeautifulSoup():
-  tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-  bs_path = os.path.join(tvcm_path, 'third_party', 'beautifulsoup')
-  if bs_path in sys.path:
-    return
-  sys.path.insert(0, bs_path)
+  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                  '..', '..', '..', '..'))
+  bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4')
+  _AddToPathIfNeeded(bs_path)
+
+  html5lib_path = os.path.join(catapult_path, 'third_party', 'html5lib-python')
+  _AddToPathIfNeeded(html5lib_path)
 
 
 _InitBeautifulSoup()
-import BeautifulSoup
-import polymer_soup
-
+import bs4
 
 class InlineScript(object):
   def __init__(self, soup):
@@ -33,7 +38,6 @@ class InlineScript(object):
 
   @property
   def contents(self):
-    #TODO(nednguyen): change other places to use unicode() instead of str().
     return unicode(self._soup.string)
 
   @property
@@ -50,7 +54,7 @@ class InlineScript(object):
     open_tags = []
     cur = self._soup.parent
     while cur:
-      if isinstance(cur, BeautifulSoup.BeautifulSoup):
+      if isinstance(cur, bs4.BeautifulSoup):
         break
 
       open_tags.append(_Tag(cur.name, cur.attrs))
@@ -65,14 +69,27 @@ class InlineScript(object):
 
 
 def _IsDoctype(x):
-  if not isinstance(x, BeautifulSoup.Declaration):
+  if not isinstance(x, bs4.Doctype):
     return False
-  return x == 'DOCTYPE html' or x == 'DOCTYPE HTML'
+  return x == 'html' or x == 'HTML'
 
+def _CreateSoupWithoutHeadOrBody(html):
+  soupCopy = bs4.BeautifulSoup(html, 'html5lib')
+  soup = bs4.BeautifulSoup()
+  soup.reset()
+  if soupCopy.head:
+    for n in soupCopy.head.contents:
+      n.extract()
+      soup.append(n)
+  if soupCopy.body:
+    for n in soupCopy.body.contents:
+      n.extract()
+      soup.append(n)
+  return soup
 
 class HTMLModuleParserResults(object):
   def __init__(self, html):
-    self._soup = polymer_soup.PolymerSoup(html)
+    self._soup = bs4.BeautifulSoup(html, 'html5lib')
     self._inline_scripts = None
 
   @property
@@ -106,19 +123,23 @@ class HTMLModuleParserResults(object):
   @property
   def inline_stylesheets(self):
     tags = self._soup.findAll('style')
-    return [str(t.string) for t in tags]
+    return [unicode(t.string) for t in tags]
 
   def YieldHTMLInPieces(self, controller, minify=False):
     yield self.GenerateHTML(controller, minify)
 
-  def GenerateHTML(self, controller, minify=False):
-    soup = polymer_soup.PolymerSoup(str(self._soup))
+  def GenerateHTML(self, controller, minify=False, prettify=False):
+    soup = _CreateSoupWithoutHeadOrBody(unicode(self._soup))
 
     # Remove declaration.
     for x in soup.contents:
-      if isinstance(x, BeautifulSoup.Declaration):
-        if _IsDoctype(x):
-          x.extract()
+      if isinstance(x, bs4.Doctype):
+        x.extract()
+
+    # Remove declaration.
+    for x in soup.contents:
+      if isinstance(x, bs4.Declaration):
+        x.extract()
 
     # Remove all imports.
     imports = soup.findAll('link', rel='import')
@@ -138,10 +159,10 @@ class HTMLModuleParserResults(object):
     # Process all in-line styles.
     inline_styles = soup.findAll('style')
     for style in inline_styles:
-      html = controller.GetHTMLForInlineStylesheet(str(style.string))
+      html = controller.GetHTMLForInlineStylesheet(unicode(style.string))
       if html:
-        ns = BeautifulSoup.Tag(soup, 'style')
-        ns.append(BeautifulSoup.NavigableString(html))
+        ns = soup.new_tag('style')
+        ns.append(bs4.NavigableString(html))
         style.replaceWith(ns)
       else:
         style.extract()
@@ -151,7 +172,7 @@ class HTMLModuleParserResults(object):
     for stylesheet_link in stylesheet_links:
       html = controller.GetHTMLForStylesheetHRef(stylesheet_link['href'])
       if html:
-        tmp = polymer_soup.PolymerSoup(html).findChildren()
+        tmp = bs4.BeautifulSoup(html, 'html5lib').findAll('style')
         assert len(tmp) == 1
         stylesheet_link.replaceWith(tmp[0])
       else:
@@ -160,12 +181,14 @@ class HTMLModuleParserResults(object):
     # Remove comments if minifying.
     if minify:
       comments = soup.findAll(
-          text=lambda text: isinstance(text, BeautifulSoup.Comment))
+          text=lambda text: isinstance(text, bs4.Comment))
       for comment in comments:
         comment.extract()
+    if prettify:
+      return soup.prettify('utf-8').strip()
 
     # We are done.
-    return str(soup).strip()
+    return unicode(soup).strip()
 
   @property
   def html_contents_without_links_and_script(self):
