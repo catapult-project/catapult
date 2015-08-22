@@ -127,10 +127,10 @@ found in the LICENSE file.
       mapResultEl.appendChild(gov);
 
       var results = new pi.r.Results();
-      var run_info = new pi.v.RunInfo(document.location.toString());
+      var runInfo = new pi.v.RunInfo(document.location.toString());
 
       try {
-        this.currentMapFunctionTypeInfo.constructor(results, run_info,
+        this.currentMapFunctionTypeInfo.constructor(results, runInfo,
                                                     this.model_);
       } catch (ex) {
         ex = tr.b.normalizeException(ex);
@@ -138,7 +138,7 @@ found in the LICENSE file.
         return;
       }
 
-      gov.object = results.all_values.map(function(v) {
+      gov.object = results.allValues.map(function(v) {
         return v.asDict();
       });
     },

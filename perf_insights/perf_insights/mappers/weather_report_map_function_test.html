@@ -30,11 +30,11 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results = new pi.r.Results();
-    var run_info = new pi.v.RunInfo('my_test.json');
-    pi.wr.weatherReportMapFunction(results, run_info, m);
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    pi.wr.weatherReportMapFunction(results, runInfo, m);
 
-    assert.equal(results.all_values.length, 1);
-    assert.isTrue(results.all_values[0] instanceof pi.v.DictValue);
+    assert.equal(results.allValues.length, 1);
+    assert.isTrue(results.allValues[0] instanceof pi.v.DictValue);
   });
 
   test('basicWrTest', function() {

@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 <script>
 tr.exportTo('pie', function() {
-  function mapStartupInfo(results, run_info, model) {
+  function mapStartupInfo(results, runInfo, model) {
     var startupIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.LoadInteractionRecord &&
              ir.name === 'Startup';
@@ -37,10 +37,10 @@ tr.exportTo('pie', function() {
     });
 
     if (browser_startup.isEmpty && renderer_startup.isEmpty) {
-      results.addValue(new pi.v.SkipValue(run_info, 'startup_info'));
+      results.addValue(new pi.v.SkipValue(runInfo, 'startup_info'));
     } else {
       results.addValue(new pi.v.DictValue(
-          run_info,
+          runInfo,
           'startup_info',
           {
             'browserStartup': browser_startup,

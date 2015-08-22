@@ -12,17 +12,17 @@ found in the LICENSE file.
 
 tr.exportTo('pi.r', function() {
   function Results() {
-    this.all_values = [];
-    this._run_ids_that_have_failures = {};
+    this.allValues = [];
+    this.runIdsThatHaveFailures_ = {};
   }
 
   Results.fromDict = function(dict) {
     if (dict.runs === undefined)
-      throw new Error('Expected: run_info');
+      throw new Error('Expected: runInfo');
     if (dict.values === undefined)
-      throw new Error('Expected: run_info');
+      throw new Error('Expected: runInfo');
 
-    var runInfosById = tr.b.mapItems(dict.runs, function(run_id, dict) {
+    var runInfosById = tr.b.mapItems(dict.runs, function(runId, dict) {
       return pi.v.RunInfo.fromDict(dict);
     });
 
@@ -31,7 +31,7 @@ tr.exportTo('pi.r', function() {
       var runInfo = runInfosById[valueDict.run_id];
       if (runInfo === undefined) {
         debugger;
-        throw new Error('run_info not found');
+        throw new Error('runInfo not found');
       }
       var value = pi.v.Value.fromDict(runInfo, valueDict);
       results.addValue(value);
@@ -40,16 +40,16 @@ tr.exportTo('pi.r', function() {
   }
 
   Results.prototype = {
-    willRun: function(run_info) {
+    willRun: function(runInfo) {
     },
 
     addValue: function(value) {
       if (value instanceof pi.v.FailureValue)
-        this._run_ids_that_have_failures[value.run_info.run_id] = true;
-      this.all_values.push(value);
+        this.runIdsThatHaveFailures_[value.runInfo.runId] = true;
+      this.allValues.push(value);
     },
 
-    didRun: function(run_info) {
+    didRun: function(runInfo) {
     },
 
     didFinishAllRuns: function() {
@@ -60,7 +60,7 @@ tr.exportTo('pi.r', function() {
     },
 
     get failureValues() {
-      return this.all_values.filter(function(x) {
+      return this.allValues.filter(function(x) {
         return x instanceof pi.v.FailureValue;
       });
     },
@@ -69,10 +69,10 @@ tr.exportTo('pi.r', function() {
       var failedRunInfos = [];
       var hasAddedRunInfo = {};
       this.failureValues.forEach(function(v) {
-        if (hasAddedRunInfo[v.run_info.run_id])
+        if (hasAddedRunInfo[v.runInfo.runId])
           return;
-        hasAddedRunInfo[v.run_info.run_id] = true;
-        failedRunInfos.push(v.run_info);
+        hasAddedRunInfo[v.runInfo.runId] = true;
+        failedRunInfos.push(v.runInfo);
       });
       return failedRunInfos;
     },
@@ -80,30 +80,30 @@ tr.exportTo('pi.r', function() {
     get allRunInfos() {
       var allRunInfos = [];
       var hasAddedRunInfo = {};
-      this.all_values.forEach(function(v) {
-        if (hasAddedRunInfo[v.run_info.run_id])
+      this.allValues.forEach(function(v) {
+        if (hasAddedRunInfo[v.runInfo.runId])
           return;
-        hasAddedRunInfo[v.run_info.run_id] = true;
-        allRunInfos.push(v.run_info);
+        hasAddedRunInfo[v.runInfo.runId] = true;
+        allRunInfos.push(v.runInfo);
       });
       return allRunInfos;
     },
 
-    doesRunContainFailure: function(run_info) {
-      return this._run_ids_that_have_failures[run_info.run_id] === true;
+    doesRunContainFailure: function(runInfo) {
+      return this.runIdsThatHaveFailures_[runInfo.runId] === true;
     },
 
     get allValuesFromFailureFreeRuns() {
-      return this.all_values.filter(function(x) {
-        if (this.doesRunContainFailure(x.run_info))
+      return this.allValues.filter(function(x) {
+        if (this.doesRunContainFailure(x.runInfo))
           return false;
         return true;
       }, this);
     },
 
-    getValuesForRunInfo: function(run_info) {
-      return this.all_values.filter(function(value) {
-        return value.run_info === run_info;
+    getValuesForRunInfo: function(runInfo) {
+      return this.allValues.filter(function(value) {
+        return value.runInfo === runInfo;
       });
     },
 

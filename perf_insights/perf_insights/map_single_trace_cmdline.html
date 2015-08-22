@@ -20,11 +20,11 @@ tr.exportTo('pi', function() {
       return loadMapFunctionFromFileName(mapFunctionHandle.mapFunctionFileName);
 
     // Find the mapper by name.
-    loadHTML('/perf_insights/perf_insights_full_config.html')
+    loadHTML('/perf_insights/perf_insights_full_config.html');
     var typeInfo = pi.MapFunction.findTypeInfoMatching(function(typeInfo) {
       return typeInfo.constructor.name === mapFunctionHandle.mapFunctionName;
-    })
-    if (typeInfo === undefined)  {
+    });
+    if (typeInfo === undefined) {
       var err = new Error(
           'No mapper registered in perf_insights_full_config named ' +
           mapFunctionHandle.mapFunctionName);
@@ -49,7 +49,8 @@ tr.exportTo('pi', function() {
     // Verify a mapFunction was defined.
     var numTypeInfosNow = allTypeInfos.length;
     if (numTypeInfosNow !== (numTypeInfosBefore + 1)) {
-      var err = new Error(mapFunctionFileName + ' did not call defineMapFunction');
+      var err = new Error(mapFunctionFileName +
+                          ' did not call defineMapFunction');
       err.name = 'MapFunctionNotDefinedError';
       throw err;
     }
@@ -64,20 +65,20 @@ tr.exportTo('pi', function() {
       throw new Error('Must provide four arguments');
 
     var options = {
-      run_info: pi.v.RunInfo.fromDict(JSON.parse(args[0])),
+      runInfo: pi.v.RunInfo.fromDict(JSON.parse(args[0])),
       mapFunctionHandle: JSON.parse(args[1]),
       filenameToMap: args[2],
       metadata: JSON.parse(args[3])
     };
 
     var results = new pi.r.Results();
-    results.willRun(options.run_info);
+    results.willRun(options.runInfo);
 
     pi.runAndConvertErrorsToFailureValues(
-        results, options.run_info,
+        results, options.runInfo,
         function() {
           var mapFunction = getMapFunctionFromMapFunctionHandle(
-              options.mapFunctionHandle)
+              options.mapFunctionHandle);
 
           // Read the mapfile.
           try {
@@ -88,14 +89,14 @@ tr.exportTo('pi', function() {
             throw err;
           }
 
-          pi.mapSingleTrace(results, options.run_info, traceData,
+          pi.mapSingleTrace(results, options.runInfo, traceData,
                             mapFunction, options.metadata);
         });
 
-    results.didRun(options.run_info);
+    results.didRun(options.runInfo);
     results.didFinishAllRuns();
 
-    results.all_values.forEach(function(value) {
+    results.allValues.forEach(function(value) {
       valueAsDict = value.asDict();
       console.log('MAP_RESULT_VALUE: ' + JSON.stringify(valueAsDict));
     });

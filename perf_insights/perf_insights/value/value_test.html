@@ -14,25 +14,25 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('dictValueBasic', function() {
-    var run_info = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.DictValue(run_info, 'MyFailure',
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.DictValue(runInfo, 'MyFailure',
                                {my_key: 'my_value'});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(run_info, d);
+    var v2 = pi.v.Value.fromDict(runInfo, d);
     assert.instanceOf(v2, pi.v.DictValue);
     assert.equal(v.name, v2.name);
     assert.deepEqual(v.value, v2.value);
   });
 
   test('failureValueBasic', function() {
-    var run_info = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.FailureValue(run_info, 'MyFailure',
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.FailureValue(runInfo, 'MyFailure',
                                   {description: 'Description',
                                    stack: tr.b.stackTraceAsString()});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(run_info, d);
+    var v2 = pi.v.Value.fromDict(runInfo, d);
     assert.instanceOf(v2, pi.v.FailureValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);
@@ -40,12 +40,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('skipValueBasic', function() {
-    var run_info = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.SkipValue(run_info, 'MySkip',
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    var v = new pi.v.SkipValue(runInfo, 'MySkip',
                                   {description: 'WhySkipped'});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(run_info, d);
+    var v2 = pi.v.Value.fromDict(runInfo, d);
     assert.instanceOf(v2, pi.v.SkipValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);

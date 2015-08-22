@@ -21,19 +21,19 @@ tr.exportTo('pi', function() {
 
   var FailureValue = pi.v.FailureValue;
 
-  function runAndConvertErrorsToFailureValues(results, run_info, cb, opt_this) {
+  function runAndConvertErrorsToFailureValues(results, runInfo, cb, opt_this) {
     try {
       cb.call(opt_this);
     } catch (err) {
       var err = tr.b.normalizeException(err);
       results.addValue(new FailureValue(
-          run_info, err.typeName,
+          runInfo, err.typeName,
           {description: err.message,
            stack: err.stack}));
     }
   }
 
-  function mapSingleTrace(results, run_info, traceData, mapFunction,
+  function mapSingleTrace(results, runInfo, traceData, mapFunction,
                           opt_metadata) {
     // Load the model.
     var model = new tr.Model();
@@ -61,15 +61,15 @@ tr.exportTo('pi', function() {
     }
 
     // Map the function.
-    var numResultsBeforeMapping = results.all_values.length;
+    var numResultsBeforeMapping = results.allValues.length;
     try {
-      mapFunction(results, run_info, model);
+      mapFunction(results, runInfo, model);
     } catch (ex) {
       ex.name = 'MapFunctionError';
       throw ex;
     }
 
-    if (results.all_values.length === numResultsBeforeMapping) {
+    if (results.allValues.length === numResultsBeforeMapping) {
       var err = new Error('Mapper did not add any results! ' +
               'Add a SkipValue if this was intentional.');
       err.name = 'NoResultsAddedError';

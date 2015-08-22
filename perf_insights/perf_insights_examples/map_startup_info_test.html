@@ -46,25 +46,25 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results = new pi.r.Results();
-    var run_info = new pi.v.RunInfo('my_test.json');
-    pie.mapStartupInfoForTest(results, run_info, m);
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    pie.mapStartupInfoForTest(results, runInfo, m);
 
-    assert.equal(results.all_values.length, 1);
-    assert.equal(results.all_values[0].value.browserStartup.min, 10);
-    assert.equal(results.all_values[0].value.browserStartup.max, 80);
-    assert.isFalse(results.all_values[0].value.browserStartup.isEmpty);
-    assert.isTrue(results.all_values[0].value.rendererStartup.isEmpty);
+    assert.equal(results.allValues.length, 1);
+    assert.equal(results.allValues[0].value.browserStartup.min, 10);
+    assert.equal(results.allValues[0].value.browserStartup.max, 80);
+    assert.isFalse(results.allValues[0].value.browserStartup.isEmpty);
+    assert.isTrue(results.allValues[0].value.rendererStartup.isEmpty);
   });
 
   test('mapperTestEmptyTrace', function() {
     var m = test_utils.newModel();
 
     var results = new pi.r.Results();
-    var run_info = new pi.v.RunInfo('my_test.json');
-    pie.mapStartupInfoForTest(results, run_info, m);
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    pie.mapStartupInfoForTest(results, runInfo, m);
 
-    assert.equal(results.all_values.length, 1);
-    assert.isTrue(results.all_values[0] instanceof pi.v.SkipValue);
+    assert.equal(results.allValues.length, 1);
+    assert.isTrue(results.allValues[0] instanceof pi.v.SkipValue);
   });
 
 });

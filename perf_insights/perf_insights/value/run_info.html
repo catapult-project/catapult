@@ -10,20 +10,20 @@ found in the LICENSE file.
 
 tr.exportTo('pi.v', function() {
   // This value must stay sync'd with the constant of the same name
-  // in run_info.py.
+  // in runInfo.py.
   var PI_VALUE_RUN_INFO_ID = 'perf_insights.value.RunInfo';
 
-  function RunInfo(url, opt_display_name, opt_run_id, opt_metadata) {
-    if (opt_run_id !== undefined)
-      this.run_id = opt_run_id;
+  function RunInfo(url, opt_displayName, opt_runId, opt_metadata) {
+    if (opt_runId !== undefined)
+      this.runId = opt_runId;
     else
-      this.run_id = 'pi.v.RunInfo-' + tr.b.GUID.allocate();
+      this.runId = 'pi.v.RunInfo-' + tr.b.GUID.allocate();
     this.url = url;
 
-    if (opt_display_name !== undefined)
-      this.display_name = opt_display_name;
+    if (opt_displayName !== undefined)
+      this.displayName = opt_displayName;
     else
-      this.display_name = this.url;
+      this.displayName = this.url;
 
     if (opt_metadata !== undefined)
       this.metadata = opt_metadata;
@@ -33,7 +33,7 @@ tr.exportTo('pi.v', function() {
 
   RunInfo.fromDict = function(d) {
     if (d.type !== PI_VALUE_RUN_INFO_ID)
-      throw new Error('Unsupported run_info format: ' + d.type);
+      throw new Error('Unsupported runInfo format: ' + d.type);
     if (d.run_id === undefined)
       throw new Error('Must contain run_id');
     if (d.url === undefined)
@@ -45,12 +45,12 @@ tr.exportTo('pi.v', function() {
     asDict: function() {
       var d = {
         type: PI_VALUE_RUN_INFO_ID,
-        run_id: this.run_id,
+        run_id: this.runId,
         url: this.url,
         metadata: this.metadata
       };
-      if (this.display_name !== this.url)
-        d.display_name = this.display_name;
+      if (this.displayName !== this.url)
+        d.display_name = this.displayName;
       return d;
     }
   };
