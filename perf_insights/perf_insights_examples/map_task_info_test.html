@@ -42,16 +42,16 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results = new pi.r.Results();
-    var run_info = new pi.v.RunInfo('my_test.json');
-    pie.mapTaskInfoForTest(results, run_info, m);
+    var runInfo = new pi.v.RunInfo('my_test.json');
+    pie.mapTaskInfoForTest(results, runInfo, m);
 
-    assert.equal(results.all_values.length, 2);
-    var value = results.all_values[0];
+    assert.equal(results.allValues.length, 2);
+    var value = results.allValues[0];
     assert.equal(value.name, 'time_spent_in_queue');
     assert.equal(Object.keys(value.value['Process/Thread']).length, 2);
     assert.equal(value.value['Process/Thread'][5], 1);
     assert.equal(value.value['Process/Thread'][15], 1);
-    value = results.all_values[1];
+    value = results.allValues[1];
     assert.equal(value.name, 'time_spent_in_top_level_task');
     assert.equal(Object.keys(value.value['Process/Thread']).length, 1);
     assert.equal(value.value['Process/Thread'][10], 1);
