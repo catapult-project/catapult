@@ -37,7 +37,7 @@ class FakeLoadingMetric(timeline_based_metric.TimelineBasedMetric):
 
 class TimelineBasedMetricTestData(object):
 
-  def __init__(self, options):
+  def __init__(self):
     self._model = model_module.TimelineModel()
     renderer_process = self._model.GetOrCreateProcess(1)
     self._renderer_thread = renderer_process.GetOrCreateThread(2)
@@ -49,7 +49,6 @@ class TimelineBasedMetricTestData(object):
     self._results = page_test_results.PageTestResults()
     self._story_set = None
     self._threads_to_records_map = None
-    self._tbm_options = options
 
   @property
   def model(self):
@@ -90,8 +89,7 @@ class TimelineBasedMetricTestData(object):
   def AddResults(self):
     for thread, records in self._threads_to_records_map.iteritems():
       metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
-          self._model, thread, records, self._results_wrapper,
-          self._tbm_options.GetTimelineBasedMetrics())
+          self._model, thread, records, self._results_wrapper)
       metric.AddResults(self._results)
     self._results.DidRunPage(self._story_set.stories[0])
 
@@ -100,15 +98,14 @@ class TimelineBasedMetricsTests(unittest.TestCase):
 
   def setUp(self):
     self.actual_get_all_tbm_metrics = tbm_module._GetAllTimelineBasedMetrics
-    self._options = tbm_module.Options()
-    self._options.SetTimelineBasedMetrics(
-        (FakeSmoothMetric(), FakeLoadingMetric()))
+    fake_tbm_metrics = (FakeSmoothMetric(), FakeLoadingMetric())
+    tbm_module._GetAllTimelineBasedMetrics = lambda: fake_tbm_metrics
 
   def tearDown(self):
     tbm_module._GetAllTimelineBasedMetrics = self.actual_get_all_tbm_metrics
 
   def testGetRendererThreadsToInteractionRecordsMap(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     # Insert 2 interaction records to renderer_thread and 1 to foo_thread
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
                      marker='Interaction.LogicalName1')
@@ -138,7 +135,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertEquals(65, interactions[0].end)
 
   def testAddResults(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=0, duration=20,
                      marker='Interaction.LogicalName1')
     d.AddInteraction(d.foo_thread, ts=25, duration=5,
@@ -151,7 +148,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
         'LogicalName2-FakeLoadingMetric')))
 
   def testDuplicateInteractionsInDifferentThreads(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
                      marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.foo_thread, ts=20, duration=5,
@@ -159,7 +156,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertRaises(tbm_module.InvalidInteractions, d.FinalizeImport)
 
   def testDuplicateRepeatableInteractionsInDifferentThreads(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
                      marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.foo_thread, ts=20, duration=5,
@@ -168,7 +165,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
 
 
   def testDuplicateUnrepeatableInteractionsInSameThread(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
                      marker='Interaction.LogicalName')
     d.AddInteraction(d.renderer_thread, ts=20, duration=5,
@@ -177,7 +174,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertRaises(tbm_module.InvalidInteractions, d.AddResults)
 
   def testDuplicateRepeatableInteractions(self):
-    d = TimelineBasedMetricTestData(self._options)
+    d = TimelineBasedMetricTestData()
     d.AddInteraction(d.renderer_thread, ts=10, duration=5,
                      marker='Interaction.LogicalName/repeatable')
     d.AddInteraction(d.renderer_thread, ts=20, duration=5,

@@ -1,14 +1,13 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import collections
+
 from collections import defaultdict
 
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
 from telemetry.value import trace
-from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import layout
@@ -108,12 +107,11 @@ def _GetRendererThreadsToInteractionRecordsMap(model):
 
 class _TimelineBasedMetrics(object):
   def __init__(self, model, renderer_thread, interaction_records,
-               results_wrapper, metrics):
+               results_wrapper):
     self._model = model
     self._renderer_thread = renderer_thread
     self._interaction_records = interaction_records
     self._results_wrapper = results_wrapper
-    self._all_metrics = metrics
 
   def AddResults(self, results):
     interactions_by_label = defaultdict(list)
@@ -133,7 +131,7 @@ class _TimelineBasedMetrics(object):
     if not interactions:
       return
 
-    for metric in self._all_metrics:
+    for metric in _GetAllTimelineBasedMetrics():
       metric.AddResults(self._model, self._renderer_thread,
                         interactions, wrapped_results)
 
@@ -143,10 +141,6 @@ class Options(object):
 
   This is created and returned by
   Benchmark.CreateTimelineBasedMeasurementOptions.
-
-  By default, all the timeline based metrics in telemetry/web_perf/metrics are
-  used (see _GetAllTimelineBasedMetrics above).
-  To customize your metric needs, use SetTimelineBasedMetrics().
   """
 
   def __init__(self, overhead_level=NO_OVERHEAD_LEVEL):
@@ -179,7 +173,6 @@ class Options(object):
     self._tracing_options = tracing_options.TracingOptions()
     self._tracing_options.enable_chrome_trace = True
     self._tracing_options.enable_platform_display_trace = True
-    self._timeline_based_metrics = _GetAllTimelineBasedMetrics()
 
 
   def ExtendTraceCategoryFilter(self, filters):
@@ -197,15 +190,6 @@ class Options(object):
   @tracing_options.setter
   def tracing_options(self, value):
     self._tracing_options = value
-
-  def SetTimelineBasedMetrics(self, metrics):
-    assert isinstance(metrics, collections.Iterable)
-    for m in metrics:
-      assert isinstance(m, timeline_based_metric.TimelineBasedMetric)
-    self._timeline_based_metrics = metrics
-
-  def GetTimelineBasedMetrics(self):
-    return self._timeline_based_metrics
 
 
 class TimelineBasedMeasurement(story_test.StoryTest):
@@ -284,7 +268,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         threads_to_records_map.iteritems()):
       meta_metrics = _TimelineBasedMetrics(
           model, renderer_thread, interaction_records,
-          self._results_wrapper, self._tbm_options.GetTimelineBasedMetrics())
+          self._results_wrapper)
       meta_metrics.AddResults(results)
 
   def DidRunStoryForPageTest(self, tracing_controller):
