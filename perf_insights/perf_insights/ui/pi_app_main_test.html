@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
       var p = Promise.resolve();
       p = p.then(function() {
         var dataString = tr.b.getSync(
-        '/perf_insights/ui/wr/wr_result_view_test_data.json');
+        '/perf_insights/ui/reports/wr_result_view_test_data.json');
         return dataString;
       });
       return p;

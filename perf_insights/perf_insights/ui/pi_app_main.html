@@ -7,7 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
-<link rel="import" href="/perf_insights/ui/pi_report.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/map_function.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
 
@@ -111,7 +111,7 @@ tr.exportTo('pi.ui', function() {
       topLeftControls.appendChild(corpusQuerySelector);
 
       var piReportPolymerElementNames = tr.ui.b.getPolymerElementsThatSubclass(
-          'pi-ui-pi-report');
+          'pi-ui-r-pi-report');
       var piReportElementOptions = piReportPolymerElementNames.map(
           function(peTagName) {
             return {

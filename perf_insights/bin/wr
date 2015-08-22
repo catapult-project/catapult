@@ -12,7 +12,7 @@ if __name__ == '__main__':
   sys.path.append(perf_insights_path)
 
   pi_report_file = os.path.join(perf_insights_path,
-                                'perf_insights/ui/wr/weather_report.html')
+                                'perf_insights/ui/reports/weather_report.html')
 
   from perf_insights_build import pi_report_to_html
   sys.exit(pi_report_to_html.Main(sys.argv,

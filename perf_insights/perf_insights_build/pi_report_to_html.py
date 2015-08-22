@@ -58,7 +58,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
   soup = bs4.BeautifulSoup(html_contents)
   elements = soup.findAll('polymer-element')
   for element in elements:
-    if element.attrs.get('extends').lower() == 'pi-ui-pi-report':
+    if element.attrs.get('extends').lower() == 'pi-ui-r-pi-report':
       map_function_href = element.attrs.get('map-function-href', None)
       if map_function_href is None:
         raise Exception('Report is missing map-function-href attribute')
@@ -66,7 +66,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
       if pi_report_element_name is None:
         raise Exception('Report is missing name attribute')
       return map_function_href, pi_report_element_name
-  raise Exception('No element that extends pi-ui-pi-report was found')
+  raise Exception('No element that extends pi-ui-r-pi-report was found')
 
 
 def PiReportToHTML(ofile, trace_directory, pi_report_file,

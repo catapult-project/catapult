@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
-<link rel="import" href="/perf_insights/ui/wr/weather_report.html">
+<link rel="import" href="/perf_insights/ui/reports/weather_report.html">
 
 <link rel="import" href="/perf_insights/perf_insights_full_config.html">
 <link rel="import" href="/tracing/base/xhr.html">
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     // TODO(nduca): #1219, stop reading an actual wr file as our test data and
     // use synthetic data.
     var dataString = tr.b.getSync(
-        '/perf_insights/ui/wr/wr_result_view_test_data.json');
+        '/perf_insights/ui/reports/wr_result_view_test_data.json');
     var results = pi.r.Results.fromDict(JSON.parse(dataString));
 
     var view = document.createElement('pi-ui-wr-weather-report');

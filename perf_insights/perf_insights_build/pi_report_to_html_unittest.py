@@ -28,7 +28,7 @@ class PiReportToHTMLTests(unittest.TestCase):
             tmpfile,
             project.perf_insights_test_data_path,
             project.GetAbsPathFromHRef(
-                '/perf_insights/ui/wr/weather_report.html'),
+                '/perf_insights/ui/reports/weather_report.html'),
             corpus_query.CorpusQuery.FromString('MAX_TRACE_HANDLES=2'),
             quiet=True)
         self.assertEquals(res, 0)
