@@ -5,6 +5,7 @@
 import json
 import os
 import platform
+import sys
 import unittest
 
 from telemetry.internal.util import find_dependencies
@@ -53,8 +54,12 @@ class TelemetryDependenciesTest(unittest.TestCase):
         extra_dep_paths.append(dep_path)
     # Temporarily ignore failure on Mac because test is failing on Mac 10.8 bot.
     # crbug.com/522335
-    if extra_dep_paths and platform.system() != 'Darwin':
-      self.fail(
-          'Your patch adds new dependencies to telemetry. Please contact '
-          'aiolos@,dtu@, or nednguyen@ on how to proceed with this change. '
-          'Extra dependencies:\n%s' % '\n'.join(extra_dep_paths))
+    if extra_dep_paths:
+      if platform.system() != 'Darwin':
+        self.fail(
+            'Your patch adds new dependencies to telemetry. Please contact '
+            'aiolos@,dtu@, or nednguyen@ on how to proceed with this change. '
+            'Extra dependencies:\n%s' % '\n'.join(extra_dep_paths))
+      else:
+        print ('Dependencies check failed on mac platform. Extra deps: %s\n'
+               ' sys.path: %s' % (extra_dep_paths, sys.path))
