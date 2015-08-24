@@ -12,6 +12,7 @@ import json
 import os
 import urllib
 
+from google.appengine.api import app_identity
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
@@ -20,10 +21,7 @@ from dashboard import datastore_hooks
 from dashboard import request_handler
 from dashboard import update_test_suites
 
-# The documentation says that the app id should be
-# app_identity.get_application_id(), but that returns 'auto'. The dev_appserver
-# only seems to be able to access the data if the app id is 'dev~auto'.
-_DEV_APP_ID = 'dev~auto'
+_DEV_APP_ID = 'dev~' + app_identity.get_application_id()
 
 _PROD_DUMP_GRAPH_JSON_URL = 'https://chromeperf.appspot.com/dump_graph_json'
 
