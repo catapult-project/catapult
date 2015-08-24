@@ -149,7 +149,7 @@ tr.exportTo('pi.ui', function() {
       var dataToGroup = this.dataToGroup_ || [];
 
       var superRow = new Row('', dataToGroup, groupBy);
-      this.$.table.tableRows = superRow.subRows;
+      this.$.table.tableRows = superRow.subRows || [];
     }
   });
 
