@@ -212,6 +212,20 @@ class GraphJsonTest(testing_common.TestCase):
     flot = json.loads(flot_json_str)
     self.assertEqual(0, len(flot['data']))
 
+  def testRequest_NoSubTest_ShowsSummaryTests(self):
+    """Tests the post method of the request handler."""
+    self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
+    graphs = {
+        'test_path_dict': {
+            'ChromiumGPU/winXP/dromaeo': [],
+        }
+    }
+    # If the request is valid, a valid response will be returned.
+    response = self.testapp.post(
+        '/graph_json', {'graphs': json.dumps(graphs)})
+    flot_json_str = response.body
+    self.CheckFlotJson(flot_json_str, 150, 2, 15850, 16000, step=1)
+
   def testGetGraphJsonNoArgs(self):
     self._AddTestColumns(start_rev=16047)
     flot_json_str = graph_json.GetGraphJson(

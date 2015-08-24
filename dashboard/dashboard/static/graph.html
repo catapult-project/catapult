@@ -2,8 +2,8 @@
 
 /**
  * Does a deep copy of the object.
- * @param {*} obj
- * @return {*}
+ * @param {*} obj Object to copy.
+ * @return {*} A copy of the object.
  */
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
@@ -13,26 +13,6 @@ function deepCopy(obj) {
  * JavaScript for graphing performance data.
  */
 var graph = (function() {
-
-  /**
-  * Makes a chart title string based on selected test paths.
-  * @param {Array.<string>} allTestPaths An Array of "Master/bot/subtests/...".
-  * @param {Array.<string>} selectedTestPaths Another Array of test paths.
-  * @return {string} New chart title.
-  */
-  var makeChartTitle = function(allTestPaths, selectedTestPaths) {
-    if (selectedTestPaths.length == 1) {
-      return selectedTestPaths[0];
-    }
-    if (allTestPaths.length == 1) {
-      return allTestPaths[0];
-    }
-    // If no items are selected, we still want a descriptive title.
-    if (selectedTestPaths.length == 0) {
-      return makeChartTitleFromTestPathList_(allTestPaths);
-    }
-    return makeChartTitleFromTestPathList_(selectedTestPaths);
-  };
 
   /**
    * Returns a hex string color from hash code of a string.  This a popular
@@ -53,8 +33,8 @@ var graph = (function() {
    * Gets a hash code for a string.
    * This is used by 'stringToColor' to generate a unique hash code
    * so that each string will always map to the same color.
-   * @param {string} str
-   * @return {number}
+   * @param {string} str A string to hash.
+   * @return {number} An integer number.
    */
   var hashCode_ = function(str) {
     var hash = 0;
@@ -66,58 +46,7 @@ var graph = (function() {
     return hash;
   };
 
-  /**
-   * Makes a string to use as a chart title, based on a set of test paths.
-   * @param {Array.<string>} testPaths An list of test paths.
-   * @return {string} The longest test path that is the prefix
-   */
-  var makeChartTitleFromTestPathList_ = function(testPaths) {
-    var prefix = '';
-    if (testPaths.length > 1) {
-      prefix = longestCommonTestPathPrefix_(testPaths);
-    }
-    if (testPaths.indexOf(prefix) >= 0) {
-      return prefix;
-    }
-    return prefix ? prefix + '/...' : '...';
-  };
-
-  /**
-   * @param {Array.<string>} testPaths An list of test paths.
-   * @return {string} The longest test path that is the prefix
-   */
-  var longestCommonTestPathPrefix_ = function(testPaths) {
-    var partArrays = testPaths.map(function(path) {
-      return path.split('/');
-    });
-    return longestCommonSubArray_(partArrays).join('/');
-  };
-
-  /**
-   * @param {Array.<Array>} arrays An Array of Arrays.
-   * @return {Array} The longest Array such that all Arrays in the input
-   *     contain this Array as a prefix.
-   */
-  var longestCommonSubArray_ = function(arrays) {
-    if (arrays.length == 0) {
-      return [];
-    }
-    var shortestLength = Math.min.apply(window, arrays.map(function(a) {
-      return a.length;
-    }));
-    for (var prefixLength = 0; prefixLength <= shortestLength; prefixLength++) {
-      var value = arrays[0][prefixLength];
-      for (var i = 1; i < arrays.length; i++) {
-        if (arrays[i][prefixLength] != value) {
-          return arrays[0].slice(0, prefixLength);
-        }
-      }
-    }
-    return arrays[0].slice(0, shortestLength);
-  };
-
   return {
-    makeChartTitle: makeChartTitle,
     stringToColor: stringToColor
   };
 })();

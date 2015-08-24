@@ -10,6 +10,7 @@ triaging functionality in the chart.
 
 <link rel="import" href="/dashboard/elements/chart-legend.html">
 <link rel="import" href="/dashboard/elements/chart-slider.html">
+<link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
 <link rel="import" href="/static/graph.html">
 <link rel="import" href="/static/testselection.html">
@@ -144,7 +145,7 @@ triaging functionality in the chart.
     <div id="container" compact?="{{showCompact}}">
       <div id="top-bar" horizontal layout>
         <div flex horizontal center-justified layout>
-          <h3 id="chart-title">{{chartTitle}}</h3>
+          <chart-title id="title" seriesGroupList={{seriesGroupList}}></chart-title>
         </div>
         <div horizontal layout center>
           <paper-button id="close-chart" on-click="{{closeChartClicked}}">
@@ -301,8 +302,8 @@ triaging functionality in the chart.
 
       /**
        * Formats numbers in a human-readable way.
-       * @param {number|string} val
-       * @return {string}
+       * @param {number|string} val A number or string.
+       * @return {string} A string.
        */
       function formatNumber(val) {
         var num = Number(val);
@@ -317,9 +318,9 @@ triaging functionality in the chart.
        * Deep compares two dictionary parameters.
        * This function converts dictionary parameters to sorted list of pairs
        * of key and values and compares their JSON string.
-       * @param {Object} param1
-       * @param {Object} param2
-       * @return {boolean}
+       * @param {Object} param1 An object.
+       * @param {Object} param2 An object.
+       * @return {boolean} True if equal, otherwise false.
        */
       function graphParamEquals(param1, param2) {
         if (!param1 || !param2) {
@@ -354,7 +355,16 @@ triaging functionality in the chart.
             lineWidth: 2,
             opacity: 1,
             fill: 0.2,
-            shadowSize: 3,
+            shadowSize: 3
+        },
+
+        DEFAULT_JSON_PROPERTIES: {
+            annotations: {
+              series: {}
+            },
+            data: {},
+            error_bars: {},
+            warning: null
         },
 
         /**
@@ -396,8 +406,7 @@ triaging functionality in the chart.
           // List of indices of series which are selected and will be plotted.
           this.indicesToGraph = [];
 
-          // Text to display above this chart and next to the y-axis.
-          this.chartTitle = '';
+          // Text to display next to the y-axis.
           this.chartYAxisLabel = '';
 
           // Y-axis delta of current zoom selection, as an absolute number
@@ -447,14 +456,7 @@ triaging functionality in the chart.
           this.showDelta = false;
 
           // The data fetched from the graph_json handler for this chart.
-          this.json = {
-            annotations: {
-              series: {}
-            },
-            data: {},
-            error_bars: {},
-            warning: null,
-          };
+          this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
 
           // Chart options to be given when initializing the Flot chart.
           // See: https://github.com/flot/flot/blob/master/API.md#plot-options
@@ -479,7 +481,7 @@ triaging functionality in the chart.
             },
             selection: {
               mode: 'y'
-            },
+            }
           };
 
           // List of XMLHttpRequests sent for graph json.
@@ -498,6 +500,9 @@ triaging functionality in the chart.
 
           this.$.legend.addEventListener(
               'seriesgroupclosed', this.onSeriesGroupClosed.bind(this), true);
+
+          this.$.title.addEventListener(
+              'titleclicked', this.onTitleClicked.bind(this), true);
 
           window.addEventListener('resize', this.resizeHandler);
 
@@ -568,7 +573,7 @@ triaging functionality in the chart.
                 for (var j = 0; j < selectedTraces.length; j++) {
                   var testData = {
                     name: selectedTraces[j],
-                    selected: true,
+                    selected: true
                   };
                   seriesGroup.tests.push(testData);
                 }
@@ -587,7 +592,7 @@ triaging functionality in the chart.
             this.sendGraphJsonRequest(unSelectedTestPathDict, false);
           }
           this.updateSlider();
-          this.updateChartTitle();
+          this.$.title.update();
         },
 
         /**
@@ -773,7 +778,7 @@ triaging functionality in the chart.
          * function replaces the existing test in its series group
          * with passed |test|, or inserts if it doesn't exist.
          *
-         * @param {Object} seriesGroup
+         * @param {Object} seriesGroup A series group object.
          * @param {Object} newTest Contains information about a series
          * displayed in chart-legend.
          */
@@ -965,7 +970,7 @@ triaging functionality in the chart.
          * @param {Object} detail The detail object given when firing the
          *     event. This is set in graph.js and it contains 'start_rev' and
          *     'end_rev'.
-         * @param {Object} sender
+         * @param {Object} sender Object that invoked the event.
          */
         onRevisionRange: function(event, detail, sender) {
           var newGraphParams = deepCopy(this.graphParams);
@@ -1141,32 +1146,7 @@ triaging functionality in the chart.
           }
 
           this.updateChart();
-          this.updateChartTitle();
-        },
-
-        /**
-         * Sets the title of the chart based on the current state of the chart.
-         */
-        updateChartTitle: function() {
-          var testPaths = [];
-          var selectedTestPaths = [];
-          for (var i = 0; i < this.seriesGroupList.length; i++) {
-            var tests = this.seriesGroupList[i].tests;
-            for (var j = 0; j < tests.length; j++) {
-              var test = tests[j];
-              if (test.path) {
-                if (test.selected) {
-                  selectedTestPaths.push(test.path);
-                }
-                testPaths.push(test.path);
-              }
-            }
-            var testPath = this.seriesGroupList[i].path;
-            if (testPaths.indexOf(testPath) == -1) {
-              testPaths.push(testPath);
-            }
-          }
-          this.chartTitle = graph.makeChartTitle(testPaths, selectedTestPaths);
+          this.$.title.update();
         },
 
         /**
@@ -1278,7 +1258,7 @@ triaging functionality in the chart.
          * responsibilities: constructing this.revisionMap and actually
          * changing the X-values. These could be separated out.
          *
-         * @param {Array.<Object>} data
+         * @param {Array.<Object>} data Flot graph data.
          */
         createFixedXAxis: function(data) {
           // Make a map of all revisions for all data series to a series index
@@ -1386,7 +1366,7 @@ triaging functionality in the chart.
          * Formats numbers that are displayed at ticks on the Y-axis.
          * @param {(number|string)} val A Y-value.
          * @param {Object} axis Not used.
-         * @return {string}
+         * @return {string} A string.
          */
         formatYAxis: function(val, axis) {
           return formatNumber(val);
@@ -1503,6 +1483,23 @@ triaging functionality in the chart.
         },
 
         /**
+         * Handler for 'titleclicked' event fired from chart-title.
+         * This function clears out current chart data and re-adds a
+         * series group from the test path created from clicked title
+         * parts.
+         */
+        onTitleClicked: function(event, detail, sender) {
+          var titleParts = event.detail.titleParts;
+          var partIndex = event.detail.partIndex;
+          var testPath = titleParts.slice(0, partIndex + 1).join('/');
+          this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
+          this.seriesGroupList = [];
+          this.indicesToGraph = [];
+          this.addSeriesGroup([[testPath, []]], true);
+          this.fireChartStateChangedEvent(this.seriesGroupList);
+        },
+
+        /**
          * Handler for 'mouseleave' event, hides the tooltip.
          */
         onMouseLeave: function(event) {
@@ -1514,8 +1511,8 @@ triaging functionality in the chart.
          * made.
          * For more information about selection in flot, see:
          * http://www.flotcharts.org/flot/jquery.flot.selection.js
-         * @param {Event} event
-         * @param {Object} ranges
+         * @param {Event} event Event object.
+         * @param {Object} ranges Object containing the selected range.
          */
         onPlotSelected: function(event, ranges) {
           this.selecting = false;
@@ -1524,8 +1521,8 @@ triaging functionality in the chart.
 
         /**
          * Handler for 'plotselecting' event, fired repeatedly when selecting.
-         * @param {Event} event
-         * @param {Object} ranges
+         * @param {Event} event Event object.
+         * @param {Object} ranges An object containing the selected range.
          */
         onPlotSelecting: function(event, ranges) {
           if (!ranges) {
@@ -1555,9 +1552,9 @@ triaging functionality in the chart.
 
         /**
          * Handler for the 'plotclick' event, fired when the chart is clicked.
-         * @param {Event} event
+         * @param {Event} event Event object.
          * @param {Object} pos An object which contains the keys "x" and "y".
-         * @param {Object} item
+         * @param {Object} item An object of the item clicked, null otherwise.
          */
         onPlotClick: function(event, pos, item) {
           if (this.lastSelectedDelta) {
@@ -1719,9 +1716,9 @@ triaging functionality in the chart.
          * Handler for the 'plothover' event, fired when the mouse is hovering
          * over the plot area. If the user is hovering over a point, we want to
          * show the tooltip for that point.
-         * @param {Event} event
-         * @param {Object} pos
-         * @param {Object} item
+         * @param {Event} event Event object.
+         * @param {Object} pos Position object.
+         * @param {Object} item Item being hovered over.
          */
         onPlotHover: function(event, pos, item) {
           // If the current tooltip is sticky, just leave it.
@@ -1752,7 +1749,7 @@ triaging functionality in the chart.
          *     `this.chart.getData()`.
          * @param {number} dataIndex The index of the data in the series.
          * @param {Array=} opt_alerts Array of alerts.
-         * @param {Array=} opt_triaged
+         * @param {Array=} opt_triaged A boolean.
          */
         showTooltip: function(
             flotSeriesIndex, dataIndex, opt_alerts, opt_triaged) {
@@ -2114,7 +2111,7 @@ triaging functionality in the chart.
 
         /**
          * Handler for resize event.
-         * @param {Event} event
+         * @param {Event} event Event object.
          */
         onResize: function(event) {
           // Try not to resize graphs until the user has stopped resizing
@@ -2339,7 +2336,7 @@ triaging functionality in the chart.
             state.push([seriesGroup.path, selected]);
           });
           return state;
-        },
+        }
       });
     })();
   </script>

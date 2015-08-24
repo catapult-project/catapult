@@ -1,0 +1,156 @@
+<polymer-element name="chart-title" attributes="seriesGroupList">
+  <template>
+    <style>
+      .title {
+        color: #424242;
+        text-decoration: none;
+      }
+
+      .title:hover {
+        color: #4184f3;
+        text-decoration: underline;
+      }
+
+      .title[disabled] {
+        color: #8d8d8d;
+        text-decoration: none;
+        cursor: default;
+      }
+    </style>
+
+    <h3>
+      <template repeat="{{part, partIndex in titleParts}}">
+        <a class="title disabled" href="javascript:void(0);"
+           on-click="{{onClicked}}" disabled?="{{partIndex == currentIndex}}"
+           class="title">
+          {{part}}
+        </a>
+        <span hidden?="{{partIndex == titleParts.length - 1}}">/</span>
+      </template>
+    </h3>
+
+  </template>
+  <script>
+    'use strict';
+    Polymer('chart-title', {
+
+      /**
+       * Sets the title of the chart based on the current state of the chart.
+       */
+      update: function() {
+        var testPaths = this.getTestPaths();
+        var title = this.makeTitleFromTestPaths(testPaths);
+        var selectedSeries = this.getFirstSelectedSeries();
+
+        var parts = title.split('/');
+        // First part of the title groups together of master, bot and test
+        // suite.
+        var firstPart = parts.slice(0, 3).join('/');
+        this.titleParts = [firstPart].concat(parts.slice(3));
+
+        // Determine the current selected index which will be disabled for
+        // selection.
+        if (selectedSeries) {
+          this.titleParts.push(selectedSeries);
+          this.currentIndex = this.titleParts.length - 2;
+        } else {
+          this.currentIndex = this.titleParts.length - 1;
+        }
+      },
+
+      onClicked: function(event) {
+        var model = event.target.templateInstance.model;
+        if (model.partIndex == this.currentIndex) {
+          return;
+        }
+        this.fire('titleclicked', {
+            titleParts: this.titleParts,
+            partIndex: model.partIndex
+        });
+
+        this.currentIndex = model.partIndex;
+      },
+
+      /**
+       * Makes a string to use as a chart title, based on a set of test paths.
+       * @param {Array.<string>} testPaths An list of test paths.
+       * @return {string} The longest test path that is the prefix
+       */
+      makeTitleFromTestPaths: function(testPaths) {
+        if (testPaths.length == 1) {
+          return testPaths[0];
+        }
+
+        var prefix = '';
+        if (testPaths.length > 1) {
+          prefix = this.longestCommonTestPathPrefix(testPaths);
+        }
+        if (testPaths.indexOf(prefix) >= 0) {
+          return prefix;
+        }
+        return prefix ? prefix + '/...' : '...';
+      },
+
+      getTestPaths: function() {
+        var testPaths = [];
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          testPaths.push(this.seriesGroupList[i].path);
+        }
+        return testPaths;
+      },
+
+      getFirstSelectedSeries: function() {
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          var testPath = this.seriesGroupList[i].path;
+          var parts = testPath.split('/');
+          var lastPart = parts[parts.length - 1];
+          var tests = this.seriesGroupList[i].tests;
+          for (var j = 0; j < tests.length; j++) {
+            var test = tests[j];
+            if (test.name == lastPart) {
+              return null;
+            } else if (test.selected) {
+              return test.name;
+            }
+          }
+        }
+        return null;
+      },
+
+      /**
+       * @param {Array.<string>} testPaths An list of test paths.
+       * @return {string} The longest test path that is the prefix
+       */
+      longestCommonTestPathPrefix: function(testPaths) {
+        var partArrays = testPaths.map(function(path) {
+          return path.split('/');
+        });
+        return this.longestCommonSubArray(partArrays).join('/');
+      },
+
+      /**
+       * @param {Array.<Array>} arrays An Array of Arrays.
+       * @return {Array} The longest Array such that all Arrays in the input
+       *     contain this Array as a prefix.
+       */
+      longestCommonSubArray: function(arrays) {
+        if (arrays.length == 0) {
+          return [];
+        }
+        var shortestLength = Math.min.apply(window, arrays.map(function(a) {
+          return a.length;
+        }));
+        for (var prefixLength = 0; prefixLength <= shortestLength;
+             prefixLength++) {
+          var value = arrays[0][prefixLength];
+          for (var i = 1; i < arrays.length; i++) {
+            if (arrays[i][prefixLength] != value) {
+              return arrays[0].slice(0, prefixLength);
+            }
+          }
+        }
+        return arrays[0].slice(0, shortestLength);
+      }
+    });
+  </script>
+</polymer-element>

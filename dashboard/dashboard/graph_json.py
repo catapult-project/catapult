@@ -503,7 +503,7 @@ def _GetTestPathFromDict(test_path_dict):
     selected_traces = test_path_dict[test_path]
     if not selected_traces:
       sub_test_dict = _GetSubTestDict([test_path])
-      selected_traces = _GetSubTestTraces(test_path, sub_test_dict)
+      selected_traces = _GetTraces(test_path, sub_test_dict)
     for trace in selected_traces:
       if trace == parent_test_name:
         test_paths_with_rows.append(test_path)
@@ -530,7 +530,7 @@ def _GetUnselectedTestPathFromDict(test_path_dict):
     parent_test_name = test_path.split('/')[-1]
     selected_traces = test_path_dict[test_path]
     # Add sub-tests not in selected traces.
-    unselected_traces = _GetSubTestTraces(test_path, sub_test_dict)
+    unselected_traces = _GetTraces(test_path, sub_test_dict)
     for trace in unselected_traces:
       if trace not in selected_traces:
         if trace == parent_test_name:
@@ -562,7 +562,7 @@ def _GetSubTestDict(test_paths):
   return subtests
 
 
-def _GetSubTestTraces(test_path, sub_test_dict):
+def _GetTraces(test_path, sub_test_dict):
   """Gets summary and sub-test traces directly underneath test_path.
 
   Args:
@@ -575,11 +575,32 @@ def _GetSubTestTraces(test_path, sub_test_dict):
   traces = []
   test_parts = test_path.split('/')
   test_suite_path = '/'.join(test_parts[0:3])
-  target_trace = test_parts[-1]
 
   if test_suite_path not in sub_test_dict:
     return []
   sub_test_tree = sub_test_dict[test_suite_path]
+
+  if len(test_parts) > 3:
+    return _GetSubTestTraces(test_parts, sub_test_tree)
+
+  for key, value in sub_test_tree.iteritems():
+    if value['has_rows']:
+      traces.append(key)
+  return traces
+
+
+def _GetSubTestTraces(test_parts, sub_test_tree):
+  """Gets summary and sub-test traces after the test suite.
+
+  Args:
+    test_parts: List of parts of a test path.
+    sub_test_tree: Nested dictionary of test data (see list_tests.GetSubTests).
+
+  Returns:
+    List of trace names.
+  """
+  traces = []
+  target_trace = test_parts[-1]
 
   for part in test_parts[3:-1]:
     if part in sub_test_tree:
