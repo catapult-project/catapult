@@ -20,7 +20,42 @@ def _CommonChecks(input_api, output_api):
     input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
     pylintrc='pylintrc')
 
+  results.extend(_CheckNoMoreUsageOfDeprecatedCode(
+    input_api, output_api, deprecated_code='GetChromiumSrcDir()',
+    crbug_number=511332))
   results.extend(input_api.RunTests(pylint_checks))
+  return results
+
+
+def _CheckNoMoreUsageOfDeprecatedCode(
+    input_api, output_api, deprecated_code, crbug_number):
+  results = []
+  # These checks are not perfcet but should be good enough for most of our
+  # usecases.
+  def _IsAddedLine(line):
+    return line.startswith('+') and not line.startswith('+++ ')
+  def _IsRemovedLine(line):
+    return line.startswith('-') and not line.startswith('--- ')
+
+  presubmit_dir = input_api.os_path.join(
+      input_api.PresubmitLocalPath(), 'PRESUBMIT.py')
+
+  added_calls = 0
+  removed_calls = 0
+  for affected_file in input_api.AffectedFiles():
+    # Do not do the check on PRESUBMIT.py itself.
+    if affected_file.AbsoluteLocalPath() == presubmit_dir:
+      continue
+    for line in affected_file.GenerateScmDiff().splitlines():
+      if _IsAddedLine(line) and deprecated_code in line:
+        added_calls += 1
+      elif _IsRemovedLine(line) and deprecated_code in line:
+        removed_calls += 1
+
+  if added_calls > removed_calls:
+    results.append(output_api.PresubmitError(
+        'Your patch adds more instances of %s. Please see crbug.com/%i for'
+        'how to proceed.' % (deprecated_code, crbug_number)))
   return results
 
 
