@@ -132,22 +132,20 @@ tr.exportTo('tr.ui.analysis', function() {
    *   3. columns whose name is 'page_size'.
    *      [least important, right in the resulting table]
    *
-   * where the order within each group is unmodified (stable sort).
+   * where columns are sorted alphabetically within each group.
    */
   MemoryColumn.sortByImportance = function(columns, importanceRules) {
     var positions = columns.map(function(column, srcIndex) {
       return {
         importance: column.getImportance(importanceRules),
-        srcIndex: srcIndex,
         column: column
       };
     });
 
     positions.sort(function(a, b) {
-      // Keep existing order of columns if they have the same importance
-      // (stable sort).
+      // Sort columns with the same importance alphabetically.
       if (a.importance === b.importance)
-        return a.srcIndex - b.srcIndex;
+        return a.column.name.localeCompare(b.column.name);
 
       // Sort columns in descending order of importance.
       return b.importance - a.importance;

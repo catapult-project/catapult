@@ -217,8 +217,8 @@ tr.b.unittest.testSuite(function() {
     MemoryColumn.sortByImportance(columns, rules);
 
     assert.lengthOf(columns, 4);
-    assert.equal(columns[0].name, 'resident_size');
-    assert.equal(columns[1].name, 'proportional_size');
+    assert.equal(columns[0].name, 'proportional_size');
+    assert.equal(columns[1].name, 'resident_size');
     assert.equal(columns[2].name, 'object_count');
     assert.equal(columns[3].name, 'page_size');
   });
