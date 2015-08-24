@@ -5,7 +5,6 @@
 import os
 import subprocess
 
-from telemetry.core import util
 from telemetry.internal.platform import profiler
 from telemetry.internal.backends.chrome import android_browser_finder
 
@@ -17,9 +16,9 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
     super(AndroidScreenRecordingProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     self._output_path = output_path + '.mp4'
+    profiler_dir = os.path.dirname(os.path.abspath(__file__))
     self._recorder = subprocess.Popen(
-        [os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
-                      'screenshot.py'),
+        [os.path.join(profiler_dir, 'screenshot.py'),
          '--video',
          '--file', self._output_path,
          '--device', browser_backend.device.adb.GetDeviceSerial()],
