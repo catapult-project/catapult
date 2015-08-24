@@ -32,8 +32,6 @@ _OUTPUT_FILENAME_LOOKUP = {
 
 def AddResultsOptions(parser):
   group = optparse.OptionGroup(parser, 'Results options')
-  group.add_option('--chartjson', action='store_true',
-                   help='Output Chart JSON. Ignores --output-format.')
   group.add_option('--output-format', action='append', dest='output_formats',
                     choices=_OUTPUT_FORMAT_CHOICES, default=[],
                     help='Output format. Defaults to "%%default". '
@@ -121,7 +119,7 @@ def CreateResults(benchmark_metadata, options,
 
   output_formatters = []
   for output_format in options.output_formats:
-    if output_format == 'none' or output_format == "gtest" or options.chartjson:
+    if output_format == 'none' or output_format == "gtest":
       continue
 
     output_stream = _GetOutputStream(output_format, options.output_dir)
