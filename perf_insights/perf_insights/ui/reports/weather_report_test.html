@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
         '/perf_insights/ui/reports/wr_result_view_test_data.json');
     var results = pi.r.Results.fromDict(JSON.parse(dataString));
 
-    var view = document.createElement('pi-ui-wr-weather-report');
+    var view = document.createElement('pi-ui-r-weather-report');
     view.mapResults = results;
     this.addHTMLOutput(view);
   });

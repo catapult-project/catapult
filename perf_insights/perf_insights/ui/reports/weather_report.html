@@ -4,18 +4,16 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
+<link rel="import" href="/perf_insights/ui/reports/slice_cost_report.html">
 <link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
-<link rel="import" href="/perf_insights/mappers/reduce.html">
-<link rel="import" href="/perf_insights/mappers/slice_cost.html">
 
-<polymer-element name="pi-ui-wr-weather-report"
+<polymer-element name="pi-ui-r-weather-report"
     extends="pi-ui-r-pi-report"
     map-function-href="/perf_insights/mappers/weather_report_map_function.html"
     map-function-name="weatherReportMapFunction">
@@ -25,21 +23,17 @@ found in the LICENSE file.
         display: flex;
         flex-direction: column;
       }
-      top-controls {
-        display: flex;
-        flex: 0 0 auto;
-        background-color: rgb(236, 236, 236);
-        border-bottom: 1px solid #8e8e8e;
-        padding: 4px;
+      h1 {
+        margin: 20px 0 0px 0;
+        font-size: 12pt;
       }
-      #table {
-        flex: 1 1 auto;
+      .sub-report {
+        margin-left: 10px;
       }
     </style>
-    <top-controls>
-    </top-controls>
     <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
-    <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+    <h1>Slice costs</h1>
+    <pi-ui-r-slice-cost-report class="sub-report"></pi-ui-r-slice-cost-report>
   </template>
   <script>
   'use strict';
@@ -47,31 +41,6 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.mapResults_ = undefined;
-    },
-
-    ready: function() {
-      var topControls = this.shadowRoot.querySelector('top-controls');
-
-      this.groupByThreadName_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByThreadName', true,
-          'Group by thread name',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByThreadName_);
-
-      this.groupByRAILTypeName_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByRAILTypeName', true,
-          'Group by RAIL Stage',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByRAILTypeName_);
-
-      this.groupByDomain_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByDomain', true,
-          'Group by Domain',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByDomain_);
     },
 
     get mapResults() {
@@ -84,8 +53,6 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      var table = this.$.table;
-
       var results = this.mapResults_;
       if (!results)
         results = new tr.r.Results();
@@ -93,56 +60,11 @@ found in the LICENSE file.
       this.$.infobars.clearMessages();
       this.maybeAddFailuresInfoBarMessage_(results);
 
-      var columns = this.createColumns_();
-      table.tableColumns = columns;
-      table.sortColumnIndex = 2;
-      table.sortDescending = true;
-
-      var allSliceCosts = [];
-      results.allValuesFromFailureFreeRuns.forEach(function(result) {
-        if (result.name != 'wr')
-          return;
-
-        result.value.sliceCosts.forEach(function(item) {
-          var sliceCostInfo = pi.wr.SliceCostInfo.fromDict(item);
-          allSliceCosts.push(sliceCostInfo);
-        });
+      var reports = tr.b.asArray(
+          this.shadowRoot.querySelectorAll('.sub-report'));
+      reports.forEach(function(report) {
+        report.mapResults = results;
       });
-
-      var groupBy = [];
-      if (this.groupByThreadName_.checked) {
-        groupBy.push(function(datum) {
-          return datum.threadGroup;
-        });
-      }
-      if (this.groupByRAILTypeName_.checked) {
-        groupBy.push(function(datum) {
-          return datum.railTypeName;
-        });
-      }
-
-      var didGroupByDomain;
-      if (groupBy.length === 0 && this.groupByDomain_.checked) {
-        groupBy.push(function(datum) {
-          return datum.domain;
-        });
-        didGroupByDomain = true;
-      }
-
-      groupBy.push(function(datum) {
-        return datum.title;
-      });
-
-      if (this.groupByDomain_.checked && !didGroupByDomain) {
-        groupBy.push(function(datum) {
-          return datum.domain;
-        });
-      }
-
-      table.supportsSelection = true;
-      table.groupBy = groupBy;
-      table.dataToGroup = allSliceCosts;
-      table.rebuild();
     },
 
     maybeAddFailuresInfoBarMessage_: function(results) {
@@ -170,78 +92,6 @@ found in the LICENSE file.
               onClick: onTellMeMore
             }
           ]);
-    },
-
-    createColumns_: function() {
-
-      function compareTimestamps(x, y) {
-        return x - y;
-      }
-
-      function getStatsForRow(row) {
-        if (row.stats_ === undefined) {
-          var stats = {
-            cpuSelfTime: tr.b.Statistics.mean(
-                row.data,
-                function(sliceCostInfo) {
-                  return sliceCostInfo.cpuSelfTime;
-                }),
-            selfTime: tr.b.Statistics.mean(
-                row.data,
-                function(sliceCostInfo) {
-                  return sliceCostInfo.selfTime;
-                })
-          };
-          row.stats_ = stats;
-        }
-        return row.stats_;
-      }
-
-
-      var columns = [
-        {
-          title: 'Title',
-          value: function(row) {
-            return row.title;
-          },
-          width: '500px'
-        },
-        {
-          title: 'Self time',
-          value: function(row) {
-            var stats = getStatsForRow(row);
-            if (stats.selfTime === undefined)
-              return;
-            return tr.ui.units.createTimeDurationSpan(
-                  stats.selfTime);
-          },
-          cmp: function(a, b) {
-            var sA = getStatsForRow(a);
-            var sB = getStatsForRow(b);
-            return tr.b.comparePossiblyUndefinedValues(
-                sA.selfTime, sB.selfTime,
-                compareTimestamps);
-          }
-        },
-        {
-          title: 'CPU Self time',
-          value: function(row) {
-            var stats = getStatsForRow(row);
-            if (stats.cpuSelfTime === undefined)
-              return;
-            return tr.ui.units.createTimeDurationSpan(
-                stats.cpuSelfTime);
-          },
-          cmp: function(a, b) {
-            var sA = getStatsForRow(a);
-            var sB = getStatsForRow(b);
-            return tr.b.comparePossiblyUndefinedValues(
-                sA.cpuSelfTime, sB.cpuSelfTime,
-                compareTimestamps);
-          }
-        }
-      ];
-      return columns;
     }
   });
   </script>
