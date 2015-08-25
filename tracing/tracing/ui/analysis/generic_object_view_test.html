@@ -186,7 +186,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = new tr.b.u.Scalar(.3, tr.b.u.Units.normalizedPercentage);
     var m = tr.b.findDeepElementMatching(
-      view.$.content, 'tr-ui-u-scalar-span');
+        view.$.content, 'tr-ui-u-scalar-span');
     assert.isDefined(m);
     assert.equal(m.value, .3);
     assert.equal(m.unit, tr.b.u.Units.normalizedPercentage);
