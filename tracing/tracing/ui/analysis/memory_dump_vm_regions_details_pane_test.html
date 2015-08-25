@@ -6,7 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/model/global_memory_dump.html">
+<link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_vm_regions_details_pane.html">
@@ -16,74 +19,97 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  var ScalarAttribute = tr.model.ScalarAttribute;
   var VMRegion = tr.model.VMRegion;
 
   function createVMRegions() {
-    return [
-      VMRegion.fromDict({
-        mappedFile: '/lib/chrome.so',
-        startAddress: 65536,
-        sizeInBytes: 536870912,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_EXECUTE,
-        byteStats: {
-          proportionalResident: 8192
-        }
-      }),
-      VMRegion.fromDict({
-        mappedFile: '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
-        startAddress: 140296983150592,
-        sizeInBytes: 2097152,
-        protectionFlags: 0,
-        byteStats: {
-          proportionalResident: 0
-        }
-      }),
-      VMRegion.fromDict({
-        startAddress: 10995116277760,
-        sizeInBytes: 2147483648,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_WRITE,
-        byteStats: {
-          privateDirtyResident: 0,
-          swapped: 0
-        }
-      }),
-      VMRegion.fromDict({
-        startAddress: 12094627905536,
-        sizeInBytes: 2147483648,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_WRITE,
-        byteStats: {
-          privateDirtyResident: 0,
-          swapped: 0
-        }
-      }),
-      VMRegion.fromDict({
-        mappedFile: '/dev/ashmem/dalvik-zygote space',
-        startAddress: 13194139533312,
-        sizeInBytes: 100,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_EXECUTE,
-        byteStats: {
-          proportionalResident: 100,
-          privateDirtyResident: 0,
-          swapped: 0
-        }
-      }),
-      VMRegion.fromDict({
-        mappedFile: '/dev/ashmem/libc malloc',
-        startAddress: 14293651161088,
-        sizeInBytes: 200,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_EXECUTE,
-        byteStats: {
-          proportionalResident: 200,
-          privateDirtyResident: 0,
-          swapped: 0
-        }
-      })
-    ];
+    var model = tr.c.test_utils.newModel(function(model) {
+      var gmd = new GlobalMemoryDump(model, 42);
+      model.globalMemoryDumps.push(gmd);
+      var process = model.getOrCreateProcess(1);
+      var pmd = new ProcessMemoryDump(gmd, process, 42);
+      process.memoryDumps.push(pmd);
+      gmd.processMemoryDumps[process.pid] = pmd;
+
+      pmd.vmRegions = [
+        VMRegion.fromDict({
+          mappedFile: '/lib/chrome.so',
+          startAddress: 65536,
+          sizeInBytes: 536870912,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_EXECUTE,
+          byteStats: {
+            proportionalResident: 8192
+          }
+        }),
+        VMRegion.fromDict({
+          mappedFile: '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+          startAddress: 140296983150592,
+          sizeInBytes: 2097152,
+          protectionFlags: 0,
+          byteStats: {
+            proportionalResident: 0
+          }
+        }),
+        VMRegion.fromDict({
+          startAddress: 10995116277760,
+          sizeInBytes: 2147483648,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          byteStats: {
+            privateDirtyResident: 0,
+            swapped: 0
+          }
+        }),
+        VMRegion.fromDict({
+          startAddress: 12094627905536,
+          sizeInBytes: 2147483648,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          byteStats: {
+            privateDirtyResident: 0,
+            swapped: 0
+          }
+        }),
+        VMRegion.fromDict({
+          mappedFile: '/dev/ashmem/dalvik-zygote space',
+          startAddress: 13194139533312,
+          sizeInBytes: 100,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_EXECUTE,
+          byteStats: {
+            proportionalResident: 100,
+            privateDirtyResident: 0,
+            swapped: 0
+          }
+        }),
+        VMRegion.fromDict({
+          mappedFile: '/dev/ashmem/libc malloc',
+          startAddress: 14293651161088,
+          sizeInBytes: 200,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_EXECUTE,
+          byteStats: {
+            proportionalResident: 200,
+            privateDirtyResident: 96,
+            swapped: 0
+          }
+        })
+      ];
+
+      // This is here so that we could test that tracing is discounted from the
+      // 'Native heap' category.
+      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 500));
+      tracingDump.addAttribute('resident_size',
+          new ScalarAttribute('bytes', 32));
+      pmd.memoryAllocatorDumps = [tracingDump];
+    });
+
+    return model.processes[1].memoryDumps[0].mostRecentVmRegions;
   }
 
   function checkRowValue(row, column, expectedValue) {
@@ -146,7 +172,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 1);
 
     var totalRow = rows[0];
-    checkRow(totalRow, 'Total', 4833935660, 8492, 0, 0, '', '', 7);
+    checkRow(totalRow, 'Total', 4833935660, 8460, 64, 0, '', '', 6);
 
     var androidRow = totalRow.subRows[0];
     checkRow(androidRow, 'Android', 100, 100, 0, 0, '', '', 3);
@@ -159,6 +185,13 @@ tr.b.unittest.testSuite(function() {
 
     var normalRow = spacesRow.subRows[0];
     checkRow(normalRow, 'Normal', '', '', '', '', '', '', 0);
+
+    var nativeHeapRow = totalRow.subRows[1];
+    checkRow(nativeHeapRow, 'Native heap', 200, 168, 64, 0, '', '', 2);
+
+    var discountedTracingOverheadRow = nativeHeapRow.subRows[1];
+    checkRow(discountedTracingOverheadRow, '[discounted tracing overhead]', '',
+        -32, -32, '', '', '', undefined);
 
     var filesRow = totalRow.subRows[3];
     checkRow(filesRow, 'Files', 538968064, 8192, '', '', '', '', 7);
@@ -174,7 +207,7 @@ tr.b.unittest.testSuite(function() {
     checkRow(mmapLibX11Row, '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
         2097152, 0, '', '', '00007f996fd80000', '---', undefined);
 
-    var otherRow = totalRow.subRows[6];
+    var otherRow = totalRow.subRows[5];
     checkRow(otherRow, 'Other', 4294967296, '', 0, 0, '', '', 2);
 
     var mmapOther2Row = otherRow.subRows[1];

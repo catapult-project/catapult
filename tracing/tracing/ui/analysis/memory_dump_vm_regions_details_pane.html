@@ -115,7 +115,7 @@ found in the LICENSE file.
         },
         {
           name: 'Native heap',
-          file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)/
+          file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|(\[discounted tracing overhead\])|$)/  // @suppress longLineCheck
         },
         {
           name: 'Stack',
@@ -168,12 +168,6 @@ found in the LICENSE file.
               file: /anon_inode:dmabuf/
             }
           ]
-        },
-        {
-          // Add a separate category for the discounted tracing overhead to
-          // avoid negative 'Total/Other' sizes.
-          name: 'Discounted tracing overhead',
-          file: /\[discounted tracing overhead\]/
         }
       ]
     };
