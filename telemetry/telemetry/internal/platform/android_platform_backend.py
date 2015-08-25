@@ -518,7 +518,14 @@ class AndroidPlatformBackend(
     self._device.adb.Forward('tcp:%d' % host_port, device_port)
 
   def StopForwardingHost(self, host_port):
-    self._device.adb.ForwardRemove('tcp:%d' % host_port)
+    for line in self._device.adb.ForwardList().strip().splitlines():
+      line = line.split(' ')
+      if line[0] == self._device and line[1] == 'tcp:%s' % host_port:
+        self._device.adb.ForwardRemove('tcp:%d' % host_port)
+        break
+    else:
+      logging.warning('Port %s not found in adb forward --list for device %s',
+                      host_port, self._device)
 
   def DismissCrashDialogIfNeeded(self):
     """Dismiss any error dialogs.
