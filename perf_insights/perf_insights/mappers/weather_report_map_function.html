@@ -30,7 +30,7 @@ tr.exportTo('pi.wr', function() {
     var railScore = new tr.e.rail.RAILScore(railIRs);
     var wr = {
       railScore: railScore.asDict(),
-      ir_coverage: tr.model.getIRCoverageFromModel(model),
+      irCoverage: tr.model.getIRCoverageFromModel(model),
       sliceCosts: pi.wr.getSliceCostReport(model, threadGrouping,
                                            railTypeNameByGUID)
     };
