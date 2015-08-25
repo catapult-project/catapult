@@ -87,53 +87,81 @@ tr.exportTo('tr.model', function() {
       if (tracingDump === undefined)
         return;
 
-      // Subtract 'resident_size' from totals and VM regions stats.
-      var tracingResidentSizeAttr =
-          tracingDump.getValidSizeAttributeOrUndefined(
-              'resident_size', opt_model);
-      if (tracingResidentSizeAttr !== undefined) {
-        var tracingResidentSize = tracingResidentSizeAttr.value;
+      function getDiscountedSize(sizeAttrName) {
+        var sizeAttr = tracingDump.getValidSizeAttributeOrUndefined(
+            sizeAttrName, opt_model);
+        if (sizeAttr === undefined)
+          return 0;
+        return sizeAttr.value;
+      }
 
+      var discountedSize = getDiscountedSize('size');
+      var discountedEffectiveSize = getDiscountedSize('effective_size');
+      var discountedResidentSize = getDiscountedSize('resident_size');
+
+      // Subtract 'resident_size' from totals and VM regions stats.
+      if (discountedResidentSize > 0) {
         // Subtract the tracing size from the total.
         if (this.totalResidentBytes !== undefined)
-          this.totalResidentBytes -= tracingResidentSize;
+          this.totalResidentBytes -= discountedResidentSize;
 
         // Subtract the tracing size from VM regions.
         if (this.vmRegions_ !== undefined) {
           this.vmRegions_.push(VMRegion.fromDict({
             mappedFile: '[discounted tracing overhead]',
             byteStats: {
-              privateDirtyResident: -tracingResidentSize,
-              proportionalResident: -tracingResidentSize
+              privateDirtyResident: -discountedResidentSize,
+              proportionalResident: -discountedResidentSize
             }
           }));
         }
       }
 
-      // Subtract 'size' from the 'winheap' or 'malloc' MemoryAllocatorDump.
-      var tracingSizeAttr = tracingDump.getValidSizeAttributeOrUndefined(
-          'size', opt_model);
-      if (tracingSizeAttr !== undefined) {
-        var tracingSize = tracingSizeAttr.value;
-
-        var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
-            function(allocatorName) {
-          var dump = this.getMemoryAllocatorDumpByFullName(allocatorName);
-          if (dump === undefined)
-            return false;
-
-          var overheadSizeAttribute = new tr.model.ScalarAttribute(
-              'bytes', -tracingSize);
-          var overheadDump = new tr.model.MemoryAllocatorDump(
-              this, allocatorName + '/discounted_tracing_overhead');
-          overheadDump.parent = dump;
-          overheadDump.addAttribute('size', overheadSizeAttribute);
-          dump.children.push(overheadDump);
-
+      // Subtract 'size' and 'effective_size' from the 'winheap' or 'malloc'
+      // MemoryAllocatorDump.
+      if (discountedSize > 0 || discountedEffectiveSize > 0) {
+        function discountSizeAndEffectiveSize(dump) {
           var dumpSizeAttr = dump.getValidSizeAttributeOrUndefined(
               'size', opt_model);
           if (dumpSizeAttr !== undefined)
-            dumpSizeAttr.value -= tracingSize;
+            dumpSizeAttr.value -= discountedSize;
+
+          var dumpEffectiveSizeAttr = dump.getValidSizeAttributeOrUndefined(
+              'effective_size', opt_model);
+          if (dumpEffectiveSizeAttr !== undefined)
+            dumpEffectiveSizeAttr.value -= discountedEffectiveSize;
+        }
+
+        var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
+            function(allocatorName) {
+          // Discount 'size' and 'effective_size' from the allocator root.
+          var allocatorDump = this.getMemoryAllocatorDumpByFullName(
+              allocatorName);
+          if (allocatorDump === undefined)
+            return false;  // Allocator doesn't exist, try another one.
+          discountSizeAndEffectiveSize(allocatorDump);
+
+          // Discount 'size' and 'effective_size' from allocated objects of the
+          // allocator ('<ALLOCATOR>/allocated_objects').
+          var allocatedObjectsDumpName = allocatorName + '/allocated_objects';
+          var allocatedObjectsDump = this.getMemoryAllocatorDumpByFullName(
+              allocatedObjectsDumpName);
+          if (allocatedObjectsDump === undefined)
+            return true;  // Allocator has unexpected structure, good enough.
+          discountSizeAndEffectiveSize(allocatedObjectsDump);
+
+          // Add a child MAD representing the discounted tracing overhead
+          // ('<ALLOCATOR>/allocated_objects/discounted_tracing_overhead').
+          var discountDumpName =
+              allocatedObjectsDumpName + '/discounted_tracing_overhead';
+          var discountDump = new tr.model.MemoryAllocatorDump(
+              this, discountDumpName);
+          discountDump.parent = allocatedObjectsDump;
+          discountDump.addAttribute('size',
+              new tr.model.ScalarAttribute('bytes', -discountedSize));
+          discountDump.addAttribute('effective_size',
+              new tr.model.ScalarAttribute('bytes', -discountedEffectiveSize));
+          allocatedObjectsDump.children.push(discountDump);
 
           return true;
         }, this);

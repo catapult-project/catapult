@@ -65,9 +65,23 @@ tr.exportTo('tr.model', function() {
     },
 
     calculateGraphAttributes: function() {
+      // 1. Calculate the sizes of all memory allocator dumps (MADs).
       this.calculateSizes();
+
+      // 2. Calculate the effective sizes of all MADs. This step requires that
+      // the sizes of all MADs have already been calculated (step 1).
       this.calculateEffectiveSizes();
+
+      // 3. Aggregate all other attributes of all MADs. This step must be
+      // carried out after the sizes of all MADs were calculated (step 1).
+      // Otherwise, the sizes of all MADs would be aggregated as a direct sums
+      // of their children, which would most likely lead to double-counting.
       this.aggregateAttributes();
+
+      // 4. Discount tracing from VM regions stats and malloc or winheap
+      // allocator stats. This steps requires that the sizes (step 1),
+      // effective sizes (step 2), and resident sizes (step 3) of the relevant
+      // MADs have already been calculated.
       this.discountTracingOverhead();
     },
 
