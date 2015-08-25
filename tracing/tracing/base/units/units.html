@@ -60,12 +60,14 @@ tr.exportTo('tr.b.u', function() {
           TimeDisplayModes.ms : largest;
     },
 
+    unitsByJSONName: {},
+
     fromJSON: function(object) {
-      if (object === 'ms') {
-        return Unit.timeDurationInMsUnit;
-      } else {
-        throw new Error('Unrecognized unit');
+      var u = this.unitsByJSONName[object];
+      if (u) {
+        return u;
       }
+      throw new Error('Unrecognized unit');
     }
   };
 
@@ -80,13 +82,15 @@ tr.exportTo('tr.b.u', function() {
       return Units.currentTimeDisplayMode_.format(value);
     }
   };
+  Units.unitsByJSONName['ms'] = Units.timeDurationInMs;
 
   Units.timeStampInMs = {
-    asJSON: function() { return 'ms'; },
+    asJSON: function() { return 'tsMs'; },
     format: function(value) {
       return Units.currentTimeDisplayMode_.format(value);
     }
   };
+  Units.unitsByJSONName['tsMs'] = Units.timeStampInMs;
 
   Units.normalizedPercentage = {
     asJSON: function() { return 'n%'; },
@@ -95,6 +99,7 @@ tr.exportTo('tr.b.u', function() {
       return tmp.toLocaleString(undefined, {minimumFractionDigits: 3}) + '%';
     }
   };
+  Units.unitsByJSONName['n%'] = Units.normalizedPercentage;
 
   var SIZE_UNIT_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
   Units.sizeInBytes = {
@@ -115,6 +120,7 @@ tr.exportTo('tr.b.u', function() {
       return signPrefix + value.toFixed(1) + ' ' + SIZE_UNIT_PREFIXES[i] + 'B';
     }
   };
+  Units.unitsByJSONName['sizeInBytes'] = Units.sizeInBytes;
 
   Units.energyInJoules = {
     asJSON: function() { return 'J'; },
@@ -123,6 +129,7 @@ tr.exportTo('tr.b.u', function() {
           .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' J';
     }
   };
+  Units.unitsByJSONName['J'] = Units.energyInJoules;
 
   Units.powerInWatts = {
     asJSON: function() { return 'W'; },
@@ -131,6 +138,18 @@ tr.exportTo('tr.b.u', function() {
           .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' mW';
     }
   };
+  Units.unitsByJSONName['W'] = Units.powerInWatts;
+
+  Units.unitlessNumber = {
+    asJSON: function() { return 'unitless'; },
+    format: function(value) {
+      return value.toLocaleString(
+          undefined, {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3});
+    }
+  };
+  Units.unitsByJSONName['unitless'] = Units.unitlessNumber;
 
   return {
     Units: Units

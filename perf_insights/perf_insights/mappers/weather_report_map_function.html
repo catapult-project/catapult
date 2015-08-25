@@ -11,18 +11,25 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/tracing/extras/rail/rail_score.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
 
 <script>
 tr.exportTo('pi.wr', function() {
 
   function getWeatherReportFromModel(model) {
-    var railTypeNameByGUID = getRAILTypeNameForEventsByGUID(model);
+    var railIRs = model.interactionRecords.filter(function(ir) {
+      return ir instanceof tr.e.rail.RAILInteractionRecord;
+    });
+
+    var railTypeNameByGUID = getRAILTypeNameForEventsByGUID(model, railIRs);
 
     var threadGrouping = new pi.wr.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
 
+    var railScore = new tr.e.rail.RAILScore(railIRs);
     var wr = {
+      railScore: railScore.asDict(),
       ir_coverage: tr.model.getIRCoverageFromModel(model),
       sliceCosts: pi.wr.getSliceCostReport(model, threadGrouping,
                                            railTypeNameByGUID)
@@ -30,11 +37,7 @@ tr.exportTo('pi.wr', function() {
     return wr;
   }
 
-  function getRAILTypeNameForEventsByGUID(model) {
-    var railIRs = model.interactionRecords.filter(function(ir) {
-      return ir instanceof tr.e.rail.RAILInteractionRecord;
-    });
-
+  function getRAILTypeNameForEventsByGUID(model, railIRs) {
     var railTypeNameByGUID = {};
     railIRs.forEach(function applyAssociatedToRTN(ir) {
       ir.associatedEvents.forEach(function applyEventToRTN(event) {

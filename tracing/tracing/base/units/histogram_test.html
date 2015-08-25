@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/units/histogram.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var h = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    assert.equal(h.getBinForValue(250).range.min, 200);
+    assert.equal(h.getBinForValue(250).range.max, 300);
+    h.add(-1, 'a');
+    h.add(0, 'b');
+    h.add(0, 'c');
+    h.add(500, 'c');
+    h.add(999, 'd');
+    h.add(1000, 'd');
+    assert.equal(h.underflowBin.count, 1);
+
+    assert.equal(h.getBinForValue(0).count, 2);
+    assert.deepEqual(h.getBinForValue(0).sourceInfos,
+                     ['b', 'c']);
+
+    assert.equal(h.getBinForValue(500).count, 1);
+    assert.equal(h.getBinForValue(999).count, 1);
+
+    assert.equal(h.overflowBin.count, 1);
+    assert.equal(h.numValues, 6);
+    assert.closeTo(h.average, 416.3, 1);
+  });
+
+  test('nans', function() {
+    var h = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    h.add(undefined, 'b');
+    h.add(NaN, 'c');
+
+    assert.equal(h.numNans, 2);
+    assert.deepEqual(h.nanSourceInfos, ['b', 'c']);
+  });
+});
+</script>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/ui/units/histogram_span.html">
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var h = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    h.add(-1, 'a');
+    h.add(0, 'b');
+    h.add(0, 'b');
+    h.add(0, 'b');
+    h.add(0, 'b');
+    h.add(0, 'b');
+    h.add(0, 'b');
+    h.add(0, 'c');
+    h.add(500, 'c');
+    h.add(999, 'd');
+    h.add(1000, 'd');
+
+    var span = document.createElement('tr-ui-u-histogram-span');
+    span.histogram = h;
+    this.addHTMLOutput(span);
+  });
+
+  test('undefined', function() {
+    var span = document.createElement('tr-ui-u-histogram-span');
+    span.histogram = undefined;
+    this.addHTMLOutput(span);
+  });
+
+  test('emptyHistogram', function() {
+    var h = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+
+    var span = document.createElement('tr-ui-u-histogram-span');
+    span.histogram = h;
+    this.addHTMLOutput(span);
+  });
+
+  test('nans', function() {
+    var h = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    h.add(undefined, 'b');
+    h.add(NaN, 'c');
+
+    var span = document.createElement('tr-ui-u-histogram-span');
+    span.histogram = h;
+    this.addHTMLOutput(span);
+  });
+
+});
+</script>

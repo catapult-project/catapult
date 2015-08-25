@@ -66,7 +66,7 @@ tr.exportTo('tr.ui.units', function() {
       right: 0;
       display: none;
       height: 100%;
-      background-color: hsl(216, 100%, 94.5%);
+      background-color: hsla(216, 100%, 94.5%, .75);
       border-left: 1px solid hsl(216, 100%, 89%);
       box-sizing: border-box;
     }
@@ -155,6 +155,10 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     updateContent_: function() {
+      if (this.unit_ === undefined) {
+        this.textContent = '';
+        return;
+      }
       var content = this.unit_.format(this.value);
       this.$.content.textContent = content;
     },

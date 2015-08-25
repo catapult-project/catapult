@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/range.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.b.u', function() {
+  var Range = tr.b.Range;
+
+  var MAX_SOURCE_INFOS = 16;
+
+  function HistogramBin(parentHistogram, opt_range) {
+    this.parentHistogram = parentHistogram;
+    this.range = opt_range || (new tr.b.Range());
+    this.count = 0;
+    this.sourceInfos = [];
+  }
+
+  HistogramBin.fromDict = function(parentHistogram, d) {
+    var h = new HistogramBin(parentHistogram);
+    h.range.min = d.min;
+    h.range.max = d.max;
+    h.count = d.count;
+    h.sourceInfos = d.sourceInfos;
+  }
+
+  HistogramBin.prototype = {
+    add: function(value, sourceInfo) {
+      this.count += 1;
+      if (this.sourceInfos.length < MAX_SOURCE_INFOS) {
+        this.sourceInfos.push(sourceInfo);
+      }
+    },
+
+    asJSON: function() {
+      return {
+        min: this.range.min,
+        max: this.range.max,
+        count: this.count,
+        sourceInfos: this.sourceInfos.slice(0)
+      };
+    }
+  };
+
+  function Histogram(unit, range, binInfo) {
+    this.range = range;
+    this.unit = unit;
+
+    this.numNans = 0;
+    this.nanSourceInfos = [];
+
+    this.runningSum = 0;
+
+    this.underflowBin = binInfo.underflowBin;
+    this.centralBins = binInfo.centralBins;
+    this.centralBinWidth = binInfo.centralBinWidth;
+    this.overflowBin = binInfo.overflowBin;
+
+    this.allBins = [];
+    this.allBins.push(this.underflowBin);
+    this.allBins.push.apply(this.allBins, this.centralBins);
+    this.allBins.push(this.overflowBin);
+  }
+
+  Histogram.fromDict = function(d) {
+    var range = Range.fromExplicitRange(d.min, d.max);
+    var binInfo = {};
+    binInfo.underflowBin = HistogramBin.fromDict(undefined, d.underflowBin);
+    binInfo.centralBins = d.centralBins.map(function(binAsDict) {
+      return HistogramBin.fromDict(undefined, binAsDict);
+    });
+    binInfo.centralBinWidth = d.centralBinWidth;
+    binInfo.overflowBin = Histogram.fromDict(undefined, d.overflowBin);
+    var h = new Histogram(tr.b.u.Unit.fromJSON(d.unit),
+                             range, binInfo);
+    h.allBins.forEach(function(bin) {
+      bin.parentHistogram = h;
+    });
+    h.runningSum = d.runningSum;
+    h.numNans = d.numNans;
+    h.nanSourceInfos = d.nanSourceInfos;
+    return h;
+  }
+
+  Histogram.createLinear = function(unit, range, numBins) {
+    if (range.isEmpty)
+      throw new Error('Nope');
+
+    var binInfo = {};
+    binInfo.underflowBin = new HistogramBin(
+        this, Range.fromExplicitRange(-Number.MAX_VALUE, range.min));
+    binInfo.overflowBin = new HistogramBin(
+        this, Range.fromExplicitRange(range.max, Number.MAX_VALUE));
+    binInfo.centralBins = [];
+    binInfo.centralBinWidth = range.range / numBins;
+
+    for (var i = 0; i < numBins; i++) {
+      var lo = range.min + (binInfo.centralBinWidth * i);
+      var hi = lo + binInfo.centralBinWidth;
+      binInfo.centralBins.push(
+          new HistogramBin(undefined, Range.fromExplicitRange(lo, hi)));
+    }
+
+    var h = new Histogram(unit, range, binInfo);
+    h.allBins.forEach(function(bin) {
+      bin.parentHistogram = h;
+    });
+    return h;
+  },
+
+  Histogram.prototype = {
+    get numValues() {
+      return tr.b.Statistics.sum(this.allBins, function(e) {
+        return e.count;
+      });
+    },
+
+    get average() {
+      return this.runningSum / this.numValues;
+    },
+
+    getBinForValue: function(value) {
+      if (value < this.range.min)
+        return this.underflowBin;
+      if (value >= this.range.max)
+        return this.overflowBin;
+      var binIdx = Math.floor((value - this.range.min) / this.centralBinWidth);
+      return this.centralBins[binIdx];
+    },
+
+    add: function(value, sourceInfo) {
+      if (typeof(value) !== 'number' || isNaN(value)) {
+        this.numNans++;
+        if (this.nanSourceInfos.length < MAX_SOURCE_INFOS)
+          this.nanSourceInfos.push(sourceInfo);
+        return;
+      }
+
+      var bin = this.getBinForValue(value);
+      bin.add(value, sourceInfo);
+      this.runningSum += value;
+    },
+
+    asDict: function() {
+      var d = {
+        unit: this.unit.asJSON(),
+
+        min: this.range.min,
+        max: this.range.max,
+
+        numNans: this.numNans,
+        nanSourceInfos: this.nanSourceInfos,
+
+        runningSum: this.runningSum,
+
+        underflowBin: this.underflowBin.asDict(),
+        centralBins: this.centralBins.map(function(bin) {
+          return bin.asDict();
+        }),
+        centralBinWidth: this.centralBinWidth,
+        overflowBin: this.overflowBin.asDict()
+      };
+      return d;
+    },
+
+    asJSON: function() {
+      return this.asDict();
+    }
+  };
+
+  return {
+    HistogramBin: HistogramBin,
+    Histogram: Histogram
+  };
+});
+</script>
