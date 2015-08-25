@@ -151,7 +151,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(column.name, 'second_column');
     assert.equal(column.title, 'Second Column');
     assert.isUndefined(column.width);
-    assert.equal(column.value({x: buildScalarCell('bytes', 1024)}).numBytes,
+    assert.equal(column.value({x: buildScalarCell('bytes', 1024)}).value,
         1024);
     assert.isAbove(column.cmp({x: buildScalarCell('bytes', 100)},
         {x: buildScalarCell('bytes', 99.99)}), 0);
@@ -441,7 +441,7 @@ tr.b.unittest.testSuite(function() {
 
     // Defined cell.
     var value = c.value({x: buildScalarCell('bytes', 1024)});
-    assert.equal(value.numBytes, 1024);
+    assert.equal(value.value, 1024);
     this.addHTMLOutput(value);
 
     // Attribute with infos.
@@ -453,7 +453,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.value({x: cell});
     assert.lengthOf(value.childNodes, 3);
     assert.equal(value.style.color, '');
-    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[0].value, 2048);
     assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
     assert.equal(value.childNodes[1].title, 'This value is too cool');
     assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
@@ -473,7 +473,7 @@ tr.b.unittest.testSuite(function() {
     // Defined cell.
     var value = c.value({x: buildScalarCell('bytes', 1024)});
     assert.lengthOf(value.childNodes, 1);
-    assert.equal(value.childNodes[0].numBytes, 1024);
+    assert.equal(value.childNodes[0].value, 1024);
     assert.equal(value.style.color, 'rgb(0, 153, 153)');
     this.addHTMLOutput(value);
 
@@ -486,7 +486,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.value({x: cell});
     assert.lengthOf(value.childNodes, 3);
     assert.equal(value.style.color, 'rgb(0, 153, 153)');
-    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[0].value, 2048);
     assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
     assert.equal(value.childNodes[1].title, 'This value is too cool');
     assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
@@ -507,12 +507,12 @@ tr.b.unittest.testSuite(function() {
 
     // Defined cell.
     var value = c.value({x: buildScalarCell('bytes', 1024)});
-    assert.equal(value.numBytes, 1024);
+    assert.equal(value.value, 1024);
     this.addHTMLOutput(value);
 
     var value = c.value({x: buildScalarCell('bytes', -1024)});
     assert.lengthOf(value.childNodes, 1);
-    assert.equal(value.childNodes[0].numBytes, -1024);
+    assert.equal(value.childNodes[0].value, -1024);
     assert.equal(value.style.color, 'green');
     this.addHTMLOutput(value);
 
@@ -525,7 +525,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.value({x: cell});
     assert.lengthOf(value.childNodes, 3);
     assert.equal(value.style.color, '');
-    assert.equal(value.childNodes[0].numBytes, 2048);
+    assert.equal(value.childNodes[0].value, 2048);
     assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
     assert.equal(value.childNodes[1].title, 'This value is too cool');
     assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
@@ -540,7 +540,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.value({x: cell});
     assert.lengthOf(value.childNodes, 2);
     assert.equal(value.style.color, 'green');
-    assert.equal(value.childNodes[0].numBytes, -2048);
+    assert.equal(value.childNodes[0].value, -2048);
     assert.equal(value.childNodes[1].textContent, String.fromCharCode(9432));
     assert.equal(value.childNodes[1].title, 'This value is impossibly cool');
     this.addHTMLOutput(value);

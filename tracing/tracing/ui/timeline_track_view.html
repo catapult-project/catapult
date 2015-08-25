@@ -821,7 +821,7 @@ found in the LICENSE file.
       var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
-      this.$.drag_box.textContent = tr.b.units.TimeDuration.format(hiWX - loWX);
+      this.$.drag_box.textContent = tr.b.u.TimeDuration.format(hiWX - loWX);
 
       var e = new tr.b.Event('selectionChanging');
       e.loWX = loWX;

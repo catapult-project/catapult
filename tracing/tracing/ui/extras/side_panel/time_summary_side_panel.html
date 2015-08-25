@@ -213,7 +213,7 @@ found in the LICENSE file.
           data.push({
             label: resultsForGroup.name,
             value: value,
-            valueText: tr.b.units.TimeDuration.format(value),
+            valueText: tr.b.u.TimeDuration.format(value),
             resultsForGroup: resultsForGroup
           });
         }
@@ -366,7 +366,7 @@ found in the LICENSE file.
           extraData.push({
             label: 'CPU Idle',
             value: idleTime,
-            valueText: tr.b.units.TimeDuration.format(idleTime)
+            valueText: tr.b.u.TimeDuration.format(idleTime)
           });
           extraValue += idleTime;
         }

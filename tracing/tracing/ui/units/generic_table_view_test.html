@@ -112,7 +112,7 @@ tr.b.unittest.testSuite(function() {
 
   test('usingGenericTable', function() {
     var table = document.createElement('tr-ui-u-generic-table-view');
-    table.items = new tr.b.units.GenericTable([
+    table.items = new tr.b.u.GenericTable([
       {
         a: 1
       }
@@ -122,7 +122,7 @@ tr.b.unittest.testSuite(function() {
 
   test('valueIsObject', function() {
     var table = document.createElement('tr-ui-u-generic-table-view');
-    table.items = new tr.b.units.GenericTable([
+    table.items = new tr.b.u.GenericTable([
       {
         a: {x: 1, y: 'string'}
       },

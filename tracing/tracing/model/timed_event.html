@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/base/guid.html">
 
@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
     // bounds returns whether that TimedEvent happens within this timed event
     bounds: function(that, precisionUnit) {
       if (precisionUnit === undefined) {
-        precisionUnit = tr.b.units.Time.supportedUnits.ms;
+        precisionUnit = tr.b.u.TimeDisplayModes.ms;
       }
       var startsBefore = precisionUnit.roundedLess(that.start, this.start);
       var endsAfter = precisionUnit.roundedLess(this.end, that.end);

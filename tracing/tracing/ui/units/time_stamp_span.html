@@ -6,7 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/base/units/time_stamp.html">
 
 <script>
@@ -22,45 +24,28 @@ tr.exportTo('tr.ui.units', function() {
     return span;
   }
 
-  tr.b.units.Time.addEventListener('display-unit-changed', function(e) {
-    tr.b.findDeepElementsMatching(document.body,
-      'tr-ui-u-time-stamp-span').forEach(function(el) {
-        el.updateContent_();
-      });
-  });
-
   return {
     createTimeStampSpan: createTimeStampSpan
   };
 });
 </script>
 
-<polymer-element name="tr-ui-u-time-stamp-span">
-  <template>
-  </template>
+<polymer-element name="tr-ui-u-time-stamp-span"
+                 extends="tr-ui-u-scalar-span">
   <script>
   'use strict';
 
   Polymer({
-    ready: function() {
-      this.timestamp_ = undefined;
-    },
-
     get timestamp() {
-      return this.timestamp_;
+      return this.value;
     },
 
     set timestamp(timestamp) {
-      if (timestamp instanceof tr.b.units.TimeStamp)
-        this.timestamp_ = timestamp.timestamp;
-      else
-        this.timestamp_ = timestamp;
-      this.updateContent_();
-    },
-
-    updateContent_: function() {
-      var content = tr.b.units.TimeStamp.format(this.timestamp_);
-      this.shadowRoot.textContent = content;
+      if (timestamp instanceof tr.b.u.TimeStamp) {
+        this.value = timestamp;
+        return;
+      }
+      this.setValueAndUnit(timestamp, tr.b.u.Units.timeStampInMs);
     }
   });
   </script>

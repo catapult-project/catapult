@@ -73,7 +73,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Slice ' + this.title + ' at ' +
-          tr.b.units.TimeStamp.format(this.start);
+          tr.b.u.TimeStamp.format(this.start);
     },
 
     findDescendentSlice: function(targetTitle) {

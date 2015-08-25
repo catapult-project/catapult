@@ -61,6 +61,12 @@ tr.exportTo('tr.e.rail', function() {
         denominator += weight;
       });
       return numerator / denominator;
+    },
+
+    asDict: function() {
+      return {
+        overallScore: this.overallScore
+      };
     }
   };
 

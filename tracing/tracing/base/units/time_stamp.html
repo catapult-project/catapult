@@ -5,27 +5,30 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/scalar.html">
+<link rel="import" href="/tracing/base/units/time_display_mode.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.b.units', function() {
+tr.exportTo('tr.b.u', function() {
   /**
    * Float wrapper, representing a time stamp, capable of pretty-printing.
    */
   function TimeStamp(timestamp) {
-    this.timestamp = timestamp;
+    tr.b.u.Scalar.call(this, timestamp, tr.b.u.Units.timeStampInMs);
   };
 
   TimeStamp.prototype = {
-    toString: function() {
-      return TimeStamp.format(this.timestamp);
+    __proto__: tr.b.u.Scalar.prototype,
+
+    get timestamp() {
+      return this.value;
     }
   };
 
   TimeStamp.format = function(timestamp) {
-    return tr.b.units.Time.currentDisplayUnit.format(timestamp);
+    return tr.b.u.Units.timeStampInMs.format(timestamp);
   };
 
   return {

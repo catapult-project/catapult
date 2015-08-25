@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/units/size_in_bytes_span.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
 
 <script>
 'use strict';
@@ -319,8 +319,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
     formatDefinedAttributeValue: function(attr) {
       if (this.units === 'bytes') {
-        var sizeEl = document.createElement('tr-ui-u-size-in-bytes-span');
-        sizeEl.numBytes = attr.value;
+        var sizeEl = document.createElement('tr-ui-u-scalar-span');
+        sizeEl.setValueAndUnit(attr.value, tr.b.u.Units.sizeInBytes);
         return sizeEl;
       }
       return MemoryColumn.prototype.formatDefinedAttributeValue.call(

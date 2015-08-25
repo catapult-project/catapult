@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/interval_tree.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
@@ -178,7 +178,7 @@ tr.exportTo('tr', function() {
     convertTimestampToModelTime: function(sourceClockDomainName, ts) {
       if (sourceClockDomainName !== 'traceEventClock')
         throw new Error('Only traceEventClock is supported.');
-      return tr.b.units.Time.timestampFromUs(ts) +
+      return tr.b.u.Units.timestampFromUs(ts) +
         this.timestampShiftToZeroAmount_;
     },
 
@@ -336,7 +336,7 @@ tr.exportTo('tr', function() {
      */
     get intrinsicTimeUnit() {
       if (this.intrinsicTimeUnit_ === undefined)
-        return tr.b.units.Time.supportedUnits.ms;
+        return tr.b.u.TimeDisplayModes.ms;
       return this.intrinsicTimeUnit_;
     },
 

@@ -37,7 +37,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return this.title + ' interaction at ' +
-          tr.b.units.TimeStamp.format(this.start);
+          tr.b.u.TimeStamp.format(this.start);
     },
 
     computeCompoundEvenSelectionState: function(selection) {

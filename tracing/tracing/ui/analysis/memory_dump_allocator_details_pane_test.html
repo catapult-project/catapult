@@ -82,14 +82,14 @@ tr.b.unittest.testSuite(function() {
     // Check the rows of the table.
     var rootRow = rows[0];
     assert.equal(titleColumn.value(rootRow), 'v8');
-    assert.equal(sizeColumn.value(rootRow).numBytes, 1073741824);
-    assert.equal(innerSizeColumn.value(rootRow).numBytes, 2097152);
+    assert.equal(sizeColumn.value(rootRow).value, 1073741824);
+    assert.equal(innerSizeColumn.value(rootRow).value, 2097152);
     assert.equal(objectsCountColumn.value(rootRow), 204);
     assert.lengthOf(rootRow.subRows, 2);
 
     var subRow1 = rootRow.subRows[0];
     assert.equal(titleColumn.value(subRow1), 'heaps');
-    assert.equal(sizeColumn.value(subRow1).numBytes, 805306368);
+    assert.equal(sizeColumn.value(subRow1).value, 805306368);
     assert.equal(innerSizeColumn.value(subRow1), '');
     assert.equal(objectsCountColumn.value(subRow1), '');
     assert.isUndefined(subRow1.subRows);
@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
         titleColumn.value(subRow2).textContent, 'suballocation by oilpan/cow');
     assert.equal(
         titleColumn.value(subRow2).title, 'Suballocation name: v8/__42BEEF');
-    assert.equal(sizeColumn.value(subRow2).numBytes, 268435456);
+    assert.equal(sizeColumn.value(subRow2).value, 268435456);
     assert.equal(innerSizeColumn.value(subRow2), '');
     assert.equal(objectsCountColumn.value(subRow2), '');
     assert.isUndefined(subRow2.subRows);

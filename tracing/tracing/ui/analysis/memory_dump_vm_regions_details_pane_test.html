@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
   function checkRowValue(row, column, expectedValue) {
     var value = column.value(row);
     if (typeof(expectedValue) === 'number')
-      value = value.numBytes;
+      value = value.value;
     assert.equal(value, expectedValue);
   }
 

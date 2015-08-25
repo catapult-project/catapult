@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/ui/units/preferred_display_unit.html">
 
 <script>
@@ -14,7 +14,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var unit = document.createElement('tr-ui-u-preferred-display-unit');
-    var ms = tr.b.units.Time.supportedUnits.ms;
+    var ms = tr.b.u.TimeDisplayModes.ms;
     unit.preferredDisplayUnit = ms;
     assert.equal(unit.preferredDisplayUnit, ms);
   });

@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
     __proto__: InstantEvent.prototype,
     get userFriendlyName() {
       return 'Global instant event ' + this.title + ' @ ' +
-          tr.b.units.TimeStamp.format(start);
+          tr.b.u.TimeStamp.format(start);
     }
   };
 
@@ -59,7 +59,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Process-level instant event ' + this.title + ' @ ' +
-          tr.b.units.TimeStamp.format(start);
+          tr.b.u.TimeStamp.format(start);
     }
   };
 

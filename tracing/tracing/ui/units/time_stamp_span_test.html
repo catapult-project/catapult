@@ -4,7 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/ui/units/time_stamp_span.html">
 <script>
 'use strict';
@@ -35,25 +35,24 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiateWithObject', function() {
     var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
-    timeStamp.timestamp = new tr.b.units.TimeStamp(73);
+    timeStamp.timestamp = new tr.b.u.TimeStamp(73);
     this.addHTMLOutput(timeStamp);
     assert.equal(timeStamp.timestamp, 73);
   });
 
   test('respectCurrentDisplayUnit', function() {
     try {
-      var Time = tr.b.units.Time;
-      Time.currentDisplayUnit = Time.supportedUnits.ns;
+      tr.b.u.Units.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ns;
 
       var timeStamp = document.createElement('tr-ui-u-time-stamp-span');
       timeStamp.timestamp = 73;
       this.addHTMLOutput(timeStamp);
 
       assert.isTrue(timeStamp.shadowRoot.textContent.indexOf('ns') > 0);
-      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      tr.b.u.Units.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ms;
       assert.isTrue(timeStamp.shadowRoot.textContent.indexOf('ms') > 0);
     } finally {
-      Time.reset();
+      tr.b.u.Units.reset();
     }
   });
 });

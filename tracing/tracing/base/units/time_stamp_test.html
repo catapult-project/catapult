@@ -5,15 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time.html">
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/base/units/time_stamp.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Time = tr.b.units.Time;
-  var TimeStamp = tr.b.units.TimeStamp;
+  var Units = tr.b.u.Units;
+  var TimeStamp = tr.b.u.TimeStamp;
 
   function checkFormat(timestamp, expectedString) {
     assert.equal(TimeStamp.format(timestamp), expectedString);
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   test('format', function() {
     try {
       // Use milliseconds to display time (default behavior).
-      Time.currentDisplayUnit = Time.supportedUnits.ms;
+      Units.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ms;
 
       checkFormat(0, '0.000 ms');
       checkFormat(0.02, '0.020 ms');
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
       checkFormat(-123456789, '-123,456,789.000 ms');
 
       // Change the unit to nanoseconds.
-      Time.currentDisplayUnit = Time.supportedUnits.ns;
+      Units.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ns;
 
       checkFormat(0, '0 ns');
       checkFormat(1, '1,000,000 ns');
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
       checkFormat(123.456, '123,456,000 ns');
       checkFormat(-0.07, '-70,000 ns');
     } finally {
-      Time.reset();
+      Units.reset();
     }
   });
 });
