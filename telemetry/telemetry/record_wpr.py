@@ -13,6 +13,7 @@ from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
+from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.page import page_test
 from telemetry.util import wpr_modes
@@ -262,6 +263,10 @@ def Main(base_dir):
                      'usage below\n\n')
     parser.print_help()
     return 0
+
+  # TODO(aiolos): We should add getting the client config from the
+  # benchmark.Environment once it's added. Not currently needed though.
+  binary_manager.InitDependencyManager(None)
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference
   # between recording a benchmark vs recording a story better based on
