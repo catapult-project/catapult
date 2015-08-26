@@ -38,22 +38,19 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     if event.thread_duration:
       return event.thread_duration
     else:
-      return event.end - event.start
+      return event.duration
 
   def AddResults(self, model, renderer_thread, interactions, results):
     assert interactions
 
-    browser_process = [p for p in model.GetAllProcesses()
-                       if p.name == "Browser"][0]
-
     write_events = []
     read_events = []
-    for event in renderer_thread.parent.IterAllEvents(
-        event_predicate=self.IsWriteEvent):
-      write_events.append(event)
-    for event in browser_process.parent.IterAllEvents(
-        event_predicate=self.IsReadEvent):
-      read_events.append(event)
+    for event in model.IterAllEvents(
+        event_predicate=lambda e: self.IsWriteEvent(e) or self.IsReadEvent(e)):
+      if self.IsReadEvent(event):
+        read_events.append(event)
+      else:
+        write_events.append(event)
 
     # Only these private methods are tested for mocking simplicity.
     self._AddWriteResultsInternal(write_events, interactions, results)
