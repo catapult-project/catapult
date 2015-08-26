@@ -30,6 +30,10 @@ tr.exportTo('tr.e.audits', function() {
     'DisplayLinkMac::GetVSyncParameters': 5
   };
 
+  var BEGIN_FRAME_SLICE_PRECISION = {
+    'Scheduler::BeginFrame': 10
+  };
+
   /**
    * Auditor that analyzes the model and, if possible, adds data to it
    * indicating when vertical sync events took place.
@@ -59,11 +63,14 @@ tr.exportTo('tr.e.audits', function() {
       var maxTitle = undefined;
 
       function useInstead(title, precisions) {
+        var precision = precisions[title];
+        if (precision === undefined)
+          return false;
+
         if (title === maxTitle)
           return true;
 
-        var precision = precisions[title];
-        if (precision === undefined || precision <= maxPrecision) {
+        if (precision <= maxPrecision) {
           if (precision === maxPrecision) {
             console.warn('Encountered two different VSync events (' +
                 maxTitle + ', ' + title + ') with the same precision, ' +
@@ -98,6 +105,8 @@ tr.exportTo('tr.e.audits', function() {
             var slice = thread.sliceGroup.slices[i];
             if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS))
               times.push(slice.start);
+            else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION))
+              times.push(slice.args.frame_time_us / 1000.0);
           }
         }
       }
