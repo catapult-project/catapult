@@ -7,17 +7,31 @@ found in the LICENSE file.
 
 <link rel="import" href="/perf_insights/map_function.html">
 <link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/slice.html">
 
 <script>
 tr.exportTo('pie', function() {
-  // Granularity of the bins for the histogram.
-  var BIN_SIZES_MS = 5;
+  // Granularity of the histogram.
+  var HISTOGRAM_MAX = 250;
+  var NUM_BINS = 50;
 
-  function mapTaskInfo(results, run_info, model) {
+  function taskInfoMapFunction(results, run_info, model) {
     addTimeInQueue(results, run_info, model);
     addTopLevelTasksDuration(results, run_info, model);
+  }
+
+  function eatTrailingDigits(str) {
+    return str && str.replace(/[\d/]*$/, '');
+  }
+
+  function histogramsToDict(dict) {
+    for (var process in dict) {
+      for (var thread in dict[process]) {
+        dict[process][thread] = dict[process][thread].asDict();
+      }
+    }
   }
 
   function addTimeInQueue(results, run_info, model) {
@@ -31,11 +45,11 @@ tr.exportTo('pie', function() {
       var process = thread.getProcess();
       if (!process)
         return;
-      var threadName = thread.name || thread.tid;
-      var processName = process.name || process.pid;
-      var bin = Math.floor(flowEvent.duration / BIN_SIZES_MS) * BIN_SIZES_MS;
-      addOneToBin(timeInQueue, processName, threadName, bin);
+      var threadName = eatTrailingDigits(thread.name) || 'Unknown';
+      var processName = eatTrailingDigits(process.name) || 'Unknown';
+      addToHistogram(timeInQueue, processName, threadName, flowEvent.duration);
     });
+    histogramsToDict(timeInQueue);
     results.addValue(new pi.v.DictValue(
         run_info,
         'time_spent_in_queue',
@@ -44,29 +58,33 @@ tr.exportTo('pie', function() {
 
   function addTopLevelTasksDuration(results, run_info, model) {
     var timeInTask = {};
+    var cpuTimeInTask = {};
     model.getAllThreads().forEach(function(thread) {
       var process = thread.getProcess();
       if (!process)
         return;
-      var threadName = thread.name || thread.tid;
-      var processName = process.name || process.pid;
+      var threadName = eatTrailingDigits(thread.name) || thread.tid;
+      var processName = eatTrailingDigits(process.name) || process.pid;
       if (!thread.sliceGroup.length)
         return;
       thread.sliceGroup.slices.forEach(function(slice) {
         if (!isTopLevelTask(slice))
           return;
-        var bin = findBin(slice.duration);
-        addOneToBin(timeInTask, processName, threadName, bin);
+        addToHistogram(timeInTask, processName, threadName, slice.duration);
+        addToHistogram(cpuTimeInTask, processName, threadName,
+            slice.cpuDuration);
       });
     });
+    histogramsToDict(timeInTask);
     results.addValue(new pi.v.DictValue(
         run_info,
         'time_spent_in_top_level_task',
         timeInTask));
-  }
-
-  function findBin(duration) {
-    return Math.floor(duration / BIN_SIZES_MS) * BIN_SIZES_MS;
+    histogramsToDict(cpuTimeInTask);
+    results.addValue(new pi.v.DictValue(
+        run_info,
+        'cpu_time_spent_in_top_level_task',
+        cpuTimeInTask));
   }
 
   // A slice is top level if it's on the receiving end of a post task and no
@@ -77,18 +95,21 @@ tr.exportTo('pie', function() {
     return !slice.parentSlice || !isTopLevelTask(slice.parentSlice);
   }
 
-  function addOneToBin(dict, processName, threadName, bin) {
-    var key = processName + '/' + threadName;
-    dict[key] = dict[key] || {};
-    dict[key][bin] = dict[key][bin] || 0;
-    dict[key][bin] += 1;
+  function addToHistogram(dict, processName, threadName, value) {
+    dict[processName] = dict[processName] || {};
+    dict[processName][threadName] = dict[processName][threadName] ||
+        tr.b.u.Histogram.createLinear(
+            tr.b.u.Units.timeDurationInMs,
+            tr.b.Range.fromExplicitRange(0, HISTOGRAM_MAX),
+            NUM_BINS);
+    dict[processName][threadName].add(value);
   }
 
-  pi.MapFunction.register(mapTaskInfo);
+  pi.MapFunction.register(taskInfoMapFunction);
 
   // Exporting for tests.
   return {
-    mapTaskInfoForTest: mapTaskInfo
+    taskInfoMapFunctionForTest: taskInfoMapFunction
   };
 });
 </script>

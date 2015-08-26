@@ -62,7 +62,7 @@ found in the LICENSE file.
     updateContents_: function() {
       var table = this.$.table;
       if (!this.histogram_) {
-        this.$.nsamples = 0;
+        this.$.nsamples.textContent = 0;
         this.$.average.setValueAndUnit(undefined, undefined);
         this.$.table.tableRows = [];
         return;

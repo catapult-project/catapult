@@ -39,6 +39,13 @@ tr.exportTo('tr.b.u', function() {
       }
     },
 
+    addBin: function(other) {
+      if (!this.range.equals(other.range))
+        throw new Error('Merging incompatible histogram bins.');
+      this.count += other.count;
+      this.sourceInfos.push.apply(this.sourceInfos, other.sourceInfos);
+    },
+
     asDict: function() {
       return {
         min: this.range.min,
@@ -149,6 +156,24 @@ tr.exportTo('tr.b.u', function() {
       var bin = this.getBinForValue(value);
       bin.add(value, sourceInfo);
       this.runningSum += value;
+    },
+
+    addHistogram: function(other) {
+      if (!this.range.equals(other.range) ||
+          !this.unit === other.unit ||
+          this.allBins.length !== other.allBins.length) {
+        throw new Error('Merging incompatible histograms.');
+      }
+      this.numNans += other.numNans;
+      this.nanSourceInfos.push.apply(this.nanSourceInfos, other.nanSourceInfos);
+      this.runningSum += other.runningSum;
+      for (var i = 0; i < this.allBins.length; ++i) {
+        this.allBins[i].addBin(other.allBins[i]);
+      }
+    },
+
+    clone: function() {
+      return Histogram.fromDict(this.asDict());
     },
 
     asDict: function() {

@@ -156,7 +156,7 @@ tr.exportTo('tr.ui.units', function() {
 
     updateContent_: function() {
       if (this.unit_ === undefined) {
-        this.textContent = '';
+        this.$.content.textContent = '';
         return;
       }
       var content = this.unit_.format(this.value);
