@@ -49,7 +49,7 @@ tr.exportTo('tr.model', function() {
   }
 
   function ownershipToUserFriendlyString(dump, importance) {
-    return dump.quantifiedName + ' (sharing importance ' +
+    return dump.quantifiedName + ' (importance: ' +
         optional(importance, 0) + ')';
   }
 
@@ -222,9 +222,8 @@ tr.exportTo('tr.model', function() {
 
         var message = tr.b.dictionaryValues(tr.b.mapItems(childOverlaps,
             function(ownerChildName, overlap) {
-          return 'This memory allocator dump overlaps with its sibling \'' +
-              ownerChildName + '\' (' +
-              tr.b.u.Units.sizeInBytes.format(overlap) + ').';
+          return 'overlaps with its sibling \'' + ownerChildName + '\' (' +
+              tr.b.u.Units.sizeInBytes.format(overlap) + ')';
         })).join(' ');
 
         childDump.attributes[SIZE_ATTRIBUTE_NAME].infos.push(
@@ -634,19 +633,36 @@ tr.exportTo('tr.model', function() {
       dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] = attribute;
 
       // Add attribute infos regarding ownership (if applicable).
+      // TODO(petrcermak): This belongs to the corresponding analysis UI code.
       if (dump.ownedBy.length > 0) {
-        var message = 'This memory allocator dump is shared by ' +
+        var message = 'shared by:' +
             dump.ownedBy.map(function(ownershipLink) {
-              return ownershipToUserFriendlyString(
+              return '\n  - ' + ownershipToUserFriendlyString(
                   ownershipLink.source, ownershipLink.importance);
-            }).join(', ') + '.';
+            }).join();
         attribute.infos.push(new tr.model.AttributeInfo(
             tr.model.AttributeInfoType.MEMORY_OWNED, message));
       }
       if (dump.owns !== undefined) {
-        var message = 'This memory allocator dump shares ' +
-            ownershipToUserFriendlyString(
-                dump.owns.target, dump.owns.importance) + '.';
+        var target = dump.owns.target;
+        var message = 'shares ' +
+            ownershipToUserFriendlyString(target, dump.owns.importance) +
+            ' with';
+
+        var otherOwnershipLinks = target.ownedBy.filter(
+            function(ownershipLink) {
+          return ownershipLink.source !== dump;
+        });
+        if (otherOwnershipLinks.length > 0) {
+          message += ':';
+          message += otherOwnershipLinks.map(function(ownershipLink) {
+            return '\n  - ' + ownershipToUserFriendlyString(
+                ownershipLink.source, ownershipLink.importance);
+          }).join();
+        } else {
+          message += ' no other dumps';
+        }
+
         attribute.infos.push(new tr.model.AttributeInfo(
             tr.model.AttributeInfoType.MEMORY_OWNER, message));
       }
