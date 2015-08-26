@@ -9,16 +9,16 @@ from telemetry.internal.platform.power_monitor import android_dumpsys_power_moni
 
 class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
 
-  def testEnergyComsumption(self):
+  def testEnergyConsumption(self):
     package = 'com.google.android.apps.chrome'
     power_data = {'data': [23.9], 'uid': '12345'}
     results = (
         android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
             power_data, 4.0, package))
     self.assertEqual(results['identifier'], 'dumpsys')
-    self.assertAlmostEqual(results['energy_consumption_mwh'], 95.6)
+    self.assertAlmostEqual(results['application_energy_consumption_mwh'], 95.6)
 
-  # Older version of the OS do not have the data.
+  # Older versions of the OS do not have the data.
   def testNoData(self):
     package = 'com.android.chrome'
     power_data = None
@@ -26,7 +26,7 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
         android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(
             power_data, 4.0, package))
     self.assertEqual(results['identifier'], 'dumpsys')
-    self.assertEqual(results['energy_consumption_mwh'], 0)
+    self.assertEqual(results['application_energy_consumption_mwh'], 0)
 
 
 if __name__ == '__main__':

@@ -60,9 +60,8 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     else:
       voltage = float(voltage) / 1000
       logging.info('Device voltage at %s', voltage)
-    power_results = self.ProcessPowerData(
-        power_data, voltage, package)
-    if power_results['energy_consumption_mwh'] == 0:
+    power_results = self.ProcessPowerData(power_data, voltage, package)
+    if power_results['application_energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
                       % (package, self._battery.GetPowerData()))
     return power_results
@@ -73,8 +72,8 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     if not power_data:
       logging.warning('Unable to find power data for %s in dumpsys output. '
                       'Please upgrade the OS version of the device.' % package)
-      power_results['energy_consumption_mwh'] = 0
+      power_results['application_energy_consumption_mwh'] = 0
       return power_results
     consumption_mwh = sum(power_data['data']) * voltage
-    power_results['energy_consumption_mwh'] = consumption_mwh
+    power_results['application_energy_consumption_mwh'] = consumption_mwh
     return power_results
