@@ -5,8 +5,9 @@ the bisect process after the user clicks on the bisect button.
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
 <link rel="import" href="/third_party/polymer/components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="/third_party/polymer/components/paper-spinner/paper-spinner.html">
-<link rel="import" href="/dashboard/elements/base-form.html">
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+
+<link rel="import" href="base-form.html">
+<link rel="import" href="xhr-element.html">
 
 <polymer-element name="bisect-form" extends="base-form"
                  attributes="xsrfToken testPath
@@ -231,7 +232,7 @@ the bisect process after the user clicks on the bisect button.
               'use_recipe': this.useRecipe ? 'true' : '',
               'master': this.master,
               'internal_only': this.internalOnly,
-              'bisect_mode': this.BISECT_MODE,
+              'bisect_mode': this.BISECT_MODE
           };
           if (this.bugId) {
             params['bug_id'] = this.bugId;

@@ -1,9 +1,9 @@
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
 
-<link rel="import" href="/dashboard/elements/bisect-status.html">
-<link rel="import" href="/dashboard/elements/bug-info-span.html">
-<link rel="import" href="/dashboard/elements/revision-range.html">
-<link rel="import" href="/dashboard/elements/triage-dialog.html">
+<link rel="import" href="bisect-status.html">
+<link rel="import" href="bug-info-span.html">
+<link rel="import" href="revision-range.html">
+<link rel="import" href="triage-dialog.html">
 <link rel="import" href="/static/uri.html">
 
 <polymer-element name="alerts-table"
@@ -684,9 +684,9 @@
 
       /**
        * Callback for the click event for a column header.
-       * @param {Event} event
-       * @param {number} detail
-       * @param {Element} sender
+       * @param {Event} event Clicked event.
+       * @param {Object} detail Detail Object.
+       * @param {Element} sender Element that invoked the event.
        */
       columnHeaderClicked: function(event, detail, sender) {
         this.sortBy = sender.id;
@@ -804,7 +804,7 @@
        * revision range for alerts with ranges [110, 120] and [120, 130] is
        * [120, 120].
        *
-       * @param {Array.<Object>} alerts
+       * @param {Array.<Object>} alerts List of alerts.
        * @return {?Object} An object containing start and end revision,
        *     or null if the checked alerts don't overlap.
        */
@@ -838,9 +838,9 @@
        * falls within the given range.
        * Precondition: start <= end, and for each alert in the given list,
        *     start_revision <= end_revision.
-       * @param {Array.<Object>} alerts
-       * @param {number} start
-       * @param {number} end
+       * @param {Array.<Object>} alerts List of alerts.
+       * @param {number} start Start revision.
+       * @param {number} end End revision.
        * @param {Array.<Object>} Alerts that have an overlapping revision range.
        */
       getOverlappingAlerts: function(alerts, start, end) {
@@ -988,7 +988,7 @@
       /**
        * Handles the 'triaged' event sent by the triage dialog; updates the UI
        * for alerts that have been triaged.
-       * @param {Event} e
+       * @param {Event} e The event for button click.
        */
       onTriaged: function(e) {
         var triagedKeys = e.detail.alerts.map(function(alert) {

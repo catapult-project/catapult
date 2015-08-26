@@ -1,5 +1,6 @@
-<link rel="import" href="/dashboard/elements/xhr-element.html">
 <link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+
+<link rel="import" href="xhr-element.html">
 
 <polymer-element name="quick-log"
                  attributes="logLabel logNamespace logName logFilter
@@ -193,8 +194,8 @@
        * Initializes log parameters and send a request to get logs.
        * @param {string} logLabel The label of log handle for
        *                 expanding log container.
-       * @param {string} logNamespace
-       * @param {string} logName
+       * @param {string} logNamespace Namespace name.
+       * @param {string} logName Log name.
        * @param {string} logFilter A regex string to filter logs.
        */
       initialize: function(logLabel, logNamespace, logName, logFilter) {

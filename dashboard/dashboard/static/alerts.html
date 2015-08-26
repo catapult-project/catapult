@@ -1,4 +1,4 @@
-<link rel="import" href="/static/uri.html">
+<link rel="import" href="uri.html">
 
 <script>
 
@@ -85,7 +85,7 @@ var alerts = (function() {
 
   /**
    * Updates the table content to include or exclude triaged alerts.
-   * @param {Event} e
+   * @param {Event} e The event object.
    */
   var onToggleTriaged_ = function(e) {
     var params = uri.getAllParameters();
@@ -99,7 +99,7 @@ var alerts = (function() {
 
   /**
    * Updates the table to include or exclude improvement anomalies.
-   * @param {Event} e
+   * @param {Event} e The event object.
    */
   var onToggleImprovements_ = function(e) {
     var params = uri.getAllParameters();
@@ -114,9 +114,9 @@ var alerts = (function() {
   /**
    * Finds an element in the DOM and initializes it with some properties.
    * The element with the given ID is assumed to be an alerts-table element.
-   * @param {string} id
-   * @param {Array.<Object>} alertList
-   * @param {Array.<Object>} extraColumns
+   * @param {string} id alerts-table ID.
+   * @param {Array.<Object>} alertList List of alerts.
+   * @param {Array.<Object>} extraColumns List of extra columns.
    * @return {Element} The alerts-table element.
    */
   var initializeAlertsTable_ = function(id, alertList, extraColumns) {

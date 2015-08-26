@@ -9,7 +9,7 @@ Attributes:
 <link rel="import" href="/third_party/polymer/components/paper-progress/paper-progress.html">
 <link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
 
-<link rel="import" href="/dashboard/elements/tooltip-test-description.html">
+<link rel="import" href="tooltip-test-description.html">
 
 <polymer-element name="chart-legend"
                  attributes="seriesGroupList indicesToGraph showCompact
@@ -480,7 +480,7 @@ Attributes:
       /**
        * Handler for the click event of the select all traces button.
        * Updates this.indicesToGraph to contain all traces.
-       * @param {Event} opt_noEvent The click event, not used.
+       * @param {Event=} opt_noEvent The click event, not used.
        */
       onSelectAll: function(opt_noEvent) {
         this.indicesToGraph = [];
@@ -498,7 +498,7 @@ Attributes:
 
       /**
        * Handler for the click event of the deselect all traces button.
-       * @param {Event} opt_noEvent The click event, not used.
+       * @param {Event=} opt_noEvent The click event, not used.
        */
       onDeselectAll: function(opt_noEvent) {
         this.indicesToGraph = [];
@@ -517,7 +517,7 @@ Attributes:
        * Handler for the click event of the select core traces button.
        * Selects only the core traces (i.e. important and ref traces).
        * Note: The property 'coreTraces' is set in graph.js.
-       * @param {Event} opt_event The click event, not used.
+       * @param {Event=} opt_event The click event, not used.
        */
       onSelectCore: function(opt_noEvent) {
         this.indicesToGraph = [];
@@ -571,7 +571,7 @@ Attributes:
       toggleLegend: function() {
         this.$['collapsible-legend'].toggle();
         this.collapseLegend = !this.collapseLegend;
-      },
+      }
     });
   </script>
 </polymer-element>

@@ -4,8 +4,9 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 -->
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
 <link rel="import" href="/third_party/polymer/components/paper-dialog/paper-action-dialog.html">
-<link rel="import" href="/dashboard/elements/base-form.html">
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+
+<link rel="import" href="base-form.html">
+<link rel="import" href="xhr-element.html">
 
 <polymer-element name="triage-dialog" extends="base-form"
                  attributes="xsrfToken alerts">
@@ -181,7 +182,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         var bugTitle = this.getBugTitle();
         var data = [
           {name: 'keys', value: this.alertKeys.join(',')},
-          {name: 'summary', value: bugTitle},
+          {name: 'summary', value: bugTitle}
         ];
         this.bugWindow = this.openAndPost('/file_bug', data, 'edit_bugs');
       },
@@ -244,7 +245,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         var params = {
           'keys': this.alertKeys,
           'new_start_revision': info.startRevision,
-          'new_end_revision': info.endRevision,
+          'new_end_revision': info.endRevision
         };
         this.loading = true;
         this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
@@ -276,7 +277,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 
       /**
        * Returns a default bug title to use when filing a new bug.
-       * @return {string}
+       * @return {string} The bug title.
        */
       getBugTitle: function() {
         if (this.alerts[0].percent_changed) {

@@ -1,4 +1,4 @@
-<link rel="import" href="/static/testselection.html">
+<link rel="import" href="testselection.html">
 
 <script>
 
@@ -16,7 +16,7 @@ var group_report = (function() {
   /**
    * Unchecks the checkbox in the alerts-table when a graph is closed.
    * This is the handler for the 'closeGraph' event, fired by chart-container.
-   * @param {Event} event
+   * @param {Event} event The event object.
    */
   var onGraphClose_ = function(event) {
     // Un-check the alert in the table.
@@ -40,7 +40,7 @@ var group_report = (function() {
 
   /**
    * Get series to graph for an alert.
-   * @param {Object} alert
+   * @param {Object} alert The alert object.
    * @return {Array} A two-item Array, which contains a test path and list of
    *     selected series for tests under that test path.
    */
@@ -139,7 +139,7 @@ var group_report = (function() {
    * Add graphs for tests in 'alerts' to the given element.
    * @param {Element} containerElement The element that contains all the chart
    *     UI elements.
-   * @param {Array.<Object>} alerts
+   * @param {Array.<Object>} alerts List of alert objects.
    * @param {boolean} insertBefore True for adding graphs in prepending order.
    */
   var addGraph_ = function(containerElement, alerts, insertBefore) {
@@ -174,7 +174,7 @@ var group_report = (function() {
 
   /**
    * On alert checkbox change, remove or add graphs.
-   * @param {Event} e
+   * @param {Event} e The event object.
    */
   var onAlertSelectionChange_ = function(e) {
     // Make a set of all alerts that are checked in the table.
@@ -208,7 +208,7 @@ var group_report = (function() {
     table_ = document.getElementById('alerts-table');
     table_['alertList'] = window['ALERT_LIST'];
     table_['extraColumns'] = [
-      {'key': 'percent_changed', 'label': 'Delta %'},
+      {'key': 'percent_changed', 'label': 'Delta %'}
     ];
     table_['initialize']();
     table_.addEventListener('changeselection', onAlertSelectionChange_, false);

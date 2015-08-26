@@ -1,4 +1,4 @@
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="xhr-element.html">
 
 <polymer-element name="editable-list" attributes="xsrfToken">
   <template>
@@ -155,7 +155,7 @@
 
         var params = {
           item: item['name'],
-          action: 'remove',
+          action: 'remove'
         };
         if (subItem) {
           params['sub_item'] = subItem['name'];
@@ -194,7 +194,7 @@
         }
         var params = {
           item: itemValue,
-          action: 'add',
+          action: 'add'
         };
         if (subItemValue) {
           params['sub_item'] = subItemValue;
@@ -217,7 +217,7 @@
         var itemMap = this.getItemByValue(itemValue);
         if (!itemMap) {
           itemMap = {
-            'name': itemValue,
+            'name': itemValue
           };
           this.editable_list.push(itemMap);
           this.editable_list.sort(this.itemCompare);
@@ -228,7 +228,7 @@
             itemMap['sub_items'] = [];
           }
           itemMap['sub_items'].push({
-            'name': subItemValue,
+            'name': subItemValue
           });
           itemMap.sort(this.itemCompare);
         }
@@ -246,8 +246,7 @@
           }
         }
         return null;
-      },
-
+      }
     });
   </script>
 </polymer-element>

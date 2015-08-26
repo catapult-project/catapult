@@ -1,6 +1,6 @@
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
-<link rel="import" href="/dashboard/elements/trace-form.html">
 
+<link rel="import" href="trace-form.html">
 <link rel="import" href="/static/bisect_utils.html">
 
 <polymer-element name="trace-button" attributes="traceInfo bugId xsrfToken">
@@ -72,7 +72,7 @@
          */
         onTrace: function() {
           this.$.trace.show();
-        },
+        }
       });
     })();
   </script>

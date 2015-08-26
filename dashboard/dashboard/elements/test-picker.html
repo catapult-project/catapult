@@ -1,8 +1,8 @@
-<link rel="import" href="/dashboard/elements/autocomplete-box.html">
-<link rel="import" href="/dashboard/elements/xhr-element.html">
 <link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
 
+<link rel="import" href="autocomplete-box.html">
+<link rel="import" href="xhr-element.html">
 <link rel="import" href="/static/testselection.html">
 
 <polymer-element name="test-picker" attributes="hasChart">
@@ -98,7 +98,7 @@
             placeholder: this.BOT_LABEL,
             disabled: true,
             multi: true
-          },
+          }
         ];
       },
 
@@ -290,7 +290,7 @@
           var subtestItems = this.getSubtestItems(subtestDict);
           this.selectionModels.push({
             placeholder: this.SUBTEST_LABEL,
-            datalist: subtestItems,
+            datalist: subtestItems
           });
         }
 
@@ -320,7 +320,7 @@
         var subtestNames = Object.keys(subtestDict).sort();
         for (var i = 0; i < subtestNames.length; i++) {
           subtestItems.push({
-            name: subtestNames[i],
+            name: subtestNames[i]
           });
         }
         return subtestItems;
@@ -458,13 +458,13 @@
       },
 
       /**
-       * Converts links in markdown format to HTML links (anchor elements).
-       * @param {string} text
-       * @return {string}
+       * Converts a link in markdown format to a HTML link (anchor elements).
+       * @param {string} text A link in markdown format.
+       * @return {string} A hyperlink string.
        */
       convertMarkdownLinks: function(text) {
         return text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
-      },
+      }
     });
   </script>
 </polymer-element>
