@@ -56,6 +56,14 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
       except Exception:
         logging.warning('Exception raised while listing tcp sockets.')
 
+      logging.warning('Alive webpagereplay instances:')
+      try:
+        for line in subprocess.check_output(['ps', '-ef']).splitlines():
+          if 'webpagereplay' in line:
+            logging.warning('  %s', line)
+      except Exception:
+        logging.warning('Exception raised while listing WPR intances.')
+
       raise
 
   @property
