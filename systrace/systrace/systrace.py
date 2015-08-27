@@ -112,8 +112,9 @@ def write_trace_html(html_filename, script_dir, agents):
     script_dir: The directory containing this script.
     agents: The systrace agents.
   """
-  html_prefix = read_asset(script_dir, 'prefix.html')
-  html_suffix = read_asset(script_dir, 'suffix.html')
+  systrace_dir = os.path.abspath(os.path.dirname(__file__))
+  html_prefix = read_asset(systrace_dir, 'prefix.html')
+  html_suffix = read_asset(systrace_dir, 'suffix.html')
   trace_viewer_html = read_asset(script_dir, 'systrace_trace_viewer.html')
 
   # Open the file in binary mode to prevent python from changing the
