@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function newModel(events) {
-    return tr.c.test_utils.newModelWithEvents([events], {
+    return tr.c.TestUtils.newModelWithEvents([events], {
       shiftWorldToZero: false
     });
   }
@@ -212,7 +212,7 @@ tr.b.unittest.testSuite(function() {
       'RenderThread-3894  [001] .n.1   253.780671: tracing_mark_write: E', // @suppress longLineCheck
       'RenderThread-3894  [001] ...1   253.780671: tracing_mark_write: B|3586|waitForTask', // @suppress longLineCheck
       'RenderThread-3894  [001] .p.1   253.780671: tracing_mark_write: E', // @suppress longLineCheck
-      'RenderThread-3894  [001] ...1   253.780686: tracing_mark_write: E', // @suppress longLineCheck
+      'RenderThread-3894  [001] ...1   253.780686: tracing_mark_write: E' // @suppress longLineCheck
     ];
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings, 'hasImportWarnings');

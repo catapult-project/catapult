@@ -15,13 +15,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
 
   var EventSet = tr.model.EventSet;
   var SelectionState = tr.model.SelectionState;
 
   function newSimpleModel() {
-    return tr.c.test_utils.newModel(function(m) {
+    return tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 

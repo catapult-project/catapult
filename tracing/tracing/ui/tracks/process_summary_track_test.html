@@ -15,12 +15,12 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var ProcessSummaryTrack = tr.ui.tracks.ProcessSummaryTrack;
-  var newSlice = tr.c.test_utils.newSlice;
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSlice = tr.c.TestUtils.newSlice;
+  var newSliceNamed = tr.c.TestUtils.newSliceNamed;
 
   test('buildRectSimple', function() {
     var process;
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX
       //    XXXX
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
 
   test('buildRectComplex', function() {
     var process;
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX    X X XX
       //    XXXX XXX    X
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
 
   test('buildRectImportantSlice', function() {
     var process;
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       //    [    unimportant    ]
       //         [important]
       var a = newSliceNamed('unimportant', 4, 21);

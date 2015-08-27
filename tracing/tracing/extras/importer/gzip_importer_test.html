@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var findSliceNamed = tr.c.test_utils.findSliceNamed;
+  var findSliceNamed = tr.c.TestUtils.findSliceNamed;
   var original_data =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
       '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     var gzip_data = atob(gzip_data_base64);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
 
-    var model = tr.c.test_utils.newModelWithEvents(gzip_data);
+    var model = tr.c.TestUtils.newModelWithEvents(gzip_data);
     var threads = model.getAllThreads();
     assert.equal(threads.length, 1);
 

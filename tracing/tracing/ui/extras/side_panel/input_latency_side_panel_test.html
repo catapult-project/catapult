@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() {
 
     var selectionChanged = false;
 
-    panel.model = tr.c.test_utils.newModelWithEvents([events]);
+    panel.model = tr.c.TestUtils.newModelWithEvents([events]);
     function listener(e) {
       selectionChanged = true;
       assert.equal(e.selection.length, 3);

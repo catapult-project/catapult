@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var ScalarAttribute = tr.model.ScalarAttribute;
 
   function createTestGlobalMemoryDump() {
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       var p1 = model.getOrCreateProcess(1);
       var p2 = model.getOrCreateProcess(2);
       var p3 = model.getOrCreateProcess(3);

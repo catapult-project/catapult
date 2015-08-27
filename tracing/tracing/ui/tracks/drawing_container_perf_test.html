@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
       generalModel;
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
     var events = tr.b.getSync(fileUrl);
-    generalModel = tr.c.test_utils.newModelWithEvents([events]);
+    generalModel = tr.c.TestUtils.newModelWithEvents([events]);
     return generalModel;
   }
 
@@ -102,13 +102,13 @@ tr.b.unittest.testSuite(function() {  // @suppress longLineCheck
     __proto__: DCPerfTestCase.prototype,
 
     setUp: function() {
-      var model = tr.c.test_utils.newModel(function(m) {
+      var model = tr.c.TestUtils.newModel(function(m) {
         var proc = m.getOrCreateProcess(1);
         for (var tid = 1; tid <= 5; tid++) {
           var thread = proc.getOrCreateThread(tid);
           for (var i = 0; i < 5000; i++) {
             var mod = Math.floor(i / 100) % 4;
-            var slice = tr.c.test_utils.newAsyncSliceEx({
+            var slice = tr.c.TestUtils.newAsyncSliceEx({
               name: 'Test' + i,
               colorId: tid + mod,
               id: tr.b.GUID.allocate(),

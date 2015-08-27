@@ -26,7 +26,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createSelection() {
-    var m = tr.c.test_utils.newModelWithEvents([g_catLTHIEvents]);
+    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'RasterTask' || slice.title == 'AnalyzeTask';

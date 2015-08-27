@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var findSliceNamed = tr.c.test_utils.findSliceNamed;
+  var findSliceNamed = tr.c.TestUtils.findSliceNamed;
 
   var makeModel = function(events, opt_shift, opt_prune) {
-    return tr.c.test_utils.newModelWithEvents([events], {
+    return tr.c.TestUtils.newModelWithEvents([events], {
       shiftWorldToZero: opt_shift,
       pruneEmptyContainers: opt_prune
     });

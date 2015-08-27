@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   n110100.forEach(function(val) {
     timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
       var events = getEvents(TEST_FILES_PATHS[0]);
-      var m = tr.c.test_utils.newModelWithEvents([events], {
+      var m = tr.c.TestUtils.newModelWithEvents([events], {
         shiftWorldToZero: false,
         pruneContainers: false
       });
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
 
   timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
     var events = getEvents(TEST_FILES_PATHS[1]);
-    var m = tr.c.test_utils.newModelWithEvents([events], {
+    var m = tr.c.TestUtils.newModelWithEvents([events], {
       shiftWorldToZero: false,
       pruneContainers: false
     });

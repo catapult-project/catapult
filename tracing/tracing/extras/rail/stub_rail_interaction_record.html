@@ -16,7 +16,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.rail', function() {
   function StubRAILInteractionRecord(args) {
-    var sd = tr.c.test_utils.getStartAndDurationFromDict(args);
+    var sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
     tr.e.rail.RAILInteractionRecord.call(
          this, args.railTypeName, args.railTypeName,
          sd.start, sd.duration);

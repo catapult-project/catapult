@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importPowerSamplesAndTrace', function() {
-    var m = tr.c.test_utils.newModelWithEvents(
+    var m = tr.c.TestUtils.newModelWithEvents(
         [SYSTRACE_LINES.join('\n'), BATTOR_LINES.join('\n')]);
 
     assert.isDefined(m.device.powerSeries);
@@ -70,12 +70,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMissingLinuxTrace', function() {
-    var m = tr.c.test_utils.newModelWithEvents(BATTOR_LINES.join('\n'));
+    var m = tr.c.TestUtils.newModelWithEvents(BATTOR_LINES.join('\n'));
     assert.isTrue(m.hasImportWarnings);
   });
 
   test('importNotEnoughSamples', function() {
-    var m = tr.c.test_utils.newModelWithEvents(
+    var m = tr.c.TestUtils.newModelWithEvents(
         BATTOR_LINES.slice(0, 5).join('\n'));
     assert.isTrue(m.hasImportWarnings);
   });

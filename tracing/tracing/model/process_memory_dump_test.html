@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createFinalizedProcessMemoryDumps(timestamps, createdCallback) {
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       var pmds = timestamps.map(function(timestamp) {
         return createProcessMemoryDump(timestamp, model);
       });

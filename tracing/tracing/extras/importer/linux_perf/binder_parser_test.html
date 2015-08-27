@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
         shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
         shfitWorldToZero: false
     });
     var threads = m.getAllThreads();
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
         ' binder_transaction_received: transaction=923419'
     ];
 
-    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
         shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);

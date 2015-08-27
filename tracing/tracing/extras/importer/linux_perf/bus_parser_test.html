@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
           'cycles=6690156 ns=16725375'
 
     ];
-    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);

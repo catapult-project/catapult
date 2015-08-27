@@ -19,7 +19,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-tr.exportTo('tr.c.test_utils', function() {
+tr.exportTo('tr.c', function() {
   function _getStartAndCpuDurationFromDict(
       options, required, startFieldName, durationFieldName, endFieldName) {
 
@@ -54,21 +54,26 @@ tr.exportTo('tr.c.test_utils', function() {
     };
   }
 
-  function getStartAndDurationFromDict(options) {
-    return _getStartAndCpuDurationFromDict(
-        options, true, 'start', 'duration', 'end');
-  }
-
-  function maybeGetCpuStartAndCpuDurationFromDict(options) {
+  function _maybeGetCpuStartAndCpuDurationFromDict(options) {
     return _getStartAndCpuDurationFromDict(
         options, false, 'cpuStart', 'cpuDuration', 'cpuEnd');
   }
 
-  function newAsyncSlice(start, duration, startThread, endThread) {
-    return newAsyncSliceNamed('a', start, duration, startThread, endThread);
+  function TestUtils() {
   }
 
-  function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
+  TestUtils.getStartAndDurationFromDict = function(options) {
+    return _getStartAndCpuDurationFromDict(
+        options, true, 'start', 'duration', 'end');
+  }
+
+  TestUtils.newAsyncSlice = function(start, duration, startThread, endThread) {
+    return TestUtils.newAsyncSliceNamed(
+        'a', start, duration, startThread, endThread);
+  }
+
+  TestUtils.newAsyncSliceNamed = function(
+      name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
         tr.model.AsyncSlice.getConstructor('', name);
 
@@ -79,8 +84,8 @@ tr.exportTo('tr.c.test_utils', function() {
     return s;
   }
 
-  function newAsyncSliceEx(options) {
-    var sd = getStartAndDurationFromDict(options);
+  TestUtils.newAsyncSliceEx = function(options) {
+    var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
@@ -133,26 +138,26 @@ tr.exportTo('tr.c.test_utils', function() {
     return slice;
   }
 
-  function newCounter(parent) {
-    return newCounterNamed(parent, 'a');
+  TestUtils.newCounter = function(parent) {
+    return TestUtils.newCounterNamed(parent, 'a');
   }
 
-  function newCounterNamed(parent, name) {
+  TestUtils.newCounterNamed = function(parent, name) {
     var s = new tr.model.Counter(parent, name, null, name);
     return s;
   }
 
-  function newCounterCategory(parent, category, name) {
+  TestUtils.newCounterCategory = function(parent, category, name) {
     var s = new tr.model.Counter(parent, name, category, name);
     return s;
   }
 
-  function newCounterSeries() {
+  TestUtils.newCounterSeries = function() {
     var s = new tr.model.CounterSeries('a', 0);
     return s;
   }
 
-  function newFlowEventEx(options) {
+  TestUtils.newFlowEventEx = function(options) {
     if (options.start === undefined)
       throw new Error('Too little info');
 
@@ -160,7 +165,7 @@ tr.exportTo('tr.c.test_utils', function() {
 
     var colorId = options.colorId ? options.colorId : 0;
 
-    var sd = getStartAndDurationFromDict(options);
+    var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var id;
     if (options.id !== undefined)
@@ -194,16 +199,16 @@ tr.exportTo('tr.c.test_utils', function() {
     return event;
   }
 
-  function newSlice(start, duration) {
-    return newSliceNamed('a', start, duration);
+  TestUtils.newSlice = function(start, duration) {
+    return TestUtils.newSliceNamed('a', start, duration);
   }
 
-  function newSliceNamed(name, start, duration) {
+  TestUtils.newSliceNamed = function(name, start, duration) {
     var s = new tr.model.Slice('', name, 0, start, {}, duration);
     return s;
   }
 
-  function newThreadSlice(thread, state, start, duration, opt_cpu) {
+  TestUtils.newThreadSlice = function(thread, state, start, duration, opt_cpu) {
     var s = new tr.model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
     if (opt_cpu)
@@ -211,13 +216,14 @@ tr.exportTo('tr.c.test_utils', function() {
     return s;
   }
 
-  function newSampleNamed(thread, sampleName, category, frameNames, start) {
+  TestUtils.newSampleNamed = function(
+      thread, sampleName, category, frameNames, start) {
     var model;
     if (thread.parent)
       model = thread.parent.model;
     else
       model = undefined;
-    var sf = newStackTrace(model, category, frameNames);
+    var sf = TestUtils.newStackTrace(model, category, frameNames);
     var s = new tr.model.Sample(undefined, thread,
                                         sampleName, start,
                                         sf,
@@ -225,20 +231,20 @@ tr.exportTo('tr.c.test_utils', function() {
     return s;
   }
 
-  function newSliceCategory(category, name, start, duration) {
+  TestUtils.newSliceCategory = function(category, name, start, duration) {
     var s = new tr.model.Slice(
         category, name, 0, start, {}, duration);
     return s;
   }
 
-  function newSliceEx(options) {
-    var sd = getStartAndDurationFromDict(options);
+  TestUtils.newSliceEx = function(options) {
+    var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var title = options.title ? options.title : 'a';
 
     var colorId = options.colorId ? options.colorId : 0;
 
-    var cpuSD = maybeGetCpuStartAndCpuDurationFromDict(options);
+    var cpuSD = _maybeGetCpuStartAndCpuDurationFromDict(options);
 
     var type;
     if (options.type)
@@ -259,7 +265,7 @@ tr.exportTo('tr.c.test_utils', function() {
     return slice;
   }
 
-  function newStackTrace(model, category, titles) {
+  TestUtils.newStackTrace = function(model, category, titles) {
     var frame = undefined;
     for (var i = 0; i < titles.length; i++) {
       frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(),
@@ -270,7 +276,7 @@ tr.exportTo('tr.c.test_utils', function() {
     return frame;
   }
 
-  function findSliceNamed(slices, name) {
+  TestUtils.findSliceNamed = function(slices, name) {
     if (slices instanceof tr.model.SliceGroup)
       slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
@@ -279,15 +285,15 @@ tr.exportTo('tr.c.test_utils', function() {
       return undefined;
   }
 
-  function newModel(customizeModelCallback) {
-    return newModelWithEvents([], {
+  TestUtils.newModel = function(customizeModelCallback) {
+    return TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
       customizeModelCallback: customizeModelCallback
     });
   }
 
-  function newModelWithEvents(events, opts) {
+  TestUtils.newModelWithEvents = function(events, opts) {
     if (!(events instanceof Array))
       events = [events];
 
@@ -309,8 +315,8 @@ tr.exportTo('tr.c.test_utils', function() {
     return m;
   }
 
-  function newModelWithAuditor(customizeModelCallback, auditor) {
-    return newModelWithEvents([], {
+  TestUtils.newModelWithAuditor = function(customizeModelCallback, auditor) {
+    return TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
       customizeModelCallback: customizeModelCallback,
@@ -318,33 +324,13 @@ tr.exportTo('tr.c.test_utils', function() {
     });
   }
 
-  function newFakeThread() {
+  TestUtils.newFakeThread = function() {
     var process = {model: {}};
     return new tr.model.Thread(process);
   }
 
   return {
-    getStartAndDurationFromDict: getStartAndDurationFromDict,
-    newAsyncSlice: newAsyncSlice,
-    newAsyncSliceNamed: newAsyncSliceNamed,
-    newAsyncSliceEx: newAsyncSliceEx,
-    newCounter: newCounter,
-    newCounterNamed: newCounterNamed,
-    newCounterCategory: newCounterCategory,
-    newCounterSeries: newCounterSeries,
-    newFlowEventEx: newFlowEventEx,
-    newSlice: newSlice,
-    newFakeThread: newFakeThread,
-    newThreadSlice: newThreadSlice,
-    newSliceNamed: newSliceNamed,
-    newSliceEx: newSliceEx,
-    newSampleNamed: newSampleNamed,
-    newSliceCategory: newSliceCategory,
-    newStackTrace: newStackTrace,
-    newModel: newModel,
-    newModelWithAuditor: newModelWithAuditor,
-    newModelWithEvents: newModelWithEvents,
-    findSliceNamed: findSliceNamed
+    TestUtils: TestUtils
   };
 });
 </script>

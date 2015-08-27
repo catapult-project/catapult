@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var test_utils = tr.c.test_utils;
+  var test_utils = tr.c.TestUtils;
 
   test('optimalEfficiency', function() {
     var idleIR = new tr.e.rail.IdleInteractionRecord(0, 150);
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('pessimalEfficiency', function() {
-    var slice = tr.c.test_utils.newSliceEx({
+    var slice = tr.c.TestUtils.newSliceEx({
       title: 'foo',
       start: 0,
       end: 150,

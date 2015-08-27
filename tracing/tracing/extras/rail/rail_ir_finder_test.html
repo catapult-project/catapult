@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   function addFrameEventForInput(model, event) {
     var frame = audits.addFrameEvent(model,
         {start: event.start, end: event.end, isTopLevel: true});
-    model.flowEvents.push(tr.c.test_utils.newFlowEventEx({
+    model.flowEvents.push(tr.c.TestUtils.newFlowEventEx({
       id: event.id,
       start: event.start,
       end: event.end,
@@ -110,12 +110,12 @@ tr.b.unittest.testSuite(function() {
     // ThreadSlices in the model.
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
-      var start = tr.c.test_utils.newSliceEx(
+      var start = tr.c.TestUtils.newSliceEx(
           {title: 'model start', start: 0, end: 1, type: tr.model.ThreadSlice});
       start.isTopLevel = true;
       model.browserMain.sliceGroup.pushSlice(start);
 
-      var end = tr.c.test_utils.newSliceEx(
+      var end = tr.c.TestUtils.newSliceEx(
           {title: 'model end', start: 9, end: 10, type: tr.model.ThreadSlice});
       end.isTopLevel = true;
       model.browserMain.sliceGroup.pushSlice(end);
@@ -684,11 +684,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 0},
-      {title: 'Response', name:'Pinch,Scroll,Tap,Touch', start: 20, end: 110,
+      {title: 'Response', name: 'Pinch,Scroll,Tap,Touch', start: 20, end: 110,
           eventCount: 9},
-      {title: 'Animation', name:'Scroll,Touch', start: 110, end: 210,
+      {title: 'Animation', name: 'Scroll,Touch', start: 110, end: 210,
           eventCount: 6},
-      {title: 'Animation', name:'Fling', start: 180, end: 220, eventCount: 1}
+      {title: 'Animation', name: 'Fling', start: 180, end: 220, eventCount: 1}
     ];
     verifier.verify();
   });

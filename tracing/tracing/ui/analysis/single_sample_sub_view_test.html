@@ -17,11 +17,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
   var EventSet = tr.model.EventSet;
-  var newSampleNamed = tr.c.test_utils.newSampleNamed;
+  var newSampleNamed = tr.c.TestUtils.newSampleNamed;
 
   test('instantiate_withSingleSample', function() {
     var t53;
-    var model = tr.c.test_utils.newModelWithEvents([], {
+    var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback: function(model) {

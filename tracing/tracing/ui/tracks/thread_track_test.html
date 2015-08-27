@@ -25,9 +25,9 @@ tr.b.unittest.testSuite(function() {
   var ThreadSlice = tr.model.ThreadSlice;
   var ThreadTrack = tr.ui.tracks.ThreadTrack;
   var Viewport = tr.ui.TimelineViewport;
-  var newAsyncSlice = tr.c.test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = tr.c.test_utils.newAsyncSliceNamed;
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
+  var newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('selectionHitTestingWithThreadTrack', function() {
     var model = new tr.Model();
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
   test('sampleThreadSlices', function() {
     var thread;
     var cpu;
-    var model = tr.c.test_utils.newModelWithEvents([], {
+    var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback: function(model) {

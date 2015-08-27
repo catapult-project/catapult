@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createModelWithChromeAuditor(customizeModelCallback) {
-    return tr.c.test_utils.newModelWithAuditor(function(m) {
+    return tr.c.TestUtils.newModelWithAuditor(function(m) {
       m.browserProcess = m.getOrCreateProcess(1);
       m.browserMain = m.browserProcess.getOrCreateThread(2);
       m.browserMain.name = 'CrBrowserMain';

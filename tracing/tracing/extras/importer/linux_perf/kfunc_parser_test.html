@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() { // @suppress longLineCheck
       'Binder_2-127  ( 127) [001] ....  3431.906896: graph_ent: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906906: graph_ret: func=sys_write'
     ];
-    var m = tr.c.test_utils.newModelWithEvents([lines.join('\n')], {
+    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);

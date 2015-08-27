@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     var model = new tr.Model();
     var process = model.getOrCreateProcess(1);
     var thread = process.getOrCreateThread(2);
-    thread.sliceGroup.pushSlice(tr.c.test_utils.newSliceNamed('a', 80, 50));
+    thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceNamed('a', 80, 50));
 
     var timeline = document.createElement('tr-ui-timeline-track-view');
     var vp = new tr.ui.TimelineViewport(timeline);

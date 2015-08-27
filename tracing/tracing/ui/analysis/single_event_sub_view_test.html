@@ -18,10 +18,10 @@ tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
   var Thread = tr.model.Thread;
   var EventSet = tr.model.EventSet;
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createSelection(customizeThreadCallback) {
-    var model = tr.c.test_utils.newModelWithEvents([], {
+    var model = tr.c.TestUtils.newModelWithEvents([], {
       customizeModelCallback: function(model) {
         var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
         customizeThreadCallback(t53, model);
@@ -43,8 +43,8 @@ tr.b.unittest.testSuite(function() {
     var options = opt_options || {};
     return createSelection(function(t53, model) {
       if (options.withStartStackFrame || options.withEndStackFrame) {
-        var fA = tr.c.test_utils.newStackTrace(model, 'cat', ['a1', 'a2']);
-        var fB = tr.c.test_utils.newStackTrace(model, 'cat', ['b1', 'b2']);
+        var fA = tr.c.TestUtils.newStackTrace(model, 'cat', ['a1', 'a2']);
+        var fB = tr.c.TestUtils.newStackTrace(model, 'cat', ['b1', 'b2']);
       }
 
       var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});

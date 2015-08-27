@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseThreads', function() {
-    var m = tr.c.test_utils.newModelWithEvents(TEST_DATA, {
+    var m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseMethods', function() {
-    var m = tr.c.test_utils.newModelWithEvents(TEST_DATA, {
+    var m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);

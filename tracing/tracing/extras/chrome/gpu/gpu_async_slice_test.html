@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'trace3', args: {'channel': 'test_channel'}, pid: 1, ts: 200,
        cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'e', id: 73}
     ];
-    var m = tr.c.test_utils.newModelWithEvents([events]);
+    var m = tr.c.TestUtils.newModelWithEvents([events]);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.equal(t2.asyncSliceGroup.length, 3);
 

@@ -15,13 +15,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
-  var newThreadSlice = tr.c.test_utils.newThreadSlice;
+  var newThreadSlice = tr.c.TestUtils.newThreadSlice;
   var TimeDuration = tr.b.u.TimeDuration;
 
   test('saveLayerAlert_badAlpha', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('saveLayerAlert_canvas', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('generatePathAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('uploadAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('listViewAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'obtainView', start: 0, duration: 5}));
@@ -144,7 +144,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('measureLayoutAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
@@ -162,7 +162,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('viewDrawAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       // modern naming
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('blockingGcAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       var sliceGroup = uiThread.sliceGroup;
       sliceGroup.pushSlice(newSliceEx(
@@ -205,7 +205,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lockContentionAlert', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       var sliceGroup = uiThread.sliceGroup;
       sliceGroup.pushSlice(newSliceEx(
@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('schedulingAlerts', function() {
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
@@ -235,7 +235,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(alert.args['Not scheduled, but runnable'],
         new TimeDuration(10));
 
-    model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
@@ -252,7 +252,7 @@ tr.b.unittest.testSuite(function() {
 
   test('addFramesToModel', function() {
     var process;
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       process = model.getOrCreateProcess(1);
       var uiThread = process.getOrCreateThread(1);
 
@@ -283,7 +283,7 @@ tr.b.unittest.testSuite(function() {
   test('processRenameAndSort', function() {
     var appProcess;
     var sfProcess;
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       appProcess = model.getOrCreateProcess(1);
       var uiThread = appProcess.getOrCreateThread(1);
       uiThread.name = 'ndroid.systemui';
@@ -311,7 +311,7 @@ tr.b.unittest.testSuite(function() {
     var eventsExpectingInfo = [];
     var eventsNotExpectingInfo = [];
 
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var appProcess = model.getOrCreateProcess(1);
       var uiThread = appProcess.getOrCreateThread(1);
       uiThread.name = 'ndroid.systemui';
@@ -350,7 +350,7 @@ tr.b.unittest.testSuite(function() {
     var renderThread;
     var workerThread;
     var otherThread;
-    var model = tr.c.test_utils.newModelWithAuditor(function(model) {
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var appProcess = model.getOrCreateProcess(1);
 
       uiThread = appProcess.getOrCreateThread(1);
@@ -382,7 +382,7 @@ tr.b.unittest.testSuite(function() {
   test('favicon', function() {
     var createModelWithJank = function(percentageJank) {
 
-      return tr.c.test_utils.newModelWithAuditor(function(model) {
+      return tr.c.TestUtils.newModelWithAuditor(function(model) {
         var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
         for (var i = 0; i < 100; i++) {
           var slice = newSliceEx({

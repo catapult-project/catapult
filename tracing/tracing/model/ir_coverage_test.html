@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('computeCoverage', function() {
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(2);
       var s0 = thread.sliceGroup.pushSlice(newSliceEx(
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
           {title: 's2', start: 2.0, duration: 1.0}));
       s2.cpuDuration = 0.4;
       s2.isTopLevel = true;
-      var f0 = tr.c.test_utils.newFlowEventEx({
+      var f0 = tr.c.TestUtils.newFlowEventEx({
         title: 'test1',
         start: 0,
         end: 10,
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
         id: '0x100'
       });
       model.flowEvents.push(f0);
-      var as1 = tr.c.test_utils.newAsyncSliceEx({
+      var as1 = tr.c.TestUtils.newAsyncSliceEx({
         title: 'InputLatency::GestureTap',
         cat: 'benchmark,latencyInfo',
         start: 2,

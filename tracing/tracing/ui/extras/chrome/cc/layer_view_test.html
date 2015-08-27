@@ -19,7 +19,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var m = tr.c.test_utils.newModelWithEvents([g_catLTHIEvents]);
+    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withTileHighlight', function() {
-    var m = tr.c.test_utils.newModelWithEvents([g_catLTHIEvents]);
+    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];

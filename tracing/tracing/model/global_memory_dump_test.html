@@ -3320,7 +3320,7 @@ tr.b.unittest.testSuite(function() {
   // Check that size calculation is NOT preceded by attribute
   // aggregation, which would recursively sum up size attributes.
   test('calculateGraphAttributes', function() {
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
         undefined,  // GMD.
         [  // PMD.

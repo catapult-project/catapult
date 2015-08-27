@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
   var VMRegion = tr.model.VMRegion;
 
   function createVMRegions() {
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       var gmd = new GlobalMemoryDump(model, 42);
       model.globalMemoryDumps.push(gmd);
       var process = model.getOrCreateProcess(1);

@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newAsyncSliceEx = tr.c.test_utils.newAsyncSliceEx;
+  var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
 
   test('getLatencyData', function() {
     var m = tr.e.audits.newChromeModel(function(m) {
@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
       frame_ts += 16000 + 1000 * (i % 2);
     }
 
-    var m = tr.c.test_utils.newModelWithEvents([events]);
+    var m = tr.c.TestUtils.newModelWithEvents([events]);
     var modelHelper = new tr.e.audits.ChromeModelHelper(m);
 
     // Testing browser impl and main rendering stats.

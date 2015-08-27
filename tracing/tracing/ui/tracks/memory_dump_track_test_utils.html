@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.tracks', function() {
     var maybeDumpSizes = function(dumpSizes) {
       return withAllocatorDumps ? dumpSizes : undefined;
     };
-    return tr.c.test_utils.newModel(function(model) {
+    return tr.c.TestUtils.newModel(function(model) {
       // Construct a model with three processes.
       var pa = model.getOrCreateProcess(3);
       var pb = model.getOrCreateProcess(6);

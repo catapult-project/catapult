@@ -15,14 +15,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.test_utils.newSliceEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
 
   var EventSet = tr.model.EventSet;
   var SelectionState = tr.model.SelectionState;
   var Task = tr.b.Task;
 
   function newSimpleFakeTimelineView() {
-    var m = tr.c.test_utils.newModel(function(m) {
+    var m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -110,7 +110,7 @@ tr.b.unittest.testSuite(function() {
     bs1.selection = new EventSet([m1.sA]);
 
     // Change the model.
-    var m2 = tr.c.test_utils.newModel(function(m) {
+    var m2 = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 

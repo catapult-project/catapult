@@ -15,8 +15,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.test_utils.newSliceEx;
-  var newFlowEventEx = tr.c.test_utils.newFlowEventEx;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  var newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
 
   test('instantiate', function() {
     var model = new tr.Model();
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('withFlows', function() {
-    var m = tr.c.test_utils.newModel(function(m) {
+    var m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
       m.t2 = m.p1.getOrCreateThread(2);

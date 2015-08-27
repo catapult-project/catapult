@@ -22,11 +22,11 @@ tr.b.unittest.testSuite(function() {
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
-  var newSliceNamed = tr.c.test_utils.newSliceNamed;
+  var newSliceNamed = tr.c.TestUtils.newSliceNamed;
 
   var createFrames = function() {
     var frames = undefined;
-    var model = tr.c.test_utils.newModel(function(model) {
+    var model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       for (var i = 1; i < 5; i++) {
