@@ -3,7 +3,9 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import contextlib
+import os
 import unittest
 
 import agents.atrace_agent as atrace_agent
@@ -11,7 +13,6 @@ import systrace
 import util
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
-LIST_TMP_ARGS = ['ls', '/data/local/tmp']
 ATRACE_ARGS = ['atrace', '-z', '-t', '10', '-b', '4096']
 CATEGORIES = ['sched', 'gfx', 'view', 'wm']
 ADB_SHELL = ['adb', '-s', DEVICE_SERIAL, 'shell']
@@ -36,37 +37,24 @@ TRACE_BOOT_CMD = (ADB_SHELL +
                    'persist.debug.atrace.boottrace', '0', '&&',
                    'rm', '/data/misc/boottrace/categories'])
 
-TEST_DIR = 'test_data/'
-ATRACE_DATA = TEST_DIR + 'atrace_data'
-ATRACE_DATA_RAW = TEST_DIR + 'atrace_data_raw'
-ATRACE_DATA_RAW_FROM_FILE = TEST_DIR + 'atrace_data_raw_from_file'
-ATRACE_DATA_STRIPPED = TEST_DIR + 'atrace_data_stripped'
-ATRACE_DATA_THREAD_FIXED = TEST_DIR + 'atrace_data_thread_fixed'
-ATRACE_DATA_WITH_THREAD_LIST = TEST_DIR + 'atrace_data_with_thread_list'
-ATRACE_THREAD_NAMES = TEST_DIR + 'atrace_thread_names'
-ATRACE_THREAD_LIST = TEST_DIR + 'atrace_ps_dump'
-ATRACE_EXTRACTED_THREADS = TEST_DIR + 'atrace_extracted_threads'
-ATRACE_PROCFS_DUMP = TEST_DIR + 'atrace_procfs_dump'
-ATRACE_EXTRACTED_TGIDS = TEST_DIR + 'atrace_extracted_tgids'
-ATRACE_MISSING_TGIDS = TEST_DIR + 'atrace_missing_tgids'
-ATRACE_FIXED_TGIDS = TEST_DIR + 'atrace_fixed_tgids'
+TEST_DIR = os.path.join(os.path.dirname(__file__), os.pardir, 'test_data')
+ATRACE_DATA = os.path.join(TEST_DIR, 'atrace_data')
+ATRACE_DATA_RAW = os.path.join(TEST_DIR, 'atrace_data_raw')
+ATRACE_DATA_RAW_FROM_FILE = os.path.join(TEST_DIR, 'atrace_data_raw_from_file')
+ATRACE_DATA_STRIPPED = os.path.join(TEST_DIR, 'atrace_data_stripped')
+ATRACE_DATA_THREAD_FIXED = os.path.join(TEST_DIR, 'atrace_data_thread_fixed')
+ATRACE_DATA_WITH_THREAD_LIST = os.path.join(TEST_DIR,
+                                            'atrace_data_with_thread_list')
+ATRACE_THREAD_NAMES = os.path.join(TEST_DIR, 'atrace_thread_names')
+ATRACE_THREAD_LIST = os.path.join(TEST_DIR, 'atrace_ps_dump')
+ATRACE_EXTRACTED_THREADS = os.path.join(TEST_DIR, 'atrace_extracted_threads')
+ATRACE_PROCFS_DUMP = os.path.join(TEST_DIR, 'atrace_procfs_dump')
+ATRACE_EXTRACTED_TGIDS = os.path.join(TEST_DIR, 'atrace_extracted_tgids')
+ATRACE_MISSING_TGIDS = os.path.join(TEST_DIR, 'atrace_missing_tgids')
+ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
 
-class UtilUnitTest(unittest.TestCase):
-  def test_construct_adb_shell_command(self):
-    command = util.construct_adb_shell_command(LIST_TMP_ARGS, None)
-    self.assertEqual(' '.join(command), 'adb shell ls /data/local/tmp')
-
-    command = util.construct_adb_shell_command(LIST_TMP_ARGS, DEVICE_SERIAL)
-    self.assertEqual(' '.join(command),
-                     'adb -s AG8404EC0444AGC shell ls /data/local/tmp')
-
-    command = util.construct_adb_shell_command(ATRACE_ARGS, DEVICE_SERIAL)
-    self.assertEqual(' '.join(command),
-                     'adb -s AG8404EC0444AGC shell atrace -z -t 10 -b 4096')
-
-
-class AtraceAgentUnitTest(unittest.TestCase):
+class AtraceAgentTest(unittest.TestCase):
   def test_construct_trace_command(self):
     options, categories = systrace.parse_options(SYSTRACE_CMD)
     agent = atrace_agent.AtraceAgent(options, categories)
@@ -161,7 +149,7 @@ class AtraceAgentUnitTest(unittest.TestCase):
       self.assertEqual(res, fixed)
 
 
-class AtraceLegacyAgentUnitTest(unittest.TestCase):
+class AtraceLegacyAgentTest(unittest.TestCase):
   def test_construct_trace_command(self):
     options, categories = systrace.parse_options(SYSTRACE_CMD)
     agent = atrace_agent.AtraceLegacyAgent(options, categories)
@@ -170,14 +158,10 @@ class AtraceLegacyAgentUnitTest(unittest.TestCase):
     self.assertEqual(True, agent.expect_trace())
 
 
-class BootAgentUnitTest(unittest.TestCase):
+class BootAgentTest(unittest.TestCase):
   def test_boot(self):
     options, categories = systrace.parse_options(SYSTRACE_BOOT_CMD)
     agent = atrace_agent.BootAgent(options, categories)
     tracer_args = agent._construct_trace_command()
     self.assertEqual(' '.join(TRACE_BOOT_CMD), ' '.join(tracer_args))
     self.assertEqual(True, agent.expect_trace())
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -157,7 +157,8 @@ def create_agents(options, categories):
       continue
     for filename in os.listdir(agent_dir):
       (module_name, ext) = os.path.splitext(filename)
-      if ext != '.py' or module_name == '__init__':
+      if (ext != '.py' or module_name == '__init__'
+          or module_name.endswith('_unittest')):
         continue
       (f, pathname, data) = imp.find_module(module_name, [agent_dir])
       try:
