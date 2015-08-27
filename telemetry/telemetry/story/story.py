@@ -4,7 +4,7 @@
 
 import re
 
-from telemetry.story import shared_state
+from telemetry.story import shared_state as shared_state_module
 
 _next_story_id = 0
 
@@ -38,7 +38,7 @@ class Story(object):
           _InjectScripts method in third_party/webpagereplay/httpclient.py.
     """
     assert issubclass(shared_state_class,
-                      shared_state.SharedState)
+                      shared_state_module.SharedState)
     self._shared_state_class = shared_state_class
     self._name = name
     global _next_story_id
@@ -53,6 +53,10 @@ class Story(object):
     self._labels = labels
     self._is_local = is_local
     self._make_javascript_deterministic = make_javascript_deterministic
+
+  def Run(self, shared_state):
+    """Execute the interactions with the applications and/or platforms."""
+    raise NotImplementedError
 
   @property
   def labels(self):

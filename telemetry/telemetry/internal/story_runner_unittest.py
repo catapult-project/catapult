@@ -102,6 +102,9 @@ class DummyLocalStory(story_module.Story):
     super(DummyLocalStory, self).__init__(
         shared_state_class, name=name)
 
+  def Run(self, shared_state):
+    pass
+
   @property
   def is_local(self):
     return True
@@ -588,7 +591,7 @@ class StoryRunnerTest(unittest.TestCase):
         self._current_story = story
 
       def RunStory(self, results):
-        self._current_story.Run()
+        self._current_story.Run(self)
 
       def DidRunStory(self, results):
         pass
@@ -606,7 +609,7 @@ class StoryRunnerTest(unittest.TestCase):
             is_local=True)
         self.was_run = False
 
-      def Run(self):
+      def Run(self, shared_state):
         self.was_run = True
         raise page_test.Failure
 

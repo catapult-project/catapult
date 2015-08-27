@@ -18,7 +18,6 @@ from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
-from telemetry.page import action_runner as action_runner_module
 from telemetry.page import page_test
 from telemetry import story
 from telemetry.util import wpr_modes
@@ -274,22 +273,18 @@ class SharedPageState(story.SharedState):
     if self._test.clear_cache_before_each_run:
       self._current_tab.ClearCache(force=True)
 
-  def _ImplicitPageNavigation(self):
-    """Executes the implicit navigation that occurs for every page iteration.
+  @property
+  def current_tab(self):
+    return self._current_tab
 
-    This function will be called once per page before any actions are executed.
-    """
-    self._test.WillNavigateToPage(self._current_page, self._current_tab)
-    self._test.RunNavigateSteps(self._current_page, self._current_tab)
-    self._test.DidNavigateToPage(self._current_page, self._current_tab)
+  @property
+  def page_test(self):
+    return self._test
 
   def RunStory(self, results):
     try:
       self._PreparePage()
-      self._ImplicitPageNavigation()
-      action_runner = action_runner_module.ActionRunner(
-          self._current_tab, skip_waits=self._current_page.skip_waits)
-      self._current_page.RunPageInteractions(action_runner)
+      self._current_page.Run(self)
       self._test.ValidateAndMeasurePage(
           self._current_page, self._current_tab, results)
     except exceptions.Error:
