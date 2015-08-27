@@ -54,7 +54,7 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     ReportResultsForProcess(memory_dumps, 'total')
 
     process_dumps_by_name = _AggregateDicts(
-        {process_dump.process_name.lower(): process_dump
+        {process_dump.process_name.lower().replace(' ', '_'): process_dump
          for process_dump in memory_dump.IterProcessMemoryDumps()}
         for memory_dump in memory_dumps)
     for process_name, process_dumps in process_dumps_by_name.iteritems():

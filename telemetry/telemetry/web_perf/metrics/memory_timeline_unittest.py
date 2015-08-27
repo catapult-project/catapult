@@ -126,12 +126,12 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     expected = {}
     expected.update(('%s_browser' % metric, [value])
                     for metric, value in stats1.iteritems())
-    expected.update(('%s_renderer' % metric, [value])
+    expected.update(('%s_gpu_process' % metric, [value])
                     for metric, value in stats2.iteritems())
     expected.update(('%s_total' % metric, [total]) for metric in metrics)
 
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, stats1),
-        MockProcessDumpEvent('dump1', 'renderer', 5, stats2)])
+        MockProcessDumpEvent('dump1', 'GPU Process', 5, stats2)])
     interactions = [TestInteraction(1, 10)]
     self.assertEquals(expected, self.getResultsDict(model, interactions))
