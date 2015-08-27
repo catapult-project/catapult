@@ -32,7 +32,7 @@ class UploadPage(webapp2.RequestHandler):
 
   def post(self):
     trace_uuid = str(uuid.uuid4())
-    bucket_name = ('/performance-insights/' + trace_uuid)
+    bucket_name = ('/performance-insights/' + trace_uuid + '.gz')
     gcs_file = gcs.open(bucket_name,
                         'w',
                         content_type='application/octet-stream',
