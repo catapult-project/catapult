@@ -327,17 +327,23 @@ class AtraceLegacyAgent(AtraceAgent):
       SHELL_ARGS = ['getprop', 'debug.atrace.tags.enableflags']
       output, return_code = util.run_adb_shell(SHELL_ARGS,
                                                self._options.device_serial)
+      if return_code != 0:
+        print >> sys.stderr, (
+            '\nThe command "%s" failed with the following message:'
+            % ' '.join(SHELL_ARGS))
+        print >> sys.stderr, str(output)
+        sys.exit(1)
+
       flags = 0
-      if return_code == 0:
-        try:
-          if output.startswith('0x'):
-            flags = int(output, 16)
-          elif output.startswith('0'):
-            flags = int(output, 8)
-          else:
-            flags = int(output)
-        except ValueError:
-          pass
+      try:
+        if output.startswith('0x'):
+          flags = int(output, 16)
+        elif output.startswith('0'):
+          flags = int(output, 8)
+        else:
+          flags = int(output)
+      except ValueError:
+        pass
 
       if flags:
         tags = []

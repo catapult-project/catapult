@@ -60,9 +60,10 @@ def run_adb_shell(shell_args, device_serial):
     # This usually means that the adb executable was not found in the path.
     print >> sys.stderr, ('\nThe command "%s" failed with the following error:'
                           % ' '.join(adb_command))
-    print >> sys.stderr, '    %s\n' % str(error)
+    print >> sys.stderr, '    %s' % str(error)
     print >> sys.stderr, 'Is adb in your path?'
-    sys.exit(1)
+    adb_return_code = error.errno
+    adb_output = error
   except subprocess.CalledProcessError as error:
     # The process exited with an error.
     adb_return_code = error.returncode

@@ -14,16 +14,14 @@ _CATAPULT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
 
 def main():
-  #TODO(zhenw): uncomment the code to actually run tests on trybot.
-  pass
-  # systrace_package_path = os.path.join(_CATAPULT, 'systrace', 'systrace')
-  # suite = unittest.TestLoader().discover(
-  #     systrace_package_path, pattern = '*_unittest.py')
-  # result = unittest.TextTestRunner(verbosity=2).run(suite)
-  # if result.wasSuccessful():
-  #   sys.exit(0)
-  # else:
-  #   sys.exit(1)
+  systrace_package_path = os.path.join(_CATAPULT, 'systrace', 'systrace')
+  suite = unittest.TestLoader().discover(
+      systrace_package_path, pattern = '*_unittest.py')
+  result = unittest.TextTestRunner(verbosity=2).run(suite)
+  if result.wasSuccessful():
+    sys.exit(0)
+  else:
+    sys.exit(1)
 
 if __name__ == '__main__':
   main()
