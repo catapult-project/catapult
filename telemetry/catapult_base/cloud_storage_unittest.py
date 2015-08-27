@@ -5,8 +5,10 @@
 import os
 import unittest
 
-from catapult_base import cloud_storage
+import mock
 from telemetry.testing import system_stub
+
+from catapult_base import cloud_storage
 
 
 def _FakeReadHash(_):
@@ -85,6 +87,40 @@ class CloudStorageUnitTest(unittest.TestCase):
                                             'fake remote path'))
     finally:
       stubs.Restore()
+
+  @mock.patch('catapult_base.cloud_storage.CalculateHash')
+  @mock.patch('catapult_base.cloud_storage.Get')
+  @mock.patch('catapult_base.cloud_storage.os.path')
+  def testGetIfHashChanged(self, path_mock, get_mock, calc_hash_mock):
+    path_mock.exists.side_effect = [False, True, True]
+    calc_hash_mock.return_value = 'hash'
+
+    # The file at |local_path| doesn't exist. We should download file from cs.
+    ret = cloud_storage.GetIfHashChanged(
+        'remote_path', 'local_path', 'cs_bucket', 'hash')
+    self.assertTrue(ret)
+    get_mock.assert_called_once_with('cs_bucket', 'remote_path', 'local_path')
+    get_mock.reset_mock()
+    self.assertFalse(calc_hash_mock.call_args)
+    calc_hash_mock.reset_mock()
+
+    # A local file exists at |local_path| but has the wrong hash.
+    # We should download file from cs.
+    ret = cloud_storage.GetIfHashChanged(
+        'remote_path', 'local_path', 'cs_bucket', 'new_hash')
+    self.assertTrue(ret)
+    get_mock.assert_called_once_with('cs_bucket', 'remote_path', 'local_path')
+    get_mock.reset_mock()
+    calc_hash_mock.assert_called_once_with('local_path')
+    calc_hash_mock.reset_mock()
+
+    # Downloaded file exists locally and has the right hash. Don't download.
+    ret = cloud_storage.GetIfHashChanged(
+        'remote_path', 'local_path', 'cs_bucket', 'hash')
+    self.assertFalse(get_mock.call_args)
+    self.assertFalse(ret)
+    calc_hash_mock.reset_mock()
+    get_mock.reset_mock()
 
   def testGetIfChanged(self):
     stubs = system_stub.Override(cloud_storage, ['os', 'open'])
