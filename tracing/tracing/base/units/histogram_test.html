@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(h.overflowBin.count, 1);
     assert.equal(h.numValues, 6);
-    assert.closeTo(h.average, 416.3, 1);
+    assert.closeTo(h.average, 416.3, 0.1);
   });
 
   test('nans', function() {
@@ -47,6 +47,72 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(h.numNans, 2);
     assert.deepEqual(h.nanSourceInfos, ['b', 'c']);
+  });
+
+  test('addHistogramsValid', function() {
+    var h0 = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    var h1 = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    h0.add(-1, 'a0');
+    h0.add(0, 'b0');
+    h0.add(0, 'c0');
+    h0.add(500, 'c0');
+    h0.add(1000, 'd0');
+    h0.add(NaN, 'e0');
+
+    h1.add(-1, 'a1');
+    h1.add(0, 'b1');
+    h1.add(0, 'c1');
+    h1.add(999, 'd1');
+    h1.add(1000, 'd1');
+    h1.add(NaN, 'e1');
+
+    h0.addHistogram(h1);
+
+    assert.equal(h0.numNans, 2);
+    assert.deepEqual(h0.nanSourceInfos, ['e0', 'e1']);
+
+    assert.equal(h0.underflowBin.count, 2);
+    assert.deepEqual(h0.underflowBin.sourceInfos, ['a0', 'a1']);
+
+    assert.equal(h0.getBinForValue(0).count, 4);
+    assert.deepEqual(h0.getBinForValue(0).sourceInfos,
+        ['b0', 'c0', 'b1', 'c1']);
+
+    assert.equal(h0.getBinForValue(500).count, 1);
+    assert.deepEqual(h0.getBinForValue(500).sourceInfos, ['c0']);
+
+    assert.equal(h0.getBinForValue(999).count, 1);
+    assert.deepEqual(h0.getBinForValue(999).sourceInfos, ['d1']);
+
+    assert.equal(h0.overflowBin.count, 2);
+    assert.deepEqual(h0.overflowBin.sourceInfos, ['d0', 'd1']);
+
+    assert.equal(h0.numValues, 10);
+    assert.closeTo(h0.average, 349.7, 0.1);
+  });
+
+  test('addHistogramsInvalid', function() {
+    var h0 = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        10);
+    var h1 = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1001),
+        10);
+    var h2 = new tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000),
+        11);
+
+    assert.throws(h0.addHistogram.bind(h0, h1), Error);
+    assert.throws(h0.addHistogram.bind(h0, h1), Error);
   });
 });
 </script>
