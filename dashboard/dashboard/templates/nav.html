@@ -19,6 +19,22 @@
   }
 
   /**
+   * Opens a window with new GitHub issue, pre-filled with some info.
+   * @param {string} summary The title of the bug.
+   * @param {string} comment The description of the bug.
+   * @param {string} label Label to apply to the bug.
+   */
+  function openGitHubIssueWindow(summary, comment, label) {
+    var url = 'https://github.com/catapult-project/catapult/issues/new?';
+    url += [
+      'title=' + encodeURIComponent(summary),
+      'body=' + encodeURIComponent(comment),
+      'labels=' + encodeURIComponent(label),
+    ].join('&');
+    window.open(url, '_blank');
+  }
+
+  /**
    * Opens a window to report a general dashboard bug.
    */
   function reportBug() {
@@ -34,7 +50,7 @@
     description += (os == 'Mac' ? 'Command+Option+J' : 'Ctrl+Shift+J');
     description += ' to open):\n\n';
     description += 'Please describe the problem:\n';
-    openCrBugWindow('', description, ['Performance-Dashboard'], []);
+    openGitHubIssueWindow('Perf Dashboard: ', description, 'Perf Dashboard');
   }
 
   /**
@@ -59,9 +75,6 @@
     return 'unknown';
   }
 
-  /**
-   * Opens a window to report a general dashboard bug.
-   */
   function fileIpWhitelistRequest() {
     var description = 'Please whitelist the following IP addresses ' +
         'to send data to the Chrome Perf Dashboard:\n' +
@@ -71,9 +84,6 @@
     openCrBugWindow('IP Whitelist Request', description, labels, []);
   }
 
-  /**
-   * Opens a window to report a general dashboard bug.
-   */
   function fileBotWhitelistRequest() {
     var description = 'Please make the following bots and all their data ' +
         'publicly available, with no google.com login required: \n' +
@@ -82,9 +92,6 @@
     openCrBugWindow('Bot Whitelist Request', description, labels, []);
   }
 
-  /**
-   * Opens a window to report a general dashboard bug.
-   */
   function fileMonitoringRequest() {
     var description = 'Please add monitoring for the following tests:\n\n' +
         'Test owner (see http://go/perf-test-owners):\n' +
