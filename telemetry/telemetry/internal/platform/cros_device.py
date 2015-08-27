@@ -19,7 +19,7 @@ class CrOSDevice(device.Device):
     self._ssh_identity = ssh_identity
 
   @classmethod
-  def GetAllConnectedDevices(cls):
+  def GetAllConnectedDevices(cls, blacklist):
     return []
 
   @property
