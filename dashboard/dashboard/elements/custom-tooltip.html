@@ -31,15 +31,6 @@ Example usage:
       .message-content {
         margin: 3px;
       }
-
-      .message-content a, .message-content /deep/ a {
-        color: #EADE90;
-        text-decoration: none;
-      }
-
-      .message-content a:hover, .message-content /deep/ a:hover {
-        text-decoration: underline;
-      }
     </style>
 
     <paper-shadow z="3">
@@ -76,7 +67,7 @@ Example usage:
        * See: https://goo.gl/QIYbsB
        */
       eventDelegates: {
-        'core-resize': 'positionChanged',
+        'core-resize': 'positionChanged'
       },
 
       ready: function() {
@@ -160,7 +151,7 @@ Example usage:
        */
       show: function() {
         this.opened = true;
-      },
+      }
     });
   </script>
 </polymer-element>

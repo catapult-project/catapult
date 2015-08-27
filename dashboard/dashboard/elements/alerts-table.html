@@ -190,12 +190,11 @@
         background-color: transparent !important;
       }
 
-      /* The graph-icon elements are for links to view associated graphs. */
-      .graph-icon {
+      /* The graph-link elements are for links to view associated graphs. */
+      .graph-link, .graph-link:visited {
         vertical-align: middle;
-        opacity: 0.6;
-        height: 14px;
-        width: 14px;
+        font-size: 1.2em;
+        color: #222;
       }
 
       /* The kd-button class is used for the numbers next to rows
@@ -309,8 +308,8 @@
           </td>
 
           <td>
-            <a href="{{dashboard_link}}" target="_blank">
-              <core-icon class="graph-icon" icon="launch" alt="Open Graph"></core-icon>
+            <a href="{{dashboard_link}}" class="graph-link" target="_blank">
+              📈  <!-- chart with upwards trend character U+1F4C8 -->
             </a>
           </td>
 

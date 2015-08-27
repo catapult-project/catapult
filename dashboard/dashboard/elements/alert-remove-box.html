@@ -2,7 +2,7 @@
 The alert-remove-box element provides the functionality of dis-associating
 an alert from an issue on the issue tracker.
 -->
-<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/dashboard/elements/xhr-element.html">
 <link rel="import" href="/third_party/polymer/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="xhr-element.html">
@@ -10,38 +10,26 @@ an alert from an issue on the issue tracker.
 <polymer-element name="alert-remove-box" attributes="xsrfToken key">
   <template>
     <style>
-
-      /* By default, the size of a core-icon-button is quite large;
-       * to make it smaller we need to make the core-icon inside of
-       * it smaller. */
-      #icon::shadow core-icon[role=img] {
-        height: 14px;
-        width: 14px;
+      .close-icon {
         padding: 1px;
         margin: 1px;
+        cursor: pointer;
       }
 
-      #icon {
-        padding: 1px;
-        margin: 1px;
-      }
-
-      #spinner {
+      .spinner {
         height: 14px;
         width: 14px;
       }
 
-      #spinner::shadow .circle {
-        border-color: #4285f4;
-      }
-
-      #spinner:not([active]) {
+      .spinner:not([active]) {
         display: none;
       }
     </style>
     <xhr-element id="xhr"></xhr-element>
-    <core-icon-button id="icon" icon="close" hidden?="{{loading}}" on-click="{{onRemoveBug}}"></core-icon-button>
-    <paper-spinner id="spinner" active?="{{loading}}"></paper-spinner>
+    <div class="close-icon" hidden?="{{loading}}" on-click="{{onRemoveBug}}">
+      ❌ <!-- cross mark U+274C -->
+    </div>
+    <paper-spinner class="spinner" active?="{{loading}}"></paper-spinner>
   </template>
   <script>
     'use strict';

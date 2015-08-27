@@ -51,17 +51,8 @@ Attributes:
         visibility: hidden;
       }
 
-      core-icon-button {
-        height: 18px;
-        width: 18px;
+      .close-icon {
         cursor: pointer;
-        margin: 0 0 0 3px;
-        padding: 0;
-      }
-
-      core-icon-button::shadow core-icon {
-        height: 18px;
-        width: 18px;
       }
 
       .test-name {
@@ -214,8 +205,9 @@ Attributes:
                        checked="{{seriesGroup.selection == 'all'}}"
                        hidden?="{{seriesGroup.tests.length == 0}}">
                 <span flex four></span>
-                <core-icon-button icon="close"
-                                  on-click="{{onCloseSeriesGroupClicked}}"></core-icon-button>
+                <div class="close-icon" on-click="{{onCloseSeriesGroupClicked}}">
+                  ❌ <!-- cross mark U+274C -->
+                </div>
               </div>
 
               <core-selector class="list" selected="{{multiSelected}}" multi>
