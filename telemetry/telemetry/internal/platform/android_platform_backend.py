@@ -804,8 +804,8 @@ class AndroidPlatformBackend(
 
   def IsScreenOn(self):
     """Determines if device screen is on."""
-    input_methods = self._device.RunShellCommand('dumpsys input_method',
-                                                 check_return=True)
+    input_methods = self._device.RunShellCommand(
+        'dumpsys input_method', check_return=True, large_output=True)
     return self._IsScreenOn(input_methods)
 
   @staticmethod
