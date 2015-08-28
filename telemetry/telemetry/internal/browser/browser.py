@@ -36,16 +36,15 @@ class Browser(app.App):
   def __init__(self, backend, platform_backend, credentials_path):
     super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
-    self._browser_backend = backend
-    self._platform_backend = platform_backend
-    self._local_server_controller = local_server.LocalServerController(
-        platform_backend)
-    self._tabs = tab_list.TabList(backend.tab_list_backend)
-    self.credentials = browser_credentials.BrowserCredentials()
-    self.credentials.credentials_path = credentials_path
-    self._platform_backend.DidCreateBrowser(self, self._browser_backend)
-
     try:
+      self._browser_backend = backend
+      self._platform_backend = platform_backend
+      self._local_server_controller = local_server.LocalServerController(
+          platform_backend)
+      self._tabs = tab_list.TabList(backend.tab_list_backend)
+      self.credentials = browser_credentials.BrowserCredentials()
+      self.credentials.credentials_path = credentials_path
+      self._platform_backend.DidCreateBrowser(self, self._browser_backend)
       browser_options = self._browser_backend.browser_options
       self.platform.FlushDnsCache()
       if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:

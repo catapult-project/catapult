@@ -4,6 +4,7 @@
 
 """Start and stop Web Page Replay."""
 
+import atexit
 import logging
 import os
 import re
@@ -202,6 +203,7 @@ class ReplayServer(object):
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
       util.WaitFor(self._IsStarted, 30)
+      atexit.register(self.StopServer)
       return (
           self._started_ports['http'],
           self._started_ports['https'],
@@ -214,10 +216,14 @@ class ReplayServer(object):
 
   def StopServer(self):
     """Stop Web Page Replay."""
-    try:
-      self._StopReplayProcess()
-    finally:
-      self._CleanUpTempLogFilePath()
+    if self._IsStarted():
+      try:
+        self._StopReplayProcess()
+      finally:
+        # TODO(rnephew): Upload logs to google storage. crbug.com/525787
+        self._CleanUpTempLogFilePath()
+    else:
+      logging.warning('Attempting to stop WPR server that is not running.')
 
   def _StopReplayProcess(self):
     if not self.replay_process:
