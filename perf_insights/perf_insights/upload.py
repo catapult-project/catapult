@@ -11,6 +11,8 @@ from perf_insights import trace_info
 
 import third_party.cloudstorage as gcs
 
+from google.appengine.api import app_identity
+
 default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_delay=5.0,
                                        backoff_factor=2,
@@ -32,8 +34,12 @@ class UploadPage(webapp2.RequestHandler):
 
   def post(self):
     trace_uuid = str(uuid.uuid4())
-    bucket_name = ('/performance-insights/' + trace_uuid + '.gz')
-    gcs_file = gcs.open(bucket_name,
+    if 'GCS_BUCKET_NAME' not in os.environ:
+      bucket_name = app_identity.get_default_gcs_bucket_name()
+    else:
+      bucket_name = os.environ['GCS_BUCKET_NAME']
+    gcs_path = ('/' + bucket_name + '/' + trace_uuid + '.gz')
+    gcs_file = gcs.open(gcs_path,
                         'w',
                         content_type='application/octet-stream',
                         options={},
