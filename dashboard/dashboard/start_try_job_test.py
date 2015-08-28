@@ -16,6 +16,7 @@ from google.appengine.ext import ndb
 from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard.models import bug_data
 from dashboard.models import graph_data
@@ -40,7 +41,6 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "good_revision": "215806",
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
-+  "original_bot_name": "win_perf_bisect",
 +  "repeat_count": "20",
 +  "target_arch": "ia32",
 +  "truncate_percent": "25"
@@ -324,6 +324,12 @@ class StartBisectTest(testing_common.TestCase):
 
   def setUp(self):
     super(StartBisectTest, self).setUp()
+    stored_object.Set(
+        start_try_job._TESTER_DIRECTOR_MAP_KEY,
+        {
+            'linux_perf_tester': 'linux_perf_bisector',
+            'win64_nv_tester': 'linux_perf_bisector',
+        })
     app = webapp2.WSGIApplication(
         [('/start_try_job', start_try_job.StartBisectHandler)])
     self.testapp = webtest.TestApp(app)
@@ -501,13 +507,12 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
-            'original_bot_name': None,
         })
 
   def testGetConfig_UseBuildbucket_ChangesTelemetryOutputFormat(self):
     self._TestGetBisectConfig(
         {
-            'bisect_bot': 'linux_perf_bisect',
+            'bisect_bot': 'linux_perf_tester',
             'master_name': 'ChromiumPerf',
             'suite': 'page_cycler.moz',
             'metric': 'times/page_load_time',
@@ -518,7 +523,6 @@ class StartBisectTest(testing_common.TestCase):
             'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': 'true',
-            'original_bot_name': 'chrome-rel-linux',
             'use_buildbucket': True,
         },
         {
@@ -536,7 +540,7 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
-            'original_bot_name': 'chrome-rel-linux',
+            'recipe_tester_name': 'linux_perf_tester',
         })
 
   def testGetConfig_NonEmptyUseArchiveParameter_GivesNonEmptyBuilderType(self):
@@ -571,7 +575,6 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
-            'original_bot_name': None,
         })
 
   def testGetConfig_TelemetryTest(self):
@@ -603,7 +606,6 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
-            'original_bot_name': None,
         })
 
   def testGetConfig_BisectModeSetToReturnCode(self):
@@ -637,7 +639,6 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'ia32',
             'bisect_mode': 'return_code',
-            'original_bot_name': None,
         })
 
   def _TestGetConfigCommand(self, expected_command, **params_to_override):
@@ -754,7 +755,7 @@ class StartBisectTest(testing_common.TestCase):
     bug_data.Bug(id=12345).put()
 
     query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
+        'bisect_bot': 'linux_perf_tester',
         'suite': 'dromaeo.jslibstylejquery',
         'metric': 'jslib/jslib',
         'good_revision': '215806',
@@ -764,7 +765,6 @@ class StartBisectTest(testing_common.TestCase):
         'truncate_percent': '25',
         'bug_id': 12345,
         'use_archive': '',
-        'use_recipe': 'true',
         'step': 'perform-bisect',
     }
     response = self.testapp.post('/start_try_job', query_parameters)
@@ -865,7 +865,7 @@ class StartBisectTest(testing_common.TestCase):
     bug_data.Bug(id=12345).put()
 
     query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
+        'bisect_bot': 'linux_perf_tester',
         'suite': 'dromaeo.jslibstylejquery',
         'metric': 'jslib/jslib',
         'good_revision': '215806',
@@ -914,7 +914,6 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
-            'original_bot_name': None,
         })
 
   def testGetBisectConfig_WithTargetArch(self):
@@ -947,7 +946,6 @@ class StartBisectTest(testing_common.TestCase):
             'builder_type': '',
             'target_arch': 'x64',
             'bisect_mode': 'mean',
-            'original_bot_name': None,
         })
 
 

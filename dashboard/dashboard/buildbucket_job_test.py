@@ -13,7 +13,8 @@ class BuildbucketJobTest(testing_common.TestCase):
   def setUp(self):
     super(BuildbucketJobTest, self).setUp()
     self._args_base = {
-        'original_bot_name': 'chrome-rel-linux',
+        'bisect_director': 'linux_perf_bisector',
+        'recipe_tester_name': 'linux_perf_bisect',
         'good_revision': '1',
         'bad_revision': '2',
         'test_command': 'tools/perf/dummy_command',
@@ -51,13 +52,6 @@ class BuildbucketJobTest(testing_common.TestCase):
     with self.assertRaises(ValueError):
       job = buildbucket_job.BisectJob(**self._args_base)
       _ = job.GetBuildParameters()
-
-  def testUnsupportedPlatform(self):
-    self._args_base['original_bot_name'] = 'MSDOS'
-    with self.assertRaises(NotImplementedError):
-      job = buildbucket_job.BisectJob(**self._args_base)
-      _ = job.GetBuildParameters()
-
 
 if __name__ == '__main__':
   unittest.main()

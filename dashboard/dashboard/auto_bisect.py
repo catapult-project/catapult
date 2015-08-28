@@ -28,8 +28,6 @@ _UNBISECTABLE_SUITES = [
     'v8',
 ]
 
-_FORCED_RECIPE_BOTS = ['linux_perf_bisect']
-
 class AutoBisectHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically run bisects."""
 
@@ -80,11 +78,6 @@ def _RestartBisect(bisect_job):
   Args:
     bisect_job: TryJob entity with initialized bot name and config.
   """
-  if bisect_job.use_buildbucket and (bisect_job.bot_name not in
-                                     _FORCED_RECIPE_BOTS):
-    # Buildbucket bisects other than thos in _FORCED_RECIPE_BOTS are not
-    # automatically retried.
-    return
   try:
     new_bisect_job = _MakeBisectTryJob(
         bisect_job.bug_id, bisect_job.run_count)
@@ -154,6 +147,8 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not bisect_bot or '_' not in bisect_bot:
     raise NotBisectableError('Could not select a bisect bot.')
 
+  use_recipe = bool(start_try_job.GetBisectDirectorForTester(bisect_bot))
+
   new_bisect_config = start_try_job.GetBisectConfig(
       bisect_bot=bisect_bot,
       master_name=test.master_name,
@@ -165,17 +160,14 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       max_time_minutes=20,
       truncate_percent=25,
       bug_id=bug_id,
-      original_bot_name=test.bot_name,
-      use_archive='true')
+      use_archive='true',
+      use_buildbucket=use_recipe)
 
   if 'error' in new_bisect_config:
     raise NotBisectableError('Could not make a valid config.')
 
   config_python_string = 'config = %s\n' % json.dumps(
       new_bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
-
-  # Forcing recipe by default for linux bisects.
-  use_buildbucket = bisect_bot in _FORCED_RECIPE_BOTS
 
   bisect_job = try_job.TryJob(
       bot=bisect_bot,
@@ -184,7 +176,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       master_name=test.master_name,
       internal_only=test.internal_only,
       job_type='bisect',
-      use_buildbucket=use_buildbucket)
+      use_buildbucket=use_recipe)
 
   return bisect_job
 

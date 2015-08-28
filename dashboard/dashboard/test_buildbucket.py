@@ -24,7 +24,7 @@ class TestBuildbucketHandler(request_handler.RequestHandler):
       }))
       return
     job = buildbucket_job.BisectJob(
-        self.request.get('platform'),
+        'linux_perf_bisector',
         self.request.get('good_revision'),
         self.request.get('bad_revision'),
         self.request.get('command'),
@@ -34,6 +34,7 @@ class TestBuildbucketHandler(request_handler.RequestHandler):
         self.request.get('max_time_minutes'),
         self.request.get('bug_id'),
         self.request.get('gs_bucket'),
+        self.request.get('recipe_tester_name'),
         self.request.get('builder_host'),
         self.request.get('builder_port'))
 

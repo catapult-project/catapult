@@ -11,6 +11,8 @@ import webapp2
 import webtest
 
 from dashboard import auto_bisect
+from dashboard import start_try_job
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -21,6 +23,12 @@ class AutoBisectTest(testing_common.TestCase):
 
   def setUp(self):
     super(AutoBisectTest, self).setUp()
+    stored_object.Set(
+        start_try_job._TESTER_DIRECTOR_MAP_KEY,
+        {
+            'linux_perf_tester': 'linux_perf_bisector',
+            'win64_nv_tester': 'linux_perf_bisector',
+        })
     app = webapp2.WSGIApplication(
         [('/auto_bisect', auto_bisect.AutoBisectHandler)])
     self.testapp = webtest.TestApp(app)
@@ -83,6 +91,14 @@ class AutoBisectTest(testing_common.TestCase):
 
 
 class StartNewBisectForBugTest(testing_common.TestCase):
+  def setUp(self):
+    super(StartNewBisectForBugTest, self).setUp()
+    stored_object.Set(
+        start_try_job._TESTER_DIRECTOR_MAP_KEY,
+        {
+            'linux_perf_tester': 'linux_perf_bisector',
+            'win64_nv_tester': 'linux_perf_bisector',
+        })
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testStartNewBisectForBug_StartsBisect(self, mock_perform_bisect):

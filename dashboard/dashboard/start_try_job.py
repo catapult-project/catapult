@@ -20,6 +20,7 @@ from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import rietveld_service
+from dashboard import stored_object
 from dashboard import update_test_metadata
 from dashboard import utils
 from dashboard.models import graph_data
@@ -39,6 +40,7 @@ index %(hash_a)s..%(hash_b)s 100644
 
 _BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
+_TESTER_DIRECTOR_MAP_KEY = 'recipe_tester_director_map'
 
 _NON_TELEMETRY_TEST_COMMANDS = {
     'angle_perftests': [
@@ -113,10 +115,12 @@ class StartBisectHandler(request_handler.RequestHandler):
     bug_id = int(self.request.get('bug_id', -1))
     master_name = self.request.get('master', 'ChromiumPerf')
     internal_only = self.request.get('internal_only') == 'true'
-    use_buildbucket = self.request.get('use_recipe') == 'true'
+    bisect_bot = self.request.get('bisect_bot')
+
+    use_recipe = bool(GetBisectDirectorForTester(bisect_bot))
 
     bisect_config = GetBisectConfig(
-        bisect_bot=self.request.get('bisect_bot'),
+        bisect_bot=bisect_bot,
         master_name=master_name,
         suite=self.request.get('suite'),
         metric=self.request.get('metric'),
@@ -128,8 +132,7 @@ class StartBisectHandler(request_handler.RequestHandler):
         bug_id=bug_id,
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
-        original_bot_name=self.request.get('bisect_bot'),
-        use_buildbucket=use_buildbucket)
+        use_buildbucket=use_recipe)
 
     if 'error' in bisect_config:
       return bisect_config
@@ -137,19 +140,15 @@ class StartBisectHandler(request_handler.RequestHandler):
     config_python_string = 'config = %s\n' % json.dumps(
         bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
 
-    # Forcing recipe by default for linux jobs.
-    if self.request.get('bisect_bot') == 'linux_perf_bisect':
-      use_buildbucket = True
-
     bisect_job = try_job.TryJob(
-        bot=self.request.get('bisect_bot'),
+        bot=bisect_bot,
         config=config_python_string,
         bug_id=bug_id,
         email=user.email(),
         master_name=master_name,
         internal_only=internal_only,
         job_type='bisect',
-        use_buildbucket=use_buildbucket)
+        use_buildbucket=use_recipe)
 
     try:
       result = PerformBisect(bisect_job)
@@ -238,13 +237,13 @@ def _PrefillInfo(test_path):
 
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
-    repeat_count, max_time_minutes, truncate_percent, bug_id,
-    original_bot_name=None, use_archive=None, bisect_mode='mean',
-    use_buildbucket=False):
+    repeat_count, max_time_minutes, truncate_percent, bug_id, use_archive=None,
+    bisect_mode='mean', use_buildbucket=False):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
-    bisect_bot: Bisect bot name.
+    bisect_bot: Bisect bot name. (This should be either a legacy bisector or a
+        recipe-enabled tester).
     master_name: Master name of the test being bisected.
     suite: Test suite name of the test being bisected.
     metric: Bisect bot "metric" parameter, in the form "chart/trace".
@@ -254,8 +253,6 @@ def GetBisectConfig(
     max_time_minutes: Max time to run the test.
     truncate_percent: How many high and low values to discard.
     bug_id: The Chromium issue tracker bug ID.
-    original_bot_name: The name of the bot that originated the alert, required
-      when using buildbucket (i.e. recipe bisect).
     use_archive: Specifies whether to use build archives or not to bisect.
         If this is not empty or None, then we want to use archived builds.
     bisect_mode: What aspect of the test run to bisect on; possible options are
@@ -271,8 +268,6 @@ def GetBisectConfig(
       bisect_bot, suite, metric=metric, use_buildbucket=use_buildbucket)
   if not command:
     return {'error': 'Could not guess command for %r.' % suite}
-  if use_buildbucket and not original_bot_name:
-    return {'error': 'Original bot name is required for buildbucket jobs.'}
 
   try:
     if not _IsGitHash(good_revision):
@@ -304,8 +299,9 @@ def GetBisectConfig(
       'builder_type': _BuilderType(master_name, use_archive),
       'target_arch': GuessTargetArch(bisect_bot),
       'bisect_mode': bisect_mode,
-      'original_bot_name': original_bot_name,
   }
+  if use_buildbucket:
+    config_dict['recipe_tester_name'] = bisect_bot
   return config_dict
 
 
@@ -329,7 +325,7 @@ def _BuilderType(master_name, use_archive):
 
 def GuessTargetArch(bisect_bot):
   """Return target architecture for the bisect job."""
-  if 'x64' in bisect_bot:
+  if 'x64' in bisect_bot or 'win64' in bisect_bot:
     return 'x64'
   elif bisect_bot in ['android_nexus9_perf_bisect']:
     return 'arm64'
@@ -735,9 +731,10 @@ def _MakeBuildbucketBisectJob(bisect_job):
         'Recipe only supports bisect jobs at this time.')
   if not bisect_job.master_name.startswith('ChromiumPerf'):
     raise request_handler.InvalidInputError(
-        'Recipe is only implemented on for tests run on chromium.perf '
+        'Recipe is only implemented for tests run on chromium.perf '
         '(and chromium.perf.fyi).')
   return buildbucket_job.BisectJob(
+      bisect_director=GetBisectDirectorForTester(config['recipe_tester_name']),
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],
       test_command=config['command'],
@@ -747,7 +744,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       truncate=config['truncate_percent'],
       bug_id=bisect_job.bug_id,
       gs_bucket='chrome-perf',
-      original_bot_name=config['original_bot_name'],
+      recipe_tester_name=config['recipe_tester_name'],
   )
 
 
@@ -766,3 +763,18 @@ def PerformBuildbucketBisect(bisect_job):
                   e.message),
     }
 
+
+def GetBisectDirectorForTester(bot):
+  """Maps the name of a tester bot to its corresponding bisect director.
+
+  Args:
+    bot (str): The name of the tester bot in the tryserver.chromium.perf
+        waterfall. (e.g. 'linux_perf_tester').
+
+  Returns:
+    The name of the bisect director that can use the given tester (e.g.
+        'linux_perf_bisector')
+  """
+  recipe_tester_director_mapping = stored_object.Get(
+      _TESTER_DIRECTOR_MAP_KEY)
+  return recipe_tester_director_mapping.get(bot)
