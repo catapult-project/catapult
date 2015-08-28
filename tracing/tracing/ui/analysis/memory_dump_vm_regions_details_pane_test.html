@@ -131,6 +131,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement(
         'tr-ui-a-memory-dump-vm-regions-details-pane');
     viewEl.vmRegions = vmRegions;
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(

@@ -55,6 +55,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_empty', function() {
     var viewEl = document.createElement(
         'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
   });
 
@@ -64,6 +65,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDump = memoryAllocatorDump;
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(

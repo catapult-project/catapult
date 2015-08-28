@@ -273,6 +273,8 @@
       'tracing/ui/analysis/single_thread_slice_sub_view.html',
       'tracing/ui/analysis/single_thread_time_slice_sub_view.html',
       'tracing/ui/analysis/stack_frame.html',
+      'tracing/ui/analysis/stacked_pane.html',
+      'tracing/ui/analysis/stacked_pane_view.html',
       'tracing/ui/analysis/tab_view.html',
       'tracing/ui/annotations/annotation_view.html',
       'tracing/ui/annotations/comment_box_annotation_view.html',

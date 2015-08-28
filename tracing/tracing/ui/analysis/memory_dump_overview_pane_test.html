@@ -23,6 +23,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_zeroDumps', function() {
     var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = [];
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
@@ -40,6 +41,7 @@ tr.b.unittest.testSuite(function() {
 
     var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps.slice(1, 2);
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
@@ -78,6 +80,7 @@ tr.b.unittest.testSuite(function() {
 
     var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
@@ -155,31 +158,33 @@ tr.b.unittest.testSuite(function() {
 
     var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    var didFireSelectedDumpChanged;
-    viewEl.addEventListener('selected-memory-cell-changed',
+    var didFireRequestChildDumpChange;
+    viewEl.addEventListener('request-child-pane-change',
         function(e) {
-      didFireSelectedDumpChanged = true;
+      didFireRequestChildDumpChange = true;
     });
 
     var table = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-b-table');
 
     // Simulate clicking on the 'oilpan' cell of the second process.
-    didFireSelectedDumpChanged = false;
+    didFireRequestChildDumpChange = false;
     table.selectedTableRow = table.tableRows[2];
     table.selectedColumnIndex = 7;
-    assert.isTrue(didFireSelectedDumpChanged);
+    assert.isTrue(didFireRequestChildDumpChange);
     assert.isDefined(viewEl.selectedMemoryCell);
-    assert.isDefined(viewEl.selectedMemoryCell.buildDetailsPane);
+    assert.isDefined(viewEl.childPaneBuilder);
 
     // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
     // second process.
-    didFireSelectedDumpChanged = false;
+    didFireRequestChildDumpChange = false;
     table.selectedColumnIndex = 2;
-    assert.isTrue(didFireSelectedDumpChanged);
+    assert.isTrue(didFireRequestChildDumpChange);
     assert.isUndefined(viewEl.selectedMemoryCell);
+    assert.isUndefined(viewEl.childPaneBuilder);
   });
 
   test('memory', function() {
@@ -193,14 +198,15 @@ tr.b.unittest.testSuite(function() {
       containerEl.textContent = '';
       containerEl.appendChild(view);
 
-      var didFireSelectedDumpChanged = false;
-      view.addEventListener('selected-memory-cell-changed', function(e) {
-        didFireSelectedDumpChanged = true;
+      var didFireRequestChildDumpChange = false;
+      view.addEventListener('request-child-pane-change', function(e) {
+        didFireRequestChildDumpChange = true;
       });
 
       view.processMemoryDumps = dumps;
+      view.rebuild();
 
-      assert.equal(didFireSelectedDumpChanged, expectSelectionEventFires);
+      assert.equal(didFireRequestChildDumpChange, expectSelectionEventFires);
 
       var table = tr.b.findDeepElementMatching(view, 'tr-ui-b-table');
       callback(view, table);
@@ -210,6 +216,7 @@ tr.b.unittest.testSuite(function() {
     simulateView(processMemoryDumps, false, function(view, table) {
       // No cell should be selected.
       assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(view.childPaneBuilder);
       assert.isUndefined(table.selectedTableRow);
       assert.isUndefined(table.selectedColumnIndex);
 
@@ -232,6 +239,7 @@ tr.b.unittest.testSuite(function() {
     simulateView(processMemoryDumps.slice(2, 3), false, function(view, table) {
       // No cell should be selected (the second process is not shown).
       assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(view.childPaneBuilder);
       assert.isUndefined(table.selectedTableRow);
       assert.isUndefined(table.selectedColumnIndex);
     });
@@ -240,6 +248,7 @@ tr.b.unittest.testSuite(function() {
     simulateView(processMemoryDumps, true, function(view, table) {
       // The 'PSS' column of the second process should be selected again.
       assert.equal(view.selectedMemoryCell.attr.value, 14155776);
+      assert.isDefined(view.childPaneBuilder);
       assert.strictEqual(table.selectedTableRow.title, 'Process 2');
       assert.strictEqual(
           table.tableColumns[table.selectedColumnIndex].name, 'PSS');
@@ -254,6 +263,7 @@ tr.b.unittest.testSuite(function() {
       // Nothing should be selected (no process with a 'v8' column value is
       // shown).
       assert.isUndefined(view.selectedMemoryCell);
+      assert.isUndefined(view.childPaneBuilder);
       assert.isUndefined(table.selectedTableRow);
       assert.isUndefined(table.selectedColumnIndex);
 
@@ -268,6 +278,7 @@ tr.b.unittest.testSuite(function() {
       // The 'Total resident' column of the first process should still be
       // selected.
       assert.equal(view.selectedMemoryCell.attr.value, 31457280);
+      assert.isDefined(view.childPaneBuilder);
       assert.strictEqual(table.selectedTableRow.title, 'Process 1');
       assert.strictEqual(
           table.tableColumns[table.selectedColumnIndex].name, 'Total resident');

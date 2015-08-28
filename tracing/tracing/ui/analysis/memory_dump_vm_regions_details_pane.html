@@ -6,10 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/model/attribute.html">
 
-<polymer-element name="tr-ui-a-memory-dump-vm-regions-details-pane">
+<polymer-element name="tr-ui-a-memory-dump-vm-regions-details-pane"
+    extends="tr-ui-a-stacked-pane">
   <template>
     <style>
       :host {
@@ -269,29 +271,20 @@ found in the LICENSE file.
     }
 
     Polymer({
-      // TODO(petrcermak): Consider sharing more code between
-      // tr-ui-a-memory-dump-allocator-details-pane and
-      // tr-ui-a-memory-dump-vm-regions-details-pane (e.g. by defining a common
-      // base class tr-c-memory-dump-details-pane).
-
       created: function() {
         this.vmRegions_ = undefined;
       },
 
-      ready: function() {
-        this.updateContents_();
-      },
-
       set vmRegions(vmRegions) {
         this.vmRegions_ = vmRegions;
-        this.updateContents_();
+        this.scheduleRebuildPane_();
       },
 
       get vmRegions() {
         return this.vmRegions_;
       },
 
-      updateContents_: function() {
+      rebuildPane_: function() {
         this.$.contents.textContent = '';
 
         if (this.vmRegions_ === undefined) {

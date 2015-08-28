@@ -22,6 +22,7 @@ tr.b.unittest.testSuite(function() {
 
     var viewEl = document.createElement('tr-ui-a-memory-dump-view');
     viewEl.processMemoryDumps = processMemoryDumps;
+    viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
     var overviewPane = tr.b.findDeepElementMatching(
@@ -34,6 +35,7 @@ tr.b.unittest.testSuite(function() {
     // Select totals of first process.
     overviewTable.selectedTableRow = overviewTable.tableRows[0];
     overviewTable.selectedColumnIndex = 1;
+    viewEl.rebuild();
     var detailsPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
     assert.strictEqual(
@@ -41,6 +43,7 @@ tr.b.unittest.testSuite(function() {
 
     // Select PSS of first process.
     overviewTable.selectedColumnIndex = 2;
+    viewEl.rebuild();
     var detailsPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
     assert.strictEqual(
@@ -48,12 +51,14 @@ tr.b.unittest.testSuite(function() {
 
     // Select PSS of third process.
     overviewTable.selectedTableRow = overviewTable.tableRows[2];
+    viewEl.rebuild();
     var detailsPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
     assert.isUndefined(detailsPane);
 
     // Select oilpan dump of second process.
     overviewTable.selectedColumnIndex = 7;
+    viewEl.rebuild();
     var detailsPane = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-memory-dump-allocator-details-pane');
     var detailsTable = tr.b.findDeepElementMatching(

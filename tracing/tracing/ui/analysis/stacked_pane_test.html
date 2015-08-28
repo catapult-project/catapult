@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('rebuild', function() {
+    var pane = document.createElement('tr-ui-a-stacked-pane');
+    var didFireBuildPane;
+    pane.rebuildPane_ = function() {
+      didFireBuildPane = true;
+    };
+
+    function checkRebuild(expectedDidFireBuildPane) {
+      didFireBuildPane = false;
+      pane.rebuild();
+      assert.strictEqual(didFireBuildPane, expectedDidFireBuildPane);
+    }
+
+    // No rebuilds should occur when not scheduled.
+    checkRebuild(false);
+    checkRebuild(false);
+
+    // Single rebuild should occur when scheduled once.
+    pane.scheduleRebuildPane_();
+    checkRebuild(true);
+    checkRebuild(false);
+
+    // Only a single rebuild should occur even when scheduled multiple times.
+    pane.scheduleRebuildPane_();
+    pane.scheduleRebuildPane_();
+    checkRebuild(true);
+    checkRebuild(false);
+  });
+
+  test('changeChildPane', function() {
+    var pane = document.createElement('tr-ui-a-stacked-pane');
+    var didFireEvent;
+    pane.addEventListener('request-child-pane-change', function() {
+      didFireEvent = true;
+    });
+
+    didFireEvent = false;
+    pane.childPaneBuilder = undefined;
+    assert.isTrue(didFireEvent);
+
+    didFireEvent = false;
+    pane.childPaneBuilder = function() {
+      return undefined;
+    };
+    assert.isTrue(didFireEvent);
+
+    didFireEvent = false;
+    pane.childPaneBuilder = function() {
+      return document.createElement('tr-ui-a-stacked-pane');
+    };
+    assert.isTrue(didFireEvent);
+  });
+});
+</script>
