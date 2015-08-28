@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pi.ui', function() {
+
+  // Creates a column which computes a value from all the data contained in a
+  // row and caches that value. This is useful for a grouping table where a
+  // grouping row can map to a lot of data.
+  // |title| is used as the caching key and therefore must be unique amongst
+  // the table columns.
+  // The |computeValueFn| property should be set to a function that receives an
+  // array of data and returns the value for the column.
+  // You can set other properties of the column, like |width|, |colSpan|,
+  // |cmp| etc. Do not set |value|, as the class provides it.
+  function CachingColumn(title, opt_computeValueFn) {
+    this.title = title;
+    this.computeValueFn = opt_computeValueFn || function(data) {
+      return data;
+    };
+  };
+
+  CachingColumn.prototype = {
+    value: function(row) {
+      row.cachedValues_ = row.cachedValues_ || {};
+      // Using hasOwnProperty to cache false-ish values like undefined.
+      if (!row.cachedValues_.hasOwnProperty(this.title))
+        row.cachedValues_[this.title] = this.computeValueFn(row.data);
+      return row.cachedValues_[this.title];
+    }
+  };
+
+  return {
+    CachingColumn: CachingColumn
+  };
+});
+
+</script>

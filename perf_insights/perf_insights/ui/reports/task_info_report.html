@@ -15,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/mappers/reduce.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
@@ -47,39 +48,6 @@ found in the LICENSE file.
   </template>
   <script>
   'use strict';
-
-  var COLUMN_INFOS = [
-    {
-      columnHeader: 'Avg. Time in queue',
-      type: 'time_spent_in_queue',
-      statSetter: function(stat, value) {
-        stat.waitTime = value;
-      },
-      statGetter: function(stat) {
-        return stat.waitTime;
-      }
-    },
-    {
-      columnHeader: 'Avg. Self time',
-      type: 'time_spent_in_top_level_task',
-      statSetter: function(stat, value) {
-        stat.duration = value;
-      },
-      statGetter: function(stat) {
-        return stat.duration;
-      }
-    },
-    {
-      columnHeader: 'Avg. CPU time',
-      type: 'cpu_time_spent_in_top_level_task',
-      statSetter: function(stat, value) {
-        stat.cpuDuration = value;
-      },
-      statGetter: function(stat) {
-        return stat.cpuDuration;
-      }
-    }
-  ];
 
   Polymer({
     created: function() {
@@ -179,20 +147,6 @@ found in the LICENSE file.
 
     createColumns_: function() {
 
-      function averageFromHistograms(desiredType, datum) {
-        var runningSum = 0;
-        var numValues = 0;
-        datum.forEach(function(data) {
-          if (data.type !== desiredType)
-            return;
-          runningSum += data.histogram.runningSum;
-          numValues += data.histogram.numValues;
-        });
-        if (numValues === 0)
-          return 0;
-        return runningSum / numValues;
-      }
-
       function getStatsForRow(row) {
         if (row.stats_ === undefined) {
           row.stats_ = {};
@@ -205,66 +159,75 @@ found in the LICENSE file.
       }
 
       var columns = [{
-        title: 'Title',
-        value: function(row) {
-          return row.title;
-        },
-        cmp: function(a, b) {
-          var sA = a.title;
-          var sB = b.title;
-          if (sA < sB)
-            return -1;
-          if (sA > sB)
-            return 1;
-          return 0;
-        },
-        width: '500px'
-      }];
-
-      COLUMN_INFOS.forEach(function(info) {
-        columns.push({
-          title: info.columnHeader,
+          title: 'Title',
           value: function(row) {
-            var stat = info.statGetter(getStatsForRow(row));
-            if (stat === undefined)
-              return;
-            return tr.ui.units.createTimeDurationSpan(stat);
+            return row.title;
           },
-          cmp: function(x, y) {
-            var sX = info.statGetter(getStatsForRow(x));
-            var sY = info.statGetter(getStatsForRow(y));
-            return tr.b.comparePossiblyUndefinedValues(sX, sY,
-                function(x, y) {
-                  return x - y;
-                });
-          }
-        });
-      });
+          cmp: function(a, b) {
+            var sA = a.title;
+            var sB = b.title;
+            if (sA < sB)
+              return -1;
+            if (sA > sB)
+              return 1;
+            return 0;
+          },
+          width: '500px'
+        },
+        this.createCachingColumn_('Avg. Time in queue', 'time_spent_in_queue'),
+        this.createCachingColumn_('Avg. Self time',
+            'time_spent_in_top_level_task'),
+        this.createCachingColumn_('Avg. CPU time',
+            'cpu_time_spent_in_top_level_task')
+      ];
+
       return columns;
     },
 
+    createCachingColumn_(title, type) {
+
+      function averageFromHistograms(data) {
+        var runningSum = 0;
+        var numValues = 0;
+        data.forEach(function(datum) {
+          if (datum.type !== type)
+            return;
+          runningSum += datum.histogram.runningSum;
+          numValues += datum.histogram.numValues;
+        });
+        var average = 0;
+        if (numValues !== 0)
+          average = runningSum / numValues;
+        return tr.ui.units.createTimeDurationSpan(average);
+      }
+
+      var column = new pi.ui.CachingColumn(title, averageFromHistograms);
+      column.type = type;
+      column.cmp = function(row0, row1) {
+        return column.value(row0).duration - column.value(row1).duration;
+      };
+      return column;
+    },
+
     setHistogramBasedOnSelection_: function() {
-      var selectedRow = this.$.table.selectedTableRow;
-      var selectedColumn = this.$.table.selectedColumnIndex;
+      var table = this.$.table;
+      var selectedColumn = table.selectedColumnIndex;
       // Don't display a histogram if the user selects the title.
       if (selectedColumn === 0)
         return;
 
-      function getHistogramForRow(row, desiredType) {
-        var histogram;
-        row.data.forEach(function(data) {
-          if (data.type !== desiredType)
-            return;
-          if (!histogram)
-            histogram = data.histogram.clone();
-          else
-            histogram.addHistogram(data.histogram);
-        });
-        return histogram;
-      }
+      var desiredType = table.tableColumns[selectedColumn].type;
+      var histogram = undefined;
+      table.selectedTableRow.data.forEach(function(datum) {
+        if (datum.type !== desiredType)
+          return;
+        if (!histogram)
+          histogram = datum.histogram.clone();
+        else
+          histogram.addHistogram(datum.histogram);
+      });
 
-      var info = COLUMN_INFOS[selectedColumn - 1];
-      this.$.histogram.histogram = getHistogramForRow(selectedRow, info.type);
+      this.$.histogram.histogram = histogram;
     }
 
   });
