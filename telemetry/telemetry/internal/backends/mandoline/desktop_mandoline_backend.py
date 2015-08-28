@@ -4,6 +4,7 @@
 
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,6 +31,11 @@ class DesktopMandolineBackend(
     self._proc = None
     self._tmp_output_file = None
 
+    self._tmp_profile_dir = None
+    if not self.browser_options.profile_dir:
+      self._tmp_profile_dir = tempfile.mkdtemp()
+    logging.info("Using profile directory:'%s'." % self.profile_directory)
+
     self._executable = executable
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
@@ -52,6 +58,7 @@ class DesktopMandolineBackend(
       self._port = util.GetUnreservedAvailableLocalPort()
     logging.info('Requested remote debugging port: %d' % self._port)
     args.append('--remote-debugging-port=%i' % self._port)
+    args.append('--user-data-dir=%s' % self.profile_directory)
     return args
 
   def Start(self):
@@ -98,7 +105,7 @@ class DesktopMandolineBackend(
 
   @property
   def profile_directory(self):
-    raise NotImplementedError()
+    return self.browser_options.profile_dir or self._tmp_profile_dir
 
   def IsBrowserRunning(self):
     return self._proc and self._proc.poll() == None
@@ -144,3 +151,7 @@ class DesktopMandolineBackend(
     if self.IsBrowserRunning():
       self._proc.kill()
     self._proc = None
+
+    if self._tmp_profile_dir and os.path.exists(self._tmp_profile_dir):
+      shutil.rmtree(self._tmp_profile_dir, ignore_errors=True)
+      self._tmp_profile_dir = None

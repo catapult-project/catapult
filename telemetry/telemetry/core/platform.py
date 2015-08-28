@@ -154,9 +154,6 @@ class Platform(object):
   def FlushSystemCacheForDirectory(self, directory):
     """Flushes the OS's file cache for the specified directory.
 
-    Any files or directories inside |directory| matching a name in the
-    |ignoring| list will be skipped.
-
     This function does not require root or administrator access."""
     return self._platform_backend.FlushSystemCacheForDirectory(directory)
 
