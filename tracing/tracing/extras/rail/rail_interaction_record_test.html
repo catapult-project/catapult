@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var test_utils = tr.c.TestUtils;
 
   test('layoutInfo', function() {
-    var model = tr.e.audits.newChromeModel(function(model) {
+    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       // TODO(benjhayden): Create
       model.rendererMain.sliceGroup.pushSlice(test_utils.newSliceEx({
         title: 'FrameView::layout',

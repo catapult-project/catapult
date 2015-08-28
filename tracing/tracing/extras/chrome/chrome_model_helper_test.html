@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
 
   test('getLatencyData', function() {
-    var m = tr.e.audits.newChromeModel(function(m) {
+    var m = tr.e.chrome.ChromeTestUtils.newChromeModel(function(m) {
       m.browserMain.asyncSliceGroup.push(newAsyncSliceEx({
         title: 'InputLatency::GestureScrollUpdate',
         cat: 'benchmark',

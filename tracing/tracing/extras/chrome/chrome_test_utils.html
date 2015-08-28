@@ -15,8 +15,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Base class for trace data Auditors.
  */
-tr.exportTo('tr.e.audits', function() {
-  function newChromeModel(customizeModelCallback) {
+tr.exportTo('tr.e.chrome', function() {
+  function ChromeTestUtils() {
+  }
+
+  ChromeTestUtils.newChromeModel = function(customizeModelCallback) {
     return tr.c.TestUtils.newModel(function(model) {
       console.log(model);
       model.browserProcess = model.getOrCreateProcess(1);
@@ -37,13 +40,13 @@ tr.exportTo('tr.e.audits', function() {
     });
   }
 
-  function addEvent(thread, dict) {
+  ChromeTestUtils.addEvent = function(thread, dict) {
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     thread.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addInputEvent(model, typeName, dict) {
+  ChromeTestUtils.addInputEvent = function(model, typeName, dict) {
     dict.title = 'InputLatency::' + typeName;
     dict.isTopLevel = (dict.isTopLevel === undefined);
     dict.startThread = model.browserMain;
@@ -52,14 +55,14 @@ tr.exportTo('tr.e.audits', function() {
     return slice;
   }
 
-  function addFlingAnimationEvent(model, dict) {
+  ChromeTestUtils.addFlingAnimationEvent = function(model, dict) {
     dict.title = 'InputHandlerProxy::HandleGestureFling::started';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererCompositor.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addFrameEvent(model, dict) {
+  ChromeTestUtils.addFrameEvent = function(model, dict) {
     dict.title = tr.e.audits.IMPL_RENDERING_STATS;
     dict.type = tr.model.ThreadSlice;
     var slice = tr.c.TestUtils.newSliceEx(dict);
@@ -67,14 +70,14 @@ tr.exportTo('tr.e.audits', function() {
     return slice;
   }
 
-  function addLoadingEvent(model, dict) {
+  ChromeTestUtils.addLoadingEvent = function(model, dict) {
     dict.title = 'WebContentsImpl Loading';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addNetworkEvent(model, dict) {
+  ChromeTestUtils.addNetworkEvent = function(model, dict) {
     dict.cat = 'netlog';
     dict.title = 'Generic Network event';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
@@ -82,45 +85,35 @@ tr.exportTo('tr.e.audits', function() {
     return slice;
   }
 
-  function addCommitLoadEvent(model, dict) {
+  ChromeTestUtils.addCommitLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addStartProvisionalLoadEvent(model, dict) {
+  ChromeTestUtils.addStartProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didStartProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addFailProvisionalLoadEvent(model, dict) {
+  ChromeTestUtils.addFailProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didFailProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
-  function addMainRunnerEvent(model, dict) {
+  ChromeTestUtils.addMainRunnerEvent = function(model, dict) {
     dict.title = 'ContentMainRunnerImpl::Initialize';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
   }
 
   return {
-    newChromeModel: newChromeModel,
-    addEvent: addEvent,
-    addInputEvent: addInputEvent,
-    addFlingAnimationEvent: addFlingAnimationEvent,
-    addFrameEvent: addFrameEvent,
-    addLoadingEvent: addLoadingEvent,
-    addNetworkEvent: addNetworkEvent,
-    addCommitLoadEvent: addCommitLoadEvent,
-    addStartProvisionalLoadEvent: addStartProvisionalLoadEvent,
-    addFailProvisionalLoadEvent: addFailProvisionalLoadEvent,
-    addMainRunnerEvent: addMainRunnerEvent
+    ChromeTestUtils: ChromeTestUtils
   };
 });
 </script>
