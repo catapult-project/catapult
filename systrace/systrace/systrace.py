@@ -13,9 +13,12 @@ the kernel.  It creates an HTML file for visualizing the trace.
 import sys
 
 # Make sure we're using a new enough version of Python.
-# The flags= parameter of re.sub() is new in Python 2.7.
-if sys.version_info[:2] < (2, 7):
-  print >> sys.stderr, '\nThis script requires Python 2.7 or newer.'
+# The flags= parameter of re.sub() is new in Python 2.7. And Systrace does not
+# support Python 3 yet.
+version = sys.version_info[:2]
+if version != (2, 7):
+  sys.stderr.write('This script does not support Python %d.%d. '
+                   'Please use Python 2.7.\n' % version)
   sys.exit(1)
 
 import imp
@@ -134,7 +137,7 @@ def write_trace_html(html_filename, script_dir, agents):
 
   html_file.write(html_suffix)
   html_file.close()
-  print '\n    wrote file://%s\n' % os.path.abspath(html_filename)
+  print('\n    wrote file://%s\n' % os.path.abspath(html_filename))
 
 
 def create_agents(options, categories):
@@ -183,8 +186,8 @@ def main():
     dirs = DEFAULT_AGENT_DIR
     if options.agent_dirs:
       dirs += ',' + options.agent_dirs
-    print >> sys.stderr, ('No systrace agent is available in directories |%s|.'
-                          % dirs)
+    sys.stderr.write('No systrace agent is available in directories |%s|.\n' %
+                     dirs)
     sys.exit(1)
 
   try:
