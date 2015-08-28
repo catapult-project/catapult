@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
 import logging
 import os
 import re
@@ -89,13 +90,16 @@ class AndroidForwarder(forwarders.Forwarder):
             p.local_port,
             forwarder.Forwarder.DevicePortForHostPort(p.local_port))
         if p else None for p in port_pairs])
+    atexit.register(self.Close)
     # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):
-    for port_pair in self._port_pairs:
-      if port_pair:
-        forwarder.Forwarder.UnmapDevicePort(port_pair.remote_port, self._device)
-    super(AndroidForwarder, self).Close()
+    if self._forwarding:
+      for port_pair in self._port_pairs:
+        if port_pair:
+          forwarder.Forwarder.UnmapDevicePort(
+              port_pair.remote_port, self._device)
+      super(AndroidForwarder, self).Close()
 
 
 class AndroidRndisForwarder(forwarders.Forwarder):
@@ -116,6 +120,7 @@ class AndroidRndisForwarder(forwarders.Forwarder):
       # Need to override routing policy again since call to setifdns
       # sometimes resets policy table
       self._rndis_configurator.OverrideRoutingPolicy()
+    atexit.register(self.Close)
     # TODO(tonyg): Verify that each port can connect to host.
 
   @property
@@ -123,9 +128,10 @@ class AndroidRndisForwarder(forwarders.Forwarder):
     return self._host_ip
 
   def Close(self):
-    self._rndis_configurator.RestoreRoutingPolicy()
-    self._SetDns(*self._original_dns)
-    self._RestoreDefaultGateway()
+    if self._forwarding:
+      self._rndis_configurator.RestoreRoutingPolicy()
+      self._SetDns(*self._original_dns)
+      self._RestoreDefaultGateway()
     super(AndroidRndisForwarder, self).Close()
 
   def _RedirectPorts(self, port_pairs):

@@ -36,6 +36,7 @@ class Forwarder(object):
     self._port_pairs = PortPairs(*[
         PortPair(p.local_port, p.remote_port or p.local_port)
         if p else None for p in port_pairs])
+    self._forwarding = True
 
   @property
   def host_port(self):
@@ -56,3 +57,4 @@ class Forwarder(object):
 
   def Close(self):
     self._port_pairs = None
+    self._forwarding = False
