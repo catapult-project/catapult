@@ -4,6 +4,7 @@
 
 import unittest
 
+import mock
 import webapp2
 import webtest
 
@@ -12,6 +13,7 @@ from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
+from dashboard.models import graph_data
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
 
@@ -177,6 +179,22 @@ class AlertsTest(testing_common.TestCase):
         response, 'STOPPAGE_ALERT_LIST')
     self.assertEqual(2, len(stoppage_alert_list))
     self.assertEqual(1, len(response.html('alerts-table')))
+
+  @mock.patch('logging.error')
+  def testGet_StoppageAlertWithBogusRow_LogsErrorAndShowsTable(
+      self, mock_logging_error):
+    sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
+    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
+    test_key = utils.TestKey('M/b/foo/bar')
+    row_parent = utils.GetTestContainerKey(test_key)
+    row = graph_data.Row(parent=row_parent, id=1234)
+    stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
+    response = self.testapp.get('/alerts?sheriff=Sheriff')
+    stoppage_alert_list = self.GetEmbeddedVariable(
+        response, 'STOPPAGE_ALERT_LIST')
+    self.assertEqual(1, len(stoppage_alert_list))
+    self.assertEqual(1, len(response.html('alerts-table')))
+    self.assertEqual(1, mock_logging_error.call_count)
 
   def testGet_WithNoAlerts_HasImageAndNoAlertsTable(self):
     response = self.testapp.get('/alerts')

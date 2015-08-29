@@ -5,6 +5,7 @@
 """Provides the web interface for displaying an overview of alerts."""
 
 import json
+import logging
 
 from google.appengine.ext import ndb
 
@@ -147,9 +148,12 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
 def _GetStoppageAlertDict(stoppage_alert_entity):
   """Returns a dictionary of properties of a stoppage alert."""
   alert_dict = _AlertDict(stoppage_alert_entity)
+  last_row_date = stoppage_alert_entity.last_row_date
+  if not last_row_date:
+    logging.error('No date for StoppageAlert:\n%s', stoppage_alert_entity)
   alert_dict.update({
       'mail_sent': stoppage_alert_entity.mail_sent,
-      'last_row_date': str(stoppage_alert_entity.last_row_date.date()),
+      'last_row_date': str(last_row_date.date()) if last_row_date else 'N/A',
       'recovered': stoppage_alert_entity.recovered,
   })
   return alert_dict
