@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import logging
 import socket
 import time
 
@@ -30,40 +31,6 @@ class TracingHasNotRunException(Exception):
 
 class TracingUnexpectedResponseException(Exception):
   pass
-
-
-class _DevToolsStreamReader(object):
-  def __init__(self, inspector_socket, stream_handle):
-    self._inspector_websocket = inspector_socket
-    self._handle = stream_handle
-    self._callback = None
-    self._data = None
-
-  def Read(self, callback):
-    # Do not allow the instance of this class to be reused, as
-    # we only read data sequentially at the moment, so a stream
-    # can only be read once.
-    assert not self._callback
-    self._data = ''
-    self._callback = callback
-    self._ReadChunkFromStream()
-
-  def _ReadChunkFromStream(self):
-    req = {'method': 'IO.read', 'params': {'handle': self._handle}}
-    self._inspector_websocket.AsyncRequest(req, self._GotChunkFromStream)
-
-  def _GotChunkFromStream(self, response):
-    if 'error' in response:
-      raise TracingUnrecoverableException(
-          'Reading trace failed: %s' % response['error']['message'])
-    result = response['result']
-    self._data += result['data']
-    if not result.get('eof', False):
-      self._ReadChunkFromStream()
-      return
-    req = {'method': 'IO.close', 'params': {'handle': self._handle}}
-    self._inspector_websocket.SendAndIgnoreResponse(req)
-    self._callback(self._data)
 
 
 class TracingBackend(object):
@@ -99,8 +66,7 @@ class TracingBackend(object):
     req = {
       'method': 'Tracing.start',
       'params': {
-        'options': trace_options.GetTraceOptionsStringForChromeDevtool(),
-        'transferMode': 'ReturnAsStream'
+        'options': trace_options.GetTraceOptionsStringForChromeDevtool()
       }
     }
     if custom_categories:
@@ -199,22 +165,15 @@ class TracingBackend(object):
   def _NotificationHandler(self, res):
     if 'Tracing.dataCollected' == res.get('method'):
       value = res.get('params', {}).get('value')
-      self._trace_events.extend(value)
+      if type(value) in [str, unicode]:
+        self._trace_events.append(value)
+      elif type(value) is list:
+        self._trace_events.extend(value)
+      else:
+        logging.warning('Unexpected type in tracing data')
     elif 'Tracing.tracingComplete' == res.get('method'):
-      stream_handle = res.get('params', {}).get('stream')
-      if not stream_handle:
-        self._has_received_all_tracing_data = True
-        return
-
-      if self._trace_events:
-        raise TracingUnexpectedResponseException(
-            'Got both dataCollected events and a stream from server')
-      reader = _DevToolsStreamReader(self._inspector_websocket, stream_handle)
-      reader.Read(self._ReceivedAllTraceDataFromStream)
-
-  def _ReceivedAllTraceDataFromStream(self, data):
-    self._trace_events = json.loads(data)
-    self._has_received_all_tracing_data = True
+      self._has_received_all_tracing_data = True
+      return True
 
   def Close(self):
     self._inspector_websocket.Disconnect()

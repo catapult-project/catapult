@@ -15,9 +15,6 @@ import mock
 
 
 class FakeInspectorWebsocket(object):
-  _NOTIFICATION_EVENT = 1
-  _NOTIFICATION_CALLBACK = 2
-
   """A fake InspectorWebsocket.
 
   A fake that allows tests to send pregenerated data. Normal
@@ -29,25 +26,18 @@ class FakeInspectorWebsocket(object):
     self._mock_timer = mock_timer
     self._notifications = []
     self._response_handlers = {}
-    self._pending_callbacks = {}
     self._handler = None
 
   def RegisterDomain(self, _, handler):
     self._handler = handler
 
-  def AddEvent(self, method, params, time):
+  def AddNotification(self, method, value, time):
     if self._notifications:
       assert self._notifications[-1][1] < time, (
           'Current response is scheduled earlier than previous response.')
+    params = {'value': value}
     response = {'method': method, 'params': params}
-    self._notifications.append((response, time, self._NOTIFICATION_EVENT))
-
-  def AddAsyncResponse(self, method, result, time):
-    if self._notifications:
-      assert self._notifications[-1][1] < time, (
-          'Current response is scheduled earlier than previous response.')
-    response = {'method': method, 'result': result}
-    self._notifications.append((response, time, self._NOTIFICATION_CALLBACK))
+    self._notifications.append((response, time))
 
   def AddResponseHandler(self, method, handler):
     self._response_handlers[method] = handler
@@ -55,12 +45,6 @@ class FakeInspectorWebsocket(object):
   def SyncRequest(self, request, *_args, **_kwargs):
     handler = self._response_handlers[request['method']]
     return handler(request) if handler else None
-
-  def AsyncRequest(self, request, callback):
-    self._pending_callbacks.setdefault(request['method'], []).append(callback)
-
-  def SendAndIgnoreResponse(self, request):
-    pass
 
   def Connect(self, _):
     pass
@@ -71,20 +55,14 @@ class FakeInspectorWebsocket(object):
       self._mock_timer.SetTime(current_time + timeout + 1)
       raise websocket.WebSocketTimeoutException()
 
-    response, time, kind = self._notifications[0]
+    response, time = self._notifications[0]
     if time - current_time > timeout:
       self._mock_timer.SetTime(current_time + timeout + 1)
       raise websocket.WebSocketTimeoutException()
 
     self._notifications.pop(0)
     self._mock_timer.SetTime(time + 1)
-    if kind == self._NOTIFICATION_EVENT:
-      self._handler(response)
-    elif kind == self._NOTIFICATION_CALLBACK:
-      callback = self._pending_callbacks.get(response['method']).pop(0)
-      callback(response)
-    else:
-      raise Exception('Unexpected response type')
+    self._handler(response)
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):
@@ -214,9 +192,9 @@ class TracingBackendUnitTest(unittest.TestCase):
 
   def testCollectTracingDataTimeout(self):
     inspector = FakeInspectorWebsocket(self._mock_timer)
-    inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 9)
-    inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 19)
-    inspector.AddEvent('Tracing.tracingComplete', {}, 35)
+    inspector.AddNotification('Tracing.dataCollected', 'asdf1', 9)
+    inspector.AddNotification('Tracing.dataCollected', 'asdf2', 19)
+    inspector.AddNotification('Tracing.tracingComplete', 'asdf3', 35)
 
     with mock.patch('telemetry.internal.backends.chrome_inspector.'
                     'inspector_websocket.InspectorWebsocket') as mock_class:
@@ -232,9 +210,9 @@ class TracingBackendUnitTest(unittest.TestCase):
 
   def testCollectTracingDataNoTimeout(self):
     inspector = FakeInspectorWebsocket(self._mock_timer)
-    inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 9)
-    inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 14)
-    inspector.AddEvent('Tracing.tracingComplete', {}, 19)
+    inspector.AddNotification('Tracing.dataCollected', 'asdf1', 9)
+    inspector.AddNotification('Tracing.dataCollected', 'asdf2', 14)
+    inspector.AddNotification('Tracing.tracingComplete', 'asdf3', 19)
 
     with mock.patch('telemetry.internal.backends.chrome_inspector.'
                     'inspector_websocket.InspectorWebsocket') as mock_class:
@@ -243,21 +221,6 @@ class TracingBackendUnitTest(unittest.TestCase):
 
     backend._CollectTracingData(10)
     self.assertEqual(2, len(backend._trace_events))
-    self.assertTrue(backend._has_received_all_tracing_data)
-
-  def testCollectTracingDataFromStream(self):
-    inspector = FakeInspectorWebsocket(self._mock_timer)
-    inspector.AddEvent('Tracing.tracingComplete', {'stream': '42'}, 1)
-    inspector.AddAsyncResponse('IO.read', {'data': '[{},{},{'}, 2)
-    inspector.AddAsyncResponse('IO.read', {'data': '},{},{}]', 'eof': True}, 3)
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
-
-    backend._CollectTracingData(10)
-    self.assertEqual(5, len(backend._trace_events))
     self.assertTrue(backend._has_received_all_tracing_data)
 
   def testDumpMemorySuccess(self):
