@@ -311,8 +311,10 @@ tr.exportTo('tr.importer', function() {
 
     createImporter_: function(eventData) {
       var importerConstructor = tr.importer.Importer.findImporterFor(eventData);
-      if (!importerConstructor)
-        throw new Error('Could create an importer for the provided eventData.');
+      if (!importerConstructor) {
+        throw new Error('Couldn\'t create an importer for the provided ' +
+                        'eventData.');
+      }
       return new importerConstructor(this.model_, eventData);
     },
 
