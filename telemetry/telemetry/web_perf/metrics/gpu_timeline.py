@@ -6,6 +6,7 @@ import math
 import sys
 
 from telemetry.timeline import model as model_module
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.web_perf.metrics import timeline_based_metric
@@ -24,12 +25,16 @@ TRACKED_GL_CONTEXT_NAME = {'RenderCompositor': 'render_compositor',
 
 class GPUTimelineListOfValues(list_of_scalar_values.ListOfScalarValues):
   def __init__(self, page, name, values):
-    super(GPUTimelineListOfValues, self).__init__(page, name, 'ms', values)
+    super(GPUTimelineListOfValues, self).__init__(
+        page, name, 'ms', values,
+        improvement_direction=improvement_direction.DOWN)
 
 
 class GPUTimelineValue(scalar.ScalarValue):
   def __init__(self, page, name, value):
-    super(GPUTimelineValue, self).__init__(page, name, 'ms', value)
+    super(GPUTimelineValue, self).__init__(
+      page, name, 'ms', value,
+      improvement_direction=improvement_direction.DOWN)
 
 
 def _CalculateFrameTimes(events_per_frame, event_data_func):

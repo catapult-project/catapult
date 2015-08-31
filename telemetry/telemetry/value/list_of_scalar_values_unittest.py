@@ -7,6 +7,7 @@ import unittest
 from telemetry import story
 from telemetry import page as page_module
 from telemetry import value
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import none_values
 
@@ -71,10 +72,12 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE)
+        [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE)
+        [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -87,15 +90,18 @@ class ValueTest(TestBase):
     self.assertEquals([10, 9, 9, 7, 300, 302, 303, 304], vM.values)
     # SQRT((19/12 * 3 + 35/12 * 3)/6) = 1.5
     self.assertAlmostEqual(1.5, vM.std)
+    self.assertEquals(improvement_direction.DOWN, vM.improvement_direction)
 
   def testListSamePageMergingWithPickFirstPolicy(self):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1, 2], same_page_merge_policy=value.PICK_FIRST)
+        [1, 2], same_page_merge_policy=value.PICK_FIRST,
+        improvement_direction=improvement_direction.UP)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [3, 4], same_page_merge_policy=value.PICK_FIRST)
+        [3, 4], same_page_merge_policy=value.PICK_FIRST,
+        improvement_direction=improvement_direction.UP)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -106,16 +112,19 @@ class ValueTest(TestBase):
     self.assertEquals(value.PICK_FIRST, vM.same_page_merge_policy)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
+    self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 
   def testListDifferentPageMerging(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1, 2], same_page_merge_policy=value.CONCATENATE)
+        [1, 2], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page1, 'x', 'unit',
-        [3, 4], same_page_merge_policy=value.CONCATENATE)
+        [3, 4], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -126,15 +135,18 @@ class ValueTest(TestBase):
     self.assertEquals(value.CONCATENATE, vM.same_page_merge_policy)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2, 3, 4], vM.values)
+    self.assertEquals(improvement_direction.DOWN, vM.improvement_direction)
 
   def testListWithNoneValueMerging(self):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1, 2], same_page_merge_policy=value.CONCATENATE)
+        [1, 2], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.UP)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        None, same_page_merge_policy=value.CONCATENATE, none_value_reason='n')
+        None, same_page_merge_policy=value.CONCATENATE, none_value_reason='n',
+        improvement_direction=improvement_direction.UP)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -142,24 +154,28 @@ class ValueTest(TestBase):
     self.assertEquals(None, vM.values)
     self.assertEquals(none_values.MERGE_FAILURE_REASON,
                       vM.none_value_reason)
+    self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 
   def testListWithNoneValueMustHaveNoneReason(self):
     page0 = self.pages[0]
     self.assertRaises(none_values.NoneValueMissingReason,
                       lambda: list_of_scalar_values.ListOfScalarValues(
-                          page0, 'x', 'unit', None))
+                          page0, 'x', 'unit', None,
+                          improvement_direction=improvement_direction.DOWN))
 
   def testListWithNoneReasonMustHaveNoneValue(self):
     page0 = self.pages[0]
     self.assertRaises(none_values.ValueMustHaveNoneValue,
                       lambda: list_of_scalar_values.ListOfScalarValues(
                           page0, 'x', 'unit', [1, 2],
-                          none_value_reason='n'))
+                          none_value_reason='n',
+                          improvement_direction=improvement_direction.UP))
 
   def testAsDict(self):
     v = list_of_scalar_values.ListOfScalarValues(
         None, 'x', 'unit', [1, 2],
-        same_page_merge_policy=value.PICK_FIRST, important=False)
+        same_page_merge_policy=value.PICK_FIRST, important=False,
+        improvement_direction=improvement_direction.DOWN)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d['values'], [1, 2])
@@ -169,10 +185,12 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE)
+        [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE)
+        [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = (list_of_scalar_values.ListOfScalarValues.
@@ -186,7 +204,8 @@ class ValueTest(TestBase):
   def testNoneValueAsDict(self):
     v = list_of_scalar_values.ListOfScalarValues(
         None, 'x', 'unit', None, same_page_merge_policy=value.PICK_FIRST,
-        important=False, none_value_reason='n')
+        important=False, none_value_reason='n',
+        improvement_direction=improvement_direction.UP)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
@@ -201,13 +220,15 @@ class ValueTest(TestBase):
       'name': 'x',
       'units': 'unit',
       'values': [1, 2],
-      'std': 0.7071
+      'std': 0.7071,
+      'improvement_direction': improvement_direction.DOWN
     }
     v = value.Value.FromDict(d, {})
 
     self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
     self.assertEquals(v.values, [1, 2])
     self.assertEquals(v.std, 0.7071)
+    self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
 
   def testFromDictFloats(self):
     d = {
@@ -215,7 +236,8 @@ class ValueTest(TestBase):
       'name': 'x',
       'units': 'unit',
       'values': [1.3, 2.7, 4.5, 2.1, 3.4],
-      'std': 0.901
+      'std': 0.901,
+      'improvement_direction': improvement_direction.UP
     }
     v = value.Value.FromDict(d, {})
 
@@ -230,7 +252,8 @@ class ValueTest(TestBase):
       'units': 'unit',
       'values': None,
       'std': None,
-      'none_value_reason': 'n'
+      'none_value_reason': 'n',
+      'improvement_direction': improvement_direction.DOWN
     }
     v = value.Value.FromDict(d, {})
 

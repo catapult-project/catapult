@@ -11,6 +11,7 @@ from telemetry import story
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.value import improvement_direction
 from telemetry.value import scalar
 
 
@@ -55,12 +56,14 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results = page_test_results.PageTestResults()
     results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[0], 'a', 'seconds', 3))
+        test_story_set.stories[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[0])
 
     results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[1], 'a', 'seconds', 7))
+        test_story_set.stories[1], 'a', 'seconds', 7,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
@@ -104,12 +107,14 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results = page_test_results.PageTestResults()
     results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[0], 'a', 'seconds', 4))
+        test_story_set.stories[0], 'a', 'seconds', 4,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[0])
 
     results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[1], 'a', 'seconds', 8))
+        test_story_set.stories[1], 'a', 'seconds', 8,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
@@ -186,12 +191,14 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results = page_test_results.PageTestResults()
     results.WillRunPage(test_story_set.stories[0])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[0], 'a', 'seconds', 5))
+        test_story_set.stories[0], 'a', 'seconds', 5,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[0])
 
     results.WillRunPage(test_story_set.stories[1])
     results.AddValue(scalar.ScalarValue(
-        test_story_set.stories[1], 'a', 'seconds', 9))
+        test_story_set.stories[1], 'a', 'seconds', 9,
+        improvement_direction=improvement_direction.DOWN))
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(

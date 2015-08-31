@@ -7,12 +7,13 @@ import numbers
 from telemetry import value as value_module
 from telemetry.value import list_of_scalar_values
 from telemetry.value import none_values
+from telemetry.value import summarizable
 
 
-class ScalarValue(value_module.Value):
+class ScalarValue(summarizable.SummarizableValue):
   def __init__(self, page, name, units, value, important=True,
                description=None, tir_label=None,
-               none_value_reason=None):
+               none_value_reason=None, improvement_direction=None):
     """A single value (float or integer) result from a test.
 
     A test that counts the number of DOM elements in a page might produce a
@@ -20,7 +21,7 @@ class ScalarValue(value_module.Value):
        ScalarValue(page, 'num_dom_elements', 'count', num_elements)
     """
     super(ScalarValue, self).__init__(page, name, units, important, description,
-                                      tir_label)
+                                      tir_label, improvement_direction)
     assert value is None or isinstance(value, numbers.Number)
     none_values.ValidateNoneValueReason(value, none_value_reason)
     self.value = value
@@ -32,14 +33,15 @@ class ScalarValue(value_module.Value):
     else:
       page_name = 'None'
     return ('ScalarValue(%s, %s, %s, %s, important=%s, description=%s, '
-            'tir_label=%s') % (
+            'tir_label=%s, improvement_direction=%s') % (
                 page_name,
                 self.name,
                 self.units,
                 self.value,
                 self.important,
                 self.description,
-                self.tir_label)
+                self.tir_label,
+                self.improvment_direction)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -74,6 +76,7 @@ class ScalarValue(value_module.Value):
   def FromDict(value_dict, page_dict):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['value'] = value_dict['value']
+    kwargs['improvement_direction'] = value_dict['improvement_direction']
 
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
@@ -105,4 +108,5 @@ class ScalarValue(value_module.Value):
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
         tir_label=tir_label,
-        none_value_reason=none_value_reason)
+        none_value_reason=none_value_reason,
+        improvement_direction=v0.improvement_direction)

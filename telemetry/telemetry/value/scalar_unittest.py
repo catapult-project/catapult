@@ -7,6 +7,7 @@ import unittest
 from telemetry import story
 from telemetry import page as page_module
 from telemetry import value
+from telemetry.value import improvement_direction
 from telemetry.value import none_values
 from telemetry.value import scalar
 
@@ -29,22 +30,26 @@ class TestBase(unittest.TestCase):
 class ValueTest(TestBase):
   def testBuildbotValueType(self):
     page0 = self.pages[0]
-    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True)
+    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True,
+                           improvement_direction=improvement_direction.DOWN)
     self.assertEquals('default', v.GetBuildbotDataType(
         value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
     self.assertEquals([3], v.GetBuildbotValue())
     self.assertEquals(('x', page0.display_name),
                       v.GetChartAndTraceNameForPerPageResult())
 
-    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=False)
+    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=False,
+                           improvement_direction=improvement_direction.DOWN)
     self.assertEquals(
         'unimportant',
         v.GetBuildbotDataType(value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
 
   def testScalarSamePageMerging(self):
     page0 = self.pages[0]
-    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1)
-    v1 = scalar.ScalarValue(page0, 'x', 'unit', 2)
+    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1,
+                            improvement_direction=improvement_direction.UP)
+    v1 = scalar.ScalarValue(page0, 'x', 'unit', 2,
+                            improvement_direction=improvement_direction.UP)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = scalar.ScalarValue.MergeLikeValuesFromSamePage([v0, v1])
@@ -53,12 +58,15 @@ class ValueTest(TestBase):
     self.assertEquals('unit', vM.units)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
+    self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 
   def testScalarDifferentPageMerging(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
-    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1)
-    v1 = scalar.ScalarValue(page1, 'x', 'unit', 2)
+    v0 = scalar.ScalarValue(
+        page0, 'x', 'unit', 1, improvement_direction=improvement_direction.UP)
+    v1 = scalar.ScalarValue(
+        page1, 'x', 'unit', 2, improvement_direction=improvement_direction.UP)
 
     vM = scalar.ScalarValue.MergeLikeValuesFromDifferentPages([v0, v1])
     self.assertEquals(None, vM.page)
@@ -66,11 +74,14 @@ class ValueTest(TestBase):
     self.assertEquals('unit', vM.units)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
+    self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 
   def testScalarWithNoneValueMerging(self):
     page0 = self.pages[0]
-    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1)
-    v1 = scalar.ScalarValue(page0, 'x', 'unit', None, none_value_reason='n')
+    v0 = scalar.ScalarValue(
+        page0, 'x', 'unit', 1, improvement_direction=improvement_direction.DOWN)
+    v1 = scalar.ScalarValue(page0, 'x', 'unit', None, none_value_reason='n',
+                            improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
     vM = scalar.ScalarValue.MergeLikeValuesFromSamePage([v0, v1])
@@ -81,16 +92,20 @@ class ValueTest(TestBase):
   def testScalarWithNoneValueMustHaveNoneReason(self):
     page0 = self.pages[0]
     self.assertRaises(none_values.NoneValueMissingReason,
-                      lambda: scalar.ScalarValue(page0, 'x', 'unit', None))
+                      lambda: scalar.ScalarValue(
+                          page0, 'x', 'unit', None,
+                          improvement_direction=improvement_direction.UP))
 
   def testScalarWithNoneReasonMustHaveNoneValue(self):
     page0 = self.pages[0]
     self.assertRaises(none_values.ValueMustHaveNoneValue,
-                      lambda: scalar.ScalarValue(page0, 'x', 'unit', 1,
-                                                 none_value_reason='n'))
+                      lambda: scalar.ScalarValue(
+                          page0, 'x', 'unit', 1, none_value_reason='n',
+                          improvement_direction=improvement_direction.UP))
 
   def testAsDict(self):
-    v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False)
+    v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False,
+                           improvement_direction=improvement_direction.DOWN)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
@@ -99,7 +114,8 @@ class ValueTest(TestBase):
 
   def testNoneValueAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', None, important=False,
-                           none_value_reason='n')
+                           none_value_reason='n',
+                           improvement_direction=improvement_direction.DOWN)
     d = v.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(d, {
@@ -112,20 +128,23 @@ class ValueTest(TestBase):
       'type': 'scalar',
       'name': 'x',
       'units': 'unit',
-      'value': 42
+      'value': 42,
+      'improvement_direction': improvement_direction.DOWN,
     }
 
     v = value.Value.FromDict(d, {})
 
     self.assertTrue(isinstance(v, scalar.ScalarValue))
     self.assertEquals(v.value, 42)
+    self.assertEquals(v.improvement_direction, improvement_direction.DOWN)
 
   def testFromDictFloat(self):
     d = {
       'type': 'scalar',
       'name': 'x',
       'units': 'unit',
-      'value': 42.4
+      'value': 42.4,
+      'improvement_direction': improvement_direction.UP,
     }
 
     v = value.Value.FromDict(d, {})
@@ -139,7 +158,8 @@ class ValueTest(TestBase):
       'name': 'x',
       'units': 'unit',
       'value': None,
-      'none_value_reason': 'n'
+      'none_value_reason': 'n',
+      'improvement_direction': improvement_direction.UP,
     }
 
     v = value.Value.FromDict(d, {})

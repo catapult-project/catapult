@@ -10,6 +10,7 @@ from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.value import failure
 from telemetry.value import histogram
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
@@ -39,12 +40,14 @@ class SummaryTest(TestBase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7)
+    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page1)
 
@@ -52,11 +55,14 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3])
+        page0, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
     v1_list = list_of_scalar_values.ListOfScalarValues(
-        page1, 'a', 'seconds', [7])
+        page1, 'a', 'seconds', [7],
+        improvement_direction=improvement_direction.UP)
     merged_value = list_of_scalar_values.ListOfScalarValues(
-      None, 'a', 'seconds', [3, 7])
+        None, 'a', 'seconds', [3, 7],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))
     self.assertIn(v0_list, values)
@@ -69,7 +75,8 @@ class SummaryTest(TestBase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
@@ -77,9 +84,11 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3])
+        page0, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
     merged_list = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3])
+        None, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(2, len(values))
     self.assertIn(v0_list, values)
@@ -92,21 +101,26 @@ class SummaryTest(TestBase):
 
     results = page_test_results.PageTestResults()
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
-    v1 = scalar.ScalarValue(page0, 'b', 'seconds', 10)
+    v1 = scalar.ScalarValue(page0, 'b', 'seconds', 10,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v2 = scalar.ScalarValue(page1, 'a', 'seconds', 3)
+    v2 = scalar.ScalarValue(page1, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v2)
-    v3 = scalar.ScalarValue(page1, 'b', 'seconds', 10)
+    v3 = scalar.ScalarValue(page1, 'b', 'seconds', 10,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v3)
     results.DidRunPage(page1)
 
     results.WillRunPage(page2)
-    v4 = scalar.ScalarValue(page2, 'a', 'seconds', 7)
+    v4 = scalar.ScalarValue(page2, 'a', 'seconds', 7,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v4)
     # Note, page[2] does not report a 'b' metric.
     results.DidRunPage(page2)
@@ -115,20 +129,27 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3])
+        page0, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
     v1_list = list_of_scalar_values.ListOfScalarValues(
-        page0, 'b', 'seconds', [10])
+        page0, 'b', 'seconds', [10],
+        improvement_direction=improvement_direction.UP)
     v2_list = list_of_scalar_values.ListOfScalarValues(
-        page1, 'a', 'seconds', [3])
+        page1, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
     v3_list = list_of_scalar_values.ListOfScalarValues(
-        page1, 'b', 'seconds', [10])
+        page1, 'b', 'seconds', [10],
+        improvement_direction=improvement_direction.UP)
     v4_list = list_of_scalar_values.ListOfScalarValues(
-        page2, 'a', 'seconds', [7])
+        page2, 'a', 'seconds', [7],
+        improvement_direction=improvement_direction.UP)
 
     a_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3, 3, 7])
+        None, 'a', 'seconds', [3, 3, 7],
+        improvement_direction=improvement_direction.UP)
     b_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'b', 'seconds', [10, 10])
+        None, 'b', 'seconds', [10, 10],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(7, len(values))
     self.assertIn(v0_list, values)
@@ -146,14 +167,16 @@ class SummaryTest(TestBase):
 
     results = page_test_results.PageTestResults()
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     v1 = failure.FailureValue.FromMessage(page0, 'message')
     results.AddValue(v1)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v2 = scalar.ScalarValue(page1, 'a', 'seconds', 7)
+    v2 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v2)
     results.DidRunPage(page1)
 
@@ -161,9 +184,11 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3])
+        page0, 'a', 'seconds', [3],
+        improvement_direction=improvement_direction.UP)
     v2_list = list_of_scalar_values.ListOfScalarValues(
-        page1, 'a', 'seconds', [7])
+        page1, 'a', 'seconds', [7],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(2, len(values))
     self.assertIn(v0_list, values)
@@ -176,24 +201,28 @@ class SummaryTest(TestBase):
 
     results = page_test_results.PageTestResults()
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7)
+    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     v2 = failure.FailureValue.FromMessage(page1, 'message')
     results.AddValue(v2)
     results.DidRunPage(page1)
 
     results.WillRunPage(page0)
-    v3 = scalar.ScalarValue(page0, 'a', 'seconds', 4)
+    v3 = scalar.ScalarValue(page0, 'a', 'seconds', 4,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v3)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v4 = scalar.ScalarValue(page1, 'a', 'seconds', 8)
+    v4 = scalar.ScalarValue(page1, 'a', 'seconds', 8,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v4)
     results.DidRunPage(page1)
 
@@ -201,9 +230,11 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3, 4])
+        page0, 'a', 'seconds', [3, 4],
+        improvement_direction=improvement_direction.UP)
     page1_aggregated = list_of_scalar_values.ListOfScalarValues(
-        page1, 'a', 'seconds', [7, 8])
+        page1, 'a', 'seconds', [7, 8],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(2, len(values))
     self.assertIn(page0_aggregated, values)
@@ -215,22 +246,26 @@ class SummaryTest(TestBase):
 
     results = page_test_results.PageTestResults()
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page0)
-    v2 = scalar.ScalarValue(page0, 'a', 'seconds', 4)
+    v2 = scalar.ScalarValue(page0, 'a', 'seconds', 4,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v2)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7)
+    v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page1)
 
     results.WillRunPage(page1)
-    v3 = scalar.ScalarValue(page1, 'a', 'seconds', 8)
+    v3 = scalar.ScalarValue(page1, 'a', 'seconds', 8,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v3)
     results.DidRunPage(page1)
 
@@ -238,11 +273,14 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
-        page0, 'a', 'seconds', [3, 4])
+        page0, 'a', 'seconds', [3, 4],
+        improvement_direction=improvement_direction.UP)
     page1_aggregated = list_of_scalar_values.ListOfScalarValues(
-        page1, 'a', 'seconds', [7, 8])
+        page1, 'a', 'seconds', [7, 8],
+        improvement_direction=improvement_direction.UP)
     a_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3, 4, 7, 8])
+        None, 'a', 'seconds', [3, 4, 7, 8],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))
     self.assertIn(page0_aggregated, values)
@@ -255,12 +293,14 @@ class SummaryTest(TestBase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(page0)
-    v0 = scalar.ScalarValue(page0, 'b', 'seconds', 2)
+    v0 = scalar.ScalarValue(page0, 'b', 'seconds', 2,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page0)
-    v1 = scalar.ScalarValue(page0, 'b', 'seconds', 3)
+    v1 = scalar.ScalarValue(page0, 'b', 'seconds', 3,
+                            improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page0)
 
@@ -268,9 +308,11 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
-        page0, 'b', 'seconds', [2, 3])
+        page0, 'b', 'seconds', [2, 3],
+        improvement_direction=improvement_direction.UP)
     b_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'b', 'seconds', [2, 3])
+        None, 'b', 'seconds', [2, 3],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(2, len(values))
     self.assertIn(page0_aggregated, values)
@@ -283,12 +325,16 @@ class SummaryTest(TestBase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(page0)
-    v0 = list_of_scalar_values.ListOfScalarValues(page0, 'b', 'seconds', [2, 2])
+    v0 = list_of_scalar_values.ListOfScalarValues(
+        page0, 'b', 'seconds', [2, 2],
+        improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
-    v1 = list_of_scalar_values.ListOfScalarValues(page1, 'b', 'seconds', [3, 3])
+    v1 = list_of_scalar_values.ListOfScalarValues(
+        page1, 'b', 'seconds', [3, 3],
+        improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page1)
 
@@ -296,7 +342,8 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     b_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'b', 'seconds', [2, 2, 3, 3])
+        None, 'b', 'seconds', [2, 2, 3, 3],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))
     self.assertIn(v0, values)
@@ -312,7 +359,7 @@ class SummaryTest(TestBase):
     v0 = histogram.HistogramValue(
         page0, 'a', 'units',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-        important=False)
+        important=False, improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
     results.DidRunPage(page0)
 
@@ -320,7 +367,7 @@ class SummaryTest(TestBase):
     v1 = histogram.HistogramValue(
         page1, 'a', 'units',
         raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
-        important=False)
+        important=False, improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
     results.DidRunPage(page1)
 

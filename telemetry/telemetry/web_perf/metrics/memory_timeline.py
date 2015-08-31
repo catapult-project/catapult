@@ -5,6 +5,7 @@
 import collections
 
 from telemetry.timeline import memory_dump_event
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.web_perf.metrics import timeline_based_metric
 
@@ -46,7 +47,8 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
             name='memory_%s_%s' % (metric, process_name),
             units='bytes',
             values=values,
-            none_value_reason=none_reason))
+            none_value_reason=none_reason,
+            improvement_direction=improvement_direction.DOWN))
 
     memory_dumps = filter(HasMmapsDuringInteractions,
                           model.IterGlobalMemoryDumps())

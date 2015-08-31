@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.web_perf.metrics import timeline_based_metric
 
@@ -39,4 +40,5 @@ class _SingleEventMetric(timeline_based_metric.TimelineBasedMetric):
       name=self._metric_name,
       units='ms',
       values=events_found,
-      description=self._metric_description))
+      description=self._metric_description,
+      improvement_direction=improvement_direction.DOWN))

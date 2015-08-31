@@ -7,6 +7,7 @@ import math
 
 from telemetry import value as value_module
 from telemetry.value import none_values
+from telemetry.value import summarizable
 
 
 def Variance(sample):
@@ -61,7 +62,7 @@ def _Mean(values):
   return float(sum(values)) / len(values) if len(values) > 0 else 0.0
 
 
-class ListOfScalarValues(value_module.Value):
+class ListOfScalarValues(summarizable.SummarizableValue):
   """ ListOfScalarValues represents a list of numbers.
 
   By default, std is the standard deviation of all numbers in the list. Std can
@@ -71,9 +72,11 @@ class ListOfScalarValues(value_module.Value):
   def __init__(self, page, name, units, values,
                important=True, description=None,
                tir_label=None, none_value_reason=None,
-               std=None, same_page_merge_policy=value_module.CONCATENATE):
+               std=None, same_page_merge_policy=value_module.CONCATENATE,
+               improvement_direction=None):
     super(ListOfScalarValues, self).__init__(page, name, units, important,
-                                             description, tir_label)
+                                             description, tir_label,
+                                             improvement_direction)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -110,15 +113,16 @@ class ListOfScalarValues(value_module.Value):
       merge_policy = 'PICK_FIRST'
     return ('ListOfScalarValues(%s, %s, %s, %s, '
             'important=%s, description=%s, tir_label=%s, '
-            'same_page_merge_policy=%s)') % (
-              page_name,
-              self.name,
-              self.units,
-              repr(self.values),
-              self.important,
-              self.description,
-              self.tir_label,
-              merge_policy)
+            'same_page_merge_policy=%s, improvement_direction=%s)') % (
+                page_name,
+                self.name,
+                self.units,
+                repr(self.values),
+                self.important,
+                self.description,
+                self.tir_label,
+                merge_policy,
+                self.improvement_direction)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -157,6 +161,7 @@ class ListOfScalarValues(value_module.Value):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['values'] = value_dict['values']
     kwargs['std'] = value_dict['std']
+    kwargs['improvement_direction'] = value_dict['improvement_direction']
 
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
@@ -176,7 +181,8 @@ class ListOfScalarValues(value_module.Value):
           values[0].values,
           important=v0.important,
           same_page_merge_policy=v0.same_page_merge_policy,
-          none_value_reason=v0.none_value_reason)
+          none_value_reason=v0.none_value_reason,
+          improvement_direction=v0.improvement_direction)
 
     assert v0.same_page_merge_policy == value_module.CONCATENATE
     return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label)
@@ -211,4 +217,5 @@ class ListOfScalarValues(value_module.Value):
         tir_label=tir_label,
         same_page_merge_policy=v0.same_page_merge_policy,
         std=pooled_std,
-        none_value_reason=none_value_reason)
+        none_value_reason=none_value_reason,
+        improvement_direction=v0.improvement_direction)

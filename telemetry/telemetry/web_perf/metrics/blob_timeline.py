@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.web_perf.metrics import timeline_based_metric
 
@@ -65,18 +66,20 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         writes.append(self.ThreadDurationIfPresent(event))
     if writes:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
-        page=results.current_page,
-        name='blob-writes',
-        units='ms',
-        values=writes,
-        description='List of durations of blob writes.'))
+          page=results.current_page,
+          name='blob-writes',
+          units='ms',
+          values=writes,
+          description='List of durations of blob writes.',
+          improvement_direction=improvement_direction.DOWN))
     else:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
-        page=results.current_page,
-        name='blob-writes',
-        units='ms',
-        values=None,
-        none_value_reason='No blob write events found for this interaction.'))
+          page=results.current_page,
+          name='blob-writes',
+          units='ms',
+          values=None,
+          none_value_reason='No blob write events found for this interaction.',
+          improvement_direction=improvement_direction.DOWN))
 
 
   def _AddReadResultsInternal(self, events, interactions, results):
@@ -95,15 +98,17 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
 
     if reads:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
-        page=results.current_page,
-        name='blob-reads',
-        units='ms',
-        values=reads.values(),
-        description='List of read times for blobs.'))
+          page=results.current_page,
+          name='blob-reads',
+          units='ms',
+          values=reads.values(),
+          description='List of read times for blobs.',
+          improvement_direction=improvement_direction.DOWN))
     else:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
-        page=results.current_page,
-        name='blob-reads',
-        units='ms',
-        values=None,
-        none_value_reason='No blob read events found for this interaction.'))
+          page=results.current_page,
+          name='blob-reads',
+          units='ms',
+          values=None,
+          none_value_reason='No blob read events found for this interaction.',
+          improvement_direction=improvement_direction.DOWN))

@@ -6,6 +6,7 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import merge_values
 from telemetry.value import scalar
@@ -31,10 +32,18 @@ class MergeValueTest(TestBase):
     page0 = self.pages[0]
     page1 = self.pages[1]
 
-    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1),
-                  scalar.ScalarValue(page1, 'x', 'units', 4),
-                  scalar.ScalarValue(page0, 'x', 'units', 2),
-                  scalar.ScalarValue(page1, 'x', 'units', 5)]
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'x', 'units', 4,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page0, 'x', 'units', 2,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'x', 'units', 5,
+                      improvement_direction=improvement_direction.UP)]
 
     merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
     # Sort the results so that their order is predictable for the subsequent
@@ -54,7 +63,9 @@ class MergeValueTest(TestBase):
   def testSamePageMergeOneValue(self):
     page0 = self.pages[0]
 
-    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1)]
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.DOWN)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
@@ -66,10 +77,12 @@ class MergeValueTest(TestBase):
   def testSamePageMergeWithInteractionRecord(self):
     page0 = self.pages[0]
 
-    all_values = [scalar.ScalarValue(page0, 'foo-x', 'units', 1,
-                                     tir_label='foo'),
-                  scalar.ScalarValue(page0, 'foo-x', 'units', 4,
-                                     tir_label='foo')]
+    all_values = [scalar.ScalarValue(
+                      page0, 'foo-x', 'units', 1, tir_label='foo',
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page0, 'foo-x', 'units', 4, tir_label='foo',
+                      improvement_direction=improvement_direction.UP)]
 
     merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
     self.assertEquals(1, len(merged_values))
@@ -79,10 +92,18 @@ class MergeValueTest(TestBase):
     page0 = self.pages[0]
     page1 = self.pages[1]
 
-    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1),
-                  scalar.ScalarValue(page1, 'x', 'units', 2),
-                  scalar.ScalarValue(page0, 'y', 'units', 10),
-                  scalar.ScalarValue(page1, 'y', 'units', 20)]
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'x', 'units', 2,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page0, 'y', 'units', 10,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'y', 'units', 20,
+                      improvement_direction=improvement_direction.UP)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
@@ -101,7 +122,9 @@ class MergeValueTest(TestBase):
   def testDifferentPageMergeSingleValueStillMerges(self):
     page0 = self.pages[0]
 
-    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1)]
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.DOWN)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.

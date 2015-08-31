@@ -9,6 +9,7 @@ from telemetry import story
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.value import improvement_direction
 from telemetry.value import scalar
 
 
@@ -59,7 +60,9 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
   def testSimple(self):
     # Test a simple benchmark with only one value:
     self.SimulateBenchmarkRun({
-        self._story_set[0]: [scalar.ScalarValue(None, 'foo', 'seconds', 3)]})
+        self._story_set[0]: [scalar.ScalarValue(
+            None, 'foo', 'seconds', 3,
+            improvement_direction=improvement_direction.DOWN)]})
     expected = self._LINE_SEPARATOR.join([
         'story_set,page,name,value,units,run_index',
         'story_set,http://www.foo.com/,foo,3,seconds,0',
@@ -69,10 +72,20 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
 
   def testMultiplePagesAndValues(self):
     self.SimulateBenchmarkRun({
-        self._story_set[0]: [scalar.ScalarValue(None, 'foo', 'seconds', 4)],
-        self._story_set[1]: [scalar.ScalarValue(None, 'foo', 'seconds', 3.4),
-                            scalar.ScalarValue(None, 'bar', 'km', 10),
-                            scalar.ScalarValue(None, 'baz', 'count', 5)]})
+        self._story_set[0]: [
+            scalar.ScalarValue(
+              None, 'foo', 'seconds', 4,
+              improvement_direction=improvement_direction.DOWN)],
+        self._story_set[1]: [
+            scalar.ScalarValue(
+                None, 'foo', 'seconds', 3.4,
+                improvement_direction=improvement_direction.DOWN),
+            scalar.ScalarValue(
+                None, 'bar', 'km', 10,
+                improvement_direction=improvement_direction.DOWN),
+            scalar.ScalarValue(
+                None, 'baz', 'count', 5,
+                improvement_direction=improvement_direction.DOWN)]})
 
     # Parse CSV output into list of lists.
     csv_string = self.Format()
@@ -86,8 +99,13 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
   def testTraceTag(self):
     self.MakeFormatter(trace_tag='date,option')
     self.SimulateBenchmarkRun({
-        self._story_set[0]: [scalar.ScalarValue(None, 'foo', 'seconds', 3),
-                            scalar.ScalarValue(None, 'bar', 'tons', 5)]})
+        self._story_set[0]: [
+            scalar.ScalarValue(
+                None, 'foo', 'seconds', 3,
+                improvement_direction=improvement_direction.DOWN),
+            scalar.ScalarValue(
+                None, 'bar', 'tons', 5,
+                improvement_direction=improvement_direction.DOWN)]})
     output = self.Format().split(self._LINE_SEPARATOR)
 
     self.assertTrue(output[0].endswith(',trace_tag_0,trace_tag_1'))

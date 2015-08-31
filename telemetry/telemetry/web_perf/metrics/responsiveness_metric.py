@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging
 
+from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.web_perf.metrics import mainthread_jank_stats
 from telemetry.web_perf.metrics import timeline_based_metric
@@ -44,7 +45,9 @@ class ResponsivenessMetric(timeline_based_metric.TimelineBasedMetric):
 
     results.AddValue(scalar.ScalarValue(
         results.current_page, 'responsive-total_big_jank_thread_time', 'ms',
-        jank_stats.total_big_jank_thread_time))
+        jank_stats.total_big_jank_thread_time,
+        improvement_direction=improvement_direction.DOWN))
     results.AddValue(scalar.ScalarValue(
         results.current_page, 'responsive-biggest_jank_thread_time', 'ms',
-        jank_stats.biggest_jank_thread_time))
+        jank_stats.biggest_jank_thread_time,
+        improvement_direction=improvement_direction.DOWN))

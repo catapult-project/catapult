@@ -21,6 +21,7 @@ from telemetry import story as story_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
+from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from telemetry.value import summary as summary_module
@@ -476,7 +477,8 @@ class StoryRunnerTest(unittest.TestCase):
       def RunPage(self, page, _, results):
         self.i += 1
         results.AddValue(scalar.ScalarValue(
-            page, 'metric', 'unit', self.i))
+            page, 'metric', 'unit', self.i,
+            improvement_direction=improvement_direction.UP))
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -492,11 +494,14 @@ class StoryRunnerTest(unittest.TestCase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     blank_value = list_of_scalar_values.ListOfScalarValues(
-        blank_story, 'metric', 'unit', [1, 3])
+        blank_story, 'metric', 'unit', [1, 3],
+        improvement_direction=improvement_direction.UP)
     green_value = list_of_scalar_values.ListOfScalarValues(
-        green_story, 'metric', 'unit', [2, 4])
+        green_story, 'metric', 'unit', [2, 4],
+        improvement_direction=improvement_direction.UP)
     merged_value = list_of_scalar_values.ListOfScalarValues(
-        None, 'metric', 'unit', [1, 2, 3, 4])
+        None, 'metric', 'unit', [1, 2, 3, 4],
+        improvement_direction=improvement_direction.UP)
 
     self.assertEquals(4, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(0, len(results.failures))

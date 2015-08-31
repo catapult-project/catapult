@@ -8,6 +8,7 @@ from telemetry import story
 from telemetry import page as page_module
 from telemetry import value
 from telemetry.value import histogram as histogram_module
+from telemetry.value import improvement_direction
 
 
 class TestBase(unittest.TestCase):
@@ -31,7 +32,7 @@ class ValueTest(TestBase):
     histogram = histogram_module.HistogramValue(
         page0, 'x', 'counts',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-        important=False)
+        important=False, improvement_direction=improvement_direction.UP)
     self.assertEquals(
       ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
       histogram.GetBuildbotValue())
@@ -63,7 +64,7 @@ class ValueTest(TestBase):
     histogram = histogram_module.HistogramValue(
         None, 'x', 'counts',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-        important=False)
+        important=False, improvement_direction=improvement_direction.DOWN)
     d = histogram.AsDictWithoutBaseClassEntries()
 
     self.assertEquals(['buckets'], d.keys())
@@ -75,7 +76,8 @@ class ValueTest(TestBase):
       'type': 'histogram',
       'name': 'x',
       'units': 'counts',
-      'buckets': [{'low': 1, 'high': 2, 'count': 1}]
+      'buckets': [{'low': 1, 'high': 2, 'count': 1}],
+      'improvement_direction': 'down',
     }
     v = value.Value.FromDict(d, {})
 
@@ -83,3 +85,4 @@ class ValueTest(TestBase):
     self.assertEquals(
       ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
       v.GetBuildbotValue())
+    self.assertEquals(improvement_direction.DOWN, v.improvement_direction)

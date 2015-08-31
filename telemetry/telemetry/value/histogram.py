@@ -6,6 +6,7 @@ import json
 from telemetry.util import perf_tests_helper
 from telemetry import value as value_module
 from telemetry.value import histogram_util
+from telemetry.value import summarizable
 
 
 class HistogramValueBucket(object):
@@ -27,12 +28,13 @@ class HistogramValueBucket(object):
       '"high": %i' % self.high,
       '"count": %i' % self.count])
 
-class HistogramValue(value_module.Value):
+class HistogramValue(summarizable.SummarizableValue):
   def __init__(self, page, name, units,
                raw_value=None, raw_value_json=None, important=True,
-               description=None, tir_label=None):
+               description=None, tir_label=None, improvement_direction=None):
     super(HistogramValue, self).__init__(page, name, units, important,
-                                         description, tir_label)
+                                         description, tir_label,
+                                         improvement_direction)
     if raw_value_json:
       assert raw_value == None, \
              'Don\'t specify both raw_value and raw_value_json'
@@ -53,13 +55,15 @@ class HistogramValue(value_module.Value):
     else:
       page_name = 'None'
     return ('HistogramValue(%s, %s, %s, raw_json_string="%s", '
-            'important=%s, description=%s, tir_label=%s') % (
+            'important=%s, description=%s, tir_label=%s, '
+            'improvement_direction=%s') % (
                 page_name,
                 self.name, self.units,
                 self.ToJSONString(),
                 self.important,
                 self.description,
-                self.tir_label)
+                self.tir_label,
+                self.improvement_direction)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -104,6 +108,7 @@ class HistogramValue(value_module.Value):
   def FromDict(value_dict, page_dict):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['raw_value'] = value_dict
+    kwargs['improvement_direction'] = value_dict['improvement_direction']
 
     if 'tir_label' in value_dict:
       kwargs['tir_label'] = value_dict['tir_label']
@@ -118,7 +123,8 @@ class HistogramValue(value_module.Value):
         v0.page, v0.name, v0.units,
         raw_value_json=histogram_util.AddHistograms(
             [v.ToJSONString() for v in values]),
-        important=v0.important, tir_label=v0.tir_label)
+        important=v0.important, tir_label=v0.tir_label,
+        improvement_direction=v0.improvement_direction)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
