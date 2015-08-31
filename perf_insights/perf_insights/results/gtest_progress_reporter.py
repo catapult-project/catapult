@@ -25,7 +25,7 @@ class GTestRunReporter(progress_reporter.RunReporter):
       self._output_stream.flush()
     elif isinstance(value, value_module.SkipValue):
       print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
-          value.run_info.display_name, value.reason)
+          value.run_info.display_name, value.description)
 
   def DidRun(self, run_failed):
     super(GTestRunReporter, self).DidRun(run_failed)
