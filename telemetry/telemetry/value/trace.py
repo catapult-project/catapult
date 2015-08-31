@@ -96,9 +96,6 @@ class TraceValue(value_module.Value):
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
-    # TODO(eakuefner): Implement a MultiTraceValue: a Polymer-based,
-    # componentized, MultiTraceViwer-backed representation of more than one
-    # trace.
     assert len(values) > 0
     return values[0]
 
