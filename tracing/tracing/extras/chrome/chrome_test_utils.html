@@ -62,6 +62,14 @@ tr.exportTo('tr.e.chrome', function() {
     return slice;
   }
 
+  ChromeTestUtils.addRenderingEvent = function(model, dict) {
+    dict.title = dict.title || 'DummyEvent';
+    dict.type = tr.model.ThreadSlice;
+    var slice = tr.c.TestUtils.newSliceEx(dict);
+    model.rendererMain.sliceGroup.pushSlice(slice);
+    return slice;
+  }
+
   ChromeTestUtils.addFrameEvent = function(model, dict) {
     dict.title = tr.e.audits.IMPL_RENDERING_STATS;
     dict.type = tr.model.ThreadSlice;
