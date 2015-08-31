@@ -6,4 +6,8 @@ executable("bitmaptools") {
   sources = [
     "telemetry/internal/image_processing/bitmaptools.cc",
   ]
+
+  deps = [
+    "//build/config/sanitizers:deps",
+  ]
 }
