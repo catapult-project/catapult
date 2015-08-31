@@ -206,6 +206,11 @@ class _FakeTab(object):
   def __init__(self, browser, tab_id):
     self._browser = browser
     self._tab_id = str(tab_id)
+    self._collect_garbage_count = 0
+
+  @property
+  def collect_garbage_count(self):
+    return self._collect_garbage_count
 
   @property
   def id(self):
@@ -230,6 +235,9 @@ class _FakeTab(object):
 
   def CloseConnections(self):
     pass
+
+  def CollectGarbage(self):
+    self._collect_garbage_count += 1
 
   def Close(self):
     pass

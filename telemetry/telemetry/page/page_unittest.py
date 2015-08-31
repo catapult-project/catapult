@@ -8,6 +8,8 @@ import unittest
 from telemetry import story
 from telemetry.page import page
 
+import mock
+
 
 class TestPage(unittest.TestCase):
   def assertPathEqual(self, path1, path2):
@@ -172,3 +174,39 @@ class TestPage(unittest.TestCase):
 
     p = page.Page('http://foo.com')
     self.assertFalse(p.is_local)
+
+
+class TestPageRun(unittest.TestCase):
+  def testFiveGarbageCollectionCallsByDefault(self):
+    mock_shared_state = mock.Mock()
+    p = page.Page('file://foo.html')
+    p.Run(mock_shared_state)
+    expected = [mock.call.current_tab.CollectGarbage(),
+                mock.call.current_tab.CollectGarbage(),
+                mock.call.current_tab.CollectGarbage(),
+                mock.call.current_tab.CollectGarbage(),
+                mock.call.current_tab.CollectGarbage(),
+                mock.call.page_test.WillNavigateToPage(
+                  p, mock_shared_state.current_tab),
+                mock.call.page_test.RunNavigateSteps(
+                  p, mock_shared_state.current_tab),
+                mock.call.page_test.DidNavigateToPage(
+                  p, mock_shared_state.current_tab)]
+    self.assertEquals(mock_shared_state.mock_calls, expected)
+
+  def testNoGarbageCollectionCalls(self):
+    mock_shared_state = mock.Mock()
+    class NonGarbageCollectPage(page.Page):
+      def __init__(self, url):
+        super(NonGarbageCollectPage, self).__init__(url)
+        self._collect_garbage_before_run = False
+
+    p = NonGarbageCollectPage('file://foo.html')
+    p.Run(mock_shared_state)
+    expected = [mock.call.page_test.WillNavigateToPage(
+                  p, mock_shared_state.current_tab),
+                mock.call.page_test.RunNavigateSteps(
+                  p, mock_shared_state.current_tab),
+                mock.call.page_test.DidNavigateToPage(
+                  p, mock_shared_state.current_tab)]
+    self.assertEquals(mock_shared_state.mock_calls, expected)
