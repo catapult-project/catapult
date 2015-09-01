@@ -20,10 +20,17 @@ tr.exportTo('tr.e.audits', function() {
   var Frame = tr.model.Frame;
   var Statistics = tr.b.Statistics;
 
-  var UI_THREAD_DRAW_NAMES = {
-    'performTraversals': true,
-    'Choreographer#doFrame': true
+  var UI_DRAW_TYPE = {
+    NONE: 'none',
+    LEGACY: 'legacy',
+    MARSHMALLOW: 'marshmallow'
   };
+
+  var UI_THREAD_DRAW_NAMES = {
+    'performTraversals': UI_DRAW_TYPE.LEGACY,
+    'Choreographer#doFrame': UI_DRAW_TYPE.MARSHMALLOW
+  };
+
   var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
   var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
   var THREAD_SYNC_NAME = 'syncFrameState';
@@ -121,7 +128,9 @@ tr.exportTo('tr.e.audits', function() {
     if (!app.uiThread)
       return [];
 
-    var preTraversalWorkRanges = getPreTraversalWorkRanges(app.uiThread);
+    var preTraversalWorkRanges = [];
+    if (app.uiDrawType == UI_DRAW_TYPE.LEGACY)
+      preTraversalWorkRanges = getPreTraversalWorkRanges(app.uiThread);
 
     var frames = [];
     app.uiThread.sliceGroup.slices.forEach(function(slice) {
@@ -178,14 +187,17 @@ tr.exportTo('tr.e.audits', function() {
     return frames;
   }
 
-  function hasUiDraw(uiThread) {
+  function getUiDrawType(uiThread) {
+    if (!uiThread)
+      return UI_DRAW_TYPE.NONE;
+
     var slices = uiThread.sliceGroup.slices;
     for (var i = 0; i < slices.length; i++) {
       if (slices[i].title in UI_THREAD_DRAW_NAMES) {
-        return uiThread;
+        return UI_THREAD_DRAW_NAMES[slices[i].title];
       }
     }
-    return undefined;
+    return UI_DRAW_TYPE.NONE;
   }
 
   function getInputSamples(process) {
@@ -229,11 +241,13 @@ tr.exportTo('tr.e.audits', function() {
    * Model for Android App specific data.
    * @constructor
    */
-  function AndroidApp(process, uiThread, renderThread, surfaceFlinger) {
+  function AndroidApp(process, uiThread, renderThread, surfaceFlinger,
+      uiDrawType) {
     this.process = process;
     this.uiThread = uiThread;
     this.renderThread = renderThread;
     this.surfaceFlinger = surfaceFlinger;
+    this.uiDrawType = uiDrawType;
 
     this.frames_ = undefined;
     this.inputs_ = undefined;
@@ -241,14 +255,16 @@ tr.exportTo('tr.e.audits', function() {
 
   AndroidApp.createForProcessIfPossible = function(process, surfaceFlinger) {
     var uiThread = process.getThread(process.pid);
-    if (uiThread && !hasUiDraw(uiThread)) {
+    var uiDrawType = getUiDrawType(uiThread);
+    if (uiDrawType == UI_DRAW_TYPE.NONE) {
       uiThread = undefined;
     }
     var renderThreads = process.findAllThreadsNamed('RenderThread');
     var renderThread = renderThreads.length == 1 ? renderThreads[0] : undefined;
 
     if (uiThread || renderThread) {
-      return new AndroidApp(process, uiThread, renderThread, surfaceFlinger);
+      return new AndroidApp(process, uiThread, renderThread, surfaceFlinger,
+        uiDrawType);
     }
   }
 
