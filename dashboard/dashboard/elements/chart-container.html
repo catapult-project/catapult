@@ -21,7 +21,9 @@ triaging functionality in the chart.
                              showCompact collapseLegend"
                  on-drop="{{onDrop}}"
                  on-dragover="{{allowDrop}}">
+
   <template>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
     #container {
       width: 100%;
@@ -117,19 +119,19 @@ triaging functionality in the chart.
     }
 
     .alert-icon {
-      position: absolute;
-      margin-top: -4px;
+      cursor: pointer;
+      font-size: 22px;
       margin-left: -4px;
-      height: 20px;
-      width: 20px;
+      margin-top: -4px;
+      position: absolute;
       z-index: 1000;
-
     }
 
     .alert-icon.highlighted {
+      background-color: rgba(255, 200, 10, 0.6);
+      border-radius: 20px;
       box-shadow: 0px 0px 5px #ffba02;
-      border: 2px solid #ffba02;
-      border-radius: 14px;
+      border: 1px solid #ffba02;
     }
 
     #close-chart {
@@ -1402,12 +1404,11 @@ triaging functionality in the chart.
               }
               var alertIcon = this.addAlertIcon(
                   annotations[jsonSeriesIndex][dataIndex]['g_anomaly']);
+              var flotPoint = flotData[flotIndex].data[dataIndex];
               var left = xOffset + Math.round(
-                  flotData[flotIndex].xaxis.p2c(
-                      flotData[flotIndex].data[dataIndex][0]));
+                  flotData[flotIndex].xaxis.p2c(flotPoint[0]));
               var top = Math.round(
-                  flotData[flotIndex].yaxis.p2c(
-                      flotData[flotIndex].data[dataIndex][1]));
+                  flotData[flotIndex].yaxis.p2c(flotPoint[1]));
               alertIcon.style.left = left + 'px';
               alertIcon.style.top = top + 'px';
               alertIcon.onmouseover = this.showTooltip.bind(
@@ -1428,18 +1429,17 @@ triaging functionality in the chart.
           var recovered = alertAnnotation['recovered'];
           var key = alertAnnotation['key'];
 
-          var alertIcon = document.createElement('core-icon');
+          var alertIcon = document.createElement('i');
+          alertIcon.classList.add('material-icons');
+          alertIcon.textContent = 'error';
 
-          var icon = 'report';
           var color = 'black';
           if (!bugId && !improvement) {
             color = 'red';
           } else if (!bugId && improvement) {
             color = 'green';
-            icon = 'info';
           }
           alertIcon.style.color = color;
-          alertIcon.icon = icon;
 
           if (bugId && bugId < 0 || recovered) {
             // Triaged as invalid, ignored, or recovered; lower opacity.
