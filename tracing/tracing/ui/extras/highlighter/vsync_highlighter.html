@@ -42,6 +42,9 @@ tr.exportTo('tr.ui.e.highlighter', function() {
    * Generate a zebra striping from a list of times.
    */
   VSyncHighlighter.generateStripes = function(times, minTime, maxTime) {
+    if (times.length === 0)
+      return [];
+
     var stripes = [];
 
     // Find the lowest and highest index within the viewport.
@@ -49,9 +52,6 @@ tr.exportTo('tr.ui.e.highlighter', function() {
         times,
         function(time) { return time; },
         minTime);
-    if (lowIndex > times.length) {
-      lowIndex = times.length;
-    }
     var highIndex = lowIndex - 1;
     while (times[highIndex + 1] <= maxTime) {
       highIndex++;
