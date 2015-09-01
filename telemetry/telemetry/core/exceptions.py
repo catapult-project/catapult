@@ -125,5 +125,7 @@ class UnknownPackageError(Error):
 class PackageDetectionError(Error):
   """ Represents an error when parsing an Android APK's package. """
 
+
 class AndroidDeviceParsingError(Error):
   """Represents an error when parsing output from an android device"""
+
