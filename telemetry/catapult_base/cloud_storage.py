@@ -20,6 +20,7 @@ from telemetry.internal.util import path
 PUBLIC_BUCKET = 'chromium-telemetry'
 PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'
+TELEMETRY_OUTPUT = 'chrome-telemetry-output'
 
 
 # Uses ordered dict to make sure that bucket's key-value items are ordered from
@@ -28,6 +29,7 @@ BUCKET_ALIASES = collections.OrderedDict((
     ('public', PUBLIC_BUCKET),
     ('partner', PARTNER_BUCKET),
     ('internal', INTERNAL_BUCKET),
+    ('output', TELEMETRY_OUTPUT),
 ))
 
 

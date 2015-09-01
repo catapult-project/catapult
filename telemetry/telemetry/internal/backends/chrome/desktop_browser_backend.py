@@ -8,12 +8,15 @@ import heapq
 import logging
 import os
 import os.path
+import random
 import re
 import shutil
 import subprocess as subprocess
 import sys
 import tempfile
 import time
+
+from catapult_base import cloud_storage
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
@@ -451,6 +454,20 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
 
+  def _UploadMinidumpToCloudStorage(self, minidump_path):
+    """ Upload minidump_path to cloud storage and return the cloud storage url.
+    """
+    remote_path = ('minidump-%s-%i.dmp' %
+                   (datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')),
+                   random.randint(0, 1000000))
+    try:
+      return cloud_storage.Insert(cloud_storage.TELEMETRY_OUTPUT, remote_path,
+                                  minidump_path)
+    except cloud_storage.CloudStorageError as err:
+      logging.error('Cloud storage error while trying to upload dump: %s' %
+                    repr(err))
+      return '<Missing link>'
+
   def GetStackTrace(self):
     most_recent_dump = self._GetMostRecentMinidump()
     if not most_recent_dump:
@@ -460,9 +477,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('minidump found: %s' % most_recent_dump)
     stack = self._GetStackFromMinidump(most_recent_dump)
     if not stack:
-      return 'Failed to symbolize minidump. Returning browser stdout:\n' + (
-          self.GetStandardOutput())
-
+      cloud_storage_link = self._UploadMinidumpToCloudStorage(most_recent_dump)
+      return ('Failed to symbolize minidump. Raw stack is uploaded to cloud '
+              'storage: %s. Returning browser stdout:\n%s' % (
+                  cloud_storage_link, self.GetStandardOutput()))
     return stack
 
   def __del__(self):
