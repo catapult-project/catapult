@@ -49,7 +49,7 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
       package = self._browser._browser_backend.package
       self._browser = None
 
-    power_data = self._battery.GetPackagePowerData(package)
+    power_data = self._battery.GetPowerData()
     battery_info = self._battery.GetBatteryInfo()
     voltage = battery_info.get('voltage')
     if voltage is None:
@@ -61,19 +61,25 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
       voltage = float(voltage) / 1000
       logging.info('Device voltage at %s', voltage)
     power_results = self.ProcessPowerData(power_data, voltage, package)
+    if power_results['energy_consumption_mwh'] == 0:
+      logging.warning('Power data is returning 0 for system total usage. %s'
+                      % (power_data))
     if power_results['application_energy_consumption_mwh'] == 0:
       logging.warning('Power data is returning 0 usage for %s. %s'
-                      % (package, self._battery.GetPowerData()))
+                      % (package, power_data))
     return power_results
 
   @staticmethod
   def ProcessPowerData(power_data, voltage, package):
     power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
-    if not power_data:
-      logging.warning('Unable to find power data for %s in dumpsys output. '
-                      'Please upgrade the OS version of the device.' % package)
-      power_results['application_energy_consumption_mwh'] = 0
-      return power_results
-    consumption_mwh = sum(power_data['data']) * voltage
-    power_results['application_energy_consumption_mwh'] = consumption_mwh
+    system_power = power_data['system_total']
+    package_power = power_data['per_package'].get(package)
+    if not package_power:
+      logging.warning('No power data for %s in dumpsys output.' % package)
+      package_consumption_mwh = 0
+    else:
+      package_consumption_mwh = sum(package_power['data']) * voltage
+    power_results['application_energy_consumption_mwh'] = \
+        package_consumption_mwh
+    power_results['energy_consumption_mwh'] = system_power * voltage
     return power_results
