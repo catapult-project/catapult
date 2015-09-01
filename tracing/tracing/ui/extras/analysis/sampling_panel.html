@@ -1,0 +1,152 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+
+<polymer-element name="tr-ui-a-sampling-panel" extends="tr-ui-a-sub-view">
+  <template>
+    <style>
+    :host { display: block; }
+    </style>
+
+    <tr-ui-b-table id="table">
+    </tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+
+  (function() {
+    var SamplingTreeNode = function(frame) {
+      this.parent = undefined;
+      this.children = [];
+      this.childFrameMap = {};
+      this.frame = frame;
+      this.accumulatedSamplesCount = 0;
+    };
+
+    SamplingTreeNode.prototype = {
+      getOrCreateChild: function(frame) {
+        if (this.childFrameMap[frame.title] !== undefined)
+          return this.childFrameMap[frame.title];
+
+        var node = new SamplingTreeNode(frame);
+        node.parent = this;
+
+        this.childFrameMap[frame.title] = node;
+        this.children.push(node);
+
+        return node;
+      },
+
+      get subRows() {
+        return this.children;
+      },
+
+      get samplesCount() {
+        return this.accumulatedSamplesCount;
+      },
+
+      get name() {
+        return this.frame.title;
+      },
+
+      get category() {
+        return this.frame !== undefined ? this.frame.category : 'root';
+      }
+    };
+
+    Polymer({
+      ready: function() {
+        this.selection_ = undefined;
+      },
+
+      get selection() {
+        return this.selection_;
+      },
+
+      set selection(selection) {
+        this.selection_ = selection;
+        this.samplingData_ = this.createSamplingSummary_(selection);
+        this.updateContents_();
+      },
+
+      createSamplingSummary_: function(selection) {
+        var root = new SamplingTreeNode();
+        var samples = selection.getEventsOrganizedByBaseType().sample;
+
+        function addSample(sample) {
+          var stack = sample.stackTrace;
+
+          // Sort the stacks reverse so we can see the stacks in descending
+          // order.
+          stack.reverse();
+
+          var currentNode = root;
+          for (var i = 0; i < stack.length; i++) {
+            var frame = stack[i];
+            currentNode.accumulatedSamplesCount++;
+            currentNode = currentNode.getOrCreateChild(frame);
+          }
+          currentNode.accumulatedSamplesCount++;
+        }
+
+        for (var i = 0; i < samples.length; i++) {
+          addSample(samples[i]);
+        }
+
+        return root;
+      },
+
+      updateContents_: function() {
+        var columns = [
+        {
+          title: 'Percent',
+          value: function(row) {
+            var percent = row.samplesCount / this.samplingData_.samplesCount;
+
+            var span = document.createElement('tr-ui-u-scalar-span');
+            span.value = (percent * 100).toFixed(2);
+            span.percentage = percent;
+            span.unit = tr.b.u.Units.unitlessNumber;
+            return span;
+
+          }.bind(this),
+          width: '60px',
+          cmp: function(a, b) {
+            return a.samplesCount - b.samplesCount;
+          }
+        },
+        {
+          title: 'Samples',
+          value: function(row) { return row.samplesCount; },
+          width: '60px',
+          cmp: function(a, b) {
+            return a.samplesCount - b.samplesCount;
+          }
+        },
+        {
+          title: 'Symbol',
+          value: function(row) { return row.name; },
+          width: '250px',
+          cmp: function(a, b) {
+            return a.name.toString().localeCompare(b.name.toString());
+          },
+          showExpandButtons: true
+        }];
+
+        this.$.table.tableColumns = columns;
+        this.$.table.sortColumnIndex = 1;
+        this.$.table.sortDescending = true;
+        this.$.table.tableRows = this.samplingData_.subRows;
+        this.$.table.rebuild();
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+

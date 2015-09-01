@@ -18,42 +18,63 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer', function() {
   function TraceCodeEntry(size, name, scriptId) {
-    var methodName = undefined;
-    var script = undefined;
-    var lineNum = -1;
-    var isNative = false;
+    // Stolen from DevTools TimelineJSProfileProcessor._buildCallFrame
+    // Code states:
+    // (empty) -> compiled
+    //    ~    -> optimizable
+    //    *    -> optimized
+    var rePrefix = /^(\w*:)?[*~]?(.*)$/m;
+    var tokens = rePrefix.exec(name);
+    var prefix = tokens[1];
+    var body = tokens[2];
 
-    if (name.startsWith('LazyCompile:')) {
-      var cleanName = name.replace(/LazyCompile:~?/, '');
-      var idx = cleanName.lastIndexOf(' ');
-      if (idx < 0) {
-        methodName = cleanName;
-      } else {
-        methodName = cleanName.substring(0, idx);
-        script = cleanName.substring(idx + 1);
-
-        var matches = script.match(/(.*):(\d+)$/);
-        if (matches !== null) {
-          script = matches[1];
-          lineNum = parseInt(matches[2]);
-        }
-      }
-
-      if (methodName.endsWith(' native')) {
-        isNative = true;
-        methodName = methodName.replace(/\s+native$/, '');
-      }
-
-      if (methodName === '')
-        methodName = 'unknown';
+    var rawName;
+    var rawUrl;
+    if (prefix === 'Script:') {
+        rawName = '';
+        rawUrl = body;
     } else {
-      methodName = name;
+        var spacePos = body.lastIndexOf(' ');
+        rawName = spacePos !== -1 ? body.substr(0, spacePos) : body;
+        rawUrl = spacePos !== -1 ? body.substr(spacePos + 1) : '';
     }
 
-    tr.e.importer.v8.CodeMap.CodeEntry.call(this, size, methodName);
+    function splitLineAndColumn(url) {
+      var lineColumnRegEx = /(?::(\d+))?(?::(\d+))?$/;
+      var lineColumnMatch = lineColumnRegEx.exec(url);
+      var lineNumber;
+      var columnNumber;
+
+      if (typeof(lineColumnMatch[1]) === 'string') {
+        lineNumber = parseInt(lineColumnMatch[1], 10);
+        // Immediately convert line and column to 0-based numbers.
+        lineNumber = isNaN(lineNumber) ? undefined : lineNumber - 1;
+      }
+      if (typeof(lineColumnMatch[2]) === 'string') {
+        columnNumber = parseInt(lineColumnMatch[2], 10);
+        columnNumber = isNaN(columnNumber) ? undefined : columnNumber - 1;
+      }
+
+      return {
+        url: url.substring(0, url.length - lineColumnMatch[0].length),
+        lineNumber: lineNumber,
+        columnNumber: columnNumber
+      };
+    }
+
+    var nativeSuffix = ' native';
+    var isNative = rawName.endsWith(nativeSuffix);
+    var functionName =
+        isNative ? rawName.slice(0, -nativeSuffix.length) : rawName;
+    var urlData = splitLineAndColumn(rawUrl);
+    var url = urlData.url || '';
+    var line = urlData.lineNumber || 0;
+    var column = urlData.columnNumber || 0;
+
+    tr.e.importer.v8.CodeMap.CodeEntry.call(this, size, functionName);
 
     this.sourceInfo_ = new tr.model.source_info.JSSourceInfo(
-        script, lineNum, isNative, scriptId);
+        url, line, column, isNative, scriptId);
   };
 
   TraceCodeEntry.prototype = {

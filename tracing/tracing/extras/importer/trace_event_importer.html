@@ -446,8 +446,10 @@ tr.exportTo('tr.e.importer', function() {
           // We won't know the name if we try to insert the code here.
         }
       } else {
-        map.addCode(startAddr,
-            new tr.e.importer.TraceCodeEntry(data.code_len, data.name));
+        var entry = new tr.e.importer.TraceCodeEntry(data.code_len, data.name);
+        // Hack to get around name de-duplication done by CodeMap::findEntry.
+        entry.nameUpdated_ = true;
+        map.addCode(startAddr, entry);
       }
     },
 
@@ -505,6 +507,10 @@ tr.exportTo('tr.e.importer', function() {
 
     processV8Sample: function(event) {
       var data = event.args.data;
+
+      // As-per DevTools, the backend sometimes creates bogus samples. Skip it.
+      if (data.vm_state === 'js' && !data.stack.length)
+        return;
 
       var rootStackFrame = this.v8ProcessRootStackFrame_[event.pid];
       if (!rootStackFrame) {

@@ -6,45 +6,27 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/ui/extras/analysis/sampling_panel.html">
 
 <polymer-element name="tr-ui-a-multi-sample-sub-view"
     extends="tr-ui-a-sub-view">
   <template>
     <style>
-    :host {
-      display: block;
-    }
+    :host { display: block; }
     </style>
-    <div id='content'></div>
+    <tr-ui-a-sampling-panel id='panel'></tr-ui-a-sampling-panel>
   </template>
 
   <script>
   'use strict';
 
   Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
-
-    get requiresTallView() {
-      return true;
-    },
-
     set selection(selection) {
-      this.$.content.textContent = '';
-      this.currentSelection_ = selection;
-
-      if (tr.isDefined('tr.ui.e.analysis.SamplingSummaryPanel')) {
-        var panel = new tr.ui.e.analysis.SamplingSummaryPanel();
-        this.$.content.appendChild(panel);
-        panel.selection = selection;
-      } else {
-        this.$.content.textContent = 'SamplingSummaryPanel not installed. :(';
-      }
+      this.$.panel.selection = selection;
     },
 
     get selection() {
-      return this.currentSelection_;
+      return this.$.panel.selection;
     }
   });
   </script>

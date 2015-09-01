@@ -11,8 +11,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model.source_info', function() {
-  function JSSourceInfo(file, line, isNative, scriptId) {
-    tr.model.source_info.SourceInfo.call(this, file, line);
+  function JSSourceInfo(file, line, column, isNative, scriptId) {
+    tr.model.source_info.SourceInfo.call(this, file, line, column);
 
     this.isNative_ = isNative;
     this.scriptId_ = scriptId;

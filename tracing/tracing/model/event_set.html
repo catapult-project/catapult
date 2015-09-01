@@ -26,12 +26,6 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function EventSet(opt_events) {
-    // sunburst_zoom_level is used by sunburst chart to remember
-    // zoom level across event set changes.
-    // TODO(gholap): get rid of this eventually when
-    //               event sets support frames.
-    this.sunburst_zoom_level = undefined;
-
     this.bounds_dirty_ = true;
     this.bounds_ = new tr.b.Range();
     this.length_ = 0;
@@ -143,9 +137,6 @@ tr.exportTo('tr.model', function() {
       var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
       allTypeInfos.forEach(function(eventTypeInfo) {
         events[eventTypeInfo.metadata.name] = new EventSet();
-        if (this.sunburst_zoom_level !== undefined)
-          events[eventTypeInfo.metadata.name].sunburst_zoom_level =
-              this.sunburst_zoom_level;
       }, this);
 
       this.forEach(function(event, i) {

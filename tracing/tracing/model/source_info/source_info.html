@@ -11,9 +11,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model.source_info', function() {
-  function SourceInfo(file, opt_line) {
+  function SourceInfo(file, opt_line, opt_column) {
     this.file_ = file;
     this.line_ = opt_line || -1;
+    this.column_ = opt_column || -1;
   }
 
   SourceInfo.prototype = {
@@ -25,6 +26,10 @@ tr.exportTo('tr.model.source_info', function() {
       return this.line_;
     },
 
+    get column() {
+      return this.column_;
+    },
+
     get domain() {
       if (!this.file_)
         return undefined;
@@ -34,10 +39,13 @@ tr.exportTo('tr.model.source_info', function() {
 
     toString: function() {
       var str = '';
+
       if (this.file_)
         str += this.file_;
       if (this.line_ > 0)
         str += ':' + this.line_;
+      if (this.column_ > 0)
+        str += ':' + this.column_;
       return str;
     }
   };

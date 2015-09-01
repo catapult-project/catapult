@@ -14,9 +14,9 @@ tr.b.unittest.testSuite(function() {
   test('lazy_compile_method', function() {
     var tce = new tr.e.importer.TraceCodeEntry(10, 'Handler:timeStamp', 12);
     assert.equal(tce.size, 10);
-    assert.equal(tce.name, 'Handler:timeStamp');
+    assert.equal(tce.name, 'timeStamp');
     assert.equal(tce.sourceInfo.isNative, false);
-    assert.equal(tce.sourceInfo.file, undefined);
+    assert.equal(tce.sourceInfo.file, '');
     assert.equal(tce.sourceInfo.line, -1);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
@@ -24,9 +24,9 @@ tr.b.unittest.testSuite(function() {
   test('non_lazy_compile_method', function() {
     var tce = new tr.e.importer.TraceCodeEntry(10, 'Handler:timeStamp', 12);
     assert.equal(tce.size, 10);
-    assert.equal(tce.name, 'Handler:timeStamp');
+    assert.equal(tce.name, 'timeStamp');
     assert.equal(tce.sourceInfo.isNative, false);
-    assert.equal(tce.sourceInfo.file, undefined);
+    assert.equal(tce.sourceInfo.file, '');
     assert.equal(tce.sourceInfo.line, -1);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
@@ -38,7 +38,18 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.name, 'IsAccessorDescriptor');
     assert.equal(tce.sourceInfo.isNative, true);
     assert.equal(tce.sourceInfo.file, 'v8natives.js');
-    assert.equal(tce.sourceInfo.line, 183);
+    assert.equal(tce.sourceInfo.line, 182);
+    assert.equal(tce.sourceInfo.scriptId, 12);
+  });
+
+  test('strips_*_from_name', function() {
+    var tce = new tr.e.importer.TraceCodeEntry(10,
+        'LazyCompile:*IsAccessorDescriptor native v8natives.js:183', 12);
+    assert.equal(tce.size, 10);
+    assert.equal(tce.name, 'IsAccessorDescriptor');
+    assert.equal(tce.sourceInfo.isNative, true);
+    assert.equal(tce.sourceInfo.file, 'v8natives.js');
+    assert.equal(tce.sourceInfo.line, 182);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
 
@@ -49,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.name, 'IsAccessorDescriptor');
     assert.equal(tce.sourceInfo.isNative, false);
     assert.equal(tce.sourceInfo.file, 'v8natives.js');
-    assert.equal(tce.sourceInfo.line, 183);
+    assert.equal(tce.sourceInfo.line, 182);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
 
@@ -58,7 +69,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.size, 10);
     assert.equal(tce.name, 'Object');
     assert.equal(tce.sourceInfo.isNative, false);
-    assert.equal(tce.sourceInfo.file, undefined);
+    assert.equal(tce.sourceInfo.file, '');
     assert.equal(tce.sourceInfo.line, -1);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
@@ -70,34 +81,35 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.name, 'Object');
     assert.equal(tce.sourceInfo.isNative, false);
     assert.equal(tce.sourceInfo.file, '');
-    assert.equal(tce.sourceInfo.line, 220);
+    assert.equal(tce.sourceInfo.line, 219);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
 
   test('unknown_method_name', function() {
     var tce = new tr.e.importer.TraceCodeEntry(10, 'LazyCompile:', 12);
     assert.equal(tce.size, 10);
-    assert.equal(tce.name, 'unknown');
+    assert.equal(tce.name, '');
     assert.equal(tce.sourceInfo.isNative, false);
-    assert.equal(tce.sourceInfo.file, undefined);
+    assert.equal(tce.sourceInfo.file, '');
     assert.equal(tce.sourceInfo.line, -1);
     assert.equal(tce.sourceInfo.scriptId, 12);
 
     var tce = new tr.e.importer.TraceCodeEntry(10, 'LazyCompile:~ :37', 12);
     assert.equal(tce.size, 10);
-    assert.equal(tce.name, 'unknown');
+    assert.equal(tce.name, '');
     assert.equal(tce.sourceInfo.isNative, false);
     assert.equal(tce.sourceInfo.file, '');
-    assert.equal(tce.sourceInfo.line, 37);
+    assert.equal(tce.sourceInfo.line, 36);
     assert.equal(tce.sourceInfo.scriptId, 12);
 
     var tce = new tr.e.importer.TraceCodeEntry(10,
-        'LazyCompile:~ native liveedit.js:37', 12);
+        'LazyCompile:~ native liveedit.js:37:10', 12);
     assert.equal(tce.size, 10);
-    assert.equal(tce.name, 'unknown');
+    assert.equal(tce.name, '');
     assert.equal(tce.sourceInfo.isNative, true);
     assert.equal(tce.sourceInfo.file, 'liveedit.js');
-    assert.equal(tce.sourceInfo.line, 37);
+    assert.equal(tce.sourceInfo.line, 36);
+    assert.equal(tce.sourceInfo.column, 9);
     assert.equal(tce.sourceInfo.scriptId, 12);
   });
 });
