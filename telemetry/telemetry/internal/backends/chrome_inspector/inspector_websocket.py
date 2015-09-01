@@ -21,6 +21,7 @@ class InspectorWebsocket(object):
     self._cur_socket_timeout = 0
     self._next_request_id = 0
     self._domain_handlers = {}
+    self._pending_callbacks = dict()
 
   def RegisterDomain(self, domain_name, notification_handler):
     """Registers a given domain for handling notification methods.
@@ -77,6 +78,9 @@ class InspectorWebsocket(object):
       socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
+    self._SendRequest(req)
+
+  def _SendRequest(self, req):
     if not self._socket:
       raise WebSocketDisconnected()
     req['id'] = self._next_request_id
@@ -94,12 +98,24 @@ class InspectorWebsocket(object):
       socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
-    self.SendAndIgnoreResponse(req)
+    self._SendRequest(req)
 
     while True:
       res = self._Receive(timeout)
       if 'id' in res and res['id'] == req['id']:
         return res
+
+  def AsyncRequest(self, req, callback):
+    """Sends an async request and returns immediately.
+
+    Response will be handled in the |callback| later when DispatchNotifications
+    is invoked.
+
+    Args:
+      callback: a function that takes inspector's response as the argument.
+    """
+    self._SendRequest(req)
+    self._pending_callbacks[req['id']] = callback
 
   def DispatchNotifications(self, timeout=10):
     """Waits for responses from the websocket, dispatching them as necessary.
@@ -128,6 +144,8 @@ class InspectorWebsocket(object):
           'got [%s]', json.dumps(result, indent=2, sort_keys=True))
     if 'method' in result:
       self._HandleNotification(result)
+    elif 'id' in result:
+      self._HandleAsyncResponse(result)
     return result
 
   def _HandleNotification(self, result):
@@ -139,3 +157,8 @@ class InspectorWebsocket(object):
       return
 
     self._domain_handlers[domain_name](result)
+
+  def _HandleAsyncResponse(self, result):
+    callback = self._pending_callbacks.pop(result['id'], None)
+    if callback:
+      callback(result)
