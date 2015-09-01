@@ -26,6 +26,15 @@ tr.b.unittest.testSuite(function() {
     eltInDocument.parentElement.removeChild(eltInDocument);
   });
 
+  test('createSpan_ownerDocument', function() {
+    var spanEl = tr.ui.b.createSpan({
+      className: 'a-span-class',
+      bold: true,
+      ownerDocument: THIS_DOC
+    });
+    assert.strictEqual(spanEl.ownerDocument, THIS_DOC);
+  });
+
   test('checkboxFromDefaults', function() {
     var target = {foo: undefined};
     var cb = tr.ui.b.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');

@@ -21,7 +21,10 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
 
   function createSpan(opt_dictionary) {
-    var spanEl = document.createElement('span');
+    var ownerDocument = document;
+    if (opt_dictionary && opt_dictionary.ownerDocument)
+      ownerDocument = opt_dictionary.ownerDocument;
+    var spanEl = ownerDocument.createElement('span');
     if (opt_dictionary) {
       if (opt_dictionary.className)
         spanEl.className = opt_dictionary.className;
