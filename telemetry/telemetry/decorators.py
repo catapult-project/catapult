@@ -202,8 +202,11 @@ def ShouldSkip(test, possible_browser):
       ]]
   if possible_browser.supports_tab_control:
     platform_attributes.append('has tabs')
+  # Match browser type filters against "content-shell" and "mandoline" prefixes.
   if 'content-shell' in possible_browser.browser_type:
     platform_attributes.append('content-shell')
+  if 'mandoline' in possible_browser.browser_type:
+    platform_attributes.append('mandoline')
 
   if hasattr(test, '__name__'):
     name = test.__name__
