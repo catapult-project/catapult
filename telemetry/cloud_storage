@@ -9,8 +9,8 @@ import os
 import subprocess
 import sys
 
-from telemetry.core import command_line
-from telemetry.util import cloud_storage
+from telemetry.internal.util import command_line
+from catapult_base import cloud_storage
 
 
 BUCKETS = {bucket: easy_bucket_name for easy_bucket_name, bucket
@@ -76,7 +76,6 @@ class Ls(command_line.Command):
   def Run(self, args):
     def GetFilesInPaths(paths, recursive):
       """If path is a dir, yields all files in path, otherwise just yields path.
-      
       If recursive is true, walks subdirectories recursively."""
       for path in paths:
         if not os.path.isdir(path):
