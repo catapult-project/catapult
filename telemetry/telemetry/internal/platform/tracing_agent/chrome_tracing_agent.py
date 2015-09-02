@@ -3,18 +3,19 @@
 # found in the LICENSE file.
 
 import os
+import shutil
+import stat
+import tempfile
 
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_devtools_tracing_backend)
-from telemetry.timeline import tracing_config
 
 _DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
 
 # The trace config file path should be the same as specified in
 # src/components/tracing/startup_tracing.cc
-_CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/.config/'
-_CHROME_TRACE_CONFIG_DIR_DESKTOP = os.path.expanduser('~/.config/')
+_CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
 _CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
 
 
@@ -24,6 +25,11 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     self._chrome_devtools_tracing_backend = (
       chrome_devtools_tracing_backend.ChromeDevtoolsTracingBackend(
         platform_backend))
+    self._trace_config_file = None
+
+  @property
+  def trace_config_file(self):
+    return self._trace_config_file
 
   @classmethod
   def RegisterDevToolsClient(cls, devtools_client_backend, platform_backend):
@@ -42,51 +48,34 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def Stop(self, trace_data_builder):
     self._chrome_devtools_tracing_backend.Stop(trace_data_builder)
 
-  def _CreateTraceConfigFile(self, trace_options, category_filter):
-    config = tracing_config.TracingConfig(trace_options, category_filter)
+  def _CreateTraceConfigFile(self, config):
+    assert not self._trace_config_file
     if self._platform_backend.GetOSName() == 'android':
-      self._CreateTraceConfigFileOnAndroid(config)
+      self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
+                                             _CHROME_TRACE_CONFIG_FILE_NAME)
+      self._platform_backend.device.WriteFile(self._trace_config_file,
+          config.GetTraceConfigJsonString(), as_root=True)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
-      self._CreateTraceConfigFileOnDesktop(config)
+      self._trace_config_file = os.path.join(tempfile.mkdtemp(),
+                                             _CHROME_TRACE_CONFIG_FILE_NAME)
+      with open(self._trace_config_file, 'w') as f:
+        f.write(config.GetTraceConfigJsonString())
+      os.chmod(self._trace_config_file,
+               os.stat(self._trace_config_file).st_mode | stat.S_IROTH)
     else:
       raise NotImplementedError
 
   def _RemoveTraceConfigFile(self):
+    if not self._trace_config_file:
+      return
     if self._platform_backend.GetOSName() == 'android':
-      self._RemoveTraceConfigFileOnAndroid()
+      self._platform_backend.device.RunShellCommand(
+          ['rm', '-f', self._trace_config_file], check_return=True,
+          as_root=True)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
-      self._RemoveTraceConfigFileOnDesktop()
+      if os.path.exists(self._trace_config_file):
+        os.remove(self._trace_config_file)
+      shutil.rmtree(os.path.dirname(self._trace_config_file))
     else:
       raise NotImplementedError
-
-  def _CreateTraceConfigFileOnAndroid(self, config):
-    assert self._platform_backend.GetOSName() == 'android'
-    self._platform_backend.device.RunShellCommand(
-        ['mkdir', '-p', _CHROME_TRACE_CONFIG_DIR_ANDROID],
-        check_return=True, as_root=True)
-    self._platform_backend.device.WriteFile(
-        os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
-                     _CHROME_TRACE_CONFIG_FILE_NAME),
-        config.GetTraceConfigJsonString(), as_root=True)
-
-  def _RemoveTraceConfigFileOnAndroid(self):
-    assert self._platform_backend.GetOSName() == 'android'
-    self._platform_backend.device.RunShellCommand(
-        ['rm', '-f', os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
-                                  _CHROME_TRACE_CONFIG_FILE_NAME)],
-        check_return=True, as_root=True)
-
-  def _CreateTraceConfigFileOnDesktop(self, config):
-    assert self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES
-    if not os.path.exists(_CHROME_TRACE_CONFIG_DIR_DESKTOP):
-      os.mkdir(_CHROME_TRACE_CONFIG_DIR_DESKTOP)
-    with open(os.path.join(_CHROME_TRACE_CONFIG_DIR_DESKTOP,
-                           _CHROME_TRACE_CONFIG_FILE_NAME), 'w') as f:
-      f.write(config.GetTraceConfigJsonString())
-
-  def _RemoveTraceConfigFileOnDesktop(self):
-    assert self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES
-    config_file_path = os.path.join(_CHROME_TRACE_CONFIG_DIR_DESKTOP,
-                                    _CHROME_TRACE_CONFIG_FILE_NAME)
-    if os.path.exists(config_file_path):
-      os.remove(config_file_path)
+    self._trace_config_file = None

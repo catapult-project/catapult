@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import stat
 import unittest
 
 from telemetry import decorators
@@ -207,63 +208,63 @@ class ChromeTracingAgentUnittest(unittest.TestCase):
     self.StopTracing(tracing_agent2)
 
   @decorators.Enabled('android')
-  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnAndroid(self):
     platform_backend = FakeAndroidPlatformBackend()
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
+    self.assertIsNone(agent.trace_config_file)
+
     config = tracing_config.TracingConfig(
         tracing_options.TracingOptions(),
         tracing_category_filter.TracingCategoryFilter())
-    config_file_path = os.path.join(
-        chrome_tracing_agent._CHROME_TRACE_CONFIG_DIR_ANDROID,
-        chrome_tracing_agent._CHROME_TRACE_CONFIG_FILE_NAME)
-
-    agent._CreateTraceConfigFileOnAndroid(config)
-    config_file_str = platform_backend.device.ReadFile(config_file_path,
+    agent._CreateTraceConfigFile(config)
+    self.assertIsNotNone(agent.trace_config_file)
+    self.assertTrue(platform_backend.device.PathExists(agent.trace_config_file))
+    config_file_str = platform_backend.device.ReadFile(agent.trace_config_file,
                                                        as_root=True)
-    self.assertTrue(platform_backend.device.PathExists(config_file_path))
-    self.assertEqual(config.GetTraceConfigJsonString(),
-                     config_file_str.strip())
+    self.assertEqual(config.GetTraceConfigJsonString(), config_file_str.strip())
 
-    agent._RemoveTraceConfigFileOnAndroid()
+    config_file_path = agent.trace_config_file
+    agent._RemoveTraceConfigFile()
     self.assertFalse(platform_backend.device.PathExists(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
     # robust to multiple file removal
-    agent._RemoveTraceConfigFileOnAndroid()
+    agent._RemoveTraceConfigFile()
     self.assertFalse(platform_backend.device.PathExists(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
 
   def CreateAndRemoveTraceConfigFileOnDesktop(self, platform_backend):
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
+    self.assertIsNone(agent.trace_config_file)
+
     config = tracing_config.TracingConfig(
         tracing_options.TracingOptions(),
         tracing_category_filter.TracingCategoryFilter())
-    config_file_path = os.path.join(
-        chrome_tracing_agent._CHROME_TRACE_CONFIG_DIR_DESKTOP,
-        chrome_tracing_agent._CHROME_TRACE_CONFIG_FILE_NAME)
-
-    agent._CreateTraceConfigFileOnDesktop(config)
-    self.assertTrue(os.path.exists(config_file_path))
-    with open(config_file_path, 'r') as f:
+    agent._CreateTraceConfigFile(config)
+    self.assertIsNotNone(agent.trace_config_file)
+    self.assertTrue(os.path.exists(agent.trace_config_file))
+    self.assertTrue(os.stat(agent.trace_config_file).st_mode & stat.S_IROTH)
+    with open(agent.trace_config_file, 'r') as f:
       config_file_str = f.read()
       self.assertEqual(config.GetTraceConfigJsonString(),
                        config_file_str.strip())
 
-    agent._RemoveTraceConfigFileOnDesktop()
+    config_file_path = agent.trace_config_file
+    agent._RemoveTraceConfigFile()
     self.assertFalse(os.path.exists(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
     # robust to multiple file removal
-    agent._RemoveTraceConfigFileOnDesktop()
+    agent._RemoveTraceConfigFile()
     self.assertFalse(os.path.exists(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
 
   @decorators.Enabled('linux')
-  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnLinux(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeLinuxPlatformBackend())
 
   @decorators.Enabled('mac')
-  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnMac(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeMacPlatformBackend())
 
   @decorators.Enabled('win')
-  @decorators.Isolated
   def testCreateAndRemoveTraceConfigFileOnWin(self):
     self.CreateAndRemoveTraceConfigFileOnDesktop(FakeWinPlatformBackend())
