@@ -19,7 +19,6 @@ import re
 import shutil
 import sys
 import tempfile
-import threading
 import time
 import zipfile
 
@@ -39,6 +38,7 @@ from devil.android.sdk import keyevent
 from devil.android.sdk import split_select
 from devil.utils import host_utils
 from devil.utils import parallelizer
+from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
 from pylib import constants
@@ -1118,15 +1118,9 @@ class DeviceUtils(object):
     return ret
 
   def _ComputeStaleApks(self, package_name, host_apk_paths):
-    host_checksums_holder = [None]
-    def compute_host_checksums():
-      host_checksums_holder[0] = md5sum.CalculateHostMd5Sums(host_apk_paths)
-
-    host_thread = threading.Thread(target=compute_host_checksums)
-    host_thread.start()
-    device_checksums = self._ComputeDeviceChecksumsForApks(package_name)
-    host_thread.join()
-    host_checksums = host_checksums_holder[0]
+    host_checksums, device_checksums = reraiser_thread.RunAsync((
+        lambda: md5sum.CalculateHostMd5Sums(host_apk_paths),
+        lambda: self._ComputeDeviceChecksumsForApks(package_name)))
     stale_apks = [k for (k, v) in host_checksums.iteritems()
                   if v not in device_checksums]
     return stale_apks, set(host_checksums.values())

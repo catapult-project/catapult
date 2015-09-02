@@ -89,7 +89,7 @@ class ReraiserThreadGroup(object):
     """
     if not threads:
       threads = []
-    self._threads = threads
+    self._threads = list(threads)
 
   def Add(self, thread):
     """Add a thread to the group.
@@ -156,3 +156,17 @@ class ReraiserThreadGroup(object):
       self.JoinAll(watcher)
     return [t.GetReturnValue() for t in self._threads]
 
+
+def RunAsync(funcs, watcher=None):
+  """Executes the given functions in parallel and returns their results.
+
+  Args:
+    funcs: List of functions to perform on their own threads.
+    watcher: Watchdog object providing timeout, by default waits forever.
+
+  Returns:
+    A list of return values in the order of the given functions.
+  """
+  thread_group = ReraiserThreadGroup(ReraiserThread(f) for f in funcs)
+  thread_group.StartAll()
+  return thread_group.GetAllReturnValues(watcher=watcher)
