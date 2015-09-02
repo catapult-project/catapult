@@ -90,6 +90,7 @@ _RESTART_ADBD_SCRIPT = """
 _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
 
+_GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
 
 @decorators.WithExplicitTimeoutAndRetries(
     _DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
@@ -467,7 +468,7 @@ class DeviceUtils(object):
         return False
 
     def boot_completed():
-      return self.GetProp('sys.boot_completed') == '1'
+      return self.GetProp('sys.boot_completed', cache=False) == '1'
 
     def wifi_enabled():
       return 'Wi-Fi is enabled' in self.RunShellCommand(['dumpsys', 'wifi'],
@@ -557,7 +558,7 @@ class DeviceUtils(object):
       INSTALL_DEFAULT_TIMEOUT,
       INSTALL_DEFAULT_RETRIES)
   def InstallSplitApk(self, base_apk, split_apks, reinstall=False,
-                      timeout=None, retries=None):
+                      allow_cached_props=False, timeout=None, retries=None):
     """Install a split APK.
 
     Noop if all of the APK splits are already installed.
@@ -566,6 +567,7 @@ class DeviceUtils(object):
       base_apk: A string of the path to the base APK.
       split_apks: A list of strings of paths of all of the APK splits.
       reinstall: A boolean indicating if we should keep any existing app data.
+      allow_cached_props: Whether to use cached values for device properties.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -578,7 +580,7 @@ class DeviceUtils(object):
     self._CheckSdkLevel(constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP)
 
     all_apks = [base_apk] + split_select.SelectSplits(
-        self, base_apk, split_apks)
+        self, base_apk, split_apks, allow_cached_props=allow_cached_props)
     package_name = apk_helper.GetPackageName(base_apk)
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
 
@@ -1504,15 +1506,21 @@ class DeviceUtils(object):
     else:
       return False
 
-  @property
-  def language(self):
-    """Returns the language setting on the device."""
-    return self.GetProp('persist.sys.language', cache=False)
+  def GetLanguage(self, cache=False):
+    """Returns the language setting on the device.
+    Args:
+      cache: Whether to use cached properties when available.
+    """
+    return self.GetProp('persist.sys.language', cache=cache)
 
-  @property
-  def country(self):
-    """Returns the country setting on the device."""
-    return self.GetProp('persist.sys.country', cache=False)
+  def GetCountry(self, cache=False):
+    """Returns the country setting on the device.
+
+    Args:
+      cache: Whether to use cached properties when available.
+    """
+    return self.GetProp('persist.sys.country', cache=cache)
+
 
   @property
   def screen_density(self):
@@ -1603,7 +1611,7 @@ class DeviceUtils(object):
     Args:
       property_name: A string containing the name of the property to get from
                      the device.
-      cache: A boolean indicating whether to cache the value of this property.
+      cache: Whether to use cached properties when available.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1616,9 +1624,20 @@ class DeviceUtils(object):
     assert isinstance(property_name, basestring), (
         "property_name is not a string: %r" % property_name)
 
-    cache_key = '_prop:' + property_name
-    if cache and cache_key in self._cache:
-      return self._cache[cache_key]
+    prop_cache = self._cache['getprop']
+    if cache:
+      if property_name not in prop_cache:
+        # It takes ~120ms to query a single property, and ~130ms to query all
+        # properties. So, when caching we always query all properties.
+        output = self.RunShellCommand(
+            ['getprop'], check_return=True,
+            timeout=self._default_timeout if timeout is DEFAULT else timeout,
+            retries=self._default_retries if retries is DEFAULT else retries)
+        prop_cache.clear()
+        for key, value in _GETPROP_RE.findall(''.join(output)):
+          prop_cache[key] = value
+        if property_name not in prop_cache:
+          prop_cache[property_name] = ''
     else:
       # timeout and retries are handled down at run shell, because we don't
       # want to apply them in the other branch when reading from the cache
@@ -1626,9 +1645,8 @@ class DeviceUtils(object):
           ['getprop', property_name], single_line=True, check_return=True,
           timeout=self._default_timeout if timeout is DEFAULT else timeout,
           retries=self._default_retries if retries is DEFAULT else retries)
-      if cache or cache_key in self._cache:
-        self._cache[cache_key] = value
-      return value
+      prop_cache[property_name] = value
+    return prop_cache[property_name]
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetProp(self, property_name, value, check=False, timeout=None,
@@ -1655,12 +1673,12 @@ class DeviceUtils(object):
     assert isinstance(value, basestring), "value is not a string: %r" % value
 
     self.RunShellCommand(['setprop', property_name, value], check_return=True)
-    cache_key = '_prop:' + property_name
-    if cache_key in self._cache:
-      del self._cache[cache_key]
+    prop_cache = self._cache['getprop']
+    if property_name in prop_cache:
+      del prop_cache[property_name]
     # TODO(perezju) remove the option and make the check mandatory, but using a
     # single shell script to both set- and getprop.
-    if check and value != self.GetProp(property_name):
+    if check and value != self.GetProp(property_name, cache=False):
       raise device_errors.CommandFailedError(
           'Unable to set property %r on the device to %r'
           % (property_name, value), str(self))
@@ -1679,7 +1697,7 @@ class DeviceUtils(object):
     Raises:
       CommandTimeoutError on timeout.
     """
-    return self.GetProp('ro.product.cpu.abi')
+    return self.GetProp('ro.product.cpu.abi', cache=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetPids(self, process_name, timeout=None, retries=None):
@@ -1866,6 +1884,8 @@ class DeviceUtils(object):
         'package_apk_paths': {},
         # Map of packageId -> set of on-device .apk checksums
         'package_apk_checksums': {},
+        # Map of property_name -> value
+        'getprop': {},
     }
 
   @classmethod

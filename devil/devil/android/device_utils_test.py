@@ -308,7 +308,7 @@ class DeviceUtils_GetApplicationPathsInternalTest(DeviceUtilsTest):
 
   def test_GetApplicationPathsInternal_exists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '19\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
         (self.call.adb.Shell('pm path android'),
          'package:/path/to/android.apk\n')):
       self.assertEquals(['/path/to/android.apk'],
@@ -316,14 +316,14 @@ class DeviceUtils_GetApplicationPathsInternalTest(DeviceUtilsTest):
 
   def test_GetApplicationPathsInternal_notExists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '19\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
         (self.call.adb.Shell('pm path not.installed.app'), '')):
       self.assertEquals([],
           self.device._GetApplicationPathsInternal('not.installed.app'))
 
   def test_GetApplicationPathsInternal_fails(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '19\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
         (self.call.adb.Shell('pm path android'),
          self.CommandError('ERROR. Is package manager running?\n'))):
       with self.assertRaises(device_errors.CommandFailedError):
@@ -393,7 +393,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
                                                        skip_cache=True),
          ['package:/some/fake/path']),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '1')):
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
       self.device.WaitUntilFullyBooted(wifi=False)
 
   def testWaitUntilFullyBooted_succeedsWithWifi(self):
@@ -407,7 +407,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
                                                        skip_cache=True),
          ['package:/some/fake/path']),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '1'),
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1'),
         # wifi_enabled
         (self.call.adb.Shell('dumpsys wifi'),
          'stuff\nWi-Fi is enabled\nmore stuff\n')):
@@ -432,7 +432,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
                                                        skip_cache=True),
          ['package:/some/fake/path']),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '1')):
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
       self.device.WaitUntilFullyBooted(wifi=False)
 
   def testWaitUntilFullyBooted_sdCardReadyFails_noPath(self):
@@ -491,11 +491,12 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
                                                        skip_cache=True),
          ['package:/some/fake/path']),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '0'),
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '0'),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '0'),
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '0'),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), self.TimeoutError())):
+        (self.call.device.GetProp('sys.boot_completed', cache=False),
+         self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
         self.device.WaitUntilFullyBooted(wifi=False)
 
@@ -510,7 +511,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
                                                        skip_cache=True),
          ['package:/some/fake/path']),
         # boot_completed
-        (self.call.device.GetProp('sys.boot_completed'), '1'),
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1'),
         # wifi_enabled
         (self.call.adb.Shell('dumpsys wifi'), 'stuff\nmore stuff\n'),
         # wifi_enabled
@@ -616,7 +617,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
         (self.call.device._CheckSdkLevel(21)),
         (mock.call.devil.android.sdk.split_select.SelectSplits(
             self.device, 'base.apk',
-            ['split1.apk', 'split2.apk', 'split3.apk']),
+            ['split1.apk', 'split2.apk', 'split3.apk'],
+            allow_cached_props=False),
          ['split2.apk']),
         (mock.call.devil.android.apk_helper.GetPackageName('base.apk'),
          'test.package'),
@@ -631,7 +633,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
         (self.call.device._CheckSdkLevel(21)),
         (mock.call.devil.android.sdk.split_select.SelectSplits(
             self.device, 'base.apk',
-            ['split1.apk', 'split2.apk', 'split3.apk']),
+            ['split1.apk', 'split2.apk', 'split3.apk'],
+            allow_cached_props=False),
          ['split2.apk']),
         (mock.call.devil.android.apk_helper.GetPackageName('base.apk'),
          'test.package'),
@@ -1291,21 +1294,21 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
 
   def testClearApplicationState_packageDoesntExist(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '17\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [11]\n'),
         (self.call.device._GetApplicationPathsInternal('does.not.exist'),
          [])):
       self.device.ClearApplicationState('does.not.exist')
 
   def testClearApplicationState_packageDoesntExistOnAndroidJBMR2OrAbove(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '18\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [18]\n'),
         (self.call.adb.Shell('pm clear this.package.does.not.exist'),
          'Failed\r\n')):
       self.device.ClearApplicationState('this.package.does.not.exist')
 
   def testClearApplicationState_packageExists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '17\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [17]\n'),
         (self.call.device._GetApplicationPathsInternal('this.package.exists'),
          ['/data/app/this.package.exists.apk']),
         (self.call.adb.Shell('pm clear this.package.exists'),
@@ -1314,7 +1317,7 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
 
   def testClearApplicationState_packageExistsOnAndroidJBMR2OrAbove(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.version.sdk'), '18\n'),
+        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [18]\n'),
         (self.call.adb.Shell('pm clear this.package.exists'),
          'Success\r\n')):
       self.device.ClearApplicationState('this.package.exists')
@@ -1719,7 +1722,7 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
   def testGetProp_cachedRoProp(self):
     with self.assertCall(
-        self.call.adb.Shell('getprop ro.build.type'), 'userdebug\n'):
+        self.call.adb.Shell('getprop'), '[ro.build.type]: [userdebug]\n'):
       self.assertEqual('userdebug',
                        self.device.GetProp('ro.build.type', cache=True))
       self.assertEqual('userdebug',
@@ -1727,9 +1730,9 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
   def testGetProp_retryAndCache(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop ro.build.type'), self.ShellError()),
-        (self.call.adb.Shell('getprop ro.build.type'), self.ShellError()),
-        (self.call.adb.Shell('getprop ro.build.type'), 'userdebug\n')):
+        (self.call.adb.Shell('getprop'), self.ShellError()),
+        (self.call.adb.Shell('getprop'), self.ShellError()),
+        (self.call.adb.Shell('getprop'), '[ro.build.type]: [userdebug]\n')):
       self.assertEqual('userdebug',
                        self.device.GetProp('ro.build.type',
                                            cache=True, retries=3))

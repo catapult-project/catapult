@@ -28,30 +28,32 @@ def _RunSplitSelectCmd(args):
                     (' '.join(cmd), output))
   return output
 
-def _SplitConfig(device):
+def _SplitConfig(device, allow_cached_props=False):
   """Returns a config specifying which APK splits are required by the device.
 
   Args:
     device: A DeviceUtils object.
+    allow_cached_props: Whether to use cached values for device properties.
   """
   return ('%s-r%s-%s:%s' %
-          (device.language,
-           device.country,
+          (device.GetLanguage(cache=allow_cached_props),
+           device.GetCountry(cache=allow_cached_props),
            device.screen_density,
            device.product_cpu_abi))
 
-def SelectSplits(device, base_apk, split_apks):
+def SelectSplits(device, base_apk, split_apks, allow_cached_props=False):
   """Determines which APK splits the device requires.
 
   Args:
     device: A DeviceUtils object.
     base_apk: The path of the base APK.
     split_apks: A list of paths of APK splits.
+    allow_cached_props: Whether to use cached values for device properties.
 
   Returns:
     The list of APK splits that the device requires.
   """
-  config = _SplitConfig(device)
+  config = _SplitConfig(device, allow_cached_props=allow_cached_props)
   args = ['--target', config, '--base', base_apk]
   for split in split_apks:
     args.extend(['--split', split])
