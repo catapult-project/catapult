@@ -933,7 +933,7 @@ class StartBisectTest(testing_common.TestCase):
         },
         {
             'command': ('python tools/perf/run_benchmark -v '
-                        '--browser=release --output-format=buildbot '
+                        '--browser=release_x64 --output-format=buildbot '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
             'good_revision': '265549',

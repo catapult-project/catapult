@@ -413,41 +413,40 @@ def GuessBisectBot(master_name, bot_name):
 def GuessCommand(
     bisect_bot, suite, metric=None, rerun_option=None, use_buildbucket=False):
   """Returns a command to use in the bisect configuration."""
-  platform = bisect_bot.split('_')[0]
   if suite in _NON_TELEMETRY_TEST_COMMANDS:
-    return _GuessCommandNonTelemetry(suite, platform)
+    return _GuessCommandNonTelemetry(suite, bisect_bot)
   return _GuessCommandTelemetry(
-      suite, platform, metric, rerun_option, use_buildbucket)
+      suite, bisect_bot, metric, rerun_option, use_buildbucket)
 
 
-def _GuessCommandNonTelemetry(suite, platform):
+def _GuessCommandNonTelemetry(suite, bisect_bot):
   """Returns a command string to use for non-Telemetry tests."""
   if suite not in _NON_TELEMETRY_TEST_COMMANDS:
     return None
-  if suite == 'cc_perftests' and platform == 'android':
+  if suite == 'cc_perftests' and bisect_bot.startswith('android'):
     return 'build/android/test_runner.py gtest --release -s cc_perftests'
 
   command = _NON_TELEMETRY_TEST_COMMANDS[suite]
-  if platform.startswith('win'):
+  if bisect_bot.startswith('win'):
     command[0] = command[0].replace('/', '\\')
     command[0] += '.exe'
   return ' '.join(command)
 
 
 def _GuessCommandTelemetry(
-    suite, platform, metric,  # pylint: disable=unused-argument
+    suite, bisect_bot, metric,  # pylint: disable=unused-argument
     rerun_option, use_buildbucket):
   """Returns a command to use given that |suite| is a Telemetry benchmark."""
   # TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
   # See: http://crbug.com/448628
   command = []
-  if platform.startswith('win'):
+  if bisect_bot.startswith('win'):
     command.append('python')
 
   command.extend([
       'tools/perf/run_benchmark',
       '-v',
-      '--browser=%s' % _GuessBrowserName(platform),
+      '--browser=%s' % _GuessBrowserName(bisect_bot),
       '--output-format=%s' % ('chartjson' if use_buildbucket else 'buildbot'),
       '--also-run-disabled-tests',
   ])
@@ -473,12 +472,15 @@ def _GuessCommandTelemetry(
   return ' '.join(command)
 
 
-def _GuessBrowserName(platform):
+def _GuessBrowserName(bisect_bot):
   """Returns a browser name string for Telemetry to use."""
-  if platform == 'android':
+  if bisect_bot.startswith('android'):
     return 'android-chromium'
-  if platform == 'clankium':
+  if bisect_bot.startswith('clankium'):
     return 'android-chrome'
+  if bisect_bot.startswith('win') and 'x64' in bisect_bot:
+    return 'release_x64'
+
   return 'release'
 
 
