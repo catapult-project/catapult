@@ -9,10 +9,10 @@ import logging
 import re
 import sys
 
-from pylib import cmd_helper
-from pylib.device import adb_wrapper
-from pylib.device import device_errors
-from pylib.utils import run_tests_helper
+from devil.android import device_errors
+from devil.android.sdk import adb_wrapper
+from devil.utils import cmd_helper
+from devil.utils import run_tests_helper
 
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')
