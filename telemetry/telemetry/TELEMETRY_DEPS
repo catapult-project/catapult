@@ -4,6 +4,7 @@
     "aiolos@, dtu@, or nednguyen@ on how to proceed with your change."
   ],
   "directory_deps": [
+    "build/android/devil/",
     "build/android/pylib/",
     "third_party/catapult/",
     "tools/telemetry/"
