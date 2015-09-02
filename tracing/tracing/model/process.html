@@ -37,6 +37,7 @@ tr.exportTo('tr.model', function() {
     this.instantEvents = [];
     this.memoryDumps = [];
     this.frames = [];
+    this.activities = [];
   };
 
   /**
@@ -134,6 +135,9 @@ tr.exportTo('tr.model', function() {
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].shiftTimestampsForward(amount);
 
+      for (var i = 0; i < this.activities.length; i++)
+        this.activities[i].shiftTimestampsForward(amount);
+
       tr.model.ProcessBase.prototype
           .shiftTimestampsForward.apply(this, arguments);
     },
@@ -146,6 +150,9 @@ tr.exportTo('tr.model', function() {
 
       for (var i = 0; i < this.memoryDumps.length; i++)
         this.memoryDumps[i].addBoundsToRange(this.bounds);
+
+      for (var i = 0; i < this.activities.length; i++)
+        this.activities[i].addBoundsToRange(this.bounds);
     },
 
     sortMemoryDumps: function() {

@@ -147,6 +147,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   var traceEventClockSyncRE = /trace_event_clock_sync: parent_ts=(\d+\.?\d*)/;
   TestExports.traceEventClockSyncRE = traceEventClockSyncRE;
 
+  var realTimeClockSyncRE = /trace_event_clock_sync: realtime_ts=(\d+)/;
   var genericClockSyncRE = /trace_event_clock_sync: name=(\w+)/;
 
   // Some kernel trace events are manually classified in slices and
@@ -750,6 +751,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           return;
         if (traceEventClockSyncRE.exec(eventBase.details))
           this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
+        if (realTimeClockSyncRE.exec(eventBase.details)) {
+          // This entry maps realtime to clock_monotonic; store in the model
+          // so that importers parsing files with realtime timestamps can
+          // map this back to monotonic.
+          var match = realTimeClockSyncRE.exec(eventBase.details);
+          this.model_.realtime_to_monotonic_offset_ms = ts - match[1];
+        }
         if (genericClockSyncRE.exec(eventBase.details))
           this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
       }.bind(this));
