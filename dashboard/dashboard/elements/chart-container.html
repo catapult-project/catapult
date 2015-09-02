@@ -8,6 +8,7 @@ triaging functionality in the chart.
 <link rel="import" href="/third_party/polymer/components/core-icon/core-icon.html">
 <link rel="import" href="/third_party/polymer/components/paper-button/paper-button.html">
 
+<link rel="import" href="alert-icon.html">
 <link rel="import" href="chart-legend.html">
 <link rel="import" href="chart-slider.html">
 <link rel="import" href="chart-title.html">
@@ -23,7 +24,6 @@ triaging functionality in the chart.
                  on-dragover="{{allowDrop}}">
 
   <template>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
     #container {
       width: 100%;
@@ -118,20 +118,11 @@ triaging functionality in the chart.
       position: relative;
     }
 
-    .alert-icon {
-      cursor: pointer;
-      font-size: 22px;
-      margin-left: -4px;
-      margin-top: -4px;
+    alert-icon {
       position: absolute;
+      margin-top: -5px;
+      margin-left: -6px;
       z-index: 1000;
-    }
-
-    .alert-icon.highlighted {
-      background-color: rgba(255, 200, 10, 0.6);
-      border-radius: 20px;
-      box-shadow: 0px 0px 5px #ffba02;
-      border: 1px solid #ffba02;
     }
 
     #close-chart {
@@ -147,6 +138,7 @@ triaging functionality in the chart.
       width: 100%;
     }
     </style>
+
     <div id="container" compact?="{{showCompact}}">
       <div id="top-bar" horizontal layout>
         <div flex horizontal center-justified layout>
@@ -165,6 +157,7 @@ triaging functionality in the chart.
         <div id="alert-icon-container"></div>
         <chart-tooltip id="tooltip"
                        xsrfToken="{{xsrfToken}}"></chart-tooltip>
+
         <div id="plots-container" on-mouseleave="{{onMouseLeave}}">
           <div id="plot">
             <div id="loading-div">
@@ -1385,7 +1378,6 @@ triaging functionality in the chart.
           var minHeight = this.chart.getAxes().yaxis.min;
           var maxHeight = this.chart.getAxes().yaxis.max;
           var xOffset = this.chartOptions.yaxis.labelWidth;
-
           var flotData = this.chart.getData();
           var annotations = this.json.annotations;
           for (var flotIndex = 0; flotIndex < flotData.length; flotIndex++) {
@@ -1402,15 +1394,20 @@ triaging functionality in the chart.
                   flotData[flotIndex].data[dataIndex][1] > maxHeight) {
                 continue;
               }
-              var alertIcon = this.addAlertIcon(
-                  annotations[jsonSeriesIndex][dataIndex]['g_anomaly']);
+
               var flotPoint = flotData[flotIndex].data[dataIndex];
               var left = xOffset + Math.round(
                   flotData[flotIndex].xaxis.p2c(flotPoint[0]));
               var top = Math.round(
                   flotData[flotIndex].yaxis.p2c(flotPoint[1]));
-              alertIcon.style.left = left + 'px';
-              alertIcon.style.top = top + 'px';
+
+              var alertIcon = document.createElement('alert-icon');
+              alertIcon.initialize(
+                annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
+                this.alertKey);
+              this.$['alert-icon-container'].appendChild(alertIcon);
+              alertIcon.setPosition(top, left);
+
               alertIcon.onmouseover = this.showTooltip.bind(
                   this, flotIndex, dataIndex);
               alertIcon.onclick = this.onAlertClick.bind(
@@ -1421,42 +1418,6 @@ triaging functionality in the chart.
 
         clearAlertIcons: function() {
           this.$['alert-icon-container'].innerHTML = '';
-        },
-
-        addAlertIcon: function(alertAnnotation) {
-          var bugId = alertAnnotation['bug_id'];
-          var improvement = alertAnnotation['improvement'];
-          var recovered = alertAnnotation['recovered'];
-          var key = alertAnnotation['key'];
-
-          var alertIcon = document.createElement('i');
-          alertIcon.classList.add('material-icons');
-          alertIcon.textContent = 'error';
-
-          var color = 'black';
-          if (!bugId && !improvement) {
-            color = 'red';
-          } else if (!bugId && improvement) {
-            color = 'green';
-          }
-          alertIcon.style.color = color;
-
-          if (bugId && bugId < 0 || recovered) {
-            // Triaged as invalid, ignored, or recovered; lower opacity.
-            alertIcon.style.opacity = 0.4;
-          }
-
-          alertIcon.classList.add('alert-icon');
-          // alertKey is an optional attribute to specify that this chart
-          // is associated with an alert. If this alert is the one alert that
-          // this chart is meant to draw attention to, we want to distinguish
-          // this alert from any others on the chart.
-          if (this.alertKey == key) {
-             alertIcon.classList.add('highlighted');
-          }
-
-          this.$['alert-icon-container'].appendChild(alertIcon);
-          return alertIcon;
         },
 
         /**
