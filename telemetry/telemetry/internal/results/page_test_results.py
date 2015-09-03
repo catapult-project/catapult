@@ -21,12 +21,11 @@ from telemetry.value import trace
 
 
 class PageTestResults(object):
-  def __init__(self, output_stream=None, output_formatters=None,
+  def __init__(self, output_formatters=None,
                progress_reporter=None, trace_tag='', output_dir=None,
                value_can_be_added_predicate=lambda v, is_first: True):
     """
     Args:
-      output_stream: The output stream to use to write test results.
       output_formatters: A list of output formatters. The output
           formatters are typically used to format the test results, such
           as CsvPivotTableOutputFormatter, which output the test results as CSV.
@@ -45,7 +44,6 @@ class PageTestResults(object):
     # TODO(chrishenry): Figure out if trace_tag is still necessary.
 
     super(PageTestResults, self).__init__()
-    self._output_stream = output_stream
     self._progress_reporter = (
         progress_reporter if progress_reporter is not None
         else reporter_module.ProgressReporter())
