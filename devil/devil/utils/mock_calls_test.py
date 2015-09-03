@@ -12,6 +12,7 @@ import os
 import sys
 import unittest
 
+from devil.android.sdk import version_codes
 from devil.utils import mock_calls
 from pylib import constants
 
@@ -41,7 +42,7 @@ class _DummyAdb(object):
   @property
   def build_version_sdk(self):
     logging.debug('(device %s) getting build_version_sdk', self)
-    return constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP
+    return version_codes.LOLLIPOP
 
 
 class TestCaseWithAssertCallsTest(mock_calls.TestCase):
@@ -97,15 +98,12 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
         self.adb.Shell('echo hello')
 
   def testPatchCall_property(self):
-    self.assertEquals(constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP,
-                      self.adb.build_version_sdk)
+    self.assertEquals(version_codes.LOLLIPOP, self.adb.build_version_sdk)
     with self.patch_call(
         self.call.adb.build_version_sdk,
-        return_value=constants.ANDROID_SDK_VERSION_CODES.KITKAT):
-      self.assertEquals(constants.ANDROID_SDK_VERSION_CODES.KITKAT,
-                        self.adb.build_version_sdk)
-    self.assertEquals(constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP,
-                      self.adb.build_version_sdk)
+        return_value=version_codes.KITKAT):
+      self.assertEquals(version_codes.KITKAT, self.adb.build_version_sdk)
+    self.assertEquals(version_codes.LOLLIPOP, self.adb.build_version_sdk)
 
   def testAssertCalls_succeeds_simple(self):
     self.assertEquals(42, self.get_answer())

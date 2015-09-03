@@ -19,13 +19,14 @@ import re
 import sys
 import unittest
 
-from devil.android import device_signal
 from devil.android import device_blacklist
 from devil.android import device_errors
+from devil.android import device_signal
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import split_select
+from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
 from pylib import constants
@@ -661,13 +662,13 @@ class DeviceUtilsSuTest(DeviceUtilsTest):
   def testSu_preM(self):
     with self.patch_call(
         self.call.device.build_version_sdk,
-        return_value=constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP_MR1):
+        return_value=version_codes.LOLLIPOP_MR1):
       self.assertEquals('su -c foo', self.device._Su('foo'))
 
   def testSu_mAndAbove(self):
     with self.patch_call(
         self.call.device.build_version_sdk,
-        return_value=constants.ANDROID_SDK_VERSION_CODES.MARSHMALLOW):
+        return_value=version_codes.MARSHMALLOW):
       self.assertEquals('su 0 foo', self.device._Su('foo'))
 
 
@@ -1671,11 +1672,11 @@ class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
 
   def testSetJavaAsserts_enable(self):
     with self.assertCalls(
-        (self.call.device.ReadFile(constants.DEVICE_LOCAL_PROPERTIES_PATH),
+        (self.call.device.ReadFile(self.device.LOCAL_PROPERTIES_PATH),
          'some.example.prop=with an example value\n'
          'some.other.prop=value_ok\n'),
         self.call.device.WriteFile(
-            constants.DEVICE_LOCAL_PROPERTIES_PATH,
+            self.device.LOCAL_PROPERTIES_PATH,
             'some.example.prop=with an example value\n'
             'some.other.prop=value_ok\n'
             'dalvik.vm.enableassertions=all\n'),
@@ -1685,12 +1686,12 @@ class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
 
   def testSetJavaAsserts_disable(self):
     with self.assertCalls(
-        (self.call.device.ReadFile(constants.DEVICE_LOCAL_PROPERTIES_PATH),
+        (self.call.device.ReadFile(self.device.LOCAL_PROPERTIES_PATH),
          'some.example.prop=with an example value\n'
          'dalvik.vm.enableassertions=all\n'
          'some.other.prop=value_ok\n'),
         self.call.device.WriteFile(
-            constants.DEVICE_LOCAL_PROPERTIES_PATH,
+            self.device.LOCAL_PROPERTIES_PATH,
             'some.example.prop=with an example value\n'
             'some.other.prop=value_ok\n'),
         (self.call.device.GetProp('dalvik.vm.enableassertions'), 'all'),
@@ -1699,7 +1700,7 @@ class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
 
   def testSetJavaAsserts_alreadyEnabled(self):
     with self.assertCalls(
-        (self.call.device.ReadFile(constants.DEVICE_LOCAL_PROPERTIES_PATH),
+        (self.call.device.ReadFile(self.device.LOCAL_PROPERTIES_PATH),
          'some.example.prop=with an example value\n'
          'dalvik.vm.enableassertions=all\n'
          'some.other.prop=value_ok\n'),

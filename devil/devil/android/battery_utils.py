@@ -14,6 +14,7 @@ import logging
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android import device_utils
+from devil.android.sdk import version_codes
 from devil.utils import timeout_retry
 from pylib import constants
 
@@ -423,8 +424,7 @@ class BatteryUtils(object):
     Raises:
       device_errors.DeviceVersionError: If device is not L or higher.
     """
-    if (self._device.build_version_sdk <
-        constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP):
+    if (self._device.build_version_sdk < version_codes.LOLLIPOP):
       raise device_errors.DeviceVersionError('Device must be L or higher.')
     try:
       self.DisableBatteryUpdates(timeout=timeout, retries=retries)
@@ -583,8 +583,7 @@ class BatteryUtils(object):
       device_errors.DeviceVersionError: If power clearing is supported,
         but fails.
     """
-    if (self._device.build_version_sdk <
-        constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP):
+    if (self._device.build_version_sdk < version_codes.LOLLIPOP):
       logging.warning('Dumpsys power data only available on 5.0 and above. '
                       'Cannot clear power data.')
       return False

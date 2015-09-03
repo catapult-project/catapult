@@ -36,6 +36,7 @@ from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
 from devil.android.sdk import split_select
+from devil.android.sdk import version_codes
 from devil.utils import host_utils
 from devil.utils import parallelizer
 from devil.utils import reraiser_thread
@@ -155,6 +156,8 @@ class DeviceUtils(object):
   _LAUNCHER_FOCUSED_RE = re.compile(
       '\s*mCurrentFocus.*(Launcher|launcher).*')
   _VALID_SHELL_VARIABLE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+  LOCAL_PROPERTIES_PATH = posixpath.join('/', 'data', 'local.prop')
 
   # Property in /data/local.prop that controls Java assertions.
   JAVA_ASSERT_PROPERTY = 'dalvik.vm.enableassertions'
@@ -287,8 +290,7 @@ class DeviceUtils(object):
     return self._cache['needs_su']
 
   def _Su(self, command):
-    if (self.build_version_sdk
-        >= constants.ANDROID_SDK_VERSION_CODES.MARSHMALLOW):
+    if (self.build_version_sdk >= version_codes.MARSHMALLOW):
       return 'su 0 %s' % command
     return 'su -c %s' % command
 
@@ -378,8 +380,7 @@ class DeviceUtils(object):
     # in Lollipop.
     # TODO(jbudorick): Check if this is fixed as new Android versions are
     # released to put an upper bound on this.
-    should_check_return = (self.build_version_sdk <
-                           constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP)
+    should_check_return = (self.build_version_sdk < version_codes.LOLLIPOP)
     output = self.RunShellCommand(
         ['pm', 'path', package], check_return=should_check_return)
     apks = []
@@ -577,7 +578,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
       DeviceVersionError if device SDK is less than Android L.
     """
-    self._CheckSdkLevel(constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP)
+    self._CheckSdkLevel(version_codes.LOLLIPOP)
 
     all_apks = [base_apk] + split_select.SelectSplits(
         self, base_apk, split_apks, allow_cached_props=allow_cached_props)
@@ -986,8 +987,7 @@ class DeviceUtils(object):
     # Check that the package exists before clearing it for android builds below
     # JB MR2. Necessary because calling pm clear on a package that doesn't exist
     # may never return.
-    if ((self.build_version_sdk >=
-         constants.ANDROID_SDK_VERSION_CODES.JELLY_BEAN_MR2)
+    if ((self.build_version_sdk >= version_codes.JELLY_BEAN_MR2)
         or self._GetApplicationPathsInternal(package)):
       self.RunShellCommand(['pm', 'clear', package], check_return=True)
 
@@ -995,7 +995,7 @@ class DeviceUtils(object):
   def SendKeyEvent(self, keycode, timeout=None, retries=None):
     """Sends a keycode to the device.
 
-    See the pylib.constants.keyevent module for suitable keycode values.
+    See the devil.android.sdk.keyevent module for suitable keycode values.
 
     Args:
       keycode: A integer keycode to send to the device.
@@ -1479,8 +1479,7 @@ class DeviceUtils(object):
 
     # First ensure the desired property is persisted.
     try:
-      properties = self.ReadFile(
-          constants.DEVICE_LOCAL_PROPERTIES_PATH).splitlines()
+      properties = self.ReadFile(self.LOCAL_PROPERTIES_PATH).splitlines()
     except device_errors.CommandFailedError:
       properties = []
     index, value = find_property(properties, self.JAVA_ASSERT_PROPERTY)
@@ -1494,8 +1493,7 @@ class DeviceUtils(object):
       else:
         assert index is not None # since new_value == '' and new_value != value
         properties.pop(index)
-      self.WriteFile(constants.DEVICE_LOCAL_PROPERTIES_PATH,
-                     _JoinLines(properties))
+      self.WriteFile(self.LOCAL_PROPERTIES_PATH, _JoinLines(properties))
 
     # Next, check the current runtime value is what we need, and
     # if not, set it and report that a reboot is required.
@@ -1576,8 +1574,7 @@ class DeviceUtils(object):
     For version code numbers see:
     http://developer.android.com/reference/android/os/Build.VERSION_CODES.html
 
-    For named constants see:
-    pylib.constants.ANDROID_SDK_VERSION_CODES
+    For named constants see devil.android.sdk.version_codes
 
     Raises:
       CommandFailedError if the build version sdk is not a number.
