@@ -264,15 +264,3 @@ class WinFindTest(FindTestBase):
              'debug', 'release',
              'content-shell-debug', 'content-shell-release',
              'system', 'canary']))
-
-  def testFindAllWithExactApk(self):
-    if not self.CanFindAvailableBrowsers():
-      return
-
-    self._finder_options.browser_executable = 'c:\\tmp\\chrome_shell.apk'
-    types = self.DoFindAllTypes()
-    self.assertEquals(
-        set(types),
-        set(['debug', 'release',
-             'content-shell-debug', 'content-shell-release',
-             'system', 'canary']))

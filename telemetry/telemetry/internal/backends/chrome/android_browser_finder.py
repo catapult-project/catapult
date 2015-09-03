@@ -26,10 +26,6 @@ CHROME_PACKAGE_NAMES = {
       ['org.chromium.content_shell_apk',
        android_browser_backend_settings.ContentShellBackendSettings,
        'ContentShell.apk'],
-  'android-chrome-shell':
-      ['org.chromium.chrome.shell',
-       android_browser_backend_settings.ChromeShellBackendSettings,
-       'ChromeShell.apk'],
   'android-webview':
       ['org.chromium.webview_shell',
        android_browser_backend_settings.WebviewBackendSettings,

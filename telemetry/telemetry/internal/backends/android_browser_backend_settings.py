@@ -81,19 +81,6 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:content_shell_devtools_remote'
 
 
-class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
-  def __init__(self, package):
-    super(ChromeShellBackendSettings, self).__init__(
-          activity='org.chromium.chrome.shell.ChromeShellActivity',
-          cmdline_file='/data/local/tmp/chrome-shell-command-line',
-          package=package,
-          pseudo_exec_name='chrome_shell',
-          supports_tab_control=False)
-
-  def GetDevtoolsRemotePort(self, device):
-    return 'localabstract:chrome_shell_devtools_remote'
-
-
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self,
                package,
