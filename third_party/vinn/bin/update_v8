@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+"""Updates the 64 bit d8 binary for the current OS to match the v8 version used
+in the current version of the specified Chromium channel. If no channel is
+specified, we default to the 'stable' channel.
+
+This script assumes that git is installed and the computer meets all
+other prerequisites to build v8 normally (like having depot_tools installed and
+in $PATH).
+
+Example usage:
+$ tracing/bin/update_v8
+"""
+
+import json
+import os
+import platform
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib2
+
+OMAHAPROXY_VERSION_MAP_URL = 'https://omahaproxy.appspot.com/all.json'
+
+V8_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'third_party',
+    'v8')
+V8_BINARY_PATH = os.path.join(V8_PATH, '{os}', '{arch}', 'd8')
+V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
+
+V8_CHECKOUT_BINARY_PATH = os.path.join(
+    '{v8_root}', 'v8', 'out', 'Release', 'd8')
+V8_GENERATE_GYP_CMD = os.path.join('build', 'gyp_v8') + ' -Dtarget_arch={arch}'
+V8_COMPILE_CMD = 'ninja -C {0} d8'.format(os.path.join('out', 'Release'))
+
+VALID_CHANNEL_LIST = ['stable', 'canary', 'beta', 'dev']
+# Dict from the acceptable return values for Python's platform.system() to the
+# corresponding Chromium OS name.
+PYTHON_SYSTEM_TO_CHROME_OS = {
+  'Linux': 'linux',
+  'Windows': 'win',
+  'Darwin': 'mac'
+}
+# Dict from the acceptable return values for Python's platform.machine() to the
+# corresponding ninja architecture name.
+PYTHON_MACHINE_TO_NINJA_ARCH = {
+  'x86_64': 'x64'
+}
+
+def Main(args):
+  if len(args) > 1:
+    print('Usage: update_v8 [TARGET_CHANNEL]')
+    return 1
+
+  target_channel = args[0] if len(args) == 1 else 'stable'
+  target_arch = platform.machine()
+
+  if target_channel not in VALID_CHANNEL_LIST:
+    print('Invalid target channel. Valid: {0}'.format(VALID_CHANNEL_LIST))
+    return 1
+
+  if platform.system() not in PYTHON_SYSTEM_TO_CHROME_OS:
+    print('System not supported. Valid: {0}'.format(
+        PYTHON_SYSTEM_TO_CHROME_OS.keys()))
+    return 1
+  target_os = PYTHON_SYSTEM_TO_CHROME_OS[platform.system()]
+
+  if target_arch not in PYTHON_MACHINE_TO_NINJA_ARCH:
+    print('Invalid target architecture. Valid: {0}'.format(
+        PYTHON_MACHINE_TO_NINJA_ARCH.keys()))
+    return 1
+
+  v8_version = GetV8Version(target_os, target_channel)
+  UpdateV8Binary(v8_version, target_os, target_arch)
+  UpdateReadmeFile(v8_version, target_os)
+
+  return 0
+
+def GetV8Version(target_os, target_channel):
+  """Returns the v8 version that corresponds to the specified OS and channel."""
+  # Fetch the current version map from omahaproxy.
+  response = urllib2.urlopen(OMAHAPROXY_VERSION_MAP_URL)
+  versions = json.loads(response.read())
+
+  # Return the v8 version that corresponds to the target OS and channel in the
+  # version map.
+  v8_version = None
+  for curr_os in versions:
+    for curr_version in curr_os['versions']:
+      if (curr_version['os'] == target_os and
+          curr_version['channel'] == target_channel):
+        return curr_version['v8_version']
+
+def UpdateV8Binary(v8_version, target_os, target_arch):
+  """Updates the catapult V8 binary for the specified OS to be the specified V8
+  version."""
+  # Clone v8, checkout the version that corresponds to our target OS and target
+  # channel, and build the d8 binary.
+  with TempDir() as v8_checkout_path:
+    with ChangeDirectory(v8_checkout_path):
+      subprocess.check_call('fetch v8', shell=True)
+      with ChangeDirectory('v8'):
+        subprocess.check_call('git checkout {0}'.format(v8_version), shell=True)
+
+        os.environ['GYP_GENERATORS'] = 'ninja'
+        ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
+        subprocess.check_call(
+            V8_GENERATE_GYP_CMD.format(arch=ninja_arch), shell=True)
+        subprocess.check_call(V8_COMPILE_CMD, shell=True)
+
+    # Move the d8 binary into place.
+    d8_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
+    d8_dst = V8_BINARY_PATH.format(os=target_os, arch=target_arch)
+
+    shutil.move(d8_src, d8_dst)
+
+def UpdateReadmeFile(v8_version, target_os):
+  """Updates the V8 version number in the V8 README.chromium file."""
+  # Get the contents of the new README file with the replaced version number.
+  new_readme_contents = ''
+  with open(V8_README_PATH, 'r') as v8_readme:
+    new_readme_contents = re.sub(r'[0-9\.]+ \({0}\)'.format(target_os),
+                                 r'{0} ({1})'.format(v8_version, target_os),
+                                 v8_readme.read())
+
+  # Overwrite the old README file with the new one.
+  with open(V8_README_PATH, 'w') as v8_readme:
+    v8_readme.write(new_readme_contents)
+
+class ChangeDirectory:
+  """A context manager that changes a directory while in scope."""
+  def __init__(self, newPath):
+    self.newPath = newPath
+
+  def __enter__(self):
+    self.oldPath = os.getcwd()
+    os.chdir(self.newPath)
+
+  def __exit__(self, etype, value, traceback):
+    os.chdir(self.oldPath)
+
+class TempDir:
+  """A context manager that creates a temporary directory while in scope."""
+  def __enter__(self):
+    self.path = tempfile.mkdtemp()
+    print "creating {0}".format(self.path)
+    return self.path
+
+  def __exit__(self, etype, value, traceback):
+    shutil.rmtree(self.path)
+
+if __name__ == '__main__':
+  sys.exit(Main(sys.argv[1:]))
