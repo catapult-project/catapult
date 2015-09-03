@@ -35,6 +35,8 @@ import adb_install_cert
 import certutils
 import platformsettings
 
+from devil.android.sdk import version_codes
+
 from pylib import constants
 from pylib import screenshot
 from pylib.device import battery_utils
@@ -443,10 +445,7 @@ class AndroidPlatformBackend(
     return self._power_monitor.StopMonitoringPower()
 
   def CanMonitorNetworkData(self):
-    if (self._device.build_version_sdk <
-        constants.ANDROID_SDK_VERSION_CODES.LOLLIPOP):
-      return False
-    return True
+    return self._device.build_version_sdk >= version_codes.LOLLIPOP
 
   def GetNetworkData(self, browser):
     return self._battery.GetNetworkData(browser._browser_backend.package)
