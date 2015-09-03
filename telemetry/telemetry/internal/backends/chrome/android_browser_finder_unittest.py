@@ -26,7 +26,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     # Mock out what's needed for testing with exact APKs
     self._android_browser_finder_stub = system_stub.Override(
         android_browser_finder, ['os'])
-    self._patcher = mock.patch('pylib.utils.apk_helper.GetPackageName')
+    self._patcher = mock.patch('devil.android.apk_helper.GetPackageName')
     self._get_package_name_mock = self._patcher.start()
 
 

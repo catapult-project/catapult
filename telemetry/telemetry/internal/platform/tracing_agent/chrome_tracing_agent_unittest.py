@@ -14,7 +14,7 @@ from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_config
 from telemetry.timeline import tracing_options
 
-from pylib.device import device_utils
+from devil.android import device_utils
 
 
 class FakePlatformBackend(object):

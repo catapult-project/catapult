@@ -11,9 +11,9 @@ import optparse
 import os
 import sys
 
+from devil.android import device_errors
+from devil.android import device_utils
 from pylib import screenshot
-from pylib.device import device_errors
-from pylib.device import device_utils
 
 def _PrintMessage(heading, eol='\n'):
   sys.stdout.write('%s%s' % (heading, eol))

@@ -6,7 +6,7 @@ from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import web_contents
 
 try:
-  from pylib import ports
+  from devil.android import ports
 except ImportError:
   ports = None
 

@@ -21,8 +21,8 @@ try:
 except ImportError:
   forwarder = None
 
-from pylib.device import device_errors
-from pylib.device import device_utils
+from devil.android import device_errors
+from devil.android import device_utils
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):

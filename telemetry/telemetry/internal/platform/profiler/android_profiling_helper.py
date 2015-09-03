@@ -17,7 +17,7 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 
-from pylib.utils import md5sum  # pylint: disable=F0401
+from devil.android import md5sum  # pylint: disable=F0401
 
 
 try:

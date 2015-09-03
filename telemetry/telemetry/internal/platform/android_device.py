@@ -10,10 +10,10 @@ from telemetry.core import util
 from telemetry.internal.platform import device
 from telemetry.internal.platform.profiler import monsoon
 
+from devil.android import device_blacklist
+from devil.android import device_errors
+from devil.android import device_utils
 from pylib import constants
-from pylib.device import device_blacklist
-from pylib.device import device_errors
-from pylib.device import device_utils
 
 
 class AndroidDevice(device.Device):

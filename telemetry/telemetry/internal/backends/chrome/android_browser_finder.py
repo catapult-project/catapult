@@ -18,7 +18,7 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 
-from pylib.utils import apk_helper
+from devil.android import apk_helper
 
 
 CHROME_PACKAGE_NAMES = {

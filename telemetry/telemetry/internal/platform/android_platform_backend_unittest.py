@@ -11,8 +11,8 @@ from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
 
-from pylib.device import battery_utils
-from pylib.device import device_utils
+from devil.android import battery_utils
+from devil.android import device_utils
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
@@ -57,7 +57,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '4294967295 1074458624 1074463824 3197495984 3197494152 '
         '1074767676 0 4612 0 38136 4294967295 0 0 17 0 0 0 0 0 0 '
         '1074470376 1074470912 1102155776\n')
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=proc_stat_content):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('12345'), self._options)
@@ -67,7 +67,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @decorators.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('1234'), self._options)
@@ -217,7 +217,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     android_platform_backend.psutil = psutil
 
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('1234'), self._options)
@@ -231,7 +231,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     android_platform_backend.psutil = psutil
 
     # Mock an empty /proc/pid/stat.
-    with mock.patch('pylib.device.device_utils.DeviceUtils.ReadFile',
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('1234'), self._options)

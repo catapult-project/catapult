@@ -17,11 +17,11 @@ import time
 
 from .paths import Paths
 
+from devil import base_error
+from devil.android import apk_helper
+from devil.android import device_errors
+from devil.android import device_utils
 from pylib import constants
-from pylib.device import device_errors
-from pylib.device import device_utils
-from pylib.utils import base_error
-from pylib.utils import apk_helper
 
 
 # Tags used by the mojo shell application logs.

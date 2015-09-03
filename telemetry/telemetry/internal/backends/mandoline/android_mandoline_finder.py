@@ -13,7 +13,7 @@ from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 from telemetry.internal.util import path
 
-from pylib.utils import apk_helper
+from devil.android import apk_helper
 
 
 class PossibleAndroidMandolineBrowser(possible_browser.PossibleBrowser):

@@ -12,7 +12,7 @@ from telemetry.internal.backends import android_app_backend
 from telemetry.internal.platform import android_device
 from telemetry.testing import options_for_unittests
 
-from pylib.device import intent
+from devil.android.sdk import intent
 
 
 class AndroidAppTest(unittest.TestCase):

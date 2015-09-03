@@ -5,7 +5,7 @@
 from telemetry.internal.platform import power_monitor
 
 try:
-  from pylib.device import device_errors  # pylint: disable=F0401
+  from devil.android import device_errors  # pylint: disable=F0401
 except ImportError:
   device_errors = None
 

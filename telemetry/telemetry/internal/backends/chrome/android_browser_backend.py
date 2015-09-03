@@ -14,7 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal import forwarders
 
-from pylib.device import intent
+from devil.android.sdk import intent
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):

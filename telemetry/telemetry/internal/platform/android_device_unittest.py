@@ -9,13 +9,13 @@ from telemetry.internal.platform import android_device
 from telemetry.testing import system_stub
 import mock
 
-from pylib.device import device_utils
+from devil.android import device_utils
 
 
 class _BaseAndroidDeviceTest(unittest.TestCase):
   def setUp(self):
     self._healthy_device_patcher = mock.patch(
-        'pylib.device.device_utils.DeviceUtils.HealthyDevices')
+        'devil.android.device_utils.DeviceUtils.HealthyDevices')
     self._healthy_device_mock = self._healthy_device_patcher.start()
     self._android_device_stub = system_stub.Override(
         android_device, ['subprocess', 'logging'])

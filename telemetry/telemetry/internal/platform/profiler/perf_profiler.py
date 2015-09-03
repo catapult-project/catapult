@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 
-from pylib.device import device_errors  # pylint: disable=F0401
+from devil.android import device_errors  # pylint: disable=F0401
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import platform
