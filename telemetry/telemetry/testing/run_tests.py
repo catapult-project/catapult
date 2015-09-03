@@ -127,6 +127,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.top_level_dir = args.top_level_dir
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
+    runner.args.list_only = args.list_only
 
     runner.args.path.append(util.GetUnittestDataDir())
 
