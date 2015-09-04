@@ -1913,11 +1913,7 @@ class DeviceUtils(object):
 
   @classmethod
   def HealthyDevices(cls, blacklist=None, **kwargs):
-    if not blacklist:
-      # TODO(jbudorick): Remove once clients pass in the blacklist.
-      blacklist = device_blacklist.Blacklist(device_blacklist.BLACKLIST_JSON)
-
-    blacklisted_devices = blacklist.Read()
+    blacklisted_devices = blacklist.Read() if blacklist else []
     def blacklisted(adb):
       if adb.GetDeviceSerial() in blacklisted_devices:
         logging.warning('Device %s is blacklisted.', adb.GetDeviceSerial())
