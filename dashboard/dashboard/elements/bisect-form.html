@@ -128,6 +128,10 @@ the bisect process after the user clicks on the bisect button.
               </p>
             </td>
           </tr>
+          <tr>
+            <td>Bypass no-repro check:</td>
+            <td><input type="checkbox" checked="{{bypassNoRepro}}"></td>
+          </tr>
         </table>
       </form>
 
@@ -176,8 +180,8 @@ the bisect process after the user clicks on the bisect button.
          */
         show: function() {
           this.canUseArchive = false,
+          this.bypassNoRepro = false,
           this.useArchive = true,
-          this.useRecipe = false,
           this.loading = true;
           this.open();
           this.$.xhr.send('/start_try_job', this.xsrfToken,
@@ -221,6 +225,7 @@ the bisect process after the user clicks on the bisect button.
               'max_time_minutes': this.MAX_TIME_MINUTES,
               'truncate_percent': this.TRUNCATE_PERCENT,
               'use_archive': this.useArchive ? 'true' : '',
+              'bypass_no_repro_check': this.bypassNoRepro ? 'true' : '',
               'master': this.master,
               'internal_only': this.internalOnly,
               'bisect_mode': this.BISECT_MODE

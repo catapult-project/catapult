@@ -116,7 +116,7 @@ class StartBisectHandler(request_handler.RequestHandler):
     master_name = self.request.get('master', 'ChromiumPerf')
     internal_only = self.request.get('internal_only') == 'true'
     bisect_bot = self.request.get('bisect_bot')
-
+    bypass_no_repro_check = self.request.get('bypass_no_repro_check') == 'true'
     use_recipe = bool(GetBisectDirectorForTester(bisect_bot))
 
     bisect_config = GetBisectConfig(
@@ -132,7 +132,8 @@ class StartBisectHandler(request_handler.RequestHandler):
         bug_id=bug_id,
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
-        use_buildbucket=use_recipe)
+        use_buildbucket=use_recipe,
+        bypass_no_repro_check=bypass_no_repro_check)
 
     if 'error' in bisect_config:
       return bisect_config
@@ -238,7 +239,7 @@ def _PrefillInfo(test_path):
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
     repeat_count, max_time_minutes, truncate_percent, bug_id, use_archive=None,
-    bisect_mode='mean', use_buildbucket=False):
+    bisect_mode='mean', use_buildbucket=False, bypass_no_repro_check=False):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
@@ -302,6 +303,8 @@ def GetBisectConfig(
   }
   if use_buildbucket:
     config_dict['recipe_tester_name'] = bisect_bot
+  if bypass_no_repro_check:
+    config_dict['required_confidence'] = '0'
   return config_dict
 
 
