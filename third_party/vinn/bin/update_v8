@@ -107,6 +107,7 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
       with ChangeDirectory('v8'):
         subprocess.check_call('git checkout {0}'.format(v8_version), shell=True)
 
+        os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
         os.environ['GYP_GENERATORS'] = 'ninja'
         ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
         subprocess.check_call(
