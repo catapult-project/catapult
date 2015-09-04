@@ -109,21 +109,7 @@ class DependencyInfoTest(unittest.TestCase):
 
     self.assertRaises(ValueError, dep_info1.Update, dep_info4, False)
 
-
-  def testAppendToFront(self):
-    dep_info1 = dependency_info.DependencyInfo(
-        'dep1', 'platform1', 'config_file1',
-        local_paths=['path0', 'path1', 'path3', 'path5', 'path6'])
-    dep_info2 = dependency_info.DependencyInfo(
-        'dep1', 'platform1', 'config_file2',
-        local_paths=['path0', 'path2', 'path4', 'path5'])
-
-    expected_local_paths = ['path0', 'path2', 'path4', 'path5', 'path1',
-                            'path3', 'path6']
-    dep_info1.Update(dep_info2, True)
-    self.assertEquals(expected_local_paths, dep_info1.local_paths)
-
-  def testAppendToEnd(self):
+  def testAppendConflictingLocalFiles(self):
     dep_info1 = dependency_info.DependencyInfo(
         'dep1', 'platform1', 'config_file1',
         local_paths=['path0', 'path1', 'path3', 'path5', 'path6'])

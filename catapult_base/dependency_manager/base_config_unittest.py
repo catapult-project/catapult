@@ -21,8 +21,6 @@ class BaseConfigTest(unittest.TestCase):
       self.config_type: String returnedd from GetConfigType in config subclass.
       self.config_class: the class for the config subclass.
       self.config_module: importable module for the config subclass.
-      self.append_to_front: expected value for AppendToFrontOfLists in the
-        config subclass.
       self.empty_dict: expected dictionary for an empty config, as it would be
         stored in a json file.
       self.one_dep_dict: example dictionary for a config with one dependency,
@@ -32,7 +30,6 @@ class BaseConfigTest(unittest.TestCase):
     self.config_type = 'BaseConfig'
     self.config_class = base_config.BaseConfig
     self.config_module = 'catapult_base.dependency_manager.base_config'
-    self.append_to_front = False
 
     self.empty_dict = {'config_type': self.config_type,
                        'dependencies': {}}
@@ -120,7 +117,6 @@ class BaseConfigTest(unittest.TestCase):
       config = self.config_class('file_path')
       self.assertEqual('file_path', config._config_path)
       self.assertEqual(self.config_type, config.GetConfigType())
-      self.assertEqual(self.append_to_front, config.AppendToFrontOfLists())
       self.assertEqual(self.GetDependenciesFromDict(self.empty_dict),
                        config._config_data)
 
@@ -137,7 +133,6 @@ class BaseConfigTest(unittest.TestCase):
       config = self.config_class('file_path')
       self.assertEqual('file_path', config._config_path)
       self.assertEqual(self.config_type, config.GetConfigType())
-      self.assertEqual(self.append_to_front, config.AppendToFrontOfLists())
       self.assertEqual(self.GetDependenciesFromDict(self.one_dep_dict),
                        config._config_data)
 

@@ -69,14 +69,9 @@ class DependencyInfo(object):
         self._cs_bucket = new_dep_info.cs_bucket
         self._cs_hash = new_dep_info.cs_hash
     if new_dep_info.local_paths:
-      if append_to_front:
-        self._local_paths = [path for path in self._local_paths if
-                             path not in new_dep_info.local_paths]
-        self._local_paths[0:0] = new_dep_info.local_paths
-      else:
-        for path in new_dep_info.local_paths:
-          if path not in self._local_paths:
-            self._local_paths.append(path)
+      for path in new_dep_info.local_paths:
+        if path not in self._local_paths:
+          self._local_paths.append(path)
 
   @property
   def dependency(self):

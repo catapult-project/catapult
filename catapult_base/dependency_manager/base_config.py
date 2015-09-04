@@ -101,10 +101,10 @@ class BaseConfig(object):
   def IterDependencyInfo(self):
     """ Yields a DependencyInfo for each dependency/platform pair.
 
-    Raises: ReadWriteError if called when the config is writable.
-            ValueError if any of the dependencies contain partial
-            information for downloading from cloud_storage.
-            (See dependency_info.py)
+    Raises:
+        ReadWriteError: If called when the config is writable.
+        ValueError: If any of the dependencies contain partial information for
+            downloading from cloud_storage. (See dependency_info.py)
     """
     if self._writable:
       raise exceptions.ReadWriteError(
@@ -154,7 +154,8 @@ class BaseConfig(object):
   def CreateEmptyConfig(cls, file_path):
     """Create an empty BaseConfig json dict and write it out to |file_path|.
 
-    Raises a ValueError if the path already exists.
+    Raises:
+        ValueError: If the path already exists.
     """
     if os.path.exists(file_path):
       raise ValueError('File already exists, and would be overwritten.')
@@ -164,15 +165,13 @@ class BaseConfig(object):
       json.dump(json_dict, outfile, indent=2, sort_keys=True)
     return json_dict
 
-
-  def AppendToFrontOfLists(self):
-    """True iff local_files from this config should override other configs.
-    """
-    return False
-
   @classmethod
   def GetConfigType(cls):
     return 'BaseConfig'
+
+  @property
+  def config_path(self):
+    return self._config_path
 
   def UpdateCloudStorageDependency(
       self, dependency, platform, dependency_path, version=None):
