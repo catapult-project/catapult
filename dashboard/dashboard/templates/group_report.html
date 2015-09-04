@@ -112,7 +112,7 @@
     <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
     {{warning_message}}
     {% if warning_bug %}
-      <a href="http://crbug.com/{{warning_bug}}">See bug {{warning_bug}}.</a>
+      <a href="https://github.com/catapult-project/catapult/issues/{{warning_bug}}">See bug #{{warning_bug}}.</a>
     {% endif %}
     </overlay-message>
   {% endif %}
