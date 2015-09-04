@@ -633,8 +633,8 @@ def PerformBisect(bisect_job):
       bisect_job.rietveld_issue_id = int(issue_id)
       bisect_job.rietveld_patchset_id = int(patchset_id)
       bisect_job.SetStarted()
-      bug_comment = ('Bisect started; track progress at <a href="%s">%s</a>'
-                     % (issue_url, issue_url))
+      bug_comment = ('Bisect started; track progress at '
+                     '<a href="%s">%s</a>' % (issue_url, issue_url))
       LogBisectResult(bug_id, bug_comment)
     return {'issue_id': issue_id, 'issue_url': issue_url}
   return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
@@ -705,12 +705,7 @@ def _PerformPerfTryJob(perf_job):
 
 
 def LogBisectResult(bug_id, comment):
-  """Adds bisect results to log.
-
-  Args:
-    bug_id: ID of the issue.
-    comment: Bisect results information.
-  """
+  """Adds an entry to the bisect result log for a particular bug."""
   if not bug_id or bug_id < 0:
     return
   formatter = quick_logger.Formatter()
@@ -766,9 +761,13 @@ def PerformBuildbucketBisect(bisect_job):
     bisect_job.buildbucket_job_id = buildbucket_service.PutJob(
         _MakeBuildbucketBisectJob(bisect_job))
     bisect_job.SetStarted()
+    issue_url = '/buildbucket_job_status/' + bisect_job.buildbucket_job_id
+    bug_comment = ('Bisect started; track progress at '
+                   '<a href="%s">%s</a>' % (issue_url, issue_url))
+    LogBisectResult(bisect_job.bug_id, bug_comment)
     return {
         'issue_id': bisect_job.buildbucket_job_id,
-        'issue_url': '/buildbucket_job_status/' + bisect_job.buildbucket_job_id,
+        'issue_url': issue_url,
     }
   except httplib2.HttpLib2Error as e:
     return {
