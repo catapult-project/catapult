@@ -738,6 +738,13 @@ def _MakeBuildbucketBisectJob(bisect_job):
     raise request_handler.InvalidInputError(
         'Recipe is only implemented for tests run on chromium.perf '
         '(and chromium.perf.fyi).')
+
+  # Recipe bisect supports 'perf' and 'return_code' test types only.
+  # TODO (prasadv): Update bisect form on dashboard to support test_types.
+  test_type = 'perf'
+  if config.get('bisect_mode') == 'return_code':
+    test_type = config['bisect_mode']
+
   return buildbucket_job.BisectJob(
       bisect_director=GetBisectDirectorForTester(config['recipe_tester_name']),
       good_revision=config['good_revision'],
@@ -750,6 +757,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       bug_id=bisect_job.bug_id,
       gs_bucket='chrome-perf',
       recipe_tester_name=config['recipe_tester_name'],
+      test_type=test_type,
   )
 
 
