@@ -15,8 +15,6 @@ from telemetry.internal.util import command_line
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
-util.AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'typ')
-
 import typ
 
 

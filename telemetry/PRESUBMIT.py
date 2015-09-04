@@ -64,13 +64,15 @@ def _GetPathsToPrepend(input_api):
   chromium_src_dir = input_api.os_path.join(telemetry_dir, '..', '..')
   return [
       telemetry_dir,
+      input_api.os_path.join(telemetry_dir, 'third_party', 'altgraph'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'mock'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'modulegraph'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'pexpect'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'png'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'pyserial'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'typ'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'webpagereplay'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'modulegraph'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'altgraph'),
 
       input_api.os_path.join(chromium_src_dir, 'build', 'android'),
       input_api.os_path.join(chromium_src_dir,

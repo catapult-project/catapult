@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 import unittest
+import sys
 
-from telemetry.core import util
+from telemetry.internal.util import path
 from telemetry.testing import options_for_unittests
 
 
@@ -56,7 +57,7 @@ class TestSuite(unittest.TestSuite):
 
 class TestRunner(object):
   def run(self, test, progress_reporters, repeat_count, args):
-    util.AddDirToPythonPath(util.GetUnittestDataDir())
+    sys.path.append(path.GetUnittestDataDir())
     result = TestResult(progress_reporters)
     result.startTestRun()
     try:

@@ -12,7 +12,6 @@ GetBaseDir = util.GetBaseDir
 GetTelemetryDir = util.GetTelemetryDir
 GetUnittestDataDir = util.GetUnittestDataDir
 GetChromiumSrcDir = util.GetChromiumSrcDir
-AddDirToPythonPath = util.AddDirToPythonPath
 GetBuildDirectories = util.GetBuildDirectories
 
 

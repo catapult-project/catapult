@@ -27,12 +27,13 @@ def _AddDirToPythonPath(*path_parts):
 
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'typ')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 
 _AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 _AddDirToPythonPath(util.GetChromiumSrcDir(),
