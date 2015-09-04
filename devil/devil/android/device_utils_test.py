@@ -1355,10 +1355,18 @@ class DeviceUtilsPushChangedFilesIndividuallyTest(DeviceUtilsTest):
 
 class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
 
-  def testPushChangedFilesZipped_empty(self):
-    test_files = []
-    with self.assertCalls():
-      self.device._PushChangedFilesZipped(test_files)
+  def testPushChangedFilesZipped_noUnzipCommand(self):
+    test_files = [('/test/host/path/file1', '/test/device/path/file1')]
+    mock_zip_temp = mock.mock_open()
+    mock_zip_temp.return_value.name = '/test/temp/file/tmp.zip'
+    with self.assertCalls(
+        (mock.call.tempfile.NamedTemporaryFile(suffix='.zip'), mock_zip_temp),
+        (mock.call.multiprocessing.Process(
+            target=device_utils.DeviceUtils._CreateDeviceZip,
+            args=('/test/temp/file/tmp.zip', test_files)), mock.Mock()),
+        (self.call.device._MaybeInstallCommands(), False)):
+      self.assertFalse(self.device._PushChangedFilesZipped(test_files,
+                                                           ['/test/dir']))
 
   def _testPushChangedFilesZipped_spec(self, test_files):
     mock_zip_temp = mock.mock_open()
@@ -1368,19 +1376,21 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
         (mock.call.multiprocessing.Process(
             target=device_utils.DeviceUtils._CreateDeviceZip,
             args=('/test/temp/file/tmp.zip', test_files)), mock.Mock()),
-        (self.call.device.GetExternalStoragePath(),
-         '/test/device/external_dir'),
+        (self.call.device._MaybeInstallCommands(), True),
+        (self.call.device.NeedsSU(), True),
+        (self.call.device.GetExternalStoragePath(), '/test/sdcard'),
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb,
+             suffix='.zip', dir='/test/sdcard'),
+             MockTempFile('/test/sdcard/foo123.zip')),
         self.call.adb.Push(
-            '/test/temp/file/tmp.zip', '/test/device/external_dir/tmp.zip'),
+            '/test/temp/file/tmp.zip', '/test/sdcard/foo123.zip'),
         self.call.device.RunShellCommand(
-            ['unzip', '/test/device/external_dir/tmp.zip'],
+            'unzip /test/sdcard/foo123.zip&&chmod -R 777 /test/dir',
             as_root=True,
             env={'PATH': '/data/local/tmp/bin:$PATH'},
-            check_return=True),
-        (self.call.device.IsOnline(), True),
-        self.call.device.RunShellCommand(
-            ['rm', '/test/device/external_dir/tmp.zip'], check_return=True)):
-      self.device._PushChangedFilesZipped(test_files)
+            check_return=True)):
+      self.assertTrue(self.device._PushChangedFilesZipped(test_files,
+                                                          ['/test/dir']))
 
   def testPushChangedFilesZipped_single(self):
     self._testPushChangedFilesZipped_spec(
@@ -1397,22 +1407,30 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
   def testPathExists_usingTest_pathExists(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            ['test', '-e', '/path/file.exists'], check_return=True), ''):
-      self.assertTrue(self.device.PathExists('/path/file.exists'))
+            "test -e '/path/file exists';echo $?",
+            check_return=True, timeout=None, retries=None), ['0']):
+      self.assertTrue(self.device.PathExists('/path/file exists'))
+
+  def testPathExists_usingTest_multiplePathExists(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            "test -e '/path 1' -a -e /path2;echo $?",
+            check_return=True, timeout=None, retries=None), ['0']):
+      self.assertTrue(self.device.PathExists(('/path 1', '/path2')))
 
   def testPathExists_usingTest_pathDoesntExist(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            ['test', '-e', '/path/does/not/exist'], check_return=True),
-        self.ShellError('', 1)):
-      self.assertFalse(self.device.PathExists('/path/does/not/exist'))
+            "test -e /path/file.not.exists;echo $?",
+            check_return=True, timeout=None, retries=None), ['1']):
+      self.assertFalse(self.device.PathExists('/path/file.not.exists'))
 
   def testFileExists_usingTest_pathDoesntExist(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            ['test', '-e', '/does/not/exist.html'], check_return=True),
-        self.ShellError('', 1)):
-      self.assertFalse(self.device.FileExists('/does/not/exist.html'))
+            "test -e /path/file.not.exists;echo $?",
+            check_return=True, timeout=None, retries=None), ['1']):
+      self.assertFalse(self.device.FileExists('/path/file.not.exists'))
 
 
 class DeviceUtilsPullFileTest(DeviceUtilsTest):

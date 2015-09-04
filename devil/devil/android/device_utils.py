@@ -1128,6 +1128,9 @@ class DeviceUtils(object):
     return stale_apks, set(host_checksums.values())
 
   def _PushFilesImpl(self, host_device_tuples, files):
+    if not files:
+      return
+
     size = sum(host_utils.GetRecursiveDiskUsage(h) for h, _ in files)
     file_count = len(files)
     dir_size = sum(host_utils.GetRecursiveDiskUsage(h)
@@ -1145,20 +1148,18 @@ class DeviceUtils(object):
         len(host_device_tuples), dir_file_count, dir_size, False)
     zip_duration = self._ApproximateDuration(1, 1, size, True)
 
-    self._InstallCommands()
-
-    if dir_push_duration < push_duration and (
-        dir_push_duration < zip_duration or not self._commands_installed):
+    if dir_push_duration < push_duration and dir_push_duration < zip_duration:
       self._PushChangedFilesIndividually(host_device_tuples)
-    elif push_duration < zip_duration or not self._commands_installed:
+    elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)
-    else:
-      self._PushChangedFilesZipped(files)
-      self.RunShellCommand(
-          ['chmod', '-R', '777'] + [d for _, d in host_device_tuples],
-          as_root=True, check_return=True)
+    elif self._commands_installed is False:
+      # Already tried and failed to install unzip command.
+      self._PushChangedFilesIndividually(files)
+    elif not self._PushChangedFilesZipped(
+        files, [d for _, d in host_device_tuples]):
+      self._PushChangedFilesIndividually(files)
 
-  def _InstallCommands(self):
+  def _MaybeInstallCommands(self):
     if self._commands_installed is None:
       try:
         if not install_commands.Installed(self):
@@ -1167,6 +1168,7 @@ class DeviceUtils(object):
       except Exception as e:
         logging.warning('unzip not available: %s' % str(e))
         self._commands_installed = False
+    return self._commands_installed
 
   @staticmethod
   def _ApproximateDuration(adb_calls, file_count, byte_count, is_zipping):
@@ -1205,30 +1207,35 @@ class DeviceUtils(object):
     for h, d in files:
       self.adb.Push(h, d)
 
-  def _PushChangedFilesZipped(self, files):
-    if not files:
-      return
-
+  def _PushChangedFilesZipped(self, files, dirs):
     with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
       zip_proc = multiprocessing.Process(
           target=DeviceUtils._CreateDeviceZip,
           args=(zip_file.name, files))
       zip_proc.start()
-      zip_proc.join()
-
-      zip_on_device = '%s/tmp.zip' % self.GetExternalStoragePath()
       try:
-        self.adb.Push(zip_file.name, zip_on_device)
-        self.RunShellCommand(
-            ['unzip', zip_on_device],
-            as_root=True,
-            env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
-            check_return=True)
+        # While it's zipping, ensure the unzip command exists on the device.
+        if not self._MaybeInstallCommands():
+          zip_proc.terminate()
+          return False
+
+        # Warm up NeedsSU cache while we're still zipping.
+        self.NeedsSU()
+        external_dir = self.GetExternalStoragePath()
+        with device_temp_file.DeviceTempFile(
+            self.adb, suffix='.zip', dir=external_dir) as device_temp:
+          zip_proc.join()
+          self.adb.Push(zip_file.name, device_temp.name)
+          quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)
+          self.RunShellCommand(
+              'unzip %s&&chmod -R 777 %s' % (device_temp.name, quoted_dirs),
+              as_root=True,
+              env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
+              check_return=True)
       finally:
         if zip_proc.is_alive():
           zip_proc.terminate()
-        if self.IsOnline():
-          self.RunShellCommand(['rm', zip_on_device], check_return=True)
+    return True
 
   @staticmethod
   def _CreateDeviceZip(zip_path, host_device_tuples):
@@ -1244,28 +1251,30 @@ class DeviceUtils(object):
     """
     return self.PathExists(device_path, timeout=timeout, retries=retries)
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def PathExists(self, device_path, timeout=None, retries=None):
-    """Checks whether the given path exists on the device.
+  def PathExists(self, device_paths, timeout=None, retries=None):
+    """Checks whether the given path(s) exists on the device.
 
     Args:
       device_path: A string containing the absolute path to the file on the
-                   device.
+                   device, or an iterable of paths to check.
       timeout: timeout in seconds
       retries: number of retries
 
     Returns:
-      True if the file exists on the device, False otherwise.
+      True if the all given paths exist on the device, False otherwise.
 
     Raises:
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    try:
-      self.RunShellCommand(['test', '-e', device_path], check_return=True)
-      return True
-    except device_errors.AdbCommandFailedError:
-      return False
+    paths = device_paths
+    if isinstance(paths, basestring):
+      paths = (paths,)
+    condition = ' -a '.join('-e %s' % cmd_helper.SingleQuote(p) for p in paths)
+    cmd = 'test %s;echo $?' % condition
+    result = self.RunShellCommand(cmd, check_return=True, timeout=timeout,
+                                  retries=retries)
+    return '0' == result[0]
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def PullFile(self, device_path, host_path, timeout=None, retries=None):
