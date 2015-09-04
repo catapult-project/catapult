@@ -912,6 +912,7 @@ tr.exportTo('tr.e.rail', function() {
       protoIRs = this.mergeIntersectingResponses(protoIRs);
       protoIRs = this.mergeIntersectingAnimations(protoIRs);
       protoIRs = this.fixResponseAnimationStarts(protoIRs);
+      protoIRs = this.fixTapResponseTouchAnimations(protoIRs);
       return protoIRs;
     },
 
@@ -1047,6 +1048,56 @@ tr.exportTo('tr.e.rail', function() {
         });
       });
       return protoIRs;
+    },
+
+    // Merge Tap Responses that overlap Touch-only Animations.
+    // https://github.com/catapult-project/catapult/issues/1431
+    fixTapResponseTouchAnimations: function(protoIRs) {
+      function isTapResponse(pir) {
+        return (pir.irType === ProtoIR.RESPONSE_TYPE) &&
+               pir.containsTypeNames([INPUT_TYPE.TAP]);
+      }
+      function isTouchAnimation(pir) {
+        return (pir.irType === ProtoIR.ANIMATION_TYPE) &&
+               pir.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
+               !pir.containsTypeNames([
+                   INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
+      }
+      var newPIRs = [];
+      while (protoIRs.length) {
+        var pir = protoIRs.shift();
+        newPIRs.push(pir);
+
+        // protoIRs are sorted by start time, and we don't know whether the Tap
+        // Response or the Touch Animation will be first
+        var pirIsTapResponse = isTapResponse(pir);
+        var pirIsTouchAnimation = isTouchAnimation(pir);
+        if (!pirIsTapResponse && !pirIsTouchAnimation)
+          continue;
+
+        for (var i = 0; i < protoIRs.length; ++i) {
+          var otherPIR = protoIRs[i];
+
+          if (!otherPIR.intersects(pir))
+            continue;
+
+          if (pirIsTapResponse && !isTouchAnimation(otherPIR))
+            continue;
+
+          if (pirIsTouchAnimation && !isTapResponse(otherPIR))
+            continue;
+
+          // pir might be the Touch Animation, but the merged ProtoIR should be
+          // a Response.
+          pir.irType = ProtoIR.RESPONSE_TYPE;
+
+          pir.merge(otherPIR);
+          protoIRs.splice(i, 1);
+          // Don't skip the next otherPIR!
+          --i;
+        }
+      }
+      return newPIRs;
     },
 
     // Check that none of the handlers accidentally ignored an input event.

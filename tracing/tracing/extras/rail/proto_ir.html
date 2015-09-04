@@ -110,10 +110,10 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // Merge the other ProtoIR into this one.
+    // The irTypes need not match: ignored ProtoIRs might be merged into
+    // overlapping ProtoIRs, and Touch-only Animations are merged into Tap
+    // Responses.
     merge: function(other) {
-      if (this.irType !== other.irType)
-        console.error('Merging', this.debug(), other.debug());
-
       other.names.forEach(function(name) { this.names.add(name); }.bind(this));
 
       // Don't use pushEvent(), which would lose special start, end.

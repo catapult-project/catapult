@@ -21,7 +21,6 @@ tr.exportTo('tr.e.chrome', function() {
 
   ChromeTestUtils.newChromeModel = function(customizeModelCallback) {
     return tr.c.TestUtils.newModel(function(model) {
-      console.log(model);
       model.browserProcess = model.getOrCreateProcess(1);
       model.browserMain = model.browserProcess.getOrCreateThread(2);
       model.browserMain.name = 'CrBrowserMain';
