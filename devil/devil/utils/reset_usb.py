@@ -12,6 +12,7 @@ import sys
 from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
+from devil.utils import lsusb
 from devil.utils import run_tests_helper
 
 _INDENTATION_RE = re.compile(r'^( *)')
@@ -32,12 +33,12 @@ def reset_usb(bus, device):
 
 def reset_android_usb(serial):
   """Reset the USB device for the given Android device."""
-  lsusb_info = lsusb()
+  lsusb_info = lsusb.lsusb()
 
   bus = None
   device = None
   for device_info in lsusb_info:
-    device_serial = _get_lsusb_serial(device)
+    device_serial = lsusb.get_lsusb_serial(device_info)
     if device_serial == serial:
       bus = int(device_info.get('bus'))
       device = int(device_info.get('device'))
@@ -51,18 +52,18 @@ def reset_android_usb(serial):
 
 def reset_all_android_devices():
   """Reset all USB devices that look like an Android device."""
-  _reset_all_matching(lambda i: bool(_get_lsusb_serial(i)))
+  _reset_all_matching(lambda i: bool(lsusb.get_lsusb_serial(i)))
 
 
 def _reset_all_matching(condition):
-  lsusb_info = lsusb()
+  lsusb_info = lsusb.lsusb()
   for device_info in lsusb_info:
     if int(device_info.get('device')) != 1 and condition(device_info):
       bus = int(device_info.get('bus'))
       device = int(device_info.get('device'))
       try:
         reset_usb(bus, device)
-        serial = _get_lsusb_serial(device_info)
+        serial = lsusb.get_lsusb_serial(device_info)
         if serial:
           logging.info('Reset USB device (bus: %03d, device: %03d, serial: %s)',
               bus, device, serial)
@@ -73,72 +74,6 @@ def _reset_all_matching(condition):
         logging.error(
             'Failed to reset USB device (bus: %03d, device: %03d)',
             bus, device)
-
-
-def lsusb():
-  """Call lsusb and return the parsed output."""
-  lsusb_raw_output = cmd_helper.GetCmdOutput(['lsusb', '-v'])
-  device = None
-  devices = []
-  depth_stack = []
-  for line in lsusb_raw_output.splitlines():
-    if not line:
-      if device:
-        devices.append(device)
-      device = None
-      continue
-
-    if not device:
-      m = _LSUSB_BUS_DEVICE_RE.match(line)
-      if m:
-        device = {
-          'bus': m.group(1),
-          'device': m.group(2)
-        }
-        depth_stack = [device]
-      continue
-
-    indent_match = _INDENTATION_RE.match(line)
-    if not indent_match:
-      continue
-
-    depth = 1 + len(indent_match.group(1)) / 2
-    if depth > len(depth_stack):
-      logging.error('lsusb parsing error: unexpected indentation: "%s"', line)
-      continue
-
-    while depth < len(depth_stack):
-      depth_stack.pop()
-
-    cur = depth_stack[-1]
-
-    m = _LSUSB_GROUP_RE.match(line)
-    if m:
-      new_group = {}
-      cur[m.group(1)] = new_group
-      depth_stack.append(new_group)
-      continue
-
-    m = _LSUSB_ENTRY_RE.match(line)
-    if m:
-      new_entry = {
-        '_value': m.group(2),
-        '_desc': m.group(3),
-      }
-      cur[m.group(1)] = new_entry
-      depth_stack.append(new_entry)
-      continue
-
-    logging.error('lsusb parsing error: unrecognized line: "%s"', line)
-
-  if device:
-    devices.append(device)
-
-  return devices
-
-
-def _get_lsusb_serial(device):
-  return device.get('Device Descriptor', {}).get('iSerial', {}).get('_desc')
 
 
 def main():

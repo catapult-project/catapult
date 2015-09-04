@@ -186,9 +186,18 @@ class AdbWrapper(object):
     """
     lines = cls._RawDevices(long_list=long_list, timeout=timeout,
                             retries=retries)
-    return [AdbWrapper(line[0]) for line in lines
-            if ((long_list or len(line) == 2)
-                and (not desired_state or line[1] == desired_state))]
+    if long_list:
+      return [
+        [AdbWrapper(line[0])] + line[1:]
+        for line in lines
+        if (len(line) >= 2 and (not desired_state or line[1] == desired_state))
+      ]
+    else:
+      return [
+        AdbWrapper(line[0])
+        for line in lines
+        if (len(line) == 2 and (not desired_state or line[1] == desired_state))
+      ]
 
   @classmethod
   def _RawDevices(cls, long_list=False, timeout=_DEFAULT_TIMEOUT,
