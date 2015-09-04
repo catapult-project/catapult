@@ -16,60 +16,78 @@ class BinaryManagerTest(unittest.TestCase):
     self.actual_dep_manager = binary_manager._dependency_manager
     binary_manager._dependency_manager = None
 
-    # Mock out the dependency manager and support binaries module so we're only
-    # testing the binary_manager itself.
-    self.actual_dep_manager_module = binary_manager.dependency_manager
-    self.actual_support_binaries_module = binary_manager.support_binaries
-    self.manager = mock.MagicMock()
-    binary_manager.dependency_manager = self.manager.dependency_manager
-    binary_manager.support_binaries = self.manager.support_binaries
-
   def tearDown(self):
     binary_manager._dependency_manager = self.actual_dep_manager
-    binary_manager.dependency_manager = self.actual_dep_manager_module
-    binary_manager.support_binaries = self.actual_support_binaries_module
 
-  def testInitializationNoEnvironmentConfig(self):
-    expected = [mock.call.dependency_manager.DependencyManager(
-        [binary_manager.TELEMETRY_PROJECT_CONFIG])]
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+  def testInitializationNoEnvironmentConfig(
+      self, base_config_mock, dep_manager_mock):
+    base_config_mock.return_value = 'base_config_object'
     binary_manager.InitDependencyManager(None)
-    self.assertEqual(self.manager.mock_calls, expected)
+    base_config_mock.assert_called_once_with(
+        binary_manager.TELEMETRY_PROJECT_CONFIG)
+    dep_manager_mock.assert_called_once_with(['base_config_object'])
 
-  def testInitializationWithEnvironmentConfig(self):
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+  def testInitializationWithEnvironmentConfig(
+      self, base_config_mock, dep_manager_mock):
+    base_config_mock.side_effect = ['base_config_object1',
+                                    'base_config_object2']
     environment_config = os.path.join('some', 'config', 'path')
-    expected = [mock.call.dependency_manager.DependencyManager(
-        [binary_manager.TELEMETRY_PROJECT_CONFIG, environment_config])]
     binary_manager.InitDependencyManager(environment_config)
-    self.assertEqual(self.manager.mock_calls, expected)
+    expected_calls = [mock.call(binary_manager.TELEMETRY_PROJECT_CONFIG),
+                      mock.call(environment_config)]
+    self.assertEqual(expected_calls, base_config_mock.call_args_list)
+    # Make sure the environment config is passed first.
+    dep_manager_mock.assert_called_once_with(
+        ['base_config_object2', 'base_config_object1'])
 
   def testReinitialization(self):
     binary_manager.InitDependencyManager(None)
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.InitDependencyManager, None)
 
-  def testFetchPathInitialized(self):
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+  def testFetchPathInitialized(self, base_config_mock, dep_manager_mock):
+    base_config_mock.return_value = 'base_config_object'
     expected = [mock.call.dependency_manager.DependencyManager(
-                   [binary_manager.TELEMETRY_PROJECT_CONFIG]),
-                mock.call.support_binaries.FindPath('dep', 'plat', 'arch')]
+                   ['base_config_object']),
+                mock.call.dependency_manager.DependencyManager().FetchPath(
+                    'dep', 'plat_arch')]
     binary_manager.InitDependencyManager(None)
     binary_manager.FetchPath('dep', 'plat', 'arch')
-    self.assertEqual(self.manager.mock_calls, expected)
-    #TODO(aiolos): We should be switching over to using the dependency_manager
-    #insead of the support binaries, and update the tests at that time.
+    dep_manager_mock.assert_call_args(expected)
+    base_config_mock.assert_called_once_with(
+        binary_manager.TELEMETRY_PROJECT_CONFIG)
 
   def testFetchPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
-  def testLocalPathInitialized(self):
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+  @mock.patch(
+      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+  def testLocalPathInitialized(self, base_config_mock, dep_manager_mock):
+    base_config_mock.return_value = 'base_config_object'
     expected = [mock.call.dependency_manager.DependencyManager(
-                   [binary_manager.TELEMETRY_PROJECT_CONFIG]),
-                mock.call.support_binaries.FindLocallyBuiltPath('dep')]
+                   ['base_config_object']),
+                mock.call.dependency_manager.DependencyManager().LocalPath(
+                    'dep', 'plat_arch')]
     binary_manager.InitDependencyManager(None)
     binary_manager.LocalPath('dep', 'plat', 'arch')
-    self.assertEqual(self.manager.mock_calls, expected)
-    #TODO(aiolos): We should be switching over to using the dependency_manager
-    #insead of the support binaries, and update the tests at that time.
+    dep_manager_mock.assert_call_args(expected)
+    base_config_mock.assert_called_once_with(
+        binary_manager.TELEMETRY_PROJECT_CONFIG)
 
   def testLocalPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,

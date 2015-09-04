@@ -3,10 +3,9 @@
 # found in the LICENSE file.
 
 from catapult_base.dependency_manager.base_config import BaseConfig
-from catapult_base.dependency_manager.client_config import ClientConfig
 from catapult_base.dependency_manager.dependency_info import DependencyInfo
 from catapult_base.dependency_manager.exceptions import (
     EmptyConfigError, FileNotFoundError, NoPathFoundError, ReadWriteError,
     UnsupportedConfigFormatError)
-from catapult_base.dependency_manager_module import DependencyManager
+from catapult_base.dependency_manager.dependency_manager import DependencyManager
 

@@ -7,7 +7,6 @@
 import logging
 import os
 
-from catapult_base import support_binaries
 from catapult_base import dependency_manager
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -30,28 +29,25 @@ def InitDependencyManager(environment_config):
     raise exceptions.InitializationError(
         'Trying to re-initialize the binary manager with config %s'
         % environment_config)
-  config_files = [TELEMETRY_PROJECT_CONFIG]
+  configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG)]
   if environment_config:
-    config_files.append(environment_config)
-  logging.debug('Initializing the dependency manager with config files: %s.'
-                % config_files)
-  _dependency_manager = dependency_manager.DependencyManager(config_files)
-  logging.debug('Successfully initialized the dependency manager.')
+    configs.insert(0, dependency_manager.BaseConfig(environment_config))
+  _dependency_manager = dependency_manager.DependencyManager(configs)
 
 
-def FetchPath(binary_name, platform, arch):
+def FetchPath(binary_name, arch, platform):
   """ Return a path to the appropriate executable for <binary_name>, downloading
       from cloud storage if needed, or None if it cannot be found.
   """
-  logging.debug('Called FetchPath for binary: %s on platform: %s and arch: %s'
+  logging.info('Called FetchPath for binary: %s on platform: %s and arch: %s'
                 % (binary_name, platform, arch))
   if _dependency_manager is None:
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
-  return support_binaries.FindPath(binary_name, platform, arch)
+  return _dependency_manager.FetchPath(binary_name, '%s_%s' % (platform, arch))
 
 
-def LocalPath(binary_name, platform, arch):
+def LocalPath(binary_name, arch, platform):
   """ Return a local path to the given binary name, or None if an executable
       cannot be found. Will not download the executable.
       """
@@ -60,5 +56,4 @@ def LocalPath(binary_name, platform, arch):
   if _dependency_manager is None:
     raise exceptions.InitializationError(
         'Called LocalPath with uninitialized binary manager.')
-  del platform, arch
-  return support_binaries.FindLocallyBuiltPath(binary_name)
+  return _dependency_manager.LocalPath(binary_name, '%s_%s' % (platform, arch))

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import stat
 
@@ -44,6 +45,7 @@ def FindPath(binary_name, arch_name, platform_name):
     binary_name += '.exe'
   command = FindLocallyBuiltPath(binary_name)
   if not command and _IsInCloudStorage(binary_name, arch_name, platform_name):
+    logging.info('checking cloud_storage')
     command = _GetBinPath(binary_name, arch_name, platform_name)
     cloud_storage.GetIfChanged(
         command, cloud_storage.PUBLIC_BUCKET)
@@ -61,4 +63,7 @@ def FindPath(binary_name, arch_name, platform_name):
   # Return an absolute path consistently.
   if command:
     command = os.path.abspath(command)
+  logging.info('SupportBinaries found path: %s for binary: %s on arch: %s and '
+               'platform :%s' % (command, binary_name, arch_name,
+                                 platform_name))
   return command
