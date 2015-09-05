@@ -15,6 +15,7 @@
 import copy
 import multiprocessing
 import pickle
+import traceback
 
 from typ.host import Host
 
@@ -98,6 +99,7 @@ class _ProcessPool(object):
         # Instead, we have to hack the innards of multiprocessing. It
         # seems likely that there's a bug somewhere, either in this module or
         # in multiprocessing.
+        # pylint: disable=protected-access
         if self.host.is_python3:  # pragma: python3
             multiprocessing.queues.is_exiting = lambda: True
         else:  # pragma: python2
@@ -142,9 +144,10 @@ class _ProcessPool(object):
         return final_responses
 
     def _handle_error(self, msg):
-        worker_num, ex_str = msg
+        worker_num, tb = msg
         self.erred = True
-        raise Exception("error from worker %d: %s" % (worker_num, ex_str))
+        raise Exception("Error from worker %d (traceback follows):\n%s" %
+                        (worker_num, tb))
 
 
 # 'Too many arguments' pylint: disable=R0913
@@ -168,7 +171,8 @@ def _loop(requests, responses, host, worker_num,
     except KeyboardInterrupt as e:
         responses.put((_MessageType.Interrupt, (worker_num, str(e))))
     except Exception as e:
-        responses.put((_MessageType.Error, (worker_num, str(e))))
+        responses.put((_MessageType.Error,
+                       (worker_num, traceback.format_exc(e))))
 
 
 class _AsyncPool(object):

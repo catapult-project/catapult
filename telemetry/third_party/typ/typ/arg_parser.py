@@ -91,6 +91,8 @@ class ArgumentParser(argparse.ArgumentParser):
                               help=('Globs to omit when reporting coverage '
                                     '(defaults to %s).' %
                                     DEFAULT_COVERAGE_OMIT))
+            self.add_argument('--coverage-annotate', action='store_true',
+                              help=('Produce an annotate source report.'))
             self.add_argument('--coverage-show-missing', action='store_true',
                               help=('Show missing line ranges in coverage '
                                     'report.'))

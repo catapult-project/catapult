@@ -59,7 +59,7 @@ class MainTestCase(TestCase):
     def make_host(self):
         # If we are ever called by unittest directly, and not through typ,
         # this will probably fail.
-        assert(self.child)
+        assert self.child
         return self.child.host
 
     def call(self, host, argv, stdin, env):

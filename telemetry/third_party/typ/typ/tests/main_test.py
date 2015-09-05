@@ -29,7 +29,7 @@ from typ.fakes import test_result_server_fake
 is_python3 = bool(sys.version_info.major == 3)
 
 if is_python3:  # pragma: python3
-    # redefining built-in 'unicode' pylint: disable=W0622
+    # pylint: disable=redefined-builtin,invalid-name
     unicode = str
 
 d = textwrap.dedent
@@ -265,8 +265,9 @@ class TestCli(test_case.MainTestCase):
         self.assertNotIn('Retrying failed tests (attempt #2 of 3)', out)
         self.assertIn('1 test run, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
-        self.assertEqual(results['tests'][
-            'fail_then_pass_test']['FPTest']['test_count']['actual'],
+        self.assertEqual(
+            results['tests'][
+                'fail_then_pass_test']['FPTest']['test_count']['actual'],
             'FAIL PASS')
 
     def test_failures_are_not_elided(self):
@@ -540,9 +541,9 @@ class TestCli(test_case.MainTestCase):
 
     def test_timing(self):
         self.check(['-t'], files=PASS_TEST_FILES, ret=0, err='',
-                   rout=('\[1/1\] pass_test.PassingTest.test_pass passed '
-                         '\d+.\d+s\n'
-                         '1 test run in \d+.\d+s, 0 failures.'))
+                   rout=(r'\[1/1\] pass_test.PassingTest.test_pass passed '
+                         r'\d+.\d+s\n'
+                         r'1 test run in \d+.\d+s, 0 failures.'))
 
     def test_test_results_server(self):
         server = test_result_server_fake.start()
@@ -596,16 +597,29 @@ class TestCli(test_case.MainTestCase):
                     '--test-type', 'typ_tests',
                     '--metadata', 'foo=bar'],
                    files=PASS_TEST_FILES, ret=1, err='',
-                   rout=('\[1/1\] pass_test.PassingTest.test_pass passed\n'
+                   rout=(r'\[1/1\] pass_test.PassingTest.test_pass passed\n'
                          '1 test run, 0 failures.\n'
                          'Uploading the JSON results raised .*\n'))
 
-    def test_verbose(self):
+    def test_verbose_2(self):
         self.check(['-vv', '-j', '1', 'output_test.PassTest'],
                    files=OUTPUT_TEST_FILES, ret=0,
                    out=d("""\
                          [1/2] output_test.PassTest.test_err passed:
                            hello on stderr
+                         [2/2] output_test.PassTest.test_out passed:
+                           hello on stdout
+                         2 tests run, 0 failures.
+                         """), err='')
+
+    def test_verbose_3(self):
+        self.check(['-vvv', '-j', '1', 'output_test.PassTest'],
+                   files=OUTPUT_TEST_FILES, ret=0,
+                   out=d("""\
+                         [0/2] output_test.PassTest.test_err queued
+                         [1/2] output_test.PassTest.test_err passed:
+                           hello on stderr
+                         [1/2] output_test.PassTest.test_out queued
                          [2/2] output_test.PassTest.test_out passed:
                            hello on stdout
                          2 tests run, 0 failures.

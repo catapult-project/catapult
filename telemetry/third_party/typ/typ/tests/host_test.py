@@ -130,9 +130,9 @@ class TestHost(unittest.TestCase):
         self.assertEqual(h.basename('foo.txt'), 'foo.txt')
         self.assertEqual(h.basename('foo/bar.txt'), 'bar.txt')
 
-    def test_mktempfile(self, delete=False):
+    def test_mktempfile(self, delete=False): # pylint: disable=unused-argument
         h = self.host()
-        f= h.mktempfile()
+        f = h.mktempfile()
         f.close()
         self.assertNotEqual(f.name, None)
 

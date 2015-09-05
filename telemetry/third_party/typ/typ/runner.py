@@ -20,6 +20,7 @@ import os
 import pdb
 import sys
 import unittest
+import traceback
 
 from collections import OrderedDict
 
@@ -294,8 +295,9 @@ class Runner(object):
                 # TODO: figure out what to do if multiple files are
                 # specified and they don't all have the same correct
                 # top level dir.
-                if h.exists(h.dirname(args.tests[0]), '__init__.py'):
-                    top_dir = h.dirname(args.tests[0])
+                d = h.realpath(h.dirname(args.tests[0]))
+                if h.exists(d, '__init__.py'):
+                    top_dir = d
                 else:
                     top_dir = args.tests[0]
             else:
@@ -503,9 +505,22 @@ class Runner(object):
             self.final_responses.extend(pool.join())
 
     def _print_test_started(self, stats, test_input):
-        if not self.args.quiet and self.args.overwrite:
-            self.update(stats.format() + test_input.name,
-                        elide=(not self.args.verbose))
+        if self.args.quiet:
+            # Print nothing when --quiet was passed.
+            return
+
+        # If -vvv was passed, print when the test is queued to be run.
+        # We don't actually know when the test picked up to run, because
+        # that is handled by the child process (where we can't easily
+        # print things). Otherwise, only print when the test is started
+        # if we know we can overwrite the line, so that we do not
+        # get multiple lines of output as noise (in -vvv, we actually want
+        # the noise).
+        test_start_msg = stats.format() + test_input.name
+        if self.args.verbose > 2:
+            self.update(test_start_msg + ' queued', elide=False)
+        if self.args.overwrite:
+            self.update(test_start_msg, elide=(not self.args.verbose))
 
     def _print_test_finished(self, stats, result):
         stats.add_time()
@@ -615,6 +630,8 @@ class Runner(object):
             cov.combine()
             cov.report(show_missing=self.args.coverage_show_missing,
                        omit=self.args.coverage_omit)
+            if self.args.coverage_annotate:
+                cov.annotate(omit=self.args.coverage_omit)
 
     def _add_trace_event(self, trace, name, start, end):
         event = {
@@ -725,6 +742,7 @@ class _Child(object):
 def _setup_process(host, worker_num, child):
     child.host = host
     child.worker_num = worker_num
+    # pylint: disable=protected-access
 
     if child.coverage:  # pragma: no cover
         import coverage
@@ -745,9 +763,9 @@ def _teardown_process(child):
     e = None
     if child.teardown_fn:
         try:
-          res = child.teardown_fn(child, child.context_after_setup)
+            res = child.teardown_fn(child, child.context_after_setup)
         except Exception as e:
-          pass
+            pass
 
     if child.cov:  # pragma: no cover
         child.cov.stop()
@@ -772,23 +790,33 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
 
+    tb_str = ''
     try:
         orig_skip = unittest.skip
         orig_skip_if = unittest.skipIf
         if child.all:
             unittest.skip = lambda reason: lambda x: x
             unittest.skipIf = lambda condition, reason: lambda x: x
+
         try:
             suite = child.loader.loadTestsFromName(test_name)
-        except Exception:
-            suite = _load_via_load_tests(child, test_name)
+        except Exception as e:
+            try:
+                suite = _load_via_load_tests(child, test_name)
+            except Exception as e:  # pragma: untested
+                suite = []
+                tb_str = traceback.format_exc(e)
     finally:
         unittest.skip = orig_skip
         unittest.skipIf = orig_skip_if
 
     tests = list(suite)
     if len(tests) != 1:
-        err = 'failed to load %s' % test_name
+        err = 'Failed to load %s'
+        if tb_str:  # pragma: untested
+            err += (' (traceback follows):\n  %s' %
+                    '  \n'.join(tb_str.splitlines()))
+
         h.restore_output()
         return Result(test_name, ResultType.Failure, start, 0,
                       child.worker_num, unexpected=True, code=1,

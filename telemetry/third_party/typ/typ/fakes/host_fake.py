@@ -23,7 +23,7 @@ from typ.host import _TeedStream
 is_python3 = bool(sys.version_info.major == 3)
 
 if is_python3:  # pragma: python3
-    # redefining built-in 'unicode' pylint: disable=W0622
+    # pylint: disable=redefined-builtin,invalid-name
     unicode = str
 
 
