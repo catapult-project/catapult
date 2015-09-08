@@ -131,7 +131,7 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     # Always print out these info for the ease of debugging.
     runner.args.timing = True
-    runner.args.verbose = 2
+    runner.args.verbose = 3
 
     runner.classifier = GetClassifier(args, possible_browser)
     runner.context = args
