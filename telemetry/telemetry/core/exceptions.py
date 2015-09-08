@@ -53,16 +53,16 @@ class TimeoutException(Error):
 class AppCrashException(Error):
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)
+    self._app = app
     self._msg = msg
-    self._stack_trace = app.GetStackTrace() if app else None
 
   def __str__(self):
-    if not self._stack_trace:
+    if not self._app:
       return super(AppCrashException, self).__str__()
     divider = '*' * 80
     return '%s\nStack Trace:\n%s\n\t%s\n%s' % (
         super(AppCrashException, self).__str__(), divider,
-        self._stack_trace.replace('\n', '\n\t'), divider)
+        self._app.GetStackTrace().replace('\n', '\n\t'), divider)
 
 
 class DevtoolsTargetCrashException(AppCrashException):
