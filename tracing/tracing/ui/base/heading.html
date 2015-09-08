@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel='import' href='/tracing/ui/base/constants.html'>
+
 <polymer-element name='tr-ui-heading'>
   <template>
     <style>
@@ -52,7 +54,7 @@ found in the LICENSE file.
 
     ready: function(viewport) {
       // Minus 6 == 1px border + 5px padding right.
-      this.style.width = (tr.c.constants.HEADING_WIDTH - 6) + 'px';
+      this.style.width = (tr.ui.b.constants.HEADING_WIDTH - 6) + 'px';
 
       this.heading_ = '';
       this.expanded_ = true;

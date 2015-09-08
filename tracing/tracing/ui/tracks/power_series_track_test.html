@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel='import' href='/tracing/core/constants.html'>
 <link rel='import' href='/tracing/model/device.html'>
 <link rel='import' href='/tracing/model/model.html'>
 <link rel='import' href='/tracing/model/power_series.html'>
+<link rel='import' href='/tracing/ui/base/constants.html'>
 <link rel='import' href='/tracing/ui/timeline_viewport.html'>
 <link rel='import' href='/tracing/ui/tracks/container_to_track_map.html'>
 <link rel='import' href='/tracing/ui/tracks/drawing_container.html'>
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
     var dt = new tr.ui.TimelineDisplayTransform();
     var pixelRatio = window.devicePixelRatio || 1;
     var chartPixelWidth =
-        (window.innerWidth - tr.c.constants.HEADING_WIDTH) * pixelRatio;
+        (window.innerWidth - tr.ui.b.constants.HEADING_WIDTH) * pixelRatio;
     dt.xSetWorldBounds(bounds.min, bounds.max, chartPixelWidth);
     viewport.setDisplayTransformImmediately(dt);
   };

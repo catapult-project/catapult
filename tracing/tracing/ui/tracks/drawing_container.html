@@ -9,6 +9,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/tracks/track.html">
+<link rel="import" href="/tracing/ui/base/constants.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
 <script>
@@ -38,7 +39,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       this.canvas_ = document.createElement('canvas');
       this.canvas_.className = 'drawing-container-canvas';
-      this.canvas_.style.left = tr.c.constants.HEADING_WIDTH + 'px';
+      this.canvas_.style.left = tr.ui.b.constants.HEADING_WIDTH + 'px';
       this.appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
@@ -119,7 +120,7 @@ tr.exportTo('tr.ui.tracks', function() {
               getBoundingClientRect();
 
       var innerWidth = firstChildTrackBounds.width -
-          tr.c.constants.HEADING_WIDTH;
+          tr.ui.b.constants.HEADING_WIDTH;
       var innerHeight = lastChildTrackBounds.bottom - firstChildTrackBounds.top;
 
       var pixelRatio = window.devicePixelRatio || 1;
