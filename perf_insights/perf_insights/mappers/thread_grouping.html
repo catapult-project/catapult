@@ -45,18 +45,21 @@ tr.exportTo('pi.wr', function() {
       // here, too.
     },
 
+    getGroupNameForThread: function(thread) {
+      if (!(thread instanceof tr.model.EventContainer))
+        return 'error';
+
+      var groupName = this.groupNameForThreadGUID_[thread.guid];
+      if (groupName === undefined)
+        return 'other';
+      return groupName;
+    },
+
     getGroupNameForEvent: function(event) {
       var parentContainer = event.parentContainer;
       if (parentContainer === undefined)
         return 'unknown';
-
-      if (!(parentContainer instanceof tr.model.EventContainer))
-        return 'error';
-
-      var groupName = this.groupNameForThreadGUID_[parentContainer.guid];
-      if (groupName === undefined)
-        return 'other';
-      return groupName;
+      return this.getGroupNameForThread(parentContainer);
     },
 
     addThreadsInProcessToGroup_: function(process, groupName,

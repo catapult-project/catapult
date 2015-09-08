@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
       var p1 = m.getOrCreateProcess(1);
       p1.name = 'Process';
       var t2 = p1.getOrCreateThread(2);
-      t2.name = 'Thread';
+      t2.name = 'CrBrowserMain';  // To identify as browser process.
       // t2_s0 is not a top-level, no incoming flow.
       var t2_s0 = test_utils.newSliceEx(
           { start: 0, duration: 9.7, cpuStart: 0, cpuDuration: 5.3});
@@ -57,19 +57,22 @@ tr.b.unittest.testSuite(function() {
     assert.equal(results.allValues.length, 3);
     var value = results.allValues[0];
     assert.equal(value.name, 'time_spent_in_queue');
-    assert.equal(Object.keys(value.value['Process']).length, 1);
-    var histogram = tr.b.u.Histogram.fromDict(value.value['Process']['Thread']);
+    assert.equal(Object.keys(value.value['browser']).length, 1);
+    var histogram = tr.b.u.Histogram.fromDict(
+        value.value['browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(7.2).count, 1);
     assert.equal(histogram.getBinForValue(18.1).count, 1);
     value = results.allValues[1];
     assert.equal(value.name, 'time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['Process']).length, 1);
-    histogram = tr.b.u.Histogram.fromDict(value.value['Process']['Thread']);
+    assert.equal(Object.keys(value.value['browser']).length, 1);
+    histogram = tr.b.u.Histogram.fromDict(
+        value.value['browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(10.4).count, 1);
     value = results.allValues[2];
     assert.equal(value.name, 'cpu_time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['Process']).length, 1);
-    histogram = tr.b.u.Histogram.fromDict(value.value['Process']['Thread']);
+    assert.equal(Object.keys(value.value['browser']).length, 1);
+    histogram = tr.b.u.Histogram.fromDict(
+        value.value['browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(3.0).count, 1);
   });
 });

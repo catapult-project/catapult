@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/perf_insights/mappers/thread_grouping.html">
 <link rel="import" href="/perf_insights/map_function.html">
 <link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
@@ -18,8 +19,10 @@ tr.exportTo('pie', function() {
   var NUM_BINS = 50;
 
   function taskInfoMapFunction(results, run_info, model) {
-    addTimeInQueue(results, run_info, model);
-    addTopLevelTasksDuration(results, run_info, model);
+    var threadGrouping = new pi.wr.ThreadGrouping();
+    threadGrouping.autoInitUsingHelpers(model);
+    addTimeInQueue(results, run_info, model, threadGrouping);
+    addTopLevelTasksDuration(results, run_info, model, threadGrouping);
   }
 
   function eatTrailingDigits(str) {
@@ -34,7 +37,7 @@ tr.exportTo('pie', function() {
     }
   }
 
-  function addTimeInQueue(results, run_info, model) {
+  function addTimeInQueue(results, run_info, model, threadGrouping) {
     var timeInQueue = {};
     model.flowEvents.forEach(function(flowEvent) {
       if (!flowEvent.endSlice instanceof tr.model.Slice)
@@ -46,7 +49,7 @@ tr.exportTo('pie', function() {
       if (!process)
         return;
       var threadName = eatTrailingDigits(thread.name) || 'Unknown';
-      var processName = eatTrailingDigits(process.name) || 'Unknown';
+      var processName = threadGrouping.getGroupNameForThread(thread);
       addToHistogram(timeInQueue, processName, threadName, flowEvent.duration);
     });
     histogramsToDict(timeInQueue);
@@ -56,7 +59,7 @@ tr.exportTo('pie', function() {
         timeInQueue));
   }
 
-  function addTopLevelTasksDuration(results, run_info, model) {
+  function addTopLevelTasksDuration(results, run_info, model, threadGrouping) {
     var timeInTask = {};
     var cpuTimeInTask = {};
     model.getAllThreads().forEach(function(thread) {
@@ -64,7 +67,7 @@ tr.exportTo('pie', function() {
       if (!process)
         return;
       var threadName = eatTrailingDigits(thread.name) || thread.tid;
-      var processName = eatTrailingDigits(process.name) || process.pid;
+      var processName = threadGrouping.getGroupNameForThread(thread);
       if (!thread.sliceGroup.length)
         return;
       thread.sliceGroup.slices.forEach(function(slice) {
