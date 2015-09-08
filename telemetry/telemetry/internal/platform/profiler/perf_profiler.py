@@ -17,7 +17,7 @@ from telemetry.core import platform
 from telemetry.internal.platform import profiler
 from telemetry.internal.platform.profiler import android_profiling_helper
 
-from pylib.perf import perf_control  # pylint: disable=F0401
+from devil.android.perf import perf_control  # pylint: disable=F0401
 
 
 _PERF_OPTIONS = [

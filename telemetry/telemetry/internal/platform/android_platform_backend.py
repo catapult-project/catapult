@@ -38,15 +38,15 @@ import platformsettings
 from devil.android import battery_utils
 from devil.android import device_errors
 from devil.android import device_utils
+from devil.android.perf import cache_control
+from devil.android.perf import perf_control
+from devil.android.perf import thermal_throttle
 from devil.android.sdk import version_codes
 from pylib import constants
 from pylib import screenshot
-from pylib.perf import cache_control
-from pylib.perf import perf_control
-from pylib.perf import thermal_throttle
 
 try:
-  from pylib.perf import surface_stats_collector
+  from devil.android.perf import surface_stats_collector
 except Exception:
   surface_stats_collector = None
 
