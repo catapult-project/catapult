@@ -51,30 +51,6 @@ _DEFAULT_RETRIES = 3
 # the timeout_retry decorators.
 DEFAULT = object()
 
-_CONTROL_CHARGING_COMMANDS = [
-  {
-    # Nexus 4
-    'witness_file': '/sys/module/pm8921_charger/parameters/disabled',
-    'enable_command': 'echo 0 > /sys/module/pm8921_charger/parameters/disabled',
-    'disable_command':
-        'echo 1 > /sys/module/pm8921_charger/parameters/disabled',
-  },
-  {
-    # Nexus 5
-    # Setting the HIZ bit of the bq24192 causes the charger to actually ignore
-    # energy coming from USB. Setting the power_supply offline just updates the
-    # Android system to reflect that.
-    'witness_file': '/sys/kernel/debug/bq24192/INPUT_SRC_CONT',
-    'enable_command': (
-        'echo 0x4A > /sys/kernel/debug/bq24192/INPUT_SRC_CONT && '
-        'echo 1 > /sys/class/power_supply/usb/online'),
-    'disable_command': (
-        'echo 0xCA > /sys/kernel/debug/bq24192/INPUT_SRC_CONT && '
-        'chmod 644 /sys/class/power_supply/usb/online && '
-        'echo 0 > /sys/class/power_supply/usb/online'),
-  },
-]
-
 _RESTART_ADBD_SCRIPT = """
   trap '' HUP
   trap '' TERM
@@ -85,6 +61,34 @@ _RESTART_ADBD_SCRIPT = """
   }
   restart &
 """
+
+# Not all permissions can be set.
+_PERMISSIONS_BLACKLIST = [
+    'android.permission.ACCESS_MOCK_LOCATION',
+    'android.permission.ACCESS_NETWORK_STATE',
+    'android.permission.BLUETOOTH',
+    'android.permission.BLUETOOTH_ADMIN',
+    'android.permission.INTERNET',
+    'android.permission.MANAGE_ACCOUNTS',
+    'android.permission.MODIFY_AUDIO_SETTINGS',
+    'android.permission.NFC',
+    'android.permission.READ_SYNC_SETTINGS',
+    'android.permission.READ_SYNC_STATS',
+    'android.permission.USE_CREDENTIALS',
+    'android.permission.VIBRATE',
+    'android.permission.WAKE_LOCK',
+    'android.permission.WRITE_SYNC_SETTINGS',
+    'com.android.browser.permission.READ_HISTORY_BOOKMARKS',
+    'com.android.browser.permission.WRITE_HISTORY_BOOKMARKS',
+    'com.android.launcher.permission.INSTALL_SHORTCUT',
+    'com.chrome.permission.DEVICE_EXTRAS',
+    'com.google.android.apps.chrome.permission.C2D_MESSAGE',
+    'com.google.android.apps.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
+    'com.google.android.apps.chrome.TOS_ACKED',
+    'com.google.android.c2dm.permission.RECEIVE',
+    'com.google.android.providers.gsf.permission.READ_GSERVICES',
+    'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
+]
 
 _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
@@ -515,13 +519,16 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesDefaults(
       INSTALL_DEFAULT_TIMEOUT,
       INSTALL_DEFAULT_RETRIES)
-  def Install(self, apk_path, reinstall=False, timeout=None, retries=None):
+  def Install(self, apk_path, reinstall=False, permissions=None, timeout=None,
+              retries=None):
     """Install an APK.
 
     Noop if an identical APK is already installed.
 
     Args:
       apk_path: A string containing the path to the APK to install.
+      permissions: Set of permissions to set. If not set, finds permissions with
+          apk helper. To set no permissions, pass [].
       reinstall: A boolean indicating if we should keep any existing app data.
       timeout: timeout in seconds
       retries: number of retries
@@ -552,6 +559,12 @@ class DeviceUtils(object):
       self._cache['package_apk_paths'].pop(package_name, 0)
       self.adb.Install(apk_path, reinstall=reinstall)
       self._cache['package_apk_checksums'][package_name] = host_checksums
+
+    if (permissions is None
+        and self.build_version_sdk >= version_codes.MARSHMALLOW):
+      permissions = apk_helper.ApkHelper(apk_path).GetPermissions()
+    self.GrantPermissions(package_name, permissions)
+
 
   @decorators.WithTimeoutAndRetriesDefaults(
       INSTALL_DEFAULT_TIMEOUT,
@@ -1940,3 +1953,24 @@ class DeviceUtils(object):
       self.WriteFile(script.name, _RESTART_ADBD_SCRIPT)
       self.RunShellCommand(['source', script.name], as_root=True)
       self.adb.WaitForDevice()
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GrantPermissions(self, package, permissions, timeout=None, retries=None):
+    # Permissions only need to be set on M and above because of the changes to
+    # the permission model.
+    if not permissions or self.build_version_sdk < version_codes.MARSHMALLOW:
+      return
+    # TODO(rnephew): After permission blacklist is complete, switch to using
+    # &&s instead of ;s.
+    cmd = ''
+    logging.info('Setting permissions for %s', package)
+    for p in permissions:
+      if p not in _PERMISSIONS_BLACKLIST:
+        cmd += 'pm grant %s %s;' % (package, p)
+        logging.info('  %s', p)
+    if cmd:
+      output = self.RunShellCommand(cmd)
+      if output:
+        logging.warning('Possible problem when granting permissions. Blacklist '
+                        'may need to be updated.')
+        logging.warning(output)

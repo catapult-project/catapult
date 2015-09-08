@@ -548,13 +548,51 @@ class DeviceUtilsRebootTest(DeviceUtilsTest):
 class DeviceUtilsInstallTest(DeviceUtilsTest):
 
   def testInstall_noPriorInstall(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=23):
+      with self.assertCalls(
+          (mock.call.devil.android.apk_helper.GetPackageName(
+              '/fake/test/app.apk'),
+           'test.package'),
+          (self.call.device._GetApplicationPathsInternal('test.package'), []),
+          self.call.adb.Install('/fake/test/app.apk', reinstall=False),
+          (mock.call.devil.android.apk_helper.ApkHelper.GetPermissions(),
+              ['p1']),
+          (self.call.device.GrantPermissions('test.package', ['p1']), [])):
+        self.device.Install('/fake/test/app.apk', retries=0)
+
+  def testIntsall_permissionsPreM(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=20):
+      with self.assertCalls(
+          (mock.call.devil.android.apk_helper.GetPackageName(
+              '/fake/test/app.apk'),
+           'test.package'),
+          (self.call.device._GetApplicationPathsInternal('test.package'), []),
+          (self.call.adb.Install('/fake/test/app.apk', reinstall=False))):
+        self.device.Install('/fake/test/app.apk', retries=0)
+
+  def testInstall_findPermissions(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=23):
+      with self.assertCalls(
+          (mock.call.devil.android.apk_helper.GetPackageName(
+              '/fake/test/app.apk'),
+           'test.package'),
+          (self.call.device._GetApplicationPathsInternal('test.package'), []),
+          (self.call.adb.Install('/fake/test/app.apk', reinstall=False)),
+          (mock.call.devil.android.apk_helper.ApkHelper.GetPermissions(),
+              ['p1']),
+          (self.call.device.GrantPermissions('test.package', ['p1']), [])):
+        self.device.Install('/fake/test/app.apk', retries=0)
+
+  def testInstall_passPermissions(self):
     with self.assertCalls(
         (mock.call.devil.android.apk_helper.GetPackageName(
             '/fake/test/app.apk'),
          'test.package'),
         (self.call.device._GetApplicationPathsInternal('test.package'), []),
-        self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
-      self.device.Install('/fake/test/app.apk', retries=0)
+        (self.call.adb.Install('/fake/test/app.apk', reinstall=False)),
+        (self.call.device.GrantPermissions('test.package', ['p1', 'p2']), [])):
+      self.device.Install(
+          '/fake/test/app.apk', retries=0, permissions=['p1', 'p2'])
 
   def testInstall_differentPriorInstall(self):
     with self.assertCalls(
@@ -568,7 +606,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
          (['/fake/test/app.apk'], None)),
         self.call.adb.Uninstall('test.package', False),
         self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
-      self.device.Install('/fake/test/app.apk', retries=0)
+      self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
 
   def testInstall_differentPriorInstall_reinstall(self):
     with self.assertCalls(
@@ -581,7 +619,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
             ['/fake/test/app.apk']),
          (['/fake/test/app.apk'], None)),
         self.call.adb.Install('/fake/test/app.apk', reinstall=True)):
-      self.device.Install('/fake/test/app.apk', reinstall=True, retries=0)
+      self.device.Install(
+          '/fake/test/app.apk', reinstall=True, retries=0, permissions=[])
 
   def testInstall_identicalPriorInstall(self):
     with self.assertCalls(
@@ -593,7 +632,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._ComputeStaleApks('test.package',
             ['/fake/test/app.apk']),
          ([], None))):
-      self.device.Install('/fake/test/app.apk', retries=0)
+      self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
 
   def testInstall_fails(self):
     with self.assertCalls(
@@ -2012,6 +2051,33 @@ class DeviceUtilsRestartAdbdTest(DeviceUtilsTest):
             ['source', mock_temp_file], as_root=True)),
         self.call.adb.WaitForDevice()):
       self.device.RestartAdbd()
+
+
+class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
+
+  def testGrantPermissions_none(self):
+    self.device.GrantPermissions('package', [])
+
+  def testGrantPermissions_underM(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=20):
+      self.device.GrantPermissions('package', ['p1'])
+
+  def testGrantPermissions_one(self):
+    permissions_cmd = 'pm grant package p1;'
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=23):
+      with self.assertCalls(
+          (self.call.device.RunShellCommand(permissions_cmd), [])):
+        self.device.GrantPermissions('package', ['p1'])
+
+  def testGrantPermissions_multiple(self):
+    permissions_cmd = 'pm grant package p1;pm grant package p2;'
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=23):
+      with self.assertCalls(
+          (self.call.device.RunShellCommand(permissions_cmd), [])):
+        self.device.GrantPermissions('package', ['p1', 'p2'])
 
 
 if __name__ == '__main__':

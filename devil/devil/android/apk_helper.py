@@ -110,6 +110,13 @@ class ApkHelper(object):
         return self._package_name
     raise Exception('Failed to determine package name of %s' % self._apk_path)
 
+  def GetPermissions(self):
+    manifest_info = self._GetManifest()
+    try:
+      return manifest_info['manifest']['uses-permission']['android:name']
+    except KeyError:
+      return []
+
   def GetSplitName(self):
     """Returns the name of the split of the apk."""
     if self._split_name:
