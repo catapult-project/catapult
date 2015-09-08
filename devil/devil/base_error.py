@@ -14,3 +14,4 @@ class BaseError(Exception):
   def is_infra_error(self):
     """Property to indicate if error was caused by an infrastructure issue."""
     return self._is_infra_error
+

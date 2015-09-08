@@ -99,11 +99,11 @@ class TestRunAsync(unittest.TestCase):
     self.assertEqual([], results)
 
   def testOneArg(self):
-    results = reraiser_thread.RunAsync([lambda:1])
+    results = reraiser_thread.RunAsync([lambda: 1])
     self.assertEqual([1], results)
 
   def testTwoArgs(self):
-    a, b = reraiser_thread.RunAsync((lambda:1, lambda:2))
+    a, b = reraiser_thread.RunAsync((lambda: 1, lambda: 2))
     self.assertEqual(1, a)
     self.assertEqual(2, b)
 

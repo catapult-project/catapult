@@ -2,16 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import collections
-import logging
 import os
 import posixpath
 import re
-import tempfile
-import types
 
 from devil.android import device_errors
-from devil.android import device_temp_file
 from devil.utils import cmd_helper
 from pylib import constants
 

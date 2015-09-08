@@ -113,11 +113,13 @@ def WaitFor(condition, wait_period=5, max_tries=None):
       max_tries -= 1
     msg = ['condition', repr(condition_name), 'met' if result else 'not met']
     if timeout_thread:
+      # pylint: disable=no-member
       msg.append('(%.1fs)' % timeout_thread.GetElapsedTime())
     logging.info(' '.join(msg))
     if result:
       return result
     if timeout_thread:
+      # pylint: disable=no-member
       timeout_thread.GetRemainingTime(wait_period,
           msg='Timed out waiting for %r' % condition_name)
     time.sleep(wait_period)

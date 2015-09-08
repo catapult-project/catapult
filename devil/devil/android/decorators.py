@@ -7,7 +7,6 @@ Function/method decorators that provide timeout and retry logic.
 """
 
 import functools
-import os
 import sys
 import threading
 
@@ -15,7 +14,6 @@ from devil.android import device_errors
 from devil.utils import cmd_helper
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
-from pylib import constants
 
 DEFAULT_TIMEOUT_ATTR = '_default_timeout'
 DEFAULT_RETRIES_ATTR = '_default_retries'

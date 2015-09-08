@@ -3,12 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# pylint: disable=protected-access
+
 import itertools
 import os
 import sys
 import unittest
 
-from devil.android import decorators
 from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 from pylib import constants
@@ -16,6 +17,13 @@ from pylib import constants
 sys.path.append(os.path.join(
     constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
 import mock # pylint: disable=F0401
+
+
+def _CreateTestLog(raw_logcat=None):
+  test_adb = adb_wrapper.AdbWrapper('0123456789abcdef')
+  test_adb.Logcat = mock.Mock(return_value=(l for l in raw_logcat))
+  test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
+  return test_log
 
 
 class LogcatMonitorTest(unittest.TestCase):
@@ -35,12 +43,6 @@ class LogcatMonitorTest(unittest.TestCase):
             'fatal logcat monitor test message 6',
         '01-01 01:02:03.462  3456  6543 D LogcatMonitorTest: '
             'ignore me',]
-
-  def _createTestLog(self, raw_logcat=None):
-    test_adb = adb_wrapper.AdbWrapper('0123456789abcdef')
-    test_adb.Logcat = mock.Mock(return_value=(l for l in raw_logcat))
-    test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
-    return test_log
 
   def assertIterEqual(self, expected_iter, actual_iter):
     for expected, actual in itertools.izip_longest(expected_iter, actual_iter):
@@ -62,7 +64,7 @@ class LogcatMonitorTest(unittest.TestCase):
       next(expected_iter)
 
   def testWaitFor_success(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_match = test_log.WaitFor(r'.*(fatal|error) logcat monitor.*', None)
     self.assertTrue(actual_match)
@@ -73,14 +75,14 @@ class LogcatMonitorTest(unittest.TestCase):
     self.assertEqual('error', actual_match.group(1))
 
   def testWaitFor_failure(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_match = test_log.WaitFor(
         r'.*My Success Regex.*', r'.*(fatal|error) logcat monitor.*')
     self.assertIsNone(actual_match)
 
   def testFindAll_defaults(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     expected_results = [
         ('7890', '0987', 'V', 'LogcatMonitorTest',
@@ -99,14 +101,14 @@ class LogcatMonitorTest(unittest.TestCase):
     self.assertIterEqual(iter(expected_results), actual_results)
 
   def testFindAll_defaults_miss(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     expected_results = []
     actual_results = test_log.FindAll(r'\S* nothing should match this \d')
     self.assertIterEqual(iter(expected_results), actual_results)
 
   def testFindAll_filterProcId(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_results = test_log.FindAll(
         r'\S* logcat monitor test message \d', proc_id=1234)
@@ -116,7 +118,7 @@ class LogcatMonitorTest(unittest.TestCase):
     self.assertIterEqual(iter(expected_results), actual_results)
 
   def testFindAll_filterThreadId(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_results = test_log.FindAll(
         r'\S* logcat monitor test message \d', thread_id=2109)
@@ -126,7 +128,7 @@ class LogcatMonitorTest(unittest.TestCase):
     self.assertIterEqual(iter(expected_results), actual_results)
 
   def testFindAll_filterLogLevel(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_results = test_log.FindAll(
         r'\S* logcat monitor test message \d', log_level=r'[DW]')
@@ -138,7 +140,7 @@ class LogcatMonitorTest(unittest.TestCase):
     self.assertIterEqual(iter(expected_results), actual_results)
 
   def testFindAll_filterComponent(self):
-    test_log = self._createTestLog(
+    test_log = _CreateTestLog(
         raw_logcat=type(self)._TEST_THREADTIME_LOGCAT_DATA)
     actual_results = test_log.FindAll(r'.*', component='LogcatMonitorTest')
     expected_results = [

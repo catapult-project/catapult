@@ -8,7 +8,6 @@ import os.path
 import re
 
 from devil.android.sdk import aapt
-from devil.utils import cmd_helper
 from pylib import constants
 
 

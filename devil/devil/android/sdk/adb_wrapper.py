@@ -78,6 +78,7 @@ class AdbWrapper(object):
   @decorators.WithTimeoutAndRetries
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
                  check_error=True, cpu_affinity=None):
+    # pylint: disable=no-member
     status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
         cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
         timeout_retry.CurrentTimeoutThread().GetRemainingTime())

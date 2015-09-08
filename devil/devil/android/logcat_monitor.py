@@ -4,16 +4,10 @@
 
 # pylint: disable=unused-argument
 
-import collections
-import itertools
 import logging
-import subprocess
-import tempfile
-import time
 import re
 
 from devil.android import decorators
-from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
 
 
@@ -112,6 +106,7 @@ class LogcatMonitor(object):
       log_level = r'[VDIWEF]'
     if component is None:
       component = r'[^\s:]+'
+    # pylint: disable=protected-access
     threadtime_re = re.compile(
         type(self)._THREADTIME_RE_FORMAT % (
             proc_id, thread_id, log_level, component, message_regex))

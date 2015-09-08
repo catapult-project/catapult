@@ -7,25 +7,19 @@
 Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 """
 
-# pylint: disable=C0321
-# pylint: disable=W0212
-# pylint: disable=W0613
+# pylint: disable=protected-access
+# pylint: disable=unused-argument
 
-import collections
-import datetime
 import logging
 import os
-import re
 import sys
 import unittest
 
-from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_signal
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
-from devil.android.sdk import split_select
 from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
@@ -120,10 +114,11 @@ class _PatchedFunction(object):
     self.mocked = mocked
 
 
-def _AdbWrapperMock(test_serial):
+def _AdbWrapperMock(test_serial, is_ready=True):
   adb = mock.Mock(spec=adb_wrapper.AdbWrapper)
   adb.__str__ = mock.Mock(return_value=test_serial)
   adb.GetDeviceSerial.return_value = test_serial
+  adb.is_ready = is_ready
   return adb
 
 
@@ -1628,7 +1623,7 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
       self.device.WriteFile('/test/file/to write', 'the contents')
 
   def testWriteFile_withEchoAndSU(self):
-    expected_cmd_without_su =  "sh -c 'echo -n contents > /test/file'"
+    expected_cmd_without_su = "sh -c 'echo -n contents > /test/file'"
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
@@ -1981,16 +1976,11 @@ class DeviceUtilsClientCache(DeviceUtilsTest):
 
 class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
 
-  def _createAdbWrapperMock(self, serial, is_ready=True):
-    adb = _AdbWrapperMock(serial)
-    adb.is_ready = is_ready
-    return adb
-
   def testHealthyDevices_emptyBlacklist(self):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
-         [self._createAdbWrapperMock(s) for s in test_serials])):
+         [_AdbWrapperMock(s) for s in test_serials])):
       blacklist = mock.NonCallableMock(**{'Read.return_value': []})
       devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
     for serial, device in zip(test_serials, devices):
@@ -2001,7 +1991,7 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
-         [self._createAdbWrapperMock(s) for s in test_serials])):
+         [_AdbWrapperMock(s) for s in test_serials])):
       blacklist = mock.NonCallableMock(
           **{'Read.return_value': ['fedcba9876543210']})
       devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
@@ -2019,7 +2009,7 @@ class DeviceUtilsRestartAdbdTest(DeviceUtilsTest):
             self.adb, suffix='.sh'), MockTempFile(mock_temp_file)),
         self.call.device.WriteFile(mock.ANY, mock.ANY),
         (self.call.device.RunShellCommand(
-            ['source', mock_temp_file ], as_root=True)),
+            ['source', mock_temp_file], as_root=True)),
         self.call.adb.WaitForDevice()):
       self.device.RestartAdbd()
 

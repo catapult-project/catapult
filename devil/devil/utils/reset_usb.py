@@ -10,8 +10,6 @@ import re
 import sys
 
 from devil.android import device_errors
-from devil.android.sdk import adb_wrapper
-from devil.utils import cmd_helper
 from devil.utils import lsusb
 from devil.utils import run_tests_helper
 

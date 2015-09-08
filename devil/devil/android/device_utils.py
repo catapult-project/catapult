@@ -9,7 +9,6 @@ Eventually, this will be based on adb_wrapper.
 # pylint: disable=unused-argument
 
 import collections
-import contextlib
 import itertools
 import logging
 import multiprocessing
@@ -17,7 +16,6 @@ import os
 import posixpath
 import re
 import shutil
-import sys
 import tempfile
 import time
 import zipfile
@@ -154,7 +152,7 @@ class DeviceUtils(object):
   _MAX_ADB_COMMAND_LENGTH = 512
   _MAX_ADB_OUTPUT_LENGTH = 32768
   _LAUNCHER_FOCUSED_RE = re.compile(
-      '\s*mCurrentFocus.*(Launcher|launcher).*')
+      r'\s*mCurrentFocus.*(Launcher|launcher).*')
   _VALID_SHELL_VARIABLE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 
   LOCAL_PROPERTIES_PATH = posixpath.join('/', 'data', 'local.prop')
@@ -290,7 +288,7 @@ class DeviceUtils(object):
     return self._cache['needs_su']
 
   def _Su(self, command):
-    if (self.build_version_sdk >= version_codes.MARSHMALLOW):
+    if self.build_version_sdk >= version_codes.MARSHMALLOW:
       return 'su 0 %s' % command
     return 'su -c %s' % command
 
@@ -1165,8 +1163,8 @@ class DeviceUtils(object):
         if not install_commands.Installed(self):
           install_commands.InstallCommands(self)
         self._commands_installed = True
-      except Exception as e:
-        logging.warning('unzip not available: %s' % str(e))
+      except device_errors.CommandFailedError as e:
+        logging.warning('unzip not available: %s', str(e))
         self._commands_installed = False
     return self._commands_installed
 
@@ -1827,13 +1825,13 @@ class DeviceUtils(object):
     if not match:
       return None
     package = match.group(2)
-    logging.warning('Trying to dismiss %s dialog for %s' % match.groups())
+    logging.warning('Trying to dismiss %s dialog for %s', *match.groups())
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_ENTER)
     match = _FindFocusedWindow()
     if match:
-      logging.error('Still showing a %s dialog for %s' % match.groups())
+      logging.error('Still showing a %s dialog for %s', *match.groups())
     return package
 
   def _GetMemoryUsageForPidFromSmaps(self, pid):
@@ -1858,9 +1856,8 @@ class DeviceUtils(object):
         '/proc/%s/status' % str(pid), as_root=True).splitlines():
       if line.startswith('VmHWM:'):
         return {'VmHWM': int(line.split()[1])}
-    else:
-      raise device_errors.CommandFailedError(
-          'Could not find memory peak value for pid %s', str(pid))
+    raise device_errors.CommandFailedError(
+        'Could not find memory peak value for pid %s', str(pid))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetLogcatMonitor(self, timeout=None, retries=None, *args, **kwargs):

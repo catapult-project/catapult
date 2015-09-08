@@ -18,7 +18,7 @@ from pylib import constants
 
 sys.path.append(os.path.join(
     constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
-import mock
+import mock # pylint: disable=import-error
 
 
 def MockDeviceWithFiles(files=None):

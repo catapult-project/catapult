@@ -13,8 +13,8 @@ import sys
 import unittest
 
 from devil.android import device_errors
+from devil.android import device_temp_file
 from devil.android.sdk import adb_wrapper
-from devil.utils import device_temp_file
 from devil.utils import mock_calls
 from pylib import constants
 
@@ -70,7 +70,7 @@ class DeviceTempFileTest(mock_calls.TestCase):
         self.mockShellCall('touch '),
         self.mockShellCall('rm -f ')):
       with device_temp_file.DeviceTempFile(self.adb) as tmpfile:
-        logging.debug('Temp file name: %s' % tmpfile.name)
+        logging.debug('Temp file name: %s', tmpfile.name)
 
   def testTempFileLifecycle(self):
     with self.assertCalls(
@@ -80,7 +80,7 @@ class DeviceTempFileTest(mock_calls.TestCase):
       tempFileContextManager = device_temp_file.DeviceTempFile(self.adb)
     with mock.patch.object(self.adb, 'Shell'):
       with tempFileContextManager as tmpfile:
-        logging.debug('Temp file name: %s' % tmpfile.name)
+        logging.debug('Temp file name: %s', tmpfile.name)
         self.assertEquals(0, self.adb.Shell.call_count)
       self.assertEquals(1, self.adb.Shell.call_count)
       args, _ = self.adb.Shell.call_args

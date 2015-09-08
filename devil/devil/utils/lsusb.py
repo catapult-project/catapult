@@ -2,16 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
-import fcntl
 import logging
 import re
-import sys
 
 from pylib import cmd_helper
-from pylib.device import adb_wrapper
-from pylib.device import device_errors
-from pylib.utils import run_tests_helper
 
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')

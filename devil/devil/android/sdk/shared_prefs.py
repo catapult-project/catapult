@@ -8,7 +8,6 @@ See e.g.:
   http://developer.android.com/reference/android/content/SharedPreferences.html
 """
 
-import collections
 import logging
 import posixpath
 

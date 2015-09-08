@@ -7,7 +7,6 @@
 import os
 
 from devil.utils import cmd_helper
-from devil.utils import timeout_retry
 from pylib import constants
 
 _SPLIT_SELECT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'split-select')

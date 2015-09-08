@@ -15,7 +15,6 @@ import unittest
 from pylib import constants
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
-from devil.utils import md5sum
 from devil.utils import cmd_helper
 
 _OLD_CONTENTS = "foo"
@@ -90,7 +89,7 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     self.assertEqual(_OLD_CONTENTS, result)
 
     cmd_helper.RunCmd(['rm', host_file_path])
-    self.device.RunShellCommand(['rm', '-rf',  _DEVICE_DIR])
+    self.device.RunShellCommand(['rm', '-rf', _DEVICE_DIR])
 
   def testPushChangedFiles_singleFileChange(self):
     (host_file_path, file_name) = self._MakeTempFile(_OLD_CONTENTS)
@@ -105,7 +104,7 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     self.assertEqual(_NEW_CONTENTS, result)
 
     cmd_helper.RunCmd(['rm', host_file_path])
-    self.device.RunShellCommand(['rm', '-rf',  _DEVICE_DIR])
+    self.device.RunShellCommand(['rm', '-rf', _DEVICE_DIR])
 
   def testDeleteFiles(self):
     host_tmp_dir = tempfile.mkdtemp()
@@ -122,7 +121,7 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     self.assertEqual('', result)
 
     cmd_helper.RunCmd(['rm', '-rf', host_tmp_dir])
-    self.device.RunShellCommand(['rm', '-rf',  _DEVICE_DIR])
+    self.device.RunShellCommand(['rm', '-rf', _DEVICE_DIR])
 
   def testPushAndDeleteFiles_noSubDir(self):
     host_tmp_dir = tempfile.mkdtemp()
@@ -148,7 +147,7 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     result = self.device.RunShellCommand(['ls', _DEVICE_DIR], single_line=True)
     self.assertEqual(file_name1, result)
 
-    self.device.RunShellCommand(['rm', '-rf',  _DEVICE_DIR])
+    self.device.RunShellCommand(['rm', '-rf', _DEVICE_DIR])
     cmd_helper.RunCmd(['rm', '-rf', host_tmp_dir])
 
   def testPushAndDeleteFiles_SubDir(self):
@@ -204,7 +203,7 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
                                          single_line=True)
     self.assertEqual('', result)
 
-    self.device.RunShellCommand(['rm', '-rf',  _DEVICE_DIR])
+    self.device.RunShellCommand(['rm', '-rf', _DEVICE_DIR])
     cmd_helper.RunCmd(['rm', '-rf', host_tmp_dir])
 
   def testRestartAdbd(self):

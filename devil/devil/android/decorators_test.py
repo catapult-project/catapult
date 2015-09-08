@@ -8,8 +8,6 @@ Unit tests for decorators.py.
 
 # pylint: disable=W0613
 
-import os
-import sys
 import time
 import traceback
 import unittest
@@ -17,7 +15,6 @@ import unittest
 from devil.android import decorators
 from devil.android import device_errors
 from devil.utils import reraiser_thread
-from pylib import constants
 
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3

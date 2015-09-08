@@ -7,7 +7,7 @@
 Unit tests for the contents of battery_utils.py
 """
 
-# pylint: disable=W0613
+# pylint: disable=protected-access,unused-argument
 
 import logging
 import os
@@ -400,14 +400,14 @@ class BatteryUtilsGetNetworkDataTest(BatteryUtilsTest):
          _DUMPSYS_OUTPUT),
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1,2))
+      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
 
   def testGetNetworkData_packageCached(self):
     self.battery._cache['uids'] = {'test_package1': '1000'}
     with self.assertCalls(
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1,2))
+      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
 
   def testGetNetworkData_clearedCache(self):
     with self.assertCalls(
@@ -418,7 +418,7 @@ class BatteryUtilsGetNetworkDataTest(BatteryUtilsTest):
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
         (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
       self.battery._cache.clear()
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1,2))
+      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
 
 
 class BatteryUtilsLetBatteryCoolToTemperatureTest(BatteryUtilsTest):
@@ -486,7 +486,7 @@ class BatteryUtilsGetFuelGaugeChargeCounterTest(BatteryUtilsTest):
         self.battery.GetFuelGaugeChargeCounter()
 
   def testGetFuelGaugeChargeCounter_fuelGaugePresent(self):
-    self.battery._cache['profile']= self._NEXUS_6
+    self.battery._cache['profile'] = self._NEXUS_6
     with self.assertCalls(
         (self.call.battery.SupportsFuelGauge(), True),
         (self.call.device.ReadFile(mock.ANY), '123')):
