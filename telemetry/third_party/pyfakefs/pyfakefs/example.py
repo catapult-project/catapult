@@ -29,12 +29,13 @@ The modules related to file handling are bound to the respective fake modules:
 >>> shutil     #doctest: +ELLIPSIS
 <fake_filesystem_shutil.FakeShutilModule object...>
 
-The `file()` and `open()` built-ins are bound to the fake `open()`:
+The `open()` built-in is bound to the fake `open()`:
 
->>> file     #doctest: +ELLIPSIS
-<fake_filesystem.FakeFileOpen object...>
 >>> open     #doctest: +ELLIPSIS
 <fake_filesystem.FakeFileOpen object...>
+
+In Python 2 the `file()` built-in is also bound to the fake `open()`.  `file()`
+was eliminated in Python 3.
 """
 
 import os

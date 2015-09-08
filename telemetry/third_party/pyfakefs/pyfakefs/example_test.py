@@ -112,9 +112,9 @@ class TestExample(fake_filesystem_unittest.TestCase): # pylint: disable=R0904
         os.makedirs('/test/dir1/dir2b')
         self.assertTrue(os.path.isdir('/test/dir1/dir2b'))
         
-        self.assertItemsEqual(example.get_glob('/test/dir1/nonexistent*'),
+        self.assertCountEqual(example.get_glob('/test/dir1/nonexistent*'),
                               [])
-        self.assertItemsEqual(example.get_glob('/test/dir1/dir*'),
+        self.assertCountEqual(example.get_glob('/test/dir1/dir*'),
                               ['/test/dir1/dir2a', '/test/dir1/dir2b'])
 
     def test_rm_tree(self):

@@ -1,20 +1,21 @@
 #! /usr/bin/env python
-#
+
 # Copyright 2009 Google Inc. All Rights Reserved.
-#
+# Copyright 2014 Altera Corporation. All Rights Reserved.
+# Copyright 2014-2015 John McGehee
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#! /usr/bin/env python
 
 from fake_filesystem import __version__
 
@@ -27,10 +28,10 @@ MODULES = ['fake_filesystem',
            'fake_filesystem_shutil',
            'fake_tempfile',
            'fake_filesystem_unittest']
-REQUIRES = ['mock']
-DESCRIPTION = 'Fakes file system modules for automated developer testing.'
+REQUIRES = ['mox3']
+DESCRIPTION = 'Fake file system for testing file operations without touching the real file system.'
 
-URL = "https://code.google.com/p/pyfakefs"
+URL = "https://github.com/jmcgeheeiv/pyfakefs"
 
 readme = os.path.join(os.path.dirname(__file__), 'README.md')
 LONG_DESCRIPTION = open(readme).read()
@@ -43,7 +44,9 @@ CLASSIFIERS = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.2',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
     'Operating System :: POSIX',
     'Operating System :: MacOS',
     'Operating System :: Microsoft :: Windows',
@@ -53,8 +56,8 @@ CLASSIFIERS = [
     'Topic :: System :: Filesystems',
 ]
 
-AUTHOR = 'Google'
-AUTHOR_EMAIL = 'google-pyfakefs@google.com'
+AUTHOR = 'Google and John McGehee'
+AUTHOR_EMAIL = 'github@johnnado,com'
 KEYWORDS = ("testing test file os shutil glob mocking unittest "
             "fakes filesystem unit").split(' ')
 

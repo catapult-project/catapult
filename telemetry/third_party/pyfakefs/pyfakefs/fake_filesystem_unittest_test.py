@@ -29,7 +29,7 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 import fake_filesystem_unittest
-
+import pytest
 
 class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable=R0904
     '''Test the pyfakefs.fake_filesystem_unittest.TestCase` base class.'''
@@ -41,9 +41,10 @@ class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable
     def tearDown(self):
         '''Tear down the fake file system'''
         self.tearDownPyfakefs()
-        
+
+    @unittest.skipIf(sys.version_info > (2,), "file() was removed in Python 3")
     def test_file(self):
-        '''Test that the fake `file()` function is bound'''
+        '''Fake `file()` function is bound'''
         self.assertFalse(os.path.exists('/fake_file.txt'))
         with file('/fake_file.txt', 'w') as f:
             f.write("This test file was created using the file() function.\n")
@@ -54,7 +55,7 @@ class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable
                          'This test file was created using the file() function.\n')
             
     def test_open(self):
-        '''Test that the fake `open()` function is bound'''
+        '''Fake `open()` function is bound'''
         self.assertFalse(os.path.exists('/fake_file.txt'))
         with open('/fake_file.txt', 'w') as f:
             f.write("This test file was created using the open() function.\n")
@@ -65,24 +66,24 @@ class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable
                          'This test file was created using the open() function.\n')
             
     def test_os(self):
-        '''Test that the fake os module is bound'''
+        '''Fake os module is bound'''
         self.assertFalse(self.fs.Exists('/test/dir1/dir2'))          
         os.makedirs('/test/dir1/dir2')
         self.assertTrue(self.fs.Exists('/test/dir1/dir2'))          
         
     def test_glob(self):
-        '''Test that the fake glob module is bound'''
-        self.assertItemsEqual(glob.glob('/test/dir1/dir*'),
+        '''Fake glob module is bound'''
+        self.assertCountEqual(glob.glob('/test/dir1/dir*'),
                               [])
         self.fs.CreateDirectory('/test/dir1/dir2a')
-        self.assertItemsEqual(glob.glob('/test/dir1/dir*'),
+        self.assertCountEqual(glob.glob('/test/dir1/dir*'),
                               ['/test/dir1/dir2a'])
         self.fs.CreateDirectory('/test/dir1/dir2b')
-        self.assertItemsEqual(glob.glob('/test/dir1/dir*'),
+        self.assertCountEqual(glob.glob('/test/dir1/dir*'),
                               ['/test/dir1/dir2a', '/test/dir1/dir2b'])
 
     def test_shutil(self):
-        '''Test that the fake shutil module is bound'''
+        '''Fake shutil module is bound'''
         self.fs.CreateDirectory('/test/dir1/dir2a')
         self.fs.CreateDirectory('/test/dir1/dir2b')
         self.assertTrue(self.fs.Exists('/test/dir1/dir2b'))
@@ -92,12 +93,15 @@ class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable
         self.assertFalse(self.fs.Exists('/test/dir1'))
 
     def test_tempfile(self):
-        '''Test that the fake tempfile module is bound'''
+        '''Fake tempfile module is bound'''
         with tempfile.NamedTemporaryFile() as tf:
-            tf.write('Temporary file contents\n')
+            tf.write(b'Temporary file contents\n')
             name = tf.name
             self.assertTrue(self.fs.Exists(tf.name))
-        
+    
+    def test_pytest(self):
+        '''Compatibility with the :py:module:`pytest` module.'''
+        pass
                       
 if __name__ == "__main__":
     unittest.main()

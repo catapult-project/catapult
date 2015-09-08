@@ -78,12 +78,12 @@ class FakeTempfileModuleTest(unittest.TestCase):
     filename_a = self.tempfile._TempFilename()
     # expect /tmp/tmp######
     self.assertTrue(filename_a.startswith('/tmp/tmp'))
-    self.assertEqual(14, len(filename_a))
+    self.assertLess(len('/tmp/tmpA'), len(filename_a))
 
     # see that random part changes
     filename_b = self.tempfile._TempFilename()
     self.assertTrue(filename_b.startswith('/tmp/tmp'))
-    self.assertEqual(14, len(filename_b))
+    self.assertLess(len('/tmp/tmpB'), len(filename_a))
     self.assertNotEqual(filename_a, filename_b)
 
   def testTempFilenameSuffix(self):
@@ -91,19 +91,19 @@ class FakeTempfileModuleTest(unittest.TestCase):
     filename = self.tempfile._TempFilename(suffix='.suffix')
     self.assertTrue(filename.startswith('/tmp/tmp'))
     self.assertTrue(filename.endswith('.suffix'))
-    self.assertEqual(21, len(filename))
+    self.assertLess(len('/tmp/tmpX.suffix'), len(filename))
 
   def testTempFilenamePrefix(self):
     """test tempfile._TempFilename(prefix=)."""
     filename = self.tempfile._TempFilename(prefix='prefix.')
     self.assertTrue(filename.startswith('/tmp/prefix.'))
-    self.assertEqual(18, len(filename))
+    self.assertLess(len('/tmp/prefix.X'), len(filename))
 
   def testTempFilenameDir(self):
     """test tempfile._TempFilename(dir=)."""
     filename = self.tempfile._TempFilename(dir='/dir')
     self.assertTrue(filename.startswith('/dir/tmp'))
-    self.assertEqual(14, len(filename))
+    self.assertLess(len('/dir/tmpX'), len(filename))
 
   def testTemporaryFile(self):
     obj = self.tempfile.TemporaryFile()

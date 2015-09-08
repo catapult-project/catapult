@@ -1,14 +1,13 @@
 Name: pyfakefs
 Short Name: pyfakefs
 URL: https://github.com/jmcgeheeiv/pyfakefs
-Version: a73695b8b173b58ad208db79c5aeaa9ae2693a3c (commit hash)
+Version: 7e8e097c0165ba9d51fa9d34a0888d8ec082d15b (commit hash)
 License: Apache License 2.0
 License File: pyfakefs/COPYING
 Security Critical: no
 
 Local modification: create a pyfakefs as a project folder & move pyfakefs to
 pyfakefs/pyfakefs since we don't want the project folder to be a module.
-Add license header to pyfakefs/setup.py
 
 Description:
 pyfakefs implements a fake file system that mocks the Python file system
