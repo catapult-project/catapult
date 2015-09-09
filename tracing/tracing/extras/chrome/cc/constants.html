@@ -16,6 +16,10 @@ tr.exportTo('tr.e.cc', function() {
   constants.HIGH_PRIORITY_BIN = 0;
   constants.LOW_PRIORITY_BIN = 1;
 
+  constants.SEND_BEGIN_FRAME_EVENT =
+    'ThreadProxy::ScheduledActionSendBeginMainFrame';
+  constants.BEGIN_MAIN_FRAME_EVENT = 'ThreadProxy::BeginMainFrame';
+
   return {
     constants: constants
   };

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import"
+  href="/perf_insights/timeline_based_measurement/rendering_frame.html">
+
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/cc/constants.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/tracing/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var ThreadSlice = tr.model.ThreadSlice;
+  var RenderingFrame = pi.tbm.RenderingFrame;
+  var SEND_BEGIN_FRAME_EVENT = tr.e.cc.constants.SEND_BEGIN_FRAME_EVENT;
+  var BEGIN_MAIN_FRAME_EVENT = tr.e.cc.constants.BEGIN_MAIN_FRAME_EVENT;
+  var Range = tr.b.Range;
+
+  function RenderingFrameTestData() {
+    this.beginFrameId_ = 0;
+    this.events_ = [];
+    this.rendererProcess_ = (new tr.Model()).getOrCreateProcess(1);
+    this.mainThread_ = this.rendererProcess_.getOrCreateThread(11);
+    this.compositorThread_ = this.rendererProcess_.getOrCreateThread(12);
+  }
+
+  RenderingFrameTestData.prototype = {
+    get events() {
+      return this.events_;
+    },
+
+    get rendererProcess() {
+      return this.rendererProcess_;
+    },
+
+    get compositorThread() {
+      return this.compositorThread_;
+    },
+
+    addSendEvent: function(opt_ts, opt_duration) {
+      if (opt_ts === undefined)
+        opt_ts = 0;
+      if (opt_duration === undefined)
+        opt_duration = 1;
+      this.beginFrameId_ += 1;
+      var event = this.createEvent_(
+          SEND_BEGIN_FRAME_EVENT, opt_ts, opt_duration);
+      this.compositorThread_.sliceGroup.pushSlice(event);
+    },
+
+    addBeginMainFrameEvent: function(opt_ts, opt_duration) {
+      if (opt_ts === undefined)
+        opt_ts = 0;
+      if (opt_duration === undefined)
+        opt_duration = 1;
+      var event = this.createEvent_(
+          BEGIN_MAIN_FRAME_EVENT, opt_ts, opt_duration);
+      this.mainThread_.sliceGroup.pushSlice(event);
+    },
+
+    updateBounds: function() {
+      this.rendererProcess_.updateBounds();
+    },
+
+    createEvent_: function(eventTitle, ts, duration) {
+      var event = new ThreadSlice('cc,benchmark', eventTitle, 0, ts, {
+        'begin_frame_id': this.beginFrameId_
+      }, duration);
+      this.events_.push(event);
+      return event;
+    }
+  };
+
+  function generateTimelineRange(opt_start, opt_end) {
+    if (opt_start === undefined)
+      opt_start = 0;
+    if (opt_end === undefined)
+      opt_end = 100;
+    var timelineRange = new tr.b.Range();
+    timelineRange.min = opt_start;
+    timelineRange.max = opt_end;
+    return timelineRange;
+  }
+
+  test('renderingFrameConstruction', function() {
+    var r = new RenderingFrameTestData();
+    r.addSendEvent(10);
+    r.addBeginMainFrameEvent(20);
+    r.updateBounds();
+    var frames = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, Range.fromExplicitRange(0, 30));
+    assert.equal(1, frames.length);
+    assert.equal(10, frames[0].queueDuration);
+  });
+
+  test('renderingFrame_missingSendBeginFrameEvents', function() {
+    var r = new RenderingFrameTestData();
+    r.addBeginMainFrameEvent(10);
+    r.updateBounds();
+    var frames = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, Range.fromExplicitRange(0, 30));
+    assert.equal(0, frames.length);
+  });
+
+  test('renderingFrame_duplicateSendBeginFrameEvents', function() {
+    var r = new RenderingFrameTestData();
+    r.addSendEvent(10);
+    r.addBeginMainFrameEvent(20);
+    var begin_frame_id = r.events[0].args['begin_frame_id'];
+    r.compositorThread.sliceGroup.pushSlice(new ThreadSlice(
+        'cc,benchmark', SEND_BEGIN_FRAME_EVENT, 0, 30,
+        {'begin_frame_id': begin_frame_id}, 0));
+    r.updateBounds();
+    var frames = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, Range.fromExplicitRange(0, 30));
+    assert.equal(0, frames.length);
+  });
+
+  test('renderingFrame_missingBeginMainFrameEvents', function() {
+    var r = new RenderingFrameTestData();
+    r.addSendEvent(10);
+    r.updateBounds();
+    var frames = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, Range.fromExplicitRange(0, 30));
+    assert.equal(0, frames.length);
+  });
+
+  test('renderingFrame_duplicateBeginMainFrameEvents', function() {
+    var r = new RenderingFrameTestData();
+    r.addSendEvent(10);
+    r.addBeginMainFrameEvent(20);
+    r.addBeginMainFrameEvent(30);
+    r.addBeginMainFrameEvent(40);
+    r.updateBounds();
+
+    var frames = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, Range.fromExplicitRange(0, 30));
+    assert.equal(1, frames.length);
+    assert.equal(30, frames[0].queueDuration);
+  });
+
+  test('renderingFrame_frameEventMissingBeginFrameId', function() {
+    var model = new tr.Model();
+    var process = model.getOrCreateProcess(1);
+    var main_thread = process.getOrCreateThread(11);
+    var model_range = {};
+
+    // Create an event without the begin_frame_id argument
+    var event = new ThreadSlice(
+        'cc,benchmark', BEGIN_MAIN_FRAME_EVENT, 0, 0.0);
+    main_thread.sliceGroup.pushSlice(event);
+    process.updateBounds();
+    try {
+      RenderingFrame.getFrameEventsInsideRange(process, model_range);
+      assert.isFalse(true, 'Exception should have been thrown');
+    } catch (err) {
+      assert.equal(true, true);
+    }
+  });
+
+ /**
+  *  Test a basic sequenece, with expected frame queueing delays A and B.
+  *
+  *              |----A----|    |--B--|
+  *  Main:         [1]     [1]        [2]
+  *
+  *  Compositor: [1]            [2]
+  **/
+  test('renderingFrame_getFrameEventsInsideRange', function() {
+    var r = new RenderingFrameTestData();
+    r.addSendEvent(10);
+    r.addBeginMainFrameEvent(20);
+    r.addBeginMainFrameEvent(30);
+    r.addSendEvent(40);
+    r.addBeginMainFrameEvent(50);
+    r.updateBounds();
+
+    var timelineRange = generateTimelineRange();
+    var frameEvents = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, timelineRange);
+
+    assert.equal(2, frameEvents.length);
+    assert.equal(20, frameEvents[0].queueDuration);
+    assert.equal(10, frameEvents[1].queueDuration);
+  });
+
+ /**
+  * Test a sequenece missing an initial SendBeginFrame.
+  *
+  * Only one frame should be returned, with expected frame queueing delay A.
+  *                     |--A--|
+  *    Main:  [0]  [0]        [2]
+  *
+  * Compositor:            [2]
+  **/
+  test('renderingFrame_frameEventsMissingDataNotIncluded', function() {
+    var r = new RenderingFrameTestData();
+    r.addBeginMainFrameEvent(20);
+    r.addBeginMainFrameEvent(30);
+    r.addSendEvent(40);
+    r.addBeginMainFrameEvent(50);
+    r.updateBounds();
+
+    var timelineRange = generateTimelineRange();
+    var frameEvents = RenderingFrame.getFrameEventsInsideRange(
+        r.rendererProcess, timelineRange);
+
+    assert.equal(1, frameEvents.length);
+    assert.equal(10, frameEvents[0].queueDuration);
+  });
+
+});
+</script>
