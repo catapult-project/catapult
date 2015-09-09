@@ -43,22 +43,16 @@ class PageTest(object):
              'document.body.children.length')
          results.AddValue(scalar.ScalarValue(
              page, 'body_children', 'count', body_child_count))
-
-  Args:
-    discard_first_run: Discard the first run of this page. This is
-        usually used with page_repeat and pageset_repeat options.
   """
 
   def __init__(self,
                needs_browser_restart_after_each_page=False,
-               discard_first_result=False,
                clear_cache_before_each_run=False):
     super(PageTest, self).__init__()
 
     self.options = None
     self._needs_browser_restart_after_each_page = (
         needs_browser_restart_after_each_page)
-    self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
 
@@ -72,17 +66,6 @@ class PageTest(object):
     (e.g., how many tabs are open, etc.) is unknown after crashes.
     """
     return self.TabForPage.__func__ is not PageTest.TabForPage.__func__
-
-  @property
-  def discard_first_result(self):
-    """When set to True, the first run of the test is discarded.  This is
-    useful for cases where it's desirable to have some test resource cached so
-    the first run of the test can warm things up. """
-    return self._discard_first_result
-
-  @discard_first_result.setter
-  def discard_first_result(self, discard):
-    self._discard_first_result = discard
 
   @property
   def clear_cache_before_each_run(self):
