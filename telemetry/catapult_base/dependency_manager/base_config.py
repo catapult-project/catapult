@@ -24,6 +24,7 @@ class BaseConfig(object):
                         "cloud_storage_hash": "hash_for_platform1",
                         "download_path": "download_path111",
                         "cs_remote_path": "cs_path111",
+                        "version_in_cs": "1.11.1.11."
                         "local_paths": ["local_path1110", "local_path1111"]
                       },
                       "platform2": {
@@ -42,15 +43,24 @@ class BaseConfig(object):
               }
             }
 
-    Required feilds: "dependencies" and "config_type".
+    Required fields: "dependencies" and "config_type".
                      Note that config_type must be "BaseConfig"
-    Assumptions:
-        |cloud_storage_base_folder| is a top level folder in the given
-          |cloud_storage_bucket| where all of the dependency files are stored
-          at |dependency_name|_|cloud_storage_hash|.
 
-        |download_path| and all paths in |local_paths| are relative to the
+    Assumptions:
+        "cloud_storage_base_folder" is a top level folder in the given
+          "cloud_storage_bucket" where all of the dependency files are stored
+          at "dependency_name"_"cloud_storage_hash".
+
+        "download_path" and all paths in "local_paths" are relative to the
           config file's location.
+
+        All or none of the following cloud storage related fields must be
+          included in each platform dictionary:
+          "cloud_storage_hash", "download_path", "cs_remote_path"
+
+        "version_in_cs" is an optional cloud storage field, but is dependent
+          on the above cloud storage related fields.
+
 
     Also note that platform names are often of the form os_architechture.
     Ex: "win_AMD64"
@@ -140,11 +150,14 @@ class BaseConfig(object):
           cs_remote_path = cs_remote_file if not cs_base_folder else (
               '%s/%s' % (cs_base_folder, cs_remote_file))
 
-        if download_path or cs_remote_path or cs_hash:
+        version_in_cs = platform_info.get('version_in_cs', None)
+
+        if download_path or cs_remote_path or cs_hash or version_in_cs:
           dep_info = dependency_info.DependencyInfo(
               dep, platform, self._config_path, cs_bucket=cs_bucket,
               cs_remote_path=cs_remote_path, download_path=download_path,
-              cs_hash=cs_hash, local_paths=local_paths)
+              cs_hash=cs_hash, version_in_cs=version_in_cs,
+              local_paths=local_paths)
         else:
           dep_info = dependency_info.DependencyInfo(
               dep, platform, self._config_path, local_paths=local_paths)
@@ -183,7 +196,12 @@ class BaseConfig(object):
 
   def GetVersion(self, dependency, platform):
     """Return the Version information for the given dependency."""
-    raise NotImplementedError
+    if not self._config_data(dependency):
+      raise ValueError('Dependency %s is not in config.' % dependency)
+    if not self.config_data[dependency].get(platform):
+      raise ValueError('Dependency %s has no information for platform %s in '
+                       'this config.' % (dependency, platform))
+    return self._config_data[dependency][platform].get('version_in_cs')
 
   @classmethod
   def _FormatPath(cls, file_path):
