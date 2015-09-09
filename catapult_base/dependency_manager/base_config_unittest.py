@@ -14,7 +14,7 @@ from catapult_base.dependency_manager import exceptions
 
 class BaseConfigTest(unittest.TestCase):
   """ Subclassable unittests for BaseConfig.
-  For subclasses: override setUp, GetDependenciesFromDict,
+  For subclasses: override setUp, GetConfigDataFromDict,
     and EndToEndExpectedConfigData as needed.
 
     setUp must set the following properties:
@@ -43,6 +43,7 @@ class BaseConfigTest(unittest.TestCase):
             'cloud_storage_hash': 'hash111',
             'download_path': 'download_path111',
             'cs_remote_path': 'cs_path111',
+            'version_in_cs': 'version_111',
             'local_paths': ['local_path1110', 'local_path1111']
           },
           'plat1_arch2': {
@@ -63,7 +64,7 @@ class BaseConfigTest(unittest.TestCase):
     self.one_dep_dict = {'config_type': self.config_type,
                          'dependencies': dependency_dict}
 
-  def GetDependenciesFromDict(self, config_dict):
+  def GetConfigDataFromDict(self, config_dict):
     return config_dict.get('dependencies', {})
 
 
@@ -98,7 +99,7 @@ class BaseConfigTest(unittest.TestCase):
     path_mock.exists.return_value = False
     # Writable config.
     config = self.config_class('file_path', writable=True)
-    self.assertEqual(self.GetDependenciesFromDict(self.empty_dict),
+    self.assertEqual(self.GetConfigDataFromDict(self.empty_dict),
                      config._config_data)
     # Not writable config.
     self.assertRaises(exceptions.EmptyConfigError,
@@ -113,11 +114,11 @@ class BaseConfigTest(unittest.TestCase):
     # base_config's json module, even in subclasses.
     json_module = 'catapult_base.dependency_manager.base_config.json'
     with mock.patch(json_module) as json_mock:
-      json_mock.load.return_value = self.empty_dict
+      json_mock.load.return_value = self.empty_dict.copy()
       config = self.config_class('file_path')
       self.assertEqual('file_path', config._config_path)
       self.assertEqual(self.config_type, config.GetConfigType())
-      self.assertEqual(self.GetDependenciesFromDict(self.empty_dict),
+      self.assertEqual(self.GetConfigDataFromDict(self.empty_dict),
                        config._config_data)
 
 
@@ -133,7 +134,7 @@ class BaseConfigTest(unittest.TestCase):
       config = self.config_class('file_path')
       self.assertEqual('file_path', config._config_path)
       self.assertEqual(self.config_type, config.GetConfigType())
-      self.assertEqual(self.GetDependenciesFromDict(self.one_dep_dict),
+      self.assertEqual(self.GetConfigDataFromDict(self.one_dep_dict),
                        config._config_data)
 
   def testFormatPath(self):
@@ -158,7 +159,7 @@ class BaseConfigTest(unittest.TestCase):
     # base_config's json module, even in subclasses.
     json_mock.load.return_value = self.one_dep_dict
     config = self.config_class('file_path', writable=True)
-    self.assertEqual(self.GetDependenciesFromDict(self.one_dep_dict),
+    self.assertEqual(self.GetConfigDataFromDict(self.one_dep_dict),
                      config._config_data)
     self.assertTrue(config._writable)
     with self.assertRaises(exceptions.ReadWriteError):
@@ -175,7 +176,7 @@ class BaseConfigTest(unittest.TestCase):
     # base_config's json module, even in subclasses.
     json_mock.load.return_value = self.one_dep_dict
     config = self.config_class('file_path')
-    self.assertEqual(self.GetDependenciesFromDict(self.one_dep_dict),
+    self.assertEqual(self.GetConfigDataFromDict(self.one_dep_dict),
                      config._config_data)
     expected_dep_info = ['dep_info0', 'dep_info1', 'dep_info2']
     dep_info_mock.side_effect = expected_dep_info
@@ -211,48 +212,51 @@ class BaseConfigTest(unittest.TestCase):
                   local_paths=[os.path.join(dir_path, 'local_path4d0'),
                                os.path.join(dir_path, 'local_path4d1')],
                   cs_remote_path='dep4_hash4d', cs_hash='hash4d',
+                  version_in_cs=None,
                   download_path=os.path.join(dir_path, 'download_path4d')),
         mock.call('dep4', 'plat1_arch2', file_path, cs_bucket='bucket4',
                   local_paths=[], cs_remote_path='dep4_hash412',
-                  cs_hash='hash412',
+                  cs_hash='hash412', version_in_cs=None,
                   download_path=os.path.join(dir_path, 'download_path412')),
         mock.call('dep4', 'plat2_arch1', file_path, cs_bucket='bucket4',
                   local_paths=[os.path.join(dir_path, 'local_path4210')],
                   cs_remote_path='dep4_hash421', cs_hash='hash421',
+                  version_in_cs=None,
                   download_path=os.path.join(dir_path, 'download_path421')),
         mock.call('dep1', 'plat1_arch1', file_path, cs_bucket='bucket1',
                   local_paths=[os.path.join(dir_path, 'local_path1110'),
                                os.path.join(dir_path, 'local_path1111')],
                   cs_remote_path='cs_base_folder1/dep1_hash111',
-                  cs_hash='hash111',
+                  cs_hash='hash111', version_in_cs='111.111.111',
                   download_path=os.path.join(dir_path, 'download_path111')),
         mock.call('dep1', 'plat1_arch2', file_path, cs_bucket='bucket1',
                   local_paths=[os.path.join(dir_path, 'local_path1120'),
                                os.path.join(dir_path, 'local_path1121')],
                   cs_remote_path='cs_base_folder1/dep1_hash112',
-                  cs_hash='hash112',
+                  cs_hash='hash112', version_in_cs='111.111.111',
                   download_path=os.path.join(dir_path, 'download_path112')),
         mock.call('dep1', 'plat2_arch1', file_path, cs_bucket='bucket1',
                   local_paths=[os.path.join(dir_path, 'local_path1210'),
                                os.path.join(dir_path, 'local_path1211')],
                   cs_remote_path='cs_base_folder1/dep1_hash121',
-                  cs_hash='hash121',
+                  cs_hash='hash121', version_in_cs=None,
                   download_path=os.path.join(dir_path, 'download_path121')),
         mock.call('dep1', 'win_arch1', file_path, cs_bucket='bucket1',
                   local_paths=[os.path.join(dir_path, 'local', 'path', '1w10'),
                                os.path.join(dir_path, 'local', 'path', '1w11')],
                   cs_remote_path='cs_base_folder1/dep1_hash1w1',
-                  cs_hash='hash1w1',
+                  cs_hash='hash1w1', version_in_cs=None,
                   download_path=os.path.join(
                       dir_path, 'download', 'path', '1w1')),
         mock.call('dep3', 'default', file_path, cs_bucket='bucket3',
                   local_paths=[os.path.join(dir_path, 'local_path3d0')],
                   cs_remote_path='cs_base_folder3/dep3_hash3d',
-                  cs_hash='hash3d',
+                  cs_hash='hash3d', version_in_cs=None,
                   download_path=os.path.join(dir_path, 'download_path3d')),
         mock.call('dep2', 'win_arch2', file_path, cs_bucket='bucket2',
                   local_paths=[], cs_remote_path='cs/base/folder2/dep2_hash2w2',
-                  cs_hash='hash2w2', download_path=os.path.join(
+                  cs_hash='hash2w2', version_in_cs=None,
+                  download_path=os.path.join(
                       dir_path, 'download', 'path', '2w2')),
         mock.call('dep2', 'plat3_arch3', file_path,
                   local_paths=[os.path.join(dir_path, 'local_path2330'),
@@ -261,8 +265,9 @@ class BaseConfigTest(unittest.TestCase):
                   local_paths=[os.path.join(
                       dir_path, 'local', 'path', '2210')],
                   cs_remote_path='cs/base/folder2/dep2_hash221',
-                  cs_hash='hash221', download_path=os.path.join(
-                      dir_path, 'download', 'path', '221')),
+                  cs_hash='hash221', version_in_cs=None,
+                  download_path=os.path.join(
+                    dir_path, 'download', 'path', '221')),
         ]
     json_dict = {'config_type': self.config_type,
                  'dependencies': expected_config_data}
@@ -296,11 +301,13 @@ class BaseConfigTest(unittest.TestCase):
                 'plat1_arch1': {
                     'cloud_storage_hash': 'hash111',
                     'download_path': 'download_path111',
+                    'version_in_cs': '111.111.111',
                     'local_paths': ['local_path1110', 'local_path1111']
                 },
                 'plat1_arch2': {
                     'cloud_storage_hash': 'hash112',
                     'download_path': 'download_path112',
+                    'version_in_cs': '111.111.111',
                     'local_paths': ['local_path1120', 'local_path1121']
                 },
                 'plat2_arch1': {

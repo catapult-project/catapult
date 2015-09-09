@@ -6,23 +6,29 @@
 class DependencyInfo(object):
   def __init__(self, dependency, platform, config_file, cs_bucket=None,
                cs_hash=None, download_path=None, cs_remote_path=None,
-               local_paths=None):
+               version_in_cs=None, unzip_path=None,
+               path_within_archive=None, local_paths=None):
     """ Container for the information needed for each dependency/platform pair
     in the dependency_manager.
 
-    Information about the file:
-      dependency: Name of the dependency.
-      platform: Name of the platform to be run on.
-      config_file: Path to the config_file this information came from. Used for
-                   error messages to improve debugging.
+    Args:
+        Required:
+          dependency: Name of the dependency.
+          platform: Name of the platform to be run on.
+          config_file: Path to the config_file this information came from. Used
+                       for error messages to improve debugging.
 
-    Information used for downloading from cloud storage:
-      cs_bucket: The cloud_storage bucket the dependency is located in.
-      cs_hash: The hash of the file stored in cloud_storage.
-      download_path: Where the file should be downloaded to.
-      cs_remote_path: Where the file is stored in the cloud_storage bucket.
+        Minimum required for downloading from cloud storage:
+          cs_bucket: The cloud storage bucket the dependency is located in.
+          cs_hash: The hash of the file stored in cloud storage.
+          download_path: Where the file should be downloaded to.
+          cs_remote_path: Where the file is stored in the cloud storage bucket.
 
-    local_paths: A list of paths to search in order for a local file.
+        Optional for downloading from cloud storage:
+          version: The version of the file stored in cloud storage.
+
+        Optional:
+          local_paths: A list of paths to search in order for a local file.
     """
     # TODO(aiolos): update the above doc string for A) the usage of zip files
     # and B) supporting lists of local_paths to be checked for most recently
@@ -39,6 +45,7 @@ class DependencyInfo(object):
     self._cs_remote_path = cs_remote_path
     self._cs_bucket = cs_bucket
     self._cs_hash = cs_hash
+    self._version_in_cs = version_in_cs
     self.VerifyCloudStorageInfo()
 
   def Update(self, new_dep_info, append_to_front):
@@ -59,7 +66,7 @@ class DependencyInfo(object):
     if new_dep_info.has_cs_info:
       if self.has_cs_info:
         raise ValueError(
-            'Overriding cloud_storage data is not allowed when updating a '
+            'Overriding cloud storage data is not allowed when updating a '
             'DependencyInfo. Conflict in dependency %s on platform %s in '
             'config_files: %s.' % (self.dependency, self.platform,
                                   self.config_files))
@@ -68,6 +75,7 @@ class DependencyInfo(object):
         self._cs_remote_path = new_dep_info.cs_remote_path
         self._cs_bucket = new_dep_info.cs_bucket
         self._cs_hash = new_dep_info.cs_hash
+        self._version_in_cs = new_dep_info.version_in_cs
     if new_dep_info.local_paths:
       for path in new_dep_info.local_paths:
         if path not in self._local_paths:
@@ -106,6 +114,10 @@ class DependencyInfo(object):
     return self._cs_hash
 
   @property
+  def version_in_cs(self):
+    return self._version_in_cs
+
+  @property
   def has_cs_info(self):
     self.VerifyCloudStorageInfo()
     return self.cs_hash
@@ -114,12 +126,13 @@ class DependencyInfo(object):
     """Ensure either all or none of the needed remote information is specified.
     """
     if ((self.cs_bucket or self.cs_remote_path or self.download_path or
-         self.cs_hash) and not (self.cs_bucket and self.cs_remote_path and
-                                self.download_path and self.cs_hash)):
+          self.cs_hash or self._version_in_cs) and not (self.cs_bucket and
+            self.cs_remote_path and self.download_path and self.cs_hash)):
       raise ValueError(
             'Attempted to partially initialize cloud storage data for '
             'dependency: %s, platform: %s, download_path: %s, '
-            'cs_remote_path: %s, cs_bucket %s, cs_hash %s' % (
+            'cs_remote_path: %s, cs_bucket %s, cs_hash %s, version_in_cs %s' % (
                 self.dependency, self.platform, self.download_path,
-                self.cs_remote_path, self.cs_bucket, self.cs_hash))
+                self.cs_remote_path, self.cs_bucket, self.cs_hash,
+                self._version_in_cs))
 
