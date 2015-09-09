@@ -351,7 +351,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
       def WillRunStory(self, story):
-        raise exceptions.AppCrashException('App Foo crashes')
+        raise exceptions.AppCrashException(msg='App Foo crashes')
 
     story_set.AddStory(DummyLocalStory(
           SharedStoryThatCausesAppCrash))
@@ -409,7 +409,8 @@ class StoryRunnerTest(unittest.TestCase):
         old_run_count = self.run_count
         self.run_count += 1
         if old_run_count == 0:
-          raise exceptions.BrowserGoneException('i am a browser instance')
+          raise exceptions.BrowserGoneException(
+              None, 'i am a browser crash message')
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass

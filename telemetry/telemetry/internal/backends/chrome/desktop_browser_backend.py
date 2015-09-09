@@ -458,8 +458,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """ Upload minidump_path to cloud storage and return the cloud storage url.
     """
     remote_path = ('minidump-%s-%i.dmp' %
-                   (datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')),
-                   random.randint(0, 1000000))
+                   (datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+                    random.randint(0, 1000000)))
     try:
       return cloud_storage.Insert(cloud_storage.TELEMETRY_OUTPUT, remote_path,
                                   minidump_path)
