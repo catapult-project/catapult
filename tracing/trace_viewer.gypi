@@ -267,6 +267,7 @@
       'tracing/ui/analysis/single_interaction_record_sub_view.html',
       'tracing/ui/analysis/single_object_instance_sub_view.html',
       'tracing/ui/analysis/single_object_snapshot_sub_view.html',
+      'tracing/ui/analysis/single_power_sample_sub_view.html',
       'tracing/ui/analysis/single_process_memory_dump_sub_view.html',
       'tracing/ui/analysis/single_sample_sub_view.html',
       'tracing/ui/analysis/single_thread_slice_sub_view.html',
