@@ -856,6 +856,9 @@ class StartBisectTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch(
+      'google.appengine.api.app_identity.get_default_version_hostname',
+      mock.MagicMock(return_value='my-dashboard.appspot.com'))
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
   def testPerformBisectWithArchive(self):
@@ -881,7 +884,8 @@ class StartBisectTest(testing_common.TestCase):
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(
         json.dumps({'issue_id': '1234567',
-                    'issue_url': '/buildbucket_job_status/1234567'}),
+                    'issue_url': ('https://my-dashboard.appspot.com'
+                                  '/buildbucket_job_status/1234567')}),
         response.body)
 
   def testGetBisectconfig_UseArchive(self):

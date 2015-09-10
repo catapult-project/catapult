@@ -13,6 +13,7 @@ import re
 import httplib2
 
 from google.appengine.api import users
+from google.appengine.api import app_identity
 
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
@@ -761,12 +762,14 @@ def PerformBuildbucketBisect(bisect_job):
     bisect_job.buildbucket_job_id = buildbucket_service.PutJob(
         _MakeBuildbucketBisectJob(bisect_job))
     bisect_job.SetStarted()
-    issue_url = '/buildbucket_job_status/' + bisect_job.buildbucket_job_id
+    hostname = app_identity.get_default_version_hostname()
+    job_id = bisect_job.buildbucket_job_id
+    issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
     bug_comment = ('Bisect started; track progress at '
                    '<a href="%s">%s</a>' % (issue_url, issue_url))
     LogBisectResult(bisect_job.bug_id, bug_comment)
     return {
-        'issue_id': bisect_job.buildbucket_job_id,
+        'issue_id': job_id,
         'issue_url': issue_url,
     }
   except httplib2.HttpLib2Error as e:

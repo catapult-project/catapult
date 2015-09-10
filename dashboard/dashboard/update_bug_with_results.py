@@ -11,6 +11,7 @@ import re
 import sys
 import urllib
 
+from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import urlfetch
 from google.appengine.api import urlfetch_errors
@@ -277,8 +278,9 @@ def _GetBisectResults(job):
   if job.use_buildbucket:
     try_job_info = _ValidateAndConvertBuildbucketResponse(
         buildbucket_service.GetJobStatus(job.buildbucket_job_id))
-    issue_url = '/buildbucket_job_status/' + str(
-        job.buildbucket_job_id)
+    hostname = app_identity.get_default_version_hostname()
+    job_id = job.buildbucket_job_id
+    issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
   else:
     response = _FetchURL(_RietveldIssueJSONURL(job))
     issue_url = _RietveldIssueURL(job)
