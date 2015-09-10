@@ -39,7 +39,6 @@ class Browser(app.App):
     try:
       self._browser_backend = backend
       self._platform_backend = platform_backend
-      # TODO: move _local_server_controller to Platform.
       self._local_server_controller = local_server.LocalServerController(
           platform_backend)
       self._tabs = tab_list.TabList(backend.tab_list_backend)
