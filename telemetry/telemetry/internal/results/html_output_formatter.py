@@ -13,6 +13,7 @@ from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import output_formatter
 from telemetry import value as value_module
+from telemetry.value import list_of_scalar_values
 
 
 _TEMPLATE_HTML_PATH = os.path.join(
@@ -92,17 +93,20 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     self._output_stream.truncate()
 
   def _PrintPerfResult(self, measurement, trace, values, units,
-                       result_type='default'):
+                       result_type='default', std=None):
     metric_name = measurement
     if trace != measurement:
       metric_name += '.' + trace
     self._result['tests'].setdefault(self._test_name, {})
     self._result['tests'][self._test_name].setdefault('metrics', {})
-    self._result['tests'][self._test_name]['metrics'][metric_name] = {
+    metric_data = {
         'current': values,
         'units': units,
         'important': result_type == 'default'
         }
+    if std is not None:
+      metric_data['std'] = std
+    self._result['tests'][self._test_name]['metrics'][metric_name] = metric_data
 
   def _TranslateChartJson(self, chart_json_dict):
     dummy_dict = dict()
@@ -127,8 +131,12 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
         if trace_name == 'summary':
           trace_name = chart_name
 
+        std = None
+        if isinstance(value, list_of_scalar_values.ListOfScalarValues):
+          std = value.std
+
         self._PrintPerfResult(chart_name, trace_name, perf_value,
-                              value.units, result_type)
+                              value.units, result_type, std)
 
   @property
   def _test_name(self):

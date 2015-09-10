@@ -279,7 +279,7 @@ var PADDING_UNDER_GRAPH = 5;
 // px Indentation for nested children left-margins
 var INDENTATION = 40;
 
-function TestResult(metric, values, associatedRun) {
+function TestResult(metric, values, associatedRun, std, degreesOfFreedom) {
     if (values) {
         if (values[0] instanceof Array) {
             var flattenedValues = [];
@@ -321,6 +321,10 @@ function TestResult(metric, values, associatedRun) {
     this.min = function () { return metric.scalingFactor() * Statistics.min(values); }
     this.max = function () { return metric.scalingFactor() * Statistics.max(values); }
     this.confidenceIntervalDelta = function () {
+        if (std !== undefined) {
+            return metric.scalingFactor() * Statistics.confidenceIntervalDeltaFromStd(0.95, values.length,
+                std, degreesOfFreedom);
+        }
         return metric.scalingFactor() * Statistics.confidenceIntervalDelta(0.95, values.length,
             Statistics.sum(values), Statistics.squareSum(values));
     }
@@ -1359,7 +1363,10 @@ function init() {
                         metric = new PerfTestMetric(testName, metricName, rawMetrics[metricName].units, rawMetrics[metricName].important);
                         metrics[fullMetricName] = metric;
                     }
-                    metric.addResult(new TestResult(metric, rawMetrics[metricName].current, run));
+                    // std & degrees_of_freedom could be undefined
+                    metric.addResult(
+                        new TestResult(metric, rawMetrics[metricName].current,
+                            run, rawMetrics[metricName].['std'], rawMetrics[metricName]['degrees_of_freedom']));
                 }
             }
         }

@@ -65,8 +65,7 @@ var Statistics = new (function () {
         return supportedLevels;
     }
 
-    // Computes the delta d s.t. (mean - d, mean + d) is the confidence interval with the specified confidence level in O(1).
-    this.confidenceIntervalDelta = function (confidenceLevel, numberOfSamples, sum, squareSum) {
+    this.quantile = function (confidenceLevel, numberOfSamples, opt_degreesOfFreedom) {
         var probability = (1 - (1 - confidenceLevel) / 2);
         if (!(probability in tDistributionInverseCDF)) {
             console.warn('We only support ' + this.supportedConfidenceLevels().map(
@@ -77,19 +76,32 @@ var Statistics = new (function () {
             return Number.POSITIVE_INFINITY;
 
         var cdfForProbability = tDistributionInverseCDF[probability];
-        var degreesOfFreedom = numberOfSamples - 1;
+        var degreesOfFreedom = opt_degreesOfFreedom;
+        if (degreesOfFreedom === undefined)
+          degreesOfFreedom = numberOfSamples - 1;
 
         // tDistributionQuantile(degreesOfFreedom, confidenceLevel) * sampleStandardDeviation / sqrt(numberOfSamples) * S/sqrt(numberOfSamples)
         if (degreesOfFreedom <= 100)
-          var quantile = cdfForProbability[degreesOfFreedom - 1]; // The first entry is for the one degree of freedom.
+          return cdfForProbability[degreesOfFreedom - 1]; // The first entry is for the one degree of freedom.
         else if (degreesOfFreedom <= 300)
-          var quantile = cdfForProbability[Math.round(degreesOfFreedom / 10) + 100 - 10 - 1];
+          return cdfForProbability[Math.round(degreesOfFreedom / 10) + 100 - 10 - 1];
         else if (degreesOfFreedom <= 1300)
-          var quantile = cdfForProbability[Math.round(degreesOfFreedom / 100) + 120 - 3 - 1];
+          return cdfForProbability[Math.round(degreesOfFreedom / 100) + 120 - 3 - 1];
         else
-          var quantile = cdfForProbability[cdfForProbability.length - 1];
-        return quantile * this.sampleStandardDeviation(numberOfSamples, sum, squareSum) / Math.sqrt(numberOfSamples);
+          return cdfForProbability[cdfForProbability.length - 1];
     }
+
+    // Computes the delta d s.t. (mean - d, mean + d) is the confidence interval with the specified confidence level in O(1).
+    this.confidenceIntervalDelta = function (confidenceLevel, numberOfSamples, sum, squareSum) {
+        var sampleStandardDeviation = this.sampleStandardDeviation(numberOfSamples, sum, squareSum);
+        return this.confidenceIntervalDeltaFromStd(confidenceLevel, numberOfSamples, sampleStandardDeviation);
+    }
+
+    this.confidenceIntervalDeltaFromStd = function (confidenceLevel, numberOfSamples, sampleStandardDeviation, opt_degreesOfFreedom) {
+        var quantile = this.quantile(confidenceLevel, numberOfSamples, opt_degreesOfFreedom);
+        return quantile * sampleStandardDeviation / Math.sqrt(numberOfSamples);
+    }
+
 
     this.confidenceInterval = function (values, probability) {
         var sum = this.sum(values);
