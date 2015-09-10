@@ -185,7 +185,7 @@ def _IsBisectJobDueForRestart(bisect_job):
   """Whether bisect job is due for restart."""
   old_timestamp = (datetime.datetime.now() - datetime.timedelta(
       days=_BISECT_RESTART_PERIOD_DAYS[bisect_job.run_count - 1]))
-  return bisect_job.last_ran_timestamp < old_timestamp
+  return bisect_job.last_ran_timestamp <= old_timestamp
 
 
 def _ChooseTest(anomalies, index=0):
