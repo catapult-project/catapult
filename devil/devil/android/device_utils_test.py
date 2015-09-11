@@ -560,7 +560,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           (self.call.device.GrantPermissions('test.package', ['p1']), [])):
         self.device.Install('/fake/test/app.apk', retries=0)
 
-  def testIntsall_permissionsPreM(self):
+  def testInstall_permissionsPreM(self):
     with self.patch_call(self.call.device.build_version_sdk, return_value=20):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.GetPackageName(
@@ -594,16 +594,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
       self.device.Install(
           '/fake/test/app.apk', retries=0, permissions=['p1', 'p2'])
 
-  def testInstall_differentPriorInstall(self):
+  def testInstall_priorInstall(self):
+    APK_PATH = '/fake/test/app.apk'
     with self.assertCalls(
-        (mock.call.devil.android.apk_helper.GetPackageName(
-            '/fake/test/app.apk'),
+        (mock.call.devil.android.apk_helper.GetPackageName(APK_PATH),
          'test.package'),
         (self.call.device._GetApplicationPathsInternal('test.package'),
          ['/fake/data/app/test.package.apk']),
-        (self.call.device._ComputeStaleApks('test.package',
-            ['/fake/test/app.apk']),
-         (['/fake/test/app.apk'], None)),
         self.call.adb.Uninstall('test.package', False),
         self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
       self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
@@ -622,7 +619,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
       self.device.Install(
           '/fake/test/app.apk', reinstall=True, retries=0, permissions=[])
 
-  def testInstall_identicalPriorInstall(self):
+  def testInstall_identicalPriorInstall_reinstall(self):
     with self.assertCalls(
         (mock.call.devil.android.apk_helper.GetPackageName(
             '/fake/test/app.apk'),
@@ -632,7 +629,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._ComputeStaleApks('test.package',
             ['/fake/test/app.apk']),
          ([], None))):
-      self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
+      self.device.Install(
+          '/fake/test/app.apk', reinstall=True, retries=0, permissions=[])
 
   def testInstall_fails(self):
     with self.assertCalls(
@@ -661,7 +659,7 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
         (self.call.adb.InstallMultiple(
             ['base.apk', 'split2.apk'], partial=None, reinstall=False))):
       self.device.InstallSplitApk('base.apk',
-          ['split1.apk', 'split2.apk', 'split3.apk'], retries=0)
+          ['split1.apk', 'split2.apk', 'split3.apk'], permissions=[], retries=0)
 
   def testInstallSplitApk_partialInstall(self):
     with self.assertCalls(
@@ -681,7 +679,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
         (self.call.adb.InstallMultiple(
             ['split2.apk'], partial='test.package', reinstall=True))):
       self.device.InstallSplitApk('base.apk',
-          ['split1.apk', 'split2.apk', 'split3.apk'], reinstall=True, retries=0)
+                                  ['split1.apk', 'split2.apk', 'split3.apk'],
+                                  reinstall=True, permissions=[], retries=0)
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):

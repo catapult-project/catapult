@@ -537,38 +537,15 @@ class DeviceUtils(object):
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
     """
-    package_name = apk_helper.GetPackageName(apk_path)
-    device_paths = self._GetApplicationPathsInternal(package_name)
-    if device_paths:
-      if len(device_paths) > 1:
-        logging.warning(
-            'Installing single APK (%s) when split APKs (%s) are currently '
-            'installed.', apk_path, ' '.join(device_paths))
-      apks_to_install, host_checksums = (
-          self._ComputeStaleApks(package_name, [apk_path]))
-      should_install = bool(apks_to_install)
-      if should_install and not reinstall:
-        self.Uninstall(package_name)
-    else:
-      should_install = True
-      host_checksums = None
-
-    if should_install:
-      # We won't know the resulting device apk names.
-      self._cache['package_apk_paths'].pop(package_name, 0)
-      self.adb.Install(apk_path, reinstall=reinstall)
-      self._cache['package_apk_checksums'][package_name] = host_checksums
-
-    if (permissions is None
-        and self.build_version_sdk >= version_codes.MARSHMALLOW):
-      permissions = apk_helper.ApkHelper(apk_path).GetPermissions()
-    self.GrantPermissions(package_name, permissions)
+    self._InstallInternal(apk_path, None, reinstall=reinstall,
+                          permissions=permissions)
 
   @decorators.WithTimeoutAndRetriesDefaults(
       INSTALL_DEFAULT_TIMEOUT,
       INSTALL_DEFAULT_RETRIES)
   def InstallSplitApk(self, base_apk, split_apks, reinstall=False,
-                      allow_cached_props=False, timeout=None, retries=None):
+                      allow_cached_props=False, permissions=None, timeout=None,
+                      retries=None):
     """Install a split APK.
 
     Noop if all of the APK splits are already installed.
@@ -578,6 +555,8 @@ class DeviceUtils(object):
       split_apks: A list of strings of paths of all of the APK splits.
       reinstall: A boolean indicating if we should keep any existing app data.
       allow_cached_props: Whether to use cached values for device properties.
+      permissions: Set of permissions to set. If not set, finds permissions with
+          apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
       retries: number of retries
 
@@ -587,33 +566,62 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
       DeviceVersionError if device SDK is less than Android L.
     """
-    self._CheckSdkLevel(version_codes.LOLLIPOP)
+    self._InstallInternal(base_apk, split_apks, reinstall=reinstall,
+                          allow_cached_props=allow_cached_props,
+                          permissions=permissions)
 
-    all_apks = [base_apk] + split_select.SelectSplits(
+  def _InstallInternal(self, base_apk, split_apks, reinstall=False,
+                       allow_cached_props=False, permissions=None):
+    if split_apks:
+      self._CheckSdkLevel(version_codes.LOLLIPOP)
+
+    all_apks = [base_apk]
+    if split_apks:
+      all_apks += split_select.SelectSplits(
         self, base_apk, split_apks, allow_cached_props=allow_cached_props)
+      if len(all_apks) == 1:
+        logging.warning('split-select did not select any from %s', split_apks)
+
     package_name = apk_helper.GetPackageName(base_apk)
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
 
-    if device_apk_paths:
-      partial_install_package = package_name
+    apks_to_install = None
+    host_checksums = None
+    if not device_apk_paths:
+      apks_to_install = all_apks
+    elif not reinstall:
+      self.Uninstall(package_name)
+      apks_to_install = all_apks
+    elif len(device_apk_paths) > 1 and not split_apks:
+      logging.warning(
+          'Installing non-split APK when split APK was previously installed')
+      apks_to_install = all_apks
+    elif len(device_apk_paths) == 1 and split_apks:
+      logging.warning(
+          'Installing split APK when non-split APK was previously installed')
+      apks_to_install = all_apks
+    else:
       apks_to_install, host_checksums = (
           self._ComputeStaleApks(package_name, all_apks))
-      if apks_to_install and not reinstall:
-        self.Uninstall(package_name)
-        partial_install_package = None
-        apks_to_install = all_apks
-    else:
-      partial_install_package = None
-      apks_to_install = all_apks
-      host_checksums = None
 
     if apks_to_install:
-      # We won't know the resulting device apk names.
+      # Assume that we won't know the resulting device state.
       self._cache['package_apk_paths'].pop(package_name, 0)
-      self.adb.InstallMultiple(
-          apks_to_install, partial=partial_install_package,
-          reinstall=reinstall)
-      self._cache['package_apk_checksums'][package_name] = host_checksums
+      self._cache['package_apk_checksums'].pop(package_name, 0)
+      if split_apks:
+        partial = package_name if len(apks_to_install) < len(all_apks) else None
+        self.adb.InstallMultiple(
+            apks_to_install, partial=partial, reinstall=reinstall)
+      else:
+        self.adb.Install(base_apk, reinstall=reinstall)
+      # Upon success, we know the device checksums, but not their paths.
+      if host_checksums is not None:
+        self._cache['package_apk_checksums'][package_name] = host_checksums
+
+    if (permissions is None
+        and self.build_version_sdk >= version_codes.MARSHMALLOW):
+      permissions = apk_helper.ApkHelper(base_apk).GetPermissions()
+    self.GrantPermissions(package_name, permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def Uninstall(self, package_name, keep_data=False, timeout=None,
