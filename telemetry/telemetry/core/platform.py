@@ -5,6 +5,7 @@ import logging as real_logging
 import os
 
 from telemetry.core import discover
+from telemetry.core import local_server
 from telemetry.core import network_controller
 from telemetry.core import tracing_controller
 from telemetry.core import util
@@ -79,6 +80,8 @@ class Platform(object):
         self._platform_backend.network_controller_backend)
     self._tracing_controller = tracing_controller.TracingController(
         self._platform_backend.tracing_controller_backend)
+    self._local_server_controller = local_server.LocalServerController(
+        self._platform_backend)
 
   @property
   def is_host_platform(self):
@@ -312,3 +315,9 @@ class Platform(object):
     Returns True if it is believed the attempt succeeded.
     """
     return self._platform_backend.CooperativelyShutdown(proc, app_name)
+
+  def StartLocalServer(self, server):
+    """Starts a LocalServer and associates it with this platform.
+    |server.Close()| should be called manually to close the started server.
+    """
+    self._local_server_controller.StartServer(server)
