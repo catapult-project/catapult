@@ -565,7 +565,6 @@ class DeviceUtils(object):
       permissions = apk_helper.ApkHelper(apk_path).GetPermissions()
     self.GrantPermissions(package_name, permissions)
 
-
   @decorators.WithTimeoutAndRetriesDefaults(
       INSTALL_DEFAULT_TIMEOUT,
       INSTALL_DEFAULT_RETRIES)
@@ -1963,11 +1962,12 @@ class DeviceUtils(object):
     # TODO(rnephew): After permission blacklist is complete, switch to using
     # &&s instead of ;s.
     cmd = ''
-    logging.info('Setting permissions for %s', package)
-    for p in permissions:
-      if p not in _PERMISSIONS_BLACKLIST:
-        cmd += 'pm grant %s %s;' % (package, p)
-        logging.info('  %s', p)
+    logging.info('Setting permissions for %s.', package)
+    permissions = [p for p in permissions if p not in _PERMISSIONS_BLACKLIST]
+    if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
+        and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
+      permissions.append('android.permission.READ_EXTERNAL_STORAGE')
+    cmd = ';'.join('pm grant %s %s' %(package, p) for p in permissions)
     if cmd:
       output = self.RunShellCommand(cmd)
       if output:
