@@ -225,7 +225,7 @@ class Md5SumTest(unittest.TestCase):
                         out['/storage/emulated/legacy/test/file.dat'])
       self.assertEquals(3, len(device.RunShellCommand.call_args_list))
       device.adb.Push.assert_called_once_with(
-          'test/out/directory/md5sum_dist', '/data/local/tmp/md5sum/')
+          'test/out/directory/md5sum_dist', '/data/local/tmp/md5sum')
 
 
 if __name__ == '__main__':

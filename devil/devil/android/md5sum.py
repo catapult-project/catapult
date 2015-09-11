@@ -10,8 +10,8 @@ from devil.android import device_errors
 from devil.utils import cmd_helper
 from pylib import constants
 
-MD5SUM_DEVICE_LIB_PATH = '/data/local/tmp/md5sum/'
-MD5SUM_DEVICE_BIN_PATH = MD5SUM_DEVICE_LIB_PATH + 'md5sum_bin'
+MD5SUM_DEVICE_LIB_PATH = '/data/local/tmp/md5sum'
+MD5SUM_DEVICE_BIN_PATH = MD5SUM_DEVICE_LIB_PATH + '/md5sum_bin'
 
 _STARTS_WITH_CHECKSUM_RE = re.compile(r'^\s*[0-9a-fA-F]{32}\s+')
 
