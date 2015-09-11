@@ -133,8 +133,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(privateDirtyColumn.value(rows[2]), '');
     assert.equal(swappedColumn.value(rows[2]), '');
     assert.equal(mallocColumn.value(rows[2]), '');
-    assert.equal(v8Column.value(rows[2]).value, 1073741824);
-    assert.equal(oilpanColumn.value(rows[2]).value, 2147483648);
+    assert.equal(v8Column.value(rows[2]).children[0].value, 1073741824);
+    assert.equal(oilpanColumn.value(rows[2]).children[0].value, 2147483648);
     assert.equal(tracingColumn.value(rows[2]), '');
 
     // Check the footer row.

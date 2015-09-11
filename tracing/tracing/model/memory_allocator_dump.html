@@ -38,6 +38,15 @@ tr.exportTo('tr.model', function() {
     this.guid = opt_guid;
   };
 
+  /**
+   * Size attribute names. Please refer to the Memory Dump Graph Metric
+   * Calculation design document for more details (https://goo.gl/fKg0dt).
+   */
+  MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME = 'size';
+  MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME = 'effective_size';
+  MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME =
+      MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
+
   MemoryAllocatorDump.prototype = {
     get name() {
       return this.fullName.substring(this.fullName.lastIndexOf('/') + 1);

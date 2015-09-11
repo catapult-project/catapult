@@ -22,6 +22,7 @@ tr.exportTo('tr.ui.tracks', function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var VMRegionByteStats = tr.model.VMRegionByteStats;
   var ScalarAttribute = tr.model.ScalarAttribute;
@@ -43,23 +44,42 @@ tr.exportTo('tr.ui.tracks', function() {
     });
   }
 
-  function createAllocatorDumps(memoryDump, dumpSizes) {
-    var allocatorDumps = [];
-    tr.b.iterItems(dumpSizes, function(allocatorName, size) {
+  function createAllocatorDumps(memoryDump, dumpData) {
+    // Create the individual allocator dumps.
+    var allocatorDumps = tr.b.mapItems(dumpData, function(allocatorName, data) {
+      var size = data.size;
+      assert.typeOf(size, 'number');  // Sanity check.
       var dump = new MemoryAllocatorDump(memoryDump, allocatorName);
       dump.addAttribute('size', new ScalarAttribute('bytes', size));
-      allocatorDumps.push(dump);
+      return dump;
     });
-    return allocatorDumps;
+
+    // Add ownership links between them.
+    tr.b.iterItems(dumpData, function(allocatorName, data) {
+      var owns = data.owns;
+      if (owns === undefined)
+        return;
+
+      var ownerDump = allocatorDumps[allocatorName];
+      assert.isDefined(ownerDump);  // Sanity check.
+      var ownedDump = allocatorDumps[owns];
+      assert.isDefined(ownedDump);  // Sanity check.
+
+      var ownershipLink = new MemoryAllocatorDumpLink(ownerDump, ownedDump);
+      ownerDump.owns = ownershipLink;
+      ownedDump.ownedBy.push(ownershipLink);
+    });
+
+    return tr.b.dictionaryValues(allocatorDumps);
   }
 
   function addProcessMemoryDump(globalMemoryDump, process, start,
-      opt_pssValues, opt_dumpSizes) {
+      opt_pssValues, opt_dumpData) {
     var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
     if (opt_pssValues !== undefined)
       pmd.vmRegions = createVMRegions(opt_pssValues);
-    if (opt_dumpSizes !== undefined)
-      pmd.memoryAllocatorDumps = createAllocatorDumps(pmd, opt_dumpSizes);
+    if (opt_dumpData !== undefined)
+      pmd.memoryAllocatorDumps = createAllocatorDumps(pmd, opt_dumpData);
     globalMemoryDump.processMemoryDumps[process.pid] = pmd;
     process.memoryDumps.push(pmd);
   }
@@ -68,8 +88,8 @@ tr.exportTo('tr.ui.tracks', function() {
     var maybePssValues = function(pssValues) {
       return withVMRegions ? pssValues : undefined;
     };
-    var maybeDumpSizes = function(dumpSizes) {
-      return withAllocatorDumps ? dumpSizes : undefined;
+    var maybeDumpData = function(dumpData) {
+      return withAllocatorDumps ? dumpData : undefined;
     };
     return tr.c.TestUtils.newModel(function(model) {
       // Construct a model with three processes.
@@ -81,22 +101,23 @@ tr.exportTo('tr.ui.tracks', function() {
       model.globalMemoryDumps.push(gmd1);
       addProcessMemoryDump(gmd1, pa, 0, maybePssValues([111]));
       addProcessMemoryDump(gmd1, pb, 0.2, undefined,
-          maybeDumpSizes({oilpan: 1024}));
+          maybeDumpData({oilpan: {size: 1024}}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
       addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
-          maybeDumpSizes({v8: 512}));
+          maybeDumpData({v8: {size: 512}}));
       addProcessMemoryDump(gmd2, pc, 5.12, undefined,
-          maybeDumpSizes({oilpan: 128, v8: 256, tracing: 65536}));
+          maybeDumpData({oilpan: {size: 128, owns: 'v8'},
+              v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
       model.globalMemoryDumps.push(gmd3);
       addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
-          maybeDumpSizes({v8: 768}));
+          maybeDumpData({v8: {size: 768}}));
       addProcessMemoryDump(gmd3, pc, 14.5, maybePssValues([70, 70, 70]),
-          maybeDumpSizes({oilpan: 512}));
+          maybeDumpData({oilpan: {size: 512}}));
 
       var gmd4 = new GlobalMemoryDump(model, 18);
       model.globalMemoryDumps.push(gmd4);

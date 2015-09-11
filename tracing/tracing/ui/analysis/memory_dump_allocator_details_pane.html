@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
@@ -53,11 +54,11 @@ found in the LICENSE file.
   (function() {
     var IMPORTANCE_RULES = [
       {
-        condition: 'size',
+        condition: tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME,
         importance: 10
       },
       {
-        condition: 'effective_size',
+        condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME,
         importance: 9
       },
       {

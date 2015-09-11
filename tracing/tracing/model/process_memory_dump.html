@@ -22,6 +22,10 @@ tr.exportTo('tr.model', function() {
   // discounted.
   var DISCOUNTED_ALLOCATOR_NAMES = ['winheap', 'malloc'];
 
+  var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
+  var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
+      tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
+
   /**
    * The ProcessMemoryDump represents a memory dump of a single process.
    * @constructor
@@ -95,8 +99,9 @@ tr.exportTo('tr.model', function() {
         return sizeAttr.value;
       }
 
-      var discountedSize = getDiscountedSize('size');
-      var discountedEffectiveSize = getDiscountedSize('effective_size');
+      var discountedSize = getDiscountedSize(SIZE_ATTRIBUTE_NAME);
+      var discountedEffectiveSize =
+          getDiscountedSize(EFFECTIVE_SIZE_ATTRIBUTE_NAME);
       var discountedResidentSize = getDiscountedSize('resident_size');
 
       // Subtract 'resident_size' from totals and VM regions stats.
@@ -122,12 +127,12 @@ tr.exportTo('tr.model', function() {
       if (discountedSize > 0 || discountedEffectiveSize > 0) {
         function discountSizeAndEffectiveSize(dump) {
           var dumpSizeAttr = dump.getValidSizeAttributeOrUndefined(
-              'size', opt_model);
+              SIZE_ATTRIBUTE_NAME, opt_model);
           if (dumpSizeAttr !== undefined)
             dumpSizeAttr.value -= discountedSize;
 
           var dumpEffectiveSizeAttr = dump.getValidSizeAttributeOrUndefined(
-              'effective_size', opt_model);
+              EFFECTIVE_SIZE_ATTRIBUTE_NAME, opt_model);
           if (dumpEffectiveSizeAttr !== undefined)
             dumpEffectiveSizeAttr.value -= discountedEffectiveSize;
         }
@@ -157,9 +162,9 @@ tr.exportTo('tr.model', function() {
           var discountDump = new tr.model.MemoryAllocatorDump(
               this, discountDumpName);
           discountDump.parent = allocatedObjectsDump;
-          discountDump.addAttribute('size',
+          discountDump.addAttribute(SIZE_ATTRIBUTE_NAME,
               new tr.model.ScalarAttribute('bytes', -discountedSize));
-          discountDump.addAttribute('effective_size',
+          discountDump.addAttribute(EFFECTIVE_SIZE_ATTRIBUTE_NAME,
               new tr.model.ScalarAttribute('bytes', -discountedEffectiveSize));
           allocatedObjectsDump.children.push(discountDump);
 

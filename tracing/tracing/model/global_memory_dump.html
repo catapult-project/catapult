@@ -28,8 +28,9 @@ tr.exportTo('tr.model', function() {
     this.processMemoryDumps = {};
   }
 
-  var SIZE_ATTRIBUTE_NAME = 'size';
-  var EFFECTIVE_SIZE_ATTRIBUTE_NAME = 'effective_size';
+  var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
+  var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
+      tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
 
   function getSize(dump) {
     var attr = dump.attributes[SIZE_ATTRIBUTE_NAME];

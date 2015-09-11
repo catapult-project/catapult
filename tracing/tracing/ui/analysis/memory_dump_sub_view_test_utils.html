@@ -21,6 +21,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var VMRegionByteStats = tr.model.VMRegionByteStats;
   var ScalarAttribute = tr.model.ScalarAttribute;
@@ -103,7 +104,7 @@ tr.exportTo('tr.ui.analysis', function() {
       pmd3.memoryAllocatorDumps = (function() {
         var oilpanDump = new MemoryAllocatorDump(pmd3, 'oilpan');
         oilpanDump.addAttribute('size',
-            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
+            new ScalarAttribute('bytes', 3221225472) /* 3 GiB */);
         oilpanDump.addAttribute('inner_size',
             new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
         oilpanDump.addAttribute('objects_count',
@@ -116,6 +117,10 @@ tr.exportTo('tr.ui.analysis', function() {
             new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
         v8Dump.addAttribute('objects_count',
             new ScalarAttribute('objects', 204));
+
+        var ownershipLink = new MemoryAllocatorDumpLink(v8Dump, oilpanDump);
+        v8Dump.owns = ownershipLink;
+        oilpanDump.ownedBy.push(ownershipLink);
 
         return [oilpanDump, v8Dump];
       })();
