@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import logging
 import os
 import threading
 
@@ -49,34 +50,16 @@ class Blacklist(object):
     Args:
       devices: list of bad devices to be added to the blacklist file.
     """
+    logging.info('Adding %s to blacklist %s', ','.join(devices), self._path)
     with self._blacklist_lock:
-      blacklist = ReadBlacklist()
+      blacklist = self.Read()
       blacklist.extend(devices)
-      WriteBlacklist(blacklist)
+      self.Write(blacklist)
 
   def Reset(self):
     """Erases the blacklist file if it exists."""
+    logging.info('Resetting blacklist %s', self._path)
     with self._blacklist_lock:
       if os.path.exists(self._path):
         os.remove(self._path)
-
-
-def ReadBlacklist():
-  # TODO(jbudorick): Phase out once all clients have migrated.
-  return Blacklist(BLACKLIST_JSON).Read()
-
-
-def WriteBlacklist(blacklist):
-  # TODO(jbudorick): Phase out once all clients have migrated.
-  Blacklist(BLACKLIST_JSON).Write(blacklist)
-
-
-def ExtendBlacklist(devices):
-  # TODO(jbudorick): Phase out once all clients have migrated.
-  Blacklist(BLACKLIST_JSON).Extend(devices)
-
-
-def ResetBlacklist():
-  # TODO(jbudorick): Phase out once all clients have migrated.
-  Blacklist(BLACKLIST_JSON).Reset()
 
