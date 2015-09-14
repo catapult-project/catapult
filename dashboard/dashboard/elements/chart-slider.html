@@ -51,7 +51,7 @@
           },
           selection: {
             mode: 'x',
-            color: 'green',
+            color: 'green'
           },
           yaxis: {
             show: false,
@@ -200,7 +200,7 @@
 
       /**
        * Determines what stage of a mouse drag selection action the user is in.
-       * @param {MouseEvent} event
+       * @param {MouseEvent} event Mouse event object.
        * @return {string} One of "start", "move", "end", or "none".
        */
       getMouseDragType: function(event) {
@@ -244,12 +244,12 @@
 
       /**
        * Gets the position of the mouse selection relative to the chart.
-       * @param {MouseEvent} event
+       * @param {MouseEvent} event Mouse event object.
        */
       getGraphPosFromMouseEvent: function(event) {
-        var offset = $(this.$.revisions_container).offset();
+        var boundingRect = this.$.revisions_container.getBoundingClientRect();
         var plotOffset = this.chart.getPlotOffset();
-        var posX = event.pageX - offset.left - plotOffset.left;
+        var posX = event.pageX - boundingRect.left - plotOffset.left;
         posX = Math.max(0, posX);
         posX = Math.min(posX, this.chart.width());
         var axes = this.chart.getAxes();
@@ -266,7 +266,7 @@
 
       /**
        * Updates the selected revision range as the user moves the mouse.
-       * @param {MouseEvent} event
+       * @param {MouseEvent} event Mouse event object.
        */
       onMouseMove: function(event) {
         // Stop Flot from handling the selection.
@@ -299,7 +299,7 @@
 
       /**
        * Sets the selection start when the user starts to drag.
-       * @param {MouseEvent} event
+       * @param {MouseEvent} event Mouse event object.
        */
       onMouseDown: function(event) {
         // Stop Flot from handling the selection.
@@ -343,7 +343,7 @@
         }
         var detail = {
             start_rev: this.startrev,
-            end_rev: this.endrev,
+            end_rev: this.endrev
         };
         this.fire('revisionrange', detail);
       },
