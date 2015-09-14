@@ -36,37 +36,44 @@ def FindBootstrapDependencies(base_dir):
 def FindPythonDependencies(module_path):
   logging.info('Finding Python dependencies of %s' % module_path)
 
-  # Load the module to inherit its sys.path modifications.
-  imp.load_source(
-      os.path.splitext(os.path.basename(module_path))[0], module_path)
+  sys_path = sys.path
+  sys.path = list(sys_path)
+  try:
+    # Load the module to inherit its sys.path modifications.
+    sys.path.insert(0, os.path.abspath(os.path.dirname(module_path)))
+    imp.load_source(
+        os.path.splitext(os.path.basename(module_path))[0], module_path)
 
-  # Analyze the module for its imports.
-  graph = modulegraph.ModuleGraph()
-  graph.run_script(module_path)
+    # Analyze the module for its imports.
+    graph = modulegraph.ModuleGraph()
+    graph.run_script(module_path)
 
-  # Filter for only imports in Chromium.
-  for node in graph.nodes():
-    if not node.filename:
-      continue
-    module_path = os.path.realpath(node.filename)
+    # Filter for only imports in Chromium.
+    for node in graph.nodes():
+      if not node.filename:
+        continue
+      module_path = os.path.realpath(node.filename)
 
-    _, incoming_edges = graph.get_edges(node)
-    message = 'Discovered %s (Imported by: %s)' % (
-        node.filename, ', '.join(
-            d.filename for d in incoming_edges
-            if d is not None and d.filename is not None))
-    logging.info(message)
+      _, incoming_edges = graph.get_edges(node)
+      message = 'Discovered %s (Imported by: %s)' % (
+          node.filename, ', '.join(
+              d.filename for d in incoming_edges
+              if d is not None and d.filename is not None))
+      logging.info(message)
 
-    # This check is done after the logging/printing above to make sure that we
-    # also print out the dependency edges that include python packages that are
-    # not in chromium.
-    if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
-      continue
+      # This check is done after the logging/printing above to make sure that
+      # we also print out the dependency edges that include python packages
+      # that are not in chromium.
+      if not path.IsSubpath(module_path, path.GetChromiumSrcDir()):
+        continue
 
-    yield module_path
-    if node.packagepath is not None:
-      for p in node.packagepath:
-        yield p
+      yield module_path
+      if node.packagepath is not None:
+        for p in node.packagepath:
+          yield p
+
+  finally:
+    sys.path = sys_path
 
 
 def FindPageSetDependencies(base_dir):
