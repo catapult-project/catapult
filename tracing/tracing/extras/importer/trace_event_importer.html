@@ -1826,6 +1826,9 @@ tr.exportTo('tr.e.importer', function() {
         var allMemoryAllocatorDumpsByGuid = {};
         var globalMemoryAllocatorDumpsByFullName = {};
 
+        var LEVELS_OF_DETAIL = [undefined, 'light', 'heavy'];
+        var globalLevelOfDetailIndex = undefined;
+
         events.process.forEach(function(processEvent) {
           var pid = processEvent.pid;
           if (pid in globalMemoryDump.processMemoryDumps) {
@@ -1851,6 +1854,34 @@ tr.exportTo('tr.e.importer', function() {
           var processMemoryDump = new tr.model.ProcessMemoryDump(
               globalMemoryDump, process,
               timestampFromUs(processEvent.ts));
+
+          // Determine the level of detail of the dump.
+          var processLevelOfDetail = dumps.level_of_detail;
+          var processLevelOfDetailIndex = LEVELS_OF_DETAIL.indexOf(
+              processLevelOfDetail);
+          if (processLevelOfDetailIndex < 0) {
+            this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'unknown level of detail \'' + processLevelOfDetail +
+                  '\' of process memory dump for pid=' + pid +
+                  ' and dump id=' + id + '.'
+            });
+          } else {
+            processMemoryDump.levelOfDetail = processLevelOfDetail;
+            if (globalLevelOfDetailIndex === undefined) {
+              globalLevelOfDetailIndex = processLevelOfDetailIndex;
+            } else if (globalLevelOfDetailIndex !== processLevelOfDetailIndex) {
+              // If the process memory dumps have different levels of detail,
+              // show a warning and use the highest level.
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'diffent levels of detail of process memory dumps ' +
+                    'for dump id=' + id + '.'
+              });
+              globalLevelOfDetailIndex = Math.max(
+                  globalLevelOfDetailIndex, processLevelOfDetailIndex);
+            }
+          }
 
           // Parse the totals, which are mandatory.
           if (dumps.process_totals === undefined ||
@@ -2004,6 +2035,9 @@ tr.exportTo('tr.e.importer', function() {
           process.memoryDumps.push(processMemoryDump);
           globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
         }, this);
+
+        globalMemoryDump.levelOfDetail =
+            LEVELS_OF_DETAIL[globalLevelOfDetailIndex];
 
         // Find the root allocator dumps and establish the parent links of
         // the global memory dump.

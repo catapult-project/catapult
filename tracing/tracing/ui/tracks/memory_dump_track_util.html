@@ -132,8 +132,20 @@ tr.exportTo('tr.ui.tracks', function() {
    * inside).
    */
   function buildMemoryLetterDots(memoryDumps) {
-    var memoryColorId = tr.ui.b.getColorIdForReservedName('memory_dump');
+    var lightMemoryColorId =
+        tr.ui.b.getColorIdForReservedName('light_memory_dump');
+    var heavyMemoryColorId =
+        tr.ui.b.getColorIdForReservedName('heavy_memory_dump');
     return memoryDumps.map(function(memoryDump) {
+      var memoryColorId;
+      switch (memoryDump.levelOfDetail) {
+        case 'heavy':
+          memoryColorId = heavyMemoryColorId;
+          break;
+        case 'light':
+        default:
+          memoryColorId = lightMemoryColorId;
+      }
       return new tr.ui.tracks.LetterDot(
           memoryDump, 'M', memoryColorId, memoryDump.start);
     });

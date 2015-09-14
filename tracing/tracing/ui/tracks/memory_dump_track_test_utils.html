@@ -98,12 +98,14 @@ tr.exportTo('tr.ui.tracks', function() {
       var pc = model.getOrCreateProcess(9);
 
       var gmd1 = new GlobalMemoryDump(model, 0);
+      // Intentionally undefined level of detail.
       model.globalMemoryDumps.push(gmd1);
       addProcessMemoryDump(gmd1, pa, 0, maybePssValues([111]));
       addProcessMemoryDump(gmd1, pb, 0.2, undefined,
           maybeDumpData({oilpan: {size: 1024}}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
+      gmd2.levelOfDetail = 'heavy';
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
       addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
@@ -113,6 +115,7 @@ tr.exportTo('tr.ui.tracks', function() {
               v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
+      gmd3.levelOfDetail = 'heavy';
       model.globalMemoryDumps.push(gmd3);
       addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
           maybeDumpData({v8: {size: 768}}));
@@ -120,6 +123,7 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({oilpan: {size: 512}}));
 
       var gmd4 = new GlobalMemoryDump(model, 18);
+      gmd4.levelOfDetail = 'light';
       model.globalMemoryDumps.push(gmd4);
     });
   }

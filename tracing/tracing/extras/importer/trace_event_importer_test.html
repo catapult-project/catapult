@@ -3575,6 +3575,42 @@ tr.b.unittest.testSuite(function() {
     assert.equal(gpuDumpLocal2OwnsLink.importance, 1);
   });
 
+  test('importMemoryDumps_levelsOfDetail', function() {
+    function makeModelWithLevelsOfDetail(levelsOfDetail) {
+      return makeModel(levelsOfDetail.map(function(levelOfDetail, index) {
+        var dumps = {};
+        if (levelOfDetail !== undefined)
+          dumps.level_of_detail = levelOfDetail;
+        return {
+          name: 'process_' + index,
+          pid: index,
+          ts: 10,
+          ph: 'v',
+          id: '0x0001',
+          args: {
+            dumps: dumps
+          }
+        };
+      }));
+    }
+
+    var model = makeModelWithLevelsOfDetail([undefined]);
+    assert.isUndefined(model.globalMemoryDumps[0].levelOfDetail);
+
+    var model = makeModelWithLevelsOfDetail(['light', 'light']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');
+
+    var model = makeModelWithLevelsOfDetail(['heavy', 'heavy', 'heavy']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'heavy');
+
+    var model = makeModelWithLevelsOfDetail(
+        ['light', undefined, 'heavy', 'light']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'heavy');
+
+    var model = makeModelWithLevelsOfDetail(['invalid', 'light']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');
+  });
+
   test('importThreadInstantSliceWithStackFrame', function() {
     var eventData = {
       traceEvents: [
