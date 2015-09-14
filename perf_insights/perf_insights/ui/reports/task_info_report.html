@@ -9,14 +9,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
-<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
-<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
-<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/grouping_table.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/mappers/reduce.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
 
@@ -108,8 +107,6 @@ found in the LICENSE file.
       groupBy.push(function(datum) {
         return datum.thread;
       });
-      table.supportsSelection = true;
-      table.groupBy = groupBy;
       table.groupBy = groupBy;
       table.dataToGroup = rows;
       table.supportsSelection = true;
@@ -147,30 +144,13 @@ found in the LICENSE file.
 
     createColumns_: function() {
 
-      function getStatsForRow(row) {
-        if (row.stats_ === undefined) {
-          row.stats_ = {};
-          COLUMN_INFOS.forEach(function(info) {
-            info.statSetter(row.stats_,
-                averageFromHistograms(info.type, row.data));
-          });
-        }
-        return row.stats_;
-      }
-
       var columns = [{
           title: 'Title',
           value: function(row) {
             return row.title;
           },
           cmp: function(a, b) {
-            var sA = a.title;
-            var sB = b.title;
-            if (sA < sB)
-              return -1;
-            if (sA > sB)
-              return 1;
-            return 0;
+            return a.title.localeCompare(b.title);
           },
           width: '500px'
         },
@@ -184,7 +164,7 @@ found in the LICENSE file.
       return columns;
     },
 
-    createCachingColumn_(title, type) {
+    createCachingColumn_: function(title, type) {
 
       function averageFromHistograms(data) {
         var runningSum = 0;

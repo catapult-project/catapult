@@ -4,17 +4,21 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
+<link rel="import" href="/tracing/base/units/scalar.html">
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/generic_table_view.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
-<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
-<link rel="import" href="/perf_insights/ui/grouping_table.html">
+<link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/perf_insights/ui/grouping_table.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
 
 <polymer-element name="pi-ui-r-rail-score-report"
@@ -32,6 +36,9 @@ found in the LICENSE file.
         max-width: 400px;
       }
     </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+
+    <h1>Histogram</h1>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
   </template>
   <script>
@@ -43,6 +50,10 @@ found in the LICENSE file.
     },
 
     ready: function() {
+      this.$.table.addEventListener('selection-changed', function(tableEvent) {
+        tableEvent.stopPropagation();
+        this.setHistogramBasedOnSelection_();
+      }.bind(this));
     },
 
     get mapResults() {
@@ -55,25 +66,97 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      var table = this.$.table;
-
       var results = this.mapResults_;
       if (!results)
         results = new tr.r.Results();
 
-      var overallScoreHistogram = tr.b.u.Histogram.createLinear(
-          tr.b.u.Units.normalizedPercentage,
-          tr.b.Range.fromExplicitRange(0, 1),
-          10);
-      results.allValuesFromFailureFreeRuns.map(function(v) {
-        if (!v.value.railScore)
-          return;
-        var railScore = v.value.railScore;
-        overallScoreHistogram.add(railScore.overallScore,
-                                  v.runInfo.url);
-      });
+      var table = this.$.table;
 
-      this.$.histogram.histogram = overallScoreHistogram;
+      var columns = this.createColumns_();
+      table.tableColumns = columns;
+      table.sortColumnIndex = 1;
+      table.sortDescending = true;
+      table.supportsSelection = true;
+      table.rowHighlightEnabled = true;
+
+      var railScoreHistograms = {};
+      results.allValuesFromFailureFreeRuns.map(function(v) {
+        if (!v.value.irTree)
+          return;
+        this.addToHistograms_(railScoreHistograms, v.value.irTree,
+            v.runInfo.url);
+      }.bind(this));
+      var overallRow = this.convertToRowAndSubRows_(railScoreHistograms);
+      overallRow.title = 'Overall RAIL score';
+      table.tableRows = [overallRow];
+    },
+
+    createColumns_: function() {
+      var columns = [{
+          title: 'Title',
+          value: function(row) {
+            return row.title;
+          },
+          cmp: function(a, b) {
+            return a.title.localeCompare(b.title);
+          },
+          width: '500px'
+        },
+        {
+          title: 'Avg. RAIL score',
+          value: function(row) {
+            return tr.ui.units.createScalarSpan(
+                new tr.b.u.Scalar(row.histogram.average,
+                                  tr.b.u.Units.normalizedPercentage));
+          },
+          cmp: function(a, b) {
+            return a.histogram.average - b.histogram.average;
+          }
+        }
+      ];
+      return columns;
+    },
+
+    addToHistograms_: function(histograms, irTree, url) {
+      histograms.histogram = histograms.histogram ||
+          tr.b.u.Histogram.createLinear(
+              tr.b.u.Units.normalizedPercentage,
+              tr.b.Range.fromExplicitRange(0, 1),
+              10);
+      if (irTree.overallScore !== undefined)
+        histograms.histogram.add(irTree.overallScore, url);
+      if (irTree.irScores) {
+        irTree.irScores.forEach(function(irScore) {
+          histograms.histogram.add(irScore, url);
+        });
+      }
+      if (!irTree.subTypes)
+        return;
+      histograms.subTypes = histograms.subTypes || {};
+      for (var subType in irTree.subTypes) {
+        histograms.subTypes[subType] = histograms.subTypes[subType] || {};
+        this.addToHistograms_(histograms.subTypes[subType],
+            irTree.subTypes[subType], url);
+      }
+    },
+
+    convertToRowAndSubRows_: function(histograms) {
+      var row = {
+        histogram: histograms.histogram
+      };
+      if (!histograms.subTypes)
+        return row;
+      row.subRows = [];
+      for (var subType in histograms.subTypes) {
+        var subRow = this.convertToRowAndSubRows_(histograms.subTypes[subType]);
+        subRow.title = subType;
+        row.subRows.push(subRow);
+      }
+      return row;
+    },
+
+    setHistogramBasedOnSelection_: function() {
+      this.$.histogram.histogram = this.$.table.selectedTableRow.histogram;
     }
   });
   </script>
