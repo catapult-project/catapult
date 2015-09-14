@@ -35,7 +35,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       var testName = testCaseOrName;
       var testFn = opt_testFn;
-      var options = options || {};
+      var options = opt_options || {};
       if (testFn == undefined)
         throw new Error('Must provide opt_testFn');
 
