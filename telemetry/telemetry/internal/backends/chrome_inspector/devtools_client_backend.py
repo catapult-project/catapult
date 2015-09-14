@@ -11,7 +11,8 @@ from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
-from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
+from telemetry.internal.platform.tracing_agent import (
+    chrome_tracing_devtools_manager)
 from telemetry.timeline import trace_data as trace_data_module
 
 
@@ -61,17 +62,21 @@ class DevToolsClientBackend(object):
     self._devtools_port = devtools_port
     self._remote_devtools_port = remote_devtools_port
     self._devtools_http = devtools_http.DevToolsHttp(devtools_port)
-    self._tracing_backend = None
+    self._tracing_backend = tracing_backend.TracingBackend(self._devtools_port)
     self._app_backend = app_backend
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
 
-    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
-      self, self._app_backend.platform_backend)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        self, self._app_backend.platform_backend)
 
   @property
   def remote_port(self):
     return self._remote_devtools_port
+
+  @property
+  def is_tracing_running(self):
+    return self._tracing_backend.is_tracing_running
 
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
@@ -170,13 +175,7 @@ class DevToolsClientBackend(object):
     self._devtools_context_map_backend._Update(contexts)
     return self._devtools_context_map_backend
 
-  def _CreateTracingBackendIfNeeded(self):
-    if not self._tracing_backend:
-      self._tracing_backend = tracing_backend.TracingBackend(
-          self._devtools_port)
-
   def IsChromeTracingSupported(self):
-    self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.IsTracingSupported()
 
   def StartChromeTracing(
@@ -191,7 +190,6 @@ class DevToolsClientBackend(object):
                          those three event categories.
     """
     assert trace_options and trace_options.enable_chrome_trace
-    self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.StartTracing(
         trace_options, custom_categories, timeout)
 
@@ -227,7 +225,6 @@ class DevToolsClientBackend(object):
       TracingUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
-    self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.DumpMemory(timeout)
 
 
