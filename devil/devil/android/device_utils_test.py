@@ -628,7 +628,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
          ['/fake/data/app/test.package.apk']),
         (self.call.device._ComputeStaleApks('test.package',
             ['/fake/test/app.apk']),
-         ([], None))):
+         ([], None)),
+        (self.call.device.RunShellCommand(['am', 'force-stop', 'test.package'],
+                                          check_return=True))):
       self.device.Install(
           '/fake/test/app.apk', reinstall=True, retries=0, permissions=[])
 
