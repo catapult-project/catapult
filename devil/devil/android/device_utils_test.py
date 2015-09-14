@@ -300,27 +300,31 @@ class DeviceUtilsGetExternalStoragePathTest(DeviceUtilsTest):
         self.device.GetExternalStoragePath()
 
 
-class DeviceUtils_GetApplicationPathsInternalTest(DeviceUtilsTest):
+class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
 
-  def test_GetApplicationPathsInternal_exists(self):
+  def testGetApplicationPathsInternal_exists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
-        (self.call.adb.Shell('pm path android'),
-         'package:/path/to/android.apk\n')):
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'path', 'android'], check_return=True),
+         ['package:/path/to/android.apk'])):
       self.assertEquals(['/path/to/android.apk'],
                         self.device._GetApplicationPathsInternal('android'))
 
-  def test_GetApplicationPathsInternal_notExists(self):
+  def testGetApplicationPathsInternal_notExists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
-        (self.call.adb.Shell('pm path not.installed.app'), '')):
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'path', 'not.installed.app'], check_return=True),
+         '')):
       self.assertEquals([],
           self.device._GetApplicationPathsInternal('not.installed.app'))
 
-  def test_GetApplicationPathsInternal_fails(self):
+  def testGetApplicationPathsInternal_fails(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [19]\n'),
-        (self.call.adb.Shell('pm path android'),
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'path', 'android'], check_return=True),
          self.CommandError('ERROR. Is package manager running?\n'))):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device._GetApplicationPathsInternal('android')
@@ -1330,32 +1334,38 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
 
   def testClearApplicationState_packageDoesntExist(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [11]\n'),
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '11'),
         (self.call.device._GetApplicationPathsInternal('does.not.exist'),
          [])):
       self.device.ClearApplicationState('does.not.exist')
 
   def testClearApplicationState_packageDoesntExistOnAndroidJBMR2OrAbove(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [18]\n'),
-        (self.call.adb.Shell('pm clear this.package.does.not.exist'),
-         'Failed\r\n')):
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '18'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'clear', 'this.package.does.not.exist'],
+            check_return=True),
+         ['Failed'])):
       self.device.ClearApplicationState('this.package.does.not.exist')
 
   def testClearApplicationState_packageExists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [17]\n'),
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '17'),
         (self.call.device._GetApplicationPathsInternal('this.package.exists'),
          ['/data/app/this.package.exists.apk']),
-        (self.call.adb.Shell('pm clear this.package.exists'),
-         'Success\r\n')):
+        (self.call.device.RunShellCommand(
+            ['pm', 'clear', 'this.package.exists'],
+            check_return=True),
+         ['Success'])):
       self.device.ClearApplicationState('this.package.exists')
 
   def testClearApplicationState_packageExistsOnAndroidJBMR2OrAbove(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), '[ro.build.version.sdk]: [18]\n'),
-        (self.call.adb.Shell('pm clear this.package.exists'),
-         'Success\r\n')):
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '18'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'clear', 'this.package.exists'],
+            check_return=True),
+         ['Success'])):
       self.device.ClearApplicationState('this.package.exists')
 
 
@@ -1765,18 +1775,31 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
   def testGetProp_exists(self):
     with self.assertCall(
-        self.call.adb.Shell('getprop test.property'), 'property_value\n'):
+        self.call.device.RunShellCommand(
+            ['getprop', 'test.property'], check_return=True, single_line=True,
+            timeout=self.device._default_timeout,
+            retries=self.device._default_retries),
+        'property_value'):
       self.assertEqual('property_value',
                        self.device.GetProp('test.property'))
 
   def testGetProp_doesNotExist(self):
     with self.assertCall(
-        self.call.adb.Shell('getprop property.does.not.exist'), '\n'):
+        self.call.device.RunShellCommand(
+            ['getprop', 'property.does.not.exist'],
+            check_return=True, single_line=True,
+            timeout=self.device._default_timeout,
+            retries=self.device._default_retries),
+        ''):
       self.assertEqual('', self.device.GetProp('property.does.not.exist'))
 
   def testGetProp_cachedRoProp(self):
     with self.assertCall(
-        self.call.adb.Shell('getprop'), '[ro.build.type]: [userdebug]\n'):
+        self.call.device.RunShellCommand(
+            ['getprop'], check_return=True, large_output=True,
+            timeout=self.device._default_timeout,
+            retries=self.device._default_retries),
+        ['[ro.build.type]: [userdebug]']):
       self.assertEqual('userdebug',
                        self.device.GetProp('ro.build.type', cache=True))
       self.assertEqual('userdebug',
@@ -1784,9 +1807,11 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
   def testGetProp_retryAndCache(self):
     with self.assertCalls(
-        (self.call.adb.Shell('getprop'), self.ShellError()),
-        (self.call.adb.Shell('getprop'), self.ShellError()),
-        (self.call.adb.Shell('getprop'), '[ro.build.type]: [userdebug]\n')):
+        (self.call.device.RunShellCommand(
+            ['getprop'], check_return=True, large_output=True,
+            timeout=self.device._default_timeout,
+            retries=3),
+         ['[ro.build.type]: [userdebug]'])):
       self.assertEqual('userdebug',
                        self.device.GetProp('ro.build.type',
                                            cache=True, retries=3))
@@ -1799,19 +1824,22 @@ class DeviceUtilsSetPropTest(DeviceUtilsTest):
 
   def testSetProp(self):
     with self.assertCall(
-        self.call.adb.Shell("setprop test.property 'test value'"), ''):
+        self.call.device.RunShellCommand(
+            ['setprop', 'test.property', 'test value'], check_return=True)):
       self.device.SetProp('test.property', 'test value')
 
   def testSetProp_check_succeeds(self):
     with self.assertCalls(
-        (self.call.adb.Shell('setprop test.property new_value'), ''),
-        (self.call.adb.Shell('getprop test.property'), 'new_value')):
+        (self.call.device.RunShellCommand(
+            ['setprop', 'test.property', 'new_value'], check_return=True)),
+        (self.call.device.GetProp('test.property', cache=False), 'new_value')):
       self.device.SetProp('test.property', 'new_value', check=True)
 
   def testSetProp_check_fails(self):
     with self.assertCalls(
-        (self.call.adb.Shell('setprop test.property new_value'), ''),
-        (self.call.adb.Shell('getprop test.property'), 'old_value')):
+        (self.call.device.RunShellCommand(
+            ['setprop', 'test.property', 'new_value'], check_return=True)),
+        (self.call.device.GetProp('test.property', cache=False), 'old_value')):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.SetProp('test.property', 'new_value', check=True)
 

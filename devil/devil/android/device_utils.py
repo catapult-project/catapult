@@ -1657,7 +1657,7 @@ class DeviceUtils(object):
         # It takes ~120ms to query a single property, and ~130ms to query all
         # properties. So, when caching we always query all properties.
         output = self.RunShellCommand(
-            ['getprop'], check_return=True,
+            ['getprop'], check_return=True, large_output=True,
             timeout=self._default_timeout if timeout is DEFAULT else timeout,
             retries=self._default_retries if retries is DEFAULT else retries)
         prop_cache.clear()
