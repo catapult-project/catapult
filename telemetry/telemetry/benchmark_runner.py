@@ -20,8 +20,8 @@ import sys
 # make this a no-op call.
 # (See: https://docs.python.org/2/library/logging.html#logging.basicConfig)
 logging.basicConfig(
-  format=('(%(levelname)s) %(filename)s:%(funcName)s:%(lineno)d '
-          '%(asctime)s:%(message)s'))
+    format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+           '%(message)s')
 
 
 from telemetry import benchmark

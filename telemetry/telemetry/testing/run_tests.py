@@ -183,8 +183,9 @@ def _SetUpProcess(child, context): # pylint: disable=W0613
   # set it to make this work.
   logging.getLogger().handlers = []
   logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s:%(filename)s:%(funcName)s:%(message)s')
+      level=logging.INFO,
+      format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+             '%(message)s')
   args = context
   if args.device and args.device == 'android':
     android_devices = device_finder.GetDevicesMatchingOptions(args)
