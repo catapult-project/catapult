@@ -2910,7 +2910,41 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.totalResidentBytes, 9007199254740991);
+    assert.equal(d.totals.residentBytes, 9007199254740991);
+    assert.isUndefined(d.totals.peakResidentBytes);
+    assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.mostRecentVmRegions);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
+  });
+
+  test('importMemoryDumps_withPeakResidentBytes', function() {
+    var events = [
+      {
+        name: 'some_dump_name',
+        pid: 42,
+        ts: 10,
+        cat: 'test',
+        tid: 53,
+        ph: 'v',
+        id: '0x01',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '1fffffffffffff',
+              peak_resident_set_bytes: '2fffffffffffff',
+              is_peak_rss_resetable: true
+            }
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.totals.residentBytes, 9007199254740991);
+    assert.equal(d.totals.peakResidentBytes, 13510798882111488);
+    assert.isTrue(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.mostRecentVmRegions);
     assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
@@ -2995,7 +3029,9 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(vr2.byteStats.sharedDirtyResident);
     assert.equal(vr2.byteStats.swapped, 0);
 
-    assert.equal(d.totalResidentBytes, 0);
+    assert.equal(d.totals.residentBytes, 0);
+    assert.isUndefined(d.totals.peakResidentBytes);
+    assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
 
@@ -3107,7 +3143,9 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(oilpanBucket1.parent.parent);
     assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
 
-    assert.equal(d.totalResidentBytes, 256);
+    assert.equal(d.totals.residentBytes, 256);
+    assert.isUndefined(d.totals.peakResidentBytes);
+    assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.mostRecentVmRegions);
   });
 
@@ -3198,7 +3236,9 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(oilpanBucket1.parent.parent);
     assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
 
-    assert.equal(d.totalResidentBytes, 256);
+    assert.equal(d.totals.residentBytes, 256);
+    assert.isUndefined(d.totals.peakResidentBytes);
+    assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.mostRecentVmRegions);
   });
 
@@ -3250,8 +3290,10 @@ tr.b.unittest.testSuite(function() {
     var gmd = m.globalMemoryDumps[0];
     var pmd = p.memoryDumps[0];
 
-    assert.isUndefined(gmd.totalResidentBytes);
-    assert.equal(pmd.totalResidentBytes, 256);
+    assert.isUndefined(gmd.totals);
+    assert.equal(pmd.totals.residentBytes, 256);
+    assert.isUndefined(pmd.totals.peakResidentBytes);
+    assert.isUndefined(pmd.totals.arePeakResidentBytesResettable);
 
     assert.isUndefined(gmd.mostRecentVmRegions);
     assert.isUndefined(pmd.mostRecentVmRegions);

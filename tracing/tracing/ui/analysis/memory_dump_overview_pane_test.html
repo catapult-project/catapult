@@ -51,19 +51,21 @@ tr.b.unittest.testSuite(function() {
     var columns = table.tableColumns;
     assert.lengthOf(rows, 1);
     assert.lengthOf(footerRows, 0);
-    assert.lengthOf(columns, 8);
+    assert.lengthOf(columns, 9);
 
     var titleColumn = columns[0];
     var totalColumn = columns[1];
-    var proportionalColumn = columns[2];
-    var privateDirtyColumn = columns[3];
-    var swappedColumn = columns[4];
-    var mallocColumn = columns[5];
-    var v8Column = columns[6];
-    var tracingColumn = columns[7];
+    var peakTotalColumn = columns[2];
+    var proportionalColumn = columns[3];
+    var privateDirtyColumn = columns[4];
+    var swappedColumn = columns[5];
+    var mallocColumn = columns[6];
+    var v8Column = columns[7];
+    var tracingColumn = columns[8];
 
     assert.equal(titleColumn.value(rows[0]).label, 'Process 2');
     assert.equal(totalColumn.value(rows[0]).children[0].value, 19398656);
+    assert.equal(peakTotalColumn.value(rows[0]).children[0].value, 40370176);
     assert.equal(
         proportionalColumn.value(rows[0]).children[0].value, 14155776);
     assert.equal(
@@ -90,21 +92,24 @@ tr.b.unittest.testSuite(function() {
     var columns = table.tableColumns;
     assert.lengthOf(rows, 3);
     assert.lengthOf(footerRows, 1);
-    assert.lengthOf(columns, 9);
+    assert.lengthOf(columns, 10);
 
+    // TODO(petrcermak): Enforce consistent ordering of the used size columns.
     var titleColumn = columns[0];
     var totalColumn = columns[1];
     var proportionalColumn = columns[2];
     var privateDirtyColumn = columns[3];
     var swappedColumn = columns[4];
-    var mallocColumn = columns[5];
-    var oilpanColumn = columns[6];
-    var v8Column = columns[7];
-    var tracingColumn = columns[8];
+    var peakTotalColumn = columns[5];
+    var mallocColumn = columns[6];
+    var oilpanColumn = columns[7];
+    var v8Column = columns[8];
+    var tracingColumn = columns[9];
 
     // Check the rows of the table.
     assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
     assert.equal(totalColumn.value(rows[0]).children[0].value, 31457280);
+    assert.equal(peakTotalColumn.value(rows[0]), '');
     assert.equal(
         proportionalColumn.value(rows[0]).children[0].value, 10485760);
     assert.equal(
@@ -117,6 +122,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
     assert.equal(totalColumn.value(rows[1]).children[0].value, 19398656);
+    assert.equal(peakTotalColumn.value(rows[1]).children[0].value, 40370176);
     assert.equal(
         proportionalColumn.value(rows[1]).children[0].value, 14155776);
     assert.equal(
@@ -129,6 +135,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(titleColumn.value(rows[2]).label, 'Process 3');
     assert.equal(totalColumn.value(rows[2]), '');
+    assert.equal(peakTotalColumn.value(rows[2]), '');
     assert.equal(proportionalColumn.value(rows[2]), '');
     assert.equal(privateDirtyColumn.value(rows[2]), '');
     assert.equal(swappedColumn.value(rows[2]), '');

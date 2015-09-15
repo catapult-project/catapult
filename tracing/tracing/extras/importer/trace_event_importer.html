@@ -1883,19 +1883,53 @@ tr.exportTo('tr.e.importer', function() {
             }
           }
 
-          // Parse the totals, which are mandatory.
-          if (dumps.process_totals === undefined ||
-              dumps.process_totals.resident_set_bytes === undefined) {
+          // Parse the totals.
+          var rawTotals = dumps.process_totals;
+          if (rawTotals !== undefined) {
+            processMemoryDump.totals = {};
+
+            // Total resident bytes (mandatory).
+            if (rawTotals.resident_set_bytes !== undefined) {
+              processMemoryDump.totals.residentBytes = parseInt(
+                  rawTotals.resident_set_bytes, 16);
+            }
+
+            // Peak resident bytes (optional).
+            if (rawTotals.peak_resident_set_bytes !== undefined) {
+              if (rawTotals.is_peak_rss_resetable === undefined) {
+                this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Optional field peak_resident_set_bytes found' +
+                        ' but is_peak_rss_resetable not found in' +
+                        ' process memory dump for pid=' + pid +
+                        ' and dump id=' + id + '.'
+                });
+              }
+              processMemoryDump.totals.peakResidentBytes = parseInt(
+                  rawTotals.peak_resident_set_bytes, 16);
+            }
+            if (rawTotals.is_peak_rss_resetable !== undefined) {
+              if (rawTotals.peak_resident_set_bytes === undefined) {
+                this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Optional field is_peak_rss_resetable found' +
+                        ' but peak_resident_set_bytes not found in' +
+                        ' process memory dump for pid=' + pid +
+                        ' and dump id=' + id + '.'
+                });
+              }
+              processMemoryDump.totals.arePeakResidentBytesResettable =
+                  !!rawTotals.is_peak_rss_resetable;
+            }
+          }
+          if (processMemoryDump.totals === undefined ||
+              processMemoryDump.totals.residentBytes === undefined) {
             this.model_.importWarning({
                 type: 'memory_dump_parse_error',
                 message: 'Mandatory field resident_set_bytes not found in' +
                     ' process memory dump for pid=' + pid +
                     ' and dump id=' + id + '.'
             });
-            processMemoryDump.totalResidentBytes = undefined;
-          } else {
-            processMemoryDump.totalResidentBytes = parseInt(
-                dumps.process_totals.resident_set_bytes, 16);
           }
 
           // Populate the vmRegions, if present.

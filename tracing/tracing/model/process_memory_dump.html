@@ -35,7 +35,7 @@ tr.exportTo('tr.model', function() {
     this.process = process;
     this.globalMemoryDump = globalMemoryDump;
 
-    this.totalResidentBytes = undefined;
+    this.totals = undefined;
     this.vmRegions_ = undefined;
 
     this.tracingMemoryDiscounted_ = false;
@@ -106,9 +106,13 @@ tr.exportTo('tr.model', function() {
 
       // Subtract 'resident_size' from totals and VM regions stats.
       if (discountedResidentSize > 0) {
-        // Subtract the tracing size from the total.
-        if (this.totalResidentBytes !== undefined)
-          this.totalResidentBytes -= discountedResidentSize;
+        // Subtract the tracing size from the totals.
+        if (this.totals !== undefined) {
+          if (this.totals.residentBytes !== undefined)
+            this.totals.residentBytes -= discountedResidentSize;
+          if (this.totals.peakResidentBytes !== undefined)
+            this.totals.peakResidentBytes -= discountedResidentSize;
+        }
 
         // Subtract the tracing size from VM regions.
         if (this.vmRegions_ !== undefined) {

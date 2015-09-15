@@ -251,7 +251,7 @@ tr.b.unittest.testSuite(function() {
       pmd.memoryAllocatorDumps = [v8Dump, tracingDump];
     });
 
-    assert.isUndefined(pmd.totalResidentBytes);
+    assert.isUndefined(pmd.totals);
     assert.isUndefined(
         pmd.getMostRecentTotalVmRegionStat('proportionalResident'));
 
@@ -264,7 +264,7 @@ tr.b.unittest.testSuite(function() {
 
   test('checkDiscountTracingOverhead_definedFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.totalResidentBytes = 10240;
+      pmd.totals = { residentBytes: 10240 };
 
       pmd.vmRegions = [
         VMRegion.fromDict({
@@ -306,7 +306,8 @@ tr.b.unittest.testSuite(function() {
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump, ownerDump];
     });
 
-    assert.equal(pmd.totalResidentBytes, 9240);
+    assert.equal(pmd.totals.residentBytes, 9240);
+    assert.isUndefined(pmd.totals.peakResidentBytes);
 
     assert.equal(
         pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
@@ -351,7 +352,7 @@ tr.b.unittest.testSuite(function() {
       pmd.memoryAllocatorDumps = [tracingDump, winheapDump];
     });
 
-    assert.isUndefined(pmd.totalResidentBytes);
+    assert.isUndefined(pmd.totals);
 
     assert.isUndefined(
         pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'));
@@ -371,7 +372,7 @@ tr.b.unittest.testSuite(function() {
 
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {
     var pmds = createFinalizedProcessMemoryDumps([42, 90], function(pmds) {
-      pmds[0].totalResidentBytes = 1000;
+      pmds[0].totals = { residentBytes: 1000, peakResidentBytes: 2000 };
       pmds[0].vmRegions = [
         VMRegion.fromDict({
           startAddress: 256,
@@ -391,7 +392,7 @@ tr.b.unittest.testSuite(function() {
         return [tracingDump];
       })();
 
-      pmds[1].totalResidentBytes = 2000;
+      pmds[1].totals = { peakResidentBytes: 3000 };
       pmds[1].memoryAllocatorDumps = (function() {
         var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
         tracingDump.addAttribute(
@@ -402,14 +403,16 @@ tr.b.unittest.testSuite(function() {
 
     // First PMD: Both total resident and private dirty resident size should be
     // reduced by 100.
-    assert.equal(pmds[0].totalResidentBytes, 900);
+    assert.equal(pmds[0].totals.residentBytes, 900);
+    assert.equal(pmds[0].totals.peakResidentBytes, 1900);
     assert.equal(
         pmds[0].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
 
     // Second PMD: Total resident size should be reduced by 200, whereas private
     // dirty resident size should be reduced by 100 (because it comes from
     // the VM regions in the first dump).
-    assert.equal(pmds[1].totalResidentBytes, 1800);
+    assert.isUndefined(pmds[1].totals.residentBytes);
+    assert.equal(pmds[1].totals.peakResidentBytes, 2800);
     assert.equal(
         pmds[1].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
   });

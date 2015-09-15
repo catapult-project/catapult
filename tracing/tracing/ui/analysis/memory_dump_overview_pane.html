@@ -70,6 +70,7 @@ found in the LICENSE file.
         tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
 
     var LINK_SYMBOL = String.fromCharCode(9903);
+    var GREATER_THAN_OR_EQUAL_TO_SYMBOL = String.fromCharCode(8805);
 
     Polymer({
       created: function() {
@@ -131,12 +132,32 @@ found in the LICENSE file.
 
           // Used memory (total resident, PSS, ...).
           var usedMemorySizes = {};
-          var totalResident = processMemoryDump.totalResidentBytes;
-          if (totalResident !== undefined) {
-            var cell = new tr.ui.analysis.MemoryCell(
-                new tr.model.ScalarAttribute('bytes', totalResident));
-            cell.buildDetailsPane = buildVMRegionsPane;
-            usedMemorySizes['Total resident'] = cell;
+          var totals = processMemoryDump.totals;
+          if (totals !== undefined) {
+            var totalResident = totals.residentBytes;
+            if (totalResident !== undefined) {
+              var cell = new tr.ui.analysis.MemoryCell(
+                  new tr.model.ScalarAttribute('bytes', totalResident));
+              cell.buildDetailsPane = buildVMRegionsPane;
+              usedMemorySizes['Total resident'] = cell;
+            }
+
+            var peakTotalResident = totals.peakResidentBytes;
+            if (peakTotalResident !== undefined) {
+              var attr = new tr.model.ScalarAttribute(
+                  'bytes', peakTotalResident);
+              if (!totals.arePeakResidentBytesResettable) {
+                attr.infos.push(new tr.model.AttributeInfo(
+                    tr.model.AttributeInfoType.WARNING,
+                    'Peak RSS since process startup. Finer grained peaks ' +
+                    'require a Linux kernel version ' +
+                    GREATER_THAN_OR_EQUAL_TO_SYMBOL +
+                    ' 4.0 (or Android equivalent).'));
+              }
+              var cell = new tr.ui.analysis.MemoryCell(attr);
+              cell.buildDetailsPane = buildVMRegionsPane;
+              usedMemorySizes['Peak total resident'] = cell;
+            }
           }
 
           function addByteStatCell(byteStatName, columnTitle) {
