@@ -11,6 +11,7 @@ import re
 import sys
 
 _EXCLUDED_PATHS = (
+    r'(.*[\\/])?\.git[\\/].*',
     r'.+\.png$',
     r'.+\.svg$',
     r'.+\.skp$',
@@ -24,17 +25,17 @@ _EXCLUDED_PATHS = (
     r'.*LICENSE$',
     r'.*OWNERS$',
     r'.*README\.md$',
-    r'^dashboard[\\\/]dashboard[\\\/]templates[\\\/].*',
-    r'^experimental[\\\/]heatmap[\\\/].*',
-    r'^perf_insights[\\\/]test_data[\\\/].*',
-    r'^perf_insights[\\\/]third_party[\\\/].*',
-    r'^third_party[\\\/].*',
-    r'^tracing[\\\/]\.allow-devtools-save$',
-    r'^tracing[\\\/]bower\.json$',
-    r'^tracing[\\\/]\.bowerrc$',
-    r'^tracing[\\\/]tracing_examples[\\\/]string_convert\.js$',
-    r'^tracing[\\\/]test_data[\\\/].*',
-    r'^tracing[\\\/]third_party[\\\/].*',
+    r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
+    r'^experimental[\\/]heatmap[\\/].*',
+    r'^perf_insights[\\/]test_data[\\/].*',
+    r'^perf_insights[\\/]third_party[\\/].*',
+    r'^third_party[\\/].*',
+    r'^tracing[\\/]\.allow-devtools-save$',
+    r'^tracing[\\/]bower\.json$',
+    r'^tracing[\\/]\.bowerrc$',
+    r'^tracing[\\/]tracing_examples[\\/]string_convert\.js$',
+    r'^tracing[\\/]test_data[\\/].*',
+    r'^tracing[\\/]third_party[\\/].*',
 )
 
 
