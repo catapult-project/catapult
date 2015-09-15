@@ -134,13 +134,13 @@ tr.exportTo('tr.ui.tracks', function() {
   function buildMemoryLetterDots(memoryDumps) {
     var lightMemoryColorId =
         tr.ui.b.getColorIdForReservedName('light_memory_dump');
-    var heavyMemoryColorId =
-        tr.ui.b.getColorIdForReservedName('heavy_memory_dump');
+    var detailedMemoryColorId =
+        tr.ui.b.getColorIdForReservedName('detailed_memory_dump');
     return memoryDumps.map(function(memoryDump) {
       var memoryColorId;
       switch (memoryDump.levelOfDetail) {
-        case 'heavy':
-          memoryColorId = heavyMemoryColorId;
+        case 'detailed':
+          memoryColorId = detailedMemoryColorId;
           break;
         case 'light':
         default:

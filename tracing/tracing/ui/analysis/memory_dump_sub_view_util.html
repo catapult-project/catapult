@@ -178,6 +178,16 @@ tr.exportTo('tr.ui.analysis', function() {
           symbol: String.fromCharCode(8701),  // Left arrow.
           color: 'green'
         };
+      case tr.model.AttributeInfoType.OVERALL_VALUE:
+        return {
+          symbol: String.fromCharCode(8614)  // Right arrow with a bar.
+          /* Don't modify the color. */
+        };
+      case tr.model.AttributeInfoType.RECENT_VALUE:
+        return {
+          symbol: String.fromCharCode(8618)  // Right arrow with a hook.
+          /* Don't modify the color. */
+        };
       default:
         return {
           symbol: String.fromCharCode(9432),  // Circled small letter 'i'.

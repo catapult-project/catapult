@@ -90,7 +90,7 @@ tr.b.unittest.testSuite(function() {
     var rows = table.tableRows;
     var footerRows = table.footerRows;
     var columns = table.tableColumns;
-    assert.lengthOf(rows, 3);
+    assert.lengthOf(rows, 4);
     assert.lengthOf(footerRows, 1);
     assert.lengthOf(columns, 10);
 
@@ -144,10 +144,23 @@ tr.b.unittest.testSuite(function() {
     assert.equal(oilpanColumn.value(rows[2]).children[0].value, 2147483648);
     assert.equal(tracingColumn.value(rows[2]), '');
 
+    assert.equal(titleColumn.value(rows[3]).label, 'Process 4');
+    assert.equal(totalColumn.value(rows[3]), '');
+    assert.equal(peakTotalColumn.value(rows[3]).children[0].value, 17825792);
+    assert.equal(proportionalColumn.value(rows[3]), '');
+    assert.equal(privateDirtyColumn.value(rows[3]), '');
+    assert.equal(swappedColumn.value(rows[3]), '');
+    assert.equal(mallocColumn.value(rows[3]), '');
+    assert.equal(v8Column.value(rows[3]), '');
+    assert.equal(oilpanColumn.value(rows[3]), '');
+    assert.equal(tracingColumn.value(rows[3]), '');
+
     // Check the footer row.
     assert.equal(titleColumn.value(footerRows[0]), 'Total');
     assert.equal(
         totalColumn.value(footerRows[0]).children[0].value, 50855936);
+    assert.equal(
+        peakTotalColumn.value(footerRows[0]).children[0].value, 58195968);
     assert.equal(
         proportionalColumn.value(footerRows[0]).children[0].value, 24641536);
     assert.equal(

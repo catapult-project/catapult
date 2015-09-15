@@ -105,7 +105,7 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({oilpan: {size: 1024}}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
-      gmd2.levelOfDetail = 'heavy';
+      gmd2.levelOfDetail = 'detailed';
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
       addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
@@ -115,7 +115,7 @@ tr.exportTo('tr.ui.tracks', function() {
               v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
-      gmd3.levelOfDetail = 'heavy';
+      gmd3.levelOfDetail = 'detailed';
       model.globalMemoryDumps.push(gmd3);
       addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
           maybeDumpData({v8: {size: 768}}));

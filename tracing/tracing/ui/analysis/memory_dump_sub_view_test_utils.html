@@ -31,6 +31,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var p1 = model.getOrCreateProcess(1);
       var p2 = model.getOrCreateProcess(2);
       var p3 = model.getOrCreateProcess(3);
+      var p4 = model.getOrCreateProcess(4);
 
       var gmd = new GlobalMemoryDump(model, 42);
       model.globalMemoryDumps.push(gmd);
@@ -128,6 +129,12 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return [oilpanDump, v8Dump];
       })();
+
+      var pmd4 = addProcessMemoryDump(p4, 44);
+      pmd4.totals = {
+        peakResidentBytes: 17825792, /* 17 MiB */
+        arePeakResidentBytesResettable: true
+      };
     });
 
     return model.globalMemoryDumps[0];

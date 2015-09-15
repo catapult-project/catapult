@@ -3642,12 +3642,13 @@ tr.b.unittest.testSuite(function() {
     var model = makeModelWithLevelsOfDetail(['light', 'light']);
     assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');
 
-    var model = makeModelWithLevelsOfDetail(['heavy', 'heavy', 'heavy']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'heavy');
+    var model = makeModelWithLevelsOfDetail(
+        ['detailed', 'detailed', 'detailed']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'detailed');
 
     var model = makeModelWithLevelsOfDetail(
-        ['light', undefined, 'heavy', 'light']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'heavy');
+        ['light', undefined, 'detailed', 'light']);
+    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'detailed');
 
     var model = makeModelWithLevelsOfDetail(['invalid', 'light']);
     assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');

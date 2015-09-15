@@ -1826,7 +1826,7 @@ tr.exportTo('tr.e.importer', function() {
         var allMemoryAllocatorDumpsByGuid = {};
         var globalMemoryAllocatorDumpsByFullName = {};
 
-        var LEVELS_OF_DETAIL = [undefined, 'light', 'heavy'];
+        var LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
         var globalLevelOfDetailIndex = undefined;
 
         events.process.forEach(function(processEvent) {

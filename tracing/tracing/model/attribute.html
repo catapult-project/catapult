@@ -259,7 +259,13 @@ tr.exportTo('tr.model', function() {
 
     // Corresponding memory allocator dump is owned by another MAD.
     // TODO(petrcermak): Figure out if there's a better place to store this.
-    MEMORY_OWNED: 4
+    MEMORY_OWNED: 4,
+
+    // Overall value (e.g. peak value since start process).
+    OVERALL_VALUE: 5,
+
+    // Recent value (e.g. peak value since the previous memory dump).
+    RECENT_VALUE: 6
   };
 
   return {

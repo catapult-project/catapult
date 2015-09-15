@@ -146,13 +146,16 @@ found in the LICENSE file.
             if (peakTotalResident !== undefined) {
               var attr = new tr.model.ScalarAttribute(
                   'bytes', peakTotalResident);
-              if (!totals.arePeakResidentBytesResettable) {
+              if (totals.arePeakResidentBytesResettable) {
                 attr.infos.push(new tr.model.AttributeInfo(
-                    tr.model.AttributeInfoType.WARNING,
+                    tr.model.AttributeInfoType.RECENT_VALUE,
+                    'Peak RSS since previous memory dump.'));
+              } else {
+                attr.infos.push(new tr.model.AttributeInfo(
+                    tr.model.AttributeInfoType.OVERALL_VALUE,
                     'Peak RSS since process startup. Finer grained peaks ' +
                     'require a Linux kernel version ' +
-                    GREATER_THAN_OR_EQUAL_TO_SYMBOL +
-                    ' 4.0 (or Android equivalent).'));
+                    GREATER_THAN_OR_EQUAL_TO_SYMBOL + ' 4.0.'));
               }
               var cell = new tr.ui.analysis.MemoryCell(attr);
               cell.buildDetailsPane = buildVMRegionsPane;

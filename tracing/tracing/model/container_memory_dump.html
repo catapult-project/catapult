@@ -21,7 +21,7 @@ tr.exportTo('tr.model', function() {
   function ContainerMemoryDump(start) {
     tr.model.TimedEvent.call(this, start);
 
-    // 'light' or 'heavy' memory dump. See
+    // 'light' or 'detailed' memory dump. See
     // base::trace_event::MemoryDumpLevelOfDetail in the Chromium
     // repository.
     this.levelOfDetail = undefined;
