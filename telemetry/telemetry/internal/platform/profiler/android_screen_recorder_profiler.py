@@ -2,11 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-import subprocess
+# pylib may not be available if we're not in an Android checkout.
+try:
+  from pylib import screenshot
+except ImportError:
+  screenshot = None
 
 from telemetry.internal.platform import profiler
 from telemetry.internal.backends.chrome import android_browser_finder
+
+
+_VIDEO_MEGABITS_PER_SECOND = 4
 
 
 class AndroidScreenRecordingProfiler(profiler.Profiler):
@@ -16,13 +22,10 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
     super(AndroidScreenRecordingProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     self._output_path = output_path + '.mp4'
-    profiler_dir = os.path.dirname(os.path.abspath(__file__))
-    self._recorder = subprocess.Popen(
-        [os.path.join(profiler_dir, 'screenshot.py'),
-         '--video',
-         '--file', self._output_path,
-         '--device', browser_backend.device.adb.GetDeviceSerial()],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    self._recorder = screenshot.VideoRecorder(
+        browser_backend.device,
+        megabits_per_second=_VIDEO_MEGABITS_PER_SECOND)
+    self._recorder.Start()
 
   @classmethod
   def name(cls):
@@ -35,7 +38,8 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
     return browser_type.startswith('android')
 
   def CollectProfile(self):
-    self._recorder.communicate(input='\n')
+    self._recorder.Stop()
+    self._recorder.Pull(self._output_path)
 
     print 'Screen recording saved as %s' % self._output_path
     print 'To view, open in Chrome or a video player'
