@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_process_helper.html">
 <link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
 
@@ -45,6 +46,16 @@ tr.exportTo('tr.e.rail', function() {
   // would maximize long-frame-pain.
   var MIN_MAX_LONG_FRAMES = 2;
 
+  // Discrepancy is minimized at 0 when every frame is exactly the same length,
+  // but realistically, a tiny amount of jank will look just as good.
+  var PAIN_BEGINS_AT_JANK = 0.05;
+
+  // Discrepancy is maximized at 1 when there are thousands of ridiculously fast
+  // frames and 1 ridiculously long frame. But realistically, discrepancy might
+  // never be larger than 0.3, so discrepancy up to take advantage of the full
+  // range of pain.
+  var PAIN_PEAKS_AT_JANK = 0.3;
+
   function AnimationInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
         this, 'Animation', 'rail_animate',
@@ -71,7 +82,7 @@ tr.exportTo('tr.e.rail', function() {
 
     get normalizedUserPain() {
       return tr.e.rail.weightedAverage2(
-          this.normalizedLongFramePain, this.normalizedFPSPain);
+          this.normalizedJankPain, this.normalizedFPSPain);
     },
 
     get normalizedFPSPain() {
@@ -85,29 +96,16 @@ tr.exportTo('tr.e.rail', function() {
       });
     },
 
-    get normalizedLongFramePain() {
+    get normalizedJankPain() {
       var frameTimestamps = this.frameEvents.toArray().map(function(event) {
         return event.start;
       });
-
-      var longFrameCount = 0;
-      var prevStart = frameTimestamps[0];
-      for (var i = 1; i < frameTimestamps.length; ++i) {
-        var frameStartMs = frameTimestamps[i];
-        var frameMs = frameStartMs - prevStart;
-        if (frameMs > LONG_FRAME_MS)
-          ++longFrameCount;
-        prevStart = frameStartMs;
-      }
-
-      // Long Frame Pain peaks at this fraction of the total number of frames.
-      var maxLongFrames = (LONG_FRAME_PAIN_PEAK_FRACTION *
-                           frameTimestamps.length);
-      maxLongFrames = Math.max(MIN_MAX_LONG_FRAMES, parseInt(maxLongFrames));
-
-      return tr.e.rail.computeNormalizedPain(longFrameCount, {
-        min: MIN_LONG_FRAMES,
-        max: maxLongFrames,
+      var absolute = false;
+      var discrepancy = tr.b.Statistics.timestampsDiscrepancy(
+          frameTimestamps, absolute);
+      return tr.e.rail.computeNormalizedPain(discrepancy, {
+        min: PAIN_BEGINS_AT_JANK,
+        max: PAIN_PEAKS_AT_JANK,
         power: PAIN_POWER
       });
     }
