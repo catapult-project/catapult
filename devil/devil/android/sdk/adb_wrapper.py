@@ -315,10 +315,15 @@ class AdbWrapper(object):
 
     Raises:
       AdbCommandFailedError if |path| does not specify a valid and accessible
-          directory in the device.
+          directory in the device, or the output of "adb ls" command is less
+          than four columns
     """
-    def ParseLine(line):
+    def ParseLine(line, cmd):
       cols = line.split(None, 3)
+      if len(cols) < 4:
+        raise device_errors.AdbCommandFailedError(
+            cmd, line, "the output should be 4 columns, but is only %d columns"
+            % len(cols), device_serial=self._device_serial)
       filename = cols.pop()
       stat = DeviceStat(*[int(num, base=16) for num in cols])
       return (filename, stat)
@@ -327,7 +332,7 @@ class AdbWrapper(object):
     lines = self._RunDeviceAdbCmd(
         cmd, timeout=timeout, retries=retries).splitlines()
     if lines:
-      return [ParseLine(line) for line in lines]
+      return [ParseLine(line, cmd) for line in lines]
     else:
       raise device_errors.AdbCommandFailedError(
           cmd, 'path does not specify an accessible directory in the device',
