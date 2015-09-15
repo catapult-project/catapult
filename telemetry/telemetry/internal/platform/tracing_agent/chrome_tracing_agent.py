@@ -5,13 +5,11 @@
 import os
 import shutil
 import stat
-import sys
 import tempfile
-import traceback
 
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
-    chrome_tracing_devtools_manager)
+    chrome_devtools_tracing_backend)
 
 _DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
 
@@ -21,17 +19,12 @@ _CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
 _CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
 
 
-class ChromeTracingStartedError(Exception):
-  pass
-
-
-class ChromeTracingStoppedError(Exception):
-  pass
-
-
 class ChromeTracingAgent(tracing_agent.TracingAgent):
   def __init__(self, platform_backend):
     super(ChromeTracingAgent, self).__init__(platform_backend)
+    self._chrome_devtools_tracing_backend = (
+      chrome_devtools_tracing_backend.ChromeDevtoolsTracingBackend(
+        platform_backend))
     self._trace_config_file = None
 
   @property
@@ -39,45 +32,21 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     return self._trace_config_file
 
   @classmethod
+  def RegisterDevToolsClient(cls, devtools_client_backend, platform_backend):
+    (chrome_devtools_tracing_backend.ChromeDevtoolsTracingBackend
+        .RegisterDevToolsClient(devtools_client_backend, platform_backend))
+
+  @classmethod
   def IsSupported(cls, platform_backend):
-    return chrome_tracing_devtools_manager.IsSupported(platform_backend)
+    return (chrome_devtools_tracing_backend.ChromeDevtoolsTracingBackend
+      .IsSupported(platform_backend))
 
   def Start(self, trace_options, category_filter, timeout):
-    if not trace_options.enable_chrome_trace:
-      return False
-    devtools_clients = (chrome_tracing_devtools_manager
-        .GetActiveDevToolsClients(self._platform_backend))
-    if not devtools_clients:
-      return False
-    for client in devtools_clients:
-      if client.is_tracing_running:
-        raise ChromeTracingStartedError(
-            'Tracing is already running on devtools at port %s on platform'
-            'backend %s.' % (client.remote_port, self._platform_backend))
-      client.StartChromeTracing(
-          trace_options, category_filter.filter_string, timeout)
-    return True
+    return self._chrome_devtools_tracing_backend.Start(
+        trace_options, category_filter, timeout)
 
   def Stop(self, trace_data_builder):
-    # We get all DevTools clients including the stale ones, so that we get an
-    # exception if there is a stale client. This is because we will potentially
-    # lose data if there is a stale client.
-    devtools_clients = (chrome_tracing_devtools_manager
-        .GetDevToolsClients(self._platform_backend))
-    raised_execption_messages = []
-    for client in devtools_clients:
-      try:
-        client.StopChromeTracing(trace_data_builder)
-      except Exception:
-        raised_execption_messages.append(
-          'Error when trying to stop tracing on devtools at port %s:\n%s'
-          % (client.remote_port,
-             ''.join(traceback.format_exception(*sys.exc_info()))))
-
-    if raised_execption_messages:
-      raise ChromeTracingStoppedError(
-          'Exceptions raised when trying to stop devtool tracing\n:' +
-          '\n'.join(raised_execption_messages))
+    self._chrome_devtools_tracing_backend.Stop(trace_data_builder)
 
   def _CreateTraceConfigFile(self, config):
     assert not self._trace_config_file
