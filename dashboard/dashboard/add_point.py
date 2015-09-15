@@ -104,6 +104,7 @@ class AddPointHandler(post_data_handler.PostDataHandler):
             "name": "foo",
             "units": "ms",
             "values": [4.2, 5.7, 6.8],
+            "std": 1.30512,
           },
       },
     }
@@ -335,7 +336,11 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
         raise BadRequestError('Expected list of scalar values, got: ' + values)
     else:
       value = math_utils.Mean(values)
-      error = math_utils.StandardDeviation(values)
+      std = trace.get('std')
+      if std is not None:
+        error = std
+      else:
+        error = math_utils.StandardDeviation(values)
   elif trace_type == 'histogram':
     value, error = _GeomMeanAndStdDevFromHistogram(trace)
   elif trace_type is not None:

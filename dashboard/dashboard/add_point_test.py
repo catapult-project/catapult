@@ -1166,6 +1166,19 @@ class FlattenTraceTest(testing_common.TestCase):
     self.assertAlmostEqual(row['value'], 13)
     self.assertAlmostEqual(row['error'], 6.78232998)
 
+  def testFlattenTraceListValueWithStd(self):
+    """Tests that lists with reported std use std as error."""
+    trace = {
+        'type': 'list_of_scalar_values',
+        'name': 'bar.baz',
+        'units': 'ms',
+        'values': [5, 10, 25, 10, 15],
+        'std': 100,
+    }
+    row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+    self.assertNotAlmostEqual(row['error'], 6.78232998)
+    self.assertEqual(row['error'], 100)
+
   def testFlattenTrace_ListNoneValue(self):
     """Tests that LoS NoneValue is flattened to NaN."""
     trace = {
