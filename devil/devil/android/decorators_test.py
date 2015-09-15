@@ -223,6 +223,11 @@ class DecoratorsTest(unittest.TestCase):
       return timeout
 
     @decorators.WithTimeoutAndRetriesFromInstance(
+        'default_timeout', 'default_retries', min_default_timeout=100)
+    def alwaysReturnsTimeoutWithMin(self, timeout=None, retries=None):
+      return timeout
+
+    @decorators.WithTimeoutAndRetriesFromInstance(
         'default_timeout', 'default_retries')
     def alwaysReturnsRetries(self, timeout=None, retries=None):
       return retries
@@ -270,6 +275,12 @@ class DecoratorsTest(unittest.TestCase):
     self.assertEquals(41, test_obj.alwaysReturnsTimeout(timeout=41))
     self.assertEquals(31, test_obj.alwaysReturnsRetries())
     self.assertEquals(32, test_obj.alwaysReturnsRetries(retries=32))
+
+  def testMethodDecoratorUsesMiniumumTimeout(self):
+    test_obj = self._MethodDecoratorTestObject(
+        self, default_timeout=42, default_retries=31)
+    self.assertEquals(100, test_obj.alwaysReturnsTimeoutWithMin())
+    self.assertEquals(41, test_obj.alwaysReturnsTimeoutWithMin(timeout=41))
 
   def testMethodDecoratorTranslatesReraiserExceptions(self):
     test_obj = self._MethodDecoratorTestObject(self)

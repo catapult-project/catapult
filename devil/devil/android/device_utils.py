@@ -484,11 +484,9 @@ class DeviceUtils(object):
       timeout_retry.WaitFor(wifi_enabled)
 
   REBOOT_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
-  REBOOT_DEFAULT_RETRIES = _DEFAULT_RETRIES
 
-  @decorators.WithTimeoutAndRetriesDefaults(
-      REBOOT_DEFAULT_TIMEOUT,
-      REBOOT_DEFAULT_RETRIES)
+  @decorators.WithTimeoutAndRetriesFromInstance(
+      min_default_timeout=REBOOT_DEFAULT_TIMEOUT)
   def Reboot(self, block=True, wifi=False, timeout=None, retries=None):
     """Reboot the device.
 
@@ -513,11 +511,9 @@ class DeviceUtils(object):
       self.WaitUntilFullyBooted(wifi=wifi)
 
   INSTALL_DEFAULT_TIMEOUT = 4 * _DEFAULT_TIMEOUT
-  INSTALL_DEFAULT_RETRIES = _DEFAULT_RETRIES
 
-  @decorators.WithTimeoutAndRetriesDefaults(
-      INSTALL_DEFAULT_TIMEOUT,
-      INSTALL_DEFAULT_RETRIES)
+  @decorators.WithTimeoutAndRetriesFromInstance(
+      min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
   def Install(self, apk_path, reinstall=False, permissions=None, timeout=None,
               retries=None):
     """Install an APK.
@@ -540,9 +536,8 @@ class DeviceUtils(object):
     self._InstallInternal(apk_path, None, reinstall=reinstall,
                           permissions=permissions)
 
-  @decorators.WithTimeoutAndRetriesDefaults(
-      INSTALL_DEFAULT_TIMEOUT,
-      INSTALL_DEFAULT_RETRIES)
+  @decorators.WithTimeoutAndRetriesFromInstance(
+      min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
   def InstallSplitApk(self, base_apk, split_apks, reinstall=False,
                       allow_cached_props=False, permissions=None, timeout=None,
                       retries=None):
@@ -1031,11 +1026,9 @@ class DeviceUtils(object):
                          check_return=True)
 
   PUSH_CHANGED_FILES_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
-  PUSH_CHANGED_FILES_DEFAULT_RETRIES = _DEFAULT_RETRIES
 
-  @decorators.WithTimeoutAndRetriesDefaults(
-      PUSH_CHANGED_FILES_DEFAULT_TIMEOUT,
-      PUSH_CHANGED_FILES_DEFAULT_RETRIES)
+  @decorators.WithTimeoutAndRetriesFromInstance(
+      min_default_timeout=PUSH_CHANGED_FILES_DEFAULT_TIMEOUT)
   def PushChangedFiles(self, host_device_tuples, timeout=None,
                        retries=None, delete_device_stale=False):
     """Push files to the device, skipping files that don't need updating.

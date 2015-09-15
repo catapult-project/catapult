@@ -116,7 +116,8 @@ def WithTimeoutAndRetriesDefaults(default_timeout, default_retries):
 
 def WithTimeoutAndRetriesFromInstance(
     default_timeout_name=DEFAULT_TIMEOUT_ATTR,
-    default_retries_name=DEFAULT_RETRIES_ATTR):
+    default_retries_name=DEFAULT_RETRIES_ATTR,
+    min_default_timeout=None):
   """Returns a decorator that handles timeouts and retries.
 
   The provided |default_timeout_name| and |default_retries_name| are used to
@@ -130,12 +131,16 @@ def WithTimeoutAndRetriesFromInstance(
                           instance.
     default_retries_name: The name of the default retries attribute of the
                           instance.
+    min_timeout: Miniumum timeout to be used when using instance timeout.
   Returns:
     The actual decorator.
   """
   def decorator(f):
     def get_timeout(inst, *_args, **kwargs):
-      return kwargs.get('timeout', getattr(inst, default_timeout_name))
+      ret = getattr(inst, default_timeout_name)
+      if min_default_timeout is not None:
+        ret = max(min_default_timeout, ret)
+      return kwargs.get('timeout', ret)
     def get_retries(inst, *_args, **kwargs):
       return kwargs.get('retries', getattr(inst, default_retries_name))
     return _TimeoutRetryWrapper(f, get_timeout, get_retries, pass_values=True)
