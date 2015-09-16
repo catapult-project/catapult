@@ -13,7 +13,7 @@ class BisectJob(object):
   def __init__(self, bisect_director, good_revision, bad_revision, test_command,
                metric, repeats, truncate, timeout_minutes, bug_id, gs_bucket,
                recipe_tester_name, builder_host=None, builder_port=None,
-               test_type='perf'):
+               test_type='perf', required_confidence='95'):
     if not all([good_revision, bad_revision, test_command, metric,
                 repeats, timeout_minutes, recipe_tester_name]):
       raise ValueError('At least one of the values required for BisectJob '
@@ -33,6 +33,7 @@ class BisectJob(object):
     self.builder_port = builder_port
     self.test_type = test_type
     self.recipe_tester_name = recipe_tester_name
+    self.required_confidence = required_confidence
 
   @staticmethod
   def EnsureCommandPath(command):
@@ -61,6 +62,7 @@ class BisectJob(object):
         'builder_host': self.builder_host,
         'builder_port': self.builder_port,
         'recipe_tester_name': self.recipe_tester_name,
+        'required_initial_confidence': self.required_confidence,
     }
     properties = {'bisect_config': bisect_config}
     parameters = {

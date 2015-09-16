@@ -305,7 +305,7 @@ def GetBisectConfig(
   if use_buildbucket:
     config_dict['recipe_tester_name'] = bisect_bot
   if bypass_no_repro_check:
-    config_dict['required_confidence'] = '0'
+    config_dict['required_initial_confidence'] = '0'
   return config_dict
 
 
@@ -770,6 +770,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       gs_bucket='chrome-perf',
       recipe_tester_name=config['recipe_tester_name'],
       test_type=test_type,
+      required_confidence=config.get('required_initial_confidence', '95')
   )
 
 
