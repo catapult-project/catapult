@@ -364,6 +364,12 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     processCompleteEvent: function(event) {
+      // TODO(fmeawad): Preventing the overhead slices from making it into
+      // the model until bug
+      // https://github.com/catapult-project/catapult/issues/1469 is addressed.
+      if (event.cat.indexOf('trace_event_overhead') > -1)
+        return undefined;
+
       var thread = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateThread(event.tid);
 
@@ -690,7 +696,7 @@ tr.exportTo('tr.e.importer', function() {
           // TODO(yuhaoz): If Chrome supports creating other events with flow,
           // we will need to call processFlowEvent for them also.
           // https://github.com/catapult-project/catapult/issues/1259
-          if (event.bind_id !== undefined)
+          if (slice !== undefined && event.bind_id !== undefined)
             this.processFlowEvent(event, slice);
 
         } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
