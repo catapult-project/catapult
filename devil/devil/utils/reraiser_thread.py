@@ -142,6 +142,7 @@ class ReraiserThreadGroup(object):
     try:
       self._JoinAll(watcher)
     except TimeoutError:
+      logging.critical('Timed out. Dumping threads.')
       for thread in (t for t in self._threads if t.isAlive()):
         LogThreadStack(thread)
       raise
