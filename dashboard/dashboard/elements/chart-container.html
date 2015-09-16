@@ -1172,6 +1172,7 @@ triaging functionality in the chart.
 
           var data = this.getDataForFlot();
           if (data.length == 0) {
+            data = [[]];
             this.chart = $.plot(this.$.plot, data, this.chartOptions);
             this.clearAlertIcons();
             return;
