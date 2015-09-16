@@ -526,7 +526,7 @@ class StartBisectTest(testing_common.TestCase):
             'use_buildbucket': True,
         },
         {
-            'command': ('tools/perf/run_benchmark -v '
+            'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
@@ -655,7 +655,8 @@ class StartBisectTest(testing_common.TestCase):
             'max_time_minutes': '8',
             'truncate_percent': '10',
             'bug_id': '-1',
-            'use_archive': ''
+            'use_archive': '',
+            'use_buildbucket': False,
         }, **params_to_override)
     response = start_try_job.GetBisectConfig(**parameters)
     self.assertEqual(expected_command, response.get('command'))
@@ -952,6 +953,69 @@ class StartBisectTest(testing_common.TestCase):
             'bisect_mode': 'mean',
         })
 
+  def testGetConfig_Usebuildbucket_AndroidTelemetryTest(self):
+    self._TestGetConfigCommand(
+        ('src/tools/perf/run_benchmark -v '
+         '--browser=android-chromium --output-format=chartjson '
+         '--also-run-disabled-tests '
+         'page_cycler.morejs'),
+        bisect_bot='android_nexus7_perf_bisect',
+        suite='page_cycler.morejs',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_CCPerftests(self):
+    self._TestGetConfigCommand(
+        ('./src/out/Release/cc_perftests '
+         '--test-launcher-print-test-stdio=always'),
+        bisect_bot='linux_perf_bisect',
+        suite='cc_perftests',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_AndroidCCPerftests(self):
+    self._TestGetConfigCommand(
+        'src/build/android/test_runner.py gtest --release -s cc_perftests',
+        bisect_bot='android_nexus7_perf_bisect',
+        suite='cc_perftests',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_IdbPerf(self):
+    self._TestGetConfigCommand(
+        ('.\src\out\Release\performance_ui_tests.exe '
+         '--gtest_filter=IndexedDBTest.Perf'),
+        bisect_bot='win_perf_bisect',
+        suite='idb_perf',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_Startup_ProfileDirFlagAdded(self):
+    self._TestGetConfigCommand(
+        ('python src/tools/perf/run_benchmark -v '
+         '--browser=release --output-format=chartjson '
+         '--also-run-disabled-tests '
+         '--profile-dir=src/out/Release/generated_profile/small_profile '
+         'startup.cold.blank_page'),
+        bisect_bot='win_perf_bisect',
+        suite='startup.cold.dirty.blank_page',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_SessionRestore_ProfileDirFlagAdded(self):
+    self._TestGetConfigCommand(
+        ('python src/tools/perf/run_benchmark -v '
+         '--browser=release --output-format=chartjson '
+         '--also-run-disabled-tests '
+         '--profile-dir=src/out/Release/generated_profile/small_profile '
+         'session_restore.warm.typical_25'),
+        bisect_bot='win_perf_bisect',
+        suite='session_restore.warm.typical_25',
+        use_buildbucket=True)
+
+  def testGetConfig_Usebuildbucket_PerformanceBrowserTests(self):
+    self._TestGetConfigCommand(
+        ('./src/out/Release/performance_browser_tests '
+         '--test-launcher-print-test-stdio=always '
+         '--enable-gpu'),
+        bisect_bot='linux_perf_bisect',
+        suite='performance_browser_tests',
+        use_buildbucket=True)
 
 if __name__ == '__main__':
   unittest.main()

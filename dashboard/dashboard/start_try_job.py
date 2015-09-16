@@ -418,19 +418,26 @@ def GuessCommand(
     bisect_bot, suite, metric=None, rerun_option=None, use_buildbucket=False):
   """Returns a command to use in the bisect configuration."""
   if suite in _NON_TELEMETRY_TEST_COMMANDS:
-    return _GuessCommandNonTelemetry(suite, bisect_bot)
+    return _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket)
   return _GuessCommandTelemetry(
       suite, bisect_bot, metric, rerun_option, use_buildbucket)
 
 
-def _GuessCommandNonTelemetry(suite, bisect_bot):
+def _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket):
   """Returns a command string to use for non-Telemetry tests."""
   if suite not in _NON_TELEMETRY_TEST_COMMANDS:
     return None
   if suite == 'cc_perftests' and bisect_bot.startswith('android'):
-    return 'build/android/test_runner.py gtest --release -s cc_perftests'
+    if use_buildbucket:
+      return 'src/build/android/test_runner.py gtest --release -s cc_perftests'
+    else:
+      return 'build/android/test_runner.py gtest --release -s cc_perftests'
 
-  command = _NON_TELEMETRY_TEST_COMMANDS[suite]
+  command = list(_NON_TELEMETRY_TEST_COMMANDS[suite])
+
+  if use_buildbucket and command[0].startswith('./out'):
+    command[0] = command[0].replace('./', './src/')
+
   if bisect_bot.startswith('win'):
     command[0] = command[0].replace('/', '\\')
     command[0] += '.exe'
@@ -447,15 +454,20 @@ def _GuessCommandTelemetry(
   if bisect_bot.startswith('win'):
     command.append('python')
 
+  if use_buildbucket:
+    test_cmd = 'src/tools/perf/run_benchmark'
+  else:
+    test_cmd = 'tools/perf/run_benchmark'
+
   command.extend([
-      'tools/perf/run_benchmark',
+      test_cmd,
       '-v',
       '--browser=%s' % _GuessBrowserName(bisect_bot),
       '--output-format=%s' % ('chartjson' if use_buildbucket else 'buildbot'),
       '--also-run-disabled-tests',
   ])
 
-  profile_dir = _GuessProfileDir(suite)
+  profile_dir = _GuessProfileDir(suite, use_buildbucket)
   if profile_dir:
     command.append('--profile-dir=%s' % profile_dir)
 
@@ -488,13 +500,17 @@ def _GuessBrowserName(bisect_bot):
   return 'release'
 
 
-def _GuessProfileDir(suite):
+def _GuessProfileDir(suite, use_buildbucket):
   """Returns a profile directory string for Telemetry, or None."""
   if (suite == 'startup.warm.dirty.blank_page' or
       suite == 'startup.cold.dirty.blank_page' or
       suite.startswith('session_restore')):
+    # Profile directory relative to build directory on slave.
+    if use_buildbucket:
+      return 'src/out/Release/generated_profile/small_profile'
     # Profile directory relative to chromium/src.
-    return 'out/Release/generated_profile/small_profile'
+    else:
+      return 'out/Release/generated_profile/small_profile'
   return None
 
 
