@@ -22,7 +22,7 @@ WARNING: This file is auto generated.
 """
 
 js_warning_message = """
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
+// Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -33,7 +33,7 @@ js_warning_message = """
 """
 
 css_warning_message = """
-/* Copyright (c) 2014 The Chromium Authors. All rights reserved.
+/* Copyright 2015 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
@@ -90,26 +90,6 @@ def GenerateJS(load_sequence,
   return f.getvalue()
 
 
-def pt_parts(self):
-  sl = ['unicode and 8-bit string parts of above page template']
-  for x in self.buflist:
-    if type(x) == type(''):
-      maxcode = 0
-      for c in x:
-          maxcode = max(ord(c), maxcode)
-    # show only unicode objects and non-ascii strings
-    if type(x) == type('') and maxcode > 127:
-      t = '****NonAsciiStr: '
-    elif type(x) == type(u''):
-      t = '*****UnicodeStr: '
-    else:
-      t = None
-    if t:
-      sl.append(t + repr(x))
-  s = '\n'.join(sl)
-  return s
-
-
 def GenerateJSToFile(f,
                      load_sequence,
                      use_include_tags_for_scripts=False,
@@ -154,7 +134,7 @@ def GenerateJSToFile(f,
       js = s.getvalue()
       min_js_size = str(len(_MinifyJS(js)))
 
-      # Print names for this module. Some domain-specific simplifciations
+      # Print names for this module. Some domain-specific simplifications
       # are included to make pivoting more obvious.
       parts = module.name.split('.')
       if parts[:2] == ['base', 'ui']:
@@ -164,12 +144,13 @@ def GenerateJSToFile(f,
       tln = parts[0]
       sln = '.'.join(parts[:2])
 
-      # Ouptut
+      # Output
       print '%i\t%s\t%s\t%s\t%s' % (len(js), min_js_size, module.name, tln, sln)
       sys.stdout.flush()
 
 
 class ExtraScript(object):
+
   def __init__(self, script_id=None, text_content=None, content_type=None):
     if script_id is not None:
       assert script_id[0] != '#'
@@ -229,18 +210,24 @@ def GenerateStandaloneHTMLToFile(output_file,
                                  minify=False,
                                  report_sizes=False,
                                  output_html_head_and_body=True):
+  """Writes a HTML file with the content of all modules in a load sequence.
+
+  The load_sequence is a list of (HTML or JS) Module objects; the order that
+  they're inserted into the file depends on their type and position in the load
+  sequence.
+  """
   _AssertIsUTF8(output_file)
   extra_scripts = extra_scripts or []
 
   if output_html_head_and_body:
-    output_file.write("""<!DOCTYPE HTML>
-<html>
-  <head i18n-values="dir:textdirection;">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    """)
+    output_file.write(
+        '<!DOCTYPE HTML>\n'
+        '<html>\n'
+        '  <head i18n-values="dir:textdirection;">\n'
+        '  <meta http-equiv="Content-Type" content="text/html;'
+        'charset=utf-8">\n')
     if title:
-      output_file.write("""  <title>%s</title>
-  """ % title)
+      output_file.write('  <title>%s</title>\n  ' % title)
   else:
     assert title is None
 
@@ -269,23 +256,19 @@ def GenerateStandaloneHTMLToFile(output_file,
       return '<style>\n%s\n</style>' % text
 
   for module in load_sequence:
-    ctl = HTMLGenerationController(module)
-    module.AppendHTMLContentsToFile(output_file, ctl, minify=minify)
+    controller = HTMLGenerationController(module)
+    module.AppendHTMLContentsToFile(output_file, controller, minify=minify)
 
   if flattened_js_url:
     output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
     output_file.write('<script>\n')
-    x = GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes)
-    output_file.write(x)
+    js = GenerateJS(load_sequence, minify=minify, report_sizes=report_sizes)
+    output_file.write(js)
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:
     extra_script.WriteToFile(output_file)
 
   if output_html_head_and_body:
-    output_file.write("""</head>
-  <body>
-  </body>
-</html>
-""")
+    output_file.write('</head>\n  <body>\n  </body>\n</html>\n')
