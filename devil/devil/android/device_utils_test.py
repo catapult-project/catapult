@@ -605,7 +605,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
          'test.package'),
         (self.call.device._GetApplicationPathsInternal('test.package'),
          ['/fake/data/app/test.package.apk']),
-        self.call.adb.Uninstall('test.package', False),
+        self.call.device.Uninstall('test.package'),
         self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
       self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
 
@@ -690,10 +690,16 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):
-
   def testUninstall_callsThrough(self):
     with self.assertCalls(
+        (self.call.device._GetApplicationPathsInternal('test.package'),
+         ['/path.apk']),
         self.call.adb.Uninstall('test.package', True)):
+      self.device.Uninstall('test.package', True)
+
+  def testUninstall_noop(self):
+    with self.assertCalls(
+        (self.call.device._GetApplicationPathsInternal('test.package'), [])):
       self.device.Uninstall('test.package', True)
 
 

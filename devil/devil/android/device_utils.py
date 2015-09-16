@@ -627,6 +627,8 @@ class DeviceUtils(object):
                 retries=None):
     """Remove the app |package_name| from the device.
 
+    This is a no-op if the app is not already installed.
+
     Args:
       package_name: The package to uninstall.
       keep_data: (optional) Whether to keep the data and cache directories.
@@ -638,6 +640,9 @@ class DeviceUtils(object):
       CommandTimeoutError if the uninstallation times out.
       DeviceUnreachableError on missing device.
     """
+    installed = self._GetApplicationPathsInternal(package_name)
+    if not installed:
+      return
     try:
       self.adb.Uninstall(package_name, keep_data)
       self._cache['package_apk_paths'][package_name] = []

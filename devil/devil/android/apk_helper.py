@@ -13,7 +13,7 @@ from pylib import constants
 
 _AAPT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'aapt')
 _MANIFEST_ATTRIBUTE_RE = re.compile(
-    r'\s*A: ([^\(\)= ]*)\([^\(\)= ]*\)="(.*)" \(Raw: .*\)$')
+    r'\s*A: ([^\(\)= ]*)\([^\(\)= ]*\)=(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
 _MANIFEST_ELEMENT_RE = re.compile(r'\s*(?:E|N): (\S*) .*$')
 _PACKAGE_NAME_RE = re.compile(r'package: .*name=\'(\S*)\'')
 _SPLIT_NAME_RE = re.compile(r'package: .*split=\'(\S*)\'')
@@ -60,7 +60,7 @@ def _ParseManifestFromApk(apk_path):
     if m:
       if not m.group(1) in node:
         node[m.group(1)] = []
-      node[m.group(1)].append(m.group(2))
+      node[m.group(1)].append(m.group(2) or m.group(3))
       continue
 
   return parsed_manifest
@@ -72,6 +72,7 @@ class ApkHelper(object):
     self._manifest = None
     self._package_name = None
     self._split_name = None
+    self._has_isolated_processes = None
 
   def GetActivityName(self):
     """Returns the name of the Activity in the apk."""
@@ -129,6 +130,18 @@ class ApkHelper(object):
         self._split_name = m.group(1)
         return self._split_name
     return None
+
+  def HasIsolatedProcesses(self):
+    """Returns whether any services exist that use isolatedProcess=true."""
+    if self._has_isolated_processes is None:
+      manifest_info = self._GetManifest()
+      try:
+        services = manifest_info['manifest']['application']['service']
+        self._has_isolated_processes = (
+            any(int(v, 0) for v in services['android:isolatedProcess']))
+      except KeyError:
+        self._has_isolated_processes = False
+    return self._has_isolated_processes
 
   def _GetManifest(self):
     if not self._manifest:
