@@ -52,7 +52,7 @@ handlers:
   static_dir: dashboard/elements/
   secure: always
 
-- url: /third_party/polymer/components/(.*)/(.*\.(html|js|css))$
+- url: /components/(.*)/(.*\.(html|js|css))$
   static_files: polymer/components/\1/\2
   upload: polymer/components/.*/.*\.(html|js|css)$
   secure: always

@@ -36,11 +36,11 @@ property 'group' sets to the header item name.
         ...
     ]
 -->
-<link rel="import" href="/third_party/polymer/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="/third_party/polymer/components/core-item/core-item.html">
-<link rel="import" href="/third_party/polymer/components/core-menu/core-menu.html">
-<link rel="import" href="/third_party/polymer/components/paper-input/paper-input-decorator.html">
-<link rel="import" href="/third_party/polymer/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/components/core-item/core-item.html">
+<link rel="import" href="/components/core-menu/core-menu.html">
+<link rel="import" href="/components/paper-input/paper-input-decorator.html">
+<link rel="import" href="/components/paper-shadow/paper-shadow.html">
 
 <link rel="import" href="/static/autocomplete.html">
 
@@ -162,7 +162,6 @@ property 'group' sets to the header item name.
       /**
        * Handles typing text in the textbox and navigating drop-down menu with
        * arrow keys.
-       * @param {Event} event.
        */
       onTextboxKeyup: function(event) {
         var key = event.keyCode || event.charCode;
@@ -191,9 +190,6 @@ property 'group' sets to the header item name.
 
       /**
        * Handles item selected on drop-down menu.
-       * @param {Event} event
-       * @param {Object} detail
-       * @param {Object} sender
        */
       onDropdownSelect: function(event, detail, sender) {
         this.$.textbox.focus();
@@ -423,7 +419,7 @@ property 'group' sets to the header item name.
         this.$['dropdown-container'].hidden = true;
         document.removeEventListener(
           'click', this.hideDropdown.bind(this), true);
-      },
+      }
     });
   </script>
 </polymer-element>
