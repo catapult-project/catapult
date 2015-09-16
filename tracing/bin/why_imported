@@ -9,35 +9,37 @@ The dot file contains a text-based representation of a directed graph that
 explains why given module names were included in a trace_viewer config.
 
 Example usage:
-$ ./why_imported ui.analysis.analysis_view > ~/analysis_view.dot
+$ ./why_imported tracing.ui.analysis.analysis_view > ~/analysis_view.dot
 
 This can then be converted to a graphical representation with the dot tool:
 $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
 """
 
 import sys
-import optparse
+import argparse
 
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
 
-def Main(args):
+
+def Main():
   project = tracing_project.TracingProject()
 
-  parser = optparse.OptionParser(
-      usage='%prog <options> moduleNames', epilog=__doc__)
-  parser.add_option(
-      '--config', type='choice', choices=project.GetConfigNames())
-  options, args = parser.parse_args(args)
+  parser = argparse.ArgumentParser(
+      usage='%(prog)s <options> moduleNames', epilog=__doc__)
+  parser.add_argument('--config', choices=project.GetConfigNames())
+  parser.add_argument('module_names', nargs='+')
+  args = parser.parse_args()
 
-  if options.config:
+  if args.config:
     names = [project.GetModuleNameForConfigName(options.config)]
     vulcanizer = project.CreateVulcanizer()
     load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(names)
   else:
-    parser.error('Unsupported')
-  print vulcanizer.GetDominatorGraphForModulesNamed(args, load_sequence)
+    parser.error('No config specified.')
+  print vulcanizer.GetDominatorGraphForModulesNamed(
+      args.module_names, load_sequence)
 
 
 if __name__ == '__main__':
-  sys.exit(Main(sys.argv[1:]))
+  sys.exit(Main())
