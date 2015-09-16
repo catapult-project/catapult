@@ -35,18 +35,16 @@ tr.exportTo('tr.ui.tracks', function() {
     get tracks_() {
       var tracks = [];
       for (var i = 0; i < this.children.length; i++) {
-        if (this.children[i].classList.contains('track'))
+        if (this.children[i] instanceof tr.ui.tracks.Track)
           tracks.push(this.children[i]);
       }
       return tracks;
     },
 
     drawTrack: function(type) {
-      for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track))
-          continue;
-        this.children[i].drawTrack(type);
-      }
+      this.tracks_.forEach(function(track) {
+        track.drawTrack(type);
+      });
     },
 
     /**
