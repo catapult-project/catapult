@@ -4,21 +4,19 @@
 
 """Task queue task which migrates a Test and its Rows to a new name.
 
-A rename consists of:
-* Listing all Test entities which match the old_name pattern. For each:
-  * Creating a new Test entity with the new name.
-  * Re-parenting all Test entities from the old Test to the new Test.
-  * Re-parenting all Row entities from the old Test to the new Test.
-  * Updating all Anomaly entities to reference the new Test.
-  * Deleting the old Test.
+A rename consists of listing all Test entities which match the old_name,
+and then, for each, completing these steps:
+  * Create a new Test entity with the new name.
+  * Re-parent all Test and Row entities from the old Test to the new Test.
+  * Update alerts to reference the new Test.
+  * Delete the old Test.
 
-For any rename, there could be hundreds of tests and many thousands of rows.
+For any rename, there could be hundreds of Tests and many thousands of Rows.
 Datastore operations often time out after a few hundred puts(), so this task
 is split up using the task queue.
-
-For examples, see the unit test.
 """
 
+import logging
 import re
 
 from google.appengine.api import mail
@@ -32,6 +30,7 @@ from dashboard import request_handler
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import stoppage_alert
 
 _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 50
 
@@ -303,9 +302,8 @@ def _MigrateTestToNewKey(old_test_key, new_test_key):
     ndb.Future.wait_all(futures)
     return False
 
-  anomalies_futures = _MigrateAnomalies(old_test_key, new_test_key)
-  if anomalies_futures:
-    futures += anomalies_futures
+  futures += _MigrateAnomalies(old_test_key, new_test_key)
+  futures += _MigrateStoppageAlerts(old_test_key, new_test_key)
 
   if not futures:
     _SendNotificationEmail(old_test_key, new_test_key)
@@ -385,11 +383,11 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
 
 
 def _MigrateAnomalies(old_parent_key, new_parent_key):
-  """Copies the Anomalies from one parent test to another.
+  """Copies the Anomaly entities from one test to another.
 
   Args:
-    old_parent_key: Test entity key of the test to move Anomalies from.
-    new_parent_key: Test entity key of the test to move Anomalies to.
+    old_parent_key: Source Test entity key.
+    new_parent_key: Destination Test entity key.
 
   Returns:
     A list of Future objects for Anomaly entities to update.
@@ -402,6 +400,33 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
   for anomaly_entity in anomalies_to_update:
     anomaly_entity.test = new_parent_key
   return ndb.put_multi_async(anomalies_to_update)
+
+
+def _MigrateStoppageAlerts(old_parent_key, new_parent_key):
+  """Copies the StoppageAlert entities from one test to another.
+
+  Args:
+    old_parent_key: Source Test entity key.
+    new_parent_key: Destination Test entity key.
+
+  Returns:
+    A list of Future objects for StoppageAlert puts and deletes.
+  """
+  query = stoppage_alert.StoppageAlert.query(
+      stoppage_alert.StoppageAlert.test == old_parent_key)
+  alerts_to_update = query.fetch(limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+  if not alerts_to_update:
+    return []
+  futures = []
+  for entity in alerts_to_update:
+    new_entity = stoppage_alert.StoppageAlert(
+        parent=ndb.Key('StoppageAlertParent', utils.TestPath(new_parent_key)),
+        id=entity.key.id(),
+        mail_sent=entity.mail_sent,
+        recovered=entity.recovered)
+    futures.append(entity.key.delete_async())
+    futures.append(new_entity.put_async())
+  return futures
 
 
 def _SendNotificationEmail(old_test_key, new_test_key):
