@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * @fileoverview Boostrap for loading javascript/html files using d8_runner.
  */
@@ -209,7 +211,7 @@
       pathPart = href.substring(1);
     }
 
-    candidates = [];
+    var candidates = [];
     for (var i = 0; i < sourcePaths.length; i++) {
       var candidate = d8_path_utils.join(sourcePaths[i], pathPart);
       if (d8_path_utils.exists(candidate))

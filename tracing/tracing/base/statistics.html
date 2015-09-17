@@ -130,7 +130,7 @@ tr.exportTo('tr.b', function() {
     if (high - low === 0.0) {
       // Samples is an array of 0.5 in this case.
       samples = Array.apply(null, new Array(samples.length)).map(
-        function(){ return 0.5;});
+        function() { return 0.5;});
       return {
         normalized_samples: samples,
         scale: 1.0
@@ -172,15 +172,15 @@ tr.exportTo('tr.b', function() {
       // Generate list of equally spaced locations.
       var sample_index = 0;
       for (var i = 0; i < opt_location_count; i++) {
-        var location = i / (opt_location_count-1);
+        var location = i / (opt_location_count - 1);
         locations.push(location);
         while (sample_index < samples.length &&
           samples[sample_index] < location) {
           sample_index += 1;
         }
         count_less.push(sample_index);
-        while  (sample_index < samples.length
-          && samples[sample_index] <= location) {
+        while (sample_index < samples.length &&
+            samples[sample_index] <= location) {
           sample_index += 1;
         }
         count_less_equal.push(sample_index);
@@ -195,7 +195,7 @@ tr.exportTo('tr.b', function() {
       for (var i = 0; i < samples.length; i++) {
         locations.push(samples[i]);
         count_less.push(i);
-        count_less_equal.push(i+1);
+        count_less_equal.push(i + 1);
       }
       if (samples[-1] < 1.0) {
         locations.push(1.0);
@@ -207,7 +207,7 @@ tr.exportTo('tr.b', function() {
     for (var i = 0; i < locations.length; i++) {
       for (var j = i + 1; j < locations.length; j++) {
         // Length of interval
-        length = locations[j] - locations[i];
+        var length = locations[j] - locations[i];
 
         // Local discrepancy for closed interval
         var count_closed = count_less_equal[j] - count_less[i];
@@ -224,7 +224,7 @@ tr.exportTo('tr.b', function() {
           local_discrepancy_open, max_local_discrepancy);
       }
     }
-    return max_local_discrepancy
+    return max_local_discrepancy;
   };
 
   /**
@@ -261,7 +261,7 @@ tr.exportTo('tr.b', function() {
   Statistics.timestampsDiscrepancy = function(timestamps, opt_absolute,
                             opt_location_count) {
     if (timestamps.length === 0)
-      return 0.0
+      return 0.0;
 
     if (opt_absolute === undefined)
       opt_absolute = true;
@@ -309,10 +309,10 @@ tr.exportTo('tr.b', function() {
   Statistics.durationsDiscrepancy = function(
     durations, opt_absolute, opt_location_count) {
       if (durations.length === 0)
-      return 0.0
+      return 0.0;
 
     var timestamps = durations.reduce(function(prev, curr, index, array) {
-      prev.push(prev[prev.length-1] + curr);
+      prev.push(prev[prev.length - 1] + curr);
       return prev;
     }, [0]);
     return Statistics.timestampsDiscrepancy(

@@ -248,6 +248,18 @@ class VinnUnittest(unittest.TestCase):
     self.AssertHasNamedFrame('eval', 'load_js_error.html:22',
                              exception_message)
 
+  def testStrictError(self):
+    file_path = self.GetTestFilePath('non_strict_error.html')
+    with self.assertRaises(RuntimeError) as context:
+      d8_runner.ExecuteFile(file_path, source_paths=[self.test_data_dir])
+
+    # Assert error stack trace contain src files' info.
+    exception_message = context.exception.message
+
+    self.assertIn('non_defined_variable is not defined', exception_message)
+    self.AssertHasNamedFrame('eval', 'non_strict_error.html:17',
+                             exception_message)
+
   def testConsolePolyfill(self):
     self.assertEquals(
         d8_runner.ExcecuteJsString('console.log("hello", "world");'),

@@ -39,7 +39,7 @@ tr.exportTo('pi.wr', function() {
       }
       if (path.length === 0)
         return;
-      subType = path[0];
+      var subType = path[0];
       node.subTypes = node.subTypes || {};
       node.subTypes[subType] = node.subTypes[subType] || {};
       addIRToNode(node.subTypes[subType], ir, path.slice(1));

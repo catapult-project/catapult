@@ -97,7 +97,7 @@ tr.exportTo('pi', function() {
     results.didFinishAllRuns();
 
     results.allValues.forEach(function(value) {
-      valueAsDict = value.asDict();
+      var valueAsDict = value.asDict();
       console.log('MAP_RESULT_VALUE: ' + JSON.stringify(valueAsDict));
     });
     return 0;
