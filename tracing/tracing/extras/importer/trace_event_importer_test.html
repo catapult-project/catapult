@@ -3617,6 +3617,38 @@ tr.b.unittest.testSuite(function() {
     assert.equal(gpuDumpLocal2OwnsLink.importance, 1);
   });
 
+  test('importMemoryDumps_memoryAllocatorDumpsMissingFields', function() {
+    var events = [
+      {
+        name: 'a',
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            allocators: {
+              'no_crash': {
+                /* Missing GUID and attributes. */
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.memoryAllocatorDumps.length, 1);
+    var noCrashRoot = d.getMemoryAllocatorDumpByFullName('no_crash');
+    assert.lengthOf(noCrashRoot.children, 0);
+    assert.deepEqual(noCrashRoot.attributes,
+        { size: undefined, effective_size: undefined });
+    assert.isUndefined(noCrashRoot.parent);
+    assert.isUndefined(noCrashRoot.guid);
+  });
+
   test('importMemoryDumps_levelsOfDetail', function() {
     function makeModelWithLevelsOfDetail(levelsOfDetail) {
       return makeModel(levelsOfDetail.map(function(levelOfDetail, index) {

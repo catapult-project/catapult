@@ -2048,6 +2048,16 @@ tr.exportTo('tr.e.importer', function() {
 
               // Add all new attributes to the memory allocator dump.
               var attributes = rawAllocatorDump.attrs;
+              if (attributes === undefined) {
+                this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Memory allocator dump ' + fullName +
+                      ' from pid=' + pid + ' (GUID=' + guid + ') does not' +
+                      ' have attributes.'
+                });
+                attributes = {};
+              }
+
               tr.b.iterItems(attributes, function(attrName, attrArgs) {
                 if (attrName in allocatorDump.attributes) {
                   // Skip existing attributes of the memory allocator dump.
