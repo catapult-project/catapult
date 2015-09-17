@@ -18,5 +18,6 @@ def _UpdateSysPathIfNeeded():
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'WebOb'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'tracing'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'perf_insights'))
+  _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
 
 _UpdateSysPathIfNeeded()
