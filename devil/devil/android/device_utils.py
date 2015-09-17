@@ -993,11 +993,13 @@ class DeviceUtils(object):
     self.RunShellCommand(['am', 'force-stop', package], check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def ClearApplicationState(self, package, timeout=None, retries=None):
+  def ClearApplicationState(
+      self, package, permissions=None, timeout=None, retries=None):
     """Clear all state for the given package.
 
     Args:
       package: A string containing the name of the package to stop.
+      permissions: List of permissions to set after clearing data.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1011,6 +1013,7 @@ class DeviceUtils(object):
     if ((self.build_version_sdk >= version_codes.JELLY_BEAN_MR2)
         or self._GetApplicationPathsInternal(package)):
       self.RunShellCommand(['pm', 'clear', package], check_return=True)
+      self.GrantPermissions(package, permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SendKeyEvent(self, keycode, timeout=None, retries=None):

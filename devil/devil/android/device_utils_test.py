@@ -1338,6 +1338,20 @@ class DeviceUtilsForceStopTest(DeviceUtilsTest):
 
 class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
 
+  def testClearApplicationState_setPermissions(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '17'),
+        (self.call.device._GetApplicationPathsInternal('this.package.exists'),
+         ['/data/app/this.package.exists.apk']),
+        (self.call.device.RunShellCommand(
+            ['pm', 'clear', 'this.package.exists'],
+            check_return=True),
+         ['Success']),
+        (self.call.device.GrantPermissions(
+            'this.package.exists', ['p1']), [])):
+      self.device.ClearApplicationState(
+          'this.package.exists', permissions=['p1'])
+
   def testClearApplicationState_packageDoesntExist(self):
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '11'),
