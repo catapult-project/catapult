@@ -274,6 +274,10 @@ class SharedPageState(story.SharedState):
       self._current_tab.ClearCache(force=True)
 
   @property
+  def current_page(self):
+    return self._current_page
+
+  @property
   def current_tab(self):
     return self._current_tab
 
