@@ -7,6 +7,9 @@ import logging
 from telemetry.core import exceptions
 from telemetry.page import action_runner as action_runner_module
 
+# Export story_test.Failure to this page_test module
+from telemetry.web_perf.story_test import Failure
+
 
 class TestNotSupportedOnPlatformError(Exception):
   """PageTest Exception raised when a required feature is unavailable.
@@ -21,10 +24,6 @@ class MultiTabTestAppCrashError(Exception):
 
   Used to abort the test rather than try to recover from an unknown state.
   """
-
-
-class Failure(Exception):
-  """PageTest Exception raised when an undesired but designed-for problem."""
 
 
 class MeasurementFailure(Failure):

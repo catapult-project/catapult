@@ -137,3 +137,16 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesNamed(
         'Gesture_Scroll-frame_time_discrepancy')
     self.assertEquals(len(v), 1)
+
+  def testTimelineBasedMeasurementWithNoInteractionRecord(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddStory(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, trigger_scroll_gesture=True))
+
+    option = tbm_module.Options(
+        tracing_category_filter.TracingCategoryFilter('cc'))
+    tbm = tbm_module.TimelineBasedMeasurement(option)
+    measurement = tbpt_module.TimelineBasedPageTest(tbm)
+    results = self.RunMeasurement(measurement, ps, options=self._options)
+    self.assertEquals(1, len(results.failures))
+    self.assertIn('No timeline interaction records', str(results.failures[0]))

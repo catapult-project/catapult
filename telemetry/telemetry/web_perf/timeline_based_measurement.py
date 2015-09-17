@@ -280,6 +280,13 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     results.AddValue(trace.TraceValue(results.current_page, trace_result))
     model = model_module.TimelineModel(trace_result)
     threads_to_records_map = _GetRendererThreadsToInteractionRecordsMap(model)
+    if (len(threads_to_records_map.values()) == 0 and
+        self._tbm_options.tracing_options.enable_chrome_trace):
+      raise story_test.Failure(
+          'No timeline interaction records were recorded in the trace. '
+          'This could be caused by console.time() & console.timeEnd() execution'
+          ' failure or the tracing category specified doesn\'t include '
+          'blink.console categories.')
     for renderer_thread, interaction_records in (
         threads_to_records_map.iteritems()):
       meta_metrics = _TimelineBasedMetrics(
