@@ -48,7 +48,11 @@ tr.exportTo('pi.wr', function() {
       if (!(ir instanceof tr.e.rail.RAILInteractionRecord))
         return;
       allIRs.push(ir);
-      addIRToNode(irTree, ir, [ir.railTypeName, ir.name || 'Unknown name']);
+      var path = [
+        tr.e.rail.userFriendlyRailTypeName(ir.railTypeName),
+        ir.name || 'Unnamed'
+      ];
+      addIRToNode(irTree, ir, path);
     });
     irTree.overallScore = (new tr.e.rail.RAILScore(allIRs)).overallScore;
 
@@ -72,14 +76,15 @@ tr.exportTo('pi.wr', function() {
         // Unassociated events have already been assigned to a RTN.
         if (railTypeNameByGUID[event.guid] !== undefined)
           return;
-        railTypeNameByGUID[event.guid] = ir.railTypeName;
+        railTypeNameByGUID[event.guid] = tr.e.rail.userFriendlyRailTypeName(
+            ir.railTypeName);
       }, this);
     }, this);
 
     model.iterateAllEvents(function storeEventToUnassociatedSet(event) {
       if (railTypeNameByGUID[event.guid] !== undefined)
         return;
-      railTypeNameByGUID[event.guid] = 'unknown';
+      railTypeNameByGUID[event.guid] = 'Unknown';
     });
     return railTypeNameByGUID;
   }

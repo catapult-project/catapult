@@ -21,20 +21,20 @@ tr.exportTo('pi.wr', function() {
     autoInitUsingHelpers: function(model) {
       // Everything is 'other' by default.
       model.getAllThreads().forEach(function(thread) {
-        this.groupNameForThreadGUID_[thread.guid] = 'other';
+        this.groupNameForThreadGUID_[thread.guid] = 'Other';
       }, this);
 
       if (tr.e.audits.ChromeModelHelper.supportsModel(model)) {
         var chromeHelper = new tr.e.audits.ChromeModelHelper(model);
 
         var browserHelper = chromeHelper.browserHelper;
-        this.addThreadsInProcessToGroup_(browserHelper.process, 'browser');
+        this.addThreadsInProcessToGroup_(browserHelper.process, 'Browser');
 
         // TODO(nduca): Detect clank browser gpu thread and assign it to the GPU
         // group.
         for (var pid in chromeHelper.rendererHelpers) {
           var rendererHelper = chromeHelper.rendererHelpers[pid];
-          this.addThreadsInProcessToGroup_(rendererHelper.process, 'renderer');
+          this.addThreadsInProcessToGroup_(rendererHelper.process, 'Renderer');
         }
 
         // TODO(nduca): Modify the helpers to detect plugin and gpu processes
@@ -51,14 +51,14 @@ tr.exportTo('pi.wr', function() {
 
       var groupName = this.groupNameForThreadGUID_[thread.guid];
       if (groupName === undefined)
-        return 'other';
+        return 'Other';
       return groupName;
     },
 
     getGroupNameForEvent: function(event) {
       var parentContainer = event.parentContainer;
       if (parentContainer === undefined)
-        return 'unknown';
+        return 'Unknown';
       return this.getGroupNameForThread(parentContainer);
     },
 
@@ -93,7 +93,7 @@ tr.exportTo('pi.wr', function() {
 
         var groupName = this.groupNameForThreadGUID_[parentContainer.guid];
         if (groupName === undefined)
-          groupName = 'other';
+          groupName = 'Other';
         resultingEventSets[groupName].push(event);
 
       }, this);

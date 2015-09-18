@@ -57,22 +57,22 @@ tr.b.unittest.testSuite(function() {
     assert.equal(results.allValues.length, 3);
     var value = results.allValues[0];
     assert.equal(value.name, 'time_spent_in_queue');
-    assert.equal(Object.keys(value.value['browser']).length, 1);
+    assert.equal(Object.keys(value.value['Browser']).length, 1);
     var histogram = tr.b.u.Histogram.fromDict(
-        value.value['browser']['CrBrowserMain']);
+        value.value['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(7.2).count, 1);
     assert.equal(histogram.getBinForValue(18.1).count, 1);
     value = results.allValues[1];
     assert.equal(value.name, 'time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['browser']).length, 1);
+    assert.equal(Object.keys(value.value['Browser']).length, 1);
     histogram = tr.b.u.Histogram.fromDict(
-        value.value['browser']['CrBrowserMain']);
+        value.value['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(10.4).count, 1);
     value = results.allValues[2];
     assert.equal(value.name, 'cpu_time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['browser']).length, 1);
+    assert.equal(Object.keys(value.value['Browser']).length, 1);
     histogram = tr.b.u.Histogram.fromDict(
-        value.value['browser']['CrBrowserMain']);
+        value.value['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(3.0).count, 1);
   });
 });

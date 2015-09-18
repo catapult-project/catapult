@@ -235,10 +235,19 @@ tr.exportTo('tr.e.rail', function() {
     return numerator / denominator;
   }
 
+  // A user friendly name is currently formed by dropping the rail_ prefix and
+  // capitalizing.
+  function userFriendlyRailTypeName(railTypeName) {
+    if (railTypeName.length < 6 || railTypeName.indexOf('rail_') != 0)
+      return railTypeName;
+    return railTypeName[5].toUpperCase() + railTypeName.slice(6);
+  }
+
   return {
     RAILInteractionRecord: RAILInteractionRecord,
     computeNormalizedPain: computeNormalizedPain,
     weightedAverage2: weightedAverage2,
+    userFriendlyRailTypeName: userFriendlyRailTypeName,
     ALL_RAIL_TYPE_NAMES: ALL_RAIL_TYPE_NAMES
   };
 });

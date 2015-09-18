@@ -69,5 +69,21 @@ tr.b.unittest.testSuite(function() {
     });
     assert.closeTo(0.15536, ir.railScore, 1e-5);
   });
+
+  test('userFriendlyRailTypeName', function() {
+    // Invalid names shouldn't be modified.
+    var result = tr.e.rail.userFriendlyRailTypeName('not_a_rail_type_name');
+    assert.equal('not_a_rail_type_name', result);
+    result = tr.e.rail.userFriendlyRailTypeName('rail_');
+    assert.equal('rail_', result);
+
+    // Some valid things.
+    result = tr.e.rail.userFriendlyRailTypeName('rail_animate');
+    assert.equal('Animate', result);
+    result = tr.e.rail.userFriendlyRailTypeName('rail_b');
+    assert.equal('B', result);
+    result = tr.e.rail.userFriendlyRailTypeName('rail_123');
+    assert.equal('123', result);
+  });
 });
 </script>
