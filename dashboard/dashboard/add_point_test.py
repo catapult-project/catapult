@@ -1242,6 +1242,19 @@ class FlattenTraceTest(testing_common.TestCase):
         'foo', 'bar', 'http://example.com', trace)
     self.assertEqual(row['test'], 'foo/bar/http___example.com')
 
+  def testFlattenTrace_FlattensInteractionRecordLabelToFivePartName(self):
+    """Tests whether a TIR label will appear between chart and trace name."""
+    trace = {
+        'type': 'scalar',
+        'name': 'bar',
+        'page': 'https://abc.xyz/',
+        'units': 'ms',
+        'value': 42,
+        'tir_label': 'baz'
+    }
+    row = add_point._FlattenTrace('foo', 'baz@@bar', 'https://abc.xyz/', trace)
+    self.assertEqual(row['test'], 'foo/bar/baz/https___abc.xyz_')
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -4,6 +4,7 @@
 
 """General functions which are useful throughout this project."""
 
+import json
 import re
 import time
 
@@ -194,3 +195,16 @@ def IsValidSheriffUser():
 def GetIpWhitelist():
   """Returns a list of IP address strings in the whitelist."""
   return stored_object.Get(IP_WHITELIST_KEY)
+
+
+def BisectConfigPythonString(config):
+  """Turns a bisect config dict into a properly formatted Python string.
+
+  Args:
+    config: A bisect config dict (see start_try_job.GetBisectConfig)
+
+  Returns:
+    A config string suitable to store in a TryJob entity.
+  """
+  return 'config = %s\n' % json.dumps(
+      config, sort_keys=True, indent=2, separators=(',', ': '))

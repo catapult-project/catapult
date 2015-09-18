@@ -166,8 +166,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if 'error' in new_bisect_config:
     raise NotBisectableError('Could not make a valid config.')
 
-  config_python_string = 'config = %s\n' % json.dumps(
-      new_bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
+  config_python_string = utils.BisectConfigPythonString(new_bisect_config)
 
   bisect_job = try_job.TryJob(
       bot=bisect_bot,

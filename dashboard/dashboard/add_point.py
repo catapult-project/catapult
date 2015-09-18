@@ -316,6 +316,10 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
   Raises:
     BadRequestError: The data wasn't valid.
   """
+  if '@@' in chart_name:
+    tir_label, chart_name = chart_name.split('@@')
+    chart_name = chart_name + '/' + tir_label
+
   trace_type = trace.get('type')
   if trace_type == 'scalar':
     value = trace.get('value')

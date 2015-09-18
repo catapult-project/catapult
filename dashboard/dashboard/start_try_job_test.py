@@ -1017,5 +1017,18 @@ class StartBisectTest(testing_common.TestCase):
         suite='performance_browser_tests',
         use_buildbucket=True)
 
+
+class RewriteMetricNameTests(testing_common.TestCase):
+
+  def testRewriteMetricWithoutInteractionRecord(self):
+    self.assertEqual('old/skool',
+                     start_try_job._RewriteMetricName('old/skool'))
+
+  def testRewriteMetricWithInteractionRecord(self):
+    self.assertEqual(
+        'interaction-chart/trace', start_try_job._RewriteMetricName(
+            'chart/interaction/trace'))
+
+
 if __name__ == '__main__':
   unittest.main()
