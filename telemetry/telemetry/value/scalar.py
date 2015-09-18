@@ -41,7 +41,7 @@ class ScalarValue(summarizable.SummarizableValue):
                 self.important,
                 self.description,
                 self.tir_label,
-                self.improvment_direction)
+                self.improvement_direction)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):

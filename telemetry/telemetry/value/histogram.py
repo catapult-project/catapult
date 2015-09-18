@@ -54,9 +54,9 @@ class HistogramValue(summarizable.SummarizableValue):
       page_name = self.page.display_name
     else:
       page_name = 'None'
-    return ('HistogramValue(%s, %s, %s, raw_json_string="%s", '
+    return ('HistogramValue(%s, %s, %s, raw_json_string=%s, '
             'important=%s, description=%s, tir_label=%s, '
-            'improvement_direction=%s') % (
+            'improvement_direction=%s)') % (
                 page_name,
                 self.name, self.units,
                 self.ToJSONString(),

@@ -68,6 +68,21 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    page = self.pages[0]
+    v = list_of_scalar_values.ListOfScalarValues(
+        page, 'x', 'unit', [10, 9, 9, 7], important=True, description='desc',
+        tir_label='my_ir', std=42, same_page_merge_policy=value.CONCATENATE,
+        improvement_direction=improvement_direction.DOWN)
+
+    expected = ('ListOfScalarValues(http://www.bar.com/, x, unit, '
+                '[10, 9, 9, 7], important=True, description=desc, '
+                'tir_label=my_ir, std=42, '
+                'same_page_merge_policy=CONCATENATE, '
+                'improvement_direction=down)')
+
+    self.assertEquals(expected, str(v))
+
   def testListSamePageMergingWithSamePageConcatenatePolicy(self):
     page0 = self.pages[0]
     v0 = list_of_scalar_values.ListOfScalarValues(

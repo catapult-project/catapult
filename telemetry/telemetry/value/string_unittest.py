@@ -27,6 +27,16 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class StringValueTest(TestBase):
+  def testRepr(self):
+    page0 = self.pages[0]
+    v = string.StringValue(page0, 'x', 'unit', 'L1', important=True,
+                           description='desc', tir_label='my_ir')
+
+    expected = ('StringValue(http://www.bar.com/, x, unit, L1, important=True, '
+                'description=desc, tir_label=my_ir)')
+
+    self.assertEquals(expected, str(v))
+
   def testBuildbotValueType(self):
     page0 = self.pages[0]
     v = string.StringValue(page0, 'x', 'label', 'L1', important=True)

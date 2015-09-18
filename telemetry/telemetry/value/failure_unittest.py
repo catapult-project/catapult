@@ -24,6 +24,14 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    v = failure.FailureValue.FromMessage(self.pages[0], 'Failure')
+
+    exc_info_str = failure.GetStringFromExcInfo(v.exc_info)
+    expected = 'FailureValue(http://www.bar.com/, %s)' % exc_info_str
+
+    self.assertEquals(expected, str(v))
+
   def testName(self):
     v0 = failure.FailureValue.FromMessage(self.pages[0], 'Failure')
     self.assertEquals('Exception', v0.name)

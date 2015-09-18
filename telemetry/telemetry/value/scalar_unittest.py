@@ -28,6 +28,18 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    page0 = self.pages[0]
+    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True,
+                           description='desc', tir_label='my_ir',
+                           improvement_direction=improvement_direction.DOWN)
+
+    expected = ('ScalarValue(http://www.bar.com/, x, unit, 3, important=True, '
+                'description=desc, tir_label=my_ir, '
+                'improvement_direction=down')
+
+    self.assertEquals(expected, str(v))
+
   def testBuildbotValueType(self):
     page0 = self.pages[0]
     v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True,

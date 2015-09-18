@@ -112,7 +112,7 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     else:
       merge_policy = 'PICK_FIRST'
     return ('ListOfScalarValues(%s, %s, %s, %s, '
-            'important=%s, description=%s, tir_label=%s, '
+            'important=%s, description=%s, tir_label=%s, std=%s, '
             'same_page_merge_policy=%s, improvement_direction=%s)') % (
                 page_name,
                 self.name,
@@ -121,6 +121,7 @@ class ListOfScalarValues(summarizable.SummarizableValue):
                 self.important,
                 self.description,
                 self.tir_label,
+                self.std,
                 merge_policy,
                 self.improvement_direction)
 

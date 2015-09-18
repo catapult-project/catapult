@@ -27,6 +27,18 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ListOfStringValuesTest(TestBase):
+  def testRepr(self):
+    page = self.pages[0]
+    v = list_of_string_values.ListOfStringValues(
+        page, 'x', 'unit', ['L1', 'L2'], important=True, description='desc',
+        tir_label='my_ir', same_page_merge_policy=value.CONCATENATE)
+
+    expected = ('ListOfStringValues(http://www.bar.com/, x, unit, '
+                '[\'L1\', \'L2\'], important=True, description=desc, '
+                'tir_label=my_ir, same_page_merge_policy=CONCATENATE)')
+
+    self.assertEquals(expected, str(v))
+
   def testListSamePageMergingWithSamePageConcatenatePolicy(self):
     page0 = self.pages[0]
     v0 = list_of_string_values.ListOfStringValues(

@@ -64,6 +64,11 @@ class TestDefaultDict(object):
 
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    v = trace.TraceValue(self.pages[0], trace_data.TraceData({'test': 1}),
+                         important=True, description='desc')
+
+    self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
 
   def testAsDictWhenTraceSerializedAndUploaded(self):
     tempdir = tempfile.mkdtemp()

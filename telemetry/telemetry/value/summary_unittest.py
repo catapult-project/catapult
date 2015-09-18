@@ -342,7 +342,7 @@ class SummaryTest(TestBase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     b_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'b', 'seconds', [2, 2, 3, 3],
+        None, 'b', 'seconds', [2, 2, 3, 3], std=0.0,
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))

@@ -23,6 +23,16 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    v = skip.SkipValue(self.pages[0], 'page skipped for testing reason',
+                       description='desc')
+
+    expected = ('SkipValue(http://www.bar.com/, '
+                'page skipped for testing reason, '
+                'description=desc)')
+
+    self.assertEquals(expected, str(v))
+
   def testBuildbotAndRepresentativeValue(self):
     v = skip.SkipValue(self.pages[0], 'page skipped for testing reason')
     self.assertIsNone(v.GetBuildbotValue())

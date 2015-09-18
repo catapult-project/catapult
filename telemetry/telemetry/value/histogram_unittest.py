@@ -27,6 +27,20 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class ValueTest(TestBase):
+  def testRepr(self):
+    page = self.pages[0]
+    v = histogram_module.HistogramValue(
+            page, 'x', 'counts',
+           raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
+           important=True, description='desc', tir_label='my_ir',
+           improvement_direction=improvement_direction.UP)
+    expected = ('HistogramValue(http://www.bar.com/, x, counts, '
+                'raw_json_string={"buckets": [{"low": 1, "high": 2, "count": '
+                '1}]}, important=True, description=desc, tir_label=my_ir, '
+                'improvement_direction=up)')
+
+    self.assertEquals(expected, str(v))
+
   def testHistogramBasic(self):
     page0 = self.pages[0]
     histogram = histogram_module.HistogramValue(
