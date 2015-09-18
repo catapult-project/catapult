@@ -66,7 +66,7 @@
 
   <custom-tooltip id="tooltip"></custom-tooltip>
 
-  <report-container></report-container>
+  <report-container xsrfToken="{{xsrf_token | safe}}"></report-container>
   <section id="charts-container"></section>
 
 {% endblock %}

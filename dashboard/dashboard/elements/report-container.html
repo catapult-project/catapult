@@ -1,7 +1,7 @@
 <link rel="import" href="test-picker.html">
 <link rel="import" href="/static/uri.html">
 
-<polymer-element name="report-container" attributes="hasChart">
+<polymer-element name="report-container" attributes="hasChart xsrfToken">
   <template>
     <style>
       #nav-container {
@@ -11,7 +11,7 @@
     </style>
 
     <div id="nav-container">
-      <test-picker id="test-picker"></test-picker>
+      <test-picker id="test-picker" xsrfToken="{{xsrfToken}}"></test-picker>
     </div>
 
   </template>
@@ -84,7 +84,7 @@
             'revisionrange', this.onRevisionRangeChanged.bind(this));
 
         chart.revisionInfo = window['REVISION_INFO'];
-        chart.xsrfToken = window['XSRF_TOKEN'];
+        chart.xsrfToken = this.xsrfToken;
         chart.graphParams = this.graphParams;
         chart.addSeriesGroup(testPathAndSelected, true);
         this.testPicker.hasChart = true;
