@@ -49,6 +49,8 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
+      tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.call(
+        this, containerToTrackMap);
       containerToTrackMap.addContainer(this.kernel, this);
     },
 

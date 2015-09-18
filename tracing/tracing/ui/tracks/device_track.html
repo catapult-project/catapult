@@ -56,10 +56,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
+      tr.ui.tracks.ContainerTrack.prototype.addContainersToTrackMap.call(
+        this, containerToTrackMap);
       containerToTrackMap.addContainer(this.device, this);
-      this.tracks_.forEach(function(track) {
-        track.addContainersToTrackMap(containerToTrackMap);
-      });
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {

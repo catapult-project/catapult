@@ -107,10 +107,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
+      tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.apply(
+        this, arguments);
       containerToTrackMap.addContainer(this.process, this);
-      this.tracks_.forEach(function(track) {
-        track.addContainersToTrackMap(containerToTrackMap);
-      });
     },
 
     appendMemoryDumpTrack_: function() {

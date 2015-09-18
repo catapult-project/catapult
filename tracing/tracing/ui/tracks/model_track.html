@@ -171,12 +171,6 @@ tr.exportTo('tr.ui.tracks', function() {
       }.bind(this));
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
-      var tracks = this.children;
-      for (var i = 0; i < tracks.length; ++i)
-        tracks[i].addContainersToTrackMap(containerToTrackMap);
-    },
-
     appendDeviceTrack_: function() {
       var device = this.model.device;
       var track = new tr.ui.tracks.DeviceTrack(this.viewport);

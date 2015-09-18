@@ -53,9 +53,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
+      tr.ui.tracks.ContainerTrack.prototype.addContainersToTrackMap.apply(
+        this, arguments);
       containerToTrackMap.addContainer(this.thread, this);
-      for (var i = 0; i < this.childNodes.length; ++i)
-        this.childNodes[i].addContainersToTrackMap(containerToTrackMap);
     },
 
     updateContents_: function() {

@@ -112,6 +112,12 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
+    addContainersToTrackMap: function(containerToTrackMap) {
+      this.tracks_.forEach(function(track) {
+        track.addContainersToTrackMap(containerToTrackMap);
+      });
+    },
+
     clearTracks_: function() {
       this.tracks_.forEach(function(track) {
         this.removeChild(track);
