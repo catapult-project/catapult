@@ -56,6 +56,13 @@ var group_report = (function() {
 
     // Traverse to the last part of the test path.
     var selectedSeries = [];
+
+    // We always want to add the test of the target alert regardless of whether
+    // or not it is in the global SUBTESTS.
+    if (selectedSeries.indexOf(lastTestPart) == -1) {
+      selectedSeries.push(lastTestPart);
+    }
+
     var subtestDict = window['SUBTESTS'][botName][alert['testsuite']];
     for (var level = 0; level < testParts.length; level++) {
       var name = testParts[level];
@@ -77,12 +84,6 @@ var group_report = (function() {
           selectedSeries.push(i);
         }
       }
-    }
-
-    // We always want to add the test of the target alert regardless of whether
-    // or not it is in the global SUBTESTS.
-    if (selectedSeries.indexOf(lastTestPart) == -1) {
-      selectedSeries.push(lastTestPart);
     }
 
     var fullTestPath = [alert['master'], alert['bot'], alert['testsuite'],
