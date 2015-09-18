@@ -25,7 +25,7 @@ FORWARD_SCROLL_UPDATE_COMP_NAME = (
 END_COMP_NAME = 'INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT'
 
 # Name for a main thread scroll update latency event.
-SCROLL_UPDATE_EVENT_NAME = 'Latency::ScrollUpdate'
+MAIN_THREAD_SCROLL_UPDATE_EVENT_NAME = 'Latency::ScrollUpdate'
 # Name for a gesture scroll update latency event.
 GESTURE_SCROLL_UPDATE_EVENT_NAME = 'InputLatency::GestureScrollUpdate'
 
@@ -174,7 +174,7 @@ class RenderingStats(object):
     self.frame_queueing_durations = []
     # Latency from when a scroll update is sent to the main thread until the
     # resulting frame is swapped.
-    self.scroll_update_latency = []
+    self.main_thread_scroll_latency = []
     # Latency for a GestureScrollUpdate input event.
     self.gesture_scroll_update_latency = []
 
@@ -184,7 +184,7 @@ class RenderingStats(object):
       self.approximated_pixel_percentages.append([])
       self.checkerboarded_pixel_percentages.append([])
       self.input_event_latency.append([])
-      self.scroll_update_latency.append([])
+      self.main_thread_scroll_latency.append([])
       self.gesture_scroll_update_latency.append([])
 
       if timeline_range.is_empty:
@@ -214,10 +214,10 @@ class RenderingStats(object):
     # input events and would therefore add noise to overall latency numbers.
     self.input_event_latency[-1] = [
         latency for name, latency in event_latencies
-        if name != SCROLL_UPDATE_EVENT_NAME]
-    self.scroll_update_latency[-1] = [
+        if name != MAIN_THREAD_SCROLL_UPDATE_EVENT_NAME]
+    self.main_thread_scroll_latency[-1] = [
         latency for name, latency in event_latencies
-        if name == SCROLL_UPDATE_EVENT_NAME]
+        if name == MAIN_THREAD_SCROLL_UPDATE_EVENT_NAME]
     self.gesture_scroll_update_latency[-1] = [
         latency for name, latency in event_latencies
         if name == GESTURE_SCROLL_UPDATE_EVENT_NAME]

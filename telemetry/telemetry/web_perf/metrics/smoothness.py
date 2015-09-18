@@ -68,8 +68,9 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     ]
     values += self._ComputeLatencyMetric(page, stats, 'input_event_latency',
                                          stats.input_event_latency)
-    values += self._ComputeLatencyMetric(page, stats, 'scroll_update_latency',
-                                         stats.scroll_update_latency)
+    values += self._ComputeLatencyMetric(page, stats,
+                                         'main_thread_scroll_latency',
+                                         stats.main_thread_scroll_latency)
     values.append(self._ComputeFirstGestureScrollUpdateLatencies(page, stats))
     values += self._ComputeFrameTimeMetric(page, stats)
     if has_surface_flinger_stats:

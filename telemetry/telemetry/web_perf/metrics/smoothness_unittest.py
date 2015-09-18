@@ -16,7 +16,7 @@ class _MockRenderingStats(object):
            'painted_pixel_counts', 'record_times',
            'recorded_pixel_counts', 'approximated_pixel_percentages',
            'checkerboarded_pixel_percentages', 'input_event_latency',
-           'frame_queueing_durations', 'scroll_update_latency',
+           'frame_queueing_durations', 'main_thread_scroll_latency',
            'gesture_scroll_update_latency']
 
   def __init__(self, **kwargs):
