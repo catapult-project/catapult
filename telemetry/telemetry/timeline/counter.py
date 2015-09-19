@@ -14,6 +14,10 @@ class CounterSample(object):
     self._sample_index = sample_index
 
   @property
+  def category(self):
+    return self._counter.category
+
+  @property
   def name(self):
     return self._counter.full_name
 
