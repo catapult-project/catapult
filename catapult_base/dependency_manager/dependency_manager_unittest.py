@@ -54,17 +54,17 @@ class DependencyManagerTest(unittest.TestCase):
     sb_path = 'sb_path'
     local_path = 'local_path'
     cs_path = 'cs_path'
-    dep_info = 'dep_info'
     local_path_mock.return_value = local_path
     cs_path_mock.return_value = cs_path
     sb_find_path_mock.return_value = sb_path
-    dep_info_mock.return_value = dep_info
+    dep_info_mock.return_value = None
 
     # Empty lookup_dict
     found_path = dep_manager.FetchPath('dep', 'plat_arch_x86')
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
+    dep_info_mock.assert_called_once_with('dep', 'plat_arch_x86')
     sb_find_path_mock.assert_called_once_with('dep', 'arch_x86', 'plat')
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
@@ -80,6 +80,7 @@ class DependencyManagerTest(unittest.TestCase):
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
+    dep_info_mock.assert_called_once_with('dep', 'plat_arch_x86')
     sb_find_path_mock.assert_called_once_with('dep', 'arch_x86', 'plat')
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
@@ -105,6 +106,7 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.return_value = local_path
     cs_path_mock.return_value = cs_path
     sb_find_path_mock.return_value = sb_path
+    # The DependencyInfo returned should be passed through to LocalPath.
     dep_info_mock.return_value = dep_info
 
 
@@ -238,13 +240,16 @@ class DependencyManagerTest(unittest.TestCase):
     dep_info = 'dep_info'
     local_path_mock.return_value = local_path
     sb_find_path_mock.return_value = sb_path
-    dep_info_mock.return_value = dep_info
+
+    # GetDependencyInfo should return None when missing from the lookup dict.
+    dep_info_mock.return_value = None
 
     # Empty lookup_dict
     found_path = dep_manager.LocalPath('dep', 'plat')
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     sb_find_path_mock.assert_called_once_with('dep')
+    dep_info_mock.assert_called_once_with('dep', 'plat')
     local_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
@@ -258,9 +263,13 @@ class DependencyManagerTest(unittest.TestCase):
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     sb_find_path_mock.assert_called_once_with('dep')
+    dep_info_mock.assert_called_once_with('dep', 'plat')
     local_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
+
+    # The DependencyInfo returned should be passed through to LocalPath.
+    dep_info_mock.return_value = dep_info
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path exists.
