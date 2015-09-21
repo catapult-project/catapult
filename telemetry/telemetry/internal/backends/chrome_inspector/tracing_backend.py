@@ -4,6 +4,7 @@
 
 import json
 import socket
+import sys
 import time
 
 from telemetry import decorators
@@ -30,6 +31,32 @@ class TracingHasNotRunException(Exception):
 
 class TracingUnexpectedResponseException(Exception):
   pass
+
+
+
+def IsInspectorWebsocketAvailable(port):
+  """Returns True if inspector websocket is available on the given port."""
+  inspector_websocket_instance = inspector_websocket.InspectorWebsocket()
+  try:
+    return _IsInspectorWebsocketAvailable(inspector_websocket_instance, port)
+  finally:
+    inspector_websocket_instance.Disconnect()
+
+def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
+  try:
+    inspector_websocket_instance.Connect(
+        'ws://127.0.0.1:%i/devtools/browser' % port)
+  except websocket.WebSocketException:
+    return False
+  except socket.error:
+    return False
+  except Exception as e:
+    sys.stderr.write('Unidentified exception while checking if wesocket is'
+                     'available on port %i. Exception message: %s\n' %
+                     (port, e.message))
+    return False
+  else:
+    return True
 
 
 class _DevToolsStreamReader(object):
