@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/model/source_info/js_source_info.html">
 
 <script>
@@ -17,7 +16,11 @@ found in the LICENSE file.
  * the source file, line and if the function is a native method or not.
  */
 tr.exportTo('tr.e.importer', function() {
-  function TraceCodeEntry(size, name, scriptId) {
+  function TraceCodeEntry(address, size, name, scriptId) {
+    this.id_ = tr.b.GUID.allocate();
+    this.address_ = address;
+    this.size_ = size;
+
     // Stolen from DevTools TimelineJSProfileProcessor._buildCallFrame
     // Code states:
     // (empty) -> compiled
@@ -64,24 +67,45 @@ tr.exportTo('tr.e.importer', function() {
 
     var nativeSuffix = ' native';
     var isNative = rawName.endsWith(nativeSuffix);
-    var functionName =
+    this.name_ =
         isNative ? rawName.slice(0, -nativeSuffix.length) : rawName;
+
     var urlData = splitLineAndColumn(rawUrl);
     var url = urlData.url || '';
     var line = urlData.lineNumber || 0;
     var column = urlData.columnNumber || 0;
-
-    tr.e.importer.v8.CodeMap.CodeEntry.call(this, size, functionName);
 
     this.sourceInfo_ = new tr.model.source_info.JSSourceInfo(
         url, line, column, isNative, scriptId);
   };
 
   TraceCodeEntry.prototype = {
-    __proto__: tr.e.importer.v8.CodeMap.CodeEntry.prototype,
+    get id() {
+      return this.id_;
+    },
 
     get sourceInfo() {
       return this.sourceInfo_;
+    },
+
+    get name() {
+      return this.name_;
+    },
+
+    set address(address) {
+      this.address_ = address;
+    },
+
+    get address() {
+      return this.address_;
+    },
+
+    set size(size) {
+      this.size_ = size;
+    },
+
+    get size() {
+      return this.size_;
     }
   };
 

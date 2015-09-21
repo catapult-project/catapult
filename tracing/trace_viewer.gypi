@@ -132,6 +132,7 @@
       'tracing/extras/importer/linux_perf/workqueue_parser.html',
       'tracing/extras/importer/trace2html_importer.html',
       'tracing/extras/importer/trace_code_entry.html',
+      'tracing/extras/importer/trace_code_map.html',
       'tracing/extras/importer/trace_event_importer.html',
       'tracing/extras/importer/v8/codemap.html',
       'tracing/extras/importer/v8/log_reader.html',

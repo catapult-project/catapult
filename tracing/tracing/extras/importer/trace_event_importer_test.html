@@ -1901,10 +1901,11 @@ tr.b.unittest.testSuite(function() {
   test('importV8Samples', function() {
     var eventData = {
       traceEvents: [
-        { name: 'JitCodeAdded', args: {data: {code_len: 2, name: 'LazyCompile:~foo http://example.com/bar.js:23', code_start: '0x123'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
-        { name: 'JitCodeAdded', args: {data: {code_len: 20, name: 'bar', code_start: '0x223'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
-        { name: 'JitCodeMoved', args: {data: {code_len: 2, old_code_start: '0x226', new_code_start: '0x224'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
-        { name: 'V8Sample', args: {data: {stack: ['0x124', '0x224']}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'P' }, // @suppress longLineCheck
+        { name: 'JitCodeAdded', args: {data: {code_len: 2, name: 'LazyCompile:~foo http://example.com/bar.js:23', code_start: '0x2a574306060'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'JitCodeAdded', args: {data: {code_len: 20, name: 'bar', code_start: '0x2a574306220'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'JitCodeMoved', args: {data: {code_len: 2, old_code_start: '0x2a574306220', code_start: '0x2a574306222'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'JitCodeAdded', args: {data: {code_len: 20, name: 'baz', code_start: '0xffffffff9f90a1a0'}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'I' }, // @suppress longLineCheck
+        { name: 'V8Sample', args: {data: {stack: ['0x2a574306061', '0x2a574306224']}}, pid: 1, ts: 0, cat: 'test', tid: 2, ph: 'P' }, // @suppress longLineCheck
         { name: 'V8Sample', args: {data: {stack: [], vm_state: 'gc'}}, pid: 1, ts: 10, cat: 'test', tid: 2, ph: 'P' } // @suppress longLineCheck
       ]
     };

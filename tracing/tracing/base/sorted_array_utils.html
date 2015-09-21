@@ -53,6 +53,20 @@ tr.exportTo('tr.b', function() {
     return hitPos != -1 ? hitPos : low;
   }
 
+  // From devtools/front_end/platform/utilities.js upperBound
+  function findHighIndexInSortedArray(ary, mapFn, loVal, hiVal) {
+    var lo = loVal || 0;
+    var hi = hiVal !== undefined ? hiVal : ary.length;
+    while (lo < hi) {
+      var mid = (lo + hi) >> 1;
+      if (mapFn(ary[mid]) >= 0)
+        lo = mid + 1;
+      else
+        hi = mid;
+    }
+    return hi;
+  }
+
   /**
    * Finds an index in an array of intervals that either intersects
    * the provided loVal, or if no intersection is found, -1 or ary.length.
@@ -308,6 +322,7 @@ tr.exportTo('tr.b', function() {
 
   return {
     findLowIndexInSortedArray: findLowIndexInSortedArray,
+    findHighIndexInSortedArray: findHighIndexInSortedArray,
     findIndexInSortedIntervals: findIndexInSortedIntervals,
     findIndexInSortedClosedIntervals: findIndexInSortedClosedIntervals,
     iterateOverIntersectingIntervals: iterateOverIntersectingIntervals,

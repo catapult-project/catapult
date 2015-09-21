@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
+<link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/attribute.html">
@@ -439,24 +440,14 @@ tr.exportTo('tr.e.importer', function() {
 
     processJitCodeEvent: function(event) {
       if (this.v8ProcessCodeMaps_[event.pid] === undefined)
-        this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.v8.CodeMap();
+        this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.TraceCodeMap();
       var map = this.v8ProcessCodeMaps_[event.pid];
 
       var data = event.args.data;
-      var startAddr = parseInt(data.code_start, 16);
-      if (event.name === 'JitCodeMoved') {
-        try {
-          map.moveCode(startAddr, parseInt(data.new_code_start, 16));
-        } catch (err) {
-          // Ignore moved error. Means we didn't find the original block.
-          // We won't know the name if we try to insert the code here.
-        }
-      } else {
-        var entry = new tr.e.importer.TraceCodeEntry(data.code_len, data.name);
-        // Hack to get around name de-duplication done by CodeMap::findEntry.
-        entry.nameUpdated_ = true;
-        map.addCode(startAddr, entry);
-      }
+      if (event.name === 'JitCodeMoved')
+        map.moveEntry(data.code_start, data.new_code_start, data.code_len);
+      else
+        map.addEntry(data.code_start, data.code_len, data.name, data.script_id);
     },
 
     processInstantEvent: function(event) {
@@ -566,10 +557,8 @@ tr.exportTo('tr.e.importer', function() {
         data.stack.reverse();
 
         for (var i = 0; i < data.stack.length; i++) {
-          var addr = parseInt(data.stack[i], 16);
-          var entry = map.findEntry(addr);
-
-          if (entry === null) {
+          var entry = map.lookupEntry(data.stack[i]);
+          if (entry === undefined) {
             entry = {
               id: 'unknown',
               name: 'unknown',
