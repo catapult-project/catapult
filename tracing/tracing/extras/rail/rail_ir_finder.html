@@ -881,7 +881,8 @@ tr.exportTo('tr.e.rail', function() {
     handleCSSAnimations: function() {
       var animationEvents = this.modelHelper.browserHelper.
           getAllAsyncSlicesMatching(function(event) {
-            return event.title === CSS_ANIMATION_TITLE;
+            return ((event.title === CSS_ANIMATION_TITLE) &&
+                    (event.duration > 0));
       });
 
       var animationRanges = [];
