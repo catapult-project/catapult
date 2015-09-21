@@ -104,17 +104,17 @@ tr.b.unittest.testSuite(function() {
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([slice1, slice2, sample3, record1]));
     assert.lengthOf(tabView.tabs, 3);
-    var sampleTab4 = tabView.tabs[0];
+    var sampleTab4 = tabView.tabs[1];
     checkTab(sampleTab4,
         'tr-ui-a-counter-sample-sub-view',
         [sample3]);
     // Reuse tab (same event type and sub-view tag name).
     assert.strictEqual(sampleTab4, sampleTab2);
-    var singleRecordTab4 = tabView.tabs[1];
+    var singleRecordTab4 = tabView.tabs[2];
     checkTab(singleRecordTab4,
         'tr-ui-a-single-interaction-record-sub-view',
         [record1]);
-    var multiThreadSliceTab4 = tabView.tabs[2];
+    var multiThreadSliceTab4 = tabView.tabs[0];
     checkTab(multiThreadSliceTab4,
         'tr-ui-a-multi-thread-time-slice-sub-view',
         [slice1, slice2]);

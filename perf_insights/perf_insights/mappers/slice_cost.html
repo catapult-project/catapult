@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/mappers/reduce.html">
+<link rel="import" href="/tracing/extras/chrome/user_friendly_category.html">
 
 <script>
 'use strict';
@@ -15,6 +16,7 @@ tr.exportTo('pi.wr', function() {
     this.railTypeName = undefined;
     this.title = undefined;
     this.domain = undefined;
+    this.userFriendlyCategory = undefined;
 
     this.selfTime = 0;
     this.cpuSelfTime = 0;
@@ -26,6 +28,7 @@ tr.exportTo('pi.wr', function() {
     sliceCostInfo.railTypeName = firstValue.railTypeName;
     sliceCostInfo.title = firstValue.title;
     sliceCostInfo.domain = firstValue.domain;
+    sliceCostInfo.userFriendlyCategory = firstValue.userFriendlyCategory;
     return sliceCostInfo;
   }
 
@@ -35,6 +38,7 @@ tr.exportTo('pi.wr', function() {
     sliceCostInfo.railTypeName = d.railTypeName;
     sliceCostInfo.title = d.title;
     sliceCostInfo.domain = d.domain;
+    sliceCostInfo.userFriendlyCategory = d.userFriendlyCategory;
     sliceCostInfo.selfTime = d.selfTime;
     sliceCostInfo.cpuSelfTime = d.cpuSelfTime;
     return sliceCostInfo;
@@ -69,6 +73,8 @@ tr.exportTo('pi.wr', function() {
         var sliceCostInfo = new SliceCostInfo();
         sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(slice);
         sliceCostInfo.railTypeName = railTypeNameByGUID[slice.guid];
+        sliceCostInfo.userFriendlyCategory =
+            tr.e.chrome.UserFriendlyCategory.fromEvent(slice);
         sliceCostInfo.title = slice.title;
         sliceCostInfo.domain = sample.leafStackFrame.domain;
         sliceCostInfo.selfTime = sample.weight;
@@ -95,6 +101,8 @@ tr.exportTo('pi.wr', function() {
       sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(
           threadSlice);
       sliceCostInfo.railTypeName = railTypeNameByGUID[threadSlice.guid];
+      sliceCostInfo.userFriendlyCategory =
+          tr.e.chrome.UserFriendlyCategory.fromEvent(threadSlice);
       sliceCostInfo.title = threadSlice.title;
       // For all other events, just generate one sliceCostInfo.
       sliceCostInfo.selfTime = threadSlice.selfTime;

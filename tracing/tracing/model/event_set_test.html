@@ -118,10 +118,44 @@ tr.b.unittest.testSuite(function() {
 
     var eventsByTitle = eventSet.getEventsOrganizedByTitle();
     assert.equal(2, tr.b.dictionaryLength(eventsByTitle));
-    assert.sameMembers(eventsByTitle['a'],
+    assert.sameMembers(eventsByTitle['a'].toArray(),
                  [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
-    assert.sameMembers(eventsByTitle['b'],
+    assert.sameMembers(eventsByTitle['b'].toArray(),
                  [t1.sliceGroup.slices[2]]);
+  });
+
+  test('groupEventsByCallback', function() {
+    var a1 = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3);
+    var a2 = new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3);
+    var b1 = new tr.model.ThreadSlice('', 'b', 0, 1, {}, 3);
+    var eventSet = new tr.model.EventSet([a1, a2, b1]);
+    function getEventKey(event) {
+      return 's' + event.start;
+    }
+    var eventsByCallback = eventSet.getEventsOrganizedByCallback(getEventKey);
+    assert.equal(2, tr.b.dictionaryLength(eventsByCallback));
+    assert.sameMembers(eventsByCallback.s1.toArray(), [a1, b1]);
+    assert.sameMembers(eventsByCallback.s2.toArray(), [a2]);
+  });
+
+  test('groupEventsByBaseType', function() {
+    var a = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3);
+    var b = new tr.model.ThreadSlice('', 'b', 0, 1, {}, 3);
+    var c = new tr.model.AsyncSlice('', 'c', 0, 1, {}, 3);
+    var eventSet = new tr.model.EventSet([a, b, c]);
+    var eventsByBaseType = eventSet.getEventsOrganizedByBaseType(true);
+    assert.equal(2, tr.b.dictionaryLength(eventsByBaseType));
+    assert.sameMembers(eventsByBaseType.slice.toArray(), [a, b]);
+    assert.sameMembers(eventsByBaseType.asyncSlice.toArray(), [c]);
+
+    var eventsByBaseType = eventSet.getEventsOrganizedByBaseType(false);
+    assert.isTrue(2 < tr.b.dictionaryLength(eventsByBaseType));
+    assert.sameMembers(eventsByBaseType.slice.toArray(), [a, b]);
+    assert.sameMembers(eventsByBaseType.asyncSlice.toArray(), [c]);
+    for (var baseType in eventsByBaseType) {
+      if (baseType !== 'slice' && baseType !== 'asyncSlice')
+        assert.equal(0, eventsByBaseType[baseType].length);
+    }
   });
 
   test('intersectionIsEmpty1', function() {

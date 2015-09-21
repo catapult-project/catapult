@@ -133,15 +133,12 @@ tr.exportTo('tr.model', function() {
     },
 
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
-      var events = {};
       var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
-      allTypeInfos.forEach(function(eventTypeInfo) {
-        events[eventTypeInfo.metadata.name] = new EventSet();
-      }, this);
 
-      this.forEach(function(event, i) {
+      var events = this.getEventsOrganizedByCallback(function(event) {
         var maxEventIndex = -1;
         var maxEventTypeInfo = undefined;
+
         allTypeInfos.forEach(function(eventTypeInfo, eventIndex) {
           if (!(event instanceof eventTypeInfo.constructor))
             return;
@@ -150,36 +147,48 @@ tr.exportTo('tr.model', function() {
             maxEventTypeInfo = eventTypeInfo;
           }
         });
+
         if (maxEventIndex == -1) {
           console.log(event);
           throw new Error('Unrecognized event type');
         }
-        events[maxEventTypeInfo.metadata.name].push(event);
+
+        return maxEventTypeInfo.metadata.name;
       });
-      if (opt_pruneEmpty) {
-        var prunedEvents = {};
-        for (var eventType in events) {
-          if (events[eventType].length > 0)
-            prunedEvents[eventType] = events[eventType];
-        }
-        return prunedEvents;
-      } else {
-        return events;
+
+      if (!opt_pruneEmpty) {
+        allTypeInfos.forEach(function(eventTypeInfo) {
+          if (events[eventTypeInfo.metadata.name] === undefined)
+            events[eventTypeInfo.metadata.name] = new EventSet();
+        });
       }
+
+      return events;
     },
 
     getEventsOrganizedByTitle: function() {
-      var eventsByTitle = {};
-      for (var i = 0; i < this.length; i++) {
-        var event = this[i];
+      return this.getEventsOrganizedByCallback(function(event) {
         if (event.title === undefined)
           throw new Error('An event didn\'t have a title!');
-        if (eventsByTitle[event.title] == undefined) {
-          eventsByTitle[event.title] = [];
-        }
-        eventsByTitle[event.title].push(event);
+        return event.title;
+      });
+    },
+
+    getEventsOrganizedByCallback: function(cb) {
+      var eventsByCallback = {};
+      for (var i = 0; i < this.length; i++) {
+        var event = this[i];
+        var key = cb(event);
+
+        if (key === undefined)
+          throw new Error('An event could not be organized');
+
+        if (eventsByCallback[key] === undefined)
+          eventsByCallback[key] = new EventSet();
+
+        eventsByCallback[key].push(event);
       }
-      return eventsByTitle;
+      return eventsByCallback;
     },
 
     enumEventsOfType: function(type, func) {

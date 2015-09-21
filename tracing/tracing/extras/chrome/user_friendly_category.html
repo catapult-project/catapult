@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.chrome', function() {
+  var DEFAULT_USER_FRIENDLY_CATEGORY = 'other';
+
+  var TITLES_FOR_USER_FRIENDLY_CATEGORY = {
+    layout: [
+      'FrameView::invalidateTree',
+      'FrameView::layout',
+      'FrameView::performLayout',
+      'FrameView::performPostLayoutTasks',
+      'FrameView::performPreLayoutTasks',
+      'Layer::updateLayerPositionsAfterLayout',
+      'LayoutView::hitTest',
+      'ResourceLoadPriorityOptimizer::updateAllImageResourcePriorities',
+      'WebViewImpl::layout'
+    ],
+
+    paint: [
+      'Paint'
+    ],
+
+    parse: [
+      'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
+      'HTMLDocumentParser::processParsedChunkFromBackgroundParser'
+    ],
+
+    script: [
+      'Script'
+    ],
+
+    style: [
+      'StyleElement::processStyleSheet',
+      'Document::updateStyle',
+      'RuleSet::addRulesFromSheet'
+    ]
+  };
+
+  var USER_FRIENDLY_CATEGORY_FOR_TITLE = {};
+
+  for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
+    TITLES_FOR_USER_FRIENDLY_CATEGORY[category].forEach(function(title) {
+      USER_FRIENDLY_CATEGORY_FOR_TITLE[title] = category;
+    });
+  }
+
+  var USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY = {
+    netlog: 'net',
+    overhead: 'overhead',
+    startup: 'startup'
+  };
+
+  function UserFriendlyCategory() {
+  }
+
+  UserFriendlyCategory.NAMES = Object.keys(TITLES_FOR_USER_FRIENDLY_CATEGORY);
+  UserFriendlyCategory.NAMES.push(DEFAULT_USER_FRIENDLY_CATEGORY);
+
+  for (var eventCategory in USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY) {
+    var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY[
+        eventCategory];
+    if (UserFriendlyCategory.NAMES.indexOf(userFriendlyCategory) < 0)
+      UserFriendlyCategory.NAMES.push(userFriendlyCategory);
+  }
+
+  UserFriendlyCategory.fromEvent = function(event) {
+    var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_TITLE[event.title];
+    if (userFriendlyCategory)
+      return userFriendlyCategory;
+
+    var eventCategoryParts = tr.b.getCategoryParts(event.category);
+    for (var i = 0; i < eventCategoryParts.length; ++i) {
+      var eventCategory = eventCategoryParts[i];
+      userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY[
+          eventCategory];
+      if (userFriendlyCategory)
+        return userFriendlyCategory;
+    }
+
+    return DEFAULT_USER_FRIENDLY_CATEGORY;
+  };
+
+  return {
+    UserFriendlyCategory: UserFriendlyCategory
+  };
+});
+</script>
