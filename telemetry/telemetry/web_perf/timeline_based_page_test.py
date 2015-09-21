@@ -16,8 +16,7 @@ class TimelineBasedPageTest(page_test.PageTest):
 
   def WillNavigateToPage(self, page, tab):
     tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.WillRunStoryForPageTest(
-        tracing_controller, page.GetSyntheticDelayCategories())
+    self._measurement.WillRunStoryForPageTest(tracing_controller)
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""

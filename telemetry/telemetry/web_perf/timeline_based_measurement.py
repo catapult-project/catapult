@@ -255,26 +255,13 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Clean up test according to the tbm options."""
     pass
 
-  def WillRunStoryForPageTest(self, tracing_controller,
-                              synthetic_delay_categories=None):
-    """Configure and start tracing.
-
-    Args:
-      app: an app.App subclass instance.
-      synthetic_delay_categories: iterable of delays. For example:
-          ['DELAY(cc.BeginMainFrame;0.014;alternating)']
-          where 'cc.BeginMainFrame' is a timeline event, 0.014 is the delay,
-          and 'alternating' is the mode.
-    """
+  def WillRunStoryForPageTest(self, tracing_controller):
+    """Configure and start tracing."""
     if not tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
 
-    category_filter = self._tbm_options.category_filter
-    # TODO(slamm): Move synthetic_delay_categories to the TBM options.
-    for delay in synthetic_delay_categories or []:
-      category_filter.AddSyntheticDelay(delay)
-
-    tracing_controller.Start(self._tbm_options.tracing_options, category_filter)
+    tracing_controller.Start(self._tbm_options.tracing_options,
+                             self._tbm_options.category_filter)
 
   def MeasureForPageTest(self, tracing_controller, results):
     """Collect all possible metrics and added them to results."""
