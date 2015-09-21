@@ -11,21 +11,19 @@ import unittest
 from hooks import install
 
 
-def Main(argv):
-  parser = argparse.ArgumentParser(
-      description='Run python tests.')
+def RunTests(base_dir, pattern='*_unittest.py'):
+  """Runs Python unit tests found in the given directory."""
+  # TODO(qyearsley): Use args.filters (in the same way tvcm.test_runner does).
+  parser = argparse.ArgumentParser(description='Run python tests.')
   parser.add_argument(
-    '--no-install-hooks', dest='install_hooks', action='store_false')
+      '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument('filters', nargs='*')
   parser.set_defaults(install_hooks=True)
-  args = parser.parse_args(argv[1:])
+  args = parser.parse_args()
+
   if args.install_hooks:
     install.InstallHooks()
 
-  suite = unittest.TestLoader().discover(
-      os.path.dirname(__file__), pattern = '*_unittest.py')
-  result = unittest.TextTestRunner(verbosity=2).run(suite)
-  if result.wasSuccessful():
-    return 0
-  else:
-    return 1
+  tests = unittest.TestLoader().discover(base_dir, pattern=pattern)
+  result = unittest.TextTestRunner(verbosity=2).run(tests)
+  return 0 if result.wasSuccessful() else 1

@@ -3,12 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Runs the unit test suite for perf dashboard.
-
-This is the same as run_py_tests.
-TODO(qyearsley): Remove or change this when the catapult recipe has been
-updated to run run_py_tests.
-"""
+"""Runs the unit test suite for perf dashboard."""
 
 import argparse
 import logging
