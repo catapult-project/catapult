@@ -85,7 +85,8 @@ class DependencyManager(object):
         FileNotFoundError: If an attempted download was otherwise unsuccessful.
 
     """
-    if not self._lookup_dict or not dependency in self._lookup_dict:
+    dependency_info = self._GetDependencyInfo(dependency, platform)
+    if not dependency_info:
       # TODO(aiolos): Replace the support_binaries call with an error once all
       # binary dependencies are moved over to the new system.
 
@@ -101,7 +102,6 @@ class DependencyManager(object):
                                        platform_os)
     logging.info('Looking for dependency %s, on platform %s in the dependency '
                  'manager.' % (dependency, platform))
-    dependency_info = self._GetDependencyInfo(dependency, platform)
     path = self._LocalPath(dependency_info)
     if not path or not os.path.exists(path):
       path = self._CloudStoragePath(dependency_info)
@@ -131,9 +131,9 @@ class DependencyManager(object):
     """
     # TODO(aiolos): Replace the support_binaries call with an error once all
     # binary dependencies are moved over to the new system.
-    if not self._lookup_dict or not dependency in self._lookup_dict:
-      return support_binaries.FindLocallyBuiltPath(dependency)
     dependency_info = self._GetDependencyInfo(dependency, platform)
+    if not dependency_info:
+      return support_binaries.FindLocallyBuiltPath(dependency)
     local_path = self._LocalPath(dependency_info)
     if not local_path or not os.path.exists(local_path):
       raise exceptions.NoPathFoundError(dependency, platform)
