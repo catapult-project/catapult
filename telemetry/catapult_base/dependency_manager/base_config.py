@@ -23,14 +23,12 @@ class BaseConfig(object):
                      "platform1": {
                         "cloud_storage_hash": "hash_for_platform1",
                         "download_path": "download_path111",
-                        "cs_remote_path": "cs_path111",
                         "version_in_cs": "1.11.1.11."
                         "local_paths": ["local_path1110", "local_path1111"]
                       },
                       "platform2": {
                         "cloud_storage_hash": "hash_for_platform2",
                         "download_path": "download_path2",
-                        "cs_remote_path": "cs_path2",
                         "local_paths": ["local_path20", "local_path21"]
                       },
                       ...

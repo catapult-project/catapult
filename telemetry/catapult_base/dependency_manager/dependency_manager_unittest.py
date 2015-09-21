@@ -69,6 +69,7 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that doesn't contain the dependency we're looking
     # for.
@@ -116,6 +117,7 @@ class DependencyManagerTest(unittest.TestCase):
 
     self.assertEqual(local_path, found_path)
     local_path_mock.assert_called_with('dep_info')
+    dep_info_mock.assert_called_once_with('dep1', 'plat')
     self.assertFalse(cs_path_mock.call_args)
     self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
@@ -124,6 +126,7 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
 
   @mock.patch('os.path')
@@ -155,6 +158,7 @@ class DependencyManagerTest(unittest.TestCase):
 
     self.assertEqual(cs_path, found_path)
     local_path_mock.assert_called_with(dep_info)
+    dep_info_mock.assert_called_once_with('dep1', 'plat')
     cs_path_mock.assert_called_once_with(dep_info)
     self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
@@ -164,6 +168,7 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path isn't found, but cloud_storage_path is downloaded.
@@ -176,6 +181,7 @@ class DependencyManagerTest(unittest.TestCase):
     self.assertEqual(cs_path, found_path)
     local_path_mock.assert_called_with(dep_info)
     cs_path_mock.assert_called_once_with(dep_info)
+    dep_info_mock.assert_called_once_with('dep1', 'plat')
     self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
@@ -241,6 +247,7 @@ class DependencyManagerTest(unittest.TestCase):
     sb_find_path_mock.assert_called_once_with('dep')
     local_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that doesn't contain the dependency we're looking
     # for.
@@ -253,6 +260,7 @@ class DependencyManagerTest(unittest.TestCase):
     sb_find_path_mock.assert_called_once_with('dep')
     local_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path exists.
@@ -267,8 +275,10 @@ class DependencyManagerTest(unittest.TestCase):
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_called_once_with('local_path')
+    dep_info_mock.assert_called_once_with('dep1', 'plat')
     local_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
+    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path is found but doesn't exist.

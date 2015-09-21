@@ -101,8 +101,7 @@ class DependencyManager(object):
                                        platform_os)
     logging.info('Looking for dependency %s, on platform %s in the dependency '
                  'manager.' % (dependency, platform))
-    dependency_info = self._GetDependencyInfo(self._lookup_dict, dependency,
-                                              platform)
+    dependency_info = self._GetDependencyInfo(dependency, platform)
     path = self._LocalPath(dependency_info)
     if not path or not os.path.exists(path):
       path = self._CloudStoragePath(dependency_info)
@@ -134,8 +133,7 @@ class DependencyManager(object):
     # binary dependencies are moved over to the new system.
     if not self._lookup_dict or not dependency in self._lookup_dict:
       return support_binaries.FindLocallyBuiltPath(dependency)
-    dependency_info = self._GetDependencyInfo(
-        self._lookup_dict, dependency, platform)
+    dependency_info = self._GetDependencyInfo(dependency, platform)
     local_path = self._LocalPath(dependency_info)
     if not local_path or not os.path.exists(local_path):
       raise exceptions.NoPathFoundError(dependency, platform)
