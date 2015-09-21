@@ -179,47 +179,85 @@ tr.exportTo('tr.e.rail', function() {
 
   // Any computable value related to an IR can be used to define the pain of
   // that IR: its duration, its FPS, etc.
+  // computeNormalizedPain maps from that arbitrary value to a score between 0
+  // and 1, allowing the caller to customize the exponential, linear, and
+  // logarithmic regions of the mapping function.
   function computeNormalizedPain(value, opts) {
-    opts.min = Math.max(opts.min, 0);
-    opts.max = Math.max(opts.max, 0);
-    opts.base = Math.max(opts.base || DEFAULT_PAIN_BASE, 0);
+    if (typeof value !== 'number')
+      throw new Error('value must be a number');
 
-    if (opts.min >= opts.max)
-      throw 'computeNormalizedPain invalid range';
+    opts.exponentialBase = opts.exponentialBase || 10;
+    if (opts.exponentialBase <= 1)
+      throw new Error('exponentialBase must be greater than 1');
 
-    var rawPain = computeRawPain(value, opts);
-    var minPain = computeRawPain(opts.min, opts);
-    var maxPain = computeRawPain(opts.max, opts);
+    opts.minPainLinear = opts.minPainLinear || 0.2;
+    if (opts.minPainLinear <= 0 || opts.minPainLinear >= 1)
+      throw new Error('minPainLinear must be between 0 and 1 exclusive');
 
-    var normalizedPain = tr.b.normalize(
-        rawPain, minPain, maxPain);
+    opts.maxPainLinear = opts.maxPainLinear || 0.9;
+    if (opts.maxPainLinear <= 0 || opts.maxPainLinear >= 1)
+      throw new Error('maxPainLinear must be between 0 and 1 exclusive');
 
-    // It's possible for normalizedPain to be negative if value < opts.min,
-    // or greater than 1 if value > opts.max, so clamp it.
-    return tr.b.clamp(normalizedPain, 0, 1);
+    opts.logarithmicScale = opts.logarithmicScale || 100;
+    if (opts.logarithmicScale <= 0)
+      throw new Error('logarithmicScale must be positive');
+
+    [
+      'minValueLinear',
+      'minValueExponential',
+      'minValueLogarithmic',
+      'maxValue',
+      'exponentialBase',
+      'minPainLinear',
+      'maxPainLinear',
+      'logarithmicScale'
+    ].forEach(function(opt) {
+      if (typeof opts[opt] !== 'number')
+        throw new Error(opt + ' must be a number');
+    });
+
+    if (value < opts.minValueExponential)
+      return 0;
+
+    if (value < opts.minValueLinear) {
+      function computeRawPain(value) {
+        return Math.pow(opts.exponentialBase, value);
+      }
+      return computeNormalizedPainInternal(
+          value, opts.minValueExponential, opts.minValueLinear,
+          0, opts.minPainLinear, computeRawPain);
+    }
+
+    if (value < opts.minValueLogarithmic) {
+      function computeRawPain(value) {
+        return value;
+      }
+      return computeNormalizedPainInternal(
+          value, opts.minValueLinear, opts.minValueLogarithmic,
+          opts.minPainLinear, opts.maxPainLinear, computeRawPain);
+    }
+
+    if (value < opts.maxValue) {
+      function computeRawPain(value) {
+        return Math.log1p(opts.logarithmicScale * value);
+      }
+      return computeNormalizedPainInternal(
+          value, opts.minValueLogarithmic, opts.maxValue,
+          opts.maxPainLinear, 1, computeRawPain);
+    }
+
+    return 1;
   }
 
-  // Returns a raw pain score based on |value| and options |opts|.
-  // |value| can be any number.
-  function computeRawPain(value, opts) {
-    // Pre-normalize value so that large numbers won't be passed to
-    // Math.pow() and cause it to run out of IEEE754 exponent bits and
-    // return Infinity.
-    value = tr.b.normalize(value, opts.min, opts.max);
-
-    // Don't raise a negative number to a fractional power. That produces
-    // NaN.
-    value = Math.max(value, 0);
-
-    // Raising value to a non-unity power affords a tunable parameter to change
-    // the shape of this function.
-    var tunedValue = Math.pow(value, opts.power);
-
-    return Math.pow(opts.base, tunedValue);
-
-    // If you modify this function to be non-monotonic anywhere, then you
-    // should consider how that affects the clamp() at the end of
-    // computeNormalizedPain.
+  function computeNormalizedPainInternal(
+      value, minValue, maxValue, minScore, maxScore, computeRawPain) {
+    var normalizedValue = tr.b.normalize(value, minValue, maxValue);
+    var rawPain = computeRawPain(normalizedValue);
+    var minPain = computeRawPain(0);
+    var maxPain = computeRawPain(1);
+    var normalizedPain = tr.b.normalize(rawPain, minPain, maxPain);
+    normalizedPain = tr.b.lerp(normalizedPain, minScore, maxScore);
+    return tr.b.clamp(normalizedPain, minScore, maxScore);
   }
 
   // Returns a weighted average of numbers between 0 and 1.

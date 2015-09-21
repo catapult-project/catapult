@@ -13,6 +13,10 @@ found in the LICENSE file.
  * @fileoverview The Load phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
+  // The computeNormalizedPain regions are delineated at these millisecond
+  // latency values.
+  var PAIN_LATENCY_REGIONS = [1000, 5000, 20000, 60000];
+
   function LoadInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
         this, 'Load', 'rail_load',
@@ -23,7 +27,13 @@ tr.exportTo('tr.e.rail', function() {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
     get normalizedUserPain() {
-      return 0;
+      // https://www.desmos.com/calculator/ddcv31509h
+      return tr.e.rail.computeNormalizedPain(this.duration, {
+        minValueExponential: PAIN_LATENCY_REGIONS[0],
+        minValueLinear: PAIN_LATENCY_REGIONS[1],
+        minValueLogarithmic: PAIN_LATENCY_REGIONS[2],
+        maxValue: PAIN_LATENCY_REGIONS[3]
+      });
     }
   };
 

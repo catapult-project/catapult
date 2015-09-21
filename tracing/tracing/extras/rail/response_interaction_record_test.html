@@ -18,10 +18,10 @@ tr.b.unittest.testSuite(function() {
     assert.equal(0, responseIR.normalizedUserPain);
     responseIR = new tr.e.rail.ResponseInteractionRecord(0, 150.0001);
     assert.closeTo(0, responseIR.normalizedUserPain, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 1000);
-    assert.equal(1, responseIR.normalizedUserPain);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 999.999);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 4999.999);
     assert.closeTo(1, responseIR.normalizedUserPain, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 5000);
+    assert.equal(1, responseIR.normalizedUserPain);
   });
 });
 </script>

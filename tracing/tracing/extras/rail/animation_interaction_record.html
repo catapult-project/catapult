@@ -16,45 +16,16 @@ found in the LICENSE file.
  * @fileoverview The Animation phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
-  // If FPS is greater than this, then the FPS-pain is minimized.
-  var PAIN_BEGINS_AT_FPS = 60;
-
-  // If FPS is less than this, then the FPS-pain is maximized.
-  var PAIN_PEAKS_AT_FPS = 10;
-
-  // PAIN_POWER is a tunable parameter that affects the shape of
-  // computeRawPain() in rail_interaction_record.html.  It must be greater than
-  // 0.
-  var PAIN_POWER = 1.5;
+  // The computeNormalizedPain regions are delineated at these FPS values.
+  var PAIN_FPS_REGIONS = [60, 40, 30, 10];
 
   // A frame is long if it starts more than this much time after the previous
   // frame.
   var LONG_FRAME_MS = 50;
 
-  // If the number of long frames is less than this, then long-frame-pain is
-  // minimized.
-  var MIN_LONG_FRAMES = 0;
-
-  // If the number of long frames is greater than this times the total number of
-  // frames in the animation, then long-frame-pain is maximized.
-  // TODO(benjhayden): Modify LONG_FRAME_PAIN_PEAK_FRACTION once we've observed
-  //   the actual distribution of frames per animation and long-frames per
-  //   animation in a given corpus of traces.
-  var LONG_FRAME_PAIN_PEAK_FRACTION = 0.1;
-
-  // This is the lowest reasonable value for the number of long frames that
-  // would maximize long-frame-pain.
-  var MIN_MAX_LONG_FRAMES = 2;
-
-  // Discrepancy is minimized at 0 when every frame is exactly the same length,
-  // but realistically, a tiny amount of jank will look just as good.
-  var PAIN_BEGINS_AT_JANK = 0.05;
-
-  // Discrepancy is maximized at 1 when there are thousands of ridiculously fast
-  // frames and 1 ridiculously long frame. But realistically, discrepancy might
-  // never be larger than 0.3, so discrepancy up to take advantage of the full
-  // range of pain.
-  var PAIN_PEAKS_AT_JANK = 0.3;
+  // The computeNormalizedPain regions are delineated at these relative
+  // discrepancy values.
+  var PAIN_JANK_REGIONS = [0.05, 0.1, 0.2, 0.3];
 
   function AnimationInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
@@ -90,9 +61,10 @@ tr.exportTo('tr.e.rail', function() {
       var avgFps = this.frameEvents.length / durationSeconds;
       var avgSpf = 1 / avgFps;
       return tr.e.rail.computeNormalizedPain(avgSpf, {
-        min: 1 / PAIN_BEGINS_AT_FPS,
-        max: 1 / PAIN_PEAKS_AT_FPS,
-        power: PAIN_POWER
+        minValueExponential: 1 / PAIN_FPS_REGIONS[0],
+        minValueLinear: 1 / PAIN_FPS_REGIONS[1],
+        minValueLogarithmic: 1 / PAIN_FPS_REGIONS[2],
+        maxValue: 1 / PAIN_FPS_REGIONS[3]
       });
     },
 
@@ -104,9 +76,10 @@ tr.exportTo('tr.e.rail', function() {
       var discrepancy = tr.b.Statistics.timestampsDiscrepancy(
           frameTimestamps, absolute);
       return tr.e.rail.computeNormalizedPain(discrepancy, {
-        min: PAIN_BEGINS_AT_JANK,
-        max: PAIN_PEAKS_AT_JANK,
-        power: PAIN_POWER
+        minValueExponential: PAIN_JANK_REGIONS[0],
+        minValueLinear: PAIN_JANK_REGIONS[1],
+        minValueLogarithmic: PAIN_JANK_REGIONS[2],
+        maxValue: PAIN_JANK_REGIONS[3]
       });
     }
   };

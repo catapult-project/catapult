@@ -36,6 +36,35 @@ tr.b.unittest.testSuite(function() {
     assert.equal(rir.args.layoutInfo.timeInLayout, 100);
   });
 
+  test('computeNormalizedPain', function() {
+    var opts = {
+      minValueExponential: 1,
+      minValueLinear: 2,
+      minValueLogarithmic: 3,
+      maxValue: 4
+    };
+
+    assert.equal(0, tr.e.rail.computeNormalizedPain(0, opts));
+
+    // Exponential pain should be convex.
+    assert.equal(0, tr.e.rail.computeNormalizedPain(1 - 1e-4, opts));
+    assert.isTrue(0.1 > tr.e.rail.computeNormalizedPain(1.5, opts));
+
+    // Linear pain should be linear.
+    assert.closeTo(0.2, tr.e.rail.computeNormalizedPain(2 - 1e-4, opts), 1e-4);
+    assert.closeTo(0.2, tr.e.rail.computeNormalizedPain(2 + 1e-4, opts), 1e-4);
+    assert.closeTo(0.55, tr.e.rail.computeNormalizedPain(2.5, opts), 1e-4);
+    assert.closeTo(0.9, tr.e.rail.computeNormalizedPain(3 - 1e-4, opts), 1e-4);
+
+    // Logarithmic pain should be concave.
+    assert.closeTo(0.9, tr.e.rail.computeNormalizedPain(3 + 1e-5, opts), 1e-4);
+    assert.isTrue(0.95 < tr.e.rail.computeNormalizedPain(3.5, opts));
+    assert.closeTo(1, tr.e.rail.computeNormalizedPain(4 - 1e-4, opts), 1e-5);
+
+    assert.equal(1, tr.e.rail.computeNormalizedPain(4 + 1e-4, opts));
+  });
+
+  // This basically just tests weightedAverage2.
   test('railScore', function() {
     var ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,

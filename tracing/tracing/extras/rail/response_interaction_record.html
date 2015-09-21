@@ -13,20 +13,9 @@ found in the LICENSE file.
  * @fileoverview The Response phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
-  // User pain is hypothesized to rise exponentially as duration rises between
-  // 150ms and 1000ms.
-
-  // If the duration of the Response is less than this, then pain is minimized.
-  var PAIN_STARTS_AT_MS = 150;
-
-  // If the duration of the Response is greater than this, then the pain is
-  // maximized.
-  var PAIN_PEAKS_AT_MS = 1000;
-
-  // PAIN_POWER is a tunable parameter that affects the shape of
-  // computeRawPain() in rail_interaction_record.html.  It must be greater than
-  // 0.
-  var PAIN_POWER = 1.5;
+  // The computeNormalizedPain regions are delineated at these millisecond
+  // latency values.
+  var PAIN_LATENCY_REGIONS = [150, 300, 1000, 5000];
 
   function ResponseInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
@@ -47,12 +36,12 @@ tr.exportTo('tr.e.rail', function() {
       // pain, by definition, considers only what the user experiences, so
       // "duration" is defined as actualEnd - expectedStart.
 
-      // This function is graphed at
-      // https://www.desmos.com/calculator/fqhkz1ohia
+      // https://www.desmos.com/calculator/xa9setwcmf
       return tr.e.rail.computeNormalizedPain(this.duration, {
-        min: PAIN_STARTS_AT_MS,
-        max: PAIN_PEAKS_AT_MS,
-        power: PAIN_POWER
+        minValueExponential: PAIN_LATENCY_REGIONS[0],
+        minValueLinear: PAIN_LATENCY_REGIONS[1],
+        minValueLogarithmic: PAIN_LATENCY_REGIONS[2],
+        maxValue: PAIN_LATENCY_REGIONS[3]
       });
     }
   };
