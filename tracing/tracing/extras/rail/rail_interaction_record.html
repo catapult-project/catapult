@@ -46,6 +46,13 @@ tr.exportTo('tr.e.rail', function() {
     DOES_RAIL_TYPE_NAME_EXIST[railTypeName] = true;
   });
 
+  var RAIL_ORDER = [];
+  ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
+    RAIL_ORDER.push(railTypeName.toUpperCase());
+    RAIL_ORDER.push(userFriendlyRailTypeName(railTypeName).toUpperCase());
+  });
+
+
 
   function RAILInteractionRecord(title, railTypeName, start, duration) {
     if (!DOES_RAIL_TYPE_NAME_EXIST[railTypeName])
@@ -243,11 +250,28 @@ tr.exportTo('tr.e.rail', function() {
     return railTypeName[5].toUpperCase() + railTypeName.slice(6);
   }
 
+  // Compare two rail type names or rail user-friendly names so they are sorted
+  // in R,A,I,L order. Capitalization is ignore. Non rail names are sorted
+  // lexicographically after rail names.
+  function railCompare(name1, name2) {
+    var i1 = RAIL_ORDER.indexOf(name1.toUpperCase());
+    var i2 = RAIL_ORDER.indexOf(name2.toUpperCase());
+    if (i1 == -1 && i2 == -1)
+      return name1.localeCompare(name2);
+    if (i1 == -1)
+      return 1;   // i2 is a RAIL name but not i1.
+    if (i2 == -1)
+      return -1;  // i1 is a RAIL name but not i2.
+    // Two rail names.
+    return i1 - i2;
+  }
+
   return {
     RAILInteractionRecord: RAILInteractionRecord,
     computeNormalizedPain: computeNormalizedPain,
     weightedAverage2: weightedAverage2,
     userFriendlyRailTypeName: userFriendlyRailTypeName,
+    railCompare: railCompare,
     ALL_RAIL_TYPE_NAMES: ALL_RAIL_TYPE_NAMES
   };
 });
