@@ -1,17 +1,17 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
 
-<!DOCTYPE html>
-
-<html>
-<head>
-  <meta charset="utf-8">
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="bisect_utils.html">
-</head>
-<body>
+<link rel="import" href="bisect_utils.html">
 
 <script>
+'use strict';
 
-suite('bisect_utils', function() {
+tr.b.unittest.testSuite(function() {
 
   test('canBisect', function() {
     var testPath = 'ChromiumPerf/mac/blink_perf.parser/simple-url';
@@ -19,7 +19,4 @@ suite('bisect_utils', function() {
   });
 
 });
-
 </script>
-</body>
-</html>

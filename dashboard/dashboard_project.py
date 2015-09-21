@@ -36,10 +36,10 @@ def _FindAllFilesRecursive(source_paths):
 
 
 def _IsFilenameATest(x):
-  # TODO(chrisphan): Add general test filters.
-  if x.endswith('alert-remove-box-test.html'):
+  if x.endswith('-test.html'):
     return True
-
+  if x.endswith('_test.html'):
+    return True
   return False
 
 

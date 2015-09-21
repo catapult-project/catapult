@@ -1,43 +1,32 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>login-warning test</title>
-  <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/2.2.1/mocha.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/2.1.1/chai.min.js"></script>
-  <link rel="import" href="//www.polymer-project.org/0.5/components/polymer/polymer.html">
-  <link rel="import" href="login-warning.html">
-</head>
-<body>
-<div id="mocha"></div>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="login-warning.html">
 
 <script>
 'use strict';
 
-var assert = chai.assert;
-mocha.setup('tdd');
+tr.b.unittest.testSuite(function() {
 
-suite('login-warning', function() {
-  suite('message', function() {
-    test('should be hidden when "missing" attribute is empty', function() {
-      var element = document.createElement('login-warning');
-      assert.isTrue(element.messageElement.hidden);
-    });
-
-    test('should become visible when "missing" attribute is set', function() {
-      var element = document.createElement('login-warning');
-      element.setAttribute('missing', 'foo');
-      assert.isTrue(element.messageElement.hidden);
-      setTimeout(function() {
-        assert.isFalse(element.messageElement.hidden);
-      }, 100);
-      document.body.appendChild(element);
-    });
+  test('should be hidden when "missing" attribute is empty', function() {
+    var element = document.createElement('login-warning');
+    assert.isTrue(element.messageElement.hidden);
   });
-});
 
-mocha.run();
+  test('should become visible when "missing" attribute is set', function() {
+    var element = document.createElement('login-warning');
+    element.setAttribute('missing', 'foo');
+    assert.isTrue(element.messageElement.hidden);
+    setTimeout(function() {
+      assert.isFalse(element.messageElement.hidden);
+    }, 100);
+    document.body.appendChild(element);
+  });
+
+});
 </script>
-</body>
-</html>

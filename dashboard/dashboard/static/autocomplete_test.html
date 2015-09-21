@@ -1,16 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
 
-<html>
-<head>
-  <meta charset="utf-8">
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="autocomplete.html">
-</head>
-<body>
+<link rel="import" href="autocomplete.html">
 
 <script>
+'use strict';
 
-suite('autocomplete', function() {
+tr.b.unittest.testSuite(function() {
 
   test('basic search', function() {
     var dataList = [{name: 'apple'}, {name: 'bannana'}, {name: 'blueberry'},
@@ -96,7 +97,4 @@ suite('autocomplete', function() {
   });
 
 });
-
 </script>
-</body>
-</html>

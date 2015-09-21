@@ -1,59 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
 
-<html>
-<head>
-  <meta charset="utf-8">
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="debug_alert.html">
-</head>
-<body>
+<link rel="import" href="debug_alert.html">
 
 <script>
+'use strict';
 
-suite('debug_alert', function() {
+tr.b.unittest.testSuite(function() {
 
-  setup(function() {
-    // This is an example of what the embedded global variables might look like.
-    window.DATA = [
-      {
-        'color': '#666',
-        'lines': {'show': true},
-        'points': {'show': false},
-        'data': [[0, 46.89], [1, 46.96], [2, 47.27], [3, 47.45], [4, 47.30],
-                 [5, 57.53], [6, 56.61], [7, 57.31], [8, 56.42], [9, 56.81]]
-      },
-      {
-        'color': '#f90',
-        'lines': {'show': false},
-        'points': {'radius': 4, 'show': true},
-        'data': [[5, 47.53]]
-      },
-      {
-        'color': '#f90',
-        'lines': {'show': true},
-        'points': {'show': false},
-        'data': [[0, null], [1, 47.27], [2, 47.27], [3, 47.27], [4, 47.27],
-                 [5, null], [6, 57.31], [7, 57.31], [8, null]]
-      }
-    ];
-    window.ANOMALY_POINTS_INDEX = 1;
-    window.LOOKUP = [
-      30000, 30100, 30200, 30300, 30400,
-      30500, 30600, 30700, 30800, 30900
-    ];
-    window.ANOMALIES = [
-      {
-        'median_after': 47.31,
-        'median_before': 47.27,
-        'relative_change': 0.21,
-        'size_after': 3,
-        'size_before': 4,
-        'window_end': 8,
-        'window_start': 1,
-        'x_value': 5,
-      }
-    ];
-  });
+  var testOptions = {
+    setUp: function() {
+      // This is an example of what the embedded global variables might look
+      // like.
+      window.DATA = [
+        {
+          'color': '#666',
+          'lines': {'show': true},
+          'points': {'show': false},
+          'data': [[0, 46.89], [1, 46.96], [2, 47.27], [3, 47.45], [4, 47.30],
+                   [5, 57.53], [6, 56.61], [7, 57.31], [8, 56.42], [9, 56.81]]
+        },
+        {
+          'color': '#f90',
+          'lines': {'show': false},
+          'points': {'radius': 4, 'show': true},
+          'data': [[5, 47.53]]
+        },
+        {
+          'color': '#f90',
+          'lines': {'show': true},
+          'points': {'show': false},
+          'data': [[0, null], [1, 47.27], [2, 47.27], [3, 47.27], [4, 47.27],
+                   [5, null], [6, 57.31], [7, 57.31], [8, null]]
+        }
+      ];
+      window.ANOMALY_POINTS_INDEX = 1;
+      window.LOOKUP = [
+        30000, 30100, 30200, 30300, 30400,
+        30500, 30600, 30700, 30800, 30900
+      ];
+      window.ANOMALIES = [
+        {
+          'median_after': 47.31,
+          'median_before': 47.27,
+          'relative_change': 0.21,
+          'size_after': 3,
+          'size_before': 4,
+          'window_end': 8,
+          'window_start': 1,
+          'x_value': 5
+        }
+      ];
+    }
+  };
 
   test('xAxisTickFormatter', function() {
     // The tick formatter lookups up revisions from values along
@@ -62,27 +66,22 @@ suite('debug_alert', function() {
     assert.equal(30000, debug_alert.xAxisTickFormatter(0.2));
     assert.equal(30100, debug_alert.xAxisTickFormatter(1));
     assert.equal(30900, debug_alert.xAxisTickFormatter(8.9));
-  });
+  }, testOptions);
 
   test('xAxisTickFormatter unexpected inputs', function() {
     assert.equal(30000, debug_alert.xAxisTickFormatter(-2));
     assert.isUndefined(debug_alert.xAxisTickFormatter(10));
-  });
-
-  test('xAxisTickFormatter unexpected inputs', function() {
-    assert.equal(30000, debug_alert.xAxisTickFormatter(-2));
-    assert.isUndefined(debug_alert.xAxisTickFormatter(10));
-  });
+  }, testOptions);
 
   test('anomaly description', function() {
     var anomaly = window.ANOMALIES[0];
     assert.equal('30500<br>21.00%',
                  debug_alert.anomalyDescription(anomaly));
-  });
+  }, testOptions);
 
   test('Anomaly Description JunkInput', function() {
     assert.equal('undefined<br>NaN%', debug_alert.anomalyDescription({}));
-  });
+  }, testOptions);
 
   test('make label', function() {
     var labelElement = debug_alert.makeLabel('foo', 100, 200);
@@ -91,34 +90,25 @@ suite('debug_alert', function() {
     assert.notEqual('', labelElement.style.left);
     assert.notEqual('', labelElement.style.top);
     assert.notEqual('', labelElement.innerText);
-  });
+  }, testOptions);
 
   test('add vertical line', function() {
     var options = {};
     debug_alert.addVerticalLine(options, 30200);
     assert.equal(2, options['grid']['markings'][0]['xaxis']['from']);
-  });
+  }, testOptions);
 
   test('add vertical line no revision', function() {
     var options = {};
     debug_alert.addVerticalLine(options, undefined);
     assert.isUndefined(options['grid']);
-  });
-
-  test('add vertical line no revision', function() {
-    var options = {};
-    debug_alert.addVerticalLine(options, undefined);
-    assert.isUndefined(options['grid']);
-  });
+  }, testOptions);
 
   test('index of closest', function() {
     var options = {};
     debug_alert.addVerticalLine(options, undefined);
     assert.isUndefined(options['grid']);
-  });
+  }, testOptions);
 
 });
-
 </script>
-</body>
-</html>

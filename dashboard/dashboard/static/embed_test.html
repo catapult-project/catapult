@@ -1,54 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
 
-<html>
-<head>
-  <meta charset="utf-8">
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="embed.html">
-</head>
-<body>
+<link rel="import" href="embed.html">
 
 <script>
+'use strict';
 
-suite('embed', function() {
+tr.b.unittest.testSuite(function() {
 
-  setup(function() {
-    // Reset the sample data for each test, in case they're
-    // modified by some test case.
-    window.GRAPH_DATA = {
-      'data': [
-        {'data': [[10000, 345], [12500, 345], [14000, 345]]},
-        {'data': [[10000, 101], [12500, 102], [14000, 103]]}
-      ],
-      'annotations': {
-        'series': [
-          {'name': 'foo', 'units': 'ms'},
-          {'name': 'bar', 'units': 'MB'}
+  var testOptions = {
+    setUp: function() {
+      // Reset the sample data for each test, in case they're
+      // modified by some test case.
+      window.GRAPH_DATA = {
+        'data': [
+          {'data': [[10000, 345], [12500, 345], [14000, 345]]},
+          {'data': [[10000, 101], [12500, 102], [14000, 103]]}
         ],
-        '0': {
-          '0': {'r_foo': 'A', 'a_default_rev': 'r_foo', 'r_fizz': 123},
-          '1': {'r_foo': 'B', 'a_default_rev': 'r_foo', 'r_fizz': 124},
-          '2': {'r_foo': 'C', 'a_default_rev': 'r_foo', 'r_fizz': 125}
-        },
-        '1': {
-          '0': {'r_foo': 'A', 'a_default_rev': 'r_foo', 'r_fizz': 123},
-          '1': {'r_foo': 'B', 'a_default_rev': 'r_foo', 'r_fizz': 124},
-          '2': {'r_foo': 'C', 'a_default_rev': 'r_foo', 'r_fizz': 125}
-        },
-      }
-    };
+        'annotations': {
+          'series': [
+            {'name': 'foo', 'units': 'ms'},
+            {'name': 'bar', 'units': 'MB'}
+          ],
+          '0': {
+            '0': {'r_foo': 'A', 'a_default_rev': 'r_foo', 'r_fizz': 123},
+            '1': {'r_foo': 'B', 'a_default_rev': 'r_foo', 'r_fizz': 124},
+            '2': {'r_foo': 'C', 'a_default_rev': 'r_foo', 'r_fizz': 125}
+          },
+          '1': {
+            '0': {'r_foo': 'A', 'a_default_rev': 'r_foo', 'r_fizz': 123},
+            '1': {'r_foo': 'B', 'a_default_rev': 'r_foo', 'r_fizz': 124},
+            '2': {'r_foo': 'C', 'a_default_rev': 'r_foo', 'r_fizz': 125}
+          }
+        }
+      };
 
-    window.REVISION_INFO = {
-      'r_fizz': {
-         'name': 'Fizz Revision',
-         'url': 'http://example.com/fizz'
-      },
-      'r_foo': {
-         'name': 'Foo Revision',
-         'url': 'http://example.com/foo'
-      },
-    };
-  });
+      window.REVISION_INFO = {
+        'r_fizz': {
+           'name': 'Fizz Revision',
+           'url': 'http://example.com/fizz'
+        },
+        'r_foo': {
+           'name': 'Foo Revision',
+           'url': 'http://example.com/foo'
+        }
+      };
+    }
+  };
 
   test('getRevisionDetails', function() {
     var data = GRAPH_DATA.data;
@@ -83,7 +86,7 @@ suite('embed', function() {
          14000: [{'name': 'X-Value', 'value': 14000}]
        },
        embed.getRevisionDetails(data, null, REVISION_INFO));
-  });
+  }, testOptions);
 
   test('getDisplayRevision', function() {
     // The display revision of a revision that is a sha1 hash is truncated.
@@ -93,7 +96,7 @@ suite('embed', function() {
     // The display revision of other values is whatever was passed in.
     assert.equal('abcdefgh', embed.getDisplayRevision('abcdefgh'));
     assert.equal(1234567890, embed.getDisplayRevision(1234567890));
-  });
+  }, testOptions);
 
   test('getRevisionName', function() {
     // If there's an entry in the revision info object, use the name there.
@@ -108,7 +111,7 @@ suite('embed', function() {
     assert.equal('X-Value', embed.getRevisionName(1234.5, 'r_absent',
                                                   REVISION_INFO));
     assert.equal('X-Value', embed.getRevisionName(123456, 'r_absent', null));
-  });
+  }, testOptions);
 
   test('getRevisionLookup', function() {
     var data = GRAPH_DATA.data;
@@ -123,7 +126,7 @@ suite('embed', function() {
     assert.deepEqual([], embed.getRevisionLookup({}));
     assert.deepEqual(['100', '200'],
                      embed.getRevisionLookup({200: [], 100: []}));
-  });
+  }, testOptions);
 
   test('makeReverseLookup', function() {
     // The makeReverseLookup function makes an object mapping items to indexes.
@@ -131,7 +134,7 @@ suite('embed', function() {
     assert.deepEqual({'x': 1, 'z': 2},
                      embed.makeReverseLookup(['x', 'x', 'z']));
     assert.deepEqual({}, embed.makeReverseLookup([]));
-  });
+  }, testOptions);
 
   test('changeXValuesToIndexes', function() {
     var data = GRAPH_DATA.data;
@@ -153,7 +156,7 @@ suite('embed', function() {
          {'data': [[0, 101], [1, 102], [2, 103]]}
        ],
        GRAPH_DATA.data);
-  });
+  }, testOptions);
 
   test('xAxisTickFormatter', function() {
     var revisionDetails = {
@@ -191,7 +194,7 @@ suite('embed', function() {
     assert.equal(
         'undefined',
         embed.xAxisTickFormatter(2, revisionDetails, revisionLookup));
-  });
+  }, testOptions);
 
   test('yAxisTickFormatter', function() {
     // Numbers are formatted to have no more than 3 decimal points,
@@ -201,10 +204,7 @@ suite('embed', function() {
     assert.equal('1,111.1', embed.yAxisTickFormatter(1111.1));
     assert.equal('10,000', embed.yAxisTickFormatter(10000.00));
     assert.equal('1,000,000', embed.yAxisTickFormatter(1000000));
-  });
+  }, testOptions);
 
 });
-
 </script>
-</body>
-</html>
