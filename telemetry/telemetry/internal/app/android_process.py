@@ -39,8 +39,7 @@ class AndroidProcess(object):
     if self._devtools_client is None:
       self._app_backend.platform_backend.ForwardHostToDevice(
           self._local_port, self._remote_devtools_port)
-      if devtools_client_backend.IsDevToolsAgentAvailable(
-          self._local_port, self._app_backend):
+      if devtools_client_backend.IsDevToolsAgentAvailable(self._local_port):
         self._devtools_client = devtools_client_backend.DevToolsClientBackend(
             self._local_port, self._remote_devtools_port, self._app_backend)
 

@@ -8,12 +8,10 @@ import sys
 
 from telemetry.core import exceptions
 from telemetry import decorators
-from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
-from telemetry.internal.platform.tracing_agent import (
-    chrome_tracing_devtools_manager)
+from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.timeline import trace_data as trace_data_module
 
 
@@ -21,13 +19,8 @@ class TabNotFoundError(exceptions.Error):
   pass
 
 
-def IsDevToolsAgentAvailable(port, app_backend):
+def IsDevToolsAgentAvailable(port):
   """Returns True if a DevTools agent is available on the given port."""
-  if (isinstance(app_backend, browser_backend.BrowserBackend) and
-      app_backend.supports_tracing):
-    if not tracing_backend.IsInspectorWebsocketAvailable(port):
-      return False
-
   devtools_http_instance = devtools_http.DevToolsHttp(port)
   try:
     return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
@@ -73,29 +66,12 @@ class DevToolsClientBackend(object):
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
 
-    if not self.supports_tracing:
-      return
-    self._tracing_backend = tracing_backend.TracingBackend(self._devtools_port)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        self, self._app_backend.platform_backend)
+    chrome_tracing_agent.ChromeTracingAgent.RegisterDevToolsClient(
+      self, self._app_backend.platform_backend)
 
   @property
   def remote_port(self):
     return self._remote_devtools_port
-
-  @property
-  def supports_tracing(self):
-    if not isinstance(self._app_backend, browser_backend.BrowserBackend):
-      return False
-    return self._app_backend.supports_tracing
-
-  @property
-  def is_tracing_running(self):
-    if not self.supports_tracing:
-      return False
-    if not self._tracing_backend:
-      return False
-    return self._tracing_backend.is_tracing_running
 
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
@@ -195,14 +171,11 @@ class DevToolsClientBackend(object):
     return self._devtools_context_map_backend
 
   def _CreateTracingBackendIfNeeded(self):
-    assert self.supports_tracing
     if not self._tracing_backend:
       self._tracing_backend = tracing_backend.TracingBackend(
           self._devtools_port)
 
   def IsChromeTracingSupported(self):
-    if not self.supports_tracing:
-      return False
     self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.IsTracingSupported()
 

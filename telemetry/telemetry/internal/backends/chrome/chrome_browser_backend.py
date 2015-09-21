@@ -173,7 +173,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def HasBrowserFinishedLaunching(self):
     assert self._port, 'No DevTools port info available.'
-    return devtools_client_backend.IsDevToolsAgentAvailable(self._port, self)
+    return devtools_client_backend.IsDevToolsAgentAvailable(self._port)
 
   def _InitDevtoolsClientBackend(self, remote_devtools_port=None):
     """ Initiate the devtool client backend which allow browser connection

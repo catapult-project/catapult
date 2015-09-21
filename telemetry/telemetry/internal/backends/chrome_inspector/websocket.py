@@ -7,7 +7,6 @@ import socket
 
 # pylint: disable=unused-import
 from websocket import create_connection as _create_connection
-from websocket import WebSocketConnectionClosedException
 from websocket import WebSocketException
 from websocket import WebSocketTimeoutException
 
