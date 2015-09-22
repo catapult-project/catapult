@@ -513,8 +513,7 @@ tr.exportTo('tr.e.importer', function() {
       if (!rootStackFrame) {
         rootStackFrame = new tr.model.StackFrame(
             undefined /* parent */, 'v8-root-stack-frame' /* id */,
-            'v8' /* category */, 'v8-root-stack-frame' /* title */,
-            0 /* colorId */);
+            'v8-root-stack-frame' /* title */, 0 /* colorId */);
         this.v8ProcessRootStackFrame_[event.pid] = rootStackFrame;
       }
 
@@ -531,8 +530,7 @@ tr.exportTo('tr.e.importer', function() {
           return childFrame;
 
         var frame = new tr.model.StackFrame(
-            lastStackFrame, tr.b.GUID.allocate(),
-            'v8', entry.name,
+            lastStackFrame, tr.b.GUID.allocate(), entry.name,
             tr.ui.b.getColorIdForGeneralPurposeString(entry.name),
             entry.sourceInfo);
 
@@ -601,8 +599,7 @@ tr.exportTo('tr.e.importer', function() {
       if (stackFrame === undefined) {
         var id = 'te-' + tr.b.GUID.allocate();
         stackFrame = new tr.model.StackFrame(
-            undefined, id,
-            event.cat, event.name,
+            undefined, id, event.name,
             tr.ui.b.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
         this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
@@ -740,8 +737,7 @@ tr.exportTo('tr.e.importer', function() {
         var event = events[id];
         var textForColor = event.category ? event.category : event.name;
         var frame = new tr.model.StackFrame(
-            undefined, 'g' + id,
-            event.category, event.name,
+            undefined, 'g' + id, event.name,
             tr.ui.b.getColorIdForGeneralPurposeString(textForColor));
         m.addStackFrame(frame);
       }

@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     var thread = tr.c.TestUtils.newFakeThread();
 
     var model = new tr.Model();
-    var fABC = tr.c.TestUtils.newStackTrace(model, 'cat', ['a', 'b', 'c']);
+    var fABC = tr.c.TestUtils.newStackTrace(model, ['a', 'b', 'c']);
 
     var s = new Sample(undefined, thread, 'instructions_retired',
                        10, fABC, 10);

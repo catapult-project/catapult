@@ -223,7 +223,7 @@ tr.exportTo('tr.c', function() {
       model = thread.parent.model;
     else
       model = undefined;
-    var sf = TestUtils.newStackTrace(model, category, frameNames);
+    var sf = TestUtils.newStackTrace(model, frameNames);
     var s = new tr.model.Sample(undefined, thread,
                                         sampleName, start,
                                         sf,
@@ -265,14 +265,13 @@ tr.exportTo('tr.c', function() {
     return slice;
   }
 
-  TestUtils.newStackTrace = function(model, category, titles) {
+  TestUtils.newStackTrace = function(model, titles) {
     var frame = undefined;
-    for (var i = 0; i < titles.length; i++) {
-      frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(),
-                                                 category, titles[i], 7);
+    titles.forEach(function(title) {
+      frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(), title, 7);
       if (model)
         model.addStackFrame(frame);
-    }
+    });
     return frame;
   }
 

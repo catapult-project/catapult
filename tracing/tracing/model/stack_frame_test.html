@@ -13,16 +13,16 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('domain', function() {
-    var stackFrame1 = new tr.model.StackFrame(undefined, 1, '1', '1', 1);
+    var stackFrame1 = new tr.model.StackFrame(undefined, 1, '1', 1);
     assert.equal('unknown', stackFrame1.domain);
 
     var sourceInfo = new tr.model.source_info.SourceInfo(
         'http://www.google.com:1234');
     var stackFrame2 = new tr.model.StackFrame(
-        stackFrame1, 2, '2', '2', 2, sourceInfo);
+        stackFrame1, 2, '2', 2, sourceInfo);
     assert.equal('http://www.google.com', stackFrame2.domain);
 
-    var stackFrame3 = new tr.model.StackFrame(stackFrame2, 3, '3', '3', 3);
+    var stackFrame3 = new tr.model.StackFrame(stackFrame2, 3, '3', 3);
     assert.equal('http://www.google.com', stackFrame3.domain);
   });
 });

@@ -43,8 +43,8 @@ tr.b.unittest.testSuite(function() {
     var options = opt_options || {};
     return createSelection(function(t53, model) {
       if (options.withStartStackFrame || options.withEndStackFrame) {
-        var fA = tr.c.TestUtils.newStackTrace(model, 'cat', ['a1', 'a2']);
-        var fB = tr.c.TestUtils.newStackTrace(model, 'cat', ['b1', 'b2']);
+        var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2']);
+        var fB = tr.c.TestUtils.newStackTrace(model, ['b1', 'b2']);
       }
 
       var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});

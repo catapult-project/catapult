@@ -9,13 +9,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  function StackFrame(parentFrame, id, category, title,
-      colorId, opt_sourceInfo) {
+  function StackFrame(parentFrame, id, title, colorId, opt_sourceInfo) {
     if (id === undefined)
       throw new Error('id must be given');
     this.parentFrame_ = parentFrame;
     this.id = id;
-    this.category = category || '';
     this.title_ = title;
     this.colorId = colorId;
     this.children = [];
@@ -90,9 +88,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getUserFriendlyStackTrace: function() {
-      return this.stackTrace.map(function(x) {
-        return x.category + ': ' + x.title;
-      });
+      return this.stackTrace.map(function(x) { return x.title; });
     }
   };
 

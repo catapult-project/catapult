@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 1);
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        ['InstantiateFunction native apinatives.js:26:29'],
         t.samples[0].getUserFriendlyStackTrace());
   });
 
@@ -85,10 +85,10 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[0].start, 528674 / 1000);
     assert.equal(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        ['InstantiateFunction native apinatives.js:26:29'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29'],
+        ['InstantiateFunction native apinatives.js:26:29'],
         t.samples[1].getUserFriendlyStackTrace());
     assert.equal(t.samples[0].leafStackFrame,
                  t.samples[1].leafStackFrame);
@@ -108,12 +108,12 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[0].start, 528674 / 1000);
     assert.equal(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
 
     var childStackFrame = t.samples[0].leafStackFrame;
@@ -143,15 +143,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[1].start, 528674 / 1000);
     assert.equal(t.samples[2].start, 536213 / 1000);
     assert.deepEqual(
-        ['v8: Instantiate native apinatives.js:9:21'],
+        ['Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[2].getUserFriendlyStackTrace());
 
     var topLevelStackFrame = t.samples[0].leafStackFrame;
@@ -187,19 +187,19 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[4].start, 799146 / 1000);
 
     assert.deepEqual(
-        ['v8: Instantiate native apinatives.js:9:21'],
+        ['Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
     assert.deepEqual(
-        ['v8: InstantiateFunction native apinatives.js:26:29',
-        'v8: Instantiate native apinatives.js:9:21'],
+        ['InstantiateFunction native apinatives.js:26:29',
+        'Instantiate native apinatives.js:9:21'],
         t.samples[2].getUserFriendlyStackTrace());
-    assert.deepEqual(['v8: http://www.google.com/'],
+    assert.deepEqual(['http://www.google.com/'],
                       t.samples[3].getUserFriendlyStackTrace());
-    assert.deepEqual(['v8: http://www.google.com/'],
+    assert.deepEqual(['http://www.google.com/'],
                       t.samples[4].getUserFriendlyStackTrace());
 
     var firsStackTopLevelStackFrame = t.samples[0].leafStackFrame;

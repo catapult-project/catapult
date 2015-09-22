@@ -42,25 +42,16 @@ found in the LICENSE file.
         return;
       }
 
-      var hasCategory = false;
       var hasName = false;
       var hasTitle = false;
 
       table.tableRows = stackFrame.stackTrace;
       table.tableRows.forEach(function(row) {
-        hasCategory |= row.category !== undefined;
         hasName |= row.name !== undefined;
         hasTitle |= row.title !== undefined;
       });
 
       var cols = [];
-      if (hasCategory) {
-        cols.push({
-          title: 'Category',
-          value: function(row) { return row.category; }
-        });
-      }
-
       if (hasName) {
         cols.push({
           title: 'Name',

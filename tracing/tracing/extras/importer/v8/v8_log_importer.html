@@ -31,8 +31,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     this.v8_thread_ = undefined;
 
     this.root_stack_frame_ = new tr.model.StackFrame(
-        undefined, 'v8-root-stack-frame',
-        'v8-root-stack-frame', 'v8-root-stack-frame', 0);
+        undefined, 'v8-root-stack-frame', 'v8-root-stack-frame', 0);
 
     // We reconstruct the stack timeline from ticks.
     this.v8_stack_timeline_ = new Array();
@@ -161,8 +160,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           if (childFrame === undefined) {
             var entryName = entry ? entry.name : 'Unknown';
             lastStackFrame = new tr.model.StackFrame(
-                lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(),
-                'v8', entryName,
+                lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(), entryName,
                 tr.ui.b.getColorIdForGeneralPurposeString(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
@@ -176,8 +174,7 @@ tr.exportTo('tr.e.importer.v8', function() {
         if (this.model_.stackFrames[pcEntryID] === undefined) {
           var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
           lastStackFrame = new tr.model.StackFrame(
-              undefined, pcEntryID,
-              'v8', pcEntryName,
+              undefined, pcEntryID, pcEntryName,
               tr.ui.b.getColorIdForGeneralPurposeString(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }

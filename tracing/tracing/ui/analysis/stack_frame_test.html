@@ -12,7 +12,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var model = new tr.Model();
-    var fA = tr.c.TestUtils.newStackTrace(model, 'cat', ['a1', 'a2', 'a3']);
+    var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
 
     var stackFrameView = document.createElement('tr-ui-a-stack-frame');
     stackFrameView.stackFrame = fA;
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
 
   test('clearingStackFrame', function() {
     var model = new tr.Model();
-    var fA = tr.c.TestUtils.newStackTrace(model, 'cat', ['a1', 'a2', 'a3']);
+    var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
 
     var stackFrameView = document.createElement('tr-ui-a-stack-frame');
     stackFrameView.stackFrame = fA;
