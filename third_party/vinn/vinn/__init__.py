@@ -4,13 +4,13 @@
 # found in the LICENSE file.
 
 from vinn.d8_runner import ExecuteFile
-from vinn.d8_runner import ExcecuteJsString
+from vinn.d8_runner import ExecuteJsString
 from vinn.d8_runner import RunFile
 from vinn.d8_runner import RunJsString
 
 __all__ = [
   'ExecuteFile',
-  'ExcecuteJsString',
+  'ExecuteJsString',
   'RunFile',
   'RunJsString'
 ]

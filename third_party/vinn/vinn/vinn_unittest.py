@@ -9,6 +9,10 @@ import shutil
 import tempfile
 import unittest
 
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'mock'))
+import mock
+
 from vinn import d8_runner
 
 
@@ -52,7 +56,7 @@ class VinnUnittest(unittest.TestCase):
     try:
       temp_file_name = os.path.join(tmp_dir, 'out_file')
       with open(temp_file_name, 'w') as f:
-        d8_runner.ExcecuteJsString(
+        d8_runner.ExecuteJsString(
             'print("Hello w0rld");\n', stdout=f)
       with open(temp_file_name, 'r') as f:
         self.assertEquals(f.read(), 'Hello w0rld\n')
@@ -104,7 +108,7 @@ class VinnUnittest(unittest.TestCase):
         'This is file contains only data for testing.\n1 2 3 4', output)
 
   def testDuplicateSourcePaths(self):
-    output = d8_runner.ExcecuteJsString(
+    output = d8_runner.ExecuteJsString(
       "loadHTML('/load_simple_html.html');",
       source_paths=[self.test_data_dir]*100)
     self.assertIn(
@@ -262,16 +266,16 @@ class VinnUnittest(unittest.TestCase):
 
   def testConsolePolyfill(self):
     self.assertEquals(
-        d8_runner.ExcecuteJsString('console.log("hello", "world");'),
+        d8_runner.ExecuteJsString('console.log("hello", "world");'),
         'hello world\n')
     self.assertEquals(
-        d8_runner.ExcecuteJsString('console.info("hello", "world");'),
+        d8_runner.ExecuteJsString('console.info("hello", "world");'),
         'Info: hello world\n')
     self.assertEquals(
-        d8_runner.ExcecuteJsString('console.warn("hello", "world");'),
+        d8_runner.ExecuteJsString('console.warn("hello", "world");'),
         'Warning: hello world\n')
     self.assertEquals(
-        d8_runner.ExcecuteJsString('console.error("hello", "world");'),
+        d8_runner.ExecuteJsString('console.error("hello", "world");'),
         'Error: hello world\n')
 
 
@@ -332,7 +336,7 @@ class HTMLGeneratorTest(unittest.TestCase):
       temp_file_name = os.path.join(tmp_dir, 'test.html')
       with open(temp_file_name, 'w') as f:
         f.write(html_text)
-      return d8_runner.ExcecuteJsString(
+      return d8_runner.ExecuteJsString(
           'write(generateJsFromHTML(read("%s")));' % temp_file_name)
     finally:
       shutil.rmtree(tmp_dir)
@@ -521,3 +525,51 @@ loadHTML('/base/this_is_line_28.html');
         _GetLineNumberOfSubstring(generated_js, 'this_is_line_28.html'),
         28)
     self.AssertStringEquals(generated_js, expected_js)
+
+
+class VinnV8ArgsTest(unittest.TestCase):
+
+  @classmethod
+  def setUpClass(cls):
+    cls.test_data_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), 'test_data'))
+
+  def GetTestFilePath(self, file_name):
+    return os.path.join(self.test_data_dir, file_name)
+
+  def setUp(self):
+    self.patcher = mock.patch('d8_runner.subprocess.Popen')
+    self.mock_popen = self.patcher.start()
+    mock_rv = mock.Mock()
+    mock_rv.returncode = 0
+    # Communicate() returns [stdout, stderr]
+    mock_rv.communicate.return_value = ['', None]
+    self.mock_popen.return_value = mock_rv
+
+  def tearDown(self):
+    mock.patch.stopall()
+
+  def testRunJsStringWithV8Args(self):
+    d8_runner.RunJsString('var x = 1;', v8_args=['--foo', '--bar=True'])
+    v8_args = self.mock_popen.call_args[0][0]
+    self.assertIn('--foo', v8_args)
+    self.assertIn('--bar=True', v8_args)
+
+  def testExecuteJsStringWithV8Args(self):
+    d8_runner.ExecuteJsString('var x = 1;', v8_args=['--foo', '--bar=True'])
+    v8_args = self.mock_popen.call_args[0][0]
+    self.assertIn('--foo', v8_args)
+    self.assertIn('--bar=True', v8_args)
+
+  def testRunFileWithV8Args(self):
+    file_path = self.GetTestFilePath('simple.js')
+    d8_runner.RunFile(file_path, v8_args=['--foo', '--bar=True'])
+    v8_args = self.mock_popen.call_args[0][0]
+    self.assertIn('--foo', v8_args)
+
+  def testExecuteFileWithV8Args(self):
+    file_path = self.GetTestFilePath('simple.js')
+    d8_runner.ExecuteFile(file_path, v8_args=['--foo', '--bar=True'])
+    v8_args = self.mock_popen.call_args[0][0]
+    self.assertIn('--foo', v8_args)
+    self.assertIn('--bar=True', v8_args)
