@@ -8,16 +8,17 @@ import os
 import subprocess
 import sys
 
+FAIL_EMOJI = u'\U0001F631'.encode('utf-8')
+PASS_EMOJI = u'\U0001F601'.encode('utf-8')
 
-class bcolors(object):
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+GREEN = '\033[92m'
+RED = '\033[91m'
+END_CODE = '\033[0m'
+
+
+def _Color(s, color):
+  """Adds ANSI escape codes to color a string printed to the terminal."""
+  return color + s + END_CODE
 
 
 def _RunTest(test, chrome_command):
@@ -34,7 +35,8 @@ def _RunTest(test, chrome_command):
 def Main(name, tests, argv):
   parser = argparse.ArgumentParser(
       description='Run all tests of %s project.' % name)
-  parser.add_argument('--chrome_path', type=str,
+  parser.add_argument(
+      '--chrome_path', type=str,
       help='Path to Chrome browser binary for dev_server tests.')
   args = parser.parse_args(argv[1:])
 
@@ -48,13 +50,9 @@ def Main(name, tests, argv):
           os.path.basename(test['path']), test['path'])
 
   if exit_code:
-    print (bcolors.FAIL +
-           'Oooops! Looks like some of your tests have failed.' +
-           bcolors.ENDC), u'\U0001F631'.encode('utf-8')
+    print _Color('Oops! Some tests failed.', RED), FAIL_EMOJI
     sys.stderr.writelines(errors)
   else:
-    print (bcolors.OKGREEN +
-           'Woho! All the tests have passed. You are awesome!' +
-           bcolors.ENDC), u'\U0001F601'.encode('utf-8')
+    print _Color('Woho! All tests passed.', GREEN), PASS_EMOJI
 
   sys.exit(exit_code)
