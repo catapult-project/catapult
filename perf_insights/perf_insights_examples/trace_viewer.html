@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Perf Insights Trace Viewer</title>
+<meta charset='utf-8'>
+
+<script src="/components/webcomponentsjs/webcomponents.js"></script>
+
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/ui/extras/full_config.html">
+<link rel="import" href="/tracing/ui/timeline_view.html">
+
+<style>
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    -webkit-flex-direction: column;
+    display: -webkit-flex;
+    margin: 0;
+    padding: 0;
+  }
+
+  body > tr-ui-timeline-view {
+    -webkit-flex: 1 1 auto;
+    min-height: 0;
+  }
+  body > tr-ui-timeline-view:focus {
+    outline: none;
+  }
+</style>
+</head>
+<body>
+  <tr-ui-timeline-view>
+    <track-view-container id='track_view_container'></track-view-container>
+  </tr-ui-timeline-view>
+
+  <script>
+  'use strict';
+
+  var timelineViewEl;
+
+  function loadTrace(filename) {
+    tr.b.getAsync(filename).then(createViewFromTrace.bind(this),
+        tr.showPanic.bind(this, 'Couldn\'t load trace.', filename));
+  }
+
+  function createViewFromTrace(trace) {
+    var m = new tr.Model();
+    var i = new tr.importer.Import(m);
+    var p = i.importTracesWithProgressDialog([trace]);
+
+    p.then(
+      function() {
+        timelineViewEl.model = m;
+        timelineViewEl.updateDocumentFavicon();
+        timelineViewEl.globalMode = true;
+        timelineViewEl.viewTitle = '';
+      },
+      function(err) {
+        var overlay = new tr.ui.b.Overlay();
+        overlay.textContent = tr.b.normalizeException(err).message;
+        overlay.title = 'Import error';
+        overlay.visible = true;
+      });
+  }
+
+  function reload() {
+    loadTrace(window.location.hash.substr(1));
+  }
+
+  window.addEventListener('hashchange', reload);
+
+  function onLoad() {
+    timelineViewEl = document.querySelector('tr-ui-timeline-view');
+    timelineViewEl.globalMode = true;
+    reload();
+  }
+  window.addEventListener('load', onLoad);
+  </script>
+</body>
+</html>
