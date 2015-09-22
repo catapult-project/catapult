@@ -11,6 +11,7 @@ import time
 from catapult_base import cloud_storage
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
+from telemetry.internal.browser import browser_finder
 from telemetry.internal.results import results_options
 from telemetry.internal.util import exception_formatter
 from telemetry import page
@@ -263,6 +264,10 @@ def RunBenchmark(benchmark, finder_options):
     exception.
   """
   benchmark.CustomizeBrowserOptions(finder_options.browser_options)
+
+  possible_browser = browser_finder.FindBrowser(finder_options)
+  if possible_browser and benchmark.ShouldDisable(possible_browser):
+    return 1
 
   pt = benchmark.CreatePageTest(finder_options)
   pt.__name__ = benchmark.__class__.__name__

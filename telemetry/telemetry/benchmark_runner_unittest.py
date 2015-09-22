@@ -50,7 +50,6 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
       self.assertEquals(expected_printed_stream, self._stream.output_data)
 
   def testPrintBenchmarkListWithOneDisabledBenchmark(self):
-    self._mock_possible_browser.browser_type = 'TestBrowser'
     expected_printed_stream = (
         'Available benchmarks for TestBrowser are:\n'
         '  FooBenchmark      Benchmark Foo for testing.\n'
@@ -68,3 +67,48 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
       benchmark_runner.PrintBenchmarkList(
         [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
       self.assertEquals(expected_printed_stream, self._stream.output_data)
+
+  def testShouldDisable(self):
+    """Ensure that overridden ShouldDisable class methods are respected."""
+    expected_printed_stream = (
+        'Available benchmarks for TestBrowser are:\n'
+        '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
+        '\n'
+        'Disabled benchmarks for TestBrowser are (force run with -d):\n'
+        '  FooBenchmark      Benchmark Foo for testing.\n'
+        'Pass --browser to list benchmarks for another browser.\n\n')
+    @classmethod
+    def FakeShouldDisable(cls, possible_browser):
+      return cls is BenchmarkFoo
+    BenchmarkFoo.ShouldDisable = FakeShouldDisable
+    BenchmarkBar.ShouldDisable = FakeShouldDisable
+    benchmark_runner.PrintBenchmarkList(
+      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+    self.assertEquals(expected_printed_stream, self._stream.output_data)
+
+  def testShouldDisableComplex(self):
+    """Ensure that browser-dependent ShouldDisable overrides are respected."""
+    expected_printed_stream = (
+        # Expected output for 'TestBrowser':
+        'Available benchmarks for TestBrowser are:\n'
+        '  FooBenchmark      Benchmark Foo for testing.\n'
+        '\n'
+        'Disabled benchmarks for TestBrowser are (force run with -d):\n'
+        '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
+        'Pass --browser to list benchmarks for another browser.\n\n'
+        # Expected output for 'MockBrowser':
+        'Available benchmarks for MockBrowser are:\n'
+        '  FooBenchmark      Benchmark Foo for testing.\n'
+        '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
+        'Pass --browser to list benchmarks for another browser.\n\n')
+    @classmethod
+    def FakeShouldDisable(cls, possible_browser):
+      return cls is BenchmarkBar and not 'Mock' in possible_browser.browser_type
+    BenchmarkFoo.ShouldDisable = FakeShouldDisable
+    BenchmarkBar.ShouldDisable = FakeShouldDisable
+    benchmark_runner.PrintBenchmarkList(
+      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+    self._mock_possible_browser.browser_type = 'MockBrowser'
+    benchmark_runner.PrintBenchmarkList(
+      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+    self.assertEquals(expected_printed_stream, self._stream.output_data)

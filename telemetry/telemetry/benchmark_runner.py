@@ -33,6 +33,12 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 
 
+def _IsBenchmarkEnabled(benchmark_class, possible_browser):
+  return (issubclass(benchmark_class, benchmark.Benchmark) and
+          not benchmark_class.ShouldDisable(possible_browser) and
+          decorators.IsEnabled(benchmark_class, possible_browser)[0])
+
+
 def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
   """ Print benchmarks that are not filtered in the same order of benchmarks in
   the |benchmarks| list.
@@ -56,26 +62,21 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
   disabled_benchmarks = []
 
   print >> output_pipe, 'Available benchmarks %sare:' % (
-      'for %s ' %possible_browser.browser_type if possible_browser else '')
-  for benchmark_class in benchmarks:
-    if possible_browser and not decorators.IsEnabled(benchmark_class,
-                                                     possible_browser)[0]:
-      disabled_benchmarks.append(benchmark_class)
-      continue
-    print >> output_pipe, format_string % (
-        benchmark_class.Name(), benchmark_class.Description())
+      'for %s ' % possible_browser.browser_type if possible_browser else '')
+  for b in benchmarks:
+    if not possible_browser or _IsBenchmarkEnabled(b, possible_browser):
+      print >> output_pipe, format_string % (b.Name(), b.Description())
+    else:
+      disabled_benchmarks.append(b)
 
   if disabled_benchmarks:
-    print >> output_pipe
     print >> output_pipe, (
-        'Disabled benchmarks for %s are (force run with -d):' %
+        '\nDisabled benchmarks for %s are (force run with -d):' %
         possible_browser.browser_type)
-    for benchmark_class in disabled_benchmarks:
-      print >> output_pipe, format_string % (
-          benchmark_class.Name(), benchmark_class.Description())
+    for b in disabled_benchmarks:
+      print >> output_pipe, format_string % (b.Name(), b.Description())
   print >> output_pipe, (
-      'Pass --browser to list benchmarks for another browser.')
-  print >> output_pipe
+      'Pass --browser to list benchmarks for another browser.\n')
 
 
 class ProjectConfig(object):
@@ -340,10 +341,7 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     }
   }
   for benchmark_class in benchmark_classes:
-    if not issubclass(benchmark_class, benchmark.Benchmark):
-      continue
-    enabled, _ = decorators.IsEnabled(benchmark_class, possible_browser)
-    if not enabled:
+    if not _IsBenchmarkEnabled(benchmark_class, possible_browser):
       continue
 
     base_name = benchmark_class.Name()
@@ -376,16 +374,14 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
       'device_affinity': device_affinity,
       'perf_dashboard_id': perf_dashboard_id,
     }
-    if possible_reference_browser:
-      enabled, _ = decorators.IsEnabled(
-          benchmark_class, possible_reference_browser)
-      if enabled:
-        output['steps'][base_name + '.reference'] = {
-          'cmd': ' '.join(base_cmd + [
-                '--browser=reference', '--output-trace-tag=_ref']),
-          'device_affinity': device_affinity,
-          'perf_dashboard_id': perf_dashboard_id,
-        }
+    if (possible_reference_browser and
+        _IsBenchmarkEnabled(benchmark_class, possible_reference_browser)):
+      output['steps'][base_name + '.reference'] = {
+        'cmd': ' '.join(base_cmd + [
+              '--browser=reference', '--output-trace-tag=_ref']),
+        'device_affinity': device_affinity,
+        'perf_dashboard_id': perf_dashboard_id,
+      }
 
   return json.dumps(output, indent=2, sort_keys=True)
 
