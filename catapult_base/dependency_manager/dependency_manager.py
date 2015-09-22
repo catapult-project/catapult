@@ -53,7 +53,7 @@ class DependencyManager(object):
     for config in configs:
       self._UpdateDependencies(config)
 
-  def FetchPath(self, dependency, platform):
+  def FetchPath(self, dependency, platform, try_support_binaries=False):
     """Get a path to an executable for |dependency|, downloading as needed.
 
     A path to a default executable may be returned if a platform specific
@@ -65,6 +65,8 @@ class DependencyManager(object):
         platform: Name of the platform the dependency will run on. Often of the
             form 'os_architecture'. Must match those specified in the config(s)
             used in this DependencyManager.
+        try_support_binaries: True if support_binaries should be queried if the
+            dependency_manager was not initialized with data for |dependency|.
 
     Returns:
         A path to an executable of |dependency| that will run on |platform|,
@@ -87,8 +89,13 @@ class DependencyManager(object):
     """
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
-      # TODO(aiolos): Replace the support_binaries call with an error once all
-      # binary dependencies are moved over to the new system.
+      logging.error(
+          'The dependency_manager was not initialized with the dependency.')
+      if not try_support_binaries:
+        raise exceptions.NoPathFoundError(dependency, platform)
+      # TODO(aiolos): Remove the support_binaries call and always raise
+      # NoPathFound once the binary dependencies are moved over to the new
+      # system.
 
       # platform should be of the form '%s_%s' % (os_name, arch_name) when
       # called from the binary_manager.
@@ -100,8 +107,6 @@ class DependencyManager(object):
                                         platform_arch))
       return support_binaries.FindPath(dependency, platform_arch,
                                        platform_os)
-    logging.info('Looking for dependency %s, on platform %s in the dependency '
-                 'manager.' % (dependency, platform))
     path = self._LocalPath(dependency_info)
     if not path or not os.path.exists(path):
       path = self._CloudStoragePath(dependency_info)
@@ -109,7 +114,7 @@ class DependencyManager(object):
         raise exceptions.NoPathFoundError(dependency, platform)
     return path
 
-  def LocalPath(self, dependency, platform):
+  def LocalPath(self, dependency, platform, try_support_binaries=False):
     """Get a path to a locally stored executable for |dependency|.
 
     A path to a default executable may be returned if a platform specific
@@ -122,6 +127,8 @@ class DependencyManager(object):
         platform: Name of the platform the dependency will run on. Often of the
             form 'os_architecture'. Must match those specified in the config(s)
             used in this DependencyManager.
+        try_support_binaries: True if support_binaries should be queried if the
+            dependency_manager was not initialized with data for |dependency|.
 
     Returns:
         A path to an executable for |dependency| that will run on |platform|.
@@ -129,10 +136,15 @@ class DependencyManager(object):
     Raises:
         NoPathFoundError: If a local copy of the executable cannot be found.
     """
-    # TODO(aiolos): Replace the support_binaries call with an error once all
-    # binary dependencies are moved over to the new system.
+    # TODO(aiolos): Remove the support_binaries call and always raise
+    # NoPathFound once the binary dependencies are moved over to the new
+    # system.
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
+      logging.error(
+          'The dependency_manager was not initialized with the dependency.')
+      if not try_support_binaries:
+        raise exceptions.NoPathFoundError(dependency, platform)
       return support_binaries.FindLocallyBuiltPath(dependency)
     local_path = self._LocalPath(dependency_info)
     if not local_path or not os.path.exists(local_path):

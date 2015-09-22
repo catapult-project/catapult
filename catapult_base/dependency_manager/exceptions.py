@@ -22,7 +22,7 @@ class FileNotFoundError(Exception):
     super(FileNotFoundError, self).__init__('No file found at %s' % file_path)
 
 
-class NoPathFoundError(FileNotFoundError):
+class NoPathFoundError(Exception):
   def __init__(self, dependency, platform):
     super(NoPathFoundError, self).__init__(
         'No file could be found locally, and no file to download from cloud '
