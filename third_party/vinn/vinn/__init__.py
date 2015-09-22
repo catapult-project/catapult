@@ -3,10 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from vinn.d8_runner import ExecuteFile
-from vinn.d8_runner import ExecuteJsString
-from vinn.d8_runner import RunFile
-from vinn.d8_runner import RunJsString
+from ._vinn import ExecuteFile
+from ._vinn import ExecuteJsString
+from ._vinn import RunFile
+from ._vinn import RunJsString
 
 __all__ = [
   'ExecuteFile',
