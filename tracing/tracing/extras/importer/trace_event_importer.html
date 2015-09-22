@@ -365,10 +365,11 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     processCompleteEvent: function(event) {
-      // TODO(fmeawad): Preventing the overhead slices from making it into
-      // the model until bug
-      // https://github.com/catapult-project/catapult/issues/1469 is addressed.
-      if (event.cat.indexOf('trace_event_overhead') > -1)
+      // Preventing the overhead slices from making it into the model. This
+      // only applies to legacy traces, as the overhead traces have been
+      // removed from the chromium code.
+      if (event.cat !== undefined &&
+          event.cat.indexOf('trace_event_overhead') > -1)
         return undefined;
 
       var thread = this.model_.getOrCreateProcess(event.pid)
