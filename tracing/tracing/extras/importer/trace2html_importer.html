@@ -51,7 +51,7 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   function _canImportFromHTML(text) {
-    if (/^<!DOCTYPE HTML>/.test(text) === false)
+    if (/^<!DOCTYPE html>/.test(text) === false)
       return false;
 
     // Try to find viewer-data...

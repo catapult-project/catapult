@@ -212,7 +212,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produce_result === undefined)
       produce_result = true;
 
-    if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
+    if (/^<!DOCTYPE html>/.test(incoming_events) == false)
       return failure;
     var r = new tr.importer.SimpleLineReader(incoming_events);
 
@@ -277,7 +277,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produce_result === undefined)
       produce_result = true;
 
-    if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
+    if (/^<!DOCTYPE html>/.test(incoming_events) == false)
       return failure;
     var r = new tr.importer.SimpleLineReader(incoming_events);
 

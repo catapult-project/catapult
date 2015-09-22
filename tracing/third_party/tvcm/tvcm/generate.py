@@ -221,7 +221,7 @@ def GenerateStandaloneHTMLToFile(output_file,
 
   if output_html_head_and_body:
     output_file.write(
-        '<!DOCTYPE HTML>\n'
+        '<!DOCTYPE html>\n'
         '<html>\n'
         '  <head i18n-values="dir:textdirection;">\n'
         '  <meta http-equiv="Content-Type" content="text/html;'
