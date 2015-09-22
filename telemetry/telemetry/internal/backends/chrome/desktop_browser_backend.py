@@ -149,7 +149,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.error(
           'Failed to run %s --no-window --dump-dir=%s --pip-name=%s' % (
             command, self._tmp_minidump_dir, self._GetCrashServicePipeName()))
-      logging.error('Running on platform: %s and arch: %s.' %os_name, arch_name)
+      logging.error('Running on platform: %s and arch: %s.', os_name, arch_name)
       raise
     return crash_service
 
