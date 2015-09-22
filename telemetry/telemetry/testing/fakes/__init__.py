@@ -142,6 +142,7 @@ class _FakeBrowser(object):
     self._tabs = _FakeTabList(self)
     self._returned_system_info = FakeSystemInfo()
     self._platform = platform
+    self._browser_type = 'release'
 
   @property
   def platform(self):
@@ -165,6 +166,16 @@ class _FakeBrowser(object):
     Incoming argument must be an instance of FakeSystemInfo."""
     assert isinstance(incoming, FakeSystemInfo)
     self._returned_system_info = incoming
+
+  @property
+  def browser_type(self):
+    """The browser_type this browser claims to be ('debug', 'release', etc.)"""
+    return self._browser_type
+
+  @browser_type.setter
+  def browser_type(self, incoming):
+    """Allows setting of the browser_type."""
+    self._browser_type = incoming
 
   @property
   def credentials(self):
