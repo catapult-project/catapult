@@ -45,8 +45,9 @@ class DependencyManagerTest(unittest.TestCase):
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._CloudStoragePath')
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
-  def testFetchPathSupportBinaries(self, local_path_mock, cs_path_mock,
-                                   dep_info_mock, sb_find_path_mock, path_mock):
+  def testFetchPathUnititializedDependency(
+      self, local_path_mock, cs_path_mock, dep_info_mock, sb_find_path_mock,
+      path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
@@ -60,7 +61,12 @@ class DependencyManagerTest(unittest.TestCase):
     dep_info_mock.return_value = None
 
     # Empty lookup_dict
-    found_path = dep_manager.FetchPath('dep', 'plat_arch_x86')
+    with self.assertRaises(exceptions.NoPathFoundError):
+      dep_manager.FetchPath('dep', 'plat_arch_x86')
+    dep_info_mock.reset_mock()
+
+    found_path = dep_manager.FetchPath(
+        'dep', 'plat_arch_x86', try_support_binaries=True)
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
@@ -75,8 +81,12 @@ class DependencyManagerTest(unittest.TestCase):
     # for.
     dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
                                 'dep2': mock.MagicMock()}
-    found_path = dep_manager.FetchPath('dep', 'plat_arch_x86')
+    with self.assertRaises(exceptions.NoPathFoundError):
+      dep_manager.FetchPath('dep', 'plat_arch_x86')
+    dep_info_mock.reset_mock()
 
+    found_path = dep_manager.FetchPath(
+        'dep', 'plat_arch_x86', try_support_binaries=True)
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
@@ -245,7 +255,12 @@ class DependencyManagerTest(unittest.TestCase):
     dep_info_mock.return_value = None
 
     # Empty lookup_dict
-    found_path = dep_manager.LocalPath('dep', 'plat')
+    with self.assertRaises(exceptions.NoPathFoundError):
+      dep_manager.LocalPath('dep', 'plat')
+    dep_info_mock.reset_mock()
+
+    found_path = dep_manager.LocalPath(
+        'dep', 'plat', try_support_binaries=True)
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     sb_find_path_mock.assert_called_once_with('dep')
@@ -258,8 +273,12 @@ class DependencyManagerTest(unittest.TestCase):
     # for.
     dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
                                 'dep2': mock.MagicMock()}
-    found_path = dep_manager.LocalPath('dep', 'plat')
+    with self.assertRaises(exceptions.NoPathFoundError):
+      dep_manager.LocalPath('dep', 'plat')
+    dep_info_mock.reset_mock()
 
+    found_path = dep_manager.LocalPath(
+        'dep', 'plat', try_support_binaries=True)
     self.assertEqual(sb_path, found_path)
     self.assertFalse(local_path_mock.call_args)
     sb_find_path_mock.assert_called_once_with('dep')
