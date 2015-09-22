@@ -48,11 +48,8 @@ class DependencyInfo(object):
     self._version_in_cs = version_in_cs
     self.VerifyCloudStorageInfo()
 
-  def Update(self, new_dep_info, append_to_front):
+  def Update(self, new_dep_info):
     """Add the information from |new_dep_info| to this instance.
-
-    append_to_front: Whether new local_paths should be appended to the front of
-    the local_paths list, or the end.
     """
     self._config_files.extend(new_dep_info.config_files)
     if (self.dependency != new_dep_info.dependency or

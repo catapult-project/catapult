@@ -190,12 +190,9 @@ class DependencyInfoTest(unittest.TestCase):
         'dep1', 'platform2', 'config_file2', local_paths=['path0', 'path2'])
     dep_info3 = dependency_info.DependencyInfo(
         'dep2', 'platform1', 'config_file3', local_paths=['path0', 'path3'])
-    self.assertRaises(ValueError, dep_info1.Update, dep_info2, False)
-    self.assertRaises(ValueError, dep_info1.Update, dep_info3, False)
-    self.assertRaises(ValueError, dep_info3.Update, dep_info2, False)
-    self.assertRaises(ValueError, dep_info1.Update, dep_info2, True)
-    self.assertRaises(ValueError, dep_info1.Update, dep_info3, True)
-    self.assertRaises(ValueError, dep_info3.Update, dep_info2, True)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info2)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info3)
+    self.assertRaises(ValueError, dep_info3.Update, dep_info2)
 
   def testUpdateCloudStorageInfoNoVersions(self):
     dep_info1 = dependency_info.DependencyInfo(
@@ -211,21 +208,21 @@ class DependencyInfoTest(unittest.TestCase):
         cs_hash='cs_hash', download_path='download_path',
         cs_remote_path='cs_remote_path')
 
-    dep_info1.Update(dep_info2, False)
+    dep_info1.Update(dep_info2)
     self.assertEqual('cs_bucket', dep_info1.cs_bucket)
     self.assertEqual('cs_hash', dep_info1.cs_hash)
     self.assertEqual('download_path', dep_info1.download_path)
     self.assertEqual('cs_remote_path', dep_info1.cs_remote_path)
     self.assertFalse(dep_info1.local_paths)
 
-    dep_info1.Update(dep_info3, False)
+    dep_info1.Update(dep_info3)
     self.assertEqual('cs_bucket', dep_info1.cs_bucket)
     self.assertEqual('cs_hash', dep_info1.cs_hash)
     self.assertEqual('download_path', dep_info1.download_path)
     self.assertEqual('cs_remote_path', dep_info1.cs_remote_path)
     self.assertFalse(dep_info1.local_paths)
 
-    self.assertRaises(ValueError, dep_info1.Update, dep_info4, False)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info4)
 
   def testUpdateCloudStorageInfoWithVersions(self):
     dep_info1 = dependency_info.DependencyInfo(
@@ -245,7 +242,7 @@ class DependencyInfoTest(unittest.TestCase):
         cs_hash='cs_hash5', download_path='download_path5',
         cs_remote_path='cs_remote_path5')
 
-    dep_info1.Update(dep_info2, False)
+    dep_info1.Update(dep_info2)
     self.assertEqual('cs_bucket2', dep_info1.cs_bucket)
     self.assertEqual('cs_hash2', dep_info1.cs_hash)
     self.assertEqual('download_path2', dep_info1.download_path)
@@ -253,7 +250,7 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertEqual('2.1.1', dep_info1.version_in_cs)
     self.assertFalse(dep_info1.local_paths)
 
-    dep_info1.Update(dep_info3, False)
+    dep_info1.Update(dep_info3)
     self.assertEqual('cs_bucket2', dep_info1.cs_bucket)
     self.assertEqual('cs_hash2', dep_info1.cs_hash)
     self.assertEqual('download_path2', dep_info1.download_path)
@@ -261,7 +258,7 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertEqual('2.1.1', dep_info1.version_in_cs)
     self.assertFalse(dep_info1.local_paths)
 
-    self.assertRaises(ValueError, dep_info1.Update, dep_info4, False)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info4)
     self.assertEqual('cs_bucket2', dep_info1.cs_bucket)
     self.assertEqual('cs_hash2', dep_info1.cs_hash)
     self.assertEqual('download_path2', dep_info1.download_path)
@@ -269,7 +266,7 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertEqual('2.1.1', dep_info1.version_in_cs)
     self.assertFalse(dep_info1.local_paths)
 
-    self.assertRaises(ValueError, dep_info1.Update, dep_info5, False)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info5)
 
   def testUpdateAllInfo(self):
     dep_info1 = dependency_info.DependencyInfo(
@@ -285,21 +282,21 @@ class DependencyInfoTest(unittest.TestCase):
         cs_hash='cs_hash', download_path='download_path',
         cs_remote_path='cs_remote_path', local_paths=['path4'])
 
-    dep_info1.Update(dep_info2, False)
+    dep_info1.Update(dep_info2)
     self.assertEqual('cs_bucket', dep_info1.cs_bucket)
     self.assertEqual('cs_hash', dep_info1.cs_hash)
     self.assertEqual('download_path', dep_info1.download_path)
     self.assertEqual('cs_remote_path', dep_info1.cs_remote_path)
     self.assertEqual(['path1', 'path2'], dep_info1.local_paths)
 
-    dep_info1.Update(dep_info3, False)
+    dep_info1.Update(dep_info3)
     self.assertEqual('cs_bucket', dep_info1.cs_bucket)
     self.assertEqual('cs_hash', dep_info1.cs_hash)
     self.assertEqual('download_path', dep_info1.download_path)
     self.assertEqual('cs_remote_path', dep_info1.cs_remote_path)
     self.assertEqual(['path1', 'path2', 'path3'], dep_info1.local_paths)
 
-    self.assertRaises(ValueError, dep_info1.Update, dep_info4, False)
+    self.assertRaises(ValueError, dep_info1.Update, dep_info4)
 
   def testAppendConflictingLocalFiles(self):
     dep_info1 = dependency_info.DependencyInfo(
@@ -311,6 +308,6 @@ class DependencyInfoTest(unittest.TestCase):
 
     expected_local_paths = ['path0', 'path1', 'path3', 'path5', 'path6',
                             'path2', 'path4']
-    dep_info1.Update(dep_info2, False)
+    dep_info1.Update(dep_info2)
     self.assertEquals(expected_local_paths, dep_info1.local_paths)
 
