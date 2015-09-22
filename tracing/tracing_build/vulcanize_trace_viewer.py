@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import codecs
-import optparse
+import argparse
 import os
 import sys
 
@@ -13,47 +13,41 @@ from tvcm import generate
 
 def Main(argv):
 
-  parser = optparse.OptionParser(
-      usage="%prog <options>",
-      epilog="""Produces a standalone html import that contains the
-trace viewer.""")
+  parser = argparse.ArgumentParser(
+      usage='%(prog)s <options>',
+      epilog=('Produces a standalone HTML import that contains the\n'
+              'trace viewer.'))
 
   project = tracing_project.TracingProject()
   project.AddConfigNameOptionToParser(parser)
 
-  parser.add_option('--no-min', dest='no_min', default=False,
-                    action='store_true',
-                    help='skip minification')
-  parser.add_option('--report-sizes', dest='report_sizes', default=False,
-                    action='store_true',
-                    help='Explain what makes tracing big.')
-  parser.add_option('--report-deps', dest='report_deps', default=False,
-                    action='store_true',
-                    help='Print a dot-formatted deps graph.')
-  parser.add_option(
-      "--output", dest="output",
-      help='Where to put the generated result. If not ' +
-           'given, $TRACING/tracing/bin/trace_viewer.html is used.')
+  parser.add_argument('--no-min', default=False, action='store_true',
+                      help='skip minification')
+  parser.add_argument('--report-sizes', default=False, action='store_true',
+                      help='Explain what makes tracing big.')
+  parser.add_argument('--report-deps', default=False, action='store_true',
+                      help='Print a dot-formatted deps graph.')
+  parser.add_argument('--output',
+                      help='Where to put the generated result. If not given, '
+                           '$TRACING/tracing/bin/trace_viewer.html is used.')
 
-  options, args = parser.parse_args(argv[1:])
-  if len(args) != 0:
-    parser.error('No arguments needed.')
+  args = parser.parse_args(argv[1:])
 
   tracing_dir = os.path.relpath(
       os.path.join(os.path.dirname(__file__), '..', '..'))
-  if options.output:
-    output_filename = options.output
+  if args.output:
+    output_filename = args.output
   else:
     output_filename = os.path.join(
-        tracing_dir, 'tracing/bin/trace_viewer_%s.html' % options.config_name)
+        tracing_dir, 'tracing/bin/trace_viewer_%s.html' % args.config_name)
 
   with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(
         f,
-        config_name=options.config_name,
-        minify=not options.no_min,
-        report_sizes=options.report_sizes,
-        report_deps=options.report_deps)
+        config_name=args.config_name,
+        minify=not args.no_min,
+        report_sizes=args.report_sizes,
+        report_deps=args.report_deps)
 
   return 0
 

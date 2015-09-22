@@ -11,4 +11,4 @@ if __name__ == '__main__':
                                  '..'))
   sys.path.append(tracing_path)
   from tracing_build import generate_about_tracing_contents
-  sys.exit(generate_about_tracing_contents.Main(sys.argv))
+  sys.exit(generate_about_tracing_contents.Main(sys.argv[1:]))

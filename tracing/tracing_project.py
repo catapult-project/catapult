@@ -139,10 +139,9 @@ class TracingProject():
 
   def AddConfigNameOptionToParser(self, parser):
     choices = self.GetConfigNames()
-    parser.add_option(
+    parser.add_argument(
         '--config', dest='config_name',
-        type='choice', choices=choices,
-        default=self.GetDefaultConfigName(),
+        choices=choices, default=self.GetDefaultConfigName(),
         help='Picks a browser config. Valid choices: %s' % ', '.join(choices))
     return choices
 

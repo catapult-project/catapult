@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import codecs
 import base64
 import gzip
 import json
-import optparse
 import os
 import StringIO
 import sys
@@ -18,37 +18,36 @@ from tvcm import generate
 
 def Main(argv):
 
-  parser = optparse.OptionParser(
-      usage="%prog <options> trace_file1 [trace_file2 ...]",
-      epilog="""Takes the provided trace file and produces a standalone html
-file that contains both the trace and the trace viewer.""")
+  parser = argparse.ArgumentParser(
+      usage='%(prog)s <options> trace_file1 [trace_file2 ...]',
+      epilog='Takes the provided trace file and produces a standalone HTML\n'
+             'file that contains both the trace and the trace viewer.')
 
   project = tracing_project.TracingProject()
   project.AddConfigNameOptionToParser(parser)
 
-  parser.add_option(
-      "--output", dest="output",
-      help='Where to put the generated result. If not ' +
+  parser.add_argument(
+      '--output', dest='output',
+      help='Where to put the generated result. If not '
            'given, the trace filename is used, with an html suffix.')
-  parser.add_option(
-      "--quiet", action='store_true',
+  parser.add_argument(
+      '--quiet', action='store_true',
       help='Dont print the output file name')
-  options, args = parser.parse_args(argv[1:])
-  if len(args) == 0:
-    parser.error('At least one trace file required')
+  parser.add_argument('trace_files', nargs='+')
+  args = parser.parse_args(argv[1:])
 
-  if options.output:
-    output_filename = options.output
-  elif len(args) > 1:
-    parser.error('Must specify --output if >1 trace file')
+  if args.output:
+    output_filename = args.output
+  elif len(args.trace_files) > 1:
+    parser.error('Must specify --output if there are multiple trace files.')
   else:
-    namepart = os.path.splitext(args[0])[0]
-    output_filename = namepart + '.html'
+    name_part = os.path.splitext(args.trace_files[0])[0]
+    output_filename = name_part + '.html'
 
   with codecs.open(output_filename, mode='w', encoding='utf-8') as f:
-    WriteHTMLForTracesToFile(args, f, config_name=options.config_name)
+    WriteHTMLForTracesToFile(args.trace_files, f, config_name=args.config_name)
 
-  if not options.quiet:
+  if not args.quiet:
     print output_filename
   return 0
 

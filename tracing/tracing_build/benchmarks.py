@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import cProfile
 import pstats
 import StringIO
 import inspect
-import optparse
 import sys
 import os
 
@@ -28,22 +28,19 @@ class Bench(object):
 
 
 def Main(args):
-  parser = optparse.OptionParser()
-  parser.add_option('--repeat-count', type='int',
-                    default=10)
-  options, args = parser.parse_args(args)
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--repeat-count', type=int, default=10)
+  parser.add_argument('bench_name')
+  args = parser.parse_args(args)
 
   benches = [g for g in globals().values()
              if g != Bench and inspect.isclass(g) and
              Bench in inspect.getmro(g)]
-  if len(args) != 1:
-    sys.stderr.write('\n'.join([b.__name__ for b in benches]))
-    return 1
 
   # pylint: disable=undefined-loop-variable
-  b = [b for b in benches if b.__name__ == args[0]]
+  b = [b for b in benches if b.__name__ == args.bench_name]
   if len(b) != 1:
-    sys.stderr.write('Oops')
+    sys.stderr.write('Bench %r not found.' % args.bench_name)
     return 1
 
   bench = b[0]()
@@ -51,7 +48,7 @@ def Main(args):
   try:
     pr = cProfile.Profile()
     pr.enable(builtins=False)
-    for _ in range(options.repeat_count):
+    for _ in range(args.repeat_count):
       bench.Run()
     pr.disable()
     s = StringIO.StringIO()
