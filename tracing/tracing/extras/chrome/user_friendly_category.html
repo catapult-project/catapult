@@ -15,6 +15,36 @@ tr.exportTo('tr.e.chrome', function() {
   var DEFAULT_USER_FRIENDLY_CATEGORY = 'other';
 
   var TITLES_FOR_USER_FRIENDLY_CATEGORY = {
+    composite: [
+      'ThreadProxy::SetNeedsUpdateLayers',
+      'LayerTreeHost::UpdateLayers::CalcDrawProps',
+      'UpdateLayerTree'
+    ],
+
+    gc: [
+      'minorGC',
+      'majorGC',
+      'MajorGC',
+      'MinorGC',
+      'V8.GCScavenger',
+      'V8.GCIncrementalMarking',
+      'V8.GCIdleNotification',
+      'V8.GCContext',
+      'V8.GCCompactor',
+      'V8GCController::traceDOMWrappers'
+    ],
+
+    imageDecode: [
+      'Decode Image',
+      'ImageFrameGenerator::decode'
+    ],
+
+    input: [
+      'HitTest',
+      'ScrollableArea::scrollPositionChanged',
+      'EventHandler::handleMouseMoveEvent'
+    ],
+
     layout: [
       'FrameView::invalidateTree',
       'FrameView::layout',
@@ -27,23 +57,55 @@ tr.exportTo('tr.e.chrome', function() {
       'WebViewImpl::layout'
     ],
 
-    paint: [
-      'Paint'
-    ],
-
-    parse: [
+    parseHTML: [
       'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       'HTMLDocumentParser::processParsedChunkFromBackgroundParser'
     ],
 
+    raster: [
+      'Picture::Raster',
+      'RasterTask',
+      'SkCanvas::drawTextBlob()',
+      'SkCanvas::drawImageRect()',
+      'SkCanvas::drawPicture()'
+    ],
+
+    record: [
+      'DeprecatedPaintLayerCompositor::updateIfNeededRecursive',
+      'Picture::Record',
+      'PictureLayer::Update',
+      'RenderLayer::updateLayerPositionsAfterLayout'
+    ],
+
     script: [
-      'Script'
+      'Script',
+      'V8.Execute',
+      'v8.run',
+      'v8.callModuleMethod',
+      'v8.callFunction'
     ],
 
     style: [
-      'StyleElement::processStyleSheet',
+      'CSSParserImpl::parseStyleSheet.parse',
+      'CSSParserImpl::parseStyleSheet.tokenize',
       'Document::updateStyle',
-      'RuleSet::addRulesFromSheet'
+      'RuleSet::addRulesFromSheet',
+      'StyleElement::processStyleSheet',
+      'StyleSheetContents::parseAuthorStyleSheet'
+    ],
+
+    script_parse_and_compile: [
+      'V8.RecompileSynchronous',
+      'V8.RecompileConcurrent',
+      'V8.PreParseMicroSeconds',
+      'v8.parseOnBackground',
+      'V8.ParseMicroSeconds',
+      'V8.ParseLazyMicroSeconds',
+      'V8.CompileScriptMicroSeconds',
+      'V8.CompileMicroSeconds',
+      'V8.CompileFullCode',
+      'V8.CompileEvalMicroSeconds',
+      'v8.compile'
     ]
   };
 
@@ -62,16 +124,6 @@ tr.exportTo('tr.e.chrome', function() {
   };
 
   function UserFriendlyCategory() {
-  }
-
-  UserFriendlyCategory.NAMES = Object.keys(TITLES_FOR_USER_FRIENDLY_CATEGORY);
-  UserFriendlyCategory.NAMES.push(DEFAULT_USER_FRIENDLY_CATEGORY);
-
-  for (var eventCategory in USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY) {
-    var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY[
-        eventCategory];
-    if (UserFriendlyCategory.NAMES.indexOf(userFriendlyCategory) < 0)
-      UserFriendlyCategory.NAMES.push(userFriendlyCategory);
   }
 
   UserFriendlyCategory.fromEvent = function(event) {

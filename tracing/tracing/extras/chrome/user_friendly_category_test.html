@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/extras/chrome/user_friendly_category.html">
@@ -13,64 +14,64 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('userFriendlyCategory', function() {
-    assert.equal(9, tr.e.chrome.UserFriendlyCategory.NAMES.length);
+  var ufcFromEvent = tr.e.chrome.UserFriendlyCategory.fromEvent;
 
-    var events = new tr.model.EventSet();
-    var guid = 0;
-    events.push({
-      guid: guid++,
+  test('userFriendlyCategory', function() {
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'FrameView::layout',
       category: 'cat'
-    });
-    events.push({
-      guid: guid++,
+    }), 'layout');
+
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'Script',
       category: 'cat'
-    });
-    events.push({
-      guid: guid++,
+    }), 'script');
+
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'Paint',
       category: 'cat'
-    });
-    events.push({
-      guid: guid++,
+    }), 'other');
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'Document::updateStyle',
       category: 'cat'
-    });
-    events.push({
-      guid: guid++,
+    }), 'style');
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       category: 'cat'
-    });
-    events.push({
-      guid: guid++,
+    }), 'parseHTML');
+  });
+
+  test('ufcFromTraceCategory', function() {
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'a',
       category: 'netlog'
-    });
-    events.push({
-      guid: guid++,
-      title: 'a',
-      category: 'startup'
-    });
-    events.push({
-      guid: guid++,
+    }), 'net');
+
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'a',
       category: 'foobar,overhead'
-    });
-    events.push({
-      guid: guid++,
+    }), 'overhead');
+
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
+      title: 'a',
+      category: 'startup'
+    }), 'startup');
+  });
+
+  test('ufcUndefined', function() {
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocate(),
       title: 'a',
       category: 'other'
-    });
-
-    var eventsByCategory = events.getEventsOrganizedByCallback(
-        tr.e.chrome.UserFriendlyCategory.fromEvent);
-
-    tr.e.chrome.UserFriendlyCategory.NAMES.forEach(function(name) {
-      assert.isDefined(eventsByCategory[name], name);
-      assert.equal(1, eventsByCategory[name].length, name);
-    });
+    }), 'other');
   });
 });
 </script>
