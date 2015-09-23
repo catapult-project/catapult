@@ -43,15 +43,6 @@ class PinchAction(page_action.PageAction):
           'This version of the browser doesn\'t support the new JS interface '
           'for pinch gestures.')
 
-    if (self._synthetic_gesture_source ==
-        'chrome.gpuBenchmarking.MOUSE_INPUT'):
-      raise page_action.PageActionNotSupported(
-          'Pinch page action does not support mouse input')
-
-    if not page_action.IsGestureSourceTypeSupported(tab, 'touch'):
-      raise page_action.PageActionNotSupported(
-          'Touch input not supported for this browser')
-
     done_callback = 'function() { window.__pinchActionDone = true; }'
     tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
