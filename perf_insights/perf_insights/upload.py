@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import re
 import webapp2
@@ -52,8 +53,13 @@ class UploadPage(webapp2.RequestHandler):
     trace_object.network_type = self.request.get('network_type')
     trace_object.remote_addr = os.environ["REMOTE_ADDR"]
     tags_string = self.request.get('tags')
-    if re.match('^[a-zA-Z0-9,]+$', tags_string): # ignore non alpha-numeric tags
-      trace_object.tags = tags_string.split(',')
+    if tags_string:
+      # Tags are comma separated and should only include alphanumeric + '-'.
+      if re.match('^[a-zA-Z0-9-,]+$', tags_string):
+        trace_object.tags = tags_string.split(',')
+      else:
+        logging.warning('The provided tags string includes one or more invalid'
+                        ' characters and will be ignored')
     trace_object.user_agent = self.request.headers.get('User-Agent')
     trace_object.ver = self.request.get('product_version')
     trace_object.put()
