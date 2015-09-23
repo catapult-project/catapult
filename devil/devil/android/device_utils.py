@@ -584,9 +584,6 @@ class DeviceUtils(object):
     host_checksums = None
     if not device_apk_paths:
       apks_to_install = all_apks
-    elif not reinstall:
-      self.Uninstall(package_name)
-      apks_to_install = all_apks
     elif len(device_apk_paths) > 1 and not split_apks:
       logging.warning(
           'Installing non-split APK when split APK was previously installed')
@@ -598,6 +595,9 @@ class DeviceUtils(object):
     else:
       apks_to_install, host_checksums = (
           self._ComputeStaleApks(package_name, all_apks))
+      if apks_to_install and not reinstall:
+        self.Uninstall(package_name)
+        apks_to_install = all_apks
 
     if apks_to_install:
       # Assume that we won't know the resulting device state.

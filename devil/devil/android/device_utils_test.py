@@ -598,13 +598,16 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
       self.device.Install(
           '/fake/test/app.apk', retries=0, permissions=['p1', 'p2'])
 
-  def testInstall_priorInstall(self):
+  def testInstall_differentPriorInstall(self):
     APK_PATH = '/fake/test/app.apk'
     with self.assertCalls(
         (mock.call.devil.android.apk_helper.GetPackageName(APK_PATH),
          'test.package'),
         (self.call.device._GetApplicationPathsInternal('test.package'),
          ['/fake/data/app/test.package.apk']),
+        (self.call.device._ComputeStaleApks('test.package',
+            ['/fake/test/app.apk']),
+         (['/fake/test/app.apk'], None)),
         self.call.device.Uninstall('test.package'),
         self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
       self.device.Install('/fake/test/app.apk', retries=0, permissions=[])
