@@ -59,7 +59,8 @@ class PageTestTestCase(unittest.TestCase):
         continue
       setattr(options, k, v)
 
-    measurement.CustomizeBrowserOptions(options.browser_options)
+    if isinstance(measurement, page_test.PageTest):
+      measurement.CustomizeBrowserOptions(options.browser_options)
     options.output_file = None
     options.output_formats = ['none']
     options.suppress_gtest_report = True

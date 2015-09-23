@@ -20,8 +20,6 @@ class TimelineBasedPageTest(page_test.PageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.MeasureForPageTest(tracing_controller, results)
-
-  def DidRunPage(self, platform):
-    self._measurement.DidRunStoryForPageTest(platform.tracing_controller)
+    # Measurement is done explicitly in story_runner for timeline based page
+    # test.
+    pass

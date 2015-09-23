@@ -244,15 +244,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     self._results_wrapper = results_wrapper or _TBMResultWrapper()
 
   def WillRunStory(self, platform):
-    """Set up test according to the tbm options."""
-    pass
+    """Set up before running the story.
 
-  def Measure(self, platform, results):
-    """Collect all possible metrics and added them to results."""
-    pass
-
-  def DidRunStory(self, platform):
-    """Clean up test according to the tbm options."""
+    Do not use this for now. This is designed to be used for story test instead
+    of page test. WillRunStoryForPageTest and this function will be merged after
+    page_test's hook is deprecated.
+    """
     pass
 
   def WillRunStoryForPageTest(self, tracing_controller):
@@ -263,9 +260,9 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     tracing_controller.Start(self._tbm_options.tracing_options,
                              self._tbm_options.category_filter)
 
-  def MeasureForPageTest(self, tracing_controller, results):
+  def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
-    trace_result = tracing_controller.Stop()
+    trace_result = platform.tracing_controller.Stop()
     results.AddValue(trace.TraceValue(results.current_page, trace_result))
     model = model_module.TimelineModel(trace_result)
     threads_to_records_map = _GetRendererThreadsToInteractionRecordsMap(model)
@@ -283,6 +280,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
           self._results_wrapper, self._tbm_options.GetTimelineBasedMetrics())
       meta_metrics.AddResults(results)
 
-  def DidRunStoryForPageTest(self, tracing_controller):
-    if tracing_controller.is_tracing_running:
-      tracing_controller.Stop()
+  def DidRunStory(self, platform):
+    """Clean up after running the story."""
+    if platform.tracing_controller.is_tracing_running:
+      platform.tracing_controller.Stop()

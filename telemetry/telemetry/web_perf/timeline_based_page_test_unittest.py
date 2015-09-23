@@ -10,7 +10,6 @@ from telemetry.testing import page_test_test_case
 from telemetry.timeline import tracing_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
-from telemetry.web_perf import timeline_based_page_test as tbpt_module
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
@@ -55,9 +54,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         ps, ps.base_dir, trigger_animation=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
-    measurement = tbpt_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps,
-                                  options=self._options)
+    results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
     v = results.FindAllPageSpecificValuesNamed(
@@ -79,9 +76,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'disabled-by-default-gpu.service')
     tbm_option = tbm_module.Options(overhead_level=cat_filter)
     tbm = tbm_module.TimelineBasedMeasurement(tbm_option)
-    measurement = tbpt_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps,
-                                  options=self._options)
+    results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
     v = results.FindAllPageSpecificValuesNamed(
@@ -104,9 +99,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         ps, ps.base_dir, trigger_jank=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
-    measurement = tbpt_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps,
-                                  options=self._options)
+    results = self.RunMeasurement(tbm, ps, options=self._options)
     self.assertEquals(0, len(results.failures))
 
     # In interaction_enabled_page.html, we create a jank loop based on
@@ -129,9 +122,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         ps, ps.base_dir, trigger_scroll_gesture=True))
 
     tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
-    measurement = tbpt_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps,
-                                  options=self._options)
+    results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
     v = results.FindAllPageSpecificValuesNamed(
@@ -146,7 +137,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     option = tbm_module.Options(
         tracing_category_filter.TracingCategoryFilter('cc'))
     tbm = tbm_module.TimelineBasedMeasurement(option)
-    measurement = tbpt_module.TimelineBasedPageTest(tbm)
-    results = self.RunMeasurement(measurement, ps, options=self._options)
+    results = self.RunMeasurement(tbm, ps, options=self._options)
     self.assertEquals(1, len(results.failures))
     self.assertIn('No timeline interaction records', str(results.failures[0]))
