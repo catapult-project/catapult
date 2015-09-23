@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 
 {% block head %}
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/components/paper-button/paper-button.html">
+
+  <link rel="import" href="/dashboard/elements/select-menu.html">
+  <link rel="import" href="/dashboard/elements/alerts-table.html">
+  <link rel="import" href="/dashboard/elements/overlay-message.html">
+  <link rel="import" href="/dashboard/elements/quick-log.html">
+  <link rel="import" href="/dashboard/static/alerts.html">
+
   <title>Chrome Performance Alerts</title>
   <script>
     var ANOMALY_LIST = {{anomaly_list | safe}};
@@ -59,15 +68,6 @@
   {# Following line needed to avoid a spurious 404 for deps.js due to the use
      --streamed_compiled_js flag used in app.sh in development environment. #}
   <script>var CLOSURE_NO_DEPS = true;</script>
-
-  <link rel="import" href="/static/alerts.html">
-
-  <link rel="import" href="/components/polymer/polymer.html">
-  <link rel="import" href="/components/paper-button/paper-button.html">
-  <link rel="import" href="/elements/select-menu.html">
-  <link rel="import" href="/elements/alerts-table.html">
-  <link rel="import" href="/elements/overlay-message.html">
-  <link rel="import" href="/elements/quick-log.html">
 
 {% endblock %}
 {% block content %}

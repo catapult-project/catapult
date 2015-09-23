@@ -44,11 +44,11 @@ handlers:
   upload: dashboard/static/favicon.ico
   secure: always
 
-- url: /static/
+- url: /dashboard/static/
   static_dir: dashboard/static/
   secure: always
 
-- url: /elements/
+- url: /dashboard/elements/
   static_dir: dashboard/elements/
   secure: always
 
@@ -57,12 +57,12 @@ handlers:
   upload: polymer/components/.*/.*\.(html|js|css)$
   secure: always
 
-- url: /third_party/flot/(.*\.js)$
+- url: /flot/(.*\.js)$
   static_files: flot/\1
   upload: flot/.*\.js$
   secure: always
 
-- url: /third_party/jquery/(.*\.js)$
+- url: /jquery/(.*\.js)$
   static_files: jquery/\1
   upload: jquery/.*\.js$
   secure: always

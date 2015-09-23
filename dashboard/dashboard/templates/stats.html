@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block head %}
+  <link rel="import" href="/components/polymer/polymer.html">
+
+  <script src="/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/flot/jquery.flot.min.js"></script>
+  <script src="/flot/jquery.flot.pie.min.js"></script>
+  <script src="/flot/jquery.flot.stack.min.js"></script>
+
   <style>
     form, ul {
       margin-left: 20px;
@@ -43,7 +50,6 @@
     }
   </style>
 
-  <link rel="import" href="/components/polymer/polymer.html">
 {% endblock %}
 {% block content %}
   <h1>Chrome Performance Statistics</h1>
@@ -122,11 +128,6 @@
                                        background-color:white; color: black;">
         </div>
       </div>
-
-      <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
-      <script src="/third_party/flot/jquery.flot.min.js"></script>
-      <script src="/third_party/flot/jquery.flot.pie.min.js"></script>
-      <script src="/third_party/flot/jquery.flot.stack.min.js"></script>
 
       <script>
         'use strict';

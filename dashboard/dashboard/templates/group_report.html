@@ -14,11 +14,24 @@
      --streamed_compiled_js flag used in app.sh in development environment. #}
   <script>var CLOSURE_NO_DEPS = true;</script>
 
-  <script src="/third_party/jquery/jquery-2.1.4.min.js"></script>
-  <script src="/third_party/flot/jquery.flot.min.js"></script>
-  <script src="/third_party/flot/jquery.flot.crosshair.min.js"></script>
-  <script src="/third_party/flot/jquery.flot.fillbetween.min.js"></script>
-  <script src="/third_party/flot/jquery.flot.selection.min.js"></script>
+  <script src="/jquery/jquery-2.1.4.min.js"></script>
+  <script src="/flot/jquery.flot.min.js"></script>
+  <script src="/flot/jquery.flot.crosshair.min.js"></script>
+  <script src="/flot/jquery.flot.fillbetween.min.js"></script>
+  <script src="/flot/jquery.flot.selection.min.js"></script>
+
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/components/paper-button/paper-button.html">
+
+  <link rel="import" href="/dashboard/elements/alerts-table.html">
+  <link rel="import" href="/dashboard/elements/bug-info.html">
+  <link rel="import" href="/dashboard/elements/chart-container.html">
+  <link rel="import" href="/dashboard/elements/custom-tooltip.html">
+  <link rel="import" href="/dashboard/elements/login-warning.html">
+  <link rel="import" href="/dashboard/elements/overlay-message.html">
+  <link rel="import" href="/dashboard/elements/quick-log.html">
+  <link rel="import" href="/dashboard/elements/triage-dialog.html">
+  <link rel="import" href="/dashboard/static/group_report.html">
 
   <script>
     // Workaround for document.contains returning false for elements in the
@@ -90,19 +103,6 @@
       display: block;
     }
   </style>
-
-  <link rel="import" href="/components/polymer/polymer.html">
-  <link rel="import" href="/components/paper-button/paper-button.html">
-
-  <link rel="import" href="/elements/alerts-table.html">
-  <link rel="import" href="/elements/bug-info.html">
-  <link rel="import" href="/elements/chart-container.html">
-  <link rel="import" href="/elements/custom-tooltip.html">
-  <link rel="import" href="/elements/login-warning.html">
-  <link rel="import" href="/elements/overlay-message.html">
-  <link rel="import" href="/elements/quick-log.html">
-  <link rel="import" href="/elements/triage-dialog.html">
-  <link rel="import" href="/static/group_report.html">
 
 {% endblock %}
 {% block content %}

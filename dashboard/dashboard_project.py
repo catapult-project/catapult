@@ -72,6 +72,7 @@ class DashboardProject(object):
       self._source_paths = []
       self._source_paths.append(self.dashboard_root_path)
       self._source_paths.append(self.dashboard_polymer_path)
+      self._source_paths.append(self.catapult_third_party_path)
 
       import tracing_project as tracing_project_module
       tracing_project = tracing_project_module.TracingProject()
