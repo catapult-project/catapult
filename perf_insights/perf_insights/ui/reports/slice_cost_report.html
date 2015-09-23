@@ -161,6 +161,9 @@ found in the LICENSE file.
           value: function(row) {
             return row.title;
           },
+          cmp: function(a, b) {
+            return a.title.localeCompare(b.title);
+          },
           width: '500px'
         },
         this.createCachingColumn_('Self time', function(sliceCostInfo) {
