@@ -72,6 +72,13 @@ found in the LICENSE file.
           this.updateContents_.bind(this));
       topControls.appendChild(this.groupByUserFriendlyCategory_);
 
+      this.groupByTitle_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'pi.ui.wr.weather_report.groupByTitle', false,
+          'Group by Event Title',
+          this.updateContents_.bind(this));
+      topControls.appendChild(this.groupByTitle_);
+
       this.groupByDomain_ = tr.ui.b.createCheckBox(
           undefined, undefined,
           'pi.ui.wr.weather_report.groupByDomain', true,
@@ -138,9 +145,11 @@ found in the LICENSE file.
         didGroupByDomain = true;
       }
 
-      groupBy.push(function(datum) {
-        return datum.title;
-      });
+      if (this.groupByTitle_.checked) {
+        groupBy.push(function(datum) {
+          return datum.title;
+        });
+      }
 
       if (this.groupByDomain_.checked && !didGroupByDomain) {
         groupBy.push(function(datum) {
