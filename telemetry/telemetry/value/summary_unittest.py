@@ -377,3 +377,49 @@ class SummaryTest(TestBase):
     self.assertEquals(2, len(values))
     self.assertIn(v0, values)
     self.assertIn(v1, values)
+
+  def testSummaryUsesKeyFunc(self):
+    page0 = self.pages[0]
+    page1 = self.pages[1]
+
+    results = page_test_results.PageTestResults()
+
+    results.WillRunPage(page0)
+    v0 = scalar.ScalarValue(page0, 'a', 'seconds', 20,
+                            improvement_direction=improvement_direction.UP)
+    results.AddValue(v0)
+
+    v1 = scalar.ScalarValue(page0, 'b', 'seconds', 42,
+                            improvement_direction=improvement_direction.UP)
+    results.AddValue(v1)
+    results.DidRunPage(page0)
+
+    results.WillRunPage(page1)
+    v2 = scalar.ScalarValue(page1, 'a', 'seconds', 20,
+                            improvement_direction=improvement_direction.UP)
+    results.AddValue(v2)
+
+    v3 = scalar.ScalarValue(page1, 'b', 'seconds', 42,
+                            improvement_direction=improvement_direction.UP)
+    results.AddValue(v3)
+    results.DidRunPage(page1)
+
+    summary = summary_module.Summary(
+        results.all_page_specific_values,
+        key_func=lambda v: True)
+    values = summary.interleaved_computed_per_page_values_and_summaries
+
+    v0_list = list_of_scalar_values.ListOfScalarValues(
+        page0, 'a', 'seconds', [20, 42],
+        improvement_direction=improvement_direction.UP)
+    v2_list = list_of_scalar_values.ListOfScalarValues(
+        page1, 'a', 'seconds', [20, 42],
+        improvement_direction=improvement_direction.UP)
+    merged_value = list_of_scalar_values.ListOfScalarValues(
+        None, 'a', 'seconds', [20, 42, 20, 42],
+        improvement_direction=improvement_direction.UP)
+
+    self.assertEquals(3, len(values))
+    self.assertIn(v0_list, values)
+    self.assertIn(v2_list, values)
+    self.assertIn(merged_value, values)

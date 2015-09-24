@@ -35,13 +35,15 @@ class Summary(object):
       ]
 
   """
-  def __init__(self, all_page_specific_values):
+  def __init__(self, all_page_specific_values,
+               key_func=merge_values.DefaultKeyFunc):
     had_failures = any(isinstance(v, failure.FailureValue) for v in
         all_page_specific_values)
     self.had_failures = had_failures
     self._computed_per_page_values = []
     self._computed_summary_values = []
     self._interleaved_computed_per_page_values_and_summaries = []
+    self._key_func = key_func
     self._ComputePerPageValues(all_page_specific_values)
 
   @property
@@ -70,9 +72,9 @@ class Summary(object):
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
     # output.
-    num_successful_pages_for_value_name = defaultdict(int)
+    num_successful_pages_for_key = defaultdict(int)
     for v in all_successful_page_values:
-      num_successful_pages_for_value_name[v.name] += 1
+      num_successful_pages_for_key[self._key_func(v)] += 1
 
     # By here, due to page repeat options, all_values_from_successful_pages
     # contains values of the same name not only from mulitple pages, but also
@@ -81,7 +83,7 @@ class Summary(object):
     #
     # So, get rid of the repeated pages by merging.
     merged_page_values = merge_values.MergeLikeValuesFromSamePage(
-        all_successful_page_values)
+        all_successful_page_values, self._key_func)
 
     # Now we have a bunch of values, but there is only one value_name per page.
     # Suppose page1 and page2 ran, producing values x and y. We want to print
@@ -94,33 +96,32 @@ class Summary(object):
     #    y for page1, page2 combined
     #
     # We already have the x values in the values array. But, we will need
-    # them indexable by the value name.
+    # them indexable by summary key.
     #
-    # The following dict maps value_name -> list of pages that have values of
+    # The following dict maps summary_key -> list of pages that have values of
     # that name.
-    per_page_values_by_value_name = defaultdict(list)
+    per_page_values_by_key = defaultdict(list)
     for value in merged_page_values:
-      per_page_values_by_value_name[value.name].append(value)
+      per_page_values_by_key[self._key_func(value)].append(value)
 
     # We already have the x values in the values array. But, we also need
     # the values merged across the pages. And, we will need them indexed by
-    # value name so that we can find them when printing out value names in
+    # summary key so that we can find them when printing out value names in
     # alphabetical order.
-    merged_pages_value_by_value_name = {}
+    merged_pages_value_by_key = {}
     if not self.had_failures:
       for value in merge_values.MergeLikeValuesFromDifferentPages(
-          all_successful_page_values):
-        assert value.name not in merged_pages_value_by_value_name
-        merged_pages_value_by_value_name[value.name] = value
+          all_successful_page_values, self._key_func):
+        value_key = self._key_func(value)
+        assert value_key not in merged_pages_value_by_key
+        merged_pages_value_by_key[value_key] = value
 
-    # sorted_value names will govern the order we start printing values.
-    value_names = set([v.name for v in merged_page_values])
-    sorted_value_names = sorted(value_names)
+    keys = sorted(set([self._key_func(v) for v in merged_page_values]))
 
-    # Time to walk through the values by name, printing first the page-specific
+    # Time to walk through the values by key, printing first the page-specific
     # values and then the merged_site value.
-    for value_name in sorted_value_names:
-      per_page_values = per_page_values_by_value_name.get(value_name, [])
+    for key in keys:
+      per_page_values = per_page_values_by_key.get(key, [])
 
       # Sort the values by their url
       sorted_per_page_values = list(per_page_values)
@@ -128,15 +129,14 @@ class Summary(object):
           key=lambda per_page_values: per_page_values.page.display_name)
 
       # Output the page-specific results.
-      num_successful_pages_for_this_value_name = (
-          num_successful_pages_for_value_name[value_name])
+      num_successful_pages_for_this_key = (
+          num_successful_pages_for_key[key])
       for per_page_value in sorted_per_page_values:
         self._ComputePerPageValue(per_page_value,
-                                  num_successful_pages_for_this_value_name)
+                                  num_successful_pages_for_this_key)
 
       # Output the combined values.
-      merged_pages_value = merged_pages_value_by_value_name.get(value_name,
-                                                                None)
+      merged_pages_value = merged_pages_value_by_key.get(key, None)
       if merged_pages_value:
         self._computed_summary_values.append(merged_pages_value)
         self._interleaved_computed_per_page_values_and_summaries.append(

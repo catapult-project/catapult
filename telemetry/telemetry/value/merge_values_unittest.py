@@ -28,6 +28,15 @@ class TestBase(unittest.TestCase):
     return self.story_set.stories
 
 class MergeValueTest(TestBase):
+  def testDefaultKeyFunc(self):
+    page0 = self.pages[0]
+
+    value = scalar.ScalarValue(
+        page0, 'x', 'units', 1,
+        improvement_direction=improvement_direction.UP)
+
+    self.assertEquals('x', merge_values.DefaultKeyFunc(value))
+
   def testSamePageMergeBasic(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
@@ -58,6 +67,33 @@ class MergeValueTest(TestBase):
 
     self.assertEquals((page1, 'x'),
                       (merged_values[1].page, merged_values[1].name))
+    self.assertEquals([4, 5], merged_values[1].values)
+
+  def testSamePageMergeNonstandardKeyFunc(self):
+    page0 = self.pages[0]
+    page1 = self.pages[1]
+
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'x', 'units', 4,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page0, 'y', 'units', 2,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'y', 'units', 5,
+                      improvement_direction=improvement_direction.UP)]
+
+    merged_values = merge_values.MergeLikeValuesFromSamePage(
+      all_values, key_func=lambda v: v.page.display_name)
+    # Sort the results so that their order is predictable for the subsequent
+    # assertions.
+    merged_values.sort(key=lambda x: x.page.url)
+
+    self.assertEquals(2, len(merged_values))
+    self.assertEquals([1, 2], merged_values[0].values)
     self.assertEquals([4, 5], merged_values[1].values)
 
   def testSamePageMergeOneValue(self):
@@ -118,6 +154,29 @@ class MergeValueTest(TestBase):
     self.assertEquals((None, 'y'),
                       (merged_values[1].page, merged_values[1].name))
     self.assertEquals([10, 20], merged_values[1].values)
+
+  def testDifferentPageMergeNonstandardKeyFunc(self):
+    page0 = self.pages[0]
+    page1 = self.pages[1]
+
+    all_values = [scalar.ScalarValue(
+                      page0, 'x', 'units', 1,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'x', 'units', 2,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page0, 'y', 'units', 10,
+                      improvement_direction=improvement_direction.UP),
+                  scalar.ScalarValue(
+                      page1, 'y', 'units', 20,
+                      improvement_direction=improvement_direction.UP)]
+
+    merged_values = merge_values.MergeLikeValuesFromDifferentPages(
+      all_values, key_func=lambda v: True)
+
+    self.assertEquals(1, len(merged_values))
+    self.assertEquals([1, 2, 10, 20], merged_values[0].values)
 
   def testDifferentPageMergeSingleValueStillMerges(self):
     page0 = self.pages[0]
