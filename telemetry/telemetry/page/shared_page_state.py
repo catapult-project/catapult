@@ -46,6 +46,11 @@ class SharedPageState(story.SharedState):
   def __init__(self, test, finder_options, story_set):
     super(SharedPageState, self).__init__(test, finder_options, story_set)
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
+      assert not finder_options.profiler, ('This is a Timeline Based '
+          'Measurement benchmark. You cannot run it with the --profiler flag. '
+          'If you need trace data, tracing is always enabled in Timeline Based '
+          'Measurement benchmarks and you can get the trace data by using '
+          '--output-format=json.')
       # This is to avoid the cyclic-import caused by timeline_based_page_test.
       from telemetry.web_perf import timeline_based_page_test
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)

@@ -112,8 +112,9 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option(
         '--profiler', default=None, type='choice',
         choices=profiler_choices,
-        help='Record profiling data using this tool. Supported values: ' +
-             ', '.join(profiler_choices))
+        help='Record profiling data using this tool. Supported values: %s. '
+             '(Notice: this flag cannot be used for Timeline Based Measurement '
+             'benchmarks.)' % ', '.join(profiler_choices))
     group.add_option(
         '-v', '--verbose', action='count', dest='verbosity',
         help='Increase verbosity level (repeat as needed)')
