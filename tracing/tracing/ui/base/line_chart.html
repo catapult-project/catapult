@@ -42,6 +42,8 @@ tr.exportTo('tr.ui.b', function() {
       ChartBase.prototype.decorate.call(this);
       this.classList.add('line-chart');
 
+      this.data_ = [];
+      this.seriesKeys_ = [];
       this.brushedRange_ = new tr.b.Range();
 
       this.xScale_ = d3.scale.linear();
@@ -69,12 +71,11 @@ tr.exportTo('tr.ui.b', function() {
      * contain data for every series).
      */
     set data(data) {
-      if (data.length == 0)
-        throw new Error('Data must be nonzero. Pass undefined.');
+      if (data === undefined)
+        throw new Error('data must be an Array');
 
       this.data_ = data;
-      this.seriesKeys_ = this.getSeriesKeys_();
-
+      this.updateSeriesKeys_();
       this.updateContents_();
     },
 
@@ -87,11 +88,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     computeBrushRangeFromIndices: function(indexA, indexB) {
-      var r = new tr.b.Range();
+      indexA = tr.b.clamp(indexA, 0, this.data_.length - 1);
+      indexB = tr.b.clamp(indexB, 0, this.data_.length - 1);
       var leftIndex = Math.min(indexA, indexB);
       var rightIndex = Math.max(indexA, indexB);
-      leftIndex = Math.max(0, leftIndex);
-      rightIndex = Math.min(this.data_.length - 1, rightIndex);
+
+      var r = new tr.b.Range();
       r.addValue(this.data_[leftIndex].x -
           getSampleWidth(this.data_, leftIndex, true));
       r.addValue(this.data_[rightIndex].x +
@@ -106,10 +108,7 @@ tr.exportTo('tr.ui.b', function() {
       return [];
     },
 
-    getSeriesKeys_: function() {
-      if (this.data_ === undefined)
-        return undefined;
-
+    updateSeriesKeys_: function() {
       // Accumulate the keys on each data point.
       var keySet = {};
       this.data_.forEach(function(datum) {
@@ -124,14 +123,10 @@ tr.exportTo('tr.ui.b', function() {
           keySet[key] = true;
         });
       });
-
-      return Object.keys(keySet);
+      this.seriesKeys_ = Object.keys(keySet);
     },
 
     updateScales_: function(width, height) {
-      if (this.data_ === undefined)
-        return;
-
       // X.
       this.xScale_.range([0, width]);
       this.xScale_.domain(d3.extent(this.data_, function(d) { return d.x; }));
@@ -150,34 +145,25 @@ tr.exportTo('tr.ui.b', function() {
       this.yScale_.domain([yRange.min, yRange.max]);
     },
 
-    updateContents_: function() {
-      ChartBase.prototype.updateContents_.call(this);
-      if (!this.data_)
-        return;
-
-      var chartAreaSel = d3.select(this.chartAreaElement);
-
+    updateBrushContents_: function(brushSel) {
       var brushes = this.brushedRange_.isEmpty ? [] : [this.brushedRange_];
-
-      var brushRectsSel = chartAreaSel.select('#brushes')
-          .selectAll('rect').data(brushes);
-      brushRectsSel.enter()
-          .append('rect');
+      var brushRectsSel = brushSel.selectAll('rect').data(brushes);
+      brushRectsSel.enter().append('rect');
       brushRectsSel.exit().remove();
       brushRectsSel
-        .attr('x', function(d) {
-            return this.xScale_(d.min);
-          }.bind(this))
-        .attr('y', 0)
-        .attr('width', function(d) {
-            return this.xScale_(d.max) - this.xScale_(d.min);
-          }.bind(this))
-        .attr('height', this.chartAreaSize.height);
+          .attr('x', function(d) {
+              return this.xScale_(d.min);
+            }.bind(this))
+          .attr('y', 0)
+          .attr('width', function(d) {
+              return this.xScale_(d.max) - this.xScale_(d.min);
+            }.bind(this))
+          .attr('height', this.chartAreaSize.height);
+    },
 
+    updateDataContents_: function(dataSel) {
       var dataBySeriesKey = this.getDataBySeriesKey_();
-
-      var seriesSel = chartAreaSel.select('#series');
-      var pathsSel = seriesSel.selectAll('path').data(this.seriesKeys_);
+      var pathsSel = dataSel.selectAll('path').data(this.seriesKeys_);
       pathsSel.enter()
           .append('path')
           .attr('class', 'line')
@@ -191,6 +177,13 @@ tr.exportTo('tr.ui.b', function() {
             return line(dataBySeriesKey[key]);
           }.bind(this));
       pathsSel.exit().remove();
+    },
+
+    updateContents_: function() {
+      ChartBase.prototype.updateContents_.call(this);
+      var chartAreaSel = d3.select(this.chartAreaElement);
+      this.updateBrushContents_(chartAreaSel.select('#brushes'));
+      this.updateDataContents_(chartAreaSel.select('#series'));
     },
 
     /**
@@ -255,48 +248,51 @@ tr.exportTo('tr.ui.b', function() {
       return index;
     },
 
-    onMouseDown_: function(e) {
-      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, true);
+    dispatchDataEvent_: function(mouseEvent, dataEvent) {
+      var index = this.getDataIndexAtClientPoint_(
+          mouseEvent.clientX, mouseEvent.clientY, false);
+      dataEvent.index = index;
+      dataEvent.data = this.data_[index];
 
+      var dataX = this.xScale_.invert(mouseEvent.clientX -
+          this.getBoundingClientRect().left - this.margin.left);
+      dataEvent.x = tr.b.clamp(dataX,
+          this.xScale_.domain()[0], this.xScale_.domain()[1]);
+
+      this.dispatchEvent(dataEvent);
+    },
+
+    onMouseDown_: function(mouseEvent) {
+      var index = this.getDataIndexAtClientPoint_(
+          mouseEvent.clientX, mouseEvent.clientY, true);
       if (index !== undefined) {
         tr.ui.b.trackMouseMovesUntilMouseUp(
-            this.onMouseMove_.bind(this, e.button),
-            this.onMouseUp_.bind(this, e.button));
+            this.onMouseMove_.bind(this, mouseEvent.button),
+            this.onMouseUp_.bind(this, mouseEvent.button));
       }
-      e.preventDefault();
-      e.stopPropagation();
-
-      var event = new tr.b.Event('item-mousedown');
-      event.data = this.data_[index];
-      event.index = index;
-      event.buttons = e.buttons;
-      this.dispatchEvent(event);
+      mouseEvent.preventDefault();
+      mouseEvent.stopPropagation();
+      var dataEvent = new tr.b.Event('item-mousedown');
+      dataEvent.button = mouseEvent.button;
+      this.dispatchDataEvent_(mouseEvent, dataEvent);
     },
 
-    onMouseMove_: function(button, e) {
-      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
-      if (e.buttons !== undefined) {
-        e.preventDefault();
-        e.stopPropagation();
+    onMouseMove_: function(button, mouseEvent) {
+      if (mouseEvent.buttons !== undefined) {
+        mouseEvent.preventDefault();
+        mouseEvent.stopPropagation();
       }
-
-      var event = new tr.b.Event('item-mousemove');
-      event.data = this.data_[index];
-      event.index = index;
-      event.button = button;
-      this.dispatchEvent(event);
+      var dataEvent = new tr.b.Event('item-mousemove');
+      dataEvent.button = button;
+      this.dispatchDataEvent_(mouseEvent, dataEvent);
     },
 
-    onMouseUp_: function(button, e) {
-      var index = this.getDataIndexAtClientPoint_(e.clientX, e.clientY, false);
-      e.preventDefault();
-      e.stopPropagation();
-
-      var event = new tr.b.Event('item-mouseup');
-      event.data = this.data_[index];
-      event.index = index;
-      event.button = button;
-      this.dispatchEvent(event);
+    onMouseUp_: function(button, mouseEvent) {
+      mouseEvent.preventDefault();
+      mouseEvent.stopPropagation();
+      var dataEvent = new tr.b.Event('item-mouseup');
+      dataEvent.button = button;
+      this.dispatchDataEvent_(mouseEvent, dataEvent);
     }
   };
 

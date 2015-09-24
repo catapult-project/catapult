@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/ui/base/d3.html">
+<link rel="import" href="/tracing/ui/base/line_chart.html">
+<link rel="import" href="/tracing/ui/base/mouse_tracker.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var LineChart = tr.ui.b.LineChart;
+  var getColorOfKey = tr.ui.b.getColorOfKey;
+
+  // The chart height will be scaled by this fraction so that a visible rect
+  // will be drawn even for the lowest data point, and so it won't look like the
+  // highest data point was cut off.
+  var VERTICAL_CUSHION_FRACTION = 0.2;
+
+  function getSampleWidth(data, index, leftSide) {
+    var leftIndex, rightIndex;
+    if (leftSide) {
+      leftIndex = Math.max(index - 1, 0);
+      rightIndex = index;
+    } else {
+      leftIndex = index;
+      rightIndex = Math.min(index + 1, data.length - 1);
+    }
+    var leftWidth = data[index].x - data[leftIndex].x;
+    var rightWidth = data[rightIndex].x - data[index].x;
+    return leftWidth * 0.5 + rightWidth * 0.5;
+  }
+
+  /**
+   * @constructor
+   */
+  var BarChart = tr.ui.b.define('bar-chart', LineChart);
+
+  BarChart.prototype = {
+    __proto__: LineChart.prototype,
+
+    decorate: function() {
+      LineChart.prototype.decorate.call(this);
+      this.classList.remove('line-chart');
+      this.classList.add('bar-chart');
+    },
+
+    updateScales_: function(width, height) {
+      if (this.data_.length === 0)
+        return;
+
+      // X.
+      // Leave a cushion on the sides so that the rects on either end don't
+      // exceed the chart boundaries. The average width of the rects is
+      // chart.width / data.length, and each rect is centered around its
+      // x-coordinate, so half of its width would have exceeded the chart
+      // boundary if not for the cushion.
+      var xCushion = this.chartAreaSize.width / 2;
+      xCushion /= this.data_.length;
+      this.xScale_.range([xCushion, width - xCushion]);
+      this.xScale_.domain(d3.extent(this.data_, function(d) { return d.x; }));
+
+      // Y.
+      var yRange = new tr.b.Range();
+      this.data_.forEach(function(datum) {
+        this.seriesKeys_.forEach(function(key) {
+          // Allow for sparse data
+          if (datum[key] !== undefined)
+            yRange.addValue(datum[key]);
+        });
+      }, this);
+
+      // Leave a cushion at the bottom of the chart so that a visible rect will
+      // be drawn even for the lowest data point.
+      // Leave a cushion at the top of the chart so that it doesn't look like
+      // the chart was cut off.
+      this.yScale_.range([height, 0]);
+      var yCushion = VERTICAL_CUSHION_FRACTION * yRange.range;
+      this.yScale_.domain([yRange.min - yCushion, yRange.max + yCushion]);
+    },
+
+    updateDataContents_: function(dataSel) {
+      var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
+      this.data_.forEach(function(datum, index) {
+        var leftWidth = (index === 0) ? undefined :
+            ((datum.x - this.data_[index - 1].x) / 2);
+        var rightWidth = (index === (this.data_.length - 1)) ? undefined :
+            ((this.data_[index + 1].x - datum.x) / 2);
+
+        if (!leftWidth) {
+          leftWidth = rightWidth;
+          if (!leftWidth)
+            leftWidth = this.chartAreaSize.width / 2;
+        }
+        if (!rightWidth)
+          rightWidth = leftWidth;
+
+        var stacks = [];
+        this.seriesKeys_.forEach(function(key) {
+          if (datum[key] !== undefined)
+            stacks.push({y: datum[key], color: getColorOfKey(key)});
+        });
+        stacks.sort(function(a, b) {
+          return b.y - a.y;
+        });
+
+        stacks.forEach(function(stack) {
+          rectsSel.enter()
+              .append('rect')
+              .attr('fill', stack.color)
+              .attr('x', this.xScale_(datum.x - leftWidth))
+              .attr('y', this.yScale_(stack.y))
+              .attr('width', this.xScale_(datum.x + rightWidth) -
+                  this.xScale_(datum.x - leftWidth))
+              .attr('height', this.yScale_.range()[0] - this.yScale_(stack.y));
+        }, this);
+      }, this);
+      rectsSel.exit().remove();
+    }
+  };
+
+  return {
+    BarChart: BarChart
+  };
+});
+</script>

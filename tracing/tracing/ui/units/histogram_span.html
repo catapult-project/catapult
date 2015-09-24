@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
-<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/base/bar_chart.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
 
 <polymer-element name="tr-ui-u-histogram-span">
@@ -39,8 +39,7 @@ found in the LICENSE file.
       </span>
       average=<tr-ui-u-scalar-span id="average"></tr-ui-u-scalar-span>
     </div>
-    <tr-ui-b-table id="table">
-    </tr-ui-b-table>
+    <div id="container"></div>
   </template>
   <script>
   'use strict';
@@ -48,6 +47,13 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.histogram_ = undefined;
+      this.chart_ = new tr.ui.b.BarChart();
+      this.chart_.width = 400;
+      this.chart_.height = 200;
+    },
+
+    ready: function() {
+      this.$.container.appendChild(this.chart_);
     },
 
     get histogram() {
@@ -60,11 +66,11 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      var table = this.$.table;
+      this.$.container.style.display = this.histogram_ ? '' : 'none';
+
       if (!this.histogram_) {
         this.$.nsamples.textContent = 0;
         this.$.average.setValueAndUnit(undefined, undefined);
-        this.$.table.tableRows = [];
         return;
       }
 
@@ -82,50 +88,22 @@ found in the LICENSE file.
                                                 function(bin) {
                                                   return bin.count;
                                                 });
-      table.tableColumns = [
-        {
-          title: 'Min',
-          width: '200px',
-          value: function(bin) {
-            if (bin === this.histogram_.underflowBin)
-              return '-' + String.fromCharCode(0x221e);
-            var span = document.createElement('tr-ui-u-scalar-span');
-            span.setValueAndUnit(bin.range.min, this.histogram_.unit);
-            return span;
-          }.bind(this)
-        },
-        {
-          title: 'Max (exclusive)',
-          width: '200px',
-          value: function(bin) {
-            if (bin === this.histogram_.overflowBin)
-              return String.fromCharCode(0x221e);
-            var span = document.createElement('tr-ui-u-scalar-span');
-            span.setValueAndUnit(bin.range.max, this.histogram_.unit);
-            return span;
-          }.bind(this)
-        },
-        {
-          title: 'Quantity',
-          width: '100%',
-          value: function(bin) {
-            var span = document.createElement('tr-ui-u-scalar-span');
-            span.setValueAndUnit(bin.count, tr.b.u.Units.unitlessNumber);
-            span.percentage = bin.count / maximumBinValue;
-            span.rightAlign = true;
-            return span;
-          }
-        }
-      ];
-      var rows = [];
+      var chartData = [];
       if (this.histogram_.underflowBin.count)
-        rows.push(this.histogram_.underflowBin);
-      rows.push.apply(rows, this.histogram.centralBins);
+        chartData.push({x: this.histogram_.underflowBin.range.max,
+                        y: this.histogram_.underflowBin.count});
+      this.histogram.centralBins.forEach(function(bin) {
+        chartData.push({x: (bin.range.min + bin.range.max) / 2,
+                        y: bin.count});
+      });
       if (this.histogram_.overflowBin.count)
-        rows.push(this.histogram_.overflowBin);
-      table.tableRows = rows;
-      this.rowHighlightEnabled = true;
-      table.rebuild();
+        chartData.push({x: this.histogram_.overflowBin.range.min,
+                        y: this.histogram_.overflowBin.count});
+      chartData.sort(function(x, y) {
+        return x.x - y.x;
+      });
+      this.$.container.style.display = chartData.length ? '' : 'none';
+      this.chart_.data = chartData;
     }
   });
   </script>
