@@ -13,9 +13,11 @@ found in the LICENSE file.
 
 tr.exportTo('tr.e.chrome', function() {
   var DEFAULT_USER_FRIENDLY_CATEGORY = 'other';
+  var SAME_AS_PARENT = 'same-as-parent';
 
   var TITLES_FOR_USER_FRIENDLY_CATEGORY = {
     composite: [
+      'CompositingInputsUpdater::update',
       'ThreadProxy::SetNeedsUpdateLayers',
       'LayerTreeHost::UpdateLayers::CalcDrawProps',
       'UpdateLayerTree'
@@ -36,7 +38,8 @@ tr.exportTo('tr.e.chrome', function() {
 
     imageDecode: [
       'Decode Image',
-      'ImageFrameGenerator::decode'
+      'ImageFrameGenerator::decode',
+      'ImageFrameGenerator::decodeAndScale'
     ],
 
     input: [
@@ -52,46 +55,63 @@ tr.exportTo('tr.e.chrome', function() {
       'FrameView::performPostLayoutTasks',
       'FrameView::performPreLayoutTasks',
       'Layer::updateLayerPositionsAfterLayout',
+      'Layout',
       'LayoutView::hitTest',
       'ResourceLoadPriorityOptimizer::updateAllImageResourcePriorities',
       'WebViewImpl::layout'
     ],
 
     parseHTML: [
+      'ParseHTML',
       'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       'HTMLDocumentParser::processParsedChunkFromBackgroundParser'
     ],
 
     raster: [
+      'DisplayListRasterSource::PerformSolidColorAnalysis',
       'Picture::Raster',
+      'RasterBufferImpl::Playback',
       'RasterTask',
-      'SkCanvas::drawTextBlob()',
+      'RasterizerTaskImpl::RunOnWorkerThread',
       'SkCanvas::drawImageRect()',
-      'SkCanvas::drawPicture()'
+      'SkCanvas::drawPicture()',
+      'SkCanvas::drawTextBlob()',
+      'TileTaskWorkerPool::PlaybackToMemory'
     ],
 
     record: [
+      'ContentLayerDelegate::paintContents',
       'DeprecatedPaintLayerCompositor::updateIfNeededRecursive',
+      'DeprecatedPaintLayerCompositor::updateLayerPositionsAfterLayout',
+      'Paint',
       'Picture::Record',
       'PictureLayer::Update',
       'RenderLayer::updateLayerPositionsAfterLayout'
     ],
 
     script: [
+      'EvaluateScript',
+      'FunctionCall',
+      'ScheduledAction::execute',
       'Script',
       'V8.Execute',
       'v8.run',
       'v8.callModuleMethod',
-      'v8.callFunction'
+      'v8.callFunction',
+      'WindowProxy::initialize'
     ],
 
     style: [
       'CSSParserImpl::parseStyleSheet.parse',
       'CSSParserImpl::parseStyleSheet.tokenize',
       'Document::updateStyle',
+      'Document::updateStyleInvalidationIfNeeded',
+      'ParseAuthorStyleSheet',
       'RuleSet::addRulesFromSheet',
       'StyleElement::processStyleSheet',
-      'StyleSheetContents::parseAuthorStyleSheet'
+      'StyleEngine::createResolver',
+      'StyleSheetContents::parseAuthorStyleSheet',
+      'UpdateLayoutTree'
     ],
 
     script_parse_and_compile: [
@@ -106,6 +126,24 @@ tr.exportTo('tr.e.chrome', function() {
       'V8.CompileFullCode',
       'V8.CompileEvalMicroSeconds',
       'v8.compile'
+    ],
+
+    resource_loading: [
+      'ResourceFetcher::requestResource',
+      'ResourceDispatcher::OnReceivedData',
+      'ResourceDispatcher::OnRequestComplete',
+      'ResourceDispatcher::OnReceivedResponse',
+      'Resource::appendData'
+    ],
+
+    // Where do these go?
+    renderer_misc: [
+      'DecodeFont',
+      'ThreadState::completeSweep' // blink_gc
+    ],
+
+    [SAME_AS_PARENT]: [
+      'SyncChannel::Send'
     ]
   };
 
@@ -120,7 +158,8 @@ tr.exportTo('tr.e.chrome', function() {
   var USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY = {
     netlog: 'net',
     overhead: 'overhead',
-    startup: 'startup'
+    startup: 'startup',
+    gpu: 'gpu'
   };
 
   function UserFriendlyCategory() {
@@ -128,8 +167,14 @@ tr.exportTo('tr.e.chrome', function() {
 
   UserFriendlyCategory.fromEvent = function(event) {
     var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_TITLE[event.title];
-    if (userFriendlyCategory)
-      return userFriendlyCategory;
+    if (userFriendlyCategory) {
+      if (userFriendlyCategory == SAME_AS_PARENT) {
+        if (event.parentSlice)
+          return UserFriendlyCategory.fromEvent(event.parentSlice);
+      } else {
+        return userFriendlyCategory;
+      }
+    }
 
     var eventCategoryParts = tr.b.getCategoryParts(event.category);
     for (var i = 0; i < eventCategoryParts.length; ++i) {
