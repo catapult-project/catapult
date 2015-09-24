@@ -223,23 +223,24 @@ class DevToolsClientBackend(object):
         trace_options, custom_categories, timeout)
 
   def StopChromeTracing(self, trace_data_builder, timeout=30):
-    context_map = self.GetUpdatedInspectableContexts()
-    for context in context_map.contexts:
-      if context['type'] not in ['iframe', 'page', 'webview']:
-        continue
-      context_id = context['id']
-      backend = context_map.GetInspectorBackend(context_id)
-      success = backend.EvaluateJavaScript(
-          "console.time('" + backend.id + "');" +
-          "console.timeEnd('" + backend.id + "');" +
-          "console.time.toString().indexOf('[native code]') != -1;")
-      if not success:
-        raise Exception('Page stomped on console.time')
-      trace_data_builder.AddEventsTo(
-          trace_data_module.TAB_ID_PART, [backend.id])
-
-    assert self._tracing_backend
-    return self._tracing_backend.StopTracing(trace_data_builder, timeout)
+    assert self.is_tracing_running
+    try:
+      context_map = self.GetUpdatedInspectableContexts()
+      for context in context_map.contexts:
+        if context['type'] not in ['iframe', 'page', 'webview']:
+          continue
+        context_id = context['id']
+        backend = context_map.GetInspectorBackend(context_id)
+        success = backend.EvaluateJavaScript(
+            "console.time('" + backend.id + "');" +
+            "console.timeEnd('" + backend.id + "');" +
+            "console.time.toString().indexOf('[native code]') != -1;")
+        if not success:
+          raise Exception('Page stomped on console.time')
+        trace_data_builder.AddEventsTo(
+            trace_data_module.TAB_ID_PART, [backend.id])
+    finally:
+      self._tracing_backend.StopTracing(trace_data_builder, timeout)
 
   def DumpMemory(self, timeout=30):
     """Dumps memory.

@@ -70,13 +70,13 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         client.StopChromeTracing(trace_data_builder)
       except Exception:
         raised_execption_messages.append(
-          'Error when trying to stop tracing on devtools at port %s:\n%s'
+          'Error when trying to stop Chrome tracing on devtools at port %s:\n%s'
           % (client.remote_port,
              ''.join(traceback.format_exception(*sys.exc_info()))))
 
     if raised_execption_messages:
       raise ChromeTracingStoppedError(
-          'Exceptions raised when trying to stop devtool tracing\n:' +
+          'Exceptions raised when trying to stop Chrome devtool tracing:\n' +
           '\n'.join(raised_execption_messages))
 
   def _CreateTraceConfigFile(self, config):

@@ -45,7 +45,6 @@ class TracingAgent(object):
   def Stop(self, trace_data_builder):
     """ Override to add tracing agent's custom logic to stop tracing.
 
-    Caller must check whether tracing is active with IsActive() first before
-    invoking this method.
+    Stop() should guarantee tracing is stopped, even if there may be exception.
     """
     raise NotImplementedError

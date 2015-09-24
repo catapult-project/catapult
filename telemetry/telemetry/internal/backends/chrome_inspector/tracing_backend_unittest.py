@@ -96,34 +96,6 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.skipTest('Browser does not support tracing, skipping test.')
 
 
-class TracingBackendTraceTest(TracingBackendTest):
-
-  def testGotTrace(self):
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    self._tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter())
-
-    trace_data = self._tracing_controller.Stop()
-    # Test that trace data is parsable
-    model = model_module.TimelineModel(trace_data)
-    assert len(model.processes) > 0
-
-  def testStartAndStopTraceMultipleTimes(self):
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    self._tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter())
-    self.assertFalse(self._tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter()))
-    trace_data = self._tracing_controller.Stop()
-    # Test that trace data is parsable
-    model_module.TimelineModel(trace_data)
-    self.assertFalse(self._tracing_controller.is_tracing_running)
-    # Calling stop again will raise exception
-    self.assertRaises(Exception, self._tracing_controller.Stop)
-
-
 class TracingBackendMemoryTest(TracingBackendTest):
 
   # Number of consecutively requested memory dumps.
