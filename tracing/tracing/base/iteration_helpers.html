@@ -187,6 +187,83 @@ tr.exportTo('tr.b', function() {
     }
   }
 
+  /**
+   * Convert an array of dictionaries to a dictionary of arrays.
+   *
+   * The keys of the resulting dictionary are a union of the keys of all
+   * dictionaries in the provided array. Each array in the resulting dictionary
+   * has the same length as the provided array and contains the values of its
+   * key in the dictionaries in the provided array. Example:
+   *
+   *   INPUT:
+   *
+   *     [
+   *       {a: 6, b: 5      },
+   *       undefined,
+   *       {a: 4, b: 3, c: 2},
+   *       {      b: 1, c: 0}
+   *     ]
+   *
+   *   OUTPUT:
+   *
+   *     {
+   *       a: [6,         undefined, 4, undefined],
+   *       b: [5,         undefined, 3, 1        ],
+   *       c: [undefined, undefined, 2, 0        ]
+   *     }
+   *
+   * @param {!Array} array Array of items to be inverted. If opt_dictGetter
+   *     is not provided, all elements of the array must be either undefined,
+   *     or dictionaries.
+   * @param {?(function(*): (!Object|undefined))=} opt_dictGetter Optional
+   *     function mapping defined elements of array to dictionaries.
+   * @param {*=} opt_this Optional 'this' context for opt_dictGetter.
+   */
+  function invertArrayOfDicts(array, opt_dictGetter, opt_this) {
+    opt_this = opt_this || this;
+    var result = {};
+    for (var i = 0; i < array.length; i++) {
+      var item = array[i];
+      if (item === undefined)
+        continue;
+      var dict = opt_dictGetter ? opt_dictGetter.call(opt_this, item) : item;
+      if (dict === undefined)
+        continue;
+      for (var key in dict) {
+        var valueList = result[key];
+        if (valueList === undefined)
+          result[key] = valueList = new Array(array.length);
+        valueList[i] = dict[key];
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Convert an array to a dictionary.
+   *
+   * Every element in the array is mapped in the dictionary to the key returned
+   * by the provided function:
+   *
+   *   dictionary[valueToKeyFn(element)] = element;
+   *
+   * @param {!Array} array Arbitrary array.
+   * @param {function(*): string} valueToKeyFn Function mapping array elements
+   *     to dictionary keys.
+   * @param {*=} opt_this Optional 'this' context for valueToKeyFn.
+   */
+  function arrayToDict(array, valueToKeyFn, opt_this) {
+    opt_this = opt_this || this;
+    var result = {};
+    var length = array.length;
+    for (var i = 0; i < length; i++) {
+      var value = array[i];
+      var key = valueToKeyFn.call(opt_this, value);
+      result[key] = value;
+    }
+    return result;
+  }
+
   function identity(d) {
     return d;
   }
@@ -231,6 +308,8 @@ tr.exportTo('tr.b', function() {
     mapItems: mapItems,
     filterItems: filterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
+    invertArrayOfDicts: invertArrayOfDicts,
+    arrayToDict: arrayToDict,
     identity: identity,
     findFirstIndexInArray: findFirstIndexInArray,
     findFirstInArray: findFirstInArray,

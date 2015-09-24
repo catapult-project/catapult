@@ -141,6 +141,56 @@ tr.b.unittest.testSuite(function() {
     assert.equal(dstDict.b, 30);
   });
 
+  test('invertArrayOfDicts_defaultGetter', function() {
+    var array = [
+      {a: 6, b: 5},
+      undefined,
+      {a: 4, b: 3, c: 2},
+      {b: 1, c: 0}
+    ];
+    var dict = tr.b.invertArrayOfDicts(array);
+    assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
+    assert.deepEqual(tr.b.asArray(dict['a']), [6, undefined, 4, undefined]);
+    assert.deepEqual(tr.b.asArray(dict['b']), [5, undefined, 3, 1]);
+    assert.deepEqual(tr.b.asArray(dict['c']), [undefined, undefined, 2, 0]);
+  });
+
+  test('invertArrayOfDicts_customGetter', function() {
+    var fakeThis = { itemToDict: JSON.parse };
+    var array = [
+      '{"a": "test", "b": true}',
+      '{}',
+      '{invalid-json}',
+      '{"a": 42, "c": false}'
+    ];
+    var dict = tr.b.invertArrayOfDicts(array, function(item) {
+      try {
+        return this.itemToDict(item);
+      } catch (e) {
+        return undefined;
+      }
+    }, fakeThis);
+    assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
+    assert.deepEqual(
+        tr.b.asArray(dict['a']), ['test', undefined, undefined, 42]);
+    assert.deepEqual(
+        tr.b.asArray(dict['b']), [true, undefined, undefined, undefined]);
+    assert.deepEqual(
+        tr.b.asArray(dict['c']), [undefined, undefined, undefined, false]);
+  });
+
+  test('arrayToDict', function() {
+    var fakeThis = { prefix: 'key_' };
+    var array = [5, undefined, 'test'];
+    var dict = tr.b.arrayToDict(array, function(value) {
+      return this.prefix + value;
+    }, fakeThis);
+    assert.deepEqual(dict, {
+      'key_5': 5,
+      'key_undefined': undefined,
+      'key_test': 'test'
+    });
+  });
 
   test('identity', function() {
     // Undefined value.
