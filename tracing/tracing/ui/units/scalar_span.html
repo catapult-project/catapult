@@ -89,6 +89,7 @@ tr.exportTo('tr.ui.units', function() {
 
       this.warning_ = undefined;
       this.percentage_ = undefined;
+      this.alwaysShowSign_ = false;
     },
 
     set contentTextDecoration(deco) {
@@ -144,6 +145,15 @@ tr.exportTo('tr.ui.units', function() {
         this.$.content.classList.remove('right-align');
     },
 
+    get alwaysShowSign() {
+      return this.alwaysShowSign_;
+    },
+
+    set alwaysShowSign(alwaysShowSign) {
+      this.alwaysShowSign_ = !!alwaysShowSign;
+      this.updateContent_();
+    },
+
     updateSparkline_: function() {
       if (this.percentage_ === undefined) {
         this.$.sparkline.style.display = 'none';
@@ -160,6 +170,8 @@ tr.exportTo('tr.ui.units', function() {
         return;
       }
       var content = this.unit_.format(this.value);
+      if (this.alwaysShowSign_ && this.value > 0)
+        content = '+' + content;
       this.$.content.textContent = content;
     },
 

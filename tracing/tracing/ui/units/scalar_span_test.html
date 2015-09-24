@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/units/scalar.html">
+<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createScalarSpan(value) {
+    var scalar = new tr.b.u.Scalar(value, tr.b.u.Units.sizeInBytes);
+    return tr.ui.units.createScalarSpan(scalar);
+  }
+
+  test('instantiate', function() {
+    var checkSpan = (function(value, expectedTextContent) {
+      var span = createScalarSpan(value);
+      assert.strictEqual(span.$.content.textContent, expectedTextContent);
+      assert.isFalse(span.alwaysShowSign);
+      this.addHTMLOutput(span);
+    }).bind(this);
+
+    checkSpan(1023, '1023.0 B');
+    checkSpan(0, '0.0 B');
+    checkSpan(-1024, '-1.0 KiB');
+  });
+
+  test('instantiate_alwaysShowSign', function() {
+    var checkSpan = (function(value, expectedTextContent) {
+      var span = createScalarSpan(value);
+      span.alwaysShowSign = true;
+      assert.strictEqual(span.$.content.textContent, expectedTextContent);
+      assert.isTrue(span.alwaysShowSign);
+      this.addHTMLOutput(span);
+    }).bind(this);
+
+    checkSpan(1023, '+1023.0 B');
+    checkSpan(0, '0.0 B');
+    checkSpan(-1024, '-1.0 KiB');
+  });
+});
+</script>
