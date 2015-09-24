@@ -435,7 +435,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
       logging.info('Dumping breakpad symbols.')
       generate_breakpad_symbols_path = os.path.join(
-          util.GetChromiumSrcDir(), "components", "crash",
+          util.GetChromiumSrcDir(), "components", "crash", "content",
           "tools", "generate_breakpad_symbols.py")
       cmd = [
           sys.executable,
