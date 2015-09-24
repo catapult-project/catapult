@@ -97,10 +97,10 @@ tr.b.unittest.testSuite(function() {
     // TODO(petrcermak): Enforce consistent ordering of the used size columns.
     var titleColumn = columns[0];
     var totalColumn = columns[1];
-    var proportionalColumn = columns[2];
-    var privateDirtyColumn = columns[3];
-    var swappedColumn = columns[4];
-    var peakTotalColumn = columns[5];
+    var peakTotalColumn = columns[2];
+    var proportionalColumn = columns[3];
+    var privateDirtyColumn = columns[4];
+    var swappedColumn = columns[5];
     var mallocColumn = columns[6];
     var oilpanColumn = columns[7];
     var v8Column = columns[8];
@@ -243,7 +243,7 @@ tr.b.unittest.testSuite(function() {
       // Select the 'PSS' column of the second process (cell containing
       // '14.0 MiB').
       table.selectedTableRow = table.tableRows[1];
-      table.selectedColumnIndex = 2;
+      table.selectedColumnIndex = 3;
     });
 
     // Show a view with the second and third processes only.

@@ -51,6 +51,18 @@ found in the LICENSE file.
   'use strict';
 
   (function() {
+    var COLUMN_IMPORTANCE_RULES =
+        tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+            'Start address',
+            'Virtual size',
+            'Protection flags',
+            'PSS',
+            'Private dirty',
+            'Private clean',
+            'Shared dirty',
+            'Shared clean',
+            'Swapped']);
+
     /**
      * Rules for classifying memory maps.
      *
@@ -348,6 +360,8 @@ found in the LICENSE file.
 
         var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
             rows, 'cells');
+        tr.ui.analysis.MemoryColumn.sortByImportance(attributeColumns,
+            COLUMN_IMPORTANCE_RULES);
         tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
         var columns = [titleColumn].concat(attributeColumns);

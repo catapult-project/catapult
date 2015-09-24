@@ -223,6 +223,21 @@ tr.b.unittest.testSuite(function() {
     assert.equal(columns[3].name, 'page_size');
   });
 
+  test('checkMemoryColumn_columnNamesToImportanceRules', function() {
+    var columnNames = ['A', 'B', 'C'];
+    var importanceRules =
+        MemoryColumn.columnNamesToImportanceRules(columnNames);
+
+    assert.lengthOf(importanceRules, 3);
+
+    assert.equal(importanceRules[0].condition, 'A');
+    assert.equal(importanceRules[0].importance, 3);
+    assert.equal(importanceRules[1].condition, 'B');
+    assert.equal(importanceRules[1].importance, 2);
+    assert.equal(importanceRules[2].condition, 'C');
+    assert.equal(importanceRules[2].importance, 1);
+  });
+
   test('checkMemoryColumn_fields', function() {
     var c = new MemoryColumn(
         'test_column', 'Test Column', 'ms', fieldGetter('x'));

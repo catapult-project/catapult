@@ -56,7 +56,15 @@ found in the LICENSE file.
   'use strict';
 
   (function() {
-    var IMPORTANCE_RULES = [
+    var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
+        tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+            'Total resident',
+            'Peak total resident',
+            'PSS',
+            'Private dirty',
+            'Swapped']);
+
+    var ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES = [
       {
         condition: 'tracing',
         importance: 0
@@ -246,6 +254,9 @@ found in the LICENSE file.
 
         var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
             rows, 'usedMemorySizes');
+        tr.ui.analysis.MemoryColumn.sortByImportance(
+            usedMemorySizeColumns, USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES);
+
         var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
             rows, 'allocatorSizes', function(allocatorName) {
           var titleEl = document.createElement('tr-ui-b-color-legend');
@@ -253,7 +264,7 @@ found in the LICENSE file.
           return titleEl;
         });
         tr.ui.analysis.MemoryColumn.sortByImportance(
-            allocatorSizeColumns, IMPORTANCE_RULES);
+            allocatorSizeColumns, ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES);
 
         // Grey the 'tracing' column out (if present).
         // TODO(petrcermak): Find a less hacky way to do this.

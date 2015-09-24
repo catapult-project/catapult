@@ -156,6 +156,43 @@ tr.exportTo('tr.ui.analysis', function() {
     });
   };
 
+  /**
+   * Convert a list of columns names to a list of importance rules. The list of
+   * column names is assumed to be sorted in descending order of importance
+   * (i.e. from left to right). For example:
+   *
+   *    MemoryColumn.columnNamesToImportanceRules([
+   *      'Column A',
+   *      'Column B',
+   *      'Column C'
+   *    ]);
+   *
+   * will return the following list of importance rules:
+   *
+   *   [
+   *     {
+   *       condition: 'Column A',
+   *       importance: 3
+   *     },
+   *     {
+   *       condition: 'Column B',
+   *       importance: 2
+   *     },
+   *     {
+   *       condition: 'Column C',
+   *       importance: 1
+   *     }
+   *   ]
+   */
+  MemoryColumn.columnNamesToImportanceRules = function(columnNames) {
+    return columnNames.map(function(columnName, columnIndex) {
+      return {
+        condition: columnName,
+        importance: columnNames.length - columnIndex
+      };
+    });
+  };
+
   MemoryColumn.iconFromAttributeInfoType = function(type) {
     switch (type) {
       case tr.model.AttributeInfoType.WARNING:
