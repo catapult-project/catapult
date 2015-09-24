@@ -53,6 +53,12 @@ tr.exportTo('tr.model', function() {
       return this.process.userFriendlyName;
     },
 
+    get processMemoryDumps() {
+      var dumps = {};
+      dumps[this.process.pid] = this;
+      return dumps;
+    },
+
     get vmRegions() {
       throw new Error(
           'VM regions must be accessed through the mostRecentVmRegions field');

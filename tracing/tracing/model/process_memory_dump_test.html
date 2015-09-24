@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   var VMRegion = tr.model.VMRegion;
   var ScalarAttribute = tr.model.ScalarAttribute;
 
-  var createProcessMemoryDump = function(timestamp, model) {
+  function createProcessMemoryDump(timestamp, model) {
     var gmd = new GlobalMemoryDump(model, timestamp);
     model.globalMemoryDumps.push(gmd);
     var p = model.getOrCreateProcess(123);
@@ -33,9 +33,10 @@ tr.b.unittest.testSuite(function() {
     return pmd;
   }
 
-  var createFinalizedProcessMemoryDump = function(timestamp, createdCallback) {
+  function createFinalizedProcessMemoryDump(timestamp, opt_createdCallback) {
     return createFinalizedProcessMemoryDumps([timestamp], function(pmds) {
-      createdCallback(pmds[0]);
+      if (opt_createdCallback !== undefined)
+        opt_createdCallback(pmds[0]);
     })[0];
   }
 
@@ -65,6 +66,13 @@ tr.b.unittest.testSuite(function() {
     });
     assert.strictEqual(vmRegion.protectionFlagsToString, expectedString);
   }
+
+  test('processMemoryDumps', function() {
+    var pmd = createFinalizedProcessMemoryDump(42);
+    var pmds = pmd.processMemoryDumps;
+    assert.lengthOf(Object.keys(pmds), 1);
+    assert.strictEqual(pmds[123], pmd);
+  });
 
   test('totalResidentSizeInBytes_undefinedVmRegions', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {});
