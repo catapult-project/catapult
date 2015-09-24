@@ -79,6 +79,13 @@ found in the LICENSE file.
           this.updateContents_.bind(this));
       topControls.appendChild(this.groupByTitle_);
 
+      this.groupByDomainCategory_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'pi.ui.wr.weather_report.groupByDomainCategory', true,
+          'Group by Domain Category',
+          this.updateContents_.bind(this));
+      topControls.appendChild(this.groupByDomainCategory_);
+
       this.groupByDomain_ = tr.ui.b.createCheckBox(
           undefined, undefined,
           'pi.ui.wr.weather_report.groupByDomain', true,
@@ -137,12 +144,20 @@ found in the LICENSE file.
         });
       }
 
-      var didGroupByDomain;
-      if (groupBy.length === 0 && this.groupByDomain_.checked) {
-        groupBy.push(function(datum) {
-          return datum.domain;
-        });
-        didGroupByDomain = true;
+      var didGroupByDomainCategoryOrDomain;
+      if (groupBy.length === 0) {
+        if (this.groupByDomainCategory_.checked) {
+          groupBy.push(function(datum) {
+            return datum.domainCategory;
+          });
+          didGroupByDomainCategoryOrDomain = true;
+        }
+        if (this.groupByDomain_.checked) {
+          groupBy.push(function(datum) {
+            return datum.domain;
+          });
+          didGroupByDomainCategoryOrDomain = true;
+        }
       }
 
       if (this.groupByTitle_.checked) {
@@ -151,7 +166,14 @@ found in the LICENSE file.
         });
       }
 
-      if (this.groupByDomain_.checked && !didGroupByDomain) {
+      if (this.groupByDomainCategory_.checked &&
+          !didGroupByDomainCategoryOrDomain) {
+        groupBy.push(function(datum) {
+          return datum.domainCategory;
+        });
+      }
+
+      if (this.groupByDomain_.checked && !didGroupByDomainCategoryOrDomain) {
         groupBy.push(function(datum) {
           return datum.domain;
         });
