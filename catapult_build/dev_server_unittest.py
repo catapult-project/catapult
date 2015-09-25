@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import argparse
 import json
+import os
 import unittest
 
 
@@ -22,21 +23,38 @@ class DevServerTests(unittest.TestCase):
     self.args = dev_server._AddCommandLineArguments(self.pds, [])
 
   def testStaticDirectoryHandling(self):
-    app = dev_server.CreateApp(self.pds, self.args)
+    app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/tests.html')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
 
+  def testGetURLForAbsFilename(self):
+    app = dev_server.DevServerApp(self.pds, self.args)
+    class FakeServer(object):
+      @property
+      def urlbase(self):
+          return 'http://localhost:8003'
+    app.server = FakeServer()
+
+    cfg = tracing_dev_server_config.TracingDevServerConfig()
+    base_html_filename = os.path.join(cfg.project.tracing_src_path,
+                                      'base', 'base.html')
+    url = app.GetURLForAbsFilename(base_html_filename)
+    self.assertEqual(url, 'http://localhost:8003/tracing/base/base.html')
+
+    url = app.GetURLForAbsFilename('/tmp/foo')
+    self.assertIsNone(url)
+
   def testTestDataDirectory(self):
-    app = dev_server.CreateApp(self.pds, self.args)
+    app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/test_data/trivial_trace.json')
     response = request.get_response(app)
 
     self.assertEqual(response.status_int, 200)
 
   def testTestDataDirectoryListing(self):
-    app = dev_server.CreateApp(self.pds, self.args)
+    app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/test_data/__file_list__')
     response = request.get_response(app)
 
@@ -45,7 +63,7 @@ class DevServerTests(unittest.TestCase):
     assert '/tracing/test_data/trivial_trace.json' in res
 
   def testSkpDataDirectoryListing(self):
-    app = dev_server.CreateApp(self.pds, self.args)
+    app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/skp_data/__file_list__')
     response = request.get_response(app)
 
@@ -54,7 +72,7 @@ class DevServerTests(unittest.TestCase):
     assert '/tracing/skp_data/lthi_cats.skp' in res
 
   def testTestListingHandler(self):
-    app = dev_server.CreateApp(self.pds, self.args)
+    app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/tests')
     response = request.get_response(app)
 

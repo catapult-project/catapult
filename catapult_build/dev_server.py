@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+import urlparse
 
 from hooks import install
 
@@ -56,6 +57,10 @@ def _GetFilesIn(basedir):
 
   data_files.sort()
   return data_files
+
+
+def _RelPathToUnixPath(p):
+  return p.replace(os.sep, '/')
 
 
 class TestResultHandler(webapp2.RequestHandler):
@@ -118,6 +123,19 @@ class SourcePathsHandler(webapp2.RequestHandler):
         return app
     self.abort(404)
 
+  @staticmethod
+  def GetServingPathForAbsFilename(source_paths, filename):
+    if not os.path.isabs(filename):
+      raise Exception('filename must be an absolute path')
+
+    for mapped_path in source_paths:
+      if not filename.startswith(mapped_path):
+        continue
+      rel = os.path.relpath(filename, mapped_path)
+      unix_rel = _RelPathToUnixPath(rel)
+      return unix_rel
+    return None
+
 
 class SimpleDirectoryHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -146,48 +164,84 @@ class TestOverviewHandler(webapp2.RequestHandler):
     self.response.out.write(_MAIN_HTML % ('\n'.join(test_links),
         '\n'.join(quick_links)))
 
+class DevServerApp(webapp2.WSGIApplication):
+  def __init__(self, pds, args):
+    super(DevServerApp, self).__init__(debug=True)
+    self.pds = pds
+    self._server = None
+    self._all_source_paths = []
+    self._all_mapped_test_data_paths = []
+    self._InitFromArgs(args)
 
-def CreateApp(pds, args):
-  default_tests = dict((pd.GetName(), pd.GetRunUnitTestsUrl()) for pd in pds)
-  routes = [
-    Route('/tests.html', TestOverviewHandler, defaults={'pds': default_tests}),
-    Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
-    Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
-  ]
-  for pd in pds:
-    routes += pd.GetRoutes(args)
-    routes += [
-      Route('/%s/notify_test_result' % pd.GetName(), TestResultHandler),
-      Route('/%s/notify_tests_completed' % pd.GetName(), TestsCompletedHandler)
+  @property
+  def server(self):
+    return self._server
+
+  @server.setter
+  def server(self, server):
+    self._server = server
+
+  def _InitFromArgs(self, args):
+    default_tests = dict((pd.GetName(), pd.GetRunUnitTestsUrl())
+                         for pd in self.pds)
+    routes = [
+      Route('/tests.html', TestOverviewHandler,
+            defaults={'pds': default_tests}),
+      Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
+      Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
     ]
+    for pd in self.pds:
+      routes += pd.GetRoutes(args)
+      routes += [
+        Route('/%s/notify_test_result' % pd.GetName(),
+              TestResultHandler),
+        Route('/%s/notify_tests_completed' % pd.GetName(),
+              TestsCompletedHandler)
+      ]
 
-  for pd in pds:
-    # Test data system.
-    for mapped_path, source_path in pd.GetTestDataPaths(args):
-      routes.append(Route('%s__file_list__' % mapped_path,
-                          DirectoryListingHandler,
-                          defaults={
-                              '_source_path': source_path,
-                              '_mapped_path': mapped_path
-                          }))
-      routes.append(Route('%s<rest_of_path:.+>' % mapped_path,
-                          SimpleDirectoryHandler,
-                          defaults={'_top_path': source_path}))
+    for pd in self.pds:
+      # Test data system.
+      for mapped_path, source_path in pd.GetTestDataPaths(args):
+        self._all_mapped_test_data_paths.append((mapped_path, source_path))
+        routes.append(Route('%s__file_list__' % mapped_path,
+                            DirectoryListingHandler,
+                            defaults={
+                                '_source_path': source_path,
+                                '_mapped_path': mapped_path
+                            }))
+        routes.append(Route('%s<rest_of_path:.+>' % mapped_path,
+                            SimpleDirectoryHandler,
+                            defaults={'_top_path': source_path}))
 
-  # This must go last, because its catch-all.
-  #
-  # Its funky that we have to add in the root path. The long term fix is to
-  # stop with the crazy multi-source-pathing thing.
-  all_paths = []
-  for pd in pds:
-    all_paths += pd.GetSourcePaths(args)
-  routes.append(
-    Route('/<:.+>', SourcePathsHandler,
-          defaults={'_source_paths': all_paths}))
+    # This must go last, because its catch-all.
+    #
+    # Its funky that we have to add in the root path. The long term fix is to
+    # stop with the crazy multi-source-pathing thing.
+    for pd in self.pds:
+      self._all_source_paths += pd.GetSourcePaths(args)
+    routes.append(
+      Route('/<:.+>', SourcePathsHandler,
+            defaults={'_source_paths': self._all_source_paths}))
 
+    for route in routes:
+      self.router.add(route)
 
-  app = webapp2.WSGIApplication(routes=routes, debug=True)
-  return app
+  def GetURLForAbsFilename(self, filename):
+    assert self.server is not None
+    for mapped_path, source_path in self._all_mapped_test_data_paths:
+      if not filename.startswith(source_path):
+        continue
+      rel = os.path.relpath(filename, source_path)
+      unix_rel = _RelPathToUnixPath(rel)
+      url = urlparse.urljoin(self.server.urlbase, mapped_path, unix_rel)
+      return url
+
+    path = SourcePathsHandler.GetServingPathForAbsFilename(
+        self._all_source_paths, filename)
+    if path is None:
+      return None
+    return urlparse.urljoin(self.server.urlbase, path)
+
 
 def _AddPleaseExitMixinToServer(server):
   # Shutting down httpserver gracefully and yielding a return code requires
@@ -243,13 +297,14 @@ def Main(argv):
   if args.install_hooks:
     install.InstallHooks()
 
-  app = CreateApp(pds, args)
+  app = DevServerApp(pds, args=args)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
                             start_loop=False)
   _AddPleaseExitMixinToServer(server)
+  server.urlbase = 'http://127.0.0.1:%i' % server.server_port
   app.server = server
 
-  sys.stderr.write('Now running on http://127.0.0.1:%i\n' % server.server_port)
+  sys.stderr.write('Now running on %s\n' % server.urlbase)
 
   return server.serve_forever()

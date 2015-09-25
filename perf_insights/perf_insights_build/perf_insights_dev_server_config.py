@@ -94,5 +94,5 @@ class PerfInsightsDevServerConfig(object):
 
   def GetTestDataPaths(self, args):  # pylint: disable=unused-argument
     return [('/perf_insights/test_data/',
-             self.project.perf_insights_test_data_path)]
+             args.pi_data_dir)]
 
