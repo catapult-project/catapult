@@ -1,0 +1,63 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script>
+'use strict';
+
+var testing_common = (function() {
+
+  var xhrMock = null;
+
+  var XMLHttpRequestMock = function() {
+    this.responseMap_ = {};
+    window.XMLHttpRequest = this.getMock();
+  };
+
+  XMLHttpRequestMock.prototype.getMock = function() {
+    // TODO(chrisphan): Add support for error state.
+    var self = this;
+    return function() {
+      this.status = 200;
+      this.onerror = function() {};
+      this.open = function() {};
+      this.setRequestHeader = function() {};
+      this.onload = function() {};
+      this.send = function(param) {
+        if (param in self.responseMap_) {
+          this.responseText = self.responseMap_[param];
+          this.onload();
+        } else {
+          console.warn('XMLHttpRequest sent without a handler: ' + param);
+        }
+      };
+    };
+  };
+
+  XMLHttpRequestMock.prototype.add = function(param, response) {
+    this.responseMap_[param] = response;
+  };
+
+  function addXhrMock(param, response) {
+    if (!xhrMock) {
+      xhrMock = new XMLHttpRequestMock();
+    }
+    xhrMock.add(param, response);
+  };
+
+  function clearXhrMock() {
+    // Reverts back to native XMLHttpRequest.
+    delete window.XMLHttpRequest;
+    xhrMock = null;
+  };
+
+  return {
+    addXhrMock: addXhrMock,
+    clearXhrMock: clearXhrMock
+  };
+})();
+
+</script>
