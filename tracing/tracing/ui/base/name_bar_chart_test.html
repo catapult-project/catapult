@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/name_bar_chart.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiation_singleSeries', function() {
+    var chart = new tr.ui.b.NameBarChart();
+    chart.width = 200;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 'apple', value: 100},
+      {x: 'ball', value: 110},
+      {x: 'cat', value: 100},
+      {x: 'dog', value: 50}
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
+
+  test('undefined', function() {
+    var chart = new tr.ui.b.NameBarChart();
+    assert.throws(function() {
+      chart.data = undefined;
+    });
+  });
+
+  test('instantiation_twoSeries', function() {
+    var chart = new tr.ui.b.NameBarChart();
+
+    chart.width = 200;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 'apple', alpha: 100, beta: 50},
+      {x: 'ball', alpha: 110, beta: 75},
+      {x: 'cat', alpha: 100, beta: 125},
+      {x: 'dog', alpha: 50, beta: 125}
+    ];
+    chart.data = data;
+
+    var r = new tr.b.Range();
+    r.addValue(20);
+    r.addValue(40);
+    chart.brushedRange = r;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
+    var chart = new tr.ui.b.NameBarChart();
+
+    chart.width = 200;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 'apple', alpha: 20, beta: undefined},
+      {x: 'ball', alpha: undefined, beta: 10},
+      {x: 'cat', alpha: 10, beta: undefined},
+      {x: 'dog', alpha: undefined, beta: 20},
+      {x: 'echo', alpha: 30, beta: 30}
+    ];
+    chart.data = data;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
+    var chart = new tr.ui.b.NameBarChart();
+
+    chart.width = 200;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 'apple', alpha: 20, beta: 40},
+      {x: 'ball', alpha: undefined, beta: 10},
+      {x: 'cat', alpha: 10, beta: undefined},
+      {x: 'dog', alpha: undefined, beta: 20},
+      {x: 'echo', alpha: 30, beta: undefined}
+    ];
+    chart.data = data;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('brushRangeFromIndices', function() {
+    var chart = new tr.ui.b.NameBarChart();
+    var data = [
+      {x: 'apple', value: 50},
+      {x: 'ball', value: 60},
+      {x: 'cat', value: 70},
+      {x: 'dog', value: 80},
+      {x: 'echo', value: 90}
+    ];
+    chart.data = data;
+    var r = new tr.b.Range();
+
+    // Range min should be 10.
+    r = chart.computeBrushRangeFromIndices(-2, 1);
+    assert.equal(r.min, 0);
+
+    // Range max should be 120.
+    r = chart.computeBrushRangeFromIndices(3, 10);
+    assert.equal(r.max, 4);
+
+    // Range should be [10, 120]
+    r = chart.computeBrushRangeFromIndices(-2, 10);
+    assert.equal(r.min, 0);
+    assert.equal(r.max, 4);
+
+    // Range should be [20, 100]
+    r = chart.computeBrushRangeFromIndices(1, 3);
+    assert.equal(r.min, 0.5);
+    assert.equal(r.max, 3.5);
+  });
+
+  test('instantiation_interactiveBrushing', function() {
+    var chart = new tr.ui.b.NameBarChart();
+    chart.width = 300;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 'apple', value: 50},
+      {x: 'ball', value: 60},
+      {x: 'cat', value: 80},
+      {x: 'dog', value: 20},
+      {x: 'echo', value: 30},
+      {x: 'fortune', value: 20},
+      {x: 'gpu', value: 15},
+      {x: 'happy', value: 20}
+    ];
+    chart.data = data;
+
+    var mouseDownX = undefined;
+    var curMouseX = undefined;
+
+    function updateBrushedRange() {
+      if (mouseDownX === undefined || (mouseDownX === curMouseX)) {
+        chart.brushedRange = new tr.b.Range();
+        return;
+      }
+      var r = new tr.b.Range();
+      r.min = Math.min(mouseDownX, curMouseX) + 0.5;
+      r.max = Math.max(mouseDownX, curMouseX) + 0.5;
+      chart.brushedRange = r;
+    }
+
+    chart.addEventListener('item-mousedown', function(e) {
+      mouseDownX = e.index;
+      curMouseX = e.index;
+      updateBrushedRange();
+    });
+    chart.addEventListener('item-mousemove', function(e) {
+      if (e.button == undefined)
+        return;
+      curMouseX = e.index;
+      updateBrushedRange();
+    });
+    chart.addEventListener('item-mouseup', function(e) {
+      curMouseX = e.index;
+      updateBrushedRange();
+    });
+    this.addHTMLOutput(chart);
+  });
+});
+</script>
+

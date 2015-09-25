@@ -7,14 +7,14 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/ui/base/d3.html">
-<link rel="import" href="/tracing/ui/base/line_chart.html">
+<link rel="import" href="/tracing/ui/base/chart_base_2d.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var LineChart = tr.ui.b.LineChart;
+  var ChartBase2D = tr.ui.b.ChartBase2D;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
   // The chart height will be scaled by this fraction so that a visible rect
@@ -22,35 +22,27 @@ tr.exportTo('tr.ui.b', function() {
   // highest data point was cut off.
   var VERTICAL_CUSHION_FRACTION = 0.2;
 
-  function getSampleWidth(data, index, leftSide) {
-    var leftIndex, rightIndex;
-    if (leftSide) {
-      leftIndex = Math.max(index - 1, 0);
-      rightIndex = index;
-    } else {
-      leftIndex = index;
-      rightIndex = Math.min(index + 1, data.length - 1);
-    }
-    var leftWidth = data[index].x - data[leftIndex].x;
-    var rightWidth = data[rightIndex].x - data[index].x;
-    return leftWidth * 0.5 + rightWidth * 0.5;
-  }
-
-  /**
-   * @constructor
-   */
-  var BarChart = tr.ui.b.define('bar-chart', LineChart);
+  // @constructor
+  var BarChart = tr.ui.b.define('bar-chart', ChartBase2D);
 
   BarChart.prototype = {
-    __proto__: LineChart.prototype,
+    __proto__: ChartBase2D.prototype,
 
     decorate: function() {
-      LineChart.prototype.decorate.call(this);
+      ChartBase2D.prototype.decorate.call(this);
       this.classList.remove('line-chart');
       this.classList.add('bar-chart');
     },
 
-    updateScales_: function(width, height) {
+    isDatumFieldSeries_: function(fieldName) {
+      return fieldName != 'x';
+    },
+
+    getXForDatum_: function(datum, index) {
+      return datum.x;
+    },
+
+    updateScales_: function() {
       if (this.data_.length === 0)
         return;
 
@@ -60,10 +52,11 @@ tr.exportTo('tr.ui.b', function() {
       // chart.width / data.length, and each rect is centered around its
       // x-coordinate, so half of its width would have exceeded the chart
       // boundary if not for the cushion.
-      var xCushion = this.chartAreaSize.width / 2;
+      var width = this.chartAreaSize.width;
+      var xCushion = width / 2;
       xCushion /= this.data_.length;
       this.xScale_.range([xCushion, width - xCushion]);
-      this.xScale_.domain(d3.extent(this.data_, function(d) { return d.x; }));
+      this.xScale_.domain(d3.extent(this.data_, this.getXForDatum_.bind(this)));
 
       // Y.
       var yRange = new tr.b.Range();
@@ -79,7 +72,7 @@ tr.exportTo('tr.ui.b', function() {
       // be drawn even for the lowest data point.
       // Leave a cushion at the top of the chart so that it doesn't look like
       // the chart was cut off.
-      this.yScale_.range([height, 0]);
+      this.yScale_.range([this.chartAreaSize.height, 0]);
       var yCushion = VERTICAL_CUSHION_FRACTION * yRange.range;
       this.yScale_.domain([yRange.min - yCushion, yRange.max + yCushion]);
     },
@@ -87,10 +80,17 @@ tr.exportTo('tr.ui.b', function() {
     updateDataContents_: function(dataSel) {
       var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
       this.data_.forEach(function(datum, index) {
-        var leftWidth = (index === 0) ? undefined :
-            ((datum.x - this.data_[index - 1].x) / 2);
-        var rightWidth = (index === (this.data_.length - 1)) ? undefined :
-            ((this.data_[index + 1].x - datum.x) / 2);
+        var leftWidth = undefined;
+        var rightWidth = undefined;
+        var currentX = this.getXForDatum_(datum, index);
+        if (index > 0) {
+          var previousX = this.getXForDatum_(this.data_[index - 1], index - 1);
+          leftWidth = (currentX - previousX) / 2;
+        }
+        if (index < (this.data_.length - 1)) {
+          var nextX = this.getXForDatum_(this.data_[index + 1], index + 1);
+          rightWidth = (nextX - currentX) / 2;
+        }
 
         if (!leftWidth) {
           leftWidth = rightWidth;
@@ -110,14 +110,18 @@ tr.exportTo('tr.ui.b', function() {
         });
 
         stacks.forEach(function(stack) {
+          var left = this.xScale_(this.getXForDatum_(datum, index) - leftWidth);
+          var right = this.xScale_(this.getXForDatum_(datum, index) +
+              rightWidth);
+          var width = right - left;
+          var top = this.yScale_(stack.y);
           rectsSel.enter()
               .append('rect')
               .attr('fill', stack.color)
-              .attr('x', this.xScale_(datum.x - leftWidth))
-              .attr('y', this.yScale_(stack.y))
-              .attr('width', this.xScale_(datum.x + rightWidth) -
-                  this.xScale_(datum.x - leftWidth))
-              .attr('height', this.yScale_.range()[0] - this.yScale_(stack.y));
+              .attr('x', left)
+              .attr('y', top)
+              .attr('width', width)
+              .attr('height', this.yScale_.range()[0] - top);
         }, this);
       }, this);
       rectsSel.exit().remove();
