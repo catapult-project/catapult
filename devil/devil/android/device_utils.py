@@ -593,8 +593,12 @@ class DeviceUtils(object):
           'Installing split APK when non-split APK was previously installed')
       apks_to_install = all_apks
     else:
-      apks_to_install, host_checksums = (
-          self._ComputeStaleApks(package_name, all_apks))
+      try:
+        apks_to_install, host_checksums = (
+            self._ComputeStaleApks(package_name, all_apks))
+      except EnvironmentError as e:
+        logging.warning('Error calculating md5: %s', e)
+        apks_to_install, host_checksums = all_apks, None
       if apks_to_install and not reinstall:
         self.Uninstall(package_name)
         apks_to_install = all_apks
