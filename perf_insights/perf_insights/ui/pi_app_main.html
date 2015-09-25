@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/map_function.html">
@@ -47,13 +48,12 @@ found in the LICENSE file.
       }
     </style>
     <top-controls>
-      <top-left-controls></top-left-controls>
+      <top-left-controls id="top_left_controls"></top-left-controls>
       <span class="spacer"></span>
-      <top-right-controls>
-      </top-right-controls>
+      <top-right-controls id="top_right_controls"></top-right-controls>
     </top-controls>
-    <report-container>
-    </report-container>
+    <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
+    <report-container id="report_container"></report-container>
   </template>
 </polymer-element>
 <script>
@@ -80,9 +80,8 @@ tr.exportTo('pi.ui', function() {
     },
 
     ready: function() {
-      var topLeftControls = this.shadowRoot.querySelector('top-left-controls');
-      var topRightControls = this.shadowRoot.querySelector(
-          'top-right-controls');
+      var topLeftControls = this.$.top_left_controls;
+      var topRightControls = this.$.top_right_controls;
 
       var mapTracesDriverSelector = document.createElement('select');
       mapTracesDriverSelector.classList.add('map-traces-driver-selector');
@@ -140,7 +139,7 @@ tr.exportTo('pi.ui', function() {
     set mapTracesDrivers(mapTracesDrivers) {
       this.mapTracesDrivers_ = mapTracesDrivers;
 
-      var topLeftControls = this.shadowRoot.querySelector('top-left-controls');
+      var topLeftControls = this.$.top_left_controls;
       var oldSelector = topLeftControls.querySelector(
           '.map-traces-driver-selector');
       var options = mapTracesDrivers.map(function(mapTracesDriver) {
@@ -224,30 +223,63 @@ tr.exportTo('pi.ui', function() {
 
       var mappingState = this.mappingState;
 
-      var that = this;
       var p = this.beginUpdatingContents_(mappingState);
       p = p.catch(function(err) {
         tr.showPanic('Something is wrong', err);
       });
-      p = p.then(updateDone);
+      p = p.then(updateDone.bind(this));
 
       function updateDone() {
-        that.pendingUpdateContentsPromise_ = undefined;
-        if (!areMappingStatesSame(that.mappingState, mappingState))
-          that.scheduleUpdateContents_();
+        this.pendingUpdateContentsPromise_ = undefined;
+        if (!areMappingStatesSame(this.mappingState, mappingState))
+          this.scheduleUpdateContents_();
       }
       this.pendingUpdateContentsPromise_ = p;
     },
 
     beginUpdatingContents_: function(mappingState) {
-      var that = this;
-      var p = Promise.resolve();
-
       var pe = tr.ui.b.getPolymerElementNamed(mappingState.piReportElementName);
-      var reportContainer = that.shadowRoot.querySelector('report-container');
+      var reportContainer = this.$.report_container;
+      var infobars = this.$.infobars;
 
+      function clearInfobarsOrUpdateWithErrors(mapResults) {
+        infobars.clearMessages();
+        if (!mapResults) {
+          infobars.addMessage('Cannot map');
+          return mapResults;
+        }
+        if (!mapResults.hadFailures)
+          return mapResults;
+
+        function onTellMeMore() {
+          var dlg = new tr.ui.b.Overlay();
+          dlg.dlg = 'Results summary';
+
+          var grv = document.createElement('pi-ui-generic-results-view');
+
+          grv.mapResults = mapResults;
+          grv.style.minHeight = '500px';
+          dlg.appendChild(grv);
+          dlg.visible = true;
+        }
+
+        var numFailedRuns = mapResults.failedRunInfos.length;
+        infobars.addMessage(
+            'There were ' + numFailedRuns + ' traces that did not process.',
+            [
+              {
+                buttonText: 'Tell me more...',
+                onClick: onTellMeMore
+              }
+            ]);
+
+        return mapResults;
+      }
+
+      var p = Promise.resolve();
       p = p.then(function indicateThinking() {
-        reportContainer.textContent = '... thinking...';
+        infobars.clearMessages();
+        infobars.addMessage('... thinking...');
       });
 
       p = p.then(function doMapping() {
@@ -280,13 +312,12 @@ tr.exportTo('pi.ui', function() {
         return pi.r.Results.fromDict(data);
       });
 
+      p = p.then(clearInfobarsOrUpdateWithErrors);
+
       p = p.then(function showMappingResults(mapResults) {
         reportContainer.textContent = '';
-
-        if (mapResults === undefined) {
-          reportContainer.textContent = 'Cannot map';
+        if (mapResults === undefined)
           return;
-        }
 
         var reportEl;
         if (mappingState.showRawResults) {

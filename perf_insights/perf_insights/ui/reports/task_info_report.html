@@ -7,7 +7,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
@@ -40,7 +39,6 @@ found in the LICENSE file.
         flex: 1 1 auto;
       }
     </style>
-    <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
     <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
     <h1>Histogram</h1>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
@@ -77,9 +75,6 @@ found in the LICENSE file.
       if (!results)
         results = new tr.r.Results();
 
-      this.$.infobars.clearMessages();
-      this.maybeAddFailuresInfoBarMessage_(results);
-
       var columns = this.createColumns_();
       table.tableColumns = columns;
       table.sortColumnIndex = 3;
@@ -113,33 +108,6 @@ found in the LICENSE file.
       table.cellSelectionMode = true;
       table.rowHighlightEnabled = true;
       table.rebuild();
-    },
-
-    maybeAddFailuresInfoBarMessage_: function(results) {
-      if (!results.hadFailures)
-        return;
-
-      function onTellMeMore() {
-        var dlg = new tr.ui.b.Overlay();
-        dlg.dlg = 'Results summary';
-
-        var grv = document.createElement('pi-ui-generic-results-view');
-
-        grv.mapResults = results;
-        grv.style.minHeight = '500px';
-        dlg.appendChild(grv);
-        dlg.visible = true;
-      }
-
-      var numFailedRuns = results.failedRunInfos.length;
-      this.$.infobars.addMessage(
-          'There were ' + numFailedRuns + ' traces that did not process.',
-          [
-            {
-              buttonText: 'Tell me more...',
-              onClick: onTellMeMore
-            }
-          ]);
     },
 
     createColumns_: function() {

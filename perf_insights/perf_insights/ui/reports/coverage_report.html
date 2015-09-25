@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
@@ -38,7 +37,6 @@ found in the LICENSE file.
     </style>
     <top-controls>
     </top-controls>
-    <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
   <script>
@@ -64,9 +62,6 @@ found in the LICENSE file.
       var results = this.mapResults_;
       if (!results)
         results = new tr.r.Results();
-
-      this.$.infobars.clearMessages();
-      this.maybeAddFailuresInfoBarMessage_(results);
 
       var columns = this.createColumns_();
       table.tableColumns = columns;
@@ -101,33 +96,6 @@ found in the LICENSE file.
 
       table.tableRows = allCoverageInfo;
       table.rebuild();
-    },
-
-    maybeAddFailuresInfoBarMessage_: function(results) {
-      if (!results.hadFailures)
-        return;
-
-      function onTellMeMore() {
-        var dlg = new tr.ui.b.Overlay();
-        dlg.dlg = 'Results summary';
-
-        var grv = document.createElement('pi-ui-generic-results-view');
-
-        grv.mapResults = results;
-        grv.style.minHeight = '500px';
-        dlg.appendChild(grv);
-        dlg.visible = true;
-      }
-
-      var numFailedRuns = results.failedRunInfos.length;
-      this.$.infobars.addMessage(
-          'There were ' + numFailedRuns + ' traces that did not process.',
-          [
-            {
-              buttonText: 'Tell me more...',
-              onClick: onTellMeMore
-            }
-          ]);
     },
 
     createColumns_: function() {

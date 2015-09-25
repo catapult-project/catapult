@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
@@ -33,7 +32,6 @@ found in the LICENSE file.
         margin-left: 10px;
       }
     </style>
-    <tr-ui-b-info-bar-group id="infobars"></tr-ui-b-info-bar-group>
     <h1>Slice costs</h1>
     <pi-ui-r-slice-cost-report class="sub-report"></pi-ui-r-slice-cost-report>
 
@@ -62,41 +60,11 @@ found in the LICENSE file.
       if (!results)
         results = new tr.r.Results();
 
-      this.$.infobars.clearMessages();
-      this.maybeAddFailuresInfoBarMessage_(results);
-
       var reports = tr.b.asArray(
           this.shadowRoot.querySelectorAll('.sub-report'));
       reports.forEach(function(report) {
         report.mapResults = results;
       });
-    },
-
-    maybeAddFailuresInfoBarMessage_: function(results) {
-      if (!results.hadFailures)
-        return;
-
-      function onTellMeMore() {
-        var dlg = new tr.ui.b.Overlay();
-        dlg.dlg = 'Results summary';
-
-        var grv = document.createElement('pi-ui-generic-results-view');
-
-        grv.mapResults = results;
-        grv.style.minHeight = '500px';
-        dlg.appendChild(grv);
-        dlg.visible = true;
-      }
-
-      var numFailedRuns = results.failedRunInfos.length;
-      this.$.infobars.addMessage(
-          'There were ' + numFailedRuns + ' traces that did not process.',
-          [
-            {
-              buttonText: 'Tell me more...',
-              onClick: onTellMeMore
-            }
-          ]);
     }
   });
   </script>
