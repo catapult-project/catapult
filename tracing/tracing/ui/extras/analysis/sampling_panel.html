@@ -24,20 +24,20 @@ found in the LICENSE file.
     var SamplingTreeNode = function(frame) {
       this.parent = undefined;
       this.children = [];
-      this.childFrameMap = {};
+      this.childFrameMap = new Map();
       this.frame = frame;
       this.accumulatedSamplesCount = 0;
     };
 
     SamplingTreeNode.prototype = {
       getOrCreateChild: function(frame) {
-        if (this.childFrameMap[frame.title] !== undefined)
-          return this.childFrameMap[frame.title];
+        if (this.childFrameMap.has(frame.title))
+          return this.childFrameMap.get(frame.title);
 
         var node = new SamplingTreeNode(frame);
         node.parent = this;
 
-        this.childFrameMap[frame.title] = node;
+        this.childFrameMap.set(frame.title, node);
         this.children.push(node);
 
         return node;
