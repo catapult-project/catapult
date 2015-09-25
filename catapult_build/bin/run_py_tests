@@ -8,9 +8,12 @@
 import os
 import sys
 
+
 if __name__ == '__main__':
   catapult_path = os.path.abspath(
       os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
   sys.path.append(catapult_path)
-  from catapult_build import run_py_tests
-  sys.exit(run_py_tests.RunTests(os.path.join(catapult_path, 'catapult_build')))
+  from catapult_build import run_with_typ
+  sys.exit(run_with_typ.Run(
+      os.path.join(catapult_path, 'catapult_build'),
+      path=[catapult_path]))

@@ -26,12 +26,15 @@ class FileBugTest(testing_common.TestCase):
 
   def setUp(self):
     super(FileBugTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/file_bug', file_bug.FileBugHandler)])
+    app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org', 'google.com'])
     testing_common.SetInternalDomain('google.com')
     self.SetCurrentUser('foo@chromium.org')
+    # When requests are made to the issue tracker service (using the mock
+    # HTTP object in mock_oauth2_decorator), some data is expected,
+    # but not necessarily read.
+    mock_oauth2_decorator.HTTP_MOCK.data = '{"id": 123}'
 
   def tearDown(self):
     super(FileBugTest, self).tearDown()

@@ -25,8 +25,15 @@ def _AddToPathIfNeeded(path):
     sys.path.insert(0, path)
 
 
-def _FixPythonPath():
-  """Adds dashboard Python dependencies to the Python sys.path."""
+def _GetTests(args):
+  loader = unittest.TestLoader()
+  if args.tests:
+    return loader.loadTestsFromNames(args.tests)
+  dashboard_package_path = os.path.join(_CATAPULT, 'dashboard', 'dashboard')
+  return loader.discover(dashboard_package_path, pattern='*_test.py')
+
+
+def _FixPath():
   try:
     import dev_appserver
   except ImportError:
@@ -41,10 +48,19 @@ def _FixPythonPath():
     _AddToPathIfNeeded(os.path.join(_CATAPULT, 'third_party', library))
 
 
-if __name__ == '__main__':
-  _FixPythonPath()
-  _AddToPathIfNeeded(_CATAPULT)
-  from catapult_build import run_py_tests
-  sys.exit(run_py_tests.RunTests(
-      os.path.join(_CATAPULT, 'dashboard', 'dashboard'), pattern='*_test.py'))
+def Main():
+  _FixPath()
+  parser = argparse.ArgumentParser(description='Run the test suite.')
+  parser.add_argument('tests', nargs='*', help='Fully-qualified test name.')
+  parser.add_argument('-v', '--verbose', action='store_true')
+  args = parser.parse_args()
+  tests = _GetTests(args)
+  if not args.verbose:
+    logging.basicConfig(format='', level=logging.CRITICAL)
+  runner = unittest.TextTestRunner(verbosity=2)
+  result = runner.run(tests)
+  return 0 if result.wasSuccessful() else 1
 
+
+if __name__ == '__main__':
+  sys.exit(Main())

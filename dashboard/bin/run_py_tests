@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Runs the unit test suite for perf dashboard."""
+"""Runs the Perf Dashboard Python unit test suite."""
 
 import argparse
 import logging
@@ -15,13 +15,8 @@ _CATAPULT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
 
 
-def _AddToPathIfNeeded(path):
-  if path not in sys.path:
-    sys.path.insert(0, path)
-
-
-def _FixPythonPath():
-  """Adds dashboard Python dependencies to the Python sys.path."""
+def _ExtraPaths():
+  """Returns a list of paths to add to sys.path when running dashboard tests."""
   try:
     import dev_appserver
   except ImportError:
@@ -29,17 +24,24 @@ def _FixPythonPath():
     # binary dependency manager.
     print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
-  dev_appserver.fix_sys_path()
-  _AddToPathIfNeeded(os.path.join(_CATAPULT, 'dashboard'))
+  extra_paths = dev_appserver.EXTRA_PATHS
+  dashboard_path = os.path.join(_CATAPULT, 'dashboard')
+  extra_paths.append(dashboard_path)
+  _AddToPathIfNeeded(dashboard_path)
   import dashboard
   for library in dashboard.THIRD_PARTY_LIBRARIES:
-    _AddToPathIfNeeded(os.path.join(_CATAPULT, 'third_party', library))
+    extra_paths.append(os.path.join(_CATAPULT, 'third_party', library))
+  return extra_paths
+
+
+def _AddToPathIfNeeded(path):
+  if path not in sys.path:
+    sys.path.insert(0, path)
 
 
 if __name__ == '__main__':
-  _FixPythonPath()
   _AddToPathIfNeeded(_CATAPULT)
-  from catapult_build import run_py_tests
-  sys.exit(run_py_tests.RunTests(
-      os.path.join(_CATAPULT, 'dashboard', 'dashboard'), pattern='*_test.py'))
-
+  from catapult_build import run_with_typ
+  sys.exit(run_with_typ.Run(
+      os.path.join(_CATAPULT, 'dashboard', 'dashboard'),
+      path=_ExtraPaths()))
