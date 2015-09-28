@@ -24,9 +24,6 @@
     var DEV_SERVER = true;
     {% endif %}
   </script>
-  {# Following line needed to avoid a spurious 404 for deps.js due to the use
-     --streamed_compiled_js flag used in app.sh in development environment. #}
-  <script>var CLOSURE_NO_DEPS = true;</script>
 
   <script>
     // Workaround for document.contains returning false for elements in the

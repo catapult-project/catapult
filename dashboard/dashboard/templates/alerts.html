@@ -65,10 +65,6 @@
     }
   </style>
 
-  {# Following line needed to avoid a spurious 404 for deps.js due to the use
-     --streamed_compiled_js flag used in app.sh in development environment. #}
-  <script>var CLOSURE_NO_DEPS = true;</script>
-
 {% endblock %}
 {% block content %}
   <h1>Chrome Performance Alerts</h1>
