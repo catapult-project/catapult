@@ -228,9 +228,11 @@ class AndroidPlatformBackend(
     if not self._surface_stats_collector:
       return
 
-    refresh_period, timestamps = self._surface_stats_collector.Stop()
-    pid = self._surface_stats_collector.GetSurfaceFlingerPid()
-    self._surface_stats_collector = None
+    try:
+      refresh_period, timestamps = self._surface_stats_collector.Stop()
+      pid = self._surface_stats_collector.GetSurfaceFlingerPid()
+    finally:
+      self._surface_stats_collector = None
     # TODO(sullivan): should this code be inline, or live elsewhere?
     events = []
     for ts in timestamps:
