@@ -216,7 +216,9 @@ class DependencyManager(object):
     if dependency_info:
       paths = dependency_info.local_paths
       for local_path in paths:
+        logging.info('Trying local_path %s', local_path)
         if os.path.exists(local_path):
+          logging.info('local_path %s exists.', local_path)
           return local_path
     return None
 
@@ -265,4 +267,3 @@ class DependencyManager(object):
     os.chmod(download_path,
              stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
     return os.path.abspath(download_path)
-
