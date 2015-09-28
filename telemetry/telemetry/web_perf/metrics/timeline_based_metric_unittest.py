@@ -7,6 +7,18 @@ import unittest
 import telemetry.web_perf.metrics.timeline_based_metric as tbm_module
 
 
+class FakeEvent(object):
+  def __init__(self, start, end):
+    self.start = start
+    self.end = end
+
+
+class FakeRecord(object):
+  def __init__(self, start, end):
+    self.start = start
+    self.end = end
+
+
 class TimelineBasedMetricTest(unittest.TestCase):
 
   # pylint: disable=W0212
@@ -26,3 +38,21 @@ class TimelineBasedMetricTest(unittest.TestCase):
     self.assertFalse(tbm_module._TimeRangesHasOverlap([(15, 18), (20, 25)]))
     self.assertFalse(tbm_module._TimeRangesHasOverlap(
         [(1, 2), (2, 3), (0, 1)]))
+
+  def testIsEventInInteractions(self):
+    self.assertFalse(
+        tbm_module.IsEventInInteractions(
+        FakeEvent(0, 100),
+        [FakeRecord(5, 105), FakeRecord(50, 200), FakeRecord(300, 400)]))
+    self.assertFalse(
+        tbm_module.IsEventInInteractions(
+        FakeEvent(50, 100),
+        [FakeRecord(105, 205), FakeRecord(0, 45), FakeRecord(0, 90)]))
+    self.assertTrue(
+        tbm_module.IsEventInInteractions(
+        FakeEvent(50, 100),
+        [FakeRecord(5, 105), FakeRecord(0, 45), FakeRecord(0, 90)]))
+    self.assertTrue(
+        tbm_module.IsEventInInteractions(
+        FakeEvent(50, 100),
+        [FakeRecord(5, 45), FakeRecord(0, 45), FakeRecord(0, 100)]))
