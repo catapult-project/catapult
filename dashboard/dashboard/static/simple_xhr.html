@@ -13,11 +13,11 @@ var simple_xhr = (function() {
                             'google.com or chromium.org account in the ' +
                             'upper right corner of the page.';
 
-  var handleError = function(request, callback) {
+  var handleError_ = function(request, callback) {
     callback(LOGIN_ERROR_MESSAGE);
   };
 
-  var handleLoad = function(request, loadCallback, errorCallback) {
+  var handleLoad_ = function(request, loadCallback, errorCallback) {
     if (request.status != 200) {
       errorCallback('HTTP error ' + request.status);
       return;
@@ -35,14 +35,19 @@ var simple_xhr = (function() {
     loadCallback(response);
   };
 
-  var send = function(url, params, loadCallback, errorCallback) {
-    var postdata = '';
+  var paramString_ = function(params) {
+    var strings = [];
     for (var name in params) {
-      postdata += '&' + name + '=' + encodeURIComponent(params[name]);
+      strings.push(name + '=' + encodeURIComponent(params[name]));
     }
+    return strings.join('&');
+  }
+
+  var send = function(url, params, loadCallback, errorCallback) {
+    var postdata = paramString_(params);
     var request = new XMLHttpRequest();
-    request.onerror = handleError.bind(this, request, errorCallback);
-    request.onload = handleLoad.bind(
+    request.onerror = handleError_.bind(this, request, errorCallback);
+    request.onload = handleLoad_.bind(
         this, request, loadCallback, errorCallback);
     request.open('post', url, true);
     request.setRequestHeader(
