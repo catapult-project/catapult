@@ -82,6 +82,7 @@ class Platform(object):
         self._platform_backend.tracing_controller_backend)
     self._local_server_controller = local_server.LocalServerController(
         self._platform_backend)
+    self._is_monitoring_power = False
 
   @property
   def is_host_platform(self):
@@ -238,6 +239,7 @@ class Platform(object):
     """
     assert self._platform_backend.CanMonitorPower()
     self._platform_backend.StartMonitoringPower(browser)
+    self._is_monitoring_power = True
 
   def StopMonitoringPower(self):
     """Stops monitoring power utilization and returns stats
@@ -280,7 +282,13 @@ class Platform(object):
 
       }
     """
-    return self._platform_backend.StopMonitoringPower()
+    ret_val = self._platform_backend.StopMonitoringPower()
+    self._is_monitoring_power = False
+    return ret_val
+
+  def IsMonitoringPower(self):
+    """Returns true if power is currently being monitored, false otherwise."""
+    return self._is_monitoring_power
 
   def CanMonitorNetworkData(self):
     """Returns true if network data can be retrieved, false otherwise."""
