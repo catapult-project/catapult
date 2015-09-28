@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/ui/base/chart_base_2d.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var ChartBase2D = tr.ui.b.ChartBase2D;
+
+  // @constructor
+  var ScatterChart = tr.ui.b.define('scatter-chart', ChartBase2D);
+
+  // @constructor
+  ScatterChart.Dot = function(x, y, radius, color, breadcrumb) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.breadcrumb = breadcrumb;
+  };
+
+  ScatterChart.prototype = {
+    __proto__: ChartBase2D.prototype,
+
+    decorate: function() {
+      ChartBase2D.prototype.decorate.call(this);
+      this.classList.add('scatter-chart');
+
+      this.brushedXRange_ = new tr.b.Range();
+      this.brushedYRange_ = new tr.b.Range();
+    },
+
+    setBrushedRanges: function(xRange, yRange) {
+      this.brushedXRange_.reset();
+      this.brushedYRange_.reset();
+      if (!xRange.isEmpty && !yRange.isEmpty) {
+        this.brushedXRange_.addRange(xRange);
+        this.brushedYRange_.addRange(yRange);
+      }
+      this.updateContents_();
+    },
+
+    updateBrushContents_: function(brushSel) {
+      brushSel.selectAll('*').remove();
+      var brushes = [];
+      if (!this.brushedXRange_.isEmpty && !this.brushedYRange_.isEmpty)
+        brushes.push({});
+      var brushRectsSel = brushSel.selectAll('rect').data(brushes);
+      brushRectsSel.enter().append('rect');
+      brushRectsSel.exit().remove();
+      brushRectsSel
+          .attr('x', function(d) {
+              return this.xScale_(this.brushedXRange_.min);
+            }.bind(this))
+          .attr('y', function(d) {
+              return this.yScale_(this.brushedYRange_.max);
+            }.bind(this))
+          .attr('width', function(d) {
+              return this.xScale_(this.brushedXRange_.max) -
+                this.xScale_(this.brushedXRange_.min);
+            }.bind(this))
+          .attr('height', function(d) {
+              return this.yScale_(this.brushedYRange_.min) -
+                this.yScale_(this.brushedYRange_.max);
+            }.bind(this));
+    },
+
+    setDataFromCallbacks: function(data, getX, getY, getRadius, getColor) {
+      this.data = data.map(function(datum) {
+        return new ScatterChart.Dot(getX(datum),
+                                    getY(datum),
+                                    getRadius(datum),
+                                    getColor(datum),
+                                    datum);
+      });
+    },
+
+    isDatumFieldSeries_: function(fieldName) {
+      return fieldName === 'y';
+    },
+
+    getXForDatum_: function(datum, index) {
+      return datum.x;
+    },
+
+    updateDataContents_: function(dataSel) {
+      dataSel.selectAll('*').remove();
+      var dotsSel = dataSel.selectAll('circle')
+                              .data(this.data_)
+                              .enter()
+                              .append('circle');
+      dotsSel.attr('cx', function(datum) {
+            return this.xScale_(datum.x);
+          }.bind(this))
+        .attr('cy', function(datum) {
+            return this.yScale_(datum.y);
+          }.bind(this))
+        .attr('r', function(datum) {
+            return tr.b.clamp(datum.radius, 2, 10);
+          }.bind(this))
+        .attr('fill', function(datum) {
+            return datum.color;
+          }.bind(this));
+    }
+  };
+
+  return {
+    ScatterChart: ScatterChart
+  };
+});
+</script>

@@ -4,28 +4,28 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/ui/base/d3.html">
-<link rel="import" href="/tracing/ui/base/chart_base_2d.html">
-<link rel="import" href="/tracing/ui/base/mouse_tracker.html">
+
+<link rel="import" href="/tracing/ui/base/chart_base_2d_brushable_x.html">
+
 <link rel="stylesheet" href="/tracing/ui/base/line_chart.css">
+
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ChartBase2D = tr.ui.b.ChartBase2D;
+  var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
   /**
    * @constructor
    */
-  var LineChart = tr.ui.b.define('line-chart', ChartBase2D);
+  var LineChart = tr.ui.b.define('line-chart', ChartBase2DBrushX);
 
   LineChart.prototype = {
-    __proto__: ChartBase2D.prototype,
+    __proto__: ChartBase2DBrushX.prototype,
 
     decorate: function() {
-      ChartBase2D.prototype.decorate.call(this);
+      ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('line-chart');
     },
 

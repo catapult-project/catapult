@@ -287,6 +287,7 @@
       'tracing/ui/base/camera.html',
       'tracing/ui/base/chart_base.html',
       'tracing/ui/base/chart_base_2d.html',
+      'tracing/ui/base/chart_base_2d_brushable_x.html',
       'tracing/ui/base/color_legend.html',
       'tracing/ui/base/color_scheme.html',
       'tracing/ui/base/color_utils.html',

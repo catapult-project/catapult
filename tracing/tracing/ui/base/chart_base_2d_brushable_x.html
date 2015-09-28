@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/chart_base_2d.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var ChartBase2D = tr.ui.b.ChartBase2D;
+  var ChartBase2DBrushX = tr.ui.b.define('chart-base-2d-brush-1d', ChartBase2D);
+
+  ChartBase2DBrushX.prototype = {
+    __proto__: ChartBase2D.prototype,
+
+    decorate: function() {
+      ChartBase2D.prototype.decorate.call(this);
+      this.brushedRange_ = new tr.b.Range();
+    },
+
+    // Note: range can only be set, not retrieved. It needs to be immutable
+    // or else odd data binding effects will result.
+    set brushedRange(range) {
+      this.brushedRange_.reset();
+      this.brushedRange_.addRange(range);
+      this.updateContents_();
+    },
+
+    computeBrushRangeFromIndices: function(indexA, indexB) {
+      indexA = tr.b.clamp(indexA, 0, this.data_.length - 1);
+      indexB = tr.b.clamp(indexB, 0, this.data_.length - 1);
+      var leftIndex = Math.min(indexA, indexB);
+      var rightIndex = Math.max(indexA, indexB);
+
+      var r = new tr.b.Range();
+      r.addValue(this.getXForDatum_(this.data_[leftIndex], leftIndex) -
+          this.getSampleWidth_(this.data_, leftIndex, true));
+      r.addValue(this.getXForDatum_(this.data_[rightIndex], rightIndex) +
+          this.getSampleWidth_(this.data_, rightIndex, false));
+      return r;
+    },
+
+    getDataIndex_: function(dataX) {
+      if (!this.data_)
+        return undefined;
+      var bisect = d3.bisector(this.getXForDatum_.bind(this)).right;
+      return bisect(this.data_, dataX) - 1;
+    },
+
+    prepareDataEvent_: function(mouseEvent, dataEvent) {
+      ChartBase2D.prototype.prepareDataEvent_.call(
+          this, mouseEvent, dataEvent);
+      dataEvent.index = this.getDataIndex_(dataEvent.x);
+      if (dataEvent.index !== undefined)
+        dataEvent.data = this.data_[dataEvent.index];
+    },
+
+    updateBrushContents_: function(brushSel) {
+      brushSel.selectAll('*').remove();
+      var brushes = this.brushedRange_.isEmpty ? [] : [this.brushedRange_];
+      var brushRectsSel = brushSel.selectAll('rect').data(brushes);
+      brushRectsSel.enter().append('rect');
+      brushRectsSel.exit().remove();
+      brushRectsSel
+          .attr('x', function(d) {
+              return this.xScale_(d.min);
+            }.bind(this))
+          .attr('y', 0)
+          .attr('width', function(d) {
+              return this.xScale_(d.max) - this.xScale_(d.min);
+            }.bind(this))
+          .attr('height', this.chartAreaSize.height);
+    }
+  };
+
+  return {
+    ChartBase2DBrushX: ChartBase2DBrushX
+  };
+});
+</script>

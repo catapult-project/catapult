@@ -5,16 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/ui/base/d3.html">
-<link rel="import" href="/tracing/ui/base/chart_base_2d.html">
-<link rel="import" href="/tracing/ui/base/mouse_tracker.html">
+<link rel="import" href="/tracing/ui/base/chart_base_2d_brushable_x.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ChartBase2D = tr.ui.b.ChartBase2D;
+  var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
   // The chart height will be scaled by this fraction so that a visible rect
@@ -23,14 +20,13 @@ tr.exportTo('tr.ui.b', function() {
   var VERTICAL_CUSHION_FRACTION = 0.2;
 
   // @constructor
-  var BarChart = tr.ui.b.define('bar-chart', ChartBase2D);
+  var BarChart = tr.ui.b.define('bar-chart', ChartBase2DBrushX);
 
   BarChart.prototype = {
-    __proto__: ChartBase2D.prototype,
+    __proto__: ChartBase2DBrushX.prototype,
 
     decorate: function() {
-      ChartBase2D.prototype.decorate.call(this);
-      this.classList.remove('line-chart');
+      ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('bar-chart');
     },
 
