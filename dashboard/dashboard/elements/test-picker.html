@@ -242,11 +242,11 @@
         var params = {
           type: 'sub_tests',
           suite: suite,
-          bots: bots.join(',')
+          bots: bots.join(','),
+          xsrf_token: this.xsrfToken
         };
         this.subtestXhr = this.$.xhr.send(
             '/list_tests',
-            this.xsrfToken,
             params,
             function(response) {
               this.subtestDict = response;

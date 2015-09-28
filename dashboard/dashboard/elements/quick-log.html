@@ -224,7 +224,8 @@
         var params = {
            namespace: this.logNamespace,
            name: this.logName,
-           size: size
+           size: size,
+           xsrf_token: this.xsrfToken
         };
         if (this.logFilter) {
           params['filter'] = this.logFilter;

@@ -155,12 +155,13 @@
 
         var params = {
           item: item['name'],
-          action: 'remove'
+          action: 'remove',
+          xsrf_token: this.xsrfToken
         };
         if (subItem) {
           params['sub_item'] = subItem['name'];
         }
-        this.$.xhr.send(this.handlerURL, this.xsrfToken, params,
+        this.$.xhr.send(this.handlerURL, params,
           function(info) {
             if (subItem) {
               item['sub_items'].splice(subIndex, 1);

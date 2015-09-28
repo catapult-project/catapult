@@ -127,10 +127,11 @@ the trace process after the user clicks on the trace button.
           this.open();
           this.loading = true;
 
-          this.$.xhr.send('/start_try_job', this.xsrfToken,
+          this.$.xhr.send('/start_try_job',
               {
                 'test_path': this.testPath,
-                'step': 'prefill-info'
+                'step': 'prefill-info',
+                'xsrf_token': this.xsrfToken
               },
               function successCallback(info) {
                 this.bot = info['bisect_bot'];
@@ -175,13 +176,14 @@ the trace process after the user clicks on the trace button.
             'good_revision': this.earlierRevision,
             'bad_revision': this.laterRevision,
             'page': this.page,
-            'rerun_option': this.getRerunOptions()
+            'rerun_option': this.getRerunOptions(),
+            'xsrf_token': this.xsrfToken
           };
           if (this.bugId) {
             params['bug_id'] = this.bugId;
           }
           this.$.xhr.send(
-              '/start_try_job', this.xsrfToken, params,
+              '/start_try_job', params,
               function(info) {
                 var message = '<b>Job submitted!</b>' +
                     '<a href="https://codereview.chromium.org/{{issue_id}}" ' +

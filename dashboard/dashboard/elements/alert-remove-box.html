@@ -42,9 +42,10 @@ an alert from an issue on the issue tracker.
         this.loading = true;
         var params = {
           'keys': this.key,
-          'bug_id': 'REMOVE'
+          'bug_id': 'REMOVE',
+          xsrf_token: this.xsrfToken
         };
-        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+        this.$.xhr.send('/edit_anomalies', params,
           function(info) {
             this.loading = false;
             this.fire('untriaged', {'key': this.key});

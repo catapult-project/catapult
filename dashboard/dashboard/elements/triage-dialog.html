@@ -210,12 +210,15 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Changes the bug ID of the selected alerts.
        */
       changeBugId: function(bugId, successMessage) {
-        var params = {keys: this.alertKeys};
+        var params = {
+          keys: this.alertKeys,
+          xsrf_token: this.xsrfToken
+        };
         this.bugid = bugId;
         params.bug_id = this.bugid;
 
         this.loading = true;
-        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+        this.$.xhr.send('/edit_anomalies', params,
           function() {
             this.fire('triaged', {
               'alerts': this.alerts,
@@ -241,10 +244,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         var params = {
           'keys': this.alertKeys,
           'new_start_revision': info.startRevision,
-          'new_end_revision': info.endRevision
+          'new_end_revision': info.endRevision,
+          'xsrf_token': this.xsrfToken
         };
         this.loading = true;
-        this.$.xhr.send('/edit_anomalies', this.xsrfToken, params,
+        this.$.xhr.send('/edit_anomalies', params,
           function() {
             this.fire('alertChangedRevisions', {
               'startRev': info.startRevision,

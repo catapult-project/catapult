@@ -28,8 +28,8 @@
         loadCallback(response);
       },
 
-      send: function(url, xsrfToken, params, loadCallback, errorCallback) {
-        var postdata = 'xsrf_token=' + encodeURIComponent(xsrfToken);
+      send: function(url, params, loadCallback, errorCallback) {
+        var postdata = '';
         for (var name in params) {
           postdata += '&' + name + '=' + encodeURIComponent(params[name]);
         }

@@ -184,10 +184,11 @@ the bisect process after the user clicks on the bisect button.
           this.useArchive = true,
           this.loading = true;
           this.open();
-          this.$.xhr.send('/start_try_job', this.xsrfToken,
+          this.$.xhr.send('/start_try_job',
             {
               'test_path': this.testPath,
-              'step': 'prefill-info'
+              'step': 'prefill-info',
+              'xsrf_token': this.xsrfToken
             },
             function successCallback(info) {
               this.bot = info['bisect_bot'];
@@ -228,13 +229,14 @@ the bisect process after the user clicks on the bisect button.
               'bypass_no_repro_check': this.bypassNoRepro ? 'true' : '',
               'master': this.master,
               'internal_only': this.internalOnly,
-              'bisect_mode': this.BISECT_MODE
+              'bisect_mode': this.BISECT_MODE,
+              'xsrf_token': this.xsrfToken
           };
           if (this.bugId) {
             params['bug_id'] = this.bugId;
           }
           this.$.xhr.send(
-              '/start_try_job', this.xsrfToken, params,
+              '/start_try_job', params,
               function successCallback(info) {
                 var message = '<b>Job submitted!</b> ' +
                               '<a href="{{issue_url}}" target="_blank">' +
