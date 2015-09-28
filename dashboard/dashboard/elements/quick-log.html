@@ -1,6 +1,6 @@
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="quick-log"
                  attributes="logLabel logNamespace logName logFilter
@@ -140,7 +140,6 @@
       }
     </style>
     <div id="container">
-      <xhr-element id="xhr"></xhr-element>
 
       <div class="label-container">
         <core-icon-button id="log-label" icon="expand-more" on-click="{{toggleView}}">
@@ -238,7 +237,7 @@
             params['before_index'] = lastIndex;
           }
         }
-        this.xhr = this.$.xhr.send('/get_logs', this.xsrfToken, params,
+        this.xhr = simple_xhr.send('/get_logs', params,
           function(logs) {
             this.errorMessage = null;
             this.setState('finished');

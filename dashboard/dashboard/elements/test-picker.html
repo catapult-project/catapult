@@ -2,7 +2,7 @@
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 
 <polymer-element name="test-picker" attributes="hasChart xsrfToken">
@@ -68,8 +68,6 @@
     </div>
 
     <div id="suite-description"></div>
-
-    <xhr-element id="xhr"></xhr-element>
   </template>
 
 
@@ -245,7 +243,7 @@
           bots: bots.join(','),
           xsrf_token: this.xsrfToken
         };
-        this.subtestXhr = this.$.xhr.send(
+        this.subtestXhr = simple_xhr.send(
             '/list_tests',
             params,
             function(response) {

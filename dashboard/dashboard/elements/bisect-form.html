@@ -7,14 +7,12 @@ the bisect process after the user clicks on the bisect button.
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/elements/base-form.html">
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="bisect-form" extends="base-form"
                  attributes="xsrfToken testPath
                              earlierRevision laterRevision bugId">
   <template>
-
-    <xhr-element id="xhr"></xhr-element>
 
     <paper-action-dialog id="container" autoCloseDisabled="true">
       <!-- Styling for paper-action-dialog's children. -->
@@ -184,7 +182,7 @@ the bisect process after the user clicks on the bisect button.
           this.useArchive = true,
           this.loading = true;
           this.open();
-          this.$.xhr.send('/start_try_job',
+          simple_xhr.send('/start_try_job',
             {
               'test_path': this.testPath,
               'step': 'prefill-info',
@@ -235,7 +233,7 @@ the bisect process after the user clicks on the bisect button.
           if (this.bugId) {
             params['bug_id'] = this.bugId;
           }
-          this.$.xhr.send(
+          simple_xhr.send(
               '/start_try_job', params,
               function successCallback(info) {
                 var message = '<b>Job submitted!</b> ' +

@@ -1,4 +1,4 @@
-<link rel="import" href="xhr-element.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="editable-list" attributes="xsrfToken">
   <template>
@@ -117,8 +117,6 @@
        </template>
      </p>
     </template>
-
-    <xhr-element id="xhr"></xhr-element>
   </template>
   <script>
     'use strict';
@@ -161,7 +159,7 @@
         if (subItem) {
           params['sub_item'] = subItem['name'];
         }
-        this.$.xhr.send(this.handlerURL, params,
+        simple_xhr.send(this.handlerURL, params,
           function(info) {
             if (subItem) {
               item['sub_items'].splice(subIndex, 1);
@@ -195,12 +193,13 @@
         }
         var params = {
           item: itemValue,
-          action: 'add'
+          action: 'add',
+          xsrf_token: this.xsrfToken
         };
         if (subItemValue) {
           params['sub_item'] = subItemValue;
         }
-        this.$.xhr.send(this.handlerURL, this.xsrfToken, params,
+        simple_xhr.send(this.handlerURL, params,
           function(info) {
             this.addEditableItem(itemValue, subItemValue);
           }.bind(this),

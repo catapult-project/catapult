@@ -4,7 +4,7 @@ an alert from an issue on the issue tracker.
 -->
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
-<link rel="import" href="/dashboard/elements/xhr-element.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="alert-remove-box" attributes="xsrfToken key">
   <template>
@@ -25,7 +25,6 @@ an alert from an issue on the issue tracker.
         display: none;
       }
     </style>
-    <xhr-element id="xhr"></xhr-element>
     <div class="close-icon" hidden?="{{loading}}" on-click="{{onRemoveBug}}">
       ❌ <!-- cross mark U+274C -->
     </div>
@@ -45,7 +44,7 @@ an alert from an issue on the issue tracker.
           'bug_id': 'REMOVE',
           xsrf_token: this.xsrfToken
         };
-        this.$.xhr.send('/edit_anomalies', params,
+        simple_xhr.send('/edit_anomalies', params,
           function(info) {
             this.loading = false;
             this.fire('untriaged', {'key': this.key});
