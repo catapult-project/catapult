@@ -2,6 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+group("telemetry_test_support") {
+  # Generic telemetry deps
+  data = [
+    "//build/android/devil/",
+    "//build/android/pylib/",
+    "//build/util/",
+    "//third_party/WebKit/PerformanceTests/resources/jquery.tablesorter.min.js",
+    "//third_party/WebKit/PerformanceTests/resources/statistics.js",
+    "//third_party/flot/jquery.flot.min.js",
+    "//third_party/webpagereplay/",
+    "//tools/telemetry/",
+  ]
+}
+
 executable("bitmaptools") {
   sources = [
     "telemetry/internal/image_processing/bitmaptools.cc",
