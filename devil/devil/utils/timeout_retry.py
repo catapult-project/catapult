@@ -85,7 +85,7 @@ def CurrentTimeoutThread():
 def WaitFor(condition, wait_period=5, max_tries=None):
   """Wait for a condition to become true.
 
-  Repeadly call the function condition(), with no arguments, until it returns
+  Repeatedly call the function condition(), with no arguments, until it returns
   a true value.
 
   If called within a TimeoutRetryThread, it cooperates nicely with it.
@@ -126,7 +126,7 @@ def WaitFor(condition, wait_period=5, max_tries=None):
   return None
 
 
-def Run(func, timeout, retries, args=None, kwargs=None):
+def Run(func, timeout, retries, args=None, kwargs=None, desc=None):
   """Runs the passed function in a separate thread with timeouts and retries.
 
   Args:
@@ -135,6 +135,8 @@ def Run(func, timeout, retries, args=None, kwargs=None):
     retries: the number of retries.
     args: list of positional args to pass to |func|.
     kwargs: dictionary of keyword args to pass to |func|.
+    desc: An optional description of |func| used in logging. If omitted,
+      |func.__name__| will be used.
 
   Returns:
     The return value of func(*args, **kwargs).
@@ -160,8 +162,12 @@ def Run(func, timeout, retries, args=None, kwargs=None):
     try:
       thread_group = reraiser_thread.ReraiserThreadGroup([child_thread])
       thread_group.StartAll()
-      thread_group.JoinAll(child_thread.GetWatcher())
-      return ret[0]
+      while True:
+        thread_group.JoinAll(watcher=child_thread.GetWatcher(), timeout=60)
+        if thread_group.IsAlive():
+          logging.info('Still working on %s', desc if desc else func.__name__)
+        else:
+          return ret[0]
     except:
       child_thread.LogTimeoutException()
       if num_try > retries:

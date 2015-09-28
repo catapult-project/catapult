@@ -7,6 +7,7 @@ Function/method decorators that provide timeout and retry logic.
 """
 
 import functools
+import itertools
 import sys
 import threading
 
@@ -33,12 +34,13 @@ def _TimeoutRetryWrapper(f, timeout_func, retries_func, pass_values=False):
     The wrapped function.
   """
   @functools.wraps(f)
-  def TimeoutRetryWrapper(*args, **kwargs):
+  def timeout_retry_wrapper(*args, **kwargs):
     timeout = timeout_func(*args, **kwargs)
     retries = retries_func(*args, **kwargs)
     if pass_values:
       kwargs['timeout'] = timeout
       kwargs['retries'] = retries
+    @functools.wraps(f)
     def impl():
       return f(*args, **kwargs)
     try:
@@ -46,14 +48,17 @@ def _TimeoutRetryWrapper(f, timeout_func, retries_func, pass_values=False):
                     timeout_retry.TimeoutRetryThread):
         return impl()
       else:
-        return timeout_retry.Run(impl, timeout, retries)
+        desc = '%s(%s)' % (f.__name__, ', '.join(itertools.chain(
+            (str(a) for a in args),
+            ('%s=%s' % (k, str(v)) for k, v in kwargs.iteritems()))))
+        return timeout_retry.Run(impl, timeout, retries, desc=desc)
     except reraiser_thread.TimeoutError as e:
       raise device_errors.CommandTimeoutError(str(e)), None, (
           sys.exc_info()[2])
     except cmd_helper.TimeoutError as e:
       raise device_errors.CommandTimeoutError(str(e)), None, (
           sys.exc_info()[2])
-  return TimeoutRetryWrapper
+  return timeout_retry_wrapper
 
 
 def WithTimeoutAndRetries(f):

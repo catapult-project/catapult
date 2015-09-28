@@ -8,6 +8,7 @@
 import logging
 import sys
 import threading
+import time
 import traceback
 
 from devil.utils import watchdog_timer
@@ -104,19 +105,23 @@ class ReraiserThreadGroup(object):
     for thread in self._threads:
       thread.start()
 
-  def _JoinAll(self, watcher=None):
+  def _JoinAll(self, watcher=None, timeout=None):
     """Join all threads without stack dumps.
 
     Reraises exceptions raised by the child threads and supports breaking
     immediately on exceptions raised on the main thread.
 
     Args:
-      watcher: Watchdog object providing timeout, by default waits forever.
+      watcher: Watchdog object providing the thread timeout. If none is
+          provided, the thread will never be timed out.
+      timeout: An optional number of seconds to wait before timing out the join
+          operation. This will not time out the threads.
     """
     if watcher is None:
       watcher = watchdog_timer.WatchdogTimer(None)
     alive_threads = self._threads[:]
-    while alive_threads:
+    end_time = (time.time() + timeout) if timeout else None
+    while alive_threads and (end_time is None or end_time > time.time()):
       for thread in alive_threads[:]:
         if watcher.IsTimedOut():
           raise TimeoutError('Timed out waiting for %d of %d threads.' %
@@ -129,7 +134,15 @@ class ReraiserThreadGroup(object):
     for thread in self._threads:
       thread.ReraiseIfException()
 
-  def JoinAll(self, watcher=None):
+  def IsAlive(self):
+    """Check whether any of the threads are still alive.
+
+    Returns:
+      Whether any of the threads are still alive.
+    """
+    return any(t.isAlive() for t in self._threads)
+
+  def JoinAll(self, watcher=None, timeout=None):
     """Join all threads.
 
     Reraises exceptions raised by the child threads and supports breaking
@@ -137,10 +150,13 @@ class ReraiserThreadGroup(object):
     stacks will be logged on watchdog timeout.
 
     Args:
-      watcher: Watchdog object providing timeout, by default waits forever.
+      watcher: Watchdog object providing the thread timeout. If none is
+          provided, the thread will never be timed out.
+      timeout: An optional number of seconds to wait before timing out the join
+          operation. This will not time out the threads.
     """
     try:
-      self._JoinAll(watcher)
+      self._JoinAll(watcher, timeout)
     except TimeoutError:
       logging.critical('Timed out. Dumping threads.')
       for thread in (t for t in self._threads if t.isAlive()):
