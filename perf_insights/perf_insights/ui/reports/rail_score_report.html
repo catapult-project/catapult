@@ -20,6 +20,7 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
+<link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
 
 <polymer-element name="pi-ui-r-rail-score-report"
@@ -41,6 +42,9 @@ found in the LICENSE file.
 
     <h1>Histogram</h1>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
+
+    <h1>Links</h1>
+    <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
   </template>
   <script>
   'use strict';
@@ -54,6 +58,14 @@ found in the LICENSE file.
       this.$.table.addEventListener('selection-changed', function(tableEvent) {
         tableEvent.stopPropagation();
         this.setHistogramBasedOnSelection_();
+      }.bind(this));
+      var histogram = this.$.histogram;
+      histogram.addEventListener('item-mousedown', function(dataEvent) {
+        dataEvent.stopPropagation();
+        var bin = histogram.histogram.getBinForValue(dataEvent.data.x);
+        this.$.links.setTraceUrls(bin.sourceInfos.map(function(run_info) {
+          return run_info.url;
+        }));
       }.bind(this));
     },
 
@@ -84,8 +96,7 @@ found in the LICENSE file.
       results.allValuesFromFailureFreeRuns.map(function(v) {
         if (!v.value.irTree)
           return;
-        this.addToHistograms_(railScoreHistograms, v.value.irTree,
-            v.runInfo.url);
+        this.addToHistograms_(railScoreHistograms, v.value.irTree, v.runInfo);
       }.bind(this));
 
       var overallRow = this.convertToRowAndSubRows_(railScoreHistograms);
@@ -128,17 +139,17 @@ found in the LICENSE file.
       return columns;
     },
 
-    addToHistograms_: function(histograms, irTree, url) {
+    addToHistograms_: function(histograms, irTree, run_info) {
       histograms.histogram = histograms.histogram ||
           tr.b.u.Histogram.createLinear(
               tr.b.u.Units.normalizedPercentage,
               tr.b.Range.fromExplicitRange(0, 1),
               10);
       if (irTree.overallScore !== undefined)
-        histograms.histogram.add(irTree.overallScore, url);
+        histograms.histogram.add(irTree.overallScore, run_info);
       if (irTree.irScores) {
         irTree.irScores.forEach(function(irScore) {
-          histograms.histogram.add(irScore, url);
+          histograms.histogram.add(irScore, run_info);
         });
       }
       if (!irTree.subTypes)
@@ -147,7 +158,7 @@ found in the LICENSE file.
       for (var subType in irTree.subTypes) {
         histograms.subTypes[subType] = histograms.subTypes[subType] || {};
         this.addToHistograms_(histograms.subTypes[subType],
-            irTree.subTypes[subType], url);
+            irTree.subTypes[subType], run_info);
       }
     },
 

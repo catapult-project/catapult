@@ -78,6 +78,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateDataContents_: function(dataSel) {
+      dataSel.selectAll('*').remove();
       var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
       this.data_.forEach(function(datum, index) {
         var leftWidth = undefined;

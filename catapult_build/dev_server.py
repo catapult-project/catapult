@@ -233,7 +233,8 @@ class DevServerApp(webapp2.WSGIApplication):
         continue
       rel = os.path.relpath(filename, source_path)
       unix_rel = _RelPathToUnixPath(rel)
-      url = urlparse.urljoin(self.server.urlbase, mapped_path, unix_rel)
+      url = urlparse.urljoin(
+          urlparse.urljoin(self.server.urlbase, mapped_path), unix_rel)
       return url
 
     path = SourcePathsHandler.GetServingPathForAbsFilename(

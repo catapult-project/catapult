@@ -34,16 +34,19 @@ tr.exportTo('tr.b.u', function() {
   HistogramBin.prototype = {
     add: function(value, sourceInfo) {
       this.count += 1;
-      if (this.sourceInfos.length < MAX_SOURCE_INFOS) {
+      if (this.sourceInfos.length < MAX_SOURCE_INFOS)
         this.sourceInfos.push(sourceInfo);
-      }
     },
 
     addBin: function(other) {
       if (!this.range.equals(other.range))
         throw new Error('Merging incompatible histogram bins.');
       this.count += other.count;
-      this.sourceInfos.push.apply(this.sourceInfos, other.sourceInfos);
+      var otherIdx = 0;
+      while (this.sourceInfos.length < MAX_SOURCE_INFOS &&
+            otherIdx < other.sourceInfos.length) {
+        this.sourceInfos.push(other.sourceInfos[otherIdx++]);
+      }
     },
 
     asDict: function() {

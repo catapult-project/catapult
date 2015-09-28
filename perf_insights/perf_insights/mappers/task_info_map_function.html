@@ -50,7 +50,8 @@ tr.exportTo('pie', function() {
         return;
       var threadName = eatTrailingDigits(thread.name) || 'Unknown';
       var processName = threadGrouping.getGroupNameForThread(thread);
-      addToHistogram(timeInQueue, processName, threadName, flowEvent.duration);
+      addToHistogram(timeInQueue, processName, threadName, flowEvent.duration,
+          run_info);
     });
     histogramsToDict(timeInQueue);
     results.addValue(new pi.v.DictValue(
@@ -73,9 +74,10 @@ tr.exportTo('pie', function() {
       thread.sliceGroup.slices.forEach(function(slice) {
         if (!isTopLevelTask(slice))
           return;
-        addToHistogram(timeInTask, processName, threadName, slice.duration);
+        addToHistogram(timeInTask, processName, threadName, slice.duration,
+            run_info);
         addToHistogram(cpuTimeInTask, processName, threadName,
-            slice.cpuDuration);
+            slice.cpuDuration, run_info);
       });
     });
     histogramsToDict(timeInTask);
@@ -98,14 +100,14 @@ tr.exportTo('pie', function() {
     return !slice.parentSlice || !isTopLevelTask(slice.parentSlice);
   }
 
-  function addToHistogram(dict, processName, threadName, value) {
+  function addToHistogram(dict, processName, threadName, value, url) {
     dict[processName] = dict[processName] || {};
     dict[processName][threadName] = dict[processName][threadName] ||
         tr.b.u.Histogram.createLinear(
             tr.b.u.Units.timeDurationInMs,
             tr.b.Range.fromExplicitRange(0, HISTOGRAM_MAX),
             NUM_BINS);
-    dict[processName][threadName].add(value);
+    dict[processName][threadName].add(value, url);
   }
 
   pi.MapFunction.register(taskInfoMapFunction);

@@ -67,7 +67,6 @@ found in the LICENSE file.
 
     updateContents_: function() {
       this.$.container.style.display = this.histogram_ ? '' : 'none';
-
       if (!this.histogram_) {
         this.$.nsamples.textContent = 0;
         this.$.average.setValueAndUnit(undefined, undefined);
@@ -89,16 +88,18 @@ found in the LICENSE file.
                                                   return bin.count;
                                                 });
       var chartData = [];
-      if (this.histogram_.underflowBin.count)
+      if (this.histogram_.underflowBin.count) {
         chartData.push({x: this.histogram_.underflowBin.range.max,
                         y: this.histogram_.underflowBin.count});
+      }
       this.histogram.centralBins.forEach(function(bin) {
         chartData.push({x: (bin.range.min + bin.range.max) / 2,
                         y: bin.count});
       });
-      if (this.histogram_.overflowBin.count)
+      if (this.histogram_.overflowBin.count) {
         chartData.push({x: this.histogram_.overflowBin.range.min,
                         y: this.histogram_.overflowBin.count});
+      }
       chartData.sort(function(x, y) {
         return x.x - y.x;
       });

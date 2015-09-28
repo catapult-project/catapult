@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/ui.html">
+
+<polymer-element name="pi-ui-trace-link" is="a">
+  <template>
+    <style>
+    :host {
+      display: inline;
+      color: -webkit-link;
+      cursor: pointer;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    </style>
+    <a id="link"></a>
+  </template>
+  <script>
+  'use strict';
+  (function() {
+    var BASE_TRACE_VIEWER_URL = '/perf_insights_examples/trace_viewer.html#';
+    Polymer({
+      ready: function() {
+        this.traceUrl_ = undefined;
+        this.traceName_ = '';
+      },
+
+      get traceUrl() {
+        return this.traceUrl_;
+      },
+
+      set traceUrl(traceUrl) {
+        this.traceUrl_ = traceUrl;
+        this.updateLink_();
+      },
+
+      setUrlAndName: function(traceUrl, traceName) {
+        this.traceUrl_ = traceUrl;
+        this.traceName_ = traceName;
+        this.updateLink_();
+      },
+
+      updateLink_: function() {
+        this.$.link.href = BASE_TRACE_VIEWER_URL + this.traceUrl_;
+        this.$.link.textContent = this.traceName_;
+      }
+  });
+})();
+  </script>
+</polymer-element>

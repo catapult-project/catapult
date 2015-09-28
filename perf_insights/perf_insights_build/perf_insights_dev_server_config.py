@@ -39,11 +39,11 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
     map_function = kwargs.pop('map_function')
 
     map_function_handle = map_function_handle_module.MapFunctionHandle(
-      map_function_name=map_function)
+        map_function_name=map_function)
 
     pi_data_dir = kwargs.pop('_pi_data_dir')
     corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-        pi_data_dir)
+        pi_data_dir, self.app.GetURLForAbsFilename)
 
     # TODO(nduca): pass self.request.params to the map function [maybe].
     query_string = self.request.params.get('corpus_query', 'True')
@@ -58,8 +58,7 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
     output_formatter = json_output_formatter.JSONOutputFormatter(
         self.response.out)
 
-    runner = map_runner.MapRunner(
-        trace_handles, map_function_handle)
+    runner = map_runner.MapRunner(trace_handles, map_function_handle)
     runner.Run(jobs=map_runner.AUTO_JOB_COUNT,
                output_formatters=[output_formatter])
 
@@ -94,5 +93,4 @@ class PerfInsightsDevServerConfig(object):
 
   def GetTestDataPaths(self, args):  # pylint: disable=unused-argument
     return [('/perf_insights/test_data/',
-             args.pi_data_dir)]
-
+             os.path.abspath(os.path.expanduser(args.pi_data_dir)))]

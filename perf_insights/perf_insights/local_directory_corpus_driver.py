@@ -43,10 +43,16 @@ def _GetMetadataForFilename(base_directory, filename):
   # TODO(nduca): Add modification time to metadata.
   return metadata
 
+def _DefaultUrlResover(abspath):
+  return 'file:///%s' % abspath
 
 class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
-  def __init__(self, directory):
+  def __init__(self, directory, url_resolver = None):
     self.directory = directory
+    if url_resolver == None:
+      self.url_resolver = _DefaultUrlResover
+    else:
+      self.url_resolver = url_resolver
 
   def GetTraceHandlesMatchingQuery(self, query):
     trace_handles = []
@@ -59,8 +65,12 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
       if not query.Eval(metadata, len(trace_handles)):
         continue
 
+      # Make URL relative to server root.
+      url = self.url_resolver(filename)
+      if url is None:
+        url = _DefaultUrlResover(filename)
       run_info = run_info_module.RunInfo(
-          url="file://%s" % filename,
+          url=url,
           display_name=rel_filename,
           metadata=metadata)
 
