@@ -106,7 +106,7 @@ tr.exportTo('tr.e.audits', function() {
             if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS))
               times.push(slice.start);
             else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION))
-              times.push(slice.args.frame_time_us / 1000.0);
+              times.push(slice.args.args.frame_time_us / 1000.0);
           }
         }
       }

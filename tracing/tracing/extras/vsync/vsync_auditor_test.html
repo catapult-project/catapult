@@ -115,8 +115,8 @@ tr.b.unittest.testSuite(function() {
   test('findBeginFrame', function() {
     var title = 'Scheduler::BeginFrame';
     testFindVSyncTimestamps([[
-      new ThreadSlice('', title, 0, 2, { frame_time_us: 1000 }),
-      new ThreadSlice('', title, 0, 4, { frame_time_us: 3000 })
+      new ThreadSlice('', title, 0, 2, { args: { frame_time_us: 1000 } }),
+      new ThreadSlice('', title, 0, 4, { args: { frame_time_us: 3000 } })
     ]], [], [1, 3]);
   });
 });
