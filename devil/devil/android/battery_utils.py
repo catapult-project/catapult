@@ -523,7 +523,7 @@ class BatteryUtils(object):
       retries: number of retries
     """
     if self.GetCharging() == enabled:
-      logging.info('Device charging already in expected state: %s', enabled)
+      logging.warning('Device charging already in expected state: %s', enabled)
       return
 
     self._DiscoverDeviceProfile()
