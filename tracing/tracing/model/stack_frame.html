@@ -49,6 +49,10 @@ tr.exportTo('tr.model', function() {
       return result;
     },
 
+    get sourceInfo() {
+      return this.sourceInfo_;
+    },
+
     set parentFrame(parentFrame) {
       if (this.parentFrame_)
         this.parentFrame_.removeChild(this);
