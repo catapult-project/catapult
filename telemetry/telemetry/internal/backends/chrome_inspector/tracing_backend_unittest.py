@@ -4,6 +4,7 @@
 
 import unittest
 
+from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.testing import simple_mock
@@ -86,6 +87,12 @@ class FakeInspectorWebsocket(object):
     else:
       raise Exception('Unexpected response type')
 
+  def CreateTracingBackend(self):
+    with mock.patch('telemetry.internal.backends.chrome_inspector.'
+                    'inspector_websocket.InspectorWebsocket') as mock_class:
+      mock_class.return_value = self
+      return tracing_backend.TracingBackend(devtools_port=65000)
+
 
 class TracingBackendTest(tab_test_case.TabTestCase):
 
@@ -96,7 +103,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.skipTest('Browser does not support tracing, skipping test.')
 
 
-class TracingBackendMemoryTest(TracingBackendTest):
+class TracingBackendMemoryDumpTest(TracingBackendTest):
 
   # Number of consecutively requested memory dumps.
   _REQUESTED_DUMP_COUNT = 3
@@ -113,7 +120,7 @@ class TracingBackendMemoryTest(TracingBackendTest):
     ])
 
   def setUp(self):
-    super(TracingBackendMemoryTest, self).setUp()
+    super(TracingBackendMemoryDumpTest, self).setUp()
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
@@ -177,6 +184,34 @@ class TracingBackendMemoryTest(TracingBackendTest):
     self.assertEqual(len(list(model.IterGlobalMemoryDumps())), 0)
 
 
+class TracingBackendMemoryPressureNotificationsTest(TracingBackendTest):
+
+  def setUp(self):
+    super(TracingBackendMemoryPressureNotificationsTest, self).setUp()
+    if not self._browser.supports_overriding_memory_pressure_notifications:
+      self.skipTest('Browser does not support overriding memory pressure '
+                    'notification signals, skipping test.')
+
+  def testSetMemoryPressureNotificationsSuppressed(self):
+    def perform_check(suppressed):
+      # Check that the method sends the correct DevTools request.
+      with mock.patch.object(inspector_websocket.InspectorWebsocket,
+                             'SyncRequest') as mock_method:
+        self._browser.SetMemoryPressureNotificationsSuppressed(suppressed)
+        self.assertEqual(1, mock_method.call_count)
+        request = mock_method.call_args[0][0]
+        self.assertEqual('Memory.setPressureNotificationsSuppressed',
+                         request['method'])
+        self.assertEqual(suppressed, request['params']['suppressed'])
+
+      # Check that the request and the response from the browser are handled
+      # properly.
+      self._browser.SetMemoryPressureNotificationsSuppressed(suppressed)
+
+    perform_check(True)
+    perform_check(False)
+
+
 class TracingBackendUnitTest(unittest.TestCase):
   def setUp(self):
     self._mock_timer = simple_mock.MockTimer(tracing_backend)
@@ -189,11 +224,7 @@ class TracingBackendUnitTest(unittest.TestCase):
     inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 9)
     inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 19)
     inspector.AddEvent('Tracing.tracingComplete', {}, 35)
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
+    backend = inspector.CreateTracingBackend()
 
     # The third response is 16 seconds after the second response, so we expect
     # a TracingTimeoutException.
@@ -207,11 +238,7 @@ class TracingBackendUnitTest(unittest.TestCase):
     inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 9)
     inspector.AddEvent('Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 14)
     inspector.AddEvent('Tracing.tracingComplete', {}, 19)
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
+    backend = inspector.CreateTracingBackend()
 
     backend._CollectTracingData(10)
     self.assertEqual(2, len(backend._trace_events))
@@ -222,11 +249,7 @@ class TracingBackendUnitTest(unittest.TestCase):
     inspector.AddEvent('Tracing.tracingComplete', {'stream': '42'}, 1)
     inspector.AddAsyncResponse('IO.read', {'data': '[{},{},{'}, 2)
     inspector.AddAsyncResponse('IO.read', {'data': '},{},{}]', 'eof': True}, 3)
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
+    backend = inspector.CreateTracingBackend()
 
     backend._CollectTracingData(10)
     self.assertEqual(5, len(backend._trace_events))
@@ -237,11 +260,7 @@ class TracingBackendUnitTest(unittest.TestCase):
     inspector.AddResponseHandler(
         'Tracing.requestMemoryDump',
         lambda req: {'result': {'success': True, 'dumpGuid': '42abc'}})
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
+    backend = inspector.CreateTracingBackend()
 
     self.assertEqual(backend.DumpMemory(), '42abc')
 
@@ -250,10 +269,48 @@ class TracingBackendUnitTest(unittest.TestCase):
     inspector.AddResponseHandler(
         'Tracing.requestMemoryDump',
         lambda req: {'result': {'success': False, 'dumpGuid': '42abc'}})
-
-    with mock.patch('telemetry.internal.backends.chrome_inspector.'
-                    'inspector_websocket.InspectorWebsocket') as mock_class:
-      mock_class.return_value = inspector
-      backend = tracing_backend.TracingBackend(devtools_port=65000)
+    backend = inspector.CreateTracingBackend()
 
     self.assertIsNone(backend.DumpMemory())
+
+  def testSetMemoryPressureNotificationsSuppressedSuccess(self):
+    response_handler = mock.Mock(return_value={'result': {}})
+    inspector = FakeInspectorWebsocket(self._mock_timer)
+    inspector.AddResponseHandler(
+        'Memory.setPressureNotificationsSuppressed', response_handler)
+    backend = inspector.CreateTracingBackend()
+
+    backend.SetMemoryPressureNotificationsSuppressed(True)
+    self.assertEqual(1, response_handler.call_count)
+    self.assertTrue(response_handler.call_args[0][0]['params']['suppressed'])
+
+    backend.SetMemoryPressureNotificationsSuppressed(False)
+    self.assertEqual(2, response_handler.call_count)
+    self.assertFalse(response_handler.call_args[0][0]['params']['suppressed'])
+
+  def testSetMemoryPressureNotificationsSuppressedFailure(self):
+    response_handler = mock.Mock()
+    inspector = FakeInspectorWebsocket(self._mock_timer)
+    backend = inspector.CreateTracingBackend()
+    inspector.AddResponseHandler(
+        'Memory.setPressureNotificationsSuppressed', response_handler)
+
+    # If the DevTools method is missing, the backend should fail silently.
+    response_handler.return_value = {
+      'result': {},
+      'error': {
+        'code': -32601  # Method does not exist.
+      }
+    }
+    backend.SetMemoryPressureNotificationsSuppressed(True)
+    self.assertEqual(1, response_handler.call_count)
+
+    # All other errors should raise an exception.
+    response_handler.return_value = {
+      'result': {},
+      'error': {
+        'code': -32602  # Invalid method params.
+      }
+    }
+    self.assertRaises(tracing_backend.TracingUnexpectedResponseException,
+                      backend.SetMemoryPressureNotificationsSuppressed, True)

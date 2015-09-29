@@ -134,6 +134,14 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError()
 
   @property
+  def supports_overriding_memory_pressure_notifications(self):
+    return False
+
+  def SetMemoryPressureNotificationsSuppressed(
+      self, suppressed, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    raise NotImplementedError()
+
+  @property
   def supports_cpu_metrics(self):
     raise NotImplementedError()
 

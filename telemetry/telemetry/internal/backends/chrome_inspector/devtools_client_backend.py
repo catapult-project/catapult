@@ -110,6 +110,13 @@ class DevToolsClientBackend(object):
     return self._app_backend.supports_tracing
 
   @property
+  def supports_overriding_memory_pressure_notifications(self):
+    if not isinstance(self._app_backend, browser_backend.BrowserBackend):
+      return False
+    return self._app_backend.supports_overriding_memory_pressure_notifications
+
+
+  @property
   def is_tracing_running(self):
     if not self.supports_tracing:
       return False
@@ -289,6 +296,25 @@ class DevToolsClientBackend(object):
     """
     self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.DumpMemory(timeout)
+
+  def SetMemoryPressureNotificationsSuppressed(self, suppressed, timeout=30):
+    """Enable/disable suppressing memory pressure notifications.
+
+    Args:
+      suppressed: If true, memory pressure notifications will be suppressed.
+      timeout: The timeout in seconds.
+
+    Raises:
+      TracingTimeoutException: If more than |timeout| seconds has passed
+      since the last time any data is received.
+      TracingUnrecoverableException: If there is a websocket error.
+      TracingUnexpectedResponseException: If the response contains an error
+      or does not contain the expected result.
+    """
+    assert self.supports_overriding_memory_pressure_notifications
+    self._CreateTracingBackendIfNeeded()
+    return self._tracing_backend.SetMemoryPressureNotificationsSuppressed(
+        suppressed, timeout)
 
 
 class _DevToolsContextMapBackend(object):

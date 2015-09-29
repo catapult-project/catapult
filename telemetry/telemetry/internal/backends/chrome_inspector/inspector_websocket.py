@@ -15,6 +15,9 @@ class WebSocketDisconnected(exceptions.Error):
 
 class InspectorWebsocket(object):
 
+  # See http://www.jsonrpc.org/specification#error_object.
+  METHOD_NOT_FOUND_CODE = -32601
+
   def __init__(self):
     """Create a websocket handler for communicating with Inspectors."""
     self._socket = None

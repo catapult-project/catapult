@@ -311,6 +311,16 @@ class Browser(app.App):
     return self._browser_backend.DumpMemory(timeout)
 
   @property
+  def supports_overriding_memory_pressure_notifications(self):
+    return (
+        self._browser_backend.supports_overriding_memory_pressure_notifications)
+
+  def SetMemoryPressureNotificationsSuppressed(
+      self, suppressed, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self._browser_backend.SetMemoryPressureNotificationsSuppressed(
+        suppressed, timeout)
+
+  @property
   def supports_cpu_metrics(self):
     return self._browser_backend.supports_cpu_metrics
 
