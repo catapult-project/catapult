@@ -116,15 +116,6 @@ class AndroidActionRunner(object):
     """
     self._platform_backend.device.RunShellCommand('input roll %s %s' % (dx, dy))
 
-  def SetCharging(self, enabled):
-    """Enables or disables charging on the device.
-
-    Args:
-      enabled: A boolean indicating whether charging should be enabled or
-        disabled.
-    """
-    self._platform_backend.battery.TieredSetCharging(enabled)
-
   def EnsureScreenOn(self):
     """If device screen is off, turn screen on.
     If the screen is already on, return immediately.
