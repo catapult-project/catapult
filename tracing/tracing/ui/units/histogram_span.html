@@ -50,10 +50,86 @@ found in the LICENSE file.
       this.chart_ = new tr.ui.b.BarChart();
       this.chart_.width = 400;
       this.chart_.height = 200;
+      this.mouseDownBin_ = undefined;
+      this.brushedBins_ = [];
+      this.chart_.addEventListener('item-mousedown',
+          this.onMouseDown_.bind(this));
+      this.chart_.addEventListener('item-mousemove',
+          this.onMouseMove_.bind(this));
+      this.chart_.addEventListener('item-mouseup',
+          this.onMouseUp_.bind(this));
     },
 
     ready: function() {
       this.$.container.appendChild(this.chart_);
+    },
+
+    get brushedBins() {
+      return this.brushedBins_;
+    },
+
+    updateBrushedRange_: function(currentX) {
+      this.brushedBins_ = [this.histogram_.getBinForValue(currentX)];
+      var r = new tr.b.Range();
+      r.addValue(this.mouseDownX_);
+      r.addValue(currentX);
+
+      // Collect bins:
+      var centralMin = Number.MAX_VALUE;
+      var centralMax = -Number.MAX_VALUE;
+      this.histogram_.centralBins.forEach(function(bin) {
+        centralMin = Math.min(centralMin, bin.range.min);
+        centralMax = Math.max(centralMax, bin.range.max);
+        if ((bin.range.max > r.min) &&
+            (bin.range.min < r.max) &&
+            (this.brushedBins_.indexOf(bin) < 0))
+          this.brushedBins_.push(bin);
+      }, this);
+      if ((this.histogram_.underflowBin.max > r.min) &&
+          (this.brushedBins_.indexOf(this.histogram_.underflowBin) < 0)) {
+        this.brushedBins_.push(this.histogram_.underflowBin);
+      }
+      if ((this.histogram_.overflowBin.min < r.max) &&
+          (this.brushedBins_.indexOf(this.histogram_.overflowBin) < 0)) {
+        this.brushedBins_.push(this.histogram_.overflowBin);
+      }
+      this.brushedBins_.sort(function(a, b) {
+        return a.range.min - b.range.min;
+      });
+
+      // Prevent Infinity:
+      var minBin = this.histogram_.getBinForValue(r.min);
+      var maxBin = this.histogram_.getBinForValue(r.max);
+      var binWidth = this.histogram_.centralBins[0].range.range;
+      r.min = Math.max(centralMin - binWidth, minBin.range.min);
+      r.max = Math.min(centralMax + binWidth, maxBin.range.max);
+
+      this.chart_.brushedRange = r;
+
+      this.dispatchEvent(new tr.b.Event('brushed-bins-changed'));
+    },
+
+    onMouseDown_: function(chartEvent) {
+      chartEvent.stopPropagation();
+      if (!this.histogram_)
+        return;
+      this.mouseDownX_ = chartEvent.x;
+      this.updateBrushedRange_(chartEvent.x);
+    },
+
+    onMouseMove_: function(chartEvent) {
+      chartEvent.stopPropagation();
+      if (!this.histogram_)
+        return;
+      this.updateBrushedRange_(chartEvent.x);
+    },
+
+    onMouseUp_: function(chartEvent) {
+      chartEvent.stopPropagation();
+      if (!this.histogram_)
+        return;
+      this.updateBrushedRange_(chartEvent.x);
+      this.mouseDownX_ = undefined;
     },
 
     get histogram() {
@@ -88,23 +164,24 @@ found in the LICENSE file.
                                                   return bin.count;
                                                 });
       var chartData = [];
-      if (this.histogram_.underflowBin.count) {
-        chartData.push({x: this.histogram_.underflowBin.range.max,
-                        y: this.histogram_.underflowBin.count});
-      }
-      this.histogram.centralBins.forEach(function(bin) {
-        chartData.push({x: (bin.range.min + bin.range.max) / 2,
+      var binWidth = this.histogram_.centralBins[0].range.range;
+      this.histogram_.allBins.forEach(function(bin) {
+        var x = bin.range.min;
+        if (x === -Number.MAX_VALUE) {
+          if (!bin.count)
+            return;
+          x = bin.range.max - binWidth;
+        }
+        chartData.push({x: x,
                         y: bin.count});
       });
-      if (this.histogram_.overflowBin.count) {
-        chartData.push({x: this.histogram_.overflowBin.range.min,
-                        y: this.histogram_.overflowBin.count});
-      }
       chartData.sort(function(x, y) {
         return x.x - y.x;
       });
       this.$.container.style.display = chartData.length ? '' : 'none';
       this.chart_.data = chartData;
+      this.brushedBins_ = [];
+      this.chart_.brushedRange = new tr.b.Range();
     }
   });
   </script>

@@ -40,13 +40,16 @@ found in the LICENSE file.
       #links {
         min-height: 200px;
       }
+      h2 {
+        font-size: 12pt;
+      }
     </style>
     <tr-ui-b-table id="table"></tr-ui-b-table>
 
-    <h1>Histogram</h1>
+    <h2>Score Histogram</h2>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
 
-    <h1>Links</h1>
+    <h2>Matching Traces</h2>
     <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
   </template>
   <script>
@@ -63,13 +66,13 @@ found in the LICENSE file.
         this.setHistogramBasedOnSelection_();
       }.bind(this));
       var histogram = this.$.histogram;
-      histogram.addEventListener('item-mousedown', function(dataEvent) {
-        dataEvent.stopPropagation();
-        var bin = histogram.histogram.getBinForValue(dataEvent.data.x);
-        this.$.links.setTraceUrls(bin.sourceInfos.map(function(run_info) {
-          return run_info.url;
-        }));
-      }.bind(this));
+      histogram.addEventListener('brushed-bins-changed',
+          this.onBrushedBinsChanged_.bind(this));
+    },
+
+    onBrushedBinsChanged_: function(event) {
+      event.stopPropagation();
+      this.setTraceURLsFromBins_(this.$.histogram.brushedBins);
     },
 
     get mapResults() {
@@ -102,6 +105,9 @@ found in the LICENSE file.
         this.addToHistograms_(railScoreHistograms, v.value.irTree, v.runInfo);
       }.bind(this));
 
+      if (!railScoreHistograms.histogram)
+        return;
+
       var overallRow = this.convertToRowAndSubRows_(railScoreHistograms);
       // Mark all first level subrows as using rail sorting.
       if (overallRow.subRows) {
@@ -112,6 +118,8 @@ found in the LICENSE file.
 
       overallRow.title = 'Overall RAIL score';
       table.tableRows = [overallRow];
+      table.selectedTableRow = overallRow;
+      this.setHistogramBasedOnSelection_();
     },
 
     createColumns_: function() {
@@ -142,17 +150,17 @@ found in the LICENSE file.
       return columns;
     },
 
-    addToHistograms_: function(histograms, irTree, run_info) {
+    addToHistograms_: function(histograms, irTree, sourceInfo) {
       histograms.histogram = histograms.histogram ||
           tr.b.u.Histogram.createLinear(
               tr.b.u.Units.normalizedPercentage,
               tr.b.Range.fromExplicitRange(0, 1),
               10);
       if (irTree.overallScore !== undefined)
-        histograms.histogram.add(irTree.overallScore, run_info);
+        histograms.histogram.add(irTree.overallScore, sourceInfo);
       if (irTree.irScores) {
         irTree.irScores.forEach(function(irScore) {
-          histograms.histogram.add(irScore, run_info);
+          histograms.histogram.add(irScore, sourceInfo);
         });
       }
       if (!irTree.subTypes)
@@ -161,7 +169,7 @@ found in the LICENSE file.
       for (var subType in irTree.subTypes) {
         histograms.subTypes[subType] = histograms.subTypes[subType] || {};
         this.addToHistograms_(histograms.subTypes[subType],
-            irTree.subTypes[subType], run_info);
+            irTree.subTypes[subType], sourceInfo);
       }
     },
 
@@ -171,6 +179,7 @@ found in the LICENSE file.
       };
       if (!histograms.subTypes)
         return row;
+      row.isExpanded = true;
       row.subRows = [];
       for (var subType in histograms.subTypes) {
         var subRow = this.convertToRowAndSubRows_(histograms.subTypes[subType]);
@@ -180,8 +189,21 @@ found in the LICENSE file.
       return row;
     },
 
+    setTraceURLsFromBins_: function(bins) {
+      var urlSet = [];
+      bins.forEach(function(bin) {
+        bin.sourceInfos.forEach(function(sourceInfo) {
+          urlSet[sourceInfo.url] = 1;
+        });
+      });
+      urlSet = Object.keys(urlSet);
+      urlSet.sort();
+      this.$.links.setTraceUrls(urlSet);
+    },
+
     setHistogramBasedOnSelection_: function() {
       this.$.histogram.histogram = this.$.table.selectedTableRow.histogram;
+      this.setTraceURLsFromBins_(this.$.histogram.histogram.allBins);
     }
   });
   </script>
