@@ -50,9 +50,10 @@ class TracingControllerBackend(object):
 
     self._current_trace_options = trace_options
     self._current_category_filter = category_filter
-    # Hack: chrome tracing agent depends on the number of alive chrome devtools
-    # processes, rather platform, hence we add it to the list of supported
-    # agents here if it was not added.
+    # Hack: chrome tracing agent may only depend on the number of alive chrome
+    # devtools processes, rather platform (when startup tracing is not
+    # supported), hence we add it to the list of supported agents here if it was
+    # not added.
     if (chrome_tracing_agent.ChromeTracingAgent.IsSupported(
         self._platform_backend) and
         not chrome_tracing_agent.ChromeTracingAgent in
@@ -95,3 +96,25 @@ class TracingControllerBackend(object):
   @property
   def is_tracing_running(self):
     return self._current_trace_options != None
+
+  def _GetActiveChromeTracingAgent(self):
+    if not self.is_tracing_running:
+      return None
+    if not self._current_trace_options.enable_chrome_trace:
+      return None
+    for agent in self._active_agents_instances:
+      if isinstance(agent, chrome_tracing_agent.ChromeTracingAgent):
+        return agent
+    return None
+
+  def GetChromeTraceConfig(self):
+    agent = self._GetActiveChromeTracingAgent()
+    if agent:
+      return agent.trace_config
+    return None
+
+  def GetChromeTraceConfigFile(self):
+    agent = self._GetActiveChromeTracingAgent()
+    if agent:
+      return agent.trace_config_file
+    return None

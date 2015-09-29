@@ -2,10 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class RegisterDevToolsClientError(Exception):
-  pass
-
-
 # A singleton map from platform backends to maps of uniquely-identifying
 # remote port (which may be the same as local port) to DevToolsClientBackend.
 # There is no guarantee that the devtools agent is still alive.
@@ -30,11 +26,6 @@ def RegisterDevToolsClient(devtools_client_backend, platform_backend):
 
   This should only be called from DevToolsClientBackend when it is initialized.
   """
-  if platform_backend.tracing_controller_backend.is_tracing_running:
-    raise RegisterDevToolsClientError(
-        'Cannot add new DevTools client when tracing is running on '
-        'platform backend %s.' % platform_backend)
-
   remote_port = str(devtools_client_backend.remote_port)
   if platform_backend not in _platform_backends_to_devtools_clients_maps:
     _platform_backends_to_devtools_clients_maps[platform_backend] = {}

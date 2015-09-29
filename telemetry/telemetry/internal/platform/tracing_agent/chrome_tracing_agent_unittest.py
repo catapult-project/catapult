@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import platform
 import stat
 import unittest
 
@@ -25,6 +26,8 @@ class FakePlatformBackend(object):
   def __init__(self):
     self.tracing_controller_backend = FakeTracingControllerBackend()
 
+  def GetOSName(self):
+    return ''
 
 class FakeAndroidPlatformBackend(FakePlatformBackend):
   def __init__(self):
@@ -35,17 +38,15 @@ class FakeAndroidPlatformBackend(FakePlatformBackend):
   def GetOSName(self):
     return 'android'
 
-class FakeLinuxPlatformBackend(FakePlatformBackend):
+class FakeDesktopPlatformBackend(FakePlatformBackend):
   def GetOSName(self):
-    return 'linux'
-
-class FakeMacPlatformBackend(FakePlatformBackend):
-  def GetOSName(self):
-    return 'mac'
-
-class FakeWinPlatformBackend(FakePlatformBackend):
-  def GetOSName(self):
-    return 'win'
+    system = platform.system()
+    if system == 'Linux':
+      return 'linux'
+    if system == 'Darwin':
+      return 'mac'
+    if system == 'Windows':
+      return 'win'
 
 
 class FakeDevtoolsClient(object):
@@ -70,16 +71,6 @@ class FakeDevtoolsClient(object):
     return True
 
 
-class FakeTraceOptions(object):
-  def __init__(self):
-    self.enable_chrome_trace = True
-
-
-class FakeCategoryFilter(object):
-  def __init__(self):
-    self.filter_string = 'foo'
-
-
 class ChromeTracingAgentTest(unittest.TestCase):
   def setUp(self):
     self.platform1 = FakePlatformBackend()
@@ -89,10 +80,11 @@ class ChromeTracingAgentTest(unittest.TestCase):
   def StartTracing(self, platform_backend, enable_chrome_trace=True):
     assert chrome_tracing_agent.ChromeTracingAgent.IsSupported(platform_backend)
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
-    trace_options = FakeTraceOptions()
+    trace_options = tracing_options.TracingOptions()
     trace_options.enable_chrome_trace = enable_chrome_trace
+    category_filter = tracing_category_filter.TracingCategoryFilter('foo')
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True
-    agent.Start(trace_options, FakeCategoryFilter(), 10)
+    agent.Start(trace_options, category_filter, 10)
     return agent
 
   def StopTracing(self, agent):
@@ -110,9 +102,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
 
     tracing_agent_of_platform1 = self.StartTracing(self.platform1)
 
-    with self.assertRaises(
-        chrome_tracing_devtools_manager.RegisterDevToolsClientError):
-      chrome_tracing_devtools_manager.RegisterDevToolsClient(
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
         FakeDevtoolsClient(4), self.platform1)
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
         FakeDevtoolsClient(5), self.platform2)
@@ -121,7 +111,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
         FakeDevtoolsClient(6), self.platform1)
 
-  def testIsSupport(self):
+  def testIsSupportWithoutStartupTracingSupport(self):
     self.assertFalse(
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(self.platform1))
     self.assertFalse(
@@ -145,6 +135,20 @@ class ChromeTracingAgentTest(unittest.TestCase):
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(self.platform2))
     self.assertFalse(
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(self.platform3))
+
+  @decorators.Enabled('linux', 'mac', 'win')
+  def testIsSupportOnDesktopPlatform(self):
+    # Chrome tracing is always supported on desktop platforms because of startup
+    # tracing.
+    desktop_platform = FakeDesktopPlatformBackend()
+    self.assertTrue(
+        chrome_tracing_agent.ChromeTracingAgent.IsSupported(desktop_platform))
+
+    devtool = FakeDevtoolsClient(1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool, desktop_platform)
+    self.assertTrue(
+        chrome_tracing_agent.ChromeTracingAgent.IsSupported(desktop_platform))
 
   def testStartAndStopTracing(self):
     devtool1 = FakeDevtoolsClient(1)
@@ -200,9 +204,13 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertTrue(devtool1.is_tracing_running)
     self.assertTrue(devtool2.is_tracing_running)
 
-    devtool2.will_raise_exception_in_stop_tracing = True
+    devtool1.will_raise_exception_in_stop_tracing = True
     with self.assertRaises(chrome_tracing_agent.ChromeTracingStoppedError):
       self.StopTracing(tracing_agent1)
+    # Tracing is stopped on both devtools clients even if there is exception.
+    self.assertIsNone(tracing_agent1.trace_config)
+    self.assertFalse(devtool1.is_tracing_running)
+    self.assertFalse(devtool2.is_tracing_running)
 
     devtool1.is_alive = False
     devtool2.is_alive = False
@@ -229,7 +237,8 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertTrue(platform_backend.device.PathExists(agent.trace_config_file))
     config_file_str = platform_backend.device.ReadFile(agent.trace_config_file,
                                                        as_root=True)
-    self.assertEqual(config.GetTraceConfigJsonString(), config_file_str.strip())
+    self.assertEqual(agent._CreateTraceConfigFileString(config),
+                     config_file_str.strip())
 
     config_file_path = agent.trace_config_file
     agent._RemoveTraceConfigFile()
@@ -240,7 +249,9 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertFalse(platform_backend.device.PathExists(config_file_path))
     self.assertIsNone(agent.trace_config_file)
 
-  def CreateAndRemoveTraceConfigFileOnDesktop(self, platform_backend):
+  @decorators.Enabled('linux', 'mac', 'win')
+  def testCreateAndRemoveTraceConfigFileOnDesktop(self):
+    platform_backend = FakeDesktopPlatformBackend()
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     self.assertIsNone(agent.trace_config_file)
 
@@ -253,7 +264,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertTrue(os.stat(agent.trace_config_file).st_mode & stat.S_IROTH)
     with open(agent.trace_config_file, 'r') as f:
       config_file_str = f.read()
-      self.assertEqual(config.GetTraceConfigJsonString(),
+      self.assertEqual(agent._CreateTraceConfigFileString(config),
                        config_file_str.strip())
 
     config_file_path = agent.trace_config_file
@@ -264,15 +275,3 @@ class ChromeTracingAgentTest(unittest.TestCase):
     agent._RemoveTraceConfigFile()
     self.assertFalse(os.path.exists(config_file_path))
     self.assertIsNone(agent.trace_config_file)
-
-  @decorators.Enabled('linux')
-  def testCreateAndRemoveTraceConfigFileOnLinux(self):
-    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeLinuxPlatformBackend())
-
-  @decorators.Enabled('mac')
-  def testCreateAndRemoveTraceConfigFileOnMac(self):
-    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeMacPlatformBackend())
-
-  @decorators.Enabled('win')
-  def testCreateAndRemoveTraceConfigFileOnWin(self):
-    self.CreateAndRemoveTraceConfigFileOnDesktop(FakeWinPlatformBackend())

@@ -97,7 +97,7 @@ class _DevToolsStreamReader(object):
 
 
 class TracingBackend(object):
-  def __init__(self, devtools_port):
+  def __init__(self, devtools_port, is_tracing_running=False):
     self._inspector_websocket = inspector_websocket.InspectorWebsocket()
     self._inspector_websocket.RegisterDomain(
         'Tracing', self._NotificationHandler)
@@ -105,7 +105,7 @@ class TracingBackend(object):
     self._inspector_websocket.Connect(
         'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
     self._trace_events = []
-    self._is_tracing_running = False
+    self._is_tracing_running = is_tracing_running
     self._has_received_all_tracing_data = False
 
   @property

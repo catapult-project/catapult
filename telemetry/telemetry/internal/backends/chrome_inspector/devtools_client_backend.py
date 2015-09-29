@@ -12,6 +12,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
+from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from telemetry.timeline import trace_data as trace_data_module
@@ -75,9 +76,28 @@ class DevToolsClientBackend(object):
 
     if not self.supports_tracing:
       return
-    self._tracing_backend = tracing_backend.TracingBackend(self._devtools_port)
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
         self, self._app_backend.platform_backend)
+
+    # Telemetry has started Chrome tracing if there is trace config, so start
+    # tracing on this newly created devtools client if needed.
+    trace_config = (self._app_backend.platform_backend
+                    .tracing_controller_backend.GetChromeTraceConfig())
+    if not trace_config:
+      self._tracing_backend = tracing_backend.TracingBackend(
+          self._devtools_port, False)
+      return
+
+    if self.support_startup_tracing:
+      self._tracing_backend = tracing_backend.TracingBackend(
+          self._devtools_port, True)
+      return
+
+    self._tracing_backend = tracing_backend.TracingBackend(
+        self._devtools_port, False)
+    self.StartChromeTracing(
+        trace_options=trace_config.tracing_options,
+        custom_categories=trace_config.tracing_category_filter.filter_string)
 
   @property
   def remote_port(self):
@@ -96,6 +116,18 @@ class DevToolsClientBackend(object):
     if not self._tracing_backend:
       return False
     return self._tracing_backend.is_tracing_running
+
+  @property
+  def support_startup_tracing(self):
+    # Startup tracing with --trace-config-file flag was not supported until
+    # Chromium branch number 2512 (see crrev.com/1309243004 and
+    # crrev.com/1353583002).
+    if not chrome_tracing_agent.ChromeTracingAgent.IsStartupTracingSupported(
+        self._app_backend.platform_backend):
+      return False
+    # TODO(zhenw): Remove this once stable Chrome and reference browser have
+    # passed 2512.
+    return self.GetChromeBranchNumber() >= 2512
 
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""

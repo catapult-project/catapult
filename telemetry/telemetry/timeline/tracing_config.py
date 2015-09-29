@@ -15,6 +15,14 @@ class TracingConfig(object):
     self._tracing_options = tracing_options
     self._tracing_category_filter = tracing_category_filter
 
+  @property
+  def tracing_options(self):
+    return self._tracing_options
+
+  @property
+  def tracing_category_filter(self):
+    return self._tracing_category_filter
+
   def GetTraceConfigJsonString(self):
     result = {}
     result.update(self._tracing_options.GetDictForChromeTracing())
