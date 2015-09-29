@@ -35,10 +35,16 @@ found in the LICENSE file.
       #table {
         flex: 1 1 auto;
       }
+      content-pane {
+        display: flex;
+        flex-direction: row;
+      }
     </style>
-    <top-controls>
-    </top-controls>
-    <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+    <top-controls></top-controls>
+    <content-pane>
+      <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+      <div id="selected_row_info"></div>
+    </content-pane>
   </template>
   <script>
   'use strict';
@@ -49,6 +55,9 @@ found in the LICENSE file.
     },
 
     ready: function() {
+      this.$.table.addEventListener(
+          'selection-changed', this.onSelectionChanged_.bind(this));
+
       var topControls = this.shadowRoot.querySelector('top-controls');
 
       this.groupByThreadName_ = tr.ui.b.createCheckBox(
@@ -101,6 +110,31 @@ found in the LICENSE file.
     set mapResults(mapResults) {
       this.mapResults_ = mapResults;
       this.updateContents_();
+    },
+
+    onSelectionChanged_: function(event) {
+      // Clear the info div.
+      var sliceInfo = this.$.selected_row_info;
+      sliceInfo.textContent = '';
+      // Aggregate values.
+      var aggregated = new pi.wr.SliceCostInfo();
+      this.$.table.selectedTableRow.data.forEach(function(datum) {
+        aggregated.push(undefined, datum);
+      });
+      // Display aggregated data.
+      var jsTimePar = document.createElement('p');
+      var jsTime = document.createTextNode(
+          'JS Time: ' + aggregated.jsTime + ' ms');
+      jsTimePar.appendChild(jsTime);
+      sliceInfo.appendChild(jsTimePar);
+      for (var state in tr.model.source_info.JSSourceState) {
+        var stateName = tr.model.source_info.JSSourceState[state];
+        var stateTimePar = document.createElement('p');
+        var stateTime = document.createTextNode(
+            stateName + ': ' + aggregated.jsTimeByState[stateName] + ' ms');
+        stateTimePar.appendChild(stateTime);
+        sliceInfo.appendChild(stateTimePar);
+      }
     },
 
     updateContents_: function() {
