@@ -13,6 +13,7 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/elements/chart-slider.html">
 <link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/graph.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -166,7 +167,12 @@ triaging functionality in the chart.
           </div>
           <chart-slider id="slider" on-revisionrange="{{onRevisionRange}}"></chart-slider>
         </div>
-        <span hidden?="{{!warning}}" id="warning">{{warning}}</span>
+
+        <div id="warning">
+          <template repeat="{{item in warnings}}">
+            <span>{{item}}</span><br>
+          </template>
+        </div>
 
         <a hidden id="original"
            on-click="{{onViewOriginal}}"
@@ -365,6 +371,15 @@ triaging functionality in the chart.
             warning: null
         },
 
+        // Amount of time before a warning is shown for tests with no new data.
+        STALE_DATA_DELTA_MS: 7 * 86400000,
+
+        created: function() {
+          // List of indices of series which are selected and will be plotted.
+          // We declare this here to avoid changed event on load.
+          this.indicesToGraph = [];
+        },
+
         /**
          * Initializes the chart-container element and all of its properties.
          *
@@ -378,7 +393,6 @@ triaging functionality in the chart.
          * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
          */
         ready: function() {
-
           // A list of series group dictionary. A series group contains test
           // path and list of test information. This is displayed in
           // chart-legend, where each test is a checkable series.
@@ -400,9 +414,6 @@ triaging functionality in the chart.
 
           // Meta-data about tests, which will be displayed in the legend.
           this.legendTests = [];
-
-          // List of indices of series which are selected and will be plotted.
-          this.indicesToGraph = [];
 
           // Text to display next to the y-axis.
           this.chartYAxisLabel = '';
@@ -429,7 +440,7 @@ triaging functionality in the chart.
           this.revisionMap = null;
 
           // Warning text to be shown over the chart, if any.
-          this.warning = null;
+          this.warnings = [];
 
           // Whether or not the chart can currently be drawn.
           this.drawable = true;
@@ -481,6 +492,8 @@ triaging functionality in the chart.
               mode: 'y'
             }
           };
+
+          this.graphParams = {};
 
           // List of XMLHttpRequests sent for graph json.
           this.graphJsonRequests = [];
@@ -607,29 +620,76 @@ triaging functionality in the chart.
           if (isSelected) {
             params['is_selected'] = true;
           }
-          var postdata =
-              'graphs=' + encodeURIComponent(JSON.stringify(params));
-          var req = new XMLHttpRequest();
-          var self = this;
-          req.onload = function() {
-            var json = JSON.parse(req.responseText);
-            if (!json) {
-              this.warning = 'Failed to load graph data.';
+
+          var req = simple_xhr.send(
+              '/graph_json',
+              {'graphs': JSON.stringify(params)},
+              function(json) {
+                if (isSelected && Object.keys(json.data).length == 0) {
+                  this.addWarnings('No data available.');
+                }
+
+                if (Object.keys(json.data).length > 0) {
+                  this.updateJson(json, isSelected);
+                }
+              }.bind(this),
+              function(error) {
+                this.addWarnings('Failed to fetch graph data.');
+                console.warn(error);
+              }.bind(this)
+          );
+          this.graphJsonRequests.push(req);
+        },
+
+        /**
+         * Adds a warning message if it doesn't exist.
+         */
+        addWarnings: function(warning) {
+          for (var i = 0; i < this.warnings.length; i++) {
+            if (this.warnings[i].indexOf(warning) == 0) {
               return;
             }
-            if (isSelected) {
-              this.warning = json.warning;
-            }
+          }
+          this.warnings.push(warning);
+        },
 
-            if (Object.keys(json.data).length > 0) {
-              self.updateJson(json, isSelected);
+        /**
+         * Adds a warning for the first staled series.
+         */
+        updateStaleSeriesWarning: function() {
+          if (this.graphParams['rev'] || this.graphParams['start_rev'] ||
+              this.graphParams['end_rev']) {
+            return;
+          }
+          var staleWarnings = this.warnings.filter(function(value) {
+            return value.indexOf('Graph out of date!') != -1;
+          });
+          if (staleWarnings.length > 0) {
+            return;
+          }
+
+          for (var i = 0; i < this.indicesToGraph.length; i++) {
+            var index = this.indicesToGraph[i];
+            var timestamp = this.getSeriesLatestTimestamp(index);
+            if (timestamp != null) {
+              var currentTime = new Date().getTime();
+              if (timestamp < currentTime - this.STALE_DATA_DELTA_MS) {
+                this.warnings.push('Graph out of date! Last data received: ' +
+                                   new Date(timestamp).toISOString());
+                return;
+              }
             }
-          };
-          req.open('post', '/graph_json', true);
-          req.setRequestHeader('Content-type',
-                               'application/x-www-form-urlencoded');
-          req.send(postdata);
-          this.graphJsonRequests.push(req);
+          }
+        },
+
+        getSeriesLatestTimestamp: function(seriesIndex) {
+          var timestamps = [];
+          var series = this.json.annotations[seriesIndex];
+          var lastIndex = Math.max.apply(Math, Object.keys(series));
+          if ('timestamp' in series[lastIndex]) {
+            return series[lastIndex]['timestamp'];
+          }
+          return null;
         },
 
         /**
@@ -642,13 +702,6 @@ triaging functionality in the chart.
          *     unselected set of series.
          */
         updateJson: function(newJson, isSelected) {
-          if (this.json.warning && !newJson.warning) {
-            // Some data is stale/non-existent in the checked traces, but not
-            // in unchecked.
-            this.json.warning = null;
-            this.warning = null;
-          }
-
           if (!this.nextSeriesIndex) {
             this.nextSeriesIndex = Object.keys(this.json.data).length;
           }
@@ -836,6 +889,8 @@ triaging functionality in the chart.
           this.clearAlertIcons();
           this.$['loading-div'].style.display = '';
           this.indicesToGraph = [];
+          this.json.warnings = [];
+          this.warnings = [];
 
           // Create params out of seriesGroupList to make /graph_json request.
           var selectedTestPathDict = {};
@@ -889,8 +944,6 @@ triaging functionality in the chart.
          * Updates the list of indices of traces to plot with seriesGroupList.
          */
         updateIndicesToGraph: function() {
-          // Update this.indicesToGraph without causing a
-          // 'checkedTracesChanged' event to be fired.
           this.indicesToGraph = [];
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             var tests = this.seriesGroupList[i].tests;
@@ -1137,12 +1190,7 @@ triaging functionality in the chart.
          * This method is called when the property 'indicesToGraph' changes.
          * @param {?Array.<number>} oldValue Old value of indicesToGraph.
          */
-        indicesToGraphChanged: function(oldValue) {
-          if (!oldValue || !this.json) {
-            // Just initializing.
-            return;
-          }
-
+        indicesToGraphChanged: function() {
           this.updateChart();
           this.$.title.update();
         },
@@ -1152,8 +1200,8 @@ triaging functionality in the chart.
          * If there's a warning, we want to update the background color of the
          * chart.
          */
-        warningChanged: function() {
-          var backgroundColor = ((this.warning) ? '#e6e6e6' : null);
+        warningsChanged: function() {
+          var backgroundColor = ((this.warnings.length) ? '#e6e6e6' : null);
           this.chartOptions.grid.backgroundColor = backgroundColor;
           if (this.chart) {
             this.chart.getOptions().grid.backgroundColor = backgroundColor;
@@ -1182,8 +1230,8 @@ triaging functionality in the chart.
           var endRev = uri.getParameter('end_rev');
           var firstSeriesIsEmpty = data[0].data.length == 0;
           if (startRev && endRev && firstSeriesIsEmpty) {
-            this.warning = 'Data not available for revision range ' +
-                           startRev + ':' + endRev + '.';
+            this.warnings.push('Data not available for revision range ' +
+                               startRev + ':' + endRev + '.');
           }
 
           var isNotZoomedIn = this.$.original.hidden;
@@ -1194,6 +1242,7 @@ triaging functionality in the chart.
           this.createFixedXAxis(data);
           this.chart = $.plot(this.$.plot, data, this.chartOptions);
           this.showAlerts();
+          this.updateStaleSeriesWarning();
         },
 
         /**

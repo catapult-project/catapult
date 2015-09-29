@@ -10,6 +10,7 @@ found in the LICENSE file.
 
 var testing_common = (function() {
 
+  var fixture = null;
   var xhrMock = null;
 
   var XMLHttpRequestMock = function() {
@@ -54,9 +55,35 @@ var testing_common = (function() {
     xhrMock = null;
   };
 
+  /**
+   * Does a deep copy of the object.
+   * @param {*} obj Object to copy.
+   * @return {*} A copy of the object.
+   */
+  function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  };
+
+  function addToFixture(node) {
+    if (!fixture) {
+      fixture = document.createElement('div');
+      document.body.appendChild(fixture);
+    }
+    fixture.appendChild(node);
+  };
+
+  function clearFixture() {
+    if (fixture) {
+      fixture.innerHTML = '';
+    }
+  };
+
   return {
     addXhrMock: addXhrMock,
-    clearXhrMock: clearXhrMock
+    clearXhrMock: clearXhrMock,
+    deepCopy: deepCopy,
+    addToFixture: addToFixture,
+    clearFixture: clearFixture
   };
 })();
 

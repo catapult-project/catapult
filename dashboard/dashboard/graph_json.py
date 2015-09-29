@@ -35,9 +35,6 @@ _BETTER_DICT = {
     anomaly.UNKNOWN: '?',
 }
 
-# Amount of time before a warning is shown for tests with no new data.
-_STALE_DATA_DELTA = datetime.timedelta(days=7)
-
 
 class GraphJsonHandler(request_handler.RequestHandler):
   """Request handler for requests for graph data."""
@@ -373,19 +370,17 @@ def _GetTracingRerunOptions(point):
   return point.a_trace_rerun_options.to_dict()
 
 
-def _GetFlotJson(revision_map, tests, show_old_data_warning):
+def _GetFlotJson(revision_map, tests):
   """Constructs JSON in the format expected by Flot.
 
   Args:
     revision_map: A dict which maps revision numbers to data point info.
     tests: A list of Test entities.
-    show_old_data_warning: Whether to a show a warning to the user that
-        the graph data is out of date.
 
   Returns:
     JSON serialization of a dict with line data, annotations, error range data,
-    and possibly warning information. (This data may not be passed exactly
-    as-is to the Flot plot funciton, but it will all be used when plotting.)
+    (This data may not be passed exactly as-is to the Flot plot funciton, but
+    it will all be used when plotting.)
   """
   # TODO(qyearsley): Break this function into smaller functions.
 
@@ -427,21 +422,17 @@ def _GetFlotJson(revision_map, tests, show_old_data_warning):
           'fillBetween': 'line_%d' % x,
       }
   ] for x, _ in enumerate(tests)}
+
   test_keys = [t.key.urlsafe() for t in tests]
-  last_timestamp = None
-  has_points = False
   for revision in sorted(revision_map.keys()):
     for series_index, key in enumerate(test_keys):
       point_info = revision_map[revision].get(key, None)
       if not point_info:
         continue
-      has_points = True
+
       timestamp = point_info.get('timestamp')
-      if timestamp:
-        if type(timestamp) is datetime.datetime:
-          point_info['timestamp'] = utils.TimestampMilliseconds(timestamp)
-        if not last_timestamp or point_info['timestamp'] > last_timestamp:
-          last_timestamp = point_info['timestamp']
+      if timestamp and type(timestamp) is datetime.datetime:
+        point_info['timestamp'] = utils.TimestampMilliseconds(timestamp)
 
       point_list = [revision, point_info['value']]
       if 'error' in point_info:
@@ -456,23 +447,12 @@ def _GetFlotJson(revision_map, tests, show_old_data_warning):
       data_dict = copy.deepcopy(point_info)
       del data_dict['value']
       series_dict.setdefault(data_index, data_dict)
-  warning = None
 
-  if show_old_data_warning and last_timestamp:
-    last_timestamp = datetime.datetime.fromtimestamp(last_timestamp / 1000)
-    if last_timestamp < datetime.datetime.now() - _STALE_DATA_DELTA:
-      warning = ('Graph out of date! Last data received: %s' %
-                 last_timestamp.strftime('%Y/%m/%d %H:%M'))
-  elif not has_points:
-    warning = 'No data available.'
-    if not utils.IsInternalUser():
-      warning += ' Note that some data is only available when logged in.'
   return json.dumps(
       {
           'data': cols,
           'annotations': flot_annotations,
           'error_bars': error_bars,
-          'warning': warning
       },
       allow_nan=False)
 
@@ -667,5 +647,4 @@ def GetGraphJson(
     _UpdateRevisionMap(revision_map, test, rev, num_points, start_rev, end_rev)
   if not (start_rev and end_rev):
     _ClampRevisionMap(revision_map, rev, num_points)
-  show_old_data_warning = not (rev or start_rev or end_rev)
-  return _GetFlotJson(revision_map, test_entities, show_old_data_warning)
+  return _GetFlotJson(revision_map, test_entities)

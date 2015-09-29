@@ -24,7 +24,6 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
 
   var GRAPH_JSON_SAMPLE = {
-    'warnings': [],
     'data': {
       '0': {
         'color': 0,
@@ -92,6 +91,7 @@ tr.b.unittest.testSuite(function() {
   var testOptions = {
     tearDown: function() {
       testing_common.clearXhrMock();
+      testing_common.clearFixture();
     }
   };
 
@@ -108,6 +108,7 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(postData, JSON.stringify(GRAPH_JSON_SAMPLE));
 
     var chart = document.createElement('chart-container');
+    testing_common.addToFixture(chart);
     chart.graphParams = {
       'start_rev': '348164',
       'end_rev': '348536'
@@ -116,5 +117,35 @@ tr.b.unittest.testSuite(function() {
                            ['important']]]);
     assert.equal(chart.getDataForFlot().length, 3);
   }, testOptions);
+
+  test('warning added for stale series', function() {
+    var params = {
+      'test_path_dict': {
+        'ChromiumPerf/win/dromaeo.domcorequery': []
+      },
+      'is_selected': true
+    };
+    var graphJson = testing_common.deepCopy(GRAPH_JSON_SAMPLE);
+    graphJson['annotations']['0']['0']['timestamp'] -= 8 * 86400000;
+    var postData = 'graphs=' + encodeURIComponent(JSON.stringify(params));
+    testing_common.addXhrMock(postData, JSON.stringify(graphJson));
+
+    var chart = document.createElement('chart-container');
+    testing_common.addToFixture(chart);
+    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo.domcorequery',
+                           ['important']]]);
+
+    return new Promise(function(resolve) {
+      function check() {
+        assert.deepEqual(
+          ['Graph out of date! Last data received: 2015-09-02T18:39:16.000Z'],
+          chart.warnings
+        );
+        resolve();
+      }
+      setTimeout(check, 10);
+    });
+  }, testOptions);
+
 });
 </script>

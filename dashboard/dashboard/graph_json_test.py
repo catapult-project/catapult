@@ -275,59 +275,6 @@ class GraphJsonTest(testing_common.TestCase):
         })
     self.CheckFlotJson(flot_json_str, 150, 2, 16050, 16500)
 
-  def testGetGraphJson_NonExistentBot_GivesNoDataWarning(self):
-    self._AddTestColumns(start_rev=16047, end_rev=16055)
-    # Get data for bad bot (not logged in to google.com account)
-    self.SetCurrentUser('foo@bar.com', is_admin=False)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/bot/dromaeo/dom': [],
-            'ChromiumGPU/bot/dromaeo/jslib': [],
-        })
-    flot_json = json.loads(flot_json_str)
-    self.assertEqual('No data available. Note that some data is only '
-                     'available when logged in.',
-                     flot_json['warning'])
-    # Get data for bad bot (logged in to google.com account)
-    self.SetCurrentUser('foo@google.com', is_admin=False)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/bot/dromaeo/dom': [],
-            'ChromiumGPU/bot/dromaeo/jslib': [],
-        })
-    flot_json = json.loads(flot_json_str)
-    self.assertEqual('No data available.', flot_json['warning'])
-    # No warning for good bot
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        })
-    flot_json = json.loads(flot_json_str)
-    self.assertIsNone(flot_json.get('warning'))
-
-  def testGetGraphJson_LatePointsAreOld_GivesStaleDataWarning(self):
-    self._AddTestColumns(start_rev=16047, end_rev=16055)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        })
-    flot_json = json.loads(flot_json_str)
-    self.assertIsNone(flot_json.get('warning'))
-    old_timestamp = datetime.datetime.now() - datetime.timedelta(days=8)
-    rows = graph_data.Row.query().fetch()
-    for row in rows:
-      row.timestamp = old_timestamp
-    ndb.put_multi(rows)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        })
-    flot_json = json.loads(flot_json_str)
-    self.assertIn('Graph out of date', flot_json['warning'])
-
   def testGetGraphJsonError(self):
     self._AddTestColumns(start_rev=15000, end_rev=15015)
 
