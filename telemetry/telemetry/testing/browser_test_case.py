@@ -48,11 +48,12 @@ class BrowserTestCase(unittest.TestCase):
         cls.tearDownClass()
         raise
     cls._browser = current_browser
+    cls._platform = current_browser.platform
     cls._device = options.device
 
   @classmethod
   def tearDownClass(cls):
-    pass
+    cls._platform.StopAllLocalServers()
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
@@ -61,6 +62,6 @@ class BrowserTestCase(unittest.TestCase):
 
   @classmethod
   def UrlOfUnittestFile(cls, filename):
-    cls._browser.SetHTTPServerDirectories(path.GetUnittestDataDir())
+    cls._platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
     file_path = os.path.join(path.GetUnittestDataDir(), filename)
-    return cls._browser.http_server.UrlOf(file_path)
+    return cls._platform.http_server.UrlOf(file_path)

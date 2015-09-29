@@ -264,7 +264,7 @@ class SharedPageState(story.SharedState):
   def _PreparePage(self):
     self._current_tab = self._test.TabForPage(self._current_page, self.browser)
     if self._current_page.is_file:
-      self.browser.SetHTTPServerDirectories(
+      self.platform.SetHTTPServerDirectories(
           self._current_page.page_set.serving_dirs |
           set([self._current_page.serving_dir]))
 
@@ -310,6 +310,7 @@ class SharedPageState(story.SharedState):
       self._migrated_profile = None
 
     self._StopBrowser()
+    self.platform.StopAllLocalServers()
 
   def _StopBrowser(self):
     if self._browser:

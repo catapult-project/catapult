@@ -3,14 +3,11 @@
 # found in the LICENSE file.
 
 import logging
-import os
 import sys
 
 from catapult_base import cloud_storage
 
 from telemetry.core import exceptions
-from telemetry.core import local_server
-from telemetry.core import memory_cache_http_server
 from telemetry.core import profiling_controller
 from telemetry import decorators
 from telemetry.internal import app
@@ -39,9 +36,6 @@ class Browser(app.App):
     try:
       self._browser_backend = backend
       self._platform_backend = platform_backend
-      # TODO: move _local_server_controller to Platform.
-      self._local_server_controller = local_server.LocalServerController(
-          platform_backend)
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self.credentials = browser_credentials.BrowserCredentials()
       self.credentials.credentials_path = credentials_path
@@ -231,7 +225,6 @@ class Browser(app.App):
     if self._browser_backend.IsBrowserRunning():
       self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
-    self._local_server_controller.Close()
     self._browser_backend.profiling_controller_backend.WillCloseBrowser()
     if self._browser_backend.supports_uploading_logs:
       try:
@@ -241,51 +234,6 @@ class Browser(app.App):
     self._browser_backend.Close()
     self.credentials = None
 
-  @property
-  def http_server(self):
-    return self._local_server_controller.GetRunningServer(
-        memory_cache_http_server.MemoryCacheHTTPServer, None)
-
-  def SetHTTPServerDirectories(self, paths):
-    """Returns True if the HTTP server was started, False otherwise."""
-    if isinstance(paths, basestring):
-      paths = set([paths])
-    paths = set(os.path.realpath(p) for p in paths)
-
-    # If any path is in a subdirectory of another, remove the subdirectory.
-    duplicates = set()
-    for parent_path in paths:
-      for sub_path in paths:
-        if parent_path == sub_path:
-          continue
-        if os.path.commonprefix((parent_path, sub_path)) == parent_path:
-          duplicates.add(sub_path)
-    paths -= duplicates
-
-    if self.http_server:
-      if paths and self.http_server.paths == paths:
-        return False
-
-      self.http_server.Close()
-
-    if not paths:
-      return False
-
-    server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
-    self.StartLocalServer(server)
-    return True
-
-  def StartLocalServer(self, server):
-    """Starts a LocalServer and associates it with this browser.
-
-    It will be closed when the browser closes.
-    """
-    self._local_server_controller.StartServer(server)
-
-  @property
-  def local_servers(self):
-    """Returns the currently running local servers."""
-    return self._local_server_controller.local_servers
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()

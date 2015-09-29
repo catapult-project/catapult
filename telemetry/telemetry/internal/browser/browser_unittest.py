@@ -175,9 +175,9 @@ def _GenerateBrowserProfile(number_of_tabs):
   options.output_profile_path = profile_dir
   browser_to_create = browser_finder.FindBrowser(options)
   with browser_to_create.Create(options) as browser:
-    browser.SetHTTPServerDirectories(path.GetUnittestDataDir())
+    browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
     blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
-    blank_url = browser.http_server.UrlOf(blank_file_path)
+    blank_url = browser.platform.http_server.UrlOf(blank_file_path)
     browser.foreground_tab.Navigate(blank_url)
     browser.foreground_tab.WaitForDocumentReadyStateToBeComplete()
     for _ in xrange(number_of_tabs - 1):

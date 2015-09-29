@@ -6,10 +6,12 @@ import os
 
 from telemetry.core import discover
 from telemetry.core import local_server
+from telemetry.core import memory_cache_http_server
 from telemetry.core import network_controller
 from telemetry.core import tracing_controller
 from telemetry.core import util
-from telemetry.internal.platform import platform_backend as platform_backend_module
+from telemetry.internal.platform import (
+    platform_backend as platform_backend_module)
 
 
 _host_platform = None
@@ -329,3 +331,45 @@ class Platform(object):
     |server.Close()| should be called manually to close the started server.
     """
     self._local_server_controller.StartServer(server)
+
+  @property
+  def http_server(self):
+    return self._local_server_controller.GetRunningServer(
+        memory_cache_http_server.MemoryCacheHTTPServer, None)
+
+  def SetHTTPServerDirectories(self, paths):
+    """Returns True if the HTTP server was started, False otherwise."""
+    if isinstance(paths, basestring):
+      paths = set([paths])
+    paths = set(os.path.realpath(p) for p in paths)
+
+    # If any path is in a subdirectory of another, remove the subdirectory.
+    duplicates = set()
+    for parent_path in paths:
+      for sub_path in paths:
+        if parent_path == sub_path:
+          continue
+        if os.path.commonprefix((parent_path, sub_path)) == parent_path:
+          duplicates.add(sub_path)
+    paths -= duplicates
+
+    if self.http_server:
+      if paths and self.http_server.paths == paths:
+        return False
+
+      self.http_server.Close()
+
+    if not paths:
+      return False
+
+    server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
+    self.StartLocalServer(server)
+    return True
+
+  def StopAllLocalServers(self):
+    self._local_server_controller.Close()
+
+  @property
+  def local_servers(self):
+    """Returns the currently running local servers."""
+    return self._local_server_controller.local_servers

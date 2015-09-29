@@ -57,10 +57,10 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
   def setUpClass(cls):
     super(LocalServerUnittest, cls).setUpClass()
     cls._server = SimpleLocalServer()
-    cls._browser.StartLocalServer(cls._server)
+    cls._platform.StartLocalServer(cls._server)
 
   def testLocalServer(self):
-    self.assertTrue(self._server in self._browser.local_servers)
+    self.assertTrue(self._server in self._platform.local_servers)
     self._tab.Navigate(self._server.url)
     self._tab.WaitForDocumentReadyStateToBeComplete()
     body_text = self._tab.EvaluateJavaScript('document.body.textContent')
@@ -70,9 +70,9 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
   def testStartingAndRestarting(self):
     server2 = SimpleLocalServer()
     self.assertRaises(Exception,
-                      lambda: self._browser.StartLocalServer(server2))
+                      lambda: self._platform.StartLocalServer(server2))
 
     self._server.Close()
-    self.assertTrue(self._server not in self._browser.local_servers)
+    self.assertTrue(self._server not in self._platform.local_servers)
 
-    self._browser.StartLocalServer(server2)
+    self._platform.StartLocalServer(server2)

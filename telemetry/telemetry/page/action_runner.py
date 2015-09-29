@@ -113,7 +113,7 @@ class ActionRunner(object):
     the page exists, but before any script on the page itself has executed.
     """
     if urlparse.urlparse(url).scheme == 'file':
-      url = self._tab.browser.http_server.UrlOf(url[7:])
+      url = self._tab.browser.platform.http_server.UrlOf(url[7:])
 
     self._RunAction(NavigateAction(
         url=url,
