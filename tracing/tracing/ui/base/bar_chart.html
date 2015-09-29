@@ -14,11 +14,6 @@ tr.exportTo('tr.ui.b', function() {
   var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
   var getColorOfKey = tr.ui.b.getColorOfKey;
 
-  // The chart height will be scaled by this fraction so that a visible rect
-  // will be drawn even for the lowest data point, and so it won't look like the
-  // highest data point was cut off.
-  var VERTICAL_CUSHION_FRACTION = 0.2;
-
   // @constructor
   var BarChart = tr.ui.b.define('bar-chart', ChartBase2DBrushX);
 
@@ -28,6 +23,7 @@ tr.exportTo('tr.ui.b', function() {
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('bar-chart');
+      this.xCushion_ = 0;
     },
 
     isDatumFieldSeries_: function(fieldName) {
@@ -42,21 +38,17 @@ tr.exportTo('tr.ui.b', function() {
       if (this.data_.length === 0)
         return;
 
-      // X.
-      // Leave a cushion on the sides so that the rects on either end don't
-      // exceed the chart boundaries. The average width of the rects is
-      // chart.width / data.length, and each rect is centered around its
-      // x-coordinate, so half of its width would have exceeded the chart
-      // boundary if not for the cushion.
-      var width = this.chartAreaSize.width;
-      var xCushion = width / 2;
-      xCushion /= this.data_.length;
-      this.xScale_.range([xCushion, width - xCushion]);
-      this.xScale_.domain(d3.extent(this.data_, this.getXForDatum_.bind(this)));
-
-      // Y.
+      var xDifferences = 0;
+      var currentX = undefined;
+      var previousX = undefined;
       var yRange = new tr.b.Range();
-      this.data_.forEach(function(datum) {
+      this.data_.forEach(function(datum, index) {
+        previousX = currentX;
+        currentX = this.getXForDatum_(datum, index);
+        if (previousX !== undefined) {
+          xDifferences += currentX - previousX;
+        }
+
         this.seriesKeys_.forEach(function(key) {
           // Allow for sparse data
           if (datum[key] !== undefined)
@@ -64,38 +56,33 @@ tr.exportTo('tr.ui.b', function() {
         });
       }, this);
 
-      // Leave a cushion at the bottom of the chart so that a visible rect will
-      // be drawn even for the lowest data point.
-      // Leave a cushion at the top of the chart so that it doesn't look like
-      // the chart was cut off.
+      // X.
+      // Leave a cushion on the right so that the last rect doesn't
+      // exceed the chart boundaries. The last rect's width is set to the
+      // average width of the rects, which is chart.width / data.length.
+      var width = this.chartAreaSize.width;
+      this.xScale_.range([0, width]);
+      var domain = d3.extent(this.data_, this.getXForDatum_.bind(this));
+      this.xCushion_ = xDifferences / (this.data_.length - 1);
+      this.xScale_.domain([domain[0], domain[1] + this.xCushion_]);
+
+      // Y.
       this.yScale_.range([this.chartAreaSize.height, 0]);
-      var yCushion = VERTICAL_CUSHION_FRACTION * yRange.range;
-      this.yScale_.domain([yRange.min - yCushion, yRange.max + yCushion]);
+      this.yScale_.domain([Math.min(yRange.min, 0), yRange.max]);
     },
 
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
       this.data_.forEach(function(datum, index) {
-        var leftWidth = undefined;
-        var rightWidth = undefined;
         var currentX = this.getXForDatum_(datum, index);
-        if (index > 0) {
-          var previousX = this.getXForDatum_(this.data_[index - 1], index - 1);
-          leftWidth = (currentX - previousX) / 2;
-        }
+        var width = undefined;
         if (index < (this.data_.length - 1)) {
           var nextX = this.getXForDatum_(this.data_[index + 1], index + 1);
-          rightWidth = (nextX - currentX) / 2;
+          width = nextX - currentX;
+        } else {
+          width = this.xCushion_;
         }
-
-        if (!leftWidth) {
-          leftWidth = rightWidth;
-          if (!leftWidth)
-            leftWidth = this.chartAreaSize.width / 2;
-        }
-        if (!rightWidth)
-          rightWidth = leftWidth;
 
         var stacks = [];
         this.seriesKeys_.forEach(function(key) {
@@ -107,17 +94,16 @@ tr.exportTo('tr.ui.b', function() {
         });
 
         stacks.forEach(function(stack) {
-          var left = this.xScale_(this.getXForDatum_(datum, index) - leftWidth);
-          var right = this.xScale_(this.getXForDatum_(datum, index) +
-              rightWidth);
-          var width = right - left;
+          var left = this.xScale_(currentX);
+          var right = this.xScale_(currentX + width);
+          var widthPx = right - left;
           var top = this.yScale_(stack.y);
           rectsSel.enter()
               .append('rect')
               .attr('fill', stack.color)
               .attr('x', left)
               .attr('y', top)
-              .attr('width', width)
+              .attr('width', widthPx)
               .attr('height', this.yScale_.range()[0] - top);
         }, this);
       }, this);

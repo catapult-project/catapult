@@ -139,33 +139,30 @@ tr.b.unittest.testSuite(function() {
     ];
     chart.data = data;
 
-    var mouseDownX = undefined;
-    var curMouseX = undefined;
+    var mouseDownIndex = undefined;
+    var currentMouseIndex = undefined;
 
     function updateBrushedRange() {
-      if (mouseDownX === undefined || (mouseDownX === curMouseX)) {
-        chart.brushedRange = new tr.b.Range();
-        return;
-      }
       var r = new tr.b.Range();
-      r.min = Math.min(mouseDownX, curMouseX) + 0.5;
-      r.max = Math.max(mouseDownX, curMouseX) + 0.5;
+      r.min = Math.max(0, Math.min(mouseDownIndex, currentMouseIndex));
+      r.max = Math.min(data.length, Math.max(mouseDownIndex,
+            currentMouseIndex) + 1);
       chart.brushedRange = r;
     }
 
     chart.addEventListener('item-mousedown', function(e) {
-      mouseDownX = e.index;
-      curMouseX = e.index;
+      mouseDownIndex = e.index;
+      currentMouseIndex = e.index;
       updateBrushedRange();
     });
     chart.addEventListener('item-mousemove', function(e) {
-      if (e.button == undefined)
+      if (e.button === undefined)
         return;
-      curMouseX = e.index;
+      currentMouseIndex = e.index;
       updateBrushedRange();
     });
     chart.addEventListener('item-mouseup', function(e) {
-      curMouseX = e.index;
+      currentMouseIndex = e.index;
       updateBrushedRange();
     });
     this.addHTMLOutput(chart);

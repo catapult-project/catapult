@@ -132,17 +132,47 @@ tr.exportTo('tr.ui.b', function() {
 
     updateXAxis_: function(xAxis) {
       xAxis.selectAll('*').remove();
+      xAxis[0][0].style.opacity = 0;
       xAxis.attr('transform', 'translate(0,' + this.chartAreaSize.height + ')')
         .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
+      window.requestAnimationFrame(function() {
+        var previousRight = undefined;
+        xAxis.selectAll('.tick')[0].forEach(function(tick) {
+          var currentLeft = tick.transform.baseVal[0].matrix.e;
+          if ((previousRight === undefined) ||
+              (currentLeft > (previousRight + 3))) {
+            var currentWidth = tick.getBBox().width;
+            previousRight = currentLeft + currentWidth;
+          } else {
+            tick.style.opacity = 0;
+          }
+        });
+        xAxis[0][0].style.opacity = 1;
+      });
     },
 
     updateYAxis_: function(yAxis) {
       yAxis.selectAll('*').remove();
+      yAxis[0][0].style.opacity = 0;
       yAxis.call(d3.svg.axis()
         .scale(this.yScale_)
         .orient('left'));
+      window.requestAnimationFrame(function() {
+        var previousTop = undefined;
+        yAxis.selectAll('.tick')[0].forEach(function(tick) {
+          var currentTop = tick.transform.baseVal[0].matrix.f;
+          var currentBottom = currentTop + tick.getBBox().height;
+          if ((previousTop === undefined) ||
+              (previousTop > (currentBottom + 3))) {
+            previousTop = currentTop;
+          } else {
+            tick.style.opacity = 0;
+          }
+        });
+        yAxis[0][0].style.opacity = 1;
+      });
     },
 
     updateContents_: function() {
