@@ -1,15 +1,2 @@
-{
-  "config_type": "BaseConfig",
-  "dependencies": {
-    "crash_service": {
-      "cloud_storage_bucket": "chromium-telemetry",
-      "cloud_storage_base_folder": "binary_dependencies",
-      "file_info": {
-        "win_AMD64": {
-          "cloud_storage_hash": "4a0961e972895f4af3b7cfab959c5bfd4de7174b",
-          "download_path": "../../bin/win/AMD64/crash_service.exe"
-        }
-      }
-    }
-  }
-}
+{"config_type":"BaseConfig",
+ "dependencies":{}}
