@@ -213,6 +213,10 @@ class AndroidPlatformBackend(
   def device(self):
     return self._device
 
+  @property
+  def battery(self):
+    return self._battery
+
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
 
