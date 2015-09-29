@@ -752,7 +752,7 @@ class DeviceUtils(object):
     def handle_large_output(cmd, large_output_mode):
       if large_output_mode:
         with device_temp_file.DeviceTempFile(self.adb) as large_output_file:
-          cmd = '%s > %s' % (cmd, large_output_file.name)
+          cmd = '( %s )>%s' % (cmd, large_output_file.name)
           logging.debug('Large output mode enabled. Will write output to '
                         'device and read results from file.')
           handle_large_command(cmd)

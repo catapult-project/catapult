@@ -857,7 +857,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
   def testRunShellCommand_largeOutput_enabled(self):
     cmd = 'echo $VALUE'
     temp_file = MockTempFile('/sdcard/temp-123')
-    cmd_redirect = '%s > %s' % (cmd, temp_file.name)
+    cmd_redirect = '( %s )>%s' % (cmd, temp_file.name)
     with self.assertCalls(
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
             temp_file),
@@ -878,7 +878,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
   def testRunShellCommand_largeOutput_disabledTrigger(self):
     cmd = 'echo $VALUE'
     temp_file = MockTempFile('/sdcard/temp-123')
-    cmd_redirect = '%s > %s' % (cmd, temp_file.name)
+    cmd_redirect = '( %s )>%s' % (cmd, temp_file.name)
     with self.assertCalls(
         (self.call.adb.Shell(cmd), self.ShellError('', None)),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),

@@ -267,7 +267,7 @@ class AdbWrapper(object):
     if expect_status is None:
       args = ['shell', command]
     else:
-      args = ['shell', '(%s);echo %%$?' % command.rstrip()]
+      args = ['shell', '( %s );echo %%$?' % command.rstrip()]
     output = self._RunDeviceAdbCmd(args, timeout, retries, check_error=False)
     if expect_status is not None:
       output_end = output.rfind('%')
