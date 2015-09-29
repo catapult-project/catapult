@@ -27,6 +27,7 @@ tr.b.unittest.testSuite(function() {
         '0x123', 10, 'Handler:timeStamp', 12);
     assert.equal(tce.size, 10);
     assert.equal(tce.name, 'timeStamp');
+    assert.equal(tce.sourceInfo.state, 'compiled');
     assert.equal(tce.sourceInfo.isNative, false);
     assert.equal(tce.sourceInfo.file, '');
     assert.equal(tce.sourceInfo.line, -1);
@@ -39,6 +40,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.size, 10);
     assert.equal(tce.name, 'IsAccessorDescriptor');
     assert.equal(tce.sourceInfo.isNative, true);
+    assert.equal(tce.sourceInfo.state, 'optimizable');
     assert.equal(tce.sourceInfo.file, 'v8natives.js');
     assert.equal(tce.sourceInfo.line, 182);
     assert.equal(tce.sourceInfo.scriptId, 12);
@@ -50,6 +52,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tce.size, 10);
     assert.equal(tce.name, 'IsAccessorDescriptor');
     assert.equal(tce.sourceInfo.isNative, true);
+    assert.equal(tce.sourceInfo.state, 'optimized');
     assert.equal(tce.sourceInfo.file, 'v8natives.js');
     assert.equal(tce.sourceInfo.line, 182);
     assert.equal(tce.sourceInfo.scriptId, 12);

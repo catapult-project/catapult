@@ -11,15 +11,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model.source_info', function() {
-  function JSSourceInfo(file, line, column, isNative, scriptId) {
+  function JSSourceInfo(file, line, column, isNative, scriptId, state) {
     tr.model.source_info.SourceInfo.call(this, file, line, column);
 
     this.isNative_ = isNative;
     this.scriptId_ = scriptId;
+    this.state_ = state;
   }
 
   JSSourceInfo.prototype = {
     __proto__: tr.model.source_info.SourceInfo.prototype,
+
+    get state() {
+      return this.state_;
+    },
 
     get isNative() {
       return this.isNative_;
@@ -37,7 +42,13 @@ tr.exportTo('tr.model.source_info', function() {
   };
 
   return {
-    JSSourceInfo: JSSourceInfo
+    JSSourceInfo: JSSourceInfo,
+    JSSourceState: {
+      COMPILED: 'compiled',
+      OPTIMIZABLE: 'optimizable',
+      OPTIMIZED: 'optimized',
+      UNKNOWN: 'unknown'
+    }
   };
 });
 </script>

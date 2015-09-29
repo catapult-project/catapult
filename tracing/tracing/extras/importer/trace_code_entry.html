@@ -26,10 +26,22 @@ tr.exportTo('tr.e.importer', function() {
     // (empty) -> compiled
     //    ~    -> optimizable
     //    *    -> optimized
-    var rePrefix = /^(\w*:)?[*~]?(.*)$/m;
+    var rePrefix = /^(\w*:)?([*~]?)(.*)$/m;
     var tokens = rePrefix.exec(name);
     var prefix = tokens[1];
-    var body = tokens[2];
+    var state = tokens[2];
+    var body = tokens[3];
+
+    if (state === '*') {
+      state = tr.model.source_info.JSSourceState.OPTIMIZED;
+    } else if (state === '~') {
+      state = tr.model.source_info.JSSourceState.OPTIMIZABLE;
+    } else if (state === '') {
+      state = tr.model.source_info.JSSourceState.COMPILED;
+    } else {
+      console.warning('Unknown v8 code state ' + state);
+      state = tr.model.source_info.JSSourceState.UNKNOWN;
+    }
 
     var rawName;
     var rawUrl;
@@ -76,7 +88,7 @@ tr.exportTo('tr.e.importer', function() {
     var column = urlData.columnNumber || 0;
 
     this.sourceInfo_ = new tr.model.source_info.JSSourceInfo(
-        url, line, column, isNative, scriptId);
+        url, line, column, isNative, scriptId, state);
   };
 
   TraceCodeEntry.prototype = {
