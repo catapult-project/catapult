@@ -157,7 +157,7 @@ tr.exportTo('tr.e.importer', function() {
     // May be encoded JSON. Treat files that start with { as importable by us.
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
-      return eventData[0] == '{' || eventData[0] == '[';
+      return eventData[0] === '{' || eventData[0] === '[';
     }
 
     // Might just be an array of events
@@ -303,7 +303,7 @@ tr.exportTo('tr.e.importer', function() {
         return;
       }
 
-      if (event.ph == 'B') {
+      if (event.ph === 'B') {
         var slice = thread.sliceGroup.beginSlice(
             event.cat, event.name, timestampFromUs(event.ts),
             this.deepCopyIfNeeded_(event.args),
@@ -404,26 +404,26 @@ tr.exportTo('tr.e.importer', function() {
       if (event.argsStripped)
         return;
 
-      if (event.name == 'process_name') {
+      if (event.name === 'process_name') {
         var process = this.model_.getOrCreateProcess(event.pid);
         process.name = event.args.name;
-      } else if (event.name == 'process_labels') {
+      } else if (event.name === 'process_labels') {
         var process = this.model_.getOrCreateProcess(event.pid);
         var labels = event.args.labels.split(',');
         for (var i = 0; i < labels.length; i++)
           process.addLabelIfNeeded(labels[i]);
-      } else if (event.name == 'process_sort_index') {
+      } else if (event.name === 'process_sort_index') {
         var process = this.model_.getOrCreateProcess(event.pid);
         process.sortIndex = event.args.sort_index;
-      } else if (event.name == 'thread_name') {
+      } else if (event.name === 'thread_name') {
         var thread = this.model_.getOrCreateProcess(event.pid).
             getOrCreateThread(event.tid);
         thread.name = event.args.name;
-      } else if (event.name == 'thread_sort_index') {
+      } else if (event.name === 'thread_sort_index') {
         var thread = this.model_.getOrCreateProcess(event.pid).
             getOrCreateThread(event.tid);
         thread.sortIndex = event.args.sort_index;
-      } else if (event.name == 'num_cpus') {
+      } else if (event.name === 'num_cpus') {
         var n = event.args.number;
         // Not all render processes agree on the cpu count in trace_event. Some
         // processes will report 1, while others will report the actual cpu
@@ -463,7 +463,7 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       // Thread-level instant events are treated as zero-duration slices.
-      if (event.s == 't' || event.s === undefined) {
+      if (event.s === 't' || event.s === undefined) {
         this.processDurationEvent(event);
         return;
       }
@@ -693,16 +693,16 @@ tr.exportTo('tr.e.importer', function() {
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
-        } else if (event.ph == 'I' || event.ph == 'i' || event.ph == 'R') {
+        } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
           this.processInstantEvent(event);
 
-        } else if (event.ph == 'P') {
+        } else if (event.ph === 'P') {
           this.processTraceSampleEvent(event);
 
-        } else if (event.ph == 'C') {
+        } else if (event.ph === 'C') {
           this.processCounterEvent(event);
 
-        } else if (event.ph == 'M') {
+        } else if (event.ph === 'M') {
           this.processMetadataEvent(event);
 
         } else if (event.ph === 'N' || event.ph === 'D' || event.ph === 'O') {
@@ -1556,7 +1556,7 @@ tr.exportTo('tr.e.importer', function() {
      * events.
      */
     createExplicitObjects_: function() {
-      if (this.allObjectEvents_.length == 0)
+      if (this.allObjectEvents_.length === 0)
         return;
 
       function processEvent(objectEventState) {
@@ -1580,7 +1580,7 @@ tr.exportTo('tr.e.importer', function() {
         var process = thread.parent;
         var ts = timestampFromUs(event.ts);
         var instance;
-        if (event.ph == 'N') {
+        if (event.ph === 'N') {
           try {
             instance = process.objects.idWasCreated(
                 event.id, event.cat, event.name, ts);
@@ -1592,7 +1592,7 @@ tr.exportTo('tr.e.importer', function() {
             });
             return;
           }
-        } else if (event.ph == 'O') {
+        } else if (event.ph === 'O') {
           if (event.args.snapshot === undefined) {
             this.model_.importWarning({
               type: 'object_parse_error',
@@ -1632,7 +1632,7 @@ tr.exportTo('tr.e.importer', function() {
             return;
           }
           instance = snapshot.objectInstance;
-        } else if (event.ph == 'D') {
+        } else if (event.ph === 'D') {
           try {
             process.objects.idWasDeleted(event.id, event.cat, event.name, ts);
             var instanceMap = process.objects.getOrCreateInstanceMap_(event.id);
