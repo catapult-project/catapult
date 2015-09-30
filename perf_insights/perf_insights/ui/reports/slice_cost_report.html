@@ -25,6 +25,7 @@ found in the LICENSE file.
         display: flex;
         flex-direction: column;
       }
+
       top-controls {
         display: flex;
         flex: 0 0 auto;
@@ -33,18 +34,32 @@ found in the LICENSE file.
         border-bottom: 1px solid #8e8e8e;
         padding: 4px;
       }
-      #table {
-        flex: 1 1 auto;
-      }
+
       content-pane {
         display: flex;
         flex-direction: row;
       }
+
+      #table {
+        flex: 1 1 60%;
+      }
+
+      right-pane {
+        border-left: 1px solid black;
+        display: flex;
+        flex: 1 1 40%;
+      }
+
     </style>
     <top-controls></top-controls>
     <content-pane>
       <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
-      <div id="selected_row_info"></div>
+      <right-pane>
+        <div id="script-costs">
+          Script costs
+          <tr-ui-b-table id="script-costs-table"></tr-ui-b-table>
+        </div>
+      </div>
     </content-pane>
   </template>
   <script>
@@ -102,6 +117,8 @@ found in the LICENSE file.
           'Group by Domain',
           this.updateContents_.bind(this));
       topControls.appendChild(this.groupByDomain_);
+
+      this.updateRightPane_();
     },
 
     get mapResults() {
@@ -114,28 +131,64 @@ found in the LICENSE file.
     },
 
     onSelectionChanged_: function(event) {
-      // Clear the info div.
-      var sliceInfo = this.$.selected_row_info;
-      sliceInfo.textContent = '';
+      this.updateRightPane_();
+    },
+
+    updateRightPane_: function() {
+      this.updateScriptCosts_();
+    },
+
+    updateScriptCosts_: function() {
+      var rows = [];
+      var footerRows = [];
+
       // Aggregate values.
       var aggregated = new pi.wr.SliceCostInfo();
-      this.$.table.selectedTableRow.data.forEach(function(datum) {
-        aggregated.push(undefined, datum);
-      });
+      if (this.$.table.selectedTableRow) {
+        this.$.table.selectedTableRow.data.forEach(function(datum) {
+          aggregated.push(undefined, datum);
+        });
+      }
+      if (aggregated.jsTime === 0) {
+        this.shadowRoot.querySelector('#script-costs').style.display = 'none';
+        return;
+      }
+      this.shadowRoot.querySelector('#script-costs').style.display = '';
+
       // Display aggregated data.
-      var jsTimePar = document.createElement('p');
-      var jsTime = document.createTextNode(
-          'JS Time: ' + aggregated.jsTime + ' ms');
-      jsTimePar.appendChild(jsTime);
-      sliceInfo.appendChild(jsTimePar);
       for (var state in tr.model.source_info.JSSourceState) {
         var stateName = tr.model.source_info.JSSourceState[state];
-        var stateTimePar = document.createElement('p');
-        var stateTime = document.createTextNode(
-            stateName + ': ' + aggregated.jsTimeByState[stateName] + ' ms');
-        stateTimePar.appendChild(stateTime);
-        sliceInfo.appendChild(stateTimePar);
+        rows.push({
+          label: stateName,
+          value: tr.ui.units.createTimeDurationSpan(
+              aggregated.jsTimeByState[stateName])
+        });
       }
+      footerRows.push({
+        label: 'JS Time',
+        value: tr.ui.units.createTimeDurationSpan(aggregated.jsTime)
+      });
+
+      // Push to table.
+      var scriptCostsTable = this.shadowRoot.querySelector(
+          '#script-costs-table');
+      scriptCostsTable.tableColumns = [
+        {
+          title: 'Label',
+          value: function(row) { return row.label; },
+          width: '150px'
+        },
+        {
+          title: 'Value',
+          value: function(row) { return row.value; },
+          width: '100%'
+        }
+      ];
+      scriptCostsTable.showHeader = false;
+      scriptCostsTable.tableRows = rows;
+      scriptCostsTable.footerRows = footerRows;
+
+      scriptCostsTable.rebuild();
     },
 
     updateContents_: function() {
