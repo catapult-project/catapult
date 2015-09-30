@@ -1,0 +1,96 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="group_report.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    setUp: function() {
+      window.SUBTESTS = {
+        'ChromiumPerf/chromium-rel-mac': {
+          'page_cycler.morejs': {
+            'cold_times': {
+              'has_rows': false,
+              'sub_tests': {
+                'test.blogspot.com': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                },
+                'www.yahoo.com': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                },
+                'page_load_time': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                },
+                'page_load_time_ref': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                }
+              }
+            },
+            'idle_wakeups_gpu': {
+              'has_rows': true,
+              'sub_tests': {
+                'test.blogspot.com': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                },
+                'www.yahoo.com': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                },
+                'ref': {
+                  'has_rows': true,
+                  'sub_tests': {}
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+  };
+
+  test('getTestPathAndSelectedSeries for alert on summary series', function() {
+    var alert = {
+      'master': 'ChromiumPerf',
+      'bot': 'chromium-rel-mac',
+      'testsuite': 'page_cycler.morejs',
+      'test': 'idle_wakeups_gpu'
+    };
+    var result = group_report.getTestPathAndSelectedSeries(alert);
+    assert.equal(result.length, 2);
+    assert.equal(
+        result[0],
+        'ChromiumPerf/chromium-rel-mac/page_cycler.morejs/idle_wakeups_gpu');
+    assert.deepEqual(result[1], ['idle_wakeups_gpu']);
+  }, testOptions);
+
+  test('getTestPathAndSelectedSeries for alert on leaf series', function() {
+    var alert = {
+      'master': 'ChromiumPerf',
+      'bot': 'chromium-rel-mac',
+      'testsuite': 'page_cycler.morejs',
+      'test': 'cold_times/page_load_time'
+    };
+    var result = group_report.getTestPathAndSelectedSeries(alert);
+    assert.equal(result.length, 2);
+    assert.equal(
+        result[0],
+        'ChromiumPerf/chromium-rel-mac/page_cycler.morejs/cold_times');
+    assert.deepEqual(result[1], ['page_load_time']);
+  }, testOptions);
+
+});
+</script>

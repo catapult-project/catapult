@@ -39,57 +39,61 @@ var group_report = (function() {
   };
 
   /**
-   * Get series to graph for an alert.
+   * Selects the series to graph for an alert. The series is specified as a
+   * two-item Array; with a test path and a list of selected series under that
+   * that test path. This will be used in the JSON request parameter when
+   * requesting data to graph.
    * @param {Object} alert The alert object.
-   * @return {Array} A two-item Array, which contains a test path and list of
-   *     selected series for tests under that test path.
+   * @return {Array} A two-item Array: test path and Array of selected series.
    */
-  var getTestPathAndSelectedSeries_ = function(alert) {
-    var botName = alert['master'] + '/' + alert['bot'];
-    // Traverse to the chart name, which is the second-last part of the
-    // test path.
-    var testParts = alert['test'].split('/');
-    var lastTestPart = testParts[testParts.length - 1];
-    if (testParts.length > 1) {
-      testParts = testParts.slice(0, -1);
+  var getTestPathAndSelectedSeries = function(alert) {
+    var testPath = getTestPath(alert);
+    var subtestsEntry = getSubtestsEntry(testPath);
+    var traceName = testPath.split('/').pop();
+
+    // If the "subtests" property of |subtestsEntry| is an empty object, that
+    // implies that this test has no subtests. In this case, show a chart for
+    // the parent test, with this particular child selected.
+    if (subtestsEntry && subtestsEntry['sub_tests'] &&
+        Object.keys(subtestsEntry['sub_tests']).length == 0) {
+      testPath = testPath.split('/').slice(0, -1).join('/');
     }
 
-    // Traverse to the last part of the test path.
-    var selectedSeries = [];
+    // Otherwise, the test is either not found in the SUBTESTS dict, or it is
+    // a test with children (e.g. a summary metric). In either of these cases,
+    // we want to return the test path and trace found on the alert.
+    return [testPath, [traceName]];
+  };
 
-    // We always want to add the test of the target alert regardless of whether
-    // or not it is in the global SUBTESTS.
-    if (selectedSeries.indexOf(lastTestPart) == -1) {
-      selectedSeries.push(lastTestPart);
+  var getTestPath = function(alert) {
+    return [
+      alert['master'],
+      alert['bot'],
+      alert['testsuite'],
+      alert['test']
+    ].join('/');
+  };
+
+  /**
+   * Gets the object in the global SUBTESTS that corresponds to the test
+   * that an alert is on, or null if nothing was found.
+   */
+  var getSubtestsEntry = function(testPath) {
+    var testPathParts = testPath.split('/');
+    var botName = testPathParts[0] + '/' + testPathParts[1];
+    var subtestParts = testPathParts.splice(3);
+    var subtestDict = window['SUBTESTS'][botName][testPathParts[2]];
+    if (!subtestDict) {
+      return null;
     }
-
-    var subtestDict = window['SUBTESTS'][botName][alert['testsuite']];
-    for (var level = 0; level < testParts.length; level++) {
-      var name = testParts[level];
+    for (var level = 0; level < subtestParts.length - 1; level++) {
+      var name = subtestParts[level];
       if (!(name in subtestDict)) {
-        break;
-      }
-      // Last level test.
-      if (level == testParts.length - 1 && subtestDict[name]['has_rows']) {
-        selectedSeries.push(name);
+        return null;
       }
       subtestDict = subtestDict[name]['sub_tests'];
     }
-
-    // Add important sub-tests.
-    var testPath = alert['testsuite'] + '/' + alert['test'];
-    for (var i in subtestDict) {
-      if (subtestDict[i]['has_rows']) {
-        if (testselection.isImportant(testPath + '/' + i)) {
-          selectedSeries.push(i);
-        }
-      }
-    }
-
-    var fullTestPath = [alert['master'], alert['bot'], alert['testsuite'],
-                        alert['test']].join('/');
-
-    return [fullTestPath, selectedSeries];
+    return subtestDict[subtestParts[subtestParts.length - 1]];
   };
 
   /**
@@ -166,7 +170,7 @@ var group_report = (function() {
       };
       chart['graphParams'] = graphParams;
       chart['alertKey'] = alert['key'];
-      chart['addSeriesGroup']([getTestPathAndSelectedSeries_(alert)]);
+      chart['addSeriesGroup']([getTestPathAndSelectedSeries(alert)]);
       chart.addEventListener('chartclosed', onGraphClose_, false);
       chart.addEventListener('alertChangedRevisions',
                              alertChangedRevisions_, true);
@@ -229,10 +233,10 @@ var group_report = (function() {
   };
 
   return {
-    initialize: initialize
+    initialize: initialize,
+    getTestPathAndSelectedSeries: getTestPathAndSelectedSeries
   };
 })();
 
 document.addEventListener('polymer-ready', group_report.initialize);
-
 </script>
