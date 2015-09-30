@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <script>
 'use strict';
 
@@ -34,19 +35,16 @@ tr.exportTo('tr.b.u', function() {
   HistogramBin.prototype = {
     add: function(value, sourceInfo) {
       this.count += 1;
-      if (this.sourceInfos.length < MAX_SOURCE_INFOS)
-        this.sourceInfos.push(sourceInfo);
+      tr.b.Statistics.uniformlySampleStream(this.sourceInfos, this.count,
+          sourceInfo, MAX_SOURCE_INFOS);
     },
 
     addBin: function(other) {
       if (!this.range.equals(other.range))
         throw new Error('Merging incompatible histogram bins.');
+      tr.b.Statistics.mergeSampledStreams(this.sourceInfos, this.count,
+          other.sourceInfos, other.count, MAX_SOURCE_INFOS);
       this.count += other.count;
-      var otherIdx = 0;
-      while (this.sourceInfos.length < MAX_SOURCE_INFOS &&
-            otherIdx < other.sourceInfos.length) {
-        this.sourceInfos.push(other.sourceInfos[otherIdx++]);
-      }
     },
 
     asDict: function() {
@@ -151,8 +149,8 @@ tr.exportTo('tr.b.u', function() {
     add: function(value, sourceInfo) {
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
-        if (this.nanSourceInfos.length < MAX_SOURCE_INFOS)
-          this.nanSourceInfos.push(sourceInfo);
+        tr.b.Statistics.uniformlySampleStream(this.nanSourceInfos, this.numNans,
+            sourceInfo, MAX_SOURCE_INFOS);
         return;
       }
 
@@ -167,8 +165,9 @@ tr.exportTo('tr.b.u', function() {
           this.allBins.length !== other.allBins.length) {
         throw new Error('Merging incompatible histograms.');
       }
+      tr.b.Statistics.mergeSampledStreams(this.nanSourceInfos, this.numNans,
+          other.nanSourceInfos, other.numNans, MAX_SOURCE_INFOS);
       this.numNans += other.numNans;
-      this.nanSourceInfos.push.apply(this.nanSourceInfos, other.nanSourceInfos);
       this.runningSum += other.runningSum;
       for (var i = 0; i < this.allBins.length; ++i) {
         this.allBins[i].addBin(other.allBins[i]);

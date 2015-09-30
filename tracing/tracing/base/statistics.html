@@ -307,8 +307,8 @@ tr.exportTo('tr.b', function() {
    *  opt_location_count: See TimestampsDiscrepancy.
    **/
   Statistics.durationsDiscrepancy = function(
-    durations, opt_absolute, opt_location_count) {
-      if (durations.length === 0)
+      durations, opt_absolute, opt_location_count) {
+    if (durations.length === 0)
       return 0.0;
 
     var timestamps = durations.reduce(function(prev, curr, index, array) {
@@ -317,6 +317,114 @@ tr.exportTo('tr.b', function() {
     }, [0]);
     return Statistics.timestampsDiscrepancy(
       timestamps, opt_absolute, opt_location_count);
+  };
+
+
+  /**
+   * A mechanism to uniformly sample elements from an arbitrary long stream.
+   *
+   * Call this method every time a new element is obtained from the stream,
+   * passing always the same |samples| array and the |numSamples| you desire.
+   * Also pass in the current |streamLength|, which is the same as the index of
+   * |newElement| within that stream.
+   *
+   * The |samples| array will possibly be updated, replacing one of its element
+   * with |newElements|. The length of |samples| will not be more than
+   * |numSamples|.
+   *
+   * This method guarantees that after |streamLength| elements have been
+   * processed each one has equal probability of being in |samples|. The order
+   * of samples is not preserved though.
+   *
+   * Args:
+   *  samples: Array of elements that have already been selected. Start with [].
+   *  streamLength: The current length of the stream, up to |newElement|.
+   *  newElement: The element that was just extracted from the stream.
+   *  numSamples: The total number of samples desired.
+   **/
+  Statistics.uniformlySampleStream = function(samples, streamLength, newElement,
+                                              numSamples) {
+    if (streamLength <= numSamples) {
+      if (samples.length >= streamLength)
+        samples[streamLength - 1] = newElement;
+      else
+        samples.push(newElement);
+      return;
+    }
+
+    var probToKeep = numSamples / streamLength;
+    if (Math.random() > probToKeep)
+      return;  // New sample was rejected.
+
+    // Keeping it, replace an alement randomly.
+    var index = Math.floor(Math.random() * numSamples);
+    samples[index] = newElement;
+  };
+
+  /**
+   * A mechanism to merge two arrays of uniformly sampled elements in a way that
+   * ensures elements in the final array are still sampled uniformly.
+   *
+   * This works similarly to sampleStreamUniform. The |samplesA| array will be
+   * updated, some of its elements replaced by elements from |samplesB| in a
+   * way that ensure that elements will be sampled uniformly.
+   *
+   * Args:
+   *  samplesA: Array of uniformly sampled elements, will be updated.
+   *  streamLengthA: The length of the stream from which |samplesA| was sampled.
+   *  samplesB: Other array of uniformly sampled elements, will NOT be updated.
+   *  streamLengthB: The length of the stream from which |samplesB| was sampled.
+   *  numSamples: The total number of samples desired, both in |samplesA| and
+   *      |samplesB|.
+   **/
+  Statistics.mergeSampledStreams = function(
+      samplesA, streamLengthA,
+      samplesB, streamLengthB, numSamples) {
+    if (streamLengthB < numSamples) {
+      // samplesB has not reached max capacity so every sample of stream B were
+      // chosen with certainty. Add them one by one into samplesA.
+      var nbElements = Math.min(streamLengthB, samplesB.length);
+      for (var i = 0; i < nbElements; ++i) {
+        Statistics.uniformlySampleStream(samplesA, streamLengthA + i + 1,
+            samplesB[i], numSamples);
+      }
+      return;
+    }
+    if (streamLengthA < numSamples) {
+      // samplesA has not reached max capacity so every sample of stream A were
+      // chosen with certainty. Add them one by one into samplesB.
+      var nbElements = Math.min(streamLengthA, samplesA.length);
+      var tempSamples = samplesB.slice();
+      for (var i = 0; i < nbElements; ++i) {
+        Statistics.uniformlySampleStream(tempSamples, streamLengthB + i + 1,
+            samplesA[i], numSamples);
+      }
+      // Copy that back into the first vector.
+      for (var i = 0; i < tempSamples.length; ++i) {
+        samplesA[i] = tempSamples[i];
+      }
+      return;
+    }
+
+    // Both sample arrays are at max capacity, use the power of maths!
+    // Elements in samplesA have been selected with probability
+    // numSamples / streamLengthA. Same for samplesB. For each index of the
+    // array we keep samplesA[i] with probability
+    //   P = streamLengthA / (streamLengthA + streamLengthB)
+    // and replace it with samplesB[i] with probability 1-P.
+    // The total probability of keeping it is therefore
+    //   numSamples / streamLengthA *
+    //                      streamLengthA / (streamLengthA + streamLengthB)
+    //   = numSamples / (streamLengthA + streamLengthB)
+    // A similar computation shows we have the same probability of keeping any
+    // element in samplesB. Magic!
+    var nbElements = Math.min(numSamples, samplesB.length);
+    var probOfSwapping = streamLengthB / (streamLengthA + streamLengthB);
+    for (var i = 0; i < nbElements; ++i) {
+      if (Math.random() < probOfSwapping) {
+        samplesA[i] = samplesB[i];
+      }
+    }
   }
 
   return {

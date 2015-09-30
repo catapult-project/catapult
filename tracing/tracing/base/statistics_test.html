@@ -21,13 +21,13 @@ tr.b.unittest.testSuite(function() {
     for (var i = 0; i < opt_iterations; i++) {
       var voronoi_boundaries = [];
       for (var j = 1; j < samples.length; j++)
-        voronoi_boundaries.push((samples[j] + samples[j - 1]) * 0.5)
+        voronoi_boundaries.push((samples[j] + samples[j - 1]) * 0.5);
 
-      var relaxed_samples = []
+      var relaxed_samples = [];
       relaxed_samples.push(samples[0]);
       for (var j = 1; j < samples.length - 1; j++) {
         relaxed_samples.push(
-            (voronoi_boundaries[j-1] + voronoi_boundaries[j]) * 0.5);
+            (voronoi_boundaries[j - 1] + voronoi_boundaries[j]) * 0.5);
       }
       relaxed_samples.push(samples[samples.length - 1]);
       samples = relaxed_samples;
@@ -38,12 +38,12 @@ tr.b.unittest.testSuite(function() {
   function createRandomSamples(num_samples) {
     var samples = [];
     var position = 0.0;
-    samples.push(position)
+    samples.push(position);
     for (var i = 1; i < num_samples; i++) {
       position += Math.random();
       samples.push(position);
-    };
-    return samples
+    }
+    return samples;
   }
 
   test('divideIfPossibleOrZero', function() {
@@ -164,13 +164,13 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(results.normalized_samples, [0.5, 0.5]);
     assert.deepEqual(results.scale, 1.0);
 
-    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0];
+    samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0];
     results = Statistics.normalizeSamples(samples);
     assert.deepEqual(results.normalized_samples,
-      [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0]);
+      [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]);
     assert.deepEqual(results.scale, 0.75);
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0];
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     results = Statistics.normalizeSamples(samples);
     assert.deepEqual(results.normalized_samples, samples);
     assert.deepEqual(results.scale, 1.0);
@@ -214,19 +214,19 @@ tr.b.unittest.testSuite(function() {
     d = Statistics.discrepancy(samples);
     assert.equal(d, 1.0);
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0];
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
     assert.equal(d, 0.25);
 
-    samples = [1.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0];
+    samples = [1.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
     assert.equal(d, 0.5);
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0];
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
     assert.equal(d, 0.4);
 
-    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0];
+    samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0];
     d = Statistics.discrepancy(samples);
     assert.equal(d, 0.5);
 
@@ -267,12 +267,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('discrepancyMultipleRanges', function() {
-    var samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]]
+    var samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]];
     var d_0 = Statistics.timestampsDiscrepancy(samples[0]);
     var d_1 = Statistics.timestampsDiscrepancy(samples[1]);
     var d_2 = Statistics.timestampsDiscrepancy(samples[2]);
     var d = Statistics.timestampsDiscrepancy(samples);
-    assert.equal(d, Math.max(d_0, d_1, d_2));;
+    assert.equal(d, Math.max(d_0, d_1, d_2));
   });
 
   /**
@@ -294,13 +294,13 @@ tr.b.unittest.testSuite(function() {
     var d = Statistics.durationsDiscrepancy(durations);
     assert.equal(d, 0.0);
 
-    durations = [4]
-    d = Statistics.durationsDiscrepancy(durations)
-    assert.equal(d, 4.0)
+    durations = [4];
+    d = Statistics.durationsDiscrepancy(durations);
+    assert.equal(d, 4.0);
 
-    var durations_a = [1, 1, 1, 1, 1]
-    var durations_b = [1, 1, 2, 1, 1]
-    var durations_c = [1, 2, 1, 2, 1]
+    var durations_a = [1, 1, 1, 1, 1];
+    var durations_b = [1, 1, 2, 1, 1];
+    var durations_c = [1, 2, 1, 2, 1];
 
     var d_a = Statistics.durationsDiscrepancy(durations_a);
     var d_b = Statistics.durationsDiscrepancy(durations_b);
@@ -310,5 +310,42 @@ tr.b.unittest.testSuite(function() {
     assert.isBelow(d_b, d_c);
   });
 
+  test('uniformlySampleStream', function() {
+    var samples = [];
+    Statistics.uniformlySampleStream(samples, 1, 'A', 5);
+    assert.deepEqual(['A'], samples);
+    Statistics.uniformlySampleStream(samples, 2, 'B', 5);
+    Statistics.uniformlySampleStream(samples, 3, 'C', 5);
+    Statistics.uniformlySampleStream(samples, 4, 'D', 5);
+    Statistics.uniformlySampleStream(samples, 5, 'E', 5);
+    assert.deepEqual(['A', 'B', 'C', 'D', 'E'], samples);
+
+    Statistics.uniformlySampleStream(samples, 6, 'F', 5);
+    // Can't really assert anything more than the length since the elements are
+    // drawn at random.
+    assert.equal(samples.length, 5);
+
+    // Try starting with a non-empty array.
+    samples = [0, 0, 0];
+    Statistics.uniformlySampleStream(samples, 1, 'G', 5);
+    assert.deepEqual(['G', 0, 0], samples);
+  });
+
+  test('mergeSampledStreams', function() {
+    var samples = [];
+    Statistics.mergeSampledStreams(samples, 0, ['A'], 1, 5);
+    assert.deepEqual(['A'], samples);
+    Statistics.mergeSampledStreams(samples, 1, ['B', 'C', 'D', 'E'], 4, 5);
+    assert.deepEqual(['A', 'B', 'C', 'D', 'E'], samples);
+
+    Statistics.mergeSampledStreams(samples, 9, ['F', 'G', 'H', 'I', 'J'], 7, 5);
+    // Can't really assert anything more than the length since the elements are
+    // drawn at random.
+    assert.equal(samples.length, 5);
+
+    var samples = ['A', 'B'];
+    Statistics.mergeSampledStreams(samples, 2, ['F', 'G', 'H', 'I', 'J'], 7, 5);
+    assert.equal(samples.length, 5);
+  });
 });
 </script>
