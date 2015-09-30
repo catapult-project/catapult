@@ -60,6 +60,10 @@ found in the LICENSE file.
       right-pane > *:after {
         height: 30px;
       }
+      #links {
+        min-height: 0;
+        overflow: auto;
+      }
     </style>
     <top-controls></top-controls>
     <content-pane>
@@ -312,10 +316,10 @@ found in the LICENSE file.
           },
           width: '500px'
         },
-        this.createCachingColumn_('Self time', function(datum) {
+        this.createCachingColumn_('Self time (total)', function(datum) {
           return datum.sliceCostInfo.selfTime;
         }),
-        this.createCachingColumn_('CPU Self time', function(datum) {
+        this.createCachingColumn_('CPU Self time (total)', function(datum) {
           return datum.sliceCostInfo.cpuSelfTime;
         })
       ];
@@ -404,7 +408,7 @@ found in the LICENSE file.
 
       var histogram = tr.b.u.Histogram.createLinear(
           tr.b.u.Units.timeDurationInMs,
-          tr.b.Range.fromExplicitRange(0, 200),
+          tr.b.Range.fromExplicitRange(0, 100),
           100);
       this.$.table.selectedTableRow.data.forEach(function(datum) {
         var value = func(datum);
