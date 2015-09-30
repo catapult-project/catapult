@@ -169,6 +169,7 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn(u'M-2', json.loads(
         mock_oauth2_decorator.MockOAuth2Decorator.past_bodies[-1])['labels'])
 
+  @unittest.skip('Flaky; see #1555.')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
