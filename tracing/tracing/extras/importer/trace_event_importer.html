@@ -310,7 +310,7 @@ tr.exportTo('tr.e.importer', function() {
             timestampFromUs(event.tts), event.argsStripped,
             getEventColor(event));
         slice.startStackFrame = this.getStackFrameForEvent_(event);
-      } else if (event.ph == 'I' || event.ph == 'i') {
+      } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
         if (event.s !== undefined && event.s !== 't')
           throw new Error('This should never happen');
 
@@ -693,7 +693,7 @@ tr.exportTo('tr.e.importer', function() {
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
-        } else if (event.ph == 'I' || event.ph == 'i') {
+        } else if (event.ph == 'I' || event.ph == 'i' || event.ph == 'R') {
           this.processInstantEvent(event);
 
         } else if (event.ph == 'P') {

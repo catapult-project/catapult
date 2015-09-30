@@ -3841,6 +3841,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.metadata[0].value, metadataValue);
   });
 
+  test('importMarks', function() {
+    var eventData = {
+      traceEvents: [
+        { name: 'mark1', args: {}, pid: 1, tid: 2, ts: 0, tts: 0, cat: 'blink.user_timing', ph: 'R' }, // @suppress longLineCheck
+        { name: 'mark2', args: {}, pid: 1, tid: 2, ts: 10, tts: 10, cat: 'blink.user_timing', ph: 'R' } // @suppress longLineCheck
+      ]
+    };
+
+    var m = makeModel(eventData);
+
+    var p = m.processes[1];
+    var t = p.threads[2];
+    assert.lengthOf(t.sliceGroup.slices, 2);
+
+    var s0 = t.sliceGroup.slices[0];
+    assert.equal(s0.title, 'mark1');
+    assert.equal(s0.start, 0);
+
+    var s1 = t.sliceGroup.slices[1];
+    assert.equal(s1.title, 'mark2');
+    assert.equal(s1.start, .01);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 
