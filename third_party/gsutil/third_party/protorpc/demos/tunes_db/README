@@ -1,0 +1,48 @@
+Tunes DB
+========
+
+server: Tunes DB webapp is a ProtoRPC implementation of a music library.
+
+client: A webapp that is a Tunes DB client and user interface.  Includes utility
+for retrieving the Tunes DB service descriptor.
+
+Google App Engine
+=================
+
+For more information about Google App Engine, and to download the SDK, see:
+
+  http://code.google.com/appengine
+
+Running locally
+===============
+
+ProtoRPC is packaged with the App Engine SDK, but the version shipped
+may not be the most current version due to the App Engine release
+schedule. If you'd like to use the most current version of ProtoRPC,
+you can install it in the tunes_db/client and tunes_db/server
+directories.
+
+For example on a unix-like OS, you could either copy:
+
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/client
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/server
+
+or symlink the directory:
+
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/client/protorpc
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/server/protorpc
+
+
+Example on a unix-like OS:
+
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/client
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/tunes_db/server
+
+To run this demo locally, you need to run two instances of the Google App
+Engine dev-appserver, one for the server and the other for the client.  The
+server must be run on port 8082.
+
+Example on a unix-like OS:
+
+  $ python $GAE_SDK/dev_appserver.py --port 8080 $PROTORPC/demos/tunes_db/client &
+  $ python $GAE_SDK/dev_appserver.py --port 8082 $PROTORPC/demos/tunes_db/server

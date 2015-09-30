@@ -1,0 +1,18 @@
+Quota Service
+=============
+
+It is possible to set up a quota service in your own application by following
+these steps:
+
+  1) Make a copy of the contents of this directory, including subdirectories
+      for use as a custom backend of any client application that will use it.
+
+  2) Modify app.yaml:
+      a. Change the application to the name of your application.
+      b. Change the version to one that is appropriate for your application.
+
+  3) Edit quotas.js so that its settings are appropriate for your application.
+      The format of the quotas.js file is a JSON encoded ProtoRPC message
+      as defined by quotas.service.QuotaConfig of this demo.
+
+TODO: Define an easy to use client library.

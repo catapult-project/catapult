@@ -1,0 +1,34 @@
+Experimental WSGI Service
+=========================
+
+Simple Demo for testing experimental WSGI Code.
+
+Google App Engine
+=================
+
+For more information about Google App Engine, and to download the SDK, see:
+
+  http://code.google.com/appengine
+
+Running locally
+===============
+
+ProtoRPC is packaged with the App Engine SDK, but the version shipped
+may not be the most current version due to the App Engine release
+schedule. If you'd like to use the most current version of ProtoRPC,
+you can install it in the experimental/wsgi directory.
+
+For example on a unix-like OS, you could either copy:
+
+  $ cp -r $PROTORPC/python/protorpc $PROTORPC/demos/experimental/wsgi
+
+or symlink the directory:
+
+  $ ln -s $PROTORPC/python/protorpc $PROTORPC/demos/experimental/wsgi/protorpc
+
+To run this demo locally, you need to run an instance of the Google App
+Engine dev-appserver.  The server defaults on port 8080.
+
+Example on a unix-like OS:
+
+  $ python $GAE_SDK/dev_appserver.py $PROTORPC/demos/experimental/wsgi
