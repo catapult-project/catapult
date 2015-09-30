@@ -85,6 +85,7 @@ def FindAllBrowserTypes(_):
   return [
       'mandoline-debug',
       'mandoline-debug_x64',
+      'mandoline-default',
       'mandoline-release',
       'mandoline-release_x64',]
 
