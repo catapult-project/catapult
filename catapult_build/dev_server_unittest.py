@@ -32,16 +32,14 @@ class DevServerTests(unittest.TestCase):
   def testGetURLForAbsFilename(self):
     app = dev_server.DevServerApp(self.pds, self.args)
     class FakeServer(object):
-      @property
-      def urlbase(self):
-          return 'http://localhost:8003'
+      pass
     app.server = FakeServer()
 
     cfg = tracing_dev_server_config.TracingDevServerConfig()
     base_html_filename = os.path.join(cfg.project.tracing_src_path,
                                       'base', 'base.html')
     url = app.GetURLForAbsFilename(base_html_filename)
-    self.assertEqual(url, 'http://localhost:8003/tracing/base/base.html')
+    self.assertEqual(url, '/tracing/base/base.html')
 
     url = app.GetURLForAbsFilename('/tmp/foo')
     self.assertIsNone(url)
