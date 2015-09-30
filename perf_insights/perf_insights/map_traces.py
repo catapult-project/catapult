@@ -16,7 +16,7 @@ from perf_insights.results import json_output_formatter
 
 def Main(argv):
   parser = argparse.ArgumentParser(
-      description='Local bulk trace processing')
+      description='Bulk trace processing')
   parser.add_argument('trace_directory')
   parser.add_argument('--query')
   parser.add_argument('map_file')
