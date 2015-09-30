@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('lineParserWithLegacyFmt', function() {
-    var p = LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
+    var p = LinuxPerfImporterTestExports.lineParserWithLegacyFmt;
     var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
         'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
         'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lineParserWithIRQInfo', function() {
-    var p = LinuxPerfImporterTestExports.lineParserWithIRQInfo; // @suppress longLineCheck
+    var p = LinuxPerfImporterTestExports.lineParserWithIRQInfo;
     var x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
@@ -165,7 +165,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('traceEventClockSyncRE', function() {
-    var re = LinuxPerfImporterTestExports.traceEventClockSyncRE; // @suppress longLineCheck
+    var re = LinuxPerfImporterTestExports.traceEventClockSyncRE;
     var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
     assert.isNotNull(x);
     assert.equal(x[1], '19581477508');
