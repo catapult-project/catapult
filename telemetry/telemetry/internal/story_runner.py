@@ -228,7 +228,7 @@ def Run(test, story_set, finder_options, results, max_failures=None):
                 # Later finally-blocks use state, so ensure it is cleared.
                 state = None
             finally:
-              has_existing_exception = sys.exc_info() is not None
+              has_existing_exception = sys.exc_info() != (None, None, None)
               try:
                 if state:
                   _CheckThermalThrottling(state.platform)
@@ -245,7 +245,7 @@ def Run(test, story_set, finder_options, results, max_failures=None):
             return
     finally:
       if state:
-        has_existing_exception = sys.exc_info() is not None
+        has_existing_exception = sys.exc_info() != (None, None, None)
         try:
           state.TearDownState()
         except Exception:

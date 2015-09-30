@@ -146,6 +146,10 @@ def GetNumberOfSuccessfulPageRuns(results):
   return len([run for run in results.all_page_runs if run.ok or run.skipped])
 
 
+class TestOnlyException(Exception):
+  pass
+
+
 class StoryRunnerTest(unittest.TestCase):
 
   def setUp(self):
@@ -380,6 +384,19 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
     self.assertIn('App Foo crashes', self.fake_stdout.getvalue())
+
+  def testExceptionRaisedInSharedStateTearDown(self):
+    self.SuppressExceptionFormatting()
+    story_set = story_module.StorySet()
+    class SharedStoryThatCausesAppCrash(TestSharedPageState):
+      def TearDownState(self):
+        raise TestOnlyException()
+
+    story_set.AddStory(DummyLocalStory(
+          SharedStoryThatCausesAppCrash))
+    with self.assertRaises(TestOnlyException):
+      story_runner.Run(
+          DummyTest(), story_set, self.options, self.results)
 
   def testUnknownExceptionIsFatal(self):
     self.SuppressExceptionFormatting()

@@ -53,6 +53,9 @@ class FakePlatform(object):
   def GetOSVersionName(self):
     raise NotImplementedError
 
+  def StopAllLocalServers(self):
+    pass
+
 
 class FakeLinuxPlatform(FakePlatform):
   @property
