@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block head %}
 
+  <script>
+    var TEST_SUITES = {{test_suites | safe}};
+    var REVISION_INFO = {{revision_info | safe}};
+    var XSRF_TOKEN = '{{xsrf_token}}';
+    {% if dev_version %}
+    var DEV_SERVER = true;
+    {% endif %}
+  </script>
+
   <script src="/jquery/jquery-2.1.4.min.js"></script>
   <script src="/flot/jquery.flot.min.js"></script>
   <script src="/flot/jquery.flot.crosshair.min.js"></script>
@@ -16,14 +25,6 @@
   <link rel="import" href="/dashboard/elements/report-container.html">
 
   <title>Chrome Performance Dashboard</title>
-  <script>
-    var TEST_SUITES = {{test_suites | safe}};
-    var REVISION_INFO = {{revision_info | safe}};
-    var XSRF_TOKEN = '{{xsrf_token}}';
-    {% if dev_version %}
-    var DEV_SERVER = true;
-    {% endif %}
-  </script>
 
   <script>
     // Workaround for document.contains returning false for elements in the
