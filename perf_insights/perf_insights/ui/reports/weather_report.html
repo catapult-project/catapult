@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/ui/analysis/tab_view.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/reports/rail_score_report.html">
@@ -24,19 +25,27 @@ found in the LICENSE file.
         display: flex;
         flex-direction: column;
       }
-      h1 {
-        margin: 20px 0 0px 0;
+
+      tr-ui-a-tab-view {
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+
+      tr-ui-a-tab-view > * {
         font-size: 14pt;
       }
-      .sub-report {
-        margin-left: 10px;
-      }
     </style>
-    <h1>Slice costs</h1>
-    <pi-ui-r-slice-cost-report class="sub-report"></pi-ui-r-slice-cost-report>
+    <tr-ui-a-tab-view>
+      <div tab-label="Slice costs" selected>
+        <pi-ui-r-slice-cost-report class="sub-report">
+        </pi-ui-r-slice-cost-report>
+      </div>
 
-    <h1>RAIL</h1>
-    <pi-ui-r-rail-score-report class="sub-report"></pi-ui-r-rail-score-report>
+      <div tab-label="RAIL">
+        <pi-ui-r-rail-score-report class="sub-report">
+        </pi-ui-r-rail-score-report>
+      </div>
+    </tr-ui-a-tab-view>
   </template>
   <script>
   'use strict';
