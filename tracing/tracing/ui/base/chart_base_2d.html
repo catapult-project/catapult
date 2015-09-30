@@ -9,6 +9,16 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
 
+<style>
+  * /deep/ .chart-base-2d.updating-brushing-state #brushes > * {
+    fill: rgb(103, 199, 165)
+  }
+
+  * /deep/ .chart-base-2d #brushes {
+    fill: rgb(213, 236, 229)
+  }
+</style>
+
 <script>
 'use strict';
 
@@ -21,6 +31,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase.prototype.decorate.call(this);
+      this.classList.add('chart-base-2d');
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
 
@@ -250,6 +261,7 @@ tr.exportTo('tr.ui.b', function() {
       mouseEvent.stopPropagation();
       var dataEvent = new tr.b.Event('item-mousedown');
       dataEvent.button = mouseEvent.button;
+      this.classList.add('updating-brushing-state');
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
     },
@@ -272,6 +284,7 @@ tr.exportTo('tr.ui.b', function() {
       dataEvent.button = button;
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
+      this.classList.remove('updating-brushing-state');
     }
   };
 
