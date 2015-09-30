@@ -5,7 +5,14 @@
 from telemetry.page import page_test
 
 class TimelineBasedPageTest(page_test.PageTest):
-  """Page test that collects metrics with TimelineBasedMeasurement."""
+  """Page test that collects metrics with TimelineBasedMeasurement.
+
+  WillRunStory(), Measure() and DidRunStory() are all done in story_runner
+  explicitly. We still need this wrapper around PageTest because it executes
+  some browser related functions in the parent class, which is needed by
+  Timeline Based Measurement benchmarks. This class will be removed after
+  page_test's hooks are fully removed.
+  """
   def __init__(self, tbm):
     super(TimelineBasedPageTest, self).__init__()
     self._measurement = tbm
@@ -13,10 +20,6 @@ class TimelineBasedPageTest(page_test.PageTest):
   @property
   def measurement(self):
     return self._measurement
-
-  def WillNavigateToPage(self, page, tab):
-    tracing_controller = tab.browser.platform.tracing_controller
-    self._measurement.WillRunStoryForPageTest(tracing_controller)
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""

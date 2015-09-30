@@ -244,21 +244,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     self._results_wrapper = results_wrapper or _TBMResultWrapper()
 
   def WillRunStory(self, platform):
-    """Set up before running the story.
-
-    Do not use this for now. This is designed to be used for story test instead
-    of page test. WillRunStoryForPageTest and this function will be merged after
-    page_test's hook is deprecated.
-    """
-    pass
-
-  def WillRunStoryForPageTest(self, tracing_controller):
     """Configure and start tracing."""
-    if not tracing_controller.IsChromeTracingSupported():
+    if not platform.tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
 
-    tracing_controller.Start(self._tbm_options.tracing_options,
-                             self._tbm_options.category_filter)
+    platform.tracing_controller.Start(self._tbm_options.tracing_options,
+                                      self._tbm_options.category_filter)
 
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
