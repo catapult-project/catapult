@@ -1129,6 +1129,45 @@ class FlattenTraceTest(testing_common.TestCase):
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertEqual(row['test'], 'foo/bar/baz')
 
+  def testFlattenTraceAddsImprovementDirectionIfPresent(self):
+    """Tests that improvement_direction will be respected if present."""
+    trace = {
+        'type': 'scalar',
+        'name': 'bar',
+        'units': 'ms',
+        'value': 42,
+        'improvement_direction': 'up'
+    }
+
+    row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
+    self.assertIn('higher_is_better', row)
+    self.assertEqual(row['higher_is_better'], True)
+
+  def testFlattenTraceDoesNotAddImprovementDirectionIfAbsent(self):
+    """Tests that no higher_is_better is added if no improvement_direction."""
+    trace = {
+        'type': 'scalar',
+        'name': 'bar',
+        'units': 'ms',
+        'value': 42
+    }
+
+    row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
+    self.assertNotIn('higher_is_better', row)
+
+  def testFlattenTraceRejectsBadImprovementDirection(self):
+    """Tests that passing a bad improvement_direction will cause an error."""
+    trace = {
+        'type': 'scalar',
+        'name': 'bar',
+        'units': 'ms',
+        'value': 42,
+        'improvement_direction': 'foo'
+    }
+
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'summary', trace)
+
   def testFlattenTrace_ScalarValue(self):
     """Tests that scalars are flattened to 0-error values."""
     trace = {
