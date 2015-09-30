@@ -35,6 +35,7 @@ tr.exportTo('pi.ui', function() {
     this.subRowsBuilt_ = false;
     this.subRows_ = undefined;
   }
+
   Row.prototype = {
     getCurrentGroupingKeyFunc_: function() {
       if (this.groupingKeyFuncs_.length === 0)
@@ -80,6 +81,12 @@ tr.exportTo('pi.ui', function() {
       }
     },
 
+    get isExpanded() {
+      return (this.subRows &&
+              (this.subRows.length > 0) &&
+              (this.subRows.length < 5));
+    },
+
     get subRows() {
       this.rebuildSubRowsIfNeeded_();
       return this.subRows_;
@@ -98,6 +105,10 @@ tr.exportTo('pi.ui', function() {
 
     set tableColumns(tableColumns) {
       this.$.table.tableColumns = tableColumns;
+    },
+
+    get tableRows() {
+      return this.$.table.tableRows;
     },
 
     get sortColumnIndex() {
@@ -159,6 +170,7 @@ tr.exportTo('pi.ui', function() {
     get groupBy() {
       return this.groupBy_;
     },
+
     set groupBy(groupBy) {
       this.groupBy_ = groupBy;
       this.updateContents_();
@@ -167,6 +179,7 @@ tr.exportTo('pi.ui', function() {
     get dataToGroup() {
       return this.dataToGroup_;
     },
+
     set dataToGroup(dataToGroup) {
       this.dataToGroup_ = dataToGroup;
       this.updateContents_();

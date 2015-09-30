@@ -37,6 +37,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.data_ = [];
       this.seriesKeys_ = [];
+      this.leftMargin_ = 50;
 
       d3.select(this.chartAreaElement)
           .append('g')
@@ -164,6 +165,12 @@ tr.exportTo('tr.ui.b', function() {
       });
     },
 
+    getMargin_: function() {
+      var margin = ChartBase.prototype.getMargin_.call(this);
+      margin.left = this.leftMargin_;
+      return margin;
+    },
+
     updateYAxis_: function(yAxis) {
       yAxis.selectAll('*').remove();
       yAxis[0][0].style.opacity = 0;
@@ -172,9 +179,12 @@ tr.exportTo('tr.ui.b', function() {
         .orient('left'));
       window.requestAnimationFrame(function() {
         var previousTop = undefined;
+        var leftMargin = 0;
         yAxis.selectAll('.tick')[0].forEach(function(tick) {
+          var bbox = tick.getBBox();
+          leftMargin = Math.max(leftMargin, bbox.width);
           var currentTop = tick.transform.baseVal[0].matrix.f;
-          var currentBottom = currentTop + tick.getBBox().height;
+          var currentBottom = currentTop + bbox.height;
           if ((previousTop === undefined) ||
               (previousTop > (currentBottom + 3))) {
             previousTop = currentTop;
@@ -182,8 +192,13 @@ tr.exportTo('tr.ui.b', function() {
             tick.style.opacity = 0;
           }
         });
-        yAxis[0][0].style.opacity = 1;
-      });
+        if (leftMargin > this.leftMargin_) {
+          this.leftMargin_ = leftMargin;
+          this.updateContents_();
+        } else {
+          yAxis[0][0].style.opacity = 1;
+        }
+      }.bind(this));
     },
 
     updateContents_: function() {

@@ -101,8 +101,10 @@ found in the LICENSE file.
       var minBin = this.histogram_.getBinForValue(r.min);
       var maxBin = this.histogram_.getBinForValue(r.max);
       var binWidth = this.histogram_.centralBins[0].range.range;
-      r.min = Math.max(centralMin - binWidth, minBin.range.min);
-      r.max = Math.min(centralMax + binWidth, maxBin.range.max);
+      r.min = minBin ? Math.max(centralMin - binWidth, minBin.range.min) :
+        centralMin - binWidth;
+      r.max = maxBin ? Math.min(centralMax + binWidth, maxBin.range.max) :
+        centralMax + binWidth;
 
       this.chart_.brushedRange = r;
 

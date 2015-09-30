@@ -36,14 +36,24 @@ found in the LICENSE file.
         border-bottom: 1px solid #8e8e8e;
         padding: 4px;
       }
+      #histogram {
+        flex: 1 1 auto;
+        max-width: 400px;
+      }
+      #links {
+        min-height: 200px;
+      }
+      h2 {
+        font-size: 12pt;
+      }
       #table {
         flex: 1 1 auto;
       }
     </style>
     <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
-    <h1>Histogram</h1>
+    <h2>Histogram</h2>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
-    <h1>Links</h1>
+    <h2>Links</h2>
     <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
   </template>
   <script>
@@ -61,14 +71,25 @@ found in the LICENSE file.
         this.setHistogramBasedOnSelection_();
       }.bind(this));
       var histogram = this.$.histogram;
-      histogram.addEventListener('item-mousedown', function(dataEvent) {
-        //TODO(nduca): Fix this when #1527 is fixed.
-        dataEvent.stopPropagation();
-        var bin = histogram.histogram.getBinForValue(dataEvent.data.x);
-        this.$.links.setTraceUrls(bin.sourceInfos.map(function(run_info) {
-          return run_info.url;
-        }));
-      }.bind(this));
+      histogram.addEventListener('brushed-bins-changed',
+          this.onBrushedBinsChanged_.bind(this));
+    },
+
+    onBrushedBinsChanged_: function(event) {
+      event.stopPropagation();
+      this.setTraceURLsFromBins_(this.$.histogram.brushedBins);
+    },
+
+    setTraceURLsFromBins_: function(bins) {
+      var urlSet = [];
+      bins.forEach(function(bin) {
+        bin.sourceInfos.forEach(function(sourceInfo) {
+          urlSet[sourceInfo.url] = 1;
+        });
+      });
+      urlSet = Object.keys(urlSet);
+      urlSet.sort();
+      this.$.links.setTraceUrls(urlSet);
     },
 
     get mapResults() {
@@ -115,15 +136,17 @@ found in the LICENSE file.
         return datum.thread;
       });
       table.groupBy = groupBy;
-      table.dataToGroup = rows;
       table.supportsSelection = true;
       table.cellSelectionMode = true;
       table.rowHighlightEnabled = true;
+      table.dataToGroup = rows;
+      table.selectedTableRow = table.tableRows[0];
+      table.selectedColumnIndex = 2;
       table.rebuild();
+      this.setHistogramBasedOnSelection_();
     },
 
     createColumns_: function() {
-
       var columns = [{
           title: 'Title',
           value: function(row) {
@@ -145,7 +168,6 @@ found in the LICENSE file.
     },
 
     createCachingColumn_: function(title, type) {
-
       function averageFromHistograms(data) {
         var runningSum = 0;
         var numValues = 0;
@@ -188,6 +210,7 @@ found in the LICENSE file.
       });
 
       this.$.histogram.histogram = histogram;
+      this.setTraceURLsFromBins_(this.$.histogram.histogram.allBins);
     }
 
   });
