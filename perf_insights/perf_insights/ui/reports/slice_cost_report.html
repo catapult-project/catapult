@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
+<link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
@@ -36,10 +37,16 @@ found in the LICENSE file.
       }
 
       content-pane {
+        min-height: 0;
         display: flex;
         flex-direction: row;
       }
 
+      table-container {
+        flex: 1 1 60%;
+        display: flex;
+        overflow: auto;
+      }
       #table {
         flex: 1 1 60%;
       }
@@ -47,17 +54,31 @@ found in the LICENSE file.
       right-pane {
         border-left: 1px solid black;
         display: flex;
+        flex-direction: column;
         flex: 1 1 40%;
       }
-
+      right-pane > *:after {
+        height: 30px;
+      }
     </style>
     <top-controls></top-controls>
     <content-pane>
-      <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+      <table-container>
+        <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+      </table-container>
       <right-pane>
         <div id="script-costs">
           Script costs
           <tr-ui-b-table id="script-costs-table"></tr-ui-b-table>
+        </div>
+
+        <div id="costs-histogram-container">
+          Histogram of
+          <select id="costs-histogram-cost-type"></select> values:
+          <tr-ui-u-histogram-span id="costs-histogram"></tr-ui-u-histogram-span>
+
+          Links
+          <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
         </div>
       </div>
     </content-pane>
@@ -119,6 +140,7 @@ found in the LICENSE file.
       topControls.appendChild(this.groupByDomain_);
 
       this.updateRightPane_();
+      this.initCostsHistogram_();
     },
 
     get mapResults() {
@@ -136,6 +158,7 @@ found in the LICENSE file.
 
     updateRightPane_: function() {
       this.updateScriptCosts_();
+      this.updateCostsHistogram_();
     },
 
     updateScriptCosts_: function() {
@@ -210,25 +233,28 @@ found in the LICENSE file.
 
         result.value.sliceCosts.forEach(function(item) {
           var sliceCostInfo = pi.wr.SliceCostInfo.fromDict(item);
-          allSliceCosts.push(sliceCostInfo);
+          allSliceCosts.push({
+            runInfo: result.runInfo,
+            sliceCostInfo: sliceCostInfo
+          });
         });
       });
 
       var groupBy = [];
       if (this.groupByThreadName_.checked) {
         groupBy.push(function(datum) {
-          return datum.threadGroup;
+          return datum.sliceCostInfo.threadGroup;
         });
       }
       if (this.groupByRAILTypeName_.checked) {
         groupBy.push(function(datum) {
-          return datum.railTypeName;
+          return datum.sliceCostInfo.railTypeName;
         });
       }
 
       if (this.groupByUserFriendlyCategory_.checked) {
         groupBy.push(function(datum) {
-          return datum.userFriendlyCategory || 'other';
+          return datum.sliceCostInfo.userFriendlyCategory || 'other';
         });
       }
 
@@ -236,13 +262,13 @@ found in the LICENSE file.
       if (groupBy.length === 0) {
         if (this.groupByDomainCategory_.checked) {
           groupBy.push(function(datum) {
-            return datum.domainCategory;
+            return datum.sliceCostInfo.domainCategory;
           });
           didGroupByDomainCategoryOrDomain = true;
         }
         if (this.groupByDomain_.checked) {
           groupBy.push(function(datum) {
-            return datum.domain;
+            return datum.sliceCostInfo.domain;
           });
           didGroupByDomainCategoryOrDomain = true;
         }
@@ -250,20 +276,20 @@ found in the LICENSE file.
 
       if (this.groupByTitle_.checked) {
         groupBy.push(function(datum) {
-          return datum.title;
+          return datum.sliceCostInfo.title;
         });
       }
 
       if (this.groupByDomainCategory_.checked &&
           !didGroupByDomainCategoryOrDomain) {
         groupBy.push(function(datum) {
-          return datum.domainCategory;
+          return datum.sliceCostInfo.domainCategory;
         });
       }
 
       if (this.groupByDomain_.checked && !didGroupByDomainCategoryOrDomain) {
         groupBy.push(function(datum) {
-          return datum.domain;
+          return datum.sliceCostInfo.domain;
         });
       }
 
@@ -271,6 +297,7 @@ found in the LICENSE file.
       table.groupBy = groupBy;
       table.dataToGroup = allSliceCosts;
       table.rebuild();
+      this.updateRightPane_();
     },
 
     createColumns_: function() {
@@ -285,11 +312,11 @@ found in the LICENSE file.
           },
           width: '500px'
         },
-        this.createCachingColumn_('Self time', function(sliceCostInfo) {
-          return sliceCostInfo.selfTime;
+        this.createCachingColumn_('Self time', function(datum) {
+          return datum.sliceCostInfo.selfTime;
         }),
-        this.createCachingColumn_('CPU Self time', function(sliceCostInfo) {
-          return sliceCostInfo.cpuSelfTime;
+        this.createCachingColumn_('CPU Self time', function(datum) {
+          return datum.sliceCostInfo.cpuSelfTime;
         })
       ];
       return columns;
@@ -312,6 +339,95 @@ found in the LICENSE file.
             });
       };
       return column;
+    },
+
+    initCostsHistogram_: function() {
+      var histogram = this.shadowRoot.querySelector('#costs-histogram');
+      histogram.addEventListener('brushed-bins-changed',
+          this.onBrushedBinsChanged_.bind(this));
+
+      var options = [
+        {
+          label: 'Self time',
+          value: 'selfTime',
+          func: function(datum) { return datum.sliceCostInfo.selfTime; }
+        },
+        {
+          label: 'CPU self time',
+          value: 'cpuSelfTime',
+          func: function(datum) { return datum.sliceCostInfo.cpuSelfTime; }
+        },
+        {
+          label: 'JS time',
+          value: 'jsTime',
+          func: function(datum) { return datum.sliceCostInfo.jsTime; }
+        }
+      ];
+      for (var state in tr.model.source_info.JSSourceState) {
+        options.push({
+          label: 'JS time: ' + state,
+          value: 'jsTime.' + state,
+          func: function(datum) {
+            return datum.sliceCostInfo.jsTimeByState[state];
+          }
+        });
+      }
+      var oldSelector = this.shadowRoot.querySelector(
+          '#costs-histogram-cost-type');
+      var newSelector = tr.ui.b.createSelector(
+          this, 'currentSliceReportCostType',
+          'pi.app_main.currentSliceReportCostType',
+          options[0].value,
+          options);
+      newSelector.id = 'costs-histogram-cost-type';
+      oldSelector.parentElement.replaceChild(newSelector, oldSelector);
+    },
+
+    set currentSliceReportCostType(currentSliceReportCostType) {
+      this.updateCostsHistogram_();
+    },
+
+    updateCostsHistogram_: function() {
+      var container = this.shadowRoot.querySelector(
+          '#costs-histogram-container');
+
+      if (this.$.table.selectedTableRow === undefined) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.style.display = '';
+
+      var selector = this.shadowRoot.querySelector(
+          '#costs-histogram-cost-type');
+      var func = selector.selectedItem.func;
+
+      var histogram = tr.b.u.Histogram.createLinear(
+          tr.b.u.Units.timeDurationInMs,
+          tr.b.Range.fromExplicitRange(0, 200),
+          100);
+      this.$.table.selectedTableRow.data.forEach(function(datum) {
+        var value = func(datum);
+        histogram.add(value, datum.runInfo);
+      });
+
+      var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
+      histogramSpan.histogram = histogram;
+      this.onBrushedBinsChanged_();
+    },
+
+    onBrushedBinsChanged_: function() {
+      var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
+      var brushedBins = histogramSpan.brushedBins;
+      var urlSet = {};
+      brushedBins.forEach(function(bin) {
+        bin.sourceInfos.forEach(function(sourceInfo) {
+          urlSet[sourceInfo.url] = 1;
+        });
+      });
+      urlSet = Object.keys(urlSet);
+      urlSet.sort();
+      this.$.links.setTraceUrls(urlSet);
     }
   });
   </script>

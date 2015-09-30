@@ -100,6 +100,7 @@ tr.exportTo('tr.ui.b', function() {
       var optionEl = document.createElement('option');
       optionEl.textContent = item.label;
       optionEl.targetPropertyValue = item.value;
+      optionEl.item = item;
       selectorEl.appendChild(optionEl);
     }
     function onChange(e) {
@@ -110,6 +111,9 @@ tr.exportTo('tr.ui.b', function() {
     var oldSetter = targetEl.__lookupSetter__('selectedIndex');
     selectorEl.__defineGetter__('selectedValue', function(v) {
       return selectorEl.children[selectorEl.selectedIndex].targetPropertyValue;
+    });
+    selectorEl.__defineGetter__('selectedItem', function(v) {
+      return selectorEl.children[selectorEl.selectedIndex].item;
     });
     selectorEl.__defineSetter__('selectedValue', function(v) {
       for (var i = 0; i < selectorEl.children.length; i++) {
