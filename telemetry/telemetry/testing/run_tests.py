@@ -5,6 +5,7 @@ import logging
 import sys
 
 from telemetry.core import util
+from telemetry.core import platform as platform_module
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
@@ -38,6 +39,8 @@ class RunTestsCommand(command_line.OptparseCommand):
   def AddCommandLineArgs(cls, parser, _):
     parser.add_option('--repeat-count', type='int', default=1,
                       help='Repeats each a provided number of times.')
+    parser.add_option('--no-browser', action='store_true', default=False,
+                      help='Don\'t require an actual browser to run the tests.')
     parser.add_option('-d', '--also-run-disabled-tests',
                       dest='run_disabled_tests',
                       action='store_true', default=False,
@@ -61,6 +64,9 @@ class RunTestsCommand(command_line.OptparseCommand):
     # explicitly.
     if not args.retry_limit and not args.positional_args:
       args.retry_limit = 3
+
+    if args.no_browser:
+      return
 
     try:
       possible_browser = browser_finder.FindBrowser(args)
@@ -91,11 +97,16 @@ class RunTestsCommand(command_line.OptparseCommand):
     return obj.Run(options)
 
   def Run(self, args):
-    possible_browser = browser_finder.FindBrowser(args)
-
     runner = typ.Runner()
     if self.stream:
       runner.host.stdout = self.stream
+
+    if args.no_browser:
+      possible_browser = None
+      platform = platform_module.GetHostPlatform()
+    else:
+      possible_browser = browser_finder.FindBrowser(args)
+      platform = possible_browser.platform
 
     # Telemetry seems to overload the system if we run one test per core,
     # so we scale things back a fair amount. Many of the telemetry tests
@@ -104,12 +115,12 @@ class RunTestsCommand(command_line.OptparseCommand):
     #
     # It should be possible to handle multiple devices if we adjust the
     # browser_finder code properly, but for now we only handle one on ChromeOS.
-    if possible_browser.platform.GetOSName() == 'chromeos':
+    if platform.GetOSName() == 'chromeos':
       runner.args.jobs = 1
-    elif possible_browser.platform.GetOSName() == 'android':
+    elif platform.GetOSName() == 'android':
       runner.args.jobs = len(device_finder.GetDevicesMatchingOptions(args))
       print 'Running tests with %d Android device(s).' % runner.args.jobs
-    elif possible_browser.platform.GetOSVersionName() == 'xp':
+    elif platform.GetOSVersionName() == 'xp':
       # For an undiagnosed reason, XP falls over with more parallelism.
       # See crbug.com/388256
       runner.args.jobs = max(int(args.jobs) // 4, 1)
@@ -147,7 +158,22 @@ class RunTestsCommand(command_line.OptparseCommand):
 
 
 def GetClassifier(args, possible_browser):
-  def ClassifyTest(test_set, test):
+
+  def ClassifyTestWithoutBrowser(test_set, test):
+    name = test.id()
+    if (not args.positional_args
+        or _MatchesSelectedTest(name, args.positional_args,
+                                  args.exact_test_filter)):
+      # TODO(telemetry-team): Make sure that all telemetry unittest that invokes
+      # actual browser are subclasses of browser_test_case.BrowserTestCase
+      # (crbug.com/537428)
+      if issubclass(test.__class__, browser_test_case.BrowserTestCase):
+        test_set.tests_to_skip.append(typ.TestInput(
+            name, msg='Skip the test because it requires a browser.'))
+      else:
+        test_set.parallel_tests.append(typ.TestInput(name))
+
+  def ClassifyTestWithBrowser(test_set, test):
     name = test.id()
     if (not args.positional_args
         or _MatchesSelectedTest(name, args.positional_args,
@@ -162,7 +188,10 @@ def GetClassifier(args, possible_browser):
       else:
         test_set.parallel_tests.append(typ.TestInput(name))
 
-  return ClassifyTest
+  if possible_browser:
+    return ClassifyTestWithBrowser
+  else:
+    return ClassifyTestWithoutBrowser
 
 
 def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
@@ -194,6 +223,8 @@ def _SetUpProcess(child, context): # pylint: disable=W0613
 
 
 def _TearDownProcess(child, context): # pylint: disable=W0613
+  # It's safe to call teardown_browser even if we did not start any browser
+  # in any of the tests.
   browser_test_case.teardown_browser()
   options_for_unittests.Pop()
 
