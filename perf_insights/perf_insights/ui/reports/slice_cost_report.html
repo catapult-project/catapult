@@ -57,9 +57,10 @@ found in the LICENSE file.
         flex-direction: column;
         flex: 1 1 40%;
       }
-      right-pane > *:after {
-        height: 30px;
+      right-pane > * {
+        margin-bottom: 20px;
       }
+
       #links {
         min-height: 0;
         overflow: auto;
@@ -163,6 +164,18 @@ found in the LICENSE file.
     updateRightPane_: function() {
       this.updateScriptCosts_();
       this.updateCostsHistogram_();
+      var panes = this.shadowRoot.querySelector('right-pane').children;
+      var isFirst = true;
+      for (var i = 0; i < panes.length; i++) {
+        if (getComputedStyle(panes[i]).display === 'none')
+          continue;
+        if (isFirst) {
+          panes[i].style.borderTop = '';
+          isFirst = false;
+          continue;
+        }
+        panes[i].style.borderTop = '1px solid black';
+      }
     },
 
     updateScriptCosts_: function() {
@@ -173,7 +186,7 @@ found in the LICENSE file.
       var aggregated = new pi.wr.SliceCostInfo();
       if (this.$.table.selectedTableRow) {
         this.$.table.selectedTableRow.data.forEach(function(datum) {
-          aggregated.push(undefined, datum);
+          aggregated.push(undefined, datum.sliceCostInfo);
         });
       }
       if (aggregated.jsTime === 0) {
