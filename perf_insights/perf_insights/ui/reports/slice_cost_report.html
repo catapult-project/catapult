@@ -297,9 +297,9 @@ found in the LICENSE file.
 
     createCachingColumn_(title, getDataFunction) {
       function computeStats(sliceCostInfo) {
-        var mean = tr.b.Statistics.mean(sliceCostInfo, getDataFunction);
-        return mean === undefined ? undefined :
-            tr.ui.units.createTimeDurationSpan(mean);
+        var sum = tr.b.Statistics.sum(sliceCostInfo, getDataFunction);
+        return sum === undefined ? undefined :
+            tr.ui.units.createTimeDurationSpan(sum);
       }
 
       var column = new pi.ui.CachingColumn(title, computeStats);
