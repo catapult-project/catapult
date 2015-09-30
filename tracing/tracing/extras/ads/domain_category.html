@@ -22,6 +22,7 @@ tr.exportTo('tr.e.ads', function() {
   var CATEGORY_EXTENSIONS = 'Extensions';
   var CATEGORY_OTHER = 'Other';
   var CATEGORY_SOCIAL = 'Social';
+  var CATEGORY_TRACING = 'Tracing';
 
   // Each rule is a tuple of (RegEx, Category). The first match will be used.
   // For now we only assign 1 category to a domain; it may make sense to
@@ -55,7 +56,16 @@ tr.exportTo('tr.e.ads', function() {
     new Rule(/\.newrelic\.com$/, CATEGORY_ANALYTICS),
     new Rule(/\.newsinc\.com$/, CATEGORY_ADS),
     new Rule(/\.spingo\.com$/, CATEGORY_CONTENT_RECOMMENDATION),
-    new Rule(/^chrome:\/\//, CATEGORY_EXTENSIONS)
+    new Rule(/\.visualrevenue\.com$/, CATEGORY_ANALYTICS),
+    new Rule(/cdn\.livefyre\.com$/, CATEGORY_SOCIAL),
+    new Rule(/\.dynamicyield\.com$/, CATEGORY_ANALYTICS),
+    new Rule(/cdn\.krxd\.net$/, CATEGORY_ANALYTICS),
+    new Rule(/\.chartbeat\.com$/, CATEGORY_ANALYTICS),
+    new Rule(/\.clicktale\.net$/, CATEGORY_ANALYTICS),
+    new Rule(/\.gravity\.com$/, CATEGORY_ANALYTICS),
+    new Rule(/\.brightcove\.com$/, CATEGORY_ANALYTICS),
+    new Rule(/^chrome:\/\//, CATEGORY_TRACING),
+    new Rule(/^chrome-extension:\/\//, CATEGORY_EXTENSIONS)
   ];
 
   function DomainCategory() {

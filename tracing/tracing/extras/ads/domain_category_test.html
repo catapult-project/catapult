@@ -27,7 +27,10 @@ tr.b.unittest.testSuite(function() {
         'Content Recommendation',
         DomainCategory.fromDomain('http://xyz.outbrain.com'));
     assert.equal(
-        'Extensions', DomainCategory.fromDomain('chrome://oiuy325oiu'));
+        'Tracing', DomainCategory.fromDomain('chrome://tracing'));
+    assert.equal(
+        'Extensions',
+        DomainCategory.fromDomain('chrome-extension://oiuy325oiu'));
     assert.equal(
         'Other',
         DomainCategory.fromDomain('http://xyz.outbrain.com.au'));
