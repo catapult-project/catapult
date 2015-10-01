@@ -361,6 +361,11 @@ tr.exportTo('tr.e.rail', function() {
         if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice))
           return false;
 
+        if (isNaN(slice.start) ||
+            isNaN(slice.duration) ||
+            isNaN(slice.end))
+          return false;
+
         return typeNames.indexOf(slice.typeName) >= 0;
       }
 
