@@ -45,6 +45,14 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
       if chart_name == trace_name:
         trace_name = 'summary'
 
+    # TODO(eakuefner): Flip flag to close crbug.com/461101
+    if value.tir_label:
+      if benchmark_metadata.name == 'tbm_smoke.tbm_smoke':
+        sep = '@@'
+      else:
+        sep = '-'
+      chart_name = value.tir_label + sep + chart_name
+
     # This intentionally overwrites the trace if it already exists because this
     # is expected of output from the buildbots currently.
     # See: crbug.com/413393

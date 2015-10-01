@@ -76,10 +76,9 @@ class ResultsWrapperInterface(object):
 
 
 class _TBMResultWrapper(ResultsWrapperInterface):
-
   def AddValue(self, value):
     assert self._tir_label
-    value.name = '%s-%s' % (self._tir_label, value.name)
+    value.tir_label = self._tir_label
     self._results.AddValue(value)
 
 

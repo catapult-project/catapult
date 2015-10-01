@@ -33,9 +33,10 @@ class MergeValueTest(TestBase):
 
     value = scalar.ScalarValue(
         page0, 'x', 'units', 1,
-        improvement_direction=improvement_direction.UP)
+        improvement_direction=improvement_direction.UP,
+        tir_label='foo')
 
-    self.assertEquals('x', merge_values.DefaultKeyFunc(value))
+    self.assertEquals(('x', 'foo'), merge_values.DefaultKeyFunc(value))
 
   def testSamePageMergeBasic(self):
     page0 = self.pages[0]
@@ -124,6 +125,17 @@ class MergeValueTest(TestBase):
     self.assertEquals(1, len(merged_values))
     self.assertEquals('foo', merged_values[0].tir_label)
 
+  def testSamePageMergeWithTwoInteractionRecords(self):
+    page0 = self.pages[0]
+
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1, tir_label='foo'),
+                  scalar.ScalarValue(page0, 'x', 'units', 4, tir_label='bar')]
+
+    merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
+    self.assertEquals(2, len(merged_values))
+    self.assertEquals('foo', merged_values[0].tir_label)
+    self.assertEquals('bar', merged_values[1].tir_label)
+
   def testDifferentPageMergeBasic(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
@@ -141,8 +153,6 @@ class MergeValueTest(TestBase):
                       page1, 'y', 'units', 20,
                       improvement_direction=improvement_direction.UP)]
 
-    # Sort the results so that their order is predictable for the subsequent
-    # assertions.
     merged_values = merge_values.MergeLikeValuesFromDifferentPages(all_values)
     merged_values.sort(key=lambda x: x.name)
     self.assertEquals(2, len(merged_values))
@@ -195,3 +205,26 @@ class MergeValueTest(TestBase):
     self.assertTrue(
         isinstance(merged_values[0], list_of_scalar_values.ListOfScalarValues))
     self.assertEquals([1], merged_values[0].values)
+
+  def testDifferentPageMergeWithInteractionRecord(self):
+    page0 = self.pages[0]
+    page1 = self.pages[1]
+
+    v0 = scalar.ScalarValue(page0, 'x', 'units', 1, tir_label='foo')
+    v1 = scalar.ScalarValue(page0, 'y', 'units', 30, tir_label='bar')
+    v2 = scalar.ScalarValue(page1, 'x', 'units', 2, tir_label='foo')
+    v3 = scalar.ScalarValue(page1, 'y', 'units', 40, tir_label='baz')
+
+    all_values = [v0, v1, v2, v3]
+
+    merged_x = list_of_scalar_values.ListOfScalarValues(
+      None, 'x', 'units', [1, 2], tir_label='foo')
+    merged_y_bar = list_of_scalar_values.ListOfScalarValues(
+      None, 'y', 'units', [30], tir_label='bar')
+    merged_y_baz = list_of_scalar_values.ListOfScalarValues(
+      None, 'y', 'units', [40], tir_label='baz')
+
+    merged_values = merge_values.MergeLikeValuesFromDifferentPages(all_values)
+    merged_values.sort(key=lambda x: x.tir_label)
+
+    self.assertEquals([merged_y_bar, merged_y_baz, merged_x], merged_values)

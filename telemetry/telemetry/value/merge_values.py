@@ -21,7 +21,7 @@ def DefaultKeyFunc(value):
   Returns:
     A comparable object used to group values.
   """
-  return value.name
+  return value.name, value.tir_label
 
 
 def MergeLikeValuesFromSamePage(all_values, key_func=DefaultKeyFunc):
@@ -29,14 +29,15 @@ def MergeLikeValuesFromSamePage(all_values, key_func=DefaultKeyFunc):
 
   A page may end up being measured multiple times, meaning that we may end up
   with something like this:
-       ScalarValue(page1, 'x', 1)
-       ScalarValue(page2, 'x', 4)
-       ScalarValue(page1, 'x', 2)
-       ScalarValue(page2, 'x', 5)
+       ScalarValue(page1, 'x', 1, 'foo')
+       ScalarValue(page2, 'x', 4, 'bar')
+       ScalarValue(page1, 'x', 2, 'foo')
+       ScalarValue(page2, 'x', 5, 'baz')
 
   This function will produce:
-       ListOfScalarValues(page1, 'x', [1, 2])
-       ListOfScalarValues(page2, 'x', [4, 5])
+       ListOfScalarValues(page1, 'x', [1, 2], 'foo')
+       ListOfScalarValues(page2, 'x', [4], 'bar')
+       ListOfScalarValues(page2, 'x', [5], 'baz')
 
   The workhorse of this code is Value.MergeLikeValuesFromSamePage.
 
@@ -55,14 +56,15 @@ def MergeLikeValuesFromDifferentPages(all_values, key_func=DefaultKeyFunc):
 
   After using MergeLikeValuesFromSamePage, one still ends up with values from
   different pages:
-       ScalarValue(page1, 'x', 1)
-       ScalarValue(page1, 'y', 30)
-       ScalarValue(page2, 'x', 2)
-       ScalarValue(page2, 'y', 40)
+       ScalarValue(page1, 'x', 1, 'foo')
+       ScalarValue(page1, 'y', 30, 'bar')
+       ScalarValue(page2, 'x', 2, 'foo')
+       ScalarValue(page2, 'y', 40, 'baz')
 
-  This function will group the values of the same value_name together:
-       ListOfScalarValues(None, 'x', [1, 2])
-       ListOfScalarValues(None, 'y', [30, 40])
+  This function will group values with the same name and tir_label together:
+       ListOfScalarValues(None, 'x', [1, 2], 'foo')
+       ListOfScalarValues(None, 'y', [30], 'bar')
+       ListOfScalarValues(None, 'y', [40], 'baz')
 
   The workhorse of this code is Value.MergeLikeValuesFromDifferentPages.
 

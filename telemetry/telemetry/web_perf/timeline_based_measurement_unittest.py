@@ -150,10 +150,10 @@ class TimelineBasedMetricsTests(unittest.TestCase):
                      marker='Interaction.LogicalName2')
     d.FinalizeImport()
     d.AddResults()
-    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
-        'LogicalName1-FakeSmoothMetric')))
-    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesNamed(
-        'LogicalName2-FakeLoadingMetric')))
+    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesFromIRNamed(
+        'LogicalName1', 'FakeSmoothMetric')))
+    self.assertEquals(1, len(d.results.FindAllPageSpecificValuesFromIRNamed(
+        'LogicalName2', 'FakeLoadingMetric')))
 
   def testDuplicateInteractionsInDifferentThreads(self):
     d = TimelineBasedMetricTestData(self._options)

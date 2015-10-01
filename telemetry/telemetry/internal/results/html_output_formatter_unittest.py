@@ -208,6 +208,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.AddValue(scalar.ScalarValue(
         test_story_set.stories[1], 'a', 'seconds', 9,
         improvement_direction=improvement_direction.DOWN))
+    results.AddValue(scalar.ScalarValue(
+        test_story_set.stories[1], 'b', 'seconds', 20, tir_label='foo'))
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
@@ -242,6 +244,18 @@ class HtmlOutputFormatterTest(unittest.TestCase):
               "std": 0.0,
               "units": "seconds",
               "important": False
+            },
+            "foo-b.http://www.bar.com/": {
+              "current": [20],
+              "std": 0.0,
+              "units": "seconds",
+              "important": False
+            },
+            "foo-b": {
+              "current": [20],
+              "std": 0.0,
+              "units": "seconds",
+              "important": True
             }
           }
         }

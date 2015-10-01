@@ -128,14 +128,19 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
 
         perf_value = value.GetBuildbotValue()
 
+        if '@@' in chart_name:
+          chart_name_to_print = '%s-%s' % tuple(chart_name.split('@@'))
+        else:
+          chart_name_to_print = str(chart_name)
+
         if trace_name == 'summary':
-          trace_name = chart_name
+          trace_name = chart_name_to_print
 
         std = None
         if isinstance(value, list_of_scalar_values.ListOfScalarValues):
           std = value.std
 
-        self._PrintPerfResult(chart_name, trace_name, perf_value,
+        self._PrintPerfResult(chart_name_to_print, trace_name, perf_value,
                               value.units, result_type, std)
 
   @property

@@ -57,11 +57,11 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
-    v = results.FindAllPageSpecificValuesNamed(
-        'CenterAnimation-frame_time_discrepancy')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'CenterAnimation', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
-    v = results.FindAllPageSpecificValuesNamed(
-        'DrawerAnimation-frame_time_discrepancy')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'DrawerAnimation', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
   # This test should eventually work on all platforms, but currently this
@@ -79,12 +79,12 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
-    v = results.FindAllPageSpecificValuesNamed(
-        'CenterAnimation-browser_compositor_max_cpu_time')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'CenterAnimation', 'browser_compositor_max_cpu_time')
     self.assertEquals(len(v), 1)
     self.assertGreater(v[0].value, 0)
-    v = results.FindAllPageSpecificValuesNamed(
-        'DrawerAnimation-browser_compositor_max_cpu_time')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'DrawerAnimation', 'browser_compositor_max_cpu_time')
     self.assertEquals(len(v), 1)
     self.assertGreater(v[0].value, 0)
 
@@ -107,12 +107,12 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     # Since window.performance.now() uses wall-time instead of thread time,
     # we only assert the biggest jank > 50ms here to account for the fact
     # that the browser may deschedule during the jank loop.
-    v = results.FindAllPageSpecificValuesNamed(
-        'JankThreadJSRun-responsive-biggest_jank_thread_time')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'JankThreadJSRun', 'responsive-biggest_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
 
-    v = results.FindAllPageSpecificValuesNamed(
-        'JankThreadJSRun-responsive-total_big_jank_thread_time')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'JankThreadJSRun', 'responsive-total_big_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
 
   @decorators.Disabled('win') # www.crbug.com/520781
@@ -125,8 +125,8 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
-    v = results.FindAllPageSpecificValuesNamed(
-        'Gesture_Scroll-frame_time_discrepancy')
+    v = results.FindAllPageSpecificValuesFromIRNamed(
+        'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
   def testTimelineBasedMeasurementWithNoInteractionRecord(self):
