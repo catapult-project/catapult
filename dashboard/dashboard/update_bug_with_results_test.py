@@ -9,6 +9,7 @@ import mock
 import webapp2
 import webtest
 
+from dashboard import layered_cache
 from dashboard import rietveld_service
 from dashboard import testing_common
 from dashboard import update_bug_with_results
@@ -712,7 +713,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
-  def testGetForMergeIssue(self, mock_update_bug):
+  def testGet_MergesBugIntoExistingBug(self, mock_update_bug):
     # When there exists a bug with the same revision (commit hash),
     # mark bug as duplicate and merge current issue into that.
     try_job.TryJob(
@@ -755,7 +756,45 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         anomaly.Anomaly.bug_id == int(54321)).fetch()
     self.assertEqual(0, len(anomalies))
 
-  def testAnomalyMappingForMergeIssue(self):
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': 'Status: Positive\nCommit  : abcd123',
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testGet_PositiveResult_StoresCommitHash(self):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    self.testapp.get('/update_bug_with_results')
+    self.assertEqual('12345', layered_cache.Get('commit_hash_abcd123'))
+
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': 'Status: Negative\nCommit  : a121212',
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testGet_NegativeResult_StoresCommitHash(self):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    self.testapp.get('/update_bug_with_results')
+    self.assertIsNone(layered_cache.Get('commit_hash_a121212'))
+
+  def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
     test_keys = map(utils.TestKey, [
         'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
@@ -779,7 +818,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
-  def testCheckBisectBotForInfraBotFailure(self, log_bisect_failure_mock):
+  def testCheckBisectBotForInfraFailure_BotFailure(
+      self, log_bisect_failure_mock):
     bug_id = 516
     build_data = {
         'steps': [{'name': 'A', 'results': [0]},
@@ -796,7 +836,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
-  def testCheckBisectBotForInfraBuildFailure(self, log_bisect_failure_mock):
+  def testCheckBisectBotForInfraFailure_BuildFailure(
+      self, log_bisect_failure_mock):
     bug_id = 516
     build_data = {
         'steps': [{'name': 'A', 'results': [0]},
@@ -815,7 +856,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
-  def testBotInfoInBisectResults(self, mock_update_bug):
+  def testGet_BotInfoInBisectResults(self, mock_update_bug):
     # When a bisect finds multiple culprits by same Author for a perf
     # regression, owner of CLs should be cc'ed.
     try_job.TryJob(

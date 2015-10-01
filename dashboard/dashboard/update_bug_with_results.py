@@ -462,7 +462,8 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   bug = ndb.Key('Bug', job.bug_id).get()
 
   commit_cache_key = _GetCommitHashCacheKey(bisect_results['results'])
-  if bug and _BisectResultIsPositive(bisect_results['results']):
+  result_is_positive = _BisectResultIsPositive(bisect_results['results'])
+  if bug and result_is_positive:
     merge_issue = layered_cache.Get(commit_cache_key)
     if not merge_issue:
       authors_to_cc = _GetAuthorsToCC(bisect_results['results'])
@@ -498,7 +499,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
-  if commit_cache_key and not merge_issue:
+  if commit_cache_key and not merge_issue and result_is_positive:
     layered_cache.Set(commit_cache_key, str(job.bug_id), days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
