@@ -12,31 +12,18 @@ from catapult_base import dependency_manager
 from catapult_base import cloud_storage
 from catapult_base.dependency_manager import exceptions
 
+from pyfakefs import fake_filesystem_unittest
+
 
 class DependencyManagerTest(unittest.TestCase):
-  @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._UpdateDependencies')
-  def testInit(self, update_mock):
-    self.assertRaises(ValueError, dependency_manager.DependencyManager, None)
-    self.assertFalse(update_mock.call_args)
-    self.assertRaises(ValueError, dependency_manager.DependencyManager,
-                      'config_file?')
-    self.assertFalse(update_mock.call_args)
 
-    dependency_manager.DependencyManager([])
-    self.assertFalse(update_mock.call_args)
-
-    dependency_manager.DependencyManager(['config_file'])
-    update_mock.called_once_with_args('config_file')
-    update_mock.reset_mock()
-
-    dependency_manager.DependencyManager(
-        ['config_file1', 'config_file2', 'config_file3', 'config_file4'])
-    expected_calls = [mock.call('config_file1'), mock.call('config_file2'),
-                      mock.call('config_file3'), mock.call('config_file4')]
-    update_mock.assert_has_calls(expected_calls, any_order=True)
-    update_mock.reset_mock()
-
+  # TODO(nednguyen): add a test that construct
+  # dependency_manager.DependencyManager from a list of DependencyInfo.
+  def testErrorInit(self):
+    with self.assertRaises(ValueError):
+      dependency_manager.DependencyManager(None)
+    with self.assertRaises(ValueError):
+      dependency_manager.DependencyManager('config_file?')
 
   @mock.patch('os.path')
   @mock.patch('catapult_base.support_binaries.FindPath')
@@ -720,129 +707,78 @@ class DependencyManagerTest(unittest.TestCase):
     exists_mock.reset_mock()
 
 
-  @mock.patch('os.path.exists')
-  @mock.patch('os.chmod')
+class TestCloudStoragePath(fake_filesystem_unittest.TestCase):
+  def setUp(self):
+    self.setUpPyfakefs()
+    self.config_path = '/test/dep_config.json'
+    self.fs.CreateFile(self.config_path, contents='{}')
+    self.download_path = '/foo/download_path'
+    self.fs.CreateFile(
+        self.download_path, contents='1010110', st_mode=stat.S_IWOTH)
+    self.dep_info = dependency_manager.DependencyInfo(
+        dependency='test-dep', platform='linux', config_file=self.config_path,
+        cs_bucket='cs_bucket',
+        cs_hash='cs_hash',
+        version_in_cs='1.2.3.4',
+        cs_remote_path='cs_remote_path',
+        download_path=self.download_path)
+
   @mock.patch(
       'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePathMissingData(
-      self, cs_get_mock, chmod_mock, exists_mock):
-    dep_info = mock.MagicMock(spec=dependency_manager.DependencyInfo)
-    cs_remote_path = 'cs_remote_path'
-    cs_hash = 'cs_hash'
-    cs_bucket = 'cs_bucket'
-    download_path = 'download_path'
-
+  def testCloudStoragePathMissingData(self, cs_get_mock):
     # No dependency info.
     self.assertEqual(
         None, dependency_manager.DependencyManager._CloudStoragePath(None))
 
     # There is no cloud_storage information for the dependency.
-    dep_info.cs_remote_path = None
-    dep_info.cs_hash = None
-    dep_info.cs_bucket = None
-    dep_info.download_path = None
+    empty_dep_info = dependency_manager.DependencyInfo(
+        dependency='test-dep', platform='linux', config_file=self.config_path)
     self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(dep_info))
+        None,
+        dependency_manager.DependencyManager._CloudStoragePath(empty_dep_info))
 
-    # There is no cloud_storage remote_path the dependency.
-    dep_info.cs_remote_path = None
-    dep_info.cs_hash = cs_hash
-    dep_info.cs_bucket = cs_bucket
-    dep_info.download_path = download_path
-    self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(dep_info))
-
-    # There is no cloud_storage hash for the dependency.
-    dep_info.cs_remote_path = cs_remote_path
-    dep_info.cs_hash = None
-    dep_info.cs_bucket = cs_bucket
-    dep_info.download_path = download_path
-    self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(dep_info))
-
-    # There is no cloud_storage bucket for the dependency.
-    dep_info.cs_remote_path = cs_remote_path
-    dep_info.cs_hash = cs_hash
-    dep_info.cs_bucket = None
-    dep_info.download_path = download_path
-    self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(dep_info))
-
-    # There is no download_path for the dependency.
-    dep_info.cs_remote_path = cs_remote_path
-    dep_info.cs_hash = cs_hash
-    dep_info.cs_bucket = cs_bucket
-    dep_info.download_path = None
-    self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(dep_info))
-
-  @mock.patch('os.path.exists')
-  @mock.patch('os.chmod')
   @mock.patch(
       'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePath(self, cs_get_mock, chmod_mock, exists_mock):
-    dep_info = mock.MagicMock(spec=dependency_manager.DependencyInfo)
-    cs_remote_path = 'cs_remote_path'
-    cs_hash = 'cs_hash'
-    cs_bucket = 'cs_bucket'
-    download_path = 'download_path'
+  def testCloudStoragePath(self, cs_get_mock):
 
     # All of the needed information is given, and the downloaded path exists
     # after calling cloud storage.
-    dep_info.cs_remote_path = cs_remote_path
-    dep_info.cs_hash = cs_hash
-    dep_info.cs_bucket = cs_bucket
-    dep_info.download_path = download_path
-    exists_mock.return_value = True
     self.assertEqual(
-        os.path.abspath(download_path),
-        dependency_manager.DependencyManager._CloudStoragePath(dep_info))
-    chmod_mock.assert_called_once_with(
-        download_path,
-        stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
+        os.path.abspath(self.download_path),
+        dependency_manager.DependencyManager._CloudStoragePath(self.dep_info))
+    self.assertEqual(os.stat(self.download_path).st_mode,
+                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
 
     # All of the needed information is given, but the downloaded path doesn't
     # exists after calling cloud storage.
-    dep_info.cs_remote_path = cs_remote_path
-    dep_info.cs_hash = cs_hash
-    dep_info.cs_bucket = cs_bucket
-    dep_info.download_path = download_path
-    exists_mock.return_value = False
-    with mock.patch(
-        'catapult_base.dependency_manager.dependency_manager.os.makedirs'):
-      self.assertRaises(
-          exceptions.FileNotFoundError,
-          dependency_manager.DependencyManager._CloudStoragePath, dep_info)
-    exists_mock.assert_called_with(download_path)
+    self.fs.RemoveObject(self.download_path)
+    with self.assertRaises(exceptions.FileNotFoundError):
+      dependency_manager.DependencyManager._CloudStoragePath(self.dep_info)
 
-  @mock.patch('os.path.exists')
   @mock.patch(
       'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePathCloudStorageErrors(self, cs_get_mock, exists_mock):
-    dep_info = mock.MagicMock(spec=dependency_manager.DependencyInfo)
-    dep_info.download_path = 'download_path'
-
+  def testCloudStoragePathCloudStorageErrors(self, cs_get_mock):
     cs_get_mock.side_effect = cloud_storage.CloudStorageError
     self.assertRaises(
         cloud_storage.CloudStorageError,
-        dependency_manager.DependencyManager._CloudStoragePath, dep_info)
+        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
 
     cs_get_mock.side_effect = cloud_storage.ServerError
     self.assertRaises(
         cloud_storage.ServerError,
-        dependency_manager.DependencyManager._CloudStoragePath, dep_info)
+        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
 
     cs_get_mock.side_effect = cloud_storage.NotFoundError
     self.assertRaises(
         cloud_storage.NotFoundError,
-        dependency_manager.DependencyManager._CloudStoragePath, dep_info)
+        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
 
     cs_get_mock.side_effect = cloud_storage.PermissionError
     self.assertRaises(
         cloud_storage.PermissionError,
-        dependency_manager.DependencyManager._CloudStoragePath, dep_info)
+        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
 
     cs_get_mock.side_effect = cloud_storage.CredentialsError
     self.assertRaises(
         cloud_storage.CredentialsError,
-        dependency_manager.DependencyManager._CloudStoragePath, dep_info)
+        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
