@@ -86,26 +86,6 @@ class ChartJsonTest(unittest.TestCase):
 
     self.assertEquals('', d['benchmark_metadata']['description'])
 
-  def testAsChartDictPageSpecificValuesSamePageWithInteractionRecordFlag(self):
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN,
-                            tir_label='MyIR')
-    v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN,
-                            tir_label='MyIR')
-    page_specific_values = [v0, v1]
-    summary_values = []
-
-    benchmark_metadata = benchmark.BenchmarkMetadata('tbm_smoke.tbm_smoke')
-
-    d = chart_json_output_formatter.ResultsAsChartDict(
-        benchmark_metadata,
-        page_specific_values,
-        summary_values)
-
-    self.assertTrue('MyIR@@foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['MyIR@@foo'])
-
   def testAsChartDictPageSpecificValuesSamePageWithInteractionRecord(self):
     v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN,
@@ -121,8 +101,8 @@ class ChartJsonTest(unittest.TestCase):
         page_specific_values,
         summary_values)
 
-    self.assertTrue('MyIR-foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['MyIR-foo'])
+    self.assertTrue('MyIR@@foo' in d['charts'])
+    self.assertTrue('http://www.foo.com/' in d['charts']['MyIR@@foo'])
 
   def testAsChartDictPageSpecificValuesSamePageWithoutInteractionRecord(self):
     v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
