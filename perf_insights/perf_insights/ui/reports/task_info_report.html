@@ -185,6 +185,7 @@ found in the LICENSE file.
 
       var column = new pi.ui.CachingColumn(title, averageFromHistograms);
       column.type = type;
+      column.textAlign = 'right';
       column.cmp = function(row0, row1) {
         return column.value(row0).duration - column.value(row1).duration;
       };

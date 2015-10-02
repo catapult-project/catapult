@@ -201,6 +201,7 @@ found in the LICENSE file.
           value: function(ir) {
             return toThreeDigitLocaleString(ir.normalizedEfficiency);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             return a.normalizedEfficiency - b.normalizedEfficiency;
           }
@@ -211,6 +212,7 @@ found in the LICENSE file.
           value: function(ir) {
             return toThreeDigitLocaleString(ir.normalizedUserPain);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             return a.normalizedUserPain - b.normalizedUserPain;
           }
@@ -224,6 +226,7 @@ found in the LICENSE file.
             span.textContent = toThreeDigitLocaleString(ir.railScore);
             return span;
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             return a.railScore - b.railScore;
           }

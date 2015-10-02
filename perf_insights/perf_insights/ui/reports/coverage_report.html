@@ -139,6 +139,7 @@ found in the LICENSE file.
             return formatCount(row.coverage.associatedEventsCount +
                                row.coverage.unassociatedEventsCount);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             var aTotal = a.coverage.associatedEventsCount +
                          a.coverage.unassociatedEventsCount;
@@ -152,6 +153,7 @@ found in the LICENSE file.
           value: function(row) {
             return formatPercent(row.coverage.coveredEventsCountRatio);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             return tr.b.compareNumericWithNaNs(
                 a.coverage.coveredEventsCountRatio,
@@ -164,6 +166,7 @@ found in the LICENSE file.
             return formatMs(row.coverage.associatedEventsCpuTimeMs +
                             row.coverage.unassociatedEventsCpuTimeMs);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             var aTotal = a.coverage.associatedEventsCpuTimeMs +
                          a.coverage.unassociatedEventsCpuTimeMs;
@@ -177,6 +180,7 @@ found in the LICENSE file.
           value: function(row) {
             return formatPercent(row.coverage.coveredEventsCpuTimeRatio);
           },
+          textAlign: 'right',
           cmp: function(a, b) {
             return tr.b.compareNumericWithNaNs(
                 a.coverage.coveredEventsCpuTimeRatio,

@@ -347,6 +347,7 @@ found in the LICENSE file.
       }
 
       var column = new pi.ui.CachingColumn(title, computeStats);
+      column.textAlign = 'right';
       column.cmp = function(row0, row1) {
         var value0 = column.value(row0);
         var value1 = column.value(row1);
