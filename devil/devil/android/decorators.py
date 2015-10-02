@@ -9,7 +9,6 @@ Function/method decorators that provide timeout and retry logic.
 import functools
 import itertools
 import sys
-import threading
 
 from devil.android import device_errors
 from devil.utils import cmd_helper
@@ -44,8 +43,8 @@ def _TimeoutRetryWrapper(f, timeout_func, retries_func, pass_values=False):
     def impl():
       return f(*args, **kwargs)
     try:
-      if isinstance(threading.current_thread(),
-                    timeout_retry.TimeoutRetryThread):
+      if timeout_retry.CurrentTimeoutThreadGroup():
+        # Don't wrap if there's already an outer timeout thread.
         return impl()
       else:
         desc = '%s(%s)' % (f.__name__, ', '.join(itertools.chain(

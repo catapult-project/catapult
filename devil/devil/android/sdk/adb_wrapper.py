@@ -81,7 +81,7 @@ class AdbWrapper(object):
     # pylint: disable=no-member
     status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
         cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
-        timeout_retry.CurrentTimeoutThread().GetRemainingTime())
+        timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
     if status != 0:
       raise device_errors.AdbCommandFailedError(
           args, output, status, device_serial)
