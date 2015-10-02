@@ -746,7 +746,7 @@ class DeviceUtils(object):
         with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
           self._WriteFileWithPush(script.name, cmd)
           logging.info('Large shell command will be run from file: %s ...',
-                       cmd[:100])
+                       cmd[:self._MAX_ADB_COMMAND_LENGTH])
           return handle_check_return('sh %s' % script.name_quoted)
 
     def handle_large_output(cmd, large_output_mode):
@@ -1102,14 +1102,17 @@ class DeviceUtils(object):
         track_stale == False
     """
     try:
-      host_checksums = md5sum.CalculateHostMd5Sums([host_path])
-      interesting_device_paths = [device_path]
+      specific_device_paths = [device_path]
       if not track_stale and os.path.isdir(host_path):
-        interesting_device_paths = [
-            posixpath.join(device_path, os.path.relpath(p, host_path))
-            for p in host_checksums.keys()]
-      device_checksums = md5sum.CalculateDeviceMd5Sums(
-          interesting_device_paths, self)
+        specific_device_paths = []
+        for root, _, filenames in os.walk(host_path):
+          relative_dir = root[len(host_path) + 1:]
+          specific_device_paths.extend(
+              posixpath.join(device_path, relative_dir, f) for f in filenames)
+
+      host_checksums, device_checksums = reraiser_thread.RunAsync((
+          lambda: md5sum.CalculateHostMd5Sums([host_path]),
+          lambda: md5sum.CalculateDeviceMd5Sums(specific_device_paths, self)))
     except EnvironmentError as e:
       logging.warning('Error calculating md5: %s', e)
       return ([(host_path, device_path)], [], [])
