@@ -5,3 +5,8 @@
 *~
 .project
 .settings
+
+# A script some of us use to download Deep Report traces. It must live in that
+# directory but should not be committed for privacy reasons. This prevents
+# an accidental add.
+perf_insights/perf_insights/download_traces.py
