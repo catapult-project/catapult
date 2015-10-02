@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_browser_helper.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_gpu_helper.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_renderer_helper.html">
 
 <script>
@@ -40,6 +41,14 @@ tr.exportTo('tr.e.audits', function() {
     return rendererProcesses;
   }
 
+  function findChromeGpuProcess(model) {
+    var gpuProcesses = model.getAllProcesses().filter(
+      tr.e.audits.ChromeGpuHelper.isGpuProcess);
+    if (gpuProcesses.length != 1)
+      return undefined;
+    return gpuProcesses[0];
+  }
+
   /**
    * @constructor
    */
@@ -53,6 +62,15 @@ tr.exportTo('tr.e.audits', function() {
           this, this.browserProcess_);
     } else {
       this.browserHelper_ = undefined;
+    }
+
+    // Find gpuHelper.
+    var gpuProcess = findChromeGpuProcess(model);
+    if (gpuProcess) {
+      this.gpuHelper_ = new tr.e.audits.ChromeGpuHelper(
+          this, gpuProcess);
+    } else {
+      this.gpuHelper_ = undefined;
     }
 
     // Find rendererHelpers.
@@ -93,6 +111,10 @@ tr.exportTo('tr.e.audits', function() {
 
     get browserHelper() {
       return this.browserHelper_;
+    },
+
+    get gpuHelper() {
+      return this.gpuHelper_;
     },
 
     get rendererHelpers() {

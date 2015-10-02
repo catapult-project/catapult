@@ -30,14 +30,17 @@ tr.exportTo('pi.wr', function() {
         var browserHelper = chromeHelper.browserHelper;
         this.addThreadsInProcessToGroup_(browserHelper.process, 'Browser');
 
-        // TODO(nduca): Detect clank browser gpu thread and assign it to the GPU
-        // group.
+        var gpuHelper = chromeHelper.gpuHelper;
+        if (gpuHelper) {
+          this.addThreadsInProcessToGroup_(gpuHelper.process, 'GPU');
+        }
+
         for (var pid in chromeHelper.rendererHelpers) {
           var rendererHelper = chromeHelper.rendererHelpers[pid];
           this.addThreadsInProcessToGroup_(rendererHelper.process, 'Renderer');
         }
 
-        // TODO(nduca): Modify the helpers to detect plugin and gpu processes
+        // TODO(nduca): Modify the helpers to detect plugin processes
         // and include those in separate processes.
       }
 

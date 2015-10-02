@@ -91,6 +91,7 @@
       'tracing/extras/chrome/cc/util.html',
       'tracing/extras/chrome/chrome_auditor.html',
       'tracing/extras/chrome/chrome_browser_helper.html',
+      'tracing/extras/chrome/chrome_gpu_helper.html',
       'tracing/extras/chrome/chrome_model_helper.html',
       'tracing/extras/chrome/chrome_process_helper.html',
       'tracing/extras/chrome/chrome_renderer_helper.html',
