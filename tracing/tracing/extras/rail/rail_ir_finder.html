@@ -361,6 +361,8 @@ tr.exportTo('tr.e.rail', function() {
         if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice))
           return false;
 
+        // TODO(beaudoin): This should never happen but it does. Investigate the
+        // trace linked at in #1568 and remove that when it's fixed.
         if (isNaN(slice.start) ||
             isNaN(slice.duration) ||
             isNaN(slice.end))
