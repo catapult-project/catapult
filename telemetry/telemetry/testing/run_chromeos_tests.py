@@ -8,29 +8,42 @@ from telemetry.core import util
 from telemetry.testing import run_tests
 
 
-def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
+def RunChromeOSTests(browser_type, tests_to_run):
+  """ Run ChromeOS tests.
+  Args:
+    |browser_type|: string specifies which browser type to use.
+    |tests_to_run|: a list of tuples (top_level_dir, unit_tests), whereas
+      |top_level_dir| specifies the top level directory for running tests, and
+      |unit_tests| is a list of string test names to run.
+  """
   stream = _LoggingOutputStream()
   error_string = ''
 
-  if unit_tests:
-    logging.info('Running telemetry unit tests with browser_type "%s".' %
-                browser_type)
-    ret = _RunOneSetOfTests(browser_type, 'telemetry', unit_tests, stream)
-    if ret:
-      error_string += 'The unit tests failed.\n'
+  for (top_level_dir, unit_tests) in tests_to_run:
+    logging.info('Running unit tests in %s with browser_type "%s".' %
+                 (top_level_dir, browser_type))
 
-  if perf_tests:
-    logging.info('Running telemetry perf tests with browser_type "%s".' %
-                browser_type)
-    ret = _RunOneSetOfTests(browser_type, 'perf', perf_tests, stream)
+    ret = _RunOneSetOfTests(browser_type, top_level_dir, unit_tests, stream)
     if ret:
-      error_string = 'The perf tests failed.\n'
-
+      error_string += 'The unit tests of %s failed.\n' % top_level_dir
   return error_string
 
 
-def _RunOneSetOfTests(browser_type, dir_name, tests, stream):
-  top_level_dir = os.path.join(util.GetChromiumSrcDir(), 'tools', dir_name)
+# TODO(nednguyen): Remove this API after cros team has migrated to use
+# RunChromeOSTests.
+def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
+  tests_to_run = []
+  chromium_src_dir = util.GetChromiumSrcDir()
+  if unit_tests:
+    tests_to_run.append(
+      (os.path.join(chromium_src_dir, 'tools', 'telemetry'), unit_tests))
+  if perf_tests:
+    tests_to_run.append(
+      (os.path.join(chromium_src_dir, 'tools', 'perf'), perf_tests))
+  return RunChromeOSTests(browser_type, tests_to_run)
+
+
+def _RunOneSetOfTests(browser_type, top_level_dir, tests, stream):
   args = ['--browser', browser_type,
           '--top-level-dir', top_level_dir,
           '--jobs', '1'] + tests
