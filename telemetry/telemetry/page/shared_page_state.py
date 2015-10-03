@@ -166,6 +166,8 @@ class SharedPageState(story.SharedState):
     self._possible_browser.SetCredentialsPath(page.credentials_path)
 
     self._test.WillStartBrowser(self.platform)
+    if page.startup_url:
+      self._finder_options.browser_options.startup_url = page.startup_url
     self._browser = self._possible_browser.Create(self._finder_options)
     self._test.DidStartBrowser(self.browser)
 

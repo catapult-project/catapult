@@ -78,6 +78,9 @@ class FakeLinuxPlatform(FakePlatform):
 class FakePossibleBrowser(object):
   def __init__(self):
     self._returned_browser = _FakeBrowser(FakeLinuxPlatform())
+    self.browser_type = 'linux'
+    self.supports_tab_control = False
+    self.is_remote = False
 
   @property
   def returned_browser(self):
@@ -95,6 +98,9 @@ class FakePossibleBrowser(object):
     platform.
     """
     return self.returned_browser.platform
+
+  def IsRemote(self):
+    return self.is_remote
 
   def SetCredentialsPath(self, _):
     pass
