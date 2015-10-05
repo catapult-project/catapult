@@ -14,11 +14,11 @@ import logging
 import os
 import re
 
-from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
 from devil.utils import cmd_helper
 from devil.utils import timeout_retry
+from pylib import constants
 
 
 _DEFAULT_TIMEOUT = 30
@@ -66,7 +66,7 @@ class AdbWrapper(object):
       cmd = ['taskset', '-c', str(cpu_affinity)]
     else:
       cmd = []
-    cmd.append(devil_env.config.adb_path)
+    cmd.append(constants.GetAdbPath())
     if device_serial is not None:
       cmd.extend(['-s', device_serial])
     cmd.extend(args)

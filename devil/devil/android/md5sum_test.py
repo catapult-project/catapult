@@ -7,29 +7,25 @@ import os
 import sys
 import unittest
 
-from devil import devil_env
 from devil.android import device_errors
 from devil.android import md5sum
+from pylib import constants
 
-sys.path.append(devil_env.config.pymock_path)
+sys.path.append(
+    os.path.join(constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
 import mock # pylint: disable=import-error
 
 TEST_OUT_DIR = os.path.join('test', 'out', 'directory')
 HOST_MD5_EXECUTABLE = os.path.join(TEST_OUT_DIR, 'md5sum_bin_host')
-MD5_DIST = os.path.join(TEST_OUT_DIR, 'md5sum_dist')
 
 class Md5SumTest(unittest.TestCase):
 
   def setUp(self):
-    mocked_attrs = {
-      'md5sum_host_path': HOST_MD5_EXECUTABLE,
-      'md5sum_device_path': MD5_DIST,
-    }
     self._patchers = [
-      mock.patch('devil.devil_env._Environment.__getattr__',
-                 mock.Mock(side_effect=lambda a: mocked_attrs[a])),
-      mock.patch('os.path.exists',
-                 new=mock.Mock(return_value=True)),
+        mock.patch('pylib.constants.GetOutDirectory',
+                   new=mock.Mock(return_value=TEST_OUT_DIR)),
+        mock.patch('os.path.exists',
+                   new=mock.Mock(return_value=True)),
     ]
     for p in self._patchers:
       p.start()
