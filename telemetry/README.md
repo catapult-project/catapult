@@ -5,8 +5,8 @@
 
 # Telemetry
 
-Telemetry is performance testing framework used by Chrome.  It allows you to
-perform arbitrary actions on a set of web pages (or any android application!)
+Telemetry is the performance testing framework used by Chrome.  It allows you
+to perform arbitrary actions on a set of web pages (or any android application!)
 and report metrics about it.  The framework abstracts:
 
 *   Launching a browser with arbitrary flags on any platform.
