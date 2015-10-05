@@ -10,6 +10,7 @@ Eventually, this will be based on adb_wrapper.
 
 import collections
 import itertools
+import json
 import logging
 import multiprocessing
 import os
@@ -163,19 +164,20 @@ class DeviceUtils(object):
   # Property in /data/local.prop that controls Java assertions.
   JAVA_ASSERT_PROPERTY = 'dalvik.vm.enableassertions'
 
-  def __init__(self, device, default_timeout=_DEFAULT_TIMEOUT,
+  def __init__(self, device, enable_device_files_cache=False,
+               default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
     """DeviceUtils constructor.
 
     Args:
       device: Either a device serial, an existing AdbWrapper instance, or an
-              an existing AndroidCommands instance.
+        an existing AndroidCommands instance.
+      enable_device_files_cache: For PushChangedFiles(), cache checksums of
+        pushed files rather than recomputing them on a subsequent call.
       default_timeout: An integer containing the default number of seconds to
-                       wait for an operation to complete if no explicit value
-                       is provided.
+        wait for an operation to complete if no explicit value is provided.
       default_retries: An integer containing the default number or times an
-                       operation should be retried on failure if no explicit
-                       value is provided.
+        operation should be retried on failure if no explicit value is provided.
     """
     self.adb = None
     if isinstance(device, basestring):
@@ -187,6 +189,7 @@ class DeviceUtils(object):
     self._commands_installed = None
     self._default_timeout = default_timeout
     self._default_retries = default_retries
+    self._enable_device_files_cache = enable_device_files_cache
     self._cache = {}
     self._client_caches = {}
     assert hasattr(self, decorators.DEFAULT_TIMEOUT_ATTR)
@@ -1068,11 +1071,13 @@ class DeviceUtils(object):
     all_changed_files = []
     all_stale_files = []
     missing_dirs = []
+    cache_commit_funcs = []
     for h, d in host_device_tuples:
-      changed_files, up_to_date_files, stale_files = (
+      changed_files, up_to_date_files, stale_files, cache_commit_func = (
           self._GetChangedAndStaleFiles(h, d, delete_device_stale))
       all_changed_files += changed_files
       all_stale_files += stale_files
+      cache_commit_funcs.append(cache_commit_func)
       if (os.path.isdir(h) and changed_files and not up_to_date_files
           and not stale_files):
         missing_dirs.append(d)
@@ -1085,6 +1090,8 @@ class DeviceUtils(object):
       if missing_dirs:
         self.RunShellCommand(['mkdir', '-p'] + missing_dirs, check_return=True)
       self._PushFilesImpl(host_device_tuples, all_changed_files)
+    for func in cache_commit_funcs:
+      func()
 
   def _GetChangedAndStaleFiles(self, host_path, device_path, track_stale=False):
     """Get files to push and delete
@@ -1102,20 +1109,38 @@ class DeviceUtils(object):
         track_stale == False
     """
     try:
+      # Length calculations below assume no trailing /.
+      host_path = host_path.rstrip('/')
+      device_path = device_path.rstrip('/')
+
       specific_device_paths = [device_path]
-      if not track_stale and os.path.isdir(host_path):
+      ignore_other_files = not track_stale and os.path.isdir(host_path)
+      if ignore_other_files:
         specific_device_paths = []
         for root, _, filenames in os.walk(host_path):
           relative_dir = root[len(host_path) + 1:]
           specific_device_paths.extend(
               posixpath.join(device_path, relative_dir, f) for f in filenames)
 
+      def device_sums_helper():
+        if self._enable_device_files_cache:
+          cache_entry = self._cache['device_path_checksums'].get(device_path)
+          if cache_entry and cache_entry[0] == ignore_other_files:
+            return dict(cache_entry[1])
+
+        sums = md5sum.CalculateDeviceMd5Sums(specific_device_paths, self)
+
+        if self._enable_device_files_cache:
+          cache_entry = [ignore_other_files, sums]
+          self._cache['device_path_checksums'][device_path] = cache_entry
+        return dict(sums)
+
       host_checksums, device_checksums = reraiser_thread.RunAsync((
           lambda: md5sum.CalculateHostMd5Sums([host_path]),
-          lambda: md5sum.CalculateDeviceMd5Sums(specific_device_paths, self)))
+          device_sums_helper))
     except EnvironmentError as e:
       logging.warning('Error calculating md5: %s', e)
-      return ([(host_path, device_path)], [], [])
+      return ([(host_path, device_path)], [], [], lambda: 0)
 
     to_push = []
     up_to_date = []
@@ -1137,7 +1162,16 @@ class DeviceUtils(object):
         else:
           to_push.append((host_abs_path, device_abs_path))
       to_delete = device_checksums.keys()
-    return (to_push, up_to_date, to_delete)
+
+    def cache_commit_func():
+      if not self._enable_device_files_cache:
+        return
+      new_sums = {posixpath.join(device_path, path[len(host_path) + 1:]): val
+                  for path, val in host_checksums.iteritems()}
+      cache_entry = [ignore_other_files, new_sums]
+      self._cache['device_path_checksums'][device_path] = cache_entry
+
+    return (to_push, up_to_date, to_delete, cache_commit_func)
 
   def _ComputeDeviceChecksumsForApks(self, package_name):
     ret = self._cache['package_apk_checksums'].get(package_name)
@@ -1919,7 +1953,31 @@ class DeviceUtils(object):
         'package_apk_checksums': {},
         # Map of property_name -> value
         'getprop': {},
+        # Map of device_path -> [ignore_other_files, map of path->checksum]
+        'device_path_checksums': {},
     }
+
+  def LoadCacheData(self, data):
+    """Initializes the cache from data created using DumpCacheData."""
+    obj = json.loads(data)
+    self._cache['package_apk_paths'] = obj.get('package_apk_paths', {})
+    package_apk_checksums = obj.get('package_apk_checksums', {})
+    for k, v in package_apk_checksums.iteritems():
+      package_apk_checksums[k] = set(v)
+    self._cache['package_apk_checksums'] = package_apk_checksums
+    device_path_checksums = obj.get('device_path_checksums', {})
+    self._cache['device_path_checksums'] = device_path_checksums
+
+  def DumpCacheData(self):
+    """Dumps the current cache state to a string."""
+    obj = {}
+    obj['package_apk_paths'] = self._cache['package_apk_paths']
+    obj['package_apk_checksums'] = self._cache['package_apk_checksums']
+    # JSON can't handle sets.
+    for k, v in obj['package_apk_checksums'].iteritems():
+      obj['package_apk_checksums'][k] = list(v)
+    obj['device_path_checksums'] = self._cache['device_path_checksums']
+    return json.dumps(obj, separators=(',', ':'))
 
   @classmethod
   def parallel(cls, devices, async=False):
