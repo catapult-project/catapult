@@ -15,13 +15,21 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var responseIR = new tr.e.rail.ResponseInteractionRecord(0, 150);
-    assert.equal(0, responseIR.normalizedUserPain);
+    assert.equal(1, responseIR.normalizedUserComfort);
     responseIR = new tr.e.rail.ResponseInteractionRecord(0, 150.0001);
-    assert.closeTo(0, responseIR.normalizedUserPain, 1e-5);
+    assert.closeTo(1, responseIR.normalizedUserComfort, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 299.9999);
+    assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 300.0001);
+    assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 999.9999);
+    assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 1000.0001);
+    assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(0, 4999.999);
-    assert.closeTo(1, responseIR.normalizedUserPain, 1e-5);
+    assert.closeTo(0, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(0, 5000);
-    assert.equal(1, responseIR.normalizedUserPain);
+    assert.equal(0, responseIR.normalizedUserComfort);
   });
 });
 </script>

@@ -16,16 +16,16 @@ found in the LICENSE file.
  * @fileoverview The Animation phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
-  // The computeNormalizedPain regions are delineated at these FPS values.
-  var PAIN_FPS_REGIONS = [60, 40, 30, 10];
+  // The computeNormalizedComfort regions are delineated at these FPS values.
+  var COMFORT_FPS_REGIONS = [60, 40, 30, 10];
 
   // A frame is long if it starts more than this much time after the previous
   // frame.
   var LONG_FRAME_MS = 50;
 
-  // The computeNormalizedPain regions are delineated at these relative
+  // The computeNormalizedComfort regions are delineated at these relative
   // discrepancy values.
-  var PAIN_JANK_REGIONS = [0.05, 0.1, 0.2, 0.3];
+  var COMFORT_JANK_REGIONS = [0.05, 0.1, 0.2, 0.3];
 
   function AnimationInteractionRecord(start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
@@ -51,35 +51,34 @@ tr.exportTo('tr.e.rail', function() {
       return this.frameEvents_;
     },
 
-    get normalizedUserPain() {
+    get normalizedUserComfort() {
       return tr.e.rail.weightedAverage2(
-          this.normalizedJankPain, this.normalizedFPSPain);
+          this.normalizedJankComfort, this.normalizedFPSComfort);
     },
 
-    get normalizedFPSPain() {
+    get normalizedFPSComfort() {
       var durationSeconds = this.duration / 1000;
-      var avgFps = this.frameEvents.length / durationSeconds;
-      var avgSpf = 1 / avgFps;
-      return tr.e.rail.computeNormalizedPain(avgSpf, {
-        minValueExponential: 1 / PAIN_FPS_REGIONS[0],
-        minValueLinear: 1 / PAIN_FPS_REGIONS[1],
-        minValueLogarithmic: 1 / PAIN_FPS_REGIONS[2],
-        maxValue: 1 / PAIN_FPS_REGIONS[3]
+      var avgSpf = durationSeconds / this.frameEvents.length;
+      return 1 - tr.e.rail.computeNormalizedComfort(avgSpf, {
+        minValueExponential: 1 / COMFORT_FPS_REGIONS[0],
+        minValueLinear: 1 / COMFORT_FPS_REGIONS[1],
+        minValueLogarithmic: 1 / COMFORT_FPS_REGIONS[2],
+        maxValue: 1 / COMFORT_FPS_REGIONS[3]
       });
     },
 
-    get normalizedJankPain() {
+    get normalizedJankComfort() {
       var frameTimestamps = this.frameEvents.toArray().map(function(event) {
         return event.start;
       });
       var absolute = false;
       var discrepancy = tr.b.Statistics.timestampsDiscrepancy(
           frameTimestamps, absolute);
-      return tr.e.rail.computeNormalizedPain(discrepancy, {
-        minValueExponential: PAIN_JANK_REGIONS[0],
-        minValueLinear: PAIN_JANK_REGIONS[1],
-        minValueLogarithmic: PAIN_JANK_REGIONS[2],
-        maxValue: PAIN_JANK_REGIONS[3]
+      return 1 - tr.e.rail.computeNormalizedComfort(discrepancy, {
+        minValueExponential: COMFORT_JANK_REGIONS[0],
+        minValueLinear: COMFORT_JANK_REGIONS[1],
+        minValueLogarithmic: COMFORT_JANK_REGIONS[2],
+        maxValue: COMFORT_JANK_REGIONS[3]
       });
     }
   };

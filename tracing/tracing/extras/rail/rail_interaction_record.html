@@ -18,19 +18,16 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.rail', function() {
-  // When computing an IR's RAIL score, the IR's pain and efficiency are
+  // When computing an IR's RAIL score, the IR's comfort and efficiency are
   // averaged together such that the lower score has a higher weight.
-  // Without knowing which sub-score is lower, happiness (1 - pain) is
+  // Without knowing which sub-score is lower, comfort is
   // theoretically twice as important as efficiency. If the entire web were to
-  // eventually achieve relatively low pain scores such that pain was less of a
-  // concern than efficiency, then this number could be lowered. If further
-  // thought suggests that pain is even more than twice as important as
-  // efficiency, then this number could be raised.
+  // eventually achieve relatively high comfort scores such that comfort was
+  // less of a concern than efficiency, then this number could be lowered. If
+  // further thought suggests that comfort is even more than twice as important
+  // as efficiency, then this number could be raised.
   // Must be greater than 0.
-  var HAPPINESS_IMPORTANCE = 2;
-
-  // This is another parameter that affects the shape of computeRawPain().
-  var DEFAULT_PAIN_BASE = Math.exp(1);
+  var COMFORT_IMPORTANCE = 2;
 
   // We need an up-front list of all IR types in order to keep various groupings
   // stable, in presence of only a portion of interactions in a given trace.
@@ -92,7 +89,7 @@ tr.exportTo('tr.e.rail', function() {
     /**
      * Returns the overall rail score, from 0 to 1.
      *
-     * RAILScore for an interaction merges the user's pain with the
+     * RAILScore for an interaction merges the user's comfort with the
      * efficiency, in order to create a perception-oriented measure
      * of how users percieve speed during this interaction.
      *
@@ -100,21 +97,19 @@ tr.exportTo('tr.e.rail', function() {
      *  1 means a perfect user experience.
      */
     get railScore() {
-      var happiness = 1 - this.normalizedUserPain;
+      var comfort = this.normalizedUserComfort;
       var efficiency = this.normalizedEfficiency;
-      return weightedAverage2(happiness, efficiency, HAPPINESS_IMPORTANCE);
+      return weightedAverage2(comfort, efficiency, COMFORT_IMPORTANCE);
     },
 
     /**
-     * Measures the pain the user experienced, from 0 to 1.
+     * Measures the comfort the user experienced, from 0 to 1.
      *
      * A user performs an interaction with an expectation in mind.
-     * When we exceed their expectations, we get zero pain.
-     * When we meet their expectations, we get zero pain.
-     * As we exceed their expectations, pain goes up. Maximum pain
-     * is 1.0, aka "Switch to FireFox".
+     * When we meet their expectations, we get perfect comfort.
+     * When we don't live up to their expectations, comfort goes down.
      */
-    get normalizedUserPain() {
+    get normalizedUserComfort() {
       throw new Error('Not implemented');
     },
 
@@ -175,14 +170,14 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   // The following functions are useful for sub-classes to override
-  // normalizedUserPain.
+  // normalizedUserComfort.
 
-  // Any computable value related to an IR can be used to define the pain of
+  // Any computable value related to an IR can be used to define the comfort of
   // that IR: its duration, its FPS, etc.
-  // computeNormalizedPain maps from that arbitrary value to a score between 0
-  // and 1, allowing the caller to customize the exponential, linear, and
+  // computeNormalizedComfort maps from that arbitrary value to a score between
+  // 0 and 1, allowing the caller to customize the exponential, linear, and
   // logarithmic regions of the mapping function.
-  function computeNormalizedPain(value, opts) {
+  function computeNormalizedComfort(value, opts) {
     if (typeof value !== 'number')
       throw new Error('value must be a number');
 
@@ -190,17 +185,26 @@ tr.exportTo('tr.e.rail', function() {
     if (opts.exponentialBase <= 1)
       throw new Error('exponentialBase must be greater than 1');
 
-    opts.minPainLinear = opts.minPainLinear || 0.2;
-    if (opts.minPainLinear <= 0 || opts.minPainLinear >= 1)
-      throw new Error('minPainLinear must be between 0 and 1 exclusive');
+    opts.minComfortLinear = opts.minComfortLinear || 0.2;
+    if (opts.minComfortLinear <= 0 || opts.minComfortLinear >= 1)
+      throw new Error('minComfortLinear must be between 0 and 1 exclusive');
 
-    opts.maxPainLinear = opts.maxPainLinear || 0.9;
-    if (opts.maxPainLinear <= 0 || opts.maxPainLinear >= 1)
-      throw new Error('maxPainLinear must be between 0 and 1 exclusive');
+    opts.maxComfortLinear = opts.maxComfortLinear || 0.9;
+    if (opts.maxComfortLinear <= 0 || opts.maxComfortLinear >= 1)
+      throw new Error('maxComfortLinear must be between 0 and 1 exclusive');
 
     opts.logarithmicScale = opts.logarithmicScale || 100;
     if (opts.logarithmicScale <= 0)
       throw new Error('logarithmicScale must be positive');
+
+    if (opts.minValueExponential >= opts.minValueLinear)
+      throw new Error('minValueExponential must be less than minValueLinear');
+
+    if (opts.minValueLinear >= opts.minValueLogarithmic)
+      throw new Error('minValueLinear must be less than minValueLogarithmic');
+
+    if (opts.minValueLogarithmic >= opts.maxValue)
+      throw new Error('minValueLogarithmic must be less than maxValue');
 
     [
       'minValueLinear',
@@ -208,8 +212,8 @@ tr.exportTo('tr.e.rail', function() {
       'minValueLogarithmic',
       'maxValue',
       'exponentialBase',
-      'minPainLinear',
-      'maxPainLinear',
+      'minComfortLinear',
+      'maxComfortLinear',
       'logarithmicScale'
     ].forEach(function(opt) {
       if (typeof opts[opt] !== 'number')
@@ -220,44 +224,44 @@ tr.exportTo('tr.e.rail', function() {
       return 0;
 
     if (value < opts.minValueLinear) {
-      function computeRawPain(value) {
+      function computeRawComfort(value) {
         return Math.pow(opts.exponentialBase, value);
       }
-      return computeNormalizedPainInternal(
+      return computeNormalizedComfortInternal(
           value, opts.minValueExponential, opts.minValueLinear,
-          0, opts.minPainLinear, computeRawPain);
+          0, opts.minComfortLinear, computeRawComfort);
     }
 
     if (value < opts.minValueLogarithmic) {
-      function computeRawPain(value) {
+      function computeRawComfort(value) {
         return value;
       }
-      return computeNormalizedPainInternal(
+      return computeNormalizedComfortInternal(
           value, opts.minValueLinear, opts.minValueLogarithmic,
-          opts.minPainLinear, opts.maxPainLinear, computeRawPain);
+          opts.minComfortLinear, opts.maxComfortLinear, computeRawComfort);
     }
 
     if (value < opts.maxValue) {
-      function computeRawPain(value) {
+      function computeRawComfort(value) {
         return Math.log1p(opts.logarithmicScale * value);
       }
-      return computeNormalizedPainInternal(
+      return computeNormalizedComfortInternal(
           value, opts.minValueLogarithmic, opts.maxValue,
-          opts.maxPainLinear, 1, computeRawPain);
+          opts.maxComfortLinear, 1, computeRawComfort);
     }
 
     return 1;
   }
 
-  function computeNormalizedPainInternal(
-      value, minValue, maxValue, minScore, maxScore, computeRawPain) {
+  function computeNormalizedComfortInternal(
+      value, minValue, maxValue, minScore, maxScore, computeRawComfort) {
     var normalizedValue = tr.b.normalize(value, minValue, maxValue);
-    var rawPain = computeRawPain(normalizedValue);
-    var minPain = computeRawPain(0);
-    var maxPain = computeRawPain(1);
-    var normalizedPain = tr.b.normalize(rawPain, minPain, maxPain);
-    normalizedPain = tr.b.lerp(normalizedPain, minScore, maxScore);
-    return tr.b.clamp(normalizedPain, minScore, maxScore);
+    var rawComfort = computeRawComfort(normalizedValue);
+    var minComfort = computeRawComfort(0);
+    var maxComfort = computeRawComfort(1);
+    var normalizedComfort = tr.b.normalize(rawComfort, minComfort, maxComfort);
+    normalizedComfort = tr.b.lerp(normalizedComfort, minScore, maxScore);
+    return tr.b.clamp(normalizedComfort, minScore, maxScore);
   }
 
   // Returns a weighted average of numbers between 0 and 1.
@@ -306,7 +310,7 @@ tr.exportTo('tr.e.rail', function() {
 
   return {
     RAILInteractionRecord: RAILInteractionRecord,
-    computeNormalizedPain: computeNormalizedPain,
+    computeNormalizedComfort: computeNormalizedComfort,
     weightedAverage2: weightedAverage2,
     userFriendlyRailTypeName: userFriendlyRailTypeName,
     railCompare: railCompare,

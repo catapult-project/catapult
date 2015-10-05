@@ -469,11 +469,11 @@ tr.exportTo('tr.e.rail', function() {
             break;
             // There may be more than 100ms between the start of the mouse down
             // and the start of the mouse up. Chrome and the web don't start to
-            // respond until the mouse up. ResponseIRs start scoring "pain" at
-            // 100ms duration. If more than that 100ms duration is burned
+            // respond until the mouse up. ResponseIRs start deducting comfort
+            // at 100ms duration. If more than that 100ms duration is burned
             // through while waiting for the user to release the
-            // mouse button, then ResponseIR will unfairly start scoring pain
-            // before Chrome even has a mouse up to respond to.
+            // mouse button, then ResponseIR will unfairly start deducting
+            // comfort before Chrome even has a mouse up to respond to.
             // It is technically possible for a site to afford one response on
             // mouse down and another on mouse up, but that is an edge case. The
             // vast majority of mouse downs are not responses.

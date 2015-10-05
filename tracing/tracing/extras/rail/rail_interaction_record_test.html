@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(rir.args.layoutInfo.timeInLayout, 100);
   });
 
-  test('computeNormalizedPain', function() {
+  test('computeNormalizedComfort', function() {
     var opts = {
       minValueExponential: 1,
       minValueLinear: 2,
@@ -44,24 +44,29 @@ tr.b.unittest.testSuite(function() {
       maxValue: 4
     };
 
-    assert.equal(0, tr.e.rail.computeNormalizedPain(0, opts));
+    assert.equal(0, tr.e.rail.computeNormalizedComfort(0, opts));
 
-    // Exponential pain should be convex.
-    assert.equal(0, tr.e.rail.computeNormalizedPain(1 - 1e-4, opts));
-    assert.isTrue(0.1 > tr.e.rail.computeNormalizedPain(1.5, opts));
+    // Exponential comfort should be convex.
+    assert.equal(0, tr.e.rail.computeNormalizedComfort(1 - 1e-4, opts));
+    assert.isTrue(0.1 > tr.e.rail.computeNormalizedComfort(1.5, opts));
 
-    // Linear pain should be linear.
-    assert.closeTo(0.2, tr.e.rail.computeNormalizedPain(2 - 1e-4, opts), 1e-4);
-    assert.closeTo(0.2, tr.e.rail.computeNormalizedPain(2 + 1e-4, opts), 1e-4);
-    assert.closeTo(0.55, tr.e.rail.computeNormalizedPain(2.5, opts), 1e-4);
-    assert.closeTo(0.9, tr.e.rail.computeNormalizedPain(3 - 1e-4, opts), 1e-4);
+    // Linear comfort should be linear.
+    assert.closeTo(0.2, tr.e.rail.computeNormalizedComfort(2 - 1e-4, opts),
+        1e-4);
+    assert.closeTo(0.2, tr.e.rail.computeNormalizedComfort(2 + 1e-4, opts),
+        1e-4);
+    assert.closeTo(0.55, tr.e.rail.computeNormalizedComfort(2.5, opts),
+        1e-4);
+    assert.closeTo(0.9, tr.e.rail.computeNormalizedComfort(3 - 1e-4, opts),
+        1e-4);
 
-    // Logarithmic pain should be concave.
-    assert.closeTo(0.9, tr.e.rail.computeNormalizedPain(3 + 1e-5, opts), 1e-4);
-    assert.isTrue(0.95 < tr.e.rail.computeNormalizedPain(3.5, opts));
-    assert.closeTo(1, tr.e.rail.computeNormalizedPain(4 - 1e-4, opts), 1e-5);
+    // Logarithmic comfort should be concave.
+    assert.closeTo(0.9, tr.e.rail.computeNormalizedComfort(3 + 1e-5, opts),
+        1e-4);
+    assert.isTrue(0.95 < tr.e.rail.computeNormalizedComfort(3.5, opts));
+    assert.closeTo(1, tr.e.rail.computeNormalizedComfort(4 - 1e-4, opts), 1e-5);
 
-    assert.equal(1, tr.e.rail.computeNormalizedPain(4 + 1e-4, opts));
+    assert.equal(1, tr.e.rail.computeNormalizedComfort(4 + 1e-4, opts));
   });
 
   // This basically just tests weightedAverage2.
@@ -69,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     var ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
       railTypeName: 'rail_idle',
-      normalizedUserPain: 1,
+      normalizedUserComfort: 0,
       normalizedEfficiency: 0
     });
     assert.closeTo(0, ir.railScore, 1e-5);
@@ -77,7 +82,7 @@ tr.b.unittest.testSuite(function() {
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
       railTypeName: 'rail_idle',
-      normalizedUserPain: 0,
+      normalizedUserComfort: 1,
       normalizedEfficiency: 1
     });
     assert.closeTo(1, ir.railScore, 1e-5);
@@ -85,7 +90,7 @@ tr.b.unittest.testSuite(function() {
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
       railTypeName: 'rail_idle',
-      normalizedUserPain: 0,
+      normalizedUserComfort: 1,
       normalizedEfficiency: 0
     });
     assert.closeTo(0.42388, ir.railScore, 1e-5);
@@ -93,7 +98,7 @@ tr.b.unittest.testSuite(function() {
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
       railTypeName: 'rail_idle',
-      normalizedUserPain: 1,
+      normalizedUserComfort: 0,
       normalizedEfficiency: 1
     });
     assert.closeTo(0.15536, ir.railScore, 1e-5);

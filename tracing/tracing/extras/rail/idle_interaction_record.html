@@ -23,8 +23,8 @@ tr.exportTo('tr.e.rail', function() {
   IdleInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
-    get normalizedUserPain() {
-      return 0;
+    get normalizedUserComfort() {
+      return 1;
     },
 
     // Unlike during active IRs, while the user is idle, the CPU should not be

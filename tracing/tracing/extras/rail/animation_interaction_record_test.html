@@ -23,14 +23,14 @@ tr.b.unittest.testSuite(function() {
         end: (i * 10) + 1
       }));
     }
-    assert.closeTo(0, animationIR.normalizedJankPain, 1e-4);
-    assert.closeTo(0, animationIR.normalizedUserPain, 1e-3);
+    assert.closeTo(1, animationIR.normalizedJankComfort, 1e-4);
+    assert.closeTo(1, animationIR.normalizedUserComfort, 1e-3);
   });
 
   test('OneFPS', function() {
-    // Maximum pain is when at least max(2, frameCount/10) frames are longer
+    // Minimum comfort is when at least max(2, frameCount/10) frames are longer
     // than 50ms, and avgFPS <= 10.
-    // One frame-per-second causes FPS pain = 1.
+    // One frame-per-second causes FPS comfort = 0.
     var animationIR = new tr.e.rail.AnimationInteractionRecord(0, 2000);
     animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
       title: tr.e.audits.IMPL_RENDERING_STATS,
@@ -47,9 +47,9 @@ tr.b.unittest.testSuite(function() {
       start: 1999,
       end: 2000
     }));
-    assert.equal(0, animationIR.normalizedJankPain);
-    assert.equal(1, animationIR.normalizedFPSPain);
-    assert.closeTo(0.2689, animationIR.normalizedUserPain, 1e-4);
+    assert.equal(1, animationIR.normalizedJankComfort);
+    assert.equal(0, animationIR.normalizedFPSComfort);
+    assert.closeTo(0.2689, animationIR.normalizedUserComfort, 1e-4);
   });
 
   test('jank', function() {
@@ -69,9 +69,9 @@ tr.b.unittest.testSuite(function() {
       start: timestamp,
       end: timestamp + 1
     }));
-    assert.equal(1, animationIR.normalizedJankPain);
-    assert.equal(1, animationIR.normalizedFPSPain);
-    assert.equal(1, animationIR.normalizedUserPain);
+    assert.equal(0, animationIR.normalizedJankComfort);
+    assert.equal(0, animationIR.normalizedFPSComfort);
+    assert.equal(0, animationIR.normalizedUserComfort);
   });
 });
 </script>

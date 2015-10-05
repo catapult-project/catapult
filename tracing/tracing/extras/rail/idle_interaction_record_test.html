@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
 
   test('optimalEfficiency', function() {
     var idleIR = new tr.e.rail.IdleInteractionRecord(0, 150);
-    assert.equal(0, idleIR.normalizedUserPain);
+    assert.equal(1, idleIR.normalizedUserComfort);
     assert.equal(1, idleIR.normalizedEfficiency);
   });
 
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     var idleIR = new tr.e.rail.IdleInteractionRecord(0, 150);
     idleIR.associatedEvents.push(slice);
 
-    assert.equal(0, idleIR.normalizedUserPain);
+    assert.equal(1, idleIR.normalizedUserComfort);
     assert.equal(0, idleIR.normalizedEfficiency);
   });
 });
