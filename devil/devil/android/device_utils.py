@@ -1250,9 +1250,8 @@ class DeviceUtils(object):
 
         # Warm up NeedsSU cache while we're still zipping.
         self.NeedsSU()
-        external_dir = self.GetExternalStoragePath()
         with device_temp_file.DeviceTempFile(
-            self.adb, suffix='.zip', dir=external_dir) as device_temp:
+            self.adb, suffix='.zip') as device_temp:
           zip_proc.join()
           self.adb.Push(zip_file.name, device_temp.name)
           quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)

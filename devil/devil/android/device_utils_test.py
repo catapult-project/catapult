@@ -1446,9 +1446,8 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
             args=('/test/temp/file/tmp.zip', test_files)), mock.Mock()),
         (self.call.device._MaybeInstallCommands(), True),
         (self.call.device.NeedsSU(), True),
-        (self.call.device.GetExternalStoragePath(), '/test/sdcard'),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb,
-             suffix='.zip', dir='/test/sdcard'),
+                                                                 suffix='.zip'),
              MockTempFile('/test/sdcard/foo123.zip')),
         self.call.adb.Push(
             '/test/temp/file/tmp.zip', '/test/sdcard/foo123.zip'),
