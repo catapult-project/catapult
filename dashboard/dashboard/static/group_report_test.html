@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(
         result[0],
         'ChromiumPerf/chromium-rel-mac/page_cycler.morejs/idle_wakeups_gpu');
-    assert.deepEqual(result[1], ['idle_wakeups_gpu']);
+    assert.deepEqual(result[1], ['idle_wakeups_gpu', 'ref']);
   }, testOptions);
 
   test('getTestPathAndSelectedSeries for alert on leaf series', function() {
@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(
         result[0],
         'ChromiumPerf/chromium-rel-mac/page_cycler.morejs/cold_times');
-    assert.deepEqual(result[1], ['page_load_time']);
+    assert.deepEqual(result[1], ['page_load_time', 'page_load_time_ref']);
   }, testOptions);
 
 });

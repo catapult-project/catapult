@@ -57,12 +57,25 @@ var group_report = (function() {
     if (subtestsEntry && subtestsEntry['sub_tests'] &&
         Object.keys(subtestsEntry['sub_tests']).length == 0) {
       testPath = testPath.split('/').slice(0, -1).join('/');
+      subtestsEntry = getSubtestsEntry(testPath);
+    }
+
+    // Get a list of selected traces. This should include the series that the
+    // alert was on, as well as any related reference build result series.
+    var selectedTraces = [traceName];
+    if (subtestsEntry && subtestsEntry['sub_tests']) {
+      if ('ref' in subtestsEntry['sub_tests']) {
+        selectedTraces.push('ref');
+      }
+      if (traceName + '_ref' in subtestsEntry['sub_tests']) {
+        selectedTraces.push(traceName + '_ref');
+      }
     }
 
     // Otherwise, the test is either not found in the SUBTESTS dict, or it is
     // a test with children (e.g. a summary metric). In either of these cases,
     // we want to return the test path and trace found on the alert.
-    return [testPath, [traceName]];
+    return [testPath, selectedTraces];
   };
 
   var getTestPath = function(alert) {
