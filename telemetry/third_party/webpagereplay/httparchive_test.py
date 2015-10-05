@@ -112,26 +112,36 @@ class HttpArchiveTest(unittest.TestCase):
         'GET', 'www.test.com', '/a?foo=bar', None, headers)
     request3 = httparchive.ArchivedHttpRequest(
         'GET', 'www.test.com', '/b?hello=world', None, headers)
+    request4 = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/c?hello=world', None, headers)
 
     archive = httparchive.HttpArchive()
     # Add requests 2 and 3 and find closest match with request1
     archive[request2] = self.RESPONSE
     archive[request3] = self.RESPONSE
 
-    return archive, request1, request2, request3
+    return archive, request1, request2, request3, request4
 
   def test_find_closest_request(self):
-    archive, request1, request2, request3 = self.setup_find_closest_request()
+    archive, request1, request2, request3, request4 = (
+      self.setup_find_closest_request())
 
-    # Request 3 is the closest match to request 1
+    # Always favor requests with same paths, even if use_path=False.
     self.assertEqual(
-        request3, archive.find_closest_request(request1, use_path=False))
-    # However, if we match strictly on path, request2 is the only match
+        request2, archive.find_closest_request(request1, use_path=False))
+    # If we match strictly on path, request2 is the only match
     self.assertEqual(
         request2, archive.find_closest_request(request1, use_path=True))
+    # request4 can be matched with request3, if use_path=False
+    self.assertEqual(
+        request3, archive.find_closest_request(request4, use_path=False))
+    # ...but None, if use_path=True
+    self.assertEqual(
+        None, archive.find_closest_request(request4, use_path=True))
 
   def test_find_closest_request_delete_simple(self):
-    archive, request1, request2, request3 = self.setup_find_closest_request()
+    archive, request1, request2, request3, request4 = (
+      self.setup_find_closest_request())
 
     del archive[request3]
     self.assertEqual(
@@ -140,13 +150,45 @@ class HttpArchiveTest(unittest.TestCase):
         request2, archive.find_closest_request(request1, use_path=True))
 
   def test_find_closest_request_delete_complex(self):
-    archive, request1, request2, request3 = self.setup_find_closest_request()
+    archive, request1, request2, request3, request4 = (
+      self.setup_find_closest_request())
 
     del archive[request2]
     self.assertEqual(
         request3, archive.find_closest_request(request1, use_path=False))
     self.assertEqual(
         None, archive.find_closest_request(request1, use_path=True))
+
+  def test_find_closest_request_timestamp(self):
+    headers = {}
+    request1 = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/index.html?time=100000000&important=true',
+        None, headers)
+    request2 = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/index.html?time=99999999&important=true',
+        None, headers)
+    request3 = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/index.html?time=10000000&important=false',
+        None, headers)
+    archive = httparchive.HttpArchive()
+    # Add requests 2 and 3 and find closest match with request1
+    archive[request2] = self.RESPONSE
+    archive[request3] = self.RESPONSE
+
+    # Although request3 is lexicographically closer, request2 is semantically
+    # more similar.
+    self.assertEqual(
+        request2, archive.find_closest_request(request1, use_path=True))
+
+  def test_get_cmp_seq(self):
+    # The order of key-value pairs in query and header respectively should not
+    # matter.
+    headers = {'k2': 'v2', 'k1': 'v1'}
+    request = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/a?c=d&a=b;e=f', None, headers)
+    self.assertEqual([('a', 'b'), ('c', 'd'), ('e', 'f'),
+                      ('k1', 'v1'), ('k2', 'v2')],
+                     request._GetCmpSeq('c=d&a=b;e=f'))
 
   def test_get_simple(self):
     request = self.REQUEST

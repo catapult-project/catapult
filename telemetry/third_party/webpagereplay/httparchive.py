@@ -354,16 +354,35 @@ class HttpArchive(dict):
       use_path: If True, closest matching request's path component must match.
         (Note: this refers to the 'path' component within the URL, not the
          'full path' which includes the query string component.)
+
         If use_path=True, candidate will NOT match in example below
-        e.g. request   = GET www.test.com/path?aaa
-             candidate = GET www.test.com/diffpath?aaa
+        e.g. request   = GET www.test.com/a?p=1
+             candidate = GET www.test.com/b?p=1
+
+        Even if use_path=False, urls with same paths are always favored.
+        For example, candidate1 is considered a better match than candidate2.
+          request    = GET www.test.com/a?p=1&q=2&r=3
+          candidate1 = GET www.test.com/a?s=4
+          candidate2 = GET www.test.com/b?p=1&q=2&r=3
+
     Returns:
       If a close match is found, return the instance of ArchivedHttpRequest.
       Otherwise, return None.
     """
-    full_path = request.full_path if use_path else None
-    requests = self.get_requests(request.command, request.host, full_path,
-                                 is_ssl=request.is_ssl, use_query=not use_path)
+    # Start with strictest constraints. This trims search space considerably.
+    requests = self.get_requests(request.command, request.host,
+                                 request.full_path, is_ssl=request.is_ssl,
+                                 use_query=True)
+    # Relax constraint: use_query if there is no match.
+    if not requests:
+      requests = self.get_requests(request.command, request.host,
+                                   request.full_path, is_ssl=request.is_ssl,
+                                   use_query=False)
+    # Relax constraint: full_path if there is no match and use_path=False.
+    if not requests and not use_path:
+      requests = self.get_requests(request.command, request.host,
+                                   None, is_ssl=request.is_ssl,
+                                   use_query=False)
 
     if not requests:
       return None
@@ -371,7 +390,7 @@ class HttpArchive(dict):
     if len(requests) == 1:
       return requests[0]
 
-    matcher = difflib.SequenceMatcher(b=request.formatted_request)
+    matcher = difflib.SequenceMatcher(b=request.cmp_seq)
 
     # quick_ratio() is cheap to compute, but ratio() is expensive. So we call
     # quick_ratio() on all requests, sort them descending, and then loop through
@@ -380,14 +399,14 @@ class HttpArchive(dict):
     # ratio().
     candidates = []
     for candidate in requests:
-      matcher.set_seq1(candidate.formatted_request)
+      matcher.set_seq1(candidate.cmp_seq)
       candidates.append((matcher.quick_ratio(), candidate))
 
     candidates.sort(reverse=True, key=lambda c: c[0])
 
     best_match = (0, None)
     for i in xrange(len(candidates)):
-      matcher.set_seq1(candidates[i][1].formatted_request)
+      matcher.set_seq1(candidates[i][1].cmp_seq)
       best_match = max(best_match, (matcher.ratio(), candidates[i][1]))
       if i + 1 < len(candidates) and best_match[0] >= candidates[i+1][0]:
         break
@@ -486,12 +505,14 @@ class ArchivedHttpRequest(object):
     self.command = command
     self.host = host
     self.full_path = full_path
-    self.path = urlparse.urlparse(full_path).path if full_path else None
+    parsed_url = urlparse.urlparse(full_path) if full_path else None
+    self.path = parsed_url.path if parsed_url else None
     self.request_body = request_body
     self.headers = headers
     self.is_ssl = is_ssl
     self.trimmed_headers = self._TrimHeaders(headers)
     self.formatted_request = self._GetFormattedRequest()
+    self.cmp_seq = self._GetCmpSeq(parsed_url.query if parsed_url else None)
 
   def __str__(self):
     scheme = 'https' if self.is_ssl else 'http'
@@ -540,8 +561,10 @@ class ArchivedHttpRequest(object):
     if 'is_ssl' not in state:
       state['is_ssl'] = False
     self.__dict__.update(state)
-    self.path = urlparse.urlparse(self.full_path).path
+    parsed_url = urlparse.urlparse(self.full_path)
+    self.path = parsed_url.path
     self.formatted_request = self._GetFormattedRequest()
+    self.cmp_seq = self._GetCmpSeq(parsed_url.query)
 
   def __getstate__(self):
     """Influence how to pickle.
@@ -553,6 +576,7 @@ class ArchivedHttpRequest(object):
     del state['trimmed_headers']
     del state['path']
     del state['formatted_request']
+    del state['cmp_seq']
     return state
 
   def _GetFormattedRequest(self):
@@ -569,6 +593,26 @@ class ArchivedHttpRequest(object):
       k = '-'.join(x.capitalize() for x in k.split('-'))
       parts.append('%s: %s\n' % (k, v))
     return ''.join(parts)
+
+  def _GetCmpSeq(self, query=None):
+    """Compute a sequence out of query and header for difflib to compare.
+    For example:
+      [('q1', 'a1'), ('q2', 'a2'), ('k1', 'v1'), ('k2', 'v2')]
+    will be returned for a request with URL:
+      http://example.com/index.html?q1=a2&q2=a2
+    and header:
+      k1: v1
+      k2: v2
+
+    Args:
+      query: the query string in the URL.
+
+    Returns:
+      A sequence for difflib to compare.
+    """
+    if not query:
+      return self.trimmed_headers
+    return sorted(urlparse.parse_qsl(query)) + self.trimmed_headers
 
   def matches(self, command=None, host=None, full_path=None, is_ssl=None,
               use_query=True):
