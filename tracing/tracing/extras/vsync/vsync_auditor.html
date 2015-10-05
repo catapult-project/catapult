@@ -105,8 +105,12 @@ tr.exportTo('tr.e.audits', function() {
             var slice = thread.sliceGroup.slices[i];
             if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS))
               times.push(slice.start);
-            else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION))
-              times.push(slice.args.frame_time_us / 1000.0);
+            // We need to check not only that we have a Scheduler::BeginFrame
+            // event, but also that we have one that has a frame time associated
+            // with it. Older versions of Scheduler::BeginFrame don't have one.
+            else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION) &&
+                slice.args.args && slice.args.args.frame_time_us)
+              times.push(slice.args.args.frame_time_us / 1000.0);
           }
         }
       }
