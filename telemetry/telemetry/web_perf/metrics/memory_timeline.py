@@ -46,6 +46,7 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
             page=results.current_page,
             name='memory_%s_%s' % (metric, process_name),
             units='bytes',
+            tir_label=interactions[0].label,
             values=values,
             none_value_reason=none_reason,
             improvement_direction=improvement_direction.DOWN))

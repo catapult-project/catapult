@@ -37,6 +37,7 @@ class _SingleEventMetric(timeline_based_metric.TimelineBasedMetric):
       return
     results.AddValue(list_of_scalar_values.ListOfScalarValues(
       page=results.current_page,
+      tir_label=interactions[0].label,
       name=self._metric_name,
       units='ms',
       values=events_found,

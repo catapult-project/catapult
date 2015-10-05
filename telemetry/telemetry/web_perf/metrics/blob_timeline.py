@@ -67,6 +67,7 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     if writes:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
           page=results.current_page,
+          tir_label=interactions[0].label,
           name='blob-writes',
           units='ms',
           values=writes,
@@ -75,12 +76,12 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     else:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
           page=results.current_page,
+          tir_label=interactions[0].label,
           name='blob-writes',
           units='ms',
           values=None,
           none_value_reason='No blob write events found for this interaction.',
           improvement_direction=improvement_direction.DOWN))
-
 
   def _AddReadResultsInternal(self, events, interactions, results):
     reads = dict()
@@ -99,6 +100,7 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     if reads:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
           page=results.current_page,
+          tir_label=interactions[0].label,
           name='blob-reads',
           units='ms',
           values=reads.values(),
@@ -107,6 +109,7 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     else:
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
           page=results.current_page,
+          tir_label=interactions[0].label,
           name='blob-reads',
           units='ms',
           values=None,

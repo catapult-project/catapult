@@ -114,6 +114,7 @@ class TraceEventStats(object):
       name = input_for_event.metric_name
       results.AddValue(scalar.ScalarValue(
         page=results.current_page,
+        tir_label=interactions[0].label,
         name=name + '-count',
         units='count',
         value=len(times),
@@ -122,6 +123,7 @@ class TraceEventStats(object):
         continue
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
         page=results.current_page,
+        tir_label=interactions[0].label,
         name=name,
         units=input_for_event.units,
         values=times,

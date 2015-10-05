@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import collections
+import logging
 from collections import defaultdict
 
 from telemetry.timeline import model as model_module
@@ -78,7 +79,13 @@ class ResultsWrapperInterface(object):
 class _TBMResultWrapper(ResultsWrapperInterface):
   def AddValue(self, value):
     assert self._tir_label
-    value.tir_label = self._tir_label
+    if value.tir_label:
+      assert value.tir_label == self._tir_label
+    else:
+      logging.warning(
+          'TimelineBasedMetric should create the interaction record label '
+          'for the value themselves. Value: %s' % repr(value))
+      value.tir_label = self._tir_label
     self._results.AddValue(value)
 
 

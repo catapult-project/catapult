@@ -46,8 +46,10 @@ class ResponsivenessMetric(timeline_based_metric.TimelineBasedMetric):
     results.AddValue(scalar.ScalarValue(
         results.current_page, 'responsive-total_big_jank_thread_time', 'ms',
         jank_stats.total_big_jank_thread_time,
+        tir_label=interaction_records[0].label,
         improvement_direction=improvement_direction.DOWN))
     results.AddValue(scalar.ScalarValue(
         results.current_page, 'responsive-biggest_jank_thread_time', 'ms',
         jank_stats.biggest_jank_thread_time,
+        tir_label=interaction_records[0].label,
         improvement_direction=improvement_direction.DOWN))

@@ -65,11 +65,6 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
     interactions = [TestInteraction(10, 20),
                     TestInteraction(30, 40)]
 
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics(events, []))
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics([], interactions))
-
     # The first event starts before the first interaction, so it is ignored.
     # The second event starts before the first interaction, so it is ignored.
     # The third event starts during the first interaction, and its duration is
@@ -102,11 +97,6 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
     interactions = [TestInteraction(10, 20),
                     TestInteraction(30, 40)]
 
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics(events, []))
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics([], interactions))
-
     # We ignore events outside of the interaction intervals, and we use the
     # begining of the first event of the interval and the end of the last
     # event.
@@ -128,11 +118,6 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
               FakeEvent('something', 31, 33, 2, {})]
     interactions = [TestInteraction(10, 20),
                     TestInteraction(30, 35)]
-
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics(events, []))
-    self.assertEqual({'blob-reads': None, 'blob-writes': None},
-        GetBlobMetrics([], interactions))
 
     # We use the read events in the interactions, so the same as the test above.
     self.assertEqual({'blob-reads': [3, 2], 'blob-writes': [3, 1]},
