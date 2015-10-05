@@ -8,6 +8,7 @@ import subprocess
 
 """Detect forced pushes (on the client) and prompt the user before going on."""
 
+
 def read_from_tty():
   try:
     import posix  # No way to do this on Windows, just give up there.

@@ -2,13 +2,16 @@
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import sys
 import os
 
 _TOP_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__), '..'))
 
+
 class Link(object):
+
   def __init__(self, dst_path, src_path):
     self.dst_path = dst_path
     self.src_path = src_path
@@ -50,7 +53,9 @@ class Link(object):
 
     os.symlink(src_path_rel, full_dst_path)
 
+
 def InstallHooks():
+  """Installs the git pre-push hooks."""
   if sys.platform == 'win32':
     return
 
@@ -61,9 +66,11 @@ def InstallHooks():
       os.path.abspath(os.readlink(old_precommit)) == old_precommit_target):
     os.remove(old_precommit)
 
-  links = []
-  links.append(Link(os.path.join('.git', 'hooks', 'pre-push'),
-                    os.path.join('hooks/pre_push')))
+  # The pre-push hook prevents forced pushes; see ./pre_push.
+  links = [
+      Link(os.path.join('.git', 'hooks', 'pre-push'),
+           os.path.join('hooks', 'pre_push'))
+  ]
 
   for l in links:
     l.Update()
