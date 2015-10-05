@@ -265,4 +265,3 @@ class DependencyManager(object):
     os.chmod(download_path,
              stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
     return os.path.abspath(download_path)
-
