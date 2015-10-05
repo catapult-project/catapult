@@ -4,14 +4,11 @@
 
 """Module containing utilities for apk packages."""
 
-import os.path
 import re
 
 from devil.android.sdk import aapt
-from pylib import constants
 
 
-_AAPT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'aapt')
 _MANIFEST_ATTRIBUTE_RE = re.compile(
     r'\s*A: ([^\(\)= ]*)\([^\(\)= ]*\)=(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
 _MANIFEST_ELEMENT_RE = re.compile(r'\s*(?:E|N): (\S*) .*$')

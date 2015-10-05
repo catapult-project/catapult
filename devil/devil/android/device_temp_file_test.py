@@ -8,18 +8,16 @@ Unit tests for the contents of device_temp_file.py.
 """
 
 import logging
-import os
 import sys
 import unittest
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_temp_file
 from devil.android.sdk import adb_wrapper
 from devil.utils import mock_calls
-from pylib import constants
 
-sys.path.append(os.path.join(
-    constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
+sys.path.append(devil_env.config.pymock_path)
 import mock # pylint: disable=F0401
 
 class DeviceTempFileTest(mock_calls.TestCase):

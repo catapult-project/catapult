@@ -5,7 +5,7 @@
 import logging
 import re
 
-from pylib import cmd_helper
+from devil.utils import cmd_helper
 
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')

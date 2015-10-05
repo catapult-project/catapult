@@ -4,10 +4,11 @@
 
 import os
 
+from devil import devil_env
 from devil.utils import cmd_helper
-from pylib import constants
 
-_DEXDUMP_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'dexdump')
+_DEXDUMP_PATH = os.path.join(
+    devil_env.config.android_sdk_build_tools_path, 'dexdump')
 
 def DexDump(dexfiles, file_summary=False):
   """A wrapper around the Android SDK's dexdump tool.

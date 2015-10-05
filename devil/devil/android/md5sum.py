@@ -6,9 +6,9 @@ import os
 import posixpath
 import re
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.utils import cmd_helper
-from pylib import constants
 
 MD5SUM_DEVICE_LIB_PATH = '/data/local/tmp/md5sum'
 MD5SUM_DEVICE_BIN_PATH = MD5SUM_DEVICE_LIB_PATH + '/md5sum_bin'
@@ -30,8 +30,7 @@ def CalculateHostMd5Sums(paths):
   if isinstance(paths, basestring):
     paths = [paths]
 
-  md5sum_bin_host_path = os.path.join(
-      constants.GetOutDirectory(), 'md5sum_bin_host')
+  md5sum_bin_host_path = devil_env.config.md5sum_host_path
   if not os.path.exists(md5sum_bin_host_path):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
   out = cmd_helper.GetCmdOutput([md5sum_bin_host_path] + [p for p in paths])
@@ -58,7 +57,7 @@ def CalculateDeviceMd5Sums(paths, device):
   # Allow generators
   paths = list(paths)
 
-  md5sum_dist_path = os.path.join(constants.GetOutDirectory(), 'md5sum_dist')
+  md5sum_dist_path = devil_env.config.md5sum_device_path
   md5sum_dist_bin_path = os.path.join(md5sum_dist_path, 'md5sum_bin')
 
   if not os.path.exists(md5sum_dist_path):
