@@ -76,35 +76,7 @@ tr.exportTo('tr.e.audits', function() {
 
       rirs.forEach(function(ir) {
         this.model.addInteractionRecord(ir);
-
-        var alerts = this.createAlertsForIR_(ir);
-        alerts.forEach(function(alert) {
-          this.model.alerts.push(alert);
-        }, this);
       }, this);
-    },
-
-    createAlertsForIR_: function(ir) {
-      var allAlerts = [];
-      ir.associatedEvents.forEach(function(event) {
-        if (!(event instanceof tr.model.Slice))
-          return;
-        var slice = event;
-
-        if (slice.category != 'toplevel')
-          return;
-        if (slice.duration > 75.0) {
-          var alertInfo = new tr.model.EventInfo(
-              'Task too long',
-              'Tasks taking >= 75ms are bad, and should be broken up to ' +
-              'ensure the main thread is responsive');
-          var center = slice.start + 0.5 * slice.duration;
-          var alert = new tr.model.Alert(
-              alertInfo, center, [slice]);
-          allAlerts.push(alert);
-        }
-      });
-      return allAlerts;
     }
   };
 
