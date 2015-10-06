@@ -11,6 +11,7 @@ import webapp2
 import webtest
 
 from dashboard import auto_bisect
+from dashboard import request_handler
 from dashboard import start_try_job
 from dashboard import stored_object
 from dashboard import testing_common
@@ -122,6 +123,20 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         median_before_anomaly=100, median_after_anomaly=200).put()
     result = auto_bisect.StartNewBisectForBug(222)
     self.assertEqual({'error': 'Invalid "good" revision: 1199.'}, result)
+
+  @mock.patch.object(
+      auto_bisect.start_try_job, 'PerformBisect',
+      mock.MagicMock(side_effect=request_handler.InvalidInputError(
+          'Some reason')))
+  def testStartNewBisectForBug_InvalidInputErrorRaised_ReturnsError(self):
+    testing_common.AddTests(['Foo'], ['bar'], {'sunspider': {'score': {}}})
+    test_key = utils.TestKey('Foo/bar/sunspider/score')
+    anomaly.Anomaly(
+        bug_id=345, test=test_key,
+        start_revision=300100, end_revision=300200,
+        median_before_anomaly=100, median_after_anomaly=200).put()
+    result = auto_bisect.StartNewBisectForBug(345)
+    self.assertEqual({'error': 'Some reason'}, result)
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testStartNewBisectForBug_WithDefaultRevs_StartsBisect(

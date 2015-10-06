@@ -97,7 +97,8 @@ def StartNewBisectForBug(bug_id):
 
   Returns:
     If successful, a dict containing "issue_id" and "issue_url" for the
-    bisect job. Otherwise, a dict containing "error".
+    bisect job. Otherwise, a dict containing "error", with some description
+    of the reason why a job wasn't started.
   """
   try:
     bisect_job = _MakeBisectTryJob(bug_id)
@@ -105,7 +106,10 @@ def StartNewBisectForBug(bug_id):
     return {'error': e.message}
   bisect_job_key = bisect_job.put()
 
-  bisect_result = start_try_job.PerformBisect(bisect_job)
+  try:
+    bisect_result = start_try_job.PerformBisect(bisect_job)
+  except request_handler.InvalidInputError as e:
+    bisect_result = {'error': e.message}
   if 'error' in bisect_result:
     bisect_job_key.delete()
   return bisect_result
