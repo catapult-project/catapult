@@ -183,7 +183,7 @@ found in the LICENSE file.
       var footerRows = [];
 
       // Aggregate values.
-      var aggregated = new pi.wr.SliceCostInfo();
+      var aggregated = new pi.m.SliceCostInfo();
       if (this.$.table.selectedTableRow) {
         this.$.table.selectedTableRow.data.forEach(function(datum) {
           aggregated.push(undefined, datum.sliceCostInfo);
@@ -249,7 +249,7 @@ found in the LICENSE file.
           return;
 
         result.value.sliceCosts.forEach(function(item) {
-          var sliceCostInfo = pi.wr.SliceCostInfo.fromDict(item);
+          var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
           allSliceCosts.push({
             runInfo: result.runInfo,
             sliceCostInfo: sliceCostInfo

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('pi.wr', function() {
+tr.exportTo('pi.m', function() {
   var JSSourceState = tr.model.source_info.JSSourceState;
 
   function SliceCostInfo() {
@@ -88,7 +88,7 @@ tr.exportTo('pi.wr', function() {
 
 
   function getSliceCostReport(model, threadGrouping, railTypeNameByGUID) {
-    var reduce = new pi.wr.StreamingReducer(SliceCostInfo.asReduceTarget);
+    var reduce = new pi.m.StreamingReducer(SliceCostInfo.asReduceTarget);
 
     function generateDomainCosts(slice) {
       // V8.Execute events may generate several sliceCostInfo, based on the

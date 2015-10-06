@@ -13,13 +13,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/slice.html">
 
 <script>
-tr.exportTo('pie', function() {
+tr.exportTo('pi.m', function() {
   // Granularity of the histogram.
   var HISTOGRAM_MAX = 250;
   var NUM_BINS = 50;
 
   function taskInfoMapFunction(results, run_info, model) {
-    var threadGrouping = new pi.wr.ThreadGrouping();
+    var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
     addTimeInQueue(results, run_info, model, threadGrouping);
     addTopLevelTasksDuration(results, run_info, model, threadGrouping);

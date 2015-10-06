@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var runInfo = new pi.v.RunInfo('my_test.json');
-    pi.wr.weatherReportMapFunction(results, runInfo, m);
+    pi.m.weatherReportMapFunction(results, runInfo, m);
 
     assert.equal(results.allValues.length, 1);
     assert.isTrue(results.allValues[0] instanceof pi.v.DictValue);
@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
       idleIr.associatedEvents.push(t2_s2);
     });
 
-    var wr = pi.wr.getWeatherReportFromModel(m);
+    var wr = pi.m.getWeatherReportFromModel(m);
     assert.isDefined(wr.sliceCosts);
     assert.equal(wr.sliceCosts.length, 2);
   });

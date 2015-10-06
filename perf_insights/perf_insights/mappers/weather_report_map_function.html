@@ -17,7 +17,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/ir_coverage.html">
 
 <script>
-tr.exportTo('pi.wr', function() {
+tr.exportTo('pi.m', function() {
 
   function getWeatherReportFromModel(model) {
     // Organize all RAIL IRs by type and name in a tree. A node of this tree is
@@ -57,14 +57,14 @@ tr.exportTo('pi.wr', function() {
     irTree.overallScore = (new tr.e.rail.RAILScore(allIRs)).overallScore;
 
     var railTypeNameByGUID = getRAILTypeNameForEventsByGUID(model, allIRs);
-    var threadGrouping = new pi.wr.ThreadGrouping();
+    var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
 
     var wr = {
       irTree: irTree,
       irCoverage: tr.model.getIRCoverageFromModel(model),
-      sliceCosts: pi.wr.getSliceCostReport(model, threadGrouping,
-                                           railTypeNameByGUID)
+      sliceCosts: pi.m.getSliceCostReport(model, threadGrouping,
+                                          railTypeNameByGUID)
     };
     return wr;
   }
@@ -90,7 +90,7 @@ tr.exportTo('pi.wr', function() {
   }
 
   function weatherReportMapFunction(results, runInfo, model) {
-    var wr = pi.wr.getWeatherReportFromModel(model);
+    var wr = pi.m.getWeatherReportFromModel(model);
     results.addValue(new pi.v.DictValue(runInfo, 'wr', wr));
   }
   pi.MapFunction.register(weatherReportMapFunction);

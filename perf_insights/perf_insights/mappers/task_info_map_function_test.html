@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var runInfo = new pi.v.RunInfo('my_test.json');
-    pie.taskInfoMapFunctionForTest(results, runInfo, m);
+    pi.m.taskInfoMapFunctionForTest(results, runInfo, m);
 
     assert.equal(results.allValues.length, 3);
     var value = results.allValues[0];
