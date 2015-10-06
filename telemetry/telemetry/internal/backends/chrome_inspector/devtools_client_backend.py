@@ -4,6 +4,7 @@
 
 import logging
 import re
+import socket
 import sys
 
 from telemetry.core import exceptions
@@ -11,11 +12,16 @@ from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
+from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import tracing_backend
+from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from telemetry.timeline import trace_data as trace_data_module
+
+
+BROWSER_INSPECTOR_WEBSOCKET_URL = 'ws://127.0.0.1:%i/devtools/browser'
 
 
 class TabNotFoundError(exceptions.Error):
@@ -26,14 +32,34 @@ def IsDevToolsAgentAvailable(port, app_backend):
   """Returns True if a DevTools agent is available on the given port."""
   if (isinstance(app_backend, browser_backend.BrowserBackend) and
       app_backend.supports_tracing):
-    if not tracing_backend.IsInspectorWebsocketAvailable(port):
-      return False
+    inspector_websocket_instance = inspector_websocket.InspectorWebsocket()
+    try:
+      if not _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
+        return False
+    finally:
+      inspector_websocket_instance.Disconnect()
 
   devtools_http_instance = devtools_http.DevToolsHttp(port)
   try:
     return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
   finally:
     devtools_http_instance.Disconnect()
+
+
+def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
+  try:
+    inspector_websocket_instance.Connect(BROWSER_INSPECTOR_WEBSOCKET_URL % port)
+  except websocket.WebSocketException:
+    return False
+  except socket.error:
+    return False
+  except Exception as e:
+    sys.stderr.write('Unidentified exception while checking if wesocket is'
+                     'available on port %i. Exception message: %s\n' %
+                     (port, e.message))
+    return False
+  else:
+    return True
 
 
 # TODO(nednguyen): Find a more reliable way to check whether the devtool agent
@@ -69,6 +95,7 @@ class DevToolsClientBackend(object):
     self._devtools_port = devtools_port
     self._remote_devtools_port = remote_devtools_port
     self._devtools_http = devtools_http.DevToolsHttp(devtools_port)
+    self._browser_inspector_websocket = None
     self._tracing_backend = None
     self._app_backend = app_backend
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
@@ -84,17 +111,14 @@ class DevToolsClientBackend(object):
     trace_config = (self._app_backend.platform_backend
                     .tracing_controller_backend.GetChromeTraceConfig())
     if not trace_config:
-      self._tracing_backend = tracing_backend.TracingBackend(
-          self._devtools_port, False)
+      self._CreateTracingBackendIfNeeded(is_tracing_running=False)
       return
 
     if self.support_startup_tracing:
-      self._tracing_backend = tracing_backend.TracingBackend(
-          self._devtools_port, True)
+      self._CreateTracingBackendIfNeeded(is_tracing_running=True)
       return
 
-    self._tracing_backend = tracing_backend.TracingBackend(
-        self._devtools_port, False)
+    self._CreateTracingBackendIfNeeded(is_tracing_running=False)
     self.StartChromeTracing(
         trace_options=trace_config.tracing_options,
         custom_categories=trace_config.tracing_category_filter.filter_string)
@@ -144,6 +168,11 @@ class DevToolsClientBackend(object):
     if self._tracing_backend:
       self._tracing_backend.Close()
       self._tracing_backend = None
+    # Close the browser inspector socket last (in case the backend needs to
+    # interact with it before closing).
+    if self._browser_inspector_websocket:
+      self._browser_inspector_websocket.Disconnect()
+      self._browser_inspector_websocket = None
 
   @decorators.Cache
   def GetChromeBranchNumber(self):
@@ -233,11 +262,19 @@ class DevToolsClientBackend(object):
     self._devtools_context_map_backend._Update(contexts)
     return self._devtools_context_map_backend
 
-  def _CreateTracingBackendIfNeeded(self):
+  def _CreateTracingBackendIfNeeded(self, is_tracing_running=False):
     assert self.supports_tracing
     if not self._tracing_backend:
+      self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
       self._tracing_backend = tracing_backend.TracingBackend(
-          self._devtools_port)
+          self._browser_inspector_websocket, is_tracing_running)
+
+  def _CreateAndConnectBrowserInspectorWebsocketIfNeeded(self):
+    if not self._browser_inspector_websocket:
+      self._browser_inspector_websocket = (
+          inspector_websocket.InspectorWebsocket())
+      self._browser_inspector_websocket.Connect(
+          BROWSER_INSPECTOR_WEBSOCKET_URL % self._devtools_port)
 
   def IsChromeTracingSupported(self):
     if not self.supports_tracing:
