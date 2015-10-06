@@ -4,6 +4,7 @@
 
 """Hooks that apply globally to all scripts that import or use Telemetry."""
 import atexit
+import inspect
 import os
 import signal
 import sys
@@ -63,7 +64,11 @@ def InstallListStrayProcessesUponExitHook():
     if children:
       leak_processes_info = []
       for p in children:
-        process_info = '%s (%s)' % (p.name(), p.pid)
+        if inspect.ismethod(p.name):
+          name = p.name()
+        else:  # Process.name is a property in old versions of psutil.
+          name = p.name
+        process_info = '%s (%s)' % (name, p.pid)
         try:
           process_info += ' - %s' % p.cmdline()
         except Exception:
