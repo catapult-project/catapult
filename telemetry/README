@@ -1,5 +1,3 @@
-telemetry provides automation of chrome instances on top of the
-chrome developer tools protocol.
+Please see Telemetry's README.md in Catapult:
+https://github.com/catapult-project/catapult/blob/master/telemetry/README.md
 
-The protocol we use:
-https://developers.google.com/chrome-developer-tools/docs/remote-debugging
