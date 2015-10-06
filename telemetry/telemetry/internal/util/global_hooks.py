@@ -53,6 +53,7 @@ def InstallListStrayProcessesUponExitHook():
           'psutil is not installed on the system. Not listing possible '
           'leaked processes. To install psutil, see: '
           'https://pypi.python.org/pypi/psutil')
+      return
     telemetry_pid = os.getpid()
     parent = psutil.Process(telemetry_pid)
     if hasattr(parent, 'children'):
