@@ -21,10 +21,12 @@ class CrOSTestCase(unittest.TestCase):
     self._is_guest = options.browser_type == 'cros-chrome-guest'
     self._username = options.browser_options.username
     self._password = options.browser_options.password
+    self._gaia_id = options.browser_options.gaia_id
     self._load_extension = None
 
   def _CreateBrowser(self, autotest_ext=False, auto_login=True,
-                     gaia_login=False, username=None, password=None):
+                     gaia_login=False, username=None, password=None,
+                     gaia_id=None):
     """Finds and creates a browser for tests. if autotest_ext is True,
     also loads the autotest extension"""
     options = options_for_unittests.GetCopy()
@@ -48,6 +50,8 @@ class CrOSTestCase(unittest.TestCase):
       browser_options.username = username
     if password is not None:
       browser_options.password = password
+    if gaia_id is not None:
+      browser_options.gaia_id = gaia_id
 
     return browser_to_create.Create(options)
 

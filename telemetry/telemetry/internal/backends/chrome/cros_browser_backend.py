@@ -139,7 +139,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         elif self.browser_options.gaia_login:
           self.oobe.NavigateGaiaLogin(self._username, self._password)
         else:
-          self.oobe.NavigateFakeLogin(self._username, self._password)
+          self.oobe.NavigateFakeLogin(self._username, self._password,
+              self._gaia_id)
+
         self._WaitForLogin()
       except exceptions.TimeoutException:
         raise exceptions.LoginException('Timed out going through login screen')
@@ -195,6 +197,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def _password(self):
     return self.browser_options.password
+
+  @property
+  def _gaia_id(self):
+    return self.browser_options.gaia_id
 
   def _IsCryptohomeMounted(self):
     username = '$guest' if self._is_guest else self._username

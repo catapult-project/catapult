@@ -430,6 +430,7 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.gaia_login = False
     self.username = 'test@test.test'
     self.password = ''
+    self.gaia_id = '12345'
 
   def IsCrosBrowserOptions(self):
     return True
