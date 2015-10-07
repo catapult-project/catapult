@@ -310,6 +310,14 @@ tr.exportTo('tr.model', function() {
       return ret;
     },
 
+    findFirstSlice: function() {
+      if (!this.haveTopLevelSlicesBeenBuilt)
+        throw new Error('Nope');
+      if (0 === this.slices.length)
+        return undefined;
+      return this.slices[0];
+    },
+
     findSliceAtTs: function(ts) {
       if (!this.haveTopLevelSlicesBeenBuilt)
         throw new Error('Nope');

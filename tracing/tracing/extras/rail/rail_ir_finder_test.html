@@ -489,14 +489,18 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
-  test('loadMainRunner', function() {
+  test('loadStartup', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addMainRunnerEvent(model, {start: 0, end: 10});
+      chrome_test_utils.addRenderingEvent(model, {start: 2, end: 3});
+      chrome_test_utils.addCreateThreadsEvent(model, {start: 5, end: 10});
+      // Throw an second one in there, just to try to confuse the algo.
+      chrome_test_utils.addCreateThreadsEvent(model, {start: 25, end: 30});
       chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', name: 'Startup', start: 0, end: 20, eventCount: 2}
+      {title: 'Load', name: 'Startup', start: 2, end: 20, eventCount: 2},
+      {title: 'Idle', start: 20, end: 30, eventCount: 0}
     ];
     verifier.verify();
   });

@@ -241,15 +241,22 @@ tr.exportTo('tr.e.rail', function() {
           isFailLoadSlice).sort(compareEvents);
     },
 
-    // Main runner events are emitted very early on in the lifetime of browser
-    // and renderer processes. It's emitted in the Initialize method of
-    // ContentMainRunner as soon as TRACE_EVENT is available.
-    getMainRunnerEvents: function() {
-      function isMainRunnerSlice(slice) {
-        return slice.title === 'ContentMainRunnerImpl::Initialize';
+    // If a thread contains a typical initialization slice, then the first event
+    // on that thread is a startup event.
+    getStartupEvents: function() {
+      function isStartupSlice(slice) {
+        return slice.title === 'BrowserMainLoop::CreateThreads';
       }
-      return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isMainRunnerSlice).sort(compareEvents);
+      var events = this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
+          isStartupSlice);
+      var deduper = new tr.model.EventSet();
+      events.forEach(function(event) {
+        var sliceGroup = event.parentContainer.sliceGroup;
+        var slice = sliceGroup && sliceGroup.findFirstSlice();
+        if (slice)
+          deduper.push(slice);
+      });
+      return deduper.toArray();
     },
 
     // Match every event in |openingEvents| to the first following event from
@@ -291,7 +298,7 @@ tr.exportTo('tr.e.rail', function() {
 
     // Match up RenderFrameImpl events with frame render events.
     findLoadInteractionRecords: function() {
-      var mainRunnerEvents = this.getMainRunnerEvents();
+      var startupEvents = this.getStartupEvents();
       var commitLoadEvents =
           this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
               this.model.bounds);
@@ -300,8 +307,8 @@ tr.exportTo('tr.e.rail', function() {
       var failLoadEvents = this.getFailLoadEvents();
       var lirs = [];
 
-      // Attach frame events to every main runner events.
-      var startupLIRs = this.findLoadInteractionRecords_(mainRunnerEvents,
+      // Attach frame events to every startup events.
+      var startupLIRs = this.findLoadInteractionRecords_(startupEvents,
           frameEvents);
       this.setIRNames_(LOAD_STARTUP_IR_NAME, startupLIRs);
       lirs.push.apply(lirs, startupLIRs);

@@ -113,10 +113,10 @@ tr.exportTo('tr.e.chrome', function() {
     return slice;
   }
 
-  ChromeTestUtils.addMainRunnerEvent = function(model, dict) {
-    dict.title = 'ContentMainRunnerImpl::Initialize';
-    var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+  ChromeTestUtils.addCreateThreadsEvent = function(model, dict) {
+    dict.title = 'BrowserMainLoop::CreateThreads';
+    var slice = tr.c.TestUtils.newSliceEx(dict);
+    model.rendererMain.sliceGroup.pushSlice(slice);
   }
 
   return {

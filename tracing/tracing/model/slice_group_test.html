@@ -260,6 +260,23 @@ tr.b.unittest.testSuite(function() {
     assert.equal(group.findSliceAtTs(2), sC);
   });
 
+  test('findFirstSlice', function() {
+    var group = new SliceGroup(newFakeThread());
+    // Pattern being tested:
+    // [        a         ] [   d    ]
+    // [b]    [   c   ]                 where b is dur=0
+    var sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
+    var sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
+    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
+    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
+
+    assert.throws(group.findFirstSlice);
+
+    group.createSubSlices();
+
+    assert.equal(group.findFirstSlice(), sA);
+  });
+
   test('findNextSliceAfterBasic', function() {
     var group = new SliceGroup(newFakeThread());
     // Pattern being tested:
