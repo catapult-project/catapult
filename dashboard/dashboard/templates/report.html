@@ -5,6 +5,7 @@
     var TEST_SUITES = {{test_suites | safe}};
     var REVISION_INFO = {{revision_info | safe}};
     var XSRF_TOKEN = '{{xsrf_token}}';
+    var IS_INTERNAL_USER = ('{{is_internal_user}}' == 'True');
     {% if dev_version %}
     var DEV_SERVER = true;
     {% endif %}

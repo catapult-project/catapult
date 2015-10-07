@@ -627,6 +627,7 @@ triaging functionality in the chart.
               function(json) {
                 if (isSelected && Object.keys(json.data).length == 0) {
                   this.addWarnings('No data available.');
+                  this.checkForInternalUser();
                 }
 
                 if (Object.keys(json.data).length > 0) {
@@ -635,10 +636,18 @@ triaging functionality in the chart.
               }.bind(this),
               function(error) {
                 this.addWarnings('Failed to fetch graph data.');
+                this.checkForInternalUser();
                 console.warn(error);
               }.bind(this)
           );
           this.graphJsonRequests.push(req);
+        },
+
+        checkForInternalUser: function() {
+          if (!window['IS_INTERNAL_USER']) {
+             this.addWarnings(
+               'Note that some data is only available when logged in.');
+          }
         },
 
         /**
