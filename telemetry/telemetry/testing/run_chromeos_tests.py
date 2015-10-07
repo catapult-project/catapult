@@ -2,9 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
-import os
 
-from telemetry.core import util
 from telemetry.testing import run_tests
 
 
@@ -27,20 +25,6 @@ def RunChromeOSTests(browser_type, tests_to_run):
     if ret:
       error_string += 'The unit tests of %s failed.\n' % top_level_dir
   return error_string
-
-
-# TODO(nednguyen): Remove this API after cros team has migrated to use
-# RunChromeOSTests.
-def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
-  tests_to_run = []
-  chromium_src_dir = util.GetChromiumSrcDir()
-  if unit_tests:
-    tests_to_run.append(
-      (os.path.join(chromium_src_dir, 'tools', 'telemetry'), unit_tests))
-  if perf_tests:
-    tests_to_run.append(
-      (os.path.join(chromium_src_dir, 'tools', 'perf'), perf_tests))
-  return RunChromeOSTests(browser_type, tests_to_run)
 
 
 def _RunOneSetOfTests(browser_type, top_level_dir, tests, stream):
