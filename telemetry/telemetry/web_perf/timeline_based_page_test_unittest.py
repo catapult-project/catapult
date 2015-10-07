@@ -115,7 +115,8 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'JankThreadJSRun', 'responsive-total_big_jank_thread_time')
     self.assertGreaterEqual(v[0].value, 50)
 
-  @decorators.Disabled('win') # www.crbug.com/520781
+  # win: crbug.com/520781, chromeos: crbug.com/483212.
+  @decorators.Disabled('win', 'chromeos')
   def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(
@@ -129,6 +130,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
+  @decorators.Disabled('chromeos')  # crbug.com/483212.
   def testTimelineBasedMeasurementWithNoInteractionRecord(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(
