@@ -49,6 +49,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                       help='Treat test filter as exact matches (default is '
                            'substring matches).')
     parser.add_option('--client-config', dest='client_config', default=None)
+    parser.add_option('--disable-logging-config', action='store_true',
+                      default=False, help='Configure logging (default on)')
 
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
@@ -210,12 +212,13 @@ def _SetUpProcess(child, context): # pylint: disable=W0613
     binary_manager.InitDependencyManager(context.client_config)
   # We need to reset the handlers in case some other parts of telemetry already
   # set it to make this work.
-  logging.getLogger().handlers = []
-  logging.basicConfig(
-      level=logging.INFO,
-      format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-             '%(message)s')
   args = context
+  if not args.disable_logging_config:
+    logging.getLogger().handlers = []
+    logging.basicConfig(
+        level=logging.INFO,
+        format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d'
+              '  %(message)s')
   if args.device and args.device == 'android':
     android_devices = device_finder.GetDevicesMatchingOptions(args)
     args.device = android_devices[child.worker_num-1].guid

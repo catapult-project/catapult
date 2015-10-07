@@ -46,7 +46,8 @@ def RunTestsForChromeOS(browser_type, unit_tests, perf_tests):
 def _RunOneSetOfTests(browser_type, top_level_dir, tests, stream):
   args = ['--browser', browser_type,
           '--top-level-dir', top_level_dir,
-          '--jobs', '1'] + tests
+          '--jobs', '1',
+          '--disable-logging-config'] + tests
   return run_tests.RunTestsCommand.main(args, stream=stream)
 
 
