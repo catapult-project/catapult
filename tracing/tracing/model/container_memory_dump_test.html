@@ -120,5 +120,22 @@ tr.b.unittest.testSuite(function() {
     assert.equal(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
     assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
   });
+
+  test('iterateRootAllocatorDumps', function() {
+    var containerDump = new ContainerMemoryDump(42);
+
+    var oilpanDump = new MemoryAllocatorDump(containerDump, 'oilpan');
+    var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
+    var v8HeapsDump = new MemoryAllocatorDump(containerDump, 'v8/heaps');
+    setUpParentChildRelationship(v8Dump, v8HeapsDump);
+
+    containerDump.memoryAllocatorDumps = [oilpanDump, v8Dump];
+
+    var visitedAllocatorDumps = [];
+    containerDump.iterateRootAllocatorDumps(
+        function(dump) { this.visitedAllocatorDumps.push(dump); },
+        { visitedAllocatorDumps: visitedAllocatorDumps });
+    assert.sameMembers(visitedAllocatorDumps, [oilpanDump, v8Dump]);
+  });
 });
 </script>

@@ -3532,7 +3532,8 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(browserDumpLocal);
     assert.include(browserDump.memoryAllocatorDumps, browserDumpLocal);
     assert.equal(browserDumpLocal.attributes['mood'].value, 'very good');
-    assert.isUndefined(browserDumpLocal.attributes['color']);
+    assert.equal(browserDumpLocal.attributes['area'].value, 9);
+    assert.equal(browserDumpLocal.attributes['color'].value, 'blue');
     assert.lengthOf(browserDumpLocal.children, 0);
     assert.isUndefined(browserDumpLocal.parent);
 
@@ -3555,7 +3556,8 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(rendererDumpLocal);
     assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
     assert.equal(rendererDumpLocal.attributes['length'].value, 3);
-    assert.isUndefined(rendererDumpLocal.attributes['area']);
+    assert.equal(rendererDumpLocal.attributes['area'].value, 9);
+    assert.equal(rendererDumpLocal.attributes['color'].value, 'blue');
     assert.lengthOf(rendererDumpLocal.children, 0);
     assert.isUndefined(rendererDumpLocal.parent);
 

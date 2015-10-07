@@ -66,6 +66,12 @@ tr.exportTo('tr.model', function() {
       }
 
       return this.memoryAllocatorDumpsByFullName_[fullName];
+    },
+
+    iterateRootAllocatorDumps: function(fn, opt_this) {
+      if (this.memoryAllocatorDumps === undefined)
+        return;
+      this.memoryAllocatorDumps.forEach(fn, opt_this || this);
     }
   };
 

@@ -75,7 +75,7 @@ tr.exportTo('tr.model', function() {
 
       // 3. Aggregate all other attributes of all MADs. This step must be
       // carried out after the sizes of all MADs were calculated (step 1).
-      // Otherwise, the sizes of all MADs would be aggregated as a direct sums
+      // Otherwise, the sizes of all MADs would be aggregated as direct sums
       // of their children, which would most likely lead to double-counting.
       this.aggregateAttributes();
 
@@ -670,9 +670,46 @@ tr.exportTo('tr.model', function() {
     },
 
     aggregateAttributes: function() {
+      // 1. Aggregate attributes in this global memory dump.
       this.iterateRootAllocatorDumps(function(dump) {
         dump.aggregateAttributes(this.model);
       });
+
+      // 2. Propagate attributes from global memory allocator dumps to their
+      // owners.
+      this.iterateRootAllocatorDumps(this.propagateAttributesRecursively);
+
+      // 3. Aggregate attributes in the associated process memory dumps.
+      tr.b.iterItems(this.processMemoryDumps, function(pid, processMemoryDump) {
+        processMemoryDump.iterateRootAllocatorDumps(function(dump) {
+          dump.aggregateAttributes(this.model);
+        }, this);
+      }, this);
+    },
+
+    propagateAttributesRecursively: function(globalAllocatorDump) {
+      tr.b.iterItems(globalAllocatorDump.attributes, function(attrName, attr) {
+        if (attrName === SIZE_ATTRIBUTE_NAME ||
+            attrName === EFFECTIVE_SIZE_ATTRIBUTE_NAME) {
+          // We cannot propagate size and effective_size attributes because it
+          // would break the complex maths [see calculateSizes() and
+          // calculateEffectiveSizes()].
+          return;
+        }
+        globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
+          var processAllocatorDump = ownershipLink.source;
+          if (processAllocatorDump.attributes[attrName] !== undefined) {
+            // Attributes provided by process memory allocator dumps themselves
+            // have precedence over attributes propagated from global memory
+            // allocator dumps.
+            return;
+          }
+          processAllocatorDump.attributes[attrName] = attr;
+        });
+      });
+      // Recursively propagate attributes from all child memory allocator dumps.
+      globalAllocatorDump.children.forEach(
+          this.propagateAttributesRecursively, this);
     },
 
     discountTracingOverhead: function() {
@@ -690,12 +727,9 @@ tr.exportTo('tr.model', function() {
       }, this);
     },
 
-    iterateRootAllocatorDumps: function(fn) {
+    iterateAllRootAllocatorDumps: function(fn) {
       this.iterateContainerDumps(function(containerDump) {
-        var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
-        if (memoryAllocatorDumps === undefined)
-          return;
-        memoryAllocatorDumps.forEach(fn, this);
+        containerDump.iterateRootAllocatorDumps(fn, this);
       });
     },
 
@@ -732,7 +766,7 @@ tr.exportTo('tr.model', function() {
         openDumps.delete(dump);
       }
 
-      this.iterateRootAllocatorDumps(visit);
+      this.iterateAllRootAllocatorDumps(visit);
     },
 
     /**
@@ -771,7 +805,7 @@ tr.exportTo('tr.model', function() {
         dump.children.forEach(visit, this);
       }
 
-      this.iterateRootAllocatorDumps(visit);
+      this.iterateAllRootAllocatorDumps(visit);
     }
   };
 

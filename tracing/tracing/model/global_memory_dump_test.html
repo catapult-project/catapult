@@ -176,6 +176,7 @@ tr.b.unittest.testSuite(function() {
         var guid = treeRecipe['guid'];
         var owns = treeRecipe['owns'];
         var size = treeRecipe['size'];
+        var attrs = treeRecipe['attrs'];
         var importance = treeRecipe['importance'];
 
         assert.notStrictEqual(skipBuild, true);
@@ -207,6 +208,9 @@ tr.b.unittest.testSuite(function() {
             dump.children.push(childDump);
           });
         }
+
+        if (attrs !== undefined)
+          tr.b.iterItems(attrs, dump.addAttribute, dump);
 
         return dump;
       }
@@ -863,7 +867,7 @@ tr.b.unittest.testSuite(function() {
     assertEqualUniqueMembers(visitedContainerDumps, containerDumps);
   });
 
-  test('iterateRootAllocatorDumps', function() {
+  test('iterateAllRootAllocatorDumps', function() {
     var containerDumps = buildDumpTrees([
       [  // GMD.
         {
@@ -888,7 +892,7 @@ tr.b.unittest.testSuite(function() {
     var pmd = containerDumps[1];
 
     var visitedAllocatorDumps = [];
-    gmd.iterateRootAllocatorDumps(buildArgPusher(visitedAllocatorDumps));
+    gmd.iterateAllRootAllocatorDumps(buildArgPusher(visitedAllocatorDumps));
     assertEqualUniqueMembers(visitedAllocatorDumps, [
       gmd.getMemoryAllocatorDumpByFullName('globalSharedDump1'),
       gmd.getMemoryAllocatorDumpByFullName('globalSharedDump2'),
@@ -3319,7 +3323,7 @@ tr.b.unittest.testSuite(function() {
 
   // Check that size calculation is NOT preceded by attribute
   // aggregation, which would recursively sum up size attributes.
-  test('calculateGraphAttributes', function() {
+  test('calculateGraphAttributes_aggregation', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
         undefined,  // GMD.
@@ -3361,6 +3365,98 @@ tr.b.unittest.testSuite(function() {
         [informationInfo(/\boverlaps\b.*'owner_child'.*\b7\.0 B\b/)]);
     assertSizeAttribute(ownedChildDump, 'effective_size', 13,
         [ownedInfo('root/owner_child', 'Process 0', 0)]);
+  });
+
+  // Check that attribute propagation and aggregation are performed in the
+  // correct order.
+  test('calculateGraphAttributes_propagation', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      buildDumpTrees([
+        [  // GMD.
+          {
+            'name': 'owned_root',
+            'guid': 1,
+            'size': 10,
+            'children': [
+              {
+                'name': 'owned_child1',
+                'attrs': {
+                  'summed': new ScalarAttribute('bytes', 12)
+                }
+              },
+              {
+                'name': 'owned_child2',
+                'attrs': {
+                  'summed': new ScalarAttribute('bytes', 15)
+                }
+              }
+            ]
+          }
+        ],
+        [  // PMD.
+          {
+            'name': 'direct_owner',
+            'owns': 1,
+            'guid': 2
+          },
+          {
+            'name': 'parent_owner',
+            'children': [
+              {
+                'name': 'child_owner',
+                'owns': 1
+              },
+              {
+                'name': 'sibling',
+                'attrs': {
+                  'summed': new ScalarAttribute('bytes', 13)
+                }
+              }
+            ]
+          },
+          {
+            'name': 'precedent_owner',
+            'owns': 1,
+            'attrs': {
+              'summed': new ScalarAttribute('bytes', 0)
+            }
+          },
+          {
+            'name': 'indirect_owner',
+            'owns': 2
+          }
+        ]
+      ], model);
+    });
+    var pmd = model.getProcess(0).memoryDumps[0];
+
+    var directOwnerDump = pmd.getMemoryAllocatorDumpByFullName('direct_owner');
+    assertSizeAttribute(directOwnerDump, 'summed', 27);
+    assertUndefinedAttribute(directOwnerDump, 'size');
+    assertUndefinedAttribute(directOwnerDump, 'effective_size');
+
+    var childOwnerDump =
+        pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner');
+    assertSizeAttribute(childOwnerDump, 'summed', 27);
+    assertUndefinedAttribute(childOwnerDump, 'size');
+    assertUndefinedAttribute(childOwnerDump, 'effective_size');
+
+    var parentOwnerDump = pmd.getMemoryAllocatorDumpByFullName('parent_owner');
+    assertSizeAttribute(parentOwnerDump, 'summed', 40);
+    assertUndefinedAttribute(parentOwnerDump, 'size');
+    assertUndefinedAttribute(parentOwnerDump, 'effective_size');
+
+    var precedentOwnerDump =
+        pmd.getMemoryAllocatorDumpByFullName('precedent_owner');
+    assertSizeAttribute(precedentOwnerDump, 'summed', 0);
+    assertUndefinedAttribute(precedentOwnerDump, 'size');
+    assertUndefinedAttribute(precedentOwnerDump, 'effective_size');
+
+    var indirectOwnerDump =
+        pmd.getMemoryAllocatorDumpByFullName('indirect_owner');
+    assertUndefinedAttribute(indirectOwnerDump, 'summed');
+    assertUndefinedAttribute(indirectOwnerDump, 'size');
+    assertUndefinedAttribute(indirectOwnerDump, 'effective_size');
   });
 });
 </script>
