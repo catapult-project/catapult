@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/reports/rail_score_report.html">
+<link rel="import" href="/perf_insights/ui/reports/coverage_report.html">
 <link rel="import" href="/perf_insights/ui/reports/slice_cost_report.html">
 <link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
@@ -40,6 +41,11 @@ found in the LICENSE file.
       <div tab-label="RAIL">
         <pi-ui-r-rail-score-report class="sub-report">
         </pi-ui-r-rail-score-report>
+      </div>
+
+      <div tab-label="Coverage">
+        <pi-ui-wr-coverage-report class="sub-report">
+        </pi-ui-wr-coverage-report>
       </div>
     </tr-ui-a-tab-view>
   </template>
