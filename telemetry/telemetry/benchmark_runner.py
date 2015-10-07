@@ -31,6 +31,7 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
+from telemetry.internal.util import ps_util
 
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
@@ -387,6 +388,7 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
 
 
 def main(environment):
+  ps_util.EnableListingStrayProcessesUponExitHook()
   # Get the command name from the command line.
   if len(sys.argv) > 1 and sys.argv[1] == '--help':
     sys.argv[1] = 'help'

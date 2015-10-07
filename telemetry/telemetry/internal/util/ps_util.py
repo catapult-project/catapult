@@ -2,6 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
+import inspect
+import logging
+import os
+
 from collections import defaultdict
 
 
@@ -45,3 +50,38 @@ def GetPsOutputWithPlatformBackend(platform_backend, columns, pid):
   for c in columns:
     args.extend(['-o', c + '='])
   return platform_backend.RunCommand(args).splitlines()
+
+
+def EnableListingStrayProcessesUponExitHook():
+  def _ListAllSubprocesses():
+    try:
+      import psutil
+    except ImportError:
+      logging.error(
+          'psutil is not installed on the system. Not listing possible '
+          'leaked processes. To install psutil, see: '
+          'https://pypi.python.org/pypi/psutil')
+      return
+    telemetry_pid = os.getpid()
+    parent = psutil.Process(telemetry_pid)
+    if hasattr(parent, 'children'):
+      children = parent.children(recursive=True)
+    else:  # Some old version of psutil use get_children instead children.
+      children = parent.get_children()
+    if children:
+      leak_processes_info = []
+      for p in children:
+        if inspect.ismethod(p.name):
+          name = p.name()
+        else:  # Process.name is a property in old versions of psutil.
+          name = p.name
+        process_info = '%s (%s)' % (name, p.pid)
+        try:
+          process_info += ' - %s' % p.cmdline()
+        except Exception as e:
+          logging.warning(str(e))
+        leak_processes_info.append(process_info)
+      logging.error('Telemetry leaks these processes: %s',
+                    ', '.join(leak_processes_info))
+
+  atexit.register(_ListAllSubprocesses)

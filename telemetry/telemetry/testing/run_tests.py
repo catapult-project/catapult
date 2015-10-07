@@ -13,6 +13,7 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import device_finder
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
+from telemetry.internal.util import ps_util
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
@@ -206,12 +207,18 @@ def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
 
 
 def _SetUpProcess(child, context): # pylint: disable=W0613
+  ps_util.EnableListingStrayProcessesUponExitHook()
   if binary_manager.NeedsInit():
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
     binary_manager.InitDependencyManager(context.client_config)
   # We need to reset the handlers in case some other parts of telemetry already
   # set it to make this work.
+  logging.getLogger().handlers = []
+  logging.basicConfig(
+      level=logging.INFO,
+      format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+             '%(message)s')
   args = context
   if not args.disable_logging_config:
     logging.getLogger().handlers = []
