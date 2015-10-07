@@ -379,7 +379,16 @@ class DeviceUtils(object):
   def _GetApplicationPathsInternal(self, package, skip_cache=False):
     cached_result = self._cache['package_apk_paths'].get(package)
     if cached_result is not None and not skip_cache:
-      return list(cached_result)
+      if package in self._cache['package_apk_paths_to_verify']:
+        self._cache['package_apk_paths_to_verify'].remove(package)
+        # Don't verify an app that is not thought to be installed. We are
+        # concerned only with apps we think are installed having been
+        # uninstalled manually.
+        if cached_result and not self.PathExists(cached_result):
+          cached_result = None
+          self._cache['package_apk_checksums'].pop(package, 0)
+      if cached_result is not None:
+        return list(cached_result)
     # 'pm path' is liable to incorrectly exit with a nonzero number starting
     # in Lollipop.
     # TODO(jbudorick): Check if this is fixed as new Android versions are
@@ -1949,6 +1958,9 @@ class DeviceUtils(object):
     self._cache = {
         # Map of packageId -> list of on-device .apk paths
         'package_apk_paths': {},
+        # Set of packageId that were loaded from LoadCacheData and not yet
+        # verified.
+        'package_apk_paths_to_verify': set(),
         # Map of packageId -> set of on-device .apk checksums
         'package_apk_checksums': {},
         # Map of property_name -> value
@@ -1961,6 +1973,11 @@ class DeviceUtils(object):
     """Initializes the cache from data created using DumpCacheData."""
     obj = json.loads(data)
     self._cache['package_apk_paths'] = obj.get('package_apk_paths', {})
+    # When using a cache across script invokations, verify that apps have
+    # not been uninstalled.
+    self._cache['package_apk_paths_to_verify'] = set(
+        self._cache['package_apk_paths'].iterkeys())
+
     package_apk_checksums = obj.get('package_apk_checksums', {})
     for k, v in package_apk_checksums.iteritems():
       package_apk_checksums[k] = set(v)
