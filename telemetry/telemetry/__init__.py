@@ -37,6 +37,8 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'typ')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
 
-_AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
-_AddDirToPythonPath(util.GetChromiumSrcDir(),
-                    'third_party', 'catapult', 'tracing')
+_AddDirToPythonPath(os.path.dirname(__file__), os.path.pardir, os.path.pardir,
+                    os.path.pardir, 'build', 'android')
+
+_AddDirToPythonPath(os.path.dirname(__file__), os.path.pardir, os.path.pardir,
+                    os.path.pardir, 'third_party', 'catapult', 'tracing')
