@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/extras/side_panel/category_summary_side_panel.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/model.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    var panel = document.createElement('tr-ui-e-s-category-summary-side-panel');
+    panel.model = tr.c.TestUtils.newModel(function(model) {
+      var process = model.getOrCreateProcess(1);
+      var thread = process.getOrCreateThread(2);
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+        start: 0,
+        duration: 1,
+        title: 'sync',
+        cat: 'category'
+      }));
+      thread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        start: 1,
+        duration: 2,
+        title: 'async',
+        cat: 'category'
+      }));
+      model.flowEvents.push(tr.c.TestUtils.newFlowEventEx({
+        start: 2,
+        duration: 3,
+        title: 'flow',
+        cat: 'category'
+      }));
+    });
+    panel.style.height = '100px';
+
+    this.addHTMLOutput(panel);
+  });
+});
+</script>
