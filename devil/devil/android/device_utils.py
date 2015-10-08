@@ -625,6 +625,10 @@ class DeviceUtils(object):
             apks_to_install, partial=partial, reinstall=reinstall)
       else:
         self.adb.Install(base_apk, reinstall=reinstall)
+      if (permissions is None
+          and self.build_version_sdk >= version_codes.MARSHMALLOW):
+        permissions = apk_helper.ApkHelper(base_apk).GetPermissions()
+      self.GrantPermissions(package_name, permissions)
       # Upon success, we know the device checksums, but not their paths.
       if host_checksums is not None:
         self._cache['package_apk_checksums'][package_name] = host_checksums
@@ -632,11 +636,6 @@ class DeviceUtils(object):
       # Running adb install terminates running instances of the app, so to be
       # consistent, we explicitly terminate it when skipping the install.
       self.ForceStop(package_name)
-
-    if (permissions is None
-        and self.build_version_sdk >= version_codes.MARSHMALLOW):
-      permissions = apk_helper.ApkHelper(base_apk).GetPermissions()
-    self.GrantPermissions(package_name, permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def Uninstall(self, package_name, keep_data=False, timeout=None,
