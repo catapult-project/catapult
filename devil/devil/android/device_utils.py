@@ -1138,9 +1138,8 @@ class DeviceUtils(object):
 
         sums = md5sum.CalculateDeviceMd5Sums(specific_device_paths, self)
 
-        if self._enable_device_files_cache:
-          cache_entry = [ignore_other_files, sums]
-          self._cache['device_path_checksums'][device_path] = cache_entry
+        cache_entry = [ignore_other_files, sums]
+        self._cache['device_path_checksums'][device_path] = cache_entry
         return dict(sums)
 
       host_checksums, device_checksums = reraiser_thread.RunAsync((
@@ -1172,8 +1171,6 @@ class DeviceUtils(object):
       to_delete = device_checksums.keys()
 
     def cache_commit_func():
-      if not self._enable_device_files_cache:
-        return
       new_sums = {posixpath.join(device_path, path[len(host_path) + 1:]): val
                   for path, val in host_checksums.iteritems()}
       cache_entry = [ignore_other_files, new_sums]
