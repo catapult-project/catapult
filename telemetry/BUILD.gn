@@ -8,11 +8,7 @@ group("telemetry_test_support") {
     # TODO(aiolos): Remove all dependencies that Telemetry has local copies of.
     "//build/android/devil/",
     "//build/android/pylib/",
-    "//build/util/",
-    "//third_party/WebKit/PerformanceTests/resources/jquery.tablesorter.min.js",
-    "//third_party/WebKit/PerformanceTests/resources/statistics.js",
-    "//third_party/flot/jquery.flot.min.js",
-    "//third_party/webpagereplay/",
+    "//third_party/catapult/",
     "//tools/telemetry/",
   ]
 }
