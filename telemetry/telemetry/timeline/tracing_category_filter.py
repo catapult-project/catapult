@@ -60,7 +60,7 @@ class TracingCategoryFilter(object):
     if '*' in filter_string or '?' in filter_string:
       self.contains_wildcards = True
 
-    filter_set = set(filter_string.split(','))
+    filter_set = set([cf.strip() for cf in filter_string.split(',')])
     for category in filter_set:
       if category == '':
         continue

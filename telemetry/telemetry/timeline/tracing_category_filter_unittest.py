@@ -8,19 +8,27 @@ from telemetry.timeline import tracing_category_filter
 
 
 class TracingCategoryFilterTests(unittest.TestCase):
-  def testBasic(self):
-    f = tracing_category_filter.TracingCategoryFilter(
-        'x,-y,disabled-by-default-z,DELAY(7;foo)')
-    self.assertEquals(set(['x']), set(f.included_categories))
-    self.assertEquals(set(['y']), set(f.excluded_categories))
+  def CheckCategoryFilters(self, cf):
+    self.assertEquals(set(['x']), set(cf.included_categories))
+    self.assertEquals(set(['y']), set(cf.excluded_categories))
     self.assertEquals(set(['disabled-by-default-z']),
-        set(f.disabled_by_default_categories))
-    self.assertEquals(set(['DELAY(7;foo)']), set(f.synthetic_delays))
+        set(cf.disabled_by_default_categories))
+    self.assertEquals(set(['DELAY(7;foo)']), set(cf.synthetic_delays))
 
-    self.assertTrue('x' in f.filter_string)
+    self.assertTrue('x' in cf.filter_string)
     self.assertEquals(
         'x,disabled-by-default-z,-y,DELAY(7;foo)',
-        f.stable_filter_string)
+        cf.stable_filter_string)
+
+  def testBasic(self):
+    cf = tracing_category_filter.TracingCategoryFilter(
+        'x,-y,disabled-by-default-z,DELAY(7;foo)')
+    self.CheckCategoryFilters(cf)
+
+  def testBasicWithSpace(self):
+    cf = tracing_category_filter.TracingCategoryFilter(
+        ' x ,\n-y\t,disabled-by-default-z ,DELAY(7;foo)')
+    self.CheckCategoryFilters(cf)
 
 
 class CategoryFilterTest(unittest.TestCase):
