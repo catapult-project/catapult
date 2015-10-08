@@ -22,7 +22,6 @@ from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import rietveld_service
 from dashboard import stored_object
-from dashboard import update_test_metadata
 from dashboard import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job
@@ -641,7 +640,7 @@ def PerformBisect(bisect_job):
   bisect_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
-  base_config = update_test_metadata.DownloadChromiumFile(_BISECT_CONFIG_PATH)
+  base_config = utils.DownloadChromiumFile(_BISECT_CONFIG_PATH)
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
@@ -720,7 +719,7 @@ def _PerformPerfTryJob(perf_job):
   email = perf_job.email
 
   # Get the base config file contents and make a patch.
-  base_config = update_test_metadata.DownloadChromiumFile(_PERF_CONFIG_PATH)
+  base_config = utils.DownloadChromiumFile(_PERF_CONFIG_PATH)
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(

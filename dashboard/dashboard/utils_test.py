@@ -2,7 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import base64
+import json
 import unittest
+
+import mock
 
 from google.appengine.ext import ndb
 
@@ -138,6 +142,40 @@ class UtilsTest(testing_common.TestCase):
   def testMinimumRange_MoreThanTwoRanges_ReturnsIntersection(self):
     self.assertEqual((6, 14), utils.MinimumRange(
         [(3, 20), (5, 15), (6, 25), (3, 14)]))
+
+
+def _MakeMockFetch(base64_encoded=True, status=200):
+  """Returns a mock fetch object that returns a canned response."""
+  def _MockFetch(_):
+    response_text = json.dumps({'key': 'this is well-formed JSON.'})
+    if base64_encoded:
+      response_text = base64.b64encode(response_text)
+    return testing_common.FakeResponseObject(status, response_text)
+  return _MockFetch
+
+
+class DownloadChromiumFileTest(testing_common.TestCase):
+
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              _MakeMockFetch())
+  def testDownloadChromiumFile_BasicCase(self):
+    self.assertEqual(
+        json.dumps({'key': 'this is well-formed JSON.'}),
+        utils.DownloadChromiumFile('some/file'))
+
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              _MakeMockFetch(base64_encoded=False))
+  @mock.patch('logging.error')
+  def testDownloadChromiumFile_BadEncoding(self, mock_logging_error):
+    self.assertIsNone(utils.DownloadChromiumFile('some/file'))
+    self.assertEqual(1, mock_logging_error.call_count)
+
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              _MakeMockFetch(status=400))
+  @mock.patch('logging.error')
+  def testDownloadChromiumFile_Non200Status(self, mock_logging_error):
+    self.assertIsNone(utils.DownloadChromiumFile('some/file'))
+    self.assertEqual(1, mock_logging_error.call_count)
 
 
 if __name__ == '__main__':

@@ -51,7 +51,6 @@ from dashboard import start_try_job
 from dashboard import stats
 from dashboard import test_buildbucket
 from dashboard import update_bug_with_results
-from dashboard import update_test_metadata
 from dashboard import update_test_suites
 
 
@@ -106,7 +105,6 @@ app = webapp2.WSGIApplication(
      ('/test_buildbucket', test_buildbucket.TestBuildbucketHandler),
      ('/update_bug_with_results',
       update_bug_with_results.UpdateBugWithResultsHandler),
-     ('/update_test_metadata', update_test_metadata.UpdateTestMetadataHandler),
      ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
      (oauth2_decorator.decorator.callback_path,
       oauth2_decorator.decorator.callback_handler())], debug=True)
