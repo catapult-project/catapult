@@ -5,9 +5,9 @@
 import os
 import unittest
 
-from tvcm import generate
-from tvcm import fake_fs
-from tvcm import project as project_module
+from py_vulcanize import generate
+from py_vulcanize import fake_fs
+from py_vulcanize import project as project_module
 
 
 class GenerateTests(unittest.TestCase):

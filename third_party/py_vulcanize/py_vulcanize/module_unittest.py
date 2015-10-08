@@ -8,10 +8,10 @@
 import os
 import unittest
 
-from tvcm import fake_fs
-from tvcm import module
-from tvcm import resource_loader
-from tvcm import project as project_module
+from py_vulcanize import fake_fs
+from py_vulcanize import module
+from py_vulcanize import resource_loader
+from py_vulcanize import project as project_module
 
 
 class ModuleIntegrationTests(unittest.TestCase):
@@ -33,7 +33,7 @@ class ModuleIntegrationTests(unittest.TestCase):
     fs.AddFile('/src/z.html', """
 <!DOCTYPE html>
 """)
-    fs.AddFile('/src/tvcm.html', '<!DOCTYPE html>')
+    fs.AddFile('/src/py_vulcanize.html', '<!DOCTYPE html>')
     with fs:
       project = project_module.Project([os.path.normpath('/src/')])
       loader = resource_loader.ResourceLoader(project)
@@ -56,10 +56,10 @@ class ModuleIntegrationTests(unittest.TestCase):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/src/my_module.html', """
 <!DOCTYPE html>
-<link rel="import" href="/tvcm/foo.html">
+<link rel="import" href="/py_vulcanize/foo.html">
 });
 """)
-    fs.AddFile('/x/tvcm/foo.html', """
+    fs.AddFile('/x/py_vulcanize/foo.html', """
 <!DOCTYPE html>
 });
 """)
@@ -68,15 +68,15 @@ class ModuleIntegrationTests(unittest.TestCase):
     with fs:
       my_module = loader.LoadModule(module_name='src.my_module')
       dep_names = [x.name for x in my_module.dependent_modules]
-      self.assertEquals(['tvcm.foo'], dep_names)
+      self.assertEquals(['py_vulcanize.foo'], dep_names)
 
   def testDepsExceptionContext(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/src/my_module.html', """
 <!DOCTYPE html>
-<link rel="import" href="/tvcm/foo.html">
+<link rel="import" href="/py_vulcanize/foo.html">
 """)
-    fs.AddFile('/x/tvcm/foo.html', """
+    fs.AddFile('/x/py_vulcanize/foo.html', """
 <!DOCTYPE html>
 <link rel="import" href="missing.html">
 """)
@@ -90,7 +90,7 @@ class ModuleIntegrationTests(unittest.TestCase):
       except module.DepsException, e:
         exc = e
       self.assertEquals(
-          ['src.my_module', 'tvcm.foo'],
+          ['src.my_module', 'py_vulcanize.foo'],
           exc.context)
 
   def testGetAllDependentFilenamesRecursive(self):

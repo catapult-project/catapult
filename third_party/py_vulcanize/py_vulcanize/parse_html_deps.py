@@ -5,9 +5,9 @@
 import os
 import sys
 
-from tvcm import module
-from tvcm import strip_js_comments
-from tvcm import html_generation_controller
+from py_vulcanize import module
+from py_vulcanize import strip_js_comments
+from py_vulcanize import html_generation_controller
 
 
 def _AddToPathIfNeeded(path):
@@ -16,8 +16,9 @@ def _AddToPathIfNeeded(path):
 
 
 def _InitBeautifulSoup():
-  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                  '..', '..', '..', '..'))
+  catapult_path = os.path.abspath(
+      os.path.join(os.path.dirname(__file__),
+                   os.path.pardir, os.path.pardir, os.path.pardir))
   bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4')
   _AddToPathIfNeeded(bs_path)
 
@@ -27,6 +28,7 @@ def _InitBeautifulSoup():
 
 _InitBeautifulSoup()
 import bs4
+
 
 class InlineScript(object):
   def __init__(self, soup):

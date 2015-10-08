@@ -15,14 +15,14 @@ import os
 import inspect
 import codecs
 
-from tvcm import js_utils
+from py_vulcanize import js_utils
 
 
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
 
   def __init__(self, fmt, *args):
-    from tvcm import style_sheet as style_sheet_module
+    from py_vulcanize import style_sheet as style_sheet_module
     context = []
     frame = inspect.currentframe()
     while frame:
@@ -82,7 +82,7 @@ class Module(object):
   """Represents a JavaScript module.
 
   Interesting properties include:
-    name: Module name, may include a namespace, e.g. 'tvcm.foo'.
+    name: Module name, may include a namespace, e.g. 'py_vulcanize.foo'.
     filename: The filename of the actual module.
     contents: The text contents of the module.
     dependent_modules: Other modules that this module depends on.
@@ -140,7 +140,7 @@ class Module(object):
     raise NotImplementedError()
 
   def GetTVCMDepsModuleType(self):
-    """Returns the tvcm.setModuleInfo type for this module"""
+    """Returns the py_vulcanize.setModuleInfo type for this module"""
     raise NotImplementedError()
 
   def AppendJSContentsToFile(self,
@@ -248,7 +248,7 @@ class Module(object):
 
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
-  tvcm.requireRawScript(xxx) directive."""
+  py_vulcanize.requireRawScript(xxx) directive."""
 
   def __init__(self, resource):
     self.resource = resource

@@ -75,8 +75,8 @@ class ParsedStyleSheet(object):
 
     def resolve_url(url):
       if os.path.isabs(url):
-        # FIXME: module is used here, but tvcm.module is never imported.
-        # However, tvcm.module cannot be imported since tvcm.module may import
+        # FIXME: module is used here, but py_vulcanize.module is never imported.
+        # However, py_vulcanize.module cannot be imported since py_vulcanize.module may import
         # style_sheet, leading to an import loop.
         raise module.DepsException('URL references must be relative')
       # URLS are relative to this module's directory

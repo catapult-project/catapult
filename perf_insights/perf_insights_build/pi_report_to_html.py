@@ -14,7 +14,7 @@ from perf_insights import map_function_handle as map_function_handle_module
 from perf_insights import map_runner
 from perf_insights import progress_reporter as progress_reporter_module
 from perf_insights.results import json_output_formatter
-from tvcm import generate
+from py_vulcanize import generate
 import perf_insights
 import perf_insights_project
 import bs4

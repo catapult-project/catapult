@@ -13,7 +13,7 @@ import sys
 
 import tracing_project
 
-from tvcm import generate
+from py_vulcanize import generate
 
 
 def Main(argv):

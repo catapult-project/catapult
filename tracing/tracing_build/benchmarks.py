@@ -11,8 +11,8 @@ import sys
 import os
 
 import tracing_project
-from tvcm import generate
-from tvcm import project
+from py_vulcanize import generate
+from py_vulcanize import project
 
 
 class Bench(object):

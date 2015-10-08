@@ -7,7 +7,7 @@
 
 import unittest
 
-from tvcm import strip_js_comments
+from py_vulcanize import strip_js_comments
 
 
 # This test case tests a protected method.

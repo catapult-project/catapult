@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from tvcm import fake_fs
+from py_vulcanize import fake_fs
 
 
 class FakeFSUnittest(unittest.TestCase):

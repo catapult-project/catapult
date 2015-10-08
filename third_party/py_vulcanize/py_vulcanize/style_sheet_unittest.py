@@ -6,10 +6,10 @@ import base64
 import os
 import unittest
 
-from tvcm import project as project_module
-from tvcm import resource_loader
-from tvcm import fake_fs
-from tvcm import module
+from py_vulcanize import project as project_module
+from py_vulcanize import resource_loader
+from py_vulcanize import fake_fs
+from py_vulcanize import module
 
 
 class StyleSheetUnittest(unittest.TestCase):

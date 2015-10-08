@@ -7,11 +7,11 @@
 import codecs
 import os
 
-from tvcm import module
-from tvcm import style_sheet as style_sheet_module
-from tvcm import resource as resource_module
-from tvcm import html_module
-from tvcm import strip_js_comments
+from py_vulcanize import module
+from py_vulcanize import style_sheet as style_sheet_module
+from py_vulcanize import resource as resource_module
+from py_vulcanize import html_module
+from py_vulcanize import strip_js_comments
 
 
 class ResourceLoader(object):
@@ -193,13 +193,13 @@ class ResourceLoader(object):
     self.loaded_images[abs_path] = image
     return image
 
-  def GetStrippedJSForFilename(self, filename, early_out_if_no_tvcm):
+  def GetStrippedJSForFilename(self, filename, early_out_if_no_py_vulcanize):
     if filename in self.stripped_js_by_filename:
       return self.stripped_js_by_filename[filename]
 
     with open(filename, 'r') as f:
       contents = f.read(4096)
-    if early_out_if_no_tvcm and ('tvcm' not in contents):
+    if early_out_if_no_py_vulcanize and ('py_vulcanize' not in contents):
       return None
 
     s = strip_js_comments.StripJSComments(contents)

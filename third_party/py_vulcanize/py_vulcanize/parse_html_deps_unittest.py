@@ -6,8 +6,8 @@
 import re
 import unittest
 
-from tvcm import parse_html_deps
-from tvcm import html_generation_controller
+from py_vulcanize import parse_html_deps
+from py_vulcanize import html_generation_controller
 
 
 class ParseTests(unittest.TestCase):
@@ -70,8 +70,8 @@ class ParseTests(unittest.TestCase):
                 <template>
                 </template>
                 <script>
-                  tvcm.require("foo");
-                  tvcm.require('bar');
+                  py_vulcanize.require("foo");
+                  py_vulcanize.require('bar');
                 </script>
               </polymer-element>"""
 
@@ -85,14 +85,14 @@ class ParseTests(unittest.TestCase):
 
     script0 = module.inline_scripts[0]
     val = re.sub(r'\s+', '', script0.contents)
-    inner_script = """tvcm.require("foo");tvcm.require('bar');"""
+    inner_script = """py_vulcanize.require("foo");py_vulcanize.require('bar');"""
     self.assertEquals(inner_script, val)
 
     self.assertEquals(3, len(script0.open_tags))
     self.assertEquals('polymer-element', script0.open_tags[2].tag)
 
     self.assertNotIn(
-        'tvcm.require("foo");',
+        'py_vulcanize.require("foo");',
         module.html_contents_without_links_and_script)
 
   def test_parse_script_src_sripping(self):

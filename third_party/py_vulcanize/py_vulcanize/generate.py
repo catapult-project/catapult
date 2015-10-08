@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import StringIO
 
-from tvcm import html_generation_controller
+from py_vulcanize import html_generation_controller
 
 
 html_warning_message = """
@@ -51,10 +51,10 @@ def _AssertIsUTF8(f):
 
 
 def _MinifyJS(input_js):
-  tvcm_path = os.path.abspath(os.path.join(
+  py_vulcanize_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
   rjsmin_path = os.path.abspath(
-      os.path.join(tvcm_path, 'third_party', 'rjsmin', 'rjsmin.py'))
+      os.path.join(py_vulcanize_path, 'third_party', 'rjsmin', 'rjsmin.py'))
 
   with tempfile.NamedTemporaryFile() as _:
     args = [
@@ -176,10 +176,10 @@ class ExtraScript(object):
 
 
 def _MinifyCSS(css_text):
-  tvcm_path = os.path.abspath(os.path.join(
+  py_vulcanize_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
   rcssmin_path = os.path.abspath(
-      os.path.join(tvcm_path, 'third_party', 'rcssmin', 'rcssmin.py'))
+      os.path.join(py_vulcanize_path, 'third_party', 'rcssmin', 'rcssmin.py'))
 
   with tempfile.NamedTemporaryFile() as _:
     rcssmin_args = ['python', rcssmin_path]

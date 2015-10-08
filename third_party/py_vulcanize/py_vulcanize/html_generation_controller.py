@@ -4,7 +4,7 @@
 
 import os
 import re
-from tvcm import style_sheet
+from py_vulcanize import style_sheet
 
 
 class HTMLGenerationController(object):

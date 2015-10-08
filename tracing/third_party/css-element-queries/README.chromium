@@ -11,5 +11,6 @@ Description:
 ResizeSensor.js calls a callback when an element is resized for any reason.
 
 Local Modifications:
-Made test/index.html conform to tvcm's expectations: up-cased doctype, added
-'use strict', downloaded mootools from cloudflare and added them to test/.
+Made test/index.html conform to the expectations of py_vulcanize:
+up-cased doctype, added 'use strict', downloaded mootools from cloudflare
+and added them to test/.

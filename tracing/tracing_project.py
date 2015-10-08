@@ -15,7 +15,7 @@ def _AddToPathIfNeeded(path):
 def UpdateSysPathIfNeeded():
   p = TracingProject()
   _AddToPathIfNeeded(p.catapult_path)
-  _AddToPathIfNeeded(p.tvcm_path)
+  _AddToPathIfNeeded(p.py_vulcanize_path)
   _AddToPathIfNeeded(p.vinn_path)
 
   _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'WebOb'))
@@ -60,13 +60,13 @@ class TracingProject():
   extras_path = os.path.join(tracing_src_path, 'extras')
   ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
 
-
   catapult_third_party_path = os.path.abspath(os.path.join(
       catapult_path, 'third_party'))
 
   tracing_third_party_path = os.path.abspath(os.path.join(
       tracing_root_path, 'third_party'))
-  tvcm_path = os.path.abspath(os.path.join(tracing_third_party_path, 'tvcm'))
+  py_vulcanize_path = os.path.abspath(os.path.join(
+      catapult_path, 'third_party', 'py_vulcanize'))
   vinn_path = os.path.abspath(os.path.join(catapult_third_party_path, 'vinn'))
 
   jszip_path = os.path.abspath(os.path.join(tracing_third_party_path, 'jszip'))
@@ -83,9 +83,9 @@ class TracingProject():
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
 
   rjsmin_path = os.path.abspath(os.path.join(
-      tracing_third_party_path, 'tvcm', 'third_party', 'rjsmin'))
+      py_vulcanize_path, 'third_party', 'rjsmin'))
   rcssmin_path = os.path.abspath(os.path.join(
-      tracing_third_party_path, 'tvcm', 'third_party', 'rcssmin'))
+      py_vulcanize_path, 'third_party', 'rcssmin'))
 
   def __init__(self):
     self.source_paths = []
@@ -98,7 +98,7 @@ class TracingProject():
     self.source_paths.append(self.mocha_path)
 
   def CreateVulcanizer(self):
-    from tvcm import project as project_module
+    from py_vulcanize import project as project_module
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):

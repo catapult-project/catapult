@@ -6,7 +6,7 @@ import collections
 import os
 import cStringIO
 
-from tvcm import resource_loader
+from py_vulcanize import resource_loader
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -79,7 +79,7 @@ class AbsFilenameList(object):
 
 class Project(object):
 
-  tvcm_path = os.path.abspath(os.path.join(
+  py_vulcanize_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
   def __init__(self, source_paths=None):

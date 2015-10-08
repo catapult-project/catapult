@@ -7,7 +7,7 @@ import argparse
 import os
 import sys
 
-import tvcm
+import py_vulcanize
 
 import tracing_project
 
@@ -38,13 +38,13 @@ def Main(args):
     o = codecs.open(os.path.join(args.out_dir, 'about_tracing.html'), 'w',
                     encoding='utf-8')
     try:
-      tvcm.GenerateStandaloneHTMLToFile(
+      py_vulcanize.GenerateStandaloneHTMLToFile(
           o,
           load_sequence,
           title='chrome://tracing',
           flattened_js_url='tracing.js',
           minify=not args.no_min)
-    except tvcm.module.DepsException, ex:
+    except py_vulcanize.module.DepsException, ex:
       sys.stderr.write('Error: %s\n\n' % str(ex))
       return 255
     o.close()
@@ -52,7 +52,7 @@ def Main(args):
     o = codecs.open(os.path.join(args.out_dir, 'about_tracing.js'), 'w',
                     encoding='utf-8')
     assert o.encoding == 'utf-8'
-    tvcm.GenerateJSToFile(
+    py_vulcanize.GenerateJSToFile(
         o,
         load_sequence,
         use_include_tags_for_scripts=False,

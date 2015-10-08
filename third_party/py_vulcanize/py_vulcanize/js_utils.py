@@ -23,6 +23,6 @@ def ValidateUsesStrictMode(module_name, stripped_text):
       continue
     if """'use strict';""" in line.strip():
       break
-    # FIXME: module is used but not imported. But, importing tvcm.module
-    # leads to an import cycle since tvcm.module imports js_utils.
+    # FIXME: module is used but not imported. But, importing py_vulcanize.module
+    # leads to an import cycle since py_vulcanize.module imports js_utils.
     raise module.DepsException('%s must use strict mode' % module_name)

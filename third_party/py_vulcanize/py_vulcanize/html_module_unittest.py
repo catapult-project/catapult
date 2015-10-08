@@ -6,14 +6,14 @@ import os
 import unittest
 import StringIO
 
-from tvcm import fake_fs
-from tvcm import generate
-from tvcm import html_generation_controller
-from tvcm import html_module
-from tvcm import parse_html_deps
-from tvcm import project as project_module
-from tvcm import resource
-from tvcm import resource_loader as resource_loader
+from py_vulcanize import fake_fs
+from py_vulcanize import generate
+from py_vulcanize import html_generation_controller
+from py_vulcanize import html_module
+from py_vulcanize import parse_html_deps
+from py_vulcanize import project as project_module
+from py_vulcanize import resource
+from py_vulcanize import resource_loader as resource_loader
 
 
 class ResourceWithFakeContents(resource.Resource):
@@ -218,11 +218,11 @@ class HTMLModuleTests(unittest.TestCase):
   </script>
 </polymer-element>
 """
-    file_contents[os.path.normpath('/tvcm/tvcm.html')] = """<!DOCTYPE html>
+    file_contents[os.path.normpath('/py_vulcanize/py_vulcanize.html')] = """<!DOCTYPE html>
 """
     file_contents[os.path.normpath('/components/widget.html')] = """
 <!DOCTYPE html>
-<link rel="import" href="/tvcm.html">
+<link rel="import" href="/py_vulcanize.html">
 <widget name="widget.html"></widget>
 <script>
 'use strict';
@@ -241,7 +241,7 @@ console.log('/raw/raw_script.js was written');
 
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project(
-          [os.path.normpath('/tvcm/'),
+          [os.path.normpath('/py_vulcanize/'),
            os.path.normpath('/tmp/'),
            os.path.normpath('/components/'),
            os.path.normpath('/raw/')])
@@ -251,7 +251,7 @@ console.log('/raw/raw_script.js was written');
 
       # Check load sequence names.
       load_sequence_names = [x.name for x in load_sequence]
-      self.assertEquals(['tvcm',
+      self.assertEquals(['py_vulcanize',
                          'widget',
                          'a.b.start'], load_sequence_names)
 
@@ -290,7 +290,7 @@ console.log('/raw/raw_script.js was written');
 """
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project([
-          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
+          os.path.normpath('/py_vulcanize/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -322,7 +322,7 @@ console.log('/raw/raw_script.js was written');
 """
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project([
-          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
+          os.path.normpath('/py_vulcanize/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 
@@ -351,7 +351,7 @@ console.log('/raw/raw_script.js was written');
     file_contents[os.path.normpath('/tmp/a/something.jpg')] = 'jpgdata'
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project([
-          os.path.normpath('/tvcm/'), os.path.normpath('/tmp/')])
+          os.path.normpath('/py_vulcanize/'), os.path.normpath('/tmp/')])
       loader = resource_loader.ResourceLoader(project)
       my_component = loader.LoadModule(module_name='a.b.my_component')
 

@@ -7,5 +7,5 @@
 This module implements trace-viewer's component model.
 """
 
-from tvcm.generate import *  # pylint: disable=wildcard-import
-from tvcm.project import Project
+from py_vulcanize.generate import *  # pylint: disable=wildcard-import
+from py_vulcanize.project import Project

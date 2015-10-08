@@ -5,10 +5,10 @@
 import os
 import re
 
-from tvcm import module
-from tvcm import js_utils
-from tvcm import parse_html_deps
-from tvcm import style_sheet
+from py_vulcanize import module
+from py_vulcanize import js_utils
+from py_vulcanize import parse_html_deps
+from py_vulcanize import style_sheet
 
 
 def IsHTMLResourceTheModuleGivenConflictingResourceNames(
@@ -45,7 +45,7 @@ class HTMLModule(module.Module):
                         os.path.relpath(self.resource.absolute_path))
 
   def GetTVCMDepsModuleType(self):
-    return 'tvcm.HTML_MODULE_TYPE'
+    return 'py_vulcanize.HTML_MODULE_TYPE'
 
   def AppendJSContentsToFile(self,
                              f,

@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from tvcm import resource
+from py_vulcanize import resource
 
 
 class ResourceUnittest(unittest.TestCase):
