@@ -17,6 +17,10 @@ handlers:
   script: perf_insights.upload.app
   secure: always
 
+- url: /query
+  script: perf_insights.query.app
+  secure: always
+
 env_variables:
   # Comment out the next line to use the appengine default bucket.
   GCS_BUCKET_NAME: 'performance-insights'

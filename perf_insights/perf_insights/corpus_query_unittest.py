@@ -36,14 +36,15 @@ class FilterTests(unittest.TestCase):
     self.assertFalse(f.Eval({'a': 'c'}))
     self.assertTrue(f.Eval({'a': 'a'}))
 
-  def testTupleInMetdata(self):
-    f = corpus_query.Filter.FromString("'c' IN tags")
-    self.assertEquals(f.a.constant, 'c');
-    self.assertEquals(f.op, corpus_query._InOp);
-    self.assertEquals(f.b.fieldName, 'tags');
-
-    self.assertFalse(f.Eval({'tags': ('a', 'b')}))
-    self.assertTrue(f.Eval({'tags': ('a', 'b', 'c')}))
+  def testPropertyAndValueOrder(self):
+    with self.assertRaises(Exception):
+      corpus_query.Filter.FromString("'c' IN tags")
+    with self.assertRaises(Exception):
+      corpus_query.Filter.FromString("'test' = a")
+    with self.assertRaises(Exception):
+      corpus_query.Filter.FromString("'test' = 'test'")
+    with self.assertRaises(Exception):
+      corpus_query.Filter.FromString("a = b")
 
   def testDateComparison(self):
     f = corpus_query.Filter.FromString(
@@ -100,9 +101,71 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertFalse(f.Eval({'date': end}))
     self.assertFalse(f.Eval({'date': way_after}))
 
-
   def testSimpleOp(self):
     q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
     self.assertTrue(q.Eval({'a': 3}, 0))
     self.assertFalse(q.Eval({'a': 3}, 3))
     self.assertFalse(q.Eval({'a': 3}, 4))
+
+  def testSimpleQueryString(self):
+    q = corpus_query.CorpusQuery.FromString('')
+    self.assertEquals(q.AsQueryString(), '')
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, '')
+    self.assertEquals(args, [])
+
+  def testSimpleOpQueryString(self):
+    q = corpus_query.CorpusQuery.FromString('a = 3')
+    self.assertEquals(q.AsQueryString(), 'a = 3')
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, 'WHERE a = :1')
+    self.assertEquals(args[0], 1)
+
+  def testMultipleFiltersOpQueryString(self):
+    q = corpus_query.CorpusQuery.FromString(
+        'a = 3 AND b = 4')
+    self.assertEquals(q.AsQueryString(), 'a = 3 AND b = 4')
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, 'WHERE a = :1 AND b = :2')
+    self.assertEquals(args[0], 3)
+    self.assertEquals(args[1], 4)
+
+  def testDateRangeQueryString(self):
+    q = corpus_query.CorpusQuery.FromString(
+        'date >= Date(2015-01-01 00:00:00.00) AND ' +
+        'date < Date(2015-02-01 00:00:00.00)')
+    self.assertEquals(q.AsQueryString(),
+        'date >= Date(2015-01-01 00:00:00.000000) AND '
+        'date < Date(2015-02-01 00:00:00.000000)')
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, "WHERE date >= :1 AND date < :2")
+    self.assertEquals(args[0], datetime.datetime(2015, 01, 01, 0, 0, 0))
+    self.assertEquals(args[1], datetime.datetime(2015, 02, 01, 0, 0, 0))
+
+  def testSimpleOpQueryString(self):
+    q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
+    self.assertEquals(q.AsQueryString(), 'a = 3 AND MAX_TRACE_HANDLES=3')
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, 'WHERE a = :1 LIMIT 3')
+    self.assertEquals(args[0], 3)
+
+  def testMixedTupleQueryString(self):
+    q = corpus_query.CorpusQuery.FromString("a IN ('a', 'b', 3, 'c')")
+    self.assertEquals(q.AsQueryString(), "a IN ('a', 'b', 3, 'c')")
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, "WHERE a IN :1")
+    self.assertEquals(args[0], ('a', 'b', 3, 'c'))
+
+  def testMaxTraceHandlesQueryString(self):
+    q = corpus_query.CorpusQuery.FromString("MAX_TRACE_HANDLES=1")
+    self.assertEquals(q.AsQueryString(), "MAX_TRACE_HANDLES=1")
+
+    (gql, args) = q.AsGQLWhereClause()
+    self.assertEquals(gql, "LIMIT 1")
+    self.assertEquals(args, [])

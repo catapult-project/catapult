@@ -69,7 +69,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
   raise Exception('No element that extends pi-ui-r-pi-report was found')
 
 
-def PiReportToHTML(ofile, trace_directory, pi_report_file,
+def PiReportToHTML(ofile, args, pi_report_file,
                    query, json_output=False,
                    stop_on_error=False, jobs=1, quiet=False):
   project = perf_insights_project.PerfInsightsProject()
@@ -86,7 +86,7 @@ def PiReportToHTML(ofile, trace_directory, pi_report_file,
   if map_file == None:
     raise Exception('Could not find %s' % map_function_href)
 
-  results = _MapTraces(trace_directory, map_function_handle,
+  results = _MapTraces(args, map_function_handle,
                        query, stop_on_error, jobs, quiet)
   if stop_on_error and results.had_failures:
     sys.stderr.write('There were mapping errors. Aborting.');
@@ -101,11 +101,10 @@ def PiReportToHTML(ofile, trace_directory, pi_report_file,
   return 0
 
 
-def _MapTraces(trace_directory, map_function_handle, query,
+def _MapTraces(args, map_function_handle, query,
                stop_on_error=False,
                jobs=1, quiet=False):
-  corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-      os.path.abspath(os.path.expanduser(trace_directory)))
+  corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(args)
 
   trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
   if quiet:

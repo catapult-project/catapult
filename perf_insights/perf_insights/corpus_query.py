@@ -16,12 +16,28 @@ class _ReadField(object):
   def __init__(self, fieldName):
     self.fieldName = fieldName
 
+  def AsQueryString(self):
+    return self.fieldName
+
   def Eval(self, metadata):
     return metadata[self.fieldName]
 
 class _Constant(object):
   def __init__(self, constant):
     self.constant = constant
+
+  def AsQueryString(self):
+    if isinstance(self.constant, list):
+      # Tuples
+      return '(%s)' % ','.join([c.AsQueryString() for c in self.constant])
+    elif isinstance(self.constant, (datetime.datetime, datetime.date)):
+      # Dates.
+      return self.constant.strftime("Date(%Y-%m-%d %H:%M:%S.%f)")
+    elif isinstance(self.constant, str):
+      # Strings need quotes.
+      return "'%s'" % self.constant
+    # Everything else from the eval() statement below.
+    return str(self.constant)
 
   def Eval(self, metadata):
     # pylint: disable=unused-argument
@@ -64,6 +80,13 @@ _OPERATORS = {
   ' IN ': _InOp # Spaces matter for proper parsing.
 }
 
+def _OperatorToString(op):
+  for k, v in _OPERATORS.iteritems():
+    if op == v:
+      return k
+  raise NotImplementedError()
+
+
 # Since we use find(token) in our actual tokenizing function,
 # we need to search for the longest tokens first so that '<=' is searched
 # for first, bofore '<', for instance.
@@ -79,6 +102,13 @@ class Filter(object):
   def Eval(self, metadata):
     return self.op(self.a.Eval(metadata),
                    self.b.Eval(metadata))
+
+  def AsQueryString(self):
+    # strip() the operator in case we get " IN ", just so that it's not
+    # double spaced.
+    return '%s %s %s' % (self.a.AsQueryString(),
+                         _OperatorToString(self.op).strip(),
+                         self.b.AsQueryString())
 
   @staticmethod
   def FromString(s):
@@ -103,6 +133,11 @@ class Filter(object):
     lvalue = _StringToValue(lvalue)
     rvalue = _StringToValue(rvalue)
 
+    if not isinstance(lvalue, _ReadField) or not isinstance(rvalue, _Constant):
+      # GQL Syntax needs the property on the left and the value on the right.
+      # https://cloud.google.com/appengine/docs/python/datastore/gqlreference
+      raise Exception('Expected lvalue field and rvalue constant')
+
     return Filter(lvalue,
                   _OPERATORS[found_op_key],
                   rvalue)
@@ -111,6 +146,45 @@ class CorpusQuery(object):
   def __init__(self):
     self.max_trace_handles = None
     self.filters = []
+
+  def AsGQLWhereClause(self):
+    gql = ''
+    args = []
+    if self.filters:
+      filter_strings = []
+      for f in self.filters:
+        # Constants need to be passed back as positional arguments to avoid
+        # potential gql injection problems.
+        a_string = ''
+        if isinstance(f.a, _Constant):
+          args.append(f.a.constant)
+          a_string = ':%d' % len(args)
+        else:
+          a_string = f.a.fieldName
+
+        b_string = ''
+        if isinstance(f.b, _Constant):
+          args.append(f.b.constant)
+          b_string = ':%d' % len(args)
+        else:
+          b_string = f.b.fieldName
+
+        filter_strings.append( '%s %s %s' % (a_string,
+                                             _OperatorToString(f.op).strip(),
+                                             b_string))
+      gql = 'WHERE ' + ' AND '.join(filter_strings)
+    if self.max_trace_handles:
+      gql += ' LIMIT %d' % self.max_trace_handles
+    # strip() the final GQL in case it's just " LIMIT 1", just so that it looks
+    # a bit nicer.
+    return (gql.strip(), args)
+
+  def AsQueryString(self):
+    filter_strings = [f.AsQueryString() for f in self.filters]
+    if self.max_trace_handles:
+      filter_strings.append('MAX_TRACE_HANDLES=%d' % self.max_trace_handles)
+    query_str = ' AND '.join(filter_strings)
+    return query_str
 
   @staticmethod
   def FromString(filterString):

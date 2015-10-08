@@ -74,7 +74,15 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
   all_source_paths.append(pi_path)
   run_info = trace_handle.run_info
 
-  with trace_handle.Open() as trace_file:
+  trace_file = trace_handle.Open()
+  if not trace_file:
+    results.AddValue(value_module.FailureValue(
+        run_info,
+        'Error', 'error while opening trace',
+        'error while opening trace', 'Unknown stack'))
+    return
+
+  try:
     js_args = [
       json.dumps(run_info.AsDict()),
       json.dumps(map_function_handle.AsDict()),
@@ -86,6 +94,8 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
       os.path.join(pi_path, 'perf_insights', 'map_single_trace_cmdline.html'),
       source_paths=all_source_paths,
       js_args=js_args)
+  finally:
+    trace_file.close()
 
   if res.returncode != 0:
     try:

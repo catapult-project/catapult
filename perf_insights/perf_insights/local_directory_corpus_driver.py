@@ -47,12 +47,23 @@ def _DefaultUrlResover(abspath):
   return 'file:///%s' % abspath
 
 class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
-  def __init__(self, directory, url_resolver = None):
-    self.directory = directory
+  def __init__(self, args, url_resolver = None):
+    self.directory = os.path.abspath(os.path.expanduser(args.trace_directory))
     if url_resolver == None:
       self.url_resolver = _DefaultUrlResover
     else:
       self.url_resolver = url_resolver
+
+  @staticmethod
+  def CheckArguments(parser, args):
+    if not os.path.exists(args.trace_directory):
+      parser.error('trace directory does not exist')
+
+  @staticmethod
+  def AddArguments(parser):
+    parser.add_argument(
+        '--trace_directory',
+        help='Local directory containing traces to process.')
 
   def GetTraceHandlesMatchingQuery(self, query):
     trace_handles = []
