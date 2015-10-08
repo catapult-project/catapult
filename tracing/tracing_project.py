@@ -54,38 +54,37 @@ def _IsFilenameATest(x):  # pylint: disable=unused-argument
 
 
 class TracingProject():
-  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-  tracing_root_path = os.path.abspath(os.path.join(catapult_path, 'tracing'))
-  tracing_src_path = os.path.abspath(os.path.join(tracing_root_path, 'tracing'))
+  catapult_path = os.path.abspath(
+      os.path.join(os.path.dirname(__file__), os.path.pardir))
+
+  tracing_root_path = os.path.join(catapult_path, 'tracing')
+  tracing_src_path = os.path.join(tracing_root_path, 'tracing')
   extras_path = os.path.join(tracing_src_path, 'extras')
   ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
 
-  catapult_third_party_path = os.path.abspath(os.path.join(
-      catapult_path, 'third_party'))
+  catapult_third_party_path = os.path.join(catapult_path, 'third_party')
 
-  tracing_third_party_path = os.path.abspath(os.path.join(
-      tracing_root_path, 'third_party'))
-  py_vulcanize_path = os.path.abspath(os.path.join(
-      catapult_path, 'third_party', 'py_vulcanize'))
-  vinn_path = os.path.abspath(os.path.join(catapult_third_party_path, 'vinn'))
+  tracing_third_party_path = os.path.join(tracing_root_path, 'third_party')
+  py_vulcanize_path = os.path.join(catapult_third_party_path, 'py_vulcanize')
+  vinn_path = os.path.join(catapult_third_party_path, 'vinn')
 
-  jszip_path = os.path.abspath(os.path.join(tracing_third_party_path, 'jszip'))
+  jszip_path = os.path.join(tracing_third_party_path, 'jszip')
 
-  glmatrix_path = os.path.abspath(os.path.join(
-      tracing_third_party_path, 'gl-matrix', 'dist'))
+  glmatrix_path = os.path.join(
+      tracing_third_party_path, 'gl-matrix', 'dist')
 
-  ui_path = os.path.abspath(os.path.join(tracing_src_path, 'ui'))
-  d3_path = os.path.abspath(os.path.join(tracing_third_party_path, 'd3'))
-  chai_path = os.path.abspath(os.path.join(tracing_third_party_path, 'chai'))
-  mocha_path = os.path.abspath(os.path.join(tracing_third_party_path, 'mocha'))
+  ui_path = os.path.join(tracing_src_path, 'ui')
+  d3_path = os.path.join(tracing_third_party_path, 'd3')
+  chai_path = os.path.join(tracing_third_party_path, 'chai')
+  mocha_path = os.path.join(tracing_third_party_path, 'mocha')
 
   test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
 
-  rjsmin_path = os.path.abspath(os.path.join(
-      py_vulcanize_path, 'third_party', 'rjsmin'))
-  rcssmin_path = os.path.abspath(os.path.join(
-      py_vulcanize_path, 'third_party', 'rcssmin'))
+  rjsmin_path = os.path.join(
+      tracing_third_party_path, 'tvcm', 'third_party', 'rjsmin')
+  rcssmin_path = os.path.join(
+      tracing_third_party_path, 'tvcm', 'third_party', 'rcssmin')
 
   def __init__(self):
     self.source_paths = []
