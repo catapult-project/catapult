@@ -268,6 +268,11 @@ class Browser(app.App):
     self._browser_backend.SetMemoryPressureNotificationsSuppressed(
         suppressed, timeout)
 
+  def SimulateMemoryPressureNotification(
+      self, pressure_level, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self._browser_backend.SimulateMemoryPressureNotification(
+        pressure_level, timeout)
+
   @property
   def supports_cpu_metrics(self):
     return self._browser_backend.supports_cpu_metrics

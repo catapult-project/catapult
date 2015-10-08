@@ -13,6 +13,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
+from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
@@ -97,6 +98,7 @@ class DevToolsClientBackend(object):
     self._devtools_http = devtools_http.DevToolsHttp(devtools_port)
     self._browser_inspector_websocket = None
     self._tracing_backend = None
+    self._memory_backend = None
     self._app_backend = app_backend
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
@@ -168,6 +170,9 @@ class DevToolsClientBackend(object):
     if self._tracing_backend:
       self._tracing_backend.Close()
       self._tracing_backend = None
+    if self._memory_backend:
+      self._memory_backend.Close()
+      self._memory_backend = None
     # Close the browser inspector socket last (in case the backend needs to
     # interact with it before closing).
     if self._browser_inspector_websocket:
@@ -269,6 +274,13 @@ class DevToolsClientBackend(object):
       self._tracing_backend = tracing_backend.TracingBackend(
           self._browser_inspector_websocket, is_tracing_running)
 
+  def _CreateMemoryBackendIfNeeded(self):
+    assert self.supports_overriding_memory_pressure_notifications
+    if not self._memory_backend:
+      self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
+      self._memory_backend = memory_backend.MemoryBackend(
+          self._browser_inspector_websocket)
+
   def _CreateAndConnectBrowserInspectorWebsocketIfNeeded(self):
     if not self._browser_inspector_websocket:
       self._browser_inspector_websocket = (
@@ -342,16 +354,34 @@ class DevToolsClientBackend(object):
       timeout: The timeout in seconds.
 
     Raises:
-      TracingTimeoutException: If more than |timeout| seconds has passed
+      MemoryTimeoutException: If more than |timeout| seconds has passed
       since the last time any data is received.
-      TracingUnrecoverableException: If there is a websocket error.
-      TracingUnexpectedResponseException: If the response contains an error
+      MemoryUnrecoverableException: If there is a websocket error.
+      MemoryUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
-    assert self.supports_overriding_memory_pressure_notifications
-    self._CreateTracingBackendIfNeeded()
-    return self._tracing_backend.SetMemoryPressureNotificationsSuppressed(
+    self._CreateMemoryBackendIfNeeded()
+    return self._memory_backend.SetMemoryPressureNotificationsSuppressed(
         suppressed, timeout)
+
+  def SimulateMemoryPressureNotification(self, pressure_level, timeout=30):
+    """Simulate a memory pressure notification.
+
+    Args:
+      pressure level: The memory pressure level of the notification ('moderate'
+      or 'critical').
+      timeout: The timeout in seconds.
+
+    Raises:
+      MemoryTimeoutException: If more than |timeout| seconds has passed
+      since the last time any data is received.
+      MemoryUnrecoverableException: If there is a websocket error.
+      MemoryUnexpectedResponseException: If the response contains an error
+      or does not contain the expected result.
+    """
+    self._CreateMemoryBackendIfNeeded()
+    return self._memory_backend.SimulateMemoryPressureNotification(
+        pressure_level, timeout)
 
 
 class _DevToolsContextMapBackend(object):

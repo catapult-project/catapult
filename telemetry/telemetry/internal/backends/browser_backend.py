@@ -141,6 +141,10 @@ class BrowserBackend(app_backend.AppBackend):
       self, suppressed, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 
+  def SimulateMemoryPressureNotification(
+      self, pressure_level, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    raise NotImplementedError()
+
   @property
   def supports_cpu_metrics(self):
     raise NotImplementedError()

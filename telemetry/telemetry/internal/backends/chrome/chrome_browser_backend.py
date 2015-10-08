@@ -329,7 +329,13 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def SetMemoryPressureNotificationsSuppressed(
       self, suppressed, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
-    self.devtools_client.SetMemoryPressureNotificationsSuppressed(suppressed)
+    self.devtools_client.SetMemoryPressureNotificationsSuppressed(
+        suppressed, timeout)
+
+  def SimulateMemoryPressureNotification(
+      self, pressure_level, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self.devtools_client.SimulateMemoryPressureNotification(
+        pressure_level, timeout)
 
   @property
   def supports_cpu_metrics(self):

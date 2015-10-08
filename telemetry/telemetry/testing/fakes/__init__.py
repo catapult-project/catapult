@@ -11,6 +11,7 @@ be subclassed; however, some, like _FakeBrowser, have public APIs that
 may need to be called in tests.
 """
 
+from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import system_info
 from telemetry.page import shared_page_state
@@ -291,3 +292,76 @@ class _FakeTabList(object):
       if tab.id == identifier:
         return tab
     return None
+
+
+class FakeInspectorWebsocket(object):
+  _NOTIFICATION_EVENT = 1
+  _NOTIFICATION_CALLBACK = 2
+
+  """A fake InspectorWebsocket.
+
+  A fake that allows tests to send pregenerated data. Normal
+  InspectorWebsockets allow for any number of domain handlers. This fake only
+  allows up to 1 domain handler, and assumes that the domain of the response
+  always matches that of the handler.
+  """
+  def __init__(self, mock_timer):
+    self._mock_timer = mock_timer
+    self._notifications = []
+    self._response_handlers = {}
+    self._pending_callbacks = {}
+    self._handler = None
+
+  def RegisterDomain(self, _, handler):
+    self._handler = handler
+
+  def AddEvent(self, method, params, time):
+    if self._notifications:
+      assert self._notifications[-1][1] < time, (
+          'Current response is scheduled earlier than previous response.')
+    response = {'method': method, 'params': params}
+    self._notifications.append((response, time, self._NOTIFICATION_EVENT))
+
+  def AddAsyncResponse(self, method, result, time):
+    if self._notifications:
+      assert self._notifications[-1][1] < time, (
+          'Current response is scheduled earlier than previous response.')
+    response = {'method': method, 'result': result}
+    self._notifications.append((response, time, self._NOTIFICATION_CALLBACK))
+
+  def AddResponseHandler(self, method, handler):
+    self._response_handlers[method] = handler
+
+  def SyncRequest(self, request, *_args, **_kwargs):
+    handler = self._response_handlers[request['method']]
+    return handler(request) if handler else None
+
+  def AsyncRequest(self, request, callback):
+    self._pending_callbacks.setdefault(request['method'], []).append(callback)
+
+  def SendAndIgnoreResponse(self, request):
+    pass
+
+  def Connect(self, _):
+    pass
+
+  def DispatchNotifications(self, timeout):
+    current_time = self._mock_timer.time()
+    if not self._notifications:
+      self._mock_timer.SetTime(current_time + timeout + 1)
+      raise websocket.WebSocketTimeoutException()
+
+    response, time, kind = self._notifications[0]
+    if time - current_time > timeout:
+      self._mock_timer.SetTime(current_time + timeout + 1)
+      raise websocket.WebSocketTimeoutException()
+
+    self._notifications.pop(0)
+    self._mock_timer.SetTime(time + 1)
+    if kind == self._NOTIFICATION_EVENT:
+      self._handler(response)
+    elif kind == self._NOTIFICATION_CALLBACK:
+      callback = self._pending_callbacks.get(response['method']).pop(0)
+      callback(response)
+    else:
+      raise Exception('Unexpected response type')
