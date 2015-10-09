@@ -6,6 +6,7 @@ import optparse
 import os
 import sys
 
+from catapult_base import cloud_storage
 from telemetry.core import util
 from telemetry.internal.results import buildbot_output_formatter
 from telemetry.internal.results import chart_json_output_formatter
@@ -50,11 +51,11 @@ def AddResultsOptions(parser):
                     help='Delete all stored results.')
   group.add_option('--upload-results', action='store_true',
                     help='Upload the results to cloud storage.')
-  group.add_option('--upload-bucket', default='internal',
-                    choices=['public', 'partner', 'internal'],
-                    help='Storage bucket to use for the uploaded results. '
-                    'Defaults to internal. Supported values are: '
-                    'public, partner, internal')
+  group.add_option('--upload-bucket', default='output',
+                    choices=cloud_storage.BUCKET_ALIAS_NAMES,
+                    help='Storage bucket to use for the uploaded results. ' +
+                    'Defaults to output bucket. Supported values are: ' +
+                    ', '.join(cloud_storage.BUCKET_ALIAS_NAMES) + '.')
   group.add_option('--results-label',
                     default=None,
                     help='Optional label to use for the results of a run .')
