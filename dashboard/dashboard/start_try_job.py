@@ -437,6 +437,12 @@ def _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket):
   if use_buildbucket and command[0].startswith('./out'):
     command[0] = command[0].replace('./', './src/')
 
+  # For Windows x64, the compilation output is put in "out/Release_x64".
+  # Note that the legacy bisect script always extracts binaries into Release
+  # regardless of platform, so this change is only necessary for recipe bisect.
+  if use_buildbucket and _GuessBrowserName(bisect_bot) == 'release_x64':
+    command[0] = command[0].replace('/Release/', '/Release_x64/')
+
   if bisect_bot.startswith('win'):
     command[0] = command[0].replace('/', '\\')
     command[0] += '.exe'
