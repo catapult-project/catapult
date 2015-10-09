@@ -49,6 +49,8 @@ class ReraiserThread(threading.Thread):
       kwargs: dictionary of keyword arguments for callable, defaults to empty.
       name: thread name, defaults to Thread-N.
     """
+    if not name and func.__name__ != '<lambda>':
+      name = func.__name__
     super(ReraiserThread, self).__init__(name=name)
     if not args:
       args = []
