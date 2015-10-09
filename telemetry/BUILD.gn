@@ -5,7 +5,6 @@
 group("telemetry_test_support") {
   # Generic telemetry deps
   data = [
-    # TODO(aiolos): Remove all dependencies that Telemetry has local copies of.
     "//build/android/devil/",
     "//build/android/pylib/",
     "//third_party/catapult/",
