@@ -438,12 +438,14 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return
 
       logging.info('Dumping breakpad symbols.')
-      generate_breakpad_symbols_path = os.path.join(
-          util.GetChromiumSrcDir(), "components", "crash", "content",
-          "tools", "generate_breakpad_symbols.py")
+      generate_breakpad_symbols_command = binary_manager.FetchPath(
+          'generate_breakpad_symbols', arch_name, os_name)
+      if generate_breakpad_symbols_command is None:
+        return
+
       cmd = [
           sys.executable,
-          generate_breakpad_symbols_path,
+          generate_breakpad_symbols_command,
           '--binary=%s' % self._executable,
           '--symbols-dir=%s' % symbols_path,
           '--build-dir=%s' % self._browser_directory,
@@ -453,7 +455,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         subprocess.check_output(cmd, stderr=open(os.devnull, 'w'))
       except subprocess.CalledProcessError:
         logging.warning('Failed to execute "%s"' % ' '.join(cmd))
-        return None
+        return
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
