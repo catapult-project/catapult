@@ -22,7 +22,6 @@ PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'
 TELEMETRY_OUTPUT = 'chrome-telemetry-output'
 
-
 # Uses ordered dict to make sure that bucket's key-value items are ordered from
 # the most open to the most restrictive.
 BUCKET_ALIASES = collections.OrderedDict((
@@ -31,6 +30,8 @@ BUCKET_ALIASES = collections.OrderedDict((
     ('internal', INTERNAL_BUCKET),
     ('output', TELEMETRY_OUTPUT),
 ))
+
+BUCKET_ALIAS_NAMES = BUCKET_ALIASES.keys()
 
 
 _GSUTIL_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutilz',
