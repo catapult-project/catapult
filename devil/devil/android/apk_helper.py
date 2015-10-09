@@ -4,19 +4,15 @@
 
 """Module containing utilities for apk packages."""
 
-import os.path
 import re
 
 from devil.android.sdk import aapt
-from pylib import constants
 
 
-_AAPT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'aapt')
 _MANIFEST_ATTRIBUTE_RE = re.compile(
-    r'\s*A: ([^\(\)= ]*)\([^\(\)= ]*\)=(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
+    r'\s*A: ([^\(\)= ]*)(?:\([^\(\)= ]*\))?='
+    r'(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
 _MANIFEST_ELEMENT_RE = re.compile(r'\s*(?:E|N): (\S*) .*$')
-_PACKAGE_NAME_RE = re.compile(r'package: .*name=\'(\S*)\'')
-_SPLIT_NAME_RE = re.compile(r'package: .*split=\'(\S*)\'')
 
 
 def GetPackageName(apk_path):
@@ -70,9 +66,6 @@ class ApkHelper(object):
   def __init__(self, apk_path):
     self._apk_path = apk_path
     self._manifest = None
-    self._package_name = None
-    self._split_name = None
-    self._has_isolated_processes = None
 
   def GetActivityName(self):
     """Returns the name of the Activity in the apk."""
@@ -100,16 +93,11 @@ class ApkHelper(object):
 
   def GetPackageName(self):
     """Returns the package name of the apk."""
-    if self._package_name:
-      return self._package_name
-
-    aapt_output = aapt.Dump('badging', self._apk_path)
-    for line in aapt_output:
-      m = _PACKAGE_NAME_RE.match(line)
-      if m:
-        self._package_name = m.group(1)
-        return self._package_name
-    raise Exception('Failed to determine package name of %s' % self._apk_path)
+    manifest_info = self._GetManifest()
+    try:
+      return manifest_info['manifest']['package'][0]
+    except KeyError:
+      raise Exception('Failed to determine package name of %s' % self._apk_path)
 
   def GetPermissions(self):
     manifest_info = self._GetManifest()
@@ -120,28 +108,20 @@ class ApkHelper(object):
 
   def GetSplitName(self):
     """Returns the name of the split of the apk."""
-    if self._split_name:
-      return self._split_name
-
-    aapt_output = aapt.Dump('badging', self._apk_path)
-    for line in aapt_output:
-      m = _SPLIT_NAME_RE.match(line)
-      if m:
-        self._split_name = m.group(1)
-        return self._split_name
-    return None
+    manifest_info = self._GetManifest()
+    try:
+      return manifest_info['manifest']['split'][0]
+    except KeyError:
+      return None
 
   def HasIsolatedProcesses(self):
     """Returns whether any services exist that use isolatedProcess=true."""
-    if self._has_isolated_processes is None:
-      manifest_info = self._GetManifest()
-      try:
-        services = manifest_info['manifest']['application']['service']
-        self._has_isolated_processes = (
-            any(int(v, 0) for v in services['android:isolatedProcess']))
-      except KeyError:
-        self._has_isolated_processes = False
-    return self._has_isolated_processes
+    manifest_info = self._GetManifest()
+    try:
+      services = manifest_info['manifest']['application']['service']
+      return any(int(v, 0) for v in services['android:isolatedProcess'])
+    except KeyError:
+      return False
 
   def _GetManifest(self):
     if not self._manifest:
