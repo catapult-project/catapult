@@ -139,7 +139,7 @@ class List(command_line.OptparseCommand):
   def Run(self, args):
     possible_browser = browser_finder.FindBrowser(args)
     if args.browser_type in (
-        'exact', 'release', 'release_x64', 'debug', 'debug_x64', 'canary'):
+        'release', 'release_x64', 'debug', 'debug_x64', 'canary'):
       args.browser_type = 'reference'
       possible_reference_browser = browser_finder.FindBrowser(args)
     else:
