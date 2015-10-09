@@ -27,6 +27,13 @@ def GetInstrumentationName(apk_path):
   return ApkHelper(apk_path).GetInstrumentationName()
 
 
+def ToHelper(path_or_helper):
+  """Creates an ApkHelper unless one is already given."""
+  if isinstance(path_or_helper, basestring):
+    return ApkHelper(path_or_helper)
+  return path_or_helper
+
+
 def _ParseManifestFromApk(apk_path):
   aapt_output = aapt.Dump('xmltree', apk_path, 'AndroidManifest.xml')
 
@@ -63,9 +70,13 @@ def _ParseManifestFromApk(apk_path):
 
 
 class ApkHelper(object):
-  def __init__(self, apk_path):
-    self._apk_path = apk_path
+  def __init__(self, path):
+    self._apk_path = path
     self._manifest = None
+
+  @property
+  def path(self):
+    return self._apk_path
 
   def GetActivityName(self):
     """Returns the name of the Activity in the apk."""
