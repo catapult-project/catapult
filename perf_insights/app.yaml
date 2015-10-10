@@ -14,11 +14,11 @@ builtins:
 
 handlers:
 - url: /upload
-  script: perf_insights.upload.app
+  script: perf_insights.endpoints.upload.app
   secure: always
 
 - url: /query
-  script: perf_insights.query.app
+  script: perf_insights.endpoints.query.app
   secure: always
 
 env_variables:
