@@ -97,7 +97,7 @@ tr.exportTo('tr.b.u', function() {
   Units.normalizedPercentage = {
     asJSON: function() { return 'n%'; },
     format: function(value) {
-      var tmp = new Number(Math.round(value * 100));
+      var tmp = new Number(Math.round(value * 100000) / 1000);
       return tmp.toLocaleString(undefined, {minimumFractionDigits: 3}) + '%';
     }
   };
