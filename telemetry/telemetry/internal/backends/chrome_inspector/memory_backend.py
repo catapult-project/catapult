@@ -5,6 +5,7 @@
 import json
 import logging
 import socket
+import traceback
 
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
@@ -71,10 +72,14 @@ class MemoryBackend(object):
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
     except websocket.WebSocketTimeoutException:
-      raise MemoryTimeoutException
+      raise MemoryTimeoutException(
+          'Exception raised while sending a %s request:\n%s' %
+              (method, traceback.format_exc()))
     except (socket.error, websocket.WebSocketException,
             inspector_websocket.WebSocketDisconnected):
-      raise MemoryUnrecoverableException
+      raise MemoryUnrecoverableException(
+          'Exception raised while sending a %s request:\n%s' %
+              (method, traceback.format_exc()))
 
     if 'error' in response:
       code = response['error']['code']

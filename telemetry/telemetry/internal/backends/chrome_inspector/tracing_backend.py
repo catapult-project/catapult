@@ -5,6 +5,7 @@
 import json
 import socket
 import time
+import traceback
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
@@ -151,10 +152,15 @@ class TracingBackend(object):
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
     except websocket.WebSocketTimeoutException:
-      raise TracingTimeoutException
+      raise TracingTimeoutException(
+          'Exception raised while sending a Tracing.requestMemoryDump '
+          'request:\n' + traceback.format_exc())
     except (socket.error, websocket.WebSocketException,
             inspector_websocket.WebSocketDisconnected):
-      raise TracingUnrecoverableException
+      raise TracingUnrecoverableException(
+          'Exception raised while sending a Tracing.requestMemoryDump '
+          'request:\n' + traceback.format_exc())
+
 
     if ('error' in response or
         'result' not in response or
@@ -187,7 +193,9 @@ class TracingBackend(object):
       except websocket.WebSocketTimeoutException:
         pass
       except (socket.error, websocket.WebSocketException):
-        raise TracingUnrecoverableException
+        raise TracingUnrecoverableException(
+            'Exception raised while collecting tracing data:\n' +
+                traceback.format_exc())
 
       if self._has_received_all_tracing_data:
         break
