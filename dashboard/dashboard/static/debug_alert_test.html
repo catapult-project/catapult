@@ -60,30 +60,32 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('xAxisTickFormatter', function() {
-    // The tick formatter lookups up revisions from values along
-    // the x-axis, which may or may not be integers.
+    // The tick formatter lookups up x-values in window.LOOKUP.
+    // The input can be non-integer.
     assert.equal(30000, debug_alert.xAxisTickFormatter(0));
     assert.equal(30000, debug_alert.xAxisTickFormatter(0.2));
     assert.equal(30100, debug_alert.xAxisTickFormatter(1));
     assert.equal(30900, debug_alert.xAxisTickFormatter(8.9));
   }, testOptions);
 
-  test('xAxisTickFormatter unexpected inputs', function() {
+  test('xAxisTickFormatter with negative input returns first rev', function() {
     assert.equal(30000, debug_alert.xAxisTickFormatter(-2));
+  }, testOptions);
+
+  test('xAxisTickFormatter with out-of-bounds input -> undefined', function() {
     assert.isUndefined(debug_alert.xAxisTickFormatter(10));
   }, testOptions);
 
-  test('anomaly description', function() {
+  test('anomalyDescription with valid input', function() {
     var anomaly = window.ANOMALIES[0];
-    assert.equal('30500<br>21.00%',
-                 debug_alert.anomalyDescription(anomaly));
+    assert.equal('30500<br>21.00%', debug_alert.anomalyDescription(anomaly));
   }, testOptions);
 
-  test('Anomaly Description JunkInput', function() {
+  test('anomalyDescription with junk input', function() {
     assert.equal('undefined<br>NaN%', debug_alert.anomalyDescription({}));
   }, testOptions);
 
-  test('make label', function() {
+  test('makeLabel makes an HTML element', function() {
     var labelElement = debug_alert.makeLabel('foo', 100, 200);
     assert.isTrue(labelElement instanceof HTMLElement);
     // The element should have its content and position set.
@@ -92,19 +94,14 @@ tr.b.unittest.testSuite(function() {
     assert.notEqual('', labelElement.innerText);
   }, testOptions);
 
-  test('add vertical line', function() {
+  test('addVerticalLine modifies options object', function() {
     var options = {};
     debug_alert.addVerticalLine(options, 30200);
     assert.equal(2, options['grid']['markings'][0]['xaxis']['from']);
+    assert.equal(2, options['grid']['markings'][0]['xaxis']['to']);
   }, testOptions);
 
-  test('add vertical line no revision', function() {
-    var options = {};
-    debug_alert.addVerticalLine(options, undefined);
-    assert.isUndefined(options['grid']);
-  }, testOptions);
-
-  test('index of closest', function() {
+  test('addVerticalLine does nothing when given no revision', function() {
     var options = {};
     debug_alert.addVerticalLine(options, undefined);
     assert.isUndefined(options['grid']);
