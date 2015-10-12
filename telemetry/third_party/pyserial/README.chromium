@@ -1,6 +1,6 @@
 Name: pySerial
 Short Name: pySerial
-URL: http://pyserial.sourceforge.net/
+URL: https://github.com/pyserial/pyserial
 Version: 2.7
 Date: 2013-10-17
 License: Python
