@@ -89,7 +89,7 @@ tr.exportTo('tr.ui.units', function() {
 
       this.warning_ = undefined;
       this.percentage_ = undefined;
-      this.alwaysShowSign_ = false;
+      this.isDelta_ = false;
     },
 
     set contentTextDecoration(deco) {
@@ -145,12 +145,12 @@ tr.exportTo('tr.ui.units', function() {
         this.$.content.classList.remove('right-align');
     },
 
-    get alwaysShowSign() {
-      return this.alwaysShowSign_;
+    get isDelta() {
+      return this.isDelta_;
     },
 
-    set alwaysShowSign(alwaysShowSign) {
-      this.alwaysShowSign_ = !!alwaysShowSign;
+    set isDelta(isDelta) {
+      this.isDelta_ = isDelta;
       this.updateContent_();
     },
 
@@ -170,8 +170,17 @@ tr.exportTo('tr.ui.units', function() {
         return;
       }
       var content = this.unit_.format(this.value);
-      if (this.alwaysShowSign_ && this.value > 0)
-        content = '+' + content;
+      if (this.isDelta_) {
+        if (this.value > 0) {
+          // Positive delta.
+          content = '+' + content;
+        } else if (this.value === 0) {
+          // Zero delta.
+          var PLUS_MINUS_SIGN = String.fromCharCode(177);
+          content = PLUS_MINUS_SIGN + content;
+        }
+        // No need for this.value < 0 case (negative sign is alwas shown).
+      }
       this.$.content.textContent = content;
     },
 

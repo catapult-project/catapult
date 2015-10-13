@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     var checkSpan = (function(value, expectedTextContent) {
       var span = createScalarSpan(value);
       assert.strictEqual(span.$.content.textContent, expectedTextContent);
-      assert.isFalse(span.alwaysShowSign);
+      assert.isFalse(span.isDelta);
       this.addHTMLOutput(span);
     }).bind(this);
 
@@ -31,17 +31,17 @@ tr.b.unittest.testSuite(function() {
     checkSpan(-1024, '-1.0 KiB');
   });
 
-  test('instantiate_alwaysShowSign', function() {
+  test('instantiate_isDelta', function() {
     var checkSpan = (function(value, expectedTextContent) {
       var span = createScalarSpan(value);
-      span.alwaysShowSign = true;
+      span.isDelta = true;
       assert.strictEqual(span.$.content.textContent, expectedTextContent);
-      assert.isTrue(span.alwaysShowSign);
+      assert.isTrue(span.isDelta);
       this.addHTMLOutput(span);
     }).bind(this);
 
     checkSpan(1023, '+1023.0 B');
-    checkSpan(0, '0.0 B');
+    checkSpan(0, '\u00B10.0 B');
     checkSpan(-1024, '-1.0 KiB');
   });
 });
