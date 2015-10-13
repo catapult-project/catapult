@@ -627,8 +627,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._ComputeStaleApks('test.package',
             ['/fake/test/app.apk']),
          ([], None)),
-        (self.call.device.RunShellCommand(['am', 'force-stop', 'test.package'],
-                                          check_return=True))):
+        (self.call.device.ForceStop('test.package'))):
       self.device.Install(DeviceUtilsInstallTest.mock_apk,
           reinstall=True, retries=0, permissions=[])
 
@@ -1320,7 +1319,8 @@ class DeviceUtilsForceStopTest(DeviceUtilsTest):
 
   def testForceStop(self):
     with self.assertCall(
-        self.call.adb.Shell('am force-stop test.package'),
+        self.call.adb.Shell('p=test.package;if [[ "$(ps)" = *$p* ]]; then '
+                            'am force-stop $p; fi'),
         ''):
       self.device.ForceStop('test.package')
 
