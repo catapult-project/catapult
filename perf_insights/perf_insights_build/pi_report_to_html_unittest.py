@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import codecs
 import os
 import tempfile
@@ -27,8 +26,7 @@ class PiReportToHTMLTests(unittest.TestCase):
       with codecs.open(raw_tmpfile.name, 'w', encoding='utf-8') as tmpfile:
         res = pi_report_to_html.PiReportToHTML(
             tmpfile,
-            argparse.Namespace(
-                trace_directory=project.perf_insights_test_data_path),
+            {'trace_directory':project.perf_insights_test_data_path},
             project.GetAbsPathFromHRef(
                 '/perf_insights/ui/reports/weather_report.html'),
             corpus_query.CorpusQuery.FromString('MAX_TRACE_HANDLES=2'),

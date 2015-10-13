@@ -69,17 +69,16 @@ def Main(argv):
     parser.exit('Valid drivers:\n\n%s\n' % corpus_descriptions)
 
   cls = _CORPUS_DRIVERS[corpus]['class']
-  cls.CheckArguments(parser, args)
-  corpus_driver = cls(args)
+  init_args = cls.CheckAndCreateInitArguments(parser, args)
+  corpus_driver = cls(**init_args)
 
   if not os.path.exists(args.map_file):
-    parser.error('map does not exist')
+    parser.error('Map does not exist.')
 
   if args.query is None:
     query = corpus_query.CorpusQuery.FromString('True')
   else:
-    query = corpus_query.CorpusQuery.FromString(
-        args.query)
+    query = corpus_query.CorpusQuery.FromString(args.query)
 
   if args.output_file:
     ofile = open(args.output_file, 'w')
@@ -93,7 +92,7 @@ def Main(argv):
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,
-                    stop_on_error=args.stop_on_error)
+                                  stop_on_error=args.stop_on_error)
     results = runner.Run(jobs=args.jobs, output_formatters=[output_formatter])
     if not results.had_failures:
       return 0

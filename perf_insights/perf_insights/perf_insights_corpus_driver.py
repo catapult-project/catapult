@@ -15,16 +15,20 @@ from perf_insights.value import run_info as run_info_module
 _DEFAULT_PERF_INSIGHTS_SERVER = 'http://performance-insights.appspot.com'
 
 class PerfInsightsCorpusDriver(corpus_driver.CorpusDriver):
-  def __init__(self, args):
-    self.directory = os.path.abspath(os.path.expanduser(args.cache_directory))
-    self.server = args.server
-    if not self.server:
-      self.server = _DEFAULT_PERF_INSIGHTS_SERVER
+  def __init__(self, trace_directory, server=_DEFAULT_PERF_INSIGHTS_SERVER):
+    self.directory = trace_directory
+    self.server = server
 
   @staticmethod
-  def CheckArguments(parser, args):
-    if not os.path.exists(args.cache_directory):
-      parser.error('trace directory does not exist')
+  def CheckAndCreateInitArguments(parser, args):
+    cache_dir = os.path.abspath(os.path.expanduser(args.cache_directory))
+    if not os.path.exists(cache_dir):
+      parser.error('Trace directory does not exist')
+      return None
+    return {
+      'cache_directory': cache_dir,
+      'server': args.server
+    }
 
   @staticmethod
   def AddArguments(parser):

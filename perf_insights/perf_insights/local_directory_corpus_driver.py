@@ -47,17 +47,17 @@ def _DefaultUrlResover(abspath):
   return 'file:///%s' % abspath
 
 class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
-  def __init__(self, args, url_resolver = None):
-    self.directory = os.path.abspath(os.path.expanduser(args.trace_directory))
-    if url_resolver == None:
-      self.url_resolver = _DefaultUrlResover
-    else:
-      self.url_resolver = url_resolver
+  def __init__(self, trace_directory, url_resolver=_DefaultUrlResover):
+    self.directory = trace_directory
+    self.url_resolver = url_resolver
 
   @staticmethod
-  def CheckArguments(parser, args):
-    if not os.path.exists(args.trace_directory):
-      parser.error('trace directory does not exist')
+  def CheckAndCreateInitArguments(parser, args):
+    trace_dir = os.path.abspath(os.path.expanduser(args.trace_directory))
+    if not os.path.exists(trace_dir):
+      parser.error('Trace directory does not exist')
+      return None
+    return {'trace_directory': trace_dir}
 
   @staticmethod
   def AddArguments(parser):

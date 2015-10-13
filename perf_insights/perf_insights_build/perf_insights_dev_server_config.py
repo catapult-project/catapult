@@ -41,9 +41,9 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
     map_function_handle = map_function_handle_module.MapFunctionHandle(
         map_function_name=map_function)
 
-    pi_data_dir = kwargs.pop('_pi_data_dir')
     corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-        pi_data_dir, self.app.GetURLForAbsFilename)
+        trace_directory = kwargs.pop('_pi_data_dir'),
+        url_resolver = self.app.GetURLForAbsFilename)
 
     # TODO(nduca): pass self.request.params to the map function [maybe].
     query_string = self.request.params.get('corpus_query', 'True')

@@ -49,10 +49,13 @@ def Main(argv, pi_report_file=None):
     query = corpus_query.CorpusQuery.FromString(
         args.query)
 
+
+  corpus_driver_args = (local_directory_corpus_driver.
+      LocalDirectoryCorpusDriver.CheckAndCreateInitArguments(parser, args))
   with codecs.open(args.output_file, mode='w', encoding='utf-8') as ofile:
-    return PiReportToHTML(ofile, args.trace_directory,
-                        pi_report_file, query, args.json,
-                        args.stop_on_error, args.jobs)
+    return PiReportToHTML(ofile, corpus_driver_args,
+                          pi_report_file, query, args.json,
+                          args.stop_on_error, args.jobs)
 
 def _GetMapFunctionHrefFromPiReport(html_contents):
   soup = bs4.BeautifulSoup(html_contents)
@@ -69,7 +72,7 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
   raise Exception('No element that extends pi-ui-r-pi-report was found')
 
 
-def PiReportToHTML(ofile, args, pi_report_file,
+def PiReportToHTML(ofile, corpus_driver_args, pi_report_file,
                    query, json_output=False,
                    stop_on_error=False, jobs=1, quiet=False):
   project = perf_insights_project.PerfInsightsProject()
@@ -86,7 +89,7 @@ def PiReportToHTML(ofile, args, pi_report_file,
   if map_file == None:
     raise Exception('Could not find %s' % map_function_href)
 
-  results = _MapTraces(args, map_function_handle,
+  results = _MapTraces(corpus_driver_args, map_function_handle,
                        query, stop_on_error, jobs, quiet)
   if stop_on_error and results.had_failures:
     sys.stderr.write('There were mapping errors. Aborting.');
@@ -101,10 +104,11 @@ def PiReportToHTML(ofile, args, pi_report_file,
   return 0
 
 
-def _MapTraces(args, map_function_handle, query,
+def _MapTraces(corpus_driver_args, map_function_handle, query,
                stop_on_error=False,
                jobs=1, quiet=False):
-  corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(args)
+  corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
+      **corpus_driver_args)
 
   trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
   if quiet:
