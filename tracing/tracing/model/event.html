@@ -42,6 +42,10 @@ tr.exportTo('tr.model', function() {
       return this.guid_;
     },
 
+    get stableId() {
+      return undefined;
+    },
+
     /** Adds the range of timestamps for this event to the specified range. */
     addBoundsToRange: function(range) {
       throw new Error('Not implemented');

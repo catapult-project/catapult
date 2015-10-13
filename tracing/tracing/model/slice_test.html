@@ -162,5 +162,21 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(sD.entireHierarchy, [sA, sB, sC, sD, sE, sF]);
   });
+
+  test('stableId', function() {
+    var thread = newFakeThread();
+    var group = thread.sliceGroup;
+
+    var sA = group.pushSlice(newSliceEx(
+        { title: 'sA', start: 0.0, duration: 10.0 }));
+    var sB = group.pushSlice(newSliceEx(
+        { title: 'sB', start: 10.0, duration: 20.0 }));
+    var sC = group.pushSlice(newSliceEx(
+        { title: 'sC', start: 20.0, duration: 30.0 }));
+
+    assert.equal(group.stableId + '.0', sA.stableId);
+    assert.equal(group.stableId + '.1', sB.stableId);
+    assert.equal(group.stableId + '.2', sC.stableId);
+  });
 });
 </script>
