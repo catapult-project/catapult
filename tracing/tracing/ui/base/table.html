@@ -11,6 +11,47 @@ found in the LICENSE file.
 <!--
 @fileoverview A container that constructs a table-like container.
 -->
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+
+  var TableFormat = {};
+
+  TableFormat.SelectionMode = {
+    // Selection disabled.
+    // Default highlight: none.
+    NONE: 0,
+
+    // Row selection mode.
+    // Default highlight: dark row.
+    ROW: 1,
+
+    // Cell selection mode.
+    // Default highlight: dark cell and light row.
+    CELL: 2
+  };
+
+  TableFormat.HighlightStyle = {
+    // Highlight depends on the current selection mode.
+    DEFAULT: 0,
+
+    // No highlight.
+    NONE: 1,
+
+    // Light highlight.
+    LIGHT: 2,
+
+    // Dark highlight.
+    DARK: 3
+  };
+
+  return {
+    TableFormat: TableFormat
+  };
+});
+</script>
+
 <polymer-element name="tr-ui-b-table">
   <template>
     <style>
@@ -79,34 +120,31 @@ found in the LICENSE file.
         font-weight: bold;
       }
 
-      /* Selection. */
-      table > tbody.row-selection-mode > tr[selected],
-      table > tbody.cell-selection-mode > tr > td[selected] {
-        background-color: rgb(103, 199, 165);  /* turquoise */
-      }
-      table > tbody.cell-selection-mode.row-highlight-enabled >
-          tr.highlighted-row {
+      /* Light row and cell highlight. */
+      table > tbody[row-highlight-style="light"] > tr[selected],
+      table > tbody[cell-highlight-style="light"] > tr > td[selected] {
         background-color: rgb(213, 236, 229);  /* light turquoise */
       }
-
-      /* Hover. */
-      table > tbody.row-selection-mode >
-          tr:hover:not(.empty-row):not([selected]),
-      table > tbody.cell-selection-mode >
-          tr:not(.empty-row):not(.highlighted-row) >
-          td.supports-selection:hover:not([selected]),
-      table > tfoot > tr:hover {
-        background-color: #e6e6e6;  /* grey */
-      }
-      table > tbody.cell-selection-mode.row-highlight-enabled >
-          tr:hover:not(.empty-row):not(.highlighted-row) {
+      table > tbody[row-highlight-style="light"] >
+          tr:not(.empty-row):not([selected]):hover,
+      table > tbody[cell-highlight-style="light"] >
+          tr:not(.empty-row):not([selected]) > td:hover {
         background-color: #f6f6f6;  /* light grey */
       }
 
-      /* Hover on selected and highlighted elements. */
-      table > tbody.row-selection-mode > tr:hover[selected],
-      table > tbody.cell-selection-mode > tr > td:hover[selected],
-      table > tbody.cell-selection-mode > tr.highlighted-row > td:hover {
+      /* Dark row and cell highlight. */
+      table > tbody[row-highlight-style="dark"] > tr[selected],
+      table > tbody[cell-highlight-style="dark"] > tr > td[selected] {
+        background-color: rgb(103, 199, 165);  /* turquoise */
+      }
+      table > tbody[row-highlight-style="dark"] >
+          tr:not(.empty-row):not([selected]):hover,
+      table > tbody[cell-highlight-style="dark"] >
+          tr:not(.empty-row):not([selected]) > td:hover {
+        background-color: #e6e6e6;  /* grey */
+      }
+      table > tbody[row-highlight-style="dark"] > tr:hover[selected],
+      table > tbody[cell-highlight-style="dark"] > tr[selected] > td:hover {
         background-color: rgb(171, 217, 202);  /* semi-light turquoise */
       }
 
@@ -155,10 +193,14 @@ found in the LICENSE file.
     var DESCENDING_ARROW = String.fromCharCode(0x25BE);
     var BASIC_INDENTATION = 8;
 
+    var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+    var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+
     Polymer({
       created: function() {
-        this.supportsSelection_ = false;
-        this.cellSelectionMode_ = false;
+        this.selectionMode_ = SelectionMode.NONE;
+        this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
+        this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
         this.selectedTableRowInfo_ = undefined;
         this.selectedColumnIndex_ = undefined;
 
@@ -182,8 +224,9 @@ found in the LICENSE file.
       },
 
       clear: function() {
-        this.supportsSelection_ = false;
-        this.cellSelectionMode_ = false;
+        this.selectionMode_ = SelectionMode.NONE;
+        this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
+        this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
         this.selectedTableRowInfo_ = undefined;
         this.selectedColumnIndex_ = undefined;
 
@@ -621,15 +664,23 @@ found in the LICENSE file.
               return getTD(cur.parentElement);
             }
 
-            if (this.supportsSelection_) {
+            if (this.selectionMode_ !== SelectionMode.NONE) {
               var isAlreadySelected = false;
               var tdThatWasClicked = getTD(e.target);
-              if (!this.cellSelectionMode_) {
-                isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
-              } else {
-                isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
-                isAlreadySelected &= (this.selectedColumnIndex_ ===
-                                      tdThatWasClicked.columnIndex);
+              switch (this.selectionMode_) {
+                case SelectionMode.ROW:
+                  isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
+                  break;
+
+                case SelectionMode.CELL:
+                  isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
+                  isAlreadySelected &= (this.selectedColumnIndex_ ===
+                                        tdThatWasClicked.columnIndex);
+                  break;
+
+                default:
+                  throw new Error('Invalid selection mode ' +
+                      this.selectionMode_);
               }
               if (isAlreadySelected) {
                 if (rowInfo.userRow[this.subRowsPropertyName_] &&
@@ -808,56 +859,94 @@ found in the LICENSE file.
         this.maybeUpdateSelectedRow_();
       },
 
-      get supportsSelection() {
-        return this.supportsSelection_;
+      get selectionMode() {
+        return this.selectionMode_;
       },
 
-      set supportsSelection(supportsSelection) {
+      set selectionMode(selectionMode) {
+        if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode))
+          throw new Error('Invalid selection mode ' + selectionMode);
         this.rebuildIfNeeded_();
-        this.supportsSelection_ = !!supportsSelection;
+        this.selectionMode_ = selectionMode;
         this.didSelectionStateChange_();
       },
 
-      get cellSelectionMode() {
-        return this.cellSelectionMode_;
+      get rowHighlightStyle() {
+        return this.rowHighlightStyle_;
       },
 
-      set cellSelectionMode(cellSelectionMode) {
+      set rowHighlightStyle(rowHighlightStyle) {
+        if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle))
+          throw new Error('Invalid row highlight style ' + rowHighlightStyle);
         this.rebuildIfNeeded_();
-        this.cellSelectionMode_ = !!cellSelectionMode;
+        this.rowHighlightStyle_ = rowHighlightStyle;
         this.didSelectionStateChange_();
       },
 
-      get rowHighlightEnabled() {
-        return this.rowHighlightEnabled_;
+      get resolvedRowHighlightStyle() {
+        if (this.rowHighlightStyle_ !== HighlightStyle.DEFAULT)
+          return this.rowHighlightStyle_;
+        switch (this.selectionMode_) {
+          case SelectionMode.NONE:
+            return HighlightStyle.NONE;
+          case SelectionMode.ROW:
+            return HighlightStyle.DARK;
+          case SelectionMode.CELL:
+            return HighlightStyle.LIGHT;
+          default:
+            throw new Error('Invalid selection mode ' + selectionMode);
+        }
       },
 
-      set rowHighlightEnabled(rowHighlightEnabled) {
+      get cellHighlightStyle() {
+        return this.cellHighlightStyle_;
+      },
+
+      set cellHighlightStyle(cellHighlightStyle) {
+        if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle))
+          throw new Error('Invalid cell highlight style ' + cellHighlightStyle);
         this.rebuildIfNeeded_();
-        this.rowHighlightEnabled_ = !!rowHighlightEnabled;
+        this.cellHighlightStyle_ = cellHighlightStyle;
         this.didSelectionStateChange_();
+      },
+
+      get resolvedCellHighlightStyle() {
+        if (this.cellHighlightStyle_ !== HighlightStyle.DEFAULT)
+          return this.cellHighlightStyle_;
+        switch (this.selectionMode_) {
+          case SelectionMode.NONE:
+          case SelectionMode.ROW:
+            return HighlightStyle.NONE;
+          case SelectionMode.CELL:
+            return HighlightStyle.DARK;
+          default:
+            throw new Error('Invalid selection mode ' + selectionMode);
+        }
+      },
+
+      setHighlightStyle_: function(highlightAttribute, resolvedHighlightStyle) {
+        switch (resolvedHighlightStyle) {
+          case HighlightStyle.NONE:
+            this.$.body.removeAttribute(highlightAttribute);
+            break;
+          case HighlightStyle.LIGHT:
+            this.$.body.setAttribute(highlightAttribute, 'light');
+            break;
+          case HighlightStyle.DARK:
+            this.$.body.setAttribute(highlightAttribute, 'dark');
+            break;
+          default:
+            throw new Error('Invalid resolved highlight style ' +
+                resolvedHighlightStyle);
+        }
       },
 
       didSelectionStateChange_: function() {
-        if (!this.supportsSelection_) {
-          // Selection disabled.
-          this.$.body.classList.remove('cell-selection-mode');
-          this.$.body.classList.remove('row-selection-mode');
-          this.$.body.classList.remove('row-highlight-enabled');
-        } else if (!this.cellSelectionMode_) {
-          // Row selection mode.
-          this.$.body.classList.remove('cell-selection-mode');
-          this.$.body.classList.add('row-selection-mode');
-          this.$.body.classList.remove('row-highlight-enabled');
-        } else {
-          // Cell selection mode.
-          this.$.body.classList.add('cell-selection-mode');
-          this.$.body.classList.remove('row-selection-mode');
-          if (this.rowHighlightEnabled_)
-            this.$.body.classList.add('row-highlight-enabled');
-          else
-            this.$.body.classList.remove('row-highlight-enabled');
-        }
+        this.setHighlightStyle_('row-highlight-style',
+            this.resolvedRowHighlightStyle);
+        this.setHighlightStyle_('cell-highlight-style',
+            this.resolvedCellHighlightStyle);
+
         for (var i = 0; i < this.$.body.children.length; i++)
           this.updateTabIndexForTableRowNode_(this.$.body.children[i]);
         this.maybeUpdateSelectedRow_();
@@ -867,8 +956,8 @@ found in the LICENSE file.
         if (this.selectedTableRowInfo_ === undefined)
           return;
 
-        // SupportsSelection may be off.
-        if (!this.supportsSelection_) {
+        // Selection may be off.
+        if (this.selectionMode_ === SelectionMode.NONE) {
           this.removeSelectedState_();
           this.selectedTableRowInfo_ = undefined;
           return;
@@ -896,19 +985,21 @@ found in the LICENSE file.
       },
 
       didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
-        if (!this.supportsSelection_)
-          return;
-
-        if (this.cellSelectionMode_) {
-          if (!this.doesColumnIndexSupportSelection(columnIndex))
+        switch (this.selectionMode_) {
+          case SelectionMode.NONE:
             return;
+
+          case SelectionMode.CELL:
+            if (!this.doesColumnIndexSupportSelection(columnIndex))
+              return;
+            // Fall through.
+
+          case SelectionMode.ROW:
+            if (this.selectedTableRowInfo_ !== rowInfo)
+              this.selectedTableRow = rowInfo.userRow;
+            if (this.selectedColumnIndex !== columnIndex)
+              this.selectedColumnIndex = columnIndex;
         }
-
-        if (this.selectedTableRowInfo_ !== rowInfo)
-          this.selectedTableRow = rowInfo.userRow;
-
-        if (this.selectedColumnIndex !== columnIndex)
-          this.selectedColumnIndex = columnIndex;
       },
 
       get selectedTableRow() {
@@ -919,8 +1010,8 @@ found in the LICENSE file.
 
       set selectedTableRow(userRow) {
         this.rebuildIfNeeded_();
-        if (!this.supportsSelection_)
-          throw new Error('Selection is off. Set supportsSelection=true.');
+        if (this.selectionMode_ === SelectionMode.NONE)
+          throw new Error('Selection is off.');
 
         var rowInfo = this.tableRowsInfo_.get(userRow);
         if (rowInfo === undefined)
@@ -928,16 +1019,24 @@ found in the LICENSE file.
 
         var e = this.prepareToChangeSelection_();
         this.selectedTableRowInfo_ = rowInfo;
-        if (this.cellSelectionMode_) {
-          if (this.selectedTableRowInfo_ &&
-              this.selectedColumnIndex_ === undefined) {
-            var i = this.getFirstSelectableColumnIndex_();
-            if (i == -1)
-              throw new Error('nope');
-            this.selectedColumnIndex_ = i;
-          }
-        } else {
-          this.selectedColumnIndex_ = undefined;
+
+        switch (this.selectionMode_) {
+          case SelectionMode.ROW:
+            this.selectedColumnIndex_ = undefined;
+            break;
+
+          case SelectionMode.CELL:
+            if (this.selectedTableRowInfo_ &&
+                this.selectedColumnIndex_ === undefined) {
+              var i = this.getFirstSelectableColumnIndex_();
+              if (i == -1)
+                throw new Error('nope');
+              this.selectedColumnIndex_ = i;
+            }
+            break;
+
+          default:
+            throw new Error('Invalid selection mode ' + this.selectionMode_);
         }
 
         this.updateSelectedState_();
@@ -946,26 +1045,18 @@ found in the LICENSE file.
       },
 
       updateTabIndexForTableRowNode_: function(row) {
-        if (this.supportsSelection_) {
-          if (!this.cellSelectionMode_) {
-            row.tabIndex = 0;
-          } else {
-            for (var i = 0; i < this.tableColumns_.length; i++) {
-              if (!this.doesColumnIndexSupportSelection(i))
-                continue;
-              row.children[i].tabIndex = 0;
-            }
-          }
-        } else {
-          if (!this.cellSelectionMode_) {
-            row.removeAttribute('tabIndex');
-          } else {
-            for (var i = 0; i < this.tableColumns_.length; i++) {
-              if (!this.doesColumnIndexSupportSelection(i))
-                continue;
-              row.children[i].removeAttribute('tabIndex');
-            }
-          }
+        if (this.selectionMode_ === SelectionMode.ROW)
+          row.tabIndex = 0;
+        else
+          row.removeAttribute('tabIndex');
+
+        var enableCellTab = this.selectionMode_ === SelectionMode.CELL;
+        for (var i = 0; i < this.tableColumns_.length; i++) {
+          var cell = row.children[i];
+          if (enableCellTab && this.doesColumnIndexSupportSelection(i))
+            cell.tabIndex = 0;
+          else
+            cell.removeAttribute('tabIndex');
         }
       },
 
@@ -993,22 +1084,22 @@ found in the LICENSE file.
       setSelectedState_: function(select) {
         if (this.selectedTableRowInfo_ === undefined)
           return;
-        var tableRowNode = this.selectedTableRowInfo_.htmlNode;
 
-        // Add/remove row highlight (if applicable).
-        if (this.cellSelectionMode_ && this.rowHighlightEnabled_) {
-          if (select)
-            tableRowNode.classList.add('highlighted-row');
-          else
-            tableRowNode.classList.remove('highlighted-row');
-        }
-
-        // Add/remove row/cell selection.
-        var node = this.getSelectableNodeGivenTableRowNode_(tableRowNode);
+        // Row selection.
+        var rowNode = this.selectedTableRowInfo_.htmlNode;
         if (select)
-          node.setAttribute('selected', true);
+          rowNode.setAttribute('selected', true);
         else
-          node.removeAttribute('selected');
+          rowNode.removeAttribute('selected');
+
+        // Cell selection (if applicable).
+        var cellNode = rowNode.children[this.selectedColumnIndex_];
+        if (!cellNode)
+          return;
+        if (select)
+          cellNode.setAttribute('selected', true);
+        else
+          cellNode.removeAttribute('selected');
       },
 
       doesColumnIndexSupportSelection: function(columnIndex) {
@@ -1028,25 +1119,28 @@ found in the LICENSE file.
       },
 
       getSelectableNodeGivenTableRowNode_: function(htmlNode) {
-        if (!this.cellSelectionMode_) {
-          return htmlNode;
-        } else {
-          return htmlNode.children[this.selectedColumnIndex_];
+        switch (this.selectionMode_) {
+          case SelectionMode.ROW:
+            return htmlNode;
+
+          case SelectionMode.CELL:
+            return htmlNode.children[this.selectedColumnIndex_];
+
+          default:
+            throw new Error('Invalid selection mode ' + this.selectionMode_);
         }
       },
 
       get selectedColumnIndex() {
-        if (!this.supportsSelection_)
-          return undefined;
-        if (!this.cellSelectionMode_)
+        if (this.selectionMode_ !== SelectionMode.CELL)
           return undefined;
         return this.selectedColumnIndex_;
       },
 
       set selectedColumnIndex(selectedColumnIndex) {
         this.rebuildIfNeeded_();
-        if (!this.supportsSelection_)
-          throw new Error('Selection is off. Set supportsSelection=true.');
+        if (this.selectionMode_ === SelectionMode.NONE)
+          throw new Error('Selection is off.');
         if (selectedColumnIndex < 0 ||
             selectedColumnIndex >= this.tableColumns_.length)
           throw new Error('Invalid index');
@@ -1063,7 +1157,7 @@ found in the LICENSE file.
       },
 
       onKeyDown_: function(e) {
-        if (this.supportsSelection_ === false)
+        if (this.selectionMode_ === SelectionMode.NONE)
           return;
         if (this.selectedTableRowInfo_ === undefined)
           return;
@@ -1111,60 +1205,69 @@ found in the LICENSE file.
         }
 
         if (cmdName === 'ARROW_RIGHT') {
-          if (this.cellSelectionMode_) {
-            var newIndex = this.selectedColumnIndex_ + 1;
-            if (newIndex >= this.tableColumns_.length)
+          switch (this.selectionMode_) {
+            case SelectionMode.ROW:
+              if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
               return;
-            if (!this.doesColumnIndexSupportSelection(newIndex))
-              return;
-            this.selectedColumnIndex = newIndex;
-            this.focusSelected_();
-            return;
+              if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+                return;
 
-          } else {
-            if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-              return;
-            if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+              if (!rowInfo.isExpanded)
+                this.setExpandedForTableRow(rowInfo.userRow, true);
+              this.selectedTableRow =
+                rowInfo.userRow[this.subRowsPropertyName_][0];
+              this.focusSelected_();
               return;
 
-            if (!rowInfo.isExpanded)
-              this.setExpandedForTableRow(rowInfo.userRow, true);
-            this.selectedTableRow =
-              rowInfo.userRow[this.subRowsPropertyName_][0];
-            this.focusSelected_();
-            return;
+            case SelectionMode.CELL:
+              var newIndex = this.selectedColumnIndex_ + 1;
+              if (newIndex >= this.tableColumns_.length)
+                return;
+              if (!this.doesColumnIndexSupportSelection(newIndex))
+                return;
+              this.selectedColumnIndex = newIndex;
+              this.focusSelected_();
+              return;
+
+            default:
+              throw new Error('Invalid selection mode ' + this.selectionMode_);
           }
         }
 
         if (cmdName === 'ARROW_LEFT') {
-          if (this.cellSelectionMode_) {
-            var newIndex = this.selectedColumnIndex_ - 1;
-            if (newIndex < 0)
-              return;
-            if (!this.doesColumnIndexSupportSelection(newIndex))
-              return;
-            this.selectedColumnIndex = newIndex;
-            this.focusSelected_();
-            return;
+          switch (this.selectionMode_) {
+            case SelectionMode.ROW:
+              if (rowInfo.isExpanded) {
+                this.setExpandedForTableRow(rowInfo.userRow, false);
+                this.focusSelected_();
+                return;
+              }
 
-          } else {
-            if (rowInfo.isExpanded) {
-              this.setExpandedForTableRow(rowInfo.userRow, false);
+              // Not expanded. Select parent...
+              var parentRowInfo = rowInfo.parentRowInfo;
+              if (parentRowInfo) {
+                this.selectedTableRow = parentRowInfo.userRow;
+                this.focusSelected_();
+                return;
+              }
+              return;
+
+            case SelectionMode.CELL:
+              var newIndex = this.selectedColumnIndex_ - 1;
+              if (newIndex < 0)
+                return;
+              if (!this.doesColumnIndexSupportSelection(newIndex))
+                return;
+              this.selectedColumnIndex = newIndex;
               this.focusSelected_();
               return;
-            }
 
-            // Not expanded. Select parent...
-            var parentRowInfo = rowInfo.parentRowInfo;
-            if (parentRowInfo) {
-              this.selectedTableRow = parentRowInfo.userRow;
-              this.focusSelected_();
-              return;
-            }
-            return;
+            default:
+              throw new Error('Invalid selection mode ' + this.selectionMode_);
           }
         }
-        throw new Error('Unrecognized command');
+
+        throw new Error('Unrecognized command ' + cmdName);
       },
 
       focusSelected_: function() {

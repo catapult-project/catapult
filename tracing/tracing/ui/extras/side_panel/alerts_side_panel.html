@@ -121,7 +121,7 @@ found in the LICENSE file.
       var table = document.createElement('tr-ui-b-table');
       table.tableColumns = this.alertsTableColumns_();
       table.tableRows = this.alertsTableRows_(alertsByType);
-      table.supportsSelection = true;
+      table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       table.addEventListener('selection-changed', function(e) {
         var row = table.selectedTableRow;
         if (row)

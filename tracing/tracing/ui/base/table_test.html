@@ -13,15 +13,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
+  var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+  var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
 
   function isSelected(element) {
     if (!element.hasAttribute('selected'))
       return false;
     return element.getAttribute('selected') === 'true';
-  }
-
-  function isHighlighted(element) {
-    return element.classList.contains('highlighted-row');
   }
 
   test('instantiateEmptyTable_withoutEmptyValue', function() {
@@ -717,7 +715,7 @@ tr.b.unittest.testSuite(function() {
     var table = createSimpleOneColumnNestedTable();
     var rows = table.tableRows;
 
-    table.supportsSelection = true;
+    table.selectionMode = SelectionMode.ROW;
     table.selectedTableRow = rows[0];
 
     table.setExpandedForTableRow(rows[0], true);
@@ -727,10 +725,10 @@ tr.b.unittest.testSuite(function() {
     table.setExpandedForTableRow(rows[0], false);
     assert.equal(table.selectedTableRow, rows[0]);
 
-    table.supportsSelection = false;
+    table.selectionMode = SelectionMode.NONE;
     assert.equal(table.selectedTableRow, undefined);
 
-    table.supportsSelection = true;
+    table.selectionMode = SelectionMode.ROW;
     table.setExpandedForTableRow(rows[0].subRows[1], true);
     this.addHTMLOutput(table);
 
@@ -741,7 +739,7 @@ tr.b.unittest.testSuite(function() {
 
   test('keyMovement', function() {
     var table = createSimpleOneColumnNestedTable();
-    table.supportsSelection = true;
+    table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
 
     var rows = table.tableRows;
@@ -810,6 +808,92 @@ tr.b.unittest.testSuite(function() {
     ];
   });
 
+  test('rowHighlightDark', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Col1',
+        value: function(row) { return row.b; },
+        width: '33%'
+      },
+      {
+        title: 'Col2',
+        value: function(row) { return row.b * 2; },
+        width: '33%'
+      },
+      {
+        title: 'Col3',
+        value: function(row) { return row.b * 3; },
+        width: '33%'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.rowHighlightStyle = HighlightStyle.DARK;
+    table.tableColumns = columns;
+    table.tableRows = [
+      {
+        a: 'first',
+        b: '1'
+      },
+      {
+        a: 'second',
+        b: '2'
+      }
+    ];
+    table.rebuild();
+    this.addHTMLOutput(table);
+  });
+
+  test('cellHighlightLight', function() {
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.a; },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'Col1',
+        value: function(row) { return row.b; },
+        width: '33%'
+      },
+      {
+        title: 'Col2',
+        value: function(row) { return row.b * 2; },
+        width: '33%'
+      },
+      {
+        title: 'Col3',
+        value: function(row) { return row.b * 3; },
+        width: '33%'
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.showHeader = true;
+    table.cellHighlightStyle = HighlightStyle.LIGHT;
+    table.tableColumns = columns;
+    table.tableRows = [
+      {
+        a: 'first',
+        b: '1'
+      },
+      {
+        a: 'second',
+        b: '2'
+      }
+    ];
+    table.rebuild();
+    this.addHTMLOutput(table);
+  });
+
   test('cellSelectionBasic', function() {
     var columns = [
       {
@@ -837,8 +921,8 @@ tr.b.unittest.testSuite(function() {
 
     var table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
-    table.supportsSelection = true;
-    table.cellSelectionMode = true;
+    table.selectionMode = SelectionMode.CELL;
+    table.rowHighlightStyle = HighlightStyle.NONE;
     table.tableColumns = columns;
     table.tableRows = [
       {
@@ -894,8 +978,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
-    table.supportsSelection = true;
-    table.cellSelectionMode = true;
+    table.selectionMode = SelectionMode.CELL;
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -903,104 +986,61 @@ tr.b.unittest.testSuite(function() {
 
     // Expand the parent row.
     table.setExpandedForTableRow(rows[0], true);
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
-    assert.isFalse(isHighlighted(table.$.body.children[1]));
 
     // Select the second cell in the child row.
     table.selectedTableRow = rows[0].subRows[0];
     assert.isFalse(isSelected(table.$.body.children[0]));
     assert.isFalse(isSelected(table.$.body.children[0].children[1]));
-    assert.isFalse(isSelected(table.$.body.children[1]));
+    assert.isTrue(isSelected(table.$.body.children[1]));
     assert.isTrue(isSelected(table.$.body.children[1].children[1]));
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
-    assert.isFalse(isHighlighted(table.$.body.children[1]));
 
     // Fold the parent row. The second cell in the parent row should be
     // automatically selected.
     table.setExpandedForTableRow(rows[0], false);
-    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0]));
     assert.isTrue(isSelected(table.$.body.children[0].children[1]));
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
 
     // Expand the parent row again. Only the second cell of the parent row
     // should still be selected.
     table.setExpandedForTableRow(rows[0], true);
-    assert.isFalse(isSelected(table.$.body.children[0]));
+    assert.isTrue(isSelected(table.$.body.children[0]));
     assert.isTrue(isSelected(table.$.body.children[0].children[1]));
     assert.isFalse(isSelected(table.$.body.children[1]));
     assert.isFalse(isSelected(table.$.body.children[1].children[1]));
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
-    assert.isFalse(isHighlighted(table.$.body.children[1]));
   });
 
-  test('cellSelectionHighlight', function() {
-    var columns = [
-      {
-        title: 'Title',
-        value: function(row) { return row.a; },
-        width: '150px',
-        supportsCellSelection: false
-      },
-      {
-        title: 'Value',
-        value: function(row) { return row.b; },
-        width: '150px'
-      }
-    ];
-
-    var rows = [
-      {
-        a: 'parent',
-        b: '1',
-        subRows: [
-          {
-            a: 'child',
-            b: '2'
-          }
-        ]
-      }
-    ];
-
+  test('resolvedHighlightStyle', function() {
     var table = document.createElement('tr-ui-b-table');
-    table.showHeader = true;
-    table.supportsSelection = true;
-    table.cellSelectionMode = true;
-    table.rowHighlightEnabled = true;
-    table.tableColumns = columns;
-    table.tableRows = rows;
-    table.rebuild();
-    this.addHTMLOutput(table);
 
-    // Expand the parent row.
-    table.setExpandedForTableRow(rows[0], true);
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
-    assert.isFalse(isHighlighted(table.$.body.children[1]));
+    // Undefined selection mode.
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.NONE);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.NONE);
 
-    // Select the second cell in the child row.
-    table.selectedTableRow = rows[0].subRows[0];
-    assert.isFalse(isSelected(table.$.body.children[0]));
-    assert.isFalse(isSelected(table.$.body.children[0].children[1]));
-    assert.isFalse(isSelected(table.$.body.children[1]));
-    assert.isTrue(isSelected(table.$.body.children[1].children[1]));
-    assert.isFalse(isHighlighted(table.$.body.children[0]));
-    assert.isTrue(isHighlighted(table.$.body.children[1]));
+    // Row selection mode.
+    table.selectionMode = SelectionMode.ROW;
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.DARK);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.NONE);
 
-    // Fold the parent row. The second cell in the parent row should be
-    // automatically selected.
-    table.setExpandedForTableRow(rows[0], false);
-    assert.isFalse(isSelected(table.$.body.children[0]));
-    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
-    assert.isTrue(isHighlighted(table.$.body.children[0]));
+    // Cell selection mode.
+    table.selectionMode = SelectionMode.CELL;
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.LIGHT);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.DARK);
 
-    // Expand the parent row again. Only the second cell of the parent row
-    // should still be selected.
-    table.setExpandedForTableRow(rows[0], true);
-    assert.isFalse(isSelected(table.$.body.children[0]));
-    assert.isTrue(isSelected(table.$.body.children[0].children[1]));
-    assert.isFalse(isSelected(table.$.body.children[1]));
-    assert.isFalse(isSelected(table.$.body.children[1].children[1]));
-    assert.isTrue(isHighlighted(table.$.body.children[0]));
-    assert.isFalse(isHighlighted(table.$.body.children[1]));
+    // Explicit row highlight style.
+    table.rowHighlightStyle = HighlightStyle.NONE;
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.NONE);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.DARK);
+
+    // Explicit row and cell highlight styles.
+    table.cellHighlightStyle = HighlightStyle.LIGHT;
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.NONE);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.LIGHT);
+
+    // Back to default highlight styles.
+    table.cellHighlightStyle = HighlightStyle.DEFAULT;
+    table.rowHighlightStyle = HighlightStyle.DEFAULT;
+    assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.LIGHT);
+    assert.strictEqual(table.resolvedCellHighlightStyle, HighlightStyle.DARK);
   });
 
   test('headersWithHtmlElements', function() {

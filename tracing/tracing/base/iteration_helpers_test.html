@@ -224,5 +224,17 @@ tr.b.unittest.testSuite(function() {
     }, this);
     assert.equal(k, undefined);
   });
+
+  test('dictionaryContainsValue', function() {
+    var emptyDict = {};
+    assert.isFalse(tr.b.dictionaryContainsValue(emptyDict, 'missing'));
+
+    var nonEmptyDict = {a: 42, b: 'value'};
+    assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 42));
+    assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 'value'));
+    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'a'));
+    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'b'));
+    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'missing'));
+  });
 });
 </script>

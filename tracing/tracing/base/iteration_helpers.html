@@ -104,6 +104,13 @@ tr.exportTo('tr.b', function() {
     return n;
   }
 
+  function dictionaryContainsValue(dict, value) {
+    for (var key in dict)
+      if (dict[key] === value)
+        return true;
+    return false;
+  }
+
   /**
    * Returns a new dictionary with items grouped by the return value of the
    * specified function being called on each item.
@@ -303,6 +310,7 @@ tr.exportTo('tr.b', function() {
     dictionaryLength: dictionaryLength,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
+    dictionaryContainsValue: dictionaryContainsValue,
     group: group,
     iterItems: iterItems,
     mapItems: mapItems,

@@ -95,8 +95,7 @@ found in the LICENSE file.
       table.tableColumns = columns;
       table.sortColumnIndex = 0;
       table.sortDescending = false;
-      table.supportsSelection = true;
-      table.rowHighlightEnabled = true;
+      table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
 
       var railScoreHistograms = {};
       results.allValuesFromFailureFreeRuns.map(function(v) {

@@ -266,20 +266,28 @@ tr.exportTo('tr.ui.units', function() {
       this.$.table.rebuild();
     },
 
-    get supportsSelection() {
-      return this.$.supportsSelection;
+    get selectionMode() {
+      return this.$.table.selectionMode;
     },
 
-    set supportsSelection(supportsSelection) {
-      this.$.table.supportsSelection = supportsSelection;
+    set selectionMode(selectionMode) {
+      this.$.table.selectionMode = selectionMode;
     },
 
-    get rowHighlightEnabled() {
-      return this.$.rowHighlightEnabled;
+    get rowHighlightStyle() {
+      return this.$.table.rowHighlightStyle;
     },
 
-    set rowHighlightEnabled(rowHighlightEnabled) {
-      this.$.table.rowHighlightEnabled = rowHighlightEnabled;
+    set rowHighlightStyle(rowHighlightStyle) {
+      this.$.table.rowHighlightStyle = rowHighlightStyle;
+    },
+
+    get cellHighlightStyle() {
+      return this.$.table.cellHighlightStyle;
+    },
+
+    set cellHighlightStyle(cellHighlightStyle) {
+      this.$.table.cellHighlightStyle = cellHighlightStyle;
     }
   });
 
