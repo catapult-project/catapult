@@ -11,7 +11,6 @@ from telemetry.timeline import tracing_options
 from telemetry.value import trace
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf.metrics import blob_timeline
-from telemetry.web_perf.metrics import webrtc_rendering_timeline
 from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import indexeddb_timeline
 from telemetry.web_perf.metrics import layout
@@ -49,8 +48,7 @@ def _GetAllTimelineBasedMetrics():
           blob_timeline.BlobTimelineMetric(),
           memory_timeline.MemoryTimelineMetric(),
           text_selection.TextSelectionMetric(),
-          indexeddb_timeline.IndexedDBTimelineMetric(),
-          webrtc_rendering_timeline.WebRtcRenderingTimelineMetric())
+          indexeddb_timeline.IndexedDBTimelineMetric())
 
 
 class InvalidInteractions(Exception):
@@ -255,6 +253,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Configure and start tracing."""
     if not platform.tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
+
     platform.tracing_controller.Start(self._tbm_options.tracing_options,
                                       self._tbm_options.category_filter)
 
