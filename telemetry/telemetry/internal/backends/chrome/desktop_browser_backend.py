@@ -252,7 +252,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._WaitForBrowserToComeUp()
       # browser is foregrounded by default on Windows and Linux, but not Mac.
       if self.browser.platform.GetOSName() == 'mac':
-        subprocess.check_call([
+        subprocess.Popen([
           'osascript', '-e', ('tell application "%s" to activate' %
                               self._executable)])
       self._InitDevtoolsClientBackend()
