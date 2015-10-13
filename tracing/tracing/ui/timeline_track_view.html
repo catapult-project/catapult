@@ -206,8 +206,6 @@ found in the LICENSE file.
           m.SELECTION, tr.ui.b.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
           m.PANSCAN, tr.ui.b.MODIFIER.SPACE);
-      this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, tr.ui.b.MODIFIER.CMD_OR_CTRL);
     },
 
     get brushingStateController() {
@@ -1008,6 +1006,11 @@ found in the LICENSE file.
 
       // Figure out what has been selected.
       var selection = new tr.model.EventSet();
+      if (eDown.appendSelection) {
+        var previousSelection = this.brushingStateController_.selection;
+        if (previousSelection !== undefined)
+          selection.addEventSet(previousSelection);
+      }
       this.modelTrack_.addIntersectingEventsInRangeToSelection(
           loVX, hiVX, loY, hiY, selection);
 

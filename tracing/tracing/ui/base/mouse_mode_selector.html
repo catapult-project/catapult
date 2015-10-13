@@ -78,6 +78,13 @@ tr.exportTo('tr.ui.b', function() {
     CMD_OR_CTRL: 0x4
   };
 
+  function isCmdOrCtrlPressed(event) {
+    if (tr.isMac)
+      return event.metaKey;
+    else
+      return event.ctrlKey;
+  }
+
   /**
    * Provides a panel for switching the interaction mode of the mouse.
    * It handles the user interaction and dispatches events for the various
@@ -342,6 +349,8 @@ tr.exportTo('tr.ui.b', function() {
       this.setCurrentMousePosFromEvent_(e);
       var mouseEvent = this.createEvent_(
           MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin, e);
+      if (this.mode === MOUSE_SELECTOR_MODE.SELECTION)
+        mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
@@ -432,8 +441,7 @@ tr.exportTo('tr.ui.b', function() {
     updateAlternativeModeState_: function(e) {
       var shiftPressed = e.shiftKey;
       var spacePressed = this.spacePressed_;
-      var cmdOrCtrlPressed =
-          (tr.isMac && e.metaKey) || (!tr.isMac && e.ctrlKey);
+      var cmdOrCtrlPressed = isCmdOrCtrlPressed(e);
 
       // Figure out the new mode
       var smm = this.supportedModeMask_;
@@ -550,6 +558,8 @@ tr.exportTo('tr.ui.b', function() {
       var eventNames = modeInfo.eventNames;
 
       var mouseEvent = this.createEvent_(eventNames.begin);
+      if (this.mode === MOUSE_SELECTOR_MODE.SELECTION)
+        mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
       this.dispatchEvent(mouseEvent);
 
       mouseEvent = this.createEvent_(eventNames.end);
