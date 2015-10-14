@@ -188,7 +188,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.isBelow(column.cmp({title: 'a'}, {title: 'b'}), 0);
     assert.equal(column.cmp({title: 'cc'}, {title: 'cc'}), 0);
-    assert.isAbove(column.cmp({title: '2'}, {title: '10'}), 0);
+    assert.isAbove(column.cmp({title: '10'}, {title: '2'}), 0);
   });
 
   test('checkMemoryColumn_fromRows_defaultTitleBuilder', function() {
@@ -564,12 +564,12 @@ tr.b.unittest.testSuite(function() {
     var c = new MemoryColumn('test_column', 'Test Column', 'ms',
         fieldGetter('x'), undefined /* aggregation mode */);
 
-    assert.isBelow(c.compareSingleAttributes(new ScalarAttribute('bytes', 10),
-        new ScalarAttribute('bytes', 2)), 0);
+    assert.isBelow(c.compareSingleAttributes(new ScalarAttribute('bytes', 2),
+        new ScalarAttribute('bytes', 10)), 0);
     assert.equal(c.compareSingleAttributes(new StringAttribute('', 'equal'),
         new StringAttribute('', 'equal')), 0);
-    assert.isAbove(c.compareSingleAttributes(new StringAttribute('ms', '99'),
-        new StringAttribute('ms', '100')), 0);
+    assert.isAbove(c.compareSingleAttributes(new StringAttribute('ms', '100'),
+        new StringAttribute('ms', '99')), 0);
   });
 
   test('checkMemoryColumn_compareMultipleAttributes', function() {

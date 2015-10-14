@@ -21,6 +21,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
   var NO_BREAK_SPACE = String.fromCharCode(160);
 
+  var COLLATOR = new Intl.Collator(undefined, {numeric: true});
+
   /**
    * A table column for displaying memory dump row titles.
    *
@@ -117,7 +119,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     cmp: function(rowA, rowB) {
-      return rowA.title.localeCompare(rowB.title);
+      return COLLATOR.compare(rowA.title, rowB.title);
     }
   };
 
@@ -260,7 +262,7 @@ tr.exportTo('tr.ui.analysis', function() {
     positions.sort(function(a, b) {
       // Sort columns with the same importance alphabetically.
       if (a.importance === b.importance)
-        return a.column.name.localeCompare(b.column.name);
+        return COLLATOR.compare(a.column.name, b.column.name);
 
       // Sort columns in descending order of importance.
       return b.importance - a.importance;
@@ -493,7 +495,7 @@ tr.exportTo('tr.ui.analysis', function() {
     compareSingleAttributes: function(attrA, attrB) {
       var strA = String(attrA.value);
       var strB = String(attrB.value);
-      return strA.localeCompare(strB);
+      return COLLATOR.compare(strA, strB);
     },
 
     compareMultipleAttributes: function(attrsA, attrsB) {
