@@ -39,8 +39,18 @@
       rect.left = 0;
     }
 
-    var outsideHeight = (rect.top + rect.height) - window.innerHeight;
-    var outsideWidth = (rect.left + rect.width) - window.innerWidth;
+    // TODO(ymalik): Remove the fallback path once the visualViewportHeight and
+    // visualViewportWidth properties roll into stable.
+    var visualViewportHeight = window.innerHeight;
+    var visualViewportWidth = window.innerWidth;
+    if (chrome.gpuBenchmarking.visualViewportHeight) {
+      visualViewportHeight = chrome.gpuBenchmarking.visualViewportHeight();
+    }
+    if (chrome.gpuBenchmarking.visualViewportWidth) {
+      visualViewportWidth = chrome.gpuBenchmarking.visualViewportWidth();
+    }
+    var outsideHeight = (rect.top + rect.height) - visualViewportHeight;
+    var outsideWidth = (rect.left + rect.width) - visualViewportWidth;
 
     if (outsideHeight > 0) {
       rect.height -= outsideHeight;
