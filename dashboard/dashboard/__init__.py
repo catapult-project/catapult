@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import sys
 
 
 # Directories in catapult/third_party required by dashboard.
@@ -59,7 +60,9 @@ def PathsForDeployment():
     # The App Engine SDK is assumed to be in PYTHONPATH when setting
     # up the deployment directory, but isn't available in production.
     # (But this function shouldn't be called in production anyway.)
-    pass
+    sys.stderr.write('Error importing dev_appserver; please install app engine'
+                     ' SDK. See https://cloud.google.com/appengine/downloads\n')
+    sys.exit(1)
   for path in dev_appserver.EXTRA_PATHS:
     if os.path.basename(path) in THIRD_PARTY_LIBRARIES_IN_SDK:
       paths.append(path)
