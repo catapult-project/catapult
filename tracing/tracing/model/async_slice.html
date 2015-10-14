@@ -81,6 +81,12 @@ tr.exportTo('tr.model', function() {
           tr.b.u.TimeStamp.format(this.start);
     },
 
+    get stableId() {
+      var parentAsyncSliceGroup = this.parentContainer.asyncSliceGroup;
+      return parentAsyncSliceGroup.stableId + '.' +
+          parentAsyncSliceGroup.slices.indexOf(this);
+    },
+
     findDescendentSlice: function(targetTitle) {
       if (!this.subSlices)
         return undefined;
