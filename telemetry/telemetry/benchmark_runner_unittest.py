@@ -40,8 +40,8 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
   def testPrintBenchmarkListWithNoDisabledBenchmark(self):
     expected_printed_stream = (
         'Available benchmarks for TestBrowser are:\n'
-        '  FooBenchmark      Benchmark Foo for testing.\n'
         '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
+        '  FooBenchmark      Benchmark Foo for testing.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
     with mock.patch('telemetry.benchmark_runner.decorators') as mock_module:
       mock_module.IsEnabled.return_value = (True, None)
@@ -98,8 +98,8 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         'Pass --browser to list benchmarks for another browser.\n\n'
         # Expected output for 'MockBrowser':
         'Available benchmarks for MockBrowser are:\n'
-        '  FooBenchmark      Benchmark Foo for testing.\n'
         '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
+        '  FooBenchmark      Benchmark Foo for testing.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
     @classmethod
     def FakeShouldDisable(cls, possible_browser):

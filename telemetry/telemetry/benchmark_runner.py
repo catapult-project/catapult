@@ -69,6 +69,9 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
 
   print >> output_pipe, 'Available benchmarks %sare:' % (
       'for %s ' % possible_browser.browser_type if possible_browser else '')
+
+  # Sort the benchmarks by benchmark name.
+  benchmarks = sorted(benchmarks, key=lambda b: b.Name())
   for b in benchmarks:
     if not possible_browser or _IsBenchmarkEnabled(b, possible_browser):
       print >> output_pipe, format_string % (b.Name(), b.Description())
