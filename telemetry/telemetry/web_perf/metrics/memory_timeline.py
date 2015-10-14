@@ -29,9 +29,8 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     def ContainedIn(dump, interaction):
       return interaction.start < dump.start and dump.end < interaction.end
 
-    def HasMmapsDuringInteractions(dump):
-      return dump.has_mmaps and any(ContainedIn(dump, interaction)
-                                    for interaction in interactions)
+    def OccursDuringInteractions(dump):
+      return any(ContainedIn(dump, interaction) for interaction in interactions)
 
     def ReportResultsForProcess(memory_dumps, process_name):
       if not memory_dumps:
@@ -51,8 +50,12 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
             none_value_reason=none_reason,
             improvement_direction=improvement_direction.DOWN))
 
-    memory_dumps = filter(HasMmapsDuringInteractions,
+    memory_dumps = filter(OccursDuringInteractions,
                           model.IterGlobalMemoryDumps())
+
+    # Either all dumps should contain memory maps (Android, Linux), or none
+    # of them (Windows, Mac).
+    assert len(set(dump.has_mmaps for dump in memory_dumps)) <= 1
 
     ReportResultsForProcess(memory_dumps, 'total')
 

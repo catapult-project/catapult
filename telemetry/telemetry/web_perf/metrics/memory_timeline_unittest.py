@@ -19,12 +19,11 @@ def MockProcessDumpEvent(dump_id, name, start, memory_usage):
   process_dump.process_name = name
   process_dump.start = start
   if memory_usage is None:
-    process_dump.has_mmaps = False
     memory_usage = {}
-  else:
-    process_dump.has_mmaps = True
-  if not isinstance(memory_usage, dict):
+  elif not isinstance(memory_usage, dict):
     memory_usage = dict.fromkeys(memory_timeline.DEFAULT_METRICS, memory_usage)
+  process_dump.has_mmaps = any(metric in memory_usage for metric
+                               in memory_timeline.DEFAULT_METRICS)
   process_dump.GetMemoryUsage = mock.Mock(return_value=memory_usage)
   return process_dump
 
@@ -103,16 +102,26 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
                     TestInteraction(12, 15)]
     self.assertEquals([123, 555], self.getOverallPssTotal(model, interactions))
 
-  def testDumpsWithNoMemoryMapsAreFilteredOut(self):
+  def testDumpsWithNoMemoryMaps(self):
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 2, {'blink': 123}),
+        MockProcessDumpEvent('dump2', 'browser', 5, {'blink': 456})])
+    interactions = [TestInteraction(1, 10)]
+    results = self.getResultsDict(model, interactions)
+    self.assertItemsEqual(['blink_total', 'blink_browser'], results.keys())
+    self.assertListEqual([123, 456], results['blink_total'])
+    self.assertListEqual([123, 456], results['blink_browser'])
+
+  def testDumpsWithSomeMemoryMaps(self):
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, 123),
         MockProcessDumpEvent('dump2', 'browser', 5, None)])
     interactions = [TestInteraction(1, 10)]
-    self.assertEquals([123], self.getOverallPssTotal(model, interactions))
+    self.assertRaises(AssertionError, self.getResultsDict, model, interactions)
 
   def testReturnsNoneWhenAllDumpsAreFilteredOut(self):
     model = MockTimelineModel([
-        MockProcessDumpEvent('dump1', 'bowser', 5, None),
+        MockProcessDumpEvent('dump1', 'bowser', 0, 123),
         MockProcessDumpEvent('dump2', 'browser', 11, 789)])
     interactions = [TestInteraction(1, 10)]
     self.assertEquals(None, self.getOverallPssTotal(model, interactions))
