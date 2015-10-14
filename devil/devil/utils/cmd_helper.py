@@ -67,6 +67,27 @@ def DoubleQuote(s):
     return '"' + s.replace('"', '\\"') + '"'
 
 
+def ShrinkToSnippet(cmd_parts, var_name, var_value):
+  """Constructs a shell snippet for a command using a variable to shrink it.
+
+  Takes into account all quoting that needs to happen.
+
+  Args:
+    cmd_parts: A list of command arguments.
+    var_name: The variable that holds var_value.
+    var_value: The string to replace in cmd_parts with $var_name
+
+  Returns:
+    A shell snippet that does not include setting the variable.
+  """
+  def shrink(value):
+    parts = (x and SingleQuote(x) for x in value.split(var_value))
+    with_substitutions = ('"$%s"' % var_name).join(parts)
+    return with_substitutions or "''"
+
+  return ' '.join(shrink(part) for part in cmd_parts)
+
+
 def Popen(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
   return subprocess.Popen(
       args=args, cwd=cwd, stdout=stdout, stderr=stderr,

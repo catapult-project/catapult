@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -52,6 +53,36 @@ class CmdHelperDoubleQuoteTest(unittest.TestCase):
                       cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
 
 
+class CmdHelperShinkToSnippetTest(unittest.TestCase):
+
+  def testShrinkToSnippet_noArgs(self):
+    self.assertEquals('foo',
+        cmd_helper.ShrinkToSnippet(['foo'], 'a', 'bar'))
+    self.assertEquals("'foo foo'",
+        cmd_helper.ShrinkToSnippet(['foo foo'], 'a', 'bar'))
+    self.assertEquals('"$a"\' bar\'',
+        cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'foo'))
+    self.assertEquals('\'foo \'"$a"',
+        cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'bar'))
+    self.assertEquals('foo"$a"',
+        cmd_helper.ShrinkToSnippet(['foobar'], 'a', 'bar'))
+
+  def testShrinkToSnippet_singleArg(self):
+    self.assertEquals("foo ''",
+        cmd_helper.ShrinkToSnippet(['foo', ''], 'a', 'bar'))
+    self.assertEquals("foo foo",
+        cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'bar'))
+    self.assertEquals('"$a" "$a"',
+        cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'foo'))
+    self.assertEquals('foo "$a""$a"',
+        cmd_helper.ShrinkToSnippet(['foo', 'barbar'], 'a', 'bar'))
+    self.assertEquals('foo "$a"\' \'"$a"',
+        cmd_helper.ShrinkToSnippet(['foo', 'bar bar'], 'a', 'bar'))
+    self.assertEquals('foo "$a""$a"\' \'',
+        cmd_helper.ShrinkToSnippet(['foo', 'barbar '], 'a', 'bar'))
+    self.assertEquals('foo \' \'"$a""$a"\' \'',
+        cmd_helper.ShrinkToSnippet(['foo', ' barbar '], 'a', 'bar'))
+
 class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
   """Test IterCmdOutputLines with some calls to the unix 'seq' command."""
 
@@ -81,3 +112,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
       # the end of the output and, thus, the status never gets checked
       if num == 10:
         break
+
+
+if __name__ == '__main__':
+  unittest.main()

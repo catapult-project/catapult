@@ -1165,7 +1165,7 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
   def testStartInstrumentation_nothing(self):
     with self.assertCalls(
         self.call.device.RunShellCommand(
-            ['am', 'instrument', 'test.package/.TestInstrumentation'],
+            'p=test.package;am instrument "$p"/.TestInstrumentation',
             check_return=True, large_output=True)):
       self.device.StartInstrumentation(
           'test.package/.TestInstrumentation',
@@ -1174,7 +1174,7 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
   def testStartInstrumentation_finish(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(
-            ['am', 'instrument', '-w', 'test.package/.TestInstrumentation'],
+            'p=test.package;am instrument -w "$p"/.TestInstrumentation',
             check_return=True, large_output=True),
          ['OK (1 test)'])):
       output = self.device.StartInstrumentation(
@@ -1185,7 +1185,7 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
   def testStartInstrumentation_raw(self):
     with self.assertCalls(
         self.call.device.RunShellCommand(
-            ['am', 'instrument', '-r', 'test.package/.TestInstrumentation'],
+            'p=test.package;am instrument -r "$p"/.TestInstrumentation',
             check_return=True, large_output=True)):
       self.device.StartInstrumentation(
           'test.package/.TestInstrumentation',
@@ -1194,12 +1194,13 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
   def testStartInstrumentation_extras(self):
     with self.assertCalls(
         self.call.device.RunShellCommand(
-            ['am', 'instrument', '-e', 'foo', 'Foo', '-e', 'bar', 'Bar',
-             'test.package/.TestInstrumentation'],
+            'p=test.package;am instrument -e "$p".foo Foo -e bar \'Val \'"$p" '
+            '"$p"/.TestInstrumentation',
             check_return=True, large_output=True)):
       self.device.StartInstrumentation(
           'test.package/.TestInstrumentation',
-          finish=False, raw=False, extras={'foo': 'Foo', 'bar': 'Bar'})
+          finish=False, raw=False, extras={'test.package.foo': 'Foo',
+                                           'bar': 'Val test.package'})
 
 
 class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):

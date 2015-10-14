@@ -939,7 +939,14 @@ class DeviceUtils(object):
     for k, v in extras.iteritems():
       cmd.extend(['-e', str(k), str(v)])
     cmd.append(component)
-    return self.RunShellCommand(cmd, check_return=True, large_output=True)
+
+    # Store the package name in a shell variable to help the command stay under
+    # the _MAX_ADB_COMMAND_LENGTH limit.
+    package = component.split('/')[0]
+    shell_snippet = 'p=%s;%s' % (package,
+                                 cmd_helper.ShrinkToSnippet(cmd, 'p', package))
+    return self.RunShellCommand(shell_snippet, check_return=True,
+                                large_output=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def BroadcastIntent(self, intent_obj, timeout=None, retries=None):
