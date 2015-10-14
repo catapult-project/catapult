@@ -84,13 +84,6 @@ class BrowserOptionsTest(unittest.TestCase):
     self.assertEquals(options.browser_options.extra_browser_args,
                       set(['--foo', '--bar']))
 
-  def testUseDevToolsActivePort(self):
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    parser.parse_args(['--use-devtools-active-port'])
-
-    self.assertEquals(options.browser_options.use_devtools_active_port, True)
-
   def testMergeDefaultValues(self):
     options = browser_options.BrowserFinderOptions()
     options.already_true = True

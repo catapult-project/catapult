@@ -238,11 +238,6 @@ class BrowserOptions(object):
     # Disable default apps.
     self.disable_default_apps = True
 
-    # Whether to use the new code path for choosing an ephemeral port for
-    # DevTools. The bots set this to true. When Chrome 37 reaches stable,
-    # remove this setting and the old code path. http://crbug.com/379980
-    self.use_devtools_active_port = False
-
     self.enable_logging = False
     # The cloud storage bucket & path for uploading logs data produced by the
     # browser to.
@@ -328,7 +323,6 @@ class BrowserOptions(object):
         'profile_dir',
         'profile_type',
         'show_stdout',
-        'use_devtools_active_port',
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)

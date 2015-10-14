@@ -104,17 +104,16 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         logging.info("Using profile directory:'%s'." % profile_dir)
         shutil.rmtree(self._tmp_profile_dir)
         shutil.copytree(profile_dir, self._tmp_profile_dir)
-    if self.browser_options.use_devtools_active_port:
-      # No matter whether we're using an existing profile directory or
-      # creating a new one, always delete the well-known file containing
-      # the active DevTools port number.
-      port_file = self._GetDevToolsActivePortPath()
-      if os.path.isfile(port_file):
-        try:
-          os.remove(port_file)
-        except Exception as e:
-          logging.critical('Unable to remove DevToolsActivePort file: %s' % e)
-          sys.exit(1)
+    # No matter whether we're using an existing profile directory or
+    # creating a new one, always delete the well-known file containing
+    # the active DevTools port number.
+    port_file = self._GetDevToolsActivePortPath()
+    if os.path.isfile(port_file):
+      try:
+        os.remove(port_file)
+      except Exception as e:
+        logging.critical('Unable to remove DevToolsActivePort file: %s' % e)
+        sys.exit(1)
 
   def _GetDevToolsActivePortPath(self):
     return os.path.join(self.profile_directory, 'DevToolsActivePort')
@@ -178,37 +177,32 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not self.IsBrowserRunning():
       raise exceptions.ProcessGoneException(
           "Return code: %d" % self._proc.returncode)
-    if self.browser_options.use_devtools_active_port:
-      # The Telemetry user selected the new code path to start DevTools on
-      # an ephemeral port. Wait for the well-known file containing the port
-      # number to exist.
-      port_file = self._GetDevToolsActivePortPath()
-      if not os.path.isfile(port_file):
-        # File isn't ready yet. Return false. Will retry.
-        return False
-      # Attempt to avoid reading the file until it's populated.
-      got_port = False
-      try:
-        if os.stat(port_file).st_size > 0:
-          with open(port_file) as f:
-            port_string = f.read()
-            self._port = int(port_string)
-            logging.info('Discovered ephemeral port %s' % self._port)
-            got_port = True
-      except Exception:
-        # Both stat and open can throw exceptions.
-        pass
-      if not got_port:
-        # File isn't ready yet. Return false. Will retry.
-        return False
+    # Start DevTools on an ephemeral port and wait for the well-known file
+    # containing the port number to exist.
+    port_file = self._GetDevToolsActivePortPath()
+    if not os.path.isfile(port_file):
+      # File isn't ready yet. Return false. Will retry.
+      return False
+    # Attempt to avoid reading the file until it's populated.
+    got_port = False
+    try:
+      if os.stat(port_file).st_size > 0:
+        with open(port_file) as f:
+          port_string = f.read()
+          self._port = int(port_string)
+          logging.info('Discovered ephemeral port %s' % self._port)
+          got_port = True
+    except Exception:
+      # Both stat and open can throw exceptions.
+      pass
+    if not got_port:
+      # File isn't ready yet. Return false. Will retry.
+      return False
     return super(DesktopBrowserBackend, self).HasBrowserFinishedLaunching()
 
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
-    if self.browser_options.use_devtools_active_port:
-      self._port = 0
-    else:
-      self._port = util.GetUnreservedAvailableLocalPort()
+    self._port = 0
     logging.info('Requested remote debugging port: %d' % self._port)
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
