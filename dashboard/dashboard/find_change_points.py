@@ -204,9 +204,6 @@ def _PassesThresholds(
     return False
 
   # 4. Multiple of standard deviation filter.
-  # The left and right sides are independently normalized so that their medians
-  # are zero, then the two sides are concatenated together. This, in effect,
-  # removes the step so that the step itself doesn't affect the std. dev.
   min_std_dev = min(
       math_utils.StandardDeviation(left),
       math_utils.StandardDeviation(right))
