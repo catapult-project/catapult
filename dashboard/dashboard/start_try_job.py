@@ -807,7 +807,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       gs_bucket='chrome-perf',
       recipe_tester_name=config['recipe_tester_name'],
       test_type=test_type,
-      required_confidence=config.get('required_initial_confidence', '95')
+      required_initial_confidence=config.get('required_initial_confidence')
   )
 
 
