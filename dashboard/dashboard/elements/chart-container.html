@@ -393,6 +393,7 @@ triaging functionality in the chart.
          * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
          */
         ready: function() {
+          // TODO(chrisphan): Make seriesGroupList a class.
           // A list of series group dictionary. A series group contains test
           // path and list of test information. This is displayed in
           // chart-legend, where each test is a checkable series.
@@ -571,7 +572,8 @@ triaging functionality in the chart.
             var seriesGroup = {
               path: testPath,
               tests: [],
-              collapse: collapse
+              collapse: collapse,
+              numPendingRequests: 0
             };
             if (selectedTraces.length > 0) {
               var selected = selectedTraces[0];
@@ -621,6 +623,9 @@ triaging functionality in the chart.
             params['is_selected'] = true;
           }
 
+          this.updateSeriesGroupLoadingCounter(
+              Object.keys(testPathDict), true);
+
           var req = simple_xhr.send(
               '/graph_json',
               {'graphs': JSON.stringify(params)},
@@ -633,14 +638,38 @@ triaging functionality in the chart.
                 if (Object.keys(json.data).length > 0) {
                   this.updateJson(json, isSelected);
                 }
+                this.updateSeriesGroupLoadingCounter(
+                    Object.keys(testPathDict), false);
               }.bind(this),
               function(error) {
-                this.addWarnings('Failed to fetch graph data.');
-                this.checkForInternalUser();
-                console.warn(error);
+                if (error) {
+                  this.addWarnings('Failed to fetch graph data.');
+                  this.checkForInternalUser();
+                  console.warn(error);
+                }
+                this.updateSeriesGroupLoadingCounter(
+                    Object.keys(testPathDict), false);
               }.bind(this)
           );
           this.graphJsonRequests.push(req);
+        },
+
+        /**
+         * Update loading counter for all series groups in a testPaths.
+         *
+         * @param {Array} testPaths List of test paths.
+         * @param {boolean} increment True to add one, False to subract one.
+         */
+        updateSeriesGroupLoadingCounter: function(testPaths, increment) {
+          var testPathToGroup = {};
+          this.seriesGroupList.forEach(function(group) {
+            testPathToGroup[group.path] = group;
+          });
+
+          var delta = (increment) ? 1 : -1;
+          testPaths.forEach(function(testPath) {
+            testPathToGroup[testPath].numPendingRequests += delta;
+          });
         },
 
         checkForInternalUser: function() {

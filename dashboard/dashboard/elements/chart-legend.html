@@ -6,8 +6,8 @@ Attributes:
 <link rel="import" href="/components/core-selector/core-selector.html">
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/components/paper-progress/paper-progress.html">
 <link rel="import" href="/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/elements/tooltip-test-description.html">
 
@@ -157,7 +157,15 @@ Attributes:
         display: inline;
       }
 
+      paper-spinner {
+         width: 18px;
+         height: 18px;
+      }
 
+      .sg-loading {
+        text-align:center;
+        padding-bottom: 2px;
+      }
     </style>
 
     <div id="rhs" compact?="{{showCompact}}" collapse-legend?="{{collapseLegend}}">
@@ -251,8 +259,12 @@ Attributes:
                 </template>
               </div>
 
+              <template if="{{seriesGroup.numPendingRequests > 0}}">
+                <div class="sg-loading">
+                  <paper-spinner active></paper-spinner>
+                </div>
+              </template>
             </paper-shadow>
-
           </template>
         </div>
 

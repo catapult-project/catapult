@@ -17,6 +17,11 @@ var simple_xhr = (function() {
     callback(LOGIN_ERROR_MESSAGE);
   };
 
+  // For abort request, error callback is called without message.
+  var handleAbort_ = function(request, callback) {
+    callback(null);
+  };
+
   var handleLoad_ = function(request, loadCallback, errorCallback) {
     if (request.status != 200) {
       errorCallback('HTTP error ' + request.status);
@@ -41,12 +46,13 @@ var simple_xhr = (function() {
       strings.push(name + '=' + encodeURIComponent(params[name]));
     }
     return strings.join('&');
-  }
+  };
 
   var send = function(url, params, loadCallback, errorCallback) {
     var postdata = paramString_(params);
     var request = new XMLHttpRequest();
     request.onerror = handleError_.bind(this, request, errorCallback);
+    request.onabort = handleAbort_.bind(this, request, errorCallback);
     request.onload = handleLoad_.bind(
         this, request, loadCallback, errorCallback);
     request.open('post', url, true);
