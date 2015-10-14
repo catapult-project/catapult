@@ -1041,10 +1041,10 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   def testValidateAndConvertBuildbucketResponse_Success(self):
     buildbucket_response_success = r"""{
       "build": {
-       "status": "COMPLETED",
-       "url": "http://build.chromium.org/linux_perf_bisector/builds/47",
-       "id": "9043278384371361584",
-       "result": "SUCCESS"
+        "status": "COMPLETED",
+        "url": "http://build.chromium.org/linux_perf_bisector/builds/47",
+        "id": "9043278384371361584",
+        "result": "SUCCESS"
       }
     }"""
     converted_response = (
@@ -1053,6 +1053,41 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertIn('http', converted_response['url'])
     self.assertEqual(converted_response['result'],
                      update_bug_with_results.SUCCESS)
+
+  @mock.patch('logging.error')
+  def testValidateAndConvertBuildbucketResponse_NoTesterInConfig(
+      self, mock_logging_error):
+    job_info_json = """{
+      "build": {
+        "status": "foo",
+        "url": "www.baz.com",
+        "result": "bar"
+      }
+    }"""
+    result = update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+        json.loads(job_info_json))
+    self.assertEqual('Unknown', result['builder'])
+    self.assertEqual(1, mock_logging_error.call_count)
+
+  def testValidateAndConvertBuildbucketResponse_TesterInConfig(self):
+    job_info_json = """{
+      "build": {
+        "status": "foo",
+        "url": "www.baz.com",
+        "result": "bar",
+        "result_details": {
+          "properties": {
+            "bisect_config": {
+              "recipe_tester_name": "my_perf_bisect"
+            }
+          }
+        }
+      }
+    }"""
+    result = update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+        json.loads(job_info_json))
+    self.assertEqual('my_perf_bisect', result['builder'])
+
 
 if __name__ == '__main__':
   unittest.main()

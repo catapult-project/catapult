@@ -515,9 +515,8 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
     job_info: A dictionary containing the response from the buildbucket service.
 
   Returns:
-    Try job info dict, guaranteed to have the keys "url" and "result". The aim
-    of this method is to return a dict as similar as possible to the result of
-    _ValidateRietveldResponse.
+    Try job info dict in the same format as _ValidateRietveldResponse; will
+    have the keys "url", "results", and "bisect_bot".
 
   Raises:
     UnexpectedJsonError: The format was not as expected.
@@ -533,8 +532,13 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
     raise UnexpectedJsonError('No "url" in try job results. This could mean '
                               'that the job has not started. '
                               'Buildbucket response: %s' % json_response)
-  job_info['builder'] = job_info.get('result_details', {}).get(
-      'properties', {}).get('builder_name')
+  try:
+    bisect_config = job_info['result_details']['properties']['bisect_config']
+    job_info['builder'] = bisect_config['recipe_tester_name']
+  except KeyError:
+    # If the tester name isn't found here, this is unexpected but non-fatal.
+    job_info['builder'] = 'Unknown'
+    logging.error('No tester name found in response: %s', json_response)
   job_info['result'] = _BuildbucketStatusToStatusConstant(
       job_info['status'], job_info['result'])
   return job_info
