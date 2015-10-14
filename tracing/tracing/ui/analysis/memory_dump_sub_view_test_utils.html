@@ -26,53 +26,43 @@ tr.exportTo('tr.ui.analysis', function() {
   var VMRegionByteStats = tr.model.VMRegionByteStats;
   var ScalarAttribute = tr.model.ScalarAttribute;
 
-  function createTestGlobalMemoryDump() {
+  function createMultipleTestGlobalMemoryDumps() {
     var model = tr.c.TestUtils.newModel(function(model) {
-      var p1 = model.getOrCreateProcess(1);
-      var p2 = model.getOrCreateProcess(2);
-      var p3 = model.getOrCreateProcess(3);
-      var p4 = model.getOrCreateProcess(4);
+      var pA = model.getOrCreateProcess(1);
+      var pB = model.getOrCreateProcess(2);
+      var pC = model.getOrCreateProcess(3);
+      var pD = model.getOrCreateProcess(4);
 
-      var gmd = new GlobalMemoryDump(model, 42);
-      model.globalMemoryDumps.push(gmd);
+      // ======================================================================
+      //   First timestamp.
+      // ======================================================================
+      var gmd1 = addGlobalMemoryDump(model, 42);
 
-      function addProcessMemoryDump(process, timestamp) {
-        var pmd = new ProcessMemoryDump(gmd, process, timestamp);
-        process.memoryDumps.push(pmd);
-        gmd.processMemoryDumps[process.pid] = pmd;
-        return pmd;
-      }
-
-      // One process with most recent VM regions.
-      var mostRecentGmd = new GlobalMemoryDump(model, 30);
-      var mostRecentPmd1 = new ProcessMemoryDump(mostRecentGmd, p1, 31);
-      p1.memoryDumps.push(mostRecentPmd1);
-      mostRecentGmd.processMemoryDumps[p1.pid] = mostRecentPmd1;
-
-      var pmd1 = addProcessMemoryDump(p1, 41);
-      pmd1.totals = { residentBytes: 31457280 /* 30 MiB */ };
-      mostRecentPmd1.vmRegions = [
+      // Totals and VM regions.
+      var pmd1A = addProcessMemoryDump(gmd1, pA, 41);
+      pmd1A.totals = { residentBytes: 31457280 /* 30 MiB */ };
+      pmd1A.vmRegions = [
         VMRegion.fromDict({
-            startAddress: 1024,
-            sizeInBytes: 20971520, /* 20 MiB */
-            protectionFlags: VMRegion.PROTECTION_FLAG_READ,
-            mappedFile: '[stack]',
-            byteStats: {
-                privateDirtyResident: 8388608, /* 8 MiB */
-                sharedCleanResident: 12582912, /* 12 MiB */
-                proportionalResident: 10485760 /* 10 MiB */
-            }
+          startAddress: 1024,
+          sizeInBytes: 20971520, /* 20 MiB */
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+          mappedFile: '[stack]',
+          byteStats: {
+            privateDirtyResident: 8388608, /* 8 MiB */
+            sharedCleanResident: 12582912, /* 12 MiB */
+            proportionalResident: 10485760 /* 10 MiB */
+          }
         })
       ];
 
-      // One process with everything.
-      var pmd2 = addProcessMemoryDump(p2, 42);
-      pmd2.totals = {
+      // Everything.
+      var pmd1B = addProcessMemoryDump(gmd1, pB, 42);
+      pmd1B.totals = {
         residentBytes: 20971520, /* 20 MiB */
         peakResidentBytes: 41943040, /* 40 MiB */
         arePeakResidentBytesResettable: false
       };
-      pmd2.vmRegions = [
+      pmd1B.vmRegions = [
         VMRegion.fromDict({
           startAddress: 256,
           sizeInBytes: 6000,
@@ -84,18 +74,29 @@ tr.exportTo('tr.ui.analysis', function() {
             privateDirtyResident: 1572864, /* 1.5 MiB */
             swapped: 32 /* 32 B */
           }
+        }),
+        VMRegion.fromDict({
+          startAddress: 100000,
+          sizeInBytes: 4096,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+          mappedFile: '/usr/lib/libwtf.so',
+          byteStats: {
+            proportionalResident: 4194304, /* 4 MiB */
+            privateDirtyResident: 0,
+            swapped: 0 /* 32 B */
+          }
         })
       ];
-      pmd2.memoryAllocatorDumps = (function() {
-        var mallocDump = new MemoryAllocatorDump(pmd2, 'malloc');
+      pmd1B.memoryAllocatorDumps = (function() {
+        var mallocDump = new MemoryAllocatorDump(pmd1B, 'malloc');
         mallocDump.addAttribute('size',
             new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
 
-        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
+        var v8Dump = new MemoryAllocatorDump(pmd1B, 'v8');
         v8Dump.addAttribute('size',
             new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
 
-        var tracingDump = new MemoryAllocatorDump(pmd2, 'tracing');
+        var tracingDump = new MemoryAllocatorDump(pmd1B, 'tracing');
         tracingDump.addAttribute('size',
             new ScalarAttribute('bytes', 1048576) /* 1 MiB */);
         tracingDump.addAttribute('resident_size',
@@ -104,10 +105,10 @@ tr.exportTo('tr.ui.analysis', function() {
         return [mallocDump, v8Dump, tracingDump];
       })();
 
-      // One process with allocator dumps.
-      var pmd3 = addProcessMemoryDump(p3, 43);
-      pmd3.memoryAllocatorDumps = (function() {
-        var oilpanDump = new MemoryAllocatorDump(pmd3, 'oilpan');
+      // Allocator dumps only.
+      var pmd1C = addProcessMemoryDump(gmd1, pC, 43);
+      pmd1C.memoryAllocatorDumps = (function() {
+        var oilpanDump = new MemoryAllocatorDump(pmd1C, 'oilpan');
         oilpanDump.addAttribute('size',
             new ScalarAttribute('bytes', 3221225472) /* 3 GiB */);
         oilpanDump.addAttribute('inner_size',
@@ -115,7 +116,7 @@ tr.exportTo('tr.ui.analysis', function() {
         oilpanDump.addAttribute('objects_count',
             new ScalarAttribute('objects', 2015));
 
-        var v8Dump = new MemoryAllocatorDump(pmd3, 'v8');
+        var v8Dump = new MemoryAllocatorDump(pmd1C, 'v8');
         v8Dump.addAttribute('size',
             new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
         v8Dump.addAttribute('inner_size',
@@ -130,30 +131,360 @@ tr.exportTo('tr.ui.analysis', function() {
         return [oilpanDump, v8Dump];
       })();
 
-      var pmd4 = addProcessMemoryDump(p4, 44);
-      pmd4.totals = {
+      // ======================================================================
+      //   Second timestamp.
+      // ======================================================================
+      var gmd2 = addGlobalMemoryDump(model, 68);
+
+      // Everything.
+      var pmd2A = addProcessMemoryDump(gmd2, pA, 67);
+      pmd2A.totals = { residentBytes: 32505856 /* 31 MiB */ };
+      pmd2A.vmRegions = [
+        VMRegion.fromDict({
+          startAddress: 1024,
+          sizeInBytes: 20971520, /* 20 MiB */
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+          mappedFile: '[stack]',
+          byteStats: {
+            privateDirtyResident: 8388608, /* 8 MiB */
+            sharedCleanResident: 11534336, /* 11 MiB */
+            proportionalResident: 11534336 /* 11 MiB */
+          }
+        }),
+        VMRegion.fromDict({
+          startAddress: 104857600,
+          sizeInBytes: 5242880, /* 5 MiB */
+          protectionFlags: VMRegion.PROTECTION_FLAG_EXECUTE,
+          mappedFile: '/usr/bin/google-chrome',
+          byteStats: {
+            privateDirtyResident: 0,
+            sharedCleanResident: 4194304, /* 4 MiB */
+            proportionalResident: 524288 /* 512 KiB */
+          }
+        })
+      ];
+      pmd2A.memoryAllocatorDumps = (function() {
+        var mallocDump = new MemoryAllocatorDump(pmd2A, 'malloc');
+        mallocDump.addAttribute('size',
+            new ScalarAttribute('bytes', 9437184) /* 9 MiB */);
+
+        var tracingDump = new MemoryAllocatorDump(pmd2A, 'tracing');
+        tracingDump.addAttribute('size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        tracingDump.addAttribute('resident_size',
+            new ScalarAttribute('bytes', 2621440) /* 2.5 MiB */);
+
+        return [mallocDump, tracingDump];
+      })();
+
+      // Totals and allocator dumps only.
+      var pmd2B = addProcessMemoryDump(gmd2, pB, 69);
+      pmd2B.totals = {
+        residentBytes: 19922944, /* 19 MiB */
+        peakResidentBytes: 41943040, /* 40 MiB */
+        arePeakResidentBytesResettable: false
+      };
+      pmd2B.memoryAllocatorDumps = (function() {
+        var mallocDump = new MemoryAllocatorDump(pmd2B, 'malloc');
+        mallocDump.addAttribute('size',
+            new ScalarAttribute('bytes', 2621440) /* 2.5 MiB */);
+
+        var v8Dump = new MemoryAllocatorDump(pmd2B, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+
+        var blinkDump = new MemoryAllocatorDump(pmd2B, 'blink');
+        blinkDump.addAttribute('size',
+            new ScalarAttribute('bytes', 7340032) /* 7 MiB */);
+
+        var oilpanDump = new MemoryAllocatorDump(pmd2B, 'oilpan');
+        oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1));
+
+        var tracingDump = new MemoryAllocatorDump(pmd2B, 'tracing');
+        tracingDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1572864) /* 1.5 MiB */);
+        tracingDump.addAttribute('resident_size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+
+        return [mallocDump, v8Dump, blinkDump, oilpanDump, tracingDump];
+      })();
+
+      // Resettable peak total size only.
+      var pmd2D = addProcessMemoryDump(gmd2, pD, 71);
+      pmd2D.totals = {
+        peakResidentBytes: 17825792, /* 17 MiB */
+        arePeakResidentBytesResettable: true
+      };
+
+      // ======================================================================
+      //   Third timestamp.
+      // ======================================================================
+      var gmd3 = addGlobalMemoryDump(model, 100);
+
+      // Everything.
+      var pmd3B = addProcessMemoryDump(gmd3, pB, 102);
+      pmd3B.totals = {
+        residentBytes: 18874368, /* 18 MiB */
+        peakResidentBytes: 44040192, /* 42 MiB */
+        arePeakResidentBytesResettable: false
+      };
+      pmd3B.vmRegions = [
+        VMRegion.fromDict({
+          startAddress: 256,
+          sizeInBytes: 6000,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          mappedFile: '[stack:20310]',
+          byteStats: {
+            proportionalResident: 21495808, /* 20.5 MiB */
+            privateDirtyResident: 524288, /* 0.5 MiB */
+            swapped: 64 /* 32 B */
+          }
+        })
+      ];
+      pmd3B.memoryAllocatorDumps = (function() {
+        var mallocDump = new MemoryAllocatorDump(pmd3B, 'malloc');
+        mallocDump.addAttribute('size',
+            new ScalarAttribute('bytes', 2883584) /* 2.75 MiB */);
+
+        var v8Dump = new MemoryAllocatorDump(pmd3B, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 5767168) /* 5.5 MiB */);
+
+        var blinkDump = new MemoryAllocatorDump(pmd3B, 'blink');
+        blinkDump.addAttribute('size',
+            new ScalarAttribute('bytes', 6291456) /* 7 MiB */);
+
+        var tracingDump = new MemoryAllocatorDump(pmd3B, 'tracing');
+        tracingDump.addAttribute('size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        tracingDump.addAttribute('resident_size',
+            new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
+
+        return [mallocDump, v8Dump, blinkDump, tracingDump];
+      })();
+
+      // Allocator dumps only.
+      var pmd3C = addProcessMemoryDump(gmd3, pC, 100);
+      pmd3C.memoryAllocatorDumps = (function() {
+        var oilpanDump = new MemoryAllocatorDump(pmd3C, 'oilpan');
+        oilpanDump.addAttribute('size',
+            new ScalarAttribute('bytes', 3221225472) /* 3 GiB */);
+        oilpanDump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
+        oilpanDump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 2015));
+
+        var v8Dump = new MemoryAllocatorDump(pmd3C, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
+        v8Dump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        v8Dump.addAttribute('objects_count',
+            new ScalarAttribute('objects', 204));
+
+        var ownershipLink = new MemoryAllocatorDumpLink(v8Dump, oilpanDump);
+        v8Dump.owns = ownershipLink;
+        oilpanDump.ownedBy.push(ownershipLink);
+
+        return [oilpanDump, v8Dump];
+      })();
+
+      // Resettable peak total size only.
+      var pmd3D = addProcessMemoryDump(gmd3, pD, 99);
+      pmd3D.totals = {
         peakResidentBytes: 17825792, /* 17 MiB */
         arePeakResidentBytesResettable: true
       };
     });
 
-    return model.globalMemoryDumps[0];
+    return model.globalMemoryDumps;
   }
 
-  function createTestProcessMemoryDumps() {
-    var globalMemoryDump = createTestGlobalMemoryDump();
-    return tr.b.dictionaryValues(globalMemoryDump.processMemoryDumps);
+  function createSingleTestGlobalMemoryDump() {
+    return createMultipleTestGlobalMemoryDumps()[1];
   }
 
-  function createTestProcessMemoryDump() {
-    var globalMemoryDump = createTestGlobalMemoryDump();
-    return globalMemoryDump.processMemoryDumps[2];
+  function createMultipleTestProcessMemoryDumps() {
+    return createMultipleTestGlobalMemoryDumps().map(function(gmd) {
+      return gmd.processMemoryDumps[2];
+    });
+  }
+
+  function createSingleTestProcessMemoryDump() {
+    return createMultipleTestProcessMemoryDumps()[1];
+  }
+
+  function checkAttributes(
+      row, column, expectedAttrValues, expectedClass, expectedUnits) {
+    var attrs;
+    if (column === undefined)
+      attrs = row;
+    else
+      attrs = column.attrs(row);
+
+    if (expectedAttrValues === undefined) {
+      assert.isUndefined(attrs);
+      return;
+    }
+
+    assert.lengthOf(attrs, expectedAttrValues.length);
+    for (var i = 0; i < attrs.length; i++) {
+      var attr = attrs[i];
+      var expectedAttrValue = expectedAttrValues[i];
+      if (expectedAttrValue === undefined) {
+        assert.isUndefined(attr);
+      } else {
+        assert.isDefined(expectedClass);  // Test sanity check.
+        assert.isDefined(expectedUnits);  // Test sanity check.
+        assert.instanceOf(attr, expectedClass);
+        assert.equal(attr.value, expectedAttrValue);
+        assert.equal(attr.units, expectedUnits);
+      }
+    }
+  }
+
+  function checkSizeAttributes(row, column, expectedAttrValues) {
+    checkAttributes(row, column, expectedAttrValues, ScalarAttribute, 'bytes');
+  }
+
+  function createAndCheckEmptyPanes(
+      test, paneTagName, propertyName, opt_callback) {
+    // Unset property.
+    var unsetViewEl = createTestPane(paneTagName);
+    unsetViewEl.rebuild();
+    assert.isUndefined(unsetViewEl.createChildPane());
+    test.addHTMLOutput(unsetViewEl);
+
+    // Undefined property.
+    var undefinedViewEl = createTestPane(paneTagName);
+    undefinedViewEl[propertyName] = undefined;
+    undefinedViewEl.rebuild();
+    assert.isUndefined(undefinedViewEl.createChildPane());
+    test.addHTMLOutput(undefinedViewEl);
+
+    // Empty property.
+    var emptyViewEl = createTestPane(paneTagName);
+    emptyViewEl[propertyName] = [];
+    emptyViewEl.rebuild();
+    assert.isUndefined(undefinedViewEl.createChildPane());
+    test.addHTMLOutput(emptyViewEl);
+
+    // Check that all the panes have the same dimensions.
+    var unsetBounds = unsetViewEl.getBoundingClientRect();
+    var undefinedBounds = undefinedViewEl.getBoundingClientRect();
+    var emptyBounds = emptyViewEl.getBoundingClientRect();
+    assert.equal(undefinedBounds.width, unsetBounds.width);
+    assert.equal(emptyBounds.width, unsetBounds.width);
+    assert.equal(undefinedBounds.height, unsetBounds.height);
+    assert.equal(emptyBounds.height, unsetBounds.height);
+
+    // Custom checks (if provided).
+    if (opt_callback) {
+      opt_callback(unsetViewEl);
+      opt_callback(undefinedViewEl);
+      opt_callback(emptyViewEl);
+    }
+  }
+
+  function createTestPane(tagName) {
+    var paneEl = document.createElement(tagName);
+
+    // Store a list of requested child panes (for inspection in tests).
+    paneEl.requestedChildPanes = [];
+    paneEl.addEventListener('request-child-pane-change', function() {
+      paneEl.requestedChildPanes.push(paneEl.createChildPane());
+    });
+
+    paneEl.createChildPane = function() {
+      var childPaneBuilder = this.childPaneBuilder;
+      if (childPaneBuilder === undefined)
+        return undefined;
+      return childPaneBuilder();
+    }
+
+    return paneEl;
+  }
+
+  function addGlobalMemoryDump(model, timestamp) {
+    var gmd = new GlobalMemoryDump(model, timestamp);
+    model.globalMemoryDumps.push(gmd);
+    return gmd;
+  }
+
+  function addProcessMemoryDump(gmd, process, timestamp) {
+    var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+    process.memoryDumps.push(pmd);
+    if (process.pid in gmd.processMemoryDumps) {
+      // Test sanity check.
+      throw new Error('Process memory dump for process with pid=' +
+          process.pid + ' has already been provided');
+    }
+    gmd.processMemoryDumps[process.pid] = pmd;
+    return pmd;
+  }
+
+  // TODO(petrcermak): Consider moving this to tracing/ui/base/dom_helpers.html.
+  function isElementDisplayed(element) {
+    var style = getComputedStyle(element);
+    var displayed = style['display'];
+    if (displayed === undefined)
+      return true;
+    return displayed.indexOf('none') === -1;
+  }
+
+  /**
+   * Convert a list of ContainerMemoryDump(s) to a list of dictionaries of the
+   * underlying ProcessMemoryDump(s).
+   */
+  function convertToProcessMemoryDumps(containerMemoryDumps) {
+    return containerMemoryDumps.map(function(containerMemoryDump) {
+      return containerMemoryDump.processMemoryDumps;
+    });
+  }
+
+  /**
+   * Extract a chronological list of lists of VMRegion(s) (for a given process)
+   * from a chronological list of dictionaries of ProcessMemoryDump(s).
+   */
+  function extractVmRegions(processMemoryDumps, pid) {
+    return processMemoryDumps.map(function(memoryDumps) {
+      var processMemoryDump = memoryDumps[pid];
+      if (processMemoryDump === undefined)
+        return undefined;
+      return processMemoryDump.mostRecentVmRegions;
+    });
+  }
+
+  /**
+   * Extract a chronological list of MemoryAllocatorDump(s) (for a given
+   * process and allocator name) from a chronological list of dictionaries of
+   * ProcessMemoryDump(s).
+   */
+  function extractMemoryAllocatorDumps(processMemoryDumps, pid, allocatorName) {
+    return processMemoryDumps.map(function(memoryDumps) {
+      var processMemoryDump = memoryDumps[pid];
+      if (processMemoryDump === undefined)
+        return undefined;
+      return processMemoryDump.getMemoryAllocatorDumpByFullName(allocatorName);
+    });
   }
 
   return {
-    createTestGlobalMemoryDump: createTestGlobalMemoryDump,
-    createTestProcessMemoryDumps: createTestProcessMemoryDumps,
-    createTestProcessMemoryDump: createTestProcessMemoryDump
+    addGlobalMemoryDump: addGlobalMemoryDump,
+    addProcessMemoryDump: addProcessMemoryDump,
+    createSingleTestGlobalMemoryDump: createSingleTestGlobalMemoryDump,
+    createMultipleTestGlobalMemoryDumps: createMultipleTestGlobalMemoryDumps,
+    createSingleTestProcessMemoryDump: createSingleTestProcessMemoryDump,
+    createMultipleTestProcessMemoryDumps: createMultipleTestProcessMemoryDumps,
+    checkAttributes: checkAttributes,
+    checkSizeAttributes: checkSizeAttributes,
+    createAndCheckEmptyPanes: createAndCheckEmptyPanes,
+    createTestPane: createTestPane,
+    isElementDisplayed: isElementDisplayed,
+    convertToProcessMemoryDumps: convertToProcessMemoryDumps,
+    extractVmRegions: extractVmRegions,
+    extractMemoryAllocatorDumps: extractMemoryAllocatorDumps
   };
 });
 </script>

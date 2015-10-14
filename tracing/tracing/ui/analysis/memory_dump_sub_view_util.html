@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
@@ -18,16 +19,121 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.ui.analysis', function() {
 
+  var NO_BREAK_SPACE = String.fromCharCode(160);
+
   /**
-   * A table builder column for displaying memory dump data.
+   * A table column for displaying memory dump row titles.
    *
    * @constructor
    */
-  function MemoryColumn(name, title, units, cellGetter) {
+  function TitleColumn(title) {
+    this.title = title;
+  }
+
+  TitleColumn.prototype = {
+    supportsCellSelection: false,
+
+    /**
+     * Get the title associated with a given row.
+     *
+     * This method will decorate the title with color and '+++'/'---' prefix if
+     * appropriate (as determined by the optional row.defined field). Examples:
+     *
+     *   +-------------------------+-----------------+--------+--------+
+     *   | Defined (at timestamps) | Interpretation  | Prefix | Color  |
+     *   +-------------------------+-----------------+--------+--------+
+     *   | 1111111111              | always present  |        |        |
+     *   | 0000111111              | added           | +++    | green  |
+     *   | 1111111000              | deleted         | ---    | red    |
+     *   | 1100111111*             | flaky           |        | purple |
+     *   | 0001001111              | added + flaky   | +++    | purple |
+     *   | 1111100010              | deleted + flaky | ---    | purple |
+     *   +-------------------------+-----------------+--------+--------+
+     *
+     *   *) This means that, given a selection of 10 memory dumps, a particular
+     *      row (e.g. a process) was present in the first 2 and last 6 of them
+     *      (but not in the third and fourth dump).
+     *
+     * This method should therefore NOT be overriden by subclasses. The
+     * formatTitle method should be overriden instead when necessary.
+     */
+    value: function(row) {
+      var formattedTitle = this.formatTitle(row);
+
+      var defined = row.defined;
+      if (defined === undefined || defined.length === 0)
+        return formattedTitle;
+
+      // Determine if the row was provided in the first and last row and how
+      // many times it changed between being provided and not provided.
+      var firstDefined = defined[0];
+      var lastDefined = defined[defined.length - 1];
+      var changeDefinedCount = 0;
+      for (var i = 1; i < defined.length; i++) {
+        if (defined[i] !== defined[i - 1])
+          changeDefinedCount++;
+      }
+
+      // Determine the color and prefix of the title.
+      var color = undefined;
+      var prefix = undefined;
+      if (!firstDefined && lastDefined) {
+        // The row was added.
+        color = 'green';
+        prefix = '+++';
+      } else if (firstDefined && !lastDefined) {
+        // The row was removed.
+        color = 'red';
+        prefix = '---';
+      }
+      if (changeDefinedCount > 1) {
+        // The row was flaky (added/removed more than once).
+        color = 'purple';
+      }
+
+      if (color === undefined && prefix === undefined)
+        return formattedTitle;
+
+      var titleEl = document.createElement('span');
+      if (prefix !== undefined) {
+        var prefixEl = tr.ui.b.createSpan({textContent: prefix});
+        // Enforce same width of '+++' and '---'.
+        prefixEl.style.fontFamily = 'monospace';
+        titleEl.appendChild(prefixEl);
+        titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
+      }
+      if (color !== undefined)
+        titleEl.style.color = color;
+      titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedTitle));
+      return titleEl;
+    },
+
+    /**
+     * Format the title associated with a given row. This method is intended to
+     * be overriden by subclasses.
+     */
+    formatTitle: function(row) {
+      return row.title;
+    },
+
+    cmp: function(rowA, rowB) {
+      return rowA.title.localeCompare(rowB.title);
+    }
+  };
+
+  /**
+   * A table column for displaying memory dump data.
+   *
+   * @constructor
+   */
+  function MemoryColumn(name, title, units, cellGetter, aggregationMode) {
     this.name = name;
     this.title = title;
     this.units = units;
     this.cell = cellGetter;
+
+    // See MemoryColumn.AggregationMode enum in this file.
+    this.aggregationMode = aggregationMode;
 
     // Color of the values returned by this column. This can be either
     // (1) undefined (no specific color is set), (2) a color string (e.g.
@@ -36,32 +142,39 @@ tr.exportTo('tr.ui.analysis', function() {
     this.color = undefined;
   }
 
-  MemoryColumn.fromRows = function(rows, cellKey, opt_titleBuilder) {
+  MemoryColumn.fromRows = function(rows, cellKey, aggregationMode,
+      opt_titleBuilder) {
     var columnTraits = {};
 
     function gatherTraits(row) {
       if (row === undefined)
         return;
       var attrCells = row[cellKey];
+      if (attrCells === undefined)
+        return;
       tr.b.iterItems(attrCells, function(attrName, attrCell) {
         if (attrCell === undefined)
           return;
-        var attrValue = attrCell.attr;
-        if (attrValue === undefined)
+        var attrValues = attrCell.attrs;
+        if (attrValues === undefined)
           return;
         var existingTraits = columnTraits[attrName];
-        if (existingTraits === undefined) {
-          columnTraits[attrName] = {
-            constructor: attrValue.constructor,
-            units: attrValue.units
-          };
-          return;
-        }
-        if (existingTraits.constructor !== attrValue.constructor ||
-            existingTraits.units !== attrValue.units) {
-          existingTraits.constructor = tr.model.UnknownAttribute;
-          existingTraits.units = undefined;
-        }
+        attrValues.forEach(function(attrValue) {
+          if (attrValue === undefined)
+            return;
+          if (existingTraits === undefined) {
+            columnTraits[attrName] = existingTraits = {
+              constructor: attrValue.constructor,
+              units: attrValue.units
+            };
+            return;
+          }
+          if (existingTraits.constructor !== attrValue.constructor ||
+              existingTraits.units !== attrValue.units) {
+            existingTraits.constructor = tr.model.UnknownAttribute;
+            existingTraits.units = undefined;
+          }
+        });
       });
       if (row.subRows !== undefined)
         row.subRows.forEach(gatherTraits);
@@ -75,19 +188,21 @@ tr.exportTo('tr.ui.analysis', function() {
       var cellGetter = fieldGetter(cellKey, columnName);
       var title = titleBuilder(columnName);
       columns.push(MemoryColumn.fromAttributeTraits(
-          columnName, title, columnTraits, cellGetter));
+          columnName, title, columnTraits, cellGetter, aggregationMode));
     });
 
     return columns;
   };
 
-  MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter) {
+  MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter,
+      aggregationMode) {
     var constructor;
     if (traits.constructor === tr.model.ScalarAttribute)
       constructor = ScalarMemoryColumn;
     else
       constructor = MemoryColumn;
-    return new constructor(name, title, traits.units, cellGetter);
+    return new constructor(name, title, traits.units, cellGetter,
+        aggregationMode);
   };
 
   MemoryColumn.spaceEqually = function(columns) {
@@ -234,38 +349,52 @@ tr.exportTo('tr.ui.analysis', function() {
     throw new Error('Unreachable');
   };
 
+  /** @enum */
+  MemoryColumn.AggregationMode = {
+    DIFF: 0,
+    MAX: 1
+  };
+
   MemoryColumn.prototype = {
-    attr: function(row) {
+    attrs: function(row) {
       var cell = this.cell(row);
       if (cell === undefined)
         return undefined;
-      return cell.attr;
+      return cell.attrs;
     },
 
     value: function(row) {
-      var attr = this.attr(row);
-      if (attr === undefined)
+      var attrs = this.attrs(row);
+      if (this.hasAllAttrsUndefined(attrs))
         return '';
-      return this.formatDefinedAttribute(attr);
+      return this.formatAttributes(attrs);
+    },
+
+    hasAllAttrsUndefined: function(attrs) {
+      if (attrs === undefined)
+        return true;
+      return attrs.every(function(attr) { return attr === undefined; });
     },
 
     /**
      * Format a defined attribute (both values and infos). This method is not
-     * intended to be overriden.
+     * intended to be overriden. At least one attribute in the list is
+     * guaranteed to be defined.
      */
-    formatDefinedAttribute: function(attr) {
-      var formattedValue = this.formatDefinedAttributeValue(attr);
+    formatAttributes: function(attrs) {
+      var formattedValue = this.formatAttributeValues(attrs);
 
       // Determine the color of the resulting element.
       var color;
       if (typeof this.color === 'function')
-        color = this.color(attr);
+        color = this.color(attrs);
       else
         color = this.color;
 
       // If no color is specified and there are no infos, there is no need
       // to wrap the value in a span element.
-      if (color === undefined && attr.infos.length === 0)
+      var infos = this.getInfos(attrs);
+      if ((color === undefined || formattedValue === '') && infos.length === 0)
         return formattedValue;
 
       var attrEl = document.createElement('span');
@@ -274,7 +403,7 @@ tr.exportTo('tr.ui.analysis', function() {
       attrEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedValue));
 
       // Add info icons with tooltips.
-      attr.infos.forEach(function(info) {
+      infos.forEach(function(info) {
         var infoEl = document.createElement('span');
         infoEl.style.paddingLeft = '4px';
         infoEl.style.cursor = 'help';
@@ -295,30 +424,90 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     /**
-     * Format the value of a defined attribute. This method is intended to be
-     * overriden by attribute type/unit specific columns (e.g. show '1.0 KiB'
-     * instead of '1024' for ScalarAttribute(s) representing bytes).
+     * Format the values of a single or multiple attributes. At least one
+     * attribute in the list is guaranteed to be defined.
      */
-    formatDefinedAttributeValue: function(attr) {
+    formatAttributeValues: function(attrs) {
+      if (attrs.length === 1)
+        return this.formatSingleAttributeValue(attrs[0]);
+      else
+        return this.formatMultipleAttributeValues(attrs);
+    },
+
+    /**
+     * Format the value of a single defined attribute.
+     *
+     * This method is intended to be overriden by attribute type/unit specific
+     * columns (e.g. show '1.0 KiB' instead of '1024' for ScalarAttribute(s)
+     * representing bytes).
+     */
+    formatSingleAttributeValue: function(attr) {
       return String(attr.value);
     },
 
-    cmp: function(rowA, rowB) {
-      var attrA = this.attr(rowA);
-      var attrB = this.attr(rowB);
-      if (attrA === undefined && attrB === undefined)
-        return 0;
-      if (attrA === undefined)
-        return -1;
-      if (attrB === undefined)
-        return 1;
-      return this.compareDefinedAttributes(attrA, attrB);
+    /**
+     * Format the values of multiple attributes. At least one attribute in the
+     * list is guaranteed to be defined.
+     *
+     * This method is intended to be overriden by attribute type/unit specific
+     * columns.
+     */
+    formatMultipleAttributeValues: function(attrs) {
+      // TODO(petrcermak): Determine how to aggregate multiple arbitrary (and
+      // possibly undefined) attributes using the various aggregation modes.
+      return tr.ui.b.createSpan({
+        textContent: '(multiple values)',
+        italic: true
+      });
     },
 
-    compareDefinedAttributes: function(attrA, attrB) {
+    cmp: function(rowA, rowB) {
+      var attrsA = this.attrs(rowA);
+      var attrsB = this.attrs(rowB);
+
+      // Sanity check.
+      if (attrsA !== undefined && attrsB !== undefined &&
+          attrsA.length !== attrsB.length)
+        throw new Error('Different number of attributes');
+
+      // Handle empty attributes.
+      var undefinedA = this.hasAllAttrsUndefined(attrsA);
+      var undefinedB = this.hasAllAttrsUndefined(attrsB);
+      if (undefinedA && undefinedB)
+        return 0;
+      if (undefinedA)
+        return -1;
+      if (undefinedB)
+        return 1;
+
+      return this.compareAttributes(attrsA, attrsB);
+    },
+
+    compareAttributes: function(attrsA, attrsB) {
+      if (attrsA.length === 1)
+        return this.compareSingleAttributes(attrsA[0], attrsB[0]);
+      else
+        return this.compareMultipleAttributes(attrsA, attrsB);
+    },
+
+    compareSingleAttributes: function(attrA, attrB) {
       var strA = String(attrA.value);
       var strB = String(attrB.value);
       return strA.localeCompare(strB);
+    },
+
+    compareMultipleAttributes: function(attrsA, attrsB) {
+      // TODO(petrcermak): Figure out if there is any intuitive way to sort a
+      // list of lists of arbitrary (and possibly undefined) attributes.
+      return 0;
+    },
+
+    getInfos: function(attrs) {
+      if (attrs.length !== 1) {
+        // TODO(petrcermak): Somehow aggregate infos for multiple attributes.
+        return [];
+      }
+      return attrs[0].infos;
     },
 
     getImportance: function(importanceRules) {
@@ -357,39 +546,111 @@ tr.exportTo('tr.ui.analysis', function() {
   /**
    * @constructor
    */
-  function ScalarMemoryColumn(name, title, units, cellGetter) {
-    MemoryColumn.call(this, name, title, units, cellGetter);
+  function ScalarMemoryColumn(name, title, units, cellGetter, aggregationMode) {
+    MemoryColumn.call(this, name, title, units, cellGetter, aggregationMode);
   }
 
   ScalarMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
 
-    formatDefinedAttributeValue: function(attr) {
-      if (this.units === 'bytes') {
-        var sizeEl = document.createElement('tr-ui-u-scalar-span');
-        sizeEl.setValueAndUnit(attr.value, tr.b.u.Units.sizeInBytes);
-        return sizeEl;
-      }
-      return MemoryColumn.prototype.formatDefinedAttributeValue.call(
-          this, attr);
+    formatSingleAttributeValue: function(attr) {
+      return this.formatUnits(attr.value, false);
     },
 
-    compareDefinedAttributes: function(attrA, attrB) {
+    formatMultipleAttributeValues: function(attrs) {
+      switch (this.aggregationMode) {
+        case MemoryColumn.AggregationMode.DIFF:
+          return this.formatUnits(this.getDiffAttrValue(attrs), true);
+
+        case MemoryColumn.AggregationMode.MAX:
+          return this.formatUnits(this.getMaxAttrValue(attrs), false);
+
+        default:
+          return tr.ui.b.createSpan({
+            textContent: '(unsupported aggregation mode)',
+            italic: true
+          });
+      }
+    },
+
+    formatUnits: function(value, isDelta) {
+      if (value === undefined)
+        return '';
+
+      var sizeEl = document.createElement('tr-ui-u-scalar-span');
+      sizeEl.value = value;
+      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Units.fromJSON.
+      if (this.units === 'bytes')
+        sizeEl.unit = tr.b.u.Units.sizeInBytes;
+      else
+        sizeEl.unit = tr.b.u.Units.unitlessNumber;
+
+      if (!isDelta)
+        return sizeEl;
+
+      sizeEl.isDelta = true;
+
+      if (value === 0)
+        return sizeEl;
+
+      var wrapperEl = document.createElement('span');
+      wrapperEl.style.color = value > 0 ? 'red' : 'green';
+      wrapperEl.appendChild(sizeEl);
+      return wrapperEl;
+    },
+
+    compareSingleAttributes: function(attrA, attrB) {
       return attrA.value - attrB.value;
+    },
+
+    compareMultipleAttributes: function(attrA, attrB) {
+      switch (this.aggregationMode) {
+        case MemoryColumn.AggregationMode.DIFF:
+          var diffA = this.getDiffAttrValue(attrA) || 0;
+          var diffB = this.getDiffAttrValue(attrB) || 0;
+          return diffA - diffB;
+
+        case MemoryColumn.AggregationMode.MAX:
+          return this.getMaxAttrValue(attrA) - this.getMaxAttrValue(attrB);
+
+        default:
+          return 0;
+      }
+    },
+
+    getDiffAttrValue: function(attrs) {
+      var firstAttr = attrs[0];
+      var lastAttr = attrs[attrs.length - 1];
+      if (firstAttr === undefined && lastAttr === undefined)
+        return undefined;
+
+      var firstValue = firstAttr === undefined ? 0 : firstAttr.value;
+      var lastValue = lastAttr === undefined ? 0 : lastAttr.value;
+      return lastValue - firstValue;
+    },
+
+    getMaxAttrValue: function(attrs) {
+      return attrs.reduce(function(accumulator, attr) {
+        if (attr === undefined)
+          return accumulator;
+        if (accumulator === undefined || attr.value > accumulator)
+          accumulator = attr.value;
+        return accumulator;
+      }, undefined);
     }
   };
 
   /**
    * @constructor
    */
-  function MemoryCell(attr) {
-    this.attr = attr;
+  function MemoryCell(attrs) {
+    this.attrs = attrs;
   }
 
-  MemoryCell.extractAttribute = function(cell) {
+  MemoryCell.extractAttributes = function(cell) {
     if (cell === undefined)
       return undefined;
-    return cell.attr;
+    return cell.attrs;
   };
 
   function fieldGetter(/* fields */) {
@@ -448,36 +709,91 @@ tr.exportTo('tr.ui.analysis', function() {
     });
 
     tr.b.iterItems(subRowCellNames, function(cellName) {
-      var subRowAttributes = subRows.map(function(subRow) {
+      var existingRowCell = rowCells[cellName];
+      var existingRowAttributes = MemoryCell.extractAttributes(existingRowCell);
+
+      // Determine how many timestamps we need to aggregate the attribute for.
+      var timestampCount = undefined;
+      if (existingRowAttributes !== undefined)
+        timestampCount = existingRowAttributes.length;
+      subRows.forEach(function(subRow) {
         var subRowCells = subRow[cellKey];
         if (subRowCells === undefined)
-          return undefined;
-        return MemoryCell.extractAttribute(subRowCells[cellName]);
-      }, this);
-      var existingRowCell = rowCells[cellName];
-      var existingRowAttribute = MemoryCell.extractAttribute(existingRowCell);
+          return;
+        var subRowCellAttributes = MemoryCell.extractAttributes(
+            subRowCells[cellName]);
+        if (subRowCellAttributes === undefined)
+          return;
+        if (timestampCount === undefined)
+          timestampCount = subRowCellAttributes.length;
+        else if (timestampCount !== subRowCellAttributes.length)
+          throw new Error('Rows have different number of timestamps');
+      });
+      if (timestampCount === undefined)
+        throw new Error('Handling non-existent cell name \'' + cellName + '\'');
 
-      var aggregatedAttribute =
-          tr.model.Attribute.aggregate(subRowAttributes, existingRowAttribute);
+      // Aggregate the attributes for each timestamp.
+      var aggregatedAttributes = new Array(timestampCount);
+      for (var i = 0; i < timestampCount; i++) {
+        var existingRowAttribute = undefined;
+        if (existingRowAttributes !== undefined)
+          existingRowAttribute = existingRowAttributes[i];
+        var subRowAttributes = subRows.map(function(subRow) {
+          var subRowCells = subRow[cellKey];
+          if (subRowCells === undefined)
+            return undefined;
+          var subRowCellAttributes = MemoryCell.extractAttributes(
+              subRowCells[cellName]);
+          if (subRowCellAttributes === undefined)
+            return;
+          return subRowCellAttributes[i];
+        });
+        aggregatedAttributes[i] = tr.model.Attribute.aggregate(
+            subRowAttributes, existingRowAttribute);
+      }
 
       if (existingRowCell !== undefined) {
         // The cell might contain some extra fields (e.g. custom
         // buildDetailsPane method) which we don't want to throw away.
-        existingRowCell.attr = aggregatedAttribute;
+        existingRowCell.attrs = aggregatedAttributes;
       } else {
-        rowCells[cellName] = new MemoryCell(aggregatedAttribute);
+        rowCells[cellName] = new MemoryCell(aggregatedAttributes);
       }
     });
   }
 
+  function createCells(timeToValues, valueAttrsGetter, opt_cellAddedCallback) {
+    var attrNameToAttrs = tr.b.invertArrayOfDicts(
+        timeToValues, valueAttrsGetter);
+    return tr.b.mapItems(attrNameToAttrs, function(attrName, attrs) {
+      var cell = new tr.ui.analysis.MemoryCell(attrs);
+      if (opt_cellAddedCallback !== undefined)
+        opt_cellAddedCallback(attrName, cell);
+      return cell;
+    });
+  }
+
+  function addAttributeIfDefined(dstDict, attrName, attrClass, units, value,
+      opt_addedCallback) {
+    if (value === undefined)
+      return;
+    var attr = new attrClass(units, value);
+    dstDict[attrName] = attr;
+    if (opt_addedCallback !== undefined)
+      opt_addedCallback(attr);
+  }
+
   return {
+    TitleColumn: TitleColumn,
     MemoryColumn: MemoryColumn,
     ScalarMemoryColumn: ScalarMemoryColumn,
     MemoryCell: MemoryCell,
     fieldGetter: fieldGetter,
     expandTableRowsRecursively: expandTableRowsRecursively,
     aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
-    aggregateTableRowCells: aggregateTableRowCells
+    aggregateTableRowCells: aggregateTableRowCells,
+    createCells: createCells,
+    addAttributeIfDefined: addAttributeIfDefined
   };
 });
 </script>

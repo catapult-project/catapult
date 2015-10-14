@@ -5,13 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/deep_utils.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import"
+    href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
-<link rel="import" href="/tracing/model/container_memory_dump.html">
-<link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 
 <script>
@@ -20,91 +21,296 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
+  var checkAttributes = tr.ui.analysis.checkAttributes;
+  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
 
-  function createMemoryAllocatorDump() {
-    var memoryDump = new ContainerMemoryDump(-10);
-    var rootDump = new MemoryAllocatorDump(memoryDump, 'v8');
-    rootDump.addAttribute('size',
-        new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
-    rootDump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-    rootDump.addAttribute('objects_count', new ScalarAttribute('objects', 204));
+  // TODO(petrcermak): This function is the same as newChildDump in
+  // memory_allocator_dump_test.html. It should probably be factored out.
+  function newChildDump(parentDump, name) {
+    var childDump = new MemoryAllocatorDump(
+        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
+    childDump.parent = parentDump;
+    parentDump.children.push(childDump);
+    return childDump;
+  }
 
-    var subDump1 = new MemoryAllocatorDump(memoryDump, 'v8/heaps');
-    subDump1.addAttribute('size',
-        new ScalarAttribute('bytes', 805306368) /* 768 MiB */);
-    rootDump.children.push(subDump1);
-    subDump1.parent = rootDump;
+  function createMemoryAllocatorDumps() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var process = model.getOrCreateProcess(1);
 
-    var subDump2 = new MemoryAllocatorDump(memoryDump, 'v8/__42BEEF');
-    subDump2.addAttribute('size',
-        new ScalarAttribute('bytes', 268435456) /* 256 MiB */);
-    rootDump.children.push(subDump2);
-    subDump2.parent = rootDump;
+      // First timestamp.
+      var gmd1 = addGlobalMemoryDump(model, -10);
+      var pmd1 = addProcessMemoryDump(gmd1, process, -11);
+      pmd1.memoryAllocatorDumps = (function() {
+        var v8Dump = new MemoryAllocatorDump(pmd1, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
+        v8Dump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        v8Dump.addAttribute(
+            'objects_count', new ScalarAttribute('objects', 204));
 
-    var ownerDump = new MemoryAllocatorDump(memoryDump, 'oilpan/cow');
-    var ownershipLink = new MemoryAllocatorDumpLink(ownerDump, subDump2);
-    ownerDump.owns = ownershipLink;
-    subDump2.ownedBy.push(ownershipLink);
+        var v8HeapsDump = newChildDump(v8Dump, 'heaps');
+        v8HeapsDump.addAttribute('size',
+            new ScalarAttribute('bytes', 805306368) /* 768 MiB */);
+        var v8Heap42Dump = newChildDump(v8HeapsDump, 'heap42');
+        v8Heap42Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 804782080) /* 767.5 MiB */);
 
-    return rootDump;
+        var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        var v8FooDump = newChildDump(v8ObjectsDump, 'foo');
+        v8FooDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1022976) /* 999 KiB */);
+        var v8BarDump = newChildDump(v8ObjectsDump, 'bar');
+        v8BarDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1024000) /* 1000 KiB */);
+
+        var v8SuballocationDump = newChildDump(v8Dump, '__42BEEF');
+        v8SuballocationDump.addAttribute('size',
+            new ScalarAttribute('bytes', 268435456) /* 256 MiB */);
+
+        var oilpanDump = new MemoryAllocatorDump(pmd1, 'oilpan');
+
+        var oilpanSubDump = newChildDump(oilpanDump, 'cow');
+        oilpanSubDump.addAttribute('size',
+            new ScalarAttribute('bytes', 134217728) /* 128 MiB */);
+
+        var ownershipLink =
+            new MemoryAllocatorDumpLink(oilpanSubDump, v8SuballocationDump);
+        oilpanSubDump.owns = ownershipLink;
+        v8SuballocationDump.ownedBy.push(ownershipLink);
+
+        return [v8Dump, oilpanDump];
+      })();
+
+      // Second timestamp.
+      var gmd2 = addGlobalMemoryDump(model, 10);
+      var pmd2 = addProcessMemoryDump(gmd2, process, 11);
+      pmd2.memoryAllocatorDumps = (function() {
+        var v8Dump = new MemoryAllocatorDump(pmd2, 'v8');
+        v8Dump.addAttribute('size',
+            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
+        v8Dump.addAttribute('inner_size',
+            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
+        v8Dump.addAttribute(
+            'objects_count', new ScalarAttribute('objects', 204));
+
+        var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        var v8FooDump = newChildDump(v8ObjectsDump, 'foo');
+        v8FooDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1020928) /* 997 KiB */);
+        var v8BarDump = newChildDump(v8ObjectsDump, 'bar');
+        v8BarDump.addAttribute('size',
+            new ScalarAttribute('bytes', 1026048) /* 1002 KiB */);
+
+        var v8SuballocationDump = newChildDump(v8Dump, '__42BEEF');
+        v8SuballocationDump.addAttribute('size',
+            new ScalarAttribute('bytes', 268435456) /* 256 MiB */);
+
+        return [v8Dump];
+      })();
+    });
+
+    return model.processes[1].memoryDumps.map(function(pmd) {
+      return pmd.getMemoryAllocatorDumpByFullName('v8');
+    });
+  }
+
+  function checkColumns(columns, expectedAggregationMode) {
+    var EXPECTED_COLUMN_NAMES = [
+      'Allocator',
+      'size',
+      'effective_size',
+      'inner_size',
+      'objects_count'
+    ];
+
+    // First column doesn't change value over time (no aggregation).
+    var VARIABLE_CELLS_START_INDEX = 1;
+
+    // Check column names.
+    assert.lengthOf(columns, EXPECTED_COLUMN_NAMES.length);
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++)
+      assert.equal(columns[i].title, EXPECTED_COLUMN_NAMES[i]);
+
+    // Check aggregation modes.
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++) {
+      assert.strictEqual(columns[i].aggregationMode,
+          i < VARIABLE_CELLS_START_INDEX ? undefined : expectedAggregationMode);
+    }
+  }
+
+  function checkRow(columns, row, expectedTitle, expectedSizes,
+      expectedEffectiveSizes, expectedInnerSizes, expectedObjectCounts,
+      expectedSubRowCount, expectedDefinedValues) {
+    var formattedTitle = columns[0].formatTitle(row);
+    if (typeof expectedTitle === 'function')
+      expectedTitle(formattedTitle);
+    else
+      assert.equal(formattedTitle, expectedTitle);
+
+    checkSizeAttributes(row, columns[1], expectedSizes);
+    checkSizeAttributes(row, columns[2], expectedEffectiveSizes);
+    checkSizeAttributes(row, columns[3], expectedInnerSizes);
+    checkAttributes(
+        row, columns[4], expectedObjectCounts, ScalarAttribute, 'objects');
+
+    if (expectedSubRowCount === undefined)
+      assert.isUndefined(row.subRows);
+    else
+      assert.lengthOf(row.subRows, expectedSubRowCount);
+
+    if (expectedDefinedValues)
+      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
+    else
+      assert.isUndefined(row.defined);
   }
 
   test('instantiate_empty', function() {
-    var viewEl = document.createElement(
-        'tr-ui-a-memory-dump-allocator-details-pane');
-    viewEl.rebuild();
-    this.addHTMLOutput(viewEl);
+    tr.ui.analysis.createAndCheckEmptyPanes(this,
+        'tr-ui-a-memory-dump-allocator-details-pane', 'memoryAllocatorDumps',
+        function(viewEl) {
+          // Check that the info text is shown.
+          assert.isTrue(isElementDisplayed(viewEl.$.info_text));
+          assert.isFalse(isElementDisplayed(viewEl.$.table));
+        });
   });
 
-  test('instantiate_nonEmpty', function() {
-    var memoryAllocatorDump = createMemoryAllocatorDump();
+  test('instantiate_single', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps().slice(0, 1);
 
     var viewEl = document.createElement(
         'tr-ui-a-memory-dump-allocator-details-pane');
-    viewEl.memoryAllocatorDump = memoryAllocatorDump;
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    var table = tr.b.findDeepElementMatching(
-        viewEl, 'tr-ui-b-table');
+    // Check that the table is shown.
+    assert.isTrue(isElementDisplayed(viewEl.$.table));
+    assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
-    var rows = table.tableRows;
+    var table = viewEl.$.table;
     var columns = table.tableColumns;
+    checkColumns(columns, undefined /* no aggregation */);
+    var rows = table.tableRows;
     assert.lengthOf(rows, 1);
-    assert.lengthOf(columns, 4);
-
-    var titleColumn = columns[0];
-    var sizeColumn = columns[1];
-    var innerSizeColumn = columns[2];
-    var objectsCountColumn = columns[3];
 
     // Check the rows of the table.
     var rootRow = rows[0];
-    assert.equal(titleColumn.value(rootRow), 'v8');
-    assert.equal(sizeColumn.value(rootRow).value, 1073741824);
-    assert.equal(innerSizeColumn.value(rootRow).value, 2097152);
-    assert.equal(objectsCountColumn.value(rootRow), 204);
-    assert.lengthOf(rootRow.subRows, 2);
+    checkRow(columns, rootRow, 'v8', [1075788800], [941571072], [2097152],
+        [204], 3, [true]);
 
-    var subRow1 = rootRow.subRows[0];
-    assert.equal(titleColumn.value(subRow1), 'heaps');
-    assert.equal(sizeColumn.value(subRow1).value, 805306368);
-    assert.equal(innerSizeColumn.value(subRow1), '');
-    assert.equal(objectsCountColumn.value(subRow1), '');
-    assert.isUndefined(subRow1.subRows);
+    var heapsSubRow = rootRow.subRows[0];
+    checkRow(columns, heapsSubRow, 'heaps', [805306368], [805306368], undefined,
+        undefined, 2, [true]);
 
-    var subRow2 = rootRow.subRows[1];
-    assert.equal(
-        titleColumn.value(subRow2).textContent, 'suballocation by oilpan/cow');
-    assert.equal(
-        titleColumn.value(subRow2).title, 'Suballocation name: v8/__42BEEF');
-    assert.equal(sizeColumn.value(subRow2).value, 268435456);
-    assert.equal(innerSizeColumn.value(subRow2), '');
-    assert.equal(objectsCountColumn.value(subRow2), '');
-    assert.isUndefined(subRow2.subRows);
+    var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
+    checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>', [524288],
+        [524288], undefined, undefined, undefined, [true]);
+
+    var suballocationSubRow = rootRow.subRows[2];
+    checkRow(columns, suballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'suballocation by oilpan/cow');
+      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
+    }, [268435456], [134217728], undefined, undefined, undefined, [true]);
+  });
+
+  test('instantiate_multipleDiff', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Check that the table is shown.
+    assert.isTrue(isElementDisplayed(viewEl.$.table));
+    assert.isFalse(isElementDisplayed(viewEl.$.info_text));
+
+    var table = viewEl.$.table;
+    var columns = table.tableColumns;
+    checkColumns(columns, AggregationMode.DIFF);
+    var rows = table.tableRows;
+    assert.lengthOf(rows, 1);
+
+    // Check the rows of the table.
+    var rootRow = rows[0];
+    checkRow(columns, rootRow, 'v8', [1075788800, 1073741824],
+        [941571072, 1073741824], [2097152, 2097152], [204, 204], 4,
+        [true, true]);
+
+    var heapsSubRow = rootRow.subRows[0];
+    checkRow(columns, heapsSubRow, 'heaps', [805306368, undefined],
+        [805306368, undefined], undefined, undefined, 2, [true, undefined]);
+
+    var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
+    checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>',
+        [524288, undefined], [524288, undefined], undefined, undefined,
+        undefined, [true, undefined]);
+
+    var suballocationSubRow = rootRow.subRows[2];
+    checkRow(columns, suballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'suballocation by oilpan/cow');
+      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
+    }, [268435456, 268435456], [134217728, 268435456], undefined, undefined,
+        undefined, [true, true]);
+
+    var unspecifiedSubRow = rootRow.subRows[3];
+    checkRow(columns, unspecifiedSubRow, '<unspecified>',
+        [undefined, 803259392], [undefined, 803259392], undefined, undefined,
+        undefined, [undefined, true]);
+  });
+
+  test('instantiate_multipleMax', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
+    viewEl.aggregationMode = AggregationMode.MAX;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Check that the table is shown.
+    assert.isTrue(isElementDisplayed(viewEl.$.table));
+    assert.isFalse(isElementDisplayed(viewEl.$.info_text));
+
+    // Just check that the aggregation mode was propagated to the columns.
+    var table = viewEl.$.table;
+    var columns = table.tableColumns;
+    checkColumns(columns, AggregationMode.MAX);
+    var rows = table.tableRows;
+    assert.lengthOf(rows, 1);
+  });
+
+  test('instantiate_multipleWithUndefined', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps();
+    memoryAllocatorDumps.splice(1, 0, undefined);
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Check that the table is shown.
+    assert.isTrue(isElementDisplayed(viewEl.$.table));
+    assert.isFalse(isElementDisplayed(viewEl.$.info_text));
+
+    // Just check that the table has the right shape.
+    var table = viewEl.$.table;
+    var columns = table.tableColumns;
+    checkColumns(columns, AggregationMode.DIFF);
+    var rows = table.tableRows;
+    assert.lengthOf(rows, 1);
   });
 });
 </script>

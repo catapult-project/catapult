@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
@@ -38,15 +39,24 @@ found in the LICENSE file.
         font-size: 12px;
       }
 
-      #contents .info-text {
+      #info_text {
         padding: 8px;
         color: #666;
         font-style: italic;
         text-align: center;
       }
+
+      #table {
+        display: none;  /* Hide until memory allocator dumps are set. */
+        flex: 1 0 auto;
+        align-self: stretch;
+      }
     </style>
     <div id="label">Allocator details</div>
-    <div id="contents"></div>
+    <div id="contents">
+      <div id="info_text">No memory memory allocator dump selected</div>
+      <tr-ui-b-table id="table"></tr-ui-b-table>
+    </div>
   </template>
   <script>
   'use strict';
@@ -76,90 +86,165 @@ found in the LICENSE file.
 
     Polymer({
       created: function() {
-        this.memoryAllocatorDump_ = undefined;
+        this.memoryAllocatorDumps_ = undefined;
+        this.aggregationMode_ = undefined;
       },
 
-      set memoryAllocatorDump(memoryAllocatorDump) {
-        this.memoryAllocatorDump_ = memoryAllocatorDump;
+      ready: function() {
+        this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      },
+
+      /**
+       * Sets the memory allocator dumps and schedules rebuilding the pane.
+       *
+       * The provided value should be a chronological list of memory allocator
+       * dumps. All dumps are assumed to belong to the same process and have
+       * the same full name. Example:
+       *
+       *   [
+       *     tr.model.MemoryAllocatorDump {},  // MAD at timestamp 1.
+       *     undefined,  // MAD not provided at timestamp 2.
+       *     tr.model.MemoryAllocatorDump {},  // MAD at timestamp 3.
+       *   ]
+       */
+      set memoryAllocatorDumps(memoryAllocatorDumps) {
+        this.memoryAllocatorDumps_ = memoryAllocatorDumps;
         this.scheduleRebuildPane_();
       },
 
-      get memoryAllocatorDump() {
-        return this.memoryAllocatorDump_;
+      get memoryAllocatorDumps() {
+        return this.memoryAllocatorDumps_;
+      },
+
+      set aggregationMode(aggregationMode) {
+        this.aggregationMode_ = aggregationMode;
+        this.scheduleRebuildPane_();
+      },
+
+      get aggregationMode() {
+        return this.aggregationMode_;
       },
 
       rebuildPane_: function() {
-        this.$.contents.textContent = '';
+        if (this.memoryAllocatorDumps_ === undefined ||
+            this.memoryAllocatorDumps_.length === 0) {
+          // Show the info text (hide the table).
+          this.$.info_text.style.display = 'block';
+          this.$.table.style.display = 'none';
 
-        if (this.memoryAllocatorDump_ === undefined) {
-          var infoText = this.ownerDocument.createElement('div');
-          this.$.contents.appendChild(infoText);
-          infoText.classList.add('info-text');
-          infoText.innerText = 'No memory allocator dump selected';
+          this.$.table.clear();
+          this.$.table.rebuild();
           return;
         }
+
+        // Show the table (hide the info text).
+        this.$.info_text.style.display = 'none';
+        this.$.table.style.display = 'block';
 
         var rows = this.createRows_();
         var columns = this.createColumns_(rows);
 
-        var table = this.ownerDocument.createElement(
-            'tr-ui-b-table');
-        this.$.contents.appendChild(table);
-        table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-        table.tableRows = rows;
-        table.tableColumns = columns;
-        table.rebuild();
-        tr.ui.analysis.expandTableRowsRecursively(table);
+        this.$.table.tableRows = rows;
+        this.$.table.tableColumns = columns;
+        this.$.table.rebuild();
+        tr.ui.analysis.expandTableRowsRecursively(this.$.table);
       },
 
       createRows_: function() {
-        var createAllocatorRow = function(allocatorDump) {
-          var cells = tr.b.mapItems(allocatorDump.attributes,
-              function(attrName, attrValue) {
-            return new tr.ui.analysis.MemoryCell(attrValue);
+        var createAllocatorRow = function(dumps) {
+          // Get the name of the memory allocator dumps. We can use any defined
+          // dump in dumps since they all have the same name.
+          var definedDump = tr.b.findFirstInArray(dumps);
+          var title = definedDump.name;
+
+          // Determine at which timestamps (indices of the current selection)
+          // the dump was provided.
+          var defined = dumps.map(function(dump) {
+            return dump !== undefined;
           });
 
-          var title = allocatorDump.name;
-          if (title.startsWith('__') && allocatorDump.ownedBy.length === 1) {
-            var owner = allocatorDump.ownedBy[0].source;
-            // The owner dump must be in the same process. Otherwise, the
-            // modified title would be ambiguous.
-            if (owner.containerMemoryDump ===
-                allocatorDump.containerMemoryDump) {
+          // If the memory allocator dump is a suballocation, change its name
+          // from '__MEANINGLESSHASH' to 'suballocation by owner/dump/name'. A
+          // dump is assumed to be a suballocation if (1) it has an owner from
+          // within the same process at some timestamp and (2) it is undefined,
+          // has no owners, or has the same owner (and no other owners) at all
+          // other timestamps.
+          if (title.startsWith('__')) {
+            var singleOwnerDumpFullName = undefined;
+            for (var i = 0; i < dumps.length; i++) {
+              var dump = dumps[i];
+              if (dump === undefined || dump.ownedBy.length === 0) {
+                // Ignore timestamps where the dump is undefined or doesn't
+                // have any owner.
+                continue;
+              }
+              if (dump.ownedBy.length > 1) {
+                // The dump has multiple owners at some point in time, so it's
+                // not a suballocation.
+                singleOwnerDumpFullName = undefined;
+                break;
+              }
+              var singleOwnerDump = dump.ownedBy[0].source;
+              if (singleOwnerDump.containerMemoryDump !==
+                  dump.containerMemoryDump) {
+                // The owner dump must be in the same process. Otherwise, the
+                // modified title would be ambiguous.
+                singleOwnerDumpFullName = undefined;
+                break;
+              }
+              if (singleOwnerDumpFullName === undefined) {
+                singleOwnerDumpFullName = singleOwnerDump.fullName;
+              } else if (singleOwnerDumpFullName !== singleOwnerDump.fullName) {
+                // The full name of the owner dump changed over time, so this
+                // dump is not a suballocation.
+                singleOwnerDumpFullName = undefined;
+                break;
+              }
+            }
+            if (singleOwnerDumpFullName !== undefined) {
               title = tr.ui.b.createSpan({
-                textContent: 'suballocation by ' + owner.fullName,
-                tooltip: 'Suballocation name: ' + allocatorDump.fullName,
+                textContent: 'suballocation by ' + singleOwnerDumpFullName,
+                tooltip: 'Suballocation name: ' + definedDump.fullName,
                 italic: true
               });
             }
           }
 
+          // Transform a chronological list of memory allocator dumps into a
+          // dictionary of cells (where each cell contains a chronological list
+          // of the values of its attribute).
+          var cells = tr.ui.analysis.createCells(dumps, function(dump) {
+            return dump.attributes;
+          });
+
           var row = {
             title: title,
+            defined: defined,
             cells: cells
           };
-          if (allocatorDump.children.length > 0)
-            row.subRows = allocatorDump.children.map(createAllocatorRow);
+
+          // Recursively create sub-rows for children (if applicable).
+          var children = tr.b.dictionaryValues(tr.b.invertArrayOfDicts(dumps,
+              function(dump) {
+                return tr.b.arrayToDict(dump.children, function(child) {
+                  return child.name;
+                });
+              }));
+          if (children.length > 0)
+            row.subRows = children.map(createAllocatorRow);
+
           return row;
         };
-        var rows = [createAllocatorRow(this.memoryAllocatorDump_)];
-        return rows;
+
+        return [createAllocatorRow(this.memoryAllocatorDumps_)];
       },
 
       createColumns_: function(rows) {
-        var titleColumn = {
-          title: 'Allocator',
-          value: function(row) {
-            return row.title;
-          },
-          width: '200px',
-          cmp: function(rowA, rowB) {
-            return rowA.title.localeCompare(rowB.title);
-          }
-        };
+        var titleColumn = new tr.ui.analysis.TitleColumn('Allocator');
+        titleColumn.width = '200px';
 
         var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-            rows, 'cells');
+            rows, 'cells', this.aggregationMode_);
         tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
         tr.ui.analysis.MemoryColumn.sortByImportance(
             attributeColumns, IMPORTANCE_RULES);

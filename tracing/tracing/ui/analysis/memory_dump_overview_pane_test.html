@@ -5,304 +5,405 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/ui/base/deep_utils.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
-<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import"
+    href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/brushing_state_controller.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function createProcessMemoryDumps() {
-    var gmd = tr.ui.analysis.createTestGlobalMemoryDump();
-    return tr.b.dictionaryValues(gmd.processMemoryDumps);
+  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var convertToProcessMemoryDumps = tr.ui.analysis.convertToProcessMemoryDumps;
+  var extractVmRegions = tr.ui.analysis.extractVmRegions;
+  var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
+  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+
+  function getTitleText(title) {
+    if (!(title instanceof HTMLElement))
+      return title;
+    if (title.tagName === 'TR-UI-B-COLOR-LEGEND')
+      return title.label;
+    return title.textContent;
   }
 
-  test('instantiate_zeroDumps', function() {
-    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
-    viewEl.processMemoryDumps = [];
-    viewEl.rebuild();
-    this.addHTMLOutput(viewEl);
+  function checkColumns(columns, expectedAggregationMode) {
+    var EXPECTED_COLUMN_NAMES = [
+      'Process',
+      'Total resident',
+      'Peak total resident',
+      'PSS',
+      'Private dirty',
+      'Swapped',
+      'blink',
+      'malloc',
+      'oilpan',
+      'v8',
+      'tracing'
+    ];
 
-    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+    // First column doesn't change value over time (no aggregation).
+    var VARIABLE_CELLS_START_INDEX = 1;
 
-    var rows = table.tableRows;
-    var footerRows = table.footerRows;
-    var columns = table.tableColumns;
-    assert.lengthOf(rows, 0);
-    assert.lengthOf(footerRows, 0);
-    assert.lengthOf(columns, 1);
-  });
+    // Check column names.
+    assert.lengthOf(columns, EXPECTED_COLUMN_NAMES.length);
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++)
+      assert.equal(getTitleText(columns[i].title), EXPECTED_COLUMN_NAMES[i]);
 
-  test('instantiate_oneDump', function() {
-    var processMemoryDumps = createProcessMemoryDumps();
+    // Check aggregation modes.
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++) {
+      assert.strictEqual(columns[i].aggregationMode,
+          i < VARIABLE_CELLS_START_INDEX ? undefined : expectedAggregationMode);
+    }
+  }
 
-    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
-    viewEl.processMemoryDumps = processMemoryDumps.slice(1, 2);
-    viewEl.rebuild();
-    this.addHTMLOutput(viewEl);
+  function checkRow(columns, row, expectedTitle, expectedSizes,
+      expectedDefinedValues) {
+    // Check title.
+    var formattedTitle = getTitleText(columns[0].formatTitle(row));
+    assert.equal(formattedTitle, expectedTitle);
 
-    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+    // Check all sizes. The first assert below is a test sanity check.
+    assert.lengthOf(expectedSizes, columns.length - 1 /* all except title */);
+    for (var i = 0; i < expectedSizes.length; i++)
+      checkSizeAttributes(row, columns[i + 1], expectedSizes[i]);
 
-    var rows = table.tableRows;
-    var footerRows = table.footerRows;
-    var columns = table.tableColumns;
-    assert.lengthOf(rows, 1);
-    assert.lengthOf(footerRows, 0);
-    assert.lengthOf(columns, 9);
+    // There should be no row nesting on the overview pane.
+    assert.isUndefined(row.subRows);
 
-    var titleColumn = columns[0];
-    var totalColumn = columns[1];
-    var peakTotalColumn = columns[2];
-    var proportionalColumn = columns[3];
-    var privateDirtyColumn = columns[4];
-    var swappedColumn = columns[5];
-    var mallocColumn = columns[6];
-    var v8Column = columns[7];
-    var tracingColumn = columns[8];
+    if (expectedDefinedValues)
+      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
+    else
+      assert.isUndefined(row.defined);
+  }
 
-    assert.equal(titleColumn.value(rows[0]).label, 'Process 2');
-    assert.equal(totalColumn.value(rows[0]).children[0].value, 19398656);
-    assert.equal(peakTotalColumn.value(rows[0]).children[0].value, 40370176);
-    assert.equal(
-        proportionalColumn.value(rows[0]).children[0].value, 14155776);
-    assert.equal(
-        privateDirtyColumn.value(rows[0]).children[0].value, 0);
-    assert.equal(
-        swappedColumn.value(rows[0]).children[0].value, 32);
-    assert.equal(mallocColumn.value(rows[0]).value, 2097152);
-    assert.equal(v8Column.value(rows[0]).value, 5242880);
-    assert.equal(tracingColumn.value(rows[0]).children[0].value, 1048576);
-  });
+  function checkRows(columns, actualRows, expectedRows) {
+    if (expectedRows === undefined) {
+      assert.isUndefined(actualRows);
+      return;
+    }
+    assert.lengthOf(actualRows, expectedRows.length);
+    for (var i = 0; i < expectedRows.length; i++) {
+      var actualRow = actualRows[i];
+      var expectedRow = expectedRows[i];
+      checkRow(columns, actualRow, expectedRow.title, expectedRow.sizes,
+          expectedRow.defined);
+    }
+  }
 
-  test('instantiate_multipleDumps', function() {
-    var processMemoryDumps = createProcessMemoryDumps();
-
-    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+  function createAndCheckMemoryDumpOverviewPane(
+      test, processMemoryDumps, expectedRows, expectedFooterRows,
+      aggregationMode) {
+    var viewEl =
+        tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
+    viewEl.aggregationMode = aggregationMode;
     viewEl.rebuild();
-    this.addHTMLOutput(viewEl);
+    test.addHTMLOutput(viewEl);
 
-    var table = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+    // Check that the table is shown.
+    assert.isTrue(isElementDisplayed(viewEl.$.table));
+    assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
-    var rows = table.tableRows;
-    var footerRows = table.footerRows;
+    assert.isUndefined(viewEl.createChildPane());
+
+    var table = viewEl.$.table;
     var columns = table.tableColumns;
-    assert.lengthOf(rows, 4);
-    assert.lengthOf(footerRows, 1);
-    assert.lengthOf(columns, 10);
+    checkColumns(columns, aggregationMode);
+    var rows = table.tableRows;
 
-    // TODO(petrcermak): Enforce consistent ordering of the used size columns.
-    var titleColumn = columns[0];
-    var totalColumn = columns[1];
-    var peakTotalColumn = columns[2];
-    var proportionalColumn = columns[3];
-    var privateDirtyColumn = columns[4];
-    var swappedColumn = columns[5];
-    var mallocColumn = columns[6];
-    var oilpanColumn = columns[7];
-    var v8Column = columns[8];
-    var tracingColumn = columns[9];
+    checkRows(columns, table.tableRows, expectedRows);
+    checkRows(columns, table.footerRows, expectedFooterRows);
+  }
 
-    // Check the rows of the table.
-    assert.equal(titleColumn.value(rows[0]).label, 'Process 1');
-    assert.equal(totalColumn.value(rows[0]).children[0].value, 31457280);
-    assert.equal(peakTotalColumn.value(rows[0]), '');
-    assert.equal(
-        proportionalColumn.value(rows[0]).children[0].value, 10485760);
-    assert.equal(
-        privateDirtyColumn.value(rows[0]).children[0].value, 8388608);
-    assert.equal(swappedColumn.value(rows[0]).children[0].value, 0);
-    assert.equal(mallocColumn.value(rows[0]), '');
-    assert.equal(v8Column.value(rows[0]), '');
-    assert.equal(oilpanColumn.value(rows[0]), '');
-    assert.equal(tracingColumn.value(rows[0]), '');
+  test('instantiate_empty', function() {
+    tr.ui.analysis.createAndCheckEmptyPanes(this,
+        'tr-ui-a-memory-dump-overview-pane', 'processMemoryDumps',
+        function(viewEl) {
+          // Check that the info text is shown.
+          assert.isTrue(isElementDisplayed(viewEl.$.info_text));
+          assert.isFalse(isElementDisplayed(viewEl.$.table));
+        });
+  });
 
-    assert.equal(titleColumn.value(rows[1]).label, 'Process 2');
-    assert.equal(totalColumn.value(rows[1]).children[0].value, 19398656);
-    assert.equal(peakTotalColumn.value(rows[1]).children[0].value, 40370176);
-    assert.equal(
-        proportionalColumn.value(rows[1]).children[0].value, 14155776);
-    assert.equal(
-        privateDirtyColumn.value(rows[1]).children[0].value, 0);
-    assert.equal(swappedColumn.value(rows[1]).children[0].value, 32);
-    assert.equal(mallocColumn.value(rows[1]).value, 2097152);
-    assert.equal(v8Column.value(rows[1]).value, 5242880);
-    assert.equal(oilpanColumn.value(rows[1]), '');
-    assert.equal(tracingColumn.value(rows[1]).children[0].value, 1048576);
+  test('instantiate_singleGlobalMemoryDump', function() {
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        [tr.ui.analysis.createSingleTestGlobalMemoryDump()]);
+    createAndCheckMemoryDumpOverviewPane(this,
+        processMemoryDumps,
+        [  // Table rows.
+          {
+            title: 'Process 1',
+            sizes: [[29884416], undefined, [9437184], [5767168], [0], undefined,
+                [7340032], undefined, undefined, [2097152]],
+            defined: [true]
+          },
+          {
+            title: 'Process 2',
+            sizes: [[17825792], [39845888], [18350080], [0], [32], [7340032],
+                [1048576], [1], [5242880], [1572864]],
+            defined: [true]
+          },
+          {
+            title: 'Process 4',
+            sizes: [undefined, [17825792], undefined, undefined, undefined,
+                undefined, undefined, undefined, undefined, undefined],
+            defined: [true]
+          }
+        ],
+        [  // Footer rows.
+          {
+            title: 'Total',
+            sizes: [[47710208], [57671680], [27787264], [5767168], [32],
+                [7340032], [8388608], [1], [5242880], [3670016]],
+            defined: undefined
+          }
+        ],
+        undefined /* no aggregation */);
+  });
 
-    assert.equal(titleColumn.value(rows[2]).label, 'Process 3');
-    assert.equal(totalColumn.value(rows[2]), '');
-    assert.equal(peakTotalColumn.value(rows[2]), '');
-    assert.equal(proportionalColumn.value(rows[2]), '');
-    assert.equal(privateDirtyColumn.value(rows[2]), '');
-    assert.equal(swappedColumn.value(rows[2]), '');
-    assert.equal(mallocColumn.value(rows[2]), '');
-    assert.equal(v8Column.value(rows[2]).children[0].value, 1073741824);
-    assert.equal(oilpanColumn.value(rows[2]).children[0].value, 2147483648);
-    assert.equal(tracingColumn.value(rows[2]), '');
+  test('instantiate_multipleGlobalMemoryDumps', function() {
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
+    createAndCheckMemoryDumpOverviewPane(this,
+        processMemoryDumps,
+        [  // Table rows.
+          {
+            title: 'Process 1',
+            sizes: [[31457280, 29884416, undefined], undefined,
+                [10485760, 9437184, undefined], [8388608, 5767168, undefined],
+                [0, 0, undefined], undefined, [undefined, 7340032, undefined],
+                undefined, undefined, [undefined, 2097152, undefined]],
+            defined: [true, true, undefined]
+          },
+          {
+            title: 'Process 2',
+            sizes: [[19398656, 17825792, 15728640],
+                [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
+                [0, 0, -2621440], [32, 32, 64], [undefined, 7340032, 6291456],
+                [2097152, 1048576, 786432], [undefined, 1, undefined],
+                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
+            defined: [true, true, true]
+          },
+          {
+            title: 'Process 3',
+            sizes: [undefined, undefined, undefined, undefined, undefined,
+                undefined, undefined, [2147483648, undefined, 1073741824],
+                [1073741824, undefined, 2147483648], undefined],
+            defined: [true, undefined, true]
+          },
+          {
+            title: 'Process 4',
+            sizes: [undefined, [undefined, 17825792, 17825792], undefined,
+                undefined, undefined, undefined, undefined, undefined,
+                undefined, undefined],
+            defined: [undefined, true, true]
+          }
+        ],
+        [  // Footer rows.
+          {
+            title: 'Total',
+            sizes: [[50855936, 47710208, 15728640],
+                [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
+                [8388608, 5767168, -2621440], [32, 32, 64],
+                [undefined, 7340032, 6291456], [2097152, 8388608, 786432],
+                [2147483648, 1, 1073741824], [1078984704, 5242880, 2153250816],
+                [1048576, 3670016, 2097152]],
+            defined: undefined
+          }
+        ],
+        AggregationMode.DIFF);
+  });
 
-    assert.equal(titleColumn.value(rows[3]).label, 'Process 4');
-    assert.equal(totalColumn.value(rows[3]), '');
-    assert.equal(peakTotalColumn.value(rows[3]).children[0].value, 17825792);
-    assert.equal(proportionalColumn.value(rows[3]), '');
-    assert.equal(privateDirtyColumn.value(rows[3]), '');
-    assert.equal(swappedColumn.value(rows[3]), '');
-    assert.equal(mallocColumn.value(rows[3]), '');
-    assert.equal(v8Column.value(rows[3]), '');
-    assert.equal(oilpanColumn.value(rows[3]), '');
-    assert.equal(tracingColumn.value(rows[3]), '');
+  test('instantiate_singleProcessMemoryDump', function() {
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        [tr.ui.analysis.createSingleTestProcessMemoryDump()]);
+    createAndCheckMemoryDumpOverviewPane(this,
+        processMemoryDumps,
+        [  // Table rows.
+          {
+            title: 'Process 2',
+            sizes: [[17825792], [39845888], [18350080], [0], [32], [7340032],
+                [1048576], [1], [5242880], [1572864]],
+            defined: [true]
+          }
+        ],
+        [] /* footer rows */,
+        undefined /* no aggregation */);
+  });
 
-    // Check the footer row.
-    assert.equal(titleColumn.value(footerRows[0]), 'Total');
-    assert.equal(
-        totalColumn.value(footerRows[0]).children[0].value, 50855936);
-    assert.equal(
-        peakTotalColumn.value(footerRows[0]).children[0].value, 58195968);
-    assert.equal(
-        proportionalColumn.value(footerRows[0]).children[0].value, 24641536);
-    assert.equal(
-        privateDirtyColumn.value(footerRows[0]).children[0].value, 8388608);
-    assert.equal(swappedColumn.value(footerRows[0]).children[0].value, 32);
-    assert.equal(mallocColumn.value(footerRows[0]).value, 2097152);
-    assert.equal(v8Column.value(footerRows[0]).value, 1078984704);
-    assert.equal(oilpanColumn.value(footerRows[0]).value, 2147483648);
-    assert.equal(
-        tracingColumn.value(footerRows[0]).children[0].value, 1048576);
+  test('instantiate_multipleProcessMemoryDumps', function() {
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        tr.ui.analysis.createMultipleTestProcessMemoryDumps());
+    createAndCheckMemoryDumpOverviewPane(this,
+        processMemoryDumps,
+        [  // Table rows.
+          {
+            title: 'Process 2',
+            sizes: [[19398656, 17825792, 15728640],
+                [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
+                [0, 0, -2621440], [32, 32, 64], [undefined, 7340032, 6291456],
+                [2097152, 1048576, 786432], [undefined, 1, undefined],
+                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
+            defined: [true, true, true]
+          }
+        ],
+        [] /* footer rows */,
+        AggregationMode.MAX);
   });
 
   test('selection', function() {
-    var processMemoryDumps = createProcessMemoryDumps();
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
 
-    var viewEl = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    var viewEl =
+        tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    var didFireRequestChildDumpChange;
-    viewEl.addEventListener('request-child-pane-change',
-        function(e) {
-      didFireRequestChildDumpChange = true;
-    });
+    var table = viewEl.$.table;
 
-    var table = tr.b.findDeepElementMatching(
-        viewEl, 'tr-ui-b-table');
-
-    // Simulate clicking on the 'oilpan' cell of the second process.
-    didFireRequestChildDumpChange = false;
-    table.selectedTableRow = table.tableRows[2];
+    // Simulate clicking on the 'malloc' cell of the second process.
+    table.selectedTableRow = table.tableRows[1];
     table.selectedColumnIndex = 7;
-    assert.isTrue(didFireRequestChildDumpChange);
-    assert.isDefined(viewEl.selectedMemoryCell);
-    assert.isDefined(viewEl.childPaneBuilder);
+    assert.lengthOf(viewEl.requestedChildPanes, 2);
+    var lastChildPane = viewEl.requestedChildPanes[1];
+    assert.equal(
+        lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-ALLOCATOR-DETAILS-PANE');
+    assert.strictEqual(lastChildPane.aggregationMode, AggregationMode.DIFF);
+    assert.deepEqual(lastChildPane.memoryAllocatorDumps,
+        extractMemoryAllocatorDumps(processMemoryDumps, 2, 'malloc'));
 
-    // Simulate clicking on the 'Proportional used memory (mmaps)' cell of the
-    // second process.
-    didFireRequestChildDumpChange = false;
-    table.selectedColumnIndex = 2;
-    assert.isTrue(didFireRequestChildDumpChange);
-    assert.isUndefined(viewEl.selectedMemoryCell);
-    assert.isUndefined(viewEl.childPaneBuilder);
+    // Simulate clicking on the 'Oilpan' cell of the second process.
+    table.selectedColumnIndex = 8;
+    assert.lengthOf(viewEl.requestedChildPanes, 3);
+    var lastChildPane = viewEl.requestedChildPanes[2];
+    assert.isUndefined(viewEl.lastChildPane);
   });
 
   test('memory', function() {
-    var processMemoryDumps = createProcessMemoryDumps();
+    var processMemoryDumps = convertToProcessMemoryDumps(
+        tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
     var containerEl = document.createElement('div');
     containerEl.brushingStateController =
         new tr.c.BrushingStateController(undefined);
 
-    function simulateView(dumps, expectSelectionEventFires, callback) {
-      var view = document.createElement('tr-ui-a-memory-dump-overview-pane');
+    function simulateView(pids, aggregationMode, expectedSelectedCellAttrs,
+        expectedSelectedRowTitle, expectedSelectedColumnIndex, callback) {
+      var viewEl =
+          tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
       containerEl.textContent = '';
-      containerEl.appendChild(view);
+      containerEl.appendChild(viewEl);
 
-      var didFireRequestChildDumpChange = false;
-      view.addEventListener('request-child-pane-change', function(e) {
-        didFireRequestChildDumpChange = true;
-      });
+      var displayedProcessMemoryDumps = processMemoryDumps.map(
+          function(memoryDumps) {
+            return tr.b.filterItems(memoryDumps, function(pid, pmd) {
+              return pids.indexOf(pmd.process.pid) !== -1;
+            });
+          });
+      viewEl.processMemoryDumps = displayedProcessMemoryDumps;
+      viewEl.aggregationMode = aggregationMode;
+      viewEl.rebuild();
 
-      view.processMemoryDumps = dumps;
-      view.rebuild();
+      if (expectedSelectedCellAttrs === undefined) {
+        assert.isUndefined(viewEl.selectedMemoryCell);
+        assert.isUndefined(viewEl.childPaneBuilder);
+      } else {
+        checkSizeAttributes(viewEl.selectedMemoryCell.attrs,
+            undefined /* row = attrs */, expectedSelectedCellAttrs);
+      }
 
-      assert.equal(didFireRequestChildDumpChange, expectSelectionEventFires);
+      var table = viewEl.$.table;
+      assert.strictEqual(
+          table.selectedColumnIndex, expectedSelectedColumnIndex);
+      if (expectedSelectedRowTitle === undefined)
+        assert.isUndefined(table.selectedTableRow);
+      else
+        assert.equal(table.selectedTableRow.title, expectedSelectedRowTitle);
 
-      var table = tr.b.findDeepElementMatching(view, 'tr-ui-b-table');
-      callback(view, table);
+      callback(viewEl, viewEl.$.table);
     }
 
-    // Show a view with all processes.
-    simulateView(processMemoryDumps, false, function(view, table) {
-      // No cell should be selected.
-      assert.isUndefined(view.selectedMemoryCell);
-      assert.isUndefined(view.childPaneBuilder);
-      assert.isUndefined(table.selectedTableRow);
-      assert.isUndefined(table.selectedColumnIndex);
+    simulateView(
+        [1, 2, 3, 4],  // All processes.
+        AggregationMode.DIFF,
+        undefined, undefined, undefined,  // No cell should be selected.
+        function(view, table) {
+          assert.isUndefined(view.createChildPane());
 
-      // Select the 'PSS' column of the second process (cell containing
-      // '14.0 MiB').
-      table.selectedTableRow = table.tableRows[1];
-      table.selectedColumnIndex = 3;
-    });
+          // Select the 'PSS' column of the second process.
+          table.selectedTableRow = table.tableRows[1];
+          table.selectedColumnIndex = 3;
+        });
 
-    // Show a view with the second and third processes only.
-    simulateView(processMemoryDumps.slice(1, 3), true, function(view, table) {
-      // The 'PSS' column of the second process should still be selected.
-      assert.equal(view.selectedMemoryCell.attr.value, 14155776);
-      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
-      assert.strictEqual(
-          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
-    });
+    simulateView(
+        [2, 3],
+        AggregationMode.MAX,
+        [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
+        function(view, table) {
+          var childPane = view.createChildPane();
+          assert.equal(
+              childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
+          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+              extractVmRegions(processMemoryDumps, 2));
+          assert.strictEqual(childPane.aggregationMode, AggregationMode.MAX);
+        });
 
-    // Show a view with the third processes only.
-    simulateView(processMemoryDumps.slice(2, 3), false, function(view, table) {
-      // No cell should be selected (the second process is not shown).
-      assert.isUndefined(view.selectedMemoryCell);
-      assert.isUndefined(view.childPaneBuilder);
-      assert.isUndefined(table.selectedTableRow);
-      assert.isUndefined(table.selectedColumnIndex);
-    });
+    simulateView(
+        [3],
+        undefined, /* No aggregation */
+        undefined, undefined, undefined,  // No cell selected.
+        function(view, table) {
+          assert.isUndefined(view.createChildPane());
+        });
 
-    // Show a view with all processes again.
-    simulateView(processMemoryDumps, true, function(view, table) {
-      // The 'PSS' column of the second process should be selected again.
-      assert.equal(view.selectedMemoryCell.attr.value, 14155776);
-      assert.isDefined(view.childPaneBuilder);
-      assert.strictEqual(table.selectedTableRow.title, 'Process 2');
-      assert.strictEqual(
-          table.tableColumns[table.selectedColumnIndex].name, 'PSS');
+    simulateView(
+        [1, 2, 3, 4],
+        AggregationMode.DIFF,
+        [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
+        function(view, table) {
+          var childPane = view.createChildPane();
+          assert.equal(
+              childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
+          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+              extractVmRegions(processMemoryDumps, 2));
+          assert.strictEqual(childPane.aggregationMode, AggregationMode.DIFF);
 
-      // Select the 'v8' column of the first process (empty cell).
-      table.selectedTableRow = table.tableRows[0];
-      table.selectedColumnIndex = 6;
-    });
+          // Select the 'v8' column of the first process (empty cell).
+          table.selectedTableRow = table.tableRows[0];
+          table.selectedColumnIndex = 9;
+        });
 
-    // Show a view with first process only.
-    simulateView(processMemoryDumps.slice(0, 1), false, function(view, table) {
-      // Nothing should be selected (no process with a 'v8' column value is
-      // shown).
-      assert.isUndefined(view.selectedMemoryCell);
-      assert.isUndefined(view.childPaneBuilder);
-      assert.isUndefined(table.selectedTableRow);
-      assert.isUndefined(table.selectedColumnIndex);
+    simulateView(
+        [1],
+        undefined, /* No aggregation */
+        undefined, undefined, undefined,  // No cell should selected.
+        function(view, table) {
+          assert.isUndefined(view.createChildPane());
 
-      // Select 'Total resident' column of the first process (cell containing
-      // '30.0 MiB').
-      table.selectedTableRow = table.tableRows[0];
-      table.selectedColumnIndex = 1;
-    });
+          // Select 'Total resident' column of the first process.
+          table.selectedTableRow = table.tableRows[0];
+          table.selectedColumnIndex = 1;
+        });
 
-    // Show a view with all processes again.
-    simulateView(processMemoryDumps, true, function(view, table) {
-      // The 'Total resident' column of the first process should still be
-      // selected.
-      assert.equal(view.selectedMemoryCell.attr.value, 31457280);
-      assert.isDefined(view.childPaneBuilder);
-      assert.strictEqual(table.selectedTableRow.title, 'Process 1');
-      assert.strictEqual(
-          table.tableColumns[table.selectedColumnIndex].name, 'Total resident');
-    });
+    simulateView(
+        [1, 2, 3, 4],
+        AggregationMode.MAX,
+        [31457280, 29884416, undefined], 'Process 1', 1, /* Total resident */
+        function(view, table) {
+          var childPane = view.createChildPane();
+          assert.equal(
+              childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
+          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+              extractVmRegions(processMemoryDumps, 1));
+          assert.strictEqual(childPane.aggregationMode, AggregationMode.MAX);
+        });
   });
 });
 </script>

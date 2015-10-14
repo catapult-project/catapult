@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_header_pane.html">
+<link rel="import" href="/tracing/ui/analysis/stacked_pane_view.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/units/time_stamp_span.html">
+
+<polymer-element name="tr-ui-a-container-memory-dump-sub-view"
+    extends="tr-ui-a-sub-view">
+  <template>
+    <div id="content"></div>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    set selection(selection) {
+      if (selection === undefined) {
+        this.currentSelection_ = undefined;
+        this.dumpsByContainerName_ = undefined;
+        this.updateContents_();
+        return;
+      }
+
+      // Check that the selection contains only container memory dumps.
+      selection.forEach(function(event) {
+        if (!(event instanceof tr.model.ContainerMemoryDump)) {
+          throw new Error(
+              'Memory dump sub-view only supports container memory dumps');
+        }
+      });
+      this.currentSelection_ = selection;
+
+      // Group the selected memory dumps by container name and sort them
+      // chronologically.
+      this.dumpsByContainerName_ = tr.b.group(this.currentSelection_.toArray(),
+          function(dump) {
+            return dump.containerName;
+          });
+      tr.b.iterItems(this.dumpsByContainerName_,
+          function(containerName, dumps) {
+            dumps.sort(function(a, b) { return a.start - b.start; });
+          });
+
+      this.updateContents_();
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    get requiresTallView() {
+      return true;
+    },
+
+    updateContents_: function() {
+      this.$.content.textContent = '';
+
+      if (this.dumpsByContainerName_ === undefined)
+        return;
+
+      var containerNames = Object.keys(this.dumpsByContainerName_);
+      if (containerNames.length === 0)
+        return;
+
+      if (containerNames.length > 1)
+        this.buildViewForMultipleContainerNames_();
+      else
+        this.buildViewForSingleContainerName_();
+    },
+
+    buildViewForSingleContainerName_: function() {
+      var containerMemoryDumps = this.currentSelection_;
+      var dumpView = this.ownerDocument.createElement(
+          'tr-ui-a-stacked-pane-view');
+      this.$.content.appendChild(dumpView);
+      dumpView.setPaneBuilder(function() {
+        var headerPane = document.createElement(
+            'tr-ui-a-memory-dump-header-pane');
+        headerPane.containerMemoryDumps = containerMemoryDumps;
+        return headerPane;
+      });
+    },
+
+    buildViewForMultipleContainerNames_: function() {
+      // TODO(petrcermak): Provide a more sophisticated view for this case.
+      var ownerDocument = this.ownerDocument;
+
+      var rows = tr.b.dictionaryValues(tr.b.mapItems(this.dumpsByContainerName_,
+          function(containerName, dumps) {
+            return {
+              containerName: containerName,
+              subRows: dumps,
+              isExpanded: true
+            };
+          }));
+      rows.sort(function(a, b) {
+        return a.containerName.localeCompare(b.containerName);
+      });
+
+      var columns = [
+        {
+          title: 'Dump',
+
+          value: function(row) {
+            if (row.subRows === undefined)
+              return this.singleDumpValue_(row);
+            else
+              return this.groupedDumpValue_(row);
+          },
+
+          singleDumpValue_: function(row) {
+            var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
+            linkEl.appendChild(tr.ui.units.createTimeStampSpan(
+                row.start, {ownerDocument: ownerDocument}));
+            return linkEl;
+          },
+
+          groupedDumpValue_: function(row) {
+            var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            linkEl.setSelectionAndContent(new tr.model.EventSet(row.subRows));
+            linkEl.appendChild(tr.ui.b.createSpan({
+              ownerDocument: ownerDocument,
+              textContent: row.subRows.length + ' memory dump' +
+                  (row.subRows.length === 1 ? '' : 's') + ' in '
+            }));
+            linkEl.appendChild(tr.ui.b.createSpan({
+              ownerDocument: ownerDocument,
+              textContent: row.containerName,
+              bold: true
+            }));
+            return linkEl;
+          }
+        }
+      ];
+
+      var table = this.ownerDocument.createElement('tr-ui-b-table');
+      table.tableColumns = columns;
+      table.tableRows = rows;
+      table.showHeader = false;
+      table.rebuild();
+      this.$.content.appendChild(table);
+    }
+  });
+  </script>
+</polymer-element>
