@@ -96,9 +96,8 @@ def IsUnalteredQueryPermitted():
 
 
 def GetNamespace():
-  if IsUnalteredQueryPermitted():
-    return 'internal_only'
-  return 'externally_visible'
+  """Returns a namespace prefix string indicating internal or external user."""
+  return INTERNAL if IsUnalteredQueryPermitted() else EXTERNAL
 
 
 def _DatastorePreHook(service, call, request, _):
@@ -123,14 +122,12 @@ def _DatastorePreHook(service, call, request, _):
   if IsUnalteredQueryPermitted():
     return
 
-  # Queries should always check "internal_only = False" since the user is
-  # external.
+  # Add a filter for internal_only == False, because the user is external.
   try:
-    # Production and unit tests use proto2
     external_filter = request.filter_list().add()
   except AttributeError:
-    # This is required to support the old dev_appserver, which uses proto1.
-    # TODO(qyearsley): Remove this after switching to catapult.
+    # This is required to support proto1, which may be used by the unit tests.
+    # Later, if we don't need to support proto1, then this can be removed.
     external_filter = request.add_filter()
   external_filter.set_op(datastore_pb.Query_Filter.EQUAL)
   new_property = external_filter.add_property()
