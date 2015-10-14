@@ -460,6 +460,9 @@ def _MockSendMail(**kwargs):
   _TEST_RECEIVED_EMAIL = kwargs
 
 
+# In this class, we patch apiclient.discovery.build so as to not make network
+# requests, which are normally made when the IssueTrackerService is initialized.
+@mock.patch('apiclient.discovery.build', mock.MagicMock())
 class UpdateBugWithResultsTest(testing_common.TestCase):
 
   def setUp(self):
