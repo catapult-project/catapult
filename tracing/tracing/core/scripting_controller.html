@@ -25,7 +25,7 @@ tr.exportTo('tr.c', function() {
       this.addScriptObject(typeInfo.metadata.name, typeInfo.constructor);
       // Also make the object available to the DevTools inspector.
       global[typeInfo.metadata.name] = typeInfo.constructor;
-    }.bind(this));
+    }, this);
   }
 
   function ScriptingObjectRegistry() {
@@ -41,8 +41,8 @@ tr.exportTo('tr.c', function() {
     onModelChanged_: function() {
       this.scriptObjectValues_.forEach(function(v) {
         if (v.onModelChanged)
-          v.onModelChanged();
-      });
+          v.onModelChanged(this.brushingStateController.model);
+      }, this);
     },
 
     addScriptObject: function(name, value) {

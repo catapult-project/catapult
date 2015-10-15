@@ -5,9 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/task.html">
-<link rel="import" href="/tracing/core/scripting_controller.html">
-<link rel="import" href="/tracing/ui/timeline_track_view.html">
 <link rel="import" href="/tracing/extras/tquery/tquery.html">
 
 <polymer-element
@@ -133,9 +130,13 @@ found in the LICENSE file.
         result = e.stack || e.stackTrace;
       }
 
-      if (result instanceof tr.b.Task) {
+      if (result instanceof tr.e.tquery.TQuery) {
         // TODO(skyostil): Show a cool spinner.
-        tr.b.Task.RunWhenIdle(result);
+        result.ready().then(function(selection) {
+          this.addLine_(selection.length + ' matches');
+          this.controller_.brushingStateController.
+              showScriptControlSelection(selection);
+        }.bind(this));
       } else {
         this.addLine_(result);
       }
