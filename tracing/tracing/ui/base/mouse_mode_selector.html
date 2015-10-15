@@ -558,8 +558,7 @@ tr.exportTo('tr.ui.b', function() {
       var eventNames = modeInfo.eventNames;
 
       var mouseEvent = this.createEvent_(eventNames.begin);
-      if (this.mode === MOUSE_SELECTOR_MODE.SELECTION)
-        mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
+      mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
       this.dispatchEvent(mouseEvent);
 
       mouseEvent = this.createEvent_(eventNames.end);
