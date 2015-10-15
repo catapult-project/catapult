@@ -39,6 +39,20 @@ tr.b.unittest.testSuite(function() {
     return childDump;
   }
 
+  function addOwnershipLink(ownerDump, ownedDump) {
+    assert.isUndefined(ownerDump.owns);  // Test sanity check.
+    var ownershipLink = new MemoryAllocatorDumpLink(ownerDump, ownedDump);
+    ownerDump.owns = ownershipLink;
+    ownedDump.ownedBy.push(ownershipLink);
+  }
+
+  function addSuballocationDump(ownerDump, parentDump, name, size) {
+    var suballocationDump = newChildDump(parentDump, name);
+    suballocationDump.addAttribute('size', new ScalarAttribute('size', size));
+    if (ownerDump !== undefined)
+      addOwnershipLink(ownerDump, suballocationDump);
+  }
+
   function createMemoryAllocatorDumps() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
@@ -70,22 +84,33 @@ tr.b.unittest.testSuite(function() {
         v8BarDump.addAttribute('size',
             new ScalarAttribute('bytes', 1024000) /* 1000 KiB */);
 
-        var v8SuballocationDump = newChildDump(v8Dump, '__42BEEF');
-        v8SuballocationDump.addAttribute('size',
-            new ScalarAttribute('bytes', 268435456) /* 256 MiB */);
-
         var oilpanDump = new MemoryAllocatorDump(pmd1, 'oilpan');
+        oilpanDump.addAttribute('size',
+            new ScalarAttribute('bytes', 125829120) /* 120 MiB */);
+        addSuballocationDump(
+            oilpanDump, v8Dump, '__99BEAD', 150994944 /* 144 MiB */);
 
-        var oilpanSubDump = newChildDump(oilpanDump, 'cow');
-        oilpanSubDump.addAttribute('size',
-            new ScalarAttribute('bytes', 134217728) /* 128 MiB */);
+        var oilpanSubDump = newChildDump(oilpanDump, 'animals');
 
-        var ownershipLink =
-            new MemoryAllocatorDumpLink(oilpanSubDump, v8SuballocationDump);
-        oilpanSubDump.owns = ownershipLink;
-        v8SuballocationDump.ownedBy.push(ownershipLink);
+        var oilpanSubDump1 = newChildDump(oilpanSubDump, 'cow');
+        oilpanSubDump1.addAttribute('size',
+            new ScalarAttribute('bytes', 33554432) /* 32 MiB */);
+        addSuballocationDump(
+            oilpanSubDump1, v8Dump, '__42BEEF', 67108864 /* 64 MiB */);
 
-        return [v8Dump, oilpanDump];
+        var oilpanSubDump2 = newChildDump(oilpanSubDump, 'chicken');
+        oilpanSubDump2.addAttribute('size',
+            new ScalarAttribute('bytes', 16777216) /* 16 MiB */);
+        addSuballocationDump(
+            oilpanSubDump2, v8Dump, '__68DEAD', 33554432 /* 32 MiB */);
+
+        var skiaDump = new MemoryAllocatorDump(pmd1, 'skia');
+        skiaDump.addAttribute('size',
+            new ScalarAttribute('bytes', 8388608) /* 8 MiB */);
+        addSuballocationDump(
+            skiaDump, v8Dump, '__15FADE', 16777216 /* 16 MiB */);
+
+        return [v8Dump, oilpanDump, skiaDump];
       })();
 
       // Second timestamp.
@@ -108,9 +133,8 @@ tr.b.unittest.testSuite(function() {
         v8BarDump.addAttribute('size',
             new ScalarAttribute('bytes', 1026048) /* 1002 KiB */);
 
-        var v8SuballocationDump = newChildDump(v8Dump, '__42BEEF');
-        v8SuballocationDump.addAttribute('size',
-            new ScalarAttribute('bytes', 268435456) /* 256 MiB */);
+        addSuballocationDump(
+            undefined, v8Dump, '__99BEAD', 268435456 /* 256 MiB */);
 
         return [v8Dump];
       })();
@@ -213,11 +237,45 @@ tr.b.unittest.testSuite(function() {
     checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>', [524288],
         [524288], undefined, undefined, undefined, [true]);
 
-    var suballocationSubRow = rootRow.subRows[2];
-    checkRow(columns, suballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'suballocation by oilpan/cow');
+    var suballocationsSubRow = rootRow.subRows[2];
+    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'suballocations');
+      assert.equal(formattedTitle.title, '');
+    }, [268435456], [134217728], undefined, undefined, 2, [true]);
+
+    var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
+    checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'oilpan');
+      assert.equal(formattedTitle.title, '');
+    }, [251658240], [125829120], undefined, undefined, 2, [true]);
+
+    var oilpanUnspecifiedSuballocationSubRow =
+        oilpanSuballocationSubRow.subRows[0];
+    checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
+        function(formattedTitle) {
+          assert.equal(formattedTitle.textContent, '<unspecified>');
+          assert.equal(formattedTitle.title, 'Suballocation name: v8/__99BEAD');
+        }, [150994944], [75497472], undefined, undefined, undefined, [true]);
+
+    var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
+    checkRow(columns, oilpanAnimalsSuballocationSubRow,
+        function(formattedTitle) {
+          assert.equal(formattedTitle.textContent, 'animals');
+          assert.equal(formattedTitle.title, '');
+        }, [100663296], [50331648], undefined, undefined, 2, [true]);
+
+    var oilpanCowSuballocationSubRow =
+        oilpanAnimalsSuballocationSubRow.subRows[0];
+    checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'cow');
       assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
-    }, [268435456], [134217728], undefined, undefined, undefined, [true]);
+    }, [67108864], [33554432], undefined, undefined, undefined, [true]);
+
+    var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
+    checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'skia');
+      assert.equal(formattedTitle.title, 'Suballocation name: v8/__15FADE');
+    }, [16777216], [8388608], undefined, undefined, undefined, [true]);
   });
 
   test('instantiate_multipleDiff', function() {
@@ -255,17 +313,56 @@ tr.b.unittest.testSuite(function() {
         [524288, undefined], [524288, undefined], undefined, undefined,
         undefined, [true, undefined]);
 
-    var suballocationSubRow = rootRow.subRows[2];
-    checkRow(columns, suballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'suballocation by oilpan/cow');
-      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
-    }, [268435456, 268435456], [134217728, 268435456], undefined, undefined,
-        undefined, [true, true]);
-
-    var unspecifiedSubRow = rootRow.subRows[3];
+    var unspecifiedSubRow = rootRow.subRows[2];
     checkRow(columns, unspecifiedSubRow, '<unspecified>',
         [undefined, 803259392], [undefined, 803259392], undefined, undefined,
         undefined, [undefined, true]);
+
+    var suballocationsSubRow = rootRow.subRows[3];
+    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'suballocations');
+      assert.equal(formattedTitle.title, '');
+    }, [268435456, 268435456], [134217728, 268435456], undefined, undefined,
+        2, [true, true]);
+
+    var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
+    checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'oilpan');
+      assert.equal(formattedTitle.title, '');
+    }, [251658240, 268435456], [125829120, 268435456],
+        undefined, undefined, 2, [true, true]);
+
+    var oilpanUnspecifiedSuballocationSubRow =
+        oilpanSuballocationSubRow.subRows[0];
+    checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
+        function(formattedTitle) {
+          assert.equal(formattedTitle.textContent, '<unspecified>');
+          assert.equal(formattedTitle.title, 'Suballocation name: v8/__99BEAD');
+        }, [150994944, 268435456], [75497472, 268435456], undefined, undefined,
+            undefined, [true, true]);
+
+    var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
+    checkRow(columns, oilpanAnimalsSuballocationSubRow,
+        function(formattedTitle) {
+          assert.equal(formattedTitle.textContent, 'animals');
+          assert.equal(formattedTitle.title, '');
+        }, [100663296, undefined], [50331648, undefined], undefined, undefined,
+            2, [true, undefined]);
+
+    var oilpanCowSuballocationSubRow =
+        oilpanAnimalsSuballocationSubRow.subRows[0];
+    checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'cow');
+      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
+    }, [67108864, undefined], [33554432, undefined], undefined, undefined,
+        undefined, [true, undefined]);
+
+    var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
+    checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'skia');
+      assert.equal(formattedTitle.title, 'Suballocation name: v8/__15FADE');
+    }, [16777216, undefined], [8388608, undefined], undefined, undefined,
+        undefined, [true, undefined]);
   });
 
   test('instantiate_multipleMax', function() {
@@ -305,12 +402,29 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isElementDisplayed(viewEl.$.table));
     assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
-    // Just check that the table has the right shape.
     var table = viewEl.$.table;
     var columns = table.tableColumns;
     checkColumns(columns, AggregationMode.DIFF);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
+
+    // Check only a few rows of the table.
+    var rootRow = rows[0];
+    checkRow(columns, rootRow, 'v8', [1075788800, undefined, 1073741824],
+        [941571072, undefined, 1073741824], [2097152, undefined, 2097152],
+        [204, undefined, 204], 4, [true, false, true]);
+
+    var unspecifiedSubRow = rootRow.subRows[2];
+    checkRow(columns, unspecifiedSubRow, '<unspecified>',
+        [undefined, undefined, 803259392], [undefined, undefined, 803259392],
+        undefined, undefined, undefined, [undefined, undefined, true]);
+
+    var suballocationsSubRow = rootRow.subRows[3];
+    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'suballocations');
+      assert.equal(formattedTitle.title, '');
+    }, [268435456, undefined, 268435456], [134217728, undefined, 268435456],
+        undefined, undefined, 2, [true, undefined, true]);
   });
 });
 </script>
