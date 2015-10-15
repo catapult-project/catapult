@@ -70,18 +70,17 @@
     <div id="suite-description"></div>
   </template>
 
-
   <script>
     'use strict';
+
     Polymer('test-picker', {
 
       TESTSUITE_LABEL: 'Test suite',
       BOT_LABEL: 'Bot',
       SUBTEST_LABEL: 'Subtest',
 
-      TEST_SUITES: window['TEST_SUITES'],
-
       ready: function() {
+        this.TEST_SUITES = window['TEST_SUITES'];
         this.pageStateLoading = true;
         this.hasChart = false;
         this.enableAddSeries = false;
@@ -106,30 +105,32 @@
       getSuiteItems: function() {
         var suiteMenuItems = [];
         var self = this;
-        var isMonitored = function(suite) {
-          // A suite is considered monitored if any of subtests are monitored.
+        var isUnmonitored = function(suite) {
+          // A suite is considered unmonitored if there are no monitored
+          // subtests.
           var suiteInfo = self.TEST_SUITES[suite];
-          return suiteInfo['monitored'] && suiteInfo['monitored'].length;
-        };
-        var isDeprecated = function(suite) {
-          return self.TEST_SUITES[suite]['deprecated'];
+          return !suiteInfo['mon'] || suiteInfo['mon'].length == 0;
         };
 
         for (var suite in this.TEST_SUITES) {
-          if (isDeprecated(suite)) {
-            continue;
-          }
           var suiteItem = {
             name: suite
           };
-          if (!isMonitored(suite)) {
-            suiteItem.tag = 'unmonitored';
-          } else {
-            suiteItem.monitored = true;
+
+          var tags = [];
+          if (this.TEST_SUITES[suite]['dep']) {
+            suiteItem.deprecated = true;
+            tags.push('deprecated');
           }
+          if (isUnmonitored(suite)) {
+            suiteItem.unmonitored = true;
+            tags.push('unmonitored');
+          }
+          suiteItem.tag = tags.join(' ');
+
           suiteMenuItems.push(suiteItem);
         }
-        suiteMenuItems.sort(this.compareTestSuite);
+        suiteMenuItems.sort(this.compareTestSuiteItem);
         return suiteMenuItems;
       },
 
@@ -141,7 +142,7 @@
         if (!this.TEST_SUITES[suite]) {
           return [];
         }
-        var dict = this.TEST_SUITES[suite]['masters'];
+        var dict = this.TEST_SUITES[suite]['mas'];
         var botMenuItems = [];
         var masters = Object.keys(dict).sort();
         for (var i = 0; i < masters.length; i++) {
@@ -152,10 +153,13 @@
           };
           botMenuItems.push(groupItem);
           var bots = dict[masters[i]];
-          for (var j = 0; j < bots.length; j++) {
+          var botNames = Object.keys(dict[masters[i]]).sort();
+          for (var j = 0; j < botNames.length; j++) {
+            var name = botNames[j];
             var botItem = {
-              name: bots[j],
-              group: masters[i]
+              name: name,
+              group: masters[i],
+              tag: (bots[name] ? 'deprecated' : '')
             };
             botMenuItems.push(botItem);
           }
@@ -189,7 +193,7 @@
           return;
         }
 
-        var description = this.TEST_SUITES[suite]['description'];
+        var description = this.TEST_SUITES[suite]['des'];
         if (description) {
           var descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
@@ -203,7 +207,6 @@
        * Updates bot dropdown menu with bot items.
        */
       updateBotMenu: function() {
-        var model = this.selectionModels[1];
         var menu = this.getSelectionMenu(1);
         var botItems = this.getBotItems();
         menu.setDataList(botItems);
@@ -317,8 +320,10 @@
         var subtestItems = [];
         var subtestNames = Object.keys(subtestDict).sort();
         for (var i = 0; i < subtestNames.length; i++) {
+          var name = subtestNames[i];
           subtestItems.push({
-            name: subtestNames[i]
+            name: name,
+            tag: (subtestDict[name]['deprecated'] ? 'deprecated' : '')
           });
         }
         return subtestItems;
@@ -435,13 +440,21 @@
       },
 
       /**
-       * Sorts by tests by monitored and then by name.
+       * Sorts by suite items by deprecated, monitored and then by name.
+       * @return {number} negative if suiteA should be before suiteB,
+       *     positive if suiteA should be after suiteB, zero if they're equal.
        */
-      compareTestSuite: function(suiteA, suiteB) {
-        if (suiteA.monitored && !suiteB.monitored) {
+      compareTestSuiteItem: function(suiteA, suiteB) {
+        if (!suiteA.deprecated && suiteB.deprecated) {
           return -1;
         }
-        if (suiteB.monitored && !suiteA.monitored) {
+        if (!suiteB.deprecated && suiteA.deprecated) {
+          return 1;
+        }
+        if (!suiteA.unmonitored && suiteB.unmonitored) {
+          return -1;
+        }
+        if (!suiteB.unmonitored && suiteA.unmonitored) {
           return 1;
         }
         var nameALower = suiteA.name.toLowerCase();

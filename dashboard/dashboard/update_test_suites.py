@@ -14,11 +14,13 @@ from dashboard import request_handler
 from dashboard import stored_object
 from dashboard.models import graph_data
 
+# Test suite cache key.
+_LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
+
 
 def FetchCachedTestSuites():
   """Fetches cached test suite data."""
-  key = _NamespaceKey(graph_data.LIST_SUITES_CACHE_KEY)
-  return stored_object.Get(key)
+  return stored_object.Get(_NamespaceKey(_LIST_SUITES_CACHE_KEY))
 
 
 class UpdateTestSuitesHandler(request_handler.RequestHandler):
@@ -44,8 +46,7 @@ def UpdateTestSuites(permissions_namespace):
   """Updates test suite data for either internal or external users."""
   logging.info('Updating test suite data for: %s', permissions_namespace)
   suite_dict = _CreateTestSuiteDict()
-  key = _NamespaceKey(
-      graph_data.LIST_SUITES_CACHE_KEY, namespace=permissions_namespace)
+  key = _NamespaceKey(_LIST_SUITES_CACHE_KEY, namespace=permissions_namespace)
   stored_object.Set(key, suite_dict)
 
 
@@ -69,67 +70,83 @@ def _CreateTestSuiteDict():
     A dictionary of the form:
       {
           'my_test_suite': {
-              'masters': {'ChromiumPerf': ['mac', 'linux']},
-              'monitored': ['average_commit_time/www.yahoo.com'],
+              'mas': {'ChromiumPerf': {'mac': False, 'linux': False}},
+              'mon': ['average_commit_time/www.yahoo.com'],
+              'dep': True,
+              'des': 'A description.'
           },
           ...
       }
+
+    Where 'mas', 'mon', 'dep', and 'des' are abbreviations for 'masters',
+    'monitored', 'deprecated', and 'description', respectively.
   """
-  suite_keys = _FetchTestSuiteKeys()
-  suite_to_masters = _CreateSuiteMastersDict(suite_keys)
-  suite_to_description = _CreateSuiteDescriptionDict(suite_keys)
+  suites = _FetchSuites()
+  suite_to_masters = _CreateSuiteMastersDict(suites)
+  suite_to_description = _CreateSuiteDescriptionDict(suites)
   suite_to_monitored = _CreateSuiteMonitoredDict()
+  suite_to_deprecated = _CreateSuiteDeprecatedDict(suites)
+
   result = {}
   for name in suite_to_masters:
-    result[name] = {
-        'masters': suite_to_masters[name],
-        'monitored': suite_to_monitored.get(name, []),
-        'description': suite_to_description.get(name, ''),
-        'deprecated': False,
-    }
+    result[name] = {'mas': suite_to_masters[name]}
+    if name in suite_to_monitored:
+      result[name]['mon'] = suite_to_monitored[name]
+    if name in suite_to_description:
+      result[name]['des'] = suite_to_description[name]
+    if name in suite_to_deprecated:
+      result[name]['dep'] = True
   return result
 
 
-def _FetchTestSuiteKeys():
-  """Fetches just the keys for non-deprecated top-level Test entities."""
-  # Top-level Test entities (suites) have a parent_test property set to None.
-  suite_query = graph_data.Test.query(
-      graph_data.Test.parent_test == None,
-      graph_data.Test.deprecated == False)
-  return sorted(suite_query.fetch(keys_only=True))
+def _FetchSuites():
+  """Fetches Tests with deprecated and description projections."""
+  suite_query = graph_data.Test.query(graph_data.Test.parent_test == None)
+  suites = []
+  cursor = None
+  more = True
+  try:
+    while more:
+      some_suites, cursor, more = suite_query.fetch_page(
+          2000, start_cursor=cursor,
+          projection=['deprecated', 'description'])
+      suites.extend(some_suites)
+  except datastore_errors.Timeout:
+    logging.error('Timeout after fetching %d test suites.', len(suites))
+  return suites
 
 
-def _CreateSuiteMastersDict(suite_keys):
+def _CreateSuiteMastersDict(suites):
   """Returns an initial suite dict with names mapped to masters.
 
   Args:
-    suite_keys: A list of ndb.Key entities for top-level Test entities.
+    suites: A list of entities for top-level Test entities.
 
   Returns:
     A dictionary mapping the test-suite names to dicts which just have
     the key "masters", the value of which is a list of dicts mapping
-    master names to lists of bot names.
+    master names to dict of bots.
   """
   result = {}
-  unique_names = {k.string_id() for k in suite_keys}
-  for suite_name in unique_names:
-    this_suite_keys = [k for k in suite_keys if k.string_id() == suite_name]
-    assert this_suite_keys, 'No suite keys used for %s' % suite_name
-    result[suite_name] = _MasterToBotsDict(this_suite_keys)
+  unique_names = {s.key.string_id() for s in suites}
+  for name in unique_names:
+    this_suites = [s for s in suites if s.key.string_id() == name]
+    assert this_suites, 'No suite keys used for %s' % name
+    result[name] = _MasterToBotsToDeprecatedDict(this_suites)
   return result
 
 
-def _MasterToBotsDict(suite_keys):
-  """Makes a dictionary listing masters and bots for some set of tests.
+def _MasterToBotsToDeprecatedDict(suites):
+  """Makes a dictionary listing masters, bots and deprecated for tests.
 
   Args:
-    suite_keys: A collection of test suite Test keys. All of the keys in
+    suites: A collection of test suite Test entities. All of the keys in
         this set should have the same test suite name.
 
   Returns:
-    A dictionary mapping master names to lists of bot names.
+    A dictionary mapping master names to bot names to deprecated.
   """
-  assert len({k.string_id() for k in suite_keys}) == 1
+  assert len({s.key.string_id() for s in suites}) == 1
 
   def MasterName(key):
     return key.pairs()[0][1]
@@ -138,9 +155,12 @@ def _MasterToBotsDict(suite_keys):
     return key.pairs()[1][1]
 
   result = {}
-  for master in {MasterName(k) for k in suite_keys}:
-    bots = {BotName(k) for k in suite_keys if MasterName(k) == master}
-    result[master] = sorted(bots)
+  for master in {MasterName(s.key) for s in suites}:
+    bot = {}
+    for suite in suites:
+      if MasterName(suite.key) == master:
+        bot[BotName(suite.key)] = suite.deprecated
+    result[master] = bot
   return result
 
 
@@ -157,10 +177,12 @@ def _CreateSuiteMonitoredDict():
 
 
 def _FetchSuitesWithMonitoredProperty():
-  """Fetches Tests with a projection query for the "monitored" property."""
-  suite_query = graph_data.Test.query(
-      graph_data.Test.parent_test == None,
-      graph_data.Test.deprecated == False)
+  """Fetches Tests with a projection query for the "monitored" property.
+
+  Empty repeated properties are not indexed, so we have to make this
+  query separate.
+  """
+  suite_query = graph_data.Test.query(graph_data.Test.parent_test == None)
   # Request only a certain number of entities at a time. This is meant to
   # decrease the time taken per datastore operation, to prevent timeouts,
   # but it would not decrease the total time taken.
@@ -175,7 +197,8 @@ def _FetchSuitesWithMonitoredProperty():
           2000, start_cursor=cursor, projection=['monitored'])
       suites.extend(some_suites)
   except datastore_errors.Timeout:
-    logging.error('Timeout after fetching %d test suites.', len(suites))
+    logging.error('Timeout after fetching %d monitored test suites.',
+                  len(suites))
   return suites
 
 
@@ -194,14 +217,29 @@ def _GetTestSubPath(key):
   return '/'.join(p[1] for p in key.pairs()[3:])
 
 
-def _CreateSuiteDescriptionDict(suite_keys):
+def _CreateSuiteDeprecatedDict(suites):
+  """Makes a dict of test suite names for deprecated test."""
+  result = {}
+  for suite in suites:
+    name = suite.key.string_id()
+    if name in result:
+      continue
+    deprecated = any(s.deprecated for s in suites if s.key.string_id() == name)
+    if deprecated:
+      result[name] = deprecated
+  return result
+
+
+def _CreateSuiteDescriptionDict(suites):
   """Gets a dict of test suite names to descriptions."""
   # Because of the way that descriptions are specified, all of the test suites
-  # for different bots should have the same description. We only need to get
-  # one entity for each test suite name.
-  keys_to_get = []
-  for name in {k.string_id() for k in suite_keys}:
-    keys_for_name = [k for k in suite_keys if k.string_id() == name]
-    keys_to_get.append(keys_for_name[0])
-  tests = ndb.get_multi(keys_to_get)
-  return {t.key.string_id(): t.description or '' for t in tests}
+  # for different bots should have te same description. We only need to get
+  # description from one entity for each test suite name.
+  results = {}
+  for suite in suites:
+    name = suite.key.string_id()
+    if name in results:
+      continue
+    if suite.description:
+      results[name] = suite.description
+  return results

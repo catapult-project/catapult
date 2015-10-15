@@ -1,0 +1,55 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="/dashboard/elements/test-picker.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    setUp: function() {
+      // Test suites dict keys 'mas', 'mon', 'dep', and 'des' are
+      // abbreviations for 'masters', 'monitored', 'deprecated', and
+      // 'description', respectively.
+      window.TEST_SUITES = {
+        'endure': {
+          'mas': {'Chromium': {'mac': false, 'win7': true}},
+          'dep': true
+        },
+        'dromaeo': {
+          'mas': {'Chromium': {'mac': false, 'win7': false}}
+        },
+        'scrolling': {
+          'mas': {'Chromium': {'mac': false, 'win7': false}},
+          'mon': ['average/www.yahoo.com']
+        }
+      };
+    },
+
+    tearDown: function() {
+      delete window.TEST_SUITES;
+    }
+  };
+
+  test('getSuiteItems', function() {
+    var testPicker = document.createElement('test-picker');
+    var suiteItems = testPicker.getSuiteItems();
+    // Test suites should be in the order of monitored, unmonitored,
+    // and deprecated.
+    var expectedSuites = ['scrolling', 'dromaeo', 'endure'];
+    var actualSuites = [];
+    for (var i = 0; i < suiteItems.length; i++) {
+      actualSuites.push(suiteItems[i].name);
+    }
+    assert.deepEqual(actualSuites, expectedSuites);
+  }, testOptions);
+
+});
+</script>

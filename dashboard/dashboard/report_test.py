@@ -65,22 +65,30 @@ class ReportTest(testing_common.TestCase):
     # We expect to have this JavaScript in the rendered HTML.
     expected_suites = {
         'scrolling_benchmark': {
-            'masters': {
-                'ChromiumPerf': ['chromium-rel-win7-gpu-ati', 'linux-release'],
-                'ChromiumGPU': ['chromium-rel-win7-gpu-ati', 'linux-release'],
+            'mas': {
+                'ChromiumPerf': {
+                    'chromium-rel-win7-gpu-ati': False,
+                    'linux-release': False,
+                },
+                'ChromiumGPU': {
+                    'chromium-rel-win7-gpu-ati': False,
+                    'linux-release': False,
+                },
             },
-            'monitored': [],
-            'description': 'This should show up',
-            'deprecated': False,
+            'des': 'This should show up',
         },
         'dromaeo': {
-            'masters': {
-                'ChromiumPerf': ['chromium-rel-win7-gpu-ati', 'linux-release'],
-                'ChromiumGPU': ['chromium-rel-win7-gpu-ati', 'linux-release'],
+            'mas': {
+                'ChromiumPerf': {
+                    'chromium-rel-win7-gpu-ati': False,
+                    'linux-release': False,
+                },
+                'ChromiumGPU': {
+                    'chromium-rel-win7-gpu-ati': False,
+                    'linux-release': False,
+                },
             },
-            'monitored': [],
-            'description': 'This should show up',
-            'deprecated': False,
+            'des': 'This should show up',
         },
     }
     response = self.testapp.get('/report')

@@ -226,32 +226,20 @@ indexes:
   - name: sheriff
   - name: mail_sent
 
-# Used in update_test_suites to query keys of non-deprecated test suites
-# (parent_test == None, deprecated == False). Two separate lists of test suites
-# are kept, one for external and one for internal.
+# Used in update_test_suites to query keys of test suites (parent_test == None)
+# with  deprecated and description projection. Two separate lists of
+# test suites are kept, one for external and one for internal.
 - kind: Test
   properties:
   - name: parent_test
   - name: deprecated
-- kind: Test
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: deprecated
-
-# Used in update_test_suites for projection query of the monitored property
-# non-deprecated test suites (parent_test == None, deprecated == False)
-- kind: Test
-  properties:
-  - name: deprecated
-  - name: parent_test
-  - name: monitored
+  - name: description
 - kind: Test
   properties:
   - name: internal_only
-  - name: deprecated
   - name: parent_test
-  - name: monitored
+  - name: deprecated
+  - name: description
 
 # Used in list_tests.py to query Test by test path pattern.
 - kind: Test

@@ -563,29 +563,6 @@ class GraphJsonTest(testing_common.TestCase):
         }
     }, annotations['series'])
 
-  def testGetGraphJson_AllDataDeprecated_ReturnsAllData(self):
-    self._AddTestColumns(start_rev=15000, end_rev=15050)
-    dom = ndb.Key('Master', 'ChromiumGPU', 'Bot', 'win7',
-                  'Test', 'dromaeo', 'Test', 'dom').get()
-    dom.deprecated = True
-    dom.put()
-    jslib = ndb.Key('Master', 'ChromiumGPU', 'Bot', 'win7',
-                    'Test', 'dromaeo', 'Test', 'jslib').get()
-    jslib.deprecated = True
-    jslib.put()
-
-    # Both of the requested tests are marked as deprecated, so data
-    # from both of them is returned.
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        },
-        rev=15000, num_points=8)
-    flot = json.loads(flot_json_str)
-    self.assertEqual(0, len(flot['data']))
-    self.assertEqual(0, len(flot['annotations']['series']))
-
   def testGetGraphJson_SomeDataDeprecated_OmitsDeprecatedData(self):
     self._AddTestColumns(start_rev=15000, end_rev=15050)
     dom = utils.TestKey('ChromiumGPU/win7/dromaeo/dom').get()

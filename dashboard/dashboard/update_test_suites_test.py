@@ -25,7 +25,8 @@ class ListTestSuitesTest(testing_common.TestCase):
 
   def testFetchCachedTestSuites_NotEmpty(self):
     # If the cache is set, then whatever's there is returned.
-    key = update_test_suites._NamespaceKey(graph_data.LIST_SUITES_CACHE_KEY)
+    key = update_test_suites._NamespaceKey(
+        update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
     self.assertEqual(
         {'foo': 'bar'},
@@ -75,22 +76,13 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'masters': {'Chromium': ['mac', 'win7']},
-                'monitored': [],
-                'description': '',
-                'deprecated': False,
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
             },
             'scrolling': {
-                'masters': {'Chromium': ['mac', 'win7']},
-                'monitored': [],
-                'description': '',
-                'deprecated': False,
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
             },
             'really': {
-                'masters': {'Chromium': ['mac', 'win7']},
-                'monitored': [],
-                'description': '',
-                'deprecated': False,
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
             },
         },
         update_test_suites.FetchCachedTestSuites())
@@ -121,25 +113,28 @@ class ListTestSuitesTest(testing_common.TestCase):
       test.description = 'Description string.'
       test.put()
 
+    print update_test_suites._CreateTestSuiteDict()
     self.assertEqual(
         {
             'dromaeo': {
-                'masters': {'Chromium': ['mac', 'win7']},
-                'monitored': ['commit_time/www.yahoo.com'],
-                'description': '',
-                'deprecated': False,
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mon': ['commit_time/www.yahoo.com'],
             },
             'scrolling': {
-                'masters': {'Chromium': ['mac', 'win7']},
-                'monitored': [],
-                'description': 'Description string.',
-                'deprecated': False,
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'des': 'Description string.',
+            },
+            'really': {
+                'dep': True,
+                'mas': {'Chromium': {'mac': True, 'win7': True}}
             },
         },
         update_test_suites._CreateTestSuiteDict())
 
-  def testFetchTestSuiteKeys(self):
+  def testFetchSuites(self):
     self._AddSampleData()
+    suites = update_test_suites._FetchSuites()
+    suite_keys = [s.key for s in suites]
     self.assertEqual(
         map(utils.TestKey, [
             'Chromium/mac/dromaeo',
@@ -149,28 +144,31 @@ class ListTestSuitesTest(testing_common.TestCase):
             'Chromium/win7/really',
             'Chromium/win7/scrolling',
         ]),
-        update_test_suites._FetchTestSuiteKeys())
+        suite_keys)
 
   def testCreateSuiteMastersDict(self):
     self._AddSampleData()
-    suite_keys = update_test_suites._FetchTestSuiteKeys()
+    suites = update_test_suites._FetchSuites()
+    print update_test_suites._CreateSuiteMastersDict(suites)
     self.assertEqual(
         {
-            'dromaeo': {'Chromium': ['mac', 'win7']},
-            'really': {'Chromium': ['mac', 'win7']},
-            'scrolling': {'Chromium': ['mac', 'win7']},
+            'dromaeo': {'Chromium': {'mac': False, 'win7': False}},
+            'really': {'Chromium': {'mac': False, 'win7': False}},
+            'scrolling': {'Chromium': {'mac': False, 'win7': False}},
         },
-        update_test_suites._CreateSuiteMastersDict(suite_keys))
+        update_test_suites._CreateSuiteMastersDict(suites))
 
-  def testMasterToBotsDict(self):
+  def testMasterToBotsToDeprecatedDict(self):
     self._AddSampleData()
-    keys = map(utils.TestKey, [
-        'Chromium/mac/suite',
-        'Chromium/win7/suite',
-    ])
+    suites = [
+        utils.TestKey('Chromium/mac/dromaeo').get(),
+        utils.TestKey('Chromium/win7/dromaeo').get(),
+    ]
+    suites[0].deprecated = True
+    suites[0].put()
     self.assertEqual(
-        {'Chromium': ['mac', 'win7']},
-        update_test_suites._MasterToBotsDict(keys))
+        {'Chromium': {'mac': True, 'win7': False}},
+        update_test_suites._MasterToBotsToDeprecatedDict(suites))
 
   def testCreateSuiteMonitoredDict(self):
     self._AddSampleData()
@@ -197,14 +195,15 @@ class ListTestSuitesTest(testing_common.TestCase):
 
   def testCreateSuiteDescriptionDict(self):
     self._AddSampleData()
+    suites = []
     for test_path in ['Chromium/win7/dromaeo', 'Chromium/mac/dromaeo']:
       test = utils.TestKey(test_path).get()
       test.description = 'Foo.'
       test.put()
-    suite_keys = update_test_suites._FetchTestSuiteKeys()
+      suites.append(test)
     self.assertEqual(
-        {'dromaeo': 'Foo.', 'scrolling': '', 'really': ''},
-        update_test_suites._CreateSuiteDescriptionDict(suite_keys))
+        {'dromaeo': 'Foo.'},
+        update_test_suites._CreateSuiteDescriptionDict(suites))
 
 
 if __name__ == '__main__':

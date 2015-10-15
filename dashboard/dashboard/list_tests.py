@@ -82,27 +82,31 @@ def GetSubTests(suite_name, bot_names):
     if cached:
       combined = _MergeSubTestsDict(combined, cached)
     else:
-      sub_test_paths = _FetchSubTestPaths(suite_key)
-      sub_tests = _SubTestsDict(sub_test_paths)
+      # Faster to fetch by keys than by projections.
+      sub_test_paths = _FetchSubTestPaths(suite_key, False)
+      deprecated_sub_test_paths = _FetchSubTestPaths(suite_key, True)
+      sub_tests = _MergeSubTestsDict(
+          _SubTestsDict(sub_test_paths, False),
+          _SubTestsDict(deprecated_sub_test_paths, True))
       layered_cache.Set(_ListSubTestCacheKey(suite_key), sub_tests)
       combined = _MergeSubTestsDict(combined, sub_tests)
   return combined
 
 
-def _FetchSubTestPaths(test_key):
+def _FetchSubTestPaths(test_key, deprecated):
   """Makes a list of partial test paths for descendants of a test suite.
 
   Args:
     test_key: A ndb.Key object for a Test entity.
+    deprecated: Whether or not to fetch deprecated tests.
 
   Returns:
     A list of test paths for all descendant Test entities that have associated
     Row entities. These test paths omit the Master/bot/suite part.
   """
   query = graph_data.Test.query(ancestor=test_key)
-  query = query.filter(
-      graph_data.Test.has_rows == True,
-      graph_data.Test.deprecated == False)
+  query = query.filter(graph_data.Test.has_rows == True,
+                       graph_data.Test.deprecated == deprecated)
   keys = query.fetch(keys_only=True)
   return map(_SubTestPath, keys)
 
@@ -115,13 +119,14 @@ def _SubTestPath(test_key):
   return '/'.join(parts[3:])
 
 
-def _SubTestsDict(paths):
+def _SubTestsDict(paths, deprecated):
   """Constructs a sub-test dict from a list of test paths.
 
   Args:
     paths: An iterable of test paths for which there are points. Each test
         path is of the form "Master/bot/benchmark/chart/...". Each test path
         corresponds to a Test entity for which has_rows is set to True.
+    deprecated: Whether test are deprecated.
 
   Returns:
     A recursively nested dict of sub-tests, as returned by GetSubTests.
@@ -131,7 +136,7 @@ def _SubTestsDict(paths):
   for name in top_level:
     sub_test_paths = _SubPaths(paths, name)
     has_rows = name in paths
-    sub_tests[name] = _SubTestsDictEntry(sub_test_paths, has_rows)
+    sub_tests[name] = _SubTestsDictEntry(sub_test_paths, has_rows, deprecated)
   return sub_tests
 
 
@@ -142,12 +147,15 @@ def _SubPaths(paths, first_part):
           if '/' in p and p.split('/')[0] == first_part]
 
 
-def _SubTestsDictEntry(sub_test_paths, has_rows):
+def _SubTestsDictEntry(sub_test_paths, has_rows, deprecated):
   """Recursively gets an entry in a sub-tests dict."""
-  return {
+  entry = {
       'has_rows': has_rows,
-      'sub_tests': _SubTestsDict(sub_test_paths)
+      'sub_tests': _SubTestsDict(sub_test_paths, deprecated)
   }
+  if deprecated:
+    entry['deprecated'] = True
+  return entry
 
 
 def _ListSubTestCacheKey(test_key):
@@ -173,11 +181,14 @@ def _MergeSubTestsDict(a, b):
 def _MergeSubTestsDictEntry(a, b):
   """Merges two corresponding sub-tests dict entries together."""
   assert a and b
-  return {
+  deprecated = a.get('deprecated', False) or b.get('deprecated', False)
+  entry = {
       'has_rows': a['has_rows'] or b['has_rows'],
       'sub_tests': _MergeSubTestsDict(a['sub_tests'], b['sub_tests'])
   }
-
+  if deprecated:
+    entry['deprecated'] = True
+  return entry
 
 def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   """Given a pattern, get the Test entities or keys which match.

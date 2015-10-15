@@ -70,9 +70,8 @@ from dashboard.models import stoppage_alert as stoppage_alert_module
 # Maximum level of nested tests.
 MAX_TEST_ANCESTORS = 10
 
-# Keys to the datastore-based cache. See layered_cache.
-LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
-LIST_TESTS_SUBTEST_CACHE_KEY = 'list_tests_get_tests_%s_%s_%s'
+# Keys to the datastore-based cache. See stored_object.
+LIST_TESTS_SUBTEST_CACHE_KEY = 'list_tests_get_tests_new_%s_%s_%s'
 
 _MAX_STRING_LENGTH = 500
 
