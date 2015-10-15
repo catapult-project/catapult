@@ -191,6 +191,14 @@ class LinuxFindTest(FindTestBase):
     self._finder_options.browser_executable = '/foo/chrome.apk'
     self.assertNotIn('exact', self.DoFindAllTypes())
 
+  def testNoErrorWithUnrecognizedExecutableName(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._files.append('/foo/mandoline')
+    self._finder_options.browser_executable = '/foo/mandoline'
+    self.assertNotIn('exact', self.DoFindAllTypes())
+
   def testFindUsingDefaults(self):
     if not self.CanFindAvailableBrowsers():
       return
@@ -264,3 +272,11 @@ class WinFindTest(FindTestBase):
              'debug', 'release',
              'content-shell-debug', 'content-shell-release',
              'system', 'canary']))
+
+  def testNoErrorWithUnrecognizedExecutableName(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._files.append('c:\\foo\\mandoline.exe')
+    self._finder_options.browser_dir = 'c:\\foo\\mandoline.exe'
+    self.assertNotIn('exact', self.DoFindAllTypes())

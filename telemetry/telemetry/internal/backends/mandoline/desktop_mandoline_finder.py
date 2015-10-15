@@ -83,6 +83,7 @@ def CanPossiblyHandlePath(target_path):
 
 def FindAllBrowserTypes(_):
   return [
+      'exact',
       'mandoline-debug',
       'mandoline-debug_x64',
       'mandoline-default',
@@ -115,17 +116,23 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Add the explicit browser executable if given and we can handle it.
   if (finder_options.browser_executable and
       CanPossiblyHandlePath(finder_options.browser_executable)):
-    normalized_executable = os.path.expanduser(
-        finder_options.browser_executable)
-    if path.IsExecutable(normalized_executable):
-      browser_directory = os.path.dirname(finder_options.browser_executable)
-      browsers.append(PossibleDesktopMandolineBrowser('exact', finder_options,
-                                                      normalized_executable,
-                                                      browser_directory))
-    else:
-      raise exceptions.PathMissingError(
-          '%s specified by --browser-executable does not exist',
-          normalized_executable)
+    app_name = os.path.basename(finder_options.browser_executable)
+
+    # It is okay if the executable name doesn't match any of known chrome
+    # browser executables, since it may be of a different browser (say,
+    # chrome).
+    if app_name == mandoline_app_name:
+      normalized_executable = os.path.expanduser(
+          finder_options.browser_executable)
+      if path.IsExecutable(normalized_executable):
+        browser_directory = os.path.dirname(finder_options.browser_executable)
+        browsers.append(PossibleDesktopMandolineBrowser('exact', finder_options,
+                                                        normalized_executable,
+                                                        browser_directory))
+      else:
+        raise exceptions.PathMissingError(
+            '%s specified by --browser-executable does not exist',
+            normalized_executable)
 
   def AddIfFound(browser_type, build_dir, type_dir, app_name):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)

@@ -169,17 +169,24 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Add the explicit browser executable if given and we can handle it.
   if (finder_options.browser_executable and
       CanPossiblyHandlePath(finder_options.browser_executable)):
-    normalized_executable = os.path.expanduser(
-        finder_options.browser_executable)
-    if path.IsExecutable(normalized_executable):
-      browser_directory = os.path.dirname(finder_options.browser_executable)
-      browsers.append(PossibleDesktopBrowser('exact', finder_options,
-                                             normalized_executable, flash_path,
-                                             False, browser_directory))
-    else:
-      raise exceptions.PathMissingError(
-          '%s specified by --browser-executable does not exist' %
-          normalized_executable)
+    app_name = os.path.basename(finder_options.browser_executable)
+
+    # It is okay if the executable name doesn't match any of known chrome
+    # browser executables, since it may be of a different browser (say,
+    # mandoline).
+    if app_name in chromium_app_names or app_name == content_shell_app_name:
+      normalized_executable = os.path.expanduser(
+          finder_options.browser_executable)
+      if path.IsExecutable(normalized_executable):
+        browser_directory = os.path.dirname(finder_options.browser_executable)
+        browsers.append(PossibleDesktopBrowser(
+            'exact', finder_options, normalized_executable, flash_path,
+            app_name == content_shell_app_name,
+            browser_directory))
+      else:
+        raise exceptions.PathMissingError(
+            '%s specified by --browser-executable does not exist' %
+            normalized_executable)
 
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)
@@ -196,8 +203,8 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Add local builds
   for build_dir, build_type in path.GetBuildDirectories():
     for chromium_app_name in chromium_app_names:
-      AddIfFound(build_type.lower(), build_dir, build_type,
-                 chromium_app_name, False)
+      AddIfFound(build_type.lower(), build_dir, build_type, chromium_app_name,
+                 False)
     AddIfFound('content-shell-' + build_type.lower(), build_dir, build_type,
                content_shell_app_name, True)
 

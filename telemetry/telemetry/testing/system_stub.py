@@ -7,7 +7,9 @@
 This test allows one to test code that itself uses os, sys, and subprocess.
 """
 
+import ntpath
 import os
+import posixpath
 import re
 import shlex
 import sys
@@ -341,6 +343,12 @@ class OsModuleStub(object):
       else:
         tmp = os.path.join(*paths)
         return tmp.replace('\\', '/')
+
+    def basename(self, path):
+      if self.sys.platform.startswith('win'):
+        return ntpath.basename(path)
+      else:
+        return posixpath.basename(path)
 
     @staticmethod
     def abspath(path):

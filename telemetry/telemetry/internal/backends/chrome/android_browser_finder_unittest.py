@@ -53,8 +53,8 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
   def testCanLaunchAlwaysTrueWithExactApkReturnsAll(self):
     self._android_browser_finder_stub.os.path.files.append(
-        '/foo/content-shell.apk')
-    self.finder_options.browser_executable = '/foo/content-shell.apk'
+        '/foo/ContentShell.apk')
+    self.finder_options.browser_executable = '/foo/ContentShell.apk'
     self._get_package_name_mock.return_value = 'org.chromium.content_shell_apk'
 
     fake_platform = FakeAndroidPlatform(can_launch=True)
@@ -68,8 +68,8 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
   def testErrorWithUnknownExactApk(self):
     self._android_browser_finder_stub.os.path.files.append(
-        '/foo/content-shell.apk')
-    self.finder_options.browser_executable = '/foo/content-shell.apk'
+        '/foo/ContentShell.apk')
+    self.finder_options.browser_executable = '/foo/ContentShell.apk'
     self._get_package_name_mock.return_value = 'org.unknown.app'
 
     fake_platform = FakeAndroidPlatform(can_launch=True)
@@ -78,12 +78,23 @@ class AndroidBrowserFinderTest(unittest.TestCase):
         self.finder_options, fake_platform)
 
   def testErrorWithNonExistantExactApk(self):
-    self.finder_options.browser_executable = '/foo/content-shell.apk'
+    self.finder_options.browser_executable = '/foo/ContentShell.apk'
+    self._get_package_name_mock.return_value = 'org.chromium.content_shell_apk'
 
     fake_platform = FakeAndroidPlatform(can_launch=True)
     self.assertRaises(Exception,
         android_browser_finder._FindAllPossibleBrowsers,
         self.finder_options, fake_platform)
+
+  def testNoErrorWithUnrecognizedApkName(self):
+    self._android_browser_finder_stub.os.path.files.append(
+        '/foo/unknown.apk')
+    self.finder_options.browser_executable = '/foo/unknown.apk'
+
+    fake_platform = FakeAndroidPlatform(can_launch=True)
+    possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
+        self.finder_options, fake_platform)
+    self.assertNotIn('exact', [b.browser_type for b in possible_browsers])
 
 
 class FakePossibleBrowser(object):
