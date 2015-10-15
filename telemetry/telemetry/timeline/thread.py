@@ -136,11 +136,10 @@ class Thread(event_container.TimelineEventContainer):
       raise ValueError(
           'Slice %s end time is before its start.' % curr_slice.name)
     curr_slice.duration = end_timestamp - curr_slice.start
-    if end_thread_timestamp != None:
-      if curr_slice.thread_start == None:
-        raise ValueError(
-            'EndSlice with thread_timestamp called on open slice without ' +
-            'thread_timestamp')
+    # On Windows, it is possible to have a value for |end_thread_timestamp|
+    # but not for |curr_slice.thread_start|, because it takes some time to
+    # initialize the thread time timer.
+    if curr_slice.thread_start != None and end_thread_timestamp != None:
       curr_slice.thread_duration = (end_thread_timestamp -
                                     curr_slice.thread_start)
     curr_slice.did_not_finish = False
