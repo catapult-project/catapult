@@ -42,6 +42,7 @@ class AutoBisectHandler(request_handler.RequestHandler):
       return
     datastore_hooks.SetPrivilegedRequest()
     _RestartFailedBisectJobs()
+    utils.TickMonitoringCustomMetric('RestartFailedBisectJobs')
 
 
 class NotBisectableError(Exception):

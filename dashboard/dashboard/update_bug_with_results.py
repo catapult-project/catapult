@@ -25,6 +25,7 @@ from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import rietveld_service
 from dashboard import start_try_job
+from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
@@ -103,6 +104,7 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
         _CheckJob(job, issue_tracker)
       except Exception as e:  # pylint: disable=broad-except
         logging.error('Caught Exception %s: %s', type(e).__name__, e)
+    utils.TickMonitoringCustomMetric('UpdateBugWithResults')
 
 
 def _CheckJob(job, issue_tracker):

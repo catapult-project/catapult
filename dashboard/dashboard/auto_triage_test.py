@@ -140,6 +140,7 @@ class AutoTriageTest(testing_common.TestCase):
         sheriff=sheriff_key).put()
     return anomaly_key
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testAnomalyRecovery_AbsoluteCheck(self):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     test = self._AddTestData('t1', _TEST_ROW_ABS_NOT_RECOVERED, sheriff_key)
@@ -153,6 +154,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertFalse(new_anomalies[0].recovered)
     self.assertTrue(new_anomalies[1].recovered)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testAnomalyRecovery_RelativeCheck(self):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     test = self._AddTestData('t1', _TEST_ROW_REL_NOT_RECOVERED, sheriff_key)
@@ -166,6 +168,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertFalse(new_anomalies[0].recovered)
     self.assertTrue(new_anomalies[1].recovered)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testAnomalyRecovery_StdDevCheck(self):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     test = self._AddTestData('t1', _TEST_ROW_STD_NOT_RECOVERED, sheriff_key)
@@ -176,6 +179,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertEqual(len(new_anomalies), 1)
     self.assertFalse(new_anomalies[0].recovered)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testAnomalyRecovery_ImprovementCheck(self):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     test = self._AddTestData('t1', _TEST_ROW_IMPROVEMENTS, sheriff_key,
@@ -187,6 +191,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertEqual(len(new_anomalies), 1)
     self.assertTrue(new_anomalies[0].recovered)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testAnomalyRecover_IgnoredCheck(self):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     test = self._AddTestData('t1', _TEST_ROW_RECOVERED, sheriff_key)
@@ -197,6 +202,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertEqual(len(new_anomalies), 1)
     self.assertFalse(new_anomalies[0].recovered)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(
       auto_triage.rietveld_service, 'Credentials', mock.MagicMock())
   @mock.patch.object(
@@ -222,6 +228,7 @@ class AutoTriageTest(testing_common.TestCase):
     add_bug_comment_mock.assert_called_once_with(
         mock.ANY, mock.ANY)
 
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(auto_triage.TriageBugs, '_CommentOnRecoveredBug')
   def testPost_BugHasNoAlerts_NotMarkRecovered(self, close_recovered_bug_mock):
     bug_id = 1234

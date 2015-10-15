@@ -17,10 +17,6 @@ from google.appengine.ext import vendor
 
 import dashboard
 
-from dashboard import datastore_hooks
-
-datastore_hooks.InstallHooks()
-
 appstats_SHELL_OK = True
 
 # Allows remote_api from the peng team to support the crosbolt dashboard.
@@ -45,3 +41,8 @@ def _AddThirdPartyLibraries():
 
 
 _AddThirdPartyLibraries()
+
+# This is at the bottom because datastore_hooks may depend on third_party
+# modules.
+from dashboard import datastore_hooks
+datastore_hooks.InstallHooks()

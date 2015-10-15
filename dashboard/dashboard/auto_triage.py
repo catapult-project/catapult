@@ -71,7 +71,9 @@ class AutoTriageHandler(request_handler.RequestHandler):
       return
 
     TriageAnomalies.Process()
+    utils.TickMonitoringCustomMetric('TriageAnomalies')
     TriageBugs.Process()
+    utils.TickMonitoringCustomMetric('TriageBugs')
 
 
 class TriageAnomalies(object):

@@ -11,15 +11,54 @@ import logging
 import re
 import time
 
+from apiclient import discovery
 from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from oauth2client.client import GoogleCredentials
 
 from dashboard import stored_object
 
 INTERNAL_DOMAIN_KEY = 'internal_domain_key'
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
 IP_WHITELIST_KEY = 'ip_whitelist'
+_PROJECT_ID_KEY = 'project_id'
+_DEFAULT_CUSTOM_METRIC_VAL = 1
+
+
+def _GetNowRfc3339():
+  """Returns the current time formatted per RFC 3339."""
+  return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+
+
+def TickMonitoringCustomMetric(metric_name):
+  """Increments the stackdriver custom metric with the given name.
+
+  This is used for cron job monitoring; if these metrics stop being received
+  an alert mail is sent. For more information on custom metrics, see
+  https://cloud.google.com/monitoring/custom-metrics/using-custom-metrics
+
+  Args:
+    metric_name: The name of the metric being monitored.
+  """
+  credentials = GoogleCredentials.get_application_default()
+  monitoring = discovery.build(
+      'cloudmonitoring', 'v2beta2', credentials=credentials)
+  now = _GetNowRfc3339()
+  project_id = stored_object.Get(_PROJECT_ID_KEY)
+  desc = {
+      'project': project_id,
+      'metric': 'custom.cloudmonitoring.googleapis.com/%s' % metric_name
+  }
+  point = {
+      'start': now,
+      'end': now,
+      'int64Value': _DEFAULT_CUSTOM_METRIC_VAL
+  }
+  write_request = monitoring.timeseries().write(
+      project=project_id,
+      body={'timeseries': [{'timeseriesDesc': desc, 'point': point}]})
+  write_request.execute()
 
 
 def TestPath(key):
