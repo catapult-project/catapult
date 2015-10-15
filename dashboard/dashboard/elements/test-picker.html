@@ -1,5 +1,6 @@
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-progress/paper-progress.html">
 
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
@@ -34,12 +35,27 @@
         color: #fff;
       }
 
-      core-icon{
+      core-icon {
         height: 25px;
       }
 
       #suite-description {
         padding: 10px;
+      }
+
+      #loading {
+        display: block;
+        position: relative;
+        width: 152px;
+        height: 35px;
+      }
+
+      paper-progress {
+        display: block;
+        position: absolute;
+        bottom: -1px;
+        height: 1px;
+        width: 100%;
       }
     </style>
 
@@ -51,6 +67,12 @@
                           multi={{box.multi}}
                           on-dropdownselect="{{onDropdownSelect}}"
                           id="selection-{{index}}"></autocomplete-box>
+      </template>
+
+      <template if="{{loading}}">
+        <div id="loading">
+          <paper-progress indeterminate></paper-progress>
+        </div>
       </template>
 
       <core-icon-button id="dnd-btn"
@@ -240,6 +262,8 @@
           return;
         }
 
+        this.loading = true;
+
         var params = {
           type: 'sub_tests',
           suite: suite,
@@ -250,12 +274,16 @@
             '/list_tests',
             params,
             function(response) {
+              this.loading = false;
               this.subtestDict = response;
               // Start at first subtest menu.
               this.updateSubtestMenus(2);
             }.bind(this),
             function(error) {
-              console.log('Error from sendSubtestRequest.');
+              if (error) {
+                console.log('Error from sendSubtestRequest.');
+              }
+              this.loading = false;
             }.bind(this)
         );
       },
