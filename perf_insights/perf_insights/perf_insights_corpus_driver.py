@@ -15,8 +15,8 @@ from perf_insights.value import run_info as run_info_module
 _DEFAULT_PERF_INSIGHTS_SERVER = 'http://performance-insights.appspot.com'
 
 class PerfInsightsCorpusDriver(corpus_driver.CorpusDriver):
-  def __init__(self, trace_directory, server=_DEFAULT_PERF_INSIGHTS_SERVER):
-    self.directory = trace_directory
+  def __init__(self, cache_directory, server=_DEFAULT_PERF_INSIGHTS_SERVER):
+    self.directory = cache_directory
     self.server = server
 
   @staticmethod
