@@ -191,8 +191,5 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
     if browser_options.no_proxy_server:
       _RaiseForUnsupportedOption('no_proxy_server')
 
-    if browser_options.use_devtools_active_port:
-      _RaiseForUnsupportedOption('use_devtools_active_port')
-
     if browser_options.browser_user_agent_type:
       _WarnForUnsupportedOption('browser_user_agent_type')

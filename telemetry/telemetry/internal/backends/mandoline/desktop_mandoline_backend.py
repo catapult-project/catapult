@@ -52,10 +52,7 @@ class DesktopMandolineBackend(
 
   def GetBrowserStartupArgs(self):
     args = super(DesktopMandolineBackend, self).GetBrowserStartupArgs()
-    if self.browser_options.use_devtools_active_port:
-      raise NotImplementedError()
-    else:
-      self._port = util.GetUnreservedAvailableLocalPort()
+    self._port = util.GetUnreservedAvailableLocalPort()
     logging.info('Requested remote debugging port: %d' % self._port)
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--user-data-dir=%s' % self.profile_directory)
