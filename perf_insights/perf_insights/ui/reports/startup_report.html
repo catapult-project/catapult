@@ -72,13 +72,13 @@ found in the LICENSE file.
     </top-controls>
     <content-pane>
       <pane>
-        Fast startup traces
+        <div>Fast startup traces (<span id="numFast"></span> traces)</div>
         <table-container>
           <pi-ui-grouping-table id="tableFast"></pi-ui-grouping-table>
         </table-container>
       </pane>
       <pane>
-        Slow startup traces
+        <div>Slow startup traces (<span id="numSlow"></span> traces)</div>
         <table-container>
           <pi-ui-grouping-table id="tableSlow"></pi-ui-grouping-table>
         </table-container>
@@ -92,11 +92,10 @@ found in the LICENSE file.
 'use strict';
 
 (function() {
-  var DEFAULT_SLOW_THRESHOLD_MS = 1500;
+  var DEFAULT_SLOW_THRESHOLD_MS = 3500;
   Polymer('pi-ui-r-startup-report', {
     created: function() {
       this.mapResults_ = undefined;
-      this.totalStartupDuration_ = 0;
       this.slowThresholdMs_ = DEFAULT_SLOW_THRESHOLD_MS;
     },
 
@@ -132,32 +131,29 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      this.updateTable_(this.$.tableFast, function(value) {
+      this.updateTable_(this.$.tableFast, this.$.numFast, function(value) {
         return value.startupDuration < this.slowThresholdMs_;
       }.bind(this));
-      this.updateTable_(this.$.tableSlow, function(value) {
+      this.updateTable_(this.$.tableSlow, this.$.numSlow, function(value) {
         return value.startupDuration >= this.slowThresholdMs_;
       }.bind(this));
     },
 
-    updateTable_: function(table, filter) {
+    updateTable_: function(table, numTracesSpan, filter) {
       var results = this.mapResults_;
       if (!results)
         results = new tr.r.Results();
 
-      var columns = this.createColumns_();
-      table.tableColumns = columns;
-      table.sortColumnIndex = 2;
-      table.sortDescending = true;
-
       var allSliceCosts = [];
-      this.totalStartupDuration_ = 0;
+      var numTraces = 0;
+      var totalStartupDuration = 0;
       results.allValuesFromFailureFreeRuns.forEach(function(result) {
         if (result.name != 'sr')
           return;
         if (!filter(result.value))
           return;
-        this.totalStartupDuration_ += result.value.startupDuration;
+        numTraces++;
+        totalStartupDuration += result.value.startupDuration;
         result.value.sliceCosts.forEach(function(item) {
           var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
           allSliceCosts.push({
@@ -165,7 +161,13 @@ found in the LICENSE file.
             sliceCostInfo: sliceCostInfo
           });
         });
-      }.bind(this));
+      });
+      numTracesSpan.innerText = numTraces;
+
+      var columns = this.createColumns_(totalStartupDuration);
+      table.tableColumns = columns;
+      table.sortColumnIndex = 2;
+      table.sortDescending = true;
 
       var groupBy = [];
       groupBy.push(function(datum) {
@@ -177,7 +179,7 @@ found in the LICENSE file.
       table.rebuild();
     },
 
-    createColumns_: function() {
+    createColumns_: function(totalStartupDuration) {
       var columns = [
         {
           title: 'Title',
@@ -189,29 +191,31 @@ found in the LICENSE file.
           },
           width: '500px'
         },
-        this.createCachingColumn_('Relative self time', function(datum) {
-          return datum.sliceCostInfo.selfTime;
-        }),
-        this.createCachingColumn_('Relative CPU time', function(datum) {
-          return datum.sliceCostInfo.cpuSelfTime;
-        })
+        this.createCachingColumn_('Relative self time', totalStartupDuration,
+            function(datum) {
+              return datum.sliceCostInfo.selfTime;
+            }),
+        this.createCachingColumn_('Relative CPU time', totalStartupDuration,
+            function(datum) {
+              return datum.sliceCostInfo.cpuSelfTime;
+            })
       ];
       return columns;
     },
 
-    createCachingColumn_(title, getDataFunction) {
+    createCachingColumn_(title, totalStartupDuration, getDataFunction) {
       function computeStats(sliceCostInfo) {
         var mean = tr.b.Statistics.sum(sliceCostInfo, getDataFunction);
-        if (mean == undefined || !this.totalStartupDuration_)
+        if (mean == undefined || totalStartupDuration == 0)
           return undefined;
-        mean /= this.totalStartupDuration_;
+        mean /= totalStartupDuration;
         var span = tr.ui.units.createScalarSpan(mean);
         span.unit = tr.b.u.Units.normalizedPercentage;
         span.percentage = mean;
         return span;
       }
 
-      var column = new pi.ui.CachingColumn(title, computeStats.bind(this));
+      var column = new pi.ui.CachingColumn(title, computeStats);
       column.textAlign = 'right';
       column.cmp = function(row0, row1) {
         var value0 = column.value(row0);
