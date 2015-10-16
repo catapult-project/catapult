@@ -1436,8 +1436,10 @@ class DeviceUtils(object):
           ['cat', device_path], as_root=as_root, check_return=True))
     elif as_root and self.NeedsSU():
       with device_temp_file.DeviceTempFile(self.adb) as device_temp:
-        self.RunShellCommand(['cp', device_path, device_temp.name],
-                             as_root=True, check_return=True)
+        cmd = 'SRC=%s DEST=%s;cp "$SRC" "$DEST" && chmod 666 "$DEST"' % (
+            cmd_helper.SingleQuote(device_path),
+            cmd_helper.SingleQuote(device_temp.name))
+        self.RunShellCommand(cmd, as_root=True, check_return=True)
         return self._ReadFileWithPull(device_temp.name)
     else:
       return self._ReadFileWithPull(device_path)

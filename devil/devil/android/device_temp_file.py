@@ -6,25 +6,17 @@
 
 # pylint: disable=W0622
 
+import posixpath
+import random
 import threading
 
 from devil.android import device_errors
 from devil.utils import cmd_helper
 
-_COMMAND_TEMPLATE = (
-    # Make sure that the temp dir is writable
-    'test -d {dir} && '
-    # If 5 random attempts fail, something is up.
-    'for i in 1 2 3 4 5; do '
-    'fn={dir}/{prefix}-$(date +%s)-"$RANDOM"{suffix};'
-    'test -e "$fn" || break;'
-    'done && '
-    # Touch the file, so other temp files can't get the same name.
-    'touch "$fn" && echo -n "$fn"')
 
 class DeviceTempFile(object):
   def __init__(self, adb, suffix='', prefix='temp_file', dir='/data/local/tmp'):
-    """Find an unused temporary file path in the devices external directory.
+    """Find an unused temporary file path on the device.
 
     When this object is closed, the file will be deleted on the device.
 
@@ -35,11 +27,9 @@ class DeviceTempFile(object):
       dir: The directory on the device where to place the temp file.
     """
     self._adb = adb
-    command = _COMMAND_TEMPLATE.format(
-        dir=cmd_helper.SingleQuote(dir),
-        suffix=cmd_helper.SingleQuote(suffix),
-        prefix=cmd_helper.SingleQuote(prefix))
-    self.name = self._adb.Shell(command)
+    # Python's random module use 52-bit numbers according to its docs.
+    random_hex = hex(random.randint(0, 2 ** 52))[2:]
+    self.name = posixpath.join(dir, '%s-%s%s' % (prefix, random_hex, suffix))
     self.name_quoted = cmd_helper.SingleQuote(self.name)
 
   def close(self):

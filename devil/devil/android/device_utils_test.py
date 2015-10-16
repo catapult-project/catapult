@@ -1606,8 +1606,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
          MockTempFile('/sdcard/tmp/on.device')),
         self.call.device.RunShellCommand(
-            ['cp', '/this/big/file/can.be.read.with.su',
-             '/sdcard/tmp/on.device'],
+            'SRC=/this/big/file/can.be.read.with.su DEST=/sdcard/tmp/on.device;'
+            'cp "$SRC" "$DEST" && chmod 666 "$DEST"',
             as_root=True, check_return=True),
         (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device'),
          contents)):
