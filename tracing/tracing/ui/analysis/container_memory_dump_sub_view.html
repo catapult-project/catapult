@@ -19,10 +19,13 @@ found in the LICENSE file.
   <template>
     <div id="content"></div>
   </template>
-  <script>
-  'use strict';
+</polymer-element>
+<script>
+'use strict';
 
-  Polymer({
+tr.exportTo('tr.ui.analysis', function() {
+
+  Polymer('tr-ui-a-container-memory-dump-sub-view', {
     set selection(selection) {
       if (selection === undefined) {
         this.currentSelection_ = undefined;
@@ -152,5 +155,7 @@ found in the LICENSE file.
       this.$.content.appendChild(table);
     }
   });
-  </script>
-</polymer-element>
+
+  return {};
+});
+</script>

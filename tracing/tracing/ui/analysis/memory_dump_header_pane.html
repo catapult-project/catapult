@@ -45,10 +45,13 @@ found in the LICENSE file.
       <!-- Aggregation mode selector (added in Polymer.ready()) -->
     </div>
   </template>
-  <script>
-  'use strict';
+</polymer-element>
+<script>
+'use strict';
 
-  Polymer({
+tr.exportTo('tr.ui.analysis', function() {
+
+  Polymer('tr-ui-a-memory-dump-header-pane', {
     created: function() {
       this.containerMemoryDumps_ = undefined;
     },
@@ -164,5 +167,7 @@ found in the LICENSE file.
       }.bind(this);
     }
   });
-  </script>
-</polymer-element>
+
+  return {};
+});
+</script>

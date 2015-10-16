@@ -68,405 +68,408 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-  <script>
-  'use strict';
-
-  (function() {
-    var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
-        tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
-            'Total resident',
-            'Peak total resident',
-            'PSS',
-            'Private dirty',
-            'Swapped']);
-
-    var ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES = [
-      {
-        condition: 'tracing',
-        importance: 0
-      },
-      {
-        importance: 1
-      }
-    ];
-
-    var DISPLAYED_SIZE_ATTRIBUTE_NAME =
-        tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
-
-    var LINK_SYMBOL = String.fromCharCode(9903);
-    var GREATER_THAN_OR_EQUAL_TO_SYMBOL = String.fromCharCode(8805);
-
-    /** @constructor */
-    function ProcessNameColumn(title) {
-      tr.ui.analysis.TitleColumn.call(this, title);
-    }
-
-    ProcessNameColumn.prototype = {
-      __proto__: tr.ui.analysis.TitleColumn.prototype,
-
-      formatTitle: function(row) {
-        if (row.noLegend)
-          return row.title;
-        var titleEl = document.createElement('tr-ui-b-color-legend');
-        titleEl.label = row.title;
-        return titleEl;
-      }
-    };
-
-    Polymer({
-      created: function() {
-        this.processMemoryDumps_ = undefined;
-        this.aggregationMode_ = undefined;
-      },
-
-      ready: function() {
-        this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
-        this.$.table.addEventListener('selection-changed',
-            function(tableEvent) {
-              tableEvent.stopPropagation();
-              this.changeChildPane_();
-            }.bind(this));
-      },
-
-      /**
-       * Sets the process memory dumps and schedules rebuilding the pane.
-       *
-       * The provided value should be a chronological list of dictionaries
-       * mapping process IDs to process memory dumps. Example:
-       *
-       *   [
-       *     {
-       *       // PMDs at timestamp 1.
-       *       42: tr.model.ProcessMemoryDump {}
-       *     },
-       *     {
-       *       // PMDs at timestamp 2.
-       *       42: tr.model.ProcessMemoryDump {},
-       *       89: tr.model.ProcessMemoryDump {}
-       *     }
-       *   ]
-       */
-      set processMemoryDumps(processMemoryDumps) {
-        this.processMemoryDumps_ = processMemoryDumps;
-        this.scheduleRebuildPane_();
-      },
-
-      get processMemoryDumps() {
-        return this.processMemoryDumps_;
-      },
-
-      set aggregationMode(aggregationMode) {
-        this.aggregationMode_ = aggregationMode;
-        this.scheduleRebuildPane_();
-      },
-
-      get aggregationMode() {
-        return this.aggregationMode_;
-      },
-
-      get selectedMemoryCell() {
-        if (this.processMemoryDumps_ === undefined ||
-            this.processMemoryDumps_.length === 0) {
-          return undefined;
-        }
-
-        var selectedTableRow = this.$.table.selectedTableRow;
-        if (!selectedTableRow)
-          return undefined;
-
-        var selectedColumnIndex = this.$.table.selectedColumnIndex;
-        if (selectedColumnIndex === undefined)
-          return undefined;
-
-        var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
-        var selectedMemoryCell = selectedColumn.cell(selectedTableRow);
-        return selectedMemoryCell;
-      },
-
-      changeChildPane_: function() {
-        this.storeSelection_();
-        var builder = undefined;
-        if (this.selectedMemoryCell !== undefined)
-          builder = this.selectedMemoryCell.buildDetailsPane;
-        this.childPaneBuilder = builder;
-      },
-
-      rebuildPane_: function() {
-        if (this.processMemoryDumps_ === undefined ||
-            this.processMemoryDumps_.length === 0) {
-          // Show the info text (hide the table).
-          this.$.info_text.style.display = 'block';
-          this.$.table.style.display = 'none';
-
-          this.$.table.clear();
-          this.$.table.rebuild();
-          return;
-        }
-
-        // Show the table (hide the info text).
-        this.$.info_text.style.display = 'none';
-        this.$.table.style.display = 'block';
-
-        var rows = this.createRows_();
-        var footerRows = this.createFooterRows_(rows);
-        var columns = this.createColumns_(rows);
-
-        this.$.table.tableRows = rows;
-        this.$.table.footerRows = footerRows;
-        this.$.table.tableColumns = columns;
-        this.$.table.rebuild();
-
-        this.restoreSelection_();
-      },
-
-      createRows_: function() {
-        // Timestamp (list index) -> Process ID (dict key) -> PMD.
-        var timeToPidToProcessMemoryDump = this.processMemoryDumps_;
-
-        // Process ID (dict key) -> Timestamp (list index) -> PMD or undefined.
-        var pidToTimeToProcessMemoryDump = tr.b.invertArrayOfDicts(
-            timeToPidToProcessMemoryDump);
-
-        // Process (list index) -> Component (dict key) -> Cell.
-        var rows = [];
-
-        var aggregationMode = this.aggregationMode_;
-        return tr.b.dictionaryValues(tr.b.mapItems(
-            pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
-          // Get the process associated with the dumps. We can use any defined
-          // process memory dump in timeToDump since they all have the same pid.
-          var process = tr.b.findFirstInArray(timeToDump).process;
-
-          // Determine at which timestamps (indices of the current selection)
-          // the dump was provided.
-          var defined = timeToDump.map(function(dump) {
-            return dump !== undefined;
-          });
-
-          // Used memory (total resident, PSS, ...).
-          var timeToVmRegions = timeToDump.map(function(dump) {
-            if (dump === undefined)
-              return undefined;
-            return dump.mostRecentVmRegions;
-          });
-          function buildVmRegionsPane() {
-            var pane = document.createElement(
-                'tr-ui-a-memory-dump-vm-regions-details-pane');
-            pane.vmRegions = timeToVmRegions;
-            pane.aggregationMode = aggregationMode;
-            return pane;
-          }
-          var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
-              function(dump) {
-                var sizes = {};
-
-                // Totals.
-                if (dump.totals !== undefined) {
-                  tr.ui.analysis.addAttributeIfDefined(
-                      sizes, 'Total resident', tr.model.ScalarAttribute,
-                      'bytes', dump.totals.residentBytes);
-                  tr.ui.analysis.addAttributeIfDefined(
-                      sizes, 'Peak total resident', tr.model.ScalarAttribute,
-                      'bytes', dump.totals.peakResidentBytes,
-                      function(attr) {
-                        if (dump.totals.arePeakResidentBytesResettable) {
-                          attr.infos.push(new tr.model.AttributeInfo(
-                              tr.model.AttributeInfoType.RECENT_VALUE,
-                              'Peak RSS since previous memory dump.'));
-                        } else {
-                          attr.infos.push(new tr.model.AttributeInfo(
-                              tr.model.AttributeInfoType.OVERALL_VALUE,
-                              'Peak RSS since process startup. Finer grained ' +
-                              'peaks require a Linux kernel version ' +
-                              GREATER_THAN_OR_EQUAL_TO_SYMBOL + ' 4.0.'));
-                        }
-                      });
-                }
-
-                // VM regions byte stats.
-                var vmRegionAttributeAddedCallback = undefined;
-                if (!dump.hasOwnVmRegions) {
-                  vmRegionAttributeAddedCallback = function(attr) {
-                    attr.infos.push(new tr.model.AttributeInfo(
-                        tr.model.AttributeInfoType.LINK,
-                         'Older value (process did not dump memory maps).'));
-                    attr.isOlderValue = true;
-                  };
-                }
-                tr.ui.analysis.addAttributeIfDefined(
-                      sizes, 'PSS', tr.model.ScalarAttribute, 'bytes',
-                      dump.getMostRecentTotalVmRegionStat(
-                          'proportionalResident'),
-                      vmRegionAttributeAddedCallback);
-                tr.ui.analysis.addAttributeIfDefined(
-                      sizes, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
-                      dump.getMostRecentTotalVmRegionStat(
-                          'privateDirtyResident'),
-                      vmRegionAttributeAddedCallback);
-                tr.ui.analysis.addAttributeIfDefined(
-                      sizes, 'Swapped', tr.model.ScalarAttribute, 'bytes',
-                      dump.getMostRecentTotalVmRegionStat('swapped'),
-                      vmRegionAttributeAddedCallback);
-
-                return sizes;
-              },
-              function(attrName, cell) {
-                cell.buildDetailsPane = buildVmRegionsPane;
-              });
-
-          // Allocator memory (v8, oilpan, ...).
-          var allocatorCells = tr.ui.analysis.createCells(timeToDump,
-              function(dump) {
-                if (dump.memoryAllocatorDumps === undefined)
-                  return undefined;
-                var sizes = {};
-                dump.memoryAllocatorDumps.forEach(function(allocatorDump) {
-                  sizes[allocatorDump.fullName] = allocatorDump.attributes[
-                      DISPLAYED_SIZE_ATTRIBUTE_NAME];
-                });
-                return sizes;
-              },
-              function(allocatorName, cell) {
-                var memoryAllocatorDumps = timeToDump.map(function(dump) {
-                  if (dump === undefined)
-                    return undefined;
-                  return dump.getMemoryAllocatorDumpByFullName(allocatorName);
-                });
-                cell.buildDetailsPane = function() {
-                  var pane = document.createElement(
-                      'tr-ui-a-memory-dump-allocator-details-pane');
-                  pane.memoryAllocatorDumps = memoryAllocatorDumps;
-                  pane.aggregationMode = aggregationMode;
-                  return pane;
-                };
-              });
-
-          return {
-            title: process.userFriendlyName,
-            defined: defined,
-            usedMemoryCells: usedMemoryCells,
-            allocatorCells: allocatorCells
-          };
-        }));
-      },
-
-      createFooterRows_: function(rows) {
-        // Add a 'Total' row if there are at least two process memory dumps.
-        if (rows.length <= 1)
-          return [];
-
-        var totalRow = {
-          title: 'Total',
-          noLegend: true
-        };
-
-        tr.ui.analysis.aggregateTableRowCells(
-            totalRow, rows, 'usedMemoryCells');
-        tr.ui.analysis.aggregateTableRowCells(totalRow, rows, 'allocatorCells');
-
-        return [totalRow];
-      },
-
-      createColumns_: function(rows) {
-        var titleColumn = new ProcessNameColumn('Process');
-        titleColumn.width = '200px';
-
-        var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-            rows, 'usedMemoryCells', this.aggregationMode_);
-        tr.ui.analysis.MemoryColumn.sortByImportance(
-            usedMemorySizeColumns, USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES);
-
-        var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-            rows, 'allocatorCells', this.aggregationMode_,
-            function(allocatorName) {
-              var titleEl = document.createElement('tr-ui-b-color-legend');
-              titleEl.label = allocatorName;
-              return titleEl;
-            });
-        tr.ui.analysis.MemoryColumn.sortByImportance(
-            allocatorSizeColumns, ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES);
-
-        // Grey the 'tracing' column out (if present).
-        // TODO(petrcermak): Find a less hacky way to do this.
-        var tracingColumn = tr.b.findFirstInArray(allocatorSizeColumns,
-            function(column) {
-          return column.name === 'tracing';
-        });
-        if (tracingColumn !== undefined) {
-          var tracingColumnColor = tr.ui.b.getColorPalette()[
-              tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
-          tracingColumn.title = tr.ui.b.createSpan(
-              {textContent: 'tracing', color: tracingColumnColor});
-          tracingColumn.color = tracingColumnColor;
-        }
-
-        // Make the used memory size columns blue.
-        // TODO(petrcermak): Find a less hacky way to do this.
-        usedMemorySizeColumns.forEach(function(column) {
-          var olderUsedMemoryColumnColor = tr.ui.b.getColorPalette()[
-              tr.ui.b.getColorIdForReservedName('older_used_memory_column')];
-          var usedMemoryColumnColor = tr.ui.b.getColorPalette()[
-              tr.ui.b.getColorIdForReservedName('used_memory_column')];
-          column.title = tr.ui.b.createSpan(
-              {textContent: column.title, color: usedMemoryColumnColor});
-          column.color = function(attrs) {
-            // TODO(petrcermak): Figure out how to make this work for multi-
-            // selection as well.
-            return attrs.length === 1 && attrs[0].isOlderValue ?
-                olderUsedMemoryColumnColor : usedMemoryColumnColor;
-          }
-        });
-
-        var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
-        tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);
-
-        var columns = [titleColumn].concat(sizeColumns);
-        return columns;
-      },
-
-      storeSelection_: function() {
-        var selectedRowTitle;
-        var selectedRow = this.$.table.selectedTableRow;
-        if (selectedRow !== undefined)
-          selectedRowTitle = selectedRow.title;
-
-        var selectedColumnName;
-        var selectedColumnIndex = this.$.table.selectedColumnIndex;
-        if (selectedColumnIndex !== undefined) {
-          var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
-          selectedColumnName = selectedColumn.name;
-        }
-
-        this.$.state.set(
-            {rowTitle: selectedRowTitle, columnName: selectedColumnName});
-      },
-
-      restoreSelection_: function() {
-        var settings = this.$.state.get();
-        if (settings === undefined || settings.rowTitle === undefined ||
-            settings.columnName === undefined)
-          return;
-
-        var selectedColumnName = settings.columnName;
-        var selectedColumnIndex = tr.b.findFirstIndexInArray(
-            this.$.table.tableColumns, function(column) {
-          return column.name === selectedColumnName;
-        });
-        if (selectedColumnIndex < 0)
-          return;
-
-        var selectedRowTitle = settings.rowTitle;
-        var selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
-            function(row) {
-          return row.title === selectedRowTitle;
-        });
-        if (selectedRow === undefined)
-          return;
-
-        this.$.table.selectedTableRow = selectedRow;
-        this.$.table.selectedColumnIndex = selectedColumnIndex;
-      }
-    });
-  })();
-  </script>
 </polymer-element>
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.analysis', function() {
+
+  var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
+      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+          'Total resident',
+          'Peak total resident',
+          'PSS',
+          'Private dirty',
+          'Swapped']);
+
+  var ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES = [
+    {
+      condition: 'tracing',
+      importance: 0
+    },
+    {
+      importance: 1
+    }
+  ];
+
+  var DISPLAYED_SIZE_ATTRIBUTE_NAME =
+      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
+
+  var LINK_SYMBOL = String.fromCharCode(9903);
+  var GREATER_THAN_OR_EQUAL_TO_SYMBOL = String.fromCharCode(8805);
+
+  /** @constructor */
+  function ProcessNameColumn(title) {
+    tr.ui.analysis.TitleColumn.call(this, title);
+  }
+
+  ProcessNameColumn.prototype = {
+    __proto__: tr.ui.analysis.TitleColumn.prototype,
+
+    formatTitle: function(row) {
+      if (row.noLegend)
+        return row.title;
+      var titleEl = document.createElement('tr-ui-b-color-legend');
+      titleEl.label = row.title;
+      return titleEl;
+    }
+  };
+
+  Polymer('tr-ui-a-memory-dump-overview-pane', {
+    created: function() {
+      this.processMemoryDumps_ = undefined;
+      this.aggregationMode_ = undefined;
+    },
+
+    ready: function() {
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
+      this.$.table.addEventListener('selection-changed',
+          function(tableEvent) {
+            tableEvent.stopPropagation();
+            this.changeChildPane_();
+          }.bind(this));
+    },
+
+    /**
+     * Sets the process memory dumps and schedules rebuilding the pane.
+     *
+     * The provided value should be a chronological list of dictionaries
+     * mapping process IDs to process memory dumps. Example:
+     *
+     *   [
+     *     {
+     *       // PMDs at timestamp 1.
+     *       42: tr.model.ProcessMemoryDump {}
+     *     },
+     *     {
+     *       // PMDs at timestamp 2.
+     *       42: tr.model.ProcessMemoryDump {},
+     *       89: tr.model.ProcessMemoryDump {}
+     *     }
+     *   ]
+     */
+    set processMemoryDumps(processMemoryDumps) {
+      this.processMemoryDumps_ = processMemoryDumps;
+      this.scheduleRebuildPane_();
+    },
+
+    get processMemoryDumps() {
+      return this.processMemoryDumps_;
+    },
+
+    set aggregationMode(aggregationMode) {
+      this.aggregationMode_ = aggregationMode;
+      this.scheduleRebuildPane_();
+    },
+
+    get aggregationMode() {
+      return this.aggregationMode_;
+    },
+
+    get selectedMemoryCell() {
+      if (this.processMemoryDumps_ === undefined ||
+          this.processMemoryDumps_.length === 0) {
+        return undefined;
+      }
+
+      var selectedTableRow = this.$.table.selectedTableRow;
+      if (!selectedTableRow)
+        return undefined;
+
+      var selectedColumnIndex = this.$.table.selectedColumnIndex;
+      if (selectedColumnIndex === undefined)
+        return undefined;
+
+      var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+      var selectedMemoryCell = selectedColumn.cell(selectedTableRow);
+      return selectedMemoryCell;
+    },
+
+    changeChildPane_: function() {
+      this.storeSelection_();
+      var builder = undefined;
+      if (this.selectedMemoryCell !== undefined)
+        builder = this.selectedMemoryCell.buildDetailsPane;
+      this.childPaneBuilder = builder;
+    },
+
+    rebuildPane_: function() {
+      if (this.processMemoryDumps_ === undefined ||
+          this.processMemoryDumps_.length === 0) {
+        // Show the info text (hide the table).
+        this.$.info_text.style.display = 'block';
+        this.$.table.style.display = 'none';
+
+        this.$.table.clear();
+        this.$.table.rebuild();
+        return;
+      }
+
+      // Show the table (hide the info text).
+      this.$.info_text.style.display = 'none';
+      this.$.table.style.display = 'block';
+
+      var rows = this.createRows_();
+      var footerRows = this.createFooterRows_(rows);
+      var columns = this.createColumns_(rows);
+
+      this.$.table.tableRows = rows;
+      this.$.table.footerRows = footerRows;
+      this.$.table.tableColumns = columns;
+      this.$.table.rebuild();
+
+      this.restoreSelection_();
+    },
+
+    createRows_: function() {
+      // Timestamp (list index) -> Process ID (dict key) -> PMD.
+      var timeToPidToProcessMemoryDump = this.processMemoryDumps_;
+
+      // Process ID (dict key) -> Timestamp (list index) -> PMD or undefined.
+      var pidToTimeToProcessMemoryDump = tr.b.invertArrayOfDicts(
+          timeToPidToProcessMemoryDump);
+
+      // Process (list index) -> Component (dict key) -> Cell.
+      var rows = [];
+
+      var aggregationMode = this.aggregationMode_;
+      return tr.b.dictionaryValues(tr.b.mapItems(
+          pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
+        // Get the process associated with the dumps. We can use any defined
+        // process memory dump in timeToDump since they all have the same pid.
+        var process = tr.b.findFirstInArray(timeToDump).process;
+
+        // Determine at which timestamps (indices of the current selection)
+        // the dump was provided.
+        var defined = timeToDump.map(function(dump) {
+          return dump !== undefined;
+        });
+
+        // Used memory (total resident, PSS, ...).
+        var timeToVmRegions = timeToDump.map(function(dump) {
+          if (dump === undefined)
+            return undefined;
+          return dump.mostRecentVmRegions;
+        });
+        function buildVmRegionsPane() {
+          var pane = document.createElement(
+              'tr-ui-a-memory-dump-vm-regions-details-pane');
+          pane.vmRegions = timeToVmRegions;
+          pane.aggregationMode = aggregationMode;
+          return pane;
+        }
+        var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
+            function(dump) {
+              var sizes = {};
+
+              // Totals.
+              if (dump.totals !== undefined) {
+                tr.ui.analysis.addAttributeIfDefined(
+                    sizes, 'Total resident', tr.model.ScalarAttribute,
+                    'bytes', dump.totals.residentBytes);
+                tr.ui.analysis.addAttributeIfDefined(
+                    sizes, 'Peak total resident', tr.model.ScalarAttribute,
+                    'bytes', dump.totals.peakResidentBytes,
+                    function(attr) {
+                      if (dump.totals.arePeakResidentBytesResettable) {
+                        attr.infos.push(new tr.model.AttributeInfo(
+                            tr.model.AttributeInfoType.RECENT_VALUE,
+                            'Peak RSS since previous memory dump.'));
+                      } else {
+                        attr.infos.push(new tr.model.AttributeInfo(
+                            tr.model.AttributeInfoType.OVERALL_VALUE,
+                            'Peak RSS since process startup. Finer grained ' +
+                            'peaks require a Linux kernel version ' +
+                            GREATER_THAN_OR_EQUAL_TO_SYMBOL + ' 4.0.'));
+                      }
+                    });
+              }
+
+              // VM regions byte stats.
+              var vmRegionAttributeAddedCallback = undefined;
+              if (!dump.hasOwnVmRegions) {
+                vmRegionAttributeAddedCallback = function(attr) {
+                  attr.infos.push(new tr.model.AttributeInfo(
+                      tr.model.AttributeInfoType.LINK,
+                       'Older value (process did not dump memory maps).'));
+                  attr.isOlderValue = true;
+                };
+              }
+              tr.ui.analysis.addAttributeIfDefined(
+                    sizes, 'PSS', tr.model.ScalarAttribute, 'bytes',
+                    dump.getMostRecentTotalVmRegionStat(
+                        'proportionalResident'),
+                    vmRegionAttributeAddedCallback);
+              tr.ui.analysis.addAttributeIfDefined(
+                    sizes, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
+                    dump.getMostRecentTotalVmRegionStat(
+                        'privateDirtyResident'),
+                    vmRegionAttributeAddedCallback);
+              tr.ui.analysis.addAttributeIfDefined(
+                    sizes, 'Swapped', tr.model.ScalarAttribute, 'bytes',
+                    dump.getMostRecentTotalVmRegionStat('swapped'),
+                    vmRegionAttributeAddedCallback);
+
+              return sizes;
+            },
+            function(attrName, cell) {
+              cell.buildDetailsPane = buildVmRegionsPane;
+            });
+
+        // Allocator memory (v8, oilpan, ...).
+        var allocatorCells = tr.ui.analysis.createCells(timeToDump,
+            function(dump) {
+              if (dump.memoryAllocatorDumps === undefined)
+                return undefined;
+              var sizes = {};
+              dump.memoryAllocatorDumps.forEach(function(allocatorDump) {
+                sizes[allocatorDump.fullName] = allocatorDump.attributes[
+                    DISPLAYED_SIZE_ATTRIBUTE_NAME];
+              });
+              return sizes;
+            },
+            function(allocatorName, cell) {
+              var memoryAllocatorDumps = timeToDump.map(function(dump) {
+                if (dump === undefined)
+                  return undefined;
+                return dump.getMemoryAllocatorDumpByFullName(allocatorName);
+              });
+              cell.buildDetailsPane = function() {
+                var pane = document.createElement(
+                    'tr-ui-a-memory-dump-allocator-details-pane');
+                pane.memoryAllocatorDumps = memoryAllocatorDumps;
+                pane.aggregationMode = aggregationMode;
+                return pane;
+              };
+            });
+
+        return {
+          title: process.userFriendlyName,
+          defined: defined,
+          usedMemoryCells: usedMemoryCells,
+          allocatorCells: allocatorCells
+        };
+      }));
+    },
+
+    createFooterRows_: function(rows) {
+      // Add a 'Total' row if there are at least two process memory dumps.
+      if (rows.length <= 1)
+        return [];
+
+      var totalRow = {
+        title: 'Total',
+        noLegend: true
+      };
+
+      tr.ui.analysis.aggregateTableRowCells(
+          totalRow, rows, 'usedMemoryCells');
+      tr.ui.analysis.aggregateTableRowCells(totalRow, rows, 'allocatorCells');
+
+      return [totalRow];
+    },
+
+    createColumns_: function(rows) {
+      var titleColumn = new ProcessNameColumn('Process');
+      titleColumn.width = '200px';
+
+      var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'usedMemoryCells', this.aggregationMode_);
+      tr.ui.analysis.MemoryColumn.sortByImportance(
+          usedMemorySizeColumns, USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES);
+
+      var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'allocatorCells', this.aggregationMode_,
+          function(allocatorName) {
+            var titleEl = document.createElement('tr-ui-b-color-legend');
+            titleEl.label = allocatorName;
+            return titleEl;
+          });
+      tr.ui.analysis.MemoryColumn.sortByImportance(
+          allocatorSizeColumns, ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES);
+
+      // Grey the 'tracing' column out (if present).
+      // TODO(petrcermak): Find a less hacky way to do this.
+      var tracingColumn = tr.b.findFirstInArray(allocatorSizeColumns,
+          function(column) {
+        return column.name === 'tracing';
+      });
+      if (tracingColumn !== undefined) {
+        var tracingColumnColor = tr.ui.b.getColorPalette()[
+            tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
+        tracingColumn.title = tr.ui.b.createSpan(
+            {textContent: 'tracing', color: tracingColumnColor});
+        tracingColumn.color = tracingColumnColor;
+      }
+
+      // Make the used memory size columns blue.
+      // TODO(petrcermak): Find a less hacky way to do this.
+      usedMemorySizeColumns.forEach(function(column) {
+        var olderUsedMemoryColumnColor = tr.ui.b.getColorPalette()[
+            tr.ui.b.getColorIdForReservedName('older_used_memory_column')];
+        var usedMemoryColumnColor = tr.ui.b.getColorPalette()[
+            tr.ui.b.getColorIdForReservedName('used_memory_column')];
+        column.title = tr.ui.b.createSpan(
+            {textContent: column.title, color: usedMemoryColumnColor});
+        column.color = function(attrs) {
+          // TODO(petrcermak): Figure out how to make this work for multi-
+          // selection as well.
+          return attrs.length === 1 && attrs[0].isOlderValue ?
+              olderUsedMemoryColumnColor : usedMemoryColumnColor;
+        }
+      });
+
+      var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
+      tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);
+
+      var columns = [titleColumn].concat(sizeColumns);
+      return columns;
+    },
+
+    storeSelection_: function() {
+      var selectedRowTitle;
+      var selectedRow = this.$.table.selectedTableRow;
+      if (selectedRow !== undefined)
+        selectedRowTitle = selectedRow.title;
+
+      var selectedColumnName;
+      var selectedColumnIndex = this.$.table.selectedColumnIndex;
+      if (selectedColumnIndex !== undefined) {
+        var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+        selectedColumnName = selectedColumn.name;
+      }
+
+      this.$.state.set(
+          {rowTitle: selectedRowTitle, columnName: selectedColumnName});
+    },
+
+    restoreSelection_: function() {
+      var settings = this.$.state.get();
+      if (settings === undefined || settings.rowTitle === undefined ||
+          settings.columnName === undefined)
+        return;
+
+      var selectedColumnName = settings.columnName;
+      var selectedColumnIndex = tr.b.findFirstIndexInArray(
+          this.$.table.tableColumns, function(column) {
+        return column.name === selectedColumnName;
+      });
+      if (selectedColumnIndex < 0)
+        return;
+
+      var selectedRowTitle = settings.rowTitle;
+      var selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
+          function(row) {
+        return row.title === selectedRowTitle;
+      });
+      if (selectedRow === undefined)
+        return;
+
+      this.$.table.selectedTableRow = selectedRow;
+      this.$.table.selectedColumnIndex = selectedColumnIndex;
+    }
+  });
+
+  return {};
+});
+</script>

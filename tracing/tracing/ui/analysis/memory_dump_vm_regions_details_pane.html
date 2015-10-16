@@ -57,430 +57,433 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-  <script>
-  'use strict';
+</polymer-element>
+<script>
+'use strict';
 
-  (function() {
-    var COLUMN_IMPORTANCE_RULES =
-        tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
-            'Start address',
-            'Virtual size',
-            'Protection flags',
-            'PSS',
-            'Private dirty',
-            'Private clean',
-            'Shared dirty',
-            'Shared clean',
-            'Swapped']);
+tr.exportTo('tr.ui.analysis', function() {
 
-    /**
-     * Rules for classifying memory maps.
-     *
-     * These rules are derived from core/jni/android_os_Debug.cpp in Android.
-     */
-    var CLASSIFICATION_RULES = {
-      name: 'Total',
-      children: [
-        {
-          name: 'Android',
-          file: /^\/dev\/ashmem(?!\/libc malloc)/,
-          children: [
-            {
-              name: 'Java runtime',
-              file: /^\/dev\/ashmem\/dalvik-/,
-              children: [
-                {
-                  name: 'Spaces',
-                  file: /\/dalvik-(alloc|main|large object|non moving|zygote) space/,  // @suppress longLineCheck
-                  children: [
-                    {
-                      name: 'Normal',
-                      file: /\/dalvik-(alloc|main)/
-                    },
-                    {
-                      name: 'Large',
-                      file: /\/dalvik-large object/
-                    },
-                    {
-                      name: 'Zygote',
-                      file: /\/dalvik-zygote/
-                    },
-                    {
-                      name: 'Non-moving',
-                      file: /\/dalvik-non moving/
-                    }
-                  ]
-                },
-                {
-                  name: 'Linear Alloc',
-                  file: /\/dalvik-LinearAlloc/
-                },
-                {
-                  name: 'Indirect Reference Table',
-                  file: /\/dalvik-indirect.ref/
-                },
-                {
-                  name: 'Cache',
-                  file: /\/dalvik-jit-code-cache/
-                },
-                {
-                  name: 'Accounting'
-                }
-              ]
-            },
-            {
-              name: 'Cursor',
-              file: /\/CursorWindow/
-            },
-            {
-              name: 'Ashmem'
-            }
-          ]
-        },
-        {
-          name: 'Native heap',
-          file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|(\[discounted tracing overhead\])|$)/  // @suppress longLineCheck
-        },
-        {
-          name: 'Stack',
-          file: /^\[stack/
-        },
-        {
-          name: 'Files',
-          file: /\.((((jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex)|(so))/,
-          children: [
-            {
-              name: 'so',
-              file: /\.so/
-            },
-            {
-              name: 'jar',
-              file: /\.jar$/
-            },
-            {
-              name: 'apk',
-              file: /\.apk$/
-            },
-            {
-              name: 'ttf',
-              file: /\.ttf$/
-            },
-            {
-              name: 'dex',
-              file: /\.((dex)|(odex$))/
-            },
-            {
-              name: 'oat',
-              file: /\.oat$/
-            },
-            {
-              name: 'art',
-              file: /\.art$/
-            }
-          ]
-        },
-        {
-          name: 'Devices',
-          file: /(^\/dev\/)|(anon_inode:dmabuf)/,
-          children: [
-            {
-              name: 'GPU',
-              file: /\/((nv)|(mali)|(kgsl))/
-            },
-            {
-              name: 'DMA',
-              file: /anon_inode:dmabuf/
-            }
-          ]
-        }
-      ]
+  var COLUMN_IMPORTANCE_RULES =
+      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+          'Start address',
+          'Virtual size',
+          'Protection flags',
+          'PSS',
+          'Private dirty',
+          'Private clean',
+          'Shared dirty',
+          'Shared clean',
+          'Swapped']);
+
+  /**
+   * Rules for classifying memory maps.
+   *
+   * These rules are derived from core/jni/android_os_Debug.cpp in Android.
+   */
+  var CLASSIFICATION_RULES = {
+    name: 'Total',
+    children: [
+      {
+        name: 'Android',
+        file: /^\/dev\/ashmem(?!\/libc malloc)/,
+        children: [
+          {
+            name: 'Java runtime',
+            file: /^\/dev\/ashmem\/dalvik-/,
+            children: [
+              {
+                name: 'Spaces',
+                file: /\/dalvik-(alloc|main|large object|non moving|zygote) space/,  // @suppress longLineCheck
+                children: [
+                  {
+                    name: 'Normal',
+                    file: /\/dalvik-(alloc|main)/
+                  },
+                  {
+                    name: 'Large',
+                    file: /\/dalvik-large object/
+                  },
+                  {
+                    name: 'Zygote',
+                    file: /\/dalvik-zygote/
+                  },
+                  {
+                    name: 'Non-moving',
+                    file: /\/dalvik-non moving/
+                  }
+                ]
+              },
+              {
+                name: 'Linear Alloc',
+                file: /\/dalvik-LinearAlloc/
+              },
+              {
+                name: 'Indirect Reference Table',
+                file: /\/dalvik-indirect.ref/
+              },
+              {
+                name: 'Cache',
+                file: /\/dalvik-jit-code-cache/
+              },
+              {
+                name: 'Accounting'
+              }
+            ]
+          },
+          {
+            name: 'Cursor',
+            file: /\/CursorWindow/
+          },
+          {
+            name: 'Ashmem'
+          }
+        ]
+      },
+      {
+        name: 'Native heap',
+        file: /^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|(\[discounted tracing overhead\])|$)/  // @suppress longLineCheck
+      },
+      {
+        name: 'Stack',
+        file: /^\[stack/
+      },
+      {
+        name: 'Files',
+        file: /\.((((jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex)|(so))/,
+        children: [
+          {
+            name: 'so',
+            file: /\.so/
+          },
+          {
+            name: 'jar',
+            file: /\.jar$/
+          },
+          {
+            name: 'apk',
+            file: /\.apk$/
+          },
+          {
+            name: 'ttf',
+            file: /\.ttf$/
+          },
+          {
+            name: 'dex',
+            file: /\.((dex)|(odex$))/
+          },
+          {
+            name: 'oat',
+            file: /\.oat$/
+          },
+          {
+            name: 'art',
+            file: /\.art$/
+          }
+        ]
+      },
+      {
+        name: 'Devices',
+        file: /(^\/dev\/)|(anon_inode:dmabuf)/,
+        children: [
+          {
+            name: 'GPU',
+            file: /\/((nv)|(mali)|(kgsl))/
+          },
+          {
+            name: 'DMA',
+            file: /anon_inode:dmabuf/
+          }
+        ]
+      }
+    ]
+  };
+
+  /**
+   * Create a tree of nested rows (containing no mmaps) corresponding to a
+   * tree of classification rules.
+   */
+  function createEmptyRuleRow(rule) {
+    var row = {
+      title: rule.name,
+      rule: rule,
+      subRows: []
     };
+    if (rule.children !== undefined)
+      row.subRows = rule.children.map(createEmptyRuleRow);
+    return row;
+  }
 
-    /**
-     * Create a tree of nested rows (containing no mmaps) corresponding to a
-     * tree of classification rules.
-     */
-    function createEmptyRuleRow(rule) {
-      var row = {
-        title: rule.name,
-        rule: rule,
-        subRows: []
-      };
-      if (rule.children !== undefined)
-        row.subRows = rule.children.map(createEmptyRuleRow);
-      return row;
+  function hexString(address, is64BitAddress) {
+    if (address === undefined)
+      return undefined;
+    var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
+    return (hexPadding + address.toString(16)).substr(-hexPadding.length);
+  }
+
+  /**
+   * Classify a VM region row and add it to a tree of nested rows.
+   */
+  function classifyRegionRow(ruleRow, regionRow) {
+    var rule = ruleRow.rule;
+    if (rule === undefined ||
+        rule.children === undefined ||
+        rule.children.length === 0) {
+      // Leaf rule (append the region row to the rule's sub-rows).
+      ruleRow.subRows.push(regionRow);
+      return;
     }
 
-    function hexString(address, is64BitAddress) {
-      if (address === undefined)
-        return undefined;
-      var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
-      return (hexPadding + address.toString(16)).substr(-hexPadding.length);
+    // Non-leaf rule (classify region row further down the tree).
+    function regionRowMatchesChildRule(childRule) {
+      var fileRegExp = childRule.file;
+      if (fileRegExp === undefined)
+        return true;
+      return fileRegExp.test(regionRow.title);
     }
 
+    var matchedChildRuleIndex = tr.b.findFirstIndexInArray(
+        rule.children, regionRowMatchesChildRule);
+    if (matchedChildRuleIndex === -1) {
+      // Region belongs to the 'Other' node (created lazily).
+      matchedChildRuleIndex = rule.children.length;
+      if (matchedChildRuleIndex >= ruleRow.subRows.length) {
+        ruleRow.subRows.push({
+          title: 'Other',
+          subRows: []
+        });
+      }
+    }
+
+    classifyRegionRow(ruleRow.subRows[matchedChildRuleIndex], regionRow);
+  }
+
+  Polymer('tr-ui-a-memory-dump-vm-regions-details-pane', {
+    created: function() {
+      this.vmRegions_ = undefined;
+      this.aggregationMode_ = undefined;
+    },
+
+    ready: function() {
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+    },
+
     /**
-     * Classify a VM region row and add it to a tree of nested rows.
+     * Sets the VM regions and schedules rebuilding the pane.
+     *
+     * The provided value should be a chronological list of lists of VM
+     * regions. All VM regions are assumed to belong to the same process.
+     * Example:
+     *
+     *   [
+     *     [
+     *       // VM regions at timestamp 1.
+     *       tr.model.VMRegion {},
+     *       tr.model.VMRegion {},
+     *       tr.model.VMRegion {}
+     *     ],
+     *     undefined,  // No VM regions provided at timestamp 2.
+     *     [
+     *       // VM regions at timestamp 3.
+     *       tr.model.VMRegion {},
+     *       tr.model.VMRegion {}
+     *     ]
+     *   ]
      */
-    function classifyRegionRow(ruleRow, regionRow) {
-      var rule = ruleRow.rule;
-      if (rule === undefined ||
-          rule.children === undefined ||
-          rule.children.length === 0) {
-        // Leaf rule (append the region row to the rule's sub-rows).
-        ruleRow.subRows.push(regionRow);
+    set vmRegions(vmRegions) {
+      this.vmRegions_ = vmRegions;
+      this.scheduleRebuildPane_();
+    },
+
+    get vmRegions() {
+      return this.vmRegions_;
+    },
+
+    set aggregationMode(aggregationMode) {
+      this.aggregationMode_ = aggregationMode;
+      this.scheduleRebuildPane_();
+    },
+
+    get aggregationMode() {
+      return this.aggregationMode_;
+    },
+
+    rebuildPane_: function() {
+      var unclassifiedRows = [];
+      if (this.vmRegions_ !== undefined)
+        unclassifiedRows = this.createUnclassifiedRows_(this.vmRegions_);
+      if (unclassifiedRows.length === 0) {
+        // Show the info text (hide the table).
+        this.$.info_text.style.display = 'block';
+        this.$.table.style.display = 'none';
+
+        this.$.table.clear();
+        this.$.table.rebuild();
         return;
       }
 
-      // Non-leaf rule (classify region row further down the tree).
-      function regionRowMatchesChildRule(childRule) {
-        var fileRegExp = childRule.file;
-        if (fileRegExp === undefined)
-          return true;
-        return fileRegExp.test(regionRow.title);
-      }
+      // Show the table (hide the info text).
+      this.$.info_text.style.display = 'none';
+      this.$.table.style.display = 'block';
 
-      var matchedChildRuleIndex = tr.b.findFirstIndexInArray(
-          rule.children, regionRowMatchesChildRule);
-      if (matchedChildRuleIndex === -1) {
-        // Region belongs to the 'Other' node (created lazily).
-        matchedChildRuleIndex = rule.children.length;
-        if (matchedChildRuleIndex >= ruleRow.subRows.length) {
-          ruleRow.subRows.push({
-            title: 'Other',
-            subRows: []
-          });
-        }
-      }
+      var rows = this.classifyRows_(unclassifiedRows);
+      var columns = this.createColumns_(rows);
 
-      classifyRegionRow(ruleRow.subRows[matchedChildRuleIndex], regionRow);
-    }
+      this.$.table.tableRows = rows;
+      this.$.table.tableColumns = columns;
 
-    Polymer({
-      created: function() {
-        this.vmRegions_ = undefined;
-        this.aggregationMode_ = undefined;
-      },
+      // TODO(petrcermak): This can be quite slow. Consider doing this somehow
+      // asynchronously.
+      this.$.table.rebuild();
 
-      ready: function() {
-        this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      },
+      tr.ui.analysis.expandTableRowsRecursively(this.$.table);
+    },
 
-      /**
-       * Sets the VM regions and schedules rebuilding the pane.
-       *
-       * The provided value should be a chronological list of lists of VM
-       * regions. All VM regions are assumed to belong to the same process.
-       * Example:
-       *
-       *   [
-       *     [
-       *       // VM regions at timestamp 1.
-       *       tr.model.VMRegion {},
-       *       tr.model.VMRegion {},
-       *       tr.model.VMRegion {}
-       *     ],
-       *     undefined,  // No VM regions provided at timestamp 2.
-       *     [
-       *       // VM regions at timestamp 3.
-       *       tr.model.VMRegion {},
-       *       tr.model.VMRegion {}
-       *     ]
-       *   ]
-       */
-      set vmRegions(vmRegions) {
-        this.vmRegions_ = vmRegions;
-        this.scheduleRebuildPane_();
-      },
+    /**
+     * Join VM regions from a chronological list of lists of VM regions:
+     *
+     *   INPUT:
+     *
+     *     [
+     *       [regionA_at_time1, regionB_at_time1, ...],  // Time 1.
+     *       [regionA_at_time2, regionB_at_time2, ...],  // Time 2.
+     *       ...
+     *     ]
+     *
+     *   OUTPUT:
+     *
+     *     [
+     *       [regionA_at_time1, regionA_at_time2, ...],  // Region A.
+     *       [regionB_at_time1, regionB_at_time2, ...],  // Region B.
+     *       ...
+     *     ]
+     *
+     * Two regions (from different timestamps) are considered to refer to the
+     * same region if they have the same mapped file, start address, and
+     * virtual size.
+     */
+    joinRegions_: function(timeToRegionIdToRegion) {
+      // TODO(petrcermak): Investigate if it's worth defining a dedicated
+      // method for this (invertArrayOfArrays) for performance reasons.
+      return tr.b.dictionaryValues(tr.b.invertArrayOfDicts(
+          timeToRegionIdToRegion,
+          function(regionIdToRegion) {
+            return tr.b.arrayToDict(regionIdToRegion, function(region) {
+              return [region.mappedFile, region.startAddress].join('#');
+            });
+          }));
+    },
 
-      get vmRegions() {
-        return this.vmRegions_;
-      },
-
-      set aggregationMode(aggregationMode) {
-        this.aggregationMode_ = aggregationMode;
-        this.scheduleRebuildPane_();
-      },
-
-      get aggregationMode() {
-        return this.aggregationMode_;
-      },
-
-      rebuildPane_: function() {
-        var unclassifiedRows = [];
-        if (this.vmRegions_ !== undefined)
-          unclassifiedRows = this.createUnclassifiedRows_(this.vmRegions_);
-        if (unclassifiedRows.length === 0) {
-          // Show the info text (hide the table).
-          this.$.info_text.style.display = 'block';
-          this.$.table.style.display = 'none';
-
-          this.$.table.clear();
-          this.$.table.rebuild();
-          return;
-        }
-
-        // Show the table (hide the info text).
-        this.$.info_text.style.display = 'none';
-        this.$.table.style.display = 'block';
-
-        var rows = this.classifyRows_(unclassifiedRows);
-        var columns = this.createColumns_(rows);
-
-        this.$.table.tableRows = rows;
-        this.$.table.tableColumns = columns;
-
-        // TODO(petrcermak): This can be quite slow. Consider doing this somehow
-        // asynchronously.
-        this.$.table.rebuild();
-
-        tr.ui.analysis.expandTableRowsRecursively(this.$.table);
-      },
-
-      /**
-       * Join VM regions from a chronological list of lists of VM regions:
-       *
-       *   INPUT:
-       *
-       *     [
-       *       [regionA_at_time1, regionB_at_time1, ...],  // Time 1.
-       *       [regionA_at_time2, regionB_at_time2, ...],  // Time 2.
-       *       ...
-       *     ]
-       *
-       *   OUTPUT:
-       *
-       *     [
-       *       [regionA_at_time1, regionA_at_time2, ...],  // Region A.
-       *       [regionB_at_time1, regionB_at_time2, ...],  // Region B.
-       *       ...
-       *     ]
-       *
-       * Two regions (from different timestamps) are considered to refer to the
-       * same region if they have the same mapped file, start address, and
-       * virtual size.
-       */
-      joinRegions_: function(timeToRegionIdToRegion) {
-        // TODO(petrcermak): Investigate if it's worth defining a dedicated
-        // method for this (invertArrayOfArrays) for performance reasons.
-        return tr.b.dictionaryValues(tr.b.invertArrayOfDicts(
-            timeToRegionIdToRegion,
-            function(regionIdToRegion) {
-              return tr.b.arrayToDict(regionIdToRegion, function(region) {
-                return [region.mappedFile, region.startAddress].join('#');
-              });
-            }));
-      },
-
-      createUnclassifiedRows_: function(timeToRegionIdToRegion) {
-        // Determine if any start address is outside the 32-bit range.
-        var is64BitAddress = timeToRegionIdToRegion.some(
-            function(regionIdToRegion) {
-          if (regionIdToRegion === undefined)
+    createUnclassifiedRows_: function(timeToRegionIdToRegion) {
+      // Determine if any start address is outside the 32-bit range.
+      var is64BitAddress = timeToRegionIdToRegion.some(
+          function(regionIdToRegion) {
+        if (regionIdToRegion === undefined)
+          return false;
+        return regionIdToRegion.some(function(region) {
+          if (region.startAddress === undefined)
             return false;
-          return regionIdToRegion.some(function(region) {
-            if (region.startAddress === undefined)
-              return false;
-            return region.startAddress >= 4294967296 /* 2^32 */;
-          });
+          return region.startAddress >= 4294967296 /* 2^32 */;
+        });
+      });
+
+      // Region ID (list index) -> Timestamp (list index) -> VM region.
+      var regionIdToTimeToRegion = this.joinRegions_(timeToRegionIdToRegion);
+
+      return regionIdToTimeToRegion.map(function(timeToRegion) {
+        // Get any defined VM region so that we can extract the properties
+        // which don't change over time.
+        var definedRegion = tr.b.findFirstInArray(timeToRegion);
+
+        // Determine at which timestamps (indices of the current selection)
+        // VM regions were provided.
+        var defined = timeToRegion.map(function(region) {
+          return region !== undefined;
         });
 
-        // Region ID (list index) -> Timestamp (list index) -> VM region.
-        var regionIdToTimeToRegion = this.joinRegions_(timeToRegionIdToRegion);
+        // Cells for VM region properties which DON'T change over time.
+        var constantCells = tr.ui.analysis.createCells([definedRegion],
+            function(region) {
+              var attrs = {};
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Start address', tr.model.StringAttribute, '',
+                  hexString(region.startAddress, is64BitAddress));
+              return attrs;
+            });
 
-        return regionIdToTimeToRegion.map(function(timeToRegion) {
-          // Get any defined VM region so that we can extract the properties
-          // which don't change over time.
-          var definedRegion = tr.b.findFirstInArray(timeToRegion);
+        // Cells for VM region properties which DO change over time.
+        var variableCells = tr.ui.analysis.createCells(timeToRegion,
+            function(region) {
+              var attrs = {};
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Virtual size', tr.model.ScalarAttribute, 'bytes',
+                  region.sizeInBytes);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Protection flags', tr.model.StringAttribute, '',
+                  region.protectionFlagsToString);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'PSS', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.proportionalResident);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.privateDirtyResident);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Private clean', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.privateCleanResident);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Shared dirty', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.sharedDirtyResident);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Shared clean', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.sharedCleanResident);
+              tr.ui.analysis.addAttributeIfDefined(
+                  attrs, 'Swapped', tr.model.ScalarAttribute, 'bytes',
+                  region.byteStats.swapped);
+              return attrs;
+            });
 
-          // Determine at which timestamps (indices of the current selection)
-          // VM regions were provided.
-          var defined = timeToRegion.map(function(region) {
-            return region !== undefined;
-          });
+        return {
+          title: definedRegion.mappedFile || '',
+          defined: defined,
+          constantCells: constantCells,
+          variableCells: variableCells
+        };
+      });
+    },
 
-          // Cells for VM region properties which DON'T change over time.
-          var constantCells = tr.ui.analysis.createCells([definedRegion],
-              function(region) {
-                var attrs = {};
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Start address', tr.model.StringAttribute, '',
-                    hexString(region.startAddress, is64BitAddress));
-                return attrs;
-              });
+    classifyRows_: function(unclassifiedRows) {
+      // Create an empty tree structure of rows.
+      var rootRow = createEmptyRuleRow(CLASSIFICATION_RULES);
 
-          // Cells for VM region properties which DO change over time.
-          var variableCells = tr.ui.analysis.createCells(timeToRegion,
-              function(region) {
-                var attrs = {};
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Virtual size', tr.model.ScalarAttribute, 'bytes',
-                    region.sizeInBytes);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Protection flags', tr.model.StringAttribute, '',
-                    region.protectionFlagsToString);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'PSS', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.proportionalResident);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.privateDirtyResident);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Private clean', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.privateCleanResident);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Shared dirty', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.sharedDirtyResident);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Shared clean', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.sharedCleanResident);
-                tr.ui.analysis.addAttributeIfDefined(
-                    attrs, 'Swapped', tr.model.ScalarAttribute, 'bytes',
-                    region.byteStats.swapped);
-                return attrs;
-              });
+      // Classify the VM regions.
+      unclassifiedRows.map(classifyRegionRow.bind(undefined, rootRow));
 
-          return {
-            title: definedRegion.mappedFile || '',
-            defined: defined,
-            constantCells: constantCells,
-            variableCells: variableCells
-          };
-        });
-      },
+      // Aggregate attributes of the VM regions.
+      tr.ui.analysis.aggregateTableRowCellsRecursively(
+          rootRow, 'constantCells');
+      tr.ui.analysis.aggregateTableRowCellsRecursively(
+          rootRow, 'variableCells');
 
-      classifyRows_: function(unclassifiedRows) {
-        // Create an empty tree structure of rows.
-        var rootRow = createEmptyRuleRow(CLASSIFICATION_RULES);
+      return [rootRow];
+    },
 
-        // Classify the VM regions.
-        unclassifiedRows.map(classifyRegionRow.bind(undefined, rootRow));
+    createColumns_: function(rows) {
+      var titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
+      titleColumn.width = '200px';
 
-        // Aggregate attributes of the VM regions.
-        tr.ui.analysis.aggregateTableRowCellsRecursively(
-            rootRow, 'constantCells');
-        tr.ui.analysis.aggregateTableRowCellsRecursively(
-            rootRow, 'variableCells');
+      var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'constantCells');
+      var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'variableCells', this.aggregationMode_);
+      var attributeColumns = constantColumns.concat(variableColumns);
+      tr.ui.analysis.MemoryColumn.sortByImportance(attributeColumns,
+          COLUMN_IMPORTANCE_RULES);
+      tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
-        return [rootRow];
-      },
+      var columns = [titleColumn].concat(attributeColumns);
+      return columns;
+    }
+  });
 
-      createColumns_: function(rows) {
-        var titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
-        titleColumn.width = '200px';
-
-        var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(
-            rows, 'constantCells');
-        var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(
-            rows, 'variableCells', this.aggregationMode_);
-        var attributeColumns = constantColumns.concat(variableColumns);
-        tr.ui.analysis.MemoryColumn.sortByImportance(attributeColumns,
-            COLUMN_IMPORTANCE_RULES);
-        tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
-
-        var columns = [titleColumn].concat(attributeColumns);
-        return columns;
-      }
-    });
-  })();
-  </script>
-</polymer-element>
+  return {};
+});
+</script>
