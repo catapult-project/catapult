@@ -107,6 +107,23 @@ found in the LICENSE file.
           'selection-changed', this.onSelectionChanged_.bind(this));
       this.$.threshold.addEventListener(
           'change', this.onThresholdChanged_.bind(this));
+
+      var copyingState = false;
+      function copySortingState(toTable, event) {
+        // Block reentrant calls.
+        if (copyingState)
+          return;
+        copyingState = true;
+        if (toTable.tableColumns.length >= event.sortColumnIndex) {
+          toTable.sortColumnIndex = event.sortColumnIndex;
+          toTable.sortDescending = event.sortDescending;
+        }
+        copyingState = false;
+      }
+      this.$.tableFast.addEventListener('sort-column-changed',
+          copySortingState.bind(this, this.$.tableSlow));
+      this.$.tableSlow.addEventListener('sort-column-changed',
+          copySortingState.bind(this, this.$.tableFast));
     },
 
     get mapResults() {
