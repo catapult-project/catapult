@@ -167,12 +167,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.append('--enable-remote-debugging')
     args.append('--disable-fre')
     args.append('--disable-external-intent-requests')
-
-    trace_config_file = (self.platform_backend.tracing_controller_backend
-                         .GetChromeTraceConfigFile())
-    if trace_config_file:
-      args.append('--trace-config-file=%s' % trace_config_file)
-
     return args
 
   @property
