@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import time
 import unittest
 
 from telemetry.internal.backends.chrome_inspector import tracing_backend
+from telemetry.internal.backends.chrome_inspector.tracing_backend import _DevToolsStreamReader
 from telemetry.testing import fakes
 from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
@@ -161,3 +163,40 @@ class TracingBackendUnitTest(unittest.TestCase):
     backend = tracing_backend.TracingBackend(self._inspector_socket)
 
     self.assertIsNone(backend.DumpMemory())
+
+class DevToolsStreamPerformanceTest(unittest.TestCase):
+  def setUp(self):
+    self._mock_timer = simple_mock.MockTimer(tracing_backend)
+    self._inspector_socket = fakes.FakeInspectorWebsocket(self._mock_timer)
+
+  def _MeasureReadTime(self, count):
+    mock_time = self._mock_timer.time() + 1
+    payload = ','.join(['{}'] * 5000)
+    self._inspector_socket.AddAsyncResponse('IO.read', {'data': '[' + payload},
+                                            mock_time)
+    startClock = time.clock()
+
+    done = {'done': False}
+    def mark_done(data):
+      done['done'] = True
+
+    reader = _DevToolsStreamReader(self._inspector_socket, 'dummy')
+    reader.Read(mark_done)
+    while not done['done']:
+      mock_time += 1
+      if count > 0:
+        self._inspector_socket.AddAsyncResponse('IO.read', {'data': payload},
+            mock_time)
+      elif count == 0:
+        self._inspector_socket.AddAsyncResponse('IO.read',
+            {'data': payload + ']', 'eof': True}, mock_time)
+      count -= 1
+      self._inspector_socket.DispatchNotifications(10)
+    return time.clock() - startClock
+
+  def testReadTime(self):
+    t1k = self._MeasureReadTime(1000)
+    t10k = self._MeasureReadTime(10000)
+    # Time is an illusion, CPU time is doubly so, allow great deal of tolerance.
+    toleranceFactor = 5
+    self.assertLess(t10k / t1k, 10000 / 1000 * toleranceFactor)

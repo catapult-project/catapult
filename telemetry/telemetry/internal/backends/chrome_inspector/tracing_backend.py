@@ -45,29 +45,36 @@ class _DevToolsStreamReader(object):
     # we only read data sequentially at the moment, so a stream
     # can only be read once.
     assert not self._callback
-    self._data = ''
+    self._data = []
     self._callback = callback
+    self._ReadChunkFromStream()
+    # The below is not a typo -- queue one extra read ahead to avoid latency.
     self._ReadChunkFromStream()
 
   def _ReadChunkFromStream(self):
     # Limit max block size to avoid fragmenting memory in sock.recv(),
     # (see https://github.com/liris/websocket-client/issues/163 for details)
     req = {'method': 'IO.read', 'params': {
-        'handle': self._handle, 'size': 16384}}
+        'handle': self._handle, 'size': 32768}}
     self._inspector_websocket.AsyncRequest(req, self._GotChunkFromStream)
 
   def _GotChunkFromStream(self, response):
+    # Quietly discard responses from reads queued ahead after EOF.
+    if self._data is None:
+      return
     if 'error' in response:
       raise TracingUnrecoverableException(
           'Reading trace failed: %s' % response['error']['message'])
     result = response['result']
-    self._data += result['data']
+    self._data.append(result['data'])
     if not result.get('eof', False):
       self._ReadChunkFromStream()
       return
     req = {'method': 'IO.close', 'params': {'handle': self._handle}}
     self._inspector_websocket.SendAndIgnoreResponse(req)
-    self._callback(self._data)
+    trace_string = ''.join(self._data)
+    self._data = None
+    self._callback(trace_string)
 
 
 class TracingBackend(object):
