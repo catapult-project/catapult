@@ -366,9 +366,13 @@ tr.exportTo('tr.ui.b', function() {
       },
 
       set sortColumnIndex(number) {
+        if (number === this.sortColumnIndex_)
+          return;
+
         if (number === undefined) {
           this.sortColumnIndex_ = undefined;
           this.updateHeaderArrows_();
+          this.dispatchSortingChangedEvent_();
           return;
         }
 
@@ -380,6 +384,7 @@ tr.exportTo('tr.ui.b', function() {
         this.sortColumnIndex_ = number;
         this.updateHeaderArrows_();
         this.scheduleRebuildBody_();
+        this.dispatchSortingChangedEvent_();
       },
 
       get sortColumnIndex() {
@@ -393,6 +398,7 @@ tr.exportTo('tr.ui.b', function() {
           this.sortDescending_ = newValue;
           this.updateHeaderArrows_();
           this.scheduleRebuildBody_();
+          this.dispatchSortingChangedEvent_();
         }
       },
 
@@ -1276,6 +1282,13 @@ tr.exportTo('tr.ui.b', function() {
         var node = this.getSelectableNodeGivenTableRowNode_(
             this.selectedTableRowInfo_.htmlNode);
         node.focus();
+      },
+
+      dispatchSortingChangedEvent_: function() {
+        var e = new tr.b.Event('sort-column-changed');
+        e.sortColumnIndex = this.sortColumnIndex_;
+        e.sortDescending = this.sortDescending_;
+        this.dispatchEvent(e);
       }
     });
   })();

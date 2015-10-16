@@ -584,6 +584,52 @@ tr.b.unittest.testSuite(function() {
     assert.equal(r1.rowInfo.userRow, rows[0]);
   });
 
+  test('sortDispatchesEvent', function() {
+    var table = document.createElement('tr-ui-b-table');
+    var columns = [
+      {
+        title: 'Column 0',
+        value: function(row) { return row.value0; },
+        cmp: function(rowA, rowB) { return rowA.value0 - rowB.value0; }
+      },
+      {
+        title: 'Column 1',
+        value: function(row) { return row.value1; },
+        cmp: function(rowA, rowB) { return rowA.value1 - rowB.value1; }
+      }
+    ];
+
+    var sortColumnIndex = undefined;
+    var sortDescending = undefined;
+    var numListenerCalls = 0;
+    table.tableColumns = columns;
+    table.addEventListener('sort-column-changed', function(e) {
+      sortColumnIndex = e.sortColumnIndex;
+      sortDescending = e.sortDescending;
+      numListenerCalls++;
+    });
+    table.rebuild();
+
+    table.sortColumnIndex = 0;
+    assert.equal(sortColumnIndex, 0);
+    assert.equal(numListenerCalls, 1);
+
+    table.sortDescending = true;
+    assert.equal(sortColumnIndex, 0);
+    assert.isTrue(sortDescending);
+    assert.equal(numListenerCalls, 2);
+
+    table.sortColumnIndex = 1;
+    table.sortDescending = false;
+    assert.equal(sortColumnIndex, 1);
+    assert.isFalse(sortDescending);
+    assert.equal(numListenerCalls, 4);
+
+    table.sortColumnIndex = undefined;
+    assert.equal(sortColumnIndex, undefined);
+    assert.equal(numListenerCalls, 5);
+  });
+
   test('sortingAfterExpand', function() {
     var table = document.createElement('tr-ui-b-table');
 
