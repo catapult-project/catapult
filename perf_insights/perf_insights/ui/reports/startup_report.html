@@ -93,37 +93,27 @@ found in the LICENSE file.
 
 (function() {
   var DEFAULT_SLOW_THRESHOLD_MS = 3500;
+
   Polymer('pi-ui-r-startup-report', {
     created: function() {
       this.mapResults_ = undefined;
       this.slowThresholdMs_ = DEFAULT_SLOW_THRESHOLD_MS;
+      this.copyingState_ = false;  // True when copying state between tables.
     },
 
     ready: function() {
       this.$.threshold.value = DEFAULT_SLOW_THRESHOLD_MS;
-      this.$.tableFast.addEventListener(
-          'selection-changed', this.onSelectionChanged_.bind(this));
-      this.$.tableSlow.addEventListener(
-          'selection-changed', this.onSelectionChanged_.bind(this));
+
+      this.$.tableFast.addEventListener('selection-changed',
+          this.copySelectedRow_.bind(this, this.$.tableFast, this.$.tableSlow));
+      this.$.tableSlow.addEventListener('selection-changed',
+          this.copySelectedRow_.bind(this, this.$.tableSlow, this.$.tableFast));
+      this.$.tableFast.addEventListener('sort-column-changed',
+          this.copySortingState_.bind(this, this.$.tableSlow));
+      this.$.tableSlow.addEventListener('sort-column-changed',
+          this.copySortingState_.bind(this, this.$.tableFast));
       this.$.threshold.addEventListener(
           'change', this.onThresholdChanged_.bind(this));
-
-      var copyingState = false;
-      function copySortingState(toTable, event) {
-        // Block reentrant calls.
-        if (copyingState)
-          return;
-        copyingState = true;
-        if (toTable.tableColumns.length >= event.sortColumnIndex) {
-          toTable.sortColumnIndex = event.sortColumnIndex;
-          toTable.sortDescending = event.sortDescending;
-        }
-        copyingState = false;
-      }
-      this.$.tableFast.addEventListener('sort-column-changed',
-          copySortingState.bind(this, this.$.tableSlow));
-      this.$.tableSlow.addEventListener('sort-column-changed',
-          copySortingState.bind(this, this.$.tableFast));
     },
 
     get mapResults() {
@@ -135,7 +125,41 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    onSelectionChanged_: function(event) {
+
+    // Looks at the selected row in |fromTable| and select the matching one in
+    // |toTable|.
+    copySelectedRow_: function(fromTable, toTable) {
+      // Block reentrant calls.
+      if (this.copyingState_)
+        return;
+      this.copyingState_ = true;
+      var selectedRow = fromTable.selectedTableRow;
+      if (selectedRow === undefined) {
+        // TODO(beaudoin): Table doesn't support de-selection. Fix once it does.
+      } else {
+        var rowToSelect = undefined;
+        toTable.tableRows.forEach(function(row) {
+          if (row.title === selectedRow.title)
+            rowToSelect = row;
+        });
+        // TODO(beaudoin): Table doesn't support de-selection. Fix once it does.
+        if (rowToSelect)
+          toTable.selectedTableRow = rowToSelect;
+      }
+      this.copyingState_ = false;
+    },
+
+    // Apply the sorting state of |fromTable| to |toTable|.
+    copySortingState_: function(toTable, event) {
+      // Block reentrant calls.
+      if (this.copyingState_)
+        return;
+      this.copyingState_ = true;
+      if (toTable.tableColumns.length >= event.sortColumnIndex) {
+        toTable.sortColumnIndex = event.sortColumnIndex;
+        toTable.sortDescending = event.sortDescending;
+      }
+      this.copyingState_ = false;
     },
 
     onThresholdChanged_: function(event) {
