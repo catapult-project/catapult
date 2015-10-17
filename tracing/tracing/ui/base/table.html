@@ -206,8 +206,9 @@ tr.exportTo('tr.ui.b', function() {
 
         this.tableColumns_ = [];
         this.tableRows_ = [];
-        this.tableRowsInfo_ = [];
+        this.tableRowsInfo_ = new WeakMap();
         this.tableFooterRows_ = [];
+        this.tableFooterRowsInfo_ = new WeakMap();
         this.sortColumnIndex_ = undefined;
         this.sortDescending_ = false;
         this.columnsWithExpandButtons_ = [];
