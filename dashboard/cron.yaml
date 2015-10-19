@@ -11,10 +11,6 @@ cron:
   url: /auto_triage
   schedule: every 6 hours
 
-- description: Update metadata from unit-info.json, etc.
-  url: /update_test_metadata
-  schedule: every 24 hours
-
 - description: Send e-mails with daily anomaly summaries.
   url: /email_summary
   schedule: every 24 hours
