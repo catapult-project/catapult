@@ -48,6 +48,9 @@ _BISECT_BOT_TIMEOUT = 12 * 60
 # Amount of time to pass before deleting a try job.
 _STALE_TRYJOB_DELTA = datetime.timedelta(days=7)
 
+# Amount of time pass before deleteing try jobs that use Buildbucket.
+_STALE_TRYJOB_DELTA_BUILDBUCKET = datetime.timedelta(days=21)
+
 _BUG_COMMENT_TEMPLATE = """Bisect job status: %(status)s
 Bisect job ran on: %(bisect_bot)s
 
@@ -117,9 +120,13 @@ def _CheckJob(job, issue_tracker):
     issue_tracker: An issue_tracker_service.IssueTrackerService instance.
   """
   # Give up on stale try job.
+  if job.use_buildbucket:
+    stale_delta = _STALE_TRYJOB_DELTA_BUILDBUCKET
+  else:
+    stale_delta = _STALE_TRYJOB_DELTA
   if (job.last_ran_timestamp and
-      job.last_ran_timestamp < datetime.datetime.now() - _STALE_TRYJOB_DELTA):
-    comment = 'Stale bisect job cancelled.  Will retry again later.'
+      job.last_ran_timestamp < datetime.datetime.now() - stale_delta):
+    comment = 'Stale bisect job, will stop waiting for results.'
     comment += 'Rietveld issue: %s' % job.rietveld_issue_id
     start_try_job.LogBisectResult(job.bug_id, comment)
     job.SetFailed()
