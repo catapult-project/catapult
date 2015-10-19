@@ -227,7 +227,7 @@ indexes:
   - name: mail_sent
 
 # Used in update_test_suites to query keys of test suites (parent_test == None)
-# with  deprecated and description projection. Two separate lists of
+# with deprecated and description projection. Two separate lists of
 # test suites are kept, one for external and one for internal.
 - kind: Test
   properties:
@@ -240,6 +240,19 @@ indexes:
   - name: parent_test
   - name: deprecated
   - name: description
+
+# Used in update_test_suites to query keys of test suites (parent_test == None)
+# with monitored projection. Two separate lists of test suites are kept, one for
+# external and one for internal.
+- kind: Test
+  properties:
+  - name: parent_test
+  - name: monitored
+- kind: Test
+  properties:
+  - name: internal_only
+  - name: parent_test
+  - name: monitored
 
 # Used in list_tests.py to query Test by test path pattern.
 - kind: Test
