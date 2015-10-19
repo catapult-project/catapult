@@ -23,20 +23,6 @@ TRACKED_GL_CONTEXT_NAME = {'RenderCompositor': 'render_compositor',
                            'Compositor': 'browser_compositor'}
 
 
-class GPUTimelineListOfValues(list_of_scalar_values.ListOfScalarValues):
-  def __init__(self, page, name, values):
-    super(GPUTimelineListOfValues, self).__init__(
-        page, name, 'ms', values,
-        improvement_direction=improvement_direction.DOWN)
-
-
-class GPUTimelineValue(scalar.ScalarValue):
-  def __init__(self, page, name, value):
-    super(GPUTimelineValue, self).__init__(
-      page, name, 'ms', value,
-      improvement_direction=improvement_direction.DOWN)
-
-
 def _CalculateFrameTimes(events_per_frame, event_data_func):
   """Given a list of events per frame and a function to extract event time data,
      returns a list of frame times."""
@@ -103,19 +89,23 @@ class GPUTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         frame_times_name = '%s_frame_times' % (name)
 
       if durations:
-        results.AddValue(GPUTimelineListOfValues(results.current_page,
-                                                 frame_times_name,
-                                                 durations))
+        results.AddValue(list_of_scalar_values.ListOfScalarValues(
+            results.current_page, frame_times_name, 'ms', durations,
+            tir_label=interaction_records[0].label,
+            improvement_direction=improvement_direction.DOWN))
 
-      results.AddValue(GPUTimelineValue(results.current_page,
-                                        TimelineName(name, src, 'max'),
-                                        maximum))
-      results.AddValue(GPUTimelineValue(results.current_page,
-                                        TimelineName(name, src, 'mean'),
-                                        avg))
-      results.AddValue(GPUTimelineValue(results.current_page,
-                                        TimelineName(name, src, 'stddev'),
-                                        stddev))
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, TimelineName(name, src, 'max'), 'ms', maximum,
+          tir_label=interaction_records[0].label,
+          improvement_direction=improvement_direction.DOWN))
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, TimelineName(name, src, 'mean'), 'ms', avg,
+          tir_label=interaction_records[0].label,
+          improvement_direction=improvement_direction.DOWN))
+      results.AddValue(scalar.ScalarValue(
+          results.current_page, TimelineName(name, src, 'stddev'), 'ms', stddev,
+          tir_label=interaction_records[0].label,
+          improvement_direction=improvement_direction.DOWN))
 
   def _CalculateGPUTimelineData(self, model):
     """Uses the model and calculates the times for various values for each
