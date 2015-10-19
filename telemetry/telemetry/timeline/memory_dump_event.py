@@ -240,6 +240,10 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     """Get a dictionary with the memory usage of this process."""
     usage = {'allocator_%s' % name: allocator.get('size', 0)
              for name, allocator in self._allocators.iteritems()}
+    usage.update(('allocated_objects_%s' % name,
+                  allocator['allocated_objects_size'])
+                 for name, allocator in self._allocators.iteritems()
+                 if allocator.has_key('allocated_objects_size'))
     if self.has_mmaps:
       usage.update((key, self.GetMemoryValue(*value))
                    for key, value in MMAPS_METRICS.iteritems())

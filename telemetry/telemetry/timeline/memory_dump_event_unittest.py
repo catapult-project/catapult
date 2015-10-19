@@ -72,28 +72,31 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
   def testRepr(self):
     process_dump1 = TestProcessDumpEvent(
         mmaps={'/dev/ashmem/other-ashmem': {'pss': 5}},
-        allocators={'v8': {'size': 10}})
+        allocators={'v8': {'size': 10, 'allocated_objects_size' : 5}})
     process_dump2 = TestProcessDumpEvent(
         mmaps={'/dev/ashmem/libc malloc': {'pss': 42, 'pd': 27}},
-        allocators={'v8': {'size': 20}, 'oilpan': {'size': 40}})
+        allocators={'v8': {'size': 20, 'allocated_objects_size' : 10},
+                    'oilpan': {'size': 40}})
     global_dump = memory_dump_event.GlobalMemoryDump(
         [process_dump1, process_dump2])
 
     self.assertEquals(
         repr(process_dump1),
-        'ProcessMemoryDumpEvent[pid=1234, allocator_v8=10, mmaps_ashmem=5,'
-        ' mmaps_java_heap=0, mmaps_native_heap=0, mmaps_overall_pss=5,'
-        ' mmaps_private_dirty=0]')
+        'ProcessMemoryDumpEvent[pid=1234, allocated_objects_v8=5,'
+        ' allocator_v8=10, mmaps_ashmem=5, mmaps_java_heap=0,'
+        ' mmaps_native_heap=0, mmaps_overall_pss=5, mmaps_private_dirty=0]')
     self.assertEquals(
         repr(process_dump2),
-        'ProcessMemoryDumpEvent[pid=1234, allocator_oilpan=40, allocator_v8=20,'
-        ' mmaps_ashmem=0, mmaps_java_heap=0, mmaps_native_heap=42,'
-        ' mmaps_overall_pss=42, mmaps_private_dirty=27]')
+        'ProcessMemoryDumpEvent[pid=1234, allocated_objects_v8=10,'
+        ' allocator_oilpan=40, allocator_v8=20, mmaps_ashmem=0,'
+        ' mmaps_java_heap=0, mmaps_native_heap=42, mmaps_overall_pss=42,'
+        ' mmaps_private_dirty=27]')
     self.assertEquals(
         repr(global_dump),
-        'GlobalMemoryDump[id=123456ABCDEF, allocator_oilpan=40,'
-        ' allocator_v8=30, mmaps_ashmem=5, mmaps_java_heap=0,'
-        ' mmaps_native_heap=42, mmaps_overall_pss=47, mmaps_private_dirty=27]')
+        'GlobalMemoryDump[id=123456ABCDEF, allocated_objects_v8=15,'
+        ' allocator_oilpan=40, allocator_v8=30, mmaps_ashmem=5,'
+        ' mmaps_java_heap=0, mmaps_native_heap=42, mmaps_overall_pss=47,'
+        ' mmaps_private_dirty=27]')
 
   def testDumpEventsTiming(self):
     memory_dump = memory_dump_event.GlobalMemoryDump([
@@ -134,6 +137,24 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                        'mmaps_java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
                        'mmaps_ashmem': ASHMEM_1 + ASHMEM_2,
                        'mmaps_native_heap': NATIVE},
+                      memory_dump.GetMemoryUsage())
+
+  def testGetMemoryUsageWithAllocators(self):
+    process_dump1 = TestProcessDumpEvent(
+        mmaps={'/dev/ashmem/other-ashmem': {'pss': 5}},
+        allocators={'v8': {'size': 10, 'allocated_objects_size' : 5}})
+    process_dump2 = TestProcessDumpEvent(
+        mmaps={'/dev/ashmem/other-ashmem': {'pss': 5}},
+        allocators={'v8': {'size': 20, 'allocated_objects_size' : 10}})
+    memory_dump = memory_dump_event.GlobalMemoryDump(
+        [process_dump1, process_dump2])
+    self.assertEquals({'mmaps_overall_pss': 10,
+                       'mmaps_private_dirty': 0,
+                       'mmaps_java_heap': 0,
+                       'mmaps_ashmem': 10,
+                       'mmaps_native_heap': 0,
+                       'allocator_v8': 30,
+                       'allocated_objects_v8': 15},
                       memory_dump.GetMemoryUsage())
 
   def testGetMemoryUsageDiscountsTracing(self):
