@@ -31,6 +31,23 @@ _CORPUS_DRIVERS = {
 _CORPUS_DRIVER_DEFAULT = 'perf-insights'
 
 
+_CORPUS_QUERY_HELP = """
+Overview of corpus query syntax:
+
+<query> := <condition> [AND <condition> ...] [ MAX_TRACE_HANDLES=<int>]
+<condition> := <property> {< | <= | > | >= | = | != } <value>
+<condition> := <property> IN <list>
+<property> := {date | network_type | prod | remote_addr | tags |
+               user_agent | ver}
+<list> := (<value> [, <value> ...])
+<value> := numeric, string, or Date(YYYY-MM-DD HH:MM:SS.SS)
+
+Examples:
+  --query "date >= Date(2015-10-15 00:00:00.00) AND prod = 'test'"
+  --query "remote_addr = '128.0.0.1' AND MAX_TRACE_HANDLES=10"
+"""
+
+
 def Main(argv):
   parser = argparse.ArgumentParser(
       description='Bulk trace processing')
@@ -75,7 +92,9 @@ def Main(argv):
   if not os.path.exists(args.map_file):
     parser.error('Map does not exist.')
 
-  if args.query is None:
+  if args.query == 'help':
+    parser.exit(_CORPUS_QUERY_HELP)
+  elif args.query is None:
     query = corpus_query.CorpusQuery.FromString('True')
   else:
     query = corpus_query.CorpusQuery.FromString(args.query)
