@@ -47,6 +47,10 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
       # Create a TimeStats object whose members have None values.
       rendering_stats = stats_helper.TimeStats()
       none_reason = 'No WebMediaPlayerMS::UpdateCurrentFrame event found'
+    elif rendering_stats.invalid_data:
+      # Throw away the data.
+      rendering_stats = stats_helper.TimeStats()
+      none_reason = 'WebMediaPlayerMS data is corrupted.'
     results.AddValue(list_of_scalar_values.ListOfScalarValues(
         results.current_page,
         'WebRTCRendering_drift_time',

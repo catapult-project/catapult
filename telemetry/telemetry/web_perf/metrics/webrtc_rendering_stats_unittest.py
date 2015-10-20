@@ -114,6 +114,22 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
 
     return fake_events
 
+  def _GetCorruptEvents(self):
+    # The events below are corrupt data because the |ideal_instant|
+    # parameter is zero, which makes all computation meaningless.
+    # Indeed, the ideal_instant (aka Ideal Render Instant) indicates
+    # when the frame should be rendered ideally.
+    corrupt_events = [
+        FakeEvent(actual_begin=1663780195583, actual_end=1663780212249,
+            ideal_instant=0, serial=self.remote_stream),
+        FakeEvent(actual_begin=1663780212249, actual_end=1663780228915,
+            ideal_instant=0, serial=self.remote_stream),
+        FakeEvent(actual_begin=1663780228915, actual_end=1663780245581,
+            ideal_instant=0, serial=self.remote_stream),
+        FakeEvent(actual_begin=1663780245581, actual_end=1663780262247,
+            ideal_instant=0, serial=self.remote_stream)]
+    return corrupt_events
+
   def testGetCadence(self):
     fake_events = self._GetFakeEvents()
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats(fake_events)
@@ -239,3 +255,17 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
     self.assertEqual(expected_stats.fps, stats.fps)
     self.assertEqual(expected_stats.frame_distribution,
         stats.frame_distribution)
+
+  def testCorruptData(self):
+    corrupt_events = self._GetCorruptEvents()
+    stats_parser = stats_helper.WebMediaPlayerMsRenderingStats(corrupt_events)
+    stats = stats_parser.GetTimeStats()
+    self.assertTrue(stats.invalid_data)
+    self.assertIsNone(stats.drift_time)
+    self.assertIsNone(stats.percent_badly_out_of_sync)
+    self.assertIsNone(stats.percent_out_of_sync)
+    self.assertIsNone(stats.smoothness_score)
+    self.assertIsNone(stats.freezing_score)
+    self.assertIsNone(stats.rendering_length_error)
+    self.assertIsNone(stats.fps)
+    self.assertIsNone(stats.frame_distribution)

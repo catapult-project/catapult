@@ -37,6 +37,7 @@ class TimeStats(object):
     self.rendering_length_error = rendering_length_error
     self.fps = fps
     self.frame_distribution = frame_distribution
+    self.invalid_data = False
 
 
 
@@ -335,6 +336,11 @@ class WebMediaPlayerMsRenderingStats(object):
         continue
 
       cadence = self._GetCadence(relevant_events)
+      if not cadence:
+        stats = TimeStats()
+        stats.invalid_data = True
+        return stats
+
       frame_distribution = self._GetSourceToOutputDistribution(cadence)
       fps = self._GetFpsFromCadence(frame_distribution)
 
