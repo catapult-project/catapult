@@ -332,7 +332,6 @@
       'tracing/ui/extras/about_tracing/record_selection_dialog.html',
       'tracing/ui/extras/about_tracing/tracing_controller_client.html',
       'tracing/ui/extras/about_tracing/xhr_based_tracing_controller_client.html',
-      'tracing/ui/extras/analysis/sampling_panel.html',
       'tracing/ui/extras/chrome/cc/cc.html',
       'tracing/ui/extras/chrome/cc/display_item_debugger.html',
       'tracing/ui/extras/chrome/cc/display_item_list_view.html',
