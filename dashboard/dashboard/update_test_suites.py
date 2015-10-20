@@ -85,7 +85,7 @@ def _CreateTestSuiteDict():
   suite_to_masters = _CreateSuiteMastersDict(suites)
   suite_to_description = _CreateSuiteDescriptionDict(suites)
   suite_to_monitored = _CreateSuiteMonitoredDict()
-  suite_to_deprecated = _CreateSuiteDeprecatedDict(suites)
+  nondeprecated_suites = _CreateSuiteNondeprecatedSet(suites)
 
   result = {}
   for name in suite_to_masters:
@@ -94,7 +94,7 @@ def _CreateTestSuiteDict():
       result[name]['mon'] = suite_to_monitored[name]
     if name in suite_to_description:
       result[name]['des'] = suite_to_description[name]
-    if name in suite_to_deprecated:
+    if name not in nondeprecated_suites:
       result[name]['dep'] = True
   return result
 
@@ -127,11 +127,15 @@ def _CreateSuiteMastersDict(suites):
     the key "masters", the value of which is a list of dicts mapping
     master names to dict of bots.
   """
+  name_to_suites = {}
+  for suite in suites:
+    name = suite.key.string_id()
+    if name not in name_to_suites:
+      name_to_suites[name] = []
+    name_to_suites[name].append(suite)
+
   result = {}
-  unique_names = {s.key.string_id() for s in suites}
-  for name in unique_names:
-    this_suites = [s for s in suites if s.key.string_id() == name]
-    assert this_suites, 'No suite keys used for %s' % name
+  for name, this_suites in name_to_suites.iteritems():
     result[name] = _MasterToBotsToDeprecatedDict(this_suites)
   return result
 
@@ -146,8 +150,6 @@ def _MasterToBotsToDeprecatedDict(suites):
   Returns:
     A dictionary mapping master names to bot names to deprecated.
   """
-  assert len({s.key.string_id() for s in suites}) == 1
-
   def MasterName(key):
     return key.pairs()[0][1]
 
@@ -217,17 +219,9 @@ def _GetTestSubPath(key):
   return '/'.join(p[1] for p in key.pairs()[3:])
 
 
-def _CreateSuiteDeprecatedDict(suites):
-  """Makes a dict of test suite names for deprecated test."""
-  result = {}
-  for suite in suites:
-    name = suite.key.string_id()
-    if name in result:
-      continue
-    deprecated = any(s.deprecated for s in suites if s.key.string_id() == name)
-    if deprecated:
-      result[name] = deprecated
-  return result
+def _CreateSuiteNondeprecatedSet(suites):
+  """Makes a set of test suites where all are nondeprecated."""
+  return {s.key.string_id() for s in suites if not s.deprecated}
 
 
 def _CreateSuiteDescriptionDict(suites):

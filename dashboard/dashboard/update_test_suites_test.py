@@ -113,7 +113,6 @@ class ListTestSuitesTest(testing_common.TestCase):
       test.description = 'Description string.'
       test.put()
 
-    print update_test_suites._CreateTestSuiteDict()
     self.assertEqual(
         {
             'dromaeo': {
