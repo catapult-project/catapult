@@ -212,6 +212,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         args.append('--ppapi-flash-path=%s' % self._flash_path)
       if not self.browser_options.dont_override_profile:
         args.append('--user-data-dir=%s' % self._tmp_profile_dir)
+    else:
+      args.append('--data-path=%s' % self._tmp_profile_dir)
+
     trace_config_file = (self.platform_backend.tracing_controller_backend
                          .GetChromeTraceConfigFile())
     if trace_config_file:
