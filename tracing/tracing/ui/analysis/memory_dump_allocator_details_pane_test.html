@@ -254,7 +254,7 @@ tr.b.unittest.testSuite(function() {
     checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
         function(formattedTitle) {
           assert.equal(formattedTitle.textContent, '<unspecified>');
-          assert.equal(formattedTitle.title, 'Suballocation name: v8/__99BEAD');
+          assert.equal(formattedTitle.title, 'v8/__99BEAD');
         }, [150994944], [75497472], undefined, undefined, undefined, [true]);
 
     var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
@@ -268,13 +268,13 @@ tr.b.unittest.testSuite(function() {
         oilpanAnimalsSuballocationSubRow.subRows[0];
     checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'cow');
-      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
+      assert.equal(formattedTitle.title, 'v8/__42BEEF');
     }, [67108864], [33554432], undefined, undefined, undefined, [true]);
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
     checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'skia');
-      assert.equal(formattedTitle.title, 'Suballocation name: v8/__15FADE');
+      assert.equal(formattedTitle.title, 'v8/__15FADE');
     }, [16777216], [8388608], undefined, undefined, undefined, [true]);
   });
 
@@ -337,7 +337,7 @@ tr.b.unittest.testSuite(function() {
     checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
         function(formattedTitle) {
           assert.equal(formattedTitle.textContent, '<unspecified>');
-          assert.equal(formattedTitle.title, 'Suballocation name: v8/__99BEAD');
+          assert.equal(formattedTitle.title, 'v8/__99BEAD');
         }, [150994944, 268435456], [75497472, 268435456], undefined, undefined,
             undefined, [true, true]);
 
@@ -353,14 +353,14 @@ tr.b.unittest.testSuite(function() {
         oilpanAnimalsSuballocationSubRow.subRows[0];
     checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'cow');
-      assert.equal(formattedTitle.title, 'Suballocation name: v8/__42BEEF');
+      assert.equal(formattedTitle.title, 'v8/__42BEEF');
     }, [67108864, undefined], [33554432, undefined], undefined, undefined,
         undefined, [true, undefined]);
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
     checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'skia');
-      assert.equal(formattedTitle.title, 'Suballocation name: v8/__15FADE');
+      assert.equal(formattedTitle.title, 'v8/__15FADE');
     }, [16777216, undefined], [8388608, undefined], undefined, undefined,
         undefined, [true, undefined]);
   });
@@ -425,6 +425,37 @@ tr.b.unittest.testSuite(function() {
       assert.equal(formattedTitle.title, '');
     }, [268435456, undefined, 268435456], [134217728, undefined, 268435456],
         undefined, undefined, 2, [true, undefined, true]);
+  });
+
+  test('sortTitles', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
+    viewEl.rebuild();
+
+    var table = viewEl.$.table;
+    var titleColumn = table.tableColumns[0];
+    var rootRow = table.tableRows[0];
+
+    // Non-suballocation rows.
+    var heapsSubRow = rootRow.subRows[0];
+    var objectsSubRow = rootRow.subRows[1];
+    assert.isBelow(titleColumn.cmp(heapsSubRow, objectsSubRow), 0);
+    assert.equal(titleColumn.cmp(objectsSubRow, objectsSubRow), 0);
+    assert.isAbove(titleColumn.cmp(objectsSubRow, heapsSubRow), 0);
+
+    // Suballocation rows.
+    var oilpanSubRow = rootRow.subRows[3].subRows[0];
+    var skiaSubRow = rootRow.subRows[3].subRows[1];
+    assert.isBelow(titleColumn.cmp(oilpanSubRow, skiaSubRow), 0);
+    assert.equal(titleColumn.cmp(oilpanSubRow, oilpanSubRow), 0);
+    assert.isAbove(titleColumn.cmp(skiaSubRow, oilpanSubRow), 0);
+
+    // Mixture.
+    assert.isBelow(titleColumn.cmp(heapsSubRow, oilpanSubRow), 0);
+    assert.isAbove(titleColumn.cmp(oilpanSubRow, heapsSubRow), 0);
   });
 });
 </script>

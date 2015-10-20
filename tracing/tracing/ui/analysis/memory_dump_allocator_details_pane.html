@@ -86,6 +86,25 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
+  /** @{constructor} */
+  function AllocatorDumpNameColumn(title) {
+    tr.ui.analysis.TitleColumn.call(this, title);
+  }
+
+  AllocatorDumpNameColumn.prototype = {
+    __proto__: tr.ui.analysis.TitleColumn.prototype,
+
+    formatTitle: function(row) {
+      if (!row.suballocation)
+        return row.title;
+      return tr.ui.b.createSpan({
+        textContent: row.title,
+        italic: true,
+        tooltip: row.fullName
+      });
+    }
+  };
+
   Polymer('tr-ui-a-memory-dump-allocator-details-pane', {
     created: function() {
       this.memoryAllocatorDumps_ = undefined;
@@ -299,11 +318,8 @@ tr.exportTo('tr.ui.analysis', function() {
         // Leaf row of the suballocation tree: Change the row's title from
         // '__MEANINGLESSHASH' to the name of the suballocation owner.
         var row = node.row;
-        row.title = tr.ui.b.createSpan({
-          textContent: name,
-          tooltip: 'Suballocation name: ' + row.fullName,
-          italic: true
-        });
+        row.title = name;
+        row.suballocation = true;
         return row;
       }
 
@@ -321,11 +337,8 @@ tr.exportTo('tr.ui.analysis', function() {
         // that 'malloc/allocated_objects/suballocations/skia' could
         // aggregate the attributes of the two suballocations properly.
         var row = node.row;
-        row.title = tr.ui.b.createSpan({
-          textContent: '<unspecified>',
-          tooltip: 'Suballocation name: ' + row.fullName,
-          italic: true
-        });
+        row.title = '<unspecified>';
+        row.suballocation = true;
         subRows.unshift(row);
       }
 
@@ -340,10 +353,8 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       return {
-        title: tr.ui.b.createSpan({
-          textContent: name,
-          italic: true
-        }),
+        title: name,
+        suballocation: true,
         defined: defined,
         cells: {},
         subRows: subRows
@@ -351,7 +362,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_: function(rows) {
-      var titleColumn = new tr.ui.analysis.TitleColumn('Allocator');
+      var titleColumn = new AllocatorDumpNameColumn('Allocator');
       titleColumn.width = '200px';
 
       var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
