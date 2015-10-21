@@ -10,6 +10,20 @@
           "download_path": "../../bin/win/AMD64/crash_service.exe"
         }
       }
+    },
+    "memtrack_helper": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "e96693a5ba39c47c6c8b9fd36694ac89616a780a",
+          "download_path": "../../bin/android/armeabi-v7a/memtrack_helper"
+        },
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "4f49c360f969128e12d98d4cf530717946c5ffcf",
+          "download_path": "../../bin/android/arm64-v8a/memtrack_helper"
+        }
+      }
     }
   }
 }

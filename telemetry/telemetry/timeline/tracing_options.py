@@ -25,9 +25,12 @@ class TracingOptions(object):
 
   Options:
       enable_chrome_trace: a boolean that specifies whether to enable
-                           chrome tracing.
+          chrome tracing.
       enable_platform_display_trace: a boolean that specifies whether to
-                                     platform display tracing.
+          platform display tracing.
+      enable_android_graphics_memtrack: a boolean that specifies whether
+          to enable the memtrack_helper daemon to track graphics memory on
+          Android (see goo.gl/4Y30p9). Doesn't have any effects on other OSs.
 
       The following ones are specific to chrome tracing. See
       base/trace_event/trace_config.h for more information.
@@ -47,6 +50,7 @@ class TracingOptions(object):
   def __init__(self):
     self.enable_chrome_trace = False
     self.enable_platform_display_trace = False
+    self.enable_android_graphics_memtrack = False
 
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
     self._enable_systrace = False
