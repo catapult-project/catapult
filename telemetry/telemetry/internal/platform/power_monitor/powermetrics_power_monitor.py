@@ -195,7 +195,12 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         (float(processor.get('package_joules', 0)) / 3600.) * 10 ** 3)
 
     for m in metrics:
-      m.samples.append(DataWithMetricKeyPath(m, plist))
+      try:
+        m.samples.append(DataWithMetricKeyPath(m, plist))
+      except KeyError:
+        # Old CPUs don't have c-states, so if data is missing, just ignore it.
+        logging.info('Field missing from powermetrics output: %s', m.src_path)
+        continue
 
     # -------- Collect and Process Data --------
     out_dict = {}
