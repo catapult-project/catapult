@@ -41,7 +41,7 @@ var testselection = (function() {
     var subTestPath = parts.slice(1).join('/');
     if (window['TEST_SUITES'] && window['TEST_SUITES'][testSuiteName]) {
       var important = window['TEST_SUITES'][testSuiteName]['mon'];
-      if (important.indexOf(subTestPath) != -1) {
+      if (important && important.indexOf(subTestPath) != -1) {
         return true;
       }
     }
