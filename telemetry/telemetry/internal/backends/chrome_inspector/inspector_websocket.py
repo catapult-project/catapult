@@ -2,8 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import errno
 import json
 import logging
+import socket
+import time
 
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome_inspector import websocket
@@ -140,7 +143,21 @@ class InspectorWebsocket(object):
       raise WebSocketDisconnected()
 
     self._SetTimeout(timeout)
-    data = self._socket.recv()
+
+    keep_trying = True
+    while keep_trying:
+      try:
+        data = self._socket.recv()
+        keep_trying = False
+      except socket.error, e:
+        if e.errno == errno.EAGAIN:
+          # Resource is temporarily unavailable. Try again.
+          # See https://code.google.com/p/chromium/issues/detail?id=545853#c3
+          # for more details.
+          time.sleep(0.1)
+          continue
+        keep_trying = False
+
     result = json.loads(data)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
       logging.debug(

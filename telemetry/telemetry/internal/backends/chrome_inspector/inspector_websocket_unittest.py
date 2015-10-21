@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import errno
+import socket
 import unittest
 
 from telemetry import decorators
@@ -37,6 +39,8 @@ class FakeSocket(object):
       raise websocket.WebSocketTimeoutException()
 
     self._mock_timer.SetTime(time)
+    if isinstance(response, Exception):
+      raise response
     return response
 
   def settimeout(self, timeout):
@@ -155,3 +159,16 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     fake_socket.AddResponse('{"id": 6666666, "result": {}}', 1)
     inspector.DispatchNotifications()
     self.assertEqual(2, response_count[0])
+
+  def testEAGAIN(self):
+    inspector = inspector_websocket.InspectorWebsocket()
+    fake_socket = FakeSocket(self._mock_timer)
+    # pylint: disable=protected-access
+    inspector._socket = fake_socket
+
+    error = socket.error(errno.EAGAIN, "error string")
+    fake_socket.AddResponse(error, 4)
+    fake_socket.AddResponse('{"asdf": "qwer"}', 5)
+
+    result = inspector._Receive()
+    self.assertEqual(result, {"asdf" : "qwer"})
