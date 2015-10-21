@@ -690,26 +690,6 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='win_perf_bisect',
         suite='idb_perf')
 
-  def testGetConfig_Startup_ProfileDirFlagAdded(self):
-    self._TestGetConfigCommand(
-        ('python tools/perf/run_benchmark -v '
-         '--browser=release --output-format=buildbot '
-         '--also-run-disabled-tests '
-         '--profile-dir=out/Release/generated_profile/small_profile '
-         'startup.cold.blank_page'),
-        bisect_bot='win_perf_bisect',
-        suite='startup.cold.dirty.blank_page')
-
-  def testGetConfig_SessionRestore_ProfileDirFlagAdded(self):
-    self._TestGetConfigCommand(
-        ('python tools/perf/run_benchmark -v '
-         '--browser=release --output-format=buildbot '
-         '--also-run-disabled-tests '
-         '--profile-dir=out/Release/generated_profile/small_profile '
-         'session_restore.warm.typical_25'),
-        bisect_bot='win_perf_bisect',
-        suite='session_restore.warm.typical_25')
-
   def testGetConfig_PerformanceBrowserTests(self):
     self._TestGetConfigCommand(
         ('./out/Release/performance_browser_tests '
@@ -984,28 +964,6 @@ class StartBisectTest(testing_common.TestCase):
          '--gtest_filter=IndexedDBTest.Perf'),
         bisect_bot='win_perf_bisect',
         suite='idb_perf',
-        use_buildbucket=True)
-
-  def testGetConfig_UseBuildbucket_Startup_ProfileDirFlagAdded(self):
-    self._TestGetConfigCommand(
-        ('python src/tools/perf/run_benchmark -v '
-         '--browser=release --output-format=chartjson '
-         '--also-run-disabled-tests '
-         '--profile-dir=src/out/Release/generated_profile/small_profile '
-         'startup.cold.blank_page'),
-        bisect_bot='win_perf_bisect',
-        suite='startup.cold.dirty.blank_page',
-        use_buildbucket=True)
-
-  def testGetConfig_UseBuildbucket_SessionRestore_ProfileDirFlagAdded(self):
-    self._TestGetConfigCommand(
-        ('python src/tools/perf/run_benchmark -v '
-         '--browser=release --output-format=chartjson '
-         '--also-run-disabled-tests '
-         '--profile-dir=src/out/Release/generated_profile/small_profile '
-         'session_restore.warm.typical_25'),
-        bisect_bot='win_perf_bisect',
-        suite='session_restore.warm.typical_25',
         use_buildbucket=True)
 
   def testGetConfig_UseBuildbucket_PerformanceBrowserTests(self):

@@ -472,10 +472,6 @@ def _GuessCommandTelemetry(
       '--also-run-disabled-tests',
   ])
 
-  profile_dir = _GuessProfileDir(suite, use_buildbucket)
-  if profile_dir:
-    command.append('--profile-dir=%s' % profile_dir)
-
   # Test command might be a little different from the test name on the bots.
   if suite == 'blink_perf':
     test_name = 'blink_perf.all'
@@ -503,20 +499,6 @@ def _GuessBrowserName(bisect_bot):
     return 'release_x64'
 
   return 'release'
-
-
-def _GuessProfileDir(suite, use_buildbucket):
-  """Returns a profile directory string for Telemetry, or None."""
-  if (suite == 'startup.warm.dirty.blank_page' or
-      suite == 'startup.cold.dirty.blank_page' or
-      suite.startswith('session_restore')):
-    # Profile directory relative to build directory on slave.
-    if use_buildbucket:
-      return 'src/out/Release/generated_profile/small_profile'
-    # Profile directory relative to chromium/src.
-    else:
-      return 'out/Release/generated_profile/small_profile'
-  return None
 
 
 def GuessMetric(test_path):
