@@ -30,10 +30,6 @@ x-profiling-view .controls #save-button {
   margin-left: 64px !important;
 }
 
-x-profiling-view .controls #upload-button {
-  display: none;
-}
-
 x-profiling-view > tr-ui-timeline-view {
   -webkit-flex: 1 1 auto;
   min-height: 0;
@@ -60,7 +56,6 @@ x-timeline-view-buttons > #monitoring-elements {
       <button id="capture-button">Capture Monitoring Snapshot</button>
     </span>
     <button id="save-button">Save</button>
-    <button id="upload-button">Upload</button>
     <button id="load-button">Load</button>
   </x-timeline-view-buttons>
   <tr-ui-timeline-view>
@@ -102,7 +97,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
    */
   var ProfilingView = tr.ui.b.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
-  var REPORT_UPLOAD_URL = 'http://crash-staging/';
 
   ProfilingView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -123,7 +117,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.recordButton_ = this.querySelector('#record-button');
       this.loadButton_ = this.querySelector('#load-button');
       this.saveButton_ = this.querySelector('#save-button');
-      this.uploadButton_ = this.querySelector('#upload-button');
 
       var buttons = this.querySelector('x-timeline-view-buttons');
       buttons.parentElement.removeChild(buttons);
@@ -158,29 +151,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       window.onMonitoringStateChanged = function(is_monitoring) {
         this.onMonitoringStateChanged_(is_monitoring);
-      }.bind(this);
-
-      window.onUploadError = function(error_message) {
-        this.setUploadOverlayText_(['Trace upload failed: ' + error_message]);
-      }.bind(this);
-      window.onUploadProgress = function(percent, currentAsString,
-                                         totalAsString) {
-        this.setUploadOverlayText_(
-            ['Upload progress: ' + percent + '% (' + currentAsString + ' of ' +
-            currentAsString + ' bytes)']);
-      }.bind(this);
-      window.onUploadComplete = function(reportId) {
-        var messageDiv = document.createElement('div');
-        var textNode = document.createTextNode(
-            'Trace uploaded successfully. Report id: ');
-        messageDiv.appendChild(textNode);
-        var reportLink = document.createElement('a');
-        messageDiv.appendChild(reportLink);
-        reportLink.href = REPORT_UPLOAD_URL + reportId;
-        reportLink.text = reportId;
-        reportLink.className = 'report-id-message';
-        reportLink.target = '_blank';
-        this.setUploadOverlayContent_(messageDiv);
       }.bind(this);
 
       this.getMonitoringStatus();
@@ -335,7 +305,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     clearActiveTrace: function() {
       this.saveButton_.disabled = true;
-      this.uploadButton_.disabled = true;
       this.activeTrace_ = undefined;
     },
 
@@ -348,7 +317,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.infoBarGroup_.clearMessages();
       this.updateTracingControllerSpecificState_();
       this.saveButton_.disabled = false;
-      this.uploadButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
       var m = new tr.Model();
@@ -398,14 +366,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.saveButton_.addEventListener('click',
                                         this.onSaveClicked_.bind(this));
       this.saveButton_.disabled = true;
-
-      this.uploadButton_.addEventListener('click',
-                                          this.onUploadClicked_.bind(this));
-      if (typeof(chrome.send) === 'function') {
-        this.uploadButton_.style.display = 'inline-block';
-      }
-      this.uploadButton_.disabled = true;
-      this.uploadOverlay_ = null;
     },
 
     requestFilename_: function() {
@@ -465,79 +425,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         link.download = filename;
         link.click();
       }
-    },
-
-    onUploadClicked_: function() {
-      if (this.uploadOverlay_) {
-        throw new Error('Already uploading');
-      }
-      this.initUploadStatusOverlay_();
-    },
-
-    initUploadStatusOverlay_: function() {
-      this.uploadOverlay_ = tr.ui.b.Overlay();
-      this.uploadOverlay_.title = 'Uploading trace...';
-      this.uploadOverlay_.userCanClose = false;
-      this.uploadOverlay_.visible = true;
-
-      this.setUploadOverlayText_([
-        'You are about to upload trace data to Google server.',
-        'Would you like to proceed?'
-      ]);
-      var okButton = document.createElement('button');
-      okButton.textContent = 'Ok';
-      okButton.addEventListener('click', this.doTraceUpload_.bind(this));
-      this.uploadOverlay_.buttons.appendChild(okButton);
-
-      var cancelButton = document.createElement('button');
-      cancelButton.textContent = 'Cancel';
-      cancelButton.addEventListener('click',
-                                    this.hideUploadOverlay_.bind(this));
-      this.uploadOverlay_.buttons.appendChild(cancelButton);
-    },
-
-    setUploadOverlayContent_: function(content) {
-      if (!this.uploadOverlay_)
-        throw new Error('Not uploading');
-
-      this.uploadOverlay_.textContent = '';
-      this.uploadOverlay_.appendChild(content);
-    },
-
-    setUploadOverlayText_: function(messages) {
-      var contentDiv = document.createElement('div');
-
-      for (var i = 0; i < messages.length; ++i) {
-        var messageDiv = document.createElement('div');
-        messageDiv.textContent = messages[i];
-        contentDiv.appendChild(messageDiv);
-      }
-      this.setUploadOverlayContent_(contentDiv);
-    },
-
-    doTraceUpload_: function() {
-      this.setUploadOverlayText_(['Uploading trace data...']);
-      this.uploadOverlay_.buttons.removeChild(
-          this.uploadOverlay_.buttons.firstChild);
-      this.uploadOverlay_.buttons.firstChild.textContent = 'Close';
-
-      var filename = this.activeTrace_.filename;
-      var isBinary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
-      if (isBinary) {
-        var data_base64 = tr.b.Base64.EncodeArrayBufferToString(
-            this.activeTrace_.data);
-        chrome.send('doUploadBase64', [data_base64]);
-      } else {
-        chrome.send('doUpload', [this.activeTrace_.data]);
-      }
-    },
-
-    hideUploadOverlay_: function() {
-      if (!this.uploadOverlay_)
-        throw new Error('Not uploading');
-
-      this.uploadOverlay_.visible = false;
-      this.uploadOverlay_ = null;
     },
 
     onLoadClicked_: function() {
