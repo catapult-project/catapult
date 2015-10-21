@@ -9,6 +9,16 @@ from telemetry.testing import tab_test_case
 
 class TabListBackendTest(tab_test_case.TabTestCase):
   @decorators.Enabled('has tabs')
+  def testNewTab(self):
+    tabs = set(tab.id for tab in self.tabs)
+    for _ in xrange(10):
+      new_tab_id = self.tabs.New().id
+      self.assertNotIn(new_tab_id, tabs)
+      tabs.add(new_tab_id)
+      new_tabs = set(tab.id for tab in self.tabs)
+      self.assertEqual(tabs, new_tabs)
+
+  @decorators.Enabled('has tabs')
   def testTabIdMatchesContextId(self):
     # Ensure that there are two tabs.
     while len(self.tabs) < 2:

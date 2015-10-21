@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
+
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import inspector_backend_list
@@ -21,12 +23,18 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
   def New(self, timeout):
     """Makes a new tab.
 
+    Returns:
+      A Tab object.
+
     Raises:
       devtools_http.DevToolsClientConnectionError
     """
-    assert self._browser_backend.supports_tab_control
-    self._browser_backend.devtools_client.CreateNewTab(timeout)
-    return self[-1]
+    if not self._browser_backend.supports_tab_control:
+      raise NotImplementedError("Browser doesn't support tab control.")
+    response = self._browser_backend.devtools_client.RequestNewTab(timeout)
+    response = json.loads(response)
+    context_id = response['id']
+    return self.GetBackendFromContextId(context_id)
 
   def CloseTab(self, tab_id, timeout=300):
     """Closes the tab with the given debugger_url.

@@ -16,9 +16,11 @@ class TabTestCase(browser_test_case.BrowserTestCase):
 
     if self._browser.supports_tab_control:
       try:
-        self._tab = self._browser.tabs.New()
+        while len(self._browser.tabs) < 1:
+          self._browser.tabs.New()
         while len(self._browser.tabs) > 1:
           self._browser.tabs[0].Close()
+        self._tab = self._browser.tabs[0]
       except exceptions.TimeoutException:
         self._RestartBrowser()
     else:

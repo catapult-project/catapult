@@ -203,13 +203,26 @@ class DevToolsClientBackend(object):
   def _ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
 
-  def CreateNewTab(self, timeout):
+  def RequestNewTab(self, timeout):
     """Creates a new tab.
+
+    Returns:
+      A JSON string as returned by DevTools. Example:
+      {
+        "description": "",
+        "devtoolsFrontendUrl":
+            "/devtools/inspector.html?ws=host:port/devtools/page/id-string",
+        "id": "id-string",
+        "title": "Page Title",
+        "type": "page",
+        "url": "url",
+        "webSocketDebuggerUrl": "ws://host:port/devtools/page/id-string"
+      }
 
     Raises:
       devtools_http.DevToolsClientConnectionError
     """
-    self._devtools_http.Request('new', timeout=timeout)
+    return self._devtools_http.Request('new', timeout=timeout)
 
   def CloseTab(self, tab_id, timeout):
     """Closes the tab with the given id.
