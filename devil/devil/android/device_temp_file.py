@@ -35,7 +35,7 @@ class DeviceTempFile(object):
   def close(self):
     """Deletes the temporary file from the device."""
     # ignore exception if the file is already gone.
-    def helper():
+    def delete_temporary_file():
       try:
         self._adb.Shell('rm -f %s' % self.name_quoted, expect_status=None)
       except device_errors.AdbCommandFailedError:
@@ -44,7 +44,9 @@ class DeviceTempFile(object):
 
     # It shouldn't matter when the temp file gets deleted, so do so
     # asynchronously.
-    threading.Thread(target=helper).start()
+    threading.Thread(
+        target=delete_temporary_file,
+        name='delete_temporary_file(%s)' % self._adb.GetDeviceSerial()).start()
 
   def __enter__(self):
     return self

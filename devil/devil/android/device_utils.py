@@ -1142,7 +1142,10 @@ class DeviceUtils(object):
           specific_device_paths.extend(
               posixpath.join(device_path, relative_dir, f) for f in filenames)
 
-      def device_sums_helper():
+      def calculate_host_checksums():
+        return md5sum.CalculateHostMd5Sums([host_path])
+
+      def calculate_device_checksums():
         if self._enable_device_files_cache:
           cache_entry = self._cache['device_path_checksums'].get(device_path)
           if cache_entry and cache_entry[0] == ignore_other_files:
@@ -1155,8 +1158,8 @@ class DeviceUtils(object):
         return dict(sums)
 
       host_checksums, device_checksums = reraiser_thread.RunAsync((
-          lambda: md5sum.CalculateHostMd5Sums([host_path]),
-          device_sums_helper))
+          calculate_host_checksums,
+          calculate_device_checksums))
     except EnvironmentError as e:
       logging.warning('Error calculating md5: %s', e)
       return ([(host_path, device_path)], [], [], lambda: 0)
@@ -1200,9 +1203,14 @@ class DeviceUtils(object):
     return ret
 
   def _ComputeStaleApks(self, package_name, host_apk_paths):
+    def calculate_host_checksums():
+      return md5sum.CalculateHostMd5Sums(host_apk_paths)
+
+    def calculate_device_checksums():
+      return self._ComputeDeviceChecksumsForApks(package_name)
+
     host_checksums, device_checksums = reraiser_thread.RunAsync((
-        lambda: md5sum.CalculateHostMd5Sums(host_apk_paths),
-        lambda: self._ComputeDeviceChecksumsForApks(package_name)))
+        calculate_host_checksums, calculate_device_checksums))
     stale_apks = [k for (k, v) in host_checksums.iteritems()
                   if v not in device_checksums]
     return stale_apks, set(host_checksums.values())
