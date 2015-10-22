@@ -159,7 +159,6 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
       allocators_dict = event['args']['dumps']['allocators']
     except KeyError:
       allocators_dict = {}
-    # populate keys that should always be present
     self._allocators = {}
     for allocator_name, size_values in allocators_dict.iteritems():
       name_parts = allocator_name.split('/')
@@ -169,6 +168,12 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
       if name_parts[-1] == 'allocated_objects' and name_parts[0] != 'malloc':
         continue
       allocator_name = name_parts[0]
+      # For 'gpu/android_memtrack/*' we want to keep track of individual
+      # components. E.g. 'gpu/android_memtrack/gl' will be stored as
+      # 'android_memtrack_gl' in the allocators dict.
+      if (len(name_parts) == 3 and allocator_name == 'gpu'
+          and name_parts[1] == 'android_memtrack'):
+        allocator_name = '_'.join(name_parts[1:3])
       allocator = self._allocators.setdefault(allocator_name, {})
       for size_key, size_value in size_values['attrs'].iteritems():
         allocator[size_key] = (allocator.get(size_key, 0)
@@ -238,12 +243,14 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
 
   def GetMemoryUsage(self):
     """Get a dictionary with the memory usage of this process."""
-    usage = {'allocator_%s' % name: allocator.get('size', 0)
-             for name, allocator in self._allocators.iteritems()}
-    usage.update(('allocated_objects_%s' % name,
-                  allocator['allocated_objects_size'])
-                 for name, allocator in self._allocators.iteritems()
-                 if allocator.has_key('allocated_objects_size'))
+    usage = {}
+    for name, values in self._allocators.iteritems():
+      if 'size' in values:
+        usage['allocator_%s' % name] = values['size']
+      if 'allocated_objects_size' in values:
+        usage['allocated_objects_%s' % name] = values['allocated_objects_size']
+      if 'memtrack_pss' in values:
+        usage[name] = values['memtrack_pss']
     if self.has_mmaps:
       usage.update((key, self.GetMemoryValue(*value))
                    for key, value in MMAPS_METRICS.iteritems())

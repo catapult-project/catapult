@@ -157,6 +157,20 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                        'allocated_objects_v8': 15},
                       memory_dump.GetMemoryUsage())
 
+  def testGetMemoryUsageWithAndroidMemtrack(self):
+    GL1, EGL1, GL2, EGL2 = [2 ** x for x in range(4)]
+    process_dump1 = TestProcessDumpEvent(
+        allocators={'gpu/android_memtrack/gl': {'memtrack_pss' : GL1},
+                    'gpu/android_memtrack/graphics': {'memtrack_pss': EGL1}})
+    process_dump2 = TestProcessDumpEvent(
+        allocators={'gpu/android_memtrack/gl': {'memtrack_pss' : GL2},
+                    'gpu/android_memtrack/graphics': {'memtrack_pss': EGL2}})
+    memory_dump = memory_dump_event.GlobalMemoryDump(
+        [process_dump1, process_dump2])
+    self.assertEquals({'android_memtrack_gl': GL1 + GL2,
+                       'android_memtrack_graphics': EGL1 + EGL2},
+                      memory_dump.GetMemoryUsage())
+
   def testGetMemoryUsageDiscountsTracing(self):
     ALL = [2 ** x for x in range(5)]
     (HEAP, DIRTY, MALLOC, TRACING_1, TRACING_2) = ALL
