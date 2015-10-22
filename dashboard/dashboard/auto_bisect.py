@@ -82,7 +82,7 @@ def _RestartBisect(bisect_job):
   try:
     new_bisect_job = _MakeBisectTryJob(
         bisect_job.bug_id, bisect_job.run_count)
-  except NotBisectableError:
+  except (NotBisectableError, ValueError):
     return
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot

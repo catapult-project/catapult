@@ -776,6 +776,11 @@ def _MakeBuildbucketBisectJob(bisect_job):
   if config.get('bisect_mode') == 'return_code':
     test_type = config['bisect_mode']
 
+  if 'recipe_tester_name' not in config:
+    logging.error('"recipe_tester_name" required in bisect jobs '
+                  'that use buildbucket. Config: %s', config)
+    raise ValueError('Missing "recipe_tester_name".')
+
   return buildbucket_job.BisectJob(
       bisect_director=GetBisectDirectorForTester(config['recipe_tester_name']),
       good_revision=config['good_revision'],
