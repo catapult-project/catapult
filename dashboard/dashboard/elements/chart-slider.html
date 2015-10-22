@@ -193,7 +193,7 @@
           var d = new Date(this.data[xValue][2]);
           return d.toISOString().substring(0, 10);  // yyyy-mm-dd.
         }
-        logging.warn('No timestamp found in chart-slider data at', xValue);
+        console.warn('No timestamp found in chart-slider data at', xValue);
         return String(xValue);
       },
 
@@ -271,7 +271,9 @@
       onMouseMove: function(event) {
         // Stop Flot from handling the selection.
         event.stopPropagation();
-
+        if (!this.data || this.data.length == 0) {
+          return;
+        }
         if (this.dragType == 'none') {
           var cursor = this.getCursorForDragType(this.getMouseDragType(event));
           this.$.revisions_container.style.cursor = cursor;

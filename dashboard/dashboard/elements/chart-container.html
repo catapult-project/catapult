@@ -630,16 +630,17 @@ triaging functionality in the chart.
               '/graph_json',
               {'graphs': JSON.stringify(params)},
               function(json) {
-                if (isSelected && Object.keys(json.data).length == 0) {
+                if (this.jsonHasData(json)) {
+                  this.updateJson(json, isSelected);
+                } else if (isSelected) {
                   this.addWarnings('No data available.');
                   this.checkForInternalUser();
+                  this.updateChart();
                 }
 
-                if (Object.keys(json.data).length > 0) {
-                  this.updateJson(json, isSelected);
-                }
                 this.updateSeriesGroupLoadingCounter(
                     Object.keys(testPathDict), false);
+                this.$['loading-div'].style.display = 'none';
               }.bind(this),
               function(error) {
                 if (error) {
@@ -649,9 +650,19 @@ triaging functionality in the chart.
                 }
                 this.updateSeriesGroupLoadingCounter(
                     Object.keys(testPathDict), false);
+                this.$['loading-div'].style.display = 'none';
               }.bind(this)
           );
           this.graphJsonRequests.push(req);
+        },
+
+        jsonHasData: function(json) {
+          if (!'data' in json) {
+            return;
+          }
+          var seriesIndices = Object.keys(json.data);
+          return (seriesIndices.length > 0 &&
+                  json.data[seriesIndices[0]]['data'].length > 0);
         },
 
         /**
@@ -692,20 +703,28 @@ triaging functionality in the chart.
         },
 
         /**
-         * Adds a warning for the first staled series.
+         * Adds warnings for selected series that are staed or have no data.
          */
-        updateStaleSeriesWarning: function() {
-          if (this.graphParams['rev'] || this.graphParams['start_rev'] ||
-              this.graphParams['end_rev']) {
-            return;
-          }
-          var staleWarnings = this.warnings.filter(function(value) {
-            return value.indexOf('Graph out of date!') != -1;
+        updateWarningsForSelectedSeries: function() {
+          this.warnings = this.warnings.filter(function(value) {
+            return (value.indexOf('Graph out of date!') == -1 &&
+                    value.indexOf('No data available.') == -1);
           });
-          if (staleWarnings.length > 0) {
-            return;
+
+          for (var i = 0; i < this.indicesToGraph.length; i++) {
+            var index = this.indicesToGraph[i];
+            var series = this.json.annotations[index];
+            if (!series) {
+              this.warnings.push('No data available.');
+            }
           }
 
+          var hasRevParams = ('rev' in this.graphParams ||
+                              'start_rev' in this.graphParams ||
+                              'end_rev' in this.graphParams);
+          if (hasRevParams) {
+            return;
+          }
           for (var i = 0; i < this.indicesToGraph.length; i++) {
             var index = this.indicesToGraph[i];
             var timestamp = this.getSeriesLatestTimestamp(index);
@@ -714,18 +733,19 @@ triaging functionality in the chart.
               if (timestamp < currentTime - this.STALE_DATA_DELTA_MS) {
                 this.warnings.push('Graph out of date! Last data received: ' +
                                    new Date(timestamp).toISOString());
-                return;
+                break;
               }
             }
           }
         },
 
         getSeriesLatestTimestamp: function(seriesIndex) {
-          var timestamps = [];
           var series = this.json.annotations[seriesIndex];
-          var lastIndex = Math.max.apply(Math, Object.keys(series));
-          if ('timestamp' in series[lastIndex]) {
-            return series[lastIndex]['timestamp'];
+          if (series) {
+            var lastIndex = Math.max.apply(Math, Object.keys(series));
+            if ('timestamp' in series[lastIndex]) {
+              return series[lastIndex]['timestamp'];
+            }
           }
           return null;
         },
@@ -1280,7 +1300,7 @@ triaging functionality in the chart.
           this.createFixedXAxis(data);
           this.chart = $.plot(this.$.plot, data, this.chartOptions);
           this.showAlerts();
-          this.updateStaleSeriesWarning();
+          this.updateWarningsForSelectedSeries();
         },
 
         /**
@@ -1289,11 +1309,11 @@ triaging functionality in the chart.
          * @return {Array.<Object>} Data to plot. This could be an empty array.
          */
         getDataForFlot: function() {
-          if (!this.json) {
+          if (!this.jsonHasData(this.json)) {
             console.debug('getDataForFlot: this.json not set.');
             return [];
           }
-          if (!this.json['data'] || !this.json['error_bars']) {
+          if (!this.json['error_bars']) {
             console.debug('getDataForFlot: data or error bars not set.');
             return [];
           }
