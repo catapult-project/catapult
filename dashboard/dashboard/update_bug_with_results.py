@@ -542,12 +542,13 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
                               'that the job has not started. '
                               'Buildbucket response: %s' % json_response)
   try:
-    bisect_config = job_info['result_details']['properties']['bisect_config']
+    result_details = json.loads(job_info['result_details_json'])
+    bisect_config = result_details['properties']['bisect_config']
     job_info['builder'] = bisect_config['recipe_tester_name']
-  except KeyError:
+  except (KeyError, ValueError):
     # If the tester name isn't found here, this is unexpected but non-fatal.
     job_info['builder'] = 'Unknown'
-    logging.error('No tester name found in response: %s', json_response)
+    logging.error('Failed to extract tester name from JSON: %s', json_response)
   job_info['result'] = _BuildbucketStatusToStatusConstant(
       job_info['status'], job_info['result'])
   return job_info

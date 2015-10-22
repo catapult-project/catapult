@@ -1077,35 +1077,33 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch('logging.error')
   def testValidateAndConvertBuildbucketResponse_NoTesterInConfig(
       self, mock_logging_error):
-    job_info_json = """{
-      "build": {
-        "status": "foo",
-        "url": "www.baz.com",
-        "result": "bar"
-      }
-    }"""
+    job_info = {
+        'build': {
+            'status': 'foo',
+            'url': 'www.baz.com',
+            'result': 'bar',
+        }
+    }
     result = update_bug_with_results._ValidateAndConvertBuildbucketResponse(
-        json.loads(job_info_json))
+        job_info)
     self.assertEqual('Unknown', result['builder'])
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testValidateAndConvertBuildbucketResponse_TesterInConfig(self):
-    job_info_json = """{
-      "build": {
-        "status": "foo",
-        "url": "www.baz.com",
-        "result": "bar",
-        "result_details": {
-          "properties": {
-            "bisect_config": {
-              "recipe_tester_name": "my_perf_bisect"
-            }
-          }
+    job_info = {
+        'build': {
+            'status': 'foo',
+            'url': 'www.baz.com',
+            'result': 'bar',
+            'result_details_json': json.dumps({
+                'properties': {
+                    'bisect_config': {'recipe_tester_name': 'my_perf_bisect'}
+                }
+            })
         }
-      }
-    }"""
+    }
     result = update_bug_with_results._ValidateAndConvertBuildbucketResponse(
-        json.loads(job_info_json))
+        job_info)
     self.assertEqual('my_perf_bisect', result['builder'])
 
 
