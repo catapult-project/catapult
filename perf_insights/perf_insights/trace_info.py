@@ -6,6 +6,7 @@ from google.appengine.ext import ndb
 
 
 class TraceInfo(ndb.Model):
+  config = ndb.StringProperty(indexed=True)
   date = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
   network_type = ndb.StringProperty(indexed=True, default=None)
   prod = ndb.StringProperty(indexed=True)
