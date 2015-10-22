@@ -279,23 +279,19 @@ tr.b.unittest.testSuite(function() {
     // Check the rows of the table.
     var totalRow = rows[0];
     checkRow(columns, totalRow, 'Total', [undefined], [4833935660], [undefined],
-        [8460], [64], [0], 5, undefined);
+        [8460], [64], [0], 3, undefined);
 
     var androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', [undefined], [100], [undefined],
-        [100], [0], [0], 3, undefined);
+        [100], [0], [0], 1, undefined);
 
     var javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', [undefined], [100],
-        [undefined], [100], [0], [0], 5, undefined);
+        [undefined], [100], [0], [0], 1, undefined);
 
     var spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', [undefined], [100], [undefined],
-        [100], [0], [0], 4, undefined);
-
-    var normalRow = spacesRow.subRows[0];
-    checkRow(columns, normalRow, 'Normal', undefined, undefined, undefined,
-        undefined, undefined, undefined, 0, undefined);
+        [100], [0], [0], 1, undefined);
 
     var nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', [undefined], [4294967496],
@@ -306,9 +302,9 @@ tr.b.unittest.testSuite(function() {
         '[discounted tracing overhead]', undefined, undefined, undefined, [-32],
         [-32], undefined, undefined, [true]);
 
-    var filesRow = totalRow.subRows[3];
+    var filesRow = totalRow.subRows[2];
     checkRow(columns, filesRow, 'Files', [undefined], [538968064], [undefined],
-        [8192], undefined, undefined, 7, undefined);
+        [8192], undefined, undefined, 1, undefined);
 
     var soRow = filesRow.subRows[0];
     checkRow(columns, soRow, 'so', [undefined], [538968064], [undefined],
@@ -347,24 +343,20 @@ tr.b.unittest.testSuite(function() {
     // Check the rows of the table.
     var totalRow = rows[0];
     checkRow(columns, totalRow, 'Total', [undefined], [4833935660, 5368709421],
-        [undefined, undefined], [8460, 19557], [64, 197], [0, 33], 6,
+        [undefined, undefined], [8460, 19557], [64, 197], [0, 33], 4,
         undefined);
 
     var androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', [undefined], [100, 100],
-        [undefined, undefined], [100, 0], [0, 100], [0, 0], 3, undefined);
+        [undefined, undefined], [100, 0], [0, 100], [0, 0], 1, undefined);
 
     var javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', [undefined], [100, 100],
-        [undefined, undefined], [100, 0], [0, 100], [0, 0], 5, undefined);
+        [undefined, undefined], [100, 0], [0, 100], [0, 0], 1, undefined);
 
     var spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', [undefined], [100, 100],
-        [undefined, undefined], [100, 0], [0, 100], [0, 0], 4, undefined);
-
-    var normalRow = spacesRow.subRows[0];
-    checkRow(columns, normalRow, 'Normal', undefined, undefined, undefined,
-        undefined, undefined, undefined, 0, undefined);
+        [undefined, undefined], [100, 0], [0, 100], [0, 0], 1, undefined);
 
     var nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', [undefined],
@@ -377,9 +369,9 @@ tr.b.unittest.testSuite(function() {
         [-32, undefined], [-32, undefined], undefined, undefined,
         [true, undefined]);
 
-    var filesRow = totalRow.subRows[3];
+    var filesRow = totalRow.subRows[2];
     checkRow(columns, filesRow, 'Files', [undefined], [538968064, 1073741824],
-        [undefined, undefined], [8192, 19456], undefined, undefined, 7,
+        [undefined, undefined], [8192, 19456], undefined, undefined, 1,
         undefined);
 
     var soRow = filesRow.subRows[0];
@@ -398,7 +390,7 @@ tr.b.unittest.testSuite(function() {
         [2097152, undefined], ['---', undefined], [0, undefined], undefined,
         undefined, undefined, [true, undefined]);
 
-    var otherRow = totalRow.subRows[5];
+    var otherRow = totalRow.subRows[3];
     checkRow(columns, otherRow, 'Other', [undefined], [undefined, 1], undefined,
         [undefined, 1], [undefined, 1], [undefined, 1], 1, undefined);
 

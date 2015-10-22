@@ -257,6 +257,24 @@ tr.exportTo('tr.ui.analysis', function() {
     classifyRegionRow(ruleRow.subRows[matchedChildRuleIndex], regionRow);
   }
 
+  function pruneEmptyRuleRows(row) {
+    if (row.subRows === undefined || row.subRows.length === 0)
+      return;
+
+    // Either all sub-rows are rule rows, or all sub-rows are VM region rows.
+    if (row.subRows[0].rule === undefined) {
+      // VM region rows: Early out to avoid filtering a large array for
+      // performance reasons (no sub-rows would be removed, but the whole array
+      // would be unnecessarily copied to a new array).
+      return;
+    }
+
+    row.subRows.forEach(pruneEmptyRuleRows);
+    row.subRows = row.subRows.filter(function(subRow) {
+      return subRow.subRows.length > 0;
+    });
+  }
+
   Polymer('tr-ui-a-memory-dump-vm-regions-details-pane', {
     created: function() {
       this.vmRegions_ = undefined;
@@ -456,6 +474,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Classify the VM regions.
       unclassifiedRows.map(classifyRegionRow.bind(undefined, rootRow));
+
+      // Prune rule rows with no VM regions.
+      pruneEmptyRuleRows(rootRow);
 
       // Aggregate attributes of the VM regions.
       tr.ui.analysis.aggregateTableRowCellsRecursively(
