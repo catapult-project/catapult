@@ -172,3 +172,14 @@ class InspectorWebsocketUnittest(unittest.TestCase):
 
     result = inspector._Receive()
     self.assertEqual(result, {"asdf" : "qwer"})
+
+  def testSocketErrorOtherThanEAGAIN(self):
+    inspector = inspector_websocket.InspectorWebsocket()
+    fake_socket = FakeSocket(self._mock_timer)
+    # pylint: disable=protected-access
+    inspector._socket = fake_socket
+
+    error = socket.error(errno.EPIPE, "error string")
+    fake_socket.AddResponse(error, 4)
+
+    self.assertRaises(socket.error, inspector._Receive)

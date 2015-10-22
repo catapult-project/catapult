@@ -144,19 +144,19 @@ class InspectorWebsocket(object):
 
     self._SetTimeout(timeout)
 
-    keep_trying = True
-    while keep_trying:
+    while True:
       try:
         data = self._socket.recv()
-        keep_trying = False
       except socket.error, e:
         if e.errno == errno.EAGAIN:
           # Resource is temporarily unavailable. Try again.
           # See https://code.google.com/p/chromium/issues/detail?id=545853#c3
           # for more details.
           time.sleep(0.1)
-          continue
-        keep_trying = False
+        else:
+          raise
+      else:
+        break
 
     result = json.loads(data)
     if logging.getLogger().isEnabledFor(logging.DEBUG):
