@@ -1,7 +1,10 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Chrome Performance Test Owners</title>
   <script>
+    'use strict';
     var OWNER_INFO = {{owner_info | safe}};
     var IS_ADMIN = ('{{is_admin}}' == 'True') ? true : false;
     var XSRF_TOKEN = '{{xsrf_token}}';
@@ -15,8 +18,9 @@
       margin-left: 10px;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Chrome Performance Test Owners</h1>
   <div id="content">
     <editable-list id="edit-owner-list"
@@ -42,5 +46,6 @@
 
     document.addEventListener('polymer-ready', init, false);
   </script>
-{% endblock %}
-{% include 'analytics.html' %}
+  {% include 'analytics.html' %}
+</body>
+</html>

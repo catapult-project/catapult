@@ -1,14 +1,16 @@
-{% extends "base.html" %}
-{% block head %}
-  <link type="text/css" rel="stylesheet" href="/dashboard/static/main_style.css">
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <style>
     textarea {
       height: 20em;
       width: 40em;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <p class="error">{{error}}</p>
   {% if key %}
     <h2>Key: {{key}}</h2>
@@ -46,4 +48,5 @@
       <li><a href="?key=sheriff_domains_key">sheriff_domains_key</a>: (domains of users who can triage alerts.
     </ul>
   {% endif %}
-{% endblock %}
+</body>
+</html>

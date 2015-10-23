@@ -1,7 +1,10 @@
+<!DOCTYPE html>
+
 {% macro link(anomaly) -%}
 <a href="{{anomaly.dashboard_link}}"
    target="_blank" title="View graph" class="change-table">
 {%- endmacro %}
+
 {% macro anomaly_table(anomalies, show_bugs=true) -%}
 <table>
   <thead>
@@ -44,8 +47,9 @@
 </table>
 {%- endmacro %}
 
-{% extends "base.html" %}
-{% block head %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Chrome Performance Dashboard</title>
 
   <style>
@@ -117,8 +121,9 @@
       color: #777;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Chrome Performance Dashboard</h1>
   <div id="content">
     <h2>Top {{num_changes}} improvements in the last {{num_days}} days
@@ -159,5 +164,6 @@
       </table>
     {% endif %}
   </div>
-{% endblock %}
-{% include 'analytics.html' %}
+  {% include 'analytics.html' %}
+  </body>
+</html>

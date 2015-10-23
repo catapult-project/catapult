@@ -1,57 +1,59 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Edit Anomaly Configs</title>
   <script>
-  'use strict';
-  // This should be an Object mapping anomaly config names to Objects
-  // which have the properties "config" and "patterns".
-  var ANOMALY_CONFIG_DATA = {{anomaly_config_json | safe}};
-  var XSRF_TOKEN = '{{xsrf_token}}';
+    'use strict';
+    // This should be an Object mapping anomaly config names to Objects
+    // which have the properties "config" and "patterns".
+    var ANOMALY_CONFIG_DATA = {{anomaly_config_json | safe}};
+    var XSRF_TOKEN = '{{xsrf_token}}';
 
-  /**
-   * Initializes the event listeners for events on the form.
-   */
-  function initialize() {
-    var addListener = function(elementId, eventName, callback) {
-      var element = document.getElementById(elementId);
-      element.addEventListener(eventName, callback, true);
-    };
-    addListener('edit-name', 'change', onEditConfigSelect);
-    addListener('edit-name', 'focus', onEditConfigSelect);
-    addListener('add-name', 'focus', onAddConfigFocus);
-  }
+    /**
+     * Initializes the event listeners for events on the form.
+     */
+    function initialize() {
+      var addListener = function(elementId, eventName, callback) {
+        var element = document.getElementById(elementId);
+        element.addEventListener(eventName, callback, true);
+      };
+      addListener('edit-name', 'change', onEditConfigSelect);
+      addListener('edit-name', 'focus', onEditConfigSelect);
+      addListener('add-name', 'focus', onAddConfigFocus);
+    }
 
-  /**
-   * Updates the interface when a new anomaly config is selected to be edited.
-   * @param {Event} e The change event for the select.
-   */
-  function onEditConfigSelect(e) {
-    // Update the radio, which indicates we're editing an existing config.
-    document.getElementById('edit-radio').checked = true;
+    /**
+     * Updates the interface when a new anomaly config is selected to be edited.
+     * @param {Event} e The change event for the select.
+     */
+    function onEditConfigSelect(e) {
+      // Update the radio, which indicates we're editing an existing config.
+      document.getElementById('edit-radio').checked = true;
 
-    // Get the config information and fill in the text areas.
-    var dropDown = e.target;
-    var selectedConfigName = dropDown.options[dropDown.selectedIndex].value;
-    var selectedConfig = window.ANOMALY_CONFIG_DATA[selectedConfigName];
-    var configTextarea = document.getElementById('config-textarea');
-    var patternsTextarea = document.getElementById('patterns-textarea');
-    configTextarea.value = selectedConfig['config'];
-    patternsTextarea.value = selectedConfig['patterns'];
-  }
+      // Get the config information and fill in the text areas.
+      var dropDown = e.target;
+      var selectedConfigName = dropDown.options[dropDown.selectedIndex].value;
+      var selectedConfig = window.ANOMALY_CONFIG_DATA[selectedConfigName];
+      var configTextarea = document.getElementById('config-textarea');
+      var patternsTextarea = document.getElementById('patterns-textarea');
+      configTextarea.value = selectedConfig['config'];
+      patternsTextarea.value = selectedConfig['patterns'];
+    }
 
-  /**
-   * Updates the interface when the user focuses the add config name field.
-   * @param {Event} _ The focus event for the input, not used.
-   */
-  function onAddConfigFocus(_) {
-    document.getElementById('add-radio').checked = true;
-  }
+    /**
+     * Updates the interface when the user focuses the add config name field.
+     * @param {Event} _ The focus event for the input, not used.
+     */
+    function onAddConfigFocus(_) {
+      document.getElementById('add-radio').checked = true;
+    }
 
-  window.addEventListener('DOMContentLoaded', initialize, true);
+    window.addEventListener('DOMContentLoaded', initialize, true);
   </script>
-{% endblock %}
-
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Edit Anomaly Configs</h1>
 
   <p><b>Note</b>: If the test path patterns of two different anomaly
@@ -89,4 +91,5 @@
               rows="20" cols="72"></textarea><br>
     <input type="submit">
   </form>
-{% endblock %}
+</body>
+</html>

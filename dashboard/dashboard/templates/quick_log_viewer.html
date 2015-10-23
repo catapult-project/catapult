@@ -1,5 +1,9 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <title>Quick Log Viewer</title>
+
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/dashboard/elements/quick-log.html">
 
@@ -18,8 +22,9 @@
       margin-bottom: 4px;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Quick Log Viewer</h1>
 
   <div id="content">
@@ -95,4 +100,5 @@
 
     document.addEventListener('polymer-ready', initialize, false);
   </script>
-{% endblock %}
+</body>
+</html>

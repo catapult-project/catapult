@@ -1,6 +1,7 @@
-{% extends "base.html" %}
-
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/components/paper-button/paper-button.html">
 
@@ -12,6 +13,7 @@
 
   <title>Chrome Performance Alerts</title>
   <script>
+    'use strict';
     var ANOMALY_LIST = {{anomaly_list | safe}};
     var STOPPAGE_ALERT_LIST = {{stoppage_alert_list | safe}};
     var SHERIFF_LIST = {{sheriff_list | safe}};
@@ -64,9 +66,9 @@
       width: 100%;
     }
   </style>
-
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Chrome Performance Alerts</h1>
   <overlay-message id="message-bar"></overlay-message>
   <div id="content">
@@ -103,5 +105,6 @@
     <quick-log id="auto-triage-log" xsrfToken="{{xsrf_token | safe}}"
                style="width:100%; display:block;"></quick-log>
   </div>
-{% endblock %}
-{% include 'analytics.html' %}
+  {% include 'analytics.html' %}
+</body>
+</html>

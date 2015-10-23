@@ -1,5 +1,7 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Buildbucket PUT Test</title>
   <style>
     table {
@@ -8,8 +10,8 @@
     }
 
     td {
-      border: 1px solid #eeeeee;
-      border-bottom: 2px solid #cccccc;
+      border: 1px solid #eee;
+      border-bottom: 2px solid #ccc;
       padding-right: 7px;
       padding-left: 7px;
     }
@@ -22,46 +24,47 @@
       border-bottom: 0px;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Buildbucket PUT Test</h1>
   <form method="POST">
     <label>Test type
       <input type="text" name="test_type" value="perf">
-    </label><br/>
+    </label><br>
     <label>Recipe tester bot name
       <input type="text" name="recipe_tester_name" value="linux_perf_tester">
-    </label><br/>
+    </label><br>
     <label>Command
       <input type="text" name="command" value="xvfb-run -a src/tools/perf/run_benchmark -v --browser=release blink_perf.parser">
-    </label><br/>
+    </label><br>
     <label>Metric
       <input type="text" name="metric" value="query-selector-first/query-selector-first">
-    </label><br/>
+    </label><br>
     <label>Good revision (commit position OR git hash)
       <input type="text" name="good_revision" value="">
-    </label><br/>
+    </label><br>
     <label>Bad revision
       <input type="text" name="bad_revision" value="">
-    </label><br/>
+    </label><br>
     <label>Repeat count
       <input type="text" name="repeat_count" value="20">
-    </label><br/>
+    </label><br>
     <label>Timeout in minutes for each test run
       <input type="text" name="max_time_minutes" value="5">
-    </label><br/>
+    </label><br>
     <label>Truncate percent, each end
       [25 for interquartile, 10 for interdecile, 0 for total range]
       <input type="text" name="truncate_percent" value="25">
-    </label><br/>
+    </label><br>
     <label>Built images GS bucket
       <input type="text" name="gs_bucket" value="chrome-perf">
-    </label><br/>
+    </label><br>
     <label>Bug ID
       <input type="text" name="bug_id" value="">
-    </label><br/>
-
+    </label><br>
     <input type="submit">
   </form>
   </table>
-{% endblock %}
+</body>
+</html>

@@ -1,5 +1,7 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <link rel="import" href="/components/polymer/polymer.html">
 
   <script src="/jquery/jquery-2.1.4.min.js"></script>
@@ -49,14 +51,17 @@
       width: 800px;
     }
   </style>
-
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Chrome Performance Statistics</h1>
   {% if waiting %}
     Waiting ({{processed}} of {{total}})...
     <script>
-      window.setTimeout(function() { location.reload(); }, 5000);
+      'use strict';
+      window.setTimeout(function() {
+        location.reload();
+      }, 5000);
     </script>
   {% elif have_stats %}
     <h2>{{title}}:</h2>
@@ -294,4 +299,5 @@
     {% endfor %}
     </ul>
   {% endif %}
-{% endblock %}
+</body>
+</html>

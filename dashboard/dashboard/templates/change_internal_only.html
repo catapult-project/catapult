@@ -1,5 +1,7 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <style>
     /* The content container contains everything after the title. */
     #content {
@@ -23,8 +25,9 @@
       padding-left: 15px;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Change internal_only Property</h1>
   <div id="content">
 
@@ -61,4 +64,5 @@
       <br><input type="submit" class="kennedy-button-submit" value="Change">
     </form>
   </div>
-{% endblock %}
+</body>
+</html>

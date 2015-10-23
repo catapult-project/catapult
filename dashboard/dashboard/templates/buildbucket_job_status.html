@@ -1,6 +1,10 @@
-{% extends "base.html" %}
-
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+</head>
+<body>
+{% include 'nav.html' %}
 {% if error %}
   <pre>
   Status of the bisect job {{job_id}}: ERROR, {{error}}
@@ -24,4 +28,5 @@
   (Not Yet Implemented)</a></p>
 {% endif %}
   <pre> {{status_text}} </pre>
-{% endblock %}
+</body>
+</html>

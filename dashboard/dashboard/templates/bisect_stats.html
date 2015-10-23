@@ -1,5 +1,8 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <title>Bisect Statistics</title>
   <style>
     #content {
       margin-left: 20px;
@@ -19,9 +22,9 @@
 
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/dashboard/elements/quick-log.html">
-
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Bisect Statistics</h1>
 
   <div id="content">
@@ -57,9 +60,7 @@
     'use strict';
 
     var ONE_WEEK_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
-
     var GRAPH_WIDTH_PX = 900;
-
     var GAP_SIZE_PX = 5;
 
     // Data object for bisect results by platform.
@@ -214,4 +215,5 @@
     addChartForBisectSummary();
     addChartForBisectRunByPlatform();
   </script>
-{% endblock %}
+</body>
+</html>

@@ -1,5 +1,7 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Anomaly Detection Function Debugger</title>
 
   <script src="/jquery/jquery-2.1.4.min.js"></script>
@@ -24,8 +26,9 @@
       font-weight: bold;
     }
   </style>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Anomaly Detection Function Debugger</h1>
   <div id="content">
     <p>This page shows the results of running the anomaly detection function
@@ -149,9 +152,7 @@
   </div>
 
   {% if plot_data and lookup %}
-
   <link rel="import" href="/dashboard/static/debug_alert.html">
-
   <script>
     'use strict';
     // Array with data series in Flot format. Expected series are:
@@ -171,4 +172,5 @@
     {% endif %}
   </script>
   {% endif %}
-{% endblock %}
+</body>
+</html>

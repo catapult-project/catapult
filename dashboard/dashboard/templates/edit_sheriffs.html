@@ -1,5 +1,7 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Edit Sheriff Rotations</title>
   <script>
   'use strict';
@@ -90,10 +92,10 @@
   }
 
   window.addEventListener('DOMContentLoaded', initialize, true);
-
   </script>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Edit Sheriffs</h1>
 
   <p><b>Note</b>: If the test path patterns of two different sheriffs
@@ -158,4 +160,5 @@
     <button id="list-tests-button" hidden>List monitored tests</button>
     <div id="matching-list"></div>
   </form>
-{% endblock %}
+</body>
+</html>

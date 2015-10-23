@@ -1,14 +1,14 @@
-{% extends "base.html" %}
-{% block head %}
-
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <script>
+    'use strict';
     var TEST_SUITES = {{test_suites | safe}};
     var REVISION_INFO = {{revision_info | safe}};
     var XSRF_TOKEN = '{{xsrf_token}}';
     var IS_INTERNAL_USER = ('{{is_internal_user}}' == 'True');
-    {% if dev_version %}
-    var DEV_SERVER = true;
-    {% endif %}
+    {% if dev_version %}var DEV_SERVER = true;{% endif %}
   </script>
 
   <script src="/jquery/jquery-2.1.4.min.js"></script>
@@ -28,6 +28,7 @@
   <title>Chrome Performance Dashboard</title>
 
   <script>
+    'use strict';
     // Workaround for document.contains returning false for elements in the
     // shadow DOM. jQuery mouse events need it to return true for scrolling
     // to be properly accounted for. For background, see
@@ -43,15 +44,14 @@
       return doc.contains(elem);
     };
   </script>
-
-{% endblock %}
-{% block content %}
-
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Chrome Performance Dashboard</h1>
 
   <overlay-message id="message-bar"></overlay-message>
 
-  {%if warning_message %}
+  {% if warning_message %}
     <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
     {{warning_message}}
     {% if warning_bug %}
@@ -69,5 +69,6 @@
   <report-container xsrfToken="{{xsrf_token | safe}}"></report-container>
   <section id="charts-container"></section>
 
-{% endblock %}
-{% include 'analytics.html' %}
+  {% include 'analytics.html' %}
+</body>
+</html>

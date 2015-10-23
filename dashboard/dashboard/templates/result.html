@@ -1,8 +1,11 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Result</title>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   {% if errors %}
     {% for error in errors %}
       <h1 class="error">{{error}}</h1>
@@ -21,4 +24,5 @@
   {% else %}
     <a href="">&laquo; Back</a>
   {% endif %}
-{% endblock %}
+</body>
+</html>

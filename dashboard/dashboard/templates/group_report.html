@@ -1,8 +1,11 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Chrome Performance Dashboard</title>
 
   <script>
+    'use strict';
     var ALERT_LIST = {{alert_list | safe}};
     var OWNER_INFO = {{owner_info | safe}};
     var SUBTESTS = {{subtests | safe}};
@@ -101,9 +104,10 @@
       display: block;
     }
   </style>
-
-{% endblock %}
-{% block content %}
+</head>
+<body>
+</head>
+<body>
   <h1>Chrome Performance Dashboard</h1>
   <overlay-message id="message-bar"></overlay-message>
   {% if warning_message %}
@@ -141,5 +145,6 @@
   </div>
 
   <custom-tooltip id="tooltip"></custom-tooltip>
-{% endblock %}
-{% include 'analytics.html' %}
+  {% include 'analytics.html' %}
+</body>
+</html>

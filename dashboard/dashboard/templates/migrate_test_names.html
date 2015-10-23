@@ -1,8 +1,10 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Migrate Test Names</title>
   <script>
-  'use strict';
+    'use strict';
     var XSRF_TOKEN = '{{xsrf_token}}';
 
     /**
@@ -30,8 +32,9 @@
       return false;
     }
   </script>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Migrate Test Names</h1>
 
   <h2 style="color:red">If a test name has changed,
@@ -98,4 +101,5 @@
     <input type="submit" disabled value="Run Migration" id="form-submit">
     <div id="test-list"></div>
   </form>
-{% endblock %}
+</body>
+</html>

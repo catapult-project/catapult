@@ -1,8 +1,11 @@
-{% extends "base.html" %}
-{% block head %}
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
   <title>Load Data From Production</title>
-{% endblock %}
-{% block content %}
+</head>
+<body>
+  {% include 'nav.html' %}
   <h1>Load Data From Production</h1>
   <p>Use this form to load a given master/system/test/graph/trace and all
   associated alerts from prod onto a dev server.</p>
@@ -20,19 +23,20 @@
   <p>Load recent alerts for a sheriff.</p>
   <form method="POST">
     Sheriff: <input name="sheriff"
-                      type="text"
-                      size=50
-                      value="Chromium Perf Sheriff"><br />
+                    type="text"
+                    size=50
+                    value="Chromium Perf Sheriff"><br>
     Number of alerts: <input name="num_alerts"
                              type="number"
                              min="1"
                              max="30"
-                             value="10"></input><br />
+                             value="10"></input><br>
     Number of points: <input name="num_points"
                              type="number"
                              min="1"
                              max="500"
-                             value="100"></input><br />
+                             value="100"></input><br>
     <input type="submit" value="Load alerts"></input>
   </form>
-{% endblock %}
+</body>
+</html>
