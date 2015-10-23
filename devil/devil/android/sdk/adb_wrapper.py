@@ -13,13 +13,12 @@ import errno
 import logging
 import os
 import re
-import threading
 
-from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
 from devil.utils import cmd_helper
 from devil.utils import timeout_retry
+from pylib import constants
 
 
 _DEFAULT_TIMEOUT = 30
@@ -50,9 +49,6 @@ DeviceStat = collections.namedtuple('DeviceStat',
 class AdbWrapper(object):
   """A wrapper around a local Android Debug Bridge executable."""
 
-  _adb_path = None
-  _adb_path_lock = threading.Lock()
-
   def __init__(self, device_serial):
     """Initializes the AdbWrapper.
 
@@ -63,25 +59,19 @@ class AdbWrapper(object):
       raise ValueError('A device serial must be specified')
     self._device_serial = str(device_serial)
 
-  @classmethod
-  def _GetAdbPath(cls):
-    if not cls._adb_path:
-      with cls._adb_path_lock:
-        if not cls._adb_path:
-          cls._adb_path = devil_env.config.FetchPath('adb')
-    return cls._adb_path
-
+  # pylint: disable=unused-argument
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
     if cpu_affinity is not None:
       cmd = ['taskset', '-c', str(cpu_affinity)]
     else:
       cmd = []
-    cmd.append(cls._GetAdbPath())
+    cmd.append(constants.GetAdbPath())
     if device_serial is not None:
       cmd.extend(['-s', device_serial])
     cmd.extend(args)
     return cmd
+  # pylint: enable=unused-argument
 
   # pylint: disable=unused-argument
   @classmethod

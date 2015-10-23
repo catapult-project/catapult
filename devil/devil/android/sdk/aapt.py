@@ -4,9 +4,12 @@
 
 """This module wraps the Android Asset Packaging Tool."""
 
-from devil import devil_env
-from devil.utils import cmd_helper
+import os
 
+from devil.utils import cmd_helper
+from pylib import constants
+
+_AAPT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'aapt')
 
 def _RunAaptCmd(args):
   """Runs an aapt command.
@@ -17,14 +20,12 @@ def _RunAaptCmd(args):
   Returns:
     The output of the command.
   """
-  aapt_path = devil_env.config.FetchPath('aapt')
-  cmd = [aapt_path] + args
+  cmd = [_AAPT_PATH] + args
   status, output = cmd_helper.GetCmdStatusAndOutput(cmd)
   if status != 0:
     raise Exception('Failed running aapt command: "%s" with output "%s".' %
                     (' '.join(cmd), output))
   return output
-
 
 def Dump(what, apk, assets=None):
   """Returns the output of the aapt dump command.
