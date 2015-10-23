@@ -19,6 +19,8 @@ from telemetry.internal.platform import device_finder
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.util import wpr_modes
 
+from catapult_base import cloud_storage
+
 import net_configs
 
 
@@ -241,7 +243,9 @@ class BrowserOptions(object):
     self.enable_logging = False
     # The cloud storage bucket & path for uploading logs data produced by the
     # browser to.
-    self.logs_cloud_bucket = None
+    # If logs_cloud_remote_path is None, a random remote path is generated every
+    # time the logs data is uploaded.
+    self.logs_cloud_bucket = cloud_storage.TELEMETRY_OUTPUT
     self.logs_cloud_remote_path = None
 
     # TODO(danduong): Find a way to store target_os here instead of

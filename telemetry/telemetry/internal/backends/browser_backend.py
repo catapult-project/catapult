@@ -1,6 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import uuid
 import sys
 
 from telemetry.core import platform
@@ -48,9 +49,11 @@ class BrowserBackend(app_backend.AppBackend):
     Check supports_uploading_logs before calling this method.
     """
     assert self.supports_uploading_logs
+    remote_path = (self.browser_options.logs_cloud_remote_path or
+                   'log_%s' % uuid.uuid4())
     cloud_url = cloud_storage.Insert(
         bucket=self.browser_options.logs_cloud_bucket,
-        remote_path=self.browser_options.logs_cloud_remote_path,
+        remote_path=remote_path,
         local_path=self.log_file_path)
     sys.stderr.write('Uploading browser log to %s\n' % cloud_url)
 

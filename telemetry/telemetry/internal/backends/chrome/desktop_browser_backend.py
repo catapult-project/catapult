@@ -84,8 +84,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def supports_uploading_logs(self):
-    return (self.browser_options.logs_cloud_bucket and
-            self.browser_options.logs_cloud_remote_path and
+    return (self.browser_options.logs_cloud_bucket and self.log_file_path and
             os.path.isfile(self.log_file_path))
 
   def _SetupProfile(self):
