@@ -50,7 +50,7 @@ tr.exportTo('tr.e.chrome', function() {
     dict.isTopLevel = (dict.isTopLevel === undefined);
     dict.startThread = model.browserMain;
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.browserMain.asyncSliceGroup.push(slice);
     return slice;
   }
 
