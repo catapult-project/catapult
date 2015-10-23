@@ -11,10 +11,10 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 # pylint: disable=unused-argument
 
 import logging
-import os
 import sys
 import unittest
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_signal
 from devil.android import device_utils
@@ -23,10 +23,8 @@ from devil.android.sdk import intent
 from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
-from pylib import constants
 
-sys.path.append(os.path.join(
-    constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
+sys.path.append(devil_env.config.LocalPath('pymock'))
 import mock # pylint: disable=F0401
 
 
@@ -71,17 +69,21 @@ class DeviceUtilsInitTest(unittest.TestCase):
 class DeviceUtilsGetAVDsTest(mock_calls.TestCase):
 
   def testGetAVDs(self):
-    with self.assertCall(
-        mock.call.devil.utils.cmd_helper.GetCmdOutput(
-            [mock.ANY, 'list', 'avd']),
-        'Available Android Virtual Devices:\n'
-        '    Name: my_android5.0\n'
-        '    Path: /some/path/to/.android/avd/my_android5.0.avd\n'
-        '  Target: Android 5.0 (API level 21)\n'
-        ' Tag/ABI: default/x86\n'
-        '    Skin: WVGA800\n'):
-      self.assertEquals(['my_android5.0'],
-                        device_utils.GetAVDs())
+    mocked_attrs = {
+      'android_sdk': '/my/sdk/path'
+    }
+    with mock.patch('devil.devil_env._Environment.LocalPath',
+                    mock.Mock(side_effect=lambda a: mocked_attrs[a])):
+      with self.assertCall(
+          mock.call.devil.utils.cmd_helper.GetCmdOutput(
+              [mock.ANY, 'list', 'avd']),
+          'Available Android Virtual Devices:\n'
+          '    Name: my_android5.0\n'
+          '    Path: /some/path/to/.android/avd/my_android5.0.avd\n'
+          '  Target: Android 5.0 (API level 21)\n'
+          ' Tag/ABI: default/x86\n'
+          '    Skin: WVGA800\n'):
+        self.assertEquals(['my_android5.0'], device_utils.GetAVDs())
 
 
 class DeviceUtilsRestartServerTest(mock_calls.TestCase):

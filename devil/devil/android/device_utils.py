@@ -22,6 +22,7 @@ import time
 import zipfile
 
 from devil import base_error
+from devil import devil_env
 from devil.utils import cmd_helper
 from devil.android import apk_helper
 from devil.android import device_signal
@@ -40,7 +41,6 @@ from devil.utils import parallelizer
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
-from pylib import constants
 from pylib.device.commands import install_commands
 
 _DEFAULT_TIMEOUT = 30
@@ -105,7 +105,8 @@ def GetAVDs():
     A list containing the configured AVDs.
   """
   lines = cmd_helper.GetCmdOutput([
-      os.path.join(constants.ANDROID_SDK_ROOT, 'tools', 'android'),
+      os.path.join(devil_env.config.LocalPath('android_sdk'),
+                   'tools', 'android'),
       'list', 'avd']).splitlines()
   avds = []
   for line in lines:

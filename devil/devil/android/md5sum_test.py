@@ -7,25 +7,29 @@ import os
 import sys
 import unittest
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import md5sum
-from pylib import constants
 
-sys.path.append(
-    os.path.join(constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
+sys.path.append(devil_env.config.LocalPath('pymock'))
 import mock # pylint: disable=import-error
 
 TEST_OUT_DIR = os.path.join('test', 'out', 'directory')
 HOST_MD5_EXECUTABLE = os.path.join(TEST_OUT_DIR, 'md5sum_bin_host')
+MD5_DIST = os.path.join(TEST_OUT_DIR, 'md5sum_dist')
 
 class Md5SumTest(unittest.TestCase):
 
   def setUp(self):
+    mocked_attrs = {
+      'md5sum_host': HOST_MD5_EXECUTABLE,
+      'md5sum_device': MD5_DIST,
+    }
     self._patchers = [
-        mock.patch('pylib.constants.GetOutDirectory',
-                   new=mock.Mock(return_value=TEST_OUT_DIR)),
-        mock.patch('os.path.exists',
-                   new=mock.Mock(return_value=True)),
+      mock.patch('devil.devil_env._Environment.FetchPath',
+                 mock.Mock(side_effect=lambda a, device=None: mocked_attrs[a])),
+      mock.patch('os.path.exists',
+                 new=mock.Mock(return_value=True)),
     ]
     for p in self._patchers:
       p.start()
@@ -217,7 +221,8 @@ class Md5SumTest(unittest.TestCase):
     device.RunShellCommand = mock.Mock(
         side_effect=(error, '', device_md5sum_output))
 
-    with mock.patch('os.path.getsize', return_value=1337):
+    with mock.patch('os.path.isdir', return_value=True), (
+         mock.patch('os.path.getsize', return_value=1337)):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)

@@ -4,12 +4,9 @@
 
 """This module wraps Android's split-select tool."""
 
-import os
-
+from devil import devil_env
 from devil.utils import cmd_helper
-from pylib import constants
 
-_SPLIT_SELECT_PATH = os.path.join(constants.ANDROID_SDK_TOOLS, 'split-select')
 
 def _RunSplitSelectCmd(args):
   """Runs a split-select command.
@@ -20,7 +17,8 @@ def _RunSplitSelectCmd(args):
   Returns:
     The output of the command.
   """
-  cmd = [_SPLIT_SELECT_PATH] + args
+  split_select_path = devil_env.config.FetchPath('split-select')
+  cmd = [split_select_path] + args
   status, output = cmd_helper.GetCmdStatusAndOutput(cmd)
   if status != 0:
     raise Exception('Failed running command "%s" with output "%s".' %
