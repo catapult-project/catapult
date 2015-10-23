@@ -299,11 +299,6 @@ class BrowserOptions(object):
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
-    # This hidden option is to be removed, and the older code path deleted,
-    # once Chrome 37 reaches Stable. http://crbug.com/379980
-    group.add_option('--use-devtools-active-port',
-        action='store_true',
-        help=optparse.SUPPRESS_HELP)
     group.add_option('--enable-browser-logging',
         dest='enable_logging',
         action='store_true',
