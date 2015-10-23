@@ -89,8 +89,6 @@ class DependencyManager(object):
     """
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
-      logging.error(
-          'The dependency_manager was not initialized with the dependency.')
       if not try_support_binaries:
         raise exceptions.NoPathFoundError(dependency, platform)
       # TODO(aiolos): Remove the support_binaries call and always raise
@@ -141,8 +139,6 @@ class DependencyManager(object):
     # system.
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
-      logging.error(
-          'The dependency_manager was not initialized with the dependency.')
       if not try_support_binaries:
         raise exceptions.NoPathFoundError(dependency, platform)
       return support_binaries.FindLocallyBuiltPath(dependency)
