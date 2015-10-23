@@ -27,6 +27,7 @@ class Image(object):
 
 
 class ParsedStyleSheet(object):
+
   def __init__(self, loader, containing_dirname, contents):
     self.loader = loader
     self.contents = contents
@@ -55,7 +56,7 @@ class ParsedStyleSheet(object):
       ext = os.path.splitext(image.absolute_path)[1]
       data = base64.standard_b64encode(image.contents)
 
-      return "url(data:image/%s;base64,%s)" % (ext[1:], data)
+      return 'url(data:image/%s;base64,%s)' % (ext[1:], data)
 
     # I'm assuming we only have url()'s associated with images
     return re.sub('url\((?P<quote>"|\'|)(?P<url>[^"\'()]*)(?P=quote)\)',
@@ -91,6 +92,7 @@ class ParsedStyleSheet(object):
 class StyleSheet(object):
   """Represents a stylesheet resource referenced by a module via the
   base.requireStylesheet(xxx) directive."""
+
   def __init__(self, loader, name, resource):
     self.loader = loader
     self.name = name
@@ -106,7 +108,7 @@ class StyleSheet(object):
     return self.resource.contents
 
   def __repr__(self):
-    return "StyleSheet(%s)" % self.name
+    return 'StyleSheet(%s)' % self.name
 
   @property
   def images(self):

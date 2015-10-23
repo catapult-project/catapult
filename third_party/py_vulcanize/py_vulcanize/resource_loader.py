@@ -21,6 +21,7 @@ class ResourceLoader(object):
   pointers. The loader deals with bookkeeping of what has been loaded, and
   mapping names to file resources.
   """
+
   def __init__(self, project):
     self.project = project
     self.stripped_js_by_filename = {}
@@ -72,7 +73,7 @@ class ResourceLoader(object):
     return None
 
   def _FindResourceGivenNameAndSuffix(
-      self, requested_name, extension, return_resource=False):
+        self, requested_name, extension, return_resource=False):
     """Searches for a file and reads its contents.
 
     Args:
@@ -146,7 +147,8 @@ class ResourceLoader(object):
       possible_absolute_path = os.path.join(
           source_path, os.path.normpath(relative_raw_script_path))
       if os.path.exists(possible_absolute_path):
-        resource = resource_module.Resource(source_path, possible_absolute_path)
+        resource = resource_module.Resource(
+            source_path, possible_absolute_path)
         break
     if not resource:
       raise module.DepsException(

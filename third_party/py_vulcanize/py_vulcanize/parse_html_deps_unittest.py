@@ -11,6 +11,7 @@ from py_vulcanize import html_generation_controller
 
 
 class ParseTests(unittest.TestCase):
+
   def test_parse_empty(self):
     parser = parse_html_deps.HTMLModuleParser()
     module = parser.Parse('')
@@ -118,6 +119,7 @@ class ParseTests(unittest.TestCase):
     self.assertFalse(module.has_decl)
 
     class Ctl(html_generation_controller.HTMLGenerationController):
+
       def GetHTMLForStylesheetHRef(self, href):
         if href == 'frameworkstyles.css':
           return '<style>FRAMEWORK</style>'
@@ -139,6 +141,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(html, module.html_contents_without_links_and_script)
 
     class Ctl(html_generation_controller.HTMLGenerationController):
+
       def GetHTMLForInlineStylesheet(self, contents):
         if contents == '\n  hello\n':
           return '\n  HELLO\n'

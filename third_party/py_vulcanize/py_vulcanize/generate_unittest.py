@@ -50,6 +50,7 @@ class GenerateTests(unittest.TestCase):
           [os.path.normpath('foo.my_module')])
 
       class ExtraScript(generate.ExtraScript):
+
         def WriteToFile(self, f):
           f.write('<script>ExtraScript!</script>')
 

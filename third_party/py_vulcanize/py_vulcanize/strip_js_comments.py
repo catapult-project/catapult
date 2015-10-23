@@ -20,8 +20,8 @@ def _TokenizeJS(text):
     A succession of strings in the file, including all comment-related symbols.
   """
   rest = text
-  tokens = ["//", "/*", "*/", "\n"]
-  next_tok = re.compile('|'.join([re.escape(x) for x in tokens]))
+  tokens = ['//', '/*', '*/', '\n']
+  next_tok = re.compile('|'.join(re.escape(x) for x in tokens))
   while len(rest):
     m = next_tok.search(rest)
     if not m:
@@ -55,11 +55,11 @@ def StripJSComments(text):
     except StopIteration:
       break
 
-    if t == "//":
+    if t == '//':
       while True:
         try:
           t2 = token_stream.next()
-          if t2 == "\n":
+          if t2 == '\n':
             break
         except StopIteration:
           break
@@ -68,9 +68,9 @@ def StripJSComments(text):
       while True:
         try:
           t2 = token_stream.next()
-          if t2 == "/*":
+          if t2 == '/*':
             nesting += 1
-          elif t2 == "*/":
+          elif t2 == '*/':
             nesting -= 1
             if nesting == 0:
               break
@@ -78,4 +78,4 @@ def StripJSComments(text):
           break
     else:
       result_tokens.append(t)
-  return "".join(result_tokens)
+  return ''.join(result_tokens)

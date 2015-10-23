@@ -139,8 +139,7 @@ class FakeFS(object):
           dirs.add(parts[0])
           pending_prefixes.appendleft(pending)
 
-      dirs = list(dirs)
-      dirs.sort()
+      dirs = sorted(dirs)
       yield prefix, dirs, files
 
   def _FakeListDir(self, dirname):

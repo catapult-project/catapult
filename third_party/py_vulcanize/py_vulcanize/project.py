@@ -21,7 +21,6 @@ def _FindAllFilesRecursive(source_paths):
   return all_filenames
 
 
-
 class AbsFilenameList(object):
 
   def __init__(self, willDirtyCallback):
@@ -173,7 +172,6 @@ class Project(object):
     for m in load_sequence:
       modules_by_id[m.id] = m
 
-    # Module referrers goes module
     module_referrers = collections.defaultdict(list)
     for m in load_sequence:
       for dep in m.dependent_modules:
@@ -213,23 +211,19 @@ class _Graph(object):
     m.AppendJSContentsToFile(f, False, None)
 
     attrs = {
-        "label": "%s (%i)" % (m.name, f.tell())
+        'label': '%s (%i)' % (m.name, f.tell())
     }
 
     f.close()
 
     attr_items = ['%s="%s"' % (x, y) for x, y in attrs.iteritems()]
-    node = "M%i [%s];" % (m.id, ','.join(attr_items))
+    node = 'M%i [%s];' % (m.id, ','.join(attr_items))
     self.nodes.append(node)
 
   def AddEdge(self, mFrom, mTo):
-    edge = "M%i -> M%i;" % (mFrom.id, mTo.id)
+    edge = 'M%i -> M%i;' % (mFrom.id, mTo.id)
     self.edges.append(edge)
 
   def GetDot(self):
-    return """digraph deps {
-%s
-
-%s
-}
-""" % ('\n'.join(self.nodes), '\n'.join(self.edges))
+    return 'digraph deps {\n\n%s\n\n%s\n}\n' % (
+        '\n'.join(self.nodes), '\n'.join(self.edges))

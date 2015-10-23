@@ -87,7 +87,7 @@ class ModuleIntegrationTests(unittest.TestCase):
       try:
         loader.LoadModule(module_name='src.my_module')
         assert False, 'Expected an exception'
-      except module.DepsException, e:
+      except module.DepsException as e:
         exc = e
       self.assertEquals(
           ['src.my_module', 'py_vulcanize.foo'],

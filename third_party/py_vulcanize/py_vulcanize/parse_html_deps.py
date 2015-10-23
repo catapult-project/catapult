@@ -31,6 +31,7 @@ import bs4
 
 
 class InlineScript(object):
+
   def __init__(self, soup):
     if not soup:
       raise module.DepsException('InlineScript created without soup')
@@ -75,6 +76,7 @@ def _IsDoctype(x):
     return False
   return x == 'html' or x == 'HTML'
 
+
 def _CreateSoupWithoutHeadOrBody(html):
   soupCopy = bs4.BeautifulSoup(html, 'html5lib')
   soup = bs4.BeautifulSoup()
@@ -89,7 +91,9 @@ def _CreateSoupWithoutHeadOrBody(html):
       soup.append(n)
   return soup
 
+
 class HTMLModuleParserResults(object):
+
   def __init__(self, html):
     self._soup = bs4.BeautifulSoup(html, 'html5lib')
     self._inline_scripts = None
@@ -205,7 +209,7 @@ class _Tag(object):
     self.attrs = attrs
 
   def __repr__(self):
-    attr_string = ' '.join(['%s="%s"' % (x[0], x[1]) for x in self.attrs])
+    attr_string = ' '.join('%s="%s"' % (x[0], x[1]) for x in self.attrs)
     return '<%s %s>' % (self.tag, attr_string)
 
 

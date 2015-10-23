@@ -9,7 +9,6 @@ from py_vulcanize import js_utils
 
 
 class ValidateStrictModeTests(unittest.TestCase):
-  """Test case for ValidateUsesStrictMode."""
 
   def test_ValidateUsesStrictMode_returns_true(self):
     text = "// blahblahblah\n\n'use strict';\n\npy_vulcanize.require('dependency1');"

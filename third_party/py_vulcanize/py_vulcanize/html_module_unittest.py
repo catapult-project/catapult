@@ -17,6 +17,7 @@ from py_vulcanize import resource_loader as resource_loader
 
 
 class ResourceWithFakeContents(resource.Resource):
+
   def __init__(self, toplevel_dir, absolute_path, fake_contents):
     """A resource with explicitly provided contents.
 
@@ -34,6 +35,7 @@ class ResourceWithFakeContents(resource.Resource):
 
 
 class FakeLoader(object):
+
   def __init__(self, source_paths, initial_filenames_and_contents=None):
     self._source_paths = source_paths
     self._file_contents = {}
@@ -68,6 +70,7 @@ class FakeLoader(object):
 
 
 class ParseTests(unittest.TestCase):
+
   def testMissingDocType(self):
     parse_results = parse_html_deps.HTMLModuleParserResults('')
 
@@ -202,6 +205,7 @@ console.log('Logging without strict mode is no fun.');
 
 
 class HTMLModuleTests(unittest.TestCase):
+
   def testBasicModuleGeneration(self):
     file_contents = {}
     file_contents[os.path.normpath('/tmp/a/b/start.html')] = """

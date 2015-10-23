@@ -25,7 +25,7 @@ class HTMLModule(module.Module):
   def Parse(self):
     try:
       parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
-    except Exception, ex:
+    except Exception as ex:
       raise Exception('While parsing %s: %s' % (self.name, str(ex)))
 
     self.dependency_metadata = Parse(self.loader,
@@ -141,10 +141,10 @@ def _HRefToResource(
     loader, module_name, module_dir_name, href, tag_for_err_msg):
   if href[0] == '/':
     resource = loader.FindResourceGivenRelativePath(
-      os.path.normpath(href[1:]))
+        os.path.normpath(href[1:]))
   else:
     abspath = os.path.normpath(os.path.join(module_dir_name,
-      os.path.normpath(href)))
+                                            os.path.normpath(href)))
     resource = loader.FindResourceGivenAbsolutePath(abspath)
 
   if not resource:
@@ -167,7 +167,7 @@ def Parse(loader, module_name, module_dir_name, is_component, parser_results):
   if parser_results.has_decl is False:
     raise Exception('%s must have <!DOCTYPE html>' % module_name)
 
-  # External script references..
+  # External script references.
   for href in parser_results.scripts_external:
     resource = _HRefToResource(loader, module_name, module_dir_name,
                                href,
@@ -196,7 +196,7 @@ def Parse(loader, module_name, module_dir_name, is_component, parser_results):
       raise Exception('%s has an inline script tag that is missing '
                       'a \'use strict\' directive.' % module_name)
 
-  # Style sheets
+  # Style sheets.
   for href in parser_results.stylesheets:
     resource = _HRefToResource(
         loader, module_name, module_dir_name, href,
