@@ -10,6 +10,7 @@ import os
 from catapult_base import dependency_manager
 from telemetry.core import exceptions
 from telemetry.core import util
+from devil import devil_env
 
 
 TELEMETRY_PROJECT_CONFIG = os.path.join(
@@ -33,6 +34,8 @@ def InitDependencyManager(environment_config):
   if environment_config:
     configs.insert(0, dependency_manager.BaseConfig(environment_config))
   _dependency_manager = dependency_manager.DependencyManager(configs)
+
+  devil_env.config.Initialize()
 
 
 def FetchPath(binary_name, arch, platform):
