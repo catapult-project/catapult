@@ -4,6 +4,7 @@
 """Finds desktop mandoline browsers that can be controlled by telemetry."""
 
 import os
+import logging
 import sys
 
 from telemetry.core import exceptions
@@ -100,12 +101,6 @@ def FindAllAvailableBrowsers(finder_options, device):
   if not CanFindAvailableBrowsers():
     return []
 
-  # Look for a browser in the standard chrome build locations.
-  if finder_options.chrome_root:
-    chrome_root = finder_options.chrome_root
-  else:
-    chrome_root = path.GetChromiumSrcDir()
-
   if sys.platform.startswith('linux'):
     mandoline_app_name = 'mandoline'
   elif sys.platform.startswith('win'):
@@ -134,8 +129,14 @@ def FindAllAvailableBrowsers(finder_options, device):
             '%s specified by --browser-executable does not exist',
             normalized_executable)
 
+  if not finder_options.chrome_root:
+    logging.warning('Chrome build directory is not specified. Skip looking for'
+                    'for madonline build in the chrome build directories.')
+    return browsers
+
   def AddIfFound(browser_type, build_dir, type_dir, app_name):
-    browser_directory = os.path.join(chrome_root, build_dir, type_dir)
+    browser_directory = os.path.join(
+        finder_options.chrome_root, build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
     if path.IsExecutable(app):
       browsers.append(PossibleDesktopMandolineBrowser(

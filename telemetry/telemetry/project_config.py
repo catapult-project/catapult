@@ -13,13 +13,18 @@ class ProjectConfig(object):
     benchmark_aliases: A dict of name:alias string pairs to be matched against
         exactly during benchmark selection.
     client_config: A path to a ProjectDependencies json file.
+    default_chrome_root: A path to chromium source directory. Many telemetry
+      features depend on chromium source tree's presence and those won't work
+      in case this is not specified.
   """
   def __init__(self, top_level_dir, benchmark_dirs=None,
-               benchmark_aliases=None, client_config=None):
+               benchmark_aliases=None, client_config=None,
+               default_chrome_root=None):
     self._top_level_dir = top_level_dir
     self._benchmark_dirs = benchmark_dirs or []
     self._benchmark_aliases = benchmark_aliases or dict()
     self._client_config = client_config or ''
+    self._default_chrome_root = default_chrome_root
 
   @property
   def top_level_dir(self):
@@ -36,3 +41,7 @@ class ProjectConfig(object):
   @property
   def client_config(self):
     return self._client_config
+
+  @property
+  def default_chrome_root(self):
+    return self._default_chrome_root

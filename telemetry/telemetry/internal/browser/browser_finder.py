@@ -47,6 +47,8 @@ def FindBrowser(options):
   Raises:
     BrowserFinderException: Options improperly set, or an error occurred.
   """
+  if options.__class__.__name__ == '_FakeBrowserFinderOptions':
+    return options.fake_possible_browser
   if options.browser_type == 'exact' and options.browser_executable == None:
     raise browser_finder_exceptions.BrowserFinderException(
         '--browser=exact requires --browser-executable to be set.')

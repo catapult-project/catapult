@@ -363,6 +363,10 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
 
 def main(environment):
   ps_util.EnableListingStrayProcessesUponExitHook()
+
+  if environment.default_chrome_root and '--chrome-root' not in sys.argv:
+    sys.argv.extend(['--chrome-root', environment.default_chrome_root])
+
   # Get the command name from the command line.
   if len(sys.argv) > 1 and sys.argv[1] == '--help':
     sys.argv[1] = 'help'

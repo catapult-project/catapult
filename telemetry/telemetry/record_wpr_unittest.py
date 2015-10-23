@@ -120,9 +120,12 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
                      record_page_test.page_test.func_calls[0])
 
   def GetBrowserDeviceFlags(self):
-    return ['--browser', self._browser.browser_type,
-            '--remote', self._test_options.cros_remote,
-            '--device', self._device]
+    flags = ['--browser', self._browser.browser_type,
+             '--remote', self._test_options.cros_remote,
+             '--device', self._device]
+    if self._test_options.chrome_root:
+      flags += ['--chrome-root', self._test_options.chrome_root]
+    return flags
 
   @decorators.Disabled('chromeos') # crbug.com/404868.
   def testWprRecorderWithPageSet(self):

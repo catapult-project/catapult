@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.internal.backends.chrome import android_browser_finder
-from telemetry.internal.browser import browser_options
+from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
 
@@ -21,7 +21,7 @@ class FakeAndroidPlatform(object):
 
 class AndroidBrowserFinderTest(unittest.TestCase):
   def setUp(self):
-    self.finder_options = browser_options.BrowserFinderOptions()
+    self.finder_options = options_for_unittests.GetCopy()
 
     # Mock out what's needed for testing with exact APKs
     self._android_browser_finder_stub = system_stub.Override(

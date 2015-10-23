@@ -87,7 +87,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
             apk_name)
       self._local_apk = apk_name
     elif apk_name:
-      chrome_root = util.GetChromiumSrcDir()
+      assert finder_options.chrome_root, (
+          'Must specify Chromium source to use apk_name')
+      chrome_root = finder_options.chrome_root
       candidate_apks = []
       for build_dir, build_type in util.GetBuildDirectories():
         apk_full_name = os.path.join(chrome_root, build_dir, build_type, 'apks',

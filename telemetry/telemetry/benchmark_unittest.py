@@ -7,7 +7,7 @@ import unittest
 
 from telemetry import android
 from telemetry import benchmark
-from telemetry.internal.browser import browser_options
+from telemetry.testing import options_for_unittests
 from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import page_test
@@ -41,19 +41,19 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(browser_options.BrowserFinderOptions())
+      b.Run(options_for_unittests.GetCopy())
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(browser_options.BrowserFinderOptions())
+      b.Run(options_for_unittests.GetCopy())
 
     b = TestBenchmark(android.AndroidStory(start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(browser_options.BrowserFinderOptions())
+      b.Run(options_for_unittests.GetCopy())
 
   def testPageTestWithCompatibleStory(self):
     original_run_fn = story_runner.Run
@@ -63,7 +63,7 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = browser_options.BrowserFinderOptions()
+      options = options_for_unittests.GetCopy()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
       parser = optparse.OptionParser()
@@ -145,7 +145,7 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = browser_options.BrowserFinderOptions()
+      options = options_for_unittests.GetCopy()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
       parser = optparse.OptionParser()

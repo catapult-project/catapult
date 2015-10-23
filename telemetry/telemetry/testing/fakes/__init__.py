@@ -138,9 +138,15 @@ class FakeSystemInfo(system_info.SystemInfo):
     super(FakeSystemInfo, self).__init__(model_name, gpu_dict)
 
 
+class _FakeBrowserFinderOptions(browser_options.BrowserFinderOptions):
+  def __init__(self, *args, **kwargs):
+    browser_options.BrowserFinderOptions.__init__(self, *args, **kwargs)
+    self.fake_possible_browser = FakePossibleBrowser()
+
+
 def CreateBrowserFinderOptions(browser_type=None):
   """Creates fake browser finder options for discovering a browser."""
-  return browser_options.BrowserFinderOptions(browser_type=browser_type)
+  return _FakeBrowserFinderOptions(browser_type=browser_type)
 
 
 # Internal classes. Note that end users may still need to both call

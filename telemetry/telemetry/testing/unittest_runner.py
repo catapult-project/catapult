@@ -24,6 +24,9 @@ def Run(project_config, no_browser=False, stream=None):
   if no_browser and not '--no-browser' in args:
     args.extend(['--no-browser'])
 
+  if project_config.default_chrome_root and not '--chrome-root' in args:
+    args.extend(['--chrome-root', project_config.default_chrome_root])
+
   env = os.environ.copy()
   telemetry_dir = util.GetTelemetryDir()
   if 'PYTHONPATH' in env:

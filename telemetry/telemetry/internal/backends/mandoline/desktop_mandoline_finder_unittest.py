@@ -54,19 +54,6 @@ class LinuxFindTest(FindTestBase):
     self._files.append('../../../out/Release/mandoline')
     self._files.append('../../../out/Debug/mandoline')
 
-    #this = self
-    #def call_hook(*args, **kwargs):  # pylint: disable=W0613
-    #  if this.has_google_chrome_on_path:
-    #    return 0
-    #  raise OSError('Not found')
-    #self._finder_stubs.subprocess.call = call_hook
-
-    #def realpath_hook(*unused_args, **unused_kwargs):
-    #  if this.chrome_beta_is_google_chrome:
-    #    return '/opt/google/chrome-beta/google-chrome-beta'
-    #  return '/opt/google/chrome/google-chrome'
-    #self._finder_stubs.os.path.realpath = realpath_hook
-
   def testFindAllGivenDefaults(self):
     if not self.CanFindAvailableBrowsers():
       return
@@ -88,6 +75,14 @@ class LinuxFindTest(FindTestBase):
     self._files.append('/foo/chrome')
     self._finder_options.browser_executable = '/foo/chrome'
     self.assertNotIn('exact', self.DoFindAllTypes())
+
+  def testFindWithProvidedExecutableWhenChromeRootNotSpecified(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._finder_options.chrome_root = None
+    self._finder_options.browser_executable = '/foo/mandoline'
+    self.assertEquals(['exact'], self.DoFindAllTypes())
 
 
 class WinFindTest(FindTestBase):
@@ -123,3 +118,11 @@ class WinFindTest(FindTestBase):
     self._files.append('c:\\foo\\chrome.exe')
     self._finder_options.browser_dir = 'c:\\foo\\chrome.exe'
     self.assertNotIn('exact', self.DoFindAllTypes())
+
+  def testFindWithProvidedExecutableWhenChromeRootNotSpecified(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._finder_options.chrome_root = None
+    self._finder_options.browser_executable = 'c:\\tmp\\mandoline.exe'
+    self.assertEquals(['exact'], self.DoFindAllTypes())
