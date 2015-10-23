@@ -7,12 +7,11 @@ import stat
 import unittest
 
 import mock
+from pyfakefs import fake_filesystem_unittest
 
 from catapult_base import dependency_manager
 from catapult_base import cloud_storage
 from catapult_base.dependency_manager import exceptions
-
-from pyfakefs import fake_filesystem_unittest
 
 
 class DependencyManagerTest(unittest.TestCase):

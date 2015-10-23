@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from catapult_base import cloud_storage
+
 class UnsupportedConfigFormatError(ValueError):
   def __init__(self, config_type, config_file):
     if not config_type:
@@ -11,6 +13,7 @@ class UnsupportedConfigFormatError(ValueError):
       message = ('The json file at %s has config type %s, which is unsupported '
                  'by the dependency manager.' % (config_file, config_type))
     super(UnsupportedConfigFormatError, self).__init__(message)
+
 
 class EmptyConfigError(ValueError):
   def __init__(self, file_path):
@@ -28,5 +31,14 @@ class NoPathFoundError(Exception):
         'No file could be found locally, and no file to download from cloud '
         'storage for %s on platform %s' % (dependency, platform))
 
+
 class ReadWriteError(Exception):
   pass
+
+
+class CloudStorageUploadConflictError(cloud_storage.CloudStorageError):
+  def __init__(self, bucket, path):
+    super(CloudStorageUploadConflictError, self).__init__(
+        'File location %s already exists in bucket %s' % (path, bucket))
+
+
