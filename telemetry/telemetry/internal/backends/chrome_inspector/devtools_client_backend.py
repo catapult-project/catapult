@@ -173,11 +173,16 @@ class DevToolsClientBackend(object):
     if self._memory_backend:
       self._memory_backend.Close()
       self._memory_backend = None
+
+    if self._devtools_context_map_backend:
+      self._devtools_context_map_backend.Clear()
+
     # Close the browser inspector socket last (in case the backend needs to
     # interact with it before closing).
     if self._browser_inspector_websocket:
       self._browser_inspector_websocket.Disconnect()
       self._browser_inspector_websocket = None
+
 
   @decorators.Cache
   def GetChromeBranchNumber(self):
@@ -457,3 +462,9 @@ class _DevToolsContextMapBackend(object):
           continue
       valid_contexts.append(context)
     self._contexts = valid_contexts
+
+  def Clear(self):
+    for backend in self._inspector_backends_dict.values():
+      backend.Disconnect()
+    self._inspector_backends_dict = {}
+    self._contexts = None
