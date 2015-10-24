@@ -3,8 +3,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.internal.util import find_dependencies
 
 
-if __name__ == '__main__':
+@decorators.Deprecated(2015, 11, 23, 'Please use tools/perf/find_dependencies.')
+def main():
   find_dependencies.FindDependenciesCommand.main()
+
+
+if __name__ == '__main__':
+  main()
