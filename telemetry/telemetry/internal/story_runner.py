@@ -169,8 +169,8 @@ def StoriesGroupedByStateClass(story_set, allow_multiple_groups):
     story_groups[-1].AddStory(story)
   return story_groups
 
-
-def Run(test, story_set, finder_options, results, max_failures=None):
+def Run(test, story_set, finder_options, results, max_failures=None,
+        should_tear_down_state_after_each_story_run=False):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -210,8 +210,12 @@ def Run(test, story_set, finder_options, results, max_failures=None):
         for story in group.stories:
           for _ in xrange(finder_options.page_repeat):
             if not state:
+              # Construct shared state by using a copy of finder_options. Shared
+              # state may update the finder_options. If we tear down the shared
+              # state after this story run, we want to construct the shared
+              # state for the next story from the original finder_options.
               state = group.shared_state_class(
-                  test, finder_options, story_set)
+                  test, finder_options.Copy(), story_set)
             results.WillRunPage(story)
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
@@ -239,6 +243,9 @@ def Run(test, story_set, finder_options, results, max_failures=None):
                 # Print current exception and propagate existing exception.
                 exception_formatter.PrintFormattedException(
                     msg='Exception from result processing:')
+              if state and should_tear_down_state_after_each_story_run:
+                state.TearDownState()
+                state = None
           if (effective_max_failures is not None and
               len(results.failures) > effective_max_failures):
             logging.error('Too many failures. Aborting.')
@@ -291,7 +298,8 @@ def RunBenchmark(benchmark, finder_options):
       benchmark_metadata, finder_options,
       benchmark.ValueCanBeAddedPredicate) as results:
     try:
-      Run(pt, stories, finder_options, results, benchmark.max_failures)
+      Run(pt, stories, finder_options, results, benchmark.max_failures,
+          benchmark.ShouldTearDownStateAfterEachStoryRun())
       return_code = min(254, len(results.failures))
     except Exception:
       exception_formatter.PrintFormattedException()

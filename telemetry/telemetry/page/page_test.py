@@ -5,6 +5,7 @@
 import logging
 
 from telemetry.core import exceptions
+from telemetry import decorators
 from telemetry.page import action_runner as action_runner_module
 
 # Export story_test.Failure to this page_test module
@@ -42,6 +43,9 @@ class PageTest(object):
              'document.body.children.length')
          results.AddValue(scalar.ScalarValue(
              page, 'body_children', 'count', body_child_count))
+
+  Notice: needs_browser_restart_after_each_page is deprecated. Please use
+  benchmark.ShouldTearDownStateAfterEachStoryRun() in the future.
   """
 
   def __init__(self,
@@ -82,6 +86,8 @@ class PageTest(object):
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
 
+  @decorators.Deprecated(2015, 10, 21, ' Please use '
+      'benchmark.ShouldTearDownStateAfterEachStoryRun() in the future.')
   def RestartBrowserBeforeEachPage(self):
     """ Should the browser be restarted for the page?
 

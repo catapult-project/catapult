@@ -128,3 +128,4 @@ class SharedPageStateTests(unittest.TestCase):
       shared_state.WillRunStory(p)
       self.assertEquals(
         p.startup_url, mock_finder_options.browser_options.startup_url)
+      shared_state.TearDownState()
