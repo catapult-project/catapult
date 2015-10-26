@@ -596,7 +596,7 @@ def _CreatePatch(base_config, config_changes, config_path):
 
 
 def PerformBisect(bisect_job):
-  """Performs the bisect on the try bot.
+  """Starts the bisect job.
 
   This creates a patch, uploads it, then tells Rietveld to try the patch.
 
@@ -606,15 +606,20 @@ def PerformBisect(bisect_job):
   bot name.
 
   Args:
-    bisect_job: TryJob entity with initialized bot name and config.
+    bisect_job: A TryJob entity.
 
   Returns:
     A dictionary containing the result; if successful, this dictionary contains
     the field "issue_id" and "issue_url", otherwise it contains "error".
   """
   assert bisect_job.bot and bisect_job.config
+  config_dict = bisect_job.GetConfigDict()
 
   if bisect_job.use_buildbucket:
+    if 'recipe_tester_name' not in config_dict:
+      logging.error('"recipe_tester_name" required in bisect jobs '
+                    'that use buildbucket. Config: %s', config_dict)
+      return {'error': 'No "recipe_tester_name" given.'}
     return PerformBuildbucketBisect(bisect_job)
 
   config = bisect_job.config
@@ -623,7 +628,6 @@ def PerformBisect(bisect_job):
   bug_id = bisect_job.bug_id
 
   # We need to rewrite the metric name for legacy bisect.
-  config_dict = bisect_job.GetConfigDict()
   config_dict['metric'] = _RewriteMetricName(config_dict['metric'])
   bisect_job.config = utils.BisectConfigPythonString(config_dict)
 
@@ -776,13 +780,11 @@ def _MakeBuildbucketBisectJob(bisect_job):
   if config.get('bisect_mode') == 'return_code':
     test_type = config['bisect_mode']
 
-  if 'recipe_tester_name' not in config:
-    logging.error('"recipe_tester_name" required in bisect jobs '
-                  'that use buildbucket. Config: %s', config)
-    raise ValueError('Missing "recipe_tester_name".')
+  # Tester name is a required parameter for recipe bisects.
+  tester_name = config['recipe_tester_name']
 
   return buildbucket_job.BisectJob(
-      bisect_director=GetBisectDirectorForTester(config['recipe_tester_name']),
+      bisect_director=GetBisectDirectorForTester(tester_name),
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],
       test_command=config['command'],
@@ -792,7 +794,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       truncate=config['truncate_percent'],
       bug_id=bisect_job.bug_id,
       gs_bucket='chrome-perf',
-      recipe_tester_name=config['recipe_tester_name'],
+      recipe_tester_name=tester_name,
       test_type=test_type,
       required_initial_confidence=config.get('required_initial_confidence')
   )

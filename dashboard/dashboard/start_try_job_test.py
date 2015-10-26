@@ -757,7 +757,7 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual(1, len(job_entities))
     self.assertTrue(job_entities[0].use_buildbucket)
 
-  def testPerformBuildbucketBisect_InvalidConfig_RaisesValueError(self):
+  def testPerformBisect_InvalidConfig_ReturnsError(self):
     bisect_job = try_job.TryJob(
         bot='foo',
         config='config = {}',
@@ -765,8 +765,9 @@ class StartBisectTest(testing_common.TestCase):
         internal_only=False,
         job_type='bisect',
         use_buildbucket=True)
-    with self.assertRaises(ValueError):
-      start_try_job.PerformBuildbucketBisect(bisect_job)
+    self.assertEqual(
+        {'error': 'No "recipe_tester_name" given.'},
+        start_try_job.PerformBisect(bisect_job))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
