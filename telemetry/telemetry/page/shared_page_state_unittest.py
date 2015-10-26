@@ -11,10 +11,7 @@ from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.testing import fakes
-from telemetry.testing import options_for_unittests
 from telemetry.util import wpr_modes
-
-import mock
 
 
 def SetUpPageRunnerArguments(options):
@@ -43,17 +40,10 @@ class FakeNetworkController(object):
 class SharedPageStateTests(unittest.TestCase):
 
   def setUp(self):
-    self.options = options_for_unittests.GetCopy()
-    SetUpPageRunnerArguments(self.options)
+    self.options = fakes.CreateBrowserFinderOptions()
+    self.options.use_live_sites = False
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
-    self.patcher = mock.patch(
-        'telemetry.page.shared_page_state.browser_finder.FindBrowser')
-    find_browser_mock = self.patcher.start()
-    find_browser_mock.return_value = fakes.FakePossibleBrowser()
-
-  def tearDown(self):
-    mock.patch.stopall()
 
   # pylint: disable=W0212
   def TestUseLiveSitesFlag(self, expected_wpr_mode):
@@ -118,14 +108,11 @@ class SharedPageStateTests(unittest.TestCase):
     for p in (google_page, example_page, gmail_page):
       story_set.AddStory(p)
 
-    mock_finder_options = mock.Mock()
-    mock_finder_options.profiler = None
-
     shared_state = shared_page_state.SharedPageState(
-        DummyTest(), mock_finder_options, story_set)
+        DummyTest(), self.options, story_set)
 
     for p in (google_page, example_page, gmail_page):
       shared_state.WillRunStory(p)
       self.assertEquals(
-        p.startup_url, mock_finder_options.browser_options.startup_url)
+        p.startup_url, self.options.browser_options.startup_url)
       shared_state.TearDownState()
