@@ -1,4 +1,11 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <script>
+'use strict';
 
 /**
  * Functions for the embed page.
@@ -360,8 +367,6 @@ var embed = (function() {
    * should all have the same X units. If there are no X units specified for any
    * of the series, then this function will return null, indicating that the
    * units are supposed to be revisions.
-   * @param {Array.<Object>} seriesAnnotations
-   * @return {?(string)}
    */
   var getXUnits = function(seriesAnnotations) {
     for (var i = 0; i < seriesAnnotations.length; i++) {
@@ -374,10 +379,6 @@ var embed = (function() {
 
   /**
    * Adds a name-value pair to a container element.
-   * @param {Element} containerElement A DOM element;
-   *     assumed to be a dl element.
-   * @param {string} name
-   * @param {string} value
    */
   var addNameValuePair = function(containerElement, name, value) {
     var dt = document.createElement('dt');

@@ -1,4 +1,12 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
 <script>
+'use strict';
 
 /** Support for autocomplete suggestions. */
 var autocomplete = (function() {
@@ -196,9 +204,6 @@ var autocomplete = (function() {
 
   /**
    * Compares by score.
-   * @param {Array} tupleA A tuple of source object and its score.
-   * @param {Array} tupleB A tuple of source object and its score.
-   * @return {number}
    */
   Trie.prototype.compareScore_ = function(tupleA, tupleB) {
     return tupleB[1] - tupleA[1];
@@ -206,9 +211,6 @@ var autocomplete = (function() {
 
   /**
    * Compares by group and then by score.
-   * @param {Array} tupleA A tuple of source object and its score.
-   * @param {Array} tupleB A tuple of source object and its score.
-   * @return {number}
    */
   Trie.prototype.compareGroup_ = function(tupleA, tupleB) {
     if (tupleA[0].group < tupleB[0].group) {
@@ -221,7 +223,7 @@ var autocomplete = (function() {
   };
 
   return {
-    Trie: Trie,
+    Trie: Trie
   };
 })();
 

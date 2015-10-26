@@ -1,4 +1,12 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
 <script>
+'use strict';
 
 /**
  * Utility functions for dealing with URIs.
@@ -50,7 +58,7 @@ var uri = (function() {
       var uriLoadEvent = new CustomEvent('uriload', {
         'detail': {
           'params': params,
-          'state': pageState,
+          'state': pageState
         },
         'bubbles': true,
         'cancelable': true
@@ -73,7 +81,6 @@ var uri = (function() {
    * updated with the new state ID.  Also, target element gets assigned a
    * 'uniqueid' which can be used in handling 'urichange' event to identify
    * the source that fired the event.
-   * @param {Event} event
    */
   Controller.prototype.onPageStateChanged = function(event) {
     var detail = event.detail;
@@ -138,7 +145,7 @@ var uri = (function() {
         'id': state['id'],
         'stateName': state['stateName'],
         'params': state['params'],
-        'state': state['state'],
+        'state': state['state']
       },
       'bubbles': true,
       'cancelable': true
@@ -199,7 +206,7 @@ var uri = (function() {
   /**
    * Gets the named parameter from the URI querystring.
    * @param {string} name The name of the parameter to get.
-   * @param {?string} opt_default The default to return.
+   * @param {?string=} opt_default The default to return.
    * @return {?string} The value of the parameter.
    */
   var getParameter = function(name, opt_default) {
