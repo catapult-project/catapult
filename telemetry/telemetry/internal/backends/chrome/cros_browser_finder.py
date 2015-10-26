@@ -95,7 +95,18 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   # Check ssh
   try:
-    platform = platform_module.GetPlatformForDevice(device, finder_options)
+    # Retries required because of DNS issue in the lab documented in
+    # http://crbug/484726
+    retries = 0
+    while True:
+      try:
+        platform = platform_module.GetPlatformForDevice(device, finder_options)
+        break
+      except cros_interface.DNSFailureException, ex:
+        logging.warn('DNS Failure: %s', str(ex))
+        retries += 1
+        if retries > 1:
+          raise ex
   except cros_interface.LoginException, ex:
     if isinstance(ex, cros_interface.KeylessLoginRequiredException):
       logging.warn('Could not ssh into %s. Your device must be configured',

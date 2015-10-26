@@ -74,6 +74,9 @@ class LoginException(Exception):
 class KeylessLoginRequiredException(LoginException):
   pass
 
+class DNSFailureException(LoginException):
+  pass
+
 class CrOSInterface(object):
   # pylint: disable=R0923
   def __init__(self, hostname=None, ssh_port=None, ssh_identity=None):
@@ -218,6 +221,9 @@ class CrOSInterface(object):
       if 'Permission denied (publickey,keyboard-interactive)' in stderr:
         raise KeylessLoginRequiredException(
           'Need to set up ssh auth for %s' % self._hostname)
+      if 'Could not resolve hostname' in stderr:
+        raise DNSFailureException(
+          'Unable to resolve the hostname for: %s' % self._hostname)
       raise LoginException('While logging into %s, got %s' % (
           self._hostname, stderr))
     if stdout != 'root\n':
