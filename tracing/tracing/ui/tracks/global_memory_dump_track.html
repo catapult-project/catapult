@@ -73,7 +73,7 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
 
       var track = new tr.ui.tracks.ChartTrack(this.viewport);
-      track.heading = 'Used memory (per process)';
+      track.heading = 'Memory per process';
       track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
       track.autoSetAllAxes({expandMax: true});
@@ -87,7 +87,7 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
 
       var track = new tr.ui.tracks.ChartTrack(this.viewport);
-      track.heading = 'Allocated memory (per allocator)';
+      track.heading = 'Memory per component';
       track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
       track.autoSetAllAxes({expandMax: true});

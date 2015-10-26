@@ -52,9 +52,9 @@ found in the LICENSE file.
         align-self: stretch;
       }
     </style>
-    <div id="label">Allocator details</div>
+    <div id="label">Component details</div>
     <div id="contents">
-      <div id="info_text">No memory memory allocator dump selected</div>
+      <div id="info_text">No memory allocator dump selected</div>
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
@@ -362,7 +362,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_: function(rows) {
-      var titleColumn = new AllocatorDumpNameColumn('Allocator');
+      var titleColumn = new AllocatorDumpNameColumn('Component');
       titleColumn.width = '200px';
 
       var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
