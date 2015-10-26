@@ -70,6 +70,26 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(dataList, a.search(''));
   });
 
+  test('search, exact match should always be first', function() {
+    var dataList = [{name: 'apple'},
+                    {name: 'apple apple apple'},
+                    {name: 'applepie'},
+                    {name: 'apple seed'},
+                    {name: 'apple_seed'}];
+    var a = new autocomplete.Trie(dataList);
+
+    assert.deepEqual(
+        {name: 'apple apple apple'},
+        a.search('apple apple apple')[0]);
+    assert.deepEqual(
+        {name: 'applepie'},
+        a.search('applepie')[0]);
+    assert.deepEqual(
+        {name: 'apple_seed'},
+        a.search('apple_seed')[0]);
+    assert.deepEqual(dataList, a.search(''));
+  });
+
   test('search with grouping', function() {
     var dataList = [{name: 'pie', head: true},
                     {name: 'deep fried apple pie', group: 'pie'},

@@ -101,6 +101,7 @@ property 'group' sets to the header item name.
           <input is="core-input"
                  on-click="{{showHideDropdown}}"
                  on-keyup="{{onTextboxKeyup}}"
+                 on-keydown="{{onTextboxKeydown}}"
                  placeholder="{{placeholder}}"
                  disabled?="{{disabled}}"
                  id="textbox"
@@ -132,6 +133,9 @@ property 'group' sets to the header item name.
       TEXTBOX_MIN_WIDTH: 152,
 
       ready: function() {
+        this.value = '';
+        this.$.dropdown.selected = [];
+        this.selectedItems = [];
         this.hasVisibleItems = true;
         this.initAutocomplete();
       },
@@ -153,9 +157,8 @@ property 'group' sets to the header item name.
        * @param {Array} dataList List of drop-down items.
        */
       setDataList: function(dataList) {
-        // Keep current selection.
-        this.setSelectedToPreviousSelected(dataList);
         this.dataList = dataList;
+        this.updateCurrentSelection();
         this.initAutocomplete();
       },
 
@@ -167,6 +170,7 @@ property 'group' sets to the header item name.
         var key = event.keyCode || event.charCode;
         if (key == 8 || key == 46) {  // Backspace and Delete.
           if (this.value.length == 0) {
+            this.selectedItems = [];
             this.$.dropdown.selected = [];
             this.fire('dropdownselect');
           }
@@ -188,6 +192,15 @@ property 'group' sets to the header item name.
         this.updateAutocomplete();
       },
 
+      onTextboxKeydown: function(event) {
+        // Since tab key loses focus of the textbox menu, we handle the event
+        // on keydown instead of keyup.
+        var key = event.keyCode || event.charCode;
+        if (key == 9) {  // Tab.
+          this.hideDropdown();
+        }
+      },
+
       /**
        * Handles item selected on drop-down menu.
        */
@@ -202,7 +215,7 @@ property 'group' sets to the header item name.
             this.onItemSelected(item.name, isSelected);
           }
         }
-
+        this.setItemSelection(item, isSelected);
         this.value = this.getSelectedValues().join(',');
         this.fire('dropdownselect');
       },
@@ -217,7 +230,8 @@ property 'group' sets to the header item name.
         for (var i = 0; i < this.dataList.length; i++) {
           var item = this.dataList[i];
           if (!item.head && item.group == headName) {
-            this.setSelectionForMulti(i, isSelected);
+            this.setItemSelection(item, isSelected);
+            this.setDropdownSelection(i, isSelected);
           }
         }
       },
@@ -241,7 +255,7 @@ property 'group' sets to the header item name.
         for (var i = 0; i < this.dataList.length; i++) {
           var it = this.dataList[i];
           if (it.head && it.name == headName) {
-            this.setSelectionForMulti(i, isSelected && allSelected);
+            this.setDropdownSelection(i, isSelected && allSelected);
           }
         }
       },
@@ -258,7 +272,7 @@ property 'group' sets to the header item name.
         var selected = this.$.dropdown.selected;
         if (selected instanceof Array) {
           if (selected.length > 0) {
-            start = selected[0];
+            start = selected[selected.length - 1];
           }
         } else if (selected != null) {
           start = selected;
@@ -269,7 +283,8 @@ property 'group' sets to the header item name.
              i += direction) {
           var item = this.dataList[i];
           if (!item.head) {
-            this.$.dropdown.selected = i;
+            this.setDropdownSelection(i, true);
+            this.setItemSelection(item, true);
             this.value = this.getSelectedValues().join(',');
             this.fire('dropdownselect');
             return;
@@ -278,66 +293,50 @@ property 'group' sets to the header item name.
       },
 
       /**
-       * Sets selected items in new dataList to previous selected items in old
-       * dataList if there are matches.
-       * @param {Array} newDataList List of drop-down items.
+       * Updates current selection from 'this.dataList'.
+       * This tries to keep the current selection when 'this.dataList'
+       * changes.
        */
-      setSelectedToPreviousSelected: function(newDataList) {
-        var currentSelected = this.getSelectedValues();
-        var itemNameMap = {};
-        for (var i = 0; i < newDataList.length; i++) {
-          itemNameMap[newDataList[i].name] = i;
-        }
-        var selectedIndexes = [];
-        var selectedNames = [];
-        currentSelected.forEach(function(n) {
-          if (n in itemNameMap) {
-            selectedIndexes.push(itemNameMap[n]);
-            selectedNames.push(n);
+      updateCurrentSelection: function() {
+        this.$.dropdown.selected = [];
+        var matchedItems = [];
+        for (var i = 0; i < this.selectedItems.length; i++) {
+          for (var j = 0; j < this.dataList.length; j++) {
+            if (this.itemEquals(this.selectedItems[i], this.dataList[j])) {
+              this.$.dropdown.selected.push(j);
+              matchedItems.push(this.selectedItems[i]);
+              break;
+            }
           }
-        });
-        this.$.dropdown.selected = selectedIndexes;
-        this.value = selectedNames.join(',');
+        }
+        this.selectedItems = matchedItems;
+        this.value = this.getSelectedValues().join(',');
+      },
+
+      itemEquals: function(itemA, itemB) {
+        return itemA.name == itemB.name && itemA.group == itemB.group;
       },
 
       /**
        * Gets a list of name from current selected items.
        */
       getSelectedValues: function() {
-        var items = this.getSelectedItems();
         var values = [];
-        items.forEach(function(item) {
+        this.selectedItems.forEach(function(item) {
           values.push(item.name);
         });
         return values;
       },
 
-      /**
-       * Gets a list of selected items.
-       */
       getSelectedItems: function() {
-        var selectedIndexes = [];
-        if (this.$.dropdown.selected instanceof Array) {
-          selectedIndexes = this.$.dropdown.selected;
-        } else if (this.$.dropdown.selected != null) {
-          selectedIndexes = [this.$.dropdown.selected];
-        }
-
-        var items = [];
-        for (var i = 0; i < selectedIndexes.length; i++) {
-          var item = this.dataList[selectedIndexes[i]];
-          if (!item.head) {
-            items.push(item);
-          }
-        }
-        return items;
+        return this.selectedItems;
       },
 
       /**
-       * Selects or unselect an item at index for multi-selection mode.
+       * Adds or remove an index from dropbox's selected indices.
        */
-      setSelectionForMulti: function(index, isSelected) {
-        if (!this.$.dropdown.selected) {
+      setDropdownSelection: function(index, isSelected) {
+        if (!this.multi) {
           this.$.dropdown.selected = [];
         }
         var foundIndex = this.$.dropdown.selected.indexOf(index);
@@ -351,26 +350,87 @@ property 'group' sets to the header item name.
       },
 
       /**
+       * Adds or removes an item from 'this.selectedItems'.
+       */
+      setItemSelection: function(item, isSelected) {
+        if (!this.multi) {
+          this.selectedItems = [];
+        }
+        var itemIndex = this.getItemIndex(item);
+        if (isSelected) {
+          if (itemIndex == -1) {
+            this.selectedItems.push(item);
+          }
+        } else if (itemIndex > -1) {
+          this.selectedItems.splice(itemIndex, 1);
+        }
+      },
+
+      getItemIndex: function(item) {
+        for (var i = 0; i < this.selectedItems.length; i++) {
+          if (this.itemEquals(this.selectedItems[i], item)) {
+            return i;
+          }
+        }
+        return -1;
+      },
+
+      /**
        * Updates drop-down menu with autocomplete suggestion items base on
        * current value in the textbox.
        */
       updateAutocomplete: function() {
-        var selectedValue = null;
-        if (this.multi && this.value) {
-          var valueParts = this.value.split(',');
-          selectedValue = valueParts[valueParts.length - 1];
+        var currentValue = null;
+        if (this.multi && this.value.length) {
+          var currentParts = this.value.split(',');
+          currentValue = currentParts[currentParts.length - 1];
+          // Remove only the last selected item.
+          var lastItem = this.selectedItems[this.selectedItems.length - 1];
+          if (this.selectedItems.length == currentParts.length) {
+            this.selectedItems.pop();
+          }
         } else {
-          selectedValue = this.value;
+          currentValue = this.value;
         }
+        this.$.dropdown.selected = [];
 
-        if (!this.multi) {
-          this.$.dropdown.selected = [];
+        this.dataList = this.autocomplete.search(currentValue);
+
+        if (this.multi) {
+          this.updateDropdownWithSelectedItems();
         }
-
-        this.dataList = this.autocomplete.search(selectedValue);
+        this.selectFirstMatch(currentValue);
+        this.fire('dropdownselect');
 
         this.hasVisibleItems = this.dataList.length > 0;
         this.showHideDropdown();
+      },
+
+      updateDropdownWithSelectedItems: function() {
+        for (var i = 0; i < this.selectedItems.length; i++) {
+          for (var j = 0; j < this.dataList.length; j++) {
+            if (this.itemEquals(this.selectedItems[i], this.dataList[j])) {
+              this.$.dropdown.selected.push(j);
+              break;
+            }
+          }
+        }
+      },
+
+      /**
+       * Selects the first non-head item if it is an exact match.
+       */
+      selectFirstMatch: function(value) {
+        for (var i = 0; i < this.dataList.length; i++) {
+          var item = this.dataList[i];
+          if (!item.head) {
+            if (item.name == value) {
+              this.setItemSelection(item, true);
+              this.$.dropdown.selected.push(i);
+            }
+            return;
+          }
+        }
       },
 
       /**
