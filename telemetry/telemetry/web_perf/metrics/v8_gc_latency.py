@@ -53,7 +53,13 @@ class V8GCLatency(timeline_based_metric.TimelineBasedMetric):
                     'scavenges'),
         V8EventStat('V8.GCCompactor',
                     'v8_gc_mark_compactor',
-                    'mark-sweep-compactor')]
+                    'mark-sweep-compactor'),
+        V8EventStat('V8.GCFinalizeMC',
+                    'v8_gc_finalize_incremental',
+                    'finalization of incremental marking'),
+        V8EventStat('V8.GCFinalizeMCReduceMemory',
+                    'v8_gc_finalize_incremental_reduce_memory',
+                    'finalization of incremental marking with memory reducer')]
     label = interactions[0].label
     name_to_v8_stat = {x.src_event_name : x for x in v8_event_stats}
     for event in model.IterAllSlices():
