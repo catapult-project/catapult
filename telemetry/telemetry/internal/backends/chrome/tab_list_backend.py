@@ -32,8 +32,11 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     if not self._browser_backend.supports_tab_control:
       raise NotImplementedError("Browser doesn't support tab control.")
     response = self._browser_backend.devtools_client.RequestNewTab(timeout)
-    response = json.loads(response)
-    context_id = response['id']
+    try:
+      response = json.loads(response)
+      context_id = response['id']
+    except (KeyError, ValueError):
+      raise TabUnexpectedResponseException('Received response: %s' % response)
     return self.GetBackendFromContextId(context_id)
 
   def CloseTab(self, tab_id, timeout=300):
