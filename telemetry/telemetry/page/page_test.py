@@ -5,7 +5,6 @@
 import logging
 
 from telemetry.core import exceptions
-from telemetry import decorators
 from telemetry.page import action_runner as action_runner_module
 
 # Export story_test.Failure to this page_test module
@@ -43,19 +42,12 @@ class PageTest(object):
              'document.body.children.length')
          results.AddValue(scalar.ScalarValue(
              page, 'body_children', 'count', body_child_count))
-
-  Notice: needs_browser_restart_after_each_page is deprecated. Please use
-  benchmark.ShouldTearDownStateAfterEachStoryRun() in the future.
   """
 
-  def __init__(self,
-               needs_browser_restart_after_each_page=False,
-               clear_cache_before_each_run=False):
+  def __init__(self, clear_cache_before_each_run=False):
     super(PageTest, self).__init__()
 
     self.options = None
-    self._needs_browser_restart_after_each_page = (
-        needs_browser_restart_after_each_page)
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
 
@@ -85,16 +77,6 @@ class PageTest(object):
   @close_tabs_before_run.setter
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
-
-  @decorators.Deprecated(2015, 10, 21, ' Please use '
-      'benchmark.ShouldTearDownStateAfterEachStoryRun() in the future.')
-  def RestartBrowserBeforeEachPage(self):
-    """ Should the browser be restarted for the page?
-
-    This returns true if the test needs to unconditionally restart the
-    browser for each page. It may be called before the browser is started.
-    """
-    return self._needs_browser_restart_after_each_page
 
   def StopBrowserAfterPage(self, browser, page):  # pylint: disable=W0613
     """Should the browser be stopped after the page is run?

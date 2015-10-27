@@ -216,8 +216,6 @@ class SharedPageState(story.SharedState):
           'The browser is not stopped before running the next story. Please '
           'override benchmark.ShouldTearDownStateAfterEachStoryRun() to ensure '
           'the browser is stopped after each story run.')
-    if self._test.RestartBrowserBeforeEachPage():
-      self._StopBrowser()
     started_browser = not self.browser
     self._PrepareWpr(self.platform.network_controller,
                      page_set.WprFilePathForStory(page),
