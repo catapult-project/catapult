@@ -44,6 +44,14 @@ tr.exportTo('tr.e.rail', function() {
     return false;
   }
 
+  function forEventTypesIn(events, typeNames, cb, opt_this) {
+    events.forEach(function(event) {
+      if (typeNames.indexOf(event.typeName) >= 0) {
+        cb.call(opt_this, event);
+      }
+    });
+  }
+
   // If there's less than this much time between the end of one event and the
   // start of the next, then they might be merged.
   // There was not enough thought given to this value, so if you have any slight
@@ -330,9 +338,10 @@ tr.exportTo('tr.e.rail', function() {
 
     // Find ProtoIRs, post-process them, convert them to real IRs.
     findInputInteractionRecords: function() {
-      var protoIRs = this.findProtoIRs();
+      var sortedInputEvents = this.getSortedInputEvents();
+      var protoIRs = this.findProtoIRs(sortedInputEvents);
       protoIRs = this.postProcessProtoIRs(protoIRs);
-      this.checkAllInputEventsHandled(protoIRs);
+      this.checkAllInputEventsHandled(sortedInputEvents, protoIRs);
 
       var irs = [];
       protoIRs.forEach(function(protoIR) {
@@ -343,49 +352,58 @@ tr.exportTo('tr.e.rail', function() {
       return irs;
     },
 
-    findProtoIRs: function() {
+    findProtoIRs: function(sortedInputEvents) {
       var protoIRs = [];
       // This order is not important. Handlers are independent.
-      protoIRs.push.apply(protoIRs, this.handleKeyboardEvents());
-      protoIRs.push.apply(protoIRs, this.handleMouseResponseEvents());
-      protoIRs.push.apply(protoIRs, this.handleMouseWheelEvents());
-      protoIRs.push.apply(protoIRs, this.handleMouseDragEvents());
-      protoIRs.push.apply(protoIRs, this.handleTapResponseEvents());
-      protoIRs.push.apply(protoIRs, this.handlePinchEvents());
-      protoIRs.push.apply(protoIRs, this.handleFlingEvents());
-      protoIRs.push.apply(protoIRs, this.handleTouchEvents());
-      protoIRs.push.apply(protoIRs, this.handleScrollEvents());
-      protoIRs.push.apply(protoIRs, this.handleCSSAnimations());
+      var handlers = [
+        this.handleKeyboardEvents,
+        this.handleMouseResponseEvents,
+        this.handleMouseWheelEvents,
+        this.handleMouseDragEvents,
+        this.handleTapResponseEvents,
+        this.handlePinchEvents,
+        this.handleFlingEvents,
+        this.handleTouchEvents,
+        this.handleScrollEvents,
+        this.handleCSSAnimations
+      ];
+      handlers.forEach(function(handler) {
+        protoIRs.push.apply(protoIRs, handler.call(this, sortedInputEvents));
+      }, this);
       protoIRs.sort(compareEvents);
       return protoIRs;
     },
 
-    getSortedInputEvents: function(typeNames) {
-      function isMatchingSlice(slice) {
+    getSortedInputEvents: function() {
+      var inputEvents = [];
+
+      var browserProcess = this.modelHelper.browserHelper.process;
+      var mainThread = browserProcess.findAtMostOneThreadNamed(
+          'CrBrowserMain');
+      mainThread.asyncSliceGroup.iterateAllEvents(function(slice) {
         if (!slice.isTopLevel)
-          return false;
+          return;
 
         if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice))
-          return false;
+          return;
 
-        // TODO(beaudoin): This should never happen but it does. Investigate the
-        // trace linked at in #1567 and remove that when it's fixed.
+        // TODO(beaudoin): This should never happen but it does. Investigate
+        // the trace linked at in #1567 and remove that when it's fixed.
         if (isNaN(slice.start) ||
             isNaN(slice.duration) ||
             isNaN(slice.end))
-          return false;
+          return;
 
-        return typeNames.indexOf(slice.typeName) >= 0;
-      }
+        inputEvents.push(slice);
+      }, this);
 
-      return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isMatchingSlice).sort(compareEvents);
+      return inputEvents.sort(compareEvents);
     },
 
     // Every keyboard event is a Response.
-    handleKeyboardEvents: function() {
+    handleKeyboardEvents: function(sortedInputEvents) {
       var protoIRs = [];
-      this.getSortedInputEvents(KEYBOARD_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
         var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, KEYBOARD_IR_NAME);
         pir.pushEvent(event);
         protoIRs.push(pir);
@@ -394,10 +412,10 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // Some mouse events can be translated directly into Responses.
-    handleMouseResponseEvents: function() {
+    handleMouseResponseEvents: function(sortedInputEvents) {
       var protoIRs = [];
-      var mouseEvents = this.getSortedInputEvents(MOUSE_RESPONSE_TYPE_NAMES);
-      mouseEvents.forEach(function(event) {
+      forEventTypesIn(
+          sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
         var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
         pir.pushEvent(event);
         protoIRs.push(pir);
@@ -415,12 +433,12 @@ tr.exportTo('tr.e.rail', function() {
     // NB this threshold uses the two events' start times, unlike
     // ProtoIR.isNear, which compares the end time of the previous event with
     // the start time of the next.
-    handleMouseWheelEvents: function() {
+    handleMouseWheelEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
       var prevEvent_ = undefined;
-      var wheelEvents = this.getSortedInputEvents(MOUSE_WHEEL_TYPE_NAMES);
-      wheelEvents.forEach(function(event) {
+      forEventTypesIn(
+          sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
         // Switch prevEvent in one place so that we can early-return later.
         var prevEvent = prevEvent_;
         prevEvent_ = event;
@@ -457,11 +475,12 @@ tr.exportTo('tr.e.rail', function() {
     // RRRRRRRAAAAAAAAAAAAAAAAAAAA
     // DDD MMM MMM MMM MMM MMM UUU
     //
-    handleMouseDragEvents: function() {
+    handleMouseDragEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
       var mouseDownEvent = undefined;
-      this.getSortedInputEvents(MOUSE_DRAG_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(
+          sortedInputEvents, MOUSE_DRAG_TYPE_NAMES, function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.MOUSE_DOWN:
             if (causedFrame(event)) {
@@ -565,10 +584,10 @@ tr.exportTo('tr.e.rail', function() {
     // RRRRRRR
     // DDD CCC
     //
-    handleTapResponseEvents: function() {
+    handleTapResponseEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
-      this.getSortedInputEvents(TAP_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(sortedInputEvents, TAP_TYPE_NAMES, function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.TAP_DOWN:
             currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
@@ -617,12 +636,12 @@ tr.exportTo('tr.e.rail', function() {
     // RRRRRRRAAAAAAAAAAAAAAAAAAAA
     // BBB UUU UUU UUU UUU UUU EEE
     //
-    handlePinchEvents: function() {
+    handlePinchEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
       var sawFirstUpdate = false;
       var modelBounds = this.model.bounds;
-      this.getSortedInputEvents(PINCH_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(sortedInputEvents, PINCH_TYPE_NAMES, function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.PINCH_BEGIN:
             if (currentPIR &&
@@ -683,17 +702,21 @@ tr.exportTo('tr.e.rail', function() {
     // AAAAAAAAAAA
     // SSS        CCC
     //
-    handleFlingEvents: function() {
+    handleFlingEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
-      var flingEvents = this.getSortedInputEvents(FLING_TYPE_NAMES);
 
       function isRendererFling(event) {
         return event.title === RENDERER_FLING_TITLE;
       }
       var browserHelper = this.modelHelper.browserHelper;
-      flingEvents.push.apply(flingEvents,
-          browserHelper.getAllAsyncSlicesMatching(isRendererFling));
+      var flingEvents = browserHelper.getAllAsyncSlicesMatching(
+          isRendererFling);
+
+      forEventTypesIn(sortedInputEvents, FLING_TYPE_NAMES, function(event) {
+        flingEvents.push(event);
+      });
+      flingEvents.sort(compareEvents);
 
       flingEvents.forEach(function(event) {
         if (event.title === RENDERER_FLING_TITLE) {
@@ -762,11 +785,11 @@ tr.exportTo('tr.e.rail', function() {
     // RRRRRRR
     // SSS EEE
     //
-    handleTouchEvents: function() {
+    handleTouchEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
       var sawFirstMove = false;
-      this.getSortedInputEvents(TOUCH_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(sortedInputEvents, TOUCH_TYPE_NAMES, function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.TOUCH_START:
             if (currentPIR) {
@@ -839,11 +862,11 @@ tr.exportTo('tr.e.rail', function() {
     // RRRRRRRAAAAAAAAAAAAAAAAAAAA
     // BBB UUU UUU UUU UUU UUU EEE
     //
-    handleScrollEvents: function() {
+    handleScrollEvents: function(sortedInputEvents) {
       var protoIRs = [];
       var currentPIR = undefined;
       var sawFirstUpdate = false;
-      this.getSortedInputEvents(SCROLL_TYPE_NAMES).forEach(function(event) {
+      forEventTypesIn(sortedInputEvents, SCROLL_TYPE_NAMES, function(event) {
         switch (event.typeName) {
           case INPUT_TYPE.SCROLL_BEGIN:
             // Always begin a new PIR even if there already is one, unlike
@@ -892,7 +915,7 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // CSS Animations are merged into Animations when they intersect.
-    handleCSSAnimations: function() {
+    handleCSSAnimations: function(sortedInputEvents) {
       var animationEvents = this.modelHelper.browserHelper.
           getAllAsyncSlicesMatching(function(event) {
             return ((event.title === CSS_ANIMATION_TITLE) &&
@@ -1116,7 +1139,7 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // Check that none of the handlers accidentally ignored an input event.
-    checkAllInputEventsHandled: function(protoIRs) {
+    checkAllInputEventsHandled: function(sortedInputEvents, protoIRs) {
       var handledEvents = [];
       protoIRs.forEach(function(protoIR) {
         protoIR.associatedEvents.forEach(function(event) {
@@ -1129,8 +1152,7 @@ tr.exportTo('tr.e.rail', function() {
         });
       });
 
-      this.getSortedInputEvents(ALL_HANDLED_TYPE_NAMES).forEach(
-          function(event) {
+      sortedInputEvents.forEach(function(event) {
         if (handledEvents.indexOf(event) < 0) {
           console.error('UNHANDLED INPUT EVENT!',
               event.typeName, parseInt(event.start), parseInt(event.end));
