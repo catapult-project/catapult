@@ -18,7 +18,7 @@ _DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
 _STARTUP_TRACING_OS_NAMES = _DESKTOP_OS_NAMES + ['android']
 
 # The trace config file path should be the same as specified in
-# src/components/tracing/startup_tracing.cc
+# src/components/tracing/trace_config_file.[h|cc]
 _CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
 _CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
 
