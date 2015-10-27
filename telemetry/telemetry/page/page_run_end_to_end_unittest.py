@@ -388,11 +388,11 @@ class PageRunEndToEndTests(unittest.TestCase):
     test = Measurement()
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-                     should_tear_down_state_after_each_story_run=True)
+    story_runner.Run(test, story_set, options, results)
     self.assertEquals('about:blank', options.browser_options.startup_url)
-    # _StopBrowser should be called twice, after each story run.
-    self.assertEquals(num_times_browser_closed[0], 2)
+    # _StopBrowser should be called 3 times: after browser restarts, after page
+    # 2 has run and in the TearDownState after all the pages have run.
+    self.assertEquals(num_times_browser_closed[0], 3)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
