@@ -99,6 +99,13 @@ tr.exportTo('tr.e.chrome', function() {
     return slice;
   }
 
+  ChromeTestUtils.addCreateChildFrameEvent = function(model, dict) {
+    dict.title = 'RenderFrameImpl::createChildFrame';
+    var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
+    model.rendererMain.asyncSliceGroup.push(slice);
+    return slice;
+  }
+
   ChromeTestUtils.addStartProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didStartProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);

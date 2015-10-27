@@ -466,7 +466,8 @@ tr.b.unittest.testSuite(function() {
   test('load', function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addCommitLoadEvent(model, {start: 0, end: 10});
+      chrome_test_utils.addCommitLoadEvent(model, {
+          start: 0, end: 10, args: {id: 1}});
       chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
@@ -520,22 +521,25 @@ tr.b.unittest.testSuite(function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
       chrome_test_utils.addFrameEvent(model, {start: 0, end: 1});
-      chrome_test_utils.addCommitLoadEvent(model, {start: 1, end: 2});
+      chrome_test_utils.addCommitLoadEvent(model, {
+          start: 1, end: 2, args: {id: 1}});
       chrome_test_utils.addFrameEvent(model, {start: 3, end: 4});
-      chrome_test_utils.addCommitLoadEvent(model, {start: 5, end: 6});
+      chrome_test_utils.addCreateChildFrameEvent(model, {
+          start: 4, end: 5, args: {id: 1, child: 2}});
+      chrome_test_utils.addCommitLoadEvent(model, {
+          start: 5, end: 6, args: {id: 2}});
       chrome_test_utils.addFrameEvent(model, {start: 7, end: 8});
-      chrome_test_utils.addCommitLoadEvent(model, {start: 9, end: 10});
+      chrome_test_utils.addCreateChildFrameEvent(model, {
+          start: 8, end: 9, args: {id: 1, child: 3}});
+      chrome_test_utils.addCommitLoadEvent(model, {
+          start: 9, end: 10, args: {id: 3}});
       chrome_test_utils.addFrameEvent(model, {start: 11, end: 12});
       chrome_test_utils.addFrameEvent(model, {start: 12, end: 13});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 0},
       {title: 'Load', name: 'Succeeded', start: 1, end: 4, eventCount: 2},
-      {title: 'Idle', start: 4, end: 5, eventCount: 0},
-      {title: 'Load', name: 'Succeeded', start: 5, end: 8, eventCount: 2},
-      {title: 'Idle', start: 8, end: 9, eventCount: 0},
-      {title: 'Load', name: 'Succeeded', start: 9, end: 12, eventCount: 2},
-      {title: 'Idle', start: 12, end: 13, eventCount: 0}
+      {title: 'Idle', start: 4, end: 13, eventCount: 0}
     ];
     verifier.verify();
   });

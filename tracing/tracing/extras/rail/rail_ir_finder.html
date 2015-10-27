@@ -52,6 +52,15 @@ tr.exportTo('tr.e.rail', function() {
     });
   }
 
+  var RENDER_FRAME_IMPL_PREFIX = 'RenderFrameImpl::';
+  var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
+  var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
+  var FAIL_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFailProvisionalLoad';
+
+  function isRenderFrameImplEvent(event) {
+    return event.title.indexOf(RENDER_FRAME_IMPL_PREFIX) === 0;
+  }
+
   // If there's less than this much time between the end of one event and the
   // start of the next, then they might be merged.
   // There was not enough thought given to this value, so if you have any slight
@@ -235,7 +244,7 @@ tr.exportTo('tr.e.rail', function() {
 
     getStartLoadEvents: function() {
       function isStartLoadSlice(slice) {
-        return slice.title === 'RenderFrameImpl::didStartProvisionalLoad';
+        return slice.title === START_LOAD_TITLE;
       }
       return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
           isStartLoadSlice).sort(compareEvents);
@@ -243,7 +252,7 @@ tr.exportTo('tr.e.rail', function() {
 
     getFailLoadEvents: function() {
       function isFailLoadSlice(slice) {
-        return slice.title === 'RenderFrameImpl::didFailProvisionalLoad';
+        return slice.title === FAIL_LOAD_TITLE;
       }
       return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
           isFailLoadSlice).sort(compareEvents);
@@ -298,10 +307,37 @@ tr.exportTo('tr.e.rail', function() {
               openingEvent.start, closingEvent.end - openingEvent.start);
           lir.associatedEvents.push(openingEvent);
           lir.associatedEvents.push(closingEvent);
+
+          // All RenderFrameImpl events contain the routingId.
+          // |openingEvent| may be either didStartProvisionaLoad or
+          // didCommitProvisionalLoad, so use a general prefix test.
+          if (isRenderFrameImplEvent(openingEvent)) {
+            lir.renderProcessId = openingEvent.parentContainer.parent.pid;
+            lir.routingId = openingEvent.args.id;
+            lir.parentRoutingId = this.findLoadParentRoutingId_(lir);
+          }
           lirs.push(lir);
-        });
-      });
+        }, this);
+      }, this);
       return lirs;
+    },
+
+    // parentRoutingId is the routingId of the createChildFrame event that
+    // created the Load IR's RenderFrame.
+    findLoadParentRoutingId_: function(lir) {
+      function isCreateChildEvent(event) {
+        return ((event.title === CREATE_CHILD_TITLE) &&
+                (event.parentContainer.parent.pid === lir.renderProcessId) &&
+                (event.args.child === lir.routingId));
+      }
+
+      var parentRoutingId = undefined;
+      this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
+          isCreateChildEvent).forEach(function(event) {
+        parentRoutingId = event.args.id;
+      });
+
+      return parentRoutingId;
     },
 
     // Match up RenderFrameImpl events with frame render events.
@@ -322,16 +358,24 @@ tr.exportTo('tr.e.rail', function() {
       lirs.push.apply(lirs, startupLIRs);
 
       // Attach frame events to every commit load events.
-      var succesfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
+      var successfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
           frameEvents);
-      this.setIRNames_(LOAD_SUCCEEDED_IR_NAME, succesfulLIRs);
-      lirs.push.apply(lirs, succesfulLIRs);
+      this.setIRNames_(LOAD_SUCCEEDED_IR_NAME, successfulLIRs);
+      var renderLIRs = successfulLIRs;
 
       // Attach fail load events to every start load events.
       var failedLIRs = this.findLoadInteractionRecords_(startLoadEvents,
           failLoadEvents);
       this.setIRNames_(LOAD_FAILED_IR_NAME, failedLIRs);
-      lirs.push.apply(lirs, failedLIRs);
+      renderLIRs.push.apply(renderLIRs, failedLIRs);
+
+      renderLIRs.forEach(function(lir) {
+        // If a Load IR has a parentRoutingId, then it is in a subframe.
+        // Drop Subframe Loads for now.
+        if (lir.parentRoutingId === undefined) {
+          lirs.push(lir);
+        }
+      }, this);
 
       return lirs;
     },
