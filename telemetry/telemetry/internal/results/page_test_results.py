@@ -72,6 +72,10 @@ class PageTestResults(object):
     return result
 
   @property
+  def pages_to_profiling_files(self):
+    return self._pages_to_profiling_files
+
+  @property
   def serialized_trace_file_ids_to_paths(self):
     return self._serialized_trace_file_ids_to_paths
 

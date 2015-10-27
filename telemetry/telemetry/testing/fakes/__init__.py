@@ -15,7 +15,9 @@ from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import system_info
 from telemetry.page import shared_page_state
+from telemetry.util import image_util
 from telemetry.testing.internal import fake_gpu_info
+
 
 # Classes and functions which are intended to be part of the public
 # fakes API.
@@ -234,6 +236,7 @@ class _FakeTab(object):
     self._browser = browser
     self._tab_id = str(tab_id)
     self._collect_garbage_count = 0
+    self.test_png = None
 
   @property
   def collect_garbage_count(self):
@@ -268,6 +271,14 @@ class _FakeTab(object):
 
   def Close(self):
     pass
+
+  @property
+  def screenshot_supported(self):
+    return self.test_png is not None
+
+  def Screenshot(self):
+    assert self.screenshot_supported, 'Screenshot is not supported'
+    return image_util.FromBase64Png(self.test_png)
 
 
 class _FakeTabList(object):

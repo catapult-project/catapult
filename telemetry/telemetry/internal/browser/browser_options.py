@@ -252,6 +252,10 @@ class BrowserOptions(object):
     # finder_options.
     self._finder_options = None
 
+    # Whether to take screen shot for failed page & put them in telemetry's
+    # profiling results.
+    self.take_screenshot_for_failed_page = False
+
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
     # circular reference with _finder_options.
