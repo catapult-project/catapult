@@ -26,6 +26,7 @@ def teardown_browser():
 class BrowserTestCase(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
+    cls._platform = None
     global current_browser
     global current_browser_options
 
@@ -53,7 +54,8 @@ class BrowserTestCase(unittest.TestCase):
 
   @classmethod
   def tearDownClass(cls):
-    cls._platform.StopAllLocalServers()
+    if cls._platform:
+      cls._platform.StopAllLocalServers()
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
