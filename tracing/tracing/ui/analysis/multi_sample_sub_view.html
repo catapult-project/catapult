@@ -13,7 +13,30 @@ found in the LICENSE file.
   <template>
     <style>
     :host { display: block; }
+    #control {
+      background-color: #e6e6e6;
+      background-image: -webkit-gradient(linear, 0 0, 0 100%,
+                                         from(#E5E5E5), to(#D1D1D1));
+      flex: 0 0 auto;
+      overflow-x: auto;
+    }
+    #control::-webkit-scrollbar { height: 0px; }
+    #control {
+      font-size: 12px;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      margin: 1px;
+      margin-right: 2px;
+    }
     </style>
+    <div id="control">
+      Sample View Option
+      <select id="view_selector">
+        <option value="TOPDOWNVIEW">Tree (Top Down)</option>
+        <option value="BOTTOMUPVIEW">Heavy (Bottom Up)</option>
+      </select>
+    </div>
     <tr-ui-b-table id="table">
     </tr-ui-b-table>
   </template>
@@ -63,7 +86,16 @@ found in the LICENSE file.
 
     Polymer({
       ready: function() {
+        this.viewSelector_ = this.$.view_selector;
         this.selection_ = undefined;
+        this.viewSelector_.addEventListener(
+          'change', this.viewSelectorChanged_.bind(this));
+      },
+
+      viewSelectorChanged_: function() {
+        this.samplingData_ = this.createSamplingSummary_(
+          this.selection_, this.viewSelector_.value);
+        this.updateContents_();
       },
 
       get selection() {
@@ -72,20 +104,21 @@ found in the LICENSE file.
 
       set selection(selection) {
         this.selection_ = selection;
-        this.samplingData_ = this.createSamplingSummary_(selection);
+        this.samplingData_ = this.createSamplingSummary_(
+          selection, this.viewSelector_.value);
         this.updateContents_();
       },
 
-      createSamplingSummary_: function(selection) {
+      createSamplingSummary_: function(selection, viewOption) {
         var root = new SamplingTreeNode();
         var samples = selection.getEventsOrganizedByBaseType().sample;
 
         function addSample(sample) {
           var stack = sample.stackTrace;
 
-          // Sort the stacks reverse so we can see the stacks in descending
-          // order.
-          stack.reverse();
+          if (viewOption == 'TOPDOWNVIEW') {
+            stack.reverse();
+          }
 
           var currentNode = root;
           for (var i = 0; i < stack.length; i++) {
