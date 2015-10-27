@@ -272,8 +272,13 @@ class ReplayServer(object):
 
   def _CleanUpTempLogFilePath(self):
     assert self._temp_log_file_path
-    # TODO(nednguyen): print the content of the log file path to telemetry's
-    # output before clearing the file.
+    if logging.getLogger('').isEnabledFor(logging.INFO):
+      with open(self._temp_log_file_path, 'r') as f:
+        wpr_log_content = '\n'.join([
+            '************************** WPR LOG *****************************',
+            f.read(),
+            '************************** END OF WPR LOG **********************'])
+      logging.info(wpr_log_content)
     os.remove(self._temp_log_file_path)
     self._temp_log_file_path = None
 
