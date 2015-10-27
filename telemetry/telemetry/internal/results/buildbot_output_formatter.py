@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.internal.results import output_formatter
 from telemetry.util import perf_tests_helper
 from telemetry import value as value_module
@@ -9,6 +10,8 @@ from telemetry.value import summary as summary_module
 
 
 class BuildbotOutputFormatter(output_formatter.OutputFormatter):
+  @decorators.Deprecated(2016, 2, 29, 'Chart JSON is a supported alternative. '
+                         'See https://goo.gl/8daFav .')
   def __init__(self, output_stream, trace_tag=''):
     super(BuildbotOutputFormatter, self).__init__(output_stream)
     self._trace_tag = trace_tag
