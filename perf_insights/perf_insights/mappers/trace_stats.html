@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/map_function.html">
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import"href="/tracing/base/range.html">
+<link rel="import"href="/tracing/base/units/histogram.html">
+<link rel="import"href="/tracing/base/units/units.html">
+
+<script>
+tr.exportTo('pi.m', function() {
+  function traceStatsFunction(results, run_info, model) {
+    var eventCount = 0;
+    var firstTime = Number.MAX_VALUE;
+    var lastTime = 0;
+    var categories = {};
+
+    var seconds_counts = {};
+    model.iterateAllEvents(function(event) {
+      eventCount += 1;
+      if (event.start < firstTime)
+        firstTime = event.start;
+
+      var eventEnd = event.start + event.duration;
+      if (eventEnd > lastTime)
+        lastTime = eventEnd;
+
+      if (categories[event.category] === undefined)
+        categories[event.category] = 0;
+
+      categories[event.category]++;
+
+      var second = Math.round(event.start / 1000);
+      if (seconds_counts[second] === undefined)
+        seconds_counts[second] = 0;
+
+      seconds_counts[second]++;
+    });
+
+    var histogram = tr.b.u.Histogram.createLinear(
+        tr.b.u.Units.unitlessNumber,
+        tr.b.Range.fromExplicitRange(0, 50000),
+        20);
+
+    for (var second in seconds_counts)
+      histogram.add(seconds_counts[second]);
+
+    var stats = {
+      totalEvents: eventCount,
+      firstTimeInMS: firstTime,
+      lastTimeInMS: lastTime,
+      durationInMS: lastTime - firstTime,
+      eventsPerSecond: eventCount / (lastTime - firstTime) * 1000,
+      categories: categories,
+      events_seconds: histogram.asDict()
+    };
+
+    results.addValue(new pi.v.DictValue(run_info, 'stats', stats));
+  }
+
+  pi.MapFunction.register(traceStatsFunction);
+
+  //Exporting for tests.
+  return {
+    traceStatsFunctionForTest: traceStatsFunction
+  };
+});
+</script>
