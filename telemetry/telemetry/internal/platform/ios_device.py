@@ -3,12 +3,12 @@
 # found in the LICENSE file.
 
 import os
+import logging
 import re
 import subprocess
 
 from telemetry.core import platform
 from telemetry.internal.platform import device
-from telemetry.internal.util import path
 
 
 IOSSIM_BUILD_DIRECTORIES = [
@@ -33,7 +33,7 @@ def _IsIosDeviceAttached():
       return True
   return False
 
-def _IsIosSimulatorAvailable():
+def _IsIosSimulatorAvailable(chrome_root):
   """Determines whether an iOS simulator is present in the local checkout.
 
   Assumes the iOS simulator (iossim) and Chromium have already been built.
@@ -43,9 +43,9 @@ def _IsIosSimulatorAvailable():
   """
   for build_dir in IOSSIM_BUILD_DIRECTORIES:
     iossim_path = os.path.join(
-        path.GetChromiumSrcDir(), 'out', build_dir, 'iossim')
+        chrome_root, 'out', build_dir, 'iossim')
     chromium_path = os.path.join(
-        path.GetChromiumSrcDir(), 'out', build_dir, 'Chromium.app')
+        chrome_root, 'out', build_dir, 'Chromium.app')
 
     # If the iOS simulator and Chromium app are present, return True
     if os.path.exists(iossim_path) and os.path.exists(chromium_path):
@@ -53,7 +53,7 @@ def _IsIosSimulatorAvailable():
 
   return False
 
-def FindAllAvailableDevices(_):
+def FindAllAvailableDevices(options):
   """Returns a list of available devices.
   """
   # TODO(baxley): Add support for all platforms possible. Probably Linux,
@@ -61,7 +61,12 @@ def FindAllAvailableDevices(_):
   if platform.GetHostPlatform().GetOSName() != 'mac':
     return []
 
-  if not _IsIosDeviceAttached() and not _IsIosSimulatorAvailable():
+  if options.chrome_root is None:
+    logging.warning('--chrome-root is not specified, skip iOS simulator tests.')
+    return []
+
+  if (not _IsIosDeviceAttached() and not
+      _IsIosSimulatorAvailable(options.chrome_root)):
     return []
 
   return [IOSDevice()]
