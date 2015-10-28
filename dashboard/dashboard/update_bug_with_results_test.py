@@ -215,8 +215,7 @@ dromaeo.jslibstylejquery --profiler=trace',
   'good_revision': '215806',
   'bad_revision': '215828',
   'repeat_count': '1',
-  'max_time_minutes': '120',
-  'truncate_percent': '0'
+  'max_time_minutes': '120'
 }"""
 
 _PERF_LOG_EXPECTED_TITLE_1 = 'With Patch - Profiler Data[0]'

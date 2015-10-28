@@ -30,7 +30,6 @@ class TestBuildbucketHandler(request_handler.RequestHandler):
         self.request.get('command'),
         self.request.get('metric'),
         self.request.get('repeat_count'),
-        self.request.get('truncate_percent'),
         self.request.get('max_time_minutes'),
         self.request.get('bug_id'),
         self.request.get('gs_bucket'),

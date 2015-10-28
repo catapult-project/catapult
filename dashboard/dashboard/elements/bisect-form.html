@@ -94,10 +94,6 @@ the bisect process after the user clicks on the bisect button.
             <td>Max time (min):</td>
             <td><input type="number" min="1" max="60" value="{{MAX_TIME_MINUTES}}"></td>
           </tr>
-          <tr>
-            <td>Truncate percent:</td>
-            <td><input type="number" min="1" max="49" value="{{TRUNCATE_PERCENT}}"></td>
-          </tr>
 
           <template if="{{canUseArchive}}">
             <tr>
@@ -173,7 +169,6 @@ the bisect process after the user clicks on the bisect button.
         // See: http://goo.gl/I94Kyj
         REPEAT_COUNT: 20,
         MAX_TIME_MINUTES: 20,
-        TRUNCATE_PERCENT: 25,
         BISECT_MODE: 'mean',
 
         /**
@@ -225,7 +220,6 @@ the bisect process after the user clicks on the bisect button.
               'bad_revision': this.laterRevision,
               'repeat_count': this.REPEAT_COUNT,
               'max_time_minutes': this.MAX_TIME_MINUTES,
-              'truncate_percent': this.TRUNCATE_PERCENT,
               'use_archive': this.useArchive ? 'true' : '',
               'bypass_no_repro_check': this.bypassNoRepro ? 'true' : '',
               'master': this.master,

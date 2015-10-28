@@ -32,7 +32,6 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 -  'metric': '',
 -  'repeat_count':'',
 -  'max_time_minutes': '',
--  'truncate_percent':'',
 +  "bad_revision": "215828",
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
@@ -42,8 +41,7 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
 +  "repeat_count": "20",
-+  "target_arch": "ia32",
-+  "truncate_percent": "25"
++  "target_arch": "ia32"
  }
 """
 
@@ -54,7 +52,6 @@ _EXPECTED_BISECT_CONFIG_DIFF_FOR_INTERNAL_TEST = """config = {
 -  'metric': '',
 -  'repeat_count':'',
 -  'max_time_minutes': '',
--  'truncate_percent':'',
 +  "bad_revision": "f14a8f733cce874d5d66e8e6b86e75bbac240b0e",
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
@@ -64,8 +61,7 @@ _EXPECTED_BISECT_CONFIG_DIFF_FOR_INTERNAL_TEST = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "foreground_tab_request_start/foreground_tab_request_start",
 +  "repeat_count": "20",
-+  "target_arch": "ia32",
-+  "truncate_percent": "25"
++  "target_arch": "ia32"
  }
 """
 
@@ -76,7 +72,6 @@ _EXPECTED_BISECT_CONFIG_DIFF_WITH_ARCHIVE = """config = {
 -  'metric': '',
 -  'repeat_count':'',
 -  'max_time_minutes': '',
--  'truncate_percent':'',
 +  "bad_revision": "215828",
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
@@ -86,8 +81,7 @@ _EXPECTED_BISECT_CONFIG_DIFF_WITH_ARCHIVE = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
 +  "repeat_count": "20",
-+  "target_arch": "ia32",
-+  "truncate_percent": "25"
++  "target_arch": "ia32"
  }
 """
 
@@ -96,13 +90,11 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
 -  'metric': '',
 -  'repeat_count': '',
 -  'max_time_minutes': '',
--  'truncate_percent': '',
 +  "bad_revision": "215828",
 +  "command": "tools/perf/run_benchmark -v --browser=release --output-format=buildbot --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "60",
-+  "repeat_count": "1",
-+  "truncate_percent": "0"
++  "repeat_count": "1"
  }
 """
 
@@ -142,7 +134,6 @@ Args:
   'repeat_count': The number of times to repeat the performance test.
   'max_time_minutes': The script will attempt to run the performance test
       "repeat_count" times, unless it exceeds "max_time_minutes".
-  'truncate_percent': Discard the highest/lowest % values from performance test.
 
 Sample config:
 
@@ -154,7 +145,6 @@ config = {
   'metric': 'times/t',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 On Windows:
@@ -168,7 +158,6 @@ config = {
   'metric': 'Total/Total',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 
@@ -186,7 +175,6 @@ config = {
   'metric': 'jslib/jslib',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 \"\"\"
@@ -198,7 +186,6 @@ config = {
   'metric': '',
   'repeat_count':'',
   'max_time_minutes': '',
-  'truncate_percent':'',
 }
 
 # Workaround git try issue, see crbug.com/257689"""
@@ -229,7 +216,6 @@ Args:
   'repeat_count': The number of times to repeat the performance test.
   'max_time_minutes': The script will attempt to run the performance test
       "repeat_count" times, unless it exceeds "max_time_minutes".
-  'truncate_percent': Discard the highest/lowest % values from performance test.
 
 Sample config:
 
@@ -238,7 +224,6 @@ config = {
   'metric': 'mean_frame_time/mean_frame_time',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 On Windows:
@@ -250,7 +235,6 @@ config = {
   'metric': 'mean_frame_time/mean_frame_time',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 
@@ -266,7 +250,6 @@ config = {
   'metric': 'mean_frame_time/mean_frame_time',
   'repeat_count': '20',
   'max_time_minutes': '20',
-  'truncate_percent': '25',
 }
 
 \"\"\"
@@ -276,7 +259,6 @@ config = {
   'metric': '',
   'repeat_count': '',
   'max_time_minutes': '',
-  'truncate_percent': '',
 }
 
 # Workaround git try issue, see crbug.com/257689"""
@@ -488,7 +470,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': '',
         },
@@ -502,7 +483,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': '',
             'target_arch': 'ia32',
@@ -520,7 +500,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': 'true',
             'use_buildbucket': True,
@@ -535,7 +514,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': 'perf',
             'target_arch': 'ia32',
@@ -556,7 +534,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': '',
         },
@@ -570,7 +547,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': '',
             'target_arch': 'ia32',
@@ -588,7 +564,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '23456',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
         },
         {
@@ -601,7 +576,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': '',
             'target_arch': 'ia32',
@@ -619,7 +593,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': '',
             'bisect_mode': 'return_code',
@@ -634,7 +607,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': '',
             'target_arch': 'ia32',
@@ -653,7 +625,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '10',
             'bug_id': '-1',
             'use_archive': '',
             'use_buildbucket': False,
@@ -743,7 +714,6 @@ class StartBisectTest(testing_common.TestCase):
         'bad_revision': '215828',
         'repeat_count': '20',
         'max_time_minutes': '20',
-        'truncate_percent': '25',
         'bug_id': 12345,
         'use_archive': '',
         'step': 'perform-bisect',
@@ -796,7 +766,6 @@ class StartBisectTest(testing_common.TestCase):
         'bad_revision': '215828',
         'repeat_count': '20',
         'max_time_minutes': '20',
-        'truncate_percent': '25',
         'bug_id': 12345,
         'use_archive': '',
         'step': 'perform-bisect',
@@ -868,7 +837,6 @@ class StartBisectTest(testing_common.TestCase):
         'bad_revision': '215828',
         'repeat_count': '20',
         'max_time_minutes': '20',
-        'truncate_percent': '25',
         'bug_id': 12345,
         'use_archive': 'true',
         'bisect_mode': 'mean',
@@ -892,7 +860,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '23456',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': 'true',
         },
@@ -906,7 +873,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': 'perf',
             'target_arch': 'ia32',
@@ -924,7 +890,6 @@ class StartBisectTest(testing_common.TestCase):
             'bad_revision': '265556',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'use_archive': ''
         },
@@ -938,7 +903,6 @@ class StartBisectTest(testing_common.TestCase):
             'metric': 'times/page_load_time',
             'repeat_count': '15',
             'max_time_minutes': '8',
-            'truncate_percent': '30',
             'bug_id': '-1',
             'builder_type': '',
             'target_arch': 'x64',

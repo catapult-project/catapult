@@ -163,7 +163,6 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       bad_revision=bad_revision,
       repeat_count=10,
       max_time_minutes=20,
-      truncate_percent=25,
       bug_id=bug_id,
       use_archive='true',
       use_buildbucket=use_recipe)

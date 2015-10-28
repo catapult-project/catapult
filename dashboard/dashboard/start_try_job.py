@@ -128,7 +128,6 @@ class StartBisectHandler(request_handler.RequestHandler):
         bad_revision=self.request.get('bad_revision'),
         repeat_count=self.request.get('repeat_count', 10),
         max_time_minutes=self.request.get('max_time_minutes', 20),
-        truncate_percent=self.request.get('truncate_percent', 25),
         bug_id=bug_id,
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
@@ -238,7 +237,7 @@ def _PrefillInfo(test_path):
 
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
-    repeat_count, max_time_minutes, truncate_percent, bug_id, use_archive=None,
+    repeat_count, max_time_minutes, bug_id, use_archive=None,
     bisect_mode='mean', use_buildbucket=False, bypass_no_repro_check=False):
   """Fills in a JSON response with the filled-in config file.
 
@@ -252,7 +251,6 @@ def GetBisectConfig(
     bad_revision: Known bad revision number.
     repeat_count: Number of times to repeat the test.
     max_time_minutes: Max time to run the test.
-    truncate_percent: How many high and low values to discard.
     bug_id: The Chromium issue tracker bug ID.
     use_archive: Specifies whether to use build archives or not to bisect.
         If this is not empty or None, then we want to use archived builds.
@@ -277,11 +275,10 @@ def GetBisectConfig(
       bad_revision = int(bad_revision)
     repeat_count = int(repeat_count)
     max_time_minutes = int(max_time_minutes)
-    truncate_percent = int(truncate_percent)
     bug_id = int(bug_id)
   except ValueError:
-    return {'error': ('repeat count, max time, and truncate percent '
-                      'must all be integers and revision as git hash or int.')}
+    return {'error': ('repeat count and max time must be integers '
+                      'and revision as git hash or int.')}
 
   if not IsValidRevisionForBisect(good_revision):
     return {'error': 'Invalid "good" revision "%s".' % good_revision}
@@ -295,7 +292,6 @@ def GetBisectConfig(
       'metric': metric,
       'repeat_count': str(repeat_count),
       'max_time_minutes': str(max_time_minutes),
-      'truncate_percent': str(truncate_percent),
       'bug_id': str(bug_id),
       'builder_type': _BuilderType(master_name, use_archive),
       'target_arch': GuessTargetArch(bisect_bot),
@@ -366,7 +362,6 @@ def _GetPerfTryConfig(
       'bad_revision': str(bad_revision),
       'repeat_count': '1',
       'max_time_minutes': '60',
-      'truncate_percent': '0',
   }
   return config_dict
 
@@ -791,7 +786,6 @@ def _MakeBuildbucketBisectJob(bisect_job):
       metric=config['metric'],
       repeats=config['repeat_count'],
       timeout_minutes=config['max_time_minutes'],
-      truncate=config['truncate_percent'],
       bug_id=bisect_job.bug_id,
       gs_bucket='chrome-perf',
       recipe_tester_name=tester_name,

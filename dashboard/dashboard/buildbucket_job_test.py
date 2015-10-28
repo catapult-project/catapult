@@ -20,7 +20,6 @@ class BuildbucketJobTest(testing_common.TestCase):
         'test_command': 'tools/perf/dummy_command',
         'metric': 'dummy_metric',
         'repeats': '5',
-        'truncate': '25',
         'timeout_minutes': '10',
         'bug_id': None,
         'gs_bucket': 'dummy_bucket',
@@ -45,7 +44,6 @@ class BuildbucketJobTest(testing_common.TestCase):
     self.assertIn('bad_revision', bisect_config)
     self.assertIn('repeat_count', bisect_config)
     self.assertIn('max_time_minutes', bisect_config)
-    self.assertIn('truncate_percent', bisect_config)
 
   def testMissingRequiredArgs(self):
     self._args_base['test_command'] = None

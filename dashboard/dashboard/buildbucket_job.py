@@ -11,7 +11,7 @@ class BisectJob(object):
   """A buildbot bisect job started and monitored through buildbucket."""
 
   def __init__(self, bisect_director, good_revision, bad_revision, test_command,
-               metric, repeats, truncate, timeout_minutes, bug_id, gs_bucket,
+               metric, repeats, timeout_minutes, bug_id, gs_bucket,
                recipe_tester_name, builder_host=None, builder_port=None,
                test_type='perf', required_initial_confidence=None):
     if not all([good_revision, bad_revision, test_command, metric,
@@ -25,7 +25,6 @@ class BisectJob(object):
     self.command = BisectJob.EnsureCommandPath(test_command)
     self.metric = metric
     self.repeat_count = repeats
-    self.truncate_percent = truncate
     self.max_time_minutes = timeout_minutes
     self.bug_id = bug_id
     self.gs_bucket = gs_bucket
@@ -56,7 +55,6 @@ class BisectJob(object):
         'metric': self.metric,
         'repeat_count': self.repeat_count,
         'max_time_minutes': self.max_time_minutes,
-        'truncate_percent': self.truncate_percent,
         'bug_id': self.bug_id,
         'gs_bucket': self.gs_bucket,
         'builder_host': self.builder_host,
