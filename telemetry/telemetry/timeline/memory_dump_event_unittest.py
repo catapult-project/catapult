@@ -16,7 +16,8 @@ def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
         'bs': {k: hex(v) for k, v in byte_stats.iteritems()}}
 
   def attrs(sizes):
-    return {'attrs': {k: {'value': hex(v)} for k, v in sizes.iteritems()}}
+    return {'attrs': {k: {'value': hex(v), 'units': 'bytes'}
+               for k, v in sizes.iteritems()}}
 
   if allocators is None:
     allocators = {}
