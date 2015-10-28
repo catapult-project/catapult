@@ -8,7 +8,7 @@ import json
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from telemetry.internal.results import buildbot_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.page import page as page_module
@@ -18,7 +18,7 @@ from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 sys.path.append(os.path.join(
-  os.path.dirname(__file__), os.pardir, os.pardir, 'perf'))
+  os.path.dirname(__file__), '..', '..', 'perf'))
 # pylint: disable=F0401
 from measurements import smooth_gesture_util
 from measurements import smoothness_controller

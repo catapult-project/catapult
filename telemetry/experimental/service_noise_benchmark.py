@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 
-sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from telemetry.core import platform
 

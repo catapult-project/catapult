@@ -34,7 +34,7 @@ def GenerateHTMLForModule(module):
       continue
 
     new_href = href.replace('file:', '')
-    new_href = new_href.replace(telemetry_dir, os.pardir)
+    new_href = new_href.replace(telemetry_dir, '..')
     new_href = new_href.replace(os.sep, '/')
 
     new_link_text = link_text.replace(telemetry_dir + os.sep, '')

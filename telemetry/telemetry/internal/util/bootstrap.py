@@ -114,7 +114,7 @@ def ListAllDepsPaths(deps_file):
 
   chrome_root = os.path.dirname(__file__)
   while os.path.basename(chrome_root) != 'src':
-    chrome_root = os.path.abspath(os.path.join(chrome_root, os.pardir))
+    chrome_root = os.path.abspath(os.path.join(chrome_root, '..'))
 
   exec open(deps_file).read()  # pylint: disable=exec-used
 
@@ -122,7 +122,7 @@ def ListAllDepsPaths(deps_file):
 
   for path in deps_includes.keys():
     # Need to localize the paths.
-    path = os.path.join(chrome_root, os.pardir, path)
+    path = os.path.join(chrome_root, '..', path)
     deps_paths += ListAllDepsPaths(path)
 
   return deps_paths

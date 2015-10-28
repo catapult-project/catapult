@@ -23,12 +23,12 @@ def GetBaseDir():
 
 def GetTelemetryDir():
   return os.path.normpath(os.path.join(
-      __file__, os.pardir, os.pardir, os.pardir))
+      __file__, '..', '..', '..'))
 
 
 def GetTelemetryThirdPartyDir():
   return os.path.normpath(os.path.join(
-      __file__, os.pardir, os.pardir, os.pardir, 'third_party'))
+      __file__, '..', '..', '..', 'third_party'))
 
 
 def GetUnittestDataDir():
@@ -37,7 +37,7 @@ def GetUnittestDataDir():
 
 
 def GetChromiumSrcDir():
-  return os.path.normpath(os.path.join(GetTelemetryDir(), os.pardir, os.pardir))
+  return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..'))
 
 
 _counter = [0]

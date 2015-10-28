@@ -29,7 +29,7 @@ def FindBootstrapDependencies(base_dir):
     return []
   deps_paths = bootstrap.ListAllDepsPaths(deps_file)
   return set(os.path.realpath(os.path.join(
-      path.GetChromiumSrcDir(), os.pardir, deps_path))
+      path.GetChromiumSrcDir(), '..', deps_path))
       for deps_path in deps_paths)
 
 
