@@ -48,10 +48,10 @@ class AndroidShell(object):
   Used to set up and run a given mojo shell binary on an Android device.
   |config| is the mopy.config.Config for the build.
   '''
-  def __init__(self, config):
+  def __init__(self, config, chrome_root):
     self.adb_path = constants.GetAdbPath()
     self.config = config
-    self.paths = Paths(config)
+    self.paths = Paths(config, chrome_root)
     self.device = None
     self.shell_args = []
     self.target_package = apk_helper.GetPackageName(self.paths.apk_path)

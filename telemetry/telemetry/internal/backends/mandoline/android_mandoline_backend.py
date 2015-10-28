@@ -27,7 +27,7 @@ class AndroidMandolineBackend(
   Android."""
 
   def __init__(self, android_platform_backend, browser_options, target_arch,
-               browser_type, build_path, package):
+               browser_type, build_path, package, chrome_root):
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidMandolineBackend, self).__init__(
@@ -39,6 +39,7 @@ class AndroidMandolineBackend(
     self._build_path = build_path
     self._package = package
     self._device_port = None
+    self._chrome_root = chrome_root
 
     # TODO(wuhu): Move to network controller backend.
     self.platform_backend.InstallTestCa()
@@ -81,7 +82,7 @@ class AndroidMandolineBackend(
                                      target_cpu=self._target_arch,
                                      is_debug=is_debug,
                                      apk_name='Mandoline.apk')
-    shell = android.AndroidShell(mandoline_config)
+    shell = android.AndroidShell(mandoline_config, self._chrome_root)
     shell.InitShell(self.device)
 
     output = sys.stdout

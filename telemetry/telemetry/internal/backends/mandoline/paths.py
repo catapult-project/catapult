@@ -9,17 +9,14 @@
 import os
 
 from .config import Config
-from telemetry.core import util
 
-
-SRC_ROOT = util.GetChromiumSrcDir()
 
 class Paths(object):
   '''Provides commonly used paths'''
 
-  def __init__(self, config):
+  def __init__(self, config, chrome_root):
     '''Generate paths to binary artifacts from a Config object.'''
-    self.src_root = SRC_ROOT
+    self.src_root = chrome_root
     self.mojo_dir = os.path.join(self.src_root, 'mojo')
 
     self.build_dir = config.build_dir
