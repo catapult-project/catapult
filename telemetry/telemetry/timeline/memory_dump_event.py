@@ -176,9 +176,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
         allocator_name = '_'.join(name_parts[1:3])
       allocator = self._allocators.setdefault(allocator_name, {})
       for size_key, size_value in size_values['attrs'].iteritems():
-        if size_value['units'] == 'bytes':
-          allocator[size_key] = (allocator.get(size_key, 0)
-                                 + int(size_value['value'], 16))
+        allocator[size_key] = (allocator.get(size_key, 0)
+                               + int(size_value['value'], 16))
     # we need to discount tracing from malloc size.
     try:
       self._allocators['malloc']['size'] -= self._allocators['tracing']['size']
