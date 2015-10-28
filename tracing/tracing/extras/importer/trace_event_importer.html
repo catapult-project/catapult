@@ -7,24 +7,25 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
-<link rel="import" href="/tracing/model/instant_event.html">
-<link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/counter_series.html">
-<link rel="import" href="/tracing/model/slice_group.html">
+<link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
+<link rel="import" href="/tracing/model/heap_dump.html">
+<link rel="import" href="/tracing/model/instant_event.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/rect_annotation.html">
+<link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
-<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/ui/base/color_scheme.html">
 
 <script>
@@ -431,6 +432,18 @@ tr.exportTo('tr.e.importer', function() {
         if (this.softwareMeasuredCpuCount_ !== undefined)
           n = Math.max(n, this.softwareMeasuredCpuCount_);
         this.softwareMeasuredCpuCount_ = n;
+      } else if (event.name === 'stackFrames') {
+        var stackFrames = event.args.stackFrames;
+        if (stackFrames === undefined) {
+          this.model_.importWarning({
+            type: 'metadata_parse_error',
+            message: 'No stack frames found in a \'' + event.name +
+                '\' metadata event'
+          });
+        } else {
+          this.importStackFrames_(
+              stackFrames, 'p' + event.pid + ':', true /* addRootFrame */);
+        }
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',
@@ -661,8 +674,10 @@ tr.exportTo('tr.e.importer', function() {
     importEvents: function() {
       var csr = new tr.ClockSyncRecord('ftrace_importer', 0, {});
       this.model_.clockSyncRecords.push(csr);
-      if (this.stackFrameEvents_)
-        this.importStackFrames_();
+      if (this.stackFrameEvents_) {
+        this.importStackFrames_(
+            this.stackFrameEvents_, 'g', false /* addRootFrame */);
+      }
 
       if (this.traceAnnotations_)
         this.importAnnotations_();
@@ -730,35 +745,62 @@ tr.exportTo('tr.e.importer', function() {
       });
     },
 
-    importStackFrames_: function() {
-      var m = this.model_;
-      var events = this.stackFrameEvents_;
+    importStackFrames_: function(rawStackFrames, idPrefix, addRootFrame) {
+      var model = this.model_;
 
-      for (var id in events) {
-        var event = events[id];
-        var textForColor = event.category ? event.category : event.name;
-        var frame = new tr.model.StackFrame(
-            undefined, 'g' + id, event.name,
-            tr.ui.b.getColorIdForGeneralPurposeString(textForColor));
-        m.addStackFrame(frame);
+      var rootStackFrame;
+      if (addRootFrame) {
+        // In certain cases (heap dumps), we need to be able to distinguish
+        // between an empty and an undefined stack trace. To this end, we add
+        // an auxiliary root stack frame which is common to all stack frames
+        // in a process. An empty stack trace is then represented by setting
+        // the root stack frame as the leaf stack frame (of the relevant model
+        // object with an associated empty stack trace, e.g. HeapEntry in the
+        // case of heap dumps).
+        rootStackFrame = new tr.model.StackFrame(
+            undefined /* parentFrame */, idPrefix, undefined /* title */,
+            undefined /* colorId */);
+        model.addStackFrame(rootStackFrame);
+      } else {
+        rootStackFrame = undefined;
       }
-      for (var id in events) {
-        var event = events[id];
-        if (event.parent === undefined)
-          continue;
 
-        var frame = m.stackFrames['g' + id];
-        if (frame === undefined)
-          throw new Error('omg');
-        var parentFrame;
-        if (event.parent === undefined) {
-          parentFrame = undefined;
+      for (var id in rawStackFrames) {
+        var rawStackFrame = rawStackFrames[id];
+        var fullId = idPrefix + id;
+        var textForColor = rawStackFrame.category ?
+            rawStackFrame.category : rawStackFrame.name;
+        var stackFrame = new tr.model.StackFrame(
+            undefined /* parentFrame */, fullId, rawStackFrame.name,
+            tr.ui.b.getColorIdForGeneralPurposeString(textForColor));
+        model.addStackFrame(stackFrame);
+      }
+
+      for (var id in rawStackFrames) {
+        var fullId = idPrefix + id;
+        var stackFrame = model.stackFrames[fullId];
+        if (stackFrame === undefined)
+          throw new Error('Internal error');
+
+        var rawStackFrame = rawStackFrames[id];
+        var parentId = rawStackFrame.parent;
+        var parentStackFrame;
+        if (parentId === undefined) {
+          parentStackFrame = rootStackFrame;
         } else {
-          parentFrame = m.stackFrames['g' + event.parent];
-          if (parentFrame === undefined)
-            throw new Error('omg');
+          var parentFullId = idPrefix + parentId;
+          parentStackFrame = model.stackFrames[parentFullId];
+          if (parentStackFrame === undefined) {
+            this.model_.importWarning({
+              type: 'metadata_parse_error',
+              message: 'Missing parent frame with ID ' + parentFullId +
+                  ' for stack frame \'' + stackFrame.name + '\' (ID ' + fullId +
+                  ').'
+            });
+            parentStackFrame = rootStackFrame;
+          }
         }
-        frame.parentFrame = parentFrame;
+        stackFrame.parentFrame = parentStackFrame;
       }
     },
 
@@ -2068,6 +2110,12 @@ tr.exportTo('tr.e.importer', function() {
               this.inferMemoryAllocatorDumpTree_(
                   processMemoryAllocatorDumpsByFullName);
 
+          // Parse heap dumps (if present).
+          if (dumps.heaps !== undefined) {
+            processMemoryDump.heapDumps = tr.b.mapItems(dumps.heaps,
+                this.parseHeapDump_.bind(this, processMemoryDump));
+          }
+
           process.memoryDumps.push(processMemoryDump);
           globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
         }, this);
@@ -2202,6 +2250,47 @@ tr.exportTo('tr.e.importer', function() {
       }, this);
 
       return rootAllocatorDumps;
+    },
+
+    parseHeapDump_: function(processMemoryDump, allocatorName, rawHeapDump) {
+      var pid = processMemoryDump.process.pid;
+      var entries = rawHeapDump.entries;
+      if (entries === undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'Missing heap entries in a ' + allocatorName +
+              ' heap dump for pid=' + pid + '.'
+        });
+        return undefined;
+      }
+
+      var model = this.model_;
+      var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
+      var idPrefix = 'p' + pid + ':';
+
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var size = parseInt(entry.size, 16);
+        var leafStackFrameIndex = entry.bt;
+        var leafStackFrame;
+        if (leafStackFrameIndex === undefined) {
+          leafStackFrame = undefined;
+        } else {
+          var leafStackFrameId = idPrefix + leafStackFrameIndex;
+          leafStackFrame = model.stackFrames[leafStackFrameId];
+          if (leafStackFrame === undefined) {
+            this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Missing leaf stack frame (ID ' + leafStackFrameId +
+                  ') of heap entry ' + i + ' (size ' + size + ') in a ' +
+                  allocatorName + ' heap dump for pid=' + pid + '.'
+            });
+            continue;
+          }
+        }
+        heapDump.addEntry(leafStackFrame, size);
+      }
+      return heapDump;
     },
 
     joinObjectRefs_: function() {

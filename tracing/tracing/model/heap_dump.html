@@ -41,8 +41,9 @@ tr.exportTo('tr.model', function() {
    *
    * @{constructor}
    */
-  function HeapDump(processMemoryDump) {
+  function HeapDump(processMemoryDump, allocatorName) {
     this.processMemoryDump = processMemoryDump;
+    this.allocatorName = allocatorName;
     this.entries = [];
   }
 
