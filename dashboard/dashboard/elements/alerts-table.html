@@ -268,7 +268,7 @@
     <table id="alerts">
       <thead>
       <tr>
-        <th id="groupheader" hidden?={{!isGroupView}}></th>
+        <th id="groupheader"></th>
         <th id="checkheader">
           <input type="checkbox" id="header-checkbox" on-change="{{onHeaderCheckboxChange}}">
         </th>
@@ -294,7 +294,7 @@
             expanded?={{expanded}}
             on-click="{{onRowClicked}}">
 
-          <td hidden?="{{!isGroupView}}">
+          <td>
             <a class="kd-button counter"
                expanded?={{expanded}}
                on-click="{{onExpandGroupButtonClicked}}"
@@ -361,11 +361,6 @@
     Polymer('alerts-table', {
 
       /**
-       * Whether alert list is displayed in group or not.
-       */
-      isGroupView: false,
-
-      /**
        * The field to sort by. Note that this will be both the id of a th
        * element in the table, and a property of an item in the alert list.
        */
@@ -409,6 +404,7 @@
           alert.xsrfToken = this.xsrfToken;
         }, this);
         this.initRowsBasedOnQueryParameters();
+        this.showAlertsGrouped();
         this.updateBugColumn();
         if (this.extraColumns) {
           this.prepareExtraColumnsForHeader();
@@ -480,7 +476,6 @@
         }
         this.alertList = orderedAlertList;
         this.addEllipsis();
-        this.isGroupView = true;
       },
 
       /**
@@ -517,16 +512,6 @@
       },
 
       /**
-       * Displays alerts in non-grouped format.
-       */
-      showAlertsNonGrouped: function() {
-        this.alertList.forEach(function(alert) {
-          alert.rowType = null;
-        });
-        this.isGroupView = false;
-      },
-
-      /**
        * Toggles expansion of a group of alerts.
        */
       onExpandGroupButtonClicked: function(event, detail, sender) {
@@ -559,18 +544,6 @@
         if (uri.getParameter('bug_id') &&
             this.alertList.length <= this.NUM_ALERTS_TO_CHECK_ON_INIT) {
           this.selectFirstNAlerts(this.NUM_ALERTS_TO_CHECK_ON_INIT);
-        }
-
-        // In general, we want to group alerts on the main alerts page.
-        // In that case, parameters like keys, bug_id, etc. will not be given.
-        if (uri.getParameter('improvements') ||
-            uri.getParameter('triaged') ||
-            uri.getParameter('bug_id') ||
-            uri.getParameter('keys') ||
-            uri.getParameter('rev')) {
-          this.showAlertsNonGrouped();
-        } else {
-          this.showAlertsGrouped();
         }
       },
 
@@ -626,15 +599,6 @@
         this.alertList.forEach(function(alertRow) {
           alertRow.hide_bug_id = shouldHideBugId;
         });
-      },
-
-      /**
-       * Shows or hides the group counter column depending on group view.
-       */
-      isGroupViewChanged: function() {
-        for (var i = 0; i < this.alertList.length; i++) {
-          this.alertList[i].isGroupView = this.isGroupView;
-        }
       },
 
       /**
@@ -733,7 +697,7 @@
           alert.index = i;
 
           // Create list of group header alerts to sort by group.
-          if (this.isGroupView && alert.group) {
+          if (alert.group) {
             if (alert.group in groupMap) {
               groupMap[alert.group].push(alert);
             } else {
