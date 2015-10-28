@@ -12,10 +12,11 @@ from google.appengine.ext import ndb
 # Any parameters in such a dict that aren't in this list will be ignored.
 _VALID_ANOMALY_CONFIG_PARAMETERS = {
     'max_window_size',
-    'multiple_of_std_dev',
-    'min_relative_change',
-    'min_absolute_change',
     'min_segment_size',
+    'min_absolute_change',
+    'min_relative_change',
+    'min_steppiness',
+    'multiple_of_std_dev',
 }
 
 
