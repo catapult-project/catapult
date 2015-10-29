@@ -229,7 +229,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.ScrollPage(direction='right', left_start_ratio=0.9,
                              distance=100)
     self.assertTrue(action_runner.EvaluateJavaScript(
-        'document.body.scrollLeft') > 75)
+        'document.scrollingElement.scrollLeft') > 75)
 
   @decorators.Disabled('android',   # crbug.com/437065.
                        'chromeos')  # crbug.com/483212.
@@ -253,7 +253,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.SwipePage(direction='left', left_start_ratio=0.9)
     self.assertTrue(action_runner.EvaluateJavaScript(
-        'document.body.scrollLeft') > 75)
+        'document.scrollingElement.scrollLeft') > 75)
 
 
 class InteractionTest(unittest.TestCase):

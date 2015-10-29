@@ -78,7 +78,7 @@ class ScrollAction(page_action.PageAction):
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
         self._element_function is None):
-      self._element_function = 'document.body'
+      self._element_function = 'document.scrollingElement'
 
     gesture_source_type = self._synthetic_gesture_source
     if self._use_touch:

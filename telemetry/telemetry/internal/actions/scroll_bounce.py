@@ -38,7 +38,7 @@ class ScrollBounceAction(page_action.PageAction):
 
     if (self._selector is None and self._text is None and
         self._element_function is None):
-      self._element_function = 'document.body'
+      self._element_function = 'document.scrollingElement'
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'scroll_bounce.js']:
