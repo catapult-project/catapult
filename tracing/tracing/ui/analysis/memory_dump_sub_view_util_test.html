@@ -554,10 +554,18 @@ tr.b.unittest.testSuite(function() {
     var c = new MemoryColumn('test_column', 'Test Column', 'ms',
         fieldGetter('x'), AggregationMode.DIFF);
 
+    // Different values.
     assert.equal(c.formatMultipleAttributeValues(buildScalarCell(
         'bytes', [16, 32, 64]).attrs).textContent, '(multiple values)');
+    assert.equal(c.formatMultipleAttributeValues(buildScalarCell(
+        'bytes', [16, 16, undefined, 17]).attrs).textContent,
+        '(multiple values)');
+
+    // Identical values.
     assert.equal(c.formatMultipleAttributeValues(buildStringCell(
-        '', ['a', undefined, 'a']).attrs).textContent, '(multiple values)');
+        '', [15, 15]).attrs), '15');
+    assert.equal(c.formatMultipleAttributeValues(buildStringCell(
+        '', [undefined, 'a', undefined, 'a']).attrs), 'a');
   });
 
   test('checkMemoryColumn_compareSingleAttributes', function() {
@@ -576,9 +584,27 @@ tr.b.unittest.testSuite(function() {
     var c = new MemoryColumn('test_column', 'Test Column', 'ms',
         fieldGetter('x'), AggregationMode.MAX);
 
+    // At least one attribute has multiple values.
     assert.equal(c.compareMultipleAttributes(
         buildScalarCell('bytes', [0, 1, 2]).attrs,
         buildScalarCell('bytes', [3, 4, 5]).attrs), 0);
+    assert.isBelow(c.compareMultipleAttributes(
+        buildStringCell('bytes', ['9', undefined, '9']).attrs,
+        buildStringCell('bytes', ['3', '4', '5']).attrs), 0);
+    assert.isAbove(c.compareMultipleAttributes(
+        buildScalarCell('bytes', [9, undefined, 10]).attrs,
+        buildScalarCell('bytes', [3, 3, 3]).attrs), 0);
+
+    // Both attributes have single values.
+    assert.equal(c.compareMultipleAttributes(
+        buildStringCell('bytes', [undefined, 'ttt', undefined]).attrs,
+        buildStringCell('bytes', ['ttt', 'ttt', undefined]).attrs), 0);
+    assert.isBelow(c.compareMultipleAttributes(
+        buildScalarCell('bytes', [undefined, -1, undefined]).attrs,
+        buildScalarCell('bytes', [-2, -2, -2]).attrs), 0);
+    assert.isAbove(c.compareMultipleAttributes(
+        buildStringCell('bytes', ['X', undefined, 'X']).attrs,
+        buildStringCell('bytes', ['Q', 'Q', undefined]).attrs), 0);
   });
 
   test('checkMemoryColumn_cmp', function() {

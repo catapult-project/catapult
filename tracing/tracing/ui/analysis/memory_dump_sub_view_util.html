@@ -455,12 +455,15 @@ tr.exportTo('tr.ui.analysis', function() {
      * columns.
      */
     formatMultipleAttributeValues: function(attrs) {
-      // TODO(petrcermak): Determine how to aggregate multiple arbitrary (and
-      // possibly undefined) attributes using the various aggregation modes.
-      return tr.ui.b.createSpan({
-        textContent: '(multiple values)',
-        italic: true
-      });
+      var commonAttr = this.getCommonAttributeOrUndefined(attrs);
+      if (commonAttr === undefined) {
+        return tr.ui.b.createSpan({
+          textContent: '(multiple values)',
+          italic: true
+        });
+      }
+
+      return this.formatSingleAttributeValue(commonAttr);
     },
 
     cmp: function(rowA, rowB) {
@@ -499,9 +502,45 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     compareMultipleAttributes: function(attrsA, attrsB) {
-      // TODO(petrcermak): Figure out if there is any intuitive way to sort a
-      // list of lists of arbitrary (and possibly undefined) attributes.
-      return 0;
+      var commonAttrA = this.getCommonAttributeOrUndefined(attrsA);
+      var commonAttrB = this.getCommonAttributeOrUndefined(attrsB);
+      var hasMultipleValuesA = commonAttrA === undefined;
+      var hasMultipleValuesB = commonAttrB === undefined;
+
+      // Consider attributes with multiple values to be greater than attributes
+      // with single values.
+      if (hasMultipleValuesA && hasMultipleValuesB)
+        return 0;
+      if (hasMultipleValuesA)
+        return 1;
+      if (hasMultipleValuesB)
+        return -1;
+
+      return this.compareSingleAttributes(commonAttrA, commonAttrB);
+    },
+
+    /**
+     * If all defined attributes have the same value and units, this method
+     * returns the first defined attribute. Otherwise, it returns undefined.
+     *
+     * This method assumes that at least one attribute in the list is defined.
+     */
+    getCommonAttributeOrUndefined: function(attrs) {
+      var firstDefinedAttribute = undefined;
+      for (var i = 0; i < attrs.length; i++) {
+        var attr = attrs[i];
+        if (attr === undefined)
+          continue;
+        if (firstDefinedAttribute === undefined) {
+          firstDefinedAttribute = attr;
+          continue;
+        }
+        if (firstDefinedAttribute.value !== attr.value ||
+            firstDefinedAttribute.units !== attr.units) {
+          return undefined;
+        }
+      }
+      return firstDefinedAttribute;
     },
 
     getInfos: function(attrs) {
