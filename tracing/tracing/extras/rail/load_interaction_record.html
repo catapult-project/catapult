@@ -17,9 +17,9 @@ tr.exportTo('tr.e.rail', function() {
   // latency values.
   var COMFORT_LATENCY_REGIONS = [1000, 5000, 20000, 60000];
 
-  function LoadInteractionRecord(start, duration) {
+  function LoadInteractionRecord(parentModel, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, 'Load', 'rail_load',
+        this, parentModel, 'Load', 'rail_load',
         start, duration);
 
     // |renderProcessId| identifies the renderer process that contains the

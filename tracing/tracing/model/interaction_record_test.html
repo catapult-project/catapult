@@ -29,6 +29,7 @@ tr.b.unittest.testSuite(function() {
       }));
 
       model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
+        parentModel: model,
         start: 100, end: 200,
         railTypeName: 'rail_response',
         normalizedEfficiency: 1.,
@@ -95,6 +96,21 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED,
                  model.ir1.computeCompoundEvenSelectionState(sel));
+  });
+
+  test('stableId', function() {
+    var model = test_utils.newModel();
+
+    var ir1 = model.addInteractionRecord(
+        test_utils.newInteractionRecord(model, 0, 10));
+    var ir2 = model.addInteractionRecord(
+        test_utils.newInteractionRecord(model, 10, 10));
+    var ir3 = model.addInteractionRecord(
+        test_utils.newInteractionRecord(model, 20, 10));
+
+    assert.equal('IR.0', ir1.stableId);
+    assert.equal('IR.1', ir2.stableId);
+    assert.equal('IR.2', ir3.stableId);
   });
 
 });

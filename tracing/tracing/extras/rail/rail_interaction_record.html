@@ -51,15 +51,16 @@ tr.exportTo('tr.e.rail', function() {
 
 
 
-  function RAILInteractionRecord(title, railTypeName, start, duration) {
+  function RAILInteractionRecord(
+      parentModel, title, railTypeName, start, duration) {
     if (!DOES_RAIL_TYPE_NAME_EXIST[railTypeName])
       throw new Error(railTypeName + ' is not listed in ALL_RAIL_TYPE_NAMES');
 
     var colorId = tr.ui.b.getColorIdForReservedName(railTypeName);
     this.railTypeName_ = railTypeName;
     this.name = '';
-    tr.model.InteractionRecord.call(this,
-                                    title, colorId, start, duration);
+    tr.model.InteractionRecord.call(
+        this, parentModel, title, colorId, start, duration);
   }
 
   RAILInteractionRecord.prototype = {

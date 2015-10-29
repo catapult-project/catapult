@@ -17,10 +17,9 @@ tr.exportTo('tr.e.rail', function() {
   // latency values.
   var COMFORT_LATENCY_REGIONS = [150, 300, 1000, 5000];
 
-  function ResponseInteractionRecord(start, duration) {
+  function ResponseInteractionRecord(parentModel, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, 'Response', 'rail_response',
-        start, duration);
+        this, parentModel, 'Response', 'rail_response', start, duration);
   }
 
   ResponseInteractionRecord.prototype = {

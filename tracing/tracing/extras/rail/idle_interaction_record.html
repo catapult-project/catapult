@@ -14,9 +14,9 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.rail', function() {
-  function IdleInteractionRecord(start, duration) {
+  function IdleInteractionRecord(parentModel, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, 'Idle', 'rail_idle',
+        this, parentModel, 'Idle', 'rail_idle',
         start, duration);
   }
 

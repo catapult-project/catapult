@@ -16,13 +16,14 @@ found in the LICENSE file.
 tr.exportTo('tr.model', function() {
   var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
-  function InteractionRecord(title, colorId, start, duration) {
+  function InteractionRecord(parentModel, title, colorId, start, duration) {
     tr.model.TimedEvent.call(this, start);
     this.title = title;
     this.colorId = colorId;
     this.duration = duration;
     this.args = {};
     this.associatedEvents = new tr.model.EventSet();
+    this.parentModel = parentModel;
 
     // sourceEvents are the ones that caused the IR Finder to create this IR.
     this.sourceEvents = new tr.model.EventSet();
@@ -38,6 +39,10 @@ tr.exportTo('tr.model', function() {
     get userFriendlyName() {
       return this.title + ' interaction at ' +
           tr.b.u.TimeStamp.format(this.start);
+    },
+
+    get stableId() {
+      return 'IR.' + this.parentModel.interactionRecords.indexOf(this);
     },
 
     computeCompoundEvenSelectionState: function(selection) {

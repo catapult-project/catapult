@@ -27,9 +27,9 @@ tr.exportTo('tr.e.rail', function() {
   // discrepancy values.
   var COMFORT_JANK_REGIONS = [0.05, 0.1, 0.2, 0.3];
 
-  function AnimationInteractionRecord(start, duration) {
+  function AnimationInteractionRecord(parentModel, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, 'Animation', 'rail_animate',
+        this, parentModel, 'Animation', 'rail_animate',
         start, duration);
     this.frameEvents_ = undefined;
   }

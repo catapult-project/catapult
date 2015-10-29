@@ -14,21 +14,29 @@ tr.b.unittest.testSuite(function() {
   var test_utils = tr.c.TestUtils;
 
   test('instantiate', function() {
-    var responseIR = new tr.e.rail.ResponseInteractionRecord(0, 150);
+    var responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 150);
     assert.equal(1, responseIR.normalizedUserComfort);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 150.0001);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 150.0001);
     assert.closeTo(1, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 299.9999);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 299.9999);
     assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 300.0001);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 300.0001);
     assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 999.9999);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 999.9999);
     assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 1000.0001);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 1000.0001);
     assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 4999.999);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 4999.999);
     assert.closeTo(0, responseIR.normalizedUserComfort, 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(0, 5000);
+    responseIR = new tr.e.rail.ResponseInteractionRecord(
+        undefined, 0, 5000);
     assert.equal(0, responseIR.normalizedUserComfort);
   });
 });

@@ -532,7 +532,8 @@ tr.exportTo('tr.e.audits', function() {
       });
 
       var mergerFunction = function(events) {
-        var ir = new InteractionRecord('Rendering',
+        var ir = new InteractionRecord(
+            this.model, 'Rendering',
             tr.ui.b.getColorIdForGeneralPurposeString('mt_rendering'),
             events[0].min,
             events[events.length - 1].max - events[0].min);
@@ -548,7 +549,8 @@ tr.exportTo('tr.e.audits', function() {
       });
 
       var mergerFunction = function(events) {
-        var ir = new InteractionRecord('Input',
+        var ir = new InteractionRecord(
+            this.model, 'Input',
             tr.ui.b.getColorIdForGeneralPurposeString('mt_input'),
             events[0].min,
             events[events.length - 1].max - events[0].min);

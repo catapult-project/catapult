@@ -28,15 +28,15 @@ tr.b.unittest.testSuite(function() {
       var thread = process.getOrCreateThread(1);
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSlice(0, 200));
       model.interactionRecords.push(new tr.model.InteractionRecord(
-            'a', 0, 100, 100));
+            model, 'a', 0, 100, 100));
       model.interactionRecords.push(new tr.model.InteractionRecord(
-            'b', 1, 0, 100));
+            model, 'b', 1, 0, 100));
       model.interactionRecords.push(new tr.model.InteractionRecord(
-            'c', 2, 150, 50));
+            model, 'c', 2, 150, 50));
       model.interactionRecords.push(new tr.model.InteractionRecord(
-            'd', 3, 50, 100));
+            model, 'd', 3, 50, 100));
       model.interactionRecords.push(new tr.model.InteractionRecord(
-            'e', 4, 0, 50));
+            model, 'e', 4, 0, 50));
       // Model.createImportTracesTask() automatically sorts IRs by start time.
     });
     assert.equal(2, track.subRows_.length);

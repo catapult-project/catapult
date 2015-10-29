@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
       t2_s2.parentContainer = t2;
       t2.sliceGroup.pushSlice(t2_s1);
       t2.sliceGroup.pushSlice(t2_s2);
-      var loadIr = new tr.e.rail.LoadInteractionRecord(15, 45);
+      var loadIr = new tr.e.rail.LoadInteractionRecord(m, 15, 45);
       loadIr.name = 'Startup';
       m.interactionRecords.push(loadIr);
       loadIr.associatedEvents.push(t2_s1);

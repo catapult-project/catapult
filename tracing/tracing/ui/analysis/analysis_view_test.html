@@ -55,10 +55,10 @@ tr.b.unittest.testSuite(function() {
     var slice2 = newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 1, 2.718);
     thread.timeSlices = [slice1, slice2];
 
-    var record1 = new InteractionRecord('r1', 0, 200, 300);
+    var record1 = new InteractionRecord(model, 'r1', 0, 200, 300);
     record1.associatedEvents.push(sample1);
     record1.associatedEvents.push(slice1);
-    var record2 = new InteractionRecord('r2', 0, 600, 100);
+    var record2 = new InteractionRecord(model, 'r2', 0, 600, 100);
     record2.associatedEvents.push(sample2);
     record2.associatedEvents.push(sample3);
     record2.associatedEvents.push(slice1);

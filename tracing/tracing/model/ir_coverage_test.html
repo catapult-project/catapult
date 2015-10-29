@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
         startThread: thread
       });
       thread.asyncSliceGroup.push(as1);
-      var ir = new tr.model.InteractionRecord('test', 0, 0, 7);
+      var ir = new tr.model.InteractionRecord(model, 'test', 0, 0, 7);
       ir.associatedEvents.push(as1);
       ir.associatedEvents.push(s0);
       ir.associatedEvents.push(s2);

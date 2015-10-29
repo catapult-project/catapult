@@ -15,7 +15,8 @@ tr.b.unittest.testSuite(function() {
   var test_utils = tr.c.TestUtils;
 
   test('OneHundredFPS', function() {
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(0, 100);
+    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+        undefined, 0, 100);
     for (var i = 1; i < 10; ++i) {
       animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
         title: tr.e.audits.IMPL_RENDERING_STATS,
@@ -31,7 +32,8 @@ tr.b.unittest.testSuite(function() {
     // Minimum comfort is when at least max(2, frameCount/10) frames are longer
     // than 50ms, and avgFPS <= 10.
     // One frame-per-second causes FPS comfort = 0.
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(0, 2000);
+    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+        undefined, 0, 2000);
     animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
       title: tr.e.audits.IMPL_RENDERING_STATS,
       start: 0,
@@ -53,7 +55,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('jank', function() {
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(0, 101000);
+    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+        undefined, 0, 101000);
     var timestamp = 0;
     for (var i = 0; i < 100; ++i) {
       timestamp += 16;

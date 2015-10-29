@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
   test('fromModel', function() {
     var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       model.addInteractionRecord(new tr.e.rail.RAILInteractionRecord(
-          'Idle', 'rail_idle', 0, 1));
+          model, 'Idle', 'rail_idle', 0, 1));
     });
     var score = tr.e.rail.RAILScore.fromModel(model);
     assert.equal(1, score.interactionRecords.length);

@@ -219,12 +219,13 @@ tr.exportTo('tr.e.rail', function() {
           tr.b.convertEventsToRanges(otherIRs),
           this.model.bounds);
       var irs = [];
+      var model = this.model;
       emptyRanges.forEach(function(range) {
         // Ignore insignificantly tiny idle ranges.
         if (range.max < (range.min + INSIGNIFICANT_MS))
           return;
         irs.push(new tr.e.rail.IdleInteractionRecord(
-            range.min, range.max - range.min));
+            model, range.min, range.max - range.min));
       });
       return irs;
     },
@@ -281,6 +282,7 @@ tr.exportTo('tr.e.rail', function() {
     // for each pair.
     findLoadInteractionRecords_: function(openingEvents, closingEvents) {
       var lirs = [];
+      var model = this.model;
       openingEvents.forEach(function(openingEvent) {
         closingEvents.forEach(function(closingEvent) {
           // Ignore opening event that already have a closing event.
@@ -304,7 +306,8 @@ tr.exportTo('tr.e.rail', function() {
           openingEvent.closingEvent = closingEvent;
           closingEvent.openingEvent = openingEvent;
           var lir = new tr.e.rail.LoadInteractionRecord(
-              openingEvent.start, closingEvent.end - openingEvent.start);
+              model, openingEvent.start,
+              closingEvent.end - openingEvent.start);
           lir.associatedEvents.push(openingEvent);
           lir.associatedEvents.push(closingEvent);
 
@@ -388,8 +391,9 @@ tr.exportTo('tr.e.rail', function() {
       this.checkAllInputEventsHandled(sortedInputEvents, protoIRs);
 
       var irs = [];
+      var model = this.model;
       protoIRs.forEach(function(protoIR) {
-        var ir = protoIR.createInteractionRecord();
+        var ir = protoIR.createInteractionRecord(model);
         if (ir)
           irs.push(ir);
       });
