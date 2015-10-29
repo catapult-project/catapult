@@ -7,6 +7,8 @@ from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.web_perf.metrics import timeline_based_metric
 
+import logging
+
 class V8EventStat(object):
 
   def __init__(self, src_event_name, result_name, result_description):
@@ -62,14 +64,20 @@ class V8GCLatency(timeline_based_metric.TimelineBasedMetric):
                     'finalization of incremental marking with memory reducer')]
     label = interactions[0].label
     name_to_v8_stat = {x.src_event_name : x for x in v8_event_stats}
+    thread_time_not_available = False
     for event in model.IterAllSlices():
       if (not timeline_based_metric.IsEventInInteractions(event, interactions)
           or not event.name in name_to_v8_stat):
         continue
       event_stat = name_to_v8_stat[event.name]
-      event_stat.thread_duration += event.thread_duration
+      if event.thread_duration is None:
+        thread_time_not_available = True
+        event_duration = event.duration
+      else:
+        event_duration = event.thread_duration
+      event_stat.thread_duration += event_duration
       event_stat.max_thread_duration = max(event_stat.max_thread_duration,
-                                           event.thread_duration)
+                                           event_duration)
       event_stat.count += 1
 
       parent_idle_task = self._ParentIdleTask(event)
@@ -83,10 +91,15 @@ class V8GCLatency(timeline_based_metric.TimelineBasedMetric):
         # allotted_time_ms with wall duration instead of thread duration, and
         # then assume the thread duration was inside idle for the same
         # percentage of time.
-        inside_idle = event.thread_duration * statistics.DivideIfPossibleOrZero(
+        inside_idle = event_duration * statistics.DivideIfPossibleOrZero(
             event.duration - idle_task_wall_overrun, event.duration)
         event_stat.thread_duration_inside_idle += inside_idle
         event_stat.idle_task_overrun_duration += idle_task_wall_overrun
+
+    if thread_time_not_available:
+      logging.warning(
+          'thread time is not available in trace data, switch to walltime')
+
     for v8_event_stat in v8_event_stats:
       results.AddValue(scalar.ScalarValue(
           results.current_page, v8_event_stat.result_name, 'ms',

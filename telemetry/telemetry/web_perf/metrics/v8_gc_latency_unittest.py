@@ -43,6 +43,11 @@ class V8GCLatencyTestPageHelper(object):
     self._renderer_thread.EndSlice(wall_start + wall_duration,
                                    thread_start + thread_duration)
 
+  def AddEventWithoutThreadDuration(self, category, name,
+                                    wall_start, wall_duration):
+    self._renderer_thread.BeginSlice(category, name, wall_start)
+    self._renderer_thread.EndSlice(wall_start + wall_duration)
+
   def AddInteractionRecord(self, label, start, end):
     self._interaction_records.append(
       timeline_interaction_record.TimelineInteractionRecord(label, start, end))
@@ -356,6 +361,29 @@ class V8GCLatencyTests(page_test_test_case.PageTestTestCase):
 
     expected = _GetEmptyResults()
     self._AssertResultsEqual(expected, _ActualValues(results, 'Action3'))
+
+
+  def testRegress549150(self):
+    test_page_helper = V8GCLatencyTestPageHelper(
+        self.CreateEmptyPageSet())
+    test_page_helper.AddInteractionRecord('Action', 0, 10)
+    test_page_helper.AddEvent('toplevel', 'PostMessage',
+        thread_start=0, thread_duration=10, wall_start=0, wall_duration=10)
+    test_page_helper.AddEventWithoutThreadDuration(
+        'v8', 'V8.GCScavenger', 0, 4)
+    results = test_page_helper.MeasureFakePage()
+    expected = _GetEmptyResults()
+    expected['v8_gc_scavenger'] = ('ms', 4.0)
+    expected['v8_gc_scavenger_average'] = ('ms', 4.0)
+    expected['v8_gc_scavenger_count'] = ('count', 1)
+    expected['v8_gc_scavenger_max'] = ('ms', 4.0)
+    expected['v8_gc_scavenger_outside_idle'] = ('ms', 4.0)
+    expected['v8_gc_scavenger_percentage_idle'] = ('idle%', 0.0)
+    expected['v8_gc_total'] = ('ms', 4.0)
+    expected['v8_gc_total_outside_idle'] = ('ms', 4.0)
+    expected['v8_gc_total_percentage_idle'] = ('idle%', 0.0)
+
+    self._AssertResultsEqual(expected, _ActualValues(results, 'Action'))
 
 
   def _AssertResultsEqual(self, expected, actual):
