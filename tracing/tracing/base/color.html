@@ -73,6 +73,65 @@ tr.exportTo('tr.b', function() {
         ((b.a - a.a) * percent) + a.a);
   }
 
+  /**
+   * Converts an HSV triplet with alpha to an RGB color.
+   * |h| Hue value in [0, 360].
+   * |s| Saturation value in [0, 1].
+   * |v| Value (brightness) in [0, 255].
+   * |a| Alpha in [0, 1]
+   */
+  Color.fromHSV = function(h, s, v, a) {
+    var red = 0;
+    var green = 0;
+    var blue = 0;
+    if (s === 0) {
+      red = v;
+      green = v;
+      blue = v;
+    } else {
+      var sextant = Math.floor(h / 60);
+      var remainder = (h / 60) - sextant;
+      var val1 = v * (1 - s);
+      var val2 = v * (1 - (s * remainder));
+      var val3 = v * (1 - (s * (1 - remainder)));
+      switch (sextant) {
+        case 1:
+          red = val2;
+          green = v;
+          blue = val1;
+          break;
+        case 2:
+          red = val1;
+          green = v;
+          blue = val3;
+          break;
+        case 3:
+          red = val1;
+          green = val2;
+          blue = v;
+          break;
+        case 4:
+          red = val3;
+          green = val1;
+          blue = v;
+          break;
+        case 5:
+          red = v;
+          green = val1;
+          blue = val2;
+          break;
+        case 6:
+        case 0:
+          red = v;
+          green = val3;
+          blue = val1;
+          break;
+      }
+    }
+
+    return new Color(Math.floor(red), Math.floor(green), Math.floor(blue), a);
+  }
+
   Color.prototype = {
     clone: function() {
       var c = new Color();
@@ -125,6 +184,43 @@ tr.exportTo('tr.b', function() {
             this.b + ',' + this.a + ')';
       }
       return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
+    },
+
+    /**
+     * Returns a dict {h, s, v, a} with:
+     * |h| Hue value in [0, 360].
+     * |s| Saturation value in [0, 1].
+     * |v| Value (brightness) in [0, 255].
+     * |a| Alpha in [0, 1]
+     */
+    toHSV: function() {
+      var max = Math.max(Math.max(this.r, this.g), this.b);
+      var min = Math.min(Math.min(this.r, this.g), this.b);
+      var hue;
+      var saturation;
+      var value = max;
+      if (min === max) {
+        hue = 0;
+        saturation = 0;
+      } else {
+        var delta = (max - min);
+        saturation = delta / max;
+
+        if (this.r === max) {
+          hue = (this.g - this.b) / delta;
+        } else if (this.g === max) {
+          hue = 2 + ((this.b - this.r) / delta);
+        } else {
+          hue = 4 + ((this.r - this.g) / delta);
+        }
+        hue *= 60;
+        if (hue < 0)
+          hue += 360;
+        if (hue > 360)
+          hue -= 360;
+      }
+
+      return {h: hue, s: saturation, v: value, a: this.a};
     }
   };
 
