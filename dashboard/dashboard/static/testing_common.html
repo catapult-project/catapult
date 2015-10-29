@@ -24,15 +24,19 @@ var testing_common = (function() {
     return function() {
       this.status = 200;
       this.onerror = function() {};
-      this.open = function() {};
+      this.open = function(method, url, async) {
+        this.url = url;
+      };
+      this.abort = function() {};
       this.setRequestHeader = function() {};
       this.onload = function() {};
       this.send = function(param) {
-        if (param in self.responseMap_) {
-          this.responseText = self.responseMap_[param];
+        var requestStr = this.url + '?' + param;
+        if (requestStr in self.responseMap_) {
+          this.responseText = self.responseMap_[requestStr];
           this.onload();
         } else {
-          console.warn('XMLHttpRequest sent without a handler: ' + param);
+          console.warn('XMLHttpRequest sent without a handler: ' + requestStr);
         }
       };
     };
