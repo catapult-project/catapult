@@ -5,7 +5,6 @@
 import ctypes
 import os
 import platform
-import subprocess
 import sys
 import time
 
@@ -151,12 +150,6 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.ELCAPITAN
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
-
-  def CanTakeScreenshot(self):
-    return True
-
-  def TakeScreenshot(self, file_path):
-    return subprocess.call(['screencapture', file_path])
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
