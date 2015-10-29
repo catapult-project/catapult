@@ -61,7 +61,6 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
 
   def SupportsOptions(self, finder_options):
     if ((finder_options.device and finder_options.device != 'trybot') or
-        finder_options.chrome_root or
         finder_options.cros_remote or
         finder_options.extensions_to_load or
         finder_options.profile_dir):
@@ -145,6 +144,12 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     # Generate the command line for the perf trybots
     target_arch = 'ia32'
     arguments = sys.argv
+    if any(arg == '--chrome-root' or arg.startswith('--chrome-root=') for arg
+           in arguments):
+      raise ValueError(
+          'Trybot does not suport --chrome-root option set directly '
+          'through command line since it may contain references to your local '
+          'directory')
     if bot_platform in ['win', 'win-x64']:
       arguments[0] = 'python tools\\perf\\run_benchmark'
     else:
