@@ -7,28 +7,11 @@ import sys
 import traceback
 
 import perf_insights
-from perf_insights import local_directory_corpus_driver
-from perf_insights import perf_insights_corpus_driver
+from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
 from perf_insights import map_runner
 from perf_insights import map_function_handle as map_function_handle_module
 from perf_insights.results import json_output_formatter
-
-
-# TODO(simonhatch): Use telemetry's discover.py module once its part of
-# catapult.
-_CORPUS_DRIVERS = {
-  'perf-insights': {
-      'description': 'Use the performance insights server.',
-      'class': perf_insights_corpus_driver.PerfInsightsCorpusDriver
-  },
-  'local-directory': {
-      'description': 'Use traces from a local directory.',
-      'class': local_directory_corpus_driver.LocalDirectoryCorpusDriver
-  },
-  'list': None
-}
-_CORPUS_DRIVER_DEFAULT = 'perf-insights'
 
 
 _CORPUS_QUERY_HELP = """
@@ -51,43 +34,16 @@ Examples:
 def Main(argv):
   parser = argparse.ArgumentParser(
       description='Bulk trace processing')
-  parser.add_argument(
-      '-c', '--corpus',
-      choices=_CORPUS_DRIVERS.keys(),
-      default=_CORPUS_DRIVER_DEFAULT)
+  corpus_driver_cmdline.AddArguments(parser)
   parser.add_argument('--query')
   parser.add_argument('map_file')
-
   parser.add_argument('-j', '--jobs', type=int, default=1)
   parser.add_argument('-o', '--output-file')
   parser.add_argument('-s', '--stop-on-error',
                       action='store_true')
 
-  for k, v in _CORPUS_DRIVERS.iteritems():
-    if not v:
-      continue
-    parser_group = parser.add_argument_group(k)
-    driver_cls = v['class']
-    driver_cls.AddArguments(parser_group)
-
   args = parser.parse_args(argv[1:])
-
-  # With parse_known_args, optional arguments aren't guaranteed to be there so
-  # we need to check if it's there, and use the default otherwise.
-  corpus = _CORPUS_DRIVER_DEFAULT
-  if hasattr(args, 'corpus'):
-    corpus = args.corpus
-
-  if corpus == 'list':
-    corpus_descriptions = '\n'.join(
-        ['%s: %s' % (k, v['description'])
-            for k, v in _CORPUS_DRIVERS.iteritems() if v]
-      )
-    parser.exit('Valid drivers:\n\n%s\n' % corpus_descriptions)
-
-  cls = _CORPUS_DRIVERS[corpus]['class']
-  init_args = cls.CheckAndCreateInitArguments(parser, args)
-  corpus_driver = cls(**init_args)
+  corpus_driver = corpus_driver_cmdline.GetCorpusDriver(parser, args)
 
   if not os.path.exists(args.map_file):
     parser.error('Map does not exist.')

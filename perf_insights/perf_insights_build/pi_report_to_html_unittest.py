@@ -7,9 +7,16 @@ import os
 import tempfile
 import unittest
 
+from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
 from perf_insights_build import pi_report_to_html
 import perf_insights_project
+
+
+class TestArgs:
+  def __init__(self, trace_directory):
+    self.corpus = 'local-directory'
+    self.trace_directory = trace_directory
 
 
 class PiReportToHTMLTests(unittest.TestCase):
@@ -24,9 +31,10 @@ class PiReportToHTMLTests(unittest.TestCase):
     try:
       project = perf_insights_project.PerfInsightsProject()
       with codecs.open(raw_tmpfile.name, 'w', encoding='utf-8') as tmpfile:
+        corpus_driver = corpus_driver_cmdline.GetCorpusDriver(
+            None, TestArgs(project.perf_insights_test_data_path))
         res = pi_report_to_html.PiReportToHTML(
-            tmpfile,
-            {'trace_directory':project.perf_insights_test_data_path},
+            tmpfile, corpus_driver,
             project.GetAbsPathFromHRef(
                 '/perf_insights/ui/reports/weather_report.html'),
             corpus_query.CorpusQuery.FromString('MAX_TRACE_HANDLES=2'),
