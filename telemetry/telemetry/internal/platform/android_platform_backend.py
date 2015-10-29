@@ -250,6 +250,12 @@ class AndroidPlatformBackend(
       })
     return events
 
+  def CanTakeScreenshot(self):
+    return True
+
+  def TakeScreenshot(self, file_path):
+    return bool(self._device.TakeScreenshot(host_path=file_path))
+
   def SetFullPerformanceModeEnabled(self, enabled):
     if not self._enable_performance_mode:
       logging.warning('CPU governor will not be set!')

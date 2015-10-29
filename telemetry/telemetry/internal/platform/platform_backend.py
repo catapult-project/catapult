@@ -255,6 +255,12 @@ class PlatformBackend(object):
   def wpr_ca_cert_path(self):
     return None
 
+  def CanTakeScreenshot(self):
+    return False
+
+  def TakeScreenshot(self, file_path):
+    raise NotImplementedError
+
   def IsCooperativeShutdownSupported(self):
     """Indicates whether CooperativelyShutdown, below, is supported.
     It is not necessary to implement it on all platforms."""

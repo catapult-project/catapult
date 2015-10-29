@@ -25,6 +25,7 @@ from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page import shared_page_state
 from telemetry.util import image_util
+from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 
@@ -88,7 +89,7 @@ def CaptureStderr(func, output_buffer):
 
 # TODO: remove test cases that use real browsers and replace with a
 # story_runner or shared_page_state unittest that tests the same logic.
-class PageRunEndToEndTests(unittest.TestCase):
+class ActualPageRunEndToEndTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_test_unittest to here.
 
@@ -564,13 +565,16 @@ class PageRunEndToEndTests(unittest.TestCase):
 
   def testScreenShotTakenForFailedPage(self):
     self.CaptureFormattedException()
-    screenshot_supported = [False]
+    platform_screenshot_supported = [False]
+    tab_screenshot_supported = [False]
     chrome_version_screen_shot = [None]
     class FailingTestPage(page_module.Page):
       def RunNavigateSteps(self, action_runner):
         action_runner.Navigate(self._url)
-        screenshot_supported[0] = action_runner.tab.screenshot_supported
-        if screenshot_supported[0]:
+        platform_screenshot_supported[0] = (
+            action_runner.tab.browser.platform.CanTakeScreenshot)
+        tab_screenshot_supported[0] = action_runner.tab.screenshot_supported
+        if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
           chrome_version_screen_shot[0] = action_runner.tab.Screenshot()
         raise exceptions.AppCrashException
 
@@ -587,7 +591,7 @@ class PageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, options, results,
                      max_failures=2)
     self.assertEquals(1, len(results.failures))
-    if screenshot_supported[0]:
+    if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
       self.assertEquals(1, len(results.pages_to_profiling_files))
       self.assertIn(failing_page,
                     results.pages_to_profiling_files)
@@ -620,3 +624,65 @@ class PageRunEndToEndTests(unittest.TestCase):
                      max_failures=2)
     self.assertEquals(1, len(results.failures))
     self.assertEquals(0, len(results.pages_to_profiling_files))
+
+
+class FakePageRunEndToEndTests(unittest.TestCase):
+  def setUp(self):
+    self.options = fakes.CreateBrowserFinderOptions()
+    self.options.output_formats = ['none']
+    self.options.suppress_gtest_report = True
+    SetUpStoryRunnerArguments(self.options)
+
+  def testNoScreenShotTakenForFailedPageDueToNoSupport(self):
+    self.options.browser_options.take_screenshot_for_failed_page = True
+
+    class FailingTestPage(page_module.Page):
+      def RunNavigateSteps(self, action_runner):
+        raise exceptions.AppCrashException
+
+    story_set = story.StorySet()
+    story_set.AddStory(page_module.Page('file://blank.html', story_set))
+    failing_page = FailingTestPage('chrome://version', story_set)
+    story_set.AddStory(failing_page)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    story_runner.Run(DummyTest(), story_set, self.options, results,
+                     max_failures=2)
+    self.assertEquals(1, len(results.failures))
+    self.assertEquals(0, len(results.pages_to_profiling_files))
+
+  def testScreenShotTakenForFailedPageOnSupportedPlatform(self):
+    fake_platform = self.options.fake_possible_browser.returned_browser.platform
+    expected_png_base64 = """
+ iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91
+ JpzAAAAFklEQVR4Xg3EAQ0AAABAMP1LY3YI7l8l6A
+ T8tgwbJAAAAABJRU5ErkJggg==
+"""
+    fake_platform.screenshot_png_data = expected_png_base64
+    self.options.browser_options.take_screenshot_for_failed_page = True
+
+    class FailingTestPage(page_module.Page):
+      def RunNavigateSteps(self, action_runner):
+        raise exceptions.AppCrashException
+    story_set = story.StorySet()
+    story_set.AddStory(page_module.Page('file://blank.html', story_set))
+    failing_page = FailingTestPage('chrome://version', story_set)
+    story_set.AddStory(failing_page)
+
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    story_runner.Run(DummyTest(), story_set, self.options, results,
+                     max_failures=2)
+    self.assertEquals(1, len(results.failures))
+    self.assertEquals(1, len(results.pages_to_profiling_files))
+    self.assertIn(failing_page,
+                  results.pages_to_profiling_files)
+    screenshot_file_path = (
+        results.pages_to_profiling_files[failing_page][0].GetAbsPath())
+    try:
+      actual_screenshot_img = image_util.FromPngFile(screenshot_file_path)
+      self.assertTrue(image_util.AreEqual(
+        image_util.FromBase64Png(expected_png_base64),
+        actual_screenshot_img))
+    finally:  # Must clean up screenshot file if exists.
+      os.remove(screenshot_file_path)

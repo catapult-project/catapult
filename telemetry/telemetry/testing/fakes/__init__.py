@@ -61,6 +61,12 @@ class FakePlatform(object):
 
 
 class FakeLinuxPlatform(FakePlatform):
+  def __init__(self):
+    super(FakeLinuxPlatform, self).__init__()
+    self.screenshot_png_data = None
+    self.http_server_directories = []
+    self.http_server = FakeHTTPServer()
+
   @property
   def is_host_platform(self):
     return True
@@ -76,6 +82,24 @@ class FakeLinuxPlatform(FakePlatform):
 
   def GetOSVersionName(self):
     return 'trusty'
+
+  def CanTakeScreenshot(self):
+    return bool(self.screenshot_png_data)
+
+  def TakeScreenshot(self, file_path):
+    if not self.CanTakeScreenshot():
+      raise NotImplementedError
+    img = image_util.FromBase64Png(self.screenshot_png_data)
+    image_util.WritePngFile(img, file_path)
+    return True
+
+  def SetHTTPServerDirectories(self, paths):
+    self.http_server_directories.append(paths)
+
+
+class FakeHTTPServer(object):
+  def UrlOf(self, url):
+    return 'file:///foo'
 
 
 class FakePossibleBrowser(object):

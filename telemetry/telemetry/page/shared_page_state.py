@@ -118,7 +118,15 @@ class SharedPageState(story.SharedState):
 
   def _TryCaptureScreenShot(self, page, tab, results):
     try:
-      if tab.IsAlive() and tab.screenshot_supported:
+      # TODO(nednguyen): once all platforms support taking screenshot,
+      # remove the tab checking logic and consider moving this to story_runner.
+      # (crbug.com/369490)
+      if tab.browser.platform.CanTakeScreenshot():
+        tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+        tf.close()
+        tab.browser.platform.TakeScreenshot(tf.name)
+        results.AddProfilingFile(page, file_handle.FromTempFile(tf))
+      elif tab.IsAlive() and tab.screenshot_supported:
         tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
         tf.close()
         image = tab.Screenshot()
@@ -130,7 +138,7 @@ class SharedPageState(story.SharedState):
             'screenshot. Skip taking screenshot on failure.')
     except Exception:
       exception_formatter.PrintFormattedException(
-        msg='Error when trying to capture tab screenshot:')
+        msg='Error when trying to capture screenshot:')
 
   def DidRunStory(self, results):
     if self._finder_options.profiler:

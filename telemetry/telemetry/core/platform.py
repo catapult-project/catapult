@@ -232,7 +232,6 @@ class Platform(object):
     energy consumption."""
     return self._platform_backend.CanMeasurePerApplicationPower()
 
-
   def StartMonitoringPower(self, browser):
     """Starts monitoring power utilization statistics.
 
@@ -325,6 +324,24 @@ class Platform(object):
     Returns True if it is believed the attempt succeeded.
     """
     return self._platform_backend.CooperativelyShutdown(proc, app_name)
+
+  def CanTakeScreenshot(self):
+    return self._platform_backend.CanTakeScreenshot()
+
+  # TODO(nednguyen): Implement this on Mac, Linux & Win. (crbug.com/369490)
+  def TakeScreenshot(self, file_path):
+    """ Takes a screenshot of the platform and save to |file_path|.
+
+    Note that this method may not be supported on all platform, so check with
+    CanTakeScreenshot before calling this.
+
+    Args:
+      file_path: Where to save the screenshot to. If the platform is remote,
+        |file_path| is the path on the host platform.
+
+    Returns True if it is believed the attempt succeeded.
+    """
+    return self._platform_backend.TakeScreenshot(file_path)
 
   def StartLocalServer(self, server):
     """Starts a LocalServer and associates it with this platform.
