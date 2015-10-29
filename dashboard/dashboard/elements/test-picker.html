@@ -100,6 +100,8 @@
       TESTSUITE_LABEL: 'Test suite',
       BOT_LABEL: 'Bot',
       SUBTEST_LABEL: 'Subtest',
+      DEPRECATED_TAG: 'no new data',
+      UNMONITORED_TAG: 'unmonitored',
 
       ready: function() {
         this.TEST_SUITES = window['TEST_SUITES'];
@@ -142,11 +144,11 @@
           var tags = [];
           if (this.TEST_SUITES[suite]['dep']) {
             suiteItem.deprecated = true;
-            tags.push('deprecated');
+            tags.push(this.DEPRECATED_TAG);
           }
           if (isUnmonitored(suite)) {
             suiteItem.unmonitored = true;
-            tags.push('unmonitored');
+            tags.push(this.UNMONITORED_TAG);
           }
           suiteItem.tag = tags.join(' ');
 
@@ -181,7 +183,7 @@
             var botItem = {
               name: name,
               group: masters[i],
-              tag: (bots[name] ? 'deprecated' : '')
+              tag: (bots[name] ? this.DEPRECATED_TAG : '')
             };
             botMenuItems.push(botItem);
           }
@@ -351,7 +353,7 @@
           var name = subtestNames[i];
           subtestItems.push({
             name: name,
-            tag: (subtestDict[name]['deprecated'] ? 'deprecated' : '')
+            tag: (subtestDict[name]['deprecated'] ? this.DEPRECATED_TAG : '')
           });
         }
         return subtestItems;
