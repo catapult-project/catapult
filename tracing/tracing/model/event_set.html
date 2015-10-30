@@ -261,6 +261,14 @@ tr.exportTo('tr.model', function() {
         if (fn.call(opt_this, this[i], i))
           return true;
       return false;
+    },
+
+    asDict: function() {
+      var stable_ids = [];
+      this.forEach(function(event) {
+        stable_ids.push(event.stableId);
+      });
+      return {'events': stable_ids};
     }
   };
 
