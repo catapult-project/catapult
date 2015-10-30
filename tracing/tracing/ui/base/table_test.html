@@ -992,6 +992,11 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_LEFT');
     assert.equal(table.selectedTableRow, table.tableRows[1]);
     assert.equal(table.selectedColumnIndex, 2);
+
+    table.selectedTableRow = undefined;
+    assert.equal(table.selectedTableRow, undefined);
+    assert.equal(table.selectedColumnIndex, undefined);
+    assert.equal(table.selectedColumnIndex, undefined);
   });
 
   test('cellSelectionNested', function() {

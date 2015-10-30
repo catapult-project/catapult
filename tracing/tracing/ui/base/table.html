@@ -1020,33 +1020,41 @@ tr.exportTo('tr.ui.b', function() {
         if (this.selectionMode_ === SelectionMode.NONE)
           throw new Error('Selection is off.');
 
-        var rowInfo = this.tableRowsInfo_.get(userRow);
-        if (rowInfo === undefined)
-          throw new Error('Row has not been seen, must expand its parents');
+        var rowInfo;
+        if (userRow === undefined) {
+          rowInfo = undefined;
+        } else {
+          rowInfo = this.tableRowsInfo_.get(userRow);
+          if (!rowInfo)
+            throw new Error('Row has not been seen, must expand its parents.');
+        }
 
         var e = this.prepareToChangeSelection_();
         this.selectedTableRowInfo_ = rowInfo;
 
-        switch (this.selectionMode_) {
-          case SelectionMode.ROW:
-            this.selectedColumnIndex_ = undefined;
-            break;
+        if (this.selectedTableRowInfo_ === undefined) {
+          this.selectedColumnIndex_ = undefined;
+          this.removeSelectedState_();
+        } else {
+          switch (this.selectionMode_) {
+            case SelectionMode.ROW:
+              this.selectedColumnIndex_ = undefined;
+              break;
 
-          case SelectionMode.CELL:
-            if (this.selectedTableRowInfo_ &&
-                this.selectedColumnIndex_ === undefined) {
-              var i = this.getFirstSelectableColumnIndex_();
-              if (i == -1)
-                throw new Error('nope');
-              this.selectedColumnIndex_ = i;
-            }
-            break;
+            case SelectionMode.CELL:
+              if (this.selectedColumnIndex_ === undefined) {
+                var i = this.getFirstSelectableColumnIndex_();
+                if (i == -1)
+                  throw new Error('Cannot find a selectable column.');
+                this.selectedColumnIndex_ = i;
+              }
+              break;
 
-          default:
-            throw new Error('Invalid selection mode ' + this.selectionMode_);
+            default:
+              throw new Error('Invalid selection mode ' + this.selectionMode_);
+          }
+          this.updateSelectedState_();
         }
-
-        this.updateSelectedState_();
 
         this.dispatchEvent(e);
       },
