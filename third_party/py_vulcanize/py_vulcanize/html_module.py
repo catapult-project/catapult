@@ -29,8 +29,9 @@ class HTMLModule(module.Module):
       raise Exception('While parsing %s: %s' % (self.name, str(ex)))
 
     self.dependency_metadata = Parse(self.loader,
-                                     self.name, self._module_dir_name,
-                                     self.isComponent(),
+                                     self.name,
+                                     self._module_dir_name,
+                                     self.IsThirdPartyComponent(),
                                      parser_results)
     self._parser_results = parser_results
 

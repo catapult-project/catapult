@@ -131,9 +131,13 @@ class Module(object):
   def filename(self):
     return self.resource.absolute_path
 
-  def isComponent(self):
-    ref = os.path.join('third_party', 'components')
-    return ref in self.filename
+  def IsThirdPartyComponent(self):
+    """Checks whether this module is a third-party Polymer component."""
+    if os.path.join('third_party', 'components') in self.filename:
+      return True
+    if os.path.join('third_party', 'polymer', 'components') in self.filename:
+      return True
+    return False
 
   def Parse(self):
     """Parses self.contents and fills in the module's dependency metadata."""
