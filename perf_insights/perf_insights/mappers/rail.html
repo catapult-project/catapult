@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/map_function.html">
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/extras/rail/rail_score.html">
+
+<script>
+tr.exportTo('pi.m', function() {
+
+  function railMapFunction(results, runInfo, model) {
+    var railScore = tr.e.rail.RAILScore.fromModel(model);
+    if (railScore === undefined) {
+      return;
+    }
+    results.addValue(new pi.v.DictValue(runInfo, 'railScore',
+                                        railScore.asDict()));
+  }
+  pi.MapFunction.register(railMapFunction);
+
+  return {
+    railMapFunction: railMapFunction
+  };
+});
+
+</script>
