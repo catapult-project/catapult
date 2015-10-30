@@ -11,6 +11,12 @@ disable=abstract-class-little-used,abstract-class-not-used,bad-builtin,bad-conti
 reports=no
 
 
+[VARIABLES]
+
+# Google style
+dummy-variables-rgx=_$|unused_
+
+
 [FORMAT]
 
 # We use two spaces for indents, instead of the usual four spaces or tab.
