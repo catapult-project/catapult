@@ -56,7 +56,7 @@ class SwipeAction(page_action.PageAction):
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
         self._element_function is None):
-      self._element_function = 'document.scrollingElement'
+      self._element_function = '(document.scrollingElement || document.body)'
     code = '''
         function(element, info) {
           if (!element) {
