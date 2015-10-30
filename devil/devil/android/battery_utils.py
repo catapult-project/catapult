@@ -323,37 +323,6 @@ class BatteryUtils(object):
         return True
     return False
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def SetCharging(self, enabled, timeout=None, retries=None):
-    """Enables or disables charging on the device.
-
-    Args:
-      enabled: A boolean indicating whether charging should be enabled or
-        disabled.
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Raises:
-      device_errors.CommandFailedError: If method of disabling charging cannot
-        be determined.
-    """
-    self._DiscoverDeviceProfile()
-    if not self._cache['profile']['enable_command']:
-      raise device_errors.CommandFailedError(
-          'Unable to find charging commands.')
-
-    if enabled:
-      command = self._cache['profile']['enable_command']
-    else:
-      command = self._cache['profile']['disable_command']
-
-    def verify_charging():
-      return self.GetCharging() == enabled
-
-    self._device.RunShellCommand(
-        command, check_return=True, as_root=True, large_output=True)
-    timeout_retry.WaitFor(verify_charging, wait_period=1)
-
   # TODO(rnephew): Make private when all use cases can use the context manager.
   @decorators.WithTimeoutAndRetriesFromInstance()
   def DisableBatteryUpdates(self, timeout=None, retries=None):
@@ -453,14 +422,14 @@ class BatteryUtils(object):
                       'high. Cannot discharge phone %s percent.', percent)
       return
 
-    self.SetCharging(False)
+    self._HardwareSetCharging(False)
     def device_discharged():
-      self.SetCharging(True)
+      self._HardwareSetCharging(True)
       current_level = int(self.GetBatteryInfo().get('level'))
       logging.info('current battery level: %s', current_level)
       if battery_level - current_level >= percent:
         return True
-      self.SetCharging(False)
+      self._HardwareSetCharging(False)
       return False
 
     timeout_retry.WaitFor(device_discharged, wait_period=wait_period)
@@ -513,7 +482,7 @@ class BatteryUtils(object):
     timeout_retry.WaitFor(cool_device, wait_period=wait_period)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def TieredSetCharging(self, enabled, timeout=None, retries=None):
+  def SetCharging(self, enabled, timeout=None, retries=None):
     """Enables or disables charging on the device.
 
     Args:
@@ -529,7 +498,7 @@ class BatteryUtils(object):
     self._DiscoverDeviceProfile()
     if enabled:
       if self._cache['profile']['enable_command']:
-        self.SetCharging(enabled)
+        self._HardwareSetCharging(enabled)
       else:
         logging.info('Unable to enable charging via hardware. '
                      'Falling back to software enabling.')
@@ -537,11 +506,39 @@ class BatteryUtils(object):
     else:
       if self._cache['profile']['enable_command']:
         self._ClearPowerData()
-        self.SetCharging(enabled)
+        self._HardwareSetCharging(enabled)
       else:
         logging.info('Unable to disable charging via hardware. '
                      'Falling back to software disabling.')
         self.DisableBatteryUpdates()
+
+  def _HardwareSetCharging(self, enabled, timeout=None, retries=None):
+    """Enables or disables charging on the device.
+
+    Args:
+      enabled: A boolean indicating whether charging should be enabled or
+        disabled.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      device_errors.CommandFailedError: If method of disabling charging cannot
+        be determined.
+    """
+    self._DiscoverDeviceProfile()
+    if not self._cache['profile']['enable_command']:
+      raise device_errors.CommandFailedError(
+          'Unable to find charging commands.')
+
+    command = (self._cache['profile']['enable_command'] if enabled
+               else self._cache['profile']['disable_command'])
+
+    def verify_charging():
+      return self.GetCharging() == enabled
+
+    self._device.RunShellCommand(
+        command, check_return=True, as_root=True, large_output=True)
+    timeout_retry.WaitFor(verify_charging, wait_period=1)
 
   @contextlib.contextmanager
   def PowerMeasurement(self, timeout=None, retries=None):
@@ -565,10 +562,10 @@ class BatteryUtils(object):
       retries: number of retries
     """
     try:
-      self.TieredSetCharging(False, timeout=timeout, retries=retries)
+      self.SetCharging(False, timeout=timeout, retries=retries)
       yield
     finally:
-      self.TieredSetCharging(True, timeout=timeout, retries=retries)
+      self.SetCharging(True, timeout=timeout, retries=retries)
 
   def _ClearPowerData(self):
     """Resets battery data and makes device appear like it is not

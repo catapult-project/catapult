@@ -104,36 +104,34 @@ class BatteryUtilsInitTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       battery_utils.BatteryUtils('')
 
-
 class BatteryUtilsSetChargingTest(BatteryUtilsTest):
-
   @mock.patch('time.sleep', mock.Mock())
-  def testSetCharging_enabled(self):
+  def testHardwareSetCharging_enabled(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertCalls(
         (self.call.device.RunShellCommand(
             mock.ANY, check_return=True, as_root=True, large_output=True), []),
         (self.call.battery.GetCharging(), False),
         (self.call.battery.GetCharging(), True)):
-      self.battery.SetCharging(True)
+      self.battery._HardwareSetCharging(True)
 
-  def testSetCharging_alreadyEnabled(self):
+  def testHardwareSetCharging_alreadyEnabled(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertCalls(
         (self.call.device.RunShellCommand(
             mock.ANY, check_return=True, as_root=True, large_output=True), []),
         (self.call.battery.GetCharging(), True)):
-      self.battery.SetCharging(True)
+      self.battery._HardwareSetCharging(True)
 
   @mock.patch('time.sleep', mock.Mock())
-  def testSetCharging_disabled(self):
+  def testHardwareSetCharging_disabled(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertCalls(
         (self.call.device.RunShellCommand(
             mock.ANY, check_return=True, as_root=True, large_output=True), []),
         (self.call.battery.GetCharging(), True),
         (self.call.battery.GetCharging(), False)):
-      self.battery.SetCharging(False)
+      self.battery._HardwareSetCharging(False)
 
 
 class BatteryUtilsSetBatteryMeasurementTest(BatteryUtilsTest):
@@ -263,8 +261,8 @@ class BatteryUtilsDischargeDevice(BatteryUtilsTest):
   def testDischargeDevice_exact(self):
     with self.assertCalls(
         (self.call.battery.GetBatteryInfo(), {'level': '100'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '99'})):
       self.battery._DischargeDevice(1)
 
@@ -272,8 +270,8 @@ class BatteryUtilsDischargeDevice(BatteryUtilsTest):
   def testDischargeDevice_over(self):
     with self.assertCalls(
         (self.call.battery.GetBatteryInfo(), {'level': '100'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '50'})):
       self.battery._DischargeDevice(1)
 
@@ -281,17 +279,17 @@ class BatteryUtilsDischargeDevice(BatteryUtilsTest):
   def testDischargeDevice_takeslong(self):
     with self.assertCalls(
         (self.call.battery.GetBatteryInfo(), {'level': '100'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '100'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '99'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '98'}),
-        (self.call.battery.SetCharging(False)),
-        (self.call.battery.SetCharging(True)),
+        (self.call.battery._HardwareSetCharging(False)),
+        (self.call.battery._HardwareSetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '97'})):
       self.battery._DischargeDevice(3)
 
@@ -493,10 +491,10 @@ class BatteryUtilsGetFuelGaugeChargeCounterTest(BatteryUtilsTest):
       self.assertEqual(self.battery.GetFuelGaugeChargeCounter(), 123)
 
 
-class BatteryUtilsTieredSetCharging(BatteryUtilsTest):
+class BatteryUtilsSetCharging(BatteryUtilsTest):
 
   @mock.patch('time.sleep', mock.Mock())
-  def testTieredSetCharging_softwareSetTrue(self):
+  def testSetCharging_softwareSetTrue(self):
     self.battery._cache['profile'] = self._NEXUS_6
     with self.assertCalls(
         (self.call.battery.GetCharging(), False),
@@ -506,10 +504,10 @@ class BatteryUtilsTieredSetCharging(BatteryUtilsTest):
         (self.call.device.RunShellCommand(
             ['dumpsys', 'battery'], check_return=True), ['UPDATES STOPPED']),
         (self.call.battery.GetCharging(), True)):
-      self.battery.TieredSetCharging(True)
+      self.battery.SetCharging(True)
 
   @mock.patch('time.sleep', mock.Mock())
-  def testTieredSetCharging_softwareSetFalse(self):
+  def testSetCharging_softwareSetFalse(self):
     self.battery._cache['profile'] = self._NEXUS_6
     with self.assertCalls(
         (self.call.battery.GetCharging(), True),
@@ -519,32 +517,32 @@ class BatteryUtilsTieredSetCharging(BatteryUtilsTest):
         (self.call.device.RunShellCommand(
             ['dumpsys', 'battery', 'set', 'usb', '0'], check_return=True), []),
         (self.call.battery.GetCharging(), False)):
-      self.battery.TieredSetCharging(False)
+      self.battery.SetCharging(False)
 
   @mock.patch('time.sleep', mock.Mock())
-  def testTieredSetCharging_hardwareSetTrue(self):
+  def testSetCharging_hardwareSetTrue(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertCalls(
         (self.call.battery.GetCharging(), False),
-        (self.call.battery.SetCharging(True))):
-      self.battery.TieredSetCharging(True)
+        (self.call.battery._HardwareSetCharging(True))):
+      self.battery.SetCharging(True)
 
   @mock.patch('time.sleep', mock.Mock())
-  def testTieredSetCharging_hardwareSetFalse(self):
+  def testSetCharging_hardwareSetFalse(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertCalls(
         (self.call.battery.GetCharging(), True),
         (self.call.battery._ClearPowerData(), True),
-        (self.call.battery.SetCharging(False))):
-      self.battery.TieredSetCharging(False)
+        (self.call.battery._HardwareSetCharging(False))):
+      self.battery.SetCharging(False)
 
-  def testTieredSetCharging_expectedStateAlreadyTrue(self):
+  def testSetCharging_expectedStateAlreadyTrue(self):
     with self.assertCalls((self.call.battery.GetCharging(), True)):
-      self.battery.TieredSetCharging(True)
+      self.battery.SetCharging(True)
 
-  def testTieredSetCharging_expectedStateAlreadyFalse(self):
+  def testSetCharging_expectedStateAlreadyFalse(self):
     with self.assertCalls((self.call.battery.GetCharging(), False)):
-      self.battery.TieredSetCharging(False)
+      self.battery.SetCharging(False)
 
 
 class BatteryUtilsPowerMeasurement(BatteryUtilsTest):
@@ -554,9 +552,9 @@ class BatteryUtilsPowerMeasurement(BatteryUtilsTest):
     with self.assertCalls(
         (self.call.battery.GetCharging(), True),
         (self.call.battery._ClearPowerData(), True),
-        (self.call.battery.SetCharging(False)),
+        (self.call.battery._HardwareSetCharging(False)),
         (self.call.battery.GetCharging(), False),
-        (self.call.battery.SetCharging(True))):
+        (self.call.battery._HardwareSetCharging(True))):
       with self.battery.PowerMeasurement():
         pass
 
