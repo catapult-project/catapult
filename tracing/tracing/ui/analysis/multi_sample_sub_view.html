@@ -5,8 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/units.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/ui/analysis/stack_frame_tree.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
 
 <polymer-element name="tr-ui-a-multi-sample-sub-view"
     extends="tr-ui-a-sub-view">
@@ -45,45 +48,6 @@ found in the LICENSE file.
   'use strict';
 
   (function() {
-    var SamplingTreeNode = function(frame) {
-      this.parent = undefined;
-      this.children = [];
-      this.childFrameMap = new Map();
-      this.frame = frame;
-      this.accumulatedSamplesCount = 0;
-    };
-
-    SamplingTreeNode.prototype = {
-      getOrCreateChild: function(frame) {
-        if (this.childFrameMap.has(frame.title))
-          return this.childFrameMap.get(frame.title);
-
-        var node = new SamplingTreeNode(frame);
-        node.parent = this;
-
-        this.childFrameMap.set(frame.title, node);
-        this.children.push(node);
-
-        return node;
-      },
-
-      get subRows() {
-        return this.children;
-      },
-
-      get samplesCount() {
-        return this.accumulatedSamplesCount;
-      },
-
-      get name() {
-        return this.frame.title;
-      },
-
-      get category() {
-        return this.frame !== undefined ? this.frame.category : 'root';
-      }
-    };
-
     Polymer({
       ready: function() {
         this.viewSelector_ = this.$.view_selector;
@@ -110,38 +74,55 @@ found in the LICENSE file.
       },
 
       createSamplingSummary_: function(selection, viewOption) {
-        var root = new SamplingTreeNode();
+        var root = new tr.ui.analysis.StackFrameTreeNode(
+            '(root)', undefined /* frame */);
         var samples = selection.getEventsOrganizedByBaseType().sample;
 
-        function addSample(sample) {
-          var stack = sample.stackTrace;
+        samples.forEach(function(sample) {
+          root.addStackTrace(sample.stackTrace, 1);
+        });
 
-          if (viewOption == 'TOPDOWNVIEW') {
-            stack.reverse();
-          }
-
-          var currentNode = root;
-          for (var i = 0; i < stack.length; i++) {
-            var frame = stack[i];
-            currentNode.accumulatedSamplesCount++;
-            currentNode = currentNode.getOrCreateChild(frame);
-          }
-          currentNode.accumulatedSamplesCount++;
+        switch (viewOption) {
+          case 'TOPDOWNVIEW':
+            return root;
+          case 'BOTTOMUPVIEW':
+            return root.convertToBottomUpView();
+          default:
+            throw new Error(
+                'Unknown sampling summary view option: \'' + viewOption + '\'');
         }
-
-        for (var i = 0; i < samples.length; i++) {
-          addSample(samples[i]);
-        }
-
-        return root;
       },
 
       updateContents_: function() {
         var columns = [
-        {
-          title: 'Percent',
+          this.createPercentColumn_('Total'),
+          this.createSamplesColumn_('Total'),
+          this.createPercentColumn_('Self'),
+          this.createSamplesColumn_('Self'),
+          {
+            title: 'Symbol',
+            value: function(row) { return row.title; },
+            width: '250px',
+            cmp: function(a, b) {
+              return a.title.localeCompare(b.title);
+            },
+            showExpandButtons: true
+          }
+        ];
+
+        this.$.table.tableColumns = columns;
+        this.$.table.sortColumnIndex = 1 /* Total samples */;
+        this.$.table.sortDescending = true;
+        this.$.table.tableRows = this.samplingData_.subRows;
+        this.$.table.rebuild();
+      },
+
+      createPercentColumn_: function(title) {
+        var field = title.toLowerCase();
+        return {
+          title: title + ' percent',
           value: function(row) {
-            var percent = row.samplesCount / this.samplingData_.samplesCount;
+            var percent = row[field] / this.samplingData_.total;
 
             var span = document.createElement('tr-ui-u-scalar-span');
             span.value = (percent * 100).toFixed(2);
@@ -152,32 +133,23 @@ found in the LICENSE file.
           }.bind(this),
           width: '60px',
           cmp: function(a, b) {
-            return a.samplesCount - b.samplesCount;
+            return a[field] - b[field];
           }
-        },
-        {
-          title: 'Samples',
-          value: function(row) { return row.samplesCount; },
+        };
+      },
+
+      createSamplesColumn_: function(title) {
+        var field = title.toLowerCase();
+        return {
+          title: title + ' samples',
+          value: function(row) {
+            return row[field];
+          },
           width: '60px',
           cmp: function(a, b) {
-            return a.samplesCount - b.samplesCount;
+            return a[field] - b[field];
           }
-        },
-        {
-          title: 'Symbol',
-          value: function(row) { return row.name; },
-          width: '250px',
-          cmp: function(a, b) {
-            return a.name.toString().localeCompare(b.name.toString());
-          },
-          showExpandButtons: true
-        }];
-
-        this.$.table.tableColumns = columns;
-        this.$.table.sortColumnIndex = 1;
-        this.$.table.sortDescending = true;
-        this.$.table.tableRows = this.samplingData_.subRows;
-        this.$.table.rebuild();
+        };
       }
     });
   })();
