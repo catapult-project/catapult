@@ -34,6 +34,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         IrqParser.prototype.softirqEntryEvent.bind(this));
     importer.registerEventHandler('softirq_exit',
         IrqParser.prototype.softirqExitEvent.bind(this));
+    importer.registerEventHandler('ipi_entry',
+        IrqParser.prototype.ipiEntryEvent.bind(this));
+    importer.registerEventHandler('ipi_exit',
+        IrqParser.prototype.ipiExitEvent.bind(this));
   }
 
   // Matches the irq_handler_entry record
@@ -44,6 +48,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   // Matches the softirq_raise record
   var softirqRE = /vec=(\d+) \[action=(.+)\]/;
+
+  // Matches the ipi_exit_
+  var ipiHandlerExitRE = /\((.+)\)/;
 
   IrqParser.prototype = {
     __proto__: Parser.prototype,
@@ -80,7 +87,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (thread.lastEntryTs !== undefined) {
         var duration = ts - thread.lastEntryTs;
         var slice = new tr.model.Slice(
-            '', thread.irqName,
+            '',
+            'IRQ (' + thread.irqName + ')',
             tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { ret: ret },
             duration);
@@ -124,6 +132,40 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             '', action,
             tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { vec: vec },
+            duration);
+        thread.thread.sliceGroup.pushSlice(slice);
+      }
+      thread.lastEntryTs = undefined;
+      return true;
+    },
+    /**
+     * Parses ipi events and sets up state in the mporter.
+     */
+    ipiEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
+      thread.lastEntryTs = ts;
+
+      return true;
+    },
+
+    ipiExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = ipiHandlerExitRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var ipiName = event[1];
+      var thread = this.importer.getOrCreatePseudoThread(
+          'irqs cpu ' + cpuNumber);
+
+      if (thread.lastEntryTs !== undefined) {
+        var duration = ts - thread.lastEntryTs;
+        var slice = new tr.model.Slice(
+            '',
+            'IPI (' + ipiName + ')',
+            tr.ui.b.getColorIdForGeneralPurposeString(ipiName),
+            thread.lastEntryTs,
+            {},
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
       }

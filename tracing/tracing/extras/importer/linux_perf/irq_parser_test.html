@@ -21,7 +21,11 @@ tr.b.unittest.testSuite(function() {
       ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477231: ' +
         'softirq_entry: vec=9 [action=RCU]',
       ' kworker/u4:2-31908 (31908) [000] ..s3 14063.477246: ' +
-        'softirq_exit: vec=9 [action=RCU]'
+        'softirq_exit: vec=9 [action=RCU]',
+      ' RenderThread-2978  ( 2794) [002] dN.1 62828.421805: ' +
+        'ipi_entry: (Rescheduling interrupts)',
+      ' RenderThread-2978  ( 2794) [002] dN.1 62828.421809: ' +
+        'ipi_exit: (Rescheduling interrupts)'
     ];
     var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
@@ -29,13 +33,17 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 2);
+    assert.equal(threads.length, 3);
 
     var threads = m.findAllThreadsNamed('irqs cpu 1');
     assert.equal(threads.length, 1);
     assert.equal(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('softirq cpu 0');
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0].sliceGroup.length, 1);
+
+    var threads = m.findAllThreadsNamed('irqs cpu 2');
     assert.equal(threads.length, 1);
     assert.equal(threads[0].sliceGroup.length, 1);
   });
