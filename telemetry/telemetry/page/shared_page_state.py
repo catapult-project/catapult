@@ -136,9 +136,9 @@ class SharedPageState(story.SharedState):
         logging.warning(
             'Either tab has crashed or browser does not support taking tab '
             'screenshot. Skip taking screenshot on failure.')
-    except Exception:
-      exception_formatter.PrintFormattedException(
-        msg='Error when trying to capture screenshot:')
+    except Exception as e:
+      logging.warning('Exception when trying to capture screenshot: %s',
+                      repr(e))
 
   def DidRunStory(self, results):
     if self._finder_options.profiler:
