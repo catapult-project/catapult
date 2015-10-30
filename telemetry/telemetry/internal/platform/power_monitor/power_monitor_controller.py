@@ -10,7 +10,7 @@ import telemetry.internal.platform.power_monitor as power_monitor
 
 def _ReenableChargingIfNeeded(battery):
   if not battery.GetCharging():
-    battery.TieredSetCharging(True)
+    battery.SetCharging(True)
 
 class PowerMonitorController(power_monitor.PowerMonitor):
   """

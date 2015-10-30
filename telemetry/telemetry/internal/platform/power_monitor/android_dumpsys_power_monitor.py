@@ -41,10 +41,10 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._battery.TieredSetCharging(False)
+    self._battery.SetCharging(False)
 
   def StopMonitoringPower(self):
-    self._battery.TieredSetCharging(True)
+    self._battery.SetCharging(True)
     if self._browser:
       package = self._browser._browser_backend.package
       self._browser = None

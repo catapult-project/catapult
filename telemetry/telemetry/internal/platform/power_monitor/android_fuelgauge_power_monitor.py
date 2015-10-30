@@ -26,7 +26,7 @@ class FuelGaugePowerMonitor(power_monitor.PowerMonitor):
     return self._battery.SupportsFuelGauge()
 
   def StartMonitoringPower(self, browser):
-    self._battery.TieredSetCharging(False)
+    self._battery.SetCharging(False)
     self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
 
   def StopMonitoringPower(self):
@@ -34,7 +34,7 @@ class FuelGaugePowerMonitor(power_monitor.PowerMonitor):
     fuel_gauge_delta = (
         float((self._starting_fuel_gauge) -
         self._battery.GetFuelGaugeChargeCounter()) / 1000000)
-    self._battery.TieredSetCharging(True)
+    self._battery.SetCharging(True)
 
     voltage = self._battery.GetBatteryInfo().get('voltage')
     if voltage is None:
