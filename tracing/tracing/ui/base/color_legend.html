@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/model/compound_event_selection_state.html">
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 
 <!--
@@ -58,7 +58,7 @@ that label, using the getColorId* methods from base/color_scheme.
         return;
       }
 
-      var colorId = tr.ui.b.ColorScheme.getColorIdForGeneralPurposeString(
+      var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
           label);
       this.setLabelAndColorId(label, colorId);
     },
@@ -72,8 +72,8 @@ that label, using the getColorId* methods from base/color_scheme.
       if (colorId === undefined) {
         this.$.square.style.color = 'initial';
       } else {
-        var colorsAsStrings = tr.ui.b.ColorScheme.colorsAsStrings;
-        var color = tr.ui.b.ColorScheme[colorId];
+        var colorsAsStrings = tr.b.ColorScheme.colorsAsStrings;
+        var color = tr.b.ColorScheme[colorId];
         this.$.square.style.color = color;
       }
     }

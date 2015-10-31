@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -12,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/ui/units/time_stamp_span.html">
 
@@ -114,7 +114,7 @@ found in the LICENSE file.
 
       var shadowRoot = this.shadowRoot;
       shadowRoot.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tr.ui.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
+      var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
       shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
 
       shadowRoot.querySelector('#process-name').textContent =

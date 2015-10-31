@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/units/units.html">
@@ -26,7 +27,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
 
 <script>
 'use strict';
@@ -37,7 +37,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer', function() {
   var deepCopy = tr.b.deepCopy;
-  var ColorScheme = tr.ui.b.ColorScheme;
+  var ColorScheme = tr.b.ColorScheme;
 
   function getEventColor(event, opt_customName) {
     if (event.cname)

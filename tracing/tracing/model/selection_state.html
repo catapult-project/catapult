@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/color_scheme.html">
 
 <script>
 'use strict';
@@ -14,6 +15,7 @@ found in the LICENSE file.
  * @fileoverview Provides the SelectionState class.
  */
 tr.exportTo('tr.model', function() {
+  var ColorScheme = tr.b.ColorScheme;
 
   /**
    * Describes the level of visual highlighting to apply to an event when shown.
@@ -28,9 +30,9 @@ tr.exportTo('tr.model', function() {
    */
   var SelectionState = {
     NONE: 0,
-    SELECTED: 1,
-    HIGHLIGHTED: 2,
-    DIMMED: 3
+    SELECTED: ColorScheme.properties.selectedIdBoost,
+    HIGHLIGHTED: ColorScheme.properties.highlightedIdBoost,
+    DIMMED: ColorScheme.properties.dimmedIdBoost
   };
 
   return {

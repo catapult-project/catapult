@@ -5,15 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/tracks/rect_track.html">
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
+<link rel="import" href="/tracing/ui/tracks/rect_track.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.ui.b.ColorScheme;
+  var ColorScheme = tr.b.ColorScheme;
 
   /**
    * Visualizes a Process's state using a series of rects to represent activity.

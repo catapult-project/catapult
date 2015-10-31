@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
@@ -14,7 +15,6 @@ found in the LICENSE file.
     href="/tracing/ui/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/color_legend.html">
-<link rel="import" href="/tracing/ui/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
@@ -74,7 +74,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var ColorScheme = tr.ui.b.ColorScheme;
+  var ColorScheme = tr.b.ColorScheme;
 
   var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
       tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
