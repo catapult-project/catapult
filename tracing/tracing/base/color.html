@@ -9,6 +9,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
+  function clamp01(value) {
+    return Math.max(0, Math.min(1, value));
+  }
 
   function Color(opt_r, opt_g, opt_b, opt_a) {
     this.r = Math.floor(opt_r) || 0;
@@ -150,7 +153,7 @@ tr.exportTo('tr.b', function() {
     lighten: function(k, opt_max_l) {
       var max_l = opt_max_l !== undefined ? opt_max_l : 1.0;
       var hsl = this.toHSL();
-      hsl.l = Math.max(0, Math.min(max_l, hsl.l + k));
+      hsl.l = clamp01(hsl.l + k);
       return Color.fromHSL(hsl);
     },
 
@@ -168,9 +171,15 @@ tr.exportTo('tr.b', function() {
           this.a);
     },
 
-    desaturate: function() {
+    desaturate: function(opt_desaturateFactor) {
+      var desaturateFactor;
+      if (opt_desaturateFactor !== undefined)
+        desaturateFactor = opt_desaturateFactor;
+      else
+        desaturateFactor = 1;
+
       var hsl = this.toHSL();
-      hsl.s = 0;
+      hsl.s = clamp01(hsl.s * (1 - desaturateFactor));
       return Color.fromHSL(hsl);
     },
 

@@ -973,7 +973,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         var colorId = ColorScheme.getColorIdForGeneralPurposeString(
             highlight.colorKey);
-        colorId += ColorScheme.properties.selectedIdBoost;
+        colorId += ColorScheme.properties.brightenedOffsets[0];
 
         var color = ColorScheme.colors[colorId];
 

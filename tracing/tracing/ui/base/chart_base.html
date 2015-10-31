@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.b', function() {
   function getColorOfKey(key, selected) {
     var id = ColorScheme.getColorIdForGeneralPurposeString(key);
     if (selected)
-      id += ColorScheme.properties.selectedIdBoost;
+      id += ColorScheme.properties.brightenedOffsets[0];
     return ColorScheme.colorsAsStrings[id];
   }
 

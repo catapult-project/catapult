@@ -30,10 +30,40 @@ tr.exportTo('tr.model', function() {
    */
   var SelectionState = {
     NONE: 0,
-    SELECTED: ColorScheme.properties.selectedIdBoost,
-    HIGHLIGHTED: ColorScheme.properties.highlightedIdBoost,
-    DIMMED: ColorScheme.properties.dimmedIdBoost
+
+    // Legacy names.
+    SELECTED: ColorScheme.properties.brightenedOffsets[0],
+    HIGHLIGHTED: ColorScheme.properties.brightenedOffsets[1],
+    DIMMED: ColorScheme.properties.dimmedOffsets[0],
+
+    // Modern names.
+    BRIGHTENED0: ColorScheme.properties.brightenedOffsets[0],
+    BRIGHTENED1: ColorScheme.properties.brightenedOffsets[1],
+    BRIGHTENED2: ColorScheme.properties.brightenedOffsets[2],
+
+    DIMMED0: ColorScheme.properties.dimmedOffsets[0],
+    DIMMED1: ColorScheme.properties.dimmedOffsets[1],
+    DIMMED2: ColorScheme.properties.dimmedOffsets[2]
   };
+
+  var brighteningLevels = [
+    SelectionState.NONE,
+    SelectionState.BRIGHTENED0,
+    SelectionState.BRIGHTENED1,
+    SelectionState.BRIGHTENED2
+  ];
+  SelectionState.getFromBrighteningLevel = function(level) {
+    return brighteningLevels[level];
+  }
+
+  var dimmingLevels = [
+    SelectionState.DIMMED0,
+    SelectionState.DIMMED1,
+    SelectionState.DIMMED2
+  ];
+  SelectionState.getFromDimmingLevel = function(level) {
+    return dimmingLevels[level];
+  }
 
   return {
     SelectionState: SelectionState

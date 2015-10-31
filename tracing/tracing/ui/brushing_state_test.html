@@ -55,8 +55,8 @@ tr.b.unittest.testSuite(function() {
     bs.analysisLinkHoveredEvents = new EventSet([m.sA, m.sB]);
 
     bs.applyToModelSelectionState(m);
-    assert.equal(m.sA.selectionState, SelectionState.SELECTED);
-    assert.equal(m.sB.selectionState, SelectionState.HIGHLIGHTED);
+    assert.equal(m.sA.selectionState, SelectionState.BRIGHTENED1);
+    assert.equal(m.sB.selectionState, SelectionState.BRIGHTENED0);
     bs.unapplyFromModelSelectionState();
     assert.equal(m.sA.selectionState, SelectionState.NONE);
   });
@@ -69,9 +69,9 @@ tr.b.unittest.testSuite(function() {
     bs.findMatches = new EventSet([m.sA, m.sB]);
 
     bs.applyToModelSelectionState(m);
-    assert.equal(m.sA.selectionState, SelectionState.SELECTED);
-    assert.equal(m.sB.selectionState, SelectionState.HIGHLIGHTED);
-    assert.equal(m.sC.selectionState, SelectionState.DIMMED);
+    assert.equal(m.sA.selectionState, SelectionState.BRIGHTENED0);
+    assert.equal(m.sB.selectionState, SelectionState.DIMMED1);
+    assert.equal(m.sC.selectionState, SelectionState.DIMMED0);
     bs.unapplyFromModelSelectionState();
     assert.equal(m.sA.selectionState, SelectionState.NONE);
     assert.equal(m.sB.selectionState, SelectionState.NONE);

@@ -137,35 +137,52 @@ tr.exportTo('tr.ui.b', function() {
       this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
     },
 
-
-    get hasHighlight_() {
+    get causesDimming_() {
       return this.findMatches_.length > 0 ||
-          this.analysisViewRelatedEvents_.length > 0 ||
-          this.analysisLinkHoveredEvents_.length > 0;
+          this.analysisViewRelatedEvents_.length > 0;
+    },
+
+    get brightenedEvents_() {
+      var brightenedEvents = new EventSet();
+      brightenedEvents.addEventSet(this.selection_);
+      brightenedEvents.addEventSet(this.analysisLinkHoveredEvents_);
+      return brightenedEvents;
     },
 
     applyToModelSelectionState: function(model) {
       this.appliedToModel_ = model;
 
-
-      if (!this.hasHighlight_) {
-        this.selection_.forEach(function(e) {
-          e.selectionState = SelectionState.SELECTED;
-        });
+      if (!this.causesDimming_) {
+        this.brightenedEvents_.forEach(function(e) {
+          var score;
+          score = 0;
+          if (this.selection_.contains(e))
+            score++;
+          if (this.analysisLinkHoveredEvents_.contains(e))
+            score++;
+          e.selectionState = SelectionState.getFromBrighteningLevel(score);
+        }, this);
         return;
       }
+
+      var brightenedEvents = this.brightenedEvents_;
       model.iterateAllEvents(function(e) {
-        var selectionState;
-        if (this.selection_.contains(e)) {
-          selectionState = SelectionState.SELECTED;
-        } else if (this.findMatches_.contains(e) ||
-                   this.analysisViewRelatedEvents_.contains(e) ||
-                   this.analysisLinkHoveredEvents_.contains(e)) {
-          selectionState = SelectionState.HIGHLIGHTED;
+        var score;
+        if (brightenedEvents.contains(e)) {
+          score = 0;
+          if (this.selection_.contains(e))
+            score++;
+          if (this.analysisLinkHoveredEvents_.contains(e))
+            score++;
+          e.selectionState = SelectionState.getFromBrighteningLevel(score);
         } else {
-          selectionState = SelectionState.DIMMED;
+          score = 0;
+          if (this.findMatches_.contains(e))
+            score++;
+          if (this.analysisViewRelatedEvents_.contains(e))
+            score++;
+          e.selectionState = SelectionState.getFromDimmingLevel(score);
         }
-        e.selectionState = selectionState;
       }.bind(this));
     },
 
@@ -183,12 +200,13 @@ tr.exportTo('tr.ui.b', function() {
       var model = this.appliedToModel_;
       this.appliedToModel_ = undefined;
 
-      if (!this.hasHighlight_) {
-        this.selection_.forEach(function(e) {
+      if (!this.causesDimming_) {
+        this.brightenedEvents_.forEach(function(e) {
           e.selectionState = SelectionState.NONE;
         });
         return;
       }
+
       model.iterateAllEvents(function(e) {
         e.selectionState = SelectionState.NONE;
       });

@@ -19,7 +19,7 @@ tr.exportTo('tr.ui.b', function() {
 
   var colors = ColorScheme.colors;
   var colorsAsStrings = ColorScheme.colorsAsStrings;
-  var numBaseColors = ColorScheme.properties.numBaseColors;
+  var numColorsPerVariant = ColorScheme.properties.numColorsPerVariant;
 
   var SelectionState = tr.model.SelectionState;
 
@@ -80,7 +80,7 @@ tr.exportTo('tr.ui.b', function() {
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) %
-          numBaseColors;
+          numColorsPerVariant;
       colorId += this.getColorIdOffset_(snapshot);
       return colors[colorId].toStringWithAlphaOverride(1.0);
     }

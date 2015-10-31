@@ -12,18 +12,5 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var ColorScheme = tr.b.ColorScheme;
-
-  test('buildColorPalette', function() {
-    var colors = ColorScheme.colors;
-    var colorsAsStrings = ColorScheme.colorsAsStrings;
-
-    var properties = ColorScheme.properties;
-
-    assert.strictEqual(colorsAsStrings.length, colors.length);
-    assert.equal(colors.length % 4, 0);
-    assert.equal(properties.numBaseColors * 1, properties.selectedIdBoost);
-    assert.equal(properties.numBaseColors * 2, properties.highlightedIdBoost);
-    assert.equal(properties.numBaseColors * 3, properties.dimmedIdBoost);
-  });
 });
 </script>
