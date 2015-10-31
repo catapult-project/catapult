@@ -349,12 +349,19 @@ tr.exportTo('tr', function() {
     },
 
     /**
+     * Saves a warning that happened during import.
+     *
+     * Warnings are typically logged to the console, and optionally, the
+     * more critical ones are shown to the user.
+     *
      * @param {Object} data The import warning data. Data must provide two
      *    accessors: type, message. The types are used to determine if we
      *    should output the message, we'll only output one message of each type.
      *    The message is the actual warning content.
      */
     importWarning: function(data) {
+      data.showToUser = !!data.showToUser;
+
       this.importWarnings_.push(data);
 
       // Only log each warning type once. We may want to add some kind of
@@ -374,6 +381,12 @@ tr.exportTo('tr', function() {
 
     get importWarnings() {
       return this.importWarnings_;
+    },
+
+    get importWarningsThatShouldBeShownToUser() {
+      return this.importWarnings_.filter(function(warning) {
+        return warning.showToUser;
+      });
     },
 
     autoCloseOpenSlices: function() {

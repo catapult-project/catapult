@@ -70,7 +70,11 @@ tr.exportTo('tr.e.audits', function() {
         rirs = rirf.findAllInteractionRecords();
         // There are not currently any known cases when this could throw.
       } catch (error) {
-        this.model.importWarning(error);
+        this.model.importWarning({
+          type: 'RAILIRFinder',
+          message: error,
+          showToUser: true
+        });
         return;
       }
 
