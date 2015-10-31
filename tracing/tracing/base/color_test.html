@@ -72,31 +72,31 @@ tr.b.unittest.testSuite(function() {
     assert.equal(x.a, 1);
   });
 
-  test('fromHSV', function() {
-    var reddish = tr.b.Color.fromHSV(358, 0.78, 203, 0.8);
-    assert.equal(reddish.r, 203);
-    assert.equal(reddish.g, 44);
+  test('fromHSL', function() {
+    var reddish = tr.b.Color.fromHSLExplicit(.994, 0.644, .484, 0.8);
+    assert.equal(reddish.r, 202);
+    assert.equal(reddish.g, 43);
     assert.equal(reddish.b, 49);
     assert.equal(reddish.a, 0.8);
 
-    var gray = tr.b.Color.fromHSV(149, 0, 128, 1.0);
-    assert.equal(gray.r, 128);
-    assert.equal(gray.g, 128);
-    assert.equal(gray.b, 128);
+    var gray = tr.b.Color.fromHSLExplicit(0, 0, .50, 1.0);
+    assert.equal(gray.r, 127);
+    assert.equal(gray.g, 127);
+    assert.equal(gray.b, 127);
     assert.equal(gray.a, 1.0);
   });
 
-  test('toHSV', function() {
-    var reddish = new tr.b.Color(203, 44, 49, 0.8).toHSV();
-    assert.closeTo(reddish.h, 358, 0.2);
-    assert.closeTo(reddish.s, 0.78, 0.2);
-    assert.closeTo(reddish.v, 203, 0.2);
+  test('toHSL', function() {
+    var reddish = new tr.b.Color(203, 44, 49, 0.8).toHSL();
+    assert.closeTo(reddish.h, .994, 0.01);
+    assert.closeTo(reddish.s, 0.644, 0.01);
+    assert.closeTo(reddish.l, 0.484, 0.01);
     assert.equal(reddish.a, 0.8);
 
-    var gray = new tr.b.Color(128, 128, 128, 1.0).toHSV();
+    var gray = new tr.b.Color(128, 128, 128, 1.0).toHSL();
     assert.equal(gray.h, 0);
     assert.equal(gray.s, 0);
-    assert.equal(gray.v, 128);
+    assert.closeTo(gray.l, .50, 0.01);
     assert.equal(gray.a, 1.0);
   });
 
