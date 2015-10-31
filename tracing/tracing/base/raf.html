@@ -21,7 +21,6 @@ tr.exportTo('tr.b', function() {
   var currentRAFDispatchList = undefined;
 
   var rafScheduled = false;
-  var idleWorkScheduled = false;
 
   function scheduleRAF() {
     if (rafScheduled)
@@ -44,17 +43,6 @@ tr.exportTo('tr.b', function() {
         });
       }
     }
-  }
-
-  function scheduleIdleWork() {
-    if (idleWorkScheduled)
-      return;
-    if (tr.isHeadless || !window.requestIdleCallback) {
-      scheduleRAF();
-      return;
-    }
-    idleWorkScheduled = true;
-    window.requestIdleCallback(processIdleWork);
   }
 
   function onAnimationFrameError(e, opt_stack) {
@@ -100,31 +88,19 @@ tr.exportTo('tr.b', function() {
       runTask(currentRAFDispatchList.shift(), frameBeginTime);
     currentRAFDispatchList = undefined;
 
-    if (!hasRAFTasks && !idleWorkScheduled) {
-      processIdleWork({
-        timeRemaining: function() {
-          return rafCompletionDeadline - window.performance.now();
-        }
-      });
+    if (!hasRAFTasks) {
+      while (pendingIdleCallbacks.length > 0) {
+        runTask(pendingIdleCallbacks.shift());
+        // Check timer after running at least one idle task to avoid buggy
+        // window.performance.now() on some platforms from blocking the idle
+        // task queue.
+        if (tr.isHeadless || window.performance.now() >= rafCompletionDeadline)
+          break;
+      }
     }
 
     if (pendingIdleCallbacks.length > 0)
-      scheduleIdleWork();
-  }
-
-  function processIdleWork(deadline) {
-    idleWorkScheduled = false;
-    while (pendingIdleCallbacks.length > 0) {
-      runTask(pendingIdleCallbacks.shift());
-      // Check timer after running at least one idle task to avoid buggy
-      // window.performance.now() on some platforms from blocking the idle
-      // task queue.
-      if (tr.isHeadless || deadline.timeRemaining() <= 0)
-        break;
-    }
-
-    if (pendingIdleCallbacks.length > 0)
-      scheduleIdleWork();
+      scheduleRAF();
   }
 
   function getStack_() {
@@ -170,7 +146,7 @@ tr.exportTo('tr.b', function() {
       callback: callback,
       context: opt_this || window,
       stack: getStack_()});
-    scheduleIdleWork();
+    scheduleRAF();
   }
 
   function forcePendingRAFTasksToRun(frameBeginTime) {

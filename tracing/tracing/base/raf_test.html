@@ -12,19 +12,6 @@ tr.b.unittest.testSuite(function() {
   if (tr.isHeadless)
     return;
 
-  test('idleCallbackWorks', function() {
-    return new Promise(function(resolve, reject) {
-      tr.b.requestIdleCallback(function() {
-        resolve();
-      });
-    });
-  });
-
-  // None of the following tests are relevant if the browser supports idle
-  // callbacks natively.
-  if (window.requestIdleCallback)
-    return;
-
   var fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
     var oldNow = window.performance.now;
