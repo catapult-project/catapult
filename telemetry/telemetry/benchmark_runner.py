@@ -398,9 +398,11 @@ def main(environment):
   # Parse and run the command.
   parser = command.CreateParser()
   command.AddCommandLineArgs(parser, environment)
+
+  # Set the default chrome root variable.
+  parser.set_defaults(chrome_root=environment.default_chrome_root)
+
   options, args = parser.parse_args()
-  # Set the default chrome root for options if it's not set.
-  options.chrome_root = options.chrome_root or environment.default_chrome_root
 
   if commands:
     args = args[1:]
