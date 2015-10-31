@@ -290,7 +290,6 @@
       'tracing/ui/base/chart_base_2d_brushable_x.html',
       'tracing/ui/base/color_legend.html',
       'tracing/ui/base/color_scheme.html',
-      'tracing/ui/base/color_utils.html',
       'tracing/ui/base/constants.html',
       'tracing/ui/base/container_that_decorates_its_children.html',
       'tracing/ui/base/d3.html',

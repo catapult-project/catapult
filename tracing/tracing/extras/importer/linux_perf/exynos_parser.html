@@ -15,6 +15,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
@@ -41,7 +42,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
         counter.addSeries(new tr.model.CounterSeries('frequency',
-            tr.ui.b.getColorIdForGeneralPurposeString(
+            ColorScheme.getColorIdForGeneralPurposeString(
                 counter.name + '.' + 'frequency')));
       }
       counter.series.forEach(function(series) {
@@ -85,7 +86,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
         var slice = new tr.model.Slice('', kthread.openSlice,
-            tr.ui.b.getColorIdForGeneralPurposeString(kthread.openSlice),
+            ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
             ts - kthread.openSliceTS);

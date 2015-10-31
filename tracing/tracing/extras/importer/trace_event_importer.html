@@ -37,12 +37,13 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer', function() {
   var deepCopy = tr.b.deepCopy;
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   function getEventColor(event, opt_customName) {
     if (event.cname)
-      return tr.ui.b.getColorIdForReservedName(event.cname);
+      return ColorScheme.getColorIdForReservedName(event.cname);
     else if (opt_customName || event.name) {
-      return tr.ui.b.getColorIdForGeneralPurposeString(
+      return ColorScheme.getColorIdForGeneralPurposeString(
           opt_customName || event.name);
     }
   }
@@ -545,7 +546,7 @@ tr.exportTo('tr.e.importer', function() {
 
         var frame = new tr.model.StackFrame(
             lastStackFrame, tr.b.GUID.allocate(), entry.name,
-            tr.ui.b.getColorIdForGeneralPurposeString(entry.name),
+            ColorScheme.getColorIdForGeneralPurposeString(entry.name),
             entry.sourceInfo);
 
         frame.entryID = entry.id;
@@ -614,7 +615,7 @@ tr.exportTo('tr.e.importer', function() {
         var id = 'te-' + tr.b.GUID.allocate();
         stackFrame = new tr.model.StackFrame(
             undefined, id, event.name,
-            tr.ui.b.getColorIdForGeneralPurposeString(event.name));
+            ColorScheme.getColorIdForGeneralPurposeString(event.name));
         this.model_.addStackFrame(stackFrame);
         this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
       }
@@ -772,7 +773,7 @@ tr.exportTo('tr.e.importer', function() {
             rawStackFrame.category : rawStackFrame.name;
         var stackFrame = new tr.model.StackFrame(
             undefined /* parentFrame */, fullId, rawStackFrame.name,
-            tr.ui.b.getColorIdForGeneralPurposeString(textForColor));
+            ColorScheme.getColorIdForGeneralPurposeString(textForColor));
         model.addStackFrame(stackFrame);
       }
 

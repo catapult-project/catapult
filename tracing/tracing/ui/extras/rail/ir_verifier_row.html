@@ -29,6 +29,8 @@ found in the LICENSE file.
   <script>
   'use strict';
   (function() {
+    var ColorScheme = tr.ui.b.ColorScheme;
+
     // Returns a list of non-overlapping lists of events.
     // |events| must be sorted by start time.
     // C.f. AsyncSliceGroupTrack.buildSubRows_()
@@ -53,12 +55,14 @@ found in the LICENSE file.
 
     function getEventColor(event) {
       var typeNameOrTitle = event.typeName || event.title;
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
-          typeNameOrTitle);
+      var colorId;
       if (event.railTypeName_) {
-        colorId = tr.ui.b.getColorIdForReservedName(event.railTypeName_);
+        colorId = ColorScheme.getColorIdForReservedName(event.railTypeName_);
+      } else {
+        colorId = ColorScheme.getColorIdForGeneralPurposeString(
+          typeNameOrTitle);
       }
-      return tr.ui.b.getColorPalette()[colorId];
+      return ColorScheme.colorsAsStrings[colorId];
     }
 
     Polymer({

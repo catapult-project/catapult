@@ -20,6 +20,8 @@ found in the LICENSE file.
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 tr.exportTo('tr.e.importer.v8', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
+
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
     this.model_ = model;
@@ -79,7 +81,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(name);
+      var colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
       var slice = new tr.model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
@@ -161,7 +163,7 @@ tr.exportTo('tr.e.importer.v8', function() {
             var entryName = entry ? entry.name : 'Unknown';
             lastStackFrame = new tr.model.StackFrame(
                 lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(), entryName,
-                tr.ui.b.getColorIdForGeneralPurposeString(entryName));
+                ColorScheme.getColorIdForGeneralPurposeString(entryName));
             lastStackFrame.entryID = entryID;
             this.model_.addStackFrame(lastStackFrame);
           } else {
@@ -175,7 +177,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
           lastStackFrame = new tr.model.StackFrame(
               undefined, pcEntryID, pcEntryName,
-              tr.ui.b.getColorIdForGeneralPurposeString(pcEntryName));
+              ColorScheme.getColorIdForGeneralPurposeString(pcEntryName));
           this.model_.addStackFrame(lastStackFrame);
         }
         lastStackFrame = this.model_.stackFrames[pcEntryID];
@@ -273,7 +275,7 @@ tr.exportTo('tr.e.importer.v8', function() {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
           var slice = new tr.model.Slice('v8', slices[i].name,
-              tr.ui.b.getColorIdForGeneralPurposeString(slices[i].name),
+              ColorScheme.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
           addSlices(slices[i].children, thread);

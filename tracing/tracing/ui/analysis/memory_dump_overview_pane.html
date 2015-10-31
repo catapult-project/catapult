@@ -74,6 +74,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
+
   var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
       tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
           'Total resident',
@@ -395,8 +397,8 @@ tr.exportTo('tr.ui.analysis', function() {
         return column.name === 'tracing';
       });
       if (tracingColumn !== undefined) {
-        var tracingColumnColor = tr.ui.b.getColorPalette()[
-            tr.ui.b.getColorIdForReservedName('tracing_memory_column')];
+        var tracingColumnColor = ColorScheme.getColorForReservedNameAsString(
+            'tracing_memory_column');
         tracingColumn.title = tr.ui.b.createSpan(
             {textContent: 'tracing', color: tracingColumnColor});
         tracingColumn.color = tracingColumnColor;
@@ -405,17 +407,17 @@ tr.exportTo('tr.ui.analysis', function() {
       // Make the used memory size columns blue.
       // TODO(petrcermak): Find a less hacky way to do this.
       usedMemorySizeColumns.forEach(function(column) {
-        var olderUsedMemoryColumnColor = tr.ui.b.getColorPalette()[
-            tr.ui.b.getColorIdForReservedName('older_used_memory_column')];
-        var usedMemoryColumnColor = tr.ui.b.getColorPalette()[
-            tr.ui.b.getColorIdForReservedName('used_memory_column')];
+        var olderUsedMCC = ColorScheme.getColorForReservedNameAsString(
+            'older_used_memory_column');
+        var usedMCC = ColorScheme.getColorForReservedNameAsString(
+            'used_memory_column');
         column.title = tr.ui.b.createSpan(
-            {textContent: column.title, color: usedMemoryColumnColor});
+            {textContent: column.title, color: usedMCC});
         column.color = function(attrs) {
           // TODO(petrcermak): Figure out how to make this work for multi-
           // selection as well.
           return attrs.length === 1 && attrs[0].isOlderValue ?
-              olderUsedMemoryColumnColor : usedMemoryColumnColor;
+              olderUsedMCC : usedMCC;
         }
       });
 

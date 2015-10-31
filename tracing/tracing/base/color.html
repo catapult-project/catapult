@@ -9,6 +9,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
+
   function Color(opt_r, opt_g, opt_b, opt_a) {
     this.r = Math.floor(opt_r) || 0;
     this.g = Math.floor(opt_g) || 0;
@@ -56,14 +57,14 @@ tr.exportTo('tr.b', function() {
     if (a.a !== undefined && b.a !== undefined)
       return Color.lerpRGBA(a, b, percent);
     return Color.lerpRGB(a, b, percent);
-  }
+  };
 
   Color.lerpRGB = function(a, b, percent) {
     return new Color(
         ((b.r - a.r) * percent) + a.r,
         ((b.g - a.g) * percent) + a.g,
         ((b.b - a.b) * percent) + a.b);
-  }
+  };
 
   Color.lerpRGBA = function(a, b, percent) {
     return new Color(
@@ -71,7 +72,11 @@ tr.exportTo('tr.b', function() {
         ((b.g - a.g) * percent) + a.g,
         ((b.b - a.b) * percent) + a.b,
         ((b.a - a.a) * percent) + a.a);
-  }
+  };
+
+  Color.fromDict = function(dict) {
+    return new Color(dict.r, dict.g, dict.b, dict.a);
+  };
 
   /**
    * Converts an HSV triplet with alpha to an RGB color.
@@ -160,17 +165,56 @@ tr.exportTo('tr.b', function() {
       return new Color(
           Math.min(255, this.r + Math.floor(this.r * k)),
           Math.min(255, this.g + Math.floor(this.g * k)),
-          Math.min(255, this.b + Math.floor(this.b * k)));
+          Math.min(255, this.b + Math.floor(this.b * k)),
+          this.a);
+    },
+
+    /*
+     * Legacy brightening function used by TimelineTracks. Avoid using.
+     *
+     * Coloring in trace viewer is one of the oldest parts of the code, and
+     * was very organically built. At the time, we didn't want to code up
+     * a proper HSV implementation, so to brighten colors, we scale them up
+     * with a simple multiply. But, that sometimes made them too bright,
+     * so then we sometimes dim them, when they're already bright.
+     *
+     * People are used to the coloring scheme, so today we keep this function
+     * around for consistency. Hopefully, someday we can ditch this for
+     * a more consisistent, HSV-based approach.
+     *
+     * This isn't particularly clever, but it gets the job done. And clever
+     * like the most polite euphamism to use, considering reality. :)
+     */
+    brightenCleverly: function() {
+      var k;
+      if (this.r >= 240 && this.g >= 240 && this.b >= 240)
+        k = 0.80;
+      else
+        k = 1.45;
+      return new Color(
+          Math.min(255, Math.floor(this.r * k)),
+          Math.min(255, Math.floor(this.g * k)),
+          Math.min(255, Math.floor(this.b * k)),
+          this.a);
     },
 
     darken: function(opt_k) {
       var k;
-      k = opt_k || 0.45;
+      if (opt_k !== undefined)
+        k = opt_k;
+      else
+        k = 0.45;
 
       return new Color(
           Math.min(255, this.r - Math.floor(this.r * k)),
           Math.min(255, this.g - Math.floor(this.g * k)),
-          Math.min(255, this.b - Math.floor(this.b * k)));
+          Math.min(255, this.b - Math.floor(this.b * k)),
+          this.a);
+    },
+
+    desaturate: function() {
+      var value = Math.min((this.r + this.g + this.b) / 3, 255);
+      return new Color(value, value, value, this.a);
     },
 
     withAlpha: function(a) {
@@ -221,6 +265,12 @@ tr.exportTo('tr.b', function() {
       }
 
       return {h: hue, s: saturation, v: value, a: this.a};
+    },
+
+    toStringWithAlphaOverride: function(alpha) {
+      return 'rgba(' +
+          this.r + ',' + this.g + ',' +
+          this.b + ',' + alpha + ')';
     }
   };
 

@@ -15,6 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   var makeModel = function(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -401,7 +402,8 @@ tr.b.unittest.testSuite(function() {
   test('taskColoring', function() {
     // The test below depends on hashing of 'a' != 'b'. Fail early if that
     // assumption is incorrect.
-    assert.notEqual(tr.ui.b.getStringHash('a'), tr.ui.b.getStringHash('b'));
+    assert.notEqual(ColorScheme.getStringHash('a'),
+                    ColorScheme.getStringHash('b'));
 
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -437,7 +439,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('thread_state_unknown'));
+                 ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
   test('durationColorEnd', function() {
@@ -450,7 +452,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('thread_state_unknown'));
+                 ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
   test('completeColorArgument', function() {
@@ -462,7 +464,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('asyncColorArgument', function() {
@@ -475,7 +477,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('asyncColorEnd', function() {
@@ -488,7 +490,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('instantThreadColorArgument', function() {
@@ -500,7 +502,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('instantProcessColorArgument', function() {
@@ -511,7 +513,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.instantEvents[0].colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('counterColorArgument', function() {
@@ -522,7 +524,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.counters['foo.a[1]'].series[0].color,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
     assert.equal(p.counters['foo.a[1]'].series.length, 1);
   });
 
@@ -537,7 +539,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var i = p.objects.instanceMapsById_[1].instances[0];
     assert.equal(i.colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('objectColorEnd', function() {
@@ -551,7 +553,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var i = p.objects.instanceMapsById_[1].instances[0];
     assert.equal(i.colorId,
-                 tr.ui.b.getColorIdForReservedName('generic_work'));
+                 ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('multipleThreadParsing', function() {
@@ -817,7 +819,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(ctr.series[0].name, 'value');
     assert.equal(ctr.series[0].color,
-                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value'));
+                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
 
@@ -949,9 +951,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.series[0].name, 'value1');
     assert.equal(ctr.series[1].name, 'value2');
     assert.equal(ctr.series[0].color,
-                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value1'));
+                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value1'));
     assert.equal(ctr.series[1].color,
-                 tr.ui.b.getColorIdForGeneralPurposeString('ctr.value2'));
+                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value2'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
     var samples = [];

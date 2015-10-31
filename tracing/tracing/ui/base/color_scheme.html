@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/ui/base/color_utils.html">
 <script>
 'use strict';
 
@@ -14,108 +14,146 @@ found in the LICENSE file.
  * @fileoverview Provides color scheme related functions.
  */
 tr.exportTo('tr.ui.b', function() {
-  var colorToRGBString = tr.ui.b.colorToRGBString;
-  var colorToRGBAString = tr.ui.b.colorToRGBAString;
-
   // Basic constants...
-
   var generalPurposeColors = [
-    {r: 138, g: 113, b: 152},
-    {r: 175, g: 112, b: 133},
-    {r: 127, g: 135, b: 225},
-    {r: 93, g: 81, b: 137},
-    {r: 116, g: 143, b: 119},
-    {r: 178, g: 214, b: 122},
-    {r: 87, g: 109, b: 147},
-    {r: 119, g: 155, b: 95},
-    {r: 114, g: 180, b: 160},
-    {r: 132, g: 85, b: 103},
-    {r: 157, g: 210, b: 150},
-    {r: 148, g: 94, b: 86},
-    {r: 164, g: 108, b: 138},
-    {r: 139, g: 191, b: 150},
-    {r: 110, g: 99, b: 145},
-    {r: 80, g: 129, b: 109},
-    {r: 125, g: 140, b: 149},
-    {r: 93, g: 124, b: 132},
-    {r: 140, g: 85, b: 140},
-    {r: 104, g: 163, b: 162},
-    {r: 132, g: 141, b: 178},
-    {r: 131, g: 105, b: 147},
-    {r: 135, g: 183, b: 98},
-    {r: 152, g: 134, b: 177},
-    {r: 141, g: 188, b: 141},
-    {r: 133, g: 160, b: 210},
-    {r: 126, g: 186, b: 148},
-    {r: 112, g: 198, b: 205},
-    {r: 180, g: 122, b: 195},
-    {r: 203, g: 144, b: 152}];
+    new tr.b.Color(138, 113, 152),
+    new tr.b.Color(175, 112, 133),
+    new tr.b.Color(127, 135, 225),
+    new tr.b.Color(93, 81, 137),
+    new tr.b.Color(116, 143, 119),
+    new tr.b.Color(178, 214, 122),
+    new tr.b.Color(87, 109, 147),
+    new tr.b.Color(119, 155, 95),
+    new tr.b.Color(114, 180, 160),
+    new tr.b.Color(132, 85, 103),
+    new tr.b.Color(157, 210, 150),
+    new tr.b.Color(148, 94, 86),
+    new tr.b.Color(164, 108, 138),
+    new tr.b.Color(139, 191, 150),
+    new tr.b.Color(110, 99, 145),
+    new tr.b.Color(80, 129, 109),
+    new tr.b.Color(125, 140, 149),
+    new tr.b.Color(93, 124, 132),
+    new tr.b.Color(140, 85, 140),
+    new tr.b.Color(104, 163, 162),
+    new tr.b.Color(132, 141, 178),
+    new tr.b.Color(131, 105, 147),
+    new tr.b.Color(135, 183, 98),
+    new tr.b.Color(152, 134, 177),
+    new tr.b.Color(141, 188, 141),
+    new tr.b.Color(133, 160, 210),
+    new tr.b.Color(126, 186, 148),
+    new tr.b.Color(112, 198, 205),
+    new tr.b.Color(180, 122, 195),
+    new tr.b.Color(203, 144, 152)];
 
   var reservedColorsByName = {
-    thread_state_iowait: {r: 182, g: 125, b: 143},
-    thread_state_running: {r: 126, g: 200, b: 148},
-    thread_state_runnable: {r: 133, g: 160, b: 210},
-    thread_state_sleeping: {r: 240, g: 240, b: 240},
-    thread_state_unknown: {r: 199, g: 155, b: 125},
+    thread_state_iowait: new tr.b.Color(182, 125, 143),
+    thread_state_running: new tr.b.Color(126, 200, 148),
+    thread_state_runnable: new tr.b.Color(133, 160, 210),
+    thread_state_sleeping: new tr.b.Color(240, 240, 240),
+    thread_state_unknown: new tr.b.Color(199, 155, 125),
 
-    light_memory_dump: {r: 0, g: 0, b: 180},
-    detailed_memory_dump: {r: 180, g: 0, b: 180},
+    light_memory_dump: new tr.b.Color(0, 0, 180),
+    detailed_memory_dump: new tr.b.Color(180, 0, 180),
 
-    generic_work: {r: 125, g: 125, b: 125},
+    generic_work: new tr.b.Color(125, 125, 125),
 
-    good: {r: 0, g: 125, b: 0},
-    bad: {r: 180, g: 125, b: 0},
-    terrible: {r: 180, g: 0, b: 0},
+    good: new tr.b.Color(0, 125, 0),
+    bad: new tr.b.Color(180, 125, 0),
+    terrible: new tr.b.Color(180, 0, 0),
 
-    black: {r: 0, g: 0, b: 0},
+    black: new tr.b.Color(0, 0, 0),
 
-    rail_response: {r: 67, g: 135, b: 253},
-    rail_animate: {r: 244, g: 74, b: 63},
-    rail_idle: {r: 238, g: 142, b: 0},
-    rail_load: {r: 13, g: 168, b: 97},
+    rail_response: new tr.b.Color(67, 135, 253),
+    rail_animate: new tr.b.Color(244, 74, 63),
+    rail_idle: new tr.b.Color(238, 142, 0),
+    rail_load: new tr.b.Color(13, 168, 97),
 
-    used_memory_column: {r: 0, g: 0, b: 255},
-    older_used_memory_column: {r: 153, g: 204, b: 255},
-    tracing_memory_column: {r: 153, g: 153, b: 153},
+    used_memory_column: new tr.b.Color(0, 0, 255),
+    older_used_memory_column: new tr.b.Color(153, 204, 255),
+    tracing_memory_column: new tr.b.Color(153, 153, 153),
 
-    cq_build_running: {r: 255, g: 255, b: 119},
-    cq_build_passed: {r: 153, g: 238, b: 102},
-    cq_build_failed: {r: 238, g: 136, b: 136},
-    cq_build_abandoned: {r: 187, g: 187, b: 187},
+    cq_build_running: new tr.b.Color(255, 255, 119),
+    cq_build_passed: new tr.b.Color(153, 238, 102),
+    cq_build_failed: new tr.b.Color(238, 136, 136),
+    cq_build_abandoned: new tr.b.Color(187, 187, 187),
 
-    cq_build_attempt_running: {r: 222, g: 222, b: 75},
-    cq_build_attempt_passed: {r: 103, g: 218, b: 35},
-    cq_build_attempt_failed: {r: 197, g: 81, b: 81}
+    cq_build_attempt_runnig: new tr.b.Color(222, 222, 75),
+    cq_build_attempt_passed: new tr.b.Color(103, 218, 35),
+    cq_build_attempt_failed: new tr.b.Color(197, 81, 81)
   };
 
   // Some constants we'll need for later lookups.
   var numGeneralPurposeColorIds = generalPurposeColors.length;
   var numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
+  var numBaseColors = numGeneralPurposeColorIds + numReservedColorIds;
 
-  // The color palette is split in half, with the upper
-  // half of the palette being the "highlighted" verison
-  // of the base color. So, color 7's highlighted form is
-  // 7 + (palette.length / 2).
-  //
-  // These bright versions of colors are automatically generated
-  // from the base colors.
-  //
-  // Within the color palette, there are "general purpose" colors,
-  // which can be used for random color selection, and
-  // reserved colors, which are used when specific colors
-  // need to be used, e.g. where red is desired.
-  var paletteRaw = (function() {
+  class ColorScheme {
+  };
+
+  /**
+   * A flat array of tr.b.Color values of the palette, and their variants.
+   *
+   * This array is made up of a set of base colors, repeated N times to form
+   * a set of variants on that base color.
+   *
+   * Within the base colors, there are "general purpose" colors,
+   * which can be used for random color selection, and
+   * reserved colors, which are used when specific colors
+   * need to be used, e.g. where red is desired.
+   *
+   * The variants are automatically generated from the base colors. The 0th
+   * variant is the default apeparance of the color, and the varaiants are
+   * mutations of that color, e.g. several brightening levels and desaturations.
+   *
+   * For example, a very simple version of this array looks like the following:
+   *     0: Generic Color 0
+   *     1: Generic Color 1
+   *     2: Named Color 'foo'
+   *     3: Brightened Generic Color 0
+   *     4: Brightened Generic Color 1
+   *     5: Brightened Named Color 'foo'
+   */
+  ColorScheme.colors = (function() {
     var paletteBase = [];
     paletteBase.push.apply(paletteBase, generalPurposeColors);
     paletteBase.push.apply(paletteBase,
                            tr.b.dictionaryValues(reservedColorsByName));
-    return paletteBase.concat(paletteBase.map(tr.ui.b.brightenColor),
-                              paletteBase.map(tr.ui.b.desaturateColor));
-  })();
-  var palette = paletteRaw.map(colorToRGBString);
 
-  var highlightIdBoost = paletteRaw.length / 3;
-  var desaturateIdBoost = (paletteRaw.length / 3) * 2;
+    var combinedItems = [];
+    combinedItems.push.apply(combinedItems,
+                             paletteBase);
+    combinedItems.push.apply(combinedItems,
+                             paletteBase.map(function(c) {
+                               return c.brightenCleverly();
+                             }));
+    combinedItems.push.apply(combinedItems,
+                             paletteBase.map(function(c) {
+                               c = c.brightenCleverly(c);
+                               return c.brighten(0.4);
+                             }));
+    combinedItems.push.apply(combinedItems,
+                             paletteBase.map(function(c) {
+                               return c.desaturate();
+                             }));
+    return combinedItems;
+  })();
+
+  /**
+   * A toString'd representation of ColorScheme.colors.
+   */
+  ColorScheme.colorsAsStrings = ColorScheme.colors.map(function(c) {
+    return c.toString();
+  });
+
+  ColorScheme.properties = {
+    numBaseColors: numBaseColors,
+    numGeneralPurposeColorIds: numGeneralPurposeColorIds,
+    selectedIdBoost: numBaseColors,
+    highlightedIdBoost: numBaseColors * 2,
+    dimmedIdBoost: numBaseColors * 3
+  };
 
   // Build reservedColorNameToIdMap.
   var reservedColorNameToIdMap = (function() {
@@ -128,58 +166,32 @@ tr.exportTo('tr.ui.b', function() {
   })();
 
   /**
-   * Computes a simplistic hashcode of the provide name. Used to chose colors
-   * for slices.
-   * @param {string} name The string to hash.
-   */
-  function getStringHash(name) {
-    var hash = 0;
-    for (var i = 0; i < name.length; ++i)
-      hash = (hash + 37 * hash + 11 * name.charCodeAt(i)) % 0xFFFFFFFF;
-    return hash;
-  }
-
-  /**
-   * Gets the color palette.
-   */
-  function getColorPalette() {
-    return palette;
-  }
-
-  /**
-   * Gets the raw color palette, where entries are still objects.
-   */
-  function getRawColorPalette() {
-    return paletteRaw;
-  }
-
-  /**
-   * @return {Number} The value to add to a color ID to get its highlighted
-   * color ID. E.g. 7 + getPaletteHighlightIdBoost() yields a brightened form
-   * of 7's base color.
-   */
-  function getColorPaletteHighlightIdBoost() {
-    return highlightIdBoost;
-  }
-  /**
-   * @return {Number} The value to add to a color ID to get its desaturated
-   * color ID. E.g. 7 + getPaletteDesaturateIdBoost() yields a desaturate form
-   * of 7's base color.
-   */
-  function getColorPaletteDesaturateIdBoost() {
-    return desaturateIdBoost;
-  }
-
-  /**
    * @param {String} name The color name.
    * @return {Number} The color ID for the given color name.
    */
-  function getColorIdForReservedName(name) {
+  ColorScheme.getColorIdForReservedName = function(name) {
     var id = reservedColorNameToIdMap[name];
     if (id === undefined)
       throw new Error('Unrecognized color ') + name;
     return id;
-  }
+  };
+
+  ColorScheme.getColorForReservedNameAsString = function(reservedName) {
+    var id = ColorScheme.getColorIdForReservedName(reservedName);
+    return ColorScheme.colorsAsStrings[id];
+  };
+
+  /**
+   * Computes a simplistic hashcode of the provide name. Used to chose colors
+   * for slices.
+   * @param {string} name The string to hash.
+   */
+  ColorScheme.getStringHash = function(name) {
+    var hash = 0;
+    for (var i = 0; i < name.length; ++i)
+      hash = (hash + 37 * hash + 11 * name.charCodeAt(i)) % 0xFFFFFFFF;
+    return hash;
+  };
 
   // Previously computed string color IDs. They are based on a stable hash, so
   // it is safe to save them throughout the program time.
@@ -190,29 +202,16 @@ tr.exportTo('tr.ui.b', function() {
    * the getStringHash method. The color ID will be chosen from the general
    * purpose ID space only, e.g. no reserved ID will be used.
    */
-  function getColorIdForGeneralPurposeString(string) {
+  ColorScheme.getColorIdForGeneralPurposeString = function(string) {
     if (stringColorIdCache[string] === undefined) {
-      var hash = getStringHash(string);
+      var hash = ColorScheme.getStringHash(string);
       stringColorIdCache[string] = hash % numGeneralPurposeColorIds;
     }
     return stringColorIdCache[string];
-  }
-
-  var paletteProperties = {
-    numGeneralPurposeColorIds: numGeneralPurposeColorIds,
-    highlightIdBoost: highlightIdBoost,
-    desaturateIdBoost: desaturateIdBoost
   };
 
   return {
-    getRawColorPalette: getRawColorPalette,
-    getColorPalette: getColorPalette,
-    paletteProperties: paletteProperties,
-    getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
-    getColorPaletteDesaturateIdBoost: getColorPaletteDesaturateIdBoost,
-    getColorIdForReservedName: getColorIdForReservedName,
-    getStringHash: getStringHash,
-    getColorIdForGeneralPurposeString: getColorIdForGeneralPurposeString
+    ColorScheme: ColorScheme
   };
 });
 </script>

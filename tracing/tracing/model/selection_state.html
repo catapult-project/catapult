@@ -16,8 +16,15 @@ found in the LICENSE file.
 tr.exportTo('tr.model', function() {
 
   /**
-   * The SelectionState enum defines how selectable items are displayed in the
-   * view.
+   * Describes the level of visual highlighting to apply to an event when shown.
+   *
+   * color_scheme.html defines N variations off of a base color palette,
+   * one for each selection state, all concatenated into one flat array. To
+   * pick the final colorId for a given variations, the SelectionState is
+   * multiplied by the number of base colors.
+   *
+   * Thus, the values here must be kept in sync with color_scheme's palette
+   * layout.
    */
   var SelectionState = {
     NONE: 0,

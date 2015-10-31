@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.e.highlighter', function() {
     this.times_ = [];
   }
 
-  VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR = {r: 0, g: 0, b: 255};
+  VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR = new tr.b.Color(0, 0, 255);
   VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA = 0.1;
 
   VSyncHighlighter.VSYNC_DENSITY_TRANSPARENT = 0.20;
@@ -99,8 +99,9 @@ tr.exportTo('tr.ui.e.highlighter', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var height = viewHeight * pixelRatio;
-      ctx.fillStyle = tr.ui.b.colorToRGBAString(
-          VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR,
+
+      var c = VSyncHighlighter.VSYNC_HIGHLIGHT_COLOR;
+      ctx.fillStyle = c.toStringWithAlphaOverride(
           VSyncHighlighter.VSYNC_HIGHLIGHT_ALPHA * opacity);
 
       for (var i = 0; i < stripes.length; i++) {

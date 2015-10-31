@@ -58,7 +58,8 @@ that label, using the getColorId* methods from base/color_scheme.
         return;
       }
 
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(label);
+      var colorId = tr.ui.b.ColorScheme.getColorIdForGeneralPurposeString(
+          label);
       this.setLabelAndColorId(label, colorId);
     },
 
@@ -71,8 +72,8 @@ that label, using the getColorId* methods from base/color_scheme.
       if (colorId === undefined) {
         this.$.square.style.color = 'initial';
       } else {
-        var paletteRaw = tr.ui.b.getRawColorPalette();
-        var color = tr.ui.b.colorToRGBString(paletteRaw[colorId]);
+        var colorsAsStrings = tr.ui.b.ColorScheme.colorsAsStrings;
+        var color = tr.ui.b.ColorScheme[colorId];
         this.$.square.style.color = color;
       }
     }

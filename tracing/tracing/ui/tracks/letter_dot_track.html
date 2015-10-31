@@ -97,8 +97,6 @@ tr.exportTo('tr.ui.tracks', function() {
       var height = bounds.height * pixelRatio;
       var halfHeight = height * 0.5;
       var twoPi = Math.PI * 2;
-      var palette = tr.ui.b.getColorPalette();
-      var highlightIdBoost = tr.ui.b.paletteProperties.highlightIdBoost;
 
       // Culling parameters.
       var dt = this.viewport.currentDisplayTransform;
@@ -128,7 +126,7 @@ tr.exportTo('tr.ui.tracks', function() {
             continue;
           var xView = dt.xWorldToView(x);
 
-          ctx.fillStyle = EventPresenter.getSelectableItemColor(item);
+          ctx.fillStyle = EventPresenter.getSelectableItemColorAsString(item);
           ctx.beginPath();
           ctx.arc(xView, halfHeight, dumpRadiusView + 0.5, 0, twoPi);
           ctx.fill();

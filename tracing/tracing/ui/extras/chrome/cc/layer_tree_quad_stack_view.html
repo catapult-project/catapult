@@ -72,6 +72,7 @@ found in the LICENSE file.
  * type of layer content shown and info bar for content-loading warnings.
  */
 tr.exportTo('tr.ui.e.chrome.cc', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   var THIS_DOC = document.currentScript.ownerDocument;
   var TILE_HEATMAP_TYPE = {};
@@ -970,11 +971,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
 
-        var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
+        var colorId = ColorScheme.getColorIdForGeneralPurposeString(
             highlight.colorKey);
-        colorId += tr.ui.b.getColorPaletteHighlightIdBoost();
+        colorId += ColorScheme.properties.selectedIdBoost;
 
-        var color = tr.b.Color.fromString(tr.ui.b.getColorPalette()[colorId]);
+        var color = ColorScheme.colors[colorId];
 
         var quadForDrawing = quad.clone();
         quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();

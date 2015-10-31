@@ -15,6 +15,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
@@ -63,7 +64,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
         ctr.addSeries(new tr.model.CounterSeries(valueName,
-        tr.ui.b.getColorIdForGeneralPurposeString(
+        ColorScheme.getColorIdForGeneralPurposeString(
         ctrName + '.' + valueName)));
       }
       return ctr;

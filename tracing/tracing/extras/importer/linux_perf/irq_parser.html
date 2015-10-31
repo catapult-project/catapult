@@ -15,6 +15,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
@@ -89,7 +90,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var slice = new tr.model.Slice(
             '',
             'IRQ (' + thread.irqName + ')',
-            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
+            ColorScheme.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { ret: ret },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -130,7 +131,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var duration = ts - thread.lastEntryTs;
         var slice = new tr.model.Slice(
             '', action,
-            tr.ui.b.getColorIdForGeneralPurposeString(event[1]),
+            ColorScheme.getColorIdForGeneralPurposeString(event[1]),
             thread.lastEntryTs, { vec: vec },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -163,7 +164,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var slice = new tr.model.Slice(
             '',
             'IPI (' + ipiName + ')',
-            tr.ui.b.getColorIdForGeneralPurposeString(ipiName),
+            ColorScheme.getColorIdForGeneralPurposeString(ipiName),
             thread.lastEntryTs,
             {},
             duration);

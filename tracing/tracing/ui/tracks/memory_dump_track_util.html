@@ -17,6 +17,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   var DISPLAYED_SIZE_ATTRIBUTE_NAME =
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
@@ -116,7 +117,8 @@ tr.exportTo('tr.ui.tracks', function() {
     // Build a chart series for each allocator.
     var series = [];
     tr.b.iterItems(allocatorNameToPoints, function(allocatorName, points) {
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(allocatorName);
+      var colorId = ColorScheme.getColorIdForGeneralPurposeString(
+          allocatorName);
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.LINE,
         colorId: colorId
@@ -133,9 +135,9 @@ tr.exportTo('tr.ui.tracks', function() {
    */
   function buildMemoryLetterDots(memoryDumps) {
     var lightMemoryColorId =
-        tr.ui.b.getColorIdForReservedName('light_memory_dump');
+        ColorScheme.getColorIdForReservedName('light_memory_dump');
     var detailedMemoryColorId =
-        tr.ui.b.getColorIdForReservedName('detailed_memory_dump');
+        ColorScheme.getColorIdForReservedName('detailed_memory_dump');
     return memoryDumps.map(function(memoryDump) {
       var memoryColorId;
       switch (memoryDump.levelOfDetail) {
@@ -214,7 +216,7 @@ tr.exportTo('tr.ui.tracks', function() {
     var series = [];
     tr.b.iterItems(pidToPoints, function(pid, points) {
       var process = pidToProcess[pid];
-      var colorId = tr.ui.b.getColorIdForGeneralPurposeString(
+      var colorId = ColorScheme.getColorIdForGeneralPurposeString(
           process.userFriendlyName);
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,

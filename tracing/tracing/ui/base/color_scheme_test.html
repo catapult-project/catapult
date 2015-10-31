@@ -11,25 +11,25 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var brighten = tr.ui.b.brightenColor;
-  var desaturate = tr.ui.b.desaturateColor;
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   test('buildColorPalette', function() {
-    var palette = tr.ui.b.getColorPalette();
-    var rawPalette = tr.ui.b.getRawColorPalette();
-    var highlightOffset = tr.ui.b.getColorPaletteHighlightIdBoost();
-    var desaturateOffset = tr.ui.b.getColorPaletteDesaturateIdBoost();
+    var colors = ColorScheme.colors;
+    var colorsAsStrings = ColorScheme.colorsAsStrings;
 
-    assert.strictEqual(palette.length, rawPalette.length);
-    assert.equal(palette.length % 3, 0);
-    assert.equal(palette.length / 3, highlightOffset);
-    assert.equal((palette.length / 3) * 2, desaturateOffset);
+    var properties = ColorScheme.properties;
 
-    for (var i = 0; i < rawPalette.length / 3; i++) {
-      assert.deepEqual(rawPalette[i + highlightOffset],
-                       brighten(rawPalette[i]));
-      assert.deepEqual(rawPalette[i + desaturateOffset],
-                       desaturate(rawPalette[i]));
+    assert.strictEqual(colorsAsStrings.length, colors.length);
+    assert.equal(colors.length % 4, 0);
+    assert.equal(properties.numBaseColors * 1, properties.selectedIdBoost);
+    assert.equal(properties.numBaseColors * 2, properties.highlightedIdBoost);
+    assert.equal(properties.numBaseColors * 3, properties.dimmedIdBoost);
+
+    for (var i = 0; i < colors.length / 4; i++) {
+      assert.deepEqual(colors[i + properties.selectedIdBoost],
+                       colors[i].brightenCleverly());
+      assert.deepEqual(colors[i + properties.dimmedIdBoost],
+                       colors[i].desaturate());
     }
   });
 });

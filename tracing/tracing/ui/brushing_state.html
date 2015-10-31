@@ -129,12 +129,6 @@ tr.exportTo('tr.ui.b', function() {
       return this.appliedToModel_ !== undefined;
     },
 
-    get hasHighlight_() {
-      return this.findMatches_.length > 0 ||
-          this.analysisViewRelatedEvents_.length > 0 ||
-          this.analysisLinkHoveredEvents_.length > 0;
-    },
-
     get viewSpecificBrushingStates() {
       return this.viewSpecificBrushingStates_;
     },
@@ -143,8 +137,16 @@ tr.exportTo('tr.ui.b', function() {
       this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
     },
 
+
+    get hasHighlight_() {
+      return this.findMatches_.length > 0 ||
+          this.analysisViewRelatedEvents_.length > 0 ||
+          this.analysisLinkHoveredEvents_.length > 0;
+    },
+
     applyToModelSelectionState: function(model) {
       this.appliedToModel_ = model;
+
 
       if (!this.hasHighlight_) {
         this.selection_.forEach(function(e) {
@@ -152,7 +154,6 @@ tr.exportTo('tr.ui.b', function() {
         });
         return;
       }
-
       model.iterateAllEvents(function(e) {
         var selectionState;
         if (this.selection_.contains(e)) {
@@ -188,7 +189,6 @@ tr.exportTo('tr.ui.b', function() {
         });
         return;
       }
-
       model.iterateAllEvents(function(e) {
         e.selectionState = SelectionState.NONE;
       });

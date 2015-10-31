@@ -18,6 +18,8 @@ found in the LICENSE file.
  * the currently active window of the process.
  */
 tr.exportTo('tr.model', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
+
   /**
    * @constructor
    * @param {String} name Name of the activity
@@ -29,7 +31,7 @@ tr.exportTo('tr.model', function() {
     tr.model.TimedEvent.call(this, range.min);
     this.title = name;
     this.category = category;
-    this.colorId = tr.ui.b.getColorIdForGeneralPurposeString(name);
+    this.colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
     this.duration = range.duration;
     this.args = args;
     this.name = name;

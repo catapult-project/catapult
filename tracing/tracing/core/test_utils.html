@@ -21,6 +21,8 @@ found in the LICENSE file.
  * @fileoverview Helper functions for use in tracing tests.
  */
 tr.exportTo('tr.c', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
+
   function _getStartAndCpuDurationFromDict(
       options, required, startFieldName, durationFieldName, endFieldName) {
 
@@ -94,8 +96,9 @@ tr.exportTo('tr.c', function() {
     var colorId;
     if (options.colorId) {
       if (options.colorId === 'random') {
-        colorId = Math.floor(Math.random() *
-                   tr.ui.b.paletteProperties.numGeneralPurposeColorIds);
+        colorId = Math.floor(
+            Math.random() *
+            ColorScheme.proprties.numGeneralPurposeColorIds);
       } else {
         colorId = options.colorId;
       }

@@ -19,6 +19,7 @@ found in the LICENSE file.
  * TimedEvent, and has no duration.
  */
 tr.exportTo('tr.model', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Statistics = tr.b.Statistics;
 
   var FRAME_PERF_CLASS = {
@@ -56,7 +57,7 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.Event.prototype,
 
     set perfClass(perfClass) {
-      this.colorId = tr.ui.b.getColorIdForReservedName(perfClass);
+      this.colorId = ColorScheme.getColorIdForReservedName(perfClass);
       this.perfClass_ = perfClass;
     },
 

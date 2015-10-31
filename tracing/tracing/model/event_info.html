@@ -10,6 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
 
   /**
    * EventInfo is an annotation added to Events in order to document
@@ -28,7 +29,7 @@ tr.exportTo('tr.model', function() {
     this.title = title;
     this.description = description;
     this.docLinks = docLinks;
-    this.colorId = tr.ui.b.getColorIdForGeneralPurposeString(title);
+    this.colorId = ColorScheme.getColorIdForGeneralPurposeString(title);
   }
 
   return {

@@ -18,9 +18,11 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.ui.b', function() {
   var elidedTitleCache = new tr.ui.b.ElidedTitleCache();
-  var palette = tr.ui.b.getColorPalette();
+  var ColorScheme = tr.ui.b.ColorScheme;
+  var colorsAsStrings = ColorScheme.colorsAsStrings;
+
   var EventPresenter = tr.ui.b.EventPresenter;
-  var blackColorId = tr.ui.b.getColorIdForReservedName('black');
+  var blackColorId = ColorScheme.getColorIdForReservedName('black');
 
   /**
    * This value is used to allow for consistent style UI elements.
@@ -158,7 +160,7 @@ tr.exportTo('tr.ui.b', function() {
     dt.applyTransformToCanvas(ctx);
 
     var rect = new tr.ui.b.FastRectRenderer(
-        ctx, 2 * pixWidth, 2 * pixWidth, palette);
+        ctx, 2 * pixWidth, 2 * pixWidth, colorsAsStrings);
     rect.setYandH(0, height);
 
     var lowSlice = tr.b.findLowIndexInSortedArray(

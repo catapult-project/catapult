@@ -14,7 +14,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.b', function() {
   var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
-  var getColorOfKey = tr.ui.b.getColorOfKey;
 
   /**
    * @constructor
@@ -45,7 +44,7 @@ tr.exportTo('tr.ui.b', function() {
           .append('path')
           .attr('class', 'line')
           .style('stroke', function(key) {
-              return getColorOfKey(key);
+              return tr.ui.b.getColorOfKey(key);
             })
           .attr('d', function(key) {
               var line = d3.svg.line()

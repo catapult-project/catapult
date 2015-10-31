@@ -13,6 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Cpu = tr.model.Cpu;
   var newThreadSlice = tr.c.TestUtils.newThreadSlice;
 
@@ -182,7 +183,7 @@ tr.b.unittest.testSuite(function() {
     var cpu = m.kernel.getOrCreateCpu(1);
     var powerCounter = cpu.getOrCreateCounter('', 'Clock Frequency');
     var series = powerCounter.addSeries(new tr.model.CounterSeries('state',
-        tr.ui.b.getColorIdForGeneralPurposeString('test')));
+        ColorScheme.getColorIdForGeneralPurposeString('test')));
 
     series.addCounterSample(0, 100000);
     series.addCounterSample(20, 300000);

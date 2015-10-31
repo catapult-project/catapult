@@ -25,6 +25,7 @@ tr.exportTo('tr.e.audits', function() {
   var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
   var Auditor = tr.c.Auditor;
   var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Statistics = tr.b.Statistics;
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
   var InteractionRecord = tr.model.InteractionRecord;
@@ -534,7 +535,7 @@ tr.exportTo('tr.e.audits', function() {
       var mergerFunction = function(events) {
         var ir = new InteractionRecord(
             this.model, 'Rendering',
-            tr.ui.b.getColorIdForGeneralPurposeString('mt_rendering'),
+            ColorScheme.getColorIdForGeneralPurposeString('mt_rendering'),
             events[0].min,
             events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);
@@ -551,7 +552,7 @@ tr.exportTo('tr.e.audits', function() {
       var mergerFunction = function(events) {
         var ir = new InteractionRecord(
             this.model, 'Input',
-            tr.ui.b.getColorIdForGeneralPurposeString('mt_input'),
+            ColorScheme.getColorIdForGeneralPurposeString('mt_input'),
             events[0].min,
             events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);

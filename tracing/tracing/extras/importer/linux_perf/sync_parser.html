@@ -15,6 +15,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
   var Parser = tr.e.importer.linux_perf.Parser;
 
   /**
@@ -61,7 +62,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           value = ' ';
         var slice = new tr.model.Slice(
             '', value,
-            tr.ui.b.getColorIdForGeneralPurposeString(value),
+            ColorScheme.getColorIdForGeneralPurposeString(value),
             thread.lastActiveTs, {},
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

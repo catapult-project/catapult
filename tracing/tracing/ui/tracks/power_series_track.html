@@ -23,6 +23,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.tracks', function() {
 
+  var ColorScheme = tr.ui.b.ColorScheme;
   var ChartTrack = tr.ui.tracks.ChartTrack;
 
   /**
@@ -68,7 +69,7 @@ tr.exportTo('tr.ui.tracks', function() {
       });
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,
-        colorId: tr.ui.b.getColorIdForGeneralPurposeString(this.heading)
+        colorId: ColorScheme.getColorIdForGeneralPurposeString(this.heading)
       };
 
       return [new tr.ui.tracks.ChartSeries(pts, axis, renderingConfig)];

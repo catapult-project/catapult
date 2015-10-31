@@ -114,7 +114,7 @@ found in the LICENSE file.
 
       var shadowRoot = this.shadowRoot;
       shadowRoot.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tr.ui.b.getColorPalette()[timeSlice.colorId];
+      var stateColor = tr.ui.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
       shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
 
       shadowRoot.querySelector('#process-name').textContent =
