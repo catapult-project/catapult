@@ -24,13 +24,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(properties.numBaseColors * 1, properties.selectedIdBoost);
     assert.equal(properties.numBaseColors * 2, properties.highlightedIdBoost);
     assert.equal(properties.numBaseColors * 3, properties.dimmedIdBoost);
-
-    for (var i = 0; i < colors.length / 4; i++) {
-      assert.deepEqual(colors[i + properties.selectedIdBoost],
-                       colors[i].brightenCleverly());
-      assert.deepEqual(colors[i + properties.dimmedIdBoost],
-                       colors[i].desaturate());
-    }
   });
 });
 </script>

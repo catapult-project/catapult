@@ -79,7 +79,7 @@ tr.exportTo('tr.b', function() {
   };
 
   /**
-   * Converts an HSV triplet with alpha to an RGB color.
+   * Converts an HSL triplet with alpha to an RGB color.
    * |h| Hue value in [0, 1].
    * |s| Saturation value in [0, 1].
    * |l| Lightness in [0, 1].
@@ -112,7 +112,7 @@ tr.exportTo('tr.b', function() {
   }
 
   Color.fromHSL = function(hsl) {
-    return Color.fromHSLExplicit(hsv.h, hsv.s, hsv.l, hsv.a);
+    return Color.fromHSLExplicit(hsl.h, hsl.s, hsl.l, hsl.a);
   }
 
   Color.prototype = {
@@ -147,33 +147,11 @@ tr.exportTo('tr.b', function() {
           this.a);
     },
 
-    /*
-     * Legacy brightening function used by TimelineTracks. Avoid using.
-     *
-     * Coloring in trace viewer is one of the oldest parts of the code, and
-     * was very organically built. At the time, we didn't want to code up
-     * a proper HSV implementation, so to brighten colors, we scale them up
-     * with a simple multiply. But, that sometimes made them too bright,
-     * so then we sometimes dim them, when they're already bright.
-     *
-     * People are used to the coloring scheme, so today we keep this function
-     * around for consistency. Hopefully, someday we can ditch this for
-     * a more consisistent, HSV-based approach.
-     *
-     * This isn't particularly clever, but it gets the job done. And clever
-     * like the most polite euphamism to use, considering reality. :)
-     */
-    brightenCleverly: function() {
-      var k;
-      if (this.r >= 240 && this.g >= 240 && this.b >= 240)
-        k = 0.80;
-      else
-        k = 1.45;
-      return new Color(
-          Math.min(255, Math.floor(this.r * k)),
-          Math.min(255, Math.floor(this.g * k)),
-          Math.min(255, Math.floor(this.b * k)),
-          this.a);
+    lighten: function(k, opt_max_l) {
+      var max_l = opt_max_l !== undefined ? opt_max_l : 1.0;
+      var hsl = this.toHSL();
+      hsl.l = Math.max(0, Math.min(max_l, hsl.l + k));
+      return Color.fromHSL(hsl);
     },
 
     darken: function(opt_k) {
@@ -191,8 +169,9 @@ tr.exportTo('tr.b', function() {
     },
 
     desaturate: function() {
-      var value = Math.min((this.r + this.g + this.b) / 3, 255);
-      return new Color(value, value, value, this.a);
+      var hsl = this.toHSL();
+      hsl.s = 0;
+      return Color.fromHSL(hsl);
     },
 
     withAlpha: function(a) {

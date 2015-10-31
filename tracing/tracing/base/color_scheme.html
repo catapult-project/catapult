@@ -16,36 +16,36 @@ found in the LICENSE file.
 tr.exportTo('tr.b', function() {
   // Basic constants...
   var generalPurposeColors = [
-    new tr.b.Color(138, 113, 152),
-    new tr.b.Color(175, 112, 133),
-    new tr.b.Color(127, 135, 225),
-    new tr.b.Color(93, 81, 137),
-    new tr.b.Color(116, 143, 119),
-    new tr.b.Color(178, 214, 122),
+    new tr.b.Color(122, 98, 135),
+    new tr.b.Color(150, 83, 105),
+    new tr.b.Color(44, 56, 189),
+    new tr.b.Color(99, 86, 147),
+    new tr.b.Color(104, 129, 107),
+    new tr.b.Color(130, 178, 55),
     new tr.b.Color(87, 109, 147),
-    new tr.b.Color(119, 155, 95),
-    new tr.b.Color(114, 180, 160),
-    new tr.b.Color(132, 85, 103),
-    new tr.b.Color(157, 210, 150),
+    new tr.b.Color(111, 145, 88),
+    new tr.b.Color(81, 152, 131),
+    new tr.b.Color(142, 91, 111),
+    new tr.b.Color(81, 163, 70),
     new tr.b.Color(148, 94, 86),
-    new tr.b.Color(164, 108, 138),
-    new tr.b.Color(139, 191, 150),
-    new tr.b.Color(110, 99, 145),
-    new tr.b.Color(80, 129, 109),
-    new tr.b.Color(125, 140, 149),
-    new tr.b.Color(93, 124, 132),
-    new tr.b.Color(140, 85, 140),
-    new tr.b.Color(104, 163, 162),
-    new tr.b.Color(132, 141, 178),
-    new tr.b.Color(131, 105, 147),
-    new tr.b.Color(135, 183, 98),
-    new tr.b.Color(152, 134, 177),
-    new tr.b.Color(141, 188, 141),
-    new tr.b.Color(133, 160, 210),
-    new tr.b.Color(126, 186, 148),
-    new tr.b.Color(112, 198, 205),
-    new tr.b.Color(180, 122, 195),
-    new tr.b.Color(203, 144, 152)];
+    new tr.b.Color(144, 89, 118),
+    new tr.b.Color(83, 150, 97),
+    new tr.b.Color(105, 94, 139),
+    new tr.b.Color(89, 144, 122),
+    new tr.b.Color(105, 119, 128),
+    new tr.b.Color(96, 128, 137),
+    new tr.b.Color(145, 88, 145),
+    new tr.b.Color(88, 145, 144),
+    new tr.b.Color(90, 100, 143),
+    new tr.b.Color(121, 97, 136),
+    new tr.b.Color(111, 160, 73),
+    new tr.b.Color(112, 91, 142),
+    new tr.b.Color(86, 147, 86),
+    new tr.b.Color(63, 100, 170),
+    new tr.b.Color(81, 152, 107),
+    new tr.b.Color(60, 164, 173),
+    new tr.b.Color(143, 72, 161),
+    new tr.b.Color(159, 74, 86)];
 
   var reservedColorsByName = {
     thread_state_iowait: new tr.b.Color(182, 125, 143),
@@ -126,12 +126,11 @@ tr.exportTo('tr.b', function() {
                              paletteBase);
     combinedItems.push.apply(combinedItems,
                              paletteBase.map(function(c) {
-                               return c.brightenCleverly();
+                               return c.lighten(0.3, 0.9);
                              }));
     combinedItems.push.apply(combinedItems,
                              paletteBase.map(function(c) {
-                               c = c.brightenCleverly(c);
-                               return c.brighten(0.4);
+                               return c.lighten(0.5, 0.9);
                              }));
     combinedItems.push.apply(combinedItems,
                              paletteBase.map(function(c) {
