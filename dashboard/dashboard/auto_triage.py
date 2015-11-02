@@ -238,14 +238,16 @@ def _IsAnomalyRecovered(anomaly_entity):
   # If no improvement direction is provided, use absolute changes.
   if test.improvement_direction == anomaly.UNKNOWN:
     absolute_change = abs(median_after - median_before)
-    relative_change = abs(_RelativeChange(median_before, median_after))
+    relative_change = abs(
+        math_utils.RelativeChange(median_before, median_after))
   else:
     if test.improvement_direction == anomaly.UP:
       direction = -1
     else:
       direction = 1
     absolute_change = direction * (median_after - median_before)
-    relative_change = direction * _RelativeChange(median_before, median_after)
+    relative_change = direction * math_utils.RelativeChange(
+        median_before, median_after)
 
   measurements = {
       'segment_size_after': anomaly_entity.segment_size_after,
@@ -279,19 +281,6 @@ def _IsAnomalyRecovered(anomaly_entity):
     return False, None
 
   return True, measurements
-
-
-def _RelativeChange(before, after):
-  """Returns the none absolute value of the relative change between two values.
-
-  Args:
-    before: First value.
-    after: Second value.
-
-  Returns:
-    Relative change from the first to the second value.
-  """
-  return (after - before) / float(before) if before != 0 else float('inf')
 
 
 def _AddLogForRecoveredAnomaly(anomaly_entity, bug_id=None):

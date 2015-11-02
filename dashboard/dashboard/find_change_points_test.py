@@ -123,18 +123,6 @@ class FindChangePointsTest(unittest.TestCase):
     # Also, the median of the output is always zero.
     self.assertEqual(0, math_utils.Median(zeroed_nums))
 
-  def testRelativeChange(self):
-    # The relative difference is with respect to the first number, and the
-    # absolute value is taken. So 1 means doubling, and 0.5 means halving.
-    self.assertEqual(1, find_change_points._RelativeChange(32, 64))
-    self.assertEqual(0.5, find_change_points._RelativeChange(64, 32))
-
-  def testRelativeChange_NoChange_ReturnsZero(self):
-    self.assertEqual(0, find_change_points._RelativeChange(7, 7))
-
-  def testRelativeChange_FromZero_ReturnsInf(self):
-    self.assertEqual(float('inf'), find_change_points._RelativeChange(0, 1))
-
   def _AssertFindsChangePoints(
       self, y_values, expected_indexes, max_window_size=50, min_segment_size=6,
       min_absolute_change=0, min_relative_change=0.01, min_steppiness=0.4,

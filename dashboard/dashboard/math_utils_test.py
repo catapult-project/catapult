@@ -65,6 +65,18 @@ class MathUtilsTest(unittest.TestCase):
   def testDivide_UsesFloatArithmetic(self):
     self.assertEqual(1.5, math_utils.Divide(3, 2))
 
+  def testRelativeChange(self):
+    # The relative difference is with respect to the first number, and the
+    # absolute value is taken. So 1 means doubling, and 0.5 means halving.
+    self.assertEqual(1, math_utils.RelativeChange(32, 64))
+    self.assertEqual(0.5, math_utils.RelativeChange(64, 32))
+
+  def testRelativeChange_NoChange_ReturnsZero(self):
+    self.assertEqual(0, math_utils.RelativeChange(7, 7))
+
+  def testRelativeChange_FromZero_ReturnsInf(self):
+    self.assertEqual(float('inf'), math_utils.RelativeChange(0, 1))
+
 
 if __name__ == '__main__':
   unittest.main()

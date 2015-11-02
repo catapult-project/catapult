@@ -46,3 +46,16 @@ def Divide(a, b):
     return float('nan')
   return a / float(b)
 
+
+def RelativeChange(before, after):
+  """Returns the absolute value of the relative change between two values.
+
+  Args:
+    before: First value.
+    after: Second value.
+
+  Returns:
+    Relative change from the first to the second value, or infinity if the
+    first value is zero. This is guaranteed to be non-negative.
+  """
+  return abs((after - before) / float(before)) if before else float('inf')

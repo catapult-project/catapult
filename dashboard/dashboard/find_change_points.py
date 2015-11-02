@@ -138,7 +138,7 @@ def MakeChangePoint(series, split_index):
       size_after=len(right),
       window_start=x_values[0],
       window_end=x_values[-1],  # inclusive bound
-      relative_change=_RelativeChange(left_median, right_median),
+      relative_change=math_utils.RelativeChange(left_median, right_median),
       std_dev_before=math_utils.StandardDeviation(left),
       t_statistic=ttest_results.t,
       degrees_of_freedom=ttest_results.df,
@@ -167,6 +167,12 @@ def _FindSplit(values):
     left, right = values[:index], values[index:]
     return math_utils.StandardDeviation(_ZeroMedian(left) + _ZeroMedian(right))
   return min(range(1, len(values)), key=StdDevOfTwoNormalizedSides)
+
+
+def _ZeroMedian(values):
+  """Subtracts the median value in the list from all values in the list."""
+  median = math_utils.Median(values)
+  return [val - median for val in values]
 
 
 def _PassesThresholds(
@@ -199,7 +205,7 @@ def _PassesThresholds(
     return False
 
   # 3. Relative change filter.
-  relative_change = _RelativeChange(left_median, right_median)
+  relative_change = math_utils.RelativeChange(left_median, right_median)
   if relative_change < min_relative_change:
     return False
 
@@ -217,23 +223,3 @@ def _PassesThresholds(
 
   # Passed all filters!
   return True
-
-
-def _RelativeChange(before, after):
-  """Returns the absolute value of the relative change between two values.
-
-  Args:
-    before: First value.
-    after: Second value.
-
-  Returns:
-    Relative change from the first to the second value, or infinity if the
-    first value is zero. This is guaranteed to be non-negative.
-  """
-  return abs((after - before) / float(before)) if before else float('inf')
-
-
-def _ZeroMedian(values):
-  """Subtracts the median value in the list from all values in the list."""
-  median = math_utils.Median(values)
-  return [val - median for val in values]
