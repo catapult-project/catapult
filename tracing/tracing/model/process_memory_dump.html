@@ -125,13 +125,28 @@ tr.exportTo('tr.model', function() {
 
         // Subtract the tracing size from VM regions.
         if (this.vmRegions_ !== undefined) {
-          this.vmRegions_.push(VMRegion.fromDict({
-            mappedFile: '[discounted tracing overhead]',
-            byteStats: {
-              privateDirtyResident: -discountedResidentSize,
-              proportionalResident: -discountedResidentSize
-            }
-          }));
+          var hasPrivateDirtyResident = false;
+          var hasProportionalResident = false;
+          for (var i = 0; i < this.vmRegions_.length; i++) {
+            var byteStats = this.vmRegions_[i].byteStats;
+            if (byteStats.privateDirtyResident !== undefined)
+              hasPrivateDirtyResident = true;
+            if (byteStats.proportionalResident !== undefined)
+              hasProportionalResident = true;
+            if (hasPrivateDirtyResident && hasProportionalResident)
+              break;
+          }
+          if (hasPrivateDirtyResident || hasProportionalResident) {
+            this.vmRegions_.push(VMRegion.fromDict({
+              mappedFile: '[discounted tracing overhead]',
+              byteStats: {
+                privateDirtyResident: hasPrivateDirtyResident ?
+                    -discountedResidentSize : undefined,
+                proportionalResident: hasProportionalResident ?
+                    -discountedResidentSize : undefined
+              }
+            }));
+          }
         }
       }
 
