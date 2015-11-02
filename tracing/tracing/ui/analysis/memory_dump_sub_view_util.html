@@ -45,8 +45,8 @@ tr.exportTo('tr.ui.analysis', function() {
      *   | Defined (at timestamps) | Interpretation  | Prefix | Color  |
      *   +-------------------------+-----------------+--------+--------+
      *   | 1111111111              | always present  |        |        |
-     *   | 0000111111              | added           | +++    | green  |
-     *   | 1111111000              | deleted         | ---    | red    |
+     *   | 0000111111              | added           | +++    | red    |
+     *   | 1111111000              | deleted         | ---    | green  |
      *   | 1100111111*             | flaky           |        | purple |
      *   | 0001001111              | added + flaky   | +++    | purple |
      *   | 1111100010              | deleted + flaky | ---    | purple |
@@ -81,11 +81,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var prefix = undefined;
       if (!firstDefined && lastDefined) {
         // The row was added.
-        color = 'green';
+        color = 'red';
         prefix = '+++';
       } else if (firstDefined && !lastDefined) {
         // The row was removed.
-        color = 'red';
+        color = 'green';
         prefix = '---';
       }
       if (changeDefinedCount > 1) {

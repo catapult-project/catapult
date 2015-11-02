@@ -156,13 +156,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(column.formatTitle(row), 'added');
     var value = column.value(row);
     assert.equal(value.textContent, '+++\u00A0added');
-    assert.equal(value.style.color, 'green');
+    assert.equal(value.style.color, 'red');
 
     var row = {title: 'removed', defined: [true, true, false, false]};
     assert.equal(column.formatTitle(row), 'removed');
     var value = column.value(row);
     assert.equal(value.textContent, '---\u00A0removed');
-    assert.equal(value.style.color, 'red');
+    assert.equal(value.style.color, 'green');
 
     var row = {title: 'flaky', defined: [true, false, true, true]};
     assert.equal(column.formatTitle(row), 'flaky');
