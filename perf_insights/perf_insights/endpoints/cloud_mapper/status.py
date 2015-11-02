@@ -15,12 +15,15 @@ class StatusPage(webapp2.RequestHandler):
 
     job = job_info.JobInfo.get_by_id(jobid)
     status = 'ERROR'
+    data = None
     if job:
       status = job.status
+      if status == 'COMPLETE':
+        data = job.results
 
     response = {
         'status': status,
-        'data': None,
+        'data': data,
     }
     self.response.out.write(json.dumps(response))
 
