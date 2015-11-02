@@ -69,13 +69,10 @@ that label, using the getColorId* methods from base/color_scheme.
       this.$.label.textContent = '';
       this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
 
-      if (colorId === undefined) {
+      if (colorId === undefined)
         this.$.square.style.color = 'initial';
-      } else {
-        var colorsAsStrings = tr.b.ColorScheme.colorsAsStrings;
-        var color = tr.b.ColorScheme[colorId];
-        this.$.square.style.color = color;
-      }
+      else
+        this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
     }
   });
   </script>
