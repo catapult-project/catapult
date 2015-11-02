@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="/dashboard/elements/select-menu.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var testOptions = {};
+
+  test('instantiate with menu items', function() {
+    var menu = document.createElement('select-menu');
+    menu.menuItems = ['foo', 'bar', 'baz'];
+    this.addHTMLOutput(menu);
+  }, testOptions);
+
+  test('select and selected basic behavior', function() {
+    var menu = document.createElement('select-menu');
+    menu.menuItems = ['foo', 'bar', 'baz'];
+    assert.equal(null, menu.selected);
+    menu.select('foo');
+    assert.equal('foo', menu.selected);
+    menu.select('baz');
+    assert.equal('baz', menu.selected);
+  }, testOptions);
+});
+</script>

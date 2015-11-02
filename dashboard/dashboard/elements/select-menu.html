@@ -22,6 +22,10 @@
     Polymer('select-menu', {
       select: function(label) {
         this.$.menu.selected = label;
+      },
+
+      get selected() {
+        return this.$.menu.selected;
       }
     });
   </script>
