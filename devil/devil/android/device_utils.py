@@ -2081,3 +2081,52 @@ class DeviceUtils(object):
         logging.warning('Possible problem when granting permissions. Blacklist '
                         'may need to be updated.')
         logging.warning(output)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def IsScreenOn(self, timeout=None, retries=None):
+    """Determines if screen is on.
+
+    Dumpsys input_method exposes screen on/off state. Below is an explination of
+    the states.
+
+    Pre-L:
+      On: mScreenOn=true
+      Off: mScreenOn=false
+    L+:
+      On: mInteractive=true
+      Off: mInteractive=false
+
+    Returns:
+      True if screen is on, false if it is off.
+
+    Raises:
+      device_errors.CommandFailedError: If screen state cannot be found.
+    """
+    if self.build_version_sdk < version_codes.LOLLIPOP:
+       input_check = 'mScreenOn'
+       check_value = 'mScreenOn=true'
+    else:
+       input_check = 'mInteractive'
+       check_value = 'mInteractive=true'
+    dumpsys_out = self._RunPipedShellCommand(
+        'dumpsys input_method | grep %s' % input_check)
+    if not dumpsys_out:
+      raise device_errors.CommandFailedError(
+          'Unable to detect screen state', str(self))
+    return check_value in dumpsys_out[0]
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def SetScreen(self, on, timeout=None, retries=None):
+    """Turns screen on and off.
+
+    Args:
+      on: bool to decide state to switch to. True = on False = off.
+    """
+    def screen_test():
+      return self.IsScreenOn() == on
+
+    if screen_test():
+      logging.info('Screen already in expected state.')
+      return
+    self.RunShellCommand('input keyevent 26')
+    timeout_retry.WaitFor(screen_test, wait_period=1)

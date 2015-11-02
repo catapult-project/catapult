@@ -2098,13 +2098,13 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
 
   def testGrantPermissions_underM(self):
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=20):
+                         return_value=version_codes.LOLLIPOP):
       self.device.GrantPermissions('package', ['p1'])
 
   def testGrantPermissions_one(self):
     permissions_cmd = 'pm grant package p1'
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=23):
+                         return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
           (self.call.device.RunShellCommand(permissions_cmd), [])):
         self.device.GrantPermissions('package', ['p1'])
@@ -2112,7 +2112,7 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
   def testGrantPermissions_multiple(self):
     permissions_cmd = 'pm grant package p1;pm grant package p2'
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=23):
+                         return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
           (self.call.device.RunShellCommand(permissions_cmd), [])):
         self.device.GrantPermissions('package', ['p1', 'p2'])
@@ -2122,18 +2122,102 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
         'pm grant package android.permission.WRITE_EXTERNAL_STORAGE;'
         'pm grant package android.permission.READ_EXTERNAL_STORAGE')
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=23):
+                         return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
           (self.call.device.RunShellCommand(permissions_cmd), [])):
         self.device.GrantPermissions(
             'package', ['android.permission.WRITE_EXTERNAL_STORAGE'])
 
   def testGrantPermissions_BlackList(self):
-    with self.patch_call(
-        self.call.device.build_version_sdk, return_value=23):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.MARSHMALLOW):
         self.device.GrantPermissions(
             'package', ['android.permission.ACCESS_MOCK_LOCATION'])
 
+
+class DeviecUtilsIsScreenOn(DeviceUtilsTest):
+
+  _L_SCREEN_ON = ['test=test mInteractive=true']
+  _K_SCREEN_ON = ['test=test mScreenOn=true']
+  _L_SCREEN_OFF = ['mInteractive=false']
+  _K_SCREEN_OFF = ['mScreenOn=false']
+
+  def testIsScreenOn_onPreL(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.KITKAT):
+      with self.assertCalls(
+          (self.call.device._RunPipedShellCommand(
+              'dumpsys input_method | grep mScreenOn'), self._K_SCREEN_ON)):
+        self.assertTrue(self.device.IsScreenOn())
+
+  def testIsScreenOn_onL(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCalls(
+          (self.call.device._RunPipedShellCommand(
+              'dumpsys input_method | grep mInteractive'), self._L_SCREEN_ON)):
+        self.assertTrue(self.device.IsScreenOn())
+
+  def testIsScreenOn_offPreL(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.KITKAT):
+      with self.assertCalls(
+          (self.call.device._RunPipedShellCommand(
+              'dumpsys input_method | grep mScreenOn'), self._K_SCREEN_OFF)):
+        self.assertFalse(self.device.IsScreenOn())
+
+  def testIsScreenOn_offL(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCalls(
+          (self.call.device._RunPipedShellCommand(
+              'dumpsys input_method | grep mInteractive'), self._L_SCREEN_OFF)):
+        self.assertFalse(self.device.IsScreenOn())
+
+  def testIsScreenOn_noOutput(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCalls(
+          (self.call.device._RunPipedShellCommand(
+              'dumpsys input_method | grep mInteractive'), [])):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.IsScreenOn()
+
+
+class DeviecUtilsSetScreen(DeviceUtilsTest):
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testSetScren_alreadySet(self):
+    with self.assertCalls(
+        (self.call.device.IsScreenOn(), False)):
+      self.device.SetScreen(False)
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testSetScreen_on(self):
+    with self.assertCalls(
+        (self.call.device.IsScreenOn(), False),
+        (self.call.device.RunShellCommand('input keyevent 26'), []),
+        (self.call.device.IsScreenOn(), True)):
+      self.device.SetScreen(True)
+
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testSetScreen_off(self):
+    with self.assertCalls(
+        (self.call.device.IsScreenOn(), True),
+        (self.call.device.RunShellCommand('input keyevent 26'), []),
+        (self.call.device.IsScreenOn(), False)):
+      self.device.SetScreen(False)
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testSetScreen_slow(self):
+    with self.assertCalls(
+        (self.call.device.IsScreenOn(), True),
+        (self.call.device.RunShellCommand('input keyevent 26'), []),
+        (self.call.device.IsScreenOn(), True),
+        (self.call.device.IsScreenOn(), True),
+        (self.call.device.IsScreenOn(), False)):
+      self.device.SetScreen(False)
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
