@@ -421,10 +421,11 @@ property 'group' sets to the header item name.
        * Selects the first non-head item if it is an exact match.
        */
       selectFirstMatch: function(value) {
+        value = value.toLowerCase();
         for (var i = 0; i < this.dataList.length; i++) {
           var item = this.dataList[i];
           if (!item.head) {
-            if (item.name == value) {
+            if (item.name.toLowerCase() == value) {
               this.setItemSelection(item, true);
               this.$.dropdown.selected.push(i);
             }
