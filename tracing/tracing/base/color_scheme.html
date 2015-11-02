@@ -89,8 +89,8 @@ tr.exportTo('tr.b', function() {
   var numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
   var numColorsPerVariant = numGeneralPurposeColorIds + numReservedColorIds;
 
-  class ColorScheme {
-  };
+  function ColorScheme() {
+  }
 
   /*
    * A flat array of tr.b.Color values of the palette, and their variants.
