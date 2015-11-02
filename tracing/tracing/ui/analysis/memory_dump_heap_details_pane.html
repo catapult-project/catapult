@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/ui/analysis/stack_frame_tree.html">
+<link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
+    extends="tr-ui-a-stacked-pane">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #header {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        background-color: #eee;
+        border-bottom: 1px solid #8e8e8e;
+        border-top: 1px solid white;
+      }
+
+      #label {
+        flex: 1 1 auto;
+        padding: 8px;
+        font-size:  15px;
+        font-weight: bold;
+      }
+
+      #view_mode_container {
+        display: none;
+        flex: 0 0 auto;
+        padding: 5px;
+        font-size: 15px;
+      }
+
+      #contents {
+        flex: 1 0 auto;
+        align-self: stretch;
+        font-size: 12px;
+      }
+
+      #info_text {
+        padding: 8px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+      }
+
+      #table {
+        display: none;  /* Hide until memory allocator dumps are set. */
+        flex: 1 0 auto;
+        align-self: stretch;
+      }
+    </style>
+    <div id="header">
+      <div id="label">Heap details</div>
+      <div id="view_mode_container">
+        <span>View mode:</span>
+        <!-- View mode selector (added in Polymer.ready()) -->
+      </div>
+    </div>
+    <div id="contents">
+      <div id="info_text">No heap dump selected</div>
+      <tr-ui-b-table id="table"></tr-ui-b-table>
+    </div>
+  </template>
+</polymer-element>
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.analysis', function() {
+
+  var COLUMN_IMPORTANCE_RULES =
+      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+          'Total size',
+          'Self size']);
+
+  Polymer('tr-ui-a-memory-dump-heap-details-pane', {
+    created: function() {
+      this.heapDumps_ = undefined;
+      this.aggregationMode_ = undefined;
+      this.bottomUpView_ = false;
+    },
+
+    ready: function() {
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+
+      this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
+          this, 'bottomUpView', 'memoryDumpHeapDetailsPane.bottomUpView',
+          false /* Top down default */,
+          [
+            {
+              label: 'Tree (top down)',
+              value: false
+            },
+            {
+              label: 'Heavy (bottom up)',
+              value: true
+            }
+          ]));
+    },
+
+    /**
+     * Sets the heap dumps and schedules rebuilding the pane.
+     *
+     * The provided value should be a chronological list of heap dumps. All
+     * dumps are assumed to belong to the same process and belong to the same
+     * allocator. Example:
+     *
+     *   [
+     *     tr.model.HeapDump {},  // Heap dump at timestamp 1.
+     *     undefined,  // Heap dump not provided at timestamp 2.
+     *     tr.model.HeapDump {},  // Heap dump at timestamp 3.
+     *   ]
+     */
+    set heapDumps(heapDumps) {
+      this.heapDumps_ = heapDumps;
+      this.scheduleRebuildPane_();
+    },
+
+    get heapDumps() {
+      return this.heapDumps_;
+    },
+
+    set aggregationMode(aggregationMode) {
+      this.aggregationMode_ = aggregationMode;
+      this.scheduleRebuildPane_();
+    },
+
+    get aggregationMode() {
+      return this.aggregationMode_;
+    },
+
+    set bottomUpView(bottomUpView) {
+      this.bottomUpView_ = bottomUpView;
+      this.scheduleRebuildPane_();
+    },
+
+    get bottomUpView() {
+      return this.bottomUpView_;
+    },
+
+    rebuildPane_: function() {
+      if (this.heapDumps_ === undefined ||
+          this.heapDumps_.length === 0) {
+        // Show the info text (hide the table and the view mode selector).
+        this.$.info_text.style.display = 'block';
+        this.$.table.style.display = 'none';
+        this.$.view_mode_container.style.display = 'none';
+
+        this.$.table.clear();
+        this.$.table.rebuild();
+        return;
+      }
+
+      // Show the table and the view mode selector (hide the info text).
+      this.$.info_text.style.display = 'none';
+      this.$.table.style.display = 'block';
+      this.$.view_mode_container.style.display = 'block';
+
+      var stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
+      var rows = this.createRows_(stackFrameTrees);
+      var columns = this.createColumns_(rows);
+
+      this.$.table.tableRows = rows;
+      this.$.table.tableColumns = columns;
+      this.$.table.rebuild();
+      tr.ui.analysis.expandTableRowsRecursively(this.$.table);
+    },
+
+    createStackFrameTrees_: function(heapDumps) {
+      return heapDumps.map(function(heapDump) {
+        if (heapDump === undefined)
+          return undefined;
+
+        var rootNode =
+            new tr.ui.analysis.StackFrameTreeNode(heapDump.allocatorName);
+        var sumSize = undefined;
+
+        // Build the heap tree.
+        heapDump.entries.forEach(function(entry) {
+          var size = entry.size;
+          var leafStackFrame = entry.leafStackFrame;
+          if (leafStackFrame === undefined) {
+            if (sumSize !== undefined)
+              throw new Error('Multiple sum stack frames');
+            sumSize = size;
+            return;
+          }
+          rootNode.addStackTrace(leafStackFrame.stackTrace, size, true);
+        }, this);
+
+        // Add an <unspecified> node (if applicable).
+        if (sumSize !== undefined && sumSize > rootNode.total) {
+          var unspecifiedSize = sumSize - rootNode.total;
+          rootNode.total = sumSize;
+          var unspecifiedNode = rootNode.getOrCreateChild('<unspecified>');
+          unspecifiedNode.total += unspecifiedSize;
+          unspecifiedNode.self += unspecifiedSize;
+        }
+
+        if (this.bottomUpView)
+          return rootNode.convertToBottomUpView();
+        else
+          return rootNode;
+      }, this);
+    },
+
+    createRows_: function(stackFrameTrees) {
+      return [this.createHeapRowRecursively_(stackFrameTrees)];
+    },
+
+    createHeapRowRecursively_: function(nodes) {
+      // Get the name of the stack frame tree nodes. We can use any defined
+      // node since they all have the same name.
+      var title = tr.b.findFirstInArray(nodes).title;
+
+      // Determine at which timestamps (indices of the current selection)
+      // the stack frame tree node was provided.
+      var defined = nodes.map(function(node) {
+        return node !== undefined;
+      });
+
+      // Transform a chronological list of stack frame tree nodes into a
+      // dictionary of cells (where each cell contains a chronological list
+      // of the values of its attribute).
+      var cells = tr.ui.analysis.createCells(nodes, function(node) {
+        return {
+          'Total size': new tr.model.ScalarAttribute('bytes', node.total),
+          'Self size': new tr.model.ScalarAttribute('bytes', node.self)
+        };
+      });
+
+      // Child stack frame tree node index (list index) ->
+      // Timestamp (list index) -> Child stack frame tree node.
+      var groupedChildNodes = tr.b.dictionaryValues(
+          tr.b.invertArrayOfDicts(nodes, function(node) {
+            return node.children;
+          }));
+
+      var row = {
+        title: title,
+        defined: defined,
+        cells: cells
+      };
+
+      // Recursively create sub-rows for children (if applicable).
+      if (groupedChildNodes.length > 0) {
+        row.subRows =
+            groupedChildNodes.map(this.createHeapRowRecursively_, this);
+      }
+
+      return row;
+    },
+
+    createColumns_: function(rows) {
+      var titleColumn = new tr.ui.analysis.TitleColumn('Stack frame');
+      titleColumn.width = '500px';
+
+      var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'cells', this.aggregationMode_);
+      tr.ui.analysis.MemoryColumn.sortByImportance(
+          attributeColumns, COLUMN_IMPORTANCE_RULES);
+      tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
+
+      var columns = [titleColumn].concat(attributeColumns);
+      return columns;
+    }
+  });
+
+  return {};
+});
+</script>

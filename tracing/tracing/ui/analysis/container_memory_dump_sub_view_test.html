@@ -21,6 +21,7 @@ tr.b.unittest.testSuite(function() {
   var EventSet = tr.model.EventSet;
   var extractVmRegions = tr.ui.analysis.extractVmRegions;
   var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
+  var extractHeapDumps = tr.ui.analysis.extractHeapDumps;
 
   function createViewWithSelection(selection, opt_parentElement) {
     var viewEl = document.createElement(
@@ -77,19 +78,33 @@ tr.b.unittest.testSuite(function() {
       }
     }
 
-    function checkAllocatorPane(pid, allocatorName) {
-      var detailsPaneEl = tr.b.findDeepElementMatching(
+    function checkAllocatorPane(pid, allocatorName, withHeapDetailsPane) {
+      var allocatorDetailsPaneEl = tr.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-allocator-details-pane');
       if (pid === undefined) {
-        assert.isUndefined(detailsPaneEl);
+        assert.isUndefined(allocatorDetailsPaneEl);
         assert.isUndefined(allocatorName);  // Test sanity check.
-      } else {
-        assert.deepEqual(tr.b.asArray(detailsPaneEl.memoryAllocatorDumps),
-            extractMemoryAllocatorDumps(
-                processMemoryDumps, pid, allocatorName));
-        assert.strictEqual(
-            detailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
+        assert.isUndefined(withHeapDetailsPane);  // Test sanity check.
+        return;
       }
+
+      assert.deepEqual(
+          tr.b.asArray(allocatorDetailsPaneEl.memoryAllocatorDumps),
+          extractMemoryAllocatorDumps(processMemoryDumps, pid, allocatorName));
+      assert.strictEqual(
+          allocatorDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
+
+      var heapDetailsPaneEl = tr.b.findDeepElementMatching(
+          stackedPaneViewEl, 'tr-ui-a-memory-dump-heap-details-pane');
+      if (!withHeapDetailsPane) {
+        assert.isUndefined(heapDetailsPaneEl);
+        return;
+      }
+
+      assert.deepEqual(tr.b.asArray(heapDetailsPaneEl.heapDumps),
+          extractHeapDumps(processMemoryDumps, pid, allocatorName));
+      assert.strictEqual(
+          heapDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
     }
 
     detailsCheckCallback(
@@ -135,7 +150,8 @@ tr.b.unittest.testSuite(function() {
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[1];
           overviewTableEl.selectedColumnIndex = 7;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'malloc');
+          checkAllocatorPane(2 /* PID */, 'malloc',
+              false /* no heap details pane */);
         });
   });
 
@@ -165,7 +181,7 @@ tr.b.unittest.testSuite(function() {
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[2];
           overviewTableEl.selectedColumnIndex = 9;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(3 /* PID */, 'v8');
+          checkAllocatorPane(3 /* PID */, 'v8', true /* heap details pane */);
         });
   });
 
@@ -183,12 +199,14 @@ tr.b.unittest.testSuite(function() {
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
           overviewTableEl.selectedColumnIndex = 10;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'tracing');
+          checkAllocatorPane(2 /* PID */, 'tracing',
+              false /* no heap details pane */);
 
           // Blink of Process 2.
           overviewTableEl.selectedColumnIndex = 6;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'blink');
+          checkAllocatorPane(2 /* PID */, 'blink',
+              false /* no heap details pane */);
 
           // Total resident of Process 2.
           overviewTableEl.selectedColumnIndex = 1;
@@ -211,12 +229,14 @@ tr.b.unittest.testSuite(function() {
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
           overviewTableEl.selectedColumnIndex = 10;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'tracing');
+          checkAllocatorPane(2 /* PID */, 'tracing',
+              false /* no heap details pane */);
 
           // V8 of Process 2.
           overviewTableEl.selectedColumnIndex = 9;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'v8');
+          checkAllocatorPane(2 /* PID */, 'v8',
+              false /* no heap details pane */);
 
           // PSS of Process 2.
           overviewTableEl.selectedColumnIndex = 3;
@@ -244,7 +264,8 @@ tr.b.unittest.testSuite(function() {
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
           overviewTableEl.selectedColumnIndex = 9;
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'v8');
+          checkAllocatorPane(2 /* PID */, 'v8',
+              false /* no heap details pane */);
         }, containerEl);
 
     // Destroy the first container memory view.
@@ -260,7 +281,8 @@ tr.b.unittest.testSuite(function() {
               overviewTableEl.selectedTableRow, overviewTableEl.tableRows[1]);
           assert.equal(overviewTableEl.selectedColumnIndex, 9);
           checkVmRegionsPane(undefined);
-          checkAllocatorPane(2 /* PID */, 'v8');
+          checkAllocatorPane(2 /* PID */, 'v8',
+              false /* no heap details pane */);
         }, containerEl);
   });
 

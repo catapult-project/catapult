@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel='import' href='/tracing/base/iteration_helpers.html'>
+<link rel='import'
+    href='/tracing/ui/analysis/memory_dump_heap_details_pane.html'>
+<link rel='import'
+    href='/tracing/ui/analysis/memory_dump_sub_view_test_utils.html'>
+<link rel='import' href='/tracing/ui/analysis/memory_dump_sub_view_util.html'>
+<link rel='import' href='/tracing/core/test_utils.html'>
+<link rel='import' href='/tracing/model/heap_dump.html'>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var HeapDump = tr.model.HeapDump;
+  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
+  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+
+  function createHeapDumps() {
+    var model = new tr.Model();
+    var process = model.getOrCreateProcess(1);
+
+    function heapTrace(/* topStackFrame, ..., leafStackFrame */) {
+      var titles =
+          Array.prototype.concat.apply([undefined /* root */], arguments);
+      return tr.c.TestUtils.newStackTrace(model, titles);
+    }
+
+    // First timestamp.
+    var gmd1 = addGlobalMemoryDump(model, -10);
+    var pmd1 = addProcessMemoryDump(gmd1, process, -11);
+    var hd1 = new HeapDump(pmd1, 'partition_alloc');
+
+    hd1.addEntry(undefined /* sum over all traces */, 4194304 /* 4 MiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        102400 /* 100 KiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
+        'V8.Execute'), 1048576 /* 1 MiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
+        'FunctionCall'), 204800 /* 200 KiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+        'V8.Execute'), 2097152 /* 2 MiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute',
+        'FunctionCall'), 307200 /* 300 KiB */);
+
+    // Second timestamp.
+    var gmd2 = addGlobalMemoryDump(model, 10);
+    var pmd2 = addProcessMemoryDump(gmd2, process, 11);
+    var hd2 = new HeapDump(pmd2, 'partition_alloc');
+
+    hd2.addEntry(undefined /* sum over all traces */,
+        3145728 /* 3 MiB, lower than the actual sum (should be ignored) */);
+    hd2.addEntry(heapTrace(/* empty trace */),
+        131072 /* 128 KiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        393216 /* 384 KiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
+        'V8.Execute'), 1572864 /* 1.5 MiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+        'V8.Execute'), 2621440 /* 2.5 MiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
+        'FunctionCall', 'FunctionCall'), 204800 /* 200 KiB */);
+
+    return [hd1, hd2];
+  }
+
+  function checkTableAndViewModeSelectorDislayed(viewEl, displayed) {
+    assert.strictEqual(isElementDisplayed(viewEl.$.info_text), !displayed);
+    assert.strictEqual(isElementDisplayed(viewEl.$.table), displayed);
+    assert.strictEqual(
+        isElementDisplayed(viewEl.$.view_mode_container), displayed);
+  }
+
+  function checkColumns(columns, expectedAggregationMode) {
+    var EXPECTED_COLUMN_NAMES = [
+      'Stack frame',
+      'Total size',
+      'Self size'
+    ];
+
+    // First column doesn't change value over time (no aggregation).
+    var VARIABLE_CELLS_START_INDEX = 1;
+
+    // Check column names.
+    assert.lengthOf(columns, EXPECTED_COLUMN_NAMES.length);
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++)
+      assert.equal(columns[i].title, EXPECTED_COLUMN_NAMES[i]);
+
+    // Check aggregation modes.
+    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++) {
+      assert.strictEqual(columns[i].aggregationMode,
+          i < VARIABLE_CELLS_START_INDEX ? undefined : expectedAggregationMode);
+    }
+  }
+
+  function checkRow(columns, row, expectedTitle, expectedTotalSizes,
+      expectedSelfSizes, expectedDefinedValues) {
+    var formattedTitle = columns[0].formatTitle(row);
+    assert.equal(formattedTitle, expectedTitle);
+
+    checkSizeAttributes(row, columns[1], expectedTotalSizes);
+    checkSizeAttributes(row, columns[2], expectedSelfSizes);
+
+    if (expectedDefinedValues)
+      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
+    else
+      assert.isUndefined(row.defined);
+  }
+
+  function checkRows(columns, rows, expectedStructure) {
+    if (expectedStructure === undefined) {
+      assert.isUndefined(rows);
+      return;
+    }
+
+    if (typeof expectedStructure === 'number') {
+      assert.lengthOf(rows, expectedStructure);
+      return;
+    }
+
+    assert.lengthOf(rows, expectedStructure.length);
+    for (var i = 0; i < expectedStructure.length; i++) {
+      var row = rows[i];
+      var expectedRowStructure = expectedStructure[i];
+      checkRow(columns, row, expectedRowStructure.title,
+          expectedRowStructure.total, expectedRowStructure.self,
+          expectedRowStructure.defined);
+      checkRows(columns, row.subRows, expectedRowStructure.children);
+    }
+  }
+
+  function checkTable(viewEl, expectedAggregationMode, expectedStructure) {
+    checkTableAndViewModeSelectorDislayed(viewEl, true);
+    var table = viewEl.$.table;
+    var columns = table.tableColumns;
+    var rows = table.tableRows;
+    checkColumns(columns, expectedAggregationMode);
+    checkRows(columns, rows, expectedStructure);
+  }
+
+  function changeView(viewEl, bottomUpView) {
+    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = bottomUpView;
+    viewEl.rebuild();
+  }
+
+  test('instantiate_empty', function() {
+    tr.ui.analysis.createAndCheckEmptyPanes(this,
+        'tr-ui-a-memory-dump-heap-details-pane', 'heapDumps',
+        function(viewEl) {
+          // Check that the info text is shown.
+          checkTableAndViewModeSelectorDislayed(viewEl, false);
+        });
+  });
+
+  test('instantiate_noEntries', function() {
+    var heapDumps = createHeapDumps().slice(0, 1);
+    heapDumps[0].entries = [];
+
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Top-down view.
+    checkTable(viewEl, undefined /* no aggregation */, [
+      {
+        title: 'partition_alloc',
+        total: [0],
+        self: [0],
+        defined: [true]
+      }
+    ]);
+
+    changeView(viewEl, true /* bottom-up view */);
+
+    // Bottom-up view.
+    checkTable(viewEl, undefined /* no aggregation */, [
+      {
+        title: 'partition_alloc',
+        total: [0],
+        self: [0],
+        defined: [true]
+      }
+    ]);
+
+    changeView(viewEl, false /* top-down view */);
+  });
+
+  test('instantiate_single', function() {
+    var heapDumps = createHeapDumps().slice(0, 1);
+
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Top-down view (default).
+    checkTable(viewEl, undefined /* no aggregation */, [
+      {
+        title: 'partition_alloc',
+        total: [4194304],
+        self: [0],
+        defined: [true],
+        children: [
+          {
+            title: 'MessageLoop::RunTask',
+            total: [3760128],
+            self: [0],
+            defined: [true],
+            children: [
+              {
+                title: 'FunctionCall',
+                total: [1355776],
+                self: [102400],
+                defined: [true],
+                children: [
+                  {
+                    title: 'V8.Execute',
+                    total: [1048576],
+                    self: [1048576],
+                    defined: [true]
+                  },
+                  {
+                    title: 'FunctionCall',
+                    total: [204800],
+                    self: [204800],
+                    defined: [true]
+                  }
+                ]
+              },
+              {
+                title: 'V8.Execute',
+                total: [2404352],
+                self: [0],
+                defined: [true],
+                children: [
+                  {
+                    title: 'FunctionCall',
+                    total: [2404352],
+                    self: [307200],
+                    defined: [true],
+                    children: [
+                      {
+                        title: 'V8.Execute',
+                        total: [2097152],
+                        self: [2097152],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: '<unspecified>',
+            total: [434176],
+            self: [434176],
+            defined: [true]
+          }
+        ]
+      }
+    ]);
+
+    changeView(viewEl, true /* bottom-up view */);
+    checkTable(viewEl, undefined /* no aggregation */, [
+      {
+        title: 'partition_alloc',
+        total: [4194304],
+        self: [0],
+        defined: [true],
+        children: [
+          {
+            title: 'MessageLoop::RunTask',
+            total: [3760128],
+            self: [0],
+            defined: [true]
+          },
+          {
+            title: 'FunctionCall',
+            total: [3760128],
+            self: [614400],
+            defined: [true],
+            children: [
+              {
+                title: 'MessageLoop::RunTask',
+                total: [1355776],
+                self: [102400],
+                defined: [true]
+              },
+              {
+                title: 'FunctionCall',
+                total: [204800],
+                self: [204800],
+                defined: [true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [204800],
+                    self: [204800],
+                    defined: [true]
+                  }
+                ]
+              },
+              {
+                title: 'V8.Execute',
+                total: [2404352],
+                self: [307200],
+                defined: [true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [2404352],
+                    self: [307200],
+                    defined: [true]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: 'V8.Execute',
+            total: [3452928],
+            self: [3145728],
+            defined: [true],
+            children: [
+              {
+                title: 'FunctionCall',
+                total: [3145728],
+                self: [3145728],
+                defined: [true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [1048576],
+                    self: [1048576],
+                    defined: [true]
+                  },
+                  {
+                    title: 'V8.Execute',
+                    total: [2097152],
+                    self: [2097152],
+                    defined: [true],
+                    children: [
+                      {
+                        title: 'MessageLoop::RunTask',
+                        total: [2097152],
+                        self: [2097152],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                title: 'MessageLoop::RunTask',
+                total: [2404352],
+                self: [0],
+                defined: [true]
+              }
+            ]
+          },
+          {
+            title: '<unspecified>',
+            total: [434176],
+            self: [434176],
+            defined: [true]
+          }
+        ]
+      }
+    ]);
+  });
+
+  test('instantiate_multipleDiff', function() {
+    var heapDumps = createHeapDumps();
+
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    changeView(viewEl, true /* bottom-up view */);
+    checkTable(viewEl, AggregationMode.DIFF, [
+      {
+        title: 'partition_alloc',
+        total: [4194304, 4923392],
+        self: [0, 131072],
+        defined: [true, true],
+        children: [
+          {
+            title: 'MessageLoop::RunTask',
+            total: [3760128, 4792320],
+            self: [0, 0],
+            defined: [true, true]
+          },
+          {
+            title: 'FunctionCall',
+            total: [3760128, 4792320],
+            self: [614400, 598016],
+            defined: [true, true],
+            children: [
+              {
+                title: 'MessageLoop::RunTask',
+                total: [1355776, 2170880],
+                self: [102400, 393216],
+                defined: [true, true]
+              },
+              {
+                title: 'FunctionCall',
+                total: [204800, 204800],
+                self: [204800, 204800],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [204800, 204800],
+                    self: [204800, 0],
+                    defined: [true, true]
+                  },
+                  {
+                    title: 'FunctionCall',
+                    total: [undefined, 204800],
+                    self: [undefined, 204800],
+                    defined: [undefined, true],
+                    children: [
+                      {
+                        title: 'MessageLoop::RunTask',
+                        total: [undefined, 204800],
+                        self: [undefined, 204800],
+                        defined: [undefined, true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                title: 'V8.Execute',
+                total: [2404352, 2621440],
+                self: [307200, 0],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [2404352, 2621440],
+                    self: [307200, 0],
+                    defined: [true, true]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: 'V8.Execute',
+            total: [3452928, 4194304],
+            self: [3145728, 4194304],
+            defined: [true, true],
+            children: [
+              {
+                title: 'FunctionCall',
+                total: [3145728, 4194304],
+                self: [3145728, 4194304],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    total: [1048576, 1572864],
+                    self: [1048576, 1572864],
+                    defined: [true, true]
+                  },
+                  {
+                    title: 'V8.Execute',
+                    total: [2097152, 2621440],
+                    self: [2097152, 2621440],
+                    defined: [true, true],
+                    children: [
+                      {
+                        title: 'MessageLoop::RunTask',
+                        total: [2097152, 2621440],
+                        self: [2097152, 2621440],
+                        defined: [true, true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                title: 'MessageLoop::RunTask',
+                total: [2404352, 2621440],
+                self: [0, 0],
+                defined: [true, true]
+              }
+            ]
+          },
+          {
+            title: '<unspecified>',
+            total: [434176, undefined],
+            self: [434176, undefined],
+            defined: [true, undefined]
+          }
+        ]
+      }
+    ]);
+
+    changeView(viewEl, false /* top-down view */);
+    checkTable(viewEl, AggregationMode.DIFF, [
+      {
+        title: 'partition_alloc',
+        total: [4194304, 4923392],
+        self: [0, 131072],
+        defined: [true, true],
+        children: [
+          {
+            title: 'MessageLoop::RunTask',
+            total: [3760128, 4792320],
+            self: [0, 0],
+            defined: [true, true],
+            children: [
+              {
+                title: 'FunctionCall',
+                total: [1355776, 2170880],
+                self: [102400, 393216],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'V8.Execute',
+                    total: [1048576, 1572864],
+                    self: [1048576, 1572864],
+                    defined: [true, true]
+                  },
+                  {
+                    title: 'FunctionCall',
+                    total: [204800, 204800],
+                    self: [204800, 0],
+                    defined: [true, true],
+                    children: [
+                      {
+                        title: 'FunctionCall',
+                        total: [undefined, 204800],
+                        self: [undefined, 204800],
+                        defined: [undefined, true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                title: 'V8.Execute',
+                total: [2404352, 2621440],
+                self: [0, 0],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'FunctionCall',
+                    total: [2404352, 2621440],
+                    self: [307200, 0],
+                    defined: [true, true],
+                    children: [
+                      {
+                        title: 'V8.Execute',
+                        total: [2097152, 2621440],
+                        self: [2097152, 2621440],
+                        defined: [true, true]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: '<unspecified>',
+            total: [434176, undefined],
+            self: [434176, undefined],
+            defined: [true, undefined]
+          }
+        ]
+      }
+    ]);
+  });
+
+  test('instantiate_multipleMax', function() {
+    var heapDumps = createHeapDumps();
+
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.aggregationMode = AggregationMode.MAX;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    changeView(viewEl, true /* bottom-up view */);
+    checkTable(viewEl, AggregationMode.MAX, [
+      {
+        title: 'partition_alloc',
+        total: [4194304, 4923392],
+        self: [0, 131072],
+        defined: [true, true],
+        children: 4  // No need to check the full structure again.
+      }
+    ]);
+  });
+
+  test('instantiate_multipleWithUndefined', function() {
+    var heapDumps = createHeapDumps();
+    heapDumps.splice(1, 0, undefined);
+
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Top-down view (default).
+    checkTable(viewEl, AggregationMode.DIFF, [
+      {
+        title: 'partition_alloc',
+        total: [4194304, undefined, 4923392],
+        self: [0, undefined, 131072],
+        defined: [true, false, true],
+        children: 2  // No need to check the full structure again.
+      }
+    ]);
+  });
+});
+</script>

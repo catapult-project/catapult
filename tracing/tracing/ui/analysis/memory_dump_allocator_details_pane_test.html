@@ -13,6 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
+<link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 
 <script>
@@ -22,6 +23,7 @@ tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var HeapDump = tr.model.HeapDump;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
@@ -208,10 +210,11 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_single', function() {
     var memoryAllocatorDumps = createMemoryAllocatorDumps().slice(0, 1);
 
-    var viewEl = document.createElement(
+    var viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.rebuild();
+    assert.deepEqual(viewEl.requestedChildPanes, [undefined]);
     this.addHTMLOutput(viewEl);
 
     // Check that the table is shown.
@@ -281,11 +284,12 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_multipleDiff', function() {
     var memoryAllocatorDumps = createMemoryAllocatorDumps();
 
-    var viewEl = document.createElement(
+    var viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.aggregationMode = AggregationMode.DIFF;
     viewEl.rebuild();
+    assert.deepEqual(viewEl.requestedChildPanes, [undefined]);
     this.addHTMLOutput(viewEl);
 
     // Check that the table is shown.
@@ -368,11 +372,12 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_multipleMax', function() {
     var memoryAllocatorDumps = createMemoryAllocatorDumps();
 
-    var viewEl = document.createElement(
+    var viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.aggregationMode = AggregationMode.MAX;
     viewEl.rebuild();
+    assert.deepEqual(viewEl.requestedChildPanes, [undefined]);
     this.addHTMLOutput(viewEl);
 
     // Check that the table is shown.
@@ -391,11 +396,12 @@ tr.b.unittest.testSuite(function() {
     var memoryAllocatorDumps = createMemoryAllocatorDumps();
     memoryAllocatorDumps.splice(1, 0, undefined);
 
-    var viewEl = document.createElement(
+    var viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.aggregationMode = AggregationMode.DIFF;
     viewEl.rebuild();
+    assert.deepEqual(viewEl.requestedChildPanes, [undefined]);
     this.addHTMLOutput(viewEl);
 
     // Check that the table is shown.
@@ -430,7 +436,7 @@ tr.b.unittest.testSuite(function() {
   test('sortTitles', function() {
     var memoryAllocatorDumps = createMemoryAllocatorDumps();
 
-    var viewEl = document.createElement(
+    var viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-allocator-details-pane');
     viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
     viewEl.rebuild();
@@ -456,6 +462,44 @@ tr.b.unittest.testSuite(function() {
     // Mixture.
     assert.isBelow(titleColumn.cmp(heapsSubRow, oilpanSubRow), 0);
     assert.isAbove(titleColumn.cmp(oilpanSubRow, heapsSubRow), 0);
+  });
+
+  test('heapDumpsPassThrough', function() {
+    var memoryAllocatorDumps = createMemoryAllocatorDumps();
+    var heapDumps = memoryAllocatorDumps.map(function(dump) {
+      if (dump === undefined)
+        return undefined;
+      return new HeapDump(dump.containerMemoryDump, 'v8');
+    });
+
+    // Start by creating a component details pane without any heap dumps.
+    var viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-allocator-details-pane');
+    viewEl.memoryAllocatorDumps = memoryAllocatorDumps;
+    viewEl.aggregationMode = AggregationMode.MAX;
+    viewEl.rebuild();
+
+    assert.lengthOf(viewEl.requestedChildPanes, 1);
+    assert.isUndefined(viewEl.requestedChildPanes[0]);
+
+    // Set the heap dumps. This should trigger creating a heap details pane.
+    viewEl.heapDumps = heapDumps;
+    viewEl.aggregationMode = AggregationMode.DIFF;
+    viewEl.rebuild();
+
+    assert.lengthOf(viewEl.requestedChildPanes, 2);
+    assert.strictEqual(viewEl.requestedChildPanes[1].tagName,
+        'TR-UI-A-MEMORY-DUMP-HEAP-DETAILS-PANE');
+    assert.strictEqual(viewEl.requestedChildPanes[1].heapDumps, heapDumps);
+    assert.strictEqual(viewEl.requestedChildPanes[1].aggregationMode,
+        AggregationMode.DIFF);
+
+    // Unset the heap dumps. This should trigger removing the heap details pane.
+    viewEl.heapDumps = undefined;
+    viewEl.rebuild();
+
+    assert.lengthOf(viewEl.requestedChildPanes, 3);
+    assert.isUndefined(viewEl.requestedChildPanes[2]);
   });
 });
 </script>

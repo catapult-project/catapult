@@ -237,6 +237,7 @@
       'tracing/ui/analysis/generic_object_view.html',
       'tracing/ui/analysis/memory_dump_allocator_details_pane.html',
       'tracing/ui/analysis/memory_dump_header_pane.html',
+      'tracing/ui/analysis/memory_dump_heap_details_pane.html',
       'tracing/ui/analysis/memory_dump_overview_pane.html',
       'tracing/ui/analysis/memory_dump_sub_view_util.html',
       'tracing/ui/analysis/memory_dump_vm_regions_details_pane.html',

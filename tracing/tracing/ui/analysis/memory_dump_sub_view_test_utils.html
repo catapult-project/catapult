@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
+<link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 
@@ -25,6 +26,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var VMRegion = tr.model.VMRegion;
   var VMRegionByteStats = tr.model.VMRegionByteStats;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var HeapDump = tr.model.HeapDump;
 
   function createMultipleTestGlobalMemoryDumps() {
     var model = tr.c.TestUtils.newModel(function(model) {
@@ -130,6 +132,16 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return [oilpanDump, v8Dump];
       })();
+      pmd1C.heapDumps = {
+        'v8': (function() {
+          var v8HeapDump = new HeapDump(pmd1C, 'v8');
+          v8HeapDump.addEntry(
+              tr.c.TestUtils.newStackTrace(model,
+                  [undefined /* root */, 'V8.Execute', 'UpdateLayoutTree']),
+              536870912 /* 512 MiB */);
+          return v8HeapDump;
+        })()
+      };
 
       // ======================================================================
       //   Second timestamp.
@@ -289,6 +301,20 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return [oilpanDump, v8Dump];
       })();
+      pmd3C.heapDumps = {
+        'v8': (function() {
+          var v8HeapDump = new HeapDump(pmd1C, 'v8');
+          v8HeapDump.addEntry(
+              tr.c.TestUtils.newStackTrace(model,
+                  [undefined /* root */, 'V8.Execute', 'UpdateLayoutTree']),
+              268435456 /* 256 MiB */);
+          v8HeapDump.addEntry(
+              tr.c.TestUtils.newStackTrace(model,
+                  [undefined /* root */, 'V8.Execute', 'FrameView::layout']),
+              134217728 /* 128 MiB */);
+          return v8HeapDump;
+        })()
+      };
 
       // Resettable peak total size only.
       var pmd3D = addProcessMemoryDump(gmd3, pD, 99);
@@ -470,6 +496,21 @@ tr.exportTo('tr.ui.analysis', function() {
     });
   }
 
+  /**
+   * Extract a chronological list of HeapDump(s) (for a given process and
+   * allocator name) from a chronological list of dictionaries of
+   * ProcessMemoryDump(s).
+   */
+  function extractHeapDumps(processMemoryDumps, pid, allocatorName) {
+    return processMemoryDumps.map(function(memoryDumps) {
+      var processMemoryDump = memoryDumps[pid];
+      if (processMemoryDump === undefined ||
+          processMemoryDump.heapDumps === undefined)
+        return undefined;
+      return processMemoryDump.heapDumps[allocatorName];
+    });
+  }
+
   return {
     addGlobalMemoryDump: addGlobalMemoryDump,
     addProcessMemoryDump: addProcessMemoryDump,
@@ -484,7 +525,8 @@ tr.exportTo('tr.ui.analysis', function() {
     isElementDisplayed: isElementDisplayed,
     convertToProcessMemoryDumps: convertToProcessMemoryDumps,
     extractVmRegions: extractVmRegions,
-    extractMemoryAllocatorDumps: extractMemoryAllocatorDumps
+    extractMemoryAllocatorDumps: extractMemoryAllocatorDumps,
+    extractHeapDumps: extractHeapDumps
   };
 });
 </script>

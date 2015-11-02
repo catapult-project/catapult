@@ -325,8 +325,22 @@ tr.exportTo('tr.ui.analysis', function() {
                 return undefined;
               var sizes = {};
               dump.memoryAllocatorDumps.forEach(function(allocatorDump) {
-                sizes[allocatorDump.fullName] = allocatorDump.attributes[
+                var rootAttribute = allocatorDump.attributes[
                     DISPLAYED_SIZE_ATTRIBUTE_NAME];
+                if (rootAttribute === undefined)
+                  return;
+                var allocatorName = allocatorDump.fullName;
+                // Clone the attribute so that we could provide custom infos
+                // (instead of the original ones).
+                var overviewAttribute = new rootAttribute.constructor(
+                    rootAttribute.units, rootAttribute.value);
+                if (dump.heapDumps !== undefined &&
+                    dump.heapDumps[allocatorName] !== undefined) {
+                  overviewAttribute.infos.push(new tr.model.AttributeInfo(
+                      tr.model.AttributeInfoType.HAS_HEAP_DUMP,
+                      'Heap dump provided'));
+                }
+                sizes[allocatorName] = overviewAttribute;
               });
               return sizes;
             },
@@ -336,10 +350,21 @@ tr.exportTo('tr.ui.analysis', function() {
                   return undefined;
                 return dump.getMemoryAllocatorDumpByFullName(allocatorName);
               });
+              // Lazily construct the list of heap dumps if a heap dump is
+              // encountered.
+              var heapDumps = undefined;
+              timeToDump.forEach(function(dump, index) {
+                if (dump === undefined || dump.heapDumps === undefined)
+                  return;
+                if (heapDumps === undefined)
+                  heapDumps = new Array(timeToDump.length);
+                heapDumps[index] = dump.heapDumps[allocatorName];
+              });
               cell.buildDetailsPane = function() {
                 var pane = document.createElement(
                     'tr-ui-a-memory-dump-allocator-details-pane');
                 pane.memoryAllocatorDumps = memoryAllocatorDumps;
+                pane.heapDumps = heapDumps;
                 pane.aggregationMode = aggregationMode;
                 return pane;
               };

@@ -265,7 +265,11 @@ tr.exportTo('tr.model', function() {
     OVERALL_VALUE: 5,
 
     // Recent value (e.g. peak value since the previous memory dump).
-    RECENT_VALUE: 6
+    RECENT_VALUE: 6,
+
+    // The allocator has an associated memory heap dump.
+    // TODO(petrcermak): Move this into the UI.
+    HAS_HEAP_DUMP: 7
   };
 
   return {
