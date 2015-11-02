@@ -283,22 +283,26 @@ def _IsAnomalyRecovered(anomaly_entity):
   return True, measurements
 
 
-def _AddLogForRecoveredAnomaly(anomaly_entity, bug_id=None):
-  """Adds a log for an anomaly that has recovered."""
+def _AddLogForRecoveredAnomaly(anomaly_entity):
+  """Adds a quick log entry for an anomaly that has recovered."""
+  formatter = quick_logger.Formatter()
   sheriff_key = anomaly_entity.test.get().sheriff
   if not sheriff_key:
     return
   sheriff_name = sheriff_key.string_id()
-  html_str = 'Alert on %s has recovered.%s See <a href="%s">graph</a>.'
-  alert_url = ('https://chromeperf.appspot.com/group_report?keys=' +
-               anomaly_entity.key.urlsafe())
-  bug_link = ''
-  if bug_id:
-    bug_link = (' Bug: <a href="https://chromeperf.appspot.com/group_report?'
-                'bug_id=%s">%s</a>' % (bug_id, bug_id))
-
-  test_path = utils.TestPath(anomaly_entity.test)
-  formatter = quick_logger.Formatter()
   logger = quick_logger.QuickLogger('auto_triage', sheriff_name, formatter)
-  logger.Log(html_str, test_path, bug_link, alert_url)
+  logger.Log(
+      'Alert on %s has recovered. See <a href="%s">graph</a>.%s',
+      utils.TestPath(anomaly_entity.test),
+      ('https://chromeperf.appspot.com/group_report?keys=' +
+       anomaly_entity.key.urlsafe()),
+      _BugLink(anomaly_entity))
   logger.Save()
+
+
+def _BugLink(anomaly_entity):
+  if anomaly_entity.bug_id > 0:
+    bug_id = anomaly_entity.bug_id
+    return (' Bug: <a href="https://chromeperf.appspot.com/group_report?'
+            'bug_id=%s">%s</a>' % (bug_id, bug_id))
+  return ''
