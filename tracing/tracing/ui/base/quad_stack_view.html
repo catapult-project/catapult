@@ -486,15 +486,15 @@ tr.exportTo('tr.ui.b', function() {
       if (!this.chromeImages_.left.src) {
         var leftContent =
             window.getComputedStyle(this.chromeImages_.left).content;
-        leftContent = leftContent.replace(/url\((.*)\)/, '$1');
+        leftContent = tr.ui.b.extractUrlString(leftContent);
 
         var midContent =
             window.getComputedStyle(this.chromeImages_.mid).content;
-        midContent = midContent.replace(/url\((.*)\)/, '$1');
+        midContent = tr.ui.b.extractUrlString(midContent);
 
         var rightContent =
             window.getComputedStyle(this.chromeImages_.right).content;
-        rightContent = rightContent.replace(/url\((.*)\)/, '$1');
+        rightContent = tr.ui.b.extractUrlString(rightContent);
 
         this.chromeImages_.left.src = leftContent;
         this.chromeImages_.mid.src = midContent;

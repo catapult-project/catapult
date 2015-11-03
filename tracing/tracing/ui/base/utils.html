@@ -41,10 +41,22 @@ tr.exportTo('tr.ui.b', function() {
     }
   }
 
+  function extractUrlString(url) {
+    var extracted = url.replace(/url\((.*)\)/, '$1');
+
+    // In newer versions of chrome, the contents of url() will be quoted. Remove
+    // these quotes as well. If quotes are not present, match will fail and this
+    // becomes a no-op.
+    extracted = extracted.replace(/\"(.*)\"/, '$1');
+
+    return extracted;
+  }
+
   return {
     instantiateTemplate: instantiateTemplate,
     windowRectForElement: windowRectForElement,
-    scrollIntoViewIfNeeded: scrollIntoViewIfNeeded
+    scrollIntoViewIfNeeded: scrollIntoViewIfNeeded,
+    extractUrlString: extractUrlString
   };
 });
 </script>

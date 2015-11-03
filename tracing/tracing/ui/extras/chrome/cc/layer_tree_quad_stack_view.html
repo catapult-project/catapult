@@ -366,7 +366,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     loadDataForImageElement_: function(image, callback) {
       var imageContent = window.getComputedStyle(image).content;
-      image.src = imageContent.replace(/url\((.*)\)/, '$1');
+      image.src = tr.ui.b.extractUrlString(imageContent);
       image.onload = function() {
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');

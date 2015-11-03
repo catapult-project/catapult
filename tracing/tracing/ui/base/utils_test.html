@@ -62,6 +62,15 @@ tr.b.unittest.testSuite(function() {
         'TestAttribute');
     assert.equal(innerElement.children[1].textContent, 'Foo');
   });
+
+  test('extractUrlStringAcceptsBothVersions', function() {
+    var oldStyleUrl = 'url(content)';
+    var newStyleUrl = 'url("content")';
+    var expectedResult = 'content';
+
+    assert.equal(tr.ui.b.extractUrlString(oldStyleUrl), expectedResult);
+    assert.equal(tr.ui.b.extractUrlString(newStyleUrl), expectedResult);
+  });
 });
 </script>
 
