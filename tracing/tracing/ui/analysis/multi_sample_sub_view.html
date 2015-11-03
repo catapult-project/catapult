@@ -35,10 +35,6 @@ found in the LICENSE file.
     </style>
     <div id="control">
       Sample View Option
-      <select id="view_selector">
-        <option value="TOPDOWNVIEW">Tree (Top Down)</option>
-        <option value="BOTTOMUPVIEW">Heavy (Bottom Up)</option>
-      </select>
     </div>
     <tr-ui-b-table id="table">
     </tr-ui-b-table>
@@ -49,17 +45,19 @@ found in the LICENSE file.
 
   (function() {
     Polymer({
-      ready: function() {
-        this.viewSelector_ = this.$.view_selector;
+      created: function() {
+        this.viewOption_ = undefined;
         this.selection_ = undefined;
-        this.viewSelector_.addEventListener(
-          'change', this.viewSelectorChanged_.bind(this));
       },
 
-      viewSelectorChanged_: function() {
-        this.samplingData_ = this.createSamplingSummary_(
-          this.selection_, this.viewSelector_.value);
-        this.updateContents_();
+      ready: function() {
+        var viewSelector = tr.ui.b.createSelector(
+            this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
+            'TOPDOWNVIEW',
+            [{label: 'Tree (Top Down)', value: 'TOPDOWNVIEW'},
+             {label: 'Heavy (Bottom Up)', value: 'BOTTOMUPVIEW'}]
+        );
+        this.$.control.appendChild(viewSelector);
       },
 
       get selection() {
@@ -68,8 +66,15 @@ found in the LICENSE file.
 
       set selection(selection) {
         this.selection_ = selection;
-        this.samplingData_ = this.createSamplingSummary_(
-          selection, this.viewSelector_.value);
+        this.updateContents_();
+      },
+
+      get viewOption() {
+        return this.viewOption_;
+      },
+
+      set viewOption(viewOption) {
+        this.viewOption_ = viewOption;
         this.updateContents_();
       },
 
@@ -94,10 +99,19 @@ found in the LICENSE file.
       },
 
       updateContents_: function() {
+        if (this.selection === undefined) {
+          this.$.table.tableColumns = [];
+          this.$.table.tableRows = [];
+          this.$.table.rebuild();
+          return;
+        }
+
+        var samplingData = this.createSamplingSummary_(
+            this.selection, this.viewOption);
         var columns = [
-          this.createPercentColumn_('Total'),
+          this.createPercentColumn_('Total', samplingData.total),
           this.createSamplesColumn_('Total'),
-          this.createPercentColumn_('Self'),
+          this.createPercentColumn_('Self', samplingData.total),
           this.createSamplesColumn_('Self'),
           {
             title: 'Symbol',
@@ -113,16 +127,16 @@ found in the LICENSE file.
         this.$.table.tableColumns = columns;
         this.$.table.sortColumnIndex = 1 /* Total samples */;
         this.$.table.sortDescending = true;
-        this.$.table.tableRows = this.samplingData_.subRows;
+        this.$.table.tableRows = samplingData.subRows;
         this.$.table.rebuild();
       },
 
-      createPercentColumn_: function(title) {
+      createPercentColumn_: function(title, samplingDataTotal) {
         var field = title.toLowerCase();
         return {
           title: title + ' percent',
           value: function(row) {
-            var percent = row[field] / this.samplingData_.total;
+            var percent = row[field] / samplingDataTotal;
 
             var span = document.createElement('tr-ui-u-scalar-span');
             span.value = (percent * 100).toFixed(2);
