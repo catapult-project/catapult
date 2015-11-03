@@ -41,6 +41,7 @@ index %(hash_a)s..%(hash_b)s 100644
 _BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
 _TESTER_DIRECTOR_MAP_KEY = 'recipe_tester_director_map'
+_MASTER_TRY_SERVER_MAP_KEY = 'master_try_server_map'
 
 _NON_TELEMETRY_TEST_COMMANDS = {
     'angle_perftests': [
@@ -683,9 +684,12 @@ def _IsBisectInternalOnly(bisect_job):
 
 def _GetTryServerMaster(bisect_job):
   """Returns the try server master to be used for bisecting."""
-  if bisect_job.internal_only and bisect_job.master_name.startswith('Clank'):
-    return 'tryserver.clankium'
-  return 'tryserver.chromium.perf'
+  try_server_map = namespaced_stored_object.Get(_MASTER_TRY_SERVER_MAP_KEY)
+  default = 'tryserver.chromium.perf'
+  if not try_server_map:
+    logging.warning('Could not get master to try server map, using default.')
+    return default
+  return try_server_map.get(bisect_job.master_name, default)
 
 
 def _PerformPerfTryJob(perf_job):
