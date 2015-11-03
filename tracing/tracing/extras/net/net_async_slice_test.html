@@ -45,6 +45,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(slice.isTopLevel);
     // URL is exposed as the title of the parent slice.
     assert.equal(slice.title, 'https://google.com');
+    assert.equal(slice.url, 'https://google.com');
   });
 
   test('ExposeURLNested', function() {
@@ -58,7 +59,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
     assert.equal(slice.title, 'http://test.url');
+    assert.equal(slice.title, 'http://test.url');
     assert.equal(childSlice.title, 'b');
+    assert.equal(childSlice.url, 'http://test.url');
   });
 
   test('ExposeURLNestedNoURL', function() {
@@ -70,7 +73,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
     assert.equal(slice.title, 'a');
+    assert.equal(slice.url, undefined);
     assert.equal(childSlice.title, 'b');
+    assert.equal(childSlice.url, undefined);
   });
 
   test('ExposeURLNestedBothChildrenHaveURL', function() {
@@ -149,6 +154,40 @@ tr.b.unittest.testSuite(function() {
     assert.equal(slice.title, 'UDP_SOCKET');
     assert.equal(childSlice1.title, 'b');
     assert.equal(childSlice2.title, 'c');
+  });
+
+  test('ByteCountBasic', function() {
+    var slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
+                                  {params: {byte_count: 12}}, 0, true);
+    assert.equal(slice.byteCount, 12);
+  });
+
+  test('NoByteCount', function() {
+    var slice = new NetAsyncSlice('', 'a', 0, 1, {}, 0, true);
+    assert.equal(slice.byteCount, 0);
+  });
+
+  test('ByteCountNested', function() {
+    var slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_FILTERED_BYTES_READ',
+                                  0, 1, {params: {byte_count: 12}}, 0, true);
+    var childSlice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
+                                       {params: {byte_count: 50}});
+    slice.subSlices = [childSlice];
+    assert.equal(slice.byteCount, 62);
+    assert.equal(childSlice.byteCount, 50);
+  });
+
+  test('ByteCountTwoChildren', function() {
+    var slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_FILTERED_BYTES_READ',
+                                  0, 1, {params: {byte_count: 12}}, 0, true);
+    var childSlice1 = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
+                                        {params: {byte_count: 50}});
+    var childSlice2 = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
+                                        {params: {byte_count: 20}});
+    slice.subSlices = [childSlice1, childSlice2];
+    assert.equal(slice.byteCount, 82);
+    assert.equal(childSlice1.byteCount, 50);
+    assert.equal(childSlice2.byteCount, 20);
   });
 });
 </script>

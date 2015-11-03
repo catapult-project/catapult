@@ -14,8 +14,13 @@ tr.exportTo('tr.e.net', function() {
 
   function NetAsyncSlice() {
     AsyncSlice.apply(this, arguments);
-    // A boolean variable indicates whether we have computed the title.
+    this.url_ = undefined;
+    this.byteCount_ = undefined;
+    // Boolean variables indicating whether we have computed corresponding
+    // fields. Computing these fields needs iteration through all sub-slices and
+    // so recomputation will be costly.
     this.isTitleComputed_ = false;
+    this.isUrlComputed_ = false;
   }
 
   NetAsyncSlice.prototype = {
@@ -26,31 +31,12 @@ tr.exportTo('tr.e.net', function() {
     },
 
     get title() {
-      if (this.isTitleComputed_ || !this.isTopLevel) {
+      if (this.isTitleComputed_ || !this.isTopLevel)
         return this.title_;
-      }
 
-      // A recursive helper function that gets the url param of a slice or its
-      // nested subslices if there is one.
-      var getUrl = function(slice) {
-        if (slice.args !== undefined && slice.args.params !== undefined &&
-            slice.args.params.url !== undefined) {
-          return slice.args.params.url;
-        }
-        if (slice.subSlices === undefined || slice.subSlices.length === 0)
-          return undefined;
-        for (var i = 0; i < slice.subSlices.length; i++) {
-          var result = getUrl(slice.subSlices[i]);
-          if (result !== undefined)
-            return result;
-        }
-        return undefined;
-      };
-
-      var url = getUrl(this);
-      if (url !== undefined && url.length > 0) {
+      if (this.url !== undefined && this.url.length > 0) {
         // Set the title so we do not have to recompute when it is redrawn.
-        this.title_ = url;
+        this.title_ = this.url;
       } else if (this.args !== undefined &&
                  this.args.source_type !== undefined) {
         // We do not have a URL, use the source type as the title.
@@ -62,6 +48,41 @@ tr.exportTo('tr.e.net', function() {
 
     set title(title) {
       this.title_ = title;
+    },
+
+    // A recursive helper function that gets the url param of a slice or its
+    // nested subslices if there is one.
+    get url() {
+      if (this.isUrlComputed_)
+        return this.url_;
+      if (this.args !== undefined && this.args.params !== undefined &&
+          this.args.params.url !== undefined) {
+        this.url_ = this.args.params.url;
+      } else if (this.subSlices !== undefined && this.subSlices.length > 0) {
+        for (var i = 0; i < this.subSlices.length && ! this.url_; i++) {
+          if (this.subSlices[i].url !== undefined)
+            this.url_ = this.subSlices[i].url;
+        }
+      }
+      this.isUrlComputed_ = true;
+      return this.url_;
+    },
+
+    get byteCount() {
+      if (this.byteCount_ !== undefined)
+        return this.byteCount_;
+
+      this.byteCount_ = 0;
+      if ((this.originalTitle === 'URL_REQUEST_JOB_FILTERED_BYTES_READ' ||
+           this.originalTitle === 'URL_REQUEST_JOB_BYTES_READ') &&
+           this.args !== undefined && this.args.params !== undefined &&
+           this.args.params.byte_count !== undefined) {
+        this.byteCount_ = this.args.params.byte_count;
+      }
+      for (var i = 0; i < this.subSlices.length; i++) {
+        this.byteCount_ += this.subSlices[i].byteCount;
+      }
+      return this.byteCount_;
     }
   };
 

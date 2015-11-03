@@ -29,6 +29,9 @@ tr.exportTo('tr.model', function() {
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
+    // We keep the original title from the trace file in originalTitle since
+    // some sub-classes, e.g. NetAsyncSlice, change the title field.
+    this.originalTitle = title;
     this.title = title;
     this.colorId = colorId;
     this.args = args;
