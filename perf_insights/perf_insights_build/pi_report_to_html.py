@@ -10,7 +10,7 @@ import json
 
 from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
-from perf_insights import map_function_handle as map_function_handle_module
+from perf_insights import function_handle
 from perf_insights import map_runner
 from perf_insights import progress_reporter as progress_reporter_module
 from perf_insights.results import json_output_formatter
@@ -79,8 +79,7 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
   map_function_href, pi_report_element_name = _GetMapFunctionHrefFromPiReport(
     pi_report_file_contents)
   map_file = project.GetAbsPathFromHRef(map_function_href)
-  map_function_handle = map_function_handle_module.MapFunctionHandle(
-      filename=map_file)
+  map_function_handle = function_handle.FunctionHandle(filename=map_file)
 
   if map_file == None:
     raise Exception('Could not find %s' % map_function_href)

@@ -10,7 +10,7 @@ import perf_insights
 from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
 from perf_insights import map_runner
-from perf_insights import map_function_handle as map_function_handle_module
+from perf_insights import function_handle
 from perf_insights.results import json_output_formatter
 
 
@@ -62,7 +62,7 @@ def Main(argv):
 
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
 
-  map_function_handle = map_function_handle_module.MapFunctionHandle(
+  map_function_handle = function_handle.FunctionHandle(
       filename=os.path.abspath(args.map_file))
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)

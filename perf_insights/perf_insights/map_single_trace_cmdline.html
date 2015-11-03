@@ -16,18 +16,18 @@ tr.exportTo('pi', function() {
   var FailureValue = pi.v.FailureValue;
 
   function getMapFunctionFromMapFunctionHandle(mapFunctionHandle) {
-    if (mapFunctionHandle.mapFunctionFileName !== undefined)
-      return loadMapFunctionFromFileName(mapFunctionHandle.mapFunctionFileName);
+    if (mapFunctionHandle.filename !== undefined)
+      return loadMapFunctionFromFileName(mapFunctionHandle.filename);
 
     // Find the mapper by name.
     loadHTML('/perf_insights/perf_insights_full_config.html');
     var typeInfo = pi.MapFunction.findTypeInfoMatching(function(typeInfo) {
-      return typeInfo.constructor.name === mapFunctionHandle.mapFunctionName;
+      return typeInfo.constructor.name === mapFunctionHandle.function_name;
     });
     if (typeInfo === undefined) {
       var err = new Error(
           'No mapper registered in perf_insights_full_config named ' +
-          mapFunctionHandle.mapFunctionName);
+          mapFunctionHandle.function_name);
       err.name = 'MapFunctionLoadingError';
       throw err;
     }

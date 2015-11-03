@@ -14,7 +14,7 @@ from webapp2 import Route
 from perf_insights import local_directory_corpus_driver
 from perf_insights import corpus_query
 from perf_insights import map_runner
-from perf_insights import map_function_handle as map_function_handle_module
+from perf_insights import function_handle
 from perf_insights import progress_reporter
 from perf_insights.results import json_output_formatter
 
@@ -38,8 +38,8 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs): # pylint: disable=unused-argument
     map_function = kwargs.pop('map_function')
 
-    map_function_handle = map_function_handle_module.MapFunctionHandle(
-        map_function_name=map_function)
+    map_function_handle = function_handle.FunctionHandle(
+        function_name=map_function)
 
     corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
         trace_directory = kwargs.pop('_pi_data_dir'),
