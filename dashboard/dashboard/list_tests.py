@@ -181,7 +181,7 @@ def _MergeSubTestsDict(a, b):
 def _MergeSubTestsDictEntry(a, b):
   """Merges two corresponding sub-tests dict entries together."""
   assert a and b
-  deprecated = a.get('deprecated', False) or b.get('deprecated', False)
+  deprecated = a.get('deprecated', False) and b.get('deprecated', False)
   entry = {
       'has_rows': a['has_rows'] or b['has_rows'],
       'sub_tests': _MergeSubTestsDict(a['sub_tests'], b['sub_tests'])

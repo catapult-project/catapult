@@ -225,11 +225,35 @@ class ListTestsTest(testing_common.TestCase):
         },
         'bar': {
             'has_rows': False,
-            'sub_tests': {'b': {'has_rows': False, 'sub_tests': {}}},
+            'sub_tests': {
+                'b': {
+                    'has_rows': False,
+                    'sub_tests': {
+                        'c': {
+                            'has_rows': False,
+                            'deprecated': True,
+                            'sub_tests': {},
+                        },
+                    },
+                },
+            },
         },
     }
     b = {
-        'bar': {'has_rows': True, 'sub_tests': {}},
+        'bar': {
+            'has_rows': True,
+            'sub_tests': {
+                'b': {
+                    'has_rows': False,
+                    'sub_tests': {
+                        'c': {
+                            'has_rows': False,
+                            'sub_tests': {},
+                        },
+                    },
+                },
+            },
+        },
         'baz': {'has_rows': False, 'sub_tests': {}},
     }
     self.assertEqual(
@@ -240,7 +264,14 @@ class ListTestsTest(testing_common.TestCase):
             },
             'bar': {
                 'has_rows': True,
-                'sub_tests': {'b': {'has_rows': False, 'sub_tests': {}}}
+                'sub_tests': {
+                    'b': {
+                        'has_rows': False,
+                        'sub_tests': {
+                            'c': {'has_rows': False, 'sub_tests': {}},
+                        },
+                    },
+                },
             },
             'baz': {'has_rows': False, 'sub_tests': {}},
         },
