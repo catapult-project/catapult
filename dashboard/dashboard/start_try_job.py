@@ -39,6 +39,8 @@ index %(hash_a)s..%(hash_b)s 100644
 """
 
 _BISECT_BOT_MAP_KEY = 'bisect_bot_map'
+_BOT_BROWSER_MAP_KEY = 'bot_browser_map'
+_INTERNAL_MASTERS_KEY = 'internal_masters'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
 _TESTER_DIRECTOR_MAP_KEY = 'recipe_tester_director_map'
 _MASTER_TRY_SERVER_MAP_KEY = 'master_try_server_map'
@@ -487,14 +489,14 @@ def _GuessCommandTelemetry(
 
 def _GuessBrowserName(bisect_bot):
   """Returns a browser name string for Telemetry to use."""
-  if bisect_bot.startswith('android'):
-    return 'android-chromium'
-  if bisect_bot.startswith('clankium'):
-    return 'android-chrome'
-  if bisect_bot.startswith('win') and 'x64' in bisect_bot:
-    return 'release_x64'
-
-  return 'release'
+  default = 'release'
+  browser_map = namespaced_stored_object.Get(_BOT_BROWSER_MAP_KEY)
+  if not browser_map:
+    return default
+  for bot_name_prefix, browser_name in browser_map:
+    if bisect_bot.startswith(bot_name_prefix):
+      return browser_name
+  return default
 
 
 def GuessMetric(test_path):
@@ -678,8 +680,8 @@ def PerformBisect(bisect_job):
 
 def _IsBisectInternalOnly(bisect_job):
   """Checks if the bisect is for an internal-only test."""
-  return (bisect_job.internal_only and
-          bisect_job.master_name.startswith('Clank'))
+  internal_masters = namespaced_stored_object.Get(_INTERNAL_MASTERS_KEY)
+  return internal_masters and bisect_job.master_name in internal_masters
 
 
 def _GetTryServerMaster(bisect_job):

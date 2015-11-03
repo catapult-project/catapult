@@ -333,6 +333,14 @@ class StartBisectTest(testing_common.TestCase):
     namespaced_stored_object.Set(
         start_try_job._BUILDER_TYPES_KEY,
         {'ChromiumPerf': 'perf', 'OtherMaster': 'foo'})
+    namespaced_stored_object.Set(
+        start_try_job._BOT_BROWSER_MAP_KEY,
+        [
+            ['android', 'android-chromium'],
+            ['winx64', 'release_x64'],
+            ['win_x64', 'release_x64'],
+            ['', 'release'],
+        ])
     testing_common.SetSheriffDomains(['chromium.org'])
 
   def testPost_InvalidUser_ShowsErrorMessage(self):
