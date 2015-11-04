@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 
 class DependencyInfo(object):
   def __init__(self, dependency, platform, config_file, cs_bucket=None,
                cs_hash=None, download_path=None, cs_remote_path=None,
-               version_in_cs=None, unzip_path=None,
-               path_within_archive=None, local_paths=None):
+               version_in_cs=None, path_within_archive=None, local_paths=None):
     """ Container for the information needed for each dependency/platform pair
     in the dependency_manager.
 
@@ -25,7 +25,15 @@ class DependencyInfo(object):
           cs_remote_path: Where the file is stored in the cloud storage bucket.
 
         Optional for downloading from cloud storage:
-          version: The version of the file stored in cloud storage.
+          version_in_cs: The version of the file stored in cloud storage.
+          path_within_archive: Specify if and how to handle zip archives
+              downloaded from cloud_storage. Expected values:
+                  None: Do not unzip the file downloaded from cloud_storage.
+                  '.': Unzip the file downloaded from cloud_storage. The
+                      unzipped file/folder is the expected dependency.
+                  file_path: Unzip the file downloaded from cloud_storage.
+                      |file_path| is the path to the expected dependency,
+                      relative to the unzipped archive location.
 
         Optional:
           local_paths: A list of paths to search in order for a local file.
@@ -46,6 +54,18 @@ class DependencyInfo(object):
     self._cs_bucket = cs_bucket
     self._cs_hash = cs_hash
     self._version_in_cs = version_in_cs
+    if download_path and path_within_archive:
+      self._unzip_location = os.path.abspath(os.path.join(
+          os.path.dirname(download_path), '%s_%s' % (dependency, platform)))
+      self._path_within_archive = path_within_archive
+    else:
+      if path_within_archive:
+        raise ValueError(
+          'Cannot specify archive information without a download path.'
+          'path_within_archive: %s, download_path: %s' % (
+            path_within_archive, download_path))
+      self._unzip_location = None
+      self._path_within_archive = None
     self.VerifyCloudStorageInfo()
 
   def Update(self, new_dep_info):
@@ -73,6 +93,8 @@ class DependencyInfo(object):
         self._cs_bucket = new_dep_info.cs_bucket
         self._cs_hash = new_dep_info.cs_hash
         self._version_in_cs = new_dep_info.version_in_cs
+        self._path_within_archive = new_dep_info.path_within_archive
+        self.VerifyCloudStorageInfo()
     if new_dep_info.local_paths:
       for path in new_dep_info.local_paths:
         if path not in self._local_paths:
@@ -115,21 +137,38 @@ class DependencyInfo(object):
     return self._version_in_cs
 
   @property
+  def path_within_archive(self):
+    return self._path_within_archive
+
+  @property
+  def unzip_location(self):
+    return self._unzip_location
+
+  @property
   def has_cs_info(self):
-    self.VerifyCloudStorageInfo()
-    return self.cs_hash
+    return any([self.cs_bucket, self.cs_remote_path, self.download_path,
+                self.cs_hash, self.version_in_cs, self.path_within_archive,
+                self.unzip_location])
+
+  @property
+  def has_minimum_cs_info(self):
+    return all([self.cs_bucket, self.cs_remote_path, self.download_path,
+                self.cs_hash])
 
   def VerifyCloudStorageInfo(self):
     """Ensure either all or none of the needed remote information is specified.
     """
-    if ((self.cs_bucket or self.cs_remote_path or self.download_path or
-          self.cs_hash or self._version_in_cs) and not (self.cs_bucket and
-            self.cs_remote_path and self.download_path and self.cs_hash)):
+    if self.has_cs_info and not self.has_minimum_cs_info:
       raise ValueError(
             'Attempted to partially initialize cloud storage data for '
             'dependency: %s, platform: %s, download_path: %s, '
-            'cs_remote_path: %s, cs_bucket %s, cs_hash %s, version_in_cs %s' % (
-                self.dependency, self.platform, self.download_path,
-                self.cs_remote_path, self.cs_bucket, self.cs_hash,
-                self._version_in_cs))
+            'cs_remote_path: %s, cs_bucket: %s, cs_hash: %s, version_in_cs: %s,'
+            ' path_within_archive: %s' % (self.dependency, self.platform,
+                self.download_path, self.cs_remote_path, self.cs_bucket,
+                self.cs_hash, self._version_in_cs, self._path_within_archive))
+    if bool(self.unzip_location) != bool(self.path_within_archive):
+      raise ValueError(
+          'DependencyInfo must have both or neither unzip_location and '
+          'path_within_archive. Found: unzip_location: %s, unzippped_path: %s'
+          % (self.unzip_location, self.path_within_archive))
 

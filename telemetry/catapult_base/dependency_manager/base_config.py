@@ -153,13 +153,15 @@ class BaseConfig(object):
               '%s/%s' % (cs_base_folder, cs_remote_file))
 
         version_in_cs = platform_info.get('version_in_cs', None)
+        path_within_archive = platform_info.get('path_within_archive', None)
 
-        if download_path or cs_remote_path or cs_hash or version_in_cs:
+        if any([download_path, cs_remote_path, cs_hash, version_in_cs,
+                path_within_archive]):
           dep_info = dependency_info.DependencyInfo(
               dependency, platform, self._config_path, cs_bucket=cs_bucket,
               cs_remote_path=cs_remote_path, download_path=download_path,
               cs_hash=cs_hash, version_in_cs=version_in_cs,
-              local_paths=local_paths)
+              path_within_archive=path_within_archive, local_paths=local_paths)
         else:
           dep_info = dependency_info.DependencyInfo(
               dependency, platform, self._config_path, local_paths=local_paths)

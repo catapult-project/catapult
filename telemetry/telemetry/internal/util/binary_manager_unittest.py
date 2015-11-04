@@ -25,11 +25,12 @@ class BinaryManagerTest(unittest.TestCase):
       'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
   def testInitializationNoEnvironmentConfig(
       self, base_config_mock, dep_manager_mock):
-    base_config_mock.return_value = 'base_config_object'
+    base_config_mock.side_effect = ['base_config_object1',
+                                    'base_config_object2']
     binary_manager.InitDependencyManager(None)
     base_config_mock.assert_called_once_with(
         binary_manager.TELEMETRY_PROJECT_CONFIG)
-    dep_manager_mock.assert_called_once_with(['base_config_object'])
+    dep_manager_mock.assert_called_once_with(['base_config_object1'])
 
   @mock.patch(
       'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
