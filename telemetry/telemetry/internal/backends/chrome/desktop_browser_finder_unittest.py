@@ -1,8 +1,13 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
+import stat
 import unittest
 
+from pyfakefs import fake_filesystem_unittest
+
+from telemetry.core import platform
 from telemetry.internal.backends.chrome import desktop_browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import desktop_device
@@ -21,7 +26,7 @@ class FindTestBase(unittest.TestCase):
     self._finder_options.chrome_root = '../../../'
     self._finder_stubs = system_stub.Override(desktop_browser_finder,
                                               ['os', 'subprocess', 'sys'])
-    self._path_stubs = system_stub.Override(desktop_browser_finder.path,
+    self._path_stubs = system_stub.Override(desktop_browser_finder.path_module,
                                             ['os', 'sys'])
 
   def tearDown(self):
@@ -140,97 +145,78 @@ class OSXFindTest(FindTestBase):
            'canary', 'system']))
 
 
-class LinuxFindTest(FindTestBase):
+class LinuxFindTest(fake_filesystem_unittest.TestCase):
+
   def setUp(self):
-    super(LinuxFindTest, self).setUp()
+    if not platform.GetHostPlatform().GetOSName() == 'linux':
+      self.skipTest('Not running on Linux')
+    self.setUpPyfakefs()
 
-    self._finder_stubs.sys.platform = 'linux2'
-    self._path_stubs.sys.platform = 'linux2'
-    self._files.append('/foo/chrome')
-    self._files.append('../../../out/Release/chrome')
-    self._files.append('../../../out/Debug/chrome')
-    self._files.append('../../../out/Release/content_shell')
-    self._files.append('../../../out/Debug/content_shell')
+    self._finder_options = browser_options.BrowserFinderOptions()
+    self._finder_options.chrome_root = '/src/'
 
-    self.has_google_chrome_on_path = False
-    self.chrome_beta_is_google_chrome = False
-    this = self
-    def call_hook(*args, **kwargs): # pylint: disable=W0613
-      if this.has_google_chrome_on_path:
-        return 0
-      raise OSError('Not found')
-    self._finder_stubs.subprocess.call = call_hook
+  def CreateBrowser(self, path):
+    self.fs.CreateFile(path)
+    os.chmod(path, stat.S_IXUSR)
 
-    def realpath_hook(*unused_args, **unused_kwargs):
-      if this.chrome_beta_is_google_chrome:
-        return '/opt/google/chrome-beta/google-chrome-beta'
-      return '/opt/google/chrome/google-chrome'
-    self._finder_stubs.os.path.realpath = realpath_hook
+  def DoFindAll(self):
+    return desktop_browser_finder.FindAllAvailableBrowsers(
+        self._finder_options, desktop_device.DesktopDevice())
 
-  def testFindAllWithExact(self):
-    if not self.CanFindAvailableBrowsers():
-      return
+  def DoFindAllTypes(self):
+    return [b.browser_type for b in self.DoFindAll()]
 
-    types = self.DoFindAllTypes()
+  def testFindAllWithCheckout(self):
+    for target in ['Release', 'Debug']:
+      for browser in ['chrome', 'content_shell']:
+        self.CreateBrowser('/src/out/%s/%s' % (target, browser))
+
     self.assertEquals(
-        set(types),
-        set(['debug', 'release',
-             'content-shell-debug', 'content-shell-release']))
+        set(self.DoFindAllTypes()),
+        {'debug', 'release', 'content-shell-debug', 'content-shell-release'})
+
+  def testFindAllFailsIfNotExecutable(self):
+    self.fs.CreateFile('/src/out/Release/chrome')
+
+    self.assertFalse(self.DoFindAllTypes())
 
   def testFindWithProvidedExecutable(self):
-    if not self.CanFindAvailableBrowsers():
-      return
-
+    self.CreateBrowser('/foo/chrome')
     self._finder_options.browser_executable = '/foo/chrome'
     self.assertIn('exact', self.DoFindAllTypes())
 
   def testFindWithProvidedApk(self):
-    if not self.CanFindAvailableBrowsers():
-      return
-
     self._finder_options.browser_executable = '/foo/chrome.apk'
     self.assertNotIn('exact', self.DoFindAllTypes())
 
-  def testNoErrorWithUnrecognizedExecutableName(self):
-    if not self.CanFindAvailableBrowsers():
-      return
-
-    self._files.append('/foo/mandoline')
+  def testNoErrorWithNonChromeExecutableName(self):
+    self.fs.CreateFile('/foo/mandoline')
     self._finder_options.browser_executable = '/foo/mandoline'
     self.assertNotIn('exact', self.DoFindAllTypes())
 
-  def testFindUsingDefaults(self):
-    if not self.CanFindAvailableBrowsers():
-      return
+  def testFindAllWithInstalled(self):
+    official_names = ['chrome', 'chrome-beta', 'chrome-unstable']
 
-    self.has_google_chrome_on_path = True
-    self.assertIn('release', self.DoFindAllTypes())
+    for name in official_names:
+      self.CreateBrowser('/opt/google/%s/chrome' % name)
 
-    del self._files[1]
-    self.has_google_chrome_on_path = True
-    self.assertIn('system', self.DoFindAllTypes())
-    self.assertIn('stable', self.DoFindAllTypes())
-    self.assertIn('beta', self.DoFindAllTypes())
-    self.assertIn('dev', self.DoFindAllTypes())
+    self.assertEquals(set(self.DoFindAllTypes()), {'stable', 'beta', 'dev'})
 
-    self.has_google_chrome_on_path = False
-    del self._files[1]
-    self.assertEquals(['content-shell-debug', 'content-shell-release'],
-                      self.DoFindAllTypes())
+  def testFindAllSystem(self):
+    self.CreateBrowser('/opt/google/chrome/chrome')
+    os.symlink('/opt/google/chrome/chrome', '/usr/bin/google-chrome')
 
-    self.has_google_chrome_on_path = True
-    self.chrome_beta_is_google_chrome = True
+    self.assertEquals(set(self.DoFindAllTypes()), {'system', 'stable'})
+
+  def testFindAllSystemIsBeta(self):
+    self.CreateBrowser('/opt/google/chrome/chrome')
+    self.CreateBrowser('/opt/google/chrome-beta/chrome')
+    os.symlink('/opt/google/chrome-beta/chrome', '/usr/bin/google-chrome')
 
     google_chrome = [browser for browser in self.DoFindAll()
-                     if browser._local_executable == 'google-chrome'][0]
+                     if browser.browser_type == 'system'][0]
     self.assertEquals('/opt/google/chrome-beta',
                       google_chrome._browser_directory)
-
-  def testFindUsingRelease(self):
-    if not self.CanFindAvailableBrowsers():
-      return
-
-    self.assertIn('release', self.DoFindAllTypes())
 
 
 class WinFindTest(FindTestBase):
