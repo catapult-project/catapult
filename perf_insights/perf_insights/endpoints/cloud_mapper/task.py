@@ -33,17 +33,9 @@ cd /catapult
 git pull
 git checkout {revision}
 
-# WARNING: A lot of hardcoded things in here.
-mkdir /tmp/perf-insights
-gsutil cp gs://performance-insights-cloud-mapper/download_traces.py\
- /catapult/perf_insights/bin
-python perf_insights/bin/download_traces.py --dir=/tmp/perf-insights --gcs={gcs}
-perf_insights/bin/map_traces -c local-directory\
- --trace_directory=/tmp/perf-insights\
+perf_insights/bin/gce_instance_map_job --jobs=32\
  perf_insights/perf_insights/mappers/task_info_map_function.html\
- --output /tmp/output.txt -j 32
-gsutil cp /tmp/output.txt\
- gs://performance-insights-cloud-mapper/test/jobs/{gcs}.result
+ {path}{gcs} {path}{gcs}.result
 """
 
 
@@ -85,7 +77,7 @@ class TaskPage(webapp2.RequestHandler):
                             json.dumps(current_traces))
 
       startup_script = _STARTUP_SCRIPT.format(
-          revision=job.revision, gcs=taskid)
+          revision=job.revision, gcs=taskid, path=_DEFAULT_BUCKET_PATH)
 
       result = helper.CreateGCE(current_task['gce_name'], startup_script)
 
