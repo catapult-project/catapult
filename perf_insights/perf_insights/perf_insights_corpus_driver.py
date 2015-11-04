@@ -8,7 +8,7 @@ import urllib
 import urllib2
 
 from perf_insights import corpus_driver
-from perf_insights import perf_insights_trace_handle
+from perf_insights import gcs_trace_handle
 from perf_insights.value import run_info as run_info_module
 
 
@@ -54,7 +54,7 @@ class PerfInsightsCorpusDriver(corpus_driver.CorpusDriver):
           display_name=file_url,
           run_id=file_url)
 
-      th = perf_insights_trace_handle.PerfInsightsTraceHandle(
+      th = gcs_trace_handle.GCSTraceHandle(
           run_info, self.directory)
       trace_handles.append(th)
 
