@@ -3758,6 +3758,7 @@ tr.b.unittest.testSuite(function() {
               partition_alloc: {
                 entries: [
                   { size: '5cdf91' },
+                  { size: 'abcde', type: '' /* entry should be ignored */ },
                   { bt: '' /* empty stack trace */, size: '5b6cd6' },
                   { bt: '4', size: '18f0' },
                   { bt: '3', size: 'e3a8' }

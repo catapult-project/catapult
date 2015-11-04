@@ -2271,6 +2271,13 @@ tr.exportTo('tr.e.importer', function() {
 
       for (var i = 0; i < entries.length; i++) {
         var entry = entries[i];
+        var type = entry.type;
+        if (type !== undefined) {
+          // Heap dump entries with specified object type ID need to be ignored
+          // for the time being because Chrome doesn't dump the mapping from
+          // object type IDs to object type names yet. See crbug.com/524631.
+          continue;
+        }
         var size = parseInt(entry.size, 16);
         var leafStackFrameIndex = entry.bt;
         var leafStackFrame;
