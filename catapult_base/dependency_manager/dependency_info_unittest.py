@@ -40,6 +40,8 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertFalse(dep_info.cs_bucket)
     self.assertFalse(dep_info.cs_remote_path)
     self.assertFalse(dep_info.download_path)
+    self.assertFalse(dep_info.unzip_location)
+    self.assertFalse(dep_info.path_within_archive)
 
   def testInitMinimumCloudStorageInfo(self):
     # Must specify cloud storage information atomically.
@@ -123,6 +125,71 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertEqual('version_in_cs', dep_info.version_in_cs)
     self.assertEqual(['path'], dep_info.local_paths)
 
+  def testInitWithArchivePath(self):
+    self.assertRaises(ValueError, dependency_info.DependencyInfo, 'dep', 'plat',
+                      'config_file', path_within_archive='path_within_archive')
+    self.assertRaises(ValueError, dependency_info.DependencyInfo, 'dep', 'plat',
+                      'config_file', path_within_archive='path_within_archive',
+                      local_paths=['path2'])
+    self.assertRaises(ValueError, dependency_info.DependencyInfo, 'dep', 'plat',
+                      'config_file', cs_bucket='cs_bucket', cs_hash='cs_hash',
+                      cs_remote_path='cs_remote_path',
+                      path_within_archive='path_within_archive',
+                      local_paths=['path2'])
+    self.assertRaises(ValueError, dependency_info.DependencyInfo, 'dep', 'plat',
+                      'config_file', cs_bucket='cs_bucket', cs_hash='cs_hash',
+                      cs_remote_path='cs_remote_path', version_in_cs='version',
+                      path_within_archive='path_within_archive',
+                      local_paths=['path2'])
+
+    dep_info = dependency_info.DependencyInfo(
+        'dep', 'platform', 'config_file', cs_bucket='cs_bucket',
+        cs_hash='cs_hash', download_path='download_path',
+        cs_remote_path='cs_remote_path',
+        path_within_archive='path_within_archive')
+    self.assertEqual('dep', dep_info.dependency)
+    self.assertEqual('platform', dep_info.platform)
+    self.assertEqual(['config_file'], dep_info.config_files)
+    self.assertEqual('cs_hash', dep_info.cs_hash)
+    self.assertEqual('cs_bucket', dep_info.cs_bucket)
+    self.assertEqual('cs_remote_path', dep_info.cs_remote_path)
+    self.assertEqual('download_path', dep_info.download_path)
+    self.assertEqual('path_within_archive', dep_info.path_within_archive)
+    self.assertFalse(dep_info.local_paths)
+    self.assertFalse(dep_info.version_in_cs)
+
+    dep_info = dependency_info.DependencyInfo(
+        'dep', 'platform', 'config_file', cs_bucket='cs_bucket',
+        cs_hash='cs_hash', download_path='download_path',
+        cs_remote_path='cs_remote_path',
+        path_within_archive='path_within_archive', local_paths=['path'])
+    self.assertEqual('dep', dep_info.dependency)
+    self.assertEqual('platform', dep_info.platform)
+    self.assertEqual(['config_file'], dep_info.config_files)
+    self.assertEqual('cs_hash', dep_info.cs_hash)
+    self.assertEqual('cs_bucket', dep_info.cs_bucket)
+    self.assertEqual('cs_remote_path', dep_info.cs_remote_path)
+    self.assertEqual('download_path', dep_info.download_path)
+    self.assertEqual('path_within_archive', dep_info.path_within_archive)
+    self.assertEqual(['path'], dep_info.local_paths)
+    self.assertFalse(dep_info.version_in_cs)
+
+    dep_info = dependency_info.DependencyInfo(
+        'dep', 'platform', 'config_file', cs_bucket='cs_bucket',
+        cs_hash='cs_hash', download_path='download_path',
+        cs_remote_path='cs_remote_path', version_in_cs='version_in_cs',
+        path_within_archive='path_within_archive', local_paths=['path'])
+    self.assertEqual('dep', dep_info.dependency)
+    self.assertEqual('platform', dep_info.platform)
+    self.assertEqual(['config_file'], dep_info.config_files)
+    self.assertEqual('cs_hash', dep_info.cs_hash)
+    self.assertEqual('cs_bucket', dep_info.cs_bucket)
+    self.assertEqual('cs_remote_path', dep_info.cs_remote_path)
+    self.assertEqual('download_path', dep_info.download_path)
+    self.assertEqual('path_within_archive', dep_info.path_within_archive)
+    self.assertEqual(['path'], dep_info.local_paths)
+    self.assertEqual('version_in_cs', dep_info.version_in_cs)
+
   def testInitCloudStorageInfo(self):
     dep_info = dependency_info.DependencyInfo(
         'dep', 'platform', 'config_file', cs_bucket='cs_bucket',
@@ -181,7 +248,6 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertEqual('download_path', dep_info.download_path)
     self.assertEqual('version_in_cs', dep_info.version_in_cs)
     self.assertEqual(['path0', 'path1'], dep_info.local_paths)
-
 
   def testUpdateRequiredArgsConflicts(self):
     dep_info1 = dependency_info.DependencyInfo(
