@@ -32,13 +32,14 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
-        results.addValue(new pi.v.DictValue(
-            run_info,
-            'result', {
-              numProcesses: model.getAllProcesses().length
-            }));
-      });
+      pi.FunctionRegistry.register(
+          function MyMapFunction(results, run_info, model) {
+            results.addValue(new pi.v.DictValue(
+              run_info,
+              'result', {
+                numProcesses: model.getAllProcesses().length
+              }));
+          });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
                                       _Handle(map_script.filename))
@@ -56,8 +57,9 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
-      });
+      pi.FunctionRegistry.register(
+          function MyMapFunction(results, run_info, model) {
+          });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
                                       _Handle(map_script.filename))
@@ -81,9 +83,10 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
-        throw new Error('Expected error');
-      });
+      pi.FunctionRegistry.register(
+          function MyMapFunction(results, run_info, model) {
+            throw new Error('Expected error');
+          });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
                                       _Handle(map_script.filename))
@@ -114,7 +117,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
-    self.assertIsInstance(v, map_single_trace.MapFunctionLoadingErrorValue);
+    self.assertIsInstance(v, map_single_trace.FunctionLoadingErrorValue);
 
 
   def testNoMapper(self):
@@ -138,7 +141,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
-    self.assertIsInstance(v, map_single_trace.MapFunctionNotDefinedErrorValue);
+    self.assertIsInstance(v, map_single_trace.FunctionNotDefinedErrorValue);
 
 
   def testMapperDoesntAddValues(self):
@@ -156,7 +159,8 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
+      pi.FunctionRegistry.register(
+          function MyMapFunction(results, run_info, model) {
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
@@ -181,10 +185,11 @@ class MapSingleTraceTests(unittest.TestCase):
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
-      pi.MapFunction.register(function MyMapFunction(results, run_info, model) {
-        results.addValue(new pi.v.SkipValue(
-            run_info, 'SkippedFieldName',
-            {description: 'SkippedReason'}));
+      pi.FunctionRegistry.register(
+          function MyMapFunction(results, run_info, model) {
+            results.addValue(new pi.v.SkipValue(
+                run_info, 'SkippedFieldName',
+                {description: 'SkippedReason'}));
 
       });
     """) as map_script:

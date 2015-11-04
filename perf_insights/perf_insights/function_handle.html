@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pi', function() {
+
+  var FunctionRegistry = {
+    allFunctions_: [],
+    allFunctionsByName_: {},
+    get allFunctions() { return this.allFunctions_; },
+    get allFunctionsByName() { return this.allFunctionsByName_; }
+  };
+
+  FunctionRegistry.getFunction = function(name) {
+    return this.allFunctionsByName_[name];
+  }
+
+  FunctionRegistry.register = function(func) {
+    if (func.name === '')
+      throw new Error('Registered functions must not be anonymous');
+    if (this.allFunctionsByName[func.name] !== undefined)
+      throw new Error('Function named ' + func.name + 'is already registered.');
+    this.allFunctionsByName[func.name] = func;
+    this.allFunctions.push(func);
+  };
+
+  function FunctionHandle(filename, functionName) {
+    this.filename = filename;
+    this.functionName = functionName;
+  };
+
+  FunctionHandle.prototype = {
+    asDict: function() {
+      if (this.filename !== undefined) {
+        return {'filename': this.filename};
+      }
+      return {'functionName': this.functionName};
+    },
+
+    load: function() {
+      if (this.filename !== undefined)
+        return FunctionHandle.loadFromFilename_(this.filename);
+
+      // Find the function by name.
+      loadHTML('/perf_insights/perf_insights_full_config.html');
+      var func = FunctionRegistry.getFunction(this.functionName);
+      if (func === undefined) {
+        var err = new Error(
+            'No function registered in perf_insights_full_config named ' +
+            this.functionName);
+        err.name = 'FunctionLoadingError';
+        throw err;
+      }
+
+      return fun;
+    },
+
+    toString: function() {
+      if (this.filename !== undefined) {
+        return 'FunctionHandle(filename="' + this.filename + '")';
+      }
+      return 'FunctionHandle(functionName="' + this.functionName + '")';
+    }
+  };
+
+  FunctionHandle.loadFromFilename_ = function(filename) {
+    try {
+      var numFunctionsBefore = FunctionRegistry.allFunctions.length;
+      loadHTMLFile(filename, filename);
+    } catch (err) {
+      err.name = 'FunctionLoadingError';
+      throw err;
+    }
+
+    // Verify a new function was registered.
+    var numFunctionsNow = FunctionRegistry.allFunctions.length;
+    if (numFunctionsNow !== (numFunctionsBefore + 1)) {
+      var err = new Error(filename + " didn't call FunctionRegistry.register");
+      err.name = 'FunctionNotDefinedError';
+      throw err;
+    }
+
+    return FunctionRegistry.allFunctions[numFunctionsNow - 1];
+  };
+
+  FunctionHandle.fromDict = function(handleDict) {
+    if (handleDict.filename !== undefined) {
+      return new FunctionHandle(handleDict.filename);
+    }
+    return new FunctionHandle(undefined, handleDict.functionName);
+  };
+
+  return {
+    FunctionHandle: FunctionHandle,
+    FunctionRegistry: FunctionRegistry
+  };
+});
+</script>

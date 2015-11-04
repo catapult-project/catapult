@@ -4,6 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/perf_insights/map_single_trace.html">
 <link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
@@ -15,58 +16,13 @@ tr.exportTo('pi', function() {
 
   var FailureValue = pi.v.FailureValue;
 
-  function getMapFunctionFromMapFunctionHandle(mapFunctionHandle) {
-    if (mapFunctionHandle.filename !== undefined)
-      return loadMapFunctionFromFileName(mapFunctionHandle.filename);
-
-    // Find the mapper by name.
-    loadHTML('/perf_insights/perf_insights_full_config.html');
-    var typeInfo = pi.MapFunction.findTypeInfoMatching(function(typeInfo) {
-      return typeInfo.constructor.name === mapFunctionHandle.function_name;
-    });
-    if (typeInfo === undefined) {
-      var err = new Error(
-          'No mapper registered in perf_insights_full_config named ' +
-          mapFunctionHandle.function_name);
-      err.name = 'MapFunctionLoadingError';
-      throw err;
-    }
-
-    return typeInfo.constructor;
-  }
-
-  function loadMapFunctionFromFileName(mapFunctionFileName) {
-    // Load the mapper.
-    var allTypeInfos = pi.MapFunction.getAllRegisteredTypeInfos();
-    try {
-      var numTypeInfosBefore = allTypeInfos.length;
-      loadHTMLFile(mapFunctionFileName, mapFunctionFileName);
-    } catch (err) {
-      err.name = 'MapFunctionLoadingError';
-      throw err;
-    }
-
-    // Verify a mapFunction was defined.
-    var numTypeInfosNow = allTypeInfos.length;
-    if (numTypeInfosNow !== (numTypeInfosBefore + 1)) {
-      var err = new Error(mapFunctionFileName +
-                          ' did not call defineMapFunction');
-      err.name = 'MapFunctionNotDefinedError';
-      throw err;
-    }
-
-    var mapFunction = allTypeInfos[allTypeInfos.length - 1].constructor;
-    return mapFunction;
-  }
-
-
   function mapSingleTraceMain(args) {
     if (args.length !== 4)
       throw new Error('Must provide four arguments');
 
     var options = {
       runInfo: pi.v.RunInfo.fromDict(JSON.parse(args[0])),
-      mapFunctionHandle: JSON.parse(args[1]),
+      mapFunctionHandle: pi.FunctionHandle.fromDict(JSON.parse(args[1])),
       filenameToMap: args[2],
       metadata: JSON.parse(args[3])
     };
@@ -77,8 +33,7 @@ tr.exportTo('pi', function() {
     pi.runAndConvertErrorsToFailureValues(
         results, options.runInfo,
         function() {
-          var mapFunction = getMapFunctionFromMapFunctionHandle(
-              options.mapFunctionHandle);
+          var mapFunction = options.mapFunctionHandle.load();
 
           // Read the mapfile.
           try {

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/map_function.html">
+<link rel="import" href="/perf_insights/function_handle.html">
 
 <polymer-element name="pi-ui-map-function-side-panel"
                  extends="tr-ui-side-panel">
@@ -57,12 +57,12 @@ found in the LICENSE file.
     },
 
     ready: function() {
-      var mapFunctionTypeInfos = pi.MapFunction.getAllRegisteredTypeInfos();
-      var mapFunctionOptions = mapFunctionTypeInfos.map(
-          function(mapFunctionTypeInfo) {
+      var functionsByName = pi.FunctionRegistry.allFunctionsByName;
+      var mapFunctionOptions = Object.keys(functionsByName).map(
+          function(functionName) {
             return {
-              label: mapFunctionTypeInfo.constructor.name,
-              value: mapFunctionTypeInfo
+              label: functionName,
+              value: functionsByName[functionName]
             };
           });
 

@@ -38,10 +38,10 @@ class TemporaryMapScript(object):
       return self.file.name
 
 
-class MapFunctionLoadingErrorValue(value_module.FailureValue):
+class FunctionLoadingErrorValue(value_module.FailureValue):
   pass
 
-class MapFunctionNotDefinedErrorValue(value_module.FailureValue):
+class FunctionNotDefinedErrorValue(value_module.FailureValue):
   pass
 
 class MapFunctionErrorValue(value_module.FailureValue):
@@ -57,8 +57,8 @@ class InternalMapError(Exception):
   pass
 
 _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
-  'MapFunctionLoadingError': MapFunctionLoadingErrorValue,
-  'MapFunctionNotDefinedError': MapFunctionNotDefinedErrorValue,
+  'FunctionLoadingError': FunctionLoadingErrorValue,
+  'FunctionNotDefinedError': FunctionNotDefinedErrorValue,
   'TraceImportError': TraceImportErrorValue,
   'MapFunctionError': MapFunctionErrorValue,
   'NoResultsAddedError': NoResultsAddedErrorValue
