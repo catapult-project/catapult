@@ -10,30 +10,43 @@ import time
 
 from perf_insights import map_single_trace
 from perf_insights import results as results_module
+from perf_insights import threaded_work_queue
 from perf_insights import value as value_module
 
 from perf_insights.results import gtest_progress_reporter
 
 AUTO_JOB_COUNT = 'auto-job-count'
 
-class MapRunner:
+class MapError(Exception):
+  def __init__(self, *args):
+    super(MapError, self).__init__(*args)
+    self.run_info = None
+
+class MapRunner(object):
   def __init__(self, trace_handles, map_function_handle,
-               stop_on_error=False, progress_reporter=None):
+               stop_on_error=False, progress_reporter=None,
+               jobs=AUTO_JOB_COUNT,
+               output_formatters=None):
     self._map_function_handle = map_function_handle
-    self._work_queue = queue.Queue()
-    self._result_queue = queue.Queue()
     self._stop_on_error = stop_on_error
-    self._abort = False
     self._failed_run_info_to_dump = None
     if progress_reporter is None:
       self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
                                     sys.stdout)
     else:
       self._progress_reporter = progress_reporter
-    for trace_handle in trace_handles:
-      self._work_queue.put(trace_handle)
+    self._output_formatters = output_formatters or []
 
-  def _ProcessTrace(self, trace_handle):
+    self._trace_handles = trace_handles
+    self._num_traces_merged_into_results = 0
+    self._results = None
+
+    if jobs == AUTO_JOB_COUNT:
+      jobs = multiprocessing.cpu_count()
+    print jobs
+    self._wq = threaded_work_queue.ThreadedWorkQueue(num_threads=jobs)
+
+  def _ProcessOneTrace(self, trace_handle):
     run_info = trace_handle.run_info
     subresults = results_module.Results()
     run_reporter = self._progress_reporter.WillRun(run_info)
@@ -41,59 +54,62 @@ class MapRunner:
         subresults,
         trace_handle,
         self._map_function_handle)
+
+    had_failure = subresults.DoesRunContainFailure(run_info)
+
     for v in subresults.all_values:
       run_reporter.DidAddValue(v)
-    self._result_queue.put(subresults)
-    had_failure = subresults.DoesRunContainFailure(run_info)
     run_reporter.DidRun(had_failure)
+
+    self._wq.PostMainThreadTask(self._MergeResultsToIntoMaster,
+                                trace_handle, subresults)
+
+  def _MergeResultsToIntoMaster(self, trace_handle, subresults):
+    self._results.Merge(subresults)
+
+    run_info = trace_handle.run_info
+    had_failure = subresults.DoesRunContainFailure(run_info)
     if self._stop_on_error and had_failure:
-      self._failed_run_info_to_dump = run_info
-      self._abort = True
+      err = MapError("Mapping error")
+      err.run_info = run_info
+      self._AbortMappingDueStopOnError(err)
+      return
 
-  def _WorkLoop(self):
-    while not self._abort and not self._work_queue.empty():
-      self._ProcessTrace(self._work_queue.get())
-      self._work_queue.task_done()
+    self._num_traces_merged_into_results += 1
+    if self._num_traces_merged_into_results == len(self._trace_handles):
+      self._wq.PostMainThreadTask(self._AllMappingDone)
 
-  def Run(self, jobs=1, output_formatters=None):
-    if jobs == AUTO_JOB_COUNT:
-      jobs = multiprocessing.cpu_count()
+  def _AbortMappingDueStopOnError(self, err):
+    self._wq.Stop(err)
 
-    if jobs == 1:
-      self._WorkLoop()
-    else:
-      for _ in range(jobs):
-        t = threading.Thread(target=self._WorkLoop)
-        t.setDaemon(True)
-        t.start()
+  def _AllMappingDone(self):
+    self._wq.Stop()
 
-    output_formatters = output_formatters or []
+  def Run(self):
+    self._results = results_module.Results()
 
-    results = results_module.Results()
-    while True:
-      if not self._result_queue.empty():
-        subresults = self._result_queue.get()
-        results.Merge(subresults)
-      elif self._abort:
-        break
-      elif self._work_queue.empty():
-        self._work_queue.join()
-        self._abort = True
-      else:
-        time.sleep(0.1)
+    for trace_handle in self._trace_handles:
+      self._wq.PostAnyThreadTask(self._ProcessOneTrace, trace_handle)
 
-    self._progress_reporter.DidFinishAllRuns(results)
-    for of in output_formatters:
-      of.Format(results)
+    err = self._wq.Run()
 
-    if self._failed_run_info_to_dump:
-      sys.stderr.write('\n\nWhile mapping %s:\n' %
-                       self._failed_run_info_to_dump.display_name)
-      failures = [v for v in results.all_values
-                  if (v.run_info == self._failed_run_info_to_dump and
-                      isinstance(v, value_module.FailureValue))]
-      for failure in failures:
-        sys.stderr.write(failure.GetGTestPrintString())
-        sys.stderr.write('\n')
+    self._progress_reporter.DidFinishAllRuns(self._results)
+    for of in self._output_formatters:
+      of.Format(self._results)
 
+    if err:
+      self._PrintFailedRunInfo(err.run_info)
+
+    results = self._results
+    self._results = None
     return results
+
+  def _PrintFailedRunInfo(self, run_info):
+    sys.stderr.write('\n\nWhile mapping %s:\n' %
+                     run_info.display_name)
+    failures = [v for v in self._results.all_values
+                if (v.run_info == run_info and
+                    isinstance(v, value_module.FailureValue))]
+    for failure in failures:
+      sys.stderr.write(failure.GetGTestPrintString())
+      sys.stderr.write('\n')

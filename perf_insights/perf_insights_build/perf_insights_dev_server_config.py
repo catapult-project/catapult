@@ -58,9 +58,10 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
     output_formatter = json_output_formatter.JSONOutputFormatter(
         self.response.out)
 
-    runner = map_runner.MapRunner(trace_handles, map_function_handle)
-    runner.Run(jobs=map_runner.AUTO_JOB_COUNT,
-               output_formatters=[output_formatter])
+    runner = map_runner.MapRunner(trace_handles, map_function_handle,
+                                  jobs=map_runner.AUTO_JOB_COUNT,
+                                  output_formatters=[output_formatter])
+    runner.Run()
 
 
 class PerfInsightsDevServerConfig(object):

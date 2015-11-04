@@ -108,8 +108,9 @@ def _MapTraces(corpus_driver, map_function_handle, query, stop_on_error=False,
     alt_progress_reporter = None
   runner = map_runner.MapRunner(trace_handles, map_function_handle,
                   stop_on_error=stop_on_error,
-                  progress_reporter=alt_progress_reporter)
-  return runner.Run(jobs=jobs)
+                  progress_reporter=alt_progress_reporter,
+                  jobs=jobs)
+  return runner.Run()
 
 
 def WriteResultsToFile(ofile, project,

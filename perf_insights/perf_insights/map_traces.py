@@ -37,7 +37,8 @@ def Main(argv):
   corpus_driver_cmdline.AddArguments(parser)
   parser.add_argument('--query')
   parser.add_argument('map_file')
-  parser.add_argument('-j', '--jobs', type=int, default=1)
+  parser.add_argument('-j', '--jobs', type=int,
+                      default=map_runner.AUTO_JOB_COUNT)
   parser.add_argument('-o', '--output-file')
   parser.add_argument('-s', '--stop-on-error',
                       action='store_true')
@@ -67,8 +68,10 @@ def Main(argv):
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,
-                                  stop_on_error=args.stop_on_error)
-    results = runner.Run(jobs=args.jobs, output_formatters=[output_formatter])
+                                  stop_on_error=args.stop_on_error,
+                                  jobs=args.jobs,
+                                  output_formatters=[output_formatter])
+    results = runner.Run()
     if not results.had_failures:
       return 0
     else:
