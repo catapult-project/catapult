@@ -12,6 +12,7 @@ found in the LICENSE file.
   'use strict';
   Polymer({
     created: function() {
+      this.isAttached_ = false;
       this.globalMode_ = false;
       this.slavedToParentController_ = undefined;
       this.curHost_ = undefined;
@@ -29,6 +30,8 @@ found in the LICENSE file.
     },
 
     attached: function() {
+      this.isAttached_ = true;
+
       var host = this.findHost_();
       if (host.__hotkeyController)
         throw new Error('Multiple hotkey controllers attached to this host');
@@ -57,6 +60,8 @@ found in the LICENSE file.
     },
 
     detached: function() {
+      this.isAttached_ = false;
+
       var host = this.curHost_;
       if (!host)
         return;
@@ -152,9 +157,12 @@ found in the LICENSE file.
     },
 
     set globalMode(globalMode) {
-      this.detached();
+      var wasAttached = this.isAttached_;
+      if (wasAttached)
+        this.detached();
       this.globalMode_ = !!globalMode;
-      this.attached();
+      if (wasAttached)
+        this.attached();
     },
 
     get topmostConroller_() {
