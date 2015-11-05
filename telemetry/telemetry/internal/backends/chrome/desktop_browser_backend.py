@@ -367,7 +367,14 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _IsExecutableStripped(self):
     if self.browser.platform.GetOSName() == 'mac':
-      symbols = subprocess.check_output(['/usr/bin/nm', self._executable])
+      try:
+        symbols = subprocess.check_output(['/usr/bin/nm', self._executable])
+      except subprocess.CalledProcessError as err:
+        logging.warning('Error when checking whether executable is stripped: %s'
+                        % err.output)
+        # Just assume that binary is stripped to skip breakpad symbol generation
+        # if this check failed.
+        return True
       num_symbols = len(symbols.splitlines())
       # We assume that if there are more than 10 symbols the executable is not
       # stripped.
