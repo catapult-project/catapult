@@ -8,6 +8,7 @@
         'files': [
           '../../build/android/pylib/',
           '../../build/android/devil/',
+          '../../third_party/catapult/',
           './',
           # For Telemetry's screenshot support.
           '<(PRODUCT_DIR)/bitmaptools<(EXECUTABLE_SUFFIX)',
