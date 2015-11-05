@@ -87,26 +87,41 @@ def Discrepancy(samples, location_count=None):
       count_less.append(len(samples))
       count_less_equal.append(len(samples))
 
-  # Iterate over the intervals defined by any pair of locations.
-  for i in xrange(0, len(locations)):
-    for j in xrange(i+1, len(locations)):
-      # Length of interval
-      length = locations[j] - locations[i]
+  # Compute discrepancy as max(overshoot, -undershoot), where
+  # overshoot = max(count_closed(i, j)/N - length(i, j)) for all i < j,
+  # undershoot = min(count_open(i, j)/N - length(i, j)) for all i < j,
+  # N = len(samples),
+  # count_closed(i, j) is the number of points between i and j including ends,
+  # count_open(i, j) is the number of points between i and j excluding ends,
+  # length(i, j) is locations[i] - locations[j].
 
-      # Local discrepancy for closed interval
-      count_closed = count_less_equal[j] - count_less[i]
-      local_discrepancy_closed = abs(float(count_closed) *
-                                     inv_sample_count - length)
-      max_local_discrepancy = max(local_discrepancy_closed,
-                                  max_local_discrepancy)
+  # The following algorithm is modification of Kadane's algorithm,
+  # see https://en.wikipedia.org/wiki/Maximum_subarray_problem.
 
-      # Local discrepancy for open interval
-      count_open = count_less[j] - count_less_equal[i]
-      local_discrepancy_open = abs(float(count_open) *
-                                   inv_sample_count - length)
-      max_local_discrepancy = max(local_discrepancy_open,
-                                  max_local_discrepancy)
+  # The maximum of (count_closed(k, i-1)/N - length(k, i-1)) for any k < i-1.
+  max_diff = 0
+  # The minimum of (count_open(k, i-1)/N - length(k, i-1)) for any k < i-1.
+  min_diff = 0
+  for i in xrange(1, len(locations)):
+    length = locations[i] - locations[i - 1]
+    count_closed = count_less_equal[i] - count_less[i - 1]
+    count_open = count_less[i] - count_less_equal[i - 1]
+    # Number of points that are added if we extend a closed range that
+    # ends at location (i-1).
+    count_closed_increment = count_less_equal[i] - count_less_equal[i - 1]
+    # Number of points that are added if we extend an open range that
+    # ends at location (i-1).
+    count_open_increment = count_less[i] - count_less[i - 1]
 
+    # Either extend the previous optimal range or start a new one.
+    max_diff = max(
+        float(count_closed_increment) * inv_sample_count - length + max_diff,
+        float(count_closed) * inv_sample_count - length)
+    min_diff = min(
+        float(count_open_increment) * inv_sample_count - length + min_diff,
+        float(count_open) * inv_sample_count - length)
+
+    max_local_discrepancy = max(max_diff, -min_diff, max_local_discrepancy)
   return max_local_discrepancy
 
 
