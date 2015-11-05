@@ -20,8 +20,8 @@ class CommandFailedError(base_error.BaseError):
     super(CommandFailedError, self).__init__(message)
 
 
-class AdbCommandFailedError(CommandFailedError):
-  """Exception for adb command failures."""
+class _BaseCommandFailedError(CommandFailedError):
+  """Base Exception for adb and fastboot command failures."""
 
   def __init__(self, args, output, status=None, device_serial=None,
                message=None):
@@ -39,7 +39,26 @@ class AdbCommandFailedError(CommandFailedError):
       else:
         message.append('and no output.')
       message = ''.join(message)
-    super(AdbCommandFailedError, self).__init__(message, device_serial)
+    super(_BaseCommandFailedError, self).__init__(message, device_serial)
+
+class AdbCommandFailedError(_BaseCommandFailedError):
+  """Exception for adb command failures."""
+
+  def __init__(self, args, output, status=None, device_serial=None,
+               message=None):
+    super(AdbCommandFailedError, self).__init__(
+        args, output, status=status, message=message,
+        device_serial=device_serial)
+
+
+class FastbootCommandFailedError(_BaseCommandFailedError):
+  """Exception for fastboot command failures."""
+
+  def __init__(self, args, output, status=None, device_serial=None,
+               message=None):
+    super(FastbootCommandFailedError, self).__init__(
+        args, output, status=status, message=message,
+        device_serial=device_serial)
 
 
 class DeviceVersionError(CommandFailedError):

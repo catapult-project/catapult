@@ -1699,6 +1699,11 @@ class DeviceUtils(object):
     """Returns the product name of the device (e.g. 'nakasi')."""
     return self.GetProp('ro.product.name', cache=True)
 
+  @property
+  def product_board(self):
+    """Returns the product board name of the device (e.g. 'shamu')."""
+    return self.GetProp('ro.product.board', cache=True)
+
   def GetProp(self, property_name, cache=False, timeout=DEFAULT,
               retries=DEFAULT):
     """Gets a property from the device.
