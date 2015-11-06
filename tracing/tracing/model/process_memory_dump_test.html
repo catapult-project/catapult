@@ -303,19 +303,18 @@ tr.b.unittest.testSuite(function() {
       tracingDump.addAttribute(
           'resident_size', new ScalarAttribute('bytes', 1000));
 
-      // We need to inject a fake owner of the 'tracing' dump so that we alter
-      // its effective size.
-      var ownerDump = new MemoryAllocatorDump(pmd, 'owner');
-      ownerDump.addAttribute('size', new ScalarAttribute('bytes', 256));
-      var ownershipLink = new MemoryAllocatorDumpLink(ownerDump, tracingDump);
-      ownerDump.owns = ownershipLink;
-      tracingDump.ownedBy.push(ownershipLink);
-
-      pmd.memoryAllocatorDumps = [mallocDump, tracingDump, ownerDump];
+      pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
     });
 
     assert.equal(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
+
+    var vmRegions = pmd.mostRecentVmRegions;
+    assert.lengthOf(vmRegions, 2);
+    var discountRegion = vmRegions[1];
+    assert.strictEqual(
+        discountRegion.mappedFile, '[discounted tracing overhead]');
+    assert.strictEqual(discountRegion.sizeInBytes, -1024);
 
     assert.equal(
         pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
@@ -324,29 +323,31 @@ tr.b.unittest.testSuite(function() {
         pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4120);
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
-    assert.equal(mallocDump.attributes['size'].value, 2048);
-    assert.equal(mallocDump.attributes['effective_size'].value, 2304);
+    assert.equal(mallocDump.attributes['size'].value, 3072);
+    assert.equal(mallocDump.attributes['effective_size'].value, 2048);
     assert.lengthOf(
         mallocDump.children, 2 /* 'allocated_objects' and '<unspecified>' */);
 
     var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
         'malloc/allocated_objects');
-    assert.equal(allocatedObjectsDump.attributes['size'].value, 1536);
-    assert.equal(allocatedObjectsDump.attributes['effective_size'].value, 1792);
+    assert.equal(allocatedObjectsDump.attributes['size'].value, 2560);
+    assert.equal(allocatedObjectsDump.attributes['effective_size'].value, 1536);
     assert.lengthOf(
-        allocatedObjectsDump.children, 1 /* 'discounted_tracing_overhead' */);
+        allocatedObjectsDump.children,
+        2 /* 'tracing_overhead' and '<unspecified>' */);
 
     var discountDump = pmd.getMemoryAllocatorDumpByFullName(
-        'malloc/allocated_objects/discounted_tracing_overhead');
+        'malloc/allocated_objects/tracing_overhead');
     assert.strictEqual(discountDump.parent, allocatedObjectsDump);
     assert.include(allocatedObjectsDump.children, discountDump);
-    assert.equal(discountDump.attributes['size'].value, -1024);
-    assert.equal(discountDump.attributes['effective_size'].value, -768);
+    assert.equal(discountDump.attributes['size'].value, 1024);
+    assert.equal(discountDump.attributes['effective_size'].value, 0);
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     assert.equal(tracingDump.attributes['size'].value, 1024);
-    assert.equal(tracingDump.attributes['effective_size'].value, 768);
+    assert.equal(tracingDump.attributes['effective_size'].value, 1024);
     assert.equal(tracingDump.attributes['resident_size'].value, 1000);
+    assert.strictEqual(tracingDump.owns.target, discountDump);
   });
 
   test('checkDiscountTracingOverhead_winheap', function() {
@@ -369,13 +370,29 @@ tr.b.unittest.testSuite(function() {
         pmd.getMostRecentTotalVmRegionStat('proportionalResident'));
 
     var winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
-    assert.equal(winheapDump.attributes['size'].value, 3072);
+    assert.equal(winheapDump.attributes['size'].value, 5120);
     assert.equal(winheapDump.attributes['effective_size'].value, 3072);
-    assert.lengthOf(winheapDump.children, 0);
+    assert.lengthOf(winheapDump.children,
+        2 /* 'allocated_objects' and '<unspecified>' */);
+
+    var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
+        'winheap/allocated_objects');
+    assert.equal(allocatedObjectsDump.attributes['size'].value, 2048);
+    assert.equal(allocatedObjectsDump.attributes['effective_size'].value, 0);
+    assert.lengthOf(
+        allocatedObjectsDump.children, 1 /* 'tracing_overhead' */);
+
+    var discountDump = pmd.getMemoryAllocatorDumpByFullName(
+        'winheap/allocated_objects/tracing_overhead');
+    assert.strictEqual(discountDump.parent, allocatedObjectsDump);
+    assert.include(allocatedObjectsDump.children, discountDump);
+    assert.equal(discountDump.attributes['size'].value, 2048);
+    assert.equal(discountDump.attributes['effective_size'].value, 0);
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     assert.equal(tracingDump.attributes['size'].value, 2048);
     assert.equal(tracingDump.attributes['effective_size'].value, 2048);
+    assert.strictEqual(tracingDump.owns.target, discountDump);
   });
 
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {
@@ -397,6 +414,8 @@ tr.b.unittest.testSuite(function() {
         var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
         tracingDump.addAttribute(
             'resident_size', new ScalarAttribute('bytes', 100));
+        tracingDump.addAttribute(
+            'size', new ScalarAttribute('bytes', 300));
         return [tracingDump];
       })();
 
@@ -410,26 +429,30 @@ tr.b.unittest.testSuite(function() {
     });
 
     // First PMD: Both total resident and private dirty resident size should be
-    // reduced by 100.
+    // reduced by 100. Virtual size should be reduced by 300.
     assert.equal(pmds[0].totals.residentBytes, 900);
     assert.equal(pmds[0].totals.peakResidentBytes, 1900);
+    assert.equal(pmds[0].mostRecentVmRegions[1].sizeInBytes, -300);
     assert.equal(
         pmds[0].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
 
     // Second PMD: Total resident size should be reduced by 200, whereas private
     // dirty resident size should be reduced by 100 (because it comes from
-    // the VM regions in the first dump).
+    // the VM regions in the first dump). Similarly, virtual size should be
+    // reduced by 300.
     assert.isUndefined(pmds[1].totals.residentBytes);
     assert.equal(pmds[1].totals.peakResidentBytes, 2800);
+    assert.equal(pmds[1].mostRecentVmRegions[1].sizeInBytes, -300);
     assert.equal(
         pmds[1].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
   });
 
-  test('checkDiscountTracingOverhead_bothDiscountedVmRegionFields', function() {
+  test('checkDiscountTracingOverhead_allDiscountedVmRegionFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = [
         VMRegion.fromDict({
           mappedFile: '[stack]',
+          sizeInBytes: 10000,
           byteStats: {
             privateDirtyResident: 4096,
             proportionalResident: 8192,
@@ -439,38 +462,7 @@ tr.b.unittest.testSuite(function() {
       ];
       var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
       tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1024));
-      pmd.memoryAllocatorDumps = [tracingDump];
-    });
-
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-
-    var regularRegion = vmRegions[0];
-    assert.equal(regularRegion.mappedFile, '[stack]');
-    assert.equal(regularRegion.byteStats.privateDirtyResident, 4096);
-    assert.equal(regularRegion.byteStats.swapped, 1536);
-    assert.equal(regularRegion.byteStats.proportionalResident, 8192);
-
-    var discountedRegion = vmRegions[1];
-    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
-    assert.equal(discountedRegion.byteStats.privateDirtyResident, -1024);
-    assert.isUndefined(discountedRegion.byteStats.swapped);
-    assert.equal(discountedRegion.byteStats.proportionalResident, -1024);
-  });
-
-  test('checkDiscountTracingOverhead_oneDiscountedVmRegionField', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          mappedFile: '[stack]',
-          byteStats: {
-            privateDirtyResident: 4096,
-            swapped: 1536
-          }
-        })
-      ];
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+          'size', new ScalarAttribute('bytes', 1000));
       tracingDump.addAttribute(
           'resident_size', new ScalarAttribute('bytes', 1024));
       pmd.memoryAllocatorDumps = [tracingDump];
@@ -481,13 +473,88 @@ tr.b.unittest.testSuite(function() {
 
     var regularRegion = vmRegions[0];
     assert.equal(regularRegion.mappedFile, '[stack]');
+    assert.equal(regularRegion.sizeInBytes, 10000);
+    assert.equal(regularRegion.byteStats.privateDirtyResident, 4096);
+    assert.equal(regularRegion.byteStats.swapped, 1536);
+    assert.equal(regularRegion.byteStats.proportionalResident, 8192);
+
+    var discountedRegion = vmRegions[1];
+    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
+    assert.equal(discountedRegion.sizeInBytes, -1000);
+    assert.equal(discountedRegion.byteStats.privateDirtyResident, -1024);
+    assert.isUndefined(discountedRegion.byteStats.swapped);
+    assert.equal(discountedRegion.byteStats.proportionalResident, -1024);
+  });
+
+  test('checkDiscountTracingOverhead_twoDiscountedVmRegionField', function() {
+    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+      pmd.vmRegions = [
+        VMRegion.fromDict({
+          mappedFile: '[stack]',
+          sizeInBytes: 10000,
+          byteStats: {
+            privateDirtyResident: 4096,
+            swapped: 1536
+          }
+        })
+      ];
+      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+      tracingDump.addAttribute(
+          'size', new ScalarAttribute('bytes', 1000));
+      tracingDump.addAttribute(
+          'resident_size', new ScalarAttribute('bytes', 1024));
+      pmd.memoryAllocatorDumps = [tracingDump];
+    });
+
+    var vmRegions = pmd.mostRecentVmRegions;
+    assert.lengthOf(vmRegions, 2);
+
+    var regularRegion = vmRegions[0];
+    assert.equal(regularRegion.mappedFile, '[stack]');
+    assert.equal(regularRegion.sizeInBytes, 10000);
     assert.equal(regularRegion.byteStats.privateDirtyResident, 4096);
     assert.equal(regularRegion.byteStats.swapped, 1536);
     assert.isUndefined(regularRegion.byteStats.proportionalResident);
 
     var discountedRegion = vmRegions[1];
     assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
+    assert.equal(discountedRegion.sizeInBytes, -1000);
     assert.equal(discountedRegion.byteStats.privateDirtyResident, -1024);
+    assert.isUndefined(discountedRegion.byteStats.swapped);
+    assert.isUndefined(discountedRegion.byteStats.proportionalResident);
+  });
+
+  test('checkDiscountTracingOverhead_oneDiscountedVmRegionField', function() {
+    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+      pmd.vmRegions = [
+        VMRegion.fromDict({
+          mappedFile: '[stack]',
+          sizeInBytes: 10000,
+          byteStats: {}
+        })
+      ];
+      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+      tracingDump.addAttribute(
+          'size', new ScalarAttribute('bytes', 1000));
+      tracingDump.addAttribute(
+          'resident_size', new ScalarAttribute('bytes', 1024));
+      pmd.memoryAllocatorDumps = [tracingDump];
+    });
+
+    var vmRegions = pmd.mostRecentVmRegions;
+    assert.lengthOf(vmRegions, 2);
+
+    var regularRegion = vmRegions[0];
+    assert.equal(regularRegion.mappedFile, '[stack]');
+    assert.equal(regularRegion.sizeInBytes, 10000);
+    assert.isUndefined(regularRegion.byteStats.privateDirtyResident);
+    assert.isUndefined(regularRegion.byteStats.swapped);
+    assert.isUndefined(regularRegion.byteStats.proportionalResident);
+
+    var discountedRegion = vmRegions[1];
+    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
+    assert.equal(discountedRegion.sizeInBytes, -1000);
+    assert.isUndefined(discountedRegion.byteStats.privateDirtyResident);
     assert.isUndefined(discountedRegion.byteStats.swapped);
     assert.isUndefined(discountedRegion.byteStats.proportionalResident);
   });
@@ -513,9 +580,82 @@ tr.b.unittest.testSuite(function() {
 
     var regularRegion = vmRegions[0];
     assert.equal(regularRegion.mappedFile, '[stack]');
+    assert.isUndefined(regularRegion.sizeInBytes);
     assert.isUndefined(regularRegion.byteStats.privateDirtyResident);
     assert.equal(regularRegion.byteStats.swapped, 1536);
     assert.isUndefined(regularRegion.byteStats.proportionalResident);
+  });
+
+  test('checkDiscountTracingOverhead_existingLink', function() {
+    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+      pmd.totals = { residentBytes: 10240 };
+
+      pmd.vmRegions = [
+        VMRegion.fromDict({
+          startAddress: 256,
+          sizeInBytes: 6000,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+              VMRegion.PROTECTION_FLAG_WRITE,
+          mappedFile: '[stack:20310]',
+          byteStats: {
+            privateDirtyResident: 4096,
+            swapped: 1536,
+            proportionalResident: 5120
+          }
+        })
+      ];
+
+      var mallocDump = new MemoryAllocatorDump(pmd, 'malloc');
+      mallocDump.addAttribute('size', new ScalarAttribute('bytes', 3072));
+
+      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
+      tracingDump.addAttribute(
+          'size', new ScalarAttribute('bytes', 1024));
+      tracingDump.addAttribute(
+          'resident_size', new ScalarAttribute('bytes', 1000));
+
+      var ownedDump = new MemoryAllocatorDump(pmd, 'owned');
+
+      // The code for discounting tracing overhead should *not* override an
+      // existing ownership.
+      var ownershipLink = new MemoryAllocatorDumpLink(tracingDump, ownedDump);
+      tracingDump.owns = ownershipLink;
+      ownedDump.ownedBy.push(ownershipLink);
+
+      pmd.memoryAllocatorDumps = [mallocDump, tracingDump, ownedDump];
+    });
+
+    assert.equal(pmd.totals.residentBytes, 9240);
+    assert.isUndefined(pmd.totals.peakResidentBytes);
+
+    var vmRegions = pmd.mostRecentVmRegions;
+    assert.lengthOf(vmRegions, 2);
+    var discountRegion = vmRegions[1];
+    assert.strictEqual(
+        discountRegion.mappedFile, '[discounted tracing overhead]');
+    assert.strictEqual(discountRegion.sizeInBytes, -1024);
+
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
+    assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 1536);
+    assert.equal(
+        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4120);
+
+    var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
+    assert.equal(mallocDump.attributes['size'].value, 3072);
+    assert.equal(mallocDump.attributes['effective_size'].value, 3072);
+    assert.lengthOf(mallocDump.children, 0);
+
+    var ownedDump = pmd.getMemoryAllocatorDumpByFullName('owned');
+    assert.equal(ownedDump.attributes['size'].value, 1024);
+    assert.equal(ownedDump.attributes['effective_size'].value, 0);
+    assert.lengthOf(ownedDump.children, 0);
+
+    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    assert.equal(tracingDump.attributes['size'].value, 1024);
+    assert.equal(tracingDump.attributes['effective_size'].value, 1024);
+    assert.equal(tracingDump.attributes['resident_size'].value, 1000);
+    assert.strictEqual(tracingDump.owns.target, ownedDump);
   });
 });
 </script>

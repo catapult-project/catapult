@@ -278,7 +278,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var totalRow = rows[0];
-    checkRow(columns, totalRow, 'Total', [undefined], [4833935660], [undefined],
+    checkRow(columns, totalRow, 'Total', [undefined], [4833935160], [undefined],
         [8460], [64], [0], 3, undefined);
 
     var androidRow = totalRow.subRows[0];
@@ -294,12 +294,12 @@ tr.b.unittest.testSuite(function() {
         [100], [0], [0], 1, undefined);
 
     var nativeHeapRow = totalRow.subRows[1];
-    checkRow(columns, nativeHeapRow, 'Native heap', [undefined], [4294967496],
+    checkRow(columns, nativeHeapRow, 'Native heap', [undefined], [4294966996],
         [undefined], [168], [64], [0], 4, undefined);
 
     var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
-        '[discounted tracing overhead]', undefined, undefined, undefined, [-32],
+        '[discounted tracing overhead]', undefined, [-500], undefined, [-32],
         [-32], undefined, undefined, [true]);
 
     var filesRow = totalRow.subRows[2];
@@ -342,7 +342,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var totalRow = rows[0];
-    checkRow(columns, totalRow, 'Total', [undefined], [4833935660, 5368709421],
+    checkRow(columns, totalRow, 'Total', [undefined], [4833935160, 5368709421],
         [undefined, undefined], [8460, 19557], [64, 197], [0, 33], 4,
         undefined);
 
@@ -360,13 +360,13 @@ tr.b.unittest.testSuite(function() {
 
     var nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', [undefined],
-        [4294967496, 4294967496], [undefined, undefined], [168, 100], [64, 96],
+        [4294966996, 4294967496], [undefined, undefined], [168, 100], [64, 96],
         [0, 32], 4, undefined);
 
     var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
-        '[discounted tracing overhead]', undefined, undefined, undefined,
-        [-32, undefined], [-32, undefined], undefined, undefined,
+        '[discounted tracing overhead]', undefined, [-500, undefined],
+        undefined, [-32, undefined], [-32, undefined], undefined, undefined,
         [true, undefined]);
 
     var filesRow = totalRow.subRows[2];

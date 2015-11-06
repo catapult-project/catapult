@@ -22,9 +22,21 @@ tr.exportTo('tr.model', function() {
   // discounted.
   var DISCOUNTED_ALLOCATOR_NAMES = ['winheap', 'malloc'];
 
+  // The path to where the tracing overhead dump should be added to the
+  // winheap/malloc allocator dump tree.
+  var TRACING_OVERHEAD_PATH = ['allocated_objects', 'tracing_overhead'];
+
   var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
-  var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
-      tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
+  var RESIDENT_SIZE_ATTRIBUTE_NAME =
+      tr.model.MemoryAllocatorDump.RESIDENT_SIZE_ATTRIBUTE_NAME;
+
+  function getSizeAttrValue(dump, sizeAttrName, opt_model) {
+    var sizeAttr = dump.getValidSizeAttributeOrUndefined(
+        sizeAttrName, opt_model);
+    if (sizeAttr === undefined)
+      return 0;
+    return sizeAttr.value;
+  }
 
   /**
    * The ProcessMemoryDump represents a memory dump of a single process.
@@ -41,7 +53,8 @@ tr.exportTo('tr.model', function() {
     // Map from allocator names to heap dumps.
     this.heapDumps = undefined;
 
-    this.tracingMemoryDiscounted_ = false;
+    this.tracingOverheadOwnershipSetUp_ = false;
+    this.tracingOverheadDiscountedFromVmRegions_ = false;
   };
 
   ProcessMemoryDump.prototype = {
@@ -89,120 +102,146 @@ tr.exportTo('tr.model', function() {
       return total;
     },
 
-    discountTracingOverhead: function(opt_model) {
+    setUpTracingOverheadOwnership: function(opt_model) {
       // Make sure that calling this method twice won't lead to
       // 'double-discounting'.
-      if (this.tracingMemoryDiscounted_)
+      if (this.tracingOverheadOwnershipSetUp_)
         return;
-      this.tracingMemoryDiscounted_ = true;
+      this.tracingOverheadOwnershipSetUp_ = true;
+
+      var tracingDump = this.getMemoryAllocatorDumpByFullName('tracing');
+      if (tracingDump === undefined || tracingDump.owns !== undefined) {
+        // The tracing dump either doesn't exist, or it already owns another
+        // dump.
+        return;
+      }
+
+      if (tracingDump.owns !== undefined)
+        return;
+
+      // Add an ownership link from tracing to
+      // malloc/allocated_objects/tracing_overhead or
+      // winheap/allocated_objects/tracing_overhead.
+      var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
+          function(allocatorName) {
+        // First check if the allocator root exists.
+        var allocatorDump = this.getMemoryAllocatorDumpByFullName(
+            allocatorName);
+        if (allocatorDump === undefined)
+          return false;  // Allocator doesn't exist, try another one.
+
+        var nextPathIndex = 0;
+        var currentDump = allocatorDump;
+        var currentFullName = allocatorName;
+
+        // Descend from the root towards tracing_overhead as long as the dumps
+        // on the path exist.
+        for (; nextPathIndex < TRACING_OVERHEAD_PATH.length; nextPathIndex++) {
+          var childFullName = currentFullName + '/' +
+              TRACING_OVERHEAD_PATH[nextPathIndex];
+          var childDump = this.getMemoryAllocatorDumpByFullName(
+              childFullName);
+          if (childDump === undefined)
+            break;
+
+          currentDump = childDump;
+          currentFullName = childFullName;
+        }
+
+        // Create the missing descendant dumps on the path from the root
+        // towards tracing_overhead.
+        for (; nextPathIndex < TRACING_OVERHEAD_PATH.length; nextPathIndex++) {
+          var childFullName = currentFullName + '/' +
+              TRACING_OVERHEAD_PATH[nextPathIndex];
+          var childDump = new tr.model.MemoryAllocatorDump(
+              currentDump.containerMemoryDump, childFullName);
+          childDump.parent = currentDump;
+          currentDump.children.push(childDump);
+
+          currentFullName = childFullName;
+          currentDump = childDump;
+        }
+
+        // Add the ownership link.
+        var ownershipLink =
+            new tr.model.MemoryAllocatorDumpLink(tracingDump, currentDump);
+        tracingDump.owns = ownershipLink;
+        currentDump.ownedBy.push(ownershipLink);
+        return true;
+      }, this);
+
+      // Force rebuilding the memory allocator dump index (if we've just added
+      // a new memory allocator dump).
+      if (hasDiscountedFromAllocatorDumps)
+        this.memoryAllocatorDumps = this.memoryAllocatorDumps;
+    },
+
+    discountTracingOverheadFromVmRegions: function(opt_model) {
+      // Make sure that calling this method twice won't lead to
+      // 'double-discounting'.
+      if (this.tracingOverheadDiscountedFromVmRegions_)
+        return;
+      this.tracingOverheadDiscountedFromVmRegions_ = true;
 
       var tracingDump = this.getMemoryAllocatorDumpByFullName('tracing');
       if (tracingDump === undefined)
         return;
 
-      function getDiscountedSize(sizeAttrName) {
-        var sizeAttr = tracingDump.getValidSizeAttributeOrUndefined(
-            sizeAttrName, opt_model);
-        if (sizeAttr === undefined)
-          return 0;
-        return sizeAttr.value;
+      var discountedSize = getSizeAttrValue(tracingDump, SIZE_ATTRIBUTE_NAME);
+      var discountedResidentSize =
+          getSizeAttrValue(tracingDump, RESIDENT_SIZE_ATTRIBUTE_NAME);
+
+      if (discountedSize <= 0 && discountedResidentSize <= 0)
+        return;
+
+      // Subtract the tracing size from the totals.
+      if (this.totals !== undefined) {
+        if (this.totals.residentBytes !== undefined)
+          this.totals.residentBytes -= discountedResidentSize;
+        if (this.totals.peakResidentBytes !== undefined)
+          this.totals.peakResidentBytes -= discountedResidentSize;
       }
 
-      var discountedSize = getDiscountedSize(SIZE_ATTRIBUTE_NAME);
-      var discountedEffectiveSize =
-          getDiscountedSize(EFFECTIVE_SIZE_ATTRIBUTE_NAME);
-      var discountedResidentSize = getDiscountedSize('resident_size');
+      // Subtract the tracing size from VM regions. More precisely, subtract
+      // tracing resident_size from byte stats (private dirty and PSS) and
+      // tracing size from virtual size by injecting a fake VM region with
+      // negative values.
+      if (this.vmRegions_ !== undefined) {
+        var hasSizeInBytes = false;
+        var hasPrivateDirtyResident = false;
+        var hasProportionalResident = false;
 
-      // Subtract 'resident_size' from totals and VM regions stats.
-      if (discountedResidentSize > 0) {
-        // Subtract the tracing size from the totals.
-        if (this.totals !== undefined) {
-          if (this.totals.residentBytes !== undefined)
-            this.totals.residentBytes -= discountedResidentSize;
-          if (this.totals.peakResidentBytes !== undefined)
-            this.totals.peakResidentBytes -= discountedResidentSize;
-        }
+        for (var i = 0; i < this.vmRegions_.length; i++) {
+          var vmRegion = this.vmRegions_[i];
+          if (vmRegion.sizeInBytes !== undefined)
+            hasSizeInBytes = true;
 
-        // Subtract the tracing size from VM regions.
-        if (this.vmRegions_ !== undefined) {
-          var hasPrivateDirtyResident = false;
-          var hasProportionalResident = false;
-          for (var i = 0; i < this.vmRegions_.length; i++) {
-            var byteStats = this.vmRegions_[i].byteStats;
-            if (byteStats.privateDirtyResident !== undefined)
-              hasPrivateDirtyResident = true;
-            if (byteStats.proportionalResident !== undefined)
-              hasProportionalResident = true;
-            if (hasPrivateDirtyResident && hasProportionalResident)
-              break;
-          }
-          if (hasPrivateDirtyResident || hasProportionalResident) {
-            this.vmRegions_.push(VMRegion.fromDict({
-              mappedFile: '[discounted tracing overhead]',
-              byteStats: {
-                privateDirtyResident: hasPrivateDirtyResident ?
-                    -discountedResidentSize : undefined,
-                proportionalResident: hasProportionalResident ?
-                    -discountedResidentSize : undefined
-              }
-            }));
+          var byteStats = vmRegion.byteStats;
+          if (byteStats.privateDirtyResident !== undefined)
+            hasPrivateDirtyResident = true;
+          if (byteStats.proportionalResident !== undefined)
+            hasProportionalResident = true;
+
+          if (hasSizeInBytes && hasPrivateDirtyResident &&
+              hasProportionalResident) {
+            break;
           }
         }
-      }
 
-      // Subtract 'size' and 'effective_size' from the 'winheap' or 'malloc'
-      // MemoryAllocatorDump.
-      if (discountedSize > 0 || discountedEffectiveSize > 0) {
-        function discountSizeAndEffectiveSize(dump) {
-          var dumpSizeAttr = dump.getValidSizeAttributeOrUndefined(
-              SIZE_ATTRIBUTE_NAME, opt_model);
-          if (dumpSizeAttr !== undefined)
-            dumpSizeAttr.value -= discountedSize;
-
-          var dumpEffectiveSizeAttr = dump.getValidSizeAttributeOrUndefined(
-              EFFECTIVE_SIZE_ATTRIBUTE_NAME, opt_model);
-          if (dumpEffectiveSizeAttr !== undefined)
-            dumpEffectiveSizeAttr.value -= discountedEffectiveSize;
+        if ((hasSizeInBytes && discountedSize > 0) ||
+            ((hasPrivateDirtyResident || hasProportionalResident) &&
+                discountedResidentSize > 0)) {
+          this.vmRegions_.push(VMRegion.fromDict({
+            mappedFile: '[discounted tracing overhead]',
+            sizeInBytes: hasSizeInBytes ? -discountedSize : undefined,
+            byteStats: {
+              privateDirtyResident: hasPrivateDirtyResident ?
+                  -discountedResidentSize : undefined,
+              proportionalResident: hasProportionalResident ?
+                  -discountedResidentSize : undefined
+            }
+          }));
         }
-
-        var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
-            function(allocatorName) {
-          // Discount 'size' and 'effective_size' from the allocator root.
-          var allocatorDump = this.getMemoryAllocatorDumpByFullName(
-              allocatorName);
-          if (allocatorDump === undefined)
-            return false;  // Allocator doesn't exist, try another one.
-          discountSizeAndEffectiveSize(allocatorDump);
-
-          // Discount 'size' and 'effective_size' from allocated objects of the
-          // allocator ('<ALLOCATOR>/allocated_objects').
-          var allocatedObjectsDumpName = allocatorName + '/allocated_objects';
-          var allocatedObjectsDump = this.getMemoryAllocatorDumpByFullName(
-              allocatedObjectsDumpName);
-          if (allocatedObjectsDump === undefined)
-            return true;  // Allocator has unexpected structure, good enough.
-          discountSizeAndEffectiveSize(allocatedObjectsDump);
-
-          // Add a child MAD representing the discounted tracing overhead
-          // ('<ALLOCATOR>/allocated_objects/discounted_tracing_overhead').
-          var discountDumpName =
-              allocatedObjectsDumpName + '/discounted_tracing_overhead';
-          var discountDump = new tr.model.MemoryAllocatorDump(
-              this, discountDumpName);
-          discountDump.parent = allocatedObjectsDump;
-          discountDump.addAttribute(SIZE_ATTRIBUTE_NAME,
-              new tr.model.ScalarAttribute('bytes', -discountedSize));
-          discountDump.addAttribute(EFFECTIVE_SIZE_ATTRIBUTE_NAME,
-              new tr.model.ScalarAttribute('bytes', -discountedEffectiveSize));
-          allocatedObjectsDump.children.push(discountDump);
-
-          return true;
-        }, this);
-
-        // Force rebuilding the memory allocator dump index (if we've just added
-        // a new memory allocator dump).
-        if (hasDiscountedFromAllocatorDumps)
-          this.memoryAllocatorDumps = this.memoryAllocatorDumps;
       }
     }
   };

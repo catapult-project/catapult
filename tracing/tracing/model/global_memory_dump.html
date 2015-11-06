@@ -66,24 +66,31 @@ tr.exportTo('tr.model', function() {
     },
 
     calculateGraphAttributes: function() {
-      // 1. Calculate the sizes of all memory allocator dumps (MADs).
+      // 1. Add ownership links from tracing MADs to descendants of malloc or
+      // winheap MADs so that tracing would be automatically discounted from
+      // them later (step 3).
+      this.setUpTracingOverheadOwnership();
+
+      // 2. Calculate the sizes of all memory allocator dumps (MADs). This step
+      // requires that the memory allocator dump graph has been finalized (step
+      // 1). Subsequent modifications of the graph will most likely break the
+      // calculation invariants.
       this.calculateSizes();
 
-      // 2. Calculate the effective sizes of all MADs. This step requires that
-      // the sizes of all MADs have already been calculated (step 1).
+      // 3. Calculate the effective sizes of all MADs. This step requires that
+      // the sizes of all MADs have already been calculated (step 2).
       this.calculateEffectiveSizes();
 
-      // 3. Aggregate all other attributes of all MADs. This step must be
-      // carried out after the sizes of all MADs were calculated (step 1).
+      // 4. Aggregate all other attributes of all MADs. This step must be
+      // carried out after the sizes of all MADs were calculated (step 2).
       // Otherwise, the sizes of all MADs would be aggregated as direct sums
       // of their children, which would most likely lead to double-counting.
       this.aggregateAttributes();
 
-      // 4. Discount tracing from VM regions stats and malloc or winheap
-      // allocator stats. This steps requires that the sizes (step 1),
-      // effective sizes (step 2), and resident sizes (step 3) of the relevant
-      // MADs have already been calculated.
-      this.discountTracingOverhead();
+      // 5. Discount tracing from VM regions stats. This steps requires that
+      // sizes (step 2) and resident sizes (step 4) of the tracing MADs have
+      // already been calculated.
+      this.discountTracingOverheadFromVmRegions();
     },
 
     /**
@@ -712,11 +719,17 @@ tr.exportTo('tr.model', function() {
           this.propagateAttributesRecursively, this);
     },
 
-    discountTracingOverhead: function() {
+    setUpTracingOverheadOwnership: function() {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
+        dump.setUpTracingOverheadOwnership(this.model);
+      }, this);
+    },
+
+    discountTracingOverheadFromVmRegions: function() {
       // TODO(petrcermak): Consider factoring out all the finalization code and
       // constants to a single file.
       tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
-        dump.discountTracingOverhead(this.model);
+        dump.discountTracingOverheadFromVmRegions(this.model);
       }, this);
     },
 
