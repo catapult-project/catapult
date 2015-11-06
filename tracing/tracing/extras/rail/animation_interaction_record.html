@@ -16,16 +16,21 @@ found in the LICENSE file.
  * @fileoverview The Animation phase of RAIL.
  */
 tr.exportTo('tr.e.rail', function() {
-  // The computeNormalizedComfort regions are delineated at these FPS values.
-  var COMFORT_FPS_REGIONS = [60, 40, 30, 10];
+  // The FPS comfort score is maximized at this value of average
+  // frames-per-second.
+  var MAX_COMFORT_FPS = 60;
 
-  // A frame is long if it starts more than this much time after the previous
-  // frame.
-  var LONG_FRAME_MS = 50;
+  // The FPS comfort score is minimized at this value of average
+  // frames-per-second.
+  var MIN_COMFORT_FPS = 10;
 
-  // The computeNormalizedComfort regions are delineated at these relative
-  // discrepancy values.
-  var COMFORT_JANK_REGIONS = [0.05, 0.1, 0.2, 0.3];
+  // The jank comfort score is maximized when frame timestamp discrepancy is
+  // less than or equal to this:
+  var MIN_DISCOMFORT_JANK = 0.05;
+
+  // The jank comfort score is minimized when frame timestamp discrepancy is
+  // greater than or equal to this:
+  var MAX_DISCOMFORT_JANK = 0.3;
 
   function AnimationInteractionRecord(parentModel, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
@@ -52,6 +57,10 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     get normalizedUserComfort() {
+      // Combine jank comfort and fps comfort non-linearly.
+      // weightedAverage2 weights lower scores exponentially more heavily than
+      // higher scores.
+      // http://goo.gl/W6MswA
       return tr.e.rail.weightedAverage2(
           this.normalizedJankComfort, this.normalizedFPSComfort);
     },
@@ -59,12 +68,10 @@ tr.exportTo('tr.e.rail', function() {
     get normalizedFPSComfort() {
       var durationSeconds = this.duration / 1000;
       var avgSpf = durationSeconds / this.frameEvents.length;
-      return 1 - tr.e.rail.computeNormalizedComfort(avgSpf, {
-        minValueExponential: 1 / COMFORT_FPS_REGIONS[0],
-        minValueLinear: 1 / COMFORT_FPS_REGIONS[1],
-        minValueLogarithmic: 1 / COMFORT_FPS_REGIONS[2],
-        maxValue: 1 / COMFORT_FPS_REGIONS[3]
-      });
+      var normalizedDiscomfort = tr.b.normalize(
+          avgSpf, 1 / MAX_COMFORT_FPS, 1 / MIN_COMFORT_FPS);
+      var normalizedComfort = 1 - normalizedDiscomfort;
+      return tr.b.clamp(normalizedComfort, 0, 1);
     },
 
     get normalizedJankComfort() {
@@ -74,12 +81,10 @@ tr.exportTo('tr.e.rail', function() {
       var absolute = false;
       var discrepancy = tr.b.Statistics.timestampsDiscrepancy(
           frameTimestamps, absolute);
-      return 1 - tr.e.rail.computeNormalizedComfort(discrepancy, {
-        minValueExponential: COMFORT_JANK_REGIONS[0],
-        minValueLinear: COMFORT_JANK_REGIONS[1],
-        minValueLogarithmic: COMFORT_JANK_REGIONS[2],
-        maxValue: COMFORT_JANK_REGIONS[3]
-      });
+      var normalizedDiscomfort = tr.b.normalize(
+          discrepancy, MIN_DISCOMFORT_JANK, MAX_DISCOMFORT_JANK);
+      var normalizedComfort = 1 - normalizedDiscomfort;
+      return tr.b.clamp(normalizedComfort, 0, 1);
     }
   };
 
