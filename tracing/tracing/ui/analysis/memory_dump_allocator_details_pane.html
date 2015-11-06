@@ -68,11 +68,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
   var IMPORTANCE_RULES = [
     {
-      condition: tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME,
+      condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME,
       importance: 10
     },
     {
-      condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME,
+      condition: tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME,
       importance: 9
     },
     {
