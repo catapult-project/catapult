@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import os
 import re
@@ -13,6 +14,7 @@ from perf_insights import trace_info
 import third_party.cloudstorage as gcs
 
 from google.appengine.api import app_identity
+from google.appengine.api import datastore_errors
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_delay=5.0,
@@ -49,9 +51,22 @@ class UploadPage(webapp2.RequestHandler):
     gcs_file.close()
 
     trace_object = trace_info.TraceInfo(id=trace_uuid)
-    trace_object.prod = self.request.get('prod')
-    trace_object.network_type = self.request.get('network-type')
     trace_object.remote_addr = os.environ["REMOTE_ADDR"]
+
+    for arg in self.request.arguments():
+      arg_key = arg.replace('-', '_').lower()
+      if arg_key in trace_object._properties:
+        try:
+          setattr(trace_object, arg_key, self.request.get(arg))
+        except datastore_errors.BadValueError:
+          pass
+
+    scenario_config = self.request.get('config')
+    if scenario_config:
+      config_json = json.loads(scenario_config)
+      if 'scenario_name' in config_json:
+        trace_object.scenario_name = config_json['scenario_name']
+
     tags_string = self.request.get('tags')
     if tags_string:
       # Tags are comma separated and should only include alphanumeric + '-'.
@@ -60,9 +75,8 @@ class UploadPage(webapp2.RequestHandler):
       else:
         logging.warning('The provided tags string includes one or more invalid'
                         ' characters and will be ignored')
-    trace_object.user_agent = self.request.headers.get('User-Agent')
+
     trace_object.ver = self.request.get('product-version')
-    trace_object.config = self.request.get('config')
     trace_object.put()
 
     self.response.write(trace_uuid)
