@@ -62,6 +62,7 @@
   /**
    * Polyfills console's methods.
    */
+  var _timeStamps = new Map();
   global.console = {
     log: function() {
       var args = Array.prototype.slice.call(arguments);
@@ -81,6 +82,19 @@
     warn: function() {
       var args = Array.prototype.slice.call(arguments);
       print('Warning:', args.join(' '));
+    },
+
+    time: function(timerName) {
+      _timeStamps.set(timerName, performance.now());
+    },
+
+    timeEnd: function(timerName) {
+      var t = _timeStamps.get(timerName);
+      _timeStamps.delete(timerName);
+      if (!t)
+        throw new Error('No such timer name: ' + timerName);
+      var duration = performance.now() - t;
+      print(timerName + ':', duration + 'ms');
     }
   };
 

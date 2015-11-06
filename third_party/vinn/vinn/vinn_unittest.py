@@ -278,6 +278,38 @@ class VinnUnittest(unittest.TestCase):
         vinn.ExecuteJsString('console.error("hello", "world");'),
         'Error: hello world\n')
 
+  def testConsoleTimeEndAssertion(self):
+    file_path = self.GetTestFilePath('console_time_test.js')
+    try:
+        vinn.ExecuteFile(file_path)
+    except RuntimeError:
+      self.fail()
+
+  def testConsoleTime(self):
+    self.assertEquals(
+        vinn.ExecuteJsString('console.time("AA")'),
+        '')
+
+  def testConsoleTimeEndOutput(self):
+    output = vinn.ExecuteJsString('console.time("AA");console.timeEnd("AA")')
+    m = re.search('\d+\.\d+', output)
+    if not m:
+      sys.stderr.write('\nExpected to find output of timer AA')
+      self.fail()
+    a_duration = float(m.group())
+    self.assertTrue(a_duration > 0.0)
+    output = vinn.ExecuteJsString("""console.time("BB");
+                                     console.time("CC");
+                                     console.timeEnd("CC");
+                                     console.timeEnd("BB")""")
+    m = re.findall('(\d+\.\d+)', output)
+    if not m:
+      sys.stderr.write('\nExpected to find output of timer\n')
+      self.fail()
+    c_duration = float(m[0])
+    b_duration = float(m[1])
+    self.assertTrue(b_duration > c_duration)
+
 
 @unittest.skipIf(sys.platform.startswith('win'),
                  'd8 not yet supported on Windows.')
