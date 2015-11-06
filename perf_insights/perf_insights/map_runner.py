@@ -15,7 +15,7 @@ from perf_insights import value as value_module
 
 from perf_insights.results import gtest_progress_reporter
 
-AUTO_JOB_COUNT = 'auto-job-count'
+AUTO_JOB_COUNT = -1
 
 class MapError(Exception):
   def __init__(self, *args):
