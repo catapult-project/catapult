@@ -2,9 +2,7 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file.
 -->
-# Contributing to Catapult
-
-## Workflow
+# Workflow
 
 Install [depot_tools]
 (https://www.chromium.org/developers/how-tos/install-depot-tools).
@@ -43,7 +41,7 @@ git checkout master
 git branch -D foo
 ```
 
-## Legal
+# Legal
 
 If you're new to the chromium-family of projects, you will also need to sign the
 chrome contributors license agreement. You can sign the
@@ -58,7 +56,7 @@ us as described on that page.
 If you've never submitted code before, you must add your (or your
 organization's) name and contact info to the Chromium AUTHORS file.
 
-## Contributing from a Chromium checkout
+# Contributing from a Chromium checkout
 
 If you already have catapult checked out as part of a Chromium checkout and want
 to edit it in place (instead of having a separate clone of the repository), you
@@ -79,12 +77,12 @@ catapult folder (third_party/catapult):
 
 `git remote set-url origin git@github.com:catapult-project/catapult`
 
-## Code style
+# Code style
 
 We follow the [Chromium style]
 (https://www.chromium.org/developers/coding-style).
 
-## Tests
+# Tests
 
 Check individual project documentation for instructions on how to run tests.
 You can also check the current status of our tests on the
@@ -93,7 +91,7 @@ Use the "commit" checkbox in rietveld to commit through the commit queue, which
 automatically runs all tests. Run the tests before committing with the
 "CQ dry run" link.
 
-## Updating Chromium's about:tracing (rolling DEPS)
+# Updating Chromium's about:tracing (rolling DEPS)
 
 To get your change to appear in Chrome's about:tracing or other
 third_party/catapult files, commit to catapult. Then check the [mirror]
