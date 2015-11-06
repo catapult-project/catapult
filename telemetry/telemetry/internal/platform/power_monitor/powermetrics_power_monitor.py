@@ -88,7 +88,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     """
     if len(powermetrics_output) == 0:
       logging.warning('powermetrics produced zero length output')
-      return None
+      return {}
 
     # Container to collect samples for running averages.
     # out_path - list containing the key path in the output dictionary.
@@ -241,13 +241,17 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
   def _KillPowerMetricsProcess(self):
     """Kill a running powermetrics process."""
     try:
-      self._powermetrics_process.terminate()
-    except OSError:
-      # terminate() can fail when Powermetrics does not have the SetUID set.
-      self._backend.LaunchApplication(
-        '/usr/bin/pkill',
-        ['-SIGTERM', os.path.basename(self.binary_path)],
-        elevate_privilege=True)
+      if self._powermetrics_process.poll() is None:
+        self._powermetrics_process.terminate()
+    except OSError as e:
+      logging.warning(
+          'Error when trying to terminate powermetric process: %s', repr(e))
+      if self._powermetrics_process.poll() is None:
+        # terminate() can fail when Powermetrics does not have the SetUID set.
+        self._backend.LaunchApplication(
+          '/usr/bin/pkill',
+          ['-SIGTERM', os.path.basename(self.binary_path)],
+          elevate_privilege=True)
 
   def StopMonitoringPower(self):
     assert self._powermetrics_process, (
@@ -267,7 +271,10 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         powermetrics_output = output_file.read()
       return PowerMetricsPowerMonitor.ParsePowerMetricsOutput(
           powermetrics_output)
-
+    except Exception as e:
+      logging.warning(
+          'Error when trying to collect power monitoring data: %s', repr(e))
+      return PowerMetricsPowerMonitor.ParsePowerMetricsOutput('')
     finally:
       shutil.rmtree(self._output_directory)
       self._output_directory = None

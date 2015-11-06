@@ -35,7 +35,7 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
   @decorators.Enabled('mac')
   def testParseEmptyPowerMetricsOutput(self):
     # Important to handle zero length powermetrics outout - crbug.com/353250 .
-    self.assertIsNone(powermetrics_power_monitor.PowerMetricsPowerMonitor.
+    self.assertFalse(powermetrics_power_monitor.PowerMetricsPowerMonitor.
         ParsePowerMetricsOutput(''))
 
   @decorators.Enabled('mac')
