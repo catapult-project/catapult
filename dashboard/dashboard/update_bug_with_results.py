@@ -717,17 +717,22 @@ def _GetAuthorsToCC(results_output):
   Returns:
     A list of email addresses, possibly empty.
   """
-  author_list = re.findall(r'Author  : (.*)', results_output)
-  authors_to_cc = sorted({author.strip() for author in author_list})
+  author_lines = re.findall(r'Author  : (.*)', results_output)
+  unique_emails = set()
+  for line in author_lines:
+    parts = line.split(',')
+    unique_emails.update(p.strip() for p in parts if '@' in p)
+  emails = sorted(unique_emails)
+
   # Avoid CCing issue to multiple authors when bisect finds multiple
   # different authors for culprits CLs.
-  if len(authors_to_cc) > 1:
-    authors_to_cc = []
-  if len(authors_to_cc) == 1:
+  if len(emails) > 1:
+    emails = []
+  if len(emails) == 1:
     # In addition to the culprit CL author, we also want to add reviewers
     # of the culprit CL to the cc list.
-    authors_to_cc.extend(_GetReviewersFromBisectLog(results_output))
-  return authors_to_cc
+    emails.extend(_GetReviewersFromBisectLog(results_output))
+  return emails
 
 
 def _GetReviewersFromBisectLog(results_output):
@@ -793,6 +798,7 @@ def _FetchURL(request_url, skip_status_code=False):
   Returns:
     Response object return by URL fetch, otherwise None when there's an error.
   """
+  logging.info('URL being fetched: ' + request_url)
   try:
     response = urlfetch.fetch(request_url)
   except urlfetch_errors.DeadlineExceededError:

@@ -35,9 +35,8 @@ class IssueTrackerService(object):
       additional_credentials.authorize(self._http)
     self._service = discovery.build('projecthosting', 'v2')
 
-  def AddBugComment(self, bug_id, comment, status=None,
-                    cc_list=None, merge_issue=None, labels=None,
-                    owner=None):
+  def AddBugComment(self, bug_id, comment, status=None, cc_list=None,
+                    merge_issue=None, labels=None, owner=None):
     """Adds a comment with the bisect results to the given bug.
 
     Args:

@@ -38,7 +38,7 @@ Link    : http://src.chromium.org/viewvc/chrome?view=revision&revision=20798
 Date    : Sat, 22 Jun 2013 00:59:35 +0000
 
 Subject : Subject 2
-Author  : prasadv@google.com
+Author  : prasadv, prasadv@google.com
 Link    : http://src.chromium.org/viewvc/chrome?view=revision&revision=20798
 Date    : Sat, 22 Jun 2013 00:57:48 +0000
 
