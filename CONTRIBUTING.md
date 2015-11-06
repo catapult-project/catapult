@@ -4,7 +4,7 @@
 -->
 # Contributing to Catapult
 
-## Contributing
+## Workflow
 
 Install [depot_tools]
 (https://www.chromium.org/developers/how-tos/install-depot-tools).
