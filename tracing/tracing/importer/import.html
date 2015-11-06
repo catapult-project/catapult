@@ -228,6 +228,7 @@ tr.exportTo('tr.importer', function() {
           }, this);
         auditors.forEach(function(auditor) {
           auditor.runAnnotate();
+          auditor.installUserFriendlyCategoryDriverIfNeeded();
         });
       }, this);
 

@@ -97,6 +97,8 @@ tr.exportTo('tr', function() {
 
     this.globalMemoryDumps = [];
 
+    this.userFriendlyCategoryDrivers_ = [];
+
     this.annotationsByGuid_ = {};
     this.modelIndices = undefined;
 
@@ -307,6 +309,24 @@ tr.exportTo('tr', function() {
 
     getAllAnnotations: function() {
       return tr.b.dictionaryValues(this.annotationsByGuid_);
+    },
+
+    addUserFriendlyCategoryDriver: function(ufcd) {
+      this.userFriendlyCategoryDrivers_.push(ufcd);
+    },
+
+    /**
+     * Gets the user friendly category string from an event.
+     *
+     * Returns undefined if none is known.
+     */
+    getUserFriendlyCategoryFromEvent: function(event) {
+      for (var i = 0; i < this.userFriendlyCategoryDrivers_.length; i++) {
+        var ufc = this.userFriendlyCategoryDrivers_[i].fromEvent(event);
+        if (ufc !== undefined)
+          return ufc;
+      }
+      return undefined;
     },
 
     /**

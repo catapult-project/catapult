@@ -96,6 +96,7 @@
       'tracing/extras/chrome/chrome_model_helper.html',
       'tracing/extras/chrome/chrome_process_helper.html',
       'tracing/extras/chrome/chrome_renderer_helper.html',
+      'tracing/extras/chrome/chrome_user_friendly_category_driver.html',
       'tracing/extras/chrome/gpu/gpu_async_slice.html',
       'tracing/extras/chrome/gpu/state.html',
       'tracing/extras/chrome/layout_object.html',

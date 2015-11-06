@@ -8,8 +8,11 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/core/auditor.html">
-<link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import"
+    href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/extras/rail/rail_ir_finder.html">
 <link rel="import" href="/tracing/model/event_info.html">
 
@@ -55,6 +58,14 @@ tr.exportTo('tr.e.audits', function() {
             process.labels[0] == 'chrome://tracing')
           process.important = false;
       });
+    },
+
+    /**
+     * Called by import to install userFriendlyCategoryDriver.
+     */
+    installUserFriendlyCategoryDriverIfNeeded: function() {
+      this.model.addUserFriendlyCategoryDriver(
+          tr.e.chrome.ChromeUserFriendlyCategoryDriver);
     },
 
     runAudit: function() {

@@ -12,7 +12,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.chrome', function() {
-  var DEFAULT_USER_FRIENDLY_CATEGORY = 'other';
   var SAME_AS_PARENT = 'same-as-parent';
 
   var TITLES_FOR_USER_FRIENDLY_CATEGORY = {
@@ -162,15 +161,15 @@ tr.exportTo('tr.e.chrome', function() {
     gpu: 'gpu'
   };
 
-  function UserFriendlyCategory() {
+  function ChromeUserFriendlyCategoryDriver() {
   }
 
-  UserFriendlyCategory.fromEvent = function(event) {
+  ChromeUserFriendlyCategoryDriver.fromEvent = function(event) {
     var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_TITLE[event.title];
     if (userFriendlyCategory) {
       if (userFriendlyCategory == SAME_AS_PARENT) {
         if (event.parentSlice)
-          return UserFriendlyCategory.fromEvent(event.parentSlice);
+          return ChromeUserFriendlyCategoryDriver.fromEvent(event.parentSlice);
       } else {
         return userFriendlyCategory;
       }
@@ -185,11 +184,11 @@ tr.exportTo('tr.e.chrome', function() {
         return userFriendlyCategory;
     }
 
-    return DEFAULT_USER_FRIENDLY_CATEGORY;
+    return undefined;
   };
 
   return {
-    UserFriendlyCategory: UserFriendlyCategory
+    ChromeUserFriendlyCategoryDriver: ChromeUserFriendlyCategoryDriver
   };
 });
 </script>

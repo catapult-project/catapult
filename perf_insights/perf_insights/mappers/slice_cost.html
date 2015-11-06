@@ -7,7 +7,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/mappers/reduce.html">
 <link rel="import" href="/tracing/extras/ads/domain_category.html">
 <link rel="import" href="/tracing/extras/chrome/slice_title_fixer.html">
-<link rel="import" href="/tracing/extras/chrome/user_friendly_category.html">
 <link rel="import" href="/tracing/model/source_info/js_source_info.html">
 
 <script>
@@ -105,8 +104,9 @@ tr.exportTo('pi.m', function() {
         var sliceCostInfo = new SliceCostInfo();
         sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(slice);
         sliceCostInfo.railTypeName = railTypeNameByGUID[slice.guid];
-        sliceCostInfo.userFriendlyCategory =
-            tr.e.chrome.UserFriendlyCategory.fromEvent(slice);
+
+        var ufc = model.getUserFriendlyCategoryFromEvent(slice);
+        sliceCostInfo.userFriendlyCategory = ufc || 'other';
         sliceCostInfo.title = tr.e.chrome.SliceTitleFixer.fromEvent(slice);
         sliceCostInfo.domain = sample.leafStackFrame.domain;
         sliceCostInfo.domainCategory =
@@ -148,8 +148,8 @@ tr.exportTo('pi.m', function() {
       sliceCostInfo.threadGroup = threadGrouping.getGroupNameForEvent(
           threadSlice);
       sliceCostInfo.railTypeName = railTypeNameByGUID[threadSlice.guid];
-      sliceCostInfo.userFriendlyCategory =
-          tr.e.chrome.UserFriendlyCategory.fromEvent(threadSlice);
+      var ufc = model.getUserFriendlyCategoryFromEvent(threadSlice);
+      sliceCostInfo.userFriendlyCategory = ufc || 'other';
       sliceCostInfo.title = tr.e.chrome.SliceTitleFixer.fromEvent(threadSlice);
       // For all other events, just generate one sliceCostInfo.
       sliceCostInfo.selfTime = threadSlice.selfTime;
