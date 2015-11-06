@@ -14,16 +14,18 @@ tr.exportTo('tr.b', function() {
   function guessBinary(url) {
     return /[.]gz$/.test(url) || /[.]zip$/.test(url);
   }
-  function get(url, async) {
+  function xhr(method, url, async, opt_data) {
     var req = new XMLHttpRequest();
     req.overrideMimeType('text/plain; charset=x-user-defined');
-    req.open('GET', url, async);
+    req.open(method, url, async);
     var isBinary = guessBinary(url);
     if (isBinary && async)
       req.responseType = 'arraybuffer';
 
+    var data = opt_data !== undefined ? opt_data : null;
+
     if (!async) {
-      req.send(null);
+      req.send(data);
       if (req.status == 200) {
         return req.responseText;
       } else {
@@ -46,13 +48,13 @@ tr.exportTo('tr.b', function() {
         }
       };
     });
-    req.send();
+    req.send(data);
     return p;
   }
 
   function getAsync(url) {
     if (!tr.isHeadless)
-      return get(url, true);
+      return xhr('GET', url, true);
     var filename;
     if (url.startsWith('file:///'))
       filename = url.substring(7);
@@ -68,7 +70,7 @@ tr.exportTo('tr.b', function() {
 
   function getSync(url) {
     if (!tr.isHeadless)
-      return get(url, false);
+      return xhr('GET', url, false);
     var filename;
     if (url.startsWith('file:///'))
       filename = url.substring(7);
@@ -80,9 +82,16 @@ tr.exportTo('tr.b', function() {
     return read(filename);
   }
 
+  function postAsync(url, data) {
+    if (tr.isHeadless)
+      throw new Error('Only supported inside a browser');
+    return xhr('POST', url, true, data);
+  }
+
   return {
     getAsync: getAsync,
-    getSync: getSync
+    getSync: getSync,
+    postAsync: postAsync
   };
 });
 </script>

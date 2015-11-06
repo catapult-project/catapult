@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/event.html">
-<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/unittest/constants.html">
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 
@@ -426,8 +427,8 @@ tr.exportTo('tr.b.unittest', function() {
     notifyTestResultToDevServer_: function(result, extra_msg) {
       var req = new XMLHttpRequest();
       var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
-      req.open('POST', '/tracing/notify_test_result', true);
-      req.send(result + '  ' + testName + ' ' + (extra_msg || ''));
+      var data = result + '  ' + testName + ' ' + (extra_msg || '');
+      tr.b.postAsync('/tracing/notify_test_result', data);
     },
 
     notifyTestCompletionToDevServer_: function() {
@@ -437,9 +438,7 @@ tr.exportTo('tr.b.unittest', function() {
       data += '\nPassed tests: ' + this.numTestsThatPassed_ +
               '  Failed tests: ' + this.numTestsThatFailed_;
 
-      var req = new XMLHttpRequest();
-      req.open('POST', '/tracing/notify_tests_completed', true);
-      req.send(data);
+      tr.b.postAsync('/tracing/notify_tests_completed', data);
     },
 
     log_: function(msg) {
