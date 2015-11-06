@@ -33,7 +33,12 @@ class Blacklist(object):
         return dict()
 
       with open(self._path, 'r') as f:
-        return json.load(f)
+        blacklist = json.load(f)
+      if not isinstance(blacklist, dict):
+        logging.warning('Ignoring %s: %s (a dict was expected instead)',
+                        self._path, blacklist)
+        blacklist = dict()
+      return blacklist
 
   def Write(self, blacklist):
     """Writes the provided blacklist to the blacklist file.
@@ -71,4 +76,3 @@ class Blacklist(object):
     with self._blacklist_lock:
       if os.path.exists(self._path):
         os.remove(self._path)
-
