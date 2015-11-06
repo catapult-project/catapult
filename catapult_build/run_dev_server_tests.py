@@ -19,7 +19,7 @@ import zipfile
 from hooks import install
 
 # URL on omahaproxy.appspot.com which lists cloud storage buckets.
-OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=stable'
+OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=%s'
 
 # URL in cloud storage to download Chrome zip from.
 CLOUDSTORAGE_URL = ('https://commondatastorage.googleapis.com/chrome-unsigned'
@@ -99,7 +99,7 @@ def FindDepotTools():
   return None
 
 
-def DownloadSignedWinChromeStable(url, version):
+def DownloadSignedWinChrome(url, version):
   """On Windows, use signed Chrome since it may be more stable."""
   url = url.replace('%VERSION%', version)
   tmpdir = tempfile.mkdtemp()
@@ -120,14 +120,14 @@ def DownloadSignedWinChromeStable(url, version):
   return tmpdir, version
 
 
-def DownloadChromeStable():
+def DownloadChrome(channel):
   platform_data = PLATFORM_MAPPING[sys.platform]
   omaha_platform = platform_data['omaha']
-  omaha_url = OMAHA_URL % omaha_platform
+  omaha_url = OMAHA_URL % (omaha_platform, channel)
   response = urllib2.urlopen(omaha_url)
   version = response.readlines()[1].split(',')[2]
   if 'installer_url' in platform_data:
-    return DownloadSignedWinChromeStable(
+    return DownloadSignedWinChrome(
         platform_data['installer_url'], version)
   cs_url = CLOUDSTORAGE_URL % (
       version,
@@ -185,6 +185,8 @@ def Main(argv):
         '--no-install-hooks', dest='install_hooks', action='store_false')
     parser.add_argument('--tests', type=str,
                         help='Set of tests to run (tracing or perf_insights)')
+    parser.add_argument('--channel', type=str, default='stable',
+                        help='Chrome channel to run (stable or canary)')
     parser.set_defaults(install_hooks=True)
     parser.set_defaults(use_local_chrome=True)
     args = parser.parse_args(argv[1:])
@@ -216,13 +218,19 @@ def Main(argv):
           'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
     xvfb_process = None
+    chrome_info = None
     if args.use_local_chrome:
       chrome_path = GetLocalChromePath(args.chrome_path)
       if not chrome_path:
         logging.error('Could not find path to chrome.')
         sys.exit(1)
+      chrome_info = 'with command `%s`' % chrome_path
     else:
-      tmpdir, version = DownloadChromeStable()
+      channel = args.channel
+      if sys.platform == 'linux2' and channel == 'canary':
+        channel = 'dev'
+      assert channel in ['stable', 'beta', 'dev', 'canary']
+      tmpdir, version = DownloadChrome(channel)
       if platform_data.get('use_xfvb'):
         xvfb_process = StartXvfb()
       chrome_path = os.path.join(
@@ -233,6 +241,7 @@ def Main(argv):
           path = path.replace('%VERSION%', version)
           path = os.path.join(tmpdir, path)
           os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+      chrome_info = version
     chrome_command = [
         chrome_path,
         '--user-data-dir=%s' % user_data_dir,
@@ -243,7 +252,7 @@ def Main(argv):
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
             'headless=true&testTypeToRun=all',
     ]
-    print "Starting Chrome..."
+    print "Starting Chrome %s..." % chrome_info
     chrome_process = subprocess.Popen(
         chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print "Waiting for tests to finish..."
