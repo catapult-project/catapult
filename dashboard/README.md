@@ -3,8 +3,8 @@
 This is a App Engine web app for displaying and monitoring performance
 test results.
 
-See [online documentation](
-http://www.chromium.org/developers/speed-infra/performance-dashboard).
+See
+[online documentation](http://www.chromium.org/developers/speed-infra/performance-dashboard).
 
 ## Prerequisites
 
