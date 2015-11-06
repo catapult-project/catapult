@@ -69,6 +69,7 @@ tr.exportTo('tr.b.u', function() {
     this.nanSourceInfos = [];
 
     this.runningSum = 0;
+    this.maxCount_ = 0;
 
     this.underflowBin = binInfo.underflowBin;
     this.centralBins = binInfo.centralBins;
@@ -79,6 +80,11 @@ tr.exportTo('tr.b.u', function() {
     this.allBins.push(this.underflowBin);
     this.allBins.push.apply(this.allBins, this.centralBins);
     this.allBins.push(this.overflowBin);
+
+    this.allBins.forEach(function(bin) {
+      if (bin.count > this.maxCount_)
+        this.maxCount_ = bin.count;
+    }, this);
   }
 
   Histogram.fromDict = function(d) {
@@ -137,6 +143,63 @@ tr.exportTo('tr.b.u', function() {
       return this.runningSum / this.numValues;
     },
 
+    get maxCount() {
+      return this.maxCount_;
+    },
+
+    getInterpolatedCountAt: function(value) {
+      var bin = this.getBinForValue(value);
+      var idx = this.centralBins.indexOf(bin);
+      if (idx < 0) {
+        // |value| is in either the underflowBin or the overflowBin.
+        // We can't interpolate between infinities.
+        return bin.count;
+      }
+
+      // |value| must fall between the centers of two bins.
+      // The bin whose center is less than |value| will be this:
+      var lesserBin = bin;
+
+      // The bin whose center is greater than |value| will be this:
+      var greaterBin = bin;
+
+      // One of those bins could be an under/overflow bin.
+      // Avoid dealing with Infinities by arbitrarily saying that center of the
+      // underflow bin is its range.max, and the center of the overflow bin is
+      // its range.min.
+      // The centers of bins in |this.centralBins| will default to their
+      // |range.center|.
+
+      var lesserBinCenter = undefined;
+      var greaterBinCenter = undefined;
+
+      if (value < greaterBin.range.center) {
+        if (idx > 0) {
+          lesserBin = this.centralBins[idx - 1];
+        } else {
+          lesserBin = this.underflowBin;
+          lesserBinCenter = lesserBin.range.max;
+        }
+      } else {
+        if (idx < (this.centralBins.length - 1)) {
+          greaterBin = this.centralBins[idx + 1];
+        } else {
+          greaterBin = this.overflowBin;
+          greaterBinCenter = greaterBin.range.min;
+        }
+      }
+
+      if (greaterBinCenter === undefined)
+        greaterBinCenter = greaterBin.range.center;
+
+      if (lesserBinCenter === undefined)
+        lesserBinCenter = lesserBin.range.center;
+
+      value = tr.b.normalize(value, lesserBinCenter, greaterBinCenter);
+
+      return tr.b.lerp(value, lesserBin.count, greaterBin.count);
+    },
+
     getBinForValue: function(value) {
       if (value < this.range.min)
         return this.underflowBin;
@@ -157,6 +220,8 @@ tr.exportTo('tr.b.u', function() {
       var bin = this.getBinForValue(value);
       bin.add(value, sourceInfo);
       this.runningSum += value;
+      if (bin.count > this.maxCount_)
+        this.maxCount_ = bin.count;
     },
 
     addHistogram: function(other) {

@@ -95,6 +95,9 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(h0.numValues, 10);
     assert.closeTo(h0.average, 349.7, 0.1);
+
+    assert.equal(2, h0.maxCount);
+    assert.equal(2, h1.maxCount);
   });
 
   test('addHistogramsInvalid', function() {
@@ -113,6 +116,36 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(h0.addHistogram.bind(h0, h1), Error);
     assert.throws(h0.addHistogram.bind(h0, h1), Error);
+  });
+
+  test('getInterpolateCountAt', function() {
+    var h = tr.b.u.Histogram.fromDict({
+      unit: 'unitless',
+      min: 0,
+      max: 100,
+      centralBinWidth: 10,
+      underflowBin: {min: -Number.MAX_VALUE, max: 0, count: 11},
+      centralBins: [
+        {min: 0, max: 10, count: 10},
+        {min: 10, max: 20, count: 9},
+        {min: 20, max: 30, count: 8},
+        {min: 30, max: 40, count: 7},
+        {min: 40, max: 50, count: 6},
+        {min: 50, max: 60, count: 5},
+        {min: 60, max: 70, count: 4},
+        {min: 70, max: 80, count: 3},
+        {min: 80, max: 90, count: 2},
+        {min: 90, max: 100, count: 1}
+      ],
+      overflowBin: {min: 100, max: Number.MAX_VALUE, count: 0}
+    });
+
+    assert.equal(11, h.maxCount);
+    assert.equal(11, h.getInterpolatedCountAt(-1));
+    assert.equal(0, h.getInterpolatedCountAt(101));
+    assert.closeTo(10.8, h.getInterpolatedCountAt(1), 1e-3);
+    assert.closeTo(9.5, h.getInterpolatedCountAt(10), 1e-3);
+    assert.closeTo(0.2, h.getInterpolatedCountAt(99), 1e-3);
   });
 });
 </script>

@@ -172,101 +172,6 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
-  // The following functions are useful for sub-classes to override
-  // normalizedUserComfort.
-
-  // Any computable value related to an IR can be used to define the comfort of
-  // that IR: its duration, its FPS, etc.
-  // computeNormalizedComfort maps from that arbitrary value to a score between
-  // 0 and 1, allowing the caller to customize the exponential, linear, and
-  // logarithmic regions of the mapping function.
-  function computeNormalizedComfort(value, opts) {
-    if (typeof value !== 'number')
-      throw new Error('value must be a number');
-
-    opts.exponentialBase = opts.exponentialBase || 10;
-    if (opts.exponentialBase <= 1)
-      throw new Error('exponentialBase must be greater than 1');
-
-    opts.minComfortLinear = opts.minComfortLinear || 0.2;
-    if (opts.minComfortLinear <= 0 || opts.minComfortLinear >= 1)
-      throw new Error('minComfortLinear must be between 0 and 1 exclusive');
-
-    opts.maxComfortLinear = opts.maxComfortLinear || 0.9;
-    if (opts.maxComfortLinear <= 0 || opts.maxComfortLinear >= 1)
-      throw new Error('maxComfortLinear must be between 0 and 1 exclusive');
-
-    opts.logarithmicScale = opts.logarithmicScale || 100;
-    if (opts.logarithmicScale <= 0)
-      throw new Error('logarithmicScale must be positive');
-
-    if (opts.minValueExponential >= opts.minValueLinear)
-      throw new Error('minValueExponential must be less than minValueLinear');
-
-    if (opts.minValueLinear >= opts.minValueLogarithmic)
-      throw new Error('minValueLinear must be less than minValueLogarithmic');
-
-    if (opts.minValueLogarithmic >= opts.maxValue)
-      throw new Error('minValueLogarithmic must be less than maxValue');
-
-    [
-      'minValueLinear',
-      'minValueExponential',
-      'minValueLogarithmic',
-      'maxValue',
-      'exponentialBase',
-      'minComfortLinear',
-      'maxComfortLinear',
-      'logarithmicScale'
-    ].forEach(function(opt) {
-      if (typeof opts[opt] !== 'number')
-        throw new Error(opt + ' must be a number');
-    });
-
-    if (value < opts.minValueExponential)
-      return 0;
-
-    if (value < opts.minValueLinear) {
-      function computeRawComfort(value) {
-        return Math.pow(opts.exponentialBase, value);
-      }
-      return computeNormalizedComfortInternal(
-          value, opts.minValueExponential, opts.minValueLinear,
-          0, opts.minComfortLinear, computeRawComfort);
-    }
-
-    if (value < opts.minValueLogarithmic) {
-      function computeRawComfort(value) {
-        return value;
-      }
-      return computeNormalizedComfortInternal(
-          value, opts.minValueLinear, opts.minValueLogarithmic,
-          opts.minComfortLinear, opts.maxComfortLinear, computeRawComfort);
-    }
-
-    if (value < opts.maxValue) {
-      function computeRawComfort(value) {
-        return Math.log1p(opts.logarithmicScale * value);
-      }
-      return computeNormalizedComfortInternal(
-          value, opts.minValueLogarithmic, opts.maxValue,
-          opts.maxComfortLinear, 1, computeRawComfort);
-    }
-
-    return 1;
-  }
-
-  function computeNormalizedComfortInternal(
-      value, minValue, maxValue, minScore, maxScore, computeRawComfort) {
-    var normalizedValue = tr.b.normalize(value, minValue, maxValue);
-    var rawComfort = computeRawComfort(normalizedValue);
-    var minComfort = computeRawComfort(0);
-    var maxComfort = computeRawComfort(1);
-    var normalizedComfort = tr.b.normalize(rawComfort, minComfort, maxComfort);
-    normalizedComfort = tr.b.lerp(normalizedComfort, minScore, maxScore);
-    return tr.b.clamp(normalizedComfort, minScore, maxScore);
-  }
-
   // Returns a weighted average of numbers between 0 and 1.
   // The lower input has a higher weight.
   // If the first input should have a higher weight a priori its relationship to
@@ -313,7 +218,6 @@ tr.exportTo('tr.e.rail', function() {
 
   return {
     RAILInteractionRecord: RAILInteractionRecord,
-    computeNormalizedComfort: computeNormalizedComfort,
     weightedAverage2: weightedAverage2,
     userFriendlyRailTypeName: userFriendlyRailTypeName,
     railCompare: railCompare,

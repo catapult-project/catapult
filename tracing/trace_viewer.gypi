@@ -59,6 +59,7 @@
       'tracing/base/statistics.html',
       'tracing/base/task.html',
       'tracing/base/units/generic_table.html',
+      'tracing/base/units/histogram.html',
       'tracing/base/units/scalar.html',
       'tracing/base/units/time_display_mode.html',
       'tracing/base/units/time_duration.html',

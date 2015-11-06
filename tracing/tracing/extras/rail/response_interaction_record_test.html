@@ -22,16 +22,16 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(
         undefined, 0, 299.9999);
-    assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
+    assert.closeTo(0.81938, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(
         undefined, 0, 300.0001);
-    assert.closeTo(0.8, responseIR.normalizedUserComfort, 1e-5);
+    assert.closeTo(0.81938, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(
         undefined, 0, 999.9999);
-    assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
+    assert.closeTo(0.1793, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(
         undefined, 0, 1000.0001);
-    assert.closeTo(0.1, responseIR.normalizedUserComfort, 1e-5);
+    assert.closeTo(0.1793, responseIR.normalizedUserComfort, 1e-5);
     responseIR = new tr.e.rail.ResponseInteractionRecord(
         undefined, 0, 4999.999);
     assert.closeTo(0, responseIR.normalizedUserComfort, 1e-5);
