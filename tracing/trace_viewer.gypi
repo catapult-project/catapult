@@ -5,7 +5,6 @@
 {
   'variables': {
     'tracing_css_files': [
-      'tracing/ui/base/drag_handle.css',
       'tracing/ui/base/line_chart.css',
       'tracing/ui/base/list_view.css',
       'tracing/ui/base/pie_chart.css',

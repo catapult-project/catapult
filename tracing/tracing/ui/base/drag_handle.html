@@ -5,28 +5,53 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/base/drag_handle.css">
-
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<script>
-'use strict';
+<polymer-element name="tr-ui-b-drag-handle">
+  <template>
+    <style>
+    :host {
+      -webkit-user-select: none;
+      box-sizing: border-box;
+      display: block;
+    }
 
-tr.exportTo('tr.ui.b', function() {
+    :host(.horizontal-drag-handle) {
+      background-image: -webkit-gradient(linear,
+                                         0 0, 0 100%,
+                                         from(#E5E5E5),
+                                         to(#D1D1D1));
+      border-bottom: 1px solid #8e8e8e;
+      border-top: 1px solid white;
+      cursor: ns-resize;
+      flex: 0 0 auto;
+      height: 7px;
+      position: relative;
+      z-index: 10;
+    }
 
-  /**
-   * Detects when user clicks handle determines new height of container based
-   * on user's vertical mouse move and resizes the target.
-   * @constructor
-   * @extends {HTMLDivElement}
-   * You will need to set target to be the draggable element
-   */
-  var DragHandle = tr.ui.b.define('x-drag-handle');
+    :host(.vertical-drag-handle) {
+      background-image: -webkit-gradient(linear,
+                                         0 0, 100% 0,
+                                         from(#E5E5E5),
+                                         to(#D1D1D1));
+      border-left: 1px solid white;
+      border-right: 1px solid #8e8e8e;
+      cursor: ew-resize;
+      flex: 0 0 auto;
+      position: relative;
+      width: 7px;
+      z-index: 10;
+    }
+    </style>
+  </template>
+  <script>
+  'use strict';
 
-  DragHandle.prototype = {
+  Polymer({
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    created: function() {
       this.lastMousePos_ = 0;
       this.onMouseMove_ = this.onMouseMove_.bind(this);
       this.onMouseUp_ = this.onMouseUp_.bind(this);
@@ -156,10 +181,6 @@ tr.exportTo('tr.ui.b', function() {
       document.removeEventListener('mouseup', this.onMouseUp_);
       e.preventDefault();
     }
-  };
-
-  return {
-    DragHandle: DragHandle
-  };
-});
-</script>
+  });
+  </script>
+</polymer-element>

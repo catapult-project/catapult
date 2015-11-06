@@ -92,7 +92,7 @@ found in the LICENSE file.
 
     middle-container ::content track-view-container > * { flex: 1 1 auto; }
     middle-container > x-timeline-view-side-panel-container { flex: 0 0 auto; }
-    x-drag-handle { flex: 0 0 auto; }
+    tr-ui-b-drag-handle { flex: 0 0 auto; }
     tr-ui-a-analysis-view { flex: 0 0 auto; }
     </style>
 
@@ -125,7 +125,7 @@ found in the LICENSE file.
       <tr-ui-side-panel-container id="side_panel_container">
       </tr-ui-side-panel-container>
     </middle-container>
-    <x-drag-handle id="drag_handle"></x-drag-handle>
+    <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
     <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
 
     <tr-ui-u-preferred-display-unit id="display_unit">
@@ -188,7 +188,6 @@ found in the LICENSE file.
       this.collapsingControls.appendChild(this.scriptingCtl_);
 
       this.dragEl_ = this.$.drag_handle;
-      tr.ui.b.decorate(this.dragEl_, tr.ui.b.DragHandle);
 
       this.analysisEl_ = this.$.analysis;
       this.analysisEl_.brushingStateController = this.brushingStateController_;

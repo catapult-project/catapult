@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate: function() {
       this.layerTreeQuadStackView_ =
           new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
-      this.dragBar_ = new tr.ui.b.DragHandle();
+      this.dragBar_ = document.createElement('tr-ui-b-drag-handle');
       this.analysisEl_ =
           document.createElement('tr-ui-e-chrome-cc-layer-view-analysis');
       this.analysisEl_.addEventListener('requestSelectionChange',

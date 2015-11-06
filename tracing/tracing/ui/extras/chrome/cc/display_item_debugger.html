@@ -48,7 +48,7 @@ found in the LICENSE file.
     margin: 5px;
   }
 
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > x-drag-handle {
+  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > tr-ui-b-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
@@ -84,7 +84,7 @@ found in the LICENSE file.
   }
 
   * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-        x-drag-handle.hasPictureOps {
+        tr-ui-b-drag-handle.hasPictureOps {
     display: block;
   }
 
@@ -95,7 +95,7 @@ found in the LICENSE file.
   }
 
   * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-        x-drag-handle {
+        tr-ui-b-drag-handle {
     display: none;
   }
 
@@ -185,7 +185,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       var leftPanel = this.querySelector('left-panel');
 
-      var middleDragHandle = new tr.ui.b.DragHandle();
+      var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -201,7 +201,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
       rightPanel.insertBefore(this.pictureOpsListView_, this.rasterArea_);
 
-      this.pictureOpsListDragHandle_ = new tr.ui.b.DragHandle();
+      this.pictureOpsListDragHandle_ =
+          document.createElement('tr-ui-b-drag-handle');
       this.pictureOpsListDragHandle_.horizontal = false;
       this.pictureOpsListDragHandle_.target = this.pictureOpsListView_;
       rightPanel.insertBefore(this.pictureOpsListDragHandle_, this.rasterArea_);

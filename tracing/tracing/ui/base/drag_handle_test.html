@@ -14,17 +14,17 @@ tr.b.unittest.testSuite(function() {
     el.style.border = '1px solid black';
     el.style.width = '200px';
     el.style.height = '200px';
-    el.style.display = '-webkit-flex';
-    el.style.webkitFlexDirection = 'column';
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
 
     var upperEl = document.createElement('div');
-    upperEl.style.webkitFlex = '1 1 auto';
-    upperEl.style.minHeight = 0;
+    upperEl.style.flex = '1 1 auto';
+    upperEl.style.minHeight = '0';
 
     var lowerEl = document.createElement('div');
     lowerEl.style.height = '100px';
 
-    var dragHandle = new tr.ui.b.DragHandle();
+    var dragHandle = document.createElement('tr-ui-b-drag-handle');
     dragHandle.target = lowerEl;
 
     el.appendChild(upperEl);
@@ -46,16 +46,12 @@ tr.b.unittest.testSuite(function() {
 
   test('applyDelta', function() {
     var el = createDragHandle();
-    document.body.appendChild(el);
+    this.addHTMLOutput(el);
 
-    try {
-      var dragHandle = el.dragHandle;
-      var oldHeight = el.getLowerElHeight();
-      dragHandle.applyDelta_(10);
-      assert.equal(el.getLowerElHeight(), oldHeight + 10);
-    } finally {
-      document.body.removeChild(el);
-    }
+    var dragHandle = el.dragHandle;
+    var oldHeight = el.getLowerElHeight();
+    dragHandle.applyDelta_(10);
+    assert.equal(el.getLowerElHeight(), oldHeight + 10);
   });
 
   test('classNameMutation', function() {
@@ -66,7 +62,7 @@ tr.b.unittest.testSuite(function() {
         '.mode-a { height: 100px; } .mode-b { height: 50px; }';
     document.head.appendChild(styleEl);
 
-    document.body.appendChild(el);
+    this.addHTMLOutput(el);
 
     try {
       var dragHandle = el.dragHandle;
@@ -92,7 +88,6 @@ tr.b.unittest.testSuite(function() {
       assert.equal(el.getLowerElHeight(), 110);
     } finally {
       document.head.removeChild(styleEl);
-      document.body.removeChild(el);
     }
   });
 });

@@ -51,7 +51,7 @@ found in the LICENSE file.
     margin-right: 5px;
   }
 
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > x-drag-handle {
+  * /deep/ tr-ui-e-chrome-cc-picture-debugger > tr-ui-b-drag-handle {
     -webkit-flex: 0 0 auto;
   }
 
@@ -172,7 +172,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new tr.ui.b.DragHandle();
+      var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 

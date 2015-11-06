@@ -44,7 +44,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.layerView_.addEventListener(
           'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
-      this.dragHandle_ = new tr.ui.b.DragHandle();
+      this.dragHandle_ = document.createElement('tr-ui-b-drag-handle');
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 
