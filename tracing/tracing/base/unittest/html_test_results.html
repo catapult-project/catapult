@@ -12,12 +12,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/utils.html">
 
 <style>
-  x-tr.b.unittest-test-resultsbase
+  x-tr-b-unittest-test-results
     display: -webkit-flex;
     -webkit-flex-direction: column;
   }
 
-  x-tr.b.unittest-test-results > x-html-test-case-result.dark {
+  x-tr-b-unittest-test-results > x-html-test-case-result.dark {
     background-color: #eee;
   }
 
@@ -252,7 +252,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = tr.ui.b.define('x-tr.b.unittest-test-results');
+  var HTMLTestResults = tr.ui.b.define('x-tr-b-unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,
