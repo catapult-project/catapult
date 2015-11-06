@@ -133,13 +133,17 @@ def _CreateStoppageAlerts(test, last_row):
   warn_sheriff_delay_days = sheriff_entity.stoppage_alert_delay
   if warn_sheriff_delay_days < 0:
     return
-
   now = datetime.datetime.now()
   warn_sheriff_delta = datetime.timedelta(days=warn_sheriff_delay_days)
   earliest_warn_time = now - warn_sheriff_delta
-  if last_row.timestamp < earliest_warn_time:
-    if not stoppage_alert.GetStoppageAlert(test.test_path, last_row.revision):
-      yield op.db.Put(stoppage_alert.CreateStoppageAlert(test, last_row))
+  if last_row.timestamp >= earliest_warn_time:
+    return
+  if stoppage_alert.GetStoppageAlert(test.test_path, last_row.revision):
+    return
+  new_alert = stoppage_alert.CreateStoppageAlert(test, last_row)
+  if not new_alert:
+    return
+  yield op.db.Put(new_alert)
 
 
 def _MarkDeprecated(test):

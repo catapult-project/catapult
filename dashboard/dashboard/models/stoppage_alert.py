@@ -12,6 +12,8 @@ from dashboard import utils
 from dashboard.models import alert
 from dashboard.models import alert_group
 
+_MAX_GROUP_SIZE = 20
+
 
 class StoppageAlert(alert.Alert):
   """A stoppage alert is an alert for a Test no longer receiving new points.
@@ -83,15 +85,21 @@ def CreateStoppageAlert(test, row):
     row: A Row entity; the last Row that was put before the stoppage.
 
   Returns:
-    A new StoppageAlert entity (although this entity has not yet been put.
+    A new StoppageAlert entity which has not been put, or None,
+    if we don't want to create a new StoppageAlert.
   """
   new_alert = StoppageAlert(
       parent=ndb.Key('StoppageAlertParent', test.test_path),
       id=row.revision,
       internal_only=test.internal_only,
       sheriff=test.sheriff)
+  alert_group.GroupAlerts([new_alert], test.suite_name, 'StoppageAlert')
+  grouped_alert_keys = StoppageAlert.query(
+      StoppageAlert.group == new_alert.group).fetch(keys_only=True)
+  if len(grouped_alert_keys) >= _MAX_GROUP_SIZE:
+    # Too many stoppage alerts in this group; we don't want to put any more.
+    return None
   test.stoppage_alert = new_alert.key
   test.put()
-  alert_group.GroupAlerts([new_alert], test.suite_name, 'StoppageAlert')
   return new_alert
 

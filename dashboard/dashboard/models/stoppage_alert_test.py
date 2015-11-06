@@ -60,6 +60,32 @@ class StoppageAlertTest(testing_common.TestCase):
     self.assertIsNotNone(
         stoppage_alert.GetStoppageAlert(test.test_path, row.revision))
 
+  def testCreateStoppageAlert_DoesNotCreateLargeGroups(self):
+    # First, create |_MAX_GROUP_SIZE| alerts; all of them can be created
+    # and they all belong to the same group.
+    tests = map(str, range(stoppage_alert._MAX_GROUP_SIZE))
+    testing_common.AddTests(['M'], ['b'], {'suite': {t: {} for t in tests}})
+    test_paths = ['M/b/suite/' + t for t in tests]
+    rows = []
+    alerts = []
+    for path in test_paths:
+      rows = testing_common.AddRows(path, [1])
+      test = utils.TestKey(path).get()
+      new_alert = stoppage_alert.CreateStoppageAlert(test, rows[0])
+      self.assertIsNotNone(new_alert)
+      new_alert.put()
+      alerts.append(new_alert)
+    self.assertEqual(stoppage_alert._MAX_GROUP_SIZE, len(alerts))
+    self.assertTrue(all(a.group == alerts[0].group for a in alerts))
+
+    # Making one more stoppage alert that belongs to this group fails.
+    testing_common.AddTests(['M'], ['b'], {'suite': {'another': {}}})
+    test_path = 'M/b/suite/another'
+    rows = testing_common.AddRows(test_path, [1])
+    test = utils.TestKey(test_path).get()
+    new_alert = stoppage_alert.CreateStoppageAlert(test, rows[0])
+    self.assertIsNone(new_alert)
+
 
 if __name__ == '__main__':
   unittest.main()
