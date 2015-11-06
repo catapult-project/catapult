@@ -22,7 +22,7 @@ BLINK_CONFIG_FILENAME = 'Tools/run-perf-test.cfg'
 SUCCESS, NO_CHANGES, ERROR = range(3)
 # Unsupported Perf bisect bots.
 EXCLUDED_BOTS = {
-    'win_xp_perf_bisect',
+    'win_xp_perf_bisect',  # Goma issues: crbug.com/330900
     'linux_perf_tester',
     'linux_perf_bisector',
     'win_perf_bisect_builder',
