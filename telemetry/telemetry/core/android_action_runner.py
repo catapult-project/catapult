@@ -116,19 +116,6 @@ class AndroidActionRunner(object):
     """
     self._platform_backend.device.RunShellCommand('input roll %s %s' % (dx, dy))
 
-  def EnsureScreenOn(self):
-    """If device screen is off, turn screen on.
-    If the screen is already on, return immediately.
-
-    Raises:
-      Timeout: If the screen is off and device fails to turn screen on.
-    """
-    if self._platform_backend.IsScreenOn():
-      return
-
-    self._ToggleScreenOn()
-    util.WaitFor(self._platform_backend.IsScreenOn, 5)
-
   def TurnScreenOn(self):
     """If device screen is off, turn screen on.
     If the screen is already on, log a warning and return immediately.
@@ -136,13 +123,8 @@ class AndroidActionRunner(object):
     Raises:
       Timeout: If the screen is off and device fails to turn screen on.
     """
-    if not self._platform_backend.IsScreenOn():
-      self._ToggleScreenOn()
-    else:
-      logging.warning('Screen on when expected off.')
-      return
-
-    util.WaitFor(self._platform_backend.IsScreenOn, 5)
+    self._platform_backend.device.SetScreen(True)
+    util.WaitFor(self._platform_backend.device.IsScreenOn, 5)
 
   def TurnScreenOff(self):
     """If device screen is on, turn screen off.
@@ -152,14 +134,9 @@ class AndroidActionRunner(object):
       Timeout: If the screen is on and device fails to turn screen off.
     """
     def is_screen_off():
-      return not self._platform_backend.IsScreenOn()
+      return not self._platform_backend.device.IsScreenOn()
 
-    if self._platform_backend.IsScreenOn():
-      self._ToggleScreenOn()
-    else:
-      logging.warning('Screen off when expected on.')
-      return
-
+    self._platform_backend.device.SetScreen(False)
     util.WaitFor(is_screen_off, 5)
 
   def UnlockScreen(self):
@@ -179,6 +156,3 @@ class AndroidActionRunner(object):
       return
 
     util.WaitFor(is_screen_unlocked, 5)
-
-  def _ToggleScreenOn(self):
-    self._platform_backend.device.RunShellCommand('input keyevent 26')

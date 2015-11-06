@@ -798,38 +798,9 @@ class AndroidPlatformBackend(
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 
-  @staticmethod
-  def _IsScreenOn(input_methods):
-    """Parser method of IsScreenOn()
-
-    Args:
-      input_methods: Output from dumpsys input_methods
-
-    Returns:
-      boolean: True if screen is on, false if screen is off.
-
-    Raises:
-      ValueError: An unknown value is found for the screen state.
-      AndroidDeviceParsingError: Error in detecting screen state.
-    """
-    for line in input_methods:
-      if 'mScreenOn' in line or 'mInteractive' in line:
-        for pair in line.strip().split(' '):
-          key, value = pair.split('=', 1)
-          if key == 'mScreenOn' or key == 'mInteractive':
-            if value == 'true':
-              return True
-            elif value == 'false':
-              return False
-            else:
-              raise ValueError('Unknown value for %s: %s' % (key, value))
-    raise exceptions.AndroidDeviceParsingError(str(input_methods))
-
   def IsScreenOn(self):
     """Determines if device screen is on."""
-    input_methods = self._device.RunShellCommand(
-        'dumpsys input_method', check_return=True, large_output=True)
-    return self._IsScreenOn(input_methods)
+    return self._device.IsScreenOn()
 
   @staticmethod
   def _IsScreenLocked(input_methods):
