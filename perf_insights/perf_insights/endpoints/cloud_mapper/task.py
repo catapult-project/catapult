@@ -136,8 +136,6 @@ class TaskPage(webapp2.RequestHandler):
     try:
       results_url = self._RunMappers(job)
 
-      # TODO(simonhatch): Cleanup instances.
-
       job.status = 'COMPLETE'
       job.results = results_url
       job.put()
