@@ -163,9 +163,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     for allocator_name, size_values in allocators_dict.iteritems():
       name_parts = allocator_name.split('/')
       # we want to skip allocated_objects, since they are already counted by
-      # outer allocator names; but malloc is special, because the size of outer
-      # allocators is only inherited from its allocated_objects.
-      if name_parts[-1] == 'allocated_objects' and name_parts[0] != 'malloc':
+      # outer allocator names.
+      if name_parts[-1] == 'allocated_objects':
         continue
       allocator_name = name_parts[0]
       # For 'gpu/android_memtrack/*' we want to keep track of individual
