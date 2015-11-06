@@ -10,8 +10,8 @@ class JobInfo(ndb.Model):
   status = ndb.StringProperty(indexed=True)
   remote_addr = ndb.StringProperty(indexed=True)
 
-  mapper = ndb.StringProperty(indexed=True)
-  reducer = ndb.StringProperty(indexed=True)
+  mapper = ndb.TextProperty()
+  reducer = ndb.TextProperty()
   query = ndb.StringProperty(indexed=True)
   corpus = ndb.StringProperty(indexed=True)
   revision = ndb.StringProperty(indexed=True)

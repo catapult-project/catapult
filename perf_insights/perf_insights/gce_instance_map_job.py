@@ -27,6 +27,18 @@ Entry point for the cloud mapper. Please consider using
 perf_insights/bin/map_traces for normal development."""
 
 
+def _ReadMapperGCSFile(url):
+  file_handle, file_name = tempfile.mkstemp()
+  try:
+    cloud_storage.Copy(url, file_name)
+  except cloud_storage.CloudStorageError as e:
+    logging.info("Failed to copy: %s" % e)
+    os.close(file_handle)
+    os.unlink(file_name)
+    file_name = None
+  return file_name
+
+
 def _ReadTracesGCSFile(url):
   file_handle, file_name = tempfile.mkstemp()
   file_urls = []
@@ -59,14 +71,15 @@ def _DownloadTraceHandles(url, temp_directory):
 
 def Main(argv):
   parser = argparse.ArgumentParser(description=_DEFAULT_DESCRIPTION)
-  parser.add_argument('map_file')
+  parser.add_argument('map_file_url')
   parser.add_argument('input_url')
   parser.add_argument('output_url')
   parser.add_argument('--jobs', type=int, default=1)
 
   args = parser.parse_args(argv[1:])
 
-  if not os.path.exists(args.map_file):
+  map_file = _ReadMapperGCSFile(args.map_file_url)
+  if not map_file:
     parser.error('Map does not exist.')
 
   temp_directory = tempfile.mkdtemp()
@@ -76,7 +89,7 @@ def Main(argv):
   try:
     output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
     map_function_handle = function_handle.FunctionHandle(
-        filename=os.path.abspath(args.map_file))
+        filename=os.path.abspath(map_file))
 
     trace_handles = _DownloadTraceHandles(args.input_url, temp_directory)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,
@@ -93,4 +106,5 @@ def Main(argv):
       return 255
   finally:
     ofile.close()
+    os.unlink(map_file)
     shutil.rmtree(temp_directory)

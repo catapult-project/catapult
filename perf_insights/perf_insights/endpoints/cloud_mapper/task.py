@@ -34,7 +34,7 @@ git pull
 git checkout {revision}
 
 perf_insights/bin/gce_instance_map_job --jobs=32\
- perf_insights/perf_insights/mappers/task_info_map_function.html\
+ {path}{gcs}.mapper\
  {path}{gcs} {path}{gcs}.result
 """
 
@@ -65,6 +65,12 @@ class TaskPage(webapp2.RequestHandler):
 
     helper = cloud_helper.CloudHelper()
 
+    # TODO(simonhatch): In the future it might be possibly to only specify a
+    # reducer and no mapper. Revisit this.
+    mapper_url = '%s%s.mapper' % (_DEFAULT_BUCKET_PATH, job.key.id())
+    mapper_text = job.mapper.encode('ascii', 'ignore')
+    helper.WriteGCS(mapper_url, mapper_text)
+
     # Split the traces up into N buckets.
     for current_traces in _slice_it(traces, num_instances):
       taskid = str(uuid.uuid4())
@@ -73,11 +79,12 @@ class TaskPage(webapp2.RequestHandler):
           'gce_name': 'mr-%s' % taskid
       }
 
-      helper.WriteGCS(_DEFAULT_BUCKET_PATH + taskid,
-                            json.dumps(current_traces))
+      helper.WriteGCS(_DEFAULT_BUCKET_PATH + taskid, json.dumps(current_traces))
 
-      startup_script = _STARTUP_SCRIPT.format(
-          revision=job.revision, gcs=taskid, path=_DEFAULT_BUCKET_PATH)
+      startup_script = _STARTUP_SCRIPT.format(revision=job.revision,
+                                              gcs=taskid,
+                                              path=_DEFAULT_BUCKET_PATH,
+                                              mapper=mapper_url)
 
       result = helper.CreateGCE(current_task['gce_name'], startup_script)
 
