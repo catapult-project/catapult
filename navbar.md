@@ -17,4 +17,4 @@ https://gerrit.googlesource.com/gitiles/+/master/Documentation/markdown.md#Navig
 * [Tracing](/tracing/README.md)
 
 [home]: /README.md
-[logo]: /tracing/images/trace-viewer-circle-blue.png
+[logo]: /tracing/images/third-trace-viewer-circle-blue.png
