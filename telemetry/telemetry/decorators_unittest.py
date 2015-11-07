@@ -33,6 +33,95 @@ class FakeTest(object):
     self._disabled_strings = disabled_strings
 
 
+class TestDisableDecorators(unittest.TestCase):
+
+  def testDisabledStringOnFunction(self):
+    @decorators.Disabled('bar')
+    def Sum():
+      return 1 + 1
+    self.assertEquals({'bar'}, Sum._disabled_strings)
+
+    @decorators.Disabled('bar')
+    @decorators.Disabled('baz')
+    @decorators.Disabled('bart', 'baz')
+    def Product():
+      return 1 * 1
+    self.assertEquals({'bar', 'bart', 'baz'}, Product._disabled_strings)
+
+  def testDisabledStringOnClass(self):
+    @decorators.Disabled('windshield')
+    class Ford(object):
+      pass
+    self.assertEquals({'windshield'}, Ford._disabled_strings)
+
+    @decorators.Disabled('windows', 'Drive')
+    @decorators.Disabled('wheel')
+    @decorators.Disabled('windows')
+    class Honda(object):
+      pass
+    self.assertEquals({'wheel', 'Drive', 'windows'}, Honda._disabled_strings)
+
+  def testDisabledStringOnMethod(self):
+    class Ford(object):
+      @decorators.Disabled('windshield')
+      def Drive(self):
+        pass
+    self.assertEquals({'windshield'}, Ford().Drive._disabled_strings)
+
+    class Honda(object):
+      @decorators.Disabled('windows', 'Drive')
+      @decorators.Disabled('wheel')
+      @decorators.Disabled('windows')
+      def Drive(self):
+        pass
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      Honda().Drive._disabled_strings)
+
+class TestEnableDecorators(unittest.TestCase):
+
+  def testEnabledStringOnFunction(self):
+    @decorators.Enabled('minus', 'power')
+    def Sum():
+      return 1 + 1
+    self.assertEquals({'minus', 'power'}, Sum._enabled_strings)
+
+    @decorators.Enabled('dot')
+    @decorators.Enabled('product')
+    @decorators.Enabled('product', 'dot')
+    def Product():
+      return 1 * 1
+    self.assertEquals({'dot', 'product'}, Product._enabled_strings)
+
+  def testEnabledStringOnClass(self):
+    @decorators.Enabled('windshield', 'light')
+    class Ford(object):
+      pass
+    self.assertEquals({'windshield', 'light'}, Ford._enabled_strings)
+
+    @decorators.Enabled('wheel', 'Drive')
+    @decorators.Enabled('wheel')
+    @decorators.Enabled('windows')
+    class Honda(object):
+      pass
+    self.assertEquals({'wheel', 'Drive', 'windows'}, Honda._enabled_strings)
+
+  def testEnabledStringOnMethod(self):
+    class Ford(object):
+      @decorators.Enabled('windshield')
+      def Drive(self):
+        pass
+    self.assertEquals({'windshield'}, Ford().Drive._enabled_strings)
+
+    class Honda(object):
+      @decorators.Enabled('windows', 'Drive')
+      @decorators.Enabled('wheel', 'Drive')
+      @decorators.Enabled('windows')
+      def Drive(self):
+        pass
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      Honda().Drive._enabled_strings)
+
+
 class TestShouldSkip(unittest.TestCase):
   def testEnabledStrings(self):
     test = FakeTest()
@@ -83,6 +172,7 @@ class TestShouldSkip(unittest.TestCase):
 
     test.SetDisabledStrings(['another_os_name', 'another_os_version_name'])
     self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+
 
 class TestDeprecation(unittest.TestCase):
 

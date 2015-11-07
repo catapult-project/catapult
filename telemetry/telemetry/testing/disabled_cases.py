@@ -14,7 +14,7 @@ class DisabledCases(unittest.TestCase):
   def testAllEnabled(self):
     pass
 
-  @decorators.Disabled
+  @decorators.Disabled('all')
   def testAllDisabled(self):
     pass
 

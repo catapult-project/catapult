@@ -65,7 +65,7 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
 
   # Flaky on many platforms (at least Win, Linux, and Mac).
   # http://crbug.com/424706
-  @decorators.Disabled
+  @decorators.Disabled('all')
   def testCacheableHTTPResponse(self):
     # We know this page has one PNG image and its cacheable.
     events = self._NavigateAndGetHTTPResponseEvents('image_decoding.html')

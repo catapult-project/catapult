@@ -15,7 +15,7 @@ from telemetry.util import image_util
 
 class VideoTest(unittest.TestCase):
 
-  @decorators.Disabled
+  @decorators.Disabled('all')
   def testFramesFromMp4(self):
     host_platform = platform.GetHostPlatform()
 

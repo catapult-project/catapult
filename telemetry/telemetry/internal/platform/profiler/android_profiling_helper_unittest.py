@@ -201,7 +201,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
 
   # Test fails: crbug.com/437081
   # @decorators.Enabled('android')
-  @decorators.Disabled
+  @decorators.Disabled('all')
   def testGetToolchainBinaryPath(self):
     with tempfile.NamedTemporaryFile() as libc:
       self._device.PullFile('/system/lib/libc.so', libc.name)
