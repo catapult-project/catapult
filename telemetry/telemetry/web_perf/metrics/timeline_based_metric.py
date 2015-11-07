@@ -67,6 +67,17 @@ class TimelineBasedMetric(object):
     """
     raise NotImplementedError()
 
+  def AddWholeTraceResults(self, model, results):
+    """Computes and adds metrics corresponding to the entire trace.
+
+    Override this method to compute results that correspond to the whole trace.
+
+    Args:
+      model: An instance of telemetry.timeline.model.TimelineModel.
+      results: An instance of page.PageTestResults.
+    """
+    pass
+
   def VerifyNonOverlappedRecords(self, interaction_records):
     """This raises exceptions if interaction_records contain overlapped ranges.
     """
