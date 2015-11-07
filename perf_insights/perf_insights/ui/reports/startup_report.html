@@ -133,19 +133,15 @@ found in the LICENSE file.
       if (this.copyingState_)
         return;
       this.copyingState_ = true;
+      var rowToSelect = undefined;
       var selectedRow = fromTable.selectedTableRow;
-      if (selectedRow === undefined) {
-        // TODO(beaudoin): Table doesn't support de-selection. Fix once it does.
-      } else {
-        var rowToSelect = undefined;
+      if (selectedRow !== undefined) {
         toTable.tableRows.forEach(function(row) {
           if (row.title === selectedRow.title)
             rowToSelect = row;
         });
-        // TODO(beaudoin): Table doesn't support de-selection. Fix once it does.
-        if (rowToSelect)
-          toTable.selectedTableRow = rowToSelect;
       }
+      toTable.selectedTableRow = rowToSelect;
       this.copyingState_ = false;
     },
 
