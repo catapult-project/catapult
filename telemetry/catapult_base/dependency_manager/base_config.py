@@ -360,7 +360,8 @@ class BaseConfig(object):
     if not os.path.exists(file_dir):
       os.makedirs(file_dir)
     with open(file_path, 'w') as outfile:
-      json.dump(json_dict, outfile, indent=2, sort_keys=True)
+      json.dump(
+          json_dict, outfile, indent=2, sort_keys=True, separators=(',', ': '))
     return json_dict
 
   @classmethod
