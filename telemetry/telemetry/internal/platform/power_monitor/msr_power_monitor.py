@@ -133,7 +133,12 @@ class MsrPowerMonitorWin(MsrPowerMonitor):
       logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
       return False
 
-    return self._CheckMSRs()
+    msr_return_value = self._CheckMSRs()
+    # Since _CheckMSRs() starts the MSR server on win platform, we must close
+    # it after checking to avoid leaking msr server process.
+    self._backend.CloseMsrServer()
+    return msr_return_value
+
 
   def StopMonitoringPower(self):
     power_statistics = super(MsrPowerMonitorWin, self).StopMonitoringPower()
