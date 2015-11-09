@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+  function _issueBegin(functionName) {
+    if (tr.isHeadless)
+      return;
+    window.performance.mark(functionName + '_Begin');
+  }
+  function _issueEnd(functionName) {
+    if (tr.isHeadless)
+      return;
+    window.performance.mark(functionName + '_End');
+    window.performance.measure(functionName,
+                               functionName + '_Begin',
+                               functionName + '_End');
+  }
+
+  var timeFunction = function(callback) {
+    if (callback.name === '')
+      throw new Error('Anonymous function is not allowed');
+    timeNamedFunction(callback.name, callback);
+  }
+
+  var timeNamedFunction = function(functionName, callback) {
+    _issueBegin(functionName);
+    try {
+      callback();
+    } finally {
+      _issueEnd(functionName);
+    }
+  };
+
+  return {
+    timeFunction: timeFunction,
+    timeNamedFunction: timeNamedFunction
+  };
+});
+</script>
