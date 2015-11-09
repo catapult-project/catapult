@@ -1,4 +1,4 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -129,16 +129,3 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesFromIRNamed(
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
-
-  @decorators.Disabled('chromeos')  # crbug.com/483212.
-  def testTimelineBasedMeasurementWithNoInteractionRecord(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(TestTimelinebasedMeasurementPage(
-        ps, ps.base_dir, trigger_scroll_gesture=True))
-
-    option = tbm_module.Options(
-        tracing_category_filter.TracingCategoryFilter('cc'))
-    tbm = tbm_module.TimelineBasedMeasurement(option)
-    results = self.RunMeasurement(tbm, ps, options=self._options)
-    self.assertEquals(1, len(results.failures))
-    self.assertIn('No timeline interaction records', str(results.failures[0]))
