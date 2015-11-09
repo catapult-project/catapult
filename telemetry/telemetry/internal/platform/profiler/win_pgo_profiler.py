@@ -31,7 +31,6 @@ class WinPGOProfiler(profiler.Profiler):
            ' this.' % _PGOSWEEP_EXECUTABLE)
 
     self._browser_dir = browser_backend.browser_directory
-    self._chrome_pgc_counter = self._GetNextProfileIndex('chrome')
     self._chrome_child_pgc_counter = self._GetNextProfileIndex('chrome_child')
 
   def _GetNextProfileIndex(self, dll_name):
@@ -93,9 +92,4 @@ class WinPGOProfiler(profiler.Profiler):
                                               'chrome_child',
                                               self._chrome_child_pgc_counter))
         self._chrome_child_pgc_counter += 1
-      elif 'browser0' in output_file:
-        output_files.append(self._RunPGOSweep(pid,
-                                              'chrome',
-                                              self._chrome_pgc_counter))
-        self._chrome_pgc_counter += 1
     return output_files
