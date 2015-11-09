@@ -237,7 +237,7 @@ class DependencyManager(object):
         PermissionError: If cloud_storage credentials are configured, but not
             with an account that has permission to download the needed file.
         NotFoundError: If the needed file does not exist where expected in
-            cloud_storage or the downloaded zip file.
+            cloud_storage.
         ServerError: If an internal server error is hit while downloading the
             needed file.
         CloudStorageError: If another error occured while downloading the remote
@@ -266,9 +266,6 @@ class DependencyManager(object):
     if unzip_location:
       download_path = DependencyManager._UnzipFile(
           download_path, unzip_location, dependency_info.path_within_archive)
-      if not download_path or not os.path.exists(download_path):
-        raise exceptions.NoPathFoundError(dependency_info.dependency,
-                                          dependency_info.platform)
 
     os.chmod(download_path,
              stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
@@ -294,11 +291,14 @@ class DependencyManager(object):
             location.
     """
     # TODO(aiolos): Add tests once the refactor is completed. crbug.com/551158
-    if not (archive_file and zipfile.is_zipfile(archive_file)):
+    if not zipfile.is_zipfile(archive_file):
       raise ValueError(
           'Attempting to unzip a non-archive file at %s' % archive_file)
-    os_tmp_dir = '%stmp' % os.sep
-    tmp_location = tempfile.mkdtemp(dir=os_tmp_dir)
+    tmp_location = None
+    if os.path.exists(unzip_location):
+      os_tmp_dir = '%stmp' % os.sep
+      tmp_location = tempfile.mkdtemp(dir=os_tmp_dir)
+      shutil.move(unzip_location, tmp_location)
     try:
       with zipfile.ZipFile(archive_file, 'r') as archive:
         for content in archive.namelist():
@@ -306,7 +306,7 @@ class DependencyManager(object):
           # unzip_location. zipfile.extractall() is a security risk, and should
           # not be used without prior verification that the python verion
           # being used is at least 2.7.4
-          dest = os.path.join(tmp_location,
+          dest = os.path.join(unzip_location,
                               content[content.find(os.path.sep)+1:])
           if not os.path.isdir(os.path.dirname(dest)):
             os.makedirs(os.path.dirname(dest))
@@ -320,16 +320,15 @@ class DependencyManager(object):
             permissions = archive.getinfo(content).external_attr >> 16
             if permissions:
               os.chmod(dest, permissions)
+      download_path = os.path.join(unzip_location, path_within_archive)
+      if not download_path:
+        raise exceptions.ArchiveError('Expected path %s was not extracted from '
+                                      'the downloaded archive.', download_path)
     except:
       if tmp_location:
-        shutil.rmtree(tmp_location)
+        shutil.move(tmp_location, unzip_location)
       raise
-    if unzip_location and os.path.isdir(unzip_location):
-      shutil.rmtree(unzip_location)
-    shutil.move(tmp_location, unzip_location)
-    download_path = os.path.join(unzip_location, path_within_archive)
-    if not (download_path and os.path.exists(download_path)):
-      raise exceptions.ArchiveError('Expected path %s was not extracted from '
-                                    'the downloaded archive.', download_path)
+    if tmp_location:
+      shutil.rmtree(tmp_location)
     return download_path
 
