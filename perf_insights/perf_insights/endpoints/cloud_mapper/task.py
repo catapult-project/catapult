@@ -34,8 +34,7 @@ git pull
 git checkout {revision}
 
 perf_insights/bin/gce_instance_map_job --jobs=32\
- {path}{gcs}.mapper\
- {path}{gcs} {path}{gcs}.result
+ {mapper} {path}{gcs} {path}{gcs}.result
 """
 
 
