@@ -9,9 +9,9 @@ from telemetry import value as value_module
 from telemetry.value import summary as summary_module
 
 
+@decorators.Deprecated(2016, 2, 29, 'Chart JSON is a supported alternative. '
+                       'See https://goo.gl/8daFav .')
 class BuildbotOutputFormatter(output_formatter.OutputFormatter):
-  @decorators.Deprecated(2016, 2, 29, 'Chart JSON is a supported alternative. '
-                         'See https://goo.gl/8daFav .')
   def __init__(self, output_stream, trace_tag=''):
     super(BuildbotOutputFormatter, self).__init__(output_stream)
     self._trace_tag = trace_tag
