@@ -28,6 +28,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         SchedParser.prototype.schedSwitchEvent.bind(this));
     importer.registerEventHandler('sched_wakeup',
         SchedParser.prototype.schedWakeupEvent.bind(this));
+    importer.registerEventHandler('sched_blocked_reason',
+        SchedParser.prototype.schedBlockedEvent.bind(this));
   }
 
   var TestExports = {};
@@ -37,6 +39,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       'prev_comm=(.+) prev_pid=(\\d+) prev_prio=(\\d+) ' +
       'prev_state=(\\S\\+?|\\S\\|\\S) ==> ' +
       'next_comm=(.+) next_pid=(\\d+) next_prio=(\\d+)');
+
+  // Matches sched_blocked_reason record
+  var schedBlockedRE = new RegExp('pid=(\\d+) iowait=(\\d) caller=(.+)');
   TestExports.schedSwitchRE = schedSwitchRE;
 
   // Matches the sched_wakeup record
@@ -92,6 +97,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var pid = parseInt(event[2]);
       var prio = parseInt(event[3]);
       this.importer.markPidRunnable(ts, pid, comm, prio, fromPid);
+      return true;
+    },
+
+    schedBlockedEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = schedBlockedRE.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var pid = parseInt(event[1]);
+      var iowait = parseInt(event[2]);
+      var caller = event[3];
+
+      this.importer.addPidBlockedReason(ts, pid, iowait, caller);
       return true;
     }
   };

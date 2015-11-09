@@ -58,6 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.events_ = events;
     this.newlyAddedClockSyncRecords_ = [];
     this.wakeups_ = [];
+    this.blocked_reasons_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToThreads();
     this.lines_ = [];
@@ -454,6 +455,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         thread.tempWakeups = thread.tempWakeups || [];
         thread.tempWakeups.push(wakeup);
       }
+      for (var i in this.blocked_reasons_) {
+        var reason = this.blocked_reasons_[i];
+        var thread = this.threadsByLinuxPid[reason.tid];
+        if (!thread)
+          continue;
+        thread.tempBlockedReasons = thread.tempBlockedReasons || [];
+        thread.tempBlockedReasons.push(reason);
+      }
 
       // Create slices for when the thread is not running.
       this.model_.getAllThreads().forEach(function(thread) {
@@ -469,6 +478,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var wakeups = thread.tempWakeups || [];
         delete thread.tempWakeups;
         wakeups.sort(function(x, y) {
+          return x.ts - y.ts;
+        });
+
+        var reasons = thread.tempBlockedReasons || [];
+        delete thread.tempBlockedReasons;
+        reasons.sort(function(x, y) {
           return x.ts - y.ts;
         });
 
@@ -506,6 +521,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               wakeup = w;
             }
           }
+          var blocked_reason = undefined;
+          while (reasons.length && reasons[0].ts < prevSlice.end) {
+            var r = reasons.shift();
+          }
+          if (wakeup !== undefined &&
+              reasons.length &&
+              reasons[0].ts < wakeup.ts) {
+            blocked_reason = reasons.shift();
+          }
 
           // Push a sleep slice onto the slices list, interrupting it with a
           // wakeup if appropriate.
@@ -513,9 +537,33 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tr.model.ThreadTimeSlice(
-                thread,
-                state, '', prevSlice.end, {}, midDuration));
+
+            if (blocked_reason !== undefined) {
+              var args = {
+                'kernel callsite when blocked:' : blocked_reason.caller
+              };
+              if (blocked_reason.iowait) {
+                switch (state) {
+                  case SCHEDULING_STATE.UNINTR_SLEEP:
+                    state = SCHEDULING_STATE.UNINTR_SLEEP_IO;
+                    break;
+                  case SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL:
+                    state = SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO;
+                    break;
+                  case SCHEDULING_STATE.UNINTR_SLEEP_WAKING:
+                    state = SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO;
+                    break;
+                  default:
+                }
+              }
+              slices.push(new tr.model.ThreadTimeSlice(
+                  thread,
+                  state, '', prevSlice.end, args, midDuration));
+            } else {
+              slices.push(new tr.model.ThreadTimeSlice(
+                  thread,
+                  state, '', prevSlice.end, {}, midDuration));
+            }
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
@@ -669,6 +717,18 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // these as tids, so the change of nomenclature happens in the following
       // construction of the wakeup object.
       this.wakeups_.push({ts: ts, tid: pid, fromTid: fromPid});
+    },
+
+    /**
+     * Records the reason why a pid has gone into uninterruptible sleep.
+     */
+    addPidBlockedReason: function(ts, pid, iowait, caller) {
+      // The the pids that get passed in to this function are Linux kernel
+      // pids, which identify threads.  The rest of trace-viewer refers to
+      // these as tids, so the change of nomenclature happens in the following
+      // construction of the wakeup object.
+      this.blocked_reasons_.push({ts: ts, tid: pid, iowait: iowait,
+                                  caller: caller});
     },
 
     /**
