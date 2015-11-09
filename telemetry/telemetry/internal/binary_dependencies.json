@@ -24,6 +24,36 @@
           "download_path": "../../bin/android/arm64-v8a/memtrack_helper"
         }
       }
+    },
+    "reference_build": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chrome-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "c262113080b5e1e2a95b0239f2816ebe47927601",
+          "download_path": "bin/reference_build/chrome_linux64.zip",
+          "path_within_archive": "chrome",
+          "version_in_cs": "46.0.2490.80"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "d1640623d59ad5584a30a93022fcdbcdc40a6c13",
+          "download_path": "bin/reference_builds/chrome_mac64.zip",
+          "path_within_archive": "Google Chrome.app/Contents/MacOS/Google Chrome",
+          "version_in_cs": "46.0.2490.80"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "8642becb380e02b2fcec8009d5925d34618c0fd7",
+          "download_path": "bin\\reference_build\\chrome_win64.zip",
+          "path_within_archive": "chrome.exe",
+          "version_in_cs": "46.0.2490.80"
+        },
+        "win_x86": {
+          "cloud_storage_hash": "2b0dcce048ad0b8c56911b279ddd1c59581b3d53",
+          "download_path": "reference_build\\chrome_win32.zip",
+          "path_within_archive": "chrome.exe",
+          "version_in_cs": "46.0.2490.80"
+        }
+      }
     }
   }
 }
