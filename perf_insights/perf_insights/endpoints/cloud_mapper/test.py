@@ -3,12 +3,17 @@
 # found in the LICENSE file.
 import json
 import os
+import urllib
 import uuid
 import webapp2
 
 from google.appengine.api import taskqueue
+from google.appengine.api import urlfetch
 from perf_insights.endpoints.cloud_mapper import job_info
 
+
+def _is_devserver():
+  return os.environ.get('SERVER_SOFTWARE','').startswith('Development')
 
 _FAKE_FILE = """
 <!DOCTYPE html>
@@ -42,39 +47,27 @@ tr.exportTo('pi.m', function() {
 </script>
 """
 
-class CreatePage(webapp2.RequestHandler):
+class TestPage(webapp2.RequestHandler):
 
-  def post(self):
+  def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
 
-    mapper = self.request.get('mapper')
-    reducer = self.request.get('reducer')
-    query = self.request.get('query')
-    corpus = self.request.get('corpus')
-    revision = self.request.get('revision')
-    if not revision:
-      revision = 'HEAD'
-
-    job_uuid = str(uuid.uuid4())
-    job = job_info.JobInfo(id=job_uuid)
-    job.remote_addr = os.environ["REMOTE_ADDR"]
-    job.status = 'QUEUED'
-    job.mapper = mapper
-    job.reducer = reducer
-    job.query = query
-    job.corpus = corpus
-    job.revision = revision
-    job.put()
-
-    response = {
-        'status': True,
-        'jobid': job_uuid
+    payload = {
+        'mapper': _FAKE_FILE,
+        'reducer': '',
+        'query': 'MAX_TRACE_HANDLES=10',
+        'corpus': 'http://performance-insights.appspot.com',
+        'revision': 'HEAD'
     }
+    payload = urllib.urlencode(payload)
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    url = 'http://performance-insights.appspot.com/cloud_mapper/create'
+    if _is_devserver():
+        url = 'http://localhost:8080/cloud_mapper/create'
 
-    self.response.out.write(json.dumps(response))
+    result = urlfetch.fetch(url=url, payload=payload,
+        method=urlfetch.POST, headers=headers)
+    self.response.out.write(result.content)
 
-    payload = {'jobid': job_uuid}
-    taskqueue.add(url='/cloud_mapper/task', name=job_uuid, params=payload)
 
-
-app = webapp2.WSGIApplication([('/cloud_mapper/create', CreatePage)])
+app = webapp2.WSGIApplication([('/cloud_mapper/test', TestPage)])
