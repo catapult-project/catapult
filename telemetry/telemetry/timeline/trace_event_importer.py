@@ -140,6 +140,16 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         event['tdur'] / 1000.0 if 'tdur' in event else None,
         event['args'])
 
+  def _ProcessMarkEvent(self, event):
+    thread = (self._GetOrCreateProcess(event['pid'])
+        .GetOrCreateThread(event['tid']))
+    thread.PushMarkSlice(
+        event['cat'],
+        event['name'],
+        event['ts'] / 1000.0,
+        event['tts'] / 1000.0 if 'tts' in event else None,
+        event['args'] if 'args' in event else None)
+
   def _ProcessMetadataEvent(self, event):
     if event['name'] == 'thread_name':
       thread = (self._GetOrCreateProcess(event['pid'])
@@ -222,6 +232,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         self._ProcessFlowEvent(event)
       elif phase == 'v':
         self._ProcessMemoryDumpEvent(event)
+      elif phase == 'R':
+        self._ProcessMarkEvent(event)
       else:
         self._model.import_errors.append('Unrecognized event phase: ' +
             phase + '(' + event['name'] + ')')

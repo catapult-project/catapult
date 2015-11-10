@@ -940,6 +940,39 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertTrue(slice_event.did_not_finish)
     self.assertEqual(0, len(slice_event.sub_slices))
 
+  def testImportMarkEvent(self):
+    events = [
+      {'name': 'a', 'pid': 52, 'ts': 629, 'cat': 'baz', 'tid': 53, 'ph': 'R'},
+      {'name': 'b', 'pid': 52, 'ts': 730, 'cat': 'foo', 'tid': 53, 'ph': 'R'},
+      {'name': 'c', 'pid': 52, 'ts': 740, 'cat': 'baz', 'tid': 53, 'ph': 'R'},
+    ]
+    trace_data = trace_data_module.TraceData(events)
+    m = timeline_model.TimelineModel(trace_data)
+    p = m.GetAllProcesses()[0]
+    t = p.threads[53]
+    self.assertEqual(3, len(t.all_slices))
+
+    slice_event = t.all_slices[0]
+    self.assertEqual('a', slice_event.name)
+    self.assertEqual('baz', slice_event.category)
+    self.assertAlmostEqual(0.0, slice_event.start)
+    self.assertFalse(slice_event.did_not_finish)
+    self.assertEqual(0, len(slice_event.sub_slices))
+
+    slice_event = t.all_slices[1]
+    self.assertEqual('b', slice_event.name)
+    self.assertEqual('foo', slice_event.category)
+    self.assertAlmostEqual((730 - 629) / 1000.0, slice_event.start)
+    self.assertFalse(slice_event.did_not_finish)
+    self.assertEqual(0, len(slice_event.sub_slices))
+
+    slice_event = t.all_slices[2]
+    self.assertEqual('c', slice_event.name)
+    self.assertEqual('baz', slice_event.category)
+    self.assertAlmostEqual((740 - 629) / 1000.0, slice_event.start)
+    self.assertFalse(slice_event.did_not_finish)
+    self.assertEqual(0, len(slice_event.sub_slices))
+
   def testImportFlowEvent(self):
     events = [
       {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 548,

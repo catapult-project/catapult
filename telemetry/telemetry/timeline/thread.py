@@ -158,6 +158,14 @@ class Thread(event_container.TimelineEventContainer):
     self.PushSlice(new_slice)
     return new_slice
 
+  def PushMarkSlice(self, category, name, timestamp, thread_timestamp,
+        args=None):
+    new_slice = slice_module.Slice(self, category, name, timestamp,
+                                   thread_timestamp=thread_timestamp,
+                                   args=args)
+    self.PushSlice(new_slice)
+    return new_slice
+
   def PushSlice(self, new_slice):
     self._newly_added_slices.append(new_slice)
     return new_slice
