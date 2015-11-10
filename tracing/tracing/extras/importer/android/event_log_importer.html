@@ -93,6 +93,10 @@ tr.exportTo('tr.e.importer.android', function() {
     if (!(typeof(events) === 'string' || events instanceof String))
       return false;
 
+    // Prevent the importer from matching this file in vulcanized traces.
+    if (/^<!DOCTYPE html>/.test(events))
+      return false;
+
     return eventLogActivityRE.test(events);
   };
 
