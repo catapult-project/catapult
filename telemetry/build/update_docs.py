@@ -13,7 +13,7 @@ import telemetry
 from telemetry.core import util
 
 telemetry_dir = util.GetTelemetryDir()
-docs_dir = os.path.join(telemetry_dir, 'docs')
+docs_dir = os.path.join(telemetry_dir, 'docs', 'pydoc')
 
 def RemoveAllDocs():
   for dirname, _, filenames in os.walk(docs_dir):
@@ -135,7 +135,7 @@ def Main(args):
   else:
     logging.getLogger().setLevel(logging.WARNING)
 
-  assert os.path.isdir(docs_dir)
+  assert os.path.isdir(docs_dir), '%s does not exist' % docs_dir
 
   RemoveAllDocs()
 
