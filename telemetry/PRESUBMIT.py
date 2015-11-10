@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 def _LicenseHeader(input_api):
   """Returns the license header regexp."""
   # Accept any year number from 2011 to the current year
@@ -17,11 +18,9 @@ def _LicenseHeader(input_api):
 
 
 def _CheckLicense(input_api, output_api):
-  results = []
-  license_check = input_api.canned_checks.CheckLicense(
+  results = input_api.canned_checks.CheckLicense(
       input_api, output_api, _LicenseHeader(input_api))
-  results.extend(license_check)
-  if license_check:
+  if results:
     results.append(
         output_api.PresubmitError('License check failed. Please fix.'))
   return results
@@ -30,25 +29,13 @@ def _CheckLicense(input_api, output_api):
 def _CommonChecks(input_api, output_api):
   results = []
 
-  # TODO(nduca): This should call update_docs.IsUpdateDocsNeeded().
-  # Disabled due to crbug.com/255326.
-  if False:
-    update_docs_path = input_api.os_path.join(
-      input_api.PresubmitLocalPath(), 'update_docs')
-    assert input_api.os_path.exists(update_docs_path)
-    results.append(output_api.PresubmitError(
-      'Docs are stale. Please run:\n' +
-      '$ %s' % input_api.os_path.abspath(update_docs_path)))
-
-  pylint_checks = input_api.canned_checks.GetPylint(
-    input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-    pylintrc='pylintrc')
-
   results.extend(_CheckLicense(input_api, output_api))
+  results.extend(input_api.RunTests(input_api.canned_checks.GetPylint(
+      input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
+      pylintrc='pylintrc')))
   results.extend(_CheckNoMoreUsageOfDeprecatedCode(
     input_api, output_api, deprecated_code='GetChromiumSrcDir()',
     crbug_number=511332))
-  results.extend(input_api.RunTests(pylint_checks))
   return results
 
 
