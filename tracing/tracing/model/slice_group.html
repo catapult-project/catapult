@@ -234,15 +234,13 @@ tr.exportTo('tr.model', function() {
      * slices. If not provided,
      * the max timestamp for this slice is provided.
      */
-    autoCloseOpenSlices: function(opt_maxTimestamp) {
-      if (!opt_maxTimestamp) {
-        this.updateBounds();
-        opt_maxTimestamp = this.bounds.max;
-      }
+    autoCloseOpenSlices: function() {
+      this.updateBounds();
+      var maxTimestamp = this.bounds.max;
       for (var sI = 0; sI < this.slices.length; sI++) {
         var slice = this.slices[sI];
         if (slice.didNotFinish)
-          slice.duration = opt_maxTimestamp - slice.start;
+          slice.duration = maxTimestamp - slice.start;
       }
       this.openPartialSlices_ = [];
     },

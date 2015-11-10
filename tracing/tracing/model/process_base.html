@@ -94,10 +94,10 @@ tr.exportTo('tr.model', function() {
     /**
      * Closes any open slices.
      */
-    autoCloseOpenSlices: function(opt_maxTimestamp) {
+    autoCloseOpenSlices: function() {
       for (var tid in this.threads) {
         var thread = this.threads[tid];
-        thread.autoCloseOpenSlices(opt_maxTimestamp);
+        thread.autoCloseOpenSlices();
       }
     },
 

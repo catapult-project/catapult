@@ -416,9 +416,9 @@ tr.exportTo('tr', function() {
       });
 
       this.updateBounds();
-      this.kernel.autoCloseOpenSlices(this.bounds.max);
+      this.kernel.autoCloseOpenSlices();
       for (var pid in this.processes)
-        this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+        this.processes[pid].autoCloseOpenSlices();
     },
 
     createSubSlices: function() {

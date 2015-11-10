@@ -177,9 +177,9 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    autoCloseOpenSlices: function(opt_maxTimestamp) {
-      this.sliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
-      this.kernelSliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
+    autoCloseOpenSlices: function() {
+      this.sliceGroup.autoCloseOpenSlices();
+      this.kernelSliceGroup.autoCloseOpenSlices();
     },
 
     mergeKernelWithUserland: function() {
