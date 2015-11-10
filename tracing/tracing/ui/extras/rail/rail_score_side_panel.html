@@ -138,28 +138,8 @@ found in the LICENSE file.
 
     set model(model) {
       this.model_ = model;
-      this.railScore_ = tr.e.rail.RAILScore.fromModel(model);
-      this.$.score.railScore = this.railScore_;
-
-      var coverage = tr.model.getIRCoverageFromModel(model);
-      if (coverage) {
-        var associatedEvents =
-            tr.model.getAssociatedEvents(model.interactionRecords);
-
-        setCoverageLink(this.shadowRoot.querySelector('#associated-events'),
-                        'Associated',
-                        associatedEvents,
-                        coverage.coveredEventsCountRatio,
-                        coverage.associatedEventsCpuTimeMs,
-                        coverage.coveredEventsCpuTimeRatio);
-        setCoverageLink(this.shadowRoot.querySelector('#unassociated-events'),
-                        'Unassociated',
-                        tr.model.getUnassociatedEvents(model, associatedEvents),
-                        1.0 - coverage.coveredEventsCountRatio,
-                        coverage.unassociatedEventsCpuTimeMs,
-                        1.0 - coverage.coveredEventsCpuTimeRatio);
-      }
-
+      this.updateScore_();
+      this.updateCoverage_();
       this.updateTable_();
     },
 
@@ -167,10 +147,66 @@ found in the LICENSE file.
       return false;
     },
 
+    get effectiveRangeOfInterest() {
+      if (!this.rangeOfInterest_ || this.rangeOfInterest_.isEmpty) {
+        if (this.model)
+          return this.model.bounds;
+        else
+          return new tr.b.Range();
+      }
+
+      return this.rangeOfInterest_;
+    },
+
     set rangeOfInterest(rangeOfInterest) {
+      this.rangeOfInterest_ = rangeOfInterest;
+      this.updateScore_();
+      // TODO(benjhayden): Make updateCoverage_ reflect rangeOfInterest.
+      // https://github.com/catapult-project/catapult/issues/1753
+      this.updateTable_();
+    },
+
+    updateScore_: function() {
+      if (!this.model)
+        return;
+
+      this.railScore_ = tr.e.rail.RAILScore.fromModel(
+          this.model, this.effectiveRangeOfInterest);
+      this.$.score.railScore = this.railScore_;
+    },
+
+    updateCoverage_: function() {
+      if (!this.model)
+        return;
+
+      var coverage = tr.model.getIRCoverageFromModel(this.model);
+
+      if (!coverage)
+        return;
+
+      var associatedEvents =
+          tr.model.getAssociatedEvents(this.model.interactionRecords);
+      var unassociatedEvents = tr.model.getUnassociatedEvents(
+          this.model, associatedEvents);
+
+      setCoverageLink(this.shadowRoot.querySelector('#associated-events'),
+                      'Associated',
+                      associatedEvents,
+                      coverage.coveredEventsCountRatio,
+                      coverage.associatedEventsCpuTimeMs,
+                      coverage.coveredEventsCpuTimeRatio);
+      setCoverageLink(this.shadowRoot.querySelector('#unassociated-events'),
+                      'Unassociated',
+                      unassociatedEvents,
+                      1.0 - coverage.coveredEventsCountRatio,
+                      coverage.unassociatedEventsCpuTimeMs,
+                      1.0 - coverage.coveredEventsCpuTimeRatio);
     },
 
     updateTable_: function() {
+      if (!this.model)
+        return;
+
       function toThreeDigitLocaleString(value) {
         return value.toLocaleString(undefined,
                                     {minimumFractionDigits: 3,
@@ -234,10 +270,19 @@ found in the LICENSE file.
       ];
 
       this.$.table.tableColumns = columns;
-      if (this.railScore_)
-        this.$.table.tableRows = this.railScore_.interactionRecords;
-      else
-        this.$.table.tableRows = [];
+
+      var rows = [];
+      if (this.railScore_) {
+        this.railScore_.interactionRecords.forEach(function(ir) {
+          if (!this.effectiveRangeOfInterest.intersectsExplicitRange(
+                ir.start, ir.end))
+            return;
+
+          rows.push(ir);
+        }, this);
+      }
+
+      this.$.table.tableRows = rows;
       this.$.table.rebuild();
     },
 

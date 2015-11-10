@@ -511,6 +511,11 @@ found in the LICENSE file.
       var vr = this.trackView_.viewport.interestRange.asRangeObject();
       if (!spc.rangeOfInterest.equals(vr))
         spc.rangeOfInterest = vr;
+
+      if (this.railScoreSpan_ && this.model) {
+        var railScore = tr.e.rail.RAILScore.fromModel(this.model, vr);
+        this.railScoreSpan_.railScore = railScore;
+      }
     },
 
     toggleHighlightVSync_: function() {

@@ -136,6 +136,18 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(score.overallScore, 0.51, 0.01);
   });
 
+  test('containedInRange', function() {
+    var score = new tr.e.rail.RAILScore([
+      {railScore: 0.9, start: 0, end: 10},
+      {railScore: 1.0, start: 10, end: 20},
+      {railScore: 0.89, start: 20, end: 30},
+      {railScore: 1.0, start: 30, end: 40},
+      {railScore: 0.1, start: 40, end: 50}
+    ], tr.b.Range.fromExplicitRange(5, 35));
+    assert.equal(5, score.interactionRecords.length);
+    assert.closeTo(score.overallScore, 0.94, 0.01);
+  });
+
   test('fromModel', function() {
     var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       model.addInteractionRecord(new tr.e.rail.RAILInteractionRecord(

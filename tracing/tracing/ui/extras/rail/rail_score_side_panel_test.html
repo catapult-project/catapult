@@ -82,6 +82,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(rows.length, 2);
 
     this.addHTMLOutput(panel);
+
+    panel.rangeOfInterest = tr.b.Range.fromExplicitRange(0, 10);
   });
 });
 </script>

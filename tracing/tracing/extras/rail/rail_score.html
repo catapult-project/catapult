@@ -11,10 +11,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.rail', function() {
-  function RAILScore(opt_irs) {
+  function RAILScore(opt_irs, opt_rangeOfInterest) {
     this.interactionRecords_ = [];
     if (opt_irs)
       this.interactionRecords_.push.apply(this.interactionRecords_, opt_irs);
+    this.rangeOfInterest_ = opt_rangeOfInterest;
+    if (!this.rangeOfInterest_ || this.rangeOfInterest_.isEmpty)
+      this.rangeOfInterest_ = tr.b.Range.fromExplicitRange(
+          -Number.MAX_VALUE, Number.MAX_VALUE);
   };
 
   RAILScore.prototype = {
@@ -42,6 +46,9 @@ tr.exportTo('tr.e.rail', function() {
       var numerator = 0;
       var denominator = 0;
       this.interactionRecords.forEach(function(ir) {
+        if (!this.rangeOfInterest_.intersectsExplicitRange(ir.start, ir.end))
+          return;
+
         var score = ir.railScore;
 
         var scale = ir.railScoreScale;
@@ -59,7 +66,11 @@ tr.exportTo('tr.e.rail', function() {
         var weight = Math.pow(base, -scale * Math.pow(score, power));
         numerator += score * weight;
         denominator += weight;
-      });
+      }, this);
+
+      if (denominator === 0)
+        return undefined;
+
       return numerator / denominator;
     },
 
@@ -70,13 +81,15 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
-  RAILScore.fromModel = function(model) {
+  RAILScore.fromModel = function(model, opt_rangeOfInterest) {
     var rirs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.RAILInteractionRecord;
     });
+
     if (rirs.length === 0)
       return undefined;
-    return new RAILScore(rirs);
+
+    return new RAILScore(rirs, opt_rangeOfInterest);
   };
 
   return {

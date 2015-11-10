@@ -46,8 +46,10 @@ found in the LICENSE file.
       }
       this.$.content.style.display = '';
       var overallScore = this.railScore_.overallScore;
-      if (overallScore === undefined)
+      if (overallScore === undefined) {
+        this.$.score.textContent = '';
         return;
+      }
       this.$.score.textContent = overallScore.toLocaleString(
           undefined,
           {minimumFractionDigits: 3});
