@@ -54,6 +54,6 @@ class TracingDevServerConfig(object):
 
   def GetTestDataPaths(self, args):  # pylint: disable=unused-argument
     return [
-      ('/tracing/test_data/', args.data_dir),
-      ('/tracing/skp_data/', args.skp_data_dir),
+      ('/tracing/test_data/', os.path.expanduser(args.data_dir)),
+      ('/tracing/skp_data/', os.path.expanduser(args.skp_data_dir)),
     ]
