@@ -300,6 +300,19 @@ tr.exportTo('tr.b', function() {
     return undefined;
   }
 
+  function mapValues(map) {
+    var values = [];
+    for (var value of map.values())
+      values.push(value);
+    return values;
+  }
+
+  function iterMapItems(map, fn, opt_this) {
+    opt_this = opt_this || this;
+    for (var key of map.keys())
+      fn.call(opt_this, key, map.get(key));
+  }
+
   return {
     asArray: asArray,
     concatenateArrays: concatenateArrays,
@@ -321,7 +334,9 @@ tr.exportTo('tr.b', function() {
     identity: identity,
     findFirstIndexInArray: findFirstIndexInArray,
     findFirstInArray: findFirstInArray,
-    findFirstKeyInDictMatching: findFirstKeyInDictMatching
+    findFirstKeyInDictMatching: findFirstKeyInDictMatching,
+    mapValues: mapValues,
+    iterMapItems: iterMapItems
   };
 });
 </script>

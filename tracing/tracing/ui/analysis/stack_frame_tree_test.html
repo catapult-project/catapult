@@ -36,8 +36,8 @@ tr.b.unittest.testSuite(function() {
 
     // Check that node.childMap has the same values as node.children and that
     // the title -> child mapping is set up correctly.
-    assert.sameMembers(node.children, tr.b.dictionaryValues(node.childMap));
-    tr.b.iterItems(node.childMap, function(title, child) {
+    assert.sameMembers(node.children, tr.b.mapValues(node.childMap));
+    tr.b.iterMapItems(node.childMap, function(title, child) {
       assert.strictEqual(child.title, title);
     });
 
@@ -711,6 +711,18 @@ tr.b.unittest.testSuite(function() {
         zFunction([7, 9, 7, 9, 7, 9, 7, 9]), [0, 0, 6, 0, 4, 0, 2, 0]);
     assert.deepEqual(
         zFunction('CCGTCCCGTACC'), [0, 1, 0, 0, 2, 4, 1, 0, 0, 0, 2, 1]);
+  });
+
+  test('__proto__TitledNode', function() {
+    var root = new StackFrameTreeNode('root', undefined);
+
+    var frame1 = new StackFrame(undefined, tr.b.GUID.allocate(), 'frame1');
+    var child1 = root.getOrCreateChild('__proto__', frame1);
+
+    checkNode(root, 'root', undefined, undefined, [child1], 0, 0,
+        ['root']);
+    checkNode(child1, '__proto__', frame1, root, [], 0, 0,
+        ['__proto__', 'root']);
   });
 });
 </script>

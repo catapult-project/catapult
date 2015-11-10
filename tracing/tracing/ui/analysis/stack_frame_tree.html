@@ -88,7 +88,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     this.parent = undefined;
     this.children = [];
-    this.childMap = {};
+    this.childMap = new Map();
 
     this.total = 0;
     this.self = 0;
@@ -118,14 +118,14 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getOrCreateChild: function(title, opt_frame) {
-      var childNode = this.childMap[title];
+      var childNode = this.childMap.get(title);
       if (childNode !== undefined)
         return childNode;
 
       childNode = new StackFrameTreeNode(title, opt_frame);
       childNode.parent = this;
       this.children.push(childNode);
-      this.childMap[title] = childNode;
+      this.childMap.set(title, childNode);
 
       return childNode;
     },
