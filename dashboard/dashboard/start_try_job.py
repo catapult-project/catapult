@@ -767,7 +767,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
     to pass it to the buildbucket service to start the job.
   """
   config = bisect_job.GetConfigDict()
-  if bisect_job.job_type != 'bisect':
+  if bisect_job.job_type not in ['bisect', 'bisect-fyi']:
     raise request_handler.InvalidInputError(
         'Recipe only supports bisect jobs at this time.')
   if not bisect_job.master_name.startswith('ChromiumPerf'):
