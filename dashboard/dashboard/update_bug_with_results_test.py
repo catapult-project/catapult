@@ -462,6 +462,7 @@ def _MockSendMail(**kwargs):
 # In this class, we patch apiclient.discovery.build so as to not make network
 # requests, which are normally made when the IssueTrackerService is initialized.
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class UpdateBugWithResultsTest(testing_common.TestCase):
 
   def setUp(self):
@@ -490,7 +491,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         server_url='https://test-rietveld.appspot.com',
         internal_server_url='https://test-rietveld.appspot.com').put()
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -534,7 +534,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual('bisect', pending_jobs[1].job_type)
     self.assertEqual('bisect', pending_jobs[2].job_type)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -553,7 +552,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     # Expects job to finish.
     self.assertEqual(0, len(pending_jobs))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -587,7 +585,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual('started', pending_jobs[0].status)
     self.assertEqual('started', pending_jobs[1].status)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -610,7 +607,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         54321, _EXPECTED_BISECT_LOG_PARTIAL_RESULT, labels=None)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -633,7 +629,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     pending_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(pending_jobs))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -657,7 +652,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     pending_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(pending_jobs))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -692,7 +686,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       self.assertFalse(line.endswith(' '))
     self.assertEqual(_EXPECTED_BISECT_LOG_SINGLE_OWNER, actual_output)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -717,7 +710,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     pending_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(pending_jobs))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -767,7 +759,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         anomaly.Anomaly.bug_id == int(54321)).fetch()
     self.assertEqual(0, len(anomalies))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
@@ -787,7 +778,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
     self.assertEqual('12345', layered_cache.Get('commit_hash_abcd123'))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
@@ -863,7 +853,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     log_bisect_failure_mock.assert_called_with(
         bug_id, 'Build failure.', mock.ANY)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -888,7 +877,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         labels=None,
         owner='sullivan@google.com')
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -923,7 +911,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
                      results['profiler_results'][1][1])
     self.assertEqual('win_perf_bisect', results['bisect_bot'])
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -949,7 +936,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual('', results['html_results'])
     self.assertEqual('win_perf_bisect', results['bisect_bot'])
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -977,7 +963,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertIn('just@atestemail.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -1005,7 +990,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertIn('just@atestemail.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))

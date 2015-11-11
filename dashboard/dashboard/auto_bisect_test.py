@@ -20,6 +20,7 @@ from dashboard.models import anomaly
 from dashboard.models import try_job
 
 
+@mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class AutoBisectTest(testing_common.TestCase):
 
   def setUp(self):
@@ -34,7 +35,6 @@ class AutoBisectTest(testing_common.TestCase):
         [('/auto_bisect', auto_bisect.AutoBisectHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunTwice_JobRestarted(self, mock_perform_bisect):
     testing_common.AddTests(
@@ -52,7 +52,6 @@ class AutoBisectTest(testing_common.TestCase):
     mock_perform_bisect.assert_called_once_with(
         try_job.TryJob.query(try_job.TryJob.bug_id == 111).get())
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunOnce_JobRestarted(self, mock_perform_bisect):
     try_job.TryJob(
@@ -63,7 +62,6 @@ class AutoBisectTest(testing_common.TestCase):
     mock_perform_bisect.assert_called_once_with(
         try_job.TryJob.query(try_job.TryJob.bug_id == 222).get())
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   @mock.patch.object(auto_bisect.start_try_job, 'LogBisectResult')
   def testPost_JobRunTooManyTimes_LogsMessage(self, mock_log_result):
     job_key = try_job.TryJob(
@@ -74,7 +72,6 @@ class AutoBisectTest(testing_common.TestCase):
     self.assertIsNone(job_key.get())
     mock_log_result.assert_called_once_with(333, mock.ANY)
 
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
   def testGet_WithStatsParameter_ListsTryJobs(self):
     now = datetime.datetime.now()
     try_job.TryJob(
