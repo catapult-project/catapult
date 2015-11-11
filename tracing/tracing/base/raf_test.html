@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
 
   test('runIdleTaskWhileIdle', function() {
     withFakeWindowPerformanceNow(function() {
-      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forceAllPendingRAFTasksToRunForTest();
 
       var rafRan = false;
       tr.b.requestAnimationFrame(function() {
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
   test('twoShortIdleCallbacks', function() {
     withFakeWindowPerformanceNow(function() {
-      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forceAllPendingRAFTasksToRunForTest();
 
       var idle1Ran = false;
       var idle2Ran = false;
@@ -68,7 +68,7 @@ tr.b.unittest.testSuite(function() {
 
   test('oneLongOneShortIdleCallback', function() {
     withFakeWindowPerformanceNow(function() {
-      tr.b.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+      tr.b.forceAllPendingRAFTasksToRunForTest();
 
       var idle1Ran = false;
       var idle2Ran = false;

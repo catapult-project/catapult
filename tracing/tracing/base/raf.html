@@ -28,18 +28,18 @@ tr.exportTo('tr.b', function() {
     rafScheduled = true;
     if (tr.isHeadless) {
       Promise.resolve().then(function() {
-        processRequests(0);
+        processRequests(false, 0);
       }, function(e) {
         console.log(e.stack);
         throw e;
       });
     } else {
       if (window.requestAnimationFrame) {
-        window.requestAnimationFrame(processRequests);
+        window.requestAnimationFrame(processRequests.bind(this, false));
       } else {
         var delta = Date.now() - window.performance.now();
         window.webkitRequestAnimationFrame(function(domTimeStamp) {
-          processRequests(domTimeStamp - delta);
+          processRequests(false, domTimeStamp - delta);
         });
       }
     }
@@ -67,13 +67,8 @@ tr.exportTo('tr.b', function() {
     }
   }
 
-  function processRequests(frameBeginTime) {
-    // We assume that we want to do a maximum of 10ms optional work per frame.
-    // Hopefully rAF will eventually pass this in for us.
-    var rafCompletionDeadline = frameBeginTime + 10;
-
+  function processRequests(forceAllTasksToRun, frameBeginTime) {
     rafScheduled = false;
-
 
     var currentPreAFs = pendingPreAFs;
     currentRAFDispatchList = pendingRAFs;
@@ -88,13 +83,15 @@ tr.exportTo('tr.b', function() {
       runTask(currentRAFDispatchList.shift(), frameBeginTime);
     currentRAFDispatchList = undefined;
 
-    if (!hasRAFTasks) {
+    if (!hasRAFTasks || forceAllTasksToRun) {
       while (pendingIdleCallbacks.length > 0) {
         runTask(pendingIdleCallbacks.shift());
         // Check timer after running at least one idle task to avoid buggy
         // window.performance.now() on some platforms from blocking the idle
-        // task queue.
-        if (tr.isHeadless || window.performance.now() >= rafCompletionDeadline)
+        // task queue. We assume that we want to do a maximum of 10ms optional
+        // work per frame. Hopefully rAF will eventually pass this in for us.
+        if (!forceAllTasksToRun &&
+            (tr.isHeadless || window.performance.now() >= frameBeginTime + 10))
           break;
       }
     }
@@ -152,7 +149,13 @@ tr.exportTo('tr.b', function() {
   function forcePendingRAFTasksToRun(frameBeginTime) {
     if (!rafScheduled)
       return;
-    processRequests(frameBeginTime);
+    processRequests(false, frameBeginTime);
+  }
+
+  function forceAllPendingRAFTasksToRunForTest() {
+    if (!rafScheduled)
+      return;
+    processRequests(true, 0);
   }
 
   return {
@@ -162,7 +165,8 @@ tr.exportTo('tr.b', function() {
     requestAnimationFrameInThisFrameIfPossible:
         requestAnimationFrameInThisFrameIfPossible,
     requestIdleCallback: requestIdleCallback,
-    forcePendingRAFTasksToRun: forcePendingRAFTasksToRun
+    forcePendingRAFTasksToRun: forcePendingRAFTasksToRun,
+    forceAllPendingRAFTasksToRunForTest: forceAllPendingRAFTasksToRunForTest
   };
 });
 </script>
