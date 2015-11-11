@@ -6,6 +6,7 @@
 
 import datetime
 import json
+import logging
 
 from dashboard import datastore_hooks
 from dashboard import request_handler
@@ -87,7 +88,10 @@ def _RestartBisect(bisect_job):
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot
   bisect_job.put()
-  start_try_job.PerformBisect(bisect_job)
+  try:
+    start_try_job.PerformBisect(bisect_job)
+  except Exception as e:
+    logging.error(e.message)
 
 
 def StartNewBisectForBug(bug_id):
