@@ -42,8 +42,8 @@ class AutoBisectHandler(request_handler.RequestHandler):
       self.RenderHtml('result.html', _PrintStartedAndFailedBisectJobs())
       return
     datastore_hooks.SetPrivilegedRequest()
-    _RestartFailedBisectJobs()
-    utils.TickMonitoringCustomMetric('RestartFailedBisectJobs')
+    if _RestartFailedBisectJobs():
+      utils.TickMonitoringCustomMetric('RestartFailedBisectJobs')
 
 
 class NotBisectableError(Exception):
@@ -55,16 +55,27 @@ def _RestartFailedBisectJobs():
   """Restarts failed bisect jobs.
 
   Bisect jobs that ran out of retries will be deleted.
+
+  Returns:
+    True if all bisect jobs that were retried were successfully triggered,
+    and False otherwise.
   """
   bisect_jobs = try_job.TryJob.query(try_job.TryJob.status == 'failed').fetch()
+  all_successful = True
   for job in bisect_jobs:
     if job.run_count > 0:
       if job.run_count <= len(_BISECT_RESTART_PERIOD_DAYS):
         if _IsBisectJobDueForRestart(job):
           if job.run_count == 1:
-            start_try_job.PerformBisect(job)
+            try:
+              start_try_job.PerformBisect(job)
+            except Exception as e:
+              logging.error(e.message)
+              all_successful = False
           elif job.bug_id:
-            _RestartBisect(job)
+            restart_successful = _RestartBisect(job)
+            if not restart_successful:
+              all_successful = False
       else:
         if job.bug_id:
           comment = ('Failed to run bisect %s times.'
@@ -72,6 +83,7 @@ def _RestartFailedBisectJobs():
                      job.run_count)
           start_try_job.LogBisectResult(job.bug_id, comment)
         job.key.delete()
+  return all_successful
 
 
 def _RestartBisect(bisect_job):
@@ -79,12 +91,15 @@ def _RestartBisect(bisect_job):
 
   Args:
     bisect_job: TryJob entity with initialized bot name and config.
+
+  Returns:
+    True if the bisect was successfully triggered and False otherwise.
   """
   try:
     new_bisect_job = _MakeBisectTryJob(
         bisect_job.bug_id, bisect_job.run_count)
   except NotBisectableError:
-    return
+    return False
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot
   bisect_job.put()
@@ -92,6 +107,8 @@ def _RestartBisect(bisect_job):
     start_try_job.PerformBisect(bisect_job)
   except Exception as e:
     logging.error(e.message)
+    return False
+  return True
 
 
 def StartNewBisectForBug(bug_id):

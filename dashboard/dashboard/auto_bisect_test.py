@@ -177,5 +177,55 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     self.assertEqual({'error': 'Could not select a test.'}, result)
 
 
+class TickMonitoringCustomMetricTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(TickMonitoringCustomMetricTest, self).setUp()
+    app = webapp2.WSGIApplication(
+        [('/auto_bisect', auto_bisect.AutoBisectHandler)])
+    self.testapp = webtest.TestApp(app)
+
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric')
+  def testPost_NoTryJobs_CustomMetricTicked(self, mock_tick):
+    self.testapp.post('/auto_bisect')
+    mock_tick.assert_called_once_with('RestartFailedBisectJobs')
+
+  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric')
+  def testPost_RunCount1_ExceptionInPerformBisect_CustomMetricNotTicked(
+      self, mock_tick, mock_perform_bisect):
+    mock_perform_bisect.side_effect = Exception('Error')
+    try_job.TryJob(
+        bug_id=222, status='failed',
+        last_ran_timestamp=datetime.datetime.now(),
+        run_count=1).put()
+    self.testapp.post('/auto_bisect')
+    self.assertEqual(0, mock_tick.call_count)
+
+  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric')
+  def testPost_RunCount2_ExceptionInPerformBisect_CustomMetricNotTicked(
+      self, mock_tick, mock_perform_bisect):
+    mock_perform_bisect.side_effect = Exception('Error')
+    try_job.TryJob(
+        bug_id=111, status='failed',
+        last_ran_timestamp=datetime.datetime.now() - datetime.timedelta(days=8),
+        run_count=2).put()
+    self.testapp.post('/auto_bisect')
+    self.assertEqual(0, mock_tick.call_count)
+
+  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
+  @mock.patch.object(utils, 'TickMonitoringCustomMetric')
+  def testPost_NoExceptionInPerformBisect_CustomMetricTicked(
+      self, mock_tick, mock_perform_bisect):
+    try_job.TryJob(
+        bug_id=222, status='failed',
+        last_ran_timestamp=datetime.datetime.now(),
+        run_count=1).put()
+    self.testapp.post('/auto_bisect')
+    self.assertEqual(1, mock_perform_bisect.call_count)
+    mock_tick.assert_called_once_with('RestartFailedBisectJobs')
+
+
 if __name__ == '__main__':
   unittest.main()
