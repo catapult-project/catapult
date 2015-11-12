@@ -1,9 +1,6 @@
 # For more information about telemetry development, please see:
 # http://dev.chromium.org/developers/telemetry/telemetry-feature-guidelines
 
-# The set noparent is temporary until src/OWNERS isn't *.
-set noparent
-
 # For CrOS-related changes.
 achuith@chromium.org
 
