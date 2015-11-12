@@ -52,8 +52,8 @@ class MandolineBrowserBackend(browser_backend.BrowserBackend):
     args.extend(self.GetReplayBrowserStartupArgs())
     # Currently the bots that run mojo perf tests use such an old kernel that
     # it doesn't support the namespace sandboxing primitives. Disable it until
-    # infra fixes it.
-    args.extend('--no-sandbox')
+    # infra fixes it. (crbug.com/546644)
+    args.append('--no-sandbox')
     return args
 
   def _UseHostResolverRules(self):
