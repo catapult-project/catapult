@@ -51,7 +51,7 @@ def _StringToValue(s):
     pass
 
   # Barewords are assumed to be fields.
-  m = re.match('([a-zA-Z0-9]+)$', s)
+  m = re.match('([a-zA-Z0-9_]+)$', s)
   if m:
     return _ReadField(m.group(1))
 
