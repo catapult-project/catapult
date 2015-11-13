@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <!--
 The chart-tooltip element is the box that is shown when you hover over or click
 on a point on a graph. It shows more detailed information about the point that
@@ -206,7 +207,6 @@ was just clicked.
         this.closeTooltipJob = this.job(
             this.closeTooltipJob,
             function() {
-              this.$.tooltip.close();
               this.$.container.hidden = true;
             },
             200);
