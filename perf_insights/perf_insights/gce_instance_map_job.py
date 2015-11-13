@@ -88,8 +88,10 @@ def Main(argv):
 
   try:
     output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
-    map_function_handle = function_handle.FunctionHandle(
+    map_function_module = function_handle.ModuleToLoad(
         filename=os.path.abspath(map_file))
+    map_function_handle = function_handle.FunctionHandle(
+        modules_to_load=[map_function_module])
 
     trace_handles = _DownloadTraceHandles(args.input_url, temp_directory)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,

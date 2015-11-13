@@ -14,9 +14,11 @@ from perf_insights.value import run_info as run_info_module
 
 
 def _Handle(filename):
-  return function_handle.FunctionHandle(filename=filename)
-
+  module = function_handle.ModuleToLoad(filename=filename)
+  return function_handle.FunctionHandle(modules_to_load=[module],
+                                        function_name='MyMapFunction')
 class MapSingleTraceTests(unittest.TestCase):
+
   def testPassingMapScript(self):
     run_info = run_info_module.RunInfo('file:///a.json', '/a.json',
                                        metadata={'m': 1})
@@ -44,6 +46,7 @@ class MapSingleTraceTests(unittest.TestCase):
       map_single_trace.MapSingleTrace(results, trace_handle,
                                       _Handle(map_script.filename))
 
+    self.assertFalse(results.failure_values)
     v = results.FindValueNamed('result')
     self.assertEquals(v['numProcesses'], 1)
 

@@ -44,6 +44,19 @@ class DevServerTests(unittest.TestCase):
     url = app.GetURLForAbsFilename('/tmp/foo')
     self.assertIsNone(url)
 
+  def testGetAbsFilenameForHref(self):
+    app = dev_server.DevServerApp(self.pds, self.args)
+
+    cfg = tracing_dev_server_config.TracingDevServerConfig()
+    base_html_filename = os.path.join(cfg.project.tracing_src_path,
+                                      'base', 'base.html')
+
+    filename = app.GetAbsFilenameForHref('/tracing/base/base.html')
+    self.assertEqual(base_html_filename, filename)
+
+    filename = app.GetAbsFilenameForHref('/etc/passwd')
+    self.assertIsNone(filename)
+
   def testTestDataDirectory(self):
     app = dev_server.DevServerApp(self.pds, self.args)
     request = webapp2.Request.blank('/tracing/test_data/trivial_trace.json')

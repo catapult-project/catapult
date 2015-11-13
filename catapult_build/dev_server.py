@@ -226,6 +226,18 @@ class DevServerApp(webapp2.WSGIApplication):
     for route in routes:
       self.router.add(route)
 
+  def GetAbsFilenameForHref(self, href):
+    for source_path in self._all_source_paths:
+      print source_path
+      full_source_path = os.path.abspath(source_path)
+      expanded_href_path = os.path.abspath(os.path.join(full_source_path,
+                                                        href.lstrip('/')))
+      if (os.path.exists(expanded_href_path) and
+          os.path.commonprefix([full_source_path,
+                                expanded_href_path]) == full_source_path):
+        return expanded_href_path
+    return None
+
   def GetURLForAbsFilename(self, filename):
     assert self.server is not None
     for mapped_path, source_path in self._all_mapped_test_data_paths:

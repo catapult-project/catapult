@@ -62,10 +62,13 @@ def _GetMapFunctionHrefFromPiReport(html_contents):
       map_function_href = element.attrs.get('map-function-href', None)
       if map_function_href is None:
         raise Exception('Report is missing map-function-href attribute')
+      map_function_name = element.attrs.get('map-function-name', None)
+      if map_function_name is None:
+        raise Exception('Report is missing map-function-name attribute')
       pi_report_element_name = element.attrs.get('name', None)
       if pi_report_element_name is None:
         raise Exception('Report is missing name attribute')
-      return map_function_href, pi_report_element_name
+      return map_function_href, map_function_name, pi_report_element_name
   raise Exception('No element that extends pi-ui-r-pi-report was found')
 
 
@@ -76,10 +79,12 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
   with open(pi_report_file, 'r') as f:
     pi_report_file_contents = f.read()
 
-  map_function_href, pi_report_element_name = _GetMapFunctionHrefFromPiReport(
-    pi_report_file_contents)
+  map_function_href, map_function_name, pi_report_element_name = (
+      _GetMapFunctionHrefFromPiReport(pi_report_file_contents))
   map_file = project.GetAbsPathFromHRef(map_function_href)
-  map_function_handle = function_handle.FunctionHandle(filename=map_file)
+  module = function_handle.ModuleToLoad(href=map_function_href)
+  map_function_handle = function_handle.FunctionHandle([module],
+                                                       map_function_name)
 
   if map_file == None:
     raise Exception('Could not find %s' % map_function_href)

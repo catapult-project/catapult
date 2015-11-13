@@ -309,15 +309,15 @@ tr.exportTo('pi.ui', function() {
         }
 
         var mapFunctionName = pe.getAttribute('map-function-name');
-        if (mapFunctionName === undefined)
-          throw new Error('nope');
-
-        var mapFunction = pi.FunctionRegistry.getFunction(mapFunctionName);
+        var mapFunctionHref = pe.getAttribute('map-function-href');
+        var moduleToLoad = new pi.ModuleToLoad(mapFunctionHref);
+        var mapFunctionHandle = new pi.FunctionHandle([moduleToLoad],
+                                                      mapFunctionName);
 
         if (mappingState.mapClientSide) {
           throw new Error('Currently unsupported');
         }
-        return mappingState.currentMapTracesDriver(mapFunctionName,
+        return mappingState.currentMapTracesDriver(mapFunctionHandle,
                                                    mappingState.corpusQuery);
       });
       p = p.then(function responseToResults(responseText) {

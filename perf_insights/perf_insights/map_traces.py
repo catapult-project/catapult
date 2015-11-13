@@ -63,8 +63,10 @@ def Main(argv):
 
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
 
-  map_function_handle = function_handle.FunctionHandle(
+  map_function_module = function_handle.ModuleToLoad(
       filename=os.path.abspath(args.map_file))
+  map_function_handle = function_handle.FunctionHandle(
+      modules_to_load=[map_function_module])
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,
