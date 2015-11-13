@@ -130,23 +130,24 @@ tr.b.unittest.testSuite(function() {
     var verifier = new IRVerifier();
     verifier.customizeModelCallback = function(model) {
       chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addCommitLoadEvent(model, {start: 10, end: 20});
+      chrome_test_utils.addCommitLoadEvent(
+          model, {start: 10, end: 20, args: {id: 1}});
+      chrome_test_utils.addFinishLoadEvent(
+          model, {start: 21, end: 24, args: {id: 1}});
+      chrome_test_utils.addLoadFinishedEvent(
+          model, {start: 22, end: 23});
       chrome_test_utils.addFrameEvent(model, {start: 25, end: 30});
       chrome_test_utils.addFrameEvent(model, {start: 35, end: 40});
       // 3 Idle events.
       chrome_test_utils.addRenderingEvent(model, {start: 5, end: 15});
       chrome_test_utils.addRenderingEvent(model, {start: 11, end: 15});
       chrome_test_utils.addRenderingEvent(model, {start: 13, end: 15});
-      // 3 Load events.
-      chrome_test_utils.addRenderingEvent(model, {start: 15, end: 35});
-      chrome_test_utils.addRenderingEvent(model, {start: 21, end: 30});
-      chrome_test_utils.addRenderingEvent(model, {start: 20, end: 30});
       // 1 Idle event.
       chrome_test_utils.addRenderingEvent(model, {start: 35, end: 36});
     };
     verifier.expectedIRs = [
-      {title: 'Idle', start: 0, end: 10, eventCount: 3},
-      {title: 'Load', name: 'Succeeded', start: 10, end: 30, eventCount: 5},
+      {title: 'Idle', start: 0, end: 10, eventCount: 1},
+      {title: 'Load', name: 'Succeeded', start: 10, end: 30, eventCount: 4},
       {title: 'Idle', start: 30, end: 40, eventCount: 1}
     ];
     verifier.verify();
@@ -468,10 +469,14 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       chrome_test_utils.addCommitLoadEvent(model, {
           start: 0, end: 10, args: {id: 1}});
-      chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
+      chrome_test_utils.addFinishLoadEvent(
+          model, {start: 11, end: 14, args: {id: 1}});
+      chrome_test_utils.addLoadFinishedEvent(
+          model, {start: 12, end: 13});
+      chrome_test_utils.addFrameEvent(model, {start: 15, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', name: 'Succeeded', start: 0, end: 20, eventCount: 2}
+      {title: 'Load', name: 'Succeeded', start: 0, end: 20, eventCount: 4}
     ];
     verifier.verify();
   });
@@ -523,6 +528,10 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 0, end: 1});
       chrome_test_utils.addCommitLoadEvent(model, {
           start: 1, end: 2, args: {id: 1}});
+      chrome_test_utils.addFinishLoadEvent(
+          model, {start: 2.1, end: 2.4, args: {id: 1}});
+      chrome_test_utils.addLoadFinishedEvent(
+          model, {start: 2.2, end: 2.3});
       chrome_test_utils.addFrameEvent(model, {start: 3, end: 4});
       chrome_test_utils.addCreateChildFrameEvent(model, {
           start: 4, end: 5, args: {id: 1, child: 2}});
@@ -538,7 +547,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 0},
-      {title: 'Load', name: 'Succeeded', start: 1, end: 4, eventCount: 2},
+      {title: 'Load', name: 'Succeeded', start: 1, end: 4, eventCount: 4},
       {title: 'Idle', start: 4, end: 13, eventCount: 0}
     ];
     verifier.verify();

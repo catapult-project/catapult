@@ -95,28 +95,42 @@ tr.exportTo('tr.e.chrome', function() {
   ChromeTestUtils.addCommitLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
   }
 
   ChromeTestUtils.addCreateChildFrameEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::createChildFrame';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
   }
 
   ChromeTestUtils.addStartProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didStartProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
   }
 
   ChromeTestUtils.addFailProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didFailProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.rendererMain.sliceGroup.pushSlice(slice);
+    return slice;
+  }
+
+  ChromeTestUtils.addFinishLoadEvent = function(model, dict) {
+    dict.title = 'RenderFrameImpl::didFinishLoad';
+    var slice = tr.c.TestUtils.newSliceEx(dict);
+    model.rendererMain.sliceGroup.pushSlice(slice);
+    return slice;
+  }
+
+  ChromeTestUtils.addLoadFinishedEvent = function(model, dict) {
+    dict.title = 'LoadFinished';
+    var slice = tr.c.TestUtils.newSliceEx(dict);
+    model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
   }
 
@@ -124,6 +138,7 @@ tr.exportTo('tr.e.chrome', function() {
     dict.title = 'BrowserMainLoop::CreateThreads';
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
+    return slice;
   }
 
   return {

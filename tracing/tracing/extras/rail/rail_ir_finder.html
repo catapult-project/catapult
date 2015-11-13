@@ -56,6 +56,11 @@ tr.exportTo('tr.e.rail', function() {
   var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
   var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
   var FAIL_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFailProvisionalLoad';
+  var FINISH_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFinishLoad';
+
+  // This is an instant event that is a subSlice of a FINISH_LOAD_TITLE
+  // event.
+  var LOAD_FINISHED_TITLE = 'LoadFinished';
 
   function isRenderFrameImplEvent(event) {
     return event.title.indexOf(RENDER_FRAME_IMPL_PREFIX) === 0;
@@ -315,9 +320,13 @@ tr.exportTo('tr.e.rail', function() {
           // |openingEvent| may be either didStartProvisionaLoad or
           // didCommitProvisionalLoad, so use a general prefix test.
           if (isRenderFrameImplEvent(openingEvent)) {
-            lir.renderProcessId = openingEvent.parentContainer.parent.pid;
+            var renderProcessId = openingEvent.parentContainer.parent.pid;
+            lir.renderProcess = this.model.processes[renderProcessId];
+            lir.renderMainThread = lir.renderProcess.findAtMostOneThreadNamed(
+                'CrRendererMain');
             lir.routingId = openingEvent.args.id;
             lir.parentRoutingId = this.findLoadParentRoutingId_(lir);
+            this.findLoadFinishedEvent_(lir);
           }
           lirs.push(lir);
         }, this);
@@ -325,22 +334,70 @@ tr.exportTo('tr.e.rail', function() {
       return lirs;
     },
 
-    // parentRoutingId is the routingId of the createChildFrame event that
-    // created the Load IR's RenderFrame.
+    // Find the routingId of the createChildFrame event that created the Load
+    // IR's RenderFrame.
     findLoadParentRoutingId_: function(lir) {
-      function isCreateChildEvent(event) {
-        return ((event.title === CREATE_CHILD_TITLE) &&
-                (event.parentContainer.parent.pid === lir.renderProcessId) &&
-                (event.args.child === lir.routingId));
-      }
+      var createChildEvent = undefined;
+      lir.renderMainThread.iterateAllEvents(function(event) {
+        if (event.title !== CREATE_CHILD_TITLE)
+          return;
 
-      var parentRoutingId = undefined;
-      this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isCreateChildEvent).forEach(function(event) {
-        parentRoutingId = event.args.id;
+        if (event.args.child !== lir.routingId)
+          return;
+
+        createChildEvent = event;
       });
 
-      return parentRoutingId;
+      if (!createChildEvent)
+        return undefined;
+
+      return createChildEvent.args.id;
+    },
+
+    findLoadFinishedEvent_: function(lir) {
+      // First, find the RenderFrameImpl::didFinishLoad event that indicates a
+      // successful load.
+
+      var finishLoadEvent = undefined;
+      lir.renderMainThread.iterateAllEvents(function(event) {
+        if (event.title !== FINISH_LOAD_TITLE)
+          return;
+
+        if (event.start < lir.start)
+          return;
+
+        // TODO(benjhayden) This part of the heuristic is problematic for now
+        // because |lir.end| is naively the first paint after the load starts.
+        if (event.start > lir.end)
+          return;
+
+        if (event.args.id !== lir.routingId)
+          return;
+
+        finishLoadEvent = event;
+      });
+
+      if (!finishLoadEvent)
+        return undefined;
+
+      lir.associatedEvents.push(finishLoadEvent);
+
+      // Then, see if finishLoadEvent contains a subSlice titled
+      // 'LoadFinished', which indicates that the load was for a main frame.
+
+      var loadFinishedEvent = undefined;
+      finishLoadEvent.subSlices.forEach(function(event) {
+        if (event.title !== LOAD_FINISHED_TITLE)
+          return;
+
+        loadFinishedEvent = event;
+      });
+
+      if (!loadFinishedEvent)
+        return;
+
+      lir.loadFinishedEvent = loadFinishedEvent;
+      lir.associatedEvents.push(loadFinishedEvent);
     },
 
     // Match up RenderFrameImpl events with frame render events.
@@ -364,21 +421,24 @@ tr.exportTo('tr.e.rail', function() {
       var successfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
           frameEvents);
       this.setIRNames_(LOAD_SUCCEEDED_IR_NAME, successfulLIRs);
-      var renderLIRs = successfulLIRs;
+      successfulLIRs.forEach(function(lir) {
+        // If a successful Load IR has a loadFinishedEvent, then it is a main
+        // frame.
+        // Drop sub-frame Loads for now.
+        if (lir.loadFinishedEvent)
+          lirs.push(lir);
+      });
 
       // Attach fail load events to every start load events.
       var failedLIRs = this.findLoadInteractionRecords_(startLoadEvents,
           failLoadEvents);
       this.setIRNames_(LOAD_FAILED_IR_NAME, failedLIRs);
-      renderLIRs.push.apply(renderLIRs, failedLIRs);
-
-      renderLIRs.forEach(function(lir) {
-        // If a Load IR has a parentRoutingId, then it is in a subframe.
-        // Drop Subframe Loads for now.
-        if (lir.parentRoutingId === undefined) {
+      failedLIRs.forEach(function(lir) {
+        // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
+        // Drop sub-frame Loads for now.
+        if (lir.parentRoutingId === undefined)
           lirs.push(lir);
-        }
-      }, this);
+      });
 
       return lirs;
     },

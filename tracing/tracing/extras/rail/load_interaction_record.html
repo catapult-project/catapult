@@ -45,9 +45,13 @@ tr.exportTo('tr.e.rail', function() {
         this, parentModel, 'Load', 'rail_load',
         start, duration);
 
-    // |renderProcessId| identifies the renderer process that contains the
-    // loading RenderFrame.
-    this.renderProcessId = undefined;
+    // |renderProcess| is the renderer process that contains the loading
+    // RenderFrame.
+    this.renderProcess = undefined;
+
+    // |renderMainThread| is the CrRendererMain thread in the |renderProcess|
+    // that contains the loading RenderFrame.
+    this.renderMainThread = undefined;
 
     // |routingId| identifies the loading RenderFrame within the renderer
     // process.
@@ -57,7 +61,10 @@ tr.exportTo('tr.e.rail', function() {
     // the loading RenderFrame.
     this.parentRoutingId = undefined;
 
-    // Startup LoadIRs do not have renderProcessId, routingId, or
+    // |loadFinishedEvent|, if present, signals that this is a main frame.
+    this.loadFinishedEvent = undefined;
+
+    // Startup LoadIRs do not have renderProcess, routingId, or
     // parentRoutingId. Maybe RenderLoadIR should be a separate class?
   }
 
