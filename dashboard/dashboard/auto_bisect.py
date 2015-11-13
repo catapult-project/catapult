@@ -66,6 +66,8 @@ def _RestartFailedBisectJobs():
     if job.run_count > 0:
       if job.run_count <= len(_BISECT_RESTART_PERIOD_DAYS):
         if _IsBisectJobDueForRestart(job):
+          # Start bisect right away if this is the first retry. Otherwise,
+          # try bisect with different config.
           if job.run_count == 1:
             try:
               start_try_job.PerformBisect(job)

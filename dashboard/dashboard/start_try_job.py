@@ -611,15 +611,18 @@ def PerformBisect(bisect_job):
     the field "issue_id" and "issue_url", otherwise it contains "error".
   """
   assert bisect_job.bot and bisect_job.config
-  config_dict = bisect_job.GetConfigDict()
-
   if bisect_job.use_buildbucket:
-    if 'recipe_tester_name' not in config_dict:
-      logging.error('"recipe_tester_name" required in bisect jobs '
-                    'that use buildbucket. Config: %s', config_dict)
-      return {'error': 'No "recipe_tester_name" given.'}
-    return PerformBuildbucketBisect(bisect_job)
+    result = _PerformBuildbucketBisect(bisect_job)
+  else:
+    result = _PerformLegacyBisect(bisect_job)
+  if 'error' in result:
+    bisect_job.run_count += 1
+    bisect_job.SetFailed()
+  return result
 
+
+def _PerformLegacyBisect(bisect_job):
+  config_dict = bisect_job.GetConfigDict()
   config = bisect_job.config
   bot = bisect_job.bot
   email = bisect_job.email
@@ -675,6 +678,7 @@ def PerformBisect(bisect_job):
                      '<a href="%s">%s</a>' % (issue_url, issue_url))
       LogBisectResult(bug_id, bug_comment)
     return {'issue_id': issue_id, 'issue_url': issue_url}
+
   return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
 
 
@@ -800,7 +804,13 @@ def _MakeBuildbucketBisectJob(bisect_job):
   )
 
 
-def PerformBuildbucketBisect(bisect_job):
+def _PerformBuildbucketBisect(bisect_job):
+  config_dict = bisect_job.GetConfigDict()
+  if 'recipe_tester_name' not in config_dict:
+    logging.error('"recipe_tester_name" required in bisect jobs '
+                  'that use buildbucket. Config: %s', config_dict)
+    return {'error': 'No "recipe_tester_name" given.'}
+
   try:
     bisect_job.buildbucket_job_id = buildbucket_service.PutJob(
         _MakeBuildbucketBisectJob(bisect_job))

@@ -71,14 +71,14 @@ class BisectFYITest(testing_common.TestCase):
         [('/bisect_fyi', bisect_fyi.BisectFYIHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(bisect_fyi.start_try_job, 'PerformBuildbucketBisect')
+  @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')
   def testPost_FailedJobs_BisectFYI(self,  mock_perform_bisect):
     mock_perform_bisect.return_value = {'error':'PerformBisect Failed'}
     self.testapp.post('/bisect_fyi')
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
-  @mock.patch.object(bisect_fyi.start_try_job, 'PerformBuildbucketBisect')
+  @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')
   def testPost_SuccessJobs_BisectFYI(self,  mock_perform_bisect):
     mock_perform_bisect.return_value = {'issue_id':'http://fake'}
     self.testapp.post('/bisect_fyi')
