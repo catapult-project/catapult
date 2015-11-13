@@ -278,7 +278,7 @@ class ReplayServer(object):
             '************************** WPR LOG *****************************',
             f.read(),
             '************************** END OF WPR LOG **********************'])
-      logging.info(wpr_log_content)
+      logging.debug(wpr_log_content)
     os.remove(self._temp_log_file_path)
     self._temp_log_file_path = None
 
