@@ -42,15 +42,12 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     raise NotImplementedError()
 
   def StartMonitoringPower(self, browser):
-    assert self._start_energy_j is None and self._start_temp_c is None, (
-        'Called StartMonitoringPower() twice.')
+    self._CheckStart()
     self._start_energy_j = self._PackageEnergyJoules()
     self._start_temp_c = self._TemperatureCelsius()
 
   def StopMonitoringPower(self):
-    assert not(self._start_energy_j is None or self._start_temp_c is None), (
-        'Called StopMonitoringPower() before StartMonitoringPower().')
-
+    self._CheckStop()
     energy_consumption_j = self._PackageEnergyJoules() - self._start_energy_j
     average_temp_c = (self._TemperatureCelsius() + self._start_temp_c) / 2.
     if energy_consumption_j < 0:  # Correct overflow.

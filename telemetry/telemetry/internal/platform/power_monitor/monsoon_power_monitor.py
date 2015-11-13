@@ -3,12 +3,13 @@
 # found in the LICENSE file.
 
 import json
+import logging
 import multiprocessing
 import tempfile
 import time
 
 from telemetry.core import exceptions
-from telemetry.internal.platform import power_monitor
+from telemetry.internal.platform.power_monitor import android_power_monitor_base
 from telemetry.internal.platform.profiler import monsoon
 
 
@@ -42,7 +43,8 @@ def _MonitorPower(device, is_collecting, output):
     }
     json.dump(result, output)
 
-class MonsoonPowerMonitor(power_monitor.PowerMonitor):
+
+class MonsoonPowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
   def __init__(self, _, platform_backend):
     super(MonsoonPowerMonitor, self).__init__()
     self._powermonitor_process = None
@@ -64,8 +66,7 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     return self._monsoon is not None
 
   def StartMonitoringPower(self, browser):
-    assert not self._powermonitor_process, (
-        'Must call StopMonitoringPower().')
+    self._CheckStart()
     self._powermonitor_output_file = tempfile.TemporaryFile()
     self._is_collecting = multiprocessing.Event()
     self._powermonitor_process = multiprocessing.Process(
@@ -81,8 +82,7 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
       raise exceptions.ProfilingException('Failed to start data collection.')
 
   def StopMonitoringPower(self):
-    assert self._powermonitor_process, (
-        'StartMonitoringPower() not called.')
+    self._CheckStop()
     try:
       # Tell powermonitor to take an immediate sample and join.
       self._is_collecting.clear()
@@ -104,20 +104,17 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     Returns:
         Dictionary in the format returned by StopMonitoringPower().
     """
-    power_samples = []
-    total_energy_consumption_mwh = 0
-
     result = json.loads(powermonitor_output)
     if result['samples']:
-      timedelta_h = result['duration_s'] / len(result['samples']) / 3600
-      for (current_a, voltage_v) in result['samples']:
-        energy_consumption_mw = current_a * voltage_v * 10**3
-        total_energy_consumption_mwh += energy_consumption_mw * timedelta_h
-        power_samples.append(energy_consumption_mw)
+      timedelta_h = (result['duration_s'] / len(result['samples'])) / 3600.0
+      power_samples = [current_a * voltage_v * 10**3
+                       for (current_a, voltage_v) in result['samples']]
+      total_energy_consumption_mwh = sum(power_samples) * timedelta_h
+    else:
+      logging.warning('Sample information not available.')
+      power_samples = []
+      total_energy_consumption_mwh = 0
 
-    out_dict = {}
-    out_dict['identifier'] = 'monsoon'
-    out_dict['power_samples_mw'] = power_samples
-    out_dict['monsoon_energy_consumption_mwh'] = total_energy_consumption_mwh
-
-    return out_dict
+    return {'identifier':'monsoon',
+            'power_samples_mw':power_samples,
+            'monsoon_energy_consumption_mwh':total_energy_consumption_mwh}
