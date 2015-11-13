@@ -528,15 +528,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     formatMultipleAttributeValuesMax: function(attrs) {
-      var commonAttr = this.getCommonAttributeOrUndefined(attrs);
-      if (commonAttr === undefined) {
-        return tr.ui.b.createSpan({
-          textContent: '(multiple values)',
-          italic: true
-        });
-      }
-
-      return this.formatSingleAttributeValue(commonAttr);
+      return this.getMaxAttributeValue(attrs);
     },
 
     cmp: function(rowA, rowB) {
@@ -576,13 +568,11 @@ tr.exportTo('tr.ui.analysis', function() {
     /**
      * Compare the values of a pair of single defined attributes.
      *
-     * This method is intended to be overriden by attribute type/unit specific
-     * columns.
+     * This method and/or compareSingleAttributeValues are intended to be
+     * overriden by attribute type/unit specific columns.
      */
     compareSingleAttributes: function(attrA, attrB) {
-      var strA = String(attrA.value);
-      var strB = String(attrB.value);
-      return COLLATOR.compare(strA, strB);
+      return this.compareSingleAttributeValues(attrA.value, attrB.value);
     },
 
     /**
@@ -655,45 +645,25 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     compareMultipleAttributesMax: function(attrsA, attrsB) {
-      var commonAttrA = this.getCommonAttributeOrUndefined(attrsA);
-      var commonAttrB = this.getCommonAttributeOrUndefined(attrsB);
-      var hasMultipleValuesA = commonAttrA === undefined;
-      var hasMultipleValuesB = commonAttrB === undefined;
-
-      // Consider attributes with multiple values to be greater than attributes
-      // with single values.
-      if (hasMultipleValuesA && hasMultipleValuesB)
-        return 0;
-      if (hasMultipleValuesA)
-        return 1;
-      if (hasMultipleValuesB)
-        return -1;
-
-      return this.compareSingleAttributes(commonAttrA, commonAttrB);
+      return this.compareSingleAttributeValues(
+          this.getMaxAttributeValue(attrsA), this.getMaxAttributeValue(attrsB));
     },
 
-    /**
-     * If all defined attributes have the same value and units, this method
-     * returns the first defined attribute. Otherwise, it returns undefined.
-     *
-     * This method assumes that at least one attribute in the list is defined.
-     */
-    getCommonAttributeOrUndefined: function(attrs) {
-      var firstDefinedAttribute = undefined;
-      for (var i = 0; i < attrs.length; i++) {
-        var attr = attrs[i];
+    getMaxAttributeValue: function(attrs) {
+      return attrs.reduce(function(accumulator, attr) {
         if (attr === undefined)
-          continue;
-        if (firstDefinedAttribute === undefined) {
-          firstDefinedAttribute = attr;
-          continue;
+          return accumulator;
+        var attrValue = attr.value;
+        if (accumulator === undefined ||
+            this.compareSingleAttributeValues(attrValue, accumulator) > 0) {
+          return attrValue;
         }
-        if (firstDefinedAttribute.value !== attr.value ||
-            firstDefinedAttribute.units !== attr.units) {
-          return undefined;
-        }
-      }
-      return firstDefinedAttribute;
+        return accumulator;
+      }.bind(this), undefined);
+    },
+
+    compareSingleAttributeValues: function(attrValueA, attrValueB) {
+      return COLLATOR.compare(String(attrValueA), String(attrValueB));
     },
 
     getInfos: function(attrs) {
@@ -776,7 +746,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     formatMultipleAttributeValuesMax: function(attrs) {
-      return this.formatUnits(this.getMaxAttrValue(attrs), false);
+      return this.formatUnits(this.getMaxAttributeValue(attrs), false);
     },
 
     formatUnits: function(value, isDelta) {
@@ -805,8 +775,8 @@ tr.exportTo('tr.ui.analysis', function() {
       return wrapperEl;
     },
 
-    compareSingleAttributes: function(attrA, attrB) {
-      return attrA.value - attrB.value;
+    compareSingleAttributeValues: function(attrValueA, attrValueB) {
+      return attrValueA - attrValueB;
     },
 
     compareMultipleAttributesDiff: function(firstAttrA, lastAttrA, firstAttrB,
@@ -815,24 +785,10 @@ tr.exportTo('tr.ui.analysis', function() {
           this.getDiffAttrValue(firstAttrB, lastAttrB);
     },
 
-    compareMultipleAttributesMax: function(attrsA, attrsB) {
-      return this.getMaxAttrValue(attrsA) - this.getMaxAttrValue(attrsB);
-    },
-
     getDiffAttrValue: function(firstAttr, lastAttr) {
       var firstValue = firstAttr === undefined ? 0 : firstAttr.value;
       var lastValue = lastAttr === undefined ? 0 : lastAttr.value;
       return lastValue - firstValue;
-    },
-
-    getMaxAttrValue: function(attrs) {
-      return attrs.reduce(function(accumulator, attr) {
-        if (attr === undefined)
-          return accumulator;
-        if (accumulator === undefined || attr.value > accumulator)
-          accumulator = attr.value;
-        return accumulator;
-      }, undefined);
     }
   };
 

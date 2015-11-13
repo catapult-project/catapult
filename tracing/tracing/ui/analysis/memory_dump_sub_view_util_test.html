@@ -581,9 +581,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(value2.textContent, 'old \u2192 new');
     this.addHTMLOutput(value2);
     var value3 = c3.value({x: cell});
-    assert.equal(value3.style.color, '');
-    assert.equal(value3.textContent, '(multiple values)');
-    this.addHTMLOutput(value3);
+    assert.equal(value3, 'old');
 
     var cell = buildStringCell('ms', ['old', undefined, 'new']);
     var value1 = c1.value({x: cell});
@@ -596,7 +594,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(value2);
     var value3 = c3.value({x: cell});
     assert.equal(value3.style.color, 'green');
-    assert.equal(value3.textContent, '(multiple values)');
+    assert.equal(value3.textContent, 'old');
     this.addHTMLOutput(value3);
   });
 
@@ -641,10 +639,10 @@ tr.b.unittest.testSuite(function() {
         fieldGetter('x'), AggregationMode.MAX);
 
     // Different values.
-    checkMemoryColumnValueFormat(this, c, ['A', 'B', 'A'], '(multiple values)',
-        '' /* unchanged color (HTML element) */);
-    checkMemoryColumnValueFormat(this, c, [16, 16, undefined, 17],
-        '(multiple values)', '' /* unchanged color (HTML element) */);
+    checkMemoryColumnValueFormat(this, c, ['A', 'B', 'A'], 'B',
+        undefined /* unchanged color (not an HTML element) */);
+    checkMemoryColumnValueFormat(this, c, [16, 16, undefined, 17], '17',
+        undefined /* unchanged color (not an HTML element) */);
 
     // Identical values.
     checkMemoryColumnValueFormat(this, c, ['X', 'X'], 'X',
@@ -703,8 +701,8 @@ tr.b.unittest.testSuite(function() {
         fieldGetter('x'), AggregationMode.MAX);
 
     // At least one attribute has multiple values.
-    checkCompareAttributesEqual(c, [0, 1, 2], [3, 4, 5]);
-    checkCompareAttributesLess(c, ['9', undefined, '9'], ['3', '4', '5']);
+    checkCompareAttributesEqual(c, [0, 1, 3], [1, 3, 2]);
+    checkCompareAttributesLess(c, ['4', undefined, '4'], ['3', '4', '5']);
     checkCompareAttributesLess(c, [3, 3, 3], [9, undefined, 10]);
 
     // Both attributes have single values.
