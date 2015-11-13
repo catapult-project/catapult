@@ -249,6 +249,7 @@ def Main(argv):
         '--no-experiments',
         '--no-first-run',
         '--noerrdialogs',
+        '--window-size=1280,1024',
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
             'headless=true&testTypeToRun=all',
     ]
