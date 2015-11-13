@@ -31,3 +31,4 @@ class TraceInfo(ndb.Model):
   gpu_psver = ndb.StringProperty(indexed=True, default=None)
   gpu_vsver = ndb.StringProperty(indexed=True, default=None)
   gpu_venid = ndb.StringProperty(indexed=True, default=None)
+  highres_ticks = ndb.BooleanProperty(indexed=True, default=True)
