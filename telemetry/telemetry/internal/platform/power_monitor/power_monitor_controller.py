@@ -28,7 +28,13 @@ class PowerMonitorController(power_monitor.PowerMonitor):
     return any(m.CanMonitorPower() for m in self._candidate_power_monitors)
 
   def StartMonitoringPower(self, browser):
-    assert not self._active_monitors, 'Must call StopMonitoringPower().'
+    # TODO(rnephew): re-add assert when crbug.com/553601 is solved and
+    # StopMonitoringPower is called in the correct place.
+    if self._active_monitors:
+      logging.warning('StopMonitoringPower() not called when expected. Last '
+                      'results are likely not reported.')
+      self.StopMonitoringPower()
+
     self._active_monitors = (
         [m for m in self._candidate_power_monitors if m.CanMonitorPower()])
     assert self._active_monitors, 'No available monitor.'

@@ -291,6 +291,8 @@ class Platform(object):
 
   def IsMonitoringPower(self):
     """Returns true if power is currently being monitored, false otherwise."""
+    # TODO(rnephew): Remove when crbug.com/553601 is solved.
+    real_logging.info('IsMonitoringPower: %s', self._is_monitoring_power)
     return self._is_monitoring_power
 
   def CanMonitorNetworkData(self):
