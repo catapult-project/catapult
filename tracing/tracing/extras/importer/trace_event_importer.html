@@ -55,6 +55,9 @@ tr.exportTo('tr.e.importer', function() {
   var CONSUMER = 'consumer';
   var STEP = 'step';
 
+  var MEMORY_DUMP_LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
+  var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
+
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
@@ -75,7 +78,7 @@ tr.exportTo('tr.e.importer', function() {
     this.v8ProcessCodeMaps_ = {};
     this.v8ProcessRootStackFrame_ = {};
 
-    // Dump ID -> {global: (event | undefined), process: [events]}
+    // Dump ID -> PID -> [process memory dump events].
     this.allMemoryDumpEvents_ = {};
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -630,42 +633,44 @@ tr.exportTo('tr.e.importer', function() {
       this.model_.samples.push(sample);
     },
 
-    getOrCreateMemoryDumpEvents_: function(dumpId) {
-      if (this.allMemoryDumpEvents_[dumpId] === undefined) {
-        this.allMemoryDumpEvents_[dumpId] = {
-          global: undefined,
-          process: []
-        };
-      }
-      return this.allMemoryDumpEvents_[dumpId];
-    },
-
     processMemoryDumpEvent: function(event) {
-      if (event.id === undefined) {
+      if (event.ph !== 'v')
+        throw new Error('Invalid memory dump event phase "' + event.ph + '".');
+
+      var dumpId = event.id;
+      if (dumpId === undefined) {
         this.model_.importWarning({
           type: 'memory_dump_parse_error',
-          message: event.ph + ' phase event without a dump ID.'
+          message: 'Memory dump event (phase \'' + event.ph +
+              '\') without a dump ID.'
         });
         return;
       }
-      var events = this.getOrCreateMemoryDumpEvents_(event.id);
 
-      if (event.ph === 'v') {
-        // Add a process memory dump.
-        events.process.push(event);
-      } else if (event.ph === 'V') {
-        // Add a global memory dump (unless already present).
-        if (events.global !== undefined) {
-          this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Multiple V phase events with the same dump ID.'
-          });
-          return;
-        }
-        events.global = event;
-      } else {
-        throw new Error('Invalid memory dump event phase "' + event.ph + '".');
+      var pid = event.pid;
+      if (pid === undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'Memory dump event (phase\'' + event.ph + '\', dump ID \'' +
+              dumpId + '\') without a PID.'
+        });
+        return;
       }
+
+      // Dump ID -> PID -> [process memory dump events].
+      var allEvents = this.allMemoryDumpEvents_;
+
+      // PID -> [process memory dump events].
+      var dumpIdEvents = allEvents[dumpId];
+      if (dumpIdEvents === undefined)
+        allEvents[dumpId] = dumpIdEvents = {};
+
+      // [process memory dump events].
+      var processEvents = dumpIdEvents[pid];
+      if (processEvents === undefined)
+        dumpIdEvents[pid] = processEvents = [];
+
+      processEvents.push(event);
     },
 
     /**
@@ -727,7 +732,7 @@ tr.exportTo('tr.e.importer', function() {
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
           this.processFlowEvent(event);
 
-        } else if (event.ph === 'v' || event.ph === 'V') {
+        } else if (event.ph === 'v') {
           this.processMemoryDumpEvent(event);
 
         } else {
@@ -1835,370 +1840,469 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     createMemoryDumps_: function() {
-      tr.b.iterItems(this.allMemoryDumpEvents_, function(id, events) {
-        // Calculate the range of the global memory dump.
-        var range = new tr.b.Range();
-        if (events.global !== undefined)
-          range.addValue(timestampFromUs(events.global.ts));
-        for (var i = 0; i < events.process.length; i++)
-          range.addValue(timestampFromUs(events.process[i].ts));
+      for (var dumpId in this.allMemoryDumpEvents_)
+        this.createGlobalMemoryDump_(this.allMemoryDumpEvents_[dumpId], dumpId);
+    },
 
-        // Create the global memory dump.
-        var globalMemoryDump = new tr.model.GlobalMemoryDump(
-            this.model_, range.min);
-        globalMemoryDump.duration = range.range;
-        this.model_.globalMemoryDumps.push(globalMemoryDump);
+    createGlobalMemoryDump_: function(dumpIdEvents, dumpId) {
+      // 1. Create a GlobalMemoryDump for the provided process memory dump
+      // the events, all of which have the same dump ID.
 
-        // Create individual process memory dumps.
-        if (events.process.length === 0) {
+      // Calculate the range of the global memory dump.
+      var globalRange = new tr.b.Range();
+      for (var pid in dumpIdEvents) {
+        var processEvents = dumpIdEvents[pid];
+        for (var i = 0; i < processEvents.length; i++)
+          globalRange.addValue(timestampFromUs(processEvents[i].ts));
+      }
+      if (globalRange.isEmpty)
+        throw new Error('Internal error: Global memory dump without events');
+
+      // Create the global memory dump.
+      var globalMemoryDump = new tr.model.GlobalMemoryDump(
+          this.model_, globalRange.min);
+      globalMemoryDump.duration = globalRange.range;
+      this.model_.globalMemoryDumps.push(globalMemoryDump);
+
+      var globalMemoryAllocatorDumpsByFullName = {};
+      var levelOfDetailIndices = {};
+      var allMemoryAllocatorDumpsByGuid = {};
+
+      // 2. Create a ProcessMemoryDump for each PID in the provided process
+      // memory dump events. Everything except for edges between memory
+      // allocator dumps is parsed from the process memory dump trace events at
+      // this step.
+      for (var pid in dumpIdEvents) {
+        this.createProcessMemoryDump_(globalMemoryDump,
+            globalMemoryAllocatorDumpsByFullName, levelOfDetailIndices,
+            allMemoryAllocatorDumpsByGuid, dumpIdEvents[pid], pid, dumpId);
+      }
+
+      // 3. Set the level of detail and memory allocator dumps of the
+      // GlobalMemoryDump, which come from the process memory dump trace
+      // events parsed in the prebvious step.
+      globalMemoryDump.levelOfDetail =
+          MEMORY_DUMP_LEVELS_OF_DETAIL[levelOfDetailIndices.global];
+
+      // Find the root allocator dumps and establish the parent links of
+      // the global memory dump.
+      globalMemoryDump.memoryAllocatorDumps =
+          this.inferMemoryAllocatorDumpTree_(
+              globalMemoryAllocatorDumpsByFullName);
+
+      // 4. Finally, parse the edges between all memory allocator dumps within
+      // the GlobalMemoryDump. This can only be done once all memory allocator
+      // dumps have been parsed (i.e. it is necessary to iterate over the
+      // process memory dump trace events once more).
+      this.parseMemoryDumpAllocatorEdges_(allMemoryAllocatorDumpsByGuid,
+          dumpIdEvents, dumpId);
+    },
+
+    createProcessMemoryDump_: function(globalMemoryDump,
+        globalMemoryAllocatorDumpsByFullName, levelOfDetailIndices,
+        allMemoryAllocatorDumpsByGuid, processEvents, pid, dumpId) {
+      // Calculate the range of the process memory dump.
+      var processRange = new tr.b.Range();
+      for (var i = 0; i < processEvents.length; i++)
+        processRange.addValue(timestampFromUs(processEvents[i].ts));
+      if (processRange.isEmpty)
+        throw new Error('Internal error: Process memory dump without events');
+
+      // Create the process memory dump.
+      var process = this.model_.getOrCreateProcess(pid);
+      var processMemoryDump = new tr.model.ProcessMemoryDump(
+          globalMemoryDump, process, processRange.min);
+      processMemoryDump.duration = processRange.range;
+      process.memoryDumps.push(processMemoryDump);
+      globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
+
+      var processMemoryAllocatorDumpsByFullName = {};
+
+      // Parse all process memory dump trace events for the newly created
+      // ProcessMemoryDump.
+      for (var i = 0; i < processEvents.length; i++) {
+        var processEvent = processEvents[i];
+
+        var dumps = processEvent.args.dumps;
+        if (dumps === undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: '\'dumps\' field not found in a process memory dump' +
+                ' event for PID=' + pid + ' and dump ID=' + dumpId + '.'
+          });
+          continue;
+        }
+
+        // Totals, VM regions, and heap dumps for the newly created
+        // ProcessMemoryDump should be present in at most one event, so they
+        // can be added to the ProcessMemoryDump immediately.
+        this.parseMemoryDumpTotals_(processMemoryDump, dumps, pid, dumpId);
+        this.parseMemoryDumpVmRegions_(processMemoryDump, dumps, pid, dumpId);
+        this.parseMemoryDumpHeapDumps_(processMemoryDump, dumps, pid, dumpId);
+
+        // All process memory dump trace events for the newly created
+        // ProcessMemoryDump must be processed before level of detail and
+        // allocator dumps can be added to it.
+        this.parseMemoryDumpLevelOfDetail_(levelOfDetailIndices, dumps, pid,
+            dumpId);
+        this.parseMemoryDumpAllocatorDumps_(processMemoryDump, globalMemoryDump,
+            processMemoryAllocatorDumpsByFullName,
+            globalMemoryAllocatorDumpsByFullName,
+            allMemoryAllocatorDumpsByGuid, dumps, pid, dumpId);
+      }
+
+      // Show a warning if total resident bytes were not provided in the
+      // trace (mandatory field).
+      if (processMemoryDump.totals === undefined ||
+          processMemoryDump.totals.residentBytes === undefined) {
+        this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Mandatory field resident_set_bytes not found in' +
+                ' process memory dump for PID=' + pid +
+                ' and dump ID=' + dumpId + '.'
+        });
+      }
+
+      processMemoryDump.levelOfDetail =
+          MEMORY_DUMP_LEVELS_OF_DETAIL[levelOfDetailIndices.process];
+      delete levelOfDetailIndices.process;  // Reused for all process dumps.
+
+      // Find the root allocator dumps and establish the parent links of
+      // the process memory dump.
+      processMemoryDump.memoryAllocatorDumps =
+          this.inferMemoryAllocatorDumpTree_(
+              processMemoryAllocatorDumpsByFullName);
+    },
+
+    parseMemoryDumpTotals_: function(processMemoryDump, dumps, pid, dumpId) {
+      var rawTotals = dumps.process_totals;
+      if (rawTotals === undefined)
+        return;
+
+      if (processMemoryDump.totals !== undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'Process totals provided multiple times for' +
+              ' process memory dump for PID=' + pid +
+              ' and dump ID=' + dumpId + '.'
+        });
+        return;
+      }
+
+      var totals = {};
+
+      // Total resident bytes (mandatory).
+      if (rawTotals.resident_set_bytes !== undefined)
+        totals.residentBytes = parseInt(rawTotals.resident_set_bytes, 16);
+
+      // Peak resident bytes (optional).
+      if (rawTotals.peak_resident_set_bytes !== undefined) {
+        if (rawTotals.is_peak_rss_resetable === undefined) {
           this.model_.importWarning({
               type: 'memory_dump_parse_error',
-              message: 'No process memory dumps associated with global memory' +
-                  ' dump ' + id + '.'
+              message: 'Optional field peak_resident_set_bytes found' +
+                  ' but is_peak_rss_resetable not found in' +
+                  ' process memory dump for PID=' + pid +
+                  ' and dump ID=' + dumpId + '.'
+          });
+        }
+        totals.peakResidentBytes =
+            parseInt(rawTotals.peak_resident_set_bytes, 16);
+      }
+      if (rawTotals.is_peak_rss_resetable !== undefined) {
+        if (rawTotals.peak_resident_set_bytes === undefined) {
+          this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Optional field is_peak_rss_resetable found' +
+                  ' but peak_resident_set_bytes not found in' +
+                  ' process memory dump for PID=' + pid +
+                  ' and dump ID=' + dumpId + '.'
+          });
+        }
+        totals.arePeakResidentBytesResettable =
+            !!rawTotals.is_peak_rss_resetable;
+      }
+
+      processMemoryDump.totals = totals;
+    },
+
+    parseMemoryDumpVmRegions_: function(processMemoryDump, dumps, pid, dumpId) {
+      var rawProcessMmaps = dumps.process_mmaps;
+      if (rawProcessMmaps === undefined)
+        return;
+
+      var rawVmRegions = rawProcessMmaps.vm_regions;
+      if (rawVmRegions === undefined)
+        return;
+
+      if (processMemoryDump.vmRegions !== undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'VM regions provided multiple times for' +
+              ' process memory dump for PID=' + pid +
+              ' and dump ID=' + dumpId + '.'
+        });
+        return;
+      }
+
+      function parseByteStat(rawValue) {
+        if (rawValue === undefined)
+          return undefined;
+        return parseInt(rawValue, 16);
+      }
+
+      var vmRegions = new Array(rawVmRegions.length);
+
+      for (var i = 0; i < rawVmRegions.length; i++) {
+        var rawVmRegion = rawVmRegions[i];
+
+        // See //base/trace_event/process_memory_maps.cc in Chromium.
+        var byteStats = new tr.model.VMRegionByteStats(
+            parseByteStat(rawVmRegion.bs.pc),
+            parseByteStat(rawVmRegion.bs.pd),
+            parseByteStat(rawVmRegion.bs.sc),
+            parseByteStat(rawVmRegion.bs.sd),
+            parseByteStat(rawVmRegion.bs.pss),
+            parseByteStat(rawVmRegion.bs.sw));
+
+        vmRegions[i] = new tr.model.VMRegion(
+            parseInt(rawVmRegion.sa, 16),  // startAddress
+            parseInt(rawVmRegion.sz, 16),  // sizeInBytes
+            rawVmRegion.pf,  // protectionFlags
+            rawVmRegion.mf,  // mappedFile
+            byteStats);
+      }
+
+      processMemoryDump.vmRegions = vmRegions;
+    },
+
+    parseMemoryDumpHeapDumps_: function(processMemoryDump, dumps, pid, dumpId) {
+      var rawHeapDumps = dumps.heaps;
+      if (rawHeapDumps === undefined)
+        return;
+
+      if (processMemoryDump.heapDumps !== undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'Heap dumps provided multiple times for' +
+              ' process memory dump for PID=' + pid +
+              ' and dump ID=' + dumpId + '.'
+        });
+        return;
+      }
+
+      var model = this.model_;
+      var idPrefix = 'p' + pid + ':';
+      var heapDumps = {};
+
+      for (var allocatorName in rawHeapDumps) {
+        var entries = rawHeapDumps[allocatorName].entries;
+        if (entries === undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Missing heap entries in a ' + allocatorName +
+                ' heap dump for PID=' + pid + ' and dump ID=' + dumpId + '.'
+          });
+          continue;
+        }
+
+        var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
+
+        for (var i = 0; i < entries.length; i++) {
+          var entry = entries[i];
+          var type = entry.type;
+          if (type !== undefined) {
+            // Heap dump entries with specified object type ID need to be
+            // ignored for the time being because Chrome doesn't dump the
+            // mapping from object type IDs to object type names yet. See
+            // crbug.com/524631.
+            continue;
+          }
+          var size = parseInt(entry.size, 16);
+          var leafStackFrameIndex = entry.bt;
+          var leafStackFrame;
+          if (leafStackFrameIndex === undefined) {
+            leafStackFrame = undefined;
+          } else {
+            var leafStackFrameId = idPrefix + leafStackFrameIndex;
+            leafStackFrame = model.stackFrames[leafStackFrameId];
+            if (leafStackFrame === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Missing leaf stack frame (ID ' + leafStackFrameId +
+                    ') of heap entry ' + i + ' (size ' + size + ') in a ' +
+                    allocatorName + ' heap dump for PID=' + pid + '.'
+              });
+              continue;
+            }
+          }
+          heapDump.addEntry(leafStackFrame, size);
+        }
+        heapDumps[allocatorName] = heapDump;
+      }
+
+      processMemoryDump.heapDumps = heapDumps;
+    },
+
+    parseMemoryDumpLevelOfDetail_: function(levelOfDetailIndices, dumps, pid,
+        dumpId) {
+      var rawLevelOfDetail = dumps.level_of_detail;
+
+      // Determine the index of the level of detail of the dump.
+      var index = MEMORY_DUMP_LEVELS_OF_DETAIL.indexOf(rawLevelOfDetail);
+      if (index < 0) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'unknown level of detail \'' + rawLevelOfDetail +
+              '\' of process memory dump for PID=' + pid +
+              ' and dump ID=' + dumpId + '.'
+        });
+        return;
+      }
+
+      // If the process memory dump events have different levels of detail
+      // (for the particular process and/or globally), show a warning and use
+      // the highest level.
+
+      if (levelOfDetailIndices.process === undefined) {
+        levelOfDetailIndices.process = index;
+      } else if (index !== levelOfDetailIndices.process) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'diffent levels of detail provided for process memory' +
+              ' dump for PID=' + pid + ' (dump ID=' + dumpId + ').'
+        });
+        levelOfDetailIndices.process =
+            Math.max(levelOfDetailIndices.process, index);
+      }
+
+      if (levelOfDetailIndices.global === undefined) {
+        levelOfDetailIndices.global = index;
+      } else if (index !== levelOfDetailIndices.global) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'diffent levels of detail provided for global memory' +
+              ' dump (dump ID=' + dumpId + ').'
+        });
+        levelOfDetailIndices.global =
+            Math.max(levelOfDetailIndices.global, index);
+      }
+    },
+
+    parseMemoryDumpAllocatorDumps_: function(processMemoryDump,
+        globalMemoryDump, processMemoryAllocatorDumpsByFullName,
+        globalMemoryAllocatorDumpsByFullName, allMemoryAllocatorDumpsByGuid,
+        dumps, pid, dumpId) {
+      var rawAllocatorDumps = dumps.allocators;
+      if (rawAllocatorDumps === undefined)
+        return;
+
+      // Construct the MemoryAllocatorDump objects without parent links
+      // and add them to the processMemoryAllocatorDumpsByName and
+      // globalMemoryAllocatorDumpsByName indices appropriately.
+      for (var fullName in rawAllocatorDumps) {
+        var rawAllocatorDump = rawAllocatorDumps[fullName];
+
+        // Every memory allocator dump should have a GUID. If not, then
+        // it cannot be associated with any edges.
+        var guid = rawAllocatorDump.guid;
+        if (guid === undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Memory allocator dump ' + fullName + ' for PID=' + pid +
+                ' and dump ID=' + dumpId + ' does not have a GUID.'
           });
         }
 
-        var allMemoryAllocatorDumpsByGuid = {};
-        var globalMemoryAllocatorDumpsByFullName = {};
+        // Determine if this is a global memory allocator dump (check if
+        // it's prefixed with 'global/').
+        var containerMemoryDump;
+        var dstIndex;
+        if (fullName.startsWith(GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX)) {
+          // Global memory allocator dump.
+          fullName = fullName.substring(
+              GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX.length);
+          containerMemoryDump = globalMemoryDump;
+          dstIndex = globalMemoryAllocatorDumpsByFullName;
+        } else {
+          // Process memory allocator dump.
+          containerMemoryDump = processMemoryDump;
+          dstIndex = processMemoryAllocatorDumpsByFullName;
+        }
 
-        var LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
-        var globalLevelOfDetailIndex = undefined;
-
-        events.process.forEach(function(processEvent) {
-          var pid = processEvent.pid;
-          if (pid in globalMemoryDump.processMemoryDumps) {
+        // Construct or retrieve a memory allocator dump with the provided
+        // GUID.
+        var allocatorDump = allMemoryAllocatorDumpsByGuid[guid];
+        if (allocatorDump === undefined) {
+          if (fullName in dstIndex) {
             this.model_.importWarning({
               type: 'memory_dump_parse_error',
-              message: 'Multiple process memory dumps with pid=' + pid +
-                  ' for dump id ' + id + '.'
+              message: 'Multiple GUIDs provided for' +
+                  ' memory allocator dump ' + fullName + ': ' +
+                  dstIndex[fullName].guid + ', ' + guid + ' (ignored) for' +
+                  ' PID=' + pid + ' and dump ID=' + dumpId + '.'
             });
-            return;
+            continue;
           }
-
-          var dumps = processEvent.args.dumps;
-          if (dumps === undefined) {
+          allocatorDump = new tr.model.MemoryAllocatorDump(
+              containerMemoryDump, fullName, guid);
+          dstIndex[fullName] = allocatorDump;
+          if (guid !== undefined)
+            allMemoryAllocatorDumpsByGuid[guid] = allocatorDump;
+        } else {
+          // A memory allocator dump with this GUID has already been
+          // dumped (so we will only add new attributes). Check that it
+          // belonged to the same process or was also global.
+          if (allocatorDump.containerMemoryDump !== containerMemoryDump) {
             this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'dumps not found in process memory dump for ' +
-                    'pid=' + pid + ' and dump id=' + id + '.'
+            type: 'memory_dump_parse_error',
+            message: 'Memory allocator dump ' + fullName +
+                ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
+                dumpId + ' dumped in different contexts.'
             });
-            return;
+            continue;
           }
-
-          var process = this.model_.getOrCreateProcess(pid);
-          var processMemoryDump = new tr.model.ProcessMemoryDump(
-              globalMemoryDump, process,
-              timestampFromUs(processEvent.ts));
-
-          // Determine the level of detail of the dump.
-          var processLevelOfDetail = dumps.level_of_detail;
-          var processLevelOfDetailIndex = LEVELS_OF_DETAIL.indexOf(
-              processLevelOfDetail);
-          if (processLevelOfDetailIndex < 0) {
+          // Check that the names of the memory allocator dumps match.
+          if (allocatorDump.fullName !== fullName) {
             this.model_.importWarning({
-              type: 'memory_dump_parse_error',
-              message: 'unknown level of detail \'' + processLevelOfDetail +
-                  '\' of process memory dump for pid=' + pid +
-                  ' and dump id=' + id + '.'
+            type: 'memory_dump_parse_error',
+            message: 'Memory allocator dump with GUID=' + guid + ' for PID=' +
+                pid + ' and dump ID=' + dumpId + ' has multiple names: ' +
+                allocatorDump.fullName + ', ' + fullName + ' (ignored).'
             });
-          } else {
-            processMemoryDump.levelOfDetail = processLevelOfDetail;
-            if (globalLevelOfDetailIndex === undefined) {
-              globalLevelOfDetailIndex = processLevelOfDetailIndex;
-            } else if (globalLevelOfDetailIndex !== processLevelOfDetailIndex) {
-              // If the process memory dumps have different levels of detail,
-              // show a warning and use the highest level.
-              this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'diffent levels of detail of process memory dumps ' +
-                    'for dump id=' + id + '.'
-              });
-              globalLevelOfDetailIndex = Math.max(
-                  globalLevelOfDetailIndex, processLevelOfDetailIndex);
-            }
+            continue;
           }
+        }
 
-          // Parse the totals.
-          var rawTotals = dumps.process_totals;
-          if (rawTotals !== undefined) {
-            processMemoryDump.totals = {};
+        // Add all new attributes to the memory allocator dump.
+        var attributes = rawAllocatorDump.attrs;
+        if (attributes === undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Memory allocator dump ' + fullName + ' (GUID=' + guid +
+                ') for PID=' + pid + ' and dump ID=' + dumpId +
+                ' does not have attributes.'
+          });
+          attributes = {};
+        }
 
-            // Total resident bytes (mandatory).
-            if (rawTotals.resident_set_bytes !== undefined) {
-              processMemoryDump.totals.residentBytes = parseInt(
-                  rawTotals.resident_set_bytes, 16);
-            }
-
-            // Peak resident bytes (optional).
-            if (rawTotals.peak_resident_set_bytes !== undefined) {
-              if (rawTotals.is_peak_rss_resetable === undefined) {
-                this.model_.importWarning({
-                    type: 'memory_dump_parse_error',
-                    message: 'Optional field peak_resident_set_bytes found' +
-                        ' but is_peak_rss_resetable not found in' +
-                        ' process memory dump for pid=' + pid +
-                        ' and dump id=' + id + '.'
-                });
-              }
-              processMemoryDump.totals.peakResidentBytes = parseInt(
-                  rawTotals.peak_resident_set_bytes, 16);
-            }
-            if (rawTotals.is_peak_rss_resetable !== undefined) {
-              if (rawTotals.peak_resident_set_bytes === undefined) {
-                this.model_.importWarning({
-                    type: 'memory_dump_parse_error',
-                    message: 'Optional field is_peak_rss_resetable found' +
-                        ' but peak_resident_set_bytes not found in' +
-                        ' process memory dump for pid=' + pid +
-                        ' and dump id=' + id + '.'
-                });
-              }
-              processMemoryDump.totals.arePeakResidentBytesResettable =
-                  !!rawTotals.is_peak_rss_resetable;
-            }
-          }
-          if (processMemoryDump.totals === undefined ||
-              processMemoryDump.totals.residentBytes === undefined) {
+        for (var attrName in attributes) {
+          if (attrName in allocatorDump.attributes) {
+            // Skip existing attributes of the memory allocator dump.
             this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'Mandatory field resident_set_bytes not found in' +
-                    ' process memory dump for pid=' + pid +
-                    ' and dump id=' + id + '.'
+            type: 'memory_dump_parse_error',
+            message: 'Multiple values provided for attribute ' + attrName +
+                ' of memory allocator dump ' + fullName + ' (GUID=' + guid +
+                ') for PID=' + pid + ' and dump ID=' + dumpId + '.'
             });
+            continue;
           }
 
-          // Populate the vmRegions, if present.
-          if (dumps.process_mmaps && dumps.process_mmaps.vm_regions) {
-            function parseByteStat(rawValue) {
-              if (rawValue === undefined)
-                return undefined;
-              return parseInt(rawValue, 16);
-            }
-
-            processMemoryDump.vmRegions = dumps.process_mmaps.vm_regions.map(
-              function(rawRegion) {
-                // See //base/trace_event/process_memory_maps.cc in Chromium.
-                var byteStats = new tr.model.VMRegionByteStats(
-                  parseByteStat(rawRegion.bs.pc),
-                  parseByteStat(rawRegion.bs.pd),
-                  parseByteStat(rawRegion.bs.sc),
-                  parseByteStat(rawRegion.bs.sd),
-                  parseByteStat(rawRegion.bs.pss),
-                  parseByteStat(rawRegion.bs.sw)
-                );
-                return new tr.model.VMRegion(
-                    parseInt(rawRegion.sa, 16),  // startAddress
-                    parseInt(rawRegion.sz, 16),  // sizeInBytes
-                    rawRegion.pf,  // protectionFlags
-                    rawRegion.mf,  // mappedFile
-                    byteStats
-                );
-              }
-            );
-          }
-
-          // Gather the process and global memory allocator dumps, if present.
-          var processMemoryAllocatorDumpsByFullName = {};
-          if (dumps.allocators !== undefined) {
-            // Construct the MemoryAllocatorDump objects without parent links
-            // and add them to the processMemoryAllocatorDumpsByName and
-            // globalMemoryAllocatorDumpsByName indices appropriately.
-            tr.b.iterItems(dumps.allocators,
-                function(fullName, rawAllocatorDump) {
-              // Every memory allocator dump should have a GUID. If not, then
-              // it cannot be associated with any edges.
-              var guid = rawAllocatorDump.guid;
-              if (guid === undefined) {
-                this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Memory allocator dump ' + fullName +
-                      ' from pid=' + pid + ' does not have a GUID.'
-                });
-              }
-
-              // Determine if this is a global memory allocator dump (check if
-              // it's prefixed with 'global/').
-              var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
-              var containerMemoryDump;
-              var dstIndex;
-              if (fullName.startsWith(GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX)) {
-                // Global memory allocator dump.
-                fullName = fullName.substring(
-                    GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX.length);
-                containerMemoryDump = globalMemoryDump;
-                dstIndex = globalMemoryAllocatorDumpsByFullName;
-              } else {
-                // Process memory allocator dump.
-                containerMemoryDump = processMemoryDump;
-                dstIndex = processMemoryAllocatorDumpsByFullName;
-              }
-
-              // Construct or retrieve a memory allocator dump with the provided
-              // GUID.
-              var allocatorDump = allMemoryAllocatorDumpsByGuid[guid];
-              if (allocatorDump === undefined) {
-                if (fullName in dstIndex) {
-                  this.model_.importWarning({
-                    type: 'memory_dump_parse_error',
-                    message: 'Multiple GUIDs provided for' +
-                        ' memory allocator dump ' + fullName + ': ' +
-                        dstIndex[fullName].guid + ', ' + guid + ' (ignored).'
-                  });
-                  return;
-                }
-                allocatorDump = new tr.model.MemoryAllocatorDump(
-                    containerMemoryDump, fullName, guid);
-                dstIndex[fullName] = allocatorDump;
-                if (guid !== undefined)
-                  allMemoryAllocatorDumpsByGuid[guid] = allocatorDump;
-              } else {
-                // A memory allocator dump with this GUID has already been
-                // dumped (so we will only add new attributes). Check that it
-                // belonged to the same process or was also global.
-                if (allocatorDump.containerMemoryDump !== containerMemoryDump) {
-                  this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Memory allocator dump ' + fullName +
-                      ' (GUID=' + guid + ') dumped in different contexts.'
-                  });
-                  return;
-                }
-                // Check that the names of the memory allocator dumps match.
-                if (allocatorDump.fullName !== fullName) {
-                  this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Memory allocator dump with GUID=' + guid +
-                      ' has multiple names: ' + allocatorDump.fullName +
-                      ', ' + fullName + ' (ignored).'
-                  });
-                  return;
-                }
-              }
-
-              // Add all new attributes to the memory allocator dump.
-              var attributes = rawAllocatorDump.attrs;
-              if (attributes === undefined) {
-                this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Memory allocator dump ' + fullName +
-                      ' from pid=' + pid + ' (GUID=' + guid + ') does not' +
-                      ' have attributes.'
-                });
-                attributes = {};
-              }
-
-              tr.b.iterItems(attributes, function(attrName, attrArgs) {
-                if (attrName in allocatorDump.attributes) {
-                  // Skip existing attributes of the memory allocator dump.
-                  this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Multiple values provided for attribute ' +
-                      attrName + ' of memory allocator dump ' + fullName +
-                      ' (GUID=' + guid + ').'
-                  });
-                  return;
-                }
-                var attrValue =
-                    tr.model.Attribute.fromDictIfPossible(attrArgs);
-                allocatorDump.addAttribute(attrName, attrValue);
-              }, this);
-            }, this);
-          }
-
-          // Find the root allocator dumps and establish the parent links of
-          // the process memory dump.
-          processMemoryDump.memoryAllocatorDumps =
-              this.inferMemoryAllocatorDumpTree_(
-                  processMemoryAllocatorDumpsByFullName);
-
-          // Parse heap dumps (if present).
-          if (dumps.heaps !== undefined) {
-            processMemoryDump.heapDumps = tr.b.mapItems(dumps.heaps,
-                this.parseHeapDump_.bind(this, processMemoryDump));
-          }
-
-          process.memoryDumps.push(processMemoryDump);
-          globalMemoryDump.processMemoryDumps[pid] = processMemoryDump;
-        }, this);
-
-        globalMemoryDump.levelOfDetail =
-            LEVELS_OF_DETAIL[globalLevelOfDetailIndex];
-
-        // Find the root allocator dumps and establish the parent links of
-        // the global memory dump.
-        globalMemoryDump.memoryAllocatorDumps =
-            this.inferMemoryAllocatorDumpTree_(
-                globalMemoryAllocatorDumpsByFullName);
-
-        // Set up edges between memory allocator dumps.
-        events.process.forEach(function(processEvent) {
-          var dumps = processEvent.args.dumps;
-          if (dumps === undefined)
-            return;
-
-          var edges = dumps.allocators_graph;
-          if (edges === undefined)
-            return;
-
-          edges.forEach(function(rawEdge) {
-            var sourceGuid = rawEdge.source;
-            var sourceDump = allMemoryAllocatorDumpsByGuid[sourceGuid];
-            if (sourceDump === undefined) {
-              this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'Edge is missing source memory allocator dump (GUID=' +
-                    sourceGuid + ')'
-              });
-              return;
-            }
-
-            var targetGuid = rawEdge.target;
-            var targetDump = allMemoryAllocatorDumpsByGuid[targetGuid];
-            if (targetDump === undefined) {
-              this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'Edge is missing target memory allocator dump (GUID=' +
-                    targetGuid + ')'
-              });
-              return;
-            }
-
-            var importance = rawEdge.importance;
-            var edge = new tr.model.MemoryAllocatorDumpLink(
-                sourceDump, targetDump, importance);
-
-            switch (rawEdge.type) {
-              case 'ownership':
-                if (sourceDump.owns !== undefined) {
-                  this.model_.importWarning({
-                    type: 'memory_dump_parse_error',
-                    message: 'Memory allocator dump ' + sourceDump.fullName +
-                        ' (GUID=' + sourceGuid + ') already owns a memory' +
-                        ' allocator dump (' +
-                        sourceDump.owns.target.fullName + ').'
-                  });
-                  return;
-                }
-                sourceDump.owns = edge;
-                targetDump.ownedBy.push(edge);
-                break;
-
-              case 'retention':
-                sourceDump.retains.push(edge);
-                targetDump.retainedBy.push(edge);
-                break;
-
-              default:
-                this.model_.importWarning({
-                  type: 'memory_dump_parse_error',
-                  message: 'Invalid edge type: ' + rawEdge.type +
-                      ' (source=' + sourceGuid + ', target=' + targetGuid +
-                      ', importance=' + importance + ').'
-                });
-            }
-          }, this);
-        }, this);
-      }, this);
+          var attrArgs = attributes[attrName];
+          var attrValue = tr.model.Attribute.fromDictIfPossible(attrArgs);
+          allocatorDump.addAttribute(attrName, attrValue);
+        }
+      }
     },
 
     inferMemoryAllocatorDumpTree_: function(memoryAllocatorDumpsByFullName) {
@@ -2206,7 +2310,8 @@ tr.exportTo('tr.e.importer', function() {
 
       var fullNames = Object.keys(memoryAllocatorDumpsByFullName);
       fullNames.sort();
-      fullNames.forEach(function(fullName) {
+      for (var i = 0; i < fullNames.length; i++) {
+        var fullName = fullNames[i];
         var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
 
         // This is a loop because we might need to build implicit
@@ -2248,57 +2353,91 @@ tr.exportTo('tr.e.importer', function() {
           fullName = parentFullName;
           allocatorDump = parentAllocatorDump;
         }
-      }, this);
+      }
 
       return rootAllocatorDumps;
     },
 
-    parseHeapDump_: function(processMemoryDump, allocatorName, rawHeapDump) {
-      var pid = processMemoryDump.process.pid;
-      var entries = rawHeapDump.entries;
-      if (entries === undefined) {
-        this.model_.importWarning({
-          type: 'memory_dump_parse_error',
-          message: 'Missing heap entries in a ' + allocatorName +
-              ' heap dump for pid=' + pid + '.'
-        });
-        return undefined;
-      }
+    parseMemoryDumpAllocatorEdges_: function(allMemoryAllocatorDumpsByGuid,
+        dumpIdEvents, dumpId) {
+      for (var pid in dumpIdEvents) {
+        var processEvents = dumpIdEvents[pid];
 
-      var model = this.model_;
-      var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
-      var idPrefix = 'p' + pid + ':';
+        for (var i = 0; i < processEvents.length; i++) {
+          var processEvent = processEvents[i];
 
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var type = entry.type;
-        if (type !== undefined) {
-          // Heap dump entries with specified object type ID need to be ignored
-          // for the time being because Chrome doesn't dump the mapping from
-          // object type IDs to object type names yet. See crbug.com/524631.
-          continue;
-        }
-        var size = parseInt(entry.size, 16);
-        var leafStackFrameIndex = entry.bt;
-        var leafStackFrame;
-        if (leafStackFrameIndex === undefined) {
-          leafStackFrame = undefined;
-        } else {
-          var leafStackFrameId = idPrefix + leafStackFrameIndex;
-          leafStackFrame = model.stackFrames[leafStackFrameId];
-          if (leafStackFrame === undefined) {
-            this.model_.importWarning({
-              type: 'memory_dump_parse_error',
-              message: 'Missing leaf stack frame (ID ' + leafStackFrameId +
-                  ') of heap entry ' + i + ' (size ' + size + ') in a ' +
-                  allocatorName + ' heap dump for pid=' + pid + '.'
-            });
+          var dumps = processEvent.args.dumps;
+          if (dumps === undefined)
             continue;
+
+          var rawEdges = dumps.allocators_graph;
+          if (rawEdges === undefined)
+            continue;
+
+          for (var j = 0; j < rawEdges.length; j++) {
+            var rawEdge = rawEdges[j];
+
+            var sourceGuid = rawEdge.source;
+            var sourceDump = allMemoryAllocatorDumpsByGuid[sourceGuid];
+            if (sourceDump === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Edge for PID=' + pid + ' and dump ID=' + dumpId +
+                    ' is missing source memory allocator dump (GUID=' +
+                    sourceGuid + ').'
+              });
+              continue;
+            }
+
+            var targetGuid = rawEdge.target;
+            var targetDump = allMemoryAllocatorDumpsByGuid[targetGuid];
+            if (targetDump === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Edge for PID=' + pid + ' and dump ID=' + dumpId +
+                    ' is missing target memory allocator dump (GUID=' +
+                    targetGuid + ').'
+              });
+              continue;
+            }
+
+            var importance = rawEdge.importance;
+            var edge = new tr.model.MemoryAllocatorDumpLink(
+                sourceDump, targetDump, importance);
+
+            switch (rawEdge.type) {
+              case 'ownership':
+                if (sourceDump.owns !== undefined) {
+                  this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Memory allocator dump ' + sourceDump.fullName +
+                        ' (GUID=' + sourceGuid + ') already owns a memory' +
+                        ' allocator dump (' +
+                        sourceDump.owns.target.fullName + ').'
+                  });
+                } else {
+                  sourceDump.owns = edge;
+                  targetDump.ownedBy.push(edge);
+                }
+                break;
+
+              case 'retention':
+                sourceDump.retains.push(edge);
+                targetDump.retainedBy.push(edge);
+                break;
+
+              default:
+                this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Invalid edge type: ' + rawEdge.type +
+                      ' (PID=' + pid + ', dump ID=' + dumpId +
+                      ', source=' + sourceGuid + ', target=' + targetGuid +
+                      ', importance=' + importance + ').'
+                });
+            }
           }
         }
-        heapDump.addEntry(leafStackFrame, size);
       }
-      return heapDump;
     },
 
     joinObjectRefs_: function() {

@@ -2793,7 +2793,7 @@ tr.b.unittest.testSuite(function() {
 
   test('importMemoryDumps_verifyProcessAndGlobalMemoryDumpLinks', function() {
     var events = [
-      // 2 process memory dump events without a global memory dump event.
+      // 2 process memory dump events.
       {
         name: 'a',
         pid: 42,
@@ -2826,17 +2826,7 @@ tr.b.unittest.testSuite(function() {
           }
         }
       },
-      // 1 global memory dump event and 1 process memory dump event.
-      {
-        name: 'c',
-        pid: 44,
-        ts: 12000,
-        cat: 'test',
-        tid: 55,
-        ph: 'V',
-        id: '0xfffffff12345678',
-        args: {}
-      },
+      // 1 process memory dump event.
       {
         name: 'd',
         pid: 42,
@@ -2872,9 +2862,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(p1.memoryDumps[0].duration, 0);
     assert.equal(p2.memoryDumps[0].duration, 0);
 
-    assert.equal(m.globalMemoryDumps[1].start, 12);
+    assert.equal(m.globalMemoryDumps[1].start, 13);
     assert.equal(p1.memoryDumps[1].start, 13);
-    assert.equal(m.globalMemoryDumps[1].duration, 1);
+    assert.equal(m.globalMemoryDumps[1].duration, 0);
     assert.equal(p1.memoryDumps[1].duration, 0);
 
     // Check that GlobalMemoryDump and ProcessMemoryDump objects are
@@ -3656,40 +3646,69 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMemoryDumps_levelsOfDetail', function() {
-    function makeModelWithLevelsOfDetail(levelsOfDetail) {
-      return makeModel(levelsOfDetail.map(function(levelOfDetail, index) {
-        var dumps = {};
-        if (levelOfDetail !== undefined)
-          dumps.level_of_detail = levelOfDetail;
-        return {
-          name: 'process_' + index,
-          pid: index,
-          ts: 10,
-          ph: 'v',
-          id: '0x0001',
-          args: {
-            dumps: dumps
-          }
-        };
-      }));
+    function checkLevelsOfDetail(rawLevelsOfDetail, expectedGlobalLevelOfDetail,
+        expectedProcessLevelsOfDetail) {
+      var events = [];
+      rawLevelsOfDetail.forEach(function(rawProcessLevelsOfDetail, pid) {
+        rawProcessLevelsOfDetail.forEach(function(rawComposableLevelOfDetail) {
+          var dumps = {};
+          if (rawComposableLevelOfDetail !== undefined)
+            dumps.level_of_detail = rawComposableLevelOfDetail;
+          events.push({
+            name: 'process_' + pid,
+            pid: pid,
+            ts: 10,
+            ph: 'v',
+            id: '0x0001',
+            args: {
+              dumps: dumps
+            }
+          });
+        });
+      });
+      var model = makeModel(events);
+
+      // Check GlobalMemoryDump level of detail.
+      assert.lengthOf(model.globalMemoryDumps, 1);
+      assert.strictEqual(model.globalMemoryDumps[0].levelOfDetail,
+          expectedGlobalLevelOfDetail);
+
+      // Check ProcessMemoryDumps levels of detail.
+      assert.lengthOf(Object.keys(model.processes),
+          expectedProcessLevelsOfDetail.length);
+      for (var i = 0; i < expectedProcessLevelsOfDetail.length; i++) {
+        var process = model.getProcess(i);
+        assert.lengthOf(process.memoryDumps, 1);
+        assert.strictEqual(process.memoryDumps[0].levelOfDetail,
+            expectedProcessLevelsOfDetail[i]);
+      }
     }
 
-    var model = makeModelWithLevelsOfDetail([undefined]);
-    assert.isUndefined(model.globalMemoryDumps[0].levelOfDetail);
-
-    var model = makeModelWithLevelsOfDetail(['light', 'light']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');
-
-    var model = makeModelWithLevelsOfDetail(
+    // Well-formed trace events.
+    checkLevelsOfDetail([[undefined]], undefined, [undefined]);
+    checkLevelsOfDetail([['light'], ['light']], 'light', ['light', 'light']);
+    checkLevelsOfDetail(
+        [
+          ['detailed', 'detailed'],
+          ['detailed'],
+          ['detailed', 'detailed', 'detailed']
+        ],
+        'detailed',
         ['detailed', 'detailed', 'detailed']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'detailed');
 
-    var model = makeModelWithLevelsOfDetail(
+    // Not so well-formed trace events.
+    checkLevelsOfDetail(
+        [['light'], [undefined], ['detailed'], ['light']],
+        'detailed',
         ['light', undefined, 'detailed', 'light']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'detailed');
-
-    var model = makeModelWithLevelsOfDetail(['invalid', 'light']);
-    assert.equal(model.globalMemoryDumps[0].levelOfDetail, 'light');
+    checkLevelsOfDetail(
+        [['light', 'detailed'], [undefined], ['light', undefined]],
+        'detailed',
+        ['detailed', undefined, 'light']);
+    checkLevelsOfDetail(
+        [['invalid', 'light'], ['invalid']],
+        'light',
+        ['light', undefined]);
   });
 
   test('importMemoryDumps_heapDumps', function() {
@@ -3908,6 +3927,418 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         getFrame(mallocEntries3[1], 1),
         getFrame(mallocEntries3[0], 1));
+  });
+
+  test('importMemoryDumps_composableDumps', function() {
+    // Split PMD1 over multiple PMD trace events, all of which should be merged
+    // by the importer. Also inject some PMD trace events with different PIDs
+    // or dump IDs, which should *not* be merged with the rest.
+    var events = [
+      {  // Heap dumps.
+        pid: 42,
+        ts: 10000,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            heaps: {
+              partition_alloc: {
+                entries: [
+                  { size: '500' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {  // PMD2 with a different dump id (should not be merged).
+        pid: 42,
+        ts: 10003,  // Same PID, so it will end up in the same process.
+        ph: 'v',
+        id: '0x0002',
+        args: {
+          dumps: {
+            level_of_detail: 'detailed',
+            allocators: {
+              'local1': {
+                guid: '3',
+                attrs: {
+                  A: {type: 'scalar', units: 'bytes', value: '0xBAD'}
+                }
+              },
+              'global/shared1': {
+                guid: '4',
+                attrs: {
+                  A: {type: 'string', units: '', value: 'brown'}
+                }
+              }
+            },
+            allocators_graph: [
+              {
+                source: '4',
+                target: '3',
+                type: 'ownership'
+              }
+            ]
+          }
+        }
+      },
+      {  // Allocator dumps.
+        pid: 42,
+        ts: 10001,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            allocators: {
+              'local1': {
+                guid: '3',
+                attrs: {
+                  A: {type: 'string', units: '', value: 'blue'}
+                }
+              },
+              'global/shared1': {
+                guid: '7',
+                attrs: {
+                  A: {type: 'string', units: '', value: 'purple'}
+                }
+              },
+              'global/shared2': {
+                guid: '8',
+                attrs: {
+                  A: {type: 'string', units: '', value: 'cyan'}
+                }
+              }
+            }
+          }
+        }
+      },
+      {  // PMD3 with a different PID (should not be merged).
+        pid: 68,
+        ts: 9999,
+        ph: 'v',
+        id: '0x0001',  // Same dump ID, so it will end up in the same GMD.
+        args: {
+          dumps: {
+            process_mmaps: {
+              vm_regions: [
+                {
+                  sa: '350',
+                  sz: '250',
+                  pf: 5,
+                  mf: '/dev/ashmem/dalvik',
+                  bs: {
+                    pd: 'cd'
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {  // VM regions.
+        pid: 42,
+        ts: 10005,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            process_mmaps: {
+              vm_regions: [
+                {
+                  sa: 'f0',
+                  sz: '150',
+                  pf: 6,
+                  mf: '[stack:20310]',
+                  bs: {
+                    pss: '9e'
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {  // Totals.
+        pid: 42,
+        ts: 10003,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            process_totals: {
+              resident_set_bytes: '100'
+            }
+          }
+        }
+      },
+      {  // Allocator dump edges.
+        pid: 42,
+        ts: 10004,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            allocators_graph: [
+              {
+                source: '4',
+                target: '8',
+                type: 'retention'
+              }
+            ]
+          }
+        }
+      },
+      {  // Allocator dumps and dump edges (should be merged).
+        pid: 42,
+        ts: 10002,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            level_of_detail: 'light',
+            allocators: {
+              'local1': {
+                guid: '3',
+                attrs: {
+                  B: {type: 'string', units: '', value: 'red'}
+                }
+              },
+              'local2': {
+                guid: '4',
+                attrs: {
+                  B: {type: 'string', units: '', value: 'yellow'}
+                }
+              },
+              'global/shared1': {
+                guid: '7',
+                attrs: {
+                  B: {type: 'string', units: '', value: 'green'}
+                }
+              }
+            },
+            allocators_graph: [
+              {
+                source: '3',
+                target: '7',
+                type: 'ownership',
+                importance: 1
+              }
+            ]
+          }
+        }
+      }
+    ];
+    var m = makeModel(events, false);
+
+    function checkDumpTime(dump, expectedStart, expectedDuration) {
+      assert.closeTo(dump.start, expectedStart / 1000, 1e-5);
+      assert.closeTo(dump.duration, expectedDuration / 1000, 1e-5);
+    }
+
+    function checkAttribute(attribute, expectedType, expectedUnits,
+        expectedValue) {
+      assert.instanceOf(attribute, expectedType);
+      assert.strictEqual(attribute.units, expectedUnits);
+      assert.strictEqual(attribute.value, expectedValue);
+    }
+
+    function checkLinkCounts(allocatorDump, expectedHasOwns,
+        expectedOwnedByCount, expectedRetainsCount, expectedRetainedByCount) {
+      assert.strictEqual(allocatorDump.owns !== undefined, expectedHasOwns);
+      assert.lengthOf(allocatorDump.ownedBy, expectedOwnedByCount);
+      assert.lengthOf(allocatorDump.retains, expectedRetainsCount);
+      assert.lengthOf(allocatorDump.retainedBy, expectedRetainedByCount);
+    }
+
+    // Check the overall structure of the model and memory dumps.
+    assert.sameMembers(Object.keys(m.processes), ['42', '68']);
+    assert.lengthOf(m.globalMemoryDumps, 2);
+    var gmd1 = m.globalMemoryDumps[0];
+    assert.strictEqual(gmd1.model, m);
+    checkDumpTime(gmd1, 9999, 6);
+    var gmd2 = m.globalMemoryDumps[1];
+    assert.strictEqual(gmd2.model, m);
+    checkDumpTime(gmd2, 10003, 0);
+
+    var p1 = m.getProcess(42);
+    assert.lengthOf(p1.memoryDumps, 2);
+    var pmd1 = p1.memoryDumps[0];
+    checkDumpTime(pmd1, 10000, 5);
+    assert.strictEqual(pmd1.globalMemoryDump, gmd1);
+    assert.strictEqual(pmd1.process, p1);
+    var pmd2 = p1.memoryDumps[1];
+    checkDumpTime(pmd2, 10003, 0);
+    assert.strictEqual(pmd2.globalMemoryDump, gmd2);
+    assert.strictEqual(pmd2.process, p1);
+
+    var p2 = m.getProcess(68);
+    assert.lengthOf(p2.memoryDumps, 1);
+    var pmd3 = p2.memoryDumps[0];
+    checkDumpTime(pmd3, 9999, 0);
+    assert.strictEqual(pmd3.globalMemoryDump, gmd1);
+    assert.strictEqual(pmd3.process, p2);
+
+    assert.deepEqual(gmd1.processMemoryDumps, {42: pmd1, 68: pmd3});
+    assert.deepEqual(gmd2.processMemoryDumps, {42: pmd2});
+
+    // Check the composed dump.
+    assert.strictEqual(pmd1.levelOfDetail, 'light');
+
+    var totals = pmd1.totals;
+    assert.strictEqual(totals.residentBytes, 256);
+    assert.isUndefined(totals.peakResidentBytes);
+    assert.isUndefined(totals.arePeakResidentBytesResettable);
+
+    var vmRegions = pmd1.vmRegions;
+    assert.lengthOf(vmRegions, 1);
+    assert.strictEqual(vmRegions[0].mappedFile, '[stack:20310]');
+    assert.strictEqual(vmRegions[0].startAddress, 240);
+    assert.strictEqual(vmRegions[0].sizeInBytes, 336);
+    assert.strictEqual(vmRegions[0].protectionFlagsToString, 'rw-');
+    assert.strictEqual(vmRegions[0].byteStats.proportionalResident, 158);
+    assert.isUndefined(vmRegions[0].byteStats.privateDirtyResident);
+
+    var memoryAllocatorDumps = pmd1.memoryAllocatorDumps;
+    assert.lengthOf(memoryAllocatorDumps, 2);
+
+    var local1Dump = pmd1.getMemoryAllocatorDumpByFullName('local1');
+    assert.strictEqual(memoryAllocatorDumps[0], local1Dump);
+    assert.strictEqual(local1Dump.fullName, 'local1');
+    assert.isUndefined(local1Dump.parent);
+    assert.lengthOf(local1Dump.children, 0);
+    assert.sameMembers(Object.keys(local1Dump.attributes),
+        ['A', 'B', 'size', 'effective_size']);
+    checkAttribute(local1Dump.attributes['A'], tr.model.StringAttribute, '',
+        'blue');
+    checkAttribute(local1Dump.attributes['B'], tr.model.StringAttribute, '',
+        'red');
+    assert.isUndefined(local1Dump.attributes['size']);
+    assert.isUndefined(local1Dump.attributes['effective_size']);
+    checkLinkCounts(local1Dump, true /* owns */, 0 /* owned by */,
+        0 /* retains */, 0 /* retained by */);
+
+    var local2Dump = pmd1.getMemoryAllocatorDumpByFullName('local2');
+    assert.strictEqual(memoryAllocatorDumps[1], local2Dump);
+    assert.strictEqual(local2Dump.fullName, 'local2');
+    assert.isUndefined(local2Dump.parent);
+    assert.lengthOf(local2Dump.children, 0);
+    assert.sameMembers(Object.keys(local2Dump.attributes),
+        ['B', 'size', 'effective_size']);
+    checkAttribute(local2Dump.attributes['B'], tr.model.StringAttribute, '',
+        'yellow');
+    assert.isUndefined(local2Dump.attributes['size']);
+    assert.isUndefined(local2Dump.attributes['effective_size']);
+    checkLinkCounts(local2Dump, false /* owns */, 0 /* owned by */,
+        1 /* retains */, 0 /* retained by */);
+
+    var heapDumps = pmd1.heapDumps;
+    assert.sameMembers(Object.keys(heapDumps), ['partition_alloc']);
+    var heapDump = heapDumps['partition_alloc'];
+    assert.strictEqual(heapDump.processMemoryDump, pmd1);
+    assert.strictEqual(heapDump.allocatorName, 'partition_alloc');
+    var entries = heapDump.entries;
+    assert.lengthOf(entries, 1);
+    assert.strictEqual(entries[0].heapDump, heapDump);
+    assert.isUndefined(entries[0].leafStackFrame);
+    assert.strictEqual(entries[0].size, 1280);
+
+    // Check the other dumps.
+    assert.strictEqual(pmd2.levelOfDetail, 'detailed');
+    assert.isUndefined(pmd2.vmRegions);
+    assert.lengthOf(pmd2.memoryAllocatorDumps, 1);
+    var otherLocal1Dump = pmd2.getMemoryAllocatorDumpByFullName('local1');
+    assert.strictEqual(otherLocal1Dump, pmd2.memoryAllocatorDumps[0]);
+    assert.strictEqual(otherLocal1Dump.fullName, 'local1');
+    assert.isUndefined(otherLocal1Dump.parent);
+    assert.sameMembers(Object.keys(otherLocal1Dump.attributes),
+        ['A', 'size', 'effective_size']);
+    checkAttribute(otherLocal1Dump.attributes['A'], tr.model.ScalarAttribute,
+        'bytes', 2989);
+    assert.isUndefined(otherLocal1Dump.attributes['size']);
+    assert.isUndefined(otherLocal1Dump.attributes['effective_size']);
+    assert.isUndefined(pmd2.heapDumps);
+    checkLinkCounts(otherLocal1Dump, false /* owns */, 1 /* owned by */,
+        0 /* retains */, 0 /* retained by */);
+
+    assert.isUndefined(pmd3.levelOfDetail);
+    var otherVmRegions = pmd3.vmRegions;
+    assert.lengthOf(otherVmRegions, 1);
+    assert.strictEqual(otherVmRegions[0].mappedFile, '/dev/ashmem/dalvik');
+    assert.strictEqual(otherVmRegions[0].startAddress, 848);
+    assert.strictEqual(otherVmRegions[0].sizeInBytes, 592);
+    assert.strictEqual(otherVmRegions[0].protectionFlagsToString, 'r-x');
+    assert.strictEqual(otherVmRegions[0].byteStats.privateDirtyResident, 205);
+    assert.isUndefined(otherVmRegions[0].byteStats.proportionalResident);
+    assert.lengthOf(pmd3.memoryAllocatorDumps, 0);
+    assert.isUndefined(pmd3.heapDumps);
+
+    // Check the global dumps.
+    assert.lengthOf(gmd1.memoryAllocatorDumps, 2);
+    var shared1Dump = gmd1.getMemoryAllocatorDumpByFullName('shared1');
+    assert.strictEqual(shared1Dump, gmd1.memoryAllocatorDumps[0]);
+    assert.strictEqual(shared1Dump.fullName, 'shared1');
+    assert.isUndefined(shared1Dump.parent);
+    assert.sameMembers(Object.keys(shared1Dump.attributes),
+        ['A', 'B', 'size', 'effective_size']);
+    checkAttribute(shared1Dump.attributes['A'], tr.model.StringAttribute, '',
+        'purple');
+    checkAttribute(shared1Dump.attributes['B'], tr.model.StringAttribute, '',
+        'green');
+    assert.isUndefined(shared1Dump.attributes['size']);
+    assert.isUndefined(shared1Dump.attributes['effective_size']);
+    checkLinkCounts(shared1Dump, false /* owns */, 1 /* owned by */,
+        0 /* retains */, 0 /* retained by */);
+    var shared2Dump = gmd1.getMemoryAllocatorDumpByFullName('shared2');
+    assert.strictEqual(shared2Dump, gmd1.memoryAllocatorDumps[1]);
+    assert.strictEqual(shared2Dump.fullName, 'shared2');
+    assert.isUndefined(shared2Dump.parent);
+    assert.sameMembers(Object.keys(shared2Dump.attributes),
+        ['A', 'size', 'effective_size']);
+    checkAttribute(shared2Dump.attributes['A'], tr.model.StringAttribute, '',
+        'cyan');
+    assert.isUndefined(shared2Dump.attributes['size']);
+    assert.isUndefined(shared2Dump.attributes['effective_size']);
+    checkLinkCounts(shared2Dump, false /* owns */, 0 /* owned by */,
+        0 /* retains */, 1 /* retained by */);
+
+    assert.lengthOf(gmd2.memoryAllocatorDumps, 1);
+    var otherShared1Dump = gmd2.getMemoryAllocatorDumpByFullName('shared1');
+    assert.strictEqual(otherShared1Dump, gmd2.memoryAllocatorDumps[0]);
+    assert.strictEqual(otherShared1Dump.fullName, 'shared1');
+    assert.isUndefined(otherShared1Dump.parent);
+    assert.sameMembers(Object.keys(otherShared1Dump.attributes),
+        ['A', 'size', 'effective_size']);
+    checkAttribute(otherShared1Dump.attributes['A'], tr.model.StringAttribute,
+        '', 'brown');
+    assert.isUndefined(otherShared1Dump.attributes['size']);
+    assert.isUndefined(otherShared1Dump.attributes['effective_size']);
+    checkLinkCounts(otherShared1Dump, true /* owns */, 0 /* owned by */,
+        0 /* retains */, 0 /* retained by */);
+
+    // Check the edges.
+    var ownershipLink = local1Dump.owns;
+    assert.strictEqual(shared1Dump.ownedBy[0], ownershipLink);
+    assert.strictEqual(ownershipLink.source, local1Dump);
+    assert.strictEqual(ownershipLink.target, shared1Dump);
+    assert.strictEqual(ownershipLink.importance, 1);
+
+    var retentionLink = local2Dump.retains[0];
+    assert.strictEqual(shared2Dump.retainedBy[0], retentionLink);
+    assert.strictEqual(retentionLink.source, local2Dump);
+    assert.strictEqual(retentionLink.target, shared2Dump);
+    assert.isUndefined(retentionLink.importance);
+
+    var otherOwnershipLink = otherShared1Dump.owns;
+    assert.strictEqual(otherLocal1Dump.ownedBy[0], otherOwnershipLink);
+    assert.strictEqual(otherOwnershipLink.source, otherShared1Dump);
+    assert.strictEqual(otherOwnershipLink.target, otherLocal1Dump);
+    assert.isUndefined(otherOwnershipLink.importance);
   });
 
   test('importThreadInstantSliceWithStackFrame', function() {

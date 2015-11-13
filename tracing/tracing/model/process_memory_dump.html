@@ -76,8 +76,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get vmRegions() {
-      throw new Error(
-          'VM regions must be accessed through the mostRecentVmRegions field');
+      return this.vmRegions_;
     },
 
     set vmRegions(vmRegions) {
