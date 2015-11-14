@@ -52,6 +52,8 @@ LEGACY_TRACE_TAG_BITS = (
 
 
 def try_create_agent(options, categories):
+  if options.target != 'android':
+    return False
   if options.from_file is not None:
     return AtraceAgent(options, categories)
 

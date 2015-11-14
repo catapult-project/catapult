@@ -92,6 +92,8 @@ def parse_options(argv):
                     '--agent-dirs=dir1,dir2,dir3. Directory |%s| is the default'
                     ' agent directory and will always be checked.'
                     % DEFAULT_AGENT_DIR)
+  parser.add_option('--target', dest='target', default='android', type='string',
+                    help='chose tracing target (android or linux)')
 
   options, categories = parser.parse_args(argv[1:])
 
