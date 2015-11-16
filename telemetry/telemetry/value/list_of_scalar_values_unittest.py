@@ -260,6 +260,19 @@ class ValueTest(TestBase):
     self.assertEquals(v.values, [1.3, 2.7, 4.5, 2.1, 3.4])
     self.assertEquals(v.std, 0.901)
 
+  def testFromDictWithoutImprovementDirection(self):
+    d = {
+      'type': 'list_of_scalar_values',
+      'name': 'x',
+      'units': 'unit',
+      'values': [1, 2],
+      'std': 0.7071,
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
+    self.assertIsNone(v.improvement_direction)
+
   def testFromDictNoneValue(self):
     d = {
       'type': 'list_of_scalar_values',

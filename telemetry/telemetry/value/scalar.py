@@ -76,8 +76,9 @@ class ScalarValue(summarizable.SummarizableValue):
   def FromDict(value_dict, page_dict):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['value'] = value_dict['value']
-    kwargs['improvement_direction'] = value_dict['improvement_direction']
 
+    if 'improvement_direction' in value_dict:
+      kwargs['improvement_direction'] = value_dict['improvement_direction']
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
     if 'tir_label' in value_dict:

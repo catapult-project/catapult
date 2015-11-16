@@ -100,3 +100,15 @@ class ValueTest(TestBase):
       ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
       v.GetBuildbotValue())
     self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
+
+  def testFromDictWithoutImprovementDirection(self):
+    d = {
+      'type': 'histogram',
+      'name': 'x',
+      'units': 'counts',
+      'buckets': [{'low': 1, 'high': 2, 'count': 1}],
+    }
+    v = value.Value.FromDict(d, {})
+
+    self.assertTrue(isinstance(v, histogram_module.HistogramValue))
+    self.assertIsNone(v.improvement_direction)

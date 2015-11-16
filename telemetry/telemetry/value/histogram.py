@@ -108,8 +108,9 @@ class HistogramValue(summarizable.SummarizableValue):
   def FromDict(value_dict, page_dict):
     kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
     kwargs['raw_value'] = value_dict
-    kwargs['improvement_direction'] = value_dict['improvement_direction']
 
+    if 'improvement_direction' in value_dict:
+      kwargs['improvement_direction'] = value_dict['improvement_direction']
     if 'tir_label' in value_dict:
       kwargs['tir_label'] = value_dict['tir_label']
 

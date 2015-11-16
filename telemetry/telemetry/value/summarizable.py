@@ -22,7 +22,8 @@ class SummarizableValue(value_module.Value):
 
   def AsDict(self):
     d = super(SummarizableValue, self).AsDict()
-    d['improvement_direction'] = self.improvement_direction
+    if self.improvement_direction is not None:
+      d['improvement_direction'] = self.improvement_direction
     return d
 
   @staticmethod
@@ -31,7 +32,8 @@ class SummarizableValue(value_module.Value):
 
   def AsDictWithoutBaseClassEntries(self):
     d = super(SummarizableValue, self).AsDictWithoutBaseClassEntries()
-    del d['improvement_direction']
+    if 'improvement_direction' in d:
+      del d['improvement_direction']
     return d
 
   def GetBuildbotDataType(self, output_context):
