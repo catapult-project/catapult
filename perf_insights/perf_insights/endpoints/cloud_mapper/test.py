@@ -17,7 +17,7 @@ from perf_insights import cloud_config
 def _is_devserver():
   return os.environ.get('SERVER_SOFTWARE','').startswith('Development')
 
-_FAKE_FILE = """
+_DEFAULT_MAPPER = """
 <!DOCTYPE html>
 <!--
 Copyright (c) 2015 The Chromium Authors. All rights reserved.
@@ -49,36 +49,29 @@ tr.exportTo('pi.m', function() {
 </script>
 """
 
+_FORM_HTML = """
+<!DOCTYPE html>
+<html>
+<body>
+<form action="/cloud_mapper/create" method="POST">
+Mapper: <br><textarea rows="50" cols="80" name="mapper">{mapper}</textarea>
+<br>
+Query: <br><input type="text" name="query" value={query}/>
+<br>
+Corpus: <br><input type="text" name="corpus" value={corpus}/>
+<br>
+<input type="submit" name="submit" value="Submit"/>
+</form>
+</body>
+</html>
+"""
+
 class TestPage(webapp2.RequestHandler):
 
   def get(self):
-    self.response.headers['Content-Type'] = 'text/plain'
-
-    payload = {
-        'mapper': _FAKE_FILE,
-        'reducer': '',
-        'query': 'MAX_TRACE_HANDLES=10',
-        'corpus': cloud_config.Get().default_corpus,
-        'revision': 'HEAD'
-    }
-    payload = urllib.urlencode(payload)
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-URLFetch-Service-Id': cloud_config.Get().urlfetch_service_id
-    }
-
-    url = "https://%s/cloud_mapper/create" % modules.get_hostname()
-    # Silliness to make SSL validation work, when https is required.
-    url = url.replace('.', '-dot-', url.count('.') - 2)
-    if _is_devserver():
-        url = 'http://localhost:8080/cloud_mapper/create'
-
-    logging.info('Sending create request to URL: %s' % url)
-
-    result = urlfetch.fetch(url=url, payload=payload,
-        method=urlfetch.POST, headers=headers, follow_redirects=False,
-        deadline=60)
-    self.response.out.write(result.content)
-
+    form_html = _FORM_HTML.format(mapper=_DEFAULT_MAPPER,
+                                  query='MAX_TRACE_HANDLES=10',
+                                  corpus=cloud_config.Get().default_corpus)
+    self.response.out.write(form_html)
 
 app = webapp2.WSGIApplication([('/cloud_mapper/test', TestPage)])
