@@ -754,7 +754,7 @@ class AndroidPlatformBackend(
       logging.debug('User build device, setting debug app')
       self._device.RunShellCommand('am set-debug-app --persistent %s' % package)
 
-  def GetStandardOutput(self, number_of_lines=500):
+  def GetLogCat(self, number_of_lines=500):
     """Returns most recent lines of logcat dump.
 
     Args:
@@ -762,6 +762,9 @@ class AndroidPlatformBackend(
     """
     return '\n'.join(self._device.RunShellCommand(
         'logcat -d -t %d' % number_of_lines))
+
+  def GetStandardOutput(self):
+    return None
 
   def GetStackTrace(self, target_arch):
     """Returns stack trace.
@@ -776,7 +779,7 @@ class AndroidPlatformBackend(
     def Decorate(title, content):
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
     # Get the last lines of logcat (large enough to contain stacktrace)
-    logcat = self.GetStandardOutput()
+    logcat = self.GetLogCat()
     ret = Decorate('Logcat', logcat)
     stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
                          'android_platform', 'development', 'scripts', 'stack')

@@ -1,7 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
+import logging
 import sys
 
 
@@ -54,15 +54,31 @@ class AppCrashException(Error):
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)
     self._msg = msg
-    self._stack_trace = app.GetStackTrace() if app else None
+    self._stack_trace = []
+    self._app_stdout = []
+    if app:
+      try:
+        self._stack_trace = app.GetStackTrace().splitlines()
+      except Exception as err:
+        logging.error('Problem when trying to gather stack trace: %s' % err)
+      try:
+        self._app_stdout = app.GetStandardOutput().splitlines()
+      except Exception as err:
+        logging.error('Problem when trying to gather standard output: %s' % err)
 
   def __str__(self):
-    if not self._stack_trace:
-      return super(AppCrashException, self).__str__()
     divider = '*' * 80
-    return '%s\nStack Trace:\n%s\n\t%s\n%s' % (
-        super(AppCrashException, self).__str__(), divider,
-        self._stack_trace.replace('\n', '\n\t'), divider)
+    debug_messages = []
+    debug_messages.append(super(AppCrashException, self).__str__())
+    debug_messages.append('Stack Trace:')
+    debug_messages.append(divider)
+    debug_messages.extend(('\t%s' % l) for l in self._stack_trace)
+    debug_messages.append(divider)
+    debug_messages.append('Standard output:')
+    debug_messages.append(divider)
+    debug_messages.extend(('\t%s' % l) for l in self._app_stdout)
+    debug_messages.append(divider)
+    return '\n'.join(debug_messages)
 
 
 class DevtoolsTargetCrashException(AppCrashException):
