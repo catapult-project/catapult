@@ -22,7 +22,6 @@ class PowerMonitorControllerTest(unittest.TestCase):
 
     class P2(power_monitor.PowerMonitor):
       def __init__(self, value):
-        super(P2, self).__init__()
         self._value = {'P2': value}
       def CanMonitorPower(self):
         return True
@@ -33,7 +32,6 @@ class PowerMonitorControllerTest(unittest.TestCase):
 
     class P3(power_monitor.PowerMonitor):
       def __init__(self, value):
-        super(P3, self).__init__()
         self._value = {'P3': value}
       def CanMonitorPower(self):
         return True

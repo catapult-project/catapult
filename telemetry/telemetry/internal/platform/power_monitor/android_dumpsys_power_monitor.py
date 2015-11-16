@@ -5,9 +5,10 @@
 import csv
 import logging
 
-from telemetry.internal.platform.power_monitor import android_power_monitor_base
+from telemetry.internal.platform import power_monitor
 
-class DumpsysPowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
+
+class DumpsysPowerMonitor(power_monitor.PowerMonitor):
   """PowerMonitor that relies on the dumpsys batterystats to monitor the power
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
@@ -28,42 +29,57 @@ class DumpsysPowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
   def CanMonitorPower(self):
     result = self._platform.RunCommand('dumpsys batterystats -c')
     DUMP_VERSION_INDEX = 0
+    csvreader = csv.reader(result)
     # Dumpsys power data is present in dumpsys versions 8 and 9
     # which is found on L+ devices.
-    return (csv.reader(result).next()[DUMP_VERSION_INDEX] in ['8', '9'])
+    if csvreader.next()[DUMP_VERSION_INDEX] in ['8', '9']:
+      return True
+    return False
 
   def StartMonitoringPower(self, browser):
-    self._CheckStart()
-    assert browser
     self._browser = browser
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._ChargingOff(self._battery)
+    self._battery.SetCharging(False)
 
   def StopMonitoringPower(self):
-    self._CheckStop()
-    assert self._browser
-    self._ChargingOn(self._battery)
-    package = self._browser._browser_backend.package
-    self._browser = None
+    self._battery.SetCharging(True)
+    if self._browser:
+      package = self._browser._browser_backend.package
+      self._browser = None
 
-    voltage = self._ParseVoltage(self._battery.GetBatteryInfo().get('voltage'))
     power_data = self._battery.GetPowerData()
+    battery_info = self._battery.GetBatteryInfo()
+    voltage = battery_info.get('voltage')
+    if voltage is None:
+      # Converting at a nominal voltage of 4.0V, as those values are obtained by
+      # a heuristic, and 4.0V is the voltage we set when using a monsoon device.
+      voltage = 4.0
+      logging.warning('Unable to get device voltage. Using %s.', voltage)
+    else:
+      voltage = float(voltage) / 1000
+      logging.info('Device voltage at %s', voltage)
     power_results = self.ProcessPowerData(power_data, voltage, package)
-    self._LogPowerAnomalies(power_results, package)
+    if power_results['energy_consumption_mwh'] == 0:
+      logging.warning('Power data is returning 0 for system total usage. %s'
+                      % (power_data))
+    if power_results['application_energy_consumption_mwh'] == 0:
+      logging.warning('Power data is returning 0 usage for %s. %s'
+                      % (package, power_data))
     return power_results
 
   @staticmethod
   def ProcessPowerData(power_data, voltage, package):
-    package_power_data = power_data['per_package'].get(package)
-    if not package_power_data:
+    power_results = {'identifier': 'dumpsys', 'power_samples_mw': []}
+    system_power = power_data['system_total']
+    package_power = power_data['per_package'].get(package)
+    if not package_power:
       logging.warning('No power data for %s in dumpsys output.' % package)
-      package_power = 0
+      package_consumption_mwh = 0
     else:
-      package_power = sum(package_power_data['data'])
-
-    return {'identifier': 'dumpsys',
-            'power_samples_mw': [],
-            'energy_consumption_mwh': power_data['system_total'] * voltage,
-            'application_energy_consumption_mwh': package_power * voltage}
+      package_consumption_mwh = sum(package_power['data']) * voltage
+    power_results['application_energy_consumption_mwh'] = \
+        package_consumption_mwh
+    power_results['energy_consumption_mwh'] = system_power * voltage
+    return power_results

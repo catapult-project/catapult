@@ -16,7 +16,6 @@ from telemetry import decorators
 from telemetry.internal.platform import power_monitor
 
 
-# TODO: rename this class (seems like this is used by mac)
 class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
   def __init__(self, backend):
@@ -31,7 +30,8 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     return '/usr/bin/powermetrics'
 
   def StartMonitoringPower(self, browser):
-    self._CheckStart()
+    assert not self._powermetrics_process, (
+        'Must call StopMonitoringPower().')
     # Empirically powermetrics creates an empty output file immediately upon
     # starting.  We detect file creation as a signal that measurement has
     # started.  In order to avoid various race conditions in tempfile creation
@@ -254,7 +254,8 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           elevate_privilege=True)
 
   def StopMonitoringPower(self):
-    self._CheckStop()
+    assert self._powermetrics_process, (
+        'StartMonitoringPower() not called.')
     # Tell powermetrics to take an immediate sample.
     try:
       self._KillPowerMetricsProcess()
