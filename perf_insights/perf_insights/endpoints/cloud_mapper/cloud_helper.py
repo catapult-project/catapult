@@ -10,14 +10,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from oauth2client.appengine import AppAssertionCredentials
 from perf_insights.endpoints.cloud_mapper import gce_creation_info
+from perf_insights import cloud_config
 
-_PROJECT_NAME = 'performance-insights'
-_DEFAULT_ZONE = 'us-central1-f'
-_DEFAULT_MACHINE_TYPE = 'n1-highcpu-32'
-_DEFAULT_SOURCE_DISK_IMAGE = 'perf-insights-cloud-mapper-image-1'
 _DEFAULT_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
-_IMAGE_PATH = 'global/images/{image}'
-
 
 class CloudHelper(object):
   def __init__(self):
@@ -27,9 +22,10 @@ class CloudHelper(object):
         'gce_creation_info')
     if not self.gce_info_ or 1:
       self.gce_info_ = gce_creation_info.GCECreationInfo(id='gce_creation_info')
-      self.gce_info_.source_disk_image = _DEFAULT_SOURCE_DISK_IMAGE
-      self.gce_info_.machine_type = _DEFAULT_MACHINE_TYPE
-      self.gce_info_.zone = _DEFAULT_ZONE
+      self.gce_info_.source_disk_image = (
+          cloud_config.Get().gce_source_disk_image)
+      self.gce_info_.machine_type = cloud_config.Get().gce_machine_type
+      self.gce_info_.zone = cloud_config.Get().gce_zone
       self.gce_info_.put()
 
   def CreateGCE(self, gce_name, startup_script):
@@ -44,8 +40,7 @@ class CloudHelper(object):
                 'boot': True,
                 'autoDelete': True,
                 'initializeParams': {
-                    'sourceImage': _IMAGE_PATH.format(
-                        image=self.gce_info_.source_disk_image)
+                    'sourceImage': self.gce_info_.source_disk_image
                 }
             }
         ],
@@ -79,13 +74,14 @@ class CloudHelper(object):
         }
     }
 
-    return self.compute_.instances().insert(project=_PROJECT_NAME,
-                                            zone=self.gce_info_.zone,
-                                            body=config).execute()
+    return self.compute_.instances().insert(
+        project=cloud_config.Get().gce_project_name,
+        zone=self.gce_info_.zone,
+        body=config).execute()
 
   def DeleteGCE(self, gce_name):
     return self.compute_.instances().delete(
-        project=_PROJECT_NAME,
+        project=cloud_config.Get().gce_project_name,
         zone=self.gce_info_.zone,
         instance=gce_name).execute()
 
@@ -99,7 +95,7 @@ class CloudHelper(object):
 
   def _create_storage_api(self):
     credentials = AppAssertionCredentials(
-        scope='https://www.googleapis.com/auth/storage')
+        scope='https://www.googleapis.com/auth/devstorage.full_control')
     authorized_http = credentials.authorize(httplib2.Http(memcache))
     storage = build("storage", "v1", http=authorized_http)
 

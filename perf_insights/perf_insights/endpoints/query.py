@@ -5,6 +5,7 @@ import json
 import os
 import webapp2
 
+from perf_insights import cloud_config
 from perf_insights import corpus_query
 from perf_insights import trace_info
 
@@ -21,11 +22,16 @@ class QueryPage(webapp2.RequestHandler):
 
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
-    query = corpus_query.CorpusQuery.FromString(self.request.get('q'))
+    raw_query = self.request.get('q')
+    if not raw_query:
+      raw_query = 'MAX_TRACE_HANDLES=100'
+
+    query = corpus_query.CorpusQuery.FromString(raw_query)
     (gql, args) = query.AsGQLWhereClause()
     reports = trace_info.TraceInfo.gql(gql, *args)
     reports_json = json.dumps(
-      ['gs://%s/%s.gz' % (_bucket_name(), i.key.string_id()) for i in reports])
+      ['gs://%s/%s.gz' % (cloud_config.Get().trace_upload_bucket,
+          i.key.string_id()) for i in reports])
 
     self.response.out.write(reports_json)
 

@@ -10,6 +10,7 @@ import webapp2
 import uuid
 
 from perf_insights import trace_info
+from perf_insights import cloud_config
 
 import third_party.cloudstorage as gcs
 
@@ -37,11 +38,9 @@ class UploadPage(webapp2.RequestHandler):
 
   def post(self):
     trace_uuid = str(uuid.uuid4())
-    if 'GCS_BUCKET_NAME' not in os.environ:
-      bucket_name = app_identity.get_default_gcs_bucket_name()
-    else:
-      bucket_name = os.environ['GCS_BUCKET_NAME']
-    gcs_path = ('/' + bucket_name + '/' + trace_uuid + '.gz')
+
+    gcs_path = '/%s/%s.gz' % (
+        cloud_config.Get().trace_upload_bucket, trace_uuid)
     gcs_file = gcs.open(gcs_path,
                         'w',
                         content_type='application/octet-stream',
