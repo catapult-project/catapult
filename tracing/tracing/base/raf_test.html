@@ -12,6 +12,42 @@ tr.b.unittest.testSuite(function() {
   if (tr.isHeadless)
     return;
 
+  test('idleCallbackWorks', function() {
+    return new Promise(function(resolve, reject) {
+      tr.b.requestIdleCallback(resolve);
+    });
+  });
+
+  test('forceAllPendingTasksToRunForTest', function() {
+    var rafRan = false;
+    tr.b.requestAnimationFrame(function() {
+      rafRan = true;
+    });
+    var idleRan = false;
+    tr.b.requestIdleCallback(function() {
+      idleRan = true;
+    });
+    assert.isFalse(rafRan);
+    assert.isFalse(idleRan);
+    tr.b.forceAllPendingTasksToRunForTest();
+    assert.isTrue(rafRan);
+    assert.isTrue(idleRan);
+  });
+
+  test('forcePendingRAFTasksToRun', function() {
+    var rafRan = false;
+    tr.b.requestAnimationFrame(function() {
+      rafRan = true;
+    });
+    var idleRan = false;
+    tr.b.requestIdleCallback(function() {
+      idleRan = true;
+    });
+    tr.b.forcePendingRAFTasksToRun();
+    assert.isTrue(rafRan);
+    assert.isFalse(idleRan);
+  });
+
   var fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
     var oldNow = window.performance.now;
@@ -23,9 +59,28 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
-  test('runIdleTaskWhileIdle', function() {
+  // None of the following tests are relevant if the browser supports idle
+  // callbacks natively. Nevertheless, run them without native idle support to
+  // make sure the fallback keeps working.
+  function withoutNativeIdleCallbacks(func) {
+    var oldRIC = window.requestIdleCallback;
+    try {
+      window.requestIdleCallback = undefined;
+      func();
+    } finally {
+      window.requestIdleCallback = oldRIC;
+    }
+  }
+
+  function withMockedScheduling(func) {
     withFakeWindowPerformanceNow(function() {
-      tr.b.forceAllPendingRAFTasksToRunForTest();
+      withoutNativeIdleCallbacks(func);
+    });
+  }
+
+  test('runIdleTaskWhileIdle', function() {
+    withMockedScheduling(function() {
+      tr.b.forceAllPendingTasksToRunForTest();
 
       var rafRan = false;
       tr.b.requestAnimationFrame(function() {
@@ -45,8 +100,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('twoShortIdleCallbacks', function() {
-    withFakeWindowPerformanceNow(function() {
-      tr.b.forceAllPendingRAFTasksToRunForTest();
+    withMockedScheduling(function() {
+      tr.b.forceAllPendingTasksToRunForTest();
 
       var idle1Ran = false;
       var idle2Ran = false;
@@ -67,8 +122,8 @@ tr.b.unittest.testSuite(function() {
 
 
   test('oneLongOneShortIdleCallback', function() {
-    withFakeWindowPerformanceNow(function() {
-      tr.b.forceAllPendingRAFTasksToRunForTest();
+    withMockedScheduling(function() {
+      tr.b.forceAllPendingTasksToRunForTest();
 
       var idle1Ran = false;
       var idle2Ran = false;
@@ -96,7 +151,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('buggyPerformanceNowDoesNotBlockIdleTasks', function() {
-    withFakeWindowPerformanceNow(function() {
+    withMockedScheduling(function() {
       tr.b.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
 
       var idle1Ran = false;

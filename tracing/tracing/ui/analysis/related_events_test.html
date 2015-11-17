@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
         [m.sA, m.f0, m.sAA, m.f1, m.sB, m.f2, m.sBB, m.sBBB, m.f3, m.sC]);
     viewEl.setRelatedEvents(selection);
     this.addHTMLOutput(viewEl);
-    tr.b.forceAllPendingRAFTasksToRunForTest();
+    tr.b.forceAllPendingTasksToRunForTest();
 
     // Check that the element handles multiple setRelatedEvents calls correctly.
     assert.lengthOf(viewEl.$.table.tableRows, 5);
@@ -123,7 +123,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sB, m.sBB, m.sBBB]));
     this.addHTMLOutput(viewEl);
-    tr.b.forceAllPendingRAFTasksToRunForTest();
+    tr.b.forceAllPendingTasksToRunForTest();
 
     var inFlows, outFlows, internalFlows;
     viewEl.$.table.tableRows.forEach(function(row) {
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sBB]));
     this.addHTMLOutput(viewEl);
-    tr.b.forceAllPendingRAFTasksToRunForTest();
+    tr.b.forceAllPendingTasksToRunForTest();
 
     var precedingEvents, followingEvents, allEvents;
     viewEl.$.table.tableRows.forEach(function(row) {
@@ -195,7 +195,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sB]));
     this.addHTMLOutput(viewEl);
-    tr.b.forceAllPendingRAFTasksToRunForTest();
+    tr.b.forceAllPendingTasksToRunForTest();
 
     var overlappingSamples;
     viewEl.$.table.tableRows.forEach(function(row) {
