@@ -39,6 +39,7 @@ tr.b.unittest.testSuite(function() {
       'PSS',
       'Private dirty',
       'Swapped',
+      'Private',
       'blink',
       'malloc',
       'oilpan',
@@ -139,19 +140,20 @@ tr.b.unittest.testSuite(function() {
           {
             title: 'Process 1',
             sizes: [[29884416], undefined, [9437184], [5767168], [0], undefined,
-                [7340032], undefined, undefined, [2097152]],
+                undefined, [7340032], undefined, undefined, [2097152]],
             defined: [true]
           },
           {
             title: 'Process 2',
-            sizes: [[17825792], [39845888], [18350080], [0], [32], [7340032],
-                [1048576], [1], [5242880], [1572864]],
+            sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
+                [7340032], [1048576], [1], [5242880], [1572864]],
             defined: [true]
           },
           {
             title: 'Process 4',
             sizes: [undefined, [17825792], undefined, undefined, undefined,
-                undefined, undefined, undefined, undefined, undefined],
+                undefined, undefined, undefined, undefined, undefined,
+                undefined],
             defined: [true]
           }
         ],
@@ -159,7 +161,7 @@ tr.b.unittest.testSuite(function() {
           {
             title: 'Total',
             sizes: [[47710208], [57671680], [27787264], [5767168], [32],
-                [7340032], [8388608], [1], [5242880], [3670016]],
+                [8912896], [7340032], [8388608], [1], [5242880], [3670016]],
             defined: undefined
           }
         ],
@@ -176,31 +178,33 @@ tr.b.unittest.testSuite(function() {
             title: 'Process 1',
             sizes: [[31457280, 29884416, undefined], undefined,
                 [10485760, 9437184, undefined], [8388608, 5767168, undefined],
-                [0, 0, undefined], undefined, [undefined, 7340032, undefined],
-                undefined, undefined, [undefined, 2097152, undefined]],
+                [0, 0, undefined], undefined, undefined,
+                [undefined, 7340032, undefined], undefined, undefined,
+                [undefined, 2097152, undefined]],
             defined: [true, true, undefined]
           },
           {
             title: 'Process 2',
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
-                [0, 0, -2621440], [32, 32, 64], [undefined, 7340032, 6291456],
-                [2097152, 1048576, 786432], [undefined, 1, undefined],
-                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
+                [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
+                [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
+                [undefined, 1, undefined], [5242880, 5242880, 5767168],
+                [1048576, 1572864, 2097152]],
             defined: [true, true, true]
           },
           {
             title: 'Process 3',
             sizes: [undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined, [2147483648, undefined, 1073741824],
-                [1073741824, undefined, 2147483648], undefined],
+                undefined, undefined, undefined, [2147483648, undefined,
+                1073741824], [1073741824, undefined, 2147483648], undefined],
             defined: [true, undefined, true]
           },
           {
             title: 'Process 4',
             sizes: [undefined, [undefined, 17825792, 17825792], undefined,
                 undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined],
+                undefined, undefined, undefined],
             defined: [undefined, true, true]
           }
         ],
@@ -210,9 +214,9 @@ tr.b.unittest.testSuite(function() {
             sizes: [[50855936, 47710208, 15728640],
                 [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
                 [8388608, 5767168, -2621440], [32, 32, 64],
-                [undefined, 7340032, 6291456], [2097152, 8388608, 786432],
-                [2147483648, 1, 1073741824], [1078984704, 5242880, 2153250816],
-                [1048576, 3670016, 2097152]],
+                [10485760, 8912896, 7340032], [undefined, 7340032, 6291456],
+                [2097152, 8388608, 786432], [2147483648, 1, 1073741824],
+                [1078984704, 5242880, 2153250816], [1048576, 3670016, 2097152]],
             defined: undefined
           }
         ],
@@ -227,8 +231,8 @@ tr.b.unittest.testSuite(function() {
         [  // Table rows.
           {
             title: 'Process 2',
-            sizes: [[17825792], [39845888], [18350080], [0], [32], [7340032],
-                [1048576], [1], [5242880], [1572864]],
+            sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
+                [7340032], [1048576], [1], [5242880], [1572864]],
             defined: [true]
           }
         ],
@@ -246,9 +250,10 @@ tr.b.unittest.testSuite(function() {
             title: 'Process 2',
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
-                [0, 0, -2621440], [32, 32, 64], [undefined, 7340032, 6291456],
-                [2097152, 1048576, 786432], [undefined, 1, undefined],
-                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
+                [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
+                [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
+                [undefined, 1, undefined], [5242880, 5242880, 5767168],
+                [1048576, 1572864, 2097152]],
             defined: [true, true, true]
           }
         ],
@@ -271,7 +276,7 @@ tr.b.unittest.testSuite(function() {
 
     // Simulate clicking on the 'malloc' cell of the second process.
     table.selectedTableRow = table.tableRows[1];
-    table.selectedColumnIndex = 7;
+    table.selectedColumnIndex = 8;
     assert.lengthOf(viewEl.requestedChildPanes, 2);
     var lastChildPane = viewEl.requestedChildPanes[1];
     assert.equal(
@@ -281,7 +286,7 @@ tr.b.unittest.testSuite(function() {
         extractMemoryAllocatorDumps(processMemoryDumps, 2, 'malloc'));
 
     // Simulate clicking on the 'Oilpan' cell of the second process.
-    table.selectedColumnIndex = 8;
+    table.selectedColumnIndex = 9;
     assert.lengthOf(viewEl.requestedChildPanes, 3);
     var lastChildPane = viewEl.requestedChildPanes[2];
     assert.isUndefined(viewEl.lastChildPane);

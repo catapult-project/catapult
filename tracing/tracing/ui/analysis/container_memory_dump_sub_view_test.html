@@ -148,7 +148,7 @@ tr.b.unittest.testSuite(function() {
 
           // Malloc of process 2.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[1];
-          overviewTableEl.selectedColumnIndex = 7;
+          overviewTableEl.selectedColumnIndex = 8;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'malloc',
               false /* no heap details pane */);
@@ -165,9 +165,9 @@ tr.b.unittest.testSuite(function() {
           checkVmRegionsPane(undefined);
           checkAllocatorPane(undefined);
 
-          // Blink dirty of Process 1.
+          // Blink of Process 1.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
-          overviewTableEl.selectedColumnIndex = 6;
+          overviewTableEl.selectedColumnIndex = 7;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(undefined);
 
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
 
           // V8 of Process 3.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[2];
-          overviewTableEl.selectedColumnIndex = 9;
+          overviewTableEl.selectedColumnIndex = 10;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(3 /* PID */, 'v8', true /* heap details pane */);
         });
@@ -197,13 +197,13 @@ tr.b.unittest.testSuite(function() {
 
           // Tracing of Process 2.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
-          overviewTableEl.selectedColumnIndex = 10;
+          overviewTableEl.selectedColumnIndex = 11;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'tracing',
               false /* no heap details pane */);
 
           // Blink of Process 2.
-          overviewTableEl.selectedColumnIndex = 6;
+          overviewTableEl.selectedColumnIndex = 7;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'blink',
               false /* no heap details pane */);
@@ -227,13 +227,13 @@ tr.b.unittest.testSuite(function() {
 
           // Tracing of Process 2.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
-          overviewTableEl.selectedColumnIndex = 10;
+          overviewTableEl.selectedColumnIndex = 11;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'tracing',
               false /* no heap details pane */);
 
           // V8 of Process 2.
-          overviewTableEl.selectedColumnIndex = 9;
+          overviewTableEl.selectedColumnIndex = 10;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'v8',
               false /* no heap details pane */);
@@ -262,7 +262,7 @@ tr.b.unittest.testSuite(function() {
 
           // Select V8 of Process 2.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[0];
-          overviewTableEl.selectedColumnIndex = 9;
+          overviewTableEl.selectedColumnIndex = 10;
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'v8',
               false /* no heap details pane */);
@@ -279,7 +279,7 @@ tr.b.unittest.testSuite(function() {
           // changed).
           assert.strictEqual(
               overviewTableEl.selectedTableRow, overviewTableEl.tableRows[1]);
-          assert.equal(overviewTableEl.selectedColumnIndex, 9);
+          assert.equal(overviewTableEl.selectedColumnIndex, 10);
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'v8',
               false /* no heap details pane */);

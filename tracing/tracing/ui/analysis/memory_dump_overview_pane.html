@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
@@ -93,6 +94,8 @@ tr.exportTo('tr.ui.analysis', function() {
       importance: 1
     }
   ];
+
+  var PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX = '_bytes';
 
   var DISPLAYED_SIZE_ATTRIBUTE_NAME =
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
@@ -265,14 +268,14 @@ tr.exportTo('tr.ui.analysis', function() {
               var sizes = {};
 
               // Totals.
-              if (dump.totals !== undefined) {
+              var totals = dump.totals;
+              if (totals !== undefined) {
                 tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'Total resident', tr.model.ScalarAttribute,
-                    'bytes', dump.totals.residentBytes);
+                    sizes, 'Total resident', tr.model.ScalarAttribute, 'bytes',
+                    totals.residentBytes);
                 tr.ui.analysis.addAttributeIfDefined(
                     sizes, 'Peak total resident', tr.model.ScalarAttribute,
-                    'bytes', dump.totals.peakResidentBytes,
-                    function(attr) {
+                    'bytes', totals.peakResidentBytes, function(attr) {
                       if (dump.totals.arePeakResidentBytesResettable) {
                         attr.infos.push(new tr.model.AttributeInfo(
                             tr.model.AttributeInfoType.RECENT_VALUE,
@@ -285,6 +288,22 @@ tr.exportTo('tr.ui.analysis', function() {
                             GREATER_THAN_OR_EQUAL_TO_SYMBOL + ' 4.0.'));
                       }
                     });
+
+                // Platform-specific totals (e.g. private resident on Mac).
+                var platformSpecific = totals.platformSpecific;
+                if (platformSpecific !== undefined) {
+                  tr.b.iterItems(platformSpecific, function(name, size) {
+                    // Change raw OS-specific total name to a user-friendly
+                    // column title (e.g. 'private_bytes' -> 'Private').
+                    if (name.endsWith(PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
+                      name = name.substring(0, name.length -
+                          PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
+                    }
+                    name = name.replace('_', ' ').trim();
+                    name = name.charAt(0).toUpperCase() + name.slice(1);
+                    sizes[name] = new tr.model.ScalarAttribute('bytes', size);
+                  });
+                }
               }
 
               // VM regions byte stats.
