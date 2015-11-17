@@ -35,6 +35,10 @@ tr.exportTo('tr.e.chrome', function() {
       'V8GCController::traceDOMWrappers'
     ],
 
+    iframe_creation: [
+      'WebLocalFrameImpl::createChildframe'
+    ],
+
     imageDecode: [
       'Decode Image',
       'ImageFrameGenerator::decode',
