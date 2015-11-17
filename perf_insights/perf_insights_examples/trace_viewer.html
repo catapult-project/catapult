@@ -13,6 +13,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/components/polymer/polymer.html">
 <link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/base/time_function.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/ui/extras/full_config.html">
 <link rel="import" href="/tracing/ui/timeline_view.html">
@@ -50,7 +51,10 @@ found in the LICENSE file.
   var timelineViewEl;
 
   function loadTrace(filename) {
-    tr.b.getAsync(filename).then(createViewFromTrace.bind(this),
+    var p = new tr.b.TimedNamedPromise('loadTrace', function(resolve) {
+      resolve(tr.b.getAsync(filename));
+    });
+    p.then(createViewFromTrace.bind(this),
         tr.showPanic.bind(this, 'Couldn\'t load trace.', filename));
   }
 

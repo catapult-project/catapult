@@ -11,12 +11,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  function _issueBegin(functionName) {
+  function markTimeBegin(functionName) {
     if (tr.isHeadless)
       return;
     window.performance.mark(functionName + '_Begin');
   }
-  function _issueEnd(functionName) {
+
+  function markTimeEnd(functionName) {
     if (tr.isHeadless)
       return;
     window.performance.mark(functionName + '_End');
@@ -29,20 +30,36 @@ tr.exportTo('tr.b', function() {
     if (callback.name === '')
       throw new Error('Anonymous function is not allowed');
     timeNamedFunction(callback.name, callback);
-  }
+  };
 
   var timeNamedFunction = function(functionName, callback) {
-    _issueBegin(functionName);
+    markTimeBegin(functionName);
     try {
       callback();
     } finally {
-      _issueEnd(functionName);
+      markTimeEnd(functionName);
     }
   };
 
+  function TimedNamedPromise(name, executor) {
+    markTimeBegin(name);
+    var promise = new Promise(executor);
+    promise.then(function(result) {
+      markTimeEnd(name);
+      return result;
+    }, function(e) {
+      markTimeEnd(name);
+      throw e;
+    });
+    return promise;
+  }
+
   return {
     timeFunction: timeFunction,
-    timeNamedFunction: timeNamedFunction
+    timeNamedFunction: timeNamedFunction,
+    markTimeBegin: markTimeBegin,
+    markTimeEnd: markTimeEnd,
+    TimedNamedPromise: TimedNamedPromise
   };
 });
 </script>
