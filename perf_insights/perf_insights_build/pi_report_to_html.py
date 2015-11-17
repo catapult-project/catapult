@@ -82,7 +82,7 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
   map_function_href, map_function_name, pi_report_element_name = (
       _GetMapFunctionHrefFromPiReport(pi_report_file_contents))
   map_file = project.GetAbsPathFromHRef(map_function_href)
-  module = function_handle.ModuleToLoad(href=map_function_href)
+  module = function_handle.ModuleToLoad(filename=map_file)
   map_function_handle = function_handle.FunctionHandle([module],
                                                        map_function_name)
 
