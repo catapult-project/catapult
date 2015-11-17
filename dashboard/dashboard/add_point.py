@@ -383,8 +383,10 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
       'benchmark_description': benchmark_description,
   }
 
-  improvement_direction_str = trace.get('improvement_direction')
-  if improvement_direction_str is not None:
+  if 'improvement_direction' in trace:
+    improvement_direction_str = trace['improvement_direction']
+    if improvement_direction_str is None:
+      raise BadRequestError('improvement_direction must not be None')
     row_dict['higher_is_better'] = _ImprovementDirectionToHigherIsBetter(
         improvement_direction_str)
 

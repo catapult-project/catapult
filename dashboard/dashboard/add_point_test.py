@@ -1129,6 +1129,18 @@ class FlattenTraceTest(testing_common.TestCase):
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertEqual(row['test'], 'foo/bar/baz')
 
+  def testFlattenTrace_ImprovementDirectionCannotBeNone(self):
+    """Tests that an improvement_direction must not be None if passed."""
+    trace = {
+        'type': 'scalar',
+        'name': 'bar',
+        'units': 'ms',
+        'value': 42,
+        'improvement_direction': None
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'summary', trace)
+
   def testFlattenTraceAddsImprovementDirectionIfPresent(self):
     """Tests that improvement_direction will be respected if present."""
     trace = {
