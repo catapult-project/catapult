@@ -147,6 +147,10 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
+        if (fieldName === 'metadata' && container[fieldName]['highres-ticks']) {
+          this.model_.isTimeHighResolution =
+              container[fieldName]['highres-ticks'];
+        }
       }
     }
   }

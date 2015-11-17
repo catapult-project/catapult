@@ -104,6 +104,8 @@ tr.exportTo('tr', function() {
 
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
+
+    this.isTimeHighResolution_ = undefined;
   }
 
   Model.prototype = {
@@ -368,6 +370,20 @@ tr.exportTo('tr', function() {
       this.intrinsicTimeUnit_ = value;
     },
 
+    get isTimeHighResolution() {
+      if (this.isTimeHighResolution_ === undefined)
+        this.isTimeHighResolution_ = this.isTimeHighResolutionHeuristic_();
+      return this.isTimeHighResolution_;
+    },
+
+    set isTimeHighResolution(value) {
+      if (this.isTimeHighResolution_ === value)
+        return;
+      if (this.isTimeHighResolution_ !== undefined)
+        throw new Error('isTimeHighResolution already set');
+      this.isTimeHighResolution_ = value;
+    },
+
     /**
      * Saves a warning that happened during import.
      *
@@ -498,6 +514,38 @@ tr.exportTo('tr', function() {
       this.alerts.sort(function(x, y) {
         return x.start - y.start;
       });
+    },
+
+    isTimeHighResolutionHeuristic_: function() {
+      if (this.intrinsicTimeUnit !== tr.b.u.TimeDisplayModes.ms)
+        return false;
+      // If the timer is only precise to the millisecond, then almost all event
+      // will be precisely X ms apart. We check that by looking at the
+      // decimal part of each event's start time. We create 100 bins for
+      // these fractions. If at least 90% of the events are in the same bin then
+      // the timer is deemed to be low resolution.
+      var nbEvents = 0;
+      var nbPerBin = [];
+      var maxEvents = 0;
+      for (var i = 0; i < 100; ++i)
+        nbPerBin.push(0);
+      this.iterateAllEvents(function(event) {
+        nbEvents++;
+        if (event.start !== undefined) {
+          // Compute
+          var remainder = Math.floor(
+              (event.start - Math.floor(event.start)) * 100);
+          nbPerBin[remainder]++;
+          maxEvents = Math.max(maxEvents, nbPerBin[remainder]);
+        }
+      });
+      // If there are too few events our heuristic is not very good, assume the
+      // timer is high resolution.
+      if (nbEvents < 100)
+        return true;
+      // If more than 90% of the events are snapped precisely on milliseconds
+      // boundary we got a trace with a low resolution timer.
+      return (maxEvents / nbEvents) < 0.9;
     }
   };
 

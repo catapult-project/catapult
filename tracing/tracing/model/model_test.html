@@ -251,5 +251,33 @@ tr.b.unittest.testSuite(function() {
     assert.throw(function() { m.intrinsicTimeUnit = unit.ms; });
     assert.equal(m.intrinsicTimeUnit, unit.ns);
   });
+
+  test('model_highResolutionHeuristicTrue', function() {
+    var m = new tr.Model();
+    var t = m.getOrCreateProcess(1).getOrCreateThread(1);
+    // A thousand event not aligned on a millisecond.
+    for (var i = 0; i < 1000; ++i) {
+        var start = 0.53 * i;
+        t.sliceGroup.pushSlice(new ThreadSlice('c', 'a', 0, start, {}, 1));
+    }
+    assert.isTrue(m.isTimeHighResolution);
+  });
+
+  test('model_highResolutionHeuristicFalse', function() {
+    var m = new tr.Model();
+    var t = m.getOrCreateProcess(1).getOrCreateThread(1);
+    // A thousand event aligned on a millisecond.
+    for (var i = 0; i < 1000; ++i) {
+        var start = 0.753 + i;
+        t.sliceGroup.pushSlice(new ThreadSlice('c', 'a', 0, start, {}, 1));
+    }
+    // And fifty not aligned on anything.
+    for (var i = 0; i < 50; ++i) {
+        var start = 0.53 * i;
+        t.sliceGroup.pushSlice(new ThreadSlice('c', 'a', 0, start, {}, 1));
+    }
+    assert.isFalse(m.isTimeHighResolution);
+  });
+
 });
 </script>
