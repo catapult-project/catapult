@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import logging
 import re
 
 from telemetry import decorators
@@ -37,8 +38,12 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
       sample = self._platform.RunCommand(['dump_power_status;', 'date', '+%s'])
       self._initial_power, self._start_time = CrosPowerMonitor.SplitSample(
           sample)
+    else:
+      logging.warning('Device not on battery power during power monitoring. '
+                      'Results may be incorrect.')
 
   def StopMonitoringPower(self):
+    # Don't need to call self._CheckStop here; it's called by the superclass
     cpu_stats = super(CrosPowerMonitor, self).StopMonitoringPower()
     power_stats = {}
     if self._IsOnBatteryPower():
@@ -48,6 +53,9 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
       length_h = (end_time - self._start_time) / 3600.0
       power_stats = CrosPowerMonitor.ParsePower(self._initial_power,
                                                 final_power, length_h)
+    else:
+      logging.warning('Device not on battery power during power monitoring. '
+                      'Results may be incorrect.')
     return CrosPowerMonitor.CombineResults(cpu_stats, power_stats)
 
   @staticmethod
@@ -126,8 +134,6 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     Returns:
         Dictionary in the format returned by StopMonitoringPower().
     """
-    out_dict = {'identifier': 'dump_power_status'}
-    component_utilization = {}
     initial = CrosPowerMonitor.ParsePowerStatus(initial_stats)
     final = CrosPowerMonitor.ParsePowerStatus(final_stats)
     # The charge value reported by 'dump_power_status' is not precise enough to
@@ -136,8 +142,6 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     initial_power_mw = float(initial['battery_energy_rate']) * 10 ** 3
     final_power_mw = float(final['battery_energy_rate']) * 10 ** 3
     average_power_mw = (initial_power_mw + final_power_mw) / 2.0
-    out_dict['power_samples_mw'] = [initial_power_mw, final_power_mw]
-    out_dict['energy_consumption_mwh'] = average_power_mw * length_h
 
     # Duplicating CrOS battery fields where applicable.
     def CopyFinalState(field, key):
@@ -154,6 +158,7 @@ class CrosPowerMonitor(sysfs_power_monitor.SysfsPowerMonitor):
     CopyFinalState('battery_energy_rate', 'energy_rate')
     CopyFinalState('battery_voltage', 'voltage_now')
 
-    component_utilization['battery'] = battery
-    out_dict['component_utilization'] = component_utilization
-    return out_dict
+    return {'identifier': 'dump_power_status',
+            'power_samples_mw': [initial_power_mw, final_power_mw],
+            'energy_consumption_mwh': average_power_mw * length_h,
+            'component_utilization': {'battery': battery}}

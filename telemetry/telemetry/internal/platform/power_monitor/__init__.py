@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
 from telemetry.core import exceptions
 
 
@@ -10,6 +12,9 @@ class PowerMonitor(object):
 
   Provides an interface to register power consumption during a test.
   """
+  def __init__(self):
+    self._monitoring = False
+
   def CanMonitorPower(self):
     """Returns True iff power can be monitored asynchronously via
     StartMonitoringPower() and StopMonitoringPower().
@@ -21,6 +26,14 @@ class PowerMonitor(object):
     application in isolation. False if power measurement is for full system
     energy consumption."""
     return False
+
+  def _CheckStart(self):
+    assert not self._monitoring, "Already monitoring power."
+    self._monitoring = True
+
+  def _CheckStop(self):
+    assert self._monitoring, "Not monitoring power."
+    self._monitoring = False
 
   def StartMonitoringPower(self, browser):
     """Starts monitoring power utilization statistics.

@@ -34,7 +34,7 @@ class PowerMonitorController(power_monitor.PowerMonitor):
       logging.warning('StopMonitoringPower() not called when expected. Last '
                       'results are likely not reported.')
       self.StopMonitoringPower()
-
+    self._CheckStart()
     self._active_monitors = (
         [m for m in self._candidate_power_monitors if m.CanMonitorPower()])
     assert self._active_monitors, 'No available monitor.'
@@ -51,14 +51,14 @@ class PowerMonitorController(power_monitor.PowerMonitor):
       for key in dict_one:
         if key in dict_two and key not in ignore_list:
           logging.warning('Found multiple instances of %s in power monitor '
-                          'enteries. Using newest one.', key)
-    # Sub level power enteries.
+                          'entries. Using newest one.', key)
+    # Sub level power entries.
     for part in ['platform_info', 'component_utilization']:
       if part in monitor_results:
         _CheckDuplicateKeys(combined_results[part], monitor_results[part])
         combined_results[part].update(monitor_results[part])
 
-    # Top level power enteries.
+    # Top level power entries.
     platform_info = combined_results['platform_info'].copy()
     comp_utilization = combined_results['component_utilization'].copy()
     _CheckDuplicateKeys(
@@ -69,7 +69,7 @@ class PowerMonitorController(power_monitor.PowerMonitor):
     combined_results['component_utilization'] = comp_utilization
 
   def StopMonitoringPower(self):
-    assert self._active_monitors, 'StartMonitoringPower() not called.'
+    self._CheckStop()
     try:
       results = {'platform_info': {}, 'component_utilization': {}}
       for monitor in self._active_monitors:

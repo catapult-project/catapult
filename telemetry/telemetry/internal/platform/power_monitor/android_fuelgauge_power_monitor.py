@@ -2,12 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-
-from telemetry.internal.platform import power_monitor
+from telemetry.internal.platform.power_monitor import android_power_monitor_base
 
 
-class FuelGaugePowerMonitor(power_monitor.PowerMonitor):
+class FuelGaugePowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
   """PowerMonitor that relies on the fuel gauge chips to monitor the power
   consumption of a android device.
   """
@@ -26,30 +24,21 @@ class FuelGaugePowerMonitor(power_monitor.PowerMonitor):
     return self._battery.SupportsFuelGauge()
 
   def StartMonitoringPower(self, browser):
-    self._battery.SetCharging(False)
+    self._CheckStart()
+    self._ChargingOff(self._battery)
     self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
 
   def StopMonitoringPower(self):
+    self._CheckStop()
     # Convert from nAh to mAh.
     fuel_gauge_delta = (
         float((self._starting_fuel_gauge) -
         self._battery.GetFuelGaugeChargeCounter()) / 1000000)
-    self._battery.SetCharging(True)
-
-    voltage = self._battery.GetBatteryInfo().get('voltage')
-    if voltage is None:
-      # Converting at a nominal voltage of 4.0V, as those values are obtained by
-      # a heuristic, and 4.0V is the voltage we set when using a monsoon device.
-      voltage = 4.0
-      logging.warning('Unable to get device voltage. Using %s.', voltage)
-    else:
-      voltage = float(voltage) / 1000
-
+    self._ChargingOn(self._battery)
+    voltage = self._ParseVoltage(self._battery.GetBatteryInfo().get('voltage'))
     return self.ProcessPowerData(voltage, fuel_gauge_delta)
 
   @staticmethod
   def ProcessPowerData(voltage, fuel_gauge_delta):
-    power_results = {'identifier': 'fuel_gauge'}
-    power_results['fuel_gauge_energy_consumption_mwh'] = (
-        fuel_gauge_delta * voltage)
-    return power_results
+    return {'identifier': 'fuel_gauge',
+            'fuel_gauge_energy_consumption_mwh': fuel_gauge_delta * voltage}
