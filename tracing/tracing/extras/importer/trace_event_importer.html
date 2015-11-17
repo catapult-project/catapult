@@ -1955,18 +1955,6 @@ tr.exportTo('tr.e.importer', function() {
             allMemoryAllocatorDumpsByGuid, dumps, pid, dumpId);
       }
 
-      // Show a warning if total resident bytes were not provided in the
-      // trace (mandatory field).
-      if (processMemoryDump.totals === undefined ||
-          processMemoryDump.totals.residentBytes === undefined) {
-        this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Mandatory field resident_set_bytes not found in' +
-                ' process memory dump for PID=' + pid +
-                ' and dump ID=' + dumpId + '.'
-        });
-      }
-
       processMemoryDump.levelOfDetail =
           MEMORY_DUMP_LEVELS_OF_DETAIL[levelOfDetailIndices.process];
       delete levelOfDetailIndices.process;  // Reused for all process dumps.
@@ -1994,37 +1982,58 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       var totals = {};
+      var platformSpecificTotals = undefined;
 
-      // Total resident bytes (mandatory).
-      if (rawTotals.resident_set_bytes !== undefined)
-        totals.residentBytes = parseInt(rawTotals.resident_set_bytes, 16);
+      for (var rawTotalName in rawTotals) {
+        var rawTotalValue = rawTotals[rawTotalName];
+        if (rawTotalValue === undefined)
+          continue;
 
-      // Peak resident bytes (optional).
-      if (rawTotals.peak_resident_set_bytes !== undefined) {
-        if (rawTotals.is_peak_rss_resetable === undefined) {
-          this.model_.importWarning({
-              type: 'memory_dump_parse_error',
-              message: 'Optional field peak_resident_set_bytes found' +
-                  ' but is_peak_rss_resetable not found in' +
-                  ' process memory dump for PID=' + pid +
-                  ' and dump ID=' + dumpId + '.'
-          });
+        // Total resident bytes.
+        if (rawTotalName === 'resident_set_bytes') {
+          totals.residentBytes = parseInt(rawTotalValue, 16);
+          continue;
         }
-        totals.peakResidentBytes =
-            parseInt(rawTotals.peak_resident_set_bytes, 16);
+
+        // Peak resident bytes.
+        if (rawTotalName === 'peak_resident_set_bytes') {
+          totals.peakResidentBytes = parseInt(rawTotalValue, 16);
+          continue;
+        }
+        if (rawTotalName === 'is_peak_rss_resetable') {
+          totals.arePeakResidentBytesResettable = !!rawTotalValue;
+          continue;
+        }
+
+        // OS-specific totals (e.g. private resident on Mac).
+        if (platformSpecificTotals === undefined) {
+          platformSpecificTotals = {};
+          totals.platformSpecific = platformSpecificTotals;
+        }
+        platformSpecificTotals[rawTotalName] = parseInt(rawTotalValue, 16);
       }
-      if (rawTotals.is_peak_rss_resetable !== undefined) {
-        if (rawTotals.peak_resident_set_bytes === undefined) {
-          this.model_.importWarning({
-              type: 'memory_dump_parse_error',
-              message: 'Optional field is_peak_rss_resetable found' +
-                  ' but peak_resident_set_bytes not found in' +
-                  ' process memory dump for PID=' + pid +
-                  ' and dump ID=' + dumpId + '.'
-          });
-        }
-        totals.arePeakResidentBytesResettable =
-            !!rawTotals.is_peak_rss_resetable;
+
+      // Either both peak_resident_set_bytes and is_peak_rss_resetable should
+      // be present in the trace, or neither.
+      if (totals.peakResidentBytes === undefined &&
+          totals.arePeakResidentBytesResettable !== undefined) {
+        this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Optional field peak_resident_set_bytes found' +
+                ' but is_peak_rss_resetable not found in' +
+                ' process memory dump for PID=' + pid +
+                ' and dump ID=' + dumpId + '.'
+        });
+      }
+      if (totals.arePeakResidentBytesResettable !== undefined &&
+          totals.peakResidentBytes === undefined) {
+        this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Optional field is_peak_rss_resetable found' +
+                ' but peak_resident_set_bytes not found in' +
+                ' process memory dump for PID=' + pid +
+                ' and dump ID=' + dumpId + '.'
+        });
       }
 
       processMemoryDump.totals = totals;

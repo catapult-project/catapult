@@ -2884,11 +2884,8 @@ tr.b.unittest.testSuite(function() {
   test('importMemoryDumps_totalResidentBytesOnly', function() {
     var events = [
       {
-        name: 'some_dump_name',
         pid: 42,
         ts: 10,
-        cat: 'test',
-        tid: 53,
         ph: 'v',
         id: '0x01',
         args: {
@@ -2907,6 +2904,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.totals.residentBytes, 9007199254740991);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.totals.platformSpecific);
     assert.isUndefined(d.mostRecentVmRegions);
     assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
@@ -2914,11 +2912,8 @@ tr.b.unittest.testSuite(function() {
   test('importMemoryDumps_withPeakResidentBytes', function() {
     var events = [
       {
-        name: 'some_dump_name',
         pid: 42,
         ts: 10,
-        cat: 'test',
-        tid: 53,
         ph: 'v',
         id: '0x01',
         args: {
@@ -2939,6 +2934,38 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.totals.residentBytes, 9007199254740991);
     assert.equal(d.totals.peakResidentBytes, 13510798882111488);
     assert.isTrue(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.totals.platformSpecific);
+    assert.isUndefined(d.mostRecentVmRegions);
+    assert.lengthOf(d.memoryAllocatorDumps, 0);
+  });
+
+  test('importMemoryDumps_platformSpecificTotals', function() {
+    var events = [
+      {
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0x01',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '1fffffffffffff',
+              private_bytes: 'fffffffffffff',
+              shared_bytes: '10000000000000'
+            }
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+
+    assert.equal(d.totals.residentBytes, 9007199254740991);
+    assert.isUndefined(d.totals.peakResidentBytes);
+    assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.deepEqual(d.totals.platformSpecific,
+        {private_bytes: 4503599627370495, shared_bytes: 4503599627370496});
     assert.isUndefined(d.mostRecentVmRegions);
     assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
@@ -3026,6 +3053,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.totals.residentBytes, 0);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.totals.platformSpecific);
     assert.lengthOf(d.memoryAllocatorDumps, 0);
   });
 
@@ -3140,6 +3168,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.totals.residentBytes, 256);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.totals.platformSpecific);
     assert.isUndefined(d.mostRecentVmRegions);
   });
 
@@ -3233,6 +3262,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.totals.residentBytes, 256);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(d.totals.platformSpecific);
     assert.isUndefined(d.mostRecentVmRegions);
   });
 
@@ -3288,6 +3318,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(pmd.totals.residentBytes, 256);
     assert.isUndefined(pmd.totals.peakResidentBytes);
     assert.isUndefined(pmd.totals.arePeakResidentBytesResettable);
+    assert.isUndefined(pmd.totals.platformSpecific);
 
     assert.isUndefined(gmd.mostRecentVmRegions);
     assert.isUndefined(pmd.mostRecentVmRegions);
@@ -4071,7 +4102,8 @@ tr.b.unittest.testSuite(function() {
           dumps: {
             level_of_detail: 'light',
             process_totals: {
-              resident_set_bytes: '100'
+              resident_set_bytes: '100',
+              private_bytes: '80'  // OS-specific total.
             }
           }
         }
@@ -4194,6 +4226,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(totals.residentBytes, 256);
     assert.isUndefined(totals.peakResidentBytes);
     assert.isUndefined(totals.arePeakResidentBytesResettable);
+    assert.deepEqual(totals.platformSpecific, {private_bytes: 128});
 
     var vmRegions = pmd1.vmRegions;
     assert.lengthOf(vmRegions, 1);

@@ -47,7 +47,16 @@ tr.exportTo('tr.model', function() {
     this.process = process;
     this.globalMemoryDump = globalMemoryDump;
 
+    // Process memory totals (optional object) with the following fields (also
+    // optional):
+    //   - residentBytes: Total resident bytes (number)
+    //   - peakResidentBytes: Peak resident bytes (number)
+    //   - arePeakResidentBytesResettable: Flag whether peak resident bytes are
+    //     resettable (boolean)
+    //   - platformSpecific: Map from OS-specific total names (string) to sizes
+    //     (number)
     this.totals = undefined;
+
     this.vmRegions_ = undefined;
 
     // Map from allocator names to heap dumps.
