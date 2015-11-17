@@ -9,6 +9,7 @@ import json
 import logging
 import re
 import sys
+import traceback
 import urllib
 
 from google.appengine.api import app_identity
@@ -96,6 +97,7 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
 
     jobs_to_check = try_job.TryJob.query(
         try_job.TryJob.status == 'started').fetch()
+    all_successful = True
     for job in jobs_to_check:
       try:
         if job.use_buildbucket:
@@ -106,8 +108,11 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
                        job.key.id(), getattr(job, 'rietveld_issue_id', None))
         _CheckJob(job, issue_tracker)
       except Exception as e:  # pylint: disable=broad-except
-        logging.error('Caught Exception %s: %s', type(e).__name__, e)
-    utils.TickMonitoringCustomMetric('UpdateBugWithResults')
+        logging.error('Caught Exception %s: %s\n%s',
+                      type(e).__name__, e, traceback.format_exc())
+        all_successful = False
+    if all_successful:
+      utils.TickMonitoringCustomMetric('UpdateBugWithResults')
 
 
 def _CheckJob(job, issue_tracker):

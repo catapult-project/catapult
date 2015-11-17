@@ -576,8 +576,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
 
     # Two errors should be logged.
     self.assertEqual(2, mock_logging_error.call_count)
-    mock_logging_error.assert_called_with(
-        'Caught Exception %s: %s', 'BugUpdateFailure', mock.ANY)
 
     # The pending jobs should still be there.
     pending_jobs = try_job.TryJob.query().fetch()
