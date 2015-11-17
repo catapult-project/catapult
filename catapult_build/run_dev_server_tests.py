@@ -59,6 +59,10 @@ PLATFORM_MAPPING = {
     },
 }
 
+# Pin the Chrome Canary used for testing to a known version on Windows.
+# See https://github.com/catapult-project/catapult/issues/1786.
+PINNED_WIN_CHROME_CANARY_VERSION = '49.0.2565.0'
+
 
 def StartXvfb():
   display = ':99'
@@ -127,6 +131,8 @@ def DownloadChrome(channel):
   response = urllib2.urlopen(omaha_url)
   version = response.readlines()[1].split(',')[2]
   if 'installer_url' in platform_data:
+    if channel == 'canary':
+      version = PINNED_WIN_CHROME_CANARY_VERSION
     return DownloadSignedWinChrome(
         platform_data['installer_url'], version)
   cs_url = CLOUDSTORAGE_URL % (
