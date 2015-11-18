@@ -30,3 +30,8 @@ def GetChromeUserAgentArgumentFromType(user_agent_type):
   if user_agent_type:
     return ['--user-agent=%s' % UA_TYPE_MAPPING[user_agent_type]]
   return []
+
+def GetChromeUserAgentDictFromType(user_agent_type):
+  if user_agent_type:
+    return {'userAgent': UA_TYPE_MAPPING[user_agent_type]}
+  return ''
