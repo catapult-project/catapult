@@ -80,7 +80,9 @@ catapult folder (third_party/catapult):
 # Code style
 
 We follow the [Chromium style]
-(https://www.chromium.org/developers/coding-style).
+(https://www.chromium.org/developers/coding-style). 
+
+If you're contributing to Trace Viewer, refer to the [Trace Viewer style guide](https://docs.google.com/document/d/1MMOfywou2Oaho4jOttUk-ZSJcHVd5G5BTsD48rPrBtQ/edit).
 
 # Tests
 
