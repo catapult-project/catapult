@@ -144,7 +144,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
         self._WaitForLogin()
       except exceptions.TimeoutException:
-        raise exceptions.LoginException('Timed out going through login screen')
+        self._cri.TakeScreenShot('login-screen')
+        raise exceptions.LoginException('Timed out going through login screen. '
+                                        + self._GetLoginStatus())
 
     logging.info('Browser is up!')
 
@@ -206,12 +208,21 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     username = '$guest' if self._is_guest else self._username
     return self._cri.IsCryptohomeMounted(username, self._is_guest)
 
+  def _GetLoginStatus(self):
+    """Returns login status. If logged in, empty string is returned."""
+    status = ''
+    if not self._IsCryptohomeMounted():
+      status += 'Cryptohome not mounted. '
+    if not self.HasBrowserFinishedLaunching():
+      status += 'Browser didn\'t launch. '
+    if self.oobe_exists:
+      status += 'OOBE not dismissed.'
+    return status
+
   def _IsLoggedIn(self):
     """Returns True if cryptohome has mounted, the browser is
     responsive to devtools requests, and the oobe has been dismissed."""
-    return (self._IsCryptohomeMounted() and
-            self.HasBrowserFinishedLaunching() and
-            not self.oobe_exists)
+    return not self._GetLoginStatus()
 
   def _WaitForLogin(self):
     # Wait for cryptohome to mount.

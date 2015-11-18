@@ -464,7 +464,9 @@ class CrOSInterface(object):
     SCREENSHOT_EXT = '.png'
 
     self.RunCmdOnDevice(['mkdir', '-p', SCREENSHOT_DIR])
-    for i in xrange(25):
+    # Large number of screenshots can increase hardware lab bandwidth
+    # dramatically, so keep this number low. crbug.com/524814.
+    for i in xrange(2):
       screenshot_file = ('%s%s-%d%s' %
                          (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
       if not self.FileExistsOnDevice(screenshot_file):
