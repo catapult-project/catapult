@@ -153,7 +153,6 @@ def FindDependencies(target_paths, options):
   dependencies |= FindPythonDependencies(os.path.realpath(
     os.path.join(path.GetTelemetryDir(),
                  'telemetry', 'testing', 'run_tests.py')))
-  dependencies |= FindBootstrapDependencies(path.GetTelemetryDir())
 
   # Add dependencies.
   for target_path in target_paths:
