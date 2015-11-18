@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script>
+'use strict';
+
+tr.exportTo('pi.mre', function() {
+  function Failure(jobGuid, functionHandleGuid, traceGuid, failureTypeName,
+                   description, stack) {
+    this.jobGuid = jobGuid;
+    this.functionHandleGuid = functionHandleGuid;
+    this.traceGuid = traceGuid;
+    this.failureTypeName = failureTypeName;
+    this.description = description;
+    this.stack = stack;
+  }
+
+  Failure.prototype = {
+    asDict: function() {
+      return {
+        job_guid: this.jobGuid,
+        function_handle_guid: this.functionHandleGuid,
+        trace_guid: this.traceGuid,
+        failure_type_name: this.failureTypeName,
+        description: this.description,
+        stack: this.stack
+      };
+    }
+  };
+
+  Failure.fromDict = function(failureDict) {
+    return new Failure(failureDict.job_guid, failureDict.function_handle_guid,
+                       failureDict.trace_guid, failureDict.failure_type_name,
+                       failureDict.description, failureDict.stack);
+  };
+
+  return {
+    Failure: Failure
+  };
+});
+
+</script>

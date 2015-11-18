@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/mre/failure.html">
+<link rel="import" href="/perf_insights/mre/job_results.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('jobResultsAsDictTest', function() {
+    var failure = new pi.mre.Failure('1', '2', '3', 'err', 'desc', 'stack');
+    var result = {foo: 'bar'};
+    var results = new pi.mre.JobResults([failure], result);
+
+    var resultsDict = results.asDict();
+
+    assert.equal(tr.b.dictionaryLength(resultsDict), 2);
+    assert.equal(resultsDict.failures.length, 1);
+    assert.deepEqual(resultsDict.failures[0], failure.asDict());
+    assert.deepEqual(resultsDict.reduce_results, {foo: 'bar'});
+  });
+
+  test('jobResultsFromDictTest', function() {
+    var resultsDict = {
+      failures: [{
+          job_guid: '1',
+          function_handle_guid: '2',
+          trace_guid: '3',
+          failure_type_name: 'err',
+          description: 'desc',
+          stack: 'stack'
+      }],
+      reduce_results: {foo: 'bar'}
+    };
+
+    var results = pi.mre.JobResults.fromDict(resultsDict);
+    assert.equal(results.failures.length, 1);
+    assert.instanceOf(results.failures[0], pi.mre.Failure);
+    assert.deepEqual(results.reduceResults, {foo: 'bar'});
+  });
+});
+
+</script>
