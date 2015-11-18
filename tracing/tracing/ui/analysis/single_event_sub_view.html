@@ -79,6 +79,12 @@ found in the LICENSE file.
       if (event.category)
         rows.push({ name: 'Category', value: event.category });
 
+      if (event.model !== undefined) {
+        var ufc = event.model.getUserFriendlyCategoryFromEvent(event);
+        if (ufc !== undefined)
+          rows.push({ name: 'User Friendly Category', value: ufc });
+      }
+
       if (event.name)
         rows.push({ name: 'Name', value: event.name });
 

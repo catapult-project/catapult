@@ -41,14 +41,7 @@ tr.exportTo('tr.model', function() {
   }
 
   ThreadSlice.prototype = {
-    __proto__: Slice.prototype,
-
-    getProcess: function() {
-      var thread = this.parentContainer;
-      if (thread && thread.getProcess)
-        return thread.getProcess();
-      return undefined;
-    }
+    __proto__: Slice.prototype
   };
 
   tr.model.EventRegistry.register(

@@ -103,6 +103,20 @@ tr.exportTo('tr.model', function() {
       return curSlice;
     },
 
+    getProcess: function() {
+      var thread = this.parentContainer;
+      if (thread && thread.getProcess)
+        return thread.getProcess();
+      return undefined;
+    },
+
+    get model() {
+      var process = this.getProcess();
+      if (process !== undefined)
+        return this.getProcess().model;
+      return undefined;
+    },
+
     /**
      * Obtains all subsequent slices of this slice.
      *
