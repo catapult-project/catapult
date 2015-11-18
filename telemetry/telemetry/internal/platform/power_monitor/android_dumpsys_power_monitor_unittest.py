@@ -77,6 +77,16 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
     with self.assertRaises(AssertionError):
       pm.StartMonitoringPower(browser)
 
+  def testBatteryChargingState(self):
+    browser = pm_mock.MockBrowser(_PACKAGE)
+    battery = pm_mock.MockBattery(_TYPICAL_POWER_DATA_MULTISAMPLE, voltage=5.0)
+    backend = pm_mock.MockPlatformBackend()
+    pm = android_dumpsys_power_monitor.DumpsysPowerMonitor(battery, backend)
+    self.assertEqual(battery.GetCharging(), True)
+    pm.StartMonitoringPower(browser)
+    self.assertEqual(battery.GetCharging(), False)
+    pm.StopMonitoringPower()
+    self.assertEqual(battery.GetCharging(), True)
 
 if __name__ == '__main__':
   unittest.main()

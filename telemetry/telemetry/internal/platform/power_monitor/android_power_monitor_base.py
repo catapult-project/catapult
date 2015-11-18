@@ -42,4 +42,4 @@ class AndroidPowerMonitorBase(power_monitor.PowerMonitor):
     if battery.GetCharging():
       logging.warning('Charging re-enabled during test.'
                       'Results may be inaccurate.')
-      battery.SetCharging(True)
+    battery.SetCharging(True)
