@@ -346,6 +346,13 @@ class StartBisectTest(testing_common.TestCase):
             ['', 'release'],
         ])
     testing_common.SetSheriffDomains(['chromium.org'])
+    # Add fake Rietveld auth info.
+    rietveld_config = rietveld_service.RietveldConfig(
+        id='default_rietveld_config',
+        client_email='sullivan@chromium.org',
+        service_account_key='Fake Account Key',
+        server_url='https://test-rietveld.appspot.com')
+    rietveld_config.put()
 
   def testPost_InvalidUser_ShowsErrorMessage(self):
     self.SetCurrentUser('foo@yahoo.com')
@@ -709,12 +716,6 @@ class StartBisectTest(testing_common.TestCase):
                      mock.MagicMock(return_value='1234567'))
   def testPerformBuildbucketBisect(self):
     self.SetCurrentUser('foo@chromium.org')
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com')
-    cfg.put()
 
     bug_data.Bug(id=12345).put()
 
@@ -759,13 +760,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisect(self):
     self.SetCurrentUser('foo@chromium.org')
-    # Fake Rietveld auth info
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com')
-    cfg.put()
 
     # Create bug.
     bug_data.Bug(id=12345).put()
@@ -802,13 +796,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformPerfTry(self):
     self.SetCurrentUser('foo@chromium.org')
-    # Fake Rietveld auth info
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com/')
-    cfg.put()
 
     query_parameters = {
         'bisect_bot': 'linux_perf_bisect',
