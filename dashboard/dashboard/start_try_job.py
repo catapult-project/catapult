@@ -154,10 +154,12 @@ class StartBisectHandler(request_handler.RequestHandler):
         use_buildbucket=use_recipe)
 
     try:
-      result = PerformBisect(bisect_job)
+      results = PerformBisect(bisect_job)
     except request_handler.InvalidInputError as iie:
-      result = {'error': iie.message}
-    return result
+      results = {'error': iie.message}
+    if 'error' in results and bisect_job.key:
+      bisect_job.key.delete()
+    return results
 
   def _PerformPerfTryStep(self, user):
     """Gathers the parameters required for a perf try job and starts the job."""
@@ -181,7 +183,10 @@ class StartBisectHandler(request_handler.RequestHandler):
         email=user.email(),
         job_type='perf-try')
 
-    return _PerformPerfTryJob(perf_job)
+    results = _PerformPerfTryJob(perf_job)
+    if 'error' in results and perf_job.key:
+      perf_job.key.delete()
+    return results
 
 
 def _PrefillInfo(test_path):

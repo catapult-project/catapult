@@ -279,6 +279,10 @@ def _MockFetch(url=None):
         200, base64.encodestring(_PERF_CONFIG_CONTENTS))
 
 
+def _MockFailedFetch(url=None):  # pylint: disable=unused-argument
+    return testing_common.FakeResponseObject(404, {})
+
+
 def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
   """Mocks out a request, returning a canned response."""
   if path.endswith('xsrf_token'):
@@ -822,6 +826,76 @@ class StartBisectTest(testing_common.TestCase):
     _TEST_EXPECTED_BOT = 'linux_perf_bisect'
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFailedFetch))
+  @mock.patch.object(
+      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  def testPerformBisectStep_DeleteJobOnFailedBisect(self):
+    self.SetCurrentUser('foo@chromium.org')
+    # Fake Rietveld auth info
+    cfg = rietveld_service.RietveldConfig(
+        id='default_rietveld_config',
+        client_email='sullivan@chromium.org',
+        service_account_key='Fake Account Key',
+        server_url='https://test-rietveld.appspot.com/')
+    cfg.put()
+
+    query_parameters = {
+        'bisect_bot': 'linux_perf_bisect',
+        'suite': 'dromaeo.jslibstylejquery',
+        'good_revision': '215806',
+        'bad_revision': '215828',
+        'rerun_option': '',
+    }
+    global _EXPECTED_CONFIG_DIFF
+    global _TEST_EXPECTED_CONFIG_CONTENTS
+    global _TEST_EXPECTED_BOT
+    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
+    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
+    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
+
+    query_parameters['step'] = 'perform-bisect'
+    self.testapp.post('/start_try_job', query_parameters)
+    try_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(0, len(try_jobs))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFailedFetch))
+  @mock.patch.object(
+      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  def testPerformPerfTryStep_DeleteJobOnFailedBisect(self):
+    self.SetCurrentUser('foo@chromium.org')
+    # Fake Rietveld auth info
+    cfg = rietveld_service.RietveldConfig(
+        id='default_rietveld_config',
+        client_email='sullivan@chromium.org',
+        service_account_key='Fake Account Key',
+        server_url='https://test-rietveld.appspot.com/')
+    cfg.put()
+
+    query_parameters = {
+        'bisect_bot': 'linux_perf_bisect',
+        'suite': 'dromaeo.jslibstylejquery',
+        'good_revision': '215806',
+        'bad_revision': '215828',
+        'rerun_option': '',
+    }
+    global _EXPECTED_CONFIG_DIFF
+    global _TEST_EXPECTED_CONFIG_CONTENTS
+    global _TEST_EXPECTED_BOT
+    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
+    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
+    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
+
+    query_parameters['step'] = 'perform-perf-try'
+    self.testapp.post('/start_try_job', query_parameters)
+    try_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(0, len(try_jobs))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
