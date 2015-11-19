@@ -76,9 +76,9 @@ tr.b.unittest.testSuite(function() {
         thread = process.getOrCreateThread(456);
 
         thread.asyncSliceGroup.push(
-          tr.c.TestUtils.newAsyncSliceNamed('a', 80, 20, thread, thread));
+            tr.c.TestUtils.newAsyncSliceNamed('a', 80, 20, thread, thread));
         thread.asyncSliceGroup.push(
-          tr.c.TestUtils.newAsyncSliceNamed('a', 85, 10, thread, thread));
+            tr.c.TestUtils.newAsyncSliceNamed('a', 85, 10, thread, thread));
       }
     });
 
