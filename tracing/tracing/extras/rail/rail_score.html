@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
 
 <script>
@@ -40,16 +41,18 @@ tr.exportTo('tr.e.rail', function() {
       // combination of the score and tunable parameters, and is open to
       // reformulation.
       // The weighting function is graphed here: https://goo.gl/1blsXW
-      if (!this.interactionRecords.length)
-        return undefined;
 
-      var numerator = 0;
-      var denominator = 0;
-      this.interactionRecords.forEach(function(ir) {
+      function getScore(ir) {
+        return ir.railScore;
+      }
+
+      function getWeight(ir) {
+        // If this IR is not in the range of interest, then remove it from the
+        // weightedMean calculation by setting its weight to zero.
         if (!this.rangeOfInterest_.intersectsExplicitRange(ir.start, ir.end))
-          return;
+          return 0;
 
-        var score = ir.railScore;
+        var score = getScore(ir);
 
         var scale = ir.railScoreScale;
         if (scale === undefined)
@@ -63,15 +66,11 @@ tr.exportTo('tr.e.rail', function() {
         if (base === undefined)
           base = Math.exp(1);
 
-        var weight = Math.pow(base, -scale * Math.pow(score, power));
-        numerator += score * weight;
-        denominator += weight;
-      }, this);
+        return Math.pow(base, -scale * Math.pow(score, power));
+      }
 
-      if (denominator === 0)
-        return undefined;
-
-      return numerator / denominator;
+      return tr.b.Statistics.weightedMean(
+          this.interactionRecords, getWeight, getScore, this);
     },
 
     asDict: function() {

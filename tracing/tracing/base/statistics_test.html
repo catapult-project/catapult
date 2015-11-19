@@ -93,6 +93,36 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Statistics.mean([1, 2, 3]), 2);
   });
 
+  test('weightedMean', function() {
+    function getWeight(element) {
+      return element.weight;
+    }
+    function getValue(element) {
+      return element.value;
+    }
+
+    var data = [
+      {value: 10, weight: 3},
+      {value: 20, weight: 1},
+      {value: 30, weight: 6}
+    ];
+    assert.equal(23, Statistics.weightedMean(data, getWeight, getValue));
+
+    data = [
+      {value: 10, weight: 0},
+      {value: 20, weight: 0},
+      {value: 30, weight: 0}
+    ];
+    assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
+
+    data = [
+      {value: 10, weight: -10},
+      {value: 20, weight: 5},
+      {value: 30, weight: 5}
+    ];
+    assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
+  });
+
   test('varianceBasic', function() {
     // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
     // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.

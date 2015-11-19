@@ -36,6 +36,26 @@ tr.exportTo('tr.b', function() {
     return Statistics.sum(ary, opt_func, opt_this) / ary.length;
   };
 
+  // Returns undefined if the sum of the weights is zero.
+  Statistics.weightedMean = function(
+      ary, weightCallback, opt_valueCallback, opt_this) {
+    var valueCallback = opt_valueCallback || identity;
+    var numerator = 0;
+    var denominator = 0;
+
+    for (var i = 0; i < ary.length; i++) {
+      var weight = weightCallback.call(opt_this, ary[i], i);
+      var value = valueCallback.call(opt_this, ary[i], i);
+      numerator += weight * value;
+      denominator += weight;
+    }
+
+    if (denominator === 0)
+      return undefined;
+
+    return numerator / denominator;
+  };
+
   Statistics.variance = function(ary, opt_func, opt_this) {
     var func = opt_func || identity;
     var mean = Statistics.mean(ary, func, opt_this);
