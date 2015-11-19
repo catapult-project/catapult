@@ -358,7 +358,7 @@ tr.exportTo('tr.b.unittest', function() {
         this.currentTestCaseResult_.testCaseHRef = href;
       this.currentTestCaseResult_.testStatus = TestStatus.RUNNING;
       this.currentTestCaseStartTime_ = window.performance.now();
-      this.appendChild(this.currentTestCaseResult_);
+      this.insertBefore(this.currentTestCaseResult_, this.firstChild);
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
       this.log_(testCase.fullyQualifiedName + ': ');
     },
