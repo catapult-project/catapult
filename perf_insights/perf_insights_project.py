@@ -12,6 +12,11 @@ def _AddToPathIfNeeded(path):
 
 
 def _IsRunningInAppEngine():
+  # Cloud workers run on appengine but in a managed vm, which gives them full
+  # access to the filesystem. Since they manage their own checkout of catapult
+  # to do trace processing, they need the paths properly setup.
+  if 'PI_CLOUD_WORKER' in os.environ:
+    return False
   if 'SERVER_SOFTWARE' not in os.environ:
     return False
   if os.environ['SERVER_SOFTWARE'].startswith('Google App Engine/'):
