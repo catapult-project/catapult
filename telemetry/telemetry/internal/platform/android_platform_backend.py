@@ -214,6 +214,14 @@ class AndroidPlatformBackend(
   def device(self):
     return self._device
 
+  def IsSvelte(self):
+    try:
+      self._device.RunShellCommand(
+          'getprop ro.build.description | grep svelte', check_return=True)
+      return True
+    except device_errors.AdbCommandFailedError:
+      return False
+
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
 

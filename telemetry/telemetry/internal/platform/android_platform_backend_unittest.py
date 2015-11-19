@@ -12,6 +12,7 @@ from telemetry.testing import system_stub
 import mock
 
 from devil.android import battery_utils
+from devil.android import device_errors
 from devil.android import device_utils
 
 class AndroidPlatformBackendTest(unittest.TestCase):
@@ -48,6 +49,22 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self.battery_patcher.stop()
     self.setup_prebuilt_tool_patcher.stop()
     self.device_patcher.stop()
+
+  @decorators.Disabled('chromeos')
+  def testIsSvelte(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.RunShellCommand',
+                    return_value=0):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('12345'), self._options)
+      self.assertTrue(backend.IsSvelte())
+
+  @decorators.Disabled('chromeos')
+  def testIsNotSvelte(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.RunShellCommand',
+                    side_effect=device_errors.AdbCommandFailedError('m', 'n')):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('12345'), self._options)
+      self.assertFalse(backend.IsSvelte())
 
   @decorators.Disabled('chromeos')
   def testGetCpuStats(self):

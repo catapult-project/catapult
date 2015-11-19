@@ -19,6 +19,9 @@ class AndroidPlatform(platform.Platform):
   def android_action_runner(self):
     return self._android_action_runner
 
+  def IsSvelte(self):
+    return self._platform_backend.IsSvelte()
+
   def LaunchAndroidApplication(self, start_intent, is_app_ready_predicate=None,
                                app_has_webviews=True):
     """Launches an Android application given the intent.
