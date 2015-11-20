@@ -49,7 +49,8 @@ tr.exportTo('tr.e.rail', function() {
       function getWeight(ir) {
         // If this IR is not in the range of interest, then remove it from the
         // weightedMean calculation by setting its weight to zero.
-        if (!this.rangeOfInterest_.intersectsExplicitRange(ir.start, ir.end))
+        if (!this.rangeOfInterest_.intersectsExplicitRangeExclusive(
+              ir.start, ir.end))
           return 0;
 
         var score = getScore(ir);

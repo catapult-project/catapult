@@ -22,22 +22,38 @@ tr.b.unittest.testSuite(function() {
   test('singleIR', function() {
     // Solitary scores always reduce to exactly themselves.
     for (var i = 0; i < 11; ++i) {
-      var railScore = new RAILScore([{railScore: i / 10}]);
-      assert.closeTo(railScore.interactionRecords[0].railScore,
-                     railScore.overallScore, 0.001);
-
-      railScore = new RAILScore([{railScore: i / 10, railScorePower: 0.1}]);
-      assert.closeTo(railScore.interactionRecords[0].railScore,
-                     railScore.overallScore, 0.001);
-
-      railScore = new RAILScore([{railScore: i / 10, railScoreScale: -1}]);
+      var railScore = new RAILScore([{
+        railScore: i / 10,
+        start: 0,
+        end: 10
+      }]);
       assert.closeTo(railScore.interactionRecords[0].railScore,
                      railScore.overallScore, 0.001);
 
       railScore = new RAILScore([{
         railScore: i / 10,
         railScorePower: 0.1,
-        railScoreScale: -1
+        start: 0,
+        end: 10
+      }]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+
+      railScore = new RAILScore([{
+        railScore: i / 10,
+        railScoreScale: -1,
+        start: 0,
+        end: 10
+      }]);
+      assert.closeTo(railScore.interactionRecords[0].railScore,
+                     railScore.overallScore, 0.001);
+
+      railScore = new RAILScore([{
+        railScore: i / 10,
+        railScorePower: 0.1,
+        railScoreScale: -1,
+        start: 0,
+        end: 10
       }]);
       assert.closeTo(railScore.interactionRecords[0].railScore,
                      railScore.overallScore, 0.001);
@@ -53,7 +69,7 @@ tr.b.unittest.testSuite(function() {
 
   test('binaryScoreSets', function() {
     function simpleIR(score) {
-      return {railScore: score};
+      return {railScore: score, start: 0, end: 10};
     }
 
     for (var index = 1; index < binaryScoreSets.length; ++index) {
@@ -66,7 +82,7 @@ tr.b.unittest.testSuite(function() {
       assert.isBelow(prevScore, currentScore);
 
       var altScore = new RAILScore(binaryScoreSets[index].map(function(score) {
-        return {railScore: score, railScoreScale: -1};
+        return {railScore: score, railScoreScale: -1, start: 0, end: 10};
       }));
       altScore = altScore.overallScore;
 
@@ -79,16 +95,28 @@ tr.b.unittest.testSuite(function() {
 
   test('zeroBase', function() {
     // When base = 0, then weight could be 0, which could cause NaN.
-    var railScore = new RAILScore([{railScore: 0, railScoreBase: 0}]);
+    var railScore = new RAILScore([{
+      railScore: 0,
+      railScoreBase: 0,
+      start: 0,
+      end: 10
+    }]);
     assert.equal(0, railScore.overallScore);
 
-    railScore = new RAILScore([{railScore: 1, railScoreBase: 0}]);
+    railScore = new RAILScore([{
+      railScore: 1,
+      railScoreBase: 0,
+      start: 0,
+      end: 10
+    }]);
     assert.isTrue(isNaN(railScore.overallScore));
 
     railScore = new RAILScore([{
       railScore: 1,
       railScoreScale: -1,
-      railScoreBase: 0
+      railScoreBase: 0,
+      start: 0,
+      end: 10
     }]);
     assert.isTrue(isNaN(railScore.overallScore));
   });
@@ -107,12 +135,18 @@ tr.b.unittest.testSuite(function() {
 
     binaryScoreSets.forEach(function(scores) {
       var railScore = new RAILScore(scores.map(function(score) {
-        return {railScore: score, railScoreBase: 1};
+        return {railScore: score, railScoreBase: 1, start: 0, end: 10};
       }));
       assert.closeTo(mean(scores), railScore.overallScore, 0.01);
 
       railScore = new RAILScore(scores.map(function(score) {
-        return {railScore: score, railScoreBase: 1, railScoreScale: -1};
+        return {
+          railScore: score,
+          railScoreBase: 1,
+          railScoreScale: -1,
+          start: 0,
+          end: 10
+        };
       }));
       assert.closeTo(mean(scores), railScore.overallScore, 0.01);
     });
@@ -126,11 +160,11 @@ tr.b.unittest.testSuite(function() {
 
   test('overallScore', function() {
     var score = new tr.e.rail.RAILScore([
-      {railScore: 0.9},
-      {railScore: 1.0},
-      {railScore: 0.89},
-      {railScore: 1.0},
-      {railScore: 0.1}
+      {railScore: 0.9, start: 0, end: 10},
+      {railScore: 1.0, start: 0, end: 10},
+      {railScore: 0.89, start: 0, end: 10},
+      {railScore: 1.0, start: 0, end: 10},
+      {railScore: 0.1, start: 0, end: 10}
     ]);
     assert.equal(5, score.interactionRecords.length);
     assert.closeTo(score.overallScore, 0.51, 0.01);

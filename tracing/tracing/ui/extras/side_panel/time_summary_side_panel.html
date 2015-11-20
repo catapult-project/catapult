@@ -112,7 +112,8 @@ found in the LICENSE file.
         var slicesInFilterRange = [];
         for (var i = 0; i < slices.length; i++) {
           var slice = slices[i];
-          if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+          if (rangeOfInterest.intersectsExplicitRangeInclusive(
+                slice.start, slice.end))
             slicesInFilterRange.push(slice);
         }
         return slicesInFilterRange;

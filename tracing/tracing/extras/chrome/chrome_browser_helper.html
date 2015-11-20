@@ -33,14 +33,16 @@ tr.exportTo('tr.e.audits', function() {
     getLoadingEventsInRange: function(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return slice.title.indexOf('WebContentsImpl Loading') === 0 &&
-            rangeOfInterest.intersectsExplicitRange(slice.start, slice.end);
+            rangeOfInterest.intersectsExplicitRangeInclusive(
+                slice.start, slice.end);
       });
     },
 
     getCommitProvisionalLoadEventsInRange: function(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return slice.title === 'RenderFrameImpl::didCommitProvisionalLoad' &&
-            rangeOfInterest.intersectsExplicitRange(slice.start, slice.end);
+            rangeOfInterest.intersectsExplicitRangeInclusive(
+                slice.start, slice.end);
       });
     },
 
@@ -62,7 +64,8 @@ tr.exportTo('tr.e.audits', function() {
     getLatencyEventsInRange: function(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return (slice.title.indexOf('InputLatency') === 0) &&
-            rangeOfInterest.intersectsExplicitRange(slice.start, slice.end);
+            rangeOfInterest.intersectsExplicitRangeInclusive(
+                slice.start, slice.end);
       });
     },
 
@@ -91,7 +94,8 @@ tr.exportTo('tr.e.audits', function() {
           if (!match)
             return;
 
-          if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
+          if (rangeOfInterest.intersectsExplicitRangeInclusive(
+                slice.start, slice.end))
             networkEvents.push(slice);
         });
       });

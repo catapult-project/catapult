@@ -277,7 +277,7 @@ found in the LICENSE file.
       var rows = [];
       if (this.railScore_) {
         this.railScore_.interactionRecords.forEach(function(ir) {
-          if (!this.effectiveRangeOfInterest.intersectsExplicitRange(
+          if (!this.effectiveRangeOfInterest.intersectsExplicitRangeExclusive(
                 ir.start, ir.end))
             return;
 

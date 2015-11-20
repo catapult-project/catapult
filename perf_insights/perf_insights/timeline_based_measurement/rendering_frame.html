@@ -99,7 +99,7 @@ tr.exportTo('pi.tbm', function() {
       var frame = createRenderingFrameFromEvents(events);
       if (frame === undefined)
         continue;
-      if (frame.range.intersectsRange(timelineRange))
+      if (frame.range.intersectsRangeInclusive(timelineRange))
         frames.push(frame);
       frames.sort(function(a, b) {
         return a.range.min - b.range.min;

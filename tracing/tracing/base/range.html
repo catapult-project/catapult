@@ -100,26 +100,52 @@ tr.exportTo('tr.b', function() {
           this.max === that.max;
     },
 
-    containsRange: function(range) {
-      if (this.isEmpty || range.isEmpty)
+    containsExplicitRangeInclusive: function(min, max) {
+      if (this.isEmpty)
         return false;
-
-      return this.findIntersection(range).duration == range.duration;
+      return this.min_ <= min && max <= this.max_;
     },
 
-    containsExplicitRange: function(min, max) {
-      return this.containsRange(Range.fromExplicitRange(min, max));
-    },
-
-    intersectsRange: function(range) {
-      if (this.isEmpty || range.isEmpty)
+    containsExplicitRangeExclusive: function(min, max) {
+      if (this.isEmpty)
         return false;
-
-      return !this.findIntersection(range).isEmpty;
+      return this.min_ < min && max < this.max_;
     },
 
-    intersectsExplicitRange: function(min, max) {
-      return this.intersectsRange(Range.fromExplicitRange(min, max));
+    intersectsExplicitRangeInclusive: function(min, max) {
+      if (this.isEmpty)
+        return false;
+      return this.min_ <= max && min <= this.max_;
+    },
+
+    intersectsExplicitRangeExclusive: function(min, max) {
+      if (this.isEmpty)
+        return false;
+      return this.min_ < max && min < this.max_;
+    },
+
+    containsRangeInclusive: function(range) {
+      if (range.isEmpty)
+        return false;
+      return this.containsExplicitRangeInclusive(range.min_, range.max_);
+    },
+
+    containsRangeExclusive: function(range) {
+      if (range.isEmpty)
+        return false;
+      return this.containsExplicitRangeExclusive(range.min_, range.max_);
+    },
+
+    intersectsRangeInclusive: function(range) {
+      if (range.isEmpty)
+        return false;
+      return this.intersectsExplicitRangeInclusive(range.min_, range.max_);
+    },
+
+    intersectsRangeExclusive: function(range) {
+      if (range.isEmpty)
+        return false;
+      return this.intersectsExplicitRangeExclusive(range.min_, range.max_);
     },
 
     findIntersection: function(range) {
