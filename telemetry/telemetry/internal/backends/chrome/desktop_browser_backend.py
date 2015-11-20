@@ -143,11 +143,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           '--no-window',
           '--dumps-dir=%s' % self._tmp_minidump_dir,
           '--pipe-name=%s' % self._GetCrashServicePipeName()])
-    except:
+    except Exception:
       logging.error(
           'Failed to run %s --no-window --dump-dir=%s --pip-name=%s' % (
             command, self._tmp_minidump_dir, self._GetCrashServicePipeName()))
       logging.error('Running on platform: %s and arch: %s.', os_name, arch_name)
+      wmic_stdout, _ = subprocess.Popen(
+        ['wmic', 'process', 'get', 'CommandLine,Name,ProcessId,ParentProcessId',
+        '/format:csv'], stdout=subprocess.PIPE).communicate()
+      logging.error('Current running processes:\n%s' % wmic_stdout)
       raise
     return crash_service
 
