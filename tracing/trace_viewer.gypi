@@ -143,6 +143,8 @@
       'tracing/extras/importer/v8/v8_log_importer.html',
       'tracing/extras/importer/zip_importer.html',
       'tracing/extras/lean_config.html',
+      'tracing/extras/measure/measure.html',
+      'tracing/extras/measure/measure_async_slice.html',
       'tracing/extras/net/net.html',
       'tracing/extras/net/net_async_slice.html',
       'tracing/extras/rail/animation_interaction_record.html',
