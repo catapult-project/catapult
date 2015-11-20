@@ -212,6 +212,7 @@ class BrowserCreationTest(unittest.TestCase):
          credentials_path=None)
     self.assertIn('Boom!', context.exception.message)
 
+
 class BrowserRestoreSessionTest(unittest.TestCase):
 
   @classmethod
@@ -244,3 +245,16 @@ class BrowserRestoreSessionTest(unittest.TestCase):
     shutil.rmtree(cls._profile_dir)
 
 
+class ReferenceBrowserTest(unittest.TestCase):
+
+  @decorators.Disabled('all')
+  @decorators.Enabled('win', 'mac', 'linux')
+  def testBasicBrowserActions(self):
+    options = options_for_unittests.GetCopy()
+    options.browser_type = 'reference'
+    browser_to_create = browser_finder.FindBrowser(options)
+    self.assertIsNotNone(browser_to_create)
+    with browser_to_create.Create(options) as ref_browser:
+      tab = ref_browser.tabs.New()
+      tab.Navigate('about:blank')
+      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
