@@ -303,6 +303,18 @@ tr.exportTo('tr.importer', function() {
         this.model_.updateBounds();
       }, this);
 
+      lastTask = lastTask.after(function addModelWarnings() {
+        progressMeter.update('Looking for warnings...');
+        // Log an import warning if the clock is low resolution.
+        if (!this.model_.isTimeHighResolution) {
+          this.model_.importWarning({
+            type: 'low_resolution_timer',
+            message: 'Trace time is low resolution, trace may be unusable.',
+            showToUser: true
+          });
+        }
+      }, this);
+
       // Cleanup.
       lastTask.after(function() {
         this.importing_ = false;
