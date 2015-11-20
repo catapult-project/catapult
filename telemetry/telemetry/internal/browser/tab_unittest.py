@@ -36,7 +36,7 @@ class FakePlatform(object):
   def __init__(self):
     self._is_video_capture_running = False
 
-  #pylint: disable=W0613
+  #pylint: disable=unused-argument
   def StartVideoCapture(self, min_bitrate_mbps):
     self._is_video_capture_running = True
 
@@ -83,7 +83,7 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(url)
     self.assertEquals(self._tab.url, url)
 
-  #pylint: disable=W0212
+  #pylint: disable=protected-access
   def testIsVideoCaptureRunning(self):
     original_platform_backend = self._tab.browser._platform_backend
     try:

@@ -158,7 +158,7 @@ class PageTestResults(object):
     self._current_page_run = story_run.StoryRun(page)
     self._progress_reporter.WillRunPage(self)
 
-  def DidRunPage(self, page):  # pylint: disable=W0613
+  def DidRunPage(self, page):  # pylint: disable=unused-argument
     """
     Args:
       page: The current page under test.

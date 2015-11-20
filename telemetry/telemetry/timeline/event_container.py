@@ -26,9 +26,7 @@ class TimelineEventContainer(object):
   def IterChildContainers(self):
     raise NotImplementedError()
 
-  def IterEventsInThisContainer(self,
-                                event_type_predicate, # pylint: disable=W0613
-                                event_predicate): # pylint: disable=W0613
+  def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
     """Iterates all the TimelineEvents in this container.
 
     Only events with a type matching event_type_predicate AND matching event
@@ -45,8 +43,9 @@ class TimelineEventContainer(object):
     of the method.
 
     """
+    del event_type_predicate, event_predicate  # unused
     return
-    yield # pylint: disable=W0101
+    yield # pylint: disable=unreachable
 
 
   def IterAllEvents(self,

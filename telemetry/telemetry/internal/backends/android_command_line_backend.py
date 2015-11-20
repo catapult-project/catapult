@@ -6,7 +6,7 @@ import logging
 import pipes
 import sys
 
-from devil.android import device_errors  # pylint: disable=F0401
+from devil.android import device_errors  # pylint: disable=import-error
 
 
 def _QuoteIfNeeded(arg):

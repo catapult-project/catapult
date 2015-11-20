@@ -69,11 +69,11 @@ class BrowserCredentials(object):
     self._backends[credentials_type].LoginNoLongerNeeded(tab)
 
   @property
-  def credentials_path(self):  # pylint: disable=E0202
+  def credentials_path(self):
     return self._credentials_path
 
   @credentials_path.setter
-  def credentials_path(self, credentials_path):  # pylint: disable=E0202
+  def credentials_path(self, credentials_path):
     self._credentials_path = credentials_path
     self._RebuildCredentials()
 
@@ -90,7 +90,8 @@ class BrowserCredentials(object):
     Should only be used in unit tests to simulate --dont-override-profile.
     """
     for backend in self._backends.keys():
-      self._backends[backend]._ResetLoggedInState() # pylint: disable=W0212
+      # pylint: disable=protected-access
+      self._backends[backend]._ResetLoggedInState()
 
   def _RebuildCredentials(self):
     credentials = {}

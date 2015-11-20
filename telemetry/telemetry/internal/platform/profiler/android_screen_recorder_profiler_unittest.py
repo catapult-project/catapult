@@ -17,7 +17,7 @@ class AndroidScreenRecorderProfilerTest(tab_test_case.TabTestCase):
   def testRecording(self):
     out_dir = tempfile.mkdtemp()
     try:
-      # pylint: disable=W0212
+      # pylint: disable=protected-access
       profiler = (
           android_screen_recorder_profiler.AndroidScreenRecordingProfiler(
               self._browser._browser_backend,

@@ -55,7 +55,7 @@ class MockTrace(object):
 class MockObject(object):
   def __init__(self, parent_mock=None):
     if parent_mock:
-      self._trace = parent_mock._trace # pylint: disable=W0212
+      self._trace = parent_mock._trace # pylint: disable=protected-access
     else:
       self._trace = MockTrace()
 

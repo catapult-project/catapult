@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 class OSVersion(str):
   def __new__(cls, friendly_name, sortable_name, *args, **kwargs):
     version = str.__new__(cls, friendly_name)

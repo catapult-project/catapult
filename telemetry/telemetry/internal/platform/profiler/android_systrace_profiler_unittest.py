@@ -16,7 +16,7 @@ class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):
   def testSystraceProfiler(self):
     try:
       out_dir = tempfile.mkdtemp()
-      # pylint: disable=W0212
+      # pylint: disable=protected-access
       profiler = android_systrace_profiler.AndroidSystraceProfiler(
           self._browser._browser_backend,
           self._browser._platform_backend,

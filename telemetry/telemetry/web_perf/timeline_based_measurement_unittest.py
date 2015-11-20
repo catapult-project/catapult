@@ -107,7 +107,8 @@ class TimelineBasedMetricTestData(object):
     all_metrics = self._tbm_options.GetTimelineBasedMetrics()
 
     for thread, records in self._threads_to_records_map.iteritems():
-      metric = tbm_module._TimelineBasedMetrics(  # pylint: disable=W0212
+      # pylint: disable=protected-access
+      metric = tbm_module._TimelineBasedMetrics(
           self._model, thread, records, self._results_wrapper, all_metrics)
       metric.AddResults(self._results)
 

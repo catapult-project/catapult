@@ -47,7 +47,8 @@ class DoNothingForwarder(forwarders.Forwarder):
 
   def _CheckPortPairs(self):
     # namedtuple._asdict() is a public method. The method starts with an
-    # underscore to avoid conflicts with attribute names. pylint: disable=W0212
+    # underscore to avoid conflicts with attribute names.
+    # pylint: disable=protected-access
     for protocol, port_pair in self._port_pairs._asdict().items():
       if not port_pair:
         continue

@@ -11,7 +11,7 @@ from telemetry.core import util
 from telemetry.internal.platform import profiler
 
 try:
-  import pexpect  # pylint: disable=F0401
+  import pexpect  # pylint: disable=import-error
 except ImportError:
   pass
 

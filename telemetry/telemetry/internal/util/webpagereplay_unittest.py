@@ -8,7 +8,7 @@ import unittest
 from telemetry.internal.util import webpagereplay
 
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 class CreateCommandTest(unittest.TestCase):
   def testHasDnsGivesDnsPort(self):
     expected_cmd_line = [
@@ -29,7 +29,7 @@ class CreateCommandTest(unittest.TestCase):
     self.assertEqual(expected_cmd_line, cmd_line)
 
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 class ParseLogFilePortsTest(unittest.TestCase):
   def testEmptyLinesGivesEmptyDict(self):
     log_lines = iter([])

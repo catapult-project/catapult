@@ -19,7 +19,7 @@ class DesktopMandolineBackend(
   '''The backend for controlling a locally-executed browser instance, on Linux
   or Windows.
   '''
-  # It is OK to have abstract methods. pylint: disable=W0223
+  # It is OK to have abstract methods. pylint: disable=abstract-method
 
   def __init__(self, desktop_platform_backend, browser_options, executable,
                browser_directory):

@@ -241,7 +241,7 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
 
     sysfsmon = sysfs_power_monitor.SysfsPowerMonitor(
       PlatformStub(cpu_state_from_samsung_note3))
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     sysfsmon._cpus = cpus
     cstate = sysfsmon.GetCpuState()
     result = android_platform_backend.AndroidPlatformBackend.ParseCStateSample(
@@ -274,7 +274,7 @@ class SysfsPowerMonitorMonitorTest(unittest.TestCase):
 
     sysfsmon = sysfs_power_monitor.SysfsPowerMonitor(
         PlatformStub(cpu_state_from_samsung_note3), standalone=True)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     sysfsmon._cpus = cpus
     cstate = sysfsmon.GetCpuState()
     result = android_platform_backend.AndroidPlatformBackend.ParseCStateSample(

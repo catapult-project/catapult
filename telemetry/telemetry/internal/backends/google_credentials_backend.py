@@ -19,7 +19,7 @@ class GoogleCredentialsBackend(
 
   @property
   def url(self):
-    # pylint: disable=C0301
+    # pylint: disable=line-too-long
     # WPR doesn't support having 2 responses for the same URL (with/without
     # session cookie), so after login behaviour differs with/without wpr.
     # Sign-in URL is specified directly to overcome this.

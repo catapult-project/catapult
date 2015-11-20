@@ -76,7 +76,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
          browser_type)
     self._platform = android_platform
     self._platform_backend = (
-        android_platform._platform_backend)  # pylint: disable=W0212
+        android_platform._platform_backend)  # pylint: disable=protected-access
     self._backend_settings = backend_settings
     self._local_apk = None
 

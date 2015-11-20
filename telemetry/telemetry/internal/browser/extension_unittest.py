@@ -106,8 +106,7 @@ class MultipleExtensionTest(unittest.TestCase):
   def setUp(self):
     """ Copy the manifest and background.js files of simple_extension to a
     number of temporary directories to load as extensions"""
-    self._extension_dirs = [tempfile.mkdtemp()
-                            for i in range(3)] # pylint: disable=W0612
+    self._extension_dirs = [tempfile.mkdtemp() for _ in range(3)]
     src_extension_dir = os.path.join(
         util.GetUnittestDataDir(), 'simple_extension')
     manifest_path = os.path.join(src_extension_dir, 'manifest.json')

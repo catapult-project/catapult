@@ -12,8 +12,8 @@ from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 
 try:
-  from devil.android import device_errors  # pylint: disable=F0401
-  from pylib import constants  # pylint: disable=F0401
+  from devil.android import device_errors  # pylint: disable=import-error
+  from pylib import constants  # pylint: disable=import-error
 except ImportError:
   constants = None
   device_errors = None

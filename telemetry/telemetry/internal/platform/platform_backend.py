@@ -9,7 +9,7 @@ from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import tracing_controller_backend
 
 
-# pylint: disable=W0613
+# pylint: disable=unused-argument
 
 class PlatformBackend(object):
 

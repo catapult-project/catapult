@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 try:
-  import resource  # pylint: disable=F0401
+  import resource  # pylint: disable=import-error
 except ImportError:
   resource = None  # Not available on all platforms
 

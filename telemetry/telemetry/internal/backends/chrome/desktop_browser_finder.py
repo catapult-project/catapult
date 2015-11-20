@@ -44,7 +44,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._platform = platform_module.GetHostPlatform()
 
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self._platform_backend = self._platform._platform_backend
 
   def Create(self, finder_options):

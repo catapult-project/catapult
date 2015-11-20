@@ -12,7 +12,7 @@ from telemetry.internal.platform import posix_platform_backend
 
 class TestBackend(posix_platform_backend.PosixPlatformBackend):
 
-  # pylint: disable=W0223
+  # pylint: disable=abstract-method
 
   def __init__(self):
     super(TestBackend, self).__init__()

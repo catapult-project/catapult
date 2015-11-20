@@ -25,11 +25,11 @@ class FakePossibleBrowser(object):
 
 class FakeTest(object):
   def SetEnabledStrings(self, enabled_strings):
-    # pylint: disable=W0201
+    # pylint: disable=attribute-defined-outside-init
     self._enabled_strings = enabled_strings
 
   def SetDisabledStrings(self, disabled_strings):
-    # pylint: disable=W0201
+    # pylint: disable=attribute-defined-outside-init
     self._disabled_strings = disabled_strings
 
 

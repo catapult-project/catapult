@@ -90,7 +90,7 @@ class PageTest(object):
     """
     return self._needs_browser_restart_after_each_page
 
-  def StopBrowserAfterPage(self, browser, page):  # pylint: disable=W0613
+  def StopBrowserAfterPage(self, browser, page):
     """Should the browser be stopped after the page is run?
 
     This is called after a page is run to decide whether the browser needs to
@@ -100,6 +100,7 @@ class PageTest(object):
     A test that overrides this can look at both the page and the browser to
     decide whether it needs to stop the browser.
     """
+    del browser, page  # unused
     return False
 
   def CustomizeBrowserOptions(self, options):
@@ -129,7 +130,7 @@ class PageTest(object):
   def DidRunPage(self, platform):
     """Called after the test run method was run, even if it failed."""
 
-  def TabForPage(self, page, browser):   # pylint: disable=W0613
+  def TabForPage(self, page, browser):   # pylint: disable=unused-argument
     """Override to select a different tab for the page.  For instance, to
     create a new tab for every page, return browser.tabs.New()."""
     try:

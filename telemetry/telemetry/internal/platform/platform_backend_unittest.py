@@ -26,7 +26,7 @@ class PlatformBackendTest(unittest.TestCase):
     browser_mock = lambda: None
     # Android needs to access the package of the monitored app.
     if platform.GetOSName() == 'android':
-      # pylint: disable=W0212
+      # pylint: disable=protected-access
       browser_mock._browser_backend = lambda: None
       # Monitor the launcher, which is always present.
       browser_mock._browser_backend.package = 'com.android.launcher'

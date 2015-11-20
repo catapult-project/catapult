@@ -26,7 +26,7 @@ class MacPlatformBackendTest(unittest.TestCase):
   def testGetCPUStats(self):
     platform = platform_module.GetHostPlatform()
 
-    backend = platform._platform_backend # pylint: disable=W0212
+    backend = platform._platform_backend # pylint: disable=protected-access
 
     cpu_stats = backend.GetCpuStats(os.getpid())
     self.assertGreater(cpu_stats['CpuProcessTime'], 0)

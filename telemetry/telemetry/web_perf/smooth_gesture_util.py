@@ -34,4 +34,4 @@ def GetAdjustedInteractionIfContainGesture(timeline, interaction_record):
   return tir_module.TimelineInteractionRecord(
     interaction_record.label, gesture_events[0].start,
     gesture_events[0].end, gesture_events[0],
-    interaction_record._flags)  # pylint: disable=W0212
+    interaction_record._flags)  # pylint: disable=protected-access

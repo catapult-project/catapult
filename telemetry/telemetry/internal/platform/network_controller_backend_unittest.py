@@ -230,7 +230,7 @@ class NetworkControllerBackendTest(unittest.TestCase):
     b.StopReplay()
     self.assertTrue(b.fake_replay_server.is_stopped)
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 class ForwarderPortPairsTest(unittest.TestCase):
   def testZeroIsOkayForRemotePorts(self):
     started_ports = (8080, 8443, None)

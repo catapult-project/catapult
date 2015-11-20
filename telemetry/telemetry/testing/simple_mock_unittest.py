@@ -79,4 +79,4 @@ class SimpleMockUnitTest(unittest.TestCase):
 
     self.assertRaises(
       Exception,
-      lambda: mock.bar.baz()) # pylint: disable=W0108
+      lambda: mock.bar.baz()) # pylint: disable=unnecessary-lambda

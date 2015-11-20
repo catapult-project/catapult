@@ -7,7 +7,7 @@ import logging
 from telemetry.internal.platform import power_monitor
 
 try:
-  from devil.android import device_errors  # pylint: disable=F0401
+  from devil.android import device_errors  # pylint: disable=import-error
 except ImportError:
   device_errors = None
 

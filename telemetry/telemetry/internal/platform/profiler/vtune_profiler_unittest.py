@@ -106,7 +106,7 @@ class TestVTuneProfilerTabTestCase(tab_test_case.TabTestCase):
     vtune_profiler.subprocess = mock_subprocess
 
     try:
-      # pylint: disable=W0212
+      # pylint: disable=protected-access
       profiler = vtune_profiler.VTuneProfiler(self._browser._browser_backend,
                                               self._browser._platform_backend,
                                               'tmp',

@@ -17,7 +17,7 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 
-from devil.android import md5sum  # pylint: disable=F0401
+from devil.android import md5sum  # pylint: disable=import-error
 
 
 try:
@@ -79,7 +79,7 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
   # libraries are compatible.
   # TODO(skyostil): Check .note.gnu.build-id instead once we're using
   # --build-id=sha1.
-  # pylint: disable=W0631
+  # pylint: disable=undefined-loop-variable
   if (_ElfSectionMd5Sum(unstripped_host_lib, _TEXT_SECTION) !=
       _ElfSectionMd5Sum(stripped_host_lib, _TEXT_SECTION)):
     return None

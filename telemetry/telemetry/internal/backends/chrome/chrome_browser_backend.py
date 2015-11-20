@@ -25,7 +25,7 @@ from telemetry.util import wpr_modes
 class ChromeBrowserBackend(browser_backend.BrowserBackend):
   """An abstract class for chrome browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
-  # It is OK to have abstract methods. pylint: disable=W0223
+  # It is OK to have abstract methods. pylint: disable=abstract-method
 
   def __init__(self, platform_backend, supports_tab_control,
                supports_extensions, browser_options, output_profile_path,

@@ -8,7 +8,7 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 
-from devil.android.sdk import intent  # pylint: disable=F0401
+from devil.android.sdk import intent  # pylint: disable=import-error
 
 class UnableToFindApplicationException(Exception):
   """Exception when unable to find a launched application"""

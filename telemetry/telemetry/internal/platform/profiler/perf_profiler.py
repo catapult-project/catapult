@@ -10,14 +10,14 @@ import subprocess
 import sys
 import tempfile
 
-from devil.android import device_errors  # pylint: disable=F0401
+from devil.android import device_errors  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import platform
 from telemetry.internal.platform import profiler
 from telemetry.internal.platform.profiler import android_profiling_helper
 
-from devil.android.perf import perf_control  # pylint: disable=F0401
+from devil.android.perf import perf_control  # pylint: disable=import-error
 
 
 _PERF_OPTIONS = [

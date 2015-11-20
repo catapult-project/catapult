@@ -44,7 +44,8 @@ class FakeForwarderFactory(object):
 
 
 class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
-  # The test does not need to define the abstract methods. pylint: disable=W0223
+  # The test does not need to define the abstract methods.
+  # pylint: disable=abstract-method
 
   def __init__(self, browser_options, does_forwarder_override_dns=False,
                wpr_http_device_port=None, wpr_https_device_port=None,

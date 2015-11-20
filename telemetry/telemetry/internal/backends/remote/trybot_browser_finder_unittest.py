@@ -96,7 +96,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     trybot_browser_finder.urllib2 = simple_mock.MockObject()
     self.assertEquals(
         [],
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         sorted(trybot_browser_finder.FindAllBrowserTypes(finder_options)))
 
   def test_constructor(self):
@@ -109,7 +109,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-android-nexus4', finder_options)
     self.assertEquals('android', browser.target_os)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self.assertTrue('android' in browser._builder_names)
     self.assertEquals(['android_nexus4_perf_bisect'],
                       browser._builder_names.get('android'))
@@ -142,7 +142,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-all', finder_options)
     self.assertEquals('all', browser.target_os)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self.assertEquals(
         ['android', 'linux', 'mac', 'win', 'win-x64'],
         sorted(browser._builder_names))
@@ -173,7 +173,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-all-win', finder_options)
     self.assertEquals('all', browser.target_os)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self.assertEquals(
         ['win', 'win-x64'],
         sorted(browser._builder_names))
@@ -211,7 +211,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-all-mac', finder_options)
     self.assertEquals('all', browser.target_os)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self.assertEquals(
         ['mac'],
         sorted(browser._builder_names))
@@ -231,7 +231,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     browser = trybot_browser_finder.PossibleTrybotBrowser(
         'trybot-all-linux', finder_options)
     self.assertEquals('all', browser.target_os)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self.assertEquals(
         ['linux'],
         sorted(browser._builder_names))

@@ -56,5 +56,5 @@ class _LoggingOutputStream(object):
     else:
       self._buffer.append(s)
 
-  def flush(self):  # pylint: disable=W0612
+  def flush(self):
     pass

@@ -21,7 +21,7 @@ class ProcessStatisticTimelineData(object):
     The motivation is that some processes may have died between two consecutive
     measurements. The desired behavior is to only make calculations based on
     the processes that are alive at the end of the second measurement."""
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     ret = self.__class__(0, 0)
     my_dict = self._value_by_pid
 
@@ -33,7 +33,7 @@ class ProcessStatisticTimelineData(object):
   def __add__(self, other):
     """The result contains pids from both |self| and |other|, if duplicate
     pids are found between objects, an error will occur. """
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     intersecting_pids = (set(self._value_by_pid.keys()) &
         set(other._value_by_pid.keys()))
     assert len(intersecting_pids) == 0

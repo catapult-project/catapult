@@ -16,7 +16,7 @@ from telemetry.internal.platform.power_monitor import powermetrics_power_monitor
 from telemetry.util import process_statistic_timeline_data
 
 try:
-  import resource  # pylint: disable=F0401
+  import resource  # pylint: disable=import-error
 except ImportError:
   resource = None  # Not available on all platforms
 

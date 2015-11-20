@@ -82,7 +82,7 @@ class RunTestsCommand(command_line.OptparseCommand):
                    'available browser types.' % args.browser_type)
 
   @classmethod
-  def main(cls, args=None, stream=None):  # pylint: disable=W0221
+  def main(cls, args=None, stream=None):  # pylint: disable=arguments-differ
     # We override the superclass so that we can hook in the 'stream' arg.
     parser = cls.CreateParser()
     cls.AddCommandLineArgs(parser, None)
@@ -182,7 +182,8 @@ def GetClassifier(args, possible_browser):
         or _MatchesSelectedTest(name, args.positional_args,
                                 args.exact_test_filter)):
       assert hasattr(test, '_testMethodName')
-      method = getattr(test, test._testMethodName) # pylint: disable=W0212
+      method = getattr(
+          test, test._testMethodName)  # pylint: disable=protected-access
       should_skip, reason = decorators.ShouldSkip(method, possible_browser)
       if should_skip and not args.run_disabled_tests:
         test_set.tests_to_skip.append(typ.TestInput(name, msg=reason))
@@ -206,7 +207,7 @@ def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
     return any(test in name for test in selected_tests)
 
 
-def _SetUpProcess(child, context): # pylint: disable=W0613
+def _SetUpProcess(child, context): # pylint: disable=unused-argument
   ps_util.EnableListingStrayProcessesUponExitHook()
   if binary_manager.NeedsInit():
     # Typ doesn't keep the DependencyManager initialization in the child
@@ -232,7 +233,7 @@ def _SetUpProcess(child, context): # pylint: disable=W0613
   options_for_unittests.Push(args)
 
 
-def _TearDownProcess(child, context): # pylint: disable=W0613
+def _TearDownProcess(child, context): # pylint: disable=unused-argument
   # It's safe to call teardown_browser even if we did not start any browser
   # in any of the tests.
   browser_test_case.teardown_browser()

@@ -13,7 +13,7 @@ import mock
 
 class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
 
-  # pylint: disable=W0223
+  # pylint: disable=abstract-method
 
   def __init__(self):
     super(TestBackend, self).__init__()

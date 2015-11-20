@@ -271,7 +271,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         # This is so we can check later that the test actually made it into this
         # function. Previously it was timing out before even getting here, which
         # should fail, but since it skipped all the asserts, it slipped by.
-        self.hasRun = True # pylint: disable=W0201
+        self.hasRun = True # pylint: disable=attribute-defined-outside-init
 
     test = TestUserAgent()
     options = options_for_unittests.GetCopy()

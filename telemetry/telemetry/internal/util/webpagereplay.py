@@ -243,7 +243,7 @@ class ReplayServer(object):
       try:
         # Use a SIGINT so that it can do graceful cleanup.
         self.replay_process.send_signal(signal.SIGINT)
-      except:  # pylint: disable=W0702
+      except:  # pylint: disable=bare-except
         # On Windows, we are left with no other option than terminate().
         is_primary_nameserver_changed_by_replay = (
             self._use_dns_server and self._replay_host == '127.0.0.1')
@@ -261,7 +261,7 @@ class ReplayServer(object):
               'the primary nameserver. That might not be restored!')
         try:
           self.replay_process.terminate()
-        except:  # pylint: disable=W0702
+        except:  # pylint: disable=bare-except
           pass
       self.replay_process.wait()
 

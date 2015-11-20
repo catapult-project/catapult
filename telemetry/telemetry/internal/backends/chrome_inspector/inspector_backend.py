@@ -147,11 +147,11 @@ class InspectorBackend(object):
   # Console public methods.
 
   @property
-  def message_output_stream(self):  # pylint: disable=E0202
+  def message_output_stream(self):
     return self._console.message_output_stream
 
   @message_output_stream.setter
-  def message_output_stream(self, stream):  # pylint: disable=E0202
+  def message_output_stream(self, stream):
     self._console.message_output_stream = stream
 
   # Memory public methods.

@@ -201,7 +201,8 @@ def _LocalServerBackendMain(args):
   # Note: This message is scraped by the parent process'
   # _GetNamedPortsFromBackend(). Do **not** change it.
   print 'LocalServerBackend started: %s' % json.dumps(
-      [pair._asdict() for pair in named_ports]) # pylint: disable=W0212
+      [pair._asdict()  # pylint: disable=protected-access
+       for pair in named_ports])
   sys.stdout.flush()
 
   return server.ServeForever()
@@ -211,6 +212,7 @@ if __name__ == '__main__':
   # This trick is needed because local_server.NamedPort is not the
   # same as sys.modules['__main__'].NamedPort. The module itself is loaded
   # twice, basically.
-  from telemetry.core import local_server # pylint: disable=W0406
-  sys.exit(local_server._LocalServerBackendMain( # pylint: disable=W0212
+  from telemetry.core import local_server # pylint: disable=import-self
+  sys.exit(
+      local_server._LocalServerBackendMain( # pylint: disable=protected-access
       sys.argv[1:]))

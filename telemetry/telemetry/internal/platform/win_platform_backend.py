@@ -27,14 +27,14 @@ from telemetry.internal.platform.power_monitor import msr_power_monitor
 from telemetry.internal.util import path
 
 try:
-  import pywintypes  # pylint: disable=F0401
-  import win32api  # pylint: disable=F0401
+  import pywintypes  # pylint: disable=import-error
+  import win32api  # pylint: disable=import-error
   from win32com.shell import shell  # pylint: disable=F0401,E0611
   from win32com.shell import shellcon  # pylint: disable=F0401,E0611
-  import win32con  # pylint: disable=F0401
-  import win32gui  # pylint: disable=F0401
-  import win32process  # pylint: disable=F0401
-  import win32security  # pylint: disable=F0401
+  import win32con  # pylint: disable=import-error
+  import win32gui  # pylint: disable=import-error
+  import win32process  # pylint: disable=import-error
+  import win32security  # pylint: disable=import-error
 except ImportError:
   pywintypes = None
   shell = None

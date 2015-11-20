@@ -49,7 +49,7 @@ class Thread(event_container.TimelineEventContainer):
 
   def IterChildContainers(self):
     return
-    yield # pylint: disable=W0101
+    yield # pylint: disable=unreachable
 
   def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
     if event_type_predicate(slice_module.Slice):

@@ -106,32 +106,26 @@ class TimelineModel(event_container.TimelineEventContainer):
     return self._processes
 
   @property
-  #pylint: disable=E0202
   def browser_process(self):
     return self._browser_process
 
   @browser_process.setter
-  #pylint: disable=E0202
   def browser_process(self, browser_process):
     self._browser_process = browser_process
 
   @property
-  #pylint: disable=E0202
   def gpu_process(self):
     return self._gpu_process
 
   @gpu_process.setter
-  #pylint: disable=E0202
   def gpu_process(self, gpu_process):
     self._gpu_process = gpu_process
 
   @property
-  #pylint: disable=E0202
   def surface_flinger_process(self):
     return self._surface_flinger_process
 
   @surface_flinger_process.setter
-  #pylint: disable=E0202
   def surface_flinger_process(self, surface_flinger_process):
     self._surface_flinger_process = surface_flinger_process
 

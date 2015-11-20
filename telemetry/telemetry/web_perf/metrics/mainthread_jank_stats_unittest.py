@@ -60,7 +60,7 @@ class MainthreadJankTests(unittest.TestCase):
 
     # Make a record that starts at 200ms and ends at 800ms in thread time
     record = self.CreateTestRecord('test', 100, 700, 200, 800, renderer_main)
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     stat = mainthread_jank_stats._ComputeMainthreadJankStatsForRecord(
         renderer_main, record)
 

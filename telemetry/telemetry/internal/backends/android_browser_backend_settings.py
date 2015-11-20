@@ -34,7 +34,8 @@ class AndroidBrowserBackendSettings(object):
   def supports_tab_control(self):
     return self._supports_tab_control
 
-  def GetCommandLineFile(self, is_user_debug_build):  # pylint: disable=W0613
+  def GetCommandLineFile(self, is_user_debug_build):
+    del is_user_debug_build  # unused
     return self._cmdline_file
 
   def GetDevtoolsRemotePort(self, device):

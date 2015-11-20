@@ -7,7 +7,7 @@ import unittest
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import cros_forwarder
 
-# pylint: disable=W0212
+# pylint: disable=protected-access
 class ForwardingArgsTest(unittest.TestCase):
   port_pairs = forwarders.PortPairs(
       http=forwarders.PortPair(111, 222),

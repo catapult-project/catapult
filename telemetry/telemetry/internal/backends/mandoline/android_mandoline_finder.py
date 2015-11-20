@@ -29,7 +29,7 @@ class PossibleAndroidMandolineBrowser(possible_browser.PossibleBrowser):
          browser_type)
     self._platform = android_platform
     self._platform_backend = (
-        android_platform._platform_backend)  # pylint: disable=W0212
+        android_platform._platform_backend)  # pylint: disable=protected-access
     self._build_path = build_path
     self._local_apk = local_apk
     self._chrome_root = finder_options.chrome_root

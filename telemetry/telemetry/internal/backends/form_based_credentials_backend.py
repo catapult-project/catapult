@@ -115,5 +115,5 @@ class FormBasedCredentialsBackend(object):
       logging.warning('Timed out while loading: %s', url)
       return False
 
-  def LoginNoLongerNeeded(self, tab): # pylint: disable=W0613
+  def LoginNoLongerNeeded(self, tab): # pylint: disable=unused-argument
     assert self._logged_in

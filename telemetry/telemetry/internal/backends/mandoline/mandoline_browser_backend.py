@@ -17,7 +17,7 @@ from telemetry.util import wpr_modes
 class MandolineBrowserBackend(browser_backend.BrowserBackend):
   """An abstract class for mandoline browser backends. Provides basic
   functionality once a remote-debugger port has been established."""
-  # It is OK to have abstract methods. pylint: disable=W0223
+  # It is OK to have abstract methods. pylint: disable=abstract-method
 
   def __init__(self, platform_backend, browser_options):
     super(MandolineBrowserBackend, self).__init__(

@@ -24,7 +24,7 @@ class VideoTest(unittest.TestCase):
     finally:
       if not host_platform.CanLaunchApplication('avconv'):
         logging.warning('Test not supported on this platform')
-        return  # pylint: disable=W0150
+        return  # pylint: disable=lost-exception
 
     vid = os.path.join(util.GetUnittestDataDir(), 'vid.mp4')
     expected_timestamps = [
@@ -41,7 +41,7 @@ class VideoTest(unittest.TestCase):
     video_obj = video.Video(vid)
 
     # Calling _FramesFromMp4 should return all frames.
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     for i, timestamp_bitmap in enumerate(video_obj._FramesFromMp4(vid)):
       timestamp, bmp = timestamp_bitmap
       self.assertEquals(timestamp, expected_timestamps[i])

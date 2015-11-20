@@ -21,7 +21,7 @@ class FakeRecord(object):
 
 class TimelineBasedMetricTest(unittest.TestCase):
 
-  # pylint: disable=W0212
+  # pylint: disable=protected-access
   def testTimeRangesHasOverlap(self):
     # Test cases with overlap on one side
     self.assertTrue(tbm_module._TimeRangesHasOverlap([(10, 20), (5, 15)]))

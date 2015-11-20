@@ -87,7 +87,8 @@ class AdbDevice(object):
   def FileExists(self, _):
     return False
 
-  def ReadFile(self, device_path, as_root=False):  # pylint: disable=W0613
+  def ReadFile(self, device_path, as_root=False):
+    del device_path, as_root  # unused
     return self.mock_content
 
   def GetProp(self, property_name):

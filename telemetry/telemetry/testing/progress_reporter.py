@@ -46,7 +46,7 @@ class ProgressReporter(object):
 
 class TestSuite(unittest.TestSuite):
   """TestSuite that can delegate start and stop calls to a TestResult object."""
-  def run(self, result):  # pylint: disable=W0221
+  def run(self, result):  # pylint: disable=arguments-differ
     if hasattr(result, 'startTestSuite'):
       result.startTestSuite(self)
     result = super(TestSuite, self).run(result)

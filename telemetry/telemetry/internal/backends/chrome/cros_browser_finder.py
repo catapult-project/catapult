@@ -25,7 +25,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
          browser_type)
     self._platform = cros_platform
     self._platform_backend = (
-        cros_platform._platform_backend)  # pylint: disable=W0212
+        cros_platform._platform_backend)  # pylint: disable=protected-access
     self._is_guest = is_guest
 
   def __repr__(self):

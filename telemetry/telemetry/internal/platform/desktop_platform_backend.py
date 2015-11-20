@@ -12,7 +12,7 @@ from telemetry.internal.platform import platform_backend
 class DesktopPlatformBackend(platform_backend.PlatformBackend):
 
   # This is an abstract class. It is OK to have abstract methods.
-  # pylint: disable=W0223
+  # pylint: disable=abstract-method
 
   def FlushSystemCacheForDirectory(self, directory):
     assert directory and os.path.exists(directory), \

@@ -26,7 +26,7 @@ class _MockRenderingStats(object):
       setattr(self, stat, value)
 
 
-#pylint: disable=W0212
+#pylint: disable=protected-access
 class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def setUp(self):

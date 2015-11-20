@@ -290,7 +290,7 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
 
     self._platform = platform.GetHostPlatform()
 
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     self._platform_backend = self._platform._platform_backend
 
 

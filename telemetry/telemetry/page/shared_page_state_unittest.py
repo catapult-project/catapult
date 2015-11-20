@@ -45,7 +45,7 @@ class SharedPageStateTests(unittest.TestCase):
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
 
-  # pylint: disable=W0212
+  # pylint: disable=protected-access
   def TestUseLiveSitesFlag(self, expected_wpr_mode):
     with tempfile.NamedTemporaryFile() as f:
       run_state = shared_page_state.SharedPageState(

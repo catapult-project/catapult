@@ -35,7 +35,7 @@ def _CanRunElevatedWithSudo(path):
 class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   # This is an abstract class. It is OK to have abstract methods.
-  # pylint: disable=W0223
+  # pylint: disable=abstract-method
 
   def RunCommand(self, args):
     return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
