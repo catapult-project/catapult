@@ -62,6 +62,8 @@ tr.exportTo('pi', function() {
   function FunctionHandle(modulesToLoad, functionName) {
     if (!(modulesToLoad instanceof Array))
       throw new Error('modulesToLoad in FunctionHandle must be an array');
+    if (typeof(functionName) !== 'string')
+      throw new Error('functionName inFunctionHandle must be a string');
     this.modulesToLoad = modulesToLoad;
     this.functionName = functionName;
   };
@@ -107,13 +109,10 @@ tr.exportTo('pi', function() {
         }
       }
 
-      // Find the function by name.
-      loadHTML('/perf_insights/perf_insights_full_config.html');
       var func = FunctionRegistry.getFunction(this.functionName);
       if (func === undefined) {
         var err = new Error(
-            'No function registered in perf_insights_full_config named ' +
-            this.functionName);
+            'No registered function named ' + this.functionName);
         err.name = 'FunctionNotDefinedError';
         throw err;
       }

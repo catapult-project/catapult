@@ -57,6 +57,10 @@ tr.b.unittest.testSuite(function() {
     assert.throws(pi.FunctionHandle);
   });
 
+  test('functionNameMustBeStringTest', function() {
+    assert.throws(function() {pi.FunctionHandle([], 3);});
+  });
+
   test('asDictTest', function() {
     var module = new pi.ModuleToLoad('/foo');
     var handle = new pi.FunctionHandle([module], 'Bar');
