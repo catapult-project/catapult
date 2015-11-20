@@ -29,7 +29,12 @@ and report metrics about it.  The framework abstracts:
 **Telemetry is designed for measuring performance rather than checking
   correctness. If you want to check for correctness,
   [browser tests](http://www.chromium.org/developers/testing/browser-tests) are
-  your friend.**
+  your friend**
+
+**If you are a Chromium developers looking for adding a new telemetry benchmarks to [`src/tools/perf/`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/),
+please make sure to read our [Benchmark
+Policy](https://docs.google.com/document/d/1bBKyYCW3VlUUPDpQE4xvrMFdA6tovQMZoqO9KCcmqqQ/edit?usp=sharing)
+first.**
 
 ## Code Concepts
 
