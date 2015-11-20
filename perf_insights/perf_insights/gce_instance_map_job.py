@@ -72,6 +72,7 @@ def _DownloadTraceHandles(url, temp_directory):
 def Main(argv):
   parser = argparse.ArgumentParser(description=_DEFAULT_DESCRIPTION)
   parser.add_argument('map_file_url')
+  parser.add_argument('map_function_name')
   parser.add_argument('input_url')
   parser.add_argument('output_url')
   parser.add_argument('--jobs', type=int, default=1)
@@ -82,6 +83,9 @@ def Main(argv):
   if not map_file:
     parser.error('Map does not exist.')
 
+  if not args.map_function_name:
+    parser.error('Must provide map function name.')
+
   temp_directory = tempfile.mkdtemp()
   _, file_name = tempfile.mkstemp()
   ofile = open(file_name, 'w')
@@ -91,7 +95,8 @@ def Main(argv):
     map_function_module = function_handle.ModuleToLoad(
         filename=os.path.abspath(map_file))
     map_function_handle = function_handle.FunctionHandle(
-        modules_to_load=[map_function_module])
+        modules_to_load=[map_function_module],
+        function_name=args.map_function_name)
 
     trace_handles = _DownloadTraceHandles(args.input_url, temp_directory)
     runner = map_runner.MapRunner(trace_handles, map_function_handle,

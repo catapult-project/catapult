@@ -9,6 +9,10 @@ class AbspathInvalidError(Exception):
   """Raised if an abspath cannot be sanitized based on an app's source paths."""
 
 
+class UserFriendlyStringInvalidError(Exception):
+  """Raised if a user friendly string cannot be parsed."""
+
+
 class ModuleToLoad(object):
 
   def __init__(self, href=None, filename=None):
@@ -99,3 +103,23 @@ class FunctionHandle(object):
                          handle_dict['modules_to_load']]
     return FunctionHandle(modules_to_load=modules_to_load,
                           function_name=handle_dict['function_name'])
+
+  def AsUserFriendlyString(self, app):
+    parts = [module.filename for module in
+             self.ConvertHrefsToAbsFilenames(app).modules_to_load]
+    parts.append(self.function_name)
+
+    return ':'.join(parts)
+
+  @staticmethod
+  def FromUserFriendlyString(user_str):
+    parts = user_str.split(':')
+    if len(parts) < 2:
+      raise UserFriendlyStringInvalidError(
+          'Tried to deserialize string with less than two parts: ' + user_str)
+
+    modules_to_load = [ModuleToLoad(filename=name) for name in parts[:-1]]
+
+    return FunctionHandle(modules_to_load=modules_to_load,
+                          function_name=parts[-1])
+
