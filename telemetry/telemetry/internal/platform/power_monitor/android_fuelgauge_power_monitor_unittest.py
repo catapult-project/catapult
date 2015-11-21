@@ -11,7 +11,7 @@ from telemetry.internal.platform.power_monitor import pm_mock
 
 class FuelGaugePowerMonitorMonitorTest(unittest.TestCase):
 
-  def testEnergyComsumption(self):
+  def testEnergyConsumption(self):
     fuel_gauge_delta = 100
     results = (
         android_fuelgauge_power_monitor.FuelGaugePowerMonitor.ProcessPowerData(

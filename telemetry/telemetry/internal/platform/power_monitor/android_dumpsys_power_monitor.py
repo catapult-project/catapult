@@ -39,12 +39,10 @@ class DumpsysPowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._ChargingOff(self._battery)
 
   def StopMonitoringPower(self):
     self._CheckStop()
     assert self._browser
-    self._ChargingOn(self._battery)
     package = self._browser._browser_backend.package
     self._browser = None
 

@@ -34,12 +34,3 @@ class AndroidPowerMonitorBase(power_monitor.PowerMonitor):
       if power_data['application_energy_consumption_mwh'] == 0:
         logging.warning('Power data is returning 0 usage for %s. %s'
                         % (package, power_data))
-
-  def _ChargingOff(self, battery):
-    battery.SetCharging(False)
-
-  def _ChargingOn(self, battery):
-    if battery.GetCharging():
-      logging.warning('Charging re-enabled during test.'
-                      'Results may be inaccurate.')
-    battery.SetCharging(True)

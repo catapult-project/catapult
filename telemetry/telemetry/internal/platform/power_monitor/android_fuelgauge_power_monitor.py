@@ -25,7 +25,6 @@ class FuelGaugePowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
 
   def StartMonitoringPower(self, browser):
     self._CheckStart()
-    self._ChargingOff(self._battery)
     self._starting_fuel_gauge = self._battery.GetFuelGaugeChargeCounter()
 
   def StopMonitoringPower(self):
@@ -34,7 +33,6 @@ class FuelGaugePowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
     fuel_gauge_delta = (
         float((self._starting_fuel_gauge) -
         self._battery.GetFuelGaugeChargeCounter()) / 1000000)
-    self._ChargingOn(self._battery)
     voltage = self._ParseVoltage(self._battery.GetBatteryInfo().get('voltage'))
     return self.ProcessPowerData(voltage, fuel_gauge_delta)
 

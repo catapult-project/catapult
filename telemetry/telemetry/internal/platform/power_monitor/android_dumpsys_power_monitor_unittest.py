@@ -84,7 +84,7 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
     pm = android_dumpsys_power_monitor.DumpsysPowerMonitor(battery, backend)
     self.assertEqual(battery.GetCharging(), True)
     pm.StartMonitoringPower(browser)
-    self.assertEqual(battery.GetCharging(), False)
+    self.assertEqual(battery.GetCharging(), True)
     pm.StopMonitoringPower()
     self.assertEqual(battery.GetCharging(), True)
 

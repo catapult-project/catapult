@@ -5,12 +5,13 @@
 import unittest
 
 from telemetry.internal.platform import power_monitor as power_monitor
-from telemetry.internal.platform.power_monitor import power_monitor_controller
+from telemetry.internal.platform.power_monitor import (
+  android_power_monitor_controller)
 import mock
 from devil.android import battery_utils  # pylint: disable=import-error
 
 
-class PowerMonitorControllerTest(unittest.TestCase):
+class AndroidPowerMonitorControllerTest(unittest.TestCase):
   @mock.patch.object(battery_utils, 'BatteryUtils')
   def testComposition(self, _):
 
@@ -43,7 +44,7 @@ class PowerMonitorControllerTest(unittest.TestCase):
         return self._value
 
     battery = battery_utils.BatteryUtils(None)
-    controller = power_monitor_controller.PowerMonitorController(
+    controller = android_power_monitor_controller.AndroidPowerMonitorController(
         [P1(), P2(1), P3(2)], battery)
     self.assertEqual(controller.CanMonitorPower(), True)
     controller.StartMonitoringPower(None)
@@ -52,10 +53,10 @@ class PowerMonitorControllerTest(unittest.TestCase):
     self.assertEqual(controller_returns['P3'], 2)
 
   @mock.patch.object(battery_utils, 'BatteryUtils')
-  def testReenableCharingIfNeeded(self, mock_battery):
+  def testReenableChargingIfNeeded(self, mock_battery):
     battery = battery_utils.BatteryUtils(None)
     battery.GetCharging.return_value = False
-    power_monitor_controller._ReenableChargingIfNeeded(battery)
+    android_power_monitor_controller._ReenableChargingIfNeeded(battery)
 
   def testMergePowerResultsOneEmpty(self):
     dict_one = {'platform_info': {}, 'component_utilization': {}}
@@ -65,8 +66,8 @@ class PowerMonitorControllerTest(unittest.TestCase):
         'component_utilization': {'test': 2},
         'test': 1
     }
-    power_monitor_controller.PowerMonitorController._MergePowerResults(
-        dict_one, dict_two)
+    (android_power_monitor_controller.AndroidPowerMonitorController.
+     _MergePowerResults(dict_one, dict_two))
     self.assertDictEqual(dict_one, results)
 
   def testMergePowerResultsSameEntry(self):
@@ -81,6 +82,6 @@ class PowerMonitorControllerTest(unittest.TestCase):
         'component_utilization': {'test': 2},
         'platform_info': {'test': 4, 'test2': 'a'}
     }
-    power_monitor_controller.PowerMonitorController._MergePowerResults(
-        dict_one, dict_two)
+    (android_power_monitor_controller.AndroidPowerMonitorController.
+     _MergePowerResults(dict_one, dict_two))
     self.assertDictEqual(dict_one, results)

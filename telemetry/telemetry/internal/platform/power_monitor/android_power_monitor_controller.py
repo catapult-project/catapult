@@ -5,20 +5,20 @@
 import atexit
 import logging
 
-import telemetry.internal.platform.power_monitor as power_monitor
-
+from telemetry.internal.platform.power_monitor import android_power_monitor_base
 
 def _ReenableChargingIfNeeded(battery):
   if not battery.GetCharging():
     battery.SetCharging(True)
 
-class PowerMonitorController(power_monitor.PowerMonitor):
+class AndroidPowerMonitorController(
+    android_power_monitor_base.AndroidPowerMonitorBase):
   """
   PowerMonitor that acts as facade for a list of PowerMonitor objects and uses
   the first available one.
   """
   def __init__(self, power_monitors, battery):
-    super(PowerMonitorController, self).__init__()
+    super(AndroidPowerMonitorController, self).__init__()
     self._candidate_power_monitors = power_monitors
     self._active_monitors = []
     self._battery = battery
@@ -35,6 +35,7 @@ class PowerMonitorController(power_monitor.PowerMonitor):
                       'results are likely not reported.')
       self.StopMonitoringPower()
     self._CheckStart()
+    self._ChargingOff(self._battery)
     self._active_monitors = (
         [m for m in self._candidate_power_monitors if m.CanMonitorPower()])
     assert self._active_monitors, 'No available monitor.'
@@ -70,6 +71,7 @@ class PowerMonitorController(power_monitor.PowerMonitor):
 
   def StopMonitoringPower(self):
     self._CheckStop()
+    self._ChargingOn(self._battery)
     try:
       results = {'platform_info': {}, 'component_utilization': {}}
       for monitor in self._active_monitors:
@@ -77,3 +79,12 @@ class PowerMonitorController(power_monitor.PowerMonitor):
       return results
     finally:
       self._active_monitors = []
+
+  def _ChargingOff(self, battery):
+    battery.SetCharging(False)
+
+  def _ChargingOn(self, battery):
+    if battery.GetCharging():
+      logging.warning('Charging re-enabled during test.'
+                      'Results may be inaccurate.')
+    battery.SetCharging(True)

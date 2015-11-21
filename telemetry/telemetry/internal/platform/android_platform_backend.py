@@ -24,7 +24,8 @@ from telemetry.internal.platform.power_monitor import android_dumpsys_power_moni
 from telemetry.internal.platform.power_monitor import android_fuelgauge_power_monitor
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
 from telemetry.internal.platform.power_monitor import monsoon_power_monitor
-from telemetry.internal.platform.power_monitor import power_monitor_controller
+from telemetry.internal.platform.power_monitor import (
+  android_power_monitor_controller)
 from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import exception_formatter
@@ -162,14 +163,16 @@ class AndroidPlatformBackend(
       logging.exception('New exception caused by DeviceUtils conversion')
       raise
     self._device_copy_script = None
-    self._power_monitor = power_monitor_controller.PowerMonitorController([
+    self._power_monitor = (
+      android_power_monitor_controller.AndroidPowerMonitorController([
         android_temperature_monitor.AndroidTemperatureMonitor(self._device),
         monsoon_power_monitor.MonsoonPowerMonitor(self._device, self),
-        android_dumpsys_power_monitor.DumpsysPowerMonitor(self._battery, self),
+        android_dumpsys_power_monitor.DumpsysPowerMonitor(
+          self._battery, self),
         sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
         android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
             self._battery, self),
-    ], self._battery)
+    ], self._battery))
     self._video_recorder = None
     self._installed_applications = None
 
