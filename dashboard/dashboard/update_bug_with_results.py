@@ -550,7 +550,7 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
     result_details = json.loads(job_info['result_details_json'])
     bisect_config = result_details['properties']['bisect_config']
     job_info['builder'] = bisect_config['recipe_tester_name']
-  except (KeyError, ValueError):
+  except (KeyError, ValueError, TypeError):
     # If the tester name isn't found here, this is unexpected but non-fatal.
     job_info['builder'] = 'Unknown'
     logging.error('Failed to extract tester name from JSON: %s', json_response)
