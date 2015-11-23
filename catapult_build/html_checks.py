@@ -2,13 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Checks to use in a PRESUBMIT.py for style violations in HTML files.
-
-See: https://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
-"""
+"""Checks to use in PRESUBMIT.py for HTML style violations."""
 
 import os
 import re
+
+import bs4
+
+from catapult_build import parse_html
 
 
 def RunChecks(input_api, output_api, excluded_paths=None):
@@ -30,10 +31,17 @@ def RunChecks(input_api, output_api, excluded_paths=None):
 
 
 def CheckDoctype(affected_file, output_api):
-  lines = list(affected_file.NewContents())
-  if lines and lines[0].strip() == '<!DOCTYPE html>':
+  contents = '\n'.join(affected_file.NewContents())
+  if _HasHtml5Declaration(contents):
     return []
   error_text = ('In %s:\n' % affected_file.LocalPath() +
-                'The first line must be "<!DOCTYPE html>."')
+                'could not find "<!DOCTYPE html>."')
   return [output_api.PresubmitError(error_text)]
 
+
+def _HasHtml5Declaration(contents):
+  soup = parse_html.BeautifulSoup(contents)
+  for item in soup.contents:
+    if isinstance(item, bs4.Doctype) and item.lower() == 'html':
+      return True
+  return False

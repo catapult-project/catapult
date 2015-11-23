@@ -40,7 +40,7 @@ class MockOutputApi(object):
 class HtmlChecksTest(unittest.TestCase):
 
   def testRunChecksShowsErrorForWrongDoctype(self):
-    f = MockAffectedFile('foo/x.html', ['<!DOCTYPE html XHTML1.0>'])
+    f = MockAffectedFile('foo/x.html', ['<!DOCTYPE XHTML1.0>'])
     errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
     self.assertEqual(1, len(errors))
 
@@ -51,6 +51,16 @@ class HtmlChecksTest(unittest.TestCase):
 
   def testRunChecksNoErrorsForFileWithCorrectDocstring(self):
     f = MockAffectedFile('foo/x.html', ['<!DOCTYPE html> '])
+    errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
+    self.assertEqual([], errors)
+
+  def testRunChecksAcceptsDifferentCapitalization(self):
+    f = MockAffectedFile('foo/x.html', ['<!doctype HtMl> '])
+    errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
+    self.assertEqual([], errors)
+
+  def testRunChecksAcceptsCommentsBeforeDoctype(self):
+    f = MockAffectedFile('foo/x.html', ['<!-- asdf -->\n<!doctype html> '])
     errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
     self.assertEqual([], errors)
 
