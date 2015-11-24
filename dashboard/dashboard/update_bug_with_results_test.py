@@ -9,8 +9,11 @@ import mock
 import webapp2
 import webtest
 
+from dashboard import bisect_fyi
+from dashboard import bisect_fyi_test
 from dashboard import layered_cache
 from dashboard import rietveld_service
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import update_bug_with_results
 from dashboard import utils
@@ -1086,6 +1089,126 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     result = update_bug_with_results._ValidateAndConvertBuildbucketResponse(
         job_info)
     self.assertEqual('my_perf_bisect', result['builder'])
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('===== BISECT JOB RESULTS =====\n'
+                      'Status: Positive\n'
+                      'Commit  : 2a1781d64d'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testFYI_Send_No_Email_On_Success(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf',
+        job_name='positive_culprit',
+        job_type='bisect-fyi',
+        config=utils.BisectConfigPythonString(bisect_config)).put()
+
+    self.testapp.get('/update_bug_with_results')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(0, len(messages))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch(
+      'google.appengine.api.mail.send_mail',
+      mock.MagicMock(side_effect=_MockSendMail))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('===== BISECT JOB RESULTS =====\n'
+                      'Status: Positive\n'
+                      'Commit  : a121212'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testFYI_Expected_Results_Mismatch_SendEmail(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf',
+        job_name='positive_culprit',
+        job_type='bisect-fyi',
+        config=utils.BisectConfigPythonString(bisect_config)).put()
+
+    global _TEST_RECEIVED_EMAIL
+    _TEST_RECEIVED_EMAIL = None
+
+    self.testapp.get('/update_bug_with_results')
+    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+                  _TEST_RECEIVED_EMAIL.get('html'))
+    self.assertIn('Bisect FYI Try Job Failed\n\n',
+                  _TEST_RECEIVED_EMAIL.get('body'))
+    self.assertIn('prasadv@google.com',
+                  _TEST_RECEIVED_EMAIL.get('to'))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch(
+      'google.appengine.api.mail.send_mail',
+      mock.MagicMock(side_effect=_MockSendMail))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Failed to produce build.'),
+          'status': 'Failure',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testFYI_Failed_Job_SendEmail(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf',
+        job_name='positive_culprit',
+        job_type='bisect-fyi',
+        config=utils.BisectConfigPythonString(bisect_config)).put()
+
+    global _TEST_RECEIVED_EMAIL
+    _TEST_RECEIVED_EMAIL = None
+
+    self.testapp.get('/update_bug_with_results')
+    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+                  _TEST_RECEIVED_EMAIL.get('html'))
+    self.assertIn('Bisect FYI Try Job Failed\n\n',
+                  _TEST_RECEIVED_EMAIL.get('body'))
+    self.assertIn('prasadv@google.com',
+                  _TEST_RECEIVED_EMAIL.get('to'))
 
 
 if __name__ == '__main__':

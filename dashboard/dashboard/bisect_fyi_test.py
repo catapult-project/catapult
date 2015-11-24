@@ -19,8 +19,8 @@ from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import try_job
 
-_TEST_FYI_CONFIGS_MAPS = {
-  'positive_culprit_winx64': {
+TEST_FYI_CONFIGS = {
+  'positive_culprit': {
       'bisect_config': {
           'bad_revision': '357672',
           'bug_id': 111,
@@ -34,6 +34,11 @@ _TEST_FYI_CONFIGS_MAPS = {
           'recipe_tester_name': 'win_x64_perf_bisect',
           'repeat_count': '10',
           'test_type': 'perf'
+      },
+      'expected_results': {
+          'status': 'Status: Positive',
+          'culprit': 'Commit  : 2a1781d64d',
+          'job_banner': '= BISECT JOB RESULTS =',
       }
   },
   'early_abort': {
@@ -50,6 +55,11 @@ _TEST_FYI_CONFIGS_MAPS = {
           'recipe_tester_name': 'win_x64_perf_bisect',
           'repeat_count': '10',
           'test_type': 'perf'
+      },
+      'expected_results': {
+          'status': '',
+          'culprit': '',
+          'job_banner': '= BISECTION ABORTED =',
       }
   },
 }
@@ -60,7 +70,7 @@ class BisectFYITest(testing_common.TestCase):
   def setUp(self):
     super(BisectFYITest, self).setUp()
     stored_object.Set(
-        bisect_fyi._BISECT_FYI_CONFIGS_MAP_KEY, _TEST_FYI_CONFIGS_MAPS)
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY, TEST_FYI_CONFIGS)
     stored_object.Set(
         start_try_job._TESTER_DIRECTOR_MAP_KEY,
         {

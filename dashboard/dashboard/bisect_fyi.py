@@ -14,7 +14,7 @@ from dashboard import stored_object
 from dashboard import utils
 from dashboard.models import try_job
 
-_BISECT_FYI_CONFIGS_MAP_KEY = 'bisect_fyi_config_map'
+_BISECT_FYI_CONFIGS_KEY = 'bisect_fyi_config_map'
 _TEST_FAILURE_TEMPLATE = """
   Test Name: %(test_name)s
   Error:%(error)s
@@ -38,10 +38,10 @@ class BisectFYIHandler(request_handler.RequestHandler):
 def _RunBisectIngrationTests():
   """Runs bisect jobs with pre determined configs."""
   errors_list = {}
-  bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_MAP_KEY)
+  bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)
   for test_name, config in bisect_fyi_configs.iteritems():
     if config.get('bisect_config'):
-      results = _StartBisectFYIJob(config.get('bisect_config'))
+      results = _StartBisectFYIJob(test_name, config.get('bisect_config'))
       if 'error' in results:
         errors_list[test_name] = {
             'error': results['error'],
@@ -52,10 +52,11 @@ def _RunBisectIngrationTests():
     _SendEmailAlert(errors_list)
 
 
-def _StartBisectFYIJob(bisect_config):
+def _StartBisectFYIJob(test_name, bisect_config):
   """Re-starts a bisect-job after modifying it's config based on run count.
 
   Args:
+    test_name: Name of the test case.
     bisect_job: TryJob entity with initialized bot name and config.
 
   Returns:
@@ -65,7 +66,7 @@ def _StartBisectFYIJob(bisect_config):
 
   """
   try:
-    bisect_job = _MakeBisectFYITryJob(bisect_config)
+    bisect_job = _MakeBisectFYITryJob(test_name, bisect_config)
   except auto_bisect.NotBisectableError as e:
     return {'error': e.message}
   bisect_job_key = bisect_job.put()
@@ -78,10 +79,11 @@ def _StartBisectFYIJob(bisect_config):
   return bisect_result
 
 
-def _MakeBisectFYITryJob(bisect_config):
+def _MakeBisectFYITryJob(test_name, bisect_config):
   """Creates a TryJob entity with the bisect config.
 
   Args:
+    test_name: Name of the test case.
     bisect_config: A dictionary of parameters for a bisect job.
 
   Returns:
@@ -103,9 +105,36 @@ def _MakeBisectFYITryJob(bisect_config):
       master_name='ChromiumPerf',
       internal_only=True,
       job_type='bisect-fyi',
-      use_buildbucket=use_recipe)
+      use_buildbucket=use_recipe,
+      job_name=test_name)
 
   return bisect_job
+
+
+def VerifyBisectFYIResults(job, bisect_results):
+  """Verifies the bisect results against expected results in test config."""
+  bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)
+  for test_name, config in bisect_fyi_configs.iteritems():
+    if job.job_name == test_name:
+      errors = _VerifyExpectedResults(
+          bisect_results.get('results'), config.get('expected_results'))
+      if errors:
+        bisect_results['status'] = 'Failure'
+        bisect_results['errors'] = errors
+
+  return bisect_results
+
+
+def _VerifyExpectedResults(bisect_results, expected_results):
+  if not expected_results:
+    return 'No expected results found in test config.'
+  error_list = []
+  for key, value in expected_results.iteritems():
+    if value not in bisect_results:
+      error_list.append('Expected results %s = "%s" not found in bisect '
+                        'results.\n' % (key, value))
+
+  return ''.join(error_list)
 
 
 def _TextBody(errors_list):

@@ -18,6 +18,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import urlfetch_errors
 from google.appengine.ext import ndb
 
+from dashboard import bisect_fyi
 from dashboard import buildbucket_service
 from dashboard import email_template
 from dashboard import issue_tracker_service
@@ -139,6 +140,8 @@ def _CheckJob(job, issue_tracker):
 
   if job.job_type == 'perf-try':
     _CheckPerfTryJob(job)
+  elif job.job_type == 'bisect-fyi':
+    _CheckFYIBisectJob(job, issue_tracker)
   else:
     # Delete bisect jobs that aren't associated with any bug id.
     if job.bug_id is None or job.bug_id < 0:
@@ -846,3 +849,49 @@ def _BuildbucketStatusToStatusConstant(status, result):
       return SUCCESS
     return FAILURE
   return STARTED
+
+
+def _CheckFYIBisectJob(job, issue_tracker):
+  bisect_results = _GetBisectResults(job)
+  if not bisect_results:
+    logging.info('Bisect FYI: [%s] No bisect results, job might be pending.',
+                 job.job_name)
+    return
+  logging.info('Bisect FYI: [%s] Bisect job status: %s.',
+               job.job_name, bisect_results['status'])
+  try:
+    if bisect_results['status'] == 'Completed':
+      _PostSucessfulResult(job, bisect_results, issue_tracker)
+      # Below in VerifyBisectFYIResults we verify whether the actual
+      # results matches with the expectations; if they don't match then
+      # bisect_results['status'] gets set to 'Failure'.
+      bisect_fyi.VerifyBisectFYIResults(job, bisect_results)
+    elif 'Failure' in bisect_results['status']:
+      _PostFailedResult(
+          job, bisect_results, issue_tracker, add_bug_comment=True)
+      bisect_results['errors'] = 'Bisect FYI job failed:\n%s' % bisect_results
+  except BugUpdateFailure as e:
+    bisect_results['status'] = 'Failure'
+    bisect_results['error'] = 'Bug update Failed: %s' % e
+  finally:
+    _SendFYIBisectEmail(job, bisect_results)
+    job.key.delete()
+
+
+def _SendFYIBisectEmail(job, results):
+  """Sends an email to auto-bisect-team about FYI bisect results."""
+  # Don't send email when test case pass.
+  if results.get('status') == 'Completed':
+    logging.info('Test Passed: %s.\n Results: %s', job.job_name, results)
+    return
+
+  email_data = email_template.GetBisectFYITryJobEmail(job, results)
+  if not email_data:
+    logging.error('Failed to create "email_data" from results for %s.\n'
+                  ' Results: %s', job.job_name, results)
+    return
+  mail.send_mail(sender='auto-bisect-team@google.com',
+                 to='prasadv@google.com',
+                 subject=email_data['subject'],
+                 body=email_data['body'],
+                 html=email_data['html'])

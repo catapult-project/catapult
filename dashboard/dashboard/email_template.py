@@ -88,6 +88,36 @@ HTML Results: %(html_results)s
 _PERF_PROFILER_HTML_ROW = '<tr><td>%(title)s:</td><td><b>%(link)s</b></td>\n'
 _PERF_PROFILER_TEXT_ROW = '%(title)s: %(link)s\n'
 
+_BISECT_FYI_EMAIL_SUBJECT = (
+    'Bisect FYI Try Job Failed on %(bot)s for %(test_name)s.')
+
+_BISECT_FYI_EMAIL_HTML_BODY = """
+Bisect FYI Try Job Failed
+<br><br>
+A Bisect FYI Try Job for %(test_name)s was submitted on %(bot)s at
+<a href="%(job_url)s">%(job_url)s</a>.<br>
+<table cellpadding='4'>
+  <tr><td>Bot:</td><td><b>%(bot)s</b></td>
+  <tr><td>Test Case:</td><td><b>%(test_name)s</b></td>
+  <tr><td>Bisect Config:</td><td><b>%(config)s</b></td>
+  <tr><td>Error Details:</td><td><b>%(errors)s</b></td>
+  <tr><td>Bisect Results:</td><td><b>%(results)s</b></td>
+</table>
+"""
+
+_BISECT_FYI_EMAIL_TEXT_BODY = """
+Bisect FYI Try Job Failed
+
+Bot: %(bot)s
+Test Case: %(test_name)s
+Bisect Config: %(config)s
+Error Details: %(errors)s
+Bisect Results:
+%(results)s
+
++++++++++++++++++++++++++++++++
+"""
+
 
 def GetPerfTryJobEmail(perf_results):
   """Gets the contents of the email to send once a perf try job completes."""
@@ -280,3 +310,28 @@ def GetAlertInfo(alert, test):
       'bug_link': bug_url,
   }
   return results
+
+
+def GetBisectFYITryJobEmail(job, test_results):
+  """Gets the contents of the email to send once a bisect FYI job completes."""
+  if test_results['status'] != 'Completed':
+    subject_dict = {
+        'bot': test_results['bisect_bot'],
+        'test_name': job.job_name
+    }
+    html_dict = {
+        'bot': test_results['bisect_bot'],
+        'job_url': test_results['buildbot_log_url'],
+        'test_name': job.job_name,
+        'config': job.config if job.config else 'Undefined',
+        'errors': test_results.get('errors'),
+        'results': test_results.get('results'),
+    }
+    text_dict = html_dict
+  else:
+    return None
+
+  html = _BISECT_FYI_EMAIL_HTML_BODY % html_dict
+  text = _BISECT_FYI_EMAIL_TEXT_BODY % text_dict
+  subject = _BISECT_FYI_EMAIL_SUBJECT % subject_dict
+  return {'subject': subject, 'html': html, 'body': text}
