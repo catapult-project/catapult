@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <polymer-element name="chart-title" attributes="seriesGroupList">
   <template>
     <style>
@@ -28,6 +29,11 @@
         <span hidden?="{{partIndex == titleParts.length - 1}}">/</span>
       </template>
     </h3>
+    <div>
+      <template repeat="{{info in suiteDescriptions}}">
+        <div><b>{{info.suite}}</b>: {{info.description}}</div>
+      </template>
+    </div>
 
   </template>
   <script>
@@ -56,6 +62,7 @@
         } else {
           this.currentIndex = this.titleParts.length - 1;
         }
+        this.suiteDescriptions = this.getSuitesAndDescriptions();
       },
 
       onClicked: function(event) {
@@ -115,6 +122,27 @@
           }
         }
         return null;
+      },
+
+      getSuitesAndDescriptions: function() {
+        var suiteDescriptions = {};
+        for (var i = 0; i < this.seriesGroupList.length; i++) {
+          var suite = this.seriesGroupList[i].path.split('/')[2];
+          if (window['TEST_SUITES'] &&
+              window['TEST_SUITES'][suite] &&
+              window['TEST_SUITES'][suite]['des']) {
+            suiteDescriptions[suite] = window['TEST_SUITES'][suite]['des'];
+          }
+        }
+        var suiteNames = Object.keys(suiteDescriptions);
+        var returnVal = [];
+        for (var i = 0; i < suiteNames.length; i++) {
+          returnVal.push({
+              'suite': suiteNames[i],
+              'description': suiteDescriptions[suiteNames[i]]
+          });
+        }
+        return returnVal;
       },
 
       /**

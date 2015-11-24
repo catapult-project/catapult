@@ -1,0 +1,63 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="/dashboard/elements/chart-title.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    setUp: function() {
+      window.TEST_SUITES = {
+          'dromaeo': {'des': 'Description of dromaeo.'},
+          'sunspider': {'des': 'Sunspider test.'}
+      };
+    },
+    tearDown: function() {
+    }
+  };
+
+  test('instantiate_ basic', function() {
+    var title = document.createElement('chart-title');
+    title.seriesGroupList = [{
+        'path': 'ChromiumPerf/win/dromaeo',
+        'tests': [{'name': 'Total'}]
+    }];
+    title.update();
+    this.addHTMLOutput(title);
+  }, testOptions);
+
+  test('check_title', function() {
+    var title = document.createElement('chart-title');
+    title.seriesGroupList = [
+    {
+        'path': 'ChromiumPerf/win/dromaeo',
+        'tests': [{'name': 'Total'}]
+    },
+    {
+        'path': 'ChromiumPerf/win/somestuff',
+        'tests': [{'name': 'Total'}]
+    },
+    {
+        'path': 'ChromiumPerf/win/sunspider',
+        'tests': [{'name': 'Total'}]
+    }];
+    title.update();
+    this.addHTMLOutput(title);
+    assert.propertyVal(
+        title.suiteDescriptions[0], 'description', 'Description of dromaeo.');
+    assert.propertyVal(
+        title.suiteDescriptions[1], 'description', 'Sunspider test.');
+    assert.lengthOf(title.suiteDescriptions, 2);
+  }, testOptions);
+
+});
+</script>
