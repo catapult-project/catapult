@@ -505,23 +505,53 @@ def _GuessBrowserName(bisect_bot):
 
 
 def GuessMetric(test_path):
-  """Returns a "metric" name used in the bisect config.
-
-  Generally, but not always, this "metric" is the chart name and trace name
-  separated by a slash.
+  """Returns a "metric" string to use in the bisect config.
 
   Args:
     test_path: The slash-separated test path used by the dashboard.
 
   Returns:
-    A "metric" used by the bisect bot, generally of the from graph/trace.
+    A "metric" string of the form "chart/trace". If there is an
+    interaction record name, then it is included in the chart name;
+    if we're looking at the summary result, then the trace name is
+    the chart name.
   """
+  chart = None
+  trace = None
   parts = test_path.split('/')
-  graph_trace = parts[3:]
-  if len(graph_trace) == 1:
-    graph_trace.append(graph_trace[0])
+  if len(parts) == 4:
+    # master/bot/benchmark/chart
+    chart = parts[3]
+  elif len(parts) == 5 and _HasChildTest(test_path):
+    # master/bot/benchmark/chart/interaction
+    # Here we're assuming that this test is a Telemetry test that uses
+    # interaction labels, and we're bisecting on the summary metric.
+    # Seeing whether there is a child test is a naive way of guessing
+    # whether this is a story-level test or interaction-level test with
+    # story-level children.
+    # TODO(qyearsley): When a more reliable way of telling is available
+    # (e.g. a property on the Test entity), use that instead.
+    chart = '%s-%s' % (parts[4], parts[3])
+  elif len(parts) == 5:
+    # master/bot/benchmark/chart/trace
+    chart = parts[3]
+    trace = parts[4]
+  elif len(parts) == 6:
+    # master/bot/benchmark/chart/interaction/trace
+    chart = '%s-%s' % (parts[4], parts[3])
+    trace = parts[5]
+  else:
+    logging.error('Cannot guess metric for test %s', test_path)
 
-  return '/'.join(graph_trace)
+  if trace is None:
+    trace = chart
+  return '%s/%s' % (chart, trace)
+
+
+def _HasChildTest(test_path):
+  key = utils.TestKey(test_path)
+  child = graph_data.Test.query(graph_data.Test.parent_test == key).get()
+  return bool(child)
 
 
 def _RewriteMetricName(metric):

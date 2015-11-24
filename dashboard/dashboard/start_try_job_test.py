@@ -1029,17 +1029,34 @@ class StartBisectTest(testing_common.TestCase):
         suite='performance_browser_tests',
         use_buildbucket=True)
 
+  def testGuessMetric_SummaryMetricWithNoTIRLabel(self):
+    testing_common.AddTests(
+        ['M'], ['b'],
+        {'benchmark': {'chart': {'page': {}}}})
+    self.assertEqual(
+        'chart/chart',
+        start_try_job.GuessMetric('M/b/benchmark/chart'))
+
+  def testGuessMetric_SummaryMetricWithTIRLabel(self):
+    testing_common.AddTests(
+        ['M'], ['b'],
+        {'benchmark': {'chart': {'tir_label': {'page': {}}}}})
+    self.assertEqual(
+        'tir_label-chart/tir_label-chart',
+        start_try_job.GuessMetric('M/b/benchmark/chart/tir_label'))
+
 
 class RewriteMetricNameTests(testing_common.TestCase):
 
   def testRewriteMetricWithoutInteractionRecord(self):
-    self.assertEqual('old/skool',
-                     start_try_job._RewriteMetricName('old/skool'))
+    self.assertEqual(
+        'old/skool',
+        start_try_job._RewriteMetricName('old/skool'))
 
   def testRewriteMetricWithInteractionRecord(self):
     self.assertEqual(
-        'interaction-chart/trace', start_try_job._RewriteMetricName(
-            'chart/interaction/trace'))
+        'interaction-chart/trace',
+        start_try_job._RewriteMetricName('chart/interaction/trace'))
 
 
 if __name__ == '__main__':
