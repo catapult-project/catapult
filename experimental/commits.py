@@ -14,8 +14,15 @@ import urllib2
 
 
 _BASE_URL = 'https://chromium.googlesource.com/'
-_REPOSITORY = 'chromium/src'
-_REVISION_COUNT = 10000
+# Can be up to 10,000.
+_REVISION_COUNT = 1000
+
+_REPOSITORIES = [
+    'chromium/src',
+    'angle/angle',
+    'skia',
+    'v8/v8',
+]
 
 
 def Pairwise(iterable):
@@ -66,26 +73,28 @@ def CommitTimes(repository, revision_count):
 
 
 def main():
-  commit_times = CommitTimes(_REPOSITORY, _REVISION_COUNT)
+  for repository in _REPOSITORIES:
+    commit_times = CommitTimes(repository, _REVISION_COUNT)
 
-  commit_durations = []
-  for time1, time2 in Pairwise(commit_times):
-    commit_durations.append((time1 - time2).total_seconds())
-  commit_durations.sort()
+    commit_durations = []
+    for time1, time2 in Pairwise(commit_times):
+      commit_durations.append((time1 - time2).total_seconds())
+    commit_durations.sort()
 
-  print 'Start:', min(commit_times)
-  print 'End:', max(commit_times)
-  print 'Duration:', max(commit_times) - min(commit_times)
-  print
-  print 'n:', len(commit_times)
-  print
+    print 'REPOSITORY:', repository
+    print 'Start Date:', min(commit_times)
+    print '  End Date:', max(commit_times)
+    print '  Duration:', max(commit_times) - min(commit_times)
+    print '         n:', len(commit_times)
 
-  for p in (0.00, 0.05, 0.25, 0.50, 0.75, 0.95, 1.00):
-    print '%2d%% commit duration:' % (p * 100), Percentile(commit_durations, p)
-  print
-  print 'Min commit duration:', min(commit_durations)
-  print 'Mean commit duration:', sum(commit_durations) / len(commit_durations)
-  print 'Max commit duration:', max(commit_durations)
+    for p in (0.00, 0.05, 0.25, 0.50, 0.75, 0.95, 1.00):
+      percentile = Percentile(commit_durations, p)
+      print '%3d%% commit duration:' % (p * 100), '%6ds' % percentile
+    mean = math.fsum(commit_durations) / len(commit_durations)
+    print ' Min commit duration:', '%6ds' % min(commit_durations)
+    print 'Mean commit duration:', '%6ds' % mean
+    print ' Max commit duration:', '%6ds' % max(commit_durations)
+    print
 
 
 if __name__ == '__main__':

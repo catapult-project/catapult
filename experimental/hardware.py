@@ -5,10 +5,8 @@
 
 """Query build slave hardware info, and print it to stdout as csv."""
 
-import cStringIO
 import csv
 import json
-import mimetools
 import sys
 import urllib2
 
@@ -21,14 +19,25 @@ _MASTERS = [
 
 _KEYS = [
     'master', 'builder', 'hostname',
-    'osfamily', 'os version', 'windows version',
-    'product name', 'architecture', 'processor count', 'memory total',
-    'git version',
-    'android device 1', 'android device 2',
-    'android device 3', 'android device 4',
-    'android device 5', 'android device 6',
-    'android device 7', 'android device 8',
+
+    'os family', 'os version',
+
+    'product name', 'architecture', 'processor count', 'processor type',
+    'memory total',
+
+    'facter version', 'git version', 'puppet version', 'python version',
+    'ruby version',
+
+    'android device 1', 'android device 2', 'android device 3',
+    'android device 4', 'android device 5', 'android device 6',
+    'android device 7',
 ]
+_EXCLUDED_KEYS = frozenset([
+    'b directory',
+    'last puppet run',
+    'uptime',
+    'windows version',
+])
 
 
 def main():
@@ -50,7 +59,17 @@ def main():
 
         host_data = slave_data['host']
         if host_data:
-          row.update(dict(mimetools.Message(cStringIO.StringIO(host_data))))
+          host_data = host_data.splitlines()
+          if len(host_data) > 1:
+            for line in host_data:
+              if not line:
+                continue
+              key, value = line.split(': ')
+              if key == 'osfamily':
+                key = 'os family'
+              if key in _EXCLUDED_KEYS:
+                continue
+              row[key] = value
 
         if 'product name' not in row and slave_name.startswith('slave'):
           row['product name'] = 'Google Compute Engine'
