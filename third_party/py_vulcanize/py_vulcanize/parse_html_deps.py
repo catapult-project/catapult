@@ -71,12 +71,6 @@ class InlineScript(object):
     return self._open_tags
 
 
-def _IsDoctype(x):
-  if not isinstance(x, bs4.Doctype):
-    return False
-  return x == 'html' or x == 'HTML'
-
-
 def _CreateSoupWithoutHeadOrBody(html):
   soupCopy = bs4.BeautifulSoup(html, 'html5lib')
   soup = bs4.BeautifulSoup()
@@ -97,12 +91,6 @@ class HTMLModuleParserResults(object):
   def __init__(self, html):
     self._soup = bs4.BeautifulSoup(html, 'html5lib')
     self._inline_scripts = None
-
-  @property
-  def has_decl(self):
-    decls = [x for x in self._soup.contents
-             if _IsDoctype(x)]
-    return len(decls) == 1
 
   @property
   def scripts_external(self):

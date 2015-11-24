@@ -5,8 +5,8 @@
 import os
 import re
 
-from py_vulcanize import module
 from py_vulcanize import js_utils
+from py_vulcanize import module
 from py_vulcanize import parse_html_deps
 from py_vulcanize import style_sheet
 
@@ -165,9 +165,6 @@ def Parse(loader, module_name, module_dir_name, is_component, parser_results):
   if is_component:
     return res
 
-  if parser_results.has_decl is False:
-    raise Exception('%s must have <!DOCTYPE html>' % module_name)
-
   # External script references.
   for href in parser_results.scripts_external:
     resource = _HRefToResource(loader, module_name, module_dir_name,
@@ -187,15 +184,6 @@ def Parse(loader, module_name, module_dir_name, is_component, parser_results):
         loader, module_name, module_dir_name, href,
         tag_for_err_msg='<link rel="import" href="%s">' % href)
     res.dependent_module_names.append(resource.name)
-
-  # Validate the in-line scripts.
-  for inline_script in parser_results.inline_scripts:
-    stripped_text = inline_script.stripped_contents
-    try:
-      js_utils.ValidateUsesStrictMode('_', stripped_text)
-    except:
-      raise Exception('%s has an inline script tag that is missing '
-                      'a \'use strict\' directive.' % module_name)
 
   # Style sheets.
   for href in parser_results.stylesheets:

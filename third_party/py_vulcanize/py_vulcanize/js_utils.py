@@ -5,24 +5,3 @@
 
 def EscapeJSIfNeeded(js):
   return js.replace('</script>', '<\/script>')
-
-
-def ValidateUsesStrictMode(module_name, stripped_text):
-  """Check that the first non-empty line is 'use strict';.
-
-  Args:
-    stripped_text: JavaScript source code with comments stripped out.
-
-  Raises:
-    DepsException: This file doesn't use strict mode.
-  """
-  lines = stripped_text.split('\n')
-  for line in lines:
-    line = line.strip()
-    if len(line.strip()) == 0:
-      continue
-    if """'use strict';""" in line.strip():
-      break
-    # FIXME: module is used but not imported. But, importing py_vulcanize.module
-    # leads to an import cycle since py_vulcanize.module imports js_utils.
-    raise module.DepsException('%s must use strict mode' % module_name)

@@ -71,19 +71,6 @@ class FakeLoader(object):
 
 class ParseTests(unittest.TestCase):
 
-  def testMissingDocType(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults('')
-
-    file_contents = {}
-
-    def DoIt():
-      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
-                        'a.b.start',
-                        '/tmp/a/b/',
-                        is_component=False,
-                        parser_results=parse_results)
-    self.assertRaises(Exception, DoIt)
-
   def testValidExternalScriptReferenceToRawScript(self):
     parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
       <script src="../foo.js">
@@ -123,23 +110,6 @@ class ParseTests(unittest.TestCase):
   def testExternalScriptReferenceToFileThatDoesntExist(self):
     parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
       <script src="/foo.js">
-      """)
-
-    file_contents = {}
-
-    def DoIt():
-      html_module.Parse(FakeLoader([os.path.normpath('/tmp')], file_contents),
-                        'a.b.start',
-                        '/tmp/a/b/',
-                        is_component=False,
-                        parser_results=parse_results)
-    self.assertRaises(Exception, DoIt)
-
-  def testInlineScriptWithoutStrictNote(self):
-    parse_results = parse_html_deps.HTMLModuleParserResults("""<!DOCTYPE html>
-      <script>
-console.log('Logging without strict mode is no fun.');
-      </script>
       """)
 
     file_contents = {}

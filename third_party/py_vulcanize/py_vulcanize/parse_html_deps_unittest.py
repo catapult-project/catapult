@@ -44,7 +44,6 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
-    self.assertTrue(module.has_decl)
     self.assertNotIn(
         'DOCTYPE html',
         module.html_contents_without_links_and_script)
@@ -64,7 +63,6 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.inline_scripts)
     self.assertEquals([], module.stylesheets)
     self.assertEquals(['x-foo.html'], module.imports)
-    self.assertTrue(module.has_decl)
 
   def test_parse_script_inline(self):
     html = """<polymer-element name="tk-element-proto">
@@ -82,7 +80,6 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(1, len(module.inline_scripts))
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
-    self.assertFalse(module.has_decl)
 
     script0 = module.inline_scripts[0]
     val = re.sub(r'\s+', '', script0.contents)
@@ -116,7 +113,6 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.inline_scripts)
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
-    self.assertFalse(module.has_decl)
 
     class Ctl(html_generation_controller.HTMLGenerationController):
 
