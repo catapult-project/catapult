@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from perf_insights import threaded_work_queue
+from perf_insights.mre import threaded_work_queue
 
 class ThreadedWorkQueueTests(unittest.TestCase):
   def testSingleThreaded(self):
