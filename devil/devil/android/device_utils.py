@@ -2023,9 +2023,6 @@ class DeviceUtils(object):
   def parallel(cls, devices, async=False):
     """Creates a Parallelizer to operate over the provided list of devices.
 
-    If |devices| is either |None| or an empty list, the Parallelizer will
-    operate over all attached devices that have not been blacklisted.
-
     Args:
       devices: A list of either DeviceUtils instances or objects from
                from which DeviceUtils instances can be constructed. If None,
@@ -2035,6 +2032,9 @@ class DeviceUtils(object):
 
     Returns:
       A Parallelizer operating over |devices|.
+
+    Raises:
+      device_errors.NoDevicesError: If no devices are passed.
     """
     if not devices:
       raise device_errors.NoDevicesError()
