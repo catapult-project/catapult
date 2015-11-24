@@ -7,6 +7,10 @@ import re
 import sys
 import warnings
 
+from py_vulcanize import strip_js_comments
+
+from catapult_build import parse_html
+
 
 class JSChecker(object):
 
@@ -141,7 +145,12 @@ class JSChecker(object):
     for f in affected_js_files:
       error_lines = []
 
-      for i, line in enumerate(f.NewContents(), start=1):
+      contents = list(f.NewContents())
+      error_lines += CheckStrictMode(
+          '\n'.join(contents),
+          is_html_file=f.LocalPath().endswith('.html'))
+
+      for i, line in enumerate(contents, start=1):
         error_lines += filter(None, [self.ConstCheck(i, line)])
 
       # Use closure_linter to check for several different errors.
@@ -170,6 +179,36 @@ class JSChecker(object):
             self._MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
 
     return results
+
+
+def CheckStrictMode(contents, is_html_file=False):
+  statements_to_check = []
+  if is_html_file:
+    statements_to_check.extend(_FirstStatementsInScriptElements(contents))
+  else:
+    statements_to_check.append(_FirstStatement(contents))
+  error_lines = []
+  for s in statements_to_check:
+    if s !=  "'use strict'":
+      error_lines.append('Expected "\'use strict\'" as first statement, '
+                         'but found "%s" instead.' % s)
+  return error_lines
+
+
+def _FirstStatementsInScriptElements(contents):
+  """Returns a list of first statements found in each <script> element."""
+  soup = parse_html.BeautifulSoup(contents)
+  script_elements = soup.find_all('script', src=None)
+  return [_FirstStatement(e.get_text()) for e in script_elements]
+
+
+def _FirstStatement(contents):
+  """Extracts the first statement in some JS source code."""
+  stripped_contents = strip_js_comments.StripJSComments(contents).strip()
+  matches = re.match('^(.*?);', stripped_contents, re.DOTALL)
+  if not matches:
+    return ''
+  return matches.group(1).strip()
 
 
 def RunChecks(input_api, output_api, excluded_paths=None):

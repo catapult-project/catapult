@@ -2,6 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""Code for parsing HTML.
+
+The purpose of this module is to ensure consistency of HTML parsing
+in catapult_build.
+"""
+
 import bs4
 
 
