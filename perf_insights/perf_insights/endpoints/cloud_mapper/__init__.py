@@ -23,7 +23,6 @@ THIRD_PARTY_LIBRARIES_IN_SDK = [
 CLOUD_MAPPER_FILES = [
     'appengine_config.py',
     'app.yaml',
-    'cloud-mapper.yaml',
     'perf_insights',
     'perf_insights_project.py',
     'third_party',
