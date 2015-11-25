@@ -362,7 +362,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     if not self._msr_server_handle:
       raise OSError('Unable to start MSR server.')
 
-    sock = socket.create_connection(('127.0.0.1', self._msr_server_port), 0.1)
+    sock = socket.create_connection(('127.0.0.1', self._msr_server_port), 0.2)
     try:
       sock.sendall(struct.pack('I', msr_number))
       response = sock.recv(8)
