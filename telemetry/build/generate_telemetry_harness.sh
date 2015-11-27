@@ -7,7 +7,7 @@
 # of the telemetry harness. It needs to be run from one level above src/ (such
 # as build/).
 
-src/tools/telemetry/find_dependencies \
+src/tools/perf/find_dependencies \
   src/tools/perf/run_benchmark \
   src/tools/perf/record_wpr \
   src/content/test/gpu/run_gpu_test.py \
