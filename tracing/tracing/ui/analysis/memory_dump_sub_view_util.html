@@ -129,24 +129,23 @@ tr.exportTo('tr.ui.analysis', function() {
    *
    * @constructor
    */
-  function MemoryColumn(name, title, units, cellGetter, aggregationMode) {
+  function MemoryColumn(name, units, cellGetter, aggregationMode) {
     this.name = name;
-    this.title = title;
     this.units = units;
     this.cell = cellGetter;
 
     // See MemoryColumn.AggregationMode enum in this file.
     this.aggregationMode = aggregationMode;
 
-    // Color of the values returned by this column. This can be either
-    // (1) undefined (no specific color is set), (2) a color string (e.g.
-    // 'blue'), or (3) a function mapping defined attributes to color strings
-    // (the return value can be undefined again).
-    this.color = undefined;
+    // Color of the values returned by this column can be set by assigning a
+    // 'color' field/getter. The value can be either (1) undefined (no specific
+    // color is set), (2) a color string (e.g. 'blue'), or (3) a function
+    // mapping lists of attributes to color strings (the return value can be
+    // undefined again).
   }
 
   MemoryColumn.fromRows = function(rows, cellKey, aggregationMode,
-      opt_titleBuilder) {
+      opt_customColumnConstructorRules) {
     var columnTraits = {};
 
     function gatherTraits(row) {
@@ -184,28 +183,30 @@ tr.exportTo('tr.ui.analysis', function() {
     };
     rows.forEach(gatherTraits);
 
-    var titleBuilder = opt_titleBuilder || tr.b.identity;
-
     var columns = [];
     tr.b.iterItems(columnTraits, function(columnName, columnTraits) {
       var cellGetter = fieldGetter(cellKey, columnName);
-      var title = titleBuilder(columnName);
-      columns.push(MemoryColumn.fromAttributeTraits(
-          columnName, title, columnTraits, cellGetter, aggregationMode));
+      var constructor = undefined;
+      if (opt_customColumnConstructorRules !== undefined) {
+        var matchingRule = MemoryColumn.findMatchingRule(
+            columnName, opt_customColumnConstructorRules);
+        if (matchingRule !== undefined)
+          constructor = matchingRule.columnConstructor;
+      }
+      if (constructor === undefined)
+        constructor = MemoryColumn.constructorFromAttributeTraits(columnTraits);
+      columns.push(new constructor(
+          columnName, columnTraits.units, cellGetter, aggregationMode));
     });
 
     return columns;
   };
 
-  MemoryColumn.fromAttributeTraits = function(name, title, traits, cellGetter,
-      aggregationMode) {
-    var constructor;
+  MemoryColumn.constructorFromAttributeTraits = function(traits) {
     if (traits.constructor === tr.model.ScalarAttribute)
-      constructor = ScalarMemoryColumn;
+      return ScalarMemoryColumn;
     else
-      constructor = MemoryColumn;
-    return new constructor(name, title, traits.units, cellGetter,
-        aggregationMode);
+      return MemoryColumn;
   };
 
   MemoryColumn.spaceEqually = function(columns) {
@@ -213,6 +214,28 @@ tr.exportTo('tr.ui.analysis', function() {
     columns.forEach(function(column) {
       column.width = columnWidth;
     });
+  };
+
+  MemoryColumn.findMatchingRule = function(name, rules) {
+    for (var i = 0; i < rules.length; i++) {
+      var rule = rules[i];
+      if (MemoryColumn.nameMatchesCondition(name, rule.condition))
+        return rule;
+    }
+    return undefined;
+  };
+
+  MemoryColumn.nameMatchesCondition = function(name, condition) {
+    // Rules without conditions match all columns.
+    if (condition === undefined)
+      return true;
+
+    // String conditions must match the column name exactly.
+    if (typeof(condition) === 'string')
+      return name === condition;
+
+    // If the condition is not a string, assume it is a RegExp.
+    return condition.test(name);
   };
 
   /**
@@ -364,6 +387,10 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   MemoryColumn.prototype = {
+    get title() {
+      return this.name;
+    },
+
     attrs: function(row) {
       var cell = this.cell(row);
       if (cell === undefined)
@@ -699,31 +726,16 @@ tr.exportTo('tr.ui.analysis', function() {
         return 0;
 
       // Find the first matching rule.
-      for (var i = 0; i < importanceRules.length; i++) {
-        var importanceRule = importanceRules[i];
-        if (this.matchesNameCondition(importanceRule.condition))
-          return importanceRule.importance;
-      }
+      var matchingRule =
+          MemoryColumn.findMatchingRule(this.name, importanceRules);
+      if (matchingRule !== undefined)
+        return matchingRule.importance;
 
       // No matching rule. Return lower importance than all rules.
       var minImportance = importanceRules[0].importance;
-      for (var i = 1; i < importanceRules.length; i++) {
+      for (var i = 1; i < importanceRules.length; i++)
         minImportance = Math.min(minImportance, importanceRules[i].importance);
-      }
       return minImportance - 1;
-    },
-
-    matchesNameCondition: function(condition) {
-      // Rules without conditions match all columns.
-      if (condition === undefined)
-        return true;
-
-      // String conditions must match the column name exactly.
-      if (typeof(condition) === 'string')
-        return this.name === condition;
-
-      // If the condition is not a string, assume it is a RegExp.
-      return condition.test(this.name);
     }
   };
 

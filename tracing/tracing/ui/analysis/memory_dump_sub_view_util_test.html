@@ -28,6 +28,7 @@ tr.b.unittest.testSuite(function() {
       tr.ui.analysis.aggregateTableRowCellsRecursively;
   var StringAttribute = tr.model.StringAttribute;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var UnknownAttribute = tr.model.UnknownAttribute;
   var AttributeInfo = tr.model.AttributeInfo;
   var AttributeInfoType = tr.model.AttributeInfoType;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
@@ -157,7 +158,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkMemoryColumn(column, expectedName, expectedTitle, expectedUnits,
-      expectedAggregationMode, testRow, expectedCell, expectedIsScalarColumn) {
+      expectedAggregationMode, testRow, expectedCell, expectedType) {
     assert.equal(column.name, expectedName);
     if (typeof expectedTitle === 'function')
       expectedTitle(column.title);
@@ -166,12 +167,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(column.units, expectedUnits);
     assert.strictEqual(column.aggregationMode, expectedAggregationMode);
     assert.strictEqual(column.cell(testRow), expectedCell);
-    if (expectedIsScalarColumn) {
-      assert.instanceOf(column, ScalarMemoryColumn);
-    } else {
-      assert.instanceOf(column, MemoryColumn);
-      assert.notInstanceOf(column, ScalarMemoryColumn);
-    }
+    assert.instanceOf(column, expectedType);
   }
 
   test('checkTitleColumn_value', function() {
@@ -226,7 +222,7 @@ tr.b.unittest.testSuite(function() {
     assert.isAbove(column.cmp({title: '10'}, {title: '2'}), 0);
   });
 
-  test('checkMemoryColumn_fromRows_defaultTitleBuilder', function() {
+  test('checkMemoryColumn_fromRows_defaultColumnConstructorRules', function() {
     var rows = buildTestRows();
     var columns =
         MemoryColumn.fromRows(rows, 'attributes', AggregationMode.DIFF);
@@ -235,86 +231,99 @@ tr.b.unittest.testSuite(function() {
     var cpuTemperatureColumn = columns[0];
     checkMemoryColumn(cpuTemperatureColumn, 'cpu_temperature',
         'cpu_temperature', 'C', AggregationMode.DIFF,
-        {attributes: {cpu_temperature: 42}}, 42,
-        false /* not ScalarMemoryColumn */);
+        {attributes: {cpu_temperature: 42}}, 42, MemoryColumn);
 
     var pageSizeColumn = columns[1];
     checkMemoryColumn(pageSizeColumn, 'page_size', 'page_size', 'bytes',
         AggregationMode.DIFF, {attributes: {page_size: 'large'}}, 'large',
-        true /* ScalarMemoryColumn */);
+        ScalarMemoryColumn);
 
     var mixedColumn = columns[2];
     checkMemoryColumn(mixedColumn, 'mixed', 'mixed', undefined /* unitless */,
-        AggregationMode.DIFF, {attributes: {mixed: 89}}, 89,
-        false /* not ScalarMemoryColumn */);
+        AggregationMode.DIFF, {attributes: {mixed: 89}}, 89, MemoryColumn);
 
     var mixed2Column = columns[3];
     checkMemoryColumn(mixed2Column, 'mixed2', 'mixed2',
         undefined /* unitless */, AggregationMode.DIFF,
-        {attributes: {mixed2: 'invalid'}}, 'invalid',
-        false /* not ScalarMemoryColumn */);
+        {attributes: {mixed2: 'invalid'}}, 'invalid', MemoryColumn);
   });
 
-  test('checkMemoryColumn_fromRows_customTitleBuilder', function() {
+  test('checkMemoryColumn_fromRows_customColumnConstructorRules', function() {
+    function MockColumn1() {
+      MemoryColumn.apply(this, arguments);
+    }
+    MockColumn1.prototype = {
+      __proto__: MemoryColumn.prototype,
+      get title() { return 'MockColumn1'; }
+    };
+
+    function MockColumn2() {
+      MemoryColumn.apply(this, arguments);
+    }
+    MockColumn2.prototype = {
+      __proto__: MemoryColumn.prototype,
+      get title() { return 'MockColumn2'; }
+    };
+
+    var rules = [
+      {
+        condition: /size/
+        // columnConstructor intentionally undefined.
+      },
+      {
+        condition: 'cpu_temperature',
+        columnConstructor: MockColumn1
+      },
+      {
+        condition: 'unmatched',
+        get columnConstructor() {
+          throw new Error('The constructor should never be retrieved');
+        }
+      },
+      {
+        condition: /d$/,
+        columnConstructor: MockColumn2
+      }
+    ];
+
     var rows = buildTestRows();
     var columns = MemoryColumn.fromRows(rows, 'attributes', AggregationMode.MAX,
-        function(name) {
-          var titleEl = document.createElement('span');
-          titleEl.innerText = name;
-          return titleEl;
-        });
+        rules);
     assert.lengthOf(columns, 4);
 
-    function titleChecker(expectedTitleText) {
-      return function(title) {
-        assert.equal(title.textContent, expectedTitleText);
-      }
-    }
-
     var cpuTemperatureColumn = columns[0];
-    checkMemoryColumn(cpuTemperatureColumn, 'cpu_temperature',
-        titleChecker('cpu_temperature'), 'C', AggregationMode.MAX,
-        {attributes: {cpu_temperature: 42}}, 42,
-        false /* not ScalarMemoryColumn */);
+    checkMemoryColumn(cpuTemperatureColumn, 'cpu_temperature', 'MockColumn1',
+        'C', AggregationMode.MAX, {attributes: {cpu_temperature: 42}}, 42,
+        MockColumn1);
 
     var pageSizeColumn = columns[1];
-    checkMemoryColumn(pageSizeColumn, 'page_size', titleChecker('page_size'),
-        'bytes', AggregationMode.MAX, {attributes: {page_size: 'large'}},
-        'large', true /* ScalarMemoryColumn */);
+    checkMemoryColumn(pageSizeColumn, 'page_size', 'page_size', 'bytes',
+        AggregationMode.MAX, {attributes: {page_size: 'large'}}, 'large',
+        ScalarMemoryColumn);
 
     var mixedColumn = columns[2];
-    checkMemoryColumn(mixedColumn, 'mixed', titleChecker('mixed'),
+    checkMemoryColumn(mixedColumn, 'mixed', 'MockColumn2',
         undefined /* unitless */, AggregationMode.MAX,
-        {attributes: {mixed: 89}}, 89, false /* not ScalarMemoryColumn */);
+        {attributes: {mixed: 89}}, 89, MockColumn2);
 
     var mixed2Column = columns[3];
-    checkMemoryColumn(mixed2Column, 'mixed2', titleChecker('mixed2'),
+    checkMemoryColumn(mixed2Column, 'mixed2', 'mixed2',
         undefined /* unitless */, AggregationMode.MAX,
-        {attributes: {mixed2: 'invalid'}}, 'invalid',
-        false /* not ScalarMemoryColumn */);
+        {attributes: {mixed2: 'invalid'}}, 'invalid', MemoryColumn);
   });
 
-  test('checkMemoryColumn_fromAttributeTraits', function() {
+  test('checkMemoryColumn_constructorFromAttributeTraits', function() {
     // String attribute.
-    var traits = {
-      constructor: StringAttribute,
-      units: 'Mbps'
-    };
-    var column = MemoryColumn.fromAttributeTraits('first_column',
-        'First Column', traits, fieldGetter('x'), AggregationMode.MAX);
-    checkMemoryColumn(column, 'first_column', 'First Column', 'Mbps',
-        AggregationMode.MAX, {x: 'val'}, 'val',
-        false /* not ScalarMemoryColumn */);
+    assert.strictEqual(MemoryColumn.constructorFromAttributeTraits(
+        {constructor: StringAttribute, units: 'Mbps'}), MemoryColumn);
 
     // Scalar attribute.
-    var traits = {
-      constructor: ScalarAttribute,
-      units: 'bytes'
-    };
-    var column = MemoryColumn.fromAttributeTraits('second_column',
-        'Second Column', traits, fieldGetter('x'), AggregationMode.DIFF);
-    checkMemoryColumn(column, 'second_column', 'Second Column', 'bytes',
-        AggregationMode.DIFF, {x: 0xABC}, 0xABC, true /* ScalarMemoryColumn */);
+    assert.strictEqual(MemoryColumn.constructorFromAttributeTraits(
+        {constructor: ScalarAttribute, units: 'bytes'}), ScalarMemoryColumn);
+
+    // Unknown attribute.
+    assert.strictEqual(MemoryColumn.constructorFromAttributeTraits(
+        {constructor: UnknownAttribute, units: undefined}), MemoryColumn);
   });
 
   test('checkMemoryColumn_spaceEqually', function() {
@@ -350,14 +359,10 @@ tr.b.unittest.testSuite(function() {
 
   test('checkMemoryColumn_sortByImportance', function() {
     var columns = [
-      new MemoryColumn(
-          'page_size', 'Page Size', 'bytes', fieldGetter('pgsize')),
-      new MemoryColumn(
-          'resident_size', 'Resident Size', 'bytes', fieldGetter('rss')),
-      new MemoryColumn(
-          'object_count', 'Object Count', 'objects', fieldGetter('objcount')),
-      new MemoryColumn(
-          'proportional_size', 'Proportional Size', 'bytes', fieldGetter('pss'))
+      new MemoryColumn('page_size', 'bytes', fieldGetter('pgsize')),
+      new MemoryColumn('resident_size', 'bytes', fieldGetter('rss')),
+      new MemoryColumn('object_count', 'objects', fieldGetter('objcount')),
+      new MemoryColumn('proportional_size', 'bytes', fieldGetter('pss'))
     ];
 
     var rules = [
@@ -399,10 +404,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_fields', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     assert.equal(c.name, 'test_column');
-    assert.equal(c.title, 'Test Column');
+    assert.equal(c.title, 'test_column');
     assert.equal(c.units, 'ms');
     assert.equal(c.cell({x: 95}), 95);
     assert.isUndefined(c.width);
@@ -410,8 +415,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_attrs', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
 
     // Undefined cell or attribute inside cell.
     assert.isUndefined(c.attrs({}));
@@ -428,15 +433,15 @@ tr.b.unittest.testSuite(function() {
 
   test('checkMemoryColumn_hasAllRelevantAttrsUndefined', function() {
     // Single attribute.
-    var c1 = new MemoryColumn('single_column', 'Single Column', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c1 = new MemoryColumn('single_column', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
     assert.isTrue(c1.hasAllRelevantAttrsUndefined([undefined]));
     assert.isFalse(c1.hasAllRelevantAttrsUndefined(
         [new ScalarAttribute('bytes', 16)]));
 
     // Multiple attributes, diff aggregation mode.
-    var c2 = new MemoryColumn('diff_column', 'Diff Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c2 = new MemoryColumn('diff_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
     assert.isTrue(c2.hasAllRelevantAttrsUndefined([undefined, undefined]));
     assert.isTrue(c2.hasAllRelevantAttrsUndefined(
         [undefined, undefined, undefined]));
@@ -452,8 +457,8 @@ tr.b.unittest.testSuite(function() {
         new ScalarAttribute('bytes', 32)]));
 
     // Multiple attributes, max aggregation mode.
-    var c3 = new MemoryColumn('max_column', 'Max Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c3 = new MemoryColumn('max_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     assert.isTrue(c3.hasAllRelevantAttrsUndefined([undefined, undefined]));
     assert.isTrue(c3.hasAllRelevantAttrsUndefined(
         [undefined, undefined, undefined]));
@@ -468,10 +473,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_value_allAttrsUndefined', function() {
-    var c1 = new MemoryColumn('test_column1', 'No Color', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
-    var c2 = new MemoryColumn('test_column2', 'Color', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c1 = new MemoryColumn('no_color', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
+    var c2 = new MemoryColumn('color', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
     Object.defineProperty(c2, 'color', {
       get: function() {
         throw new Error('The color should never be retrieved');
@@ -491,13 +496,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_value_singleAttribute', function() {
-    var c1 = new MemoryColumn('test_column1', 'No Color', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
-    var c2 = new MemoryColumn('test_column2', 'Color String', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c1 = new MemoryColumn('no_color', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
+    var c2 = new MemoryColumn('color_string', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     c2.color = '#009999';
-    var c3 = new MemoryColumn('test_column3', 'Color Function', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c3 = new MemoryColumn('color_function', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     c3.color = function(attrs) {
       return attrs[0].value > '0' ? 'green' : undefined;
     };
@@ -560,13 +565,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_value_multipleAttributes', function() {
-    var c1 = new MemoryColumn('test_column1', 'No Color', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
-    var c2 = new MemoryColumn('test_column2', 'Color String', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c1 = new MemoryColumn('test_column1', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
+    var c2 = new MemoryColumn('test_column2', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
     c2.color = '#009999';
-    var c3 = new MemoryColumn('test_column3', 'Color Function', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c3 = new MemoryColumn('test_column3', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     c3.color = function(attrs) {
       return attrs.length % 2 === 1 ? 'green' : undefined;
     };
@@ -599,8 +604,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_formatSingleAttributeValue', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
 
     assert.equal(c.formatSingleAttributeValue(
         new ScalarAttribute('bytes', 1024)), '1024');
@@ -609,8 +614,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_formatMultipleAttributeValues_diff', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
 
     // Added value.
     checkMemoryColumnValueFormat(this, c, [undefined, 'few'], '+few', 'red');
@@ -635,8 +640,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_formatMultipleAttributeValues_max', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
 
     // Different values.
     checkMemoryColumnValueFormat(this, c, ['A', 'B', 'A'], 'B',
@@ -652,8 +657,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_compareSingleAttributes', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
 
     assert.isBelow(c.compareSingleAttributes(new ScalarAttribute('bytes', 2),
         new ScalarAttribute('bytes', 10)), 0);
@@ -664,8 +669,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_compareMultipleAttributes_diff', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
 
     // One attribute was added.
     checkCompareAttributesLess(c, [-10, 10], [undefined, 5]);
@@ -697,8 +702,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_compareMultipleAttributes_max', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
 
     // At least one attribute has multiple values.
     checkCompareAttributesEqual(c, [0, 1, 3], [1, 3, 2]);
@@ -713,8 +718,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_cmp', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
 
     // Cell (or the associated attribute) undefined in one or both rows.
     assert.equal(c.cmp({}, {y: new MemoryCell([undefined])}), 0);
@@ -742,8 +747,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_getInfos', function() {
-    var c = new MemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
 
     var info = new AttributeInfo(AttributeInfoType.INFORMATION, 'interesting');
     var warning = new AttributeInfo(AttributeInfoType.WARNING, 'thrilling');
@@ -762,8 +767,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_getImportance', function() {
-    var c = new ScalarMemoryColumn(
-        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+    var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'));
 
     var rules1 = [];
     assert.equal(c.getImportance(rules1), 0);
@@ -804,24 +808,26 @@ tr.b.unittest.testSuite(function() {
     assert.equal(c.getImportance(rules4), 12);
   });
 
-  test('checkMemoryColumn_matchesNameCondition', function() {
-    var c = new ScalarMemoryColumn(
-        'test_column', 'Test Column', 'bytes', fieldGetter('x'));
+  test('checkMemoryColumn_nameMatchesCondition', function() {
+    var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'));
 
-    assert.isTrue(c.matchesNameCondition(undefined));
+    assert.isTrue(MemoryColumn.nameMatchesCondition('test_column', undefined));
 
-    assert.isFalse(c.matchesNameCondition('test'));
-    assert.isTrue(c.matchesNameCondition('test_column'));
-    assert.isFalse(c.matchesNameCondition('test_column2'));
+    assert.isFalse(MemoryColumn.nameMatchesCondition('test_column', 'test'));
+    assert.isTrue(
+        MemoryColumn.nameMatchesCondition('test_column', 'test_column'));
+    assert.isFalse(
+        MemoryColumn.nameMatchesCondition('test_column', 'test_column2'));
 
-    assert.isTrue(c.matchesNameCondition(/test/));
-    assert.isTrue(c.matchesNameCondition(/^[^_]*_[^_]*$/));
-    assert.isFalse(c.matchesNameCondition(/test$/));
+    assert.isTrue(MemoryColumn.nameMatchesCondition('test_column', /test/));
+    assert.isTrue(
+        MemoryColumn.nameMatchesCondition('test_column', /^[^_]*_[^_]*$/));
+    assert.isFalse(MemoryColumn.nameMatchesCondition('test_column', /test$/));
   });
 
   test('checkScalarMemoryColumn_value', function() {
-    var c = new ScalarMemoryColumn('test_column', 'Test Column', 'bytes',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'),
+        AggregationMode.DIFF);
     c.color = '#009999';
 
     // Undefined attribute values.
@@ -868,16 +874,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_formatSingleAttributeValue', function() {
-    var c = new ScalarMemoryColumn('test_column1', 'Non-bytes Column', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
     var value = c.formatSingleAttributeValue(new ScalarAttribute('ms', 123));
     assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
     assert.equal(value.value, 123);
     assert.equal(value.unit, tr.b.u.Units.unitlessNumber);
     this.addHTMLOutput(value);
 
-    var c = new ScalarMemoryColumn('test_column', 'Bytes Column', 'bytes',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
+        undefined /* aggregation mode */);
     var value = c.formatSingleAttributeValue(new ScalarAttribute('bytes', 456));
     assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
     assert.equal(value.value, 456);
@@ -887,8 +893,8 @@ tr.b.unittest.testSuite(function() {
 
   test('checkScalarMemoryColumn_formatMultipleAttributeValues_diff',
       function() {
-    var c = new ScalarMemoryColumn('test_column1', 'Non-bytes Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 2,
         tr.b.u.Units.unitlessNumber, true, 'red');
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], -10,
@@ -896,8 +902,8 @@ tr.b.unittest.testSuite(function() {
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 0,
         tr.b.u.Units.unitlessNumber, true);
 
-    var c = new ScalarMemoryColumn('test_column2', 'Bytes Column', 'bytes',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
+        AggregationMode.DIFF);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 2,
         tr.b.u.Units.sizeInBytes, true, 'red');
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], -10,
@@ -908,8 +914,8 @@ tr.b.unittest.testSuite(function() {
 
   test('checkScalarMemoryColumn_formatMultipleAttributeValues_max',
       function() {
-    var c = new ScalarMemoryColumn('test_column1', 'Non-bytes Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 3,
         tr.b.u.Units.unitlessNumber, false);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], 10,
@@ -919,8 +925,8 @@ tr.b.unittest.testSuite(function() {
     checkScalarMemoryColumnValueFormat(this, c,
         [undefined, 10, 20, undefined], 20, tr.b.u.Units.unitlessNumber, false);
 
-    var c = new ScalarMemoryColumn('test_column2', 'Bytes Column', 'bytes',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
+        AggregationMode.MAX);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 3,
         tr.b.u.Units.sizeInBytes, false);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], 10,
@@ -932,8 +938,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_cmp', function() {
-    var c = new ScalarMemoryColumn('test_column', 'Test Column', 'bytes',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'),
+        AggregationMode.DIFF);
 
     // Undefined attribute values.
     assert.isAbove(c.cmp({x: buildScalarCell('bytes', [-9999999999])},
@@ -953,8 +959,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_compareSingleAttributes', function() {
-    var c = new ScalarMemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), undefined /* aggregation mode */);
+    var c = new ScalarMemoryColumn('test_column', 'ms', fieldGetter('x'),
+        undefined /* aggregation mode */);
 
     assert.isBelow(c.compareSingleAttributes(new ScalarAttribute('ms', 99),
         new ScalarAttribute('ms', 100)), 0);
@@ -965,8 +971,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_compareMultipleAttributes_diff', function() {
-    var c = new ScalarMemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.DIFF);
+    var c = new ScalarMemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.DIFF);
 
     assert.isBelow(c.compareMultipleAttributes(
         buildScalarCell('bytes', [10000, 10001, 10002] /* diff +2 */).attrs,
@@ -984,8 +990,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkScalarMemoryColumn_compareMultipleAttributes_max', function() {
-    var c = new ScalarMemoryColumn('test_column', 'Test Column', 'ms',
-        fieldGetter('x'), AggregationMode.MAX);
+    var c = new ScalarMemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
 
     assert.isBelow(c.compareMultipleAttributes(
         buildScalarCell('bytes', [10, undefined, 12]).attrs,
@@ -1145,7 +1151,7 @@ tr.b.unittest.testSuite(function() {
 
     aggregateTableRowCellsRecursively(row, 'testCells');
 
-    var mockColumn = new MemoryColumn('', '', '', tr.b.identity, undefined);
+    var mockColumn = new MemoryColumn('', '', tr.b.identity, undefined);
 
     checkSizeAttributes(row.testCells.a, mockColumn, [17]);
     checkSizeAttributes(row.testCells.b, mockColumn, [123]);
@@ -1190,7 +1196,7 @@ tr.b.unittest.testSuite(function() {
     aggregateTableRowCells(row, subRows, 'testCells');
     aggregateTableRowCells(row, subRows, 'otherCells');
 
-    var mockColumn = new MemoryColumn('', '', '', tr.b.identity, undefined);
+    var mockColumn = new MemoryColumn('', '', tr.b.identity, undefined);
 
     checkSizeAttributes(row.testCells.a, mockColumn, [3, 26]);
     checkSizeAttributes(row.testCells.b, mockColumn, [5]);
@@ -1219,7 +1225,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var mockColumn = new MemoryColumn('', '', '', tr.b.identity, undefined);
+    var mockColumn = new MemoryColumn('', '', tr.b.identity, undefined);
 
     // Without callback.
     var cells = createCells(values, function(dict) {

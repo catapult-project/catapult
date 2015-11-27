@@ -77,30 +77,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
   var ColorScheme = tr.b.ColorScheme;
 
-  var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
-      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
-          'Total resident',
-          'Peak total resident',
-          'PSS',
-          'Private dirty',
-          'Swapped']);
-
-  var ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES = [
-    {
-      condition: 'tracing',
-      importance: 0
-    },
-    {
-      importance: 1
-    }
-  ];
-
   var PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX = '_bytes';
 
   var DISPLAYED_SIZE_ATTRIBUTE_NAME =
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
 
-  var LINK_SYMBOL = String.fromCharCode(9903);
   var GREATER_THAN_OR_EQUAL_TO_SYMBOL = String.fromCharCode(8805);
 
   /** @constructor */
@@ -119,6 +100,105 @@ tr.exportTo('tr.ui.analysis', function() {
       return titleEl;
     }
   };
+
+  /** @constructor */
+  function UsedMemoryColumn(name, units, cellGetter, aggregationMode) {
+    tr.ui.analysis.ScalarMemoryColumn.call(
+        this, name, units, cellGetter, aggregationMode);
+  }
+
+  var USED_MEMORY_COLUMN_COLOR =
+      ColorScheme.getColorForReservedNameAsString('used_memory_column');
+  var OLDER_USED_MEMORY_COLUMN_COLOR =
+      ColorScheme.getColorForReservedNameAsString('older_used_memory_column');
+
+  UsedMemoryColumn.prototype = {
+    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+
+    get title() {
+      return tr.ui.b.createSpan(
+          {textContent: this.name, color: USED_MEMORY_COLUMN_COLOR});
+    },
+
+    color: function(attrs) {
+      // TODO(petrcermak): Figure out how to make this work for multi-
+      // selection as well.
+      if (attrs.length === 1 && attrs[0].isOlderValue)
+        return OLDER_USED_MEMORY_COLUMN_COLOR;
+      else
+        return USED_MEMORY_COLUMN_COLOR;
+    }
+  };
+
+  /** @constructor */
+  function AllocatorColumn(name, units, cellGetter, aggregationMode) {
+    tr.ui.analysis.ScalarMemoryColumn.call(
+        this, name, units, cellGetter, aggregationMode);
+  }
+
+  AllocatorColumn.prototype = {
+    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+
+    get title() {
+      var titleEl = document.createElement('tr-ui-b-color-legend');
+      titleEl.label = this.name;
+      return titleEl;
+    }
+  };
+
+  /** @constructor */
+  function TracingColumn(name, units, cellGetter, aggregationMode) {
+    tr.ui.analysis.ScalarMemoryColumn.call(
+        this, name, units, cellGetter, aggregationMode);
+  }
+
+  var TRACING_COLUMN_COLOR =
+      ColorScheme.getColorForReservedNameAsString('tracing_memory_column');
+
+  TracingColumn.prototype = {
+    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+
+    get title() {
+      return tr.ui.b.createSpan(
+          {textContent: this.name, color: TRACING_COLUMN_COLOR});
+    },
+
+    color: TRACING_COLUMN_COLOR
+  };
+
+  // Rules for constructing and sorting used memory columns.
+  var USED_MEMORY_SIZE_COLUMNS_CONSTRUCTOR_RULES = [
+    {
+      columnConstructor: UsedMemoryColumn
+    }
+  ];
+  var USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES =
+      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
+          'Total resident',
+          'Peak total resident',
+          'PSS',
+          'Private dirty',
+          'Swapped']);
+
+  // Rules for constructing and sorting allocator columns.
+  var ALLOCATOR_SIZE_COLUMNS_CONSTRUCTOR_RULES = [
+    {
+      condition: 'tracing',
+      columnConstructor: TracingColumn
+    },
+    {
+      columnConstructor: AllocatorColumn
+    }
+  ];
+  var ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES = [
+    {
+      condition: 'tracing',
+      importance: 0
+    },
+    {
+      importance: 1
+    }
+  ];
 
   Polymer('tr-ui-a-memory-dump-overview-pane', {
     created: function() {
@@ -420,50 +500,16 @@ tr.exportTo('tr.ui.analysis', function() {
       titleColumn.width = '200px';
 
       var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'usedMemoryCells', this.aggregationMode_);
+          rows, 'usedMemoryCells', this.aggregationMode_,
+          USED_MEMORY_SIZE_COLUMNS_CONSTRUCTOR_RULES);
       tr.ui.analysis.MemoryColumn.sortByImportance(
           usedMemorySizeColumns, USED_MEMORY_SIZE_COLUMNS_IMPORTANCE_RULES);
 
       var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
           rows, 'allocatorCells', this.aggregationMode_,
-          function(allocatorName) {
-            var titleEl = document.createElement('tr-ui-b-color-legend');
-            titleEl.label = allocatorName;
-            return titleEl;
-          });
+          ALLOCATOR_SIZE_COLUMNS_CONSTRUCTOR_RULES);
       tr.ui.analysis.MemoryColumn.sortByImportance(
           allocatorSizeColumns, ALLOCATOR_SIZE_COLUMNS_IMPORTANCE_RULES);
-
-      // Grey the 'tracing' column out (if present).
-      // TODO(petrcermak): Find a less hacky way to do this.
-      var tracingColumn = tr.b.findFirstInArray(allocatorSizeColumns,
-          function(column) {
-        return column.name === 'tracing';
-      });
-      if (tracingColumn !== undefined) {
-        var tracingColumnColor = ColorScheme.getColorForReservedNameAsString(
-            'tracing_memory_column');
-        tracingColumn.title = tr.ui.b.createSpan(
-            {textContent: 'tracing', color: tracingColumnColor});
-        tracingColumn.color = tracingColumnColor;
-      }
-
-      // Make the used memory size columns blue.
-      // TODO(petrcermak): Find a less hacky way to do this.
-      usedMemorySizeColumns.forEach(function(column) {
-        var olderUsedMCC = ColorScheme.getColorForReservedNameAsString(
-            'older_used_memory_column');
-        var usedMCC = ColorScheme.getColorForReservedNameAsString(
-            'used_memory_column');
-        column.title = tr.ui.b.createSpan(
-            {textContent: column.title, color: usedMCC});
-        column.color = function(attrs) {
-          // TODO(petrcermak): Figure out how to make this work for multi-
-          // selection as well.
-          return attrs.length === 1 && attrs[0].isOlderValue ?
-              olderUsedMCC : usedMCC;
-        }
-      });
 
       var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);
