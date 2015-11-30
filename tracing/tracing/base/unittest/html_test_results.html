@@ -301,7 +301,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.showPendingAndPassedTests_ = showPendingAndPassedTests;
 
       var testCaseResults = this.querySelectorAll('x-html-test-case-result');
-      for (var i = 0; i < testCaseResults.length; i++)
+      for (var i = testCaseResults.length - 1; i >= 0; i--)
         this.updateDisplayStateForResult_(testCaseResults[i]);
     },
 
@@ -321,16 +321,16 @@ tr.exportTo('tr.b.unittest', function() {
 
       // This bit of mess gives res objects a dark class based on whether their
       // last visible sibling was not dark. It relies on the
-      // updateDisplayStateForResult_ being called on all previous siblings of
+      // updateDisplayStateForResult_ being called on all next siblings of
       // an element before being called on the element itself. Yay induction.
       var dark;
-      if (!res.previousSibling) {
+      if (!res.nextSibling) {
         dark = true;
       } else {
         var lastVisible;
-        for (var cur = res.previousSibling;
+        for (var cur = res.nextSibling;
              cur;
-             cur = cur.previousSibling) {
+             cur = cur.nextSibling) {
           if (cur.style.display == '') {
             lastVisible = cur;
             break;
