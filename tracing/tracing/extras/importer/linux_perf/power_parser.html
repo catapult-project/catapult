@@ -34,6 +34,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     importer.registerEventHandler('cpu_frequency',
         PowerParser.prototype.cpuFrequencyEvent.bind(this));
+    importer.registerEventHandler('cpu_frequency_limits',
+        PowerParser.prototype.cpuFrequencyLimitsEvent.bind(this));
     importer.registerEventHandler('cpu_idle',
         PowerParser.prototype.cpuIdleEvent.bind(this));
   }
@@ -91,6 +93,26 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       });
     },
 
+    cpuFrequencyLimitsSlice: function(ts, targetCpuNumber, minFreq, maxFreq) {
+      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
+      var powerCounter =
+          targetCpu.getOrCreateCounter('', 'Clock Frequency Limits');
+      if (powerCounter.numSeries === 0) {
+        powerCounter.addSeries(new tr.model.CounterSeries('Min Frequency',
+            ColorScheme.getColorIdForGeneralPurposeString(
+                powerCounter.name + '.' + 'Min Frequency')));
+        powerCounter.addSeries(new tr.model.CounterSeries('Max Frequency',
+            ColorScheme.getColorIdForGeneralPurposeString(
+                powerCounter.name + '.' + 'Max Frequency')));
+      }
+      powerCounter.series.forEach(function(series) {
+        if (series.name == 'Min Frequency')
+          series.addCounterSample(ts, minFreq);
+        if (series.name == 'Max Frequency')
+          series.addCounterSample(ts, maxFreq);
+      });
+    },
+
     /**
      * Parses power events and sets up state in the importer.
      */
@@ -125,6 +147,18 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var targetCpuNumber = parseInt(event[2]);
       var powerState = parseInt(event[1]);
       this.cpuFrequencySlice(ts, targetCpuNumber, powerState);
+      return true;
+    },
+
+    cpuFrequencyLimitsEvent: function(eventName, cpu, pid, ts, eventBase) {
+      var event = /min=(\d+) max=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      if (!event)
+        return false;
+
+      var targetCpuNumber = parseInt(event[3]);
+      var minFreq = parseInt(event[1]);
+      var maxFreq = parseInt(event[2]);
+      this.cpuFrequencyLimitsSlice(ts, targetCpuNumber, minFreq, maxFreq);
       return true;
     },
 
