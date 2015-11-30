@@ -5,12 +5,21 @@
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
 import collections
+import contextlib
 import hashlib
 import logging
 import os
+import shutil
 import stat
 import subprocess
 import sys
+import tempfile
+import time
+
+try:
+  import fcntl
+except ImportError:
+  fcntl = None
 
 from telemetry.core import util
 from telemetry import decorators
@@ -180,13 +189,60 @@ def Delete(bucket, remote_path):
 
 
 def Get(bucket, remote_path, local_path):
+  with _PseudoFileLock(local_path):
+    _GetLocked(bucket, remote_path, local_path)
+
+
+@contextlib.contextmanager
+def _PseudoFileLock(base_path):
+  pseudo_lock_path = '%s.pseudo_lock' % base_path
+  _CreateDirectoryIfNecessary(os.path.dirname(pseudo_lock_path))
+  # This is somewhat of a racy hack because we don't have a good
+  # cross-platform file lock. If we get one, this should be refactored
+  # to use it.
+  while os.path.exists(pseudo_lock_path):
+    time.sleep(0.1)
+  fd = os.open(pseudo_lock_path, os.O_RDONLY | os.O_CREAT)
+  if fcntl:
+    fcntl.flock(fd, fcntl.LOCK_EX)
+  try:
+    yield
+  finally:
+    if fcntl:
+      fcntl.flock(fd, fcntl.LOCK_UN)
+    try:
+      os.close(fd)
+      os.remove(pseudo_lock_path)
+    except OSError:
+      # We don't care if the pseudo-lock gets removed elsewhere before we have
+      # a chance to do so.
+      pass
+
+
+def _CreateDirectoryIfNecessary(directory):
+  if not os.path.exists(directory):
+    os.makedirs(directory)
+
+
+def _GetLocked(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
   logging.info('Downloading %s to %s' % (url, local_path))
-  try:
-    _RunCommand(['cp', url, local_path])
-  except ServerError:
-    logging.info('Cloud Storage server error, retrying download')
-    _RunCommand(['cp', url, local_path])
+  _CreateDirectoryIfNecessary(os.path.dirname(local_path))
+  with tempfile.NamedTemporaryFile(
+      dir=os.path.dirname(local_path),
+      delete=False) as partial_download_path:
+    try:
+      # Windows won't download to an open file.
+      partial_download_path.close()
+      try:
+        _RunCommand(['cp', url, partial_download_path.name])
+      except ServerError:
+        logging.info('Cloud Storage server error, retrying download')
+        _RunCommand(['cp', url, partial_download_path.name])
+      shutil.move(partial_download_path.name, local_path)
+    finally:
+      if os.path.exists(partial_download_path.name):
+        os.remove(partial_download_path.name)
 
 
 def Insert(bucket, remote_path, local_path, publicly_readable=False):
@@ -225,11 +281,12 @@ def GetIfHashChanged(cs_path, download_path, bucket, file_hash):
     PermissionError if the user does not have permission to access the bucket.
     NotFoundError if the file is not in the given bucket in cloud_storage.
   """
-  if (os.path.exists(download_path) and
-      CalculateHash(download_path) == file_hash):
-    return False
-  Get(bucket, cs_path, download_path)
-  return True
+  with _PseudoFileLock(download_path):
+    if (os.path.exists(download_path) and
+        CalculateHash(download_path) == file_hash):
+      return False
+    _GetLocked(bucket, cs_path, download_path)
+    return True
 
 
 def GetIfChanged(file_path, bucket):
@@ -243,17 +300,18 @@ def GetIfChanged(file_path, bucket):
     PermissionError if the user does not have permission to access the bucket.
     NotFoundError if the file is not in the given bucket in cloud_storage.
   """
-  hash_path = file_path + '.sha1'
-  if not os.path.exists(hash_path):
-    logging.warning('Hash file not found: %s' % hash_path)
-    return False
+  with _PseudoFileLock(file_path):
+    hash_path = file_path + '.sha1'
+    if not os.path.exists(hash_path):
+      logging.warning('Hash file not found: %s' % hash_path)
+      return False
 
-  expected_hash = ReadHash(hash_path)
-  if os.path.exists(file_path) and CalculateHash(file_path) == expected_hash:
-    return False
+    expected_hash = ReadHash(hash_path)
+    if os.path.exists(file_path) and CalculateHash(file_path) == expected_hash:
+      return False
+    _GetLocked(bucket, expected_hash, file_path)
+    return True
 
-  Get(bucket, expected_hash, file_path)
-  return True
 
 # TODO(aiolos): remove @decorators.Cache for http://crbug.com/459787
 @decorators.Cache
