@@ -89,9 +89,11 @@ class CloudStorageUnitTest(unittest.TestCase):
       stubs.Restore()
 
   @mock.patch('catapult_base.cloud_storage.CalculateHash')
-  @mock.patch('catapult_base.cloud_storage.Get')
+  @mock.patch('catapult_base.cloud_storage._GetLocked')
+  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
   @mock.patch('catapult_base.cloud_storage.os.path')
-  def testGetIfHashChanged(self, path_mock, get_mock, calc_hash_mock):
+  def testGetIfHashChanged(self, path_mock, lock_mock, get_mock,
+                           calc_hash_mock):
     path_mock.exists.side_effect = [False, True, True]
     calc_hash_mock.return_value = 'hash'
 
@@ -122,9 +124,10 @@ class CloudStorageUnitTest(unittest.TestCase):
     calc_hash_mock.reset_mock()
     get_mock.reset_mock()
 
-  def testGetIfChanged(self):
+  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
+  def testGetIfChanged(self, lock_mock):
     stubs = system_stub.Override(cloud_storage, ['os', 'open'])
-    orig_get = cloud_storage.Get
+    orig_get = cloud_storage._GetLocked
     orig_read_hash = cloud_storage.ReadHash
     orig_calculate_hash = cloud_storage.CalculateHash
     cloud_storage.ReadHash = _FakeReadHash
@@ -132,7 +135,7 @@ class CloudStorageUnitTest(unittest.TestCase):
     file_path = 'test-file-path.wpr'
     hash_path = file_path + '.sha1'
     try:
-      cloud_storage.Get = self._FakeGet
+      cloud_storage._GetLocked = self._FakeGet
       # hash_path doesn't exist.
       self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                   cloud_storage.PUBLIC_BUCKET))
@@ -150,7 +153,7 @@ class CloudStorageUnitTest(unittest.TestCase):
                                                  cloud_storage.PUBLIC_BUCKET))
     finally:
       stubs.Restore()
-      cloud_storage.Get = orig_get
+      cloud_storage._GetLocked = orig_get
       cloud_storage.CalculateHash = orig_calculate_hash
       cloud_storage.ReadHash = orig_read_hash
 
