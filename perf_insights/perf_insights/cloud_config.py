@@ -8,8 +8,10 @@ from google.appengine.api import app_identity
 from google.appengine.ext import ndb
 
 def _is_devserver():
-  return os.environ.get('SERVER_SOFTWARE','').startswith('Development')
+  server_software = os.environ.get('SERVER_SOFTWARE','')
+  return server_software and server_software.startswith('Development')
 
+_DEFAULT_CATAPULT_PATH = '/catapult'
 _DEFAULT_TARGET = 'prod'
 if _is_devserver():
   _DEFAULT_TARGET = 'test'
@@ -27,8 +29,10 @@ _GCE_DEFAULT_MACHINE_TYPE = 'n1-standard-1'
 
 class CloudConfig(ndb.Model):
   control_bucket_path = ndb.StringProperty(default=_DEFAULT_CONTROL_BUCKET_PATH)
+  setup_scheme = 'http' if _is_devserver() else 'https'
   default_corpus = ndb.StringProperty(
-      default='https://%s' % app_identity.get_default_version_hostname())
+      default='%s://%s' % (
+          setup_scheme, app_identity.get_default_version_hostname()))
   urlfetch_service_id = ndb.StringProperty(default='')
   gce_project_name = ndb.StringProperty(
       default=app_identity.get_application_id())
@@ -37,6 +41,7 @@ class CloudConfig(ndb.Model):
   gce_machine_type = ndb.StringProperty(default=_GCE_DEFAULT_MACHINE_TYPE)
   trace_upload_bucket = ndb.StringProperty(
       default='%s/traces' % app_identity.get_default_gcs_bucket_name())
+  catapult_path = ndb.StringProperty(default=_DEFAULT_CATAPULT_PATH)
 
 def Get():
   config = CloudConfig.get_by_id(_CONFIG_KEY_NAME)

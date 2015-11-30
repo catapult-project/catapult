@@ -12,6 +12,7 @@ class JobInfo(ndb.Model):
 
   mapper = ndb.TextProperty()
   reducer = ndb.TextProperty()
+  mapper_function = ndb.StringProperty(indexed=True)
   query = ndb.StringProperty(indexed=True)
   corpus = ndb.StringProperty(indexed=True)
   revision = ndb.StringProperty(indexed=True)

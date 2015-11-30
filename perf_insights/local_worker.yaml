@@ -1,0 +1,21 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+api_version: 1
+module: cloud-worker
+threadsafe: true
+runtime: python27
+vm: true
+
+manual_scaling:
+  instances: 1
+
+resources:
+  cpu: .5
+  memory_gb: 0.5
+
+handlers:
+- url: /cloud_worker/task
+  script: perf_insights.endpoints.cloud_mapper.worker.app
+  secure: always

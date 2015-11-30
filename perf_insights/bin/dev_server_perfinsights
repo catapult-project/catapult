@@ -23,8 +23,9 @@ def Main():
 
   _AddToPathIfNeeded(catapult_path)
   from catapult_build import appengine_dev_server
-  appengine_dev_server.DevAppserver(paths, sys.argv[1:])
 
+  appengine_dev_server.DevAppserver(
+      paths, ['local_worker.yaml', 'dispatch.yaml'] + sys.argv[1:])
 
 if __name__ == '__main__':
   Main()

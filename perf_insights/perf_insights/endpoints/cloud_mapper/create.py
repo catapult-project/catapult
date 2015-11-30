@@ -17,6 +17,7 @@ class CreatePage(webapp2.RequestHandler):
 
     mapper = self.request.get('mapper')
     reducer = self.request.get('reducer')
+    mapper_function = self.request.get('mapper_function')
     query = self.request.get('query')
     corpus = self.request.get('corpus')
     revision = self.request.get('revision')
@@ -30,6 +31,7 @@ class CreatePage(webapp2.RequestHandler):
     job.status = 'QUEUED'
     job.mapper = mapper
     job.reducer = reducer
+    job.mapper_function = mapper_function
     job.query = query
     job.corpus = corpus
     job.revision = revision
@@ -42,7 +44,7 @@ class CreatePage(webapp2.RequestHandler):
 
     self.response.out.write(json.dumps(response))
 
-    payload = {'jobid': job_uuid}
+    payload = {'jobid': job_uuid, 'type': 'create'}
     taskqueue.add(url='/cloud_mapper/task', name=job_uuid, params=payload)
 
 

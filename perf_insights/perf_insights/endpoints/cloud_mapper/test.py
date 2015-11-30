@@ -49,6 +49,8 @@ tr.exportTo('pi.m', function() {
 </script>
 """
 
+_DEFAULT_FUNCTION = 'railMapFunction'
+
 _FORM_HTML = """
 <!DOCTYPE html>
 <html>
@@ -56,9 +58,12 @@ _FORM_HTML = """
 <form action="/cloud_mapper/create" method="POST">
 Mapper: <br><textarea rows="50" cols="80" name="mapper">{mapper}</textarea>
 <br>
-Query: <br><input type="text" name="query" value={query}/>
+FunctionName: <br><input type="text" name="mapper_function"
+    value="{mapper_function}"/>
 <br>
-Corpus: <br><input type="text" name="corpus" value={corpus}/>
+Query: <br><input type="text" name="query" value="{query}"/>
+<br>
+Corpus: <br><input type="text" name="corpus" value="{corpus}"/>
 <br>
 <input type="submit" name="submit" value="Submit"/>
 </form>
@@ -70,6 +75,7 @@ class TestPage(webapp2.RequestHandler):
 
   def get(self):
     form_html = _FORM_HTML.format(mapper=_DEFAULT_MAPPER,
+                                  mapper_function=_DEFAULT_FUNCTION,
                                   query='MAX_TRACE_HANDLES=10',
                                   corpus=cloud_config.Get().default_corpus)
     self.response.out.write(form_html)
