@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.b', function() {
       this.parentEl_.removeEventListener('focusin', this.onFocusIn_);
 
       if (this.closeBtn_)
-        this.closeBtn_.removeEventListener(this.onClose_);
+        this.closeBtn_.removeEventListener('click', this.onClose_);
 
       document.removeEventListener('keydown', this.onKeyDown_);
       document.removeEventListener('click', this.onDocumentClick_);
