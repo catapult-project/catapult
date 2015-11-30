@@ -49,7 +49,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         method: method,
         params: params
       });
-      DevToolsHost.sendMessageToBackend(msg);
+      var devtoolsMessageStr = JSON.stringify(
+        {'id': id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
+      DevToolsHost.sendMessageToEmbedder(devtoolsMessageStr);
 
       return new Promise(function(resolve, reject) {
         this.pendingRequestResolversId_[id] = {
