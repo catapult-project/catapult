@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
@@ -16,6 +17,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var ScalarAttribute = tr.model.ScalarAttribute;
+  var AttributeInfo = tr.model.AttributeInfo;
+  var AttributeInfoType = tr.model.AttributeInfoType;
+  var AllocatorColumn = tr.ui.analysis.AllocatorColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var convertToProcessMemoryDumps = tr.ui.analysis.convertToProcessMemoryDumps;
@@ -409,6 +414,33 @@ tr.b.unittest.testSuite(function() {
               extractVmRegions(processMemoryDumps, 1));
           assert.strictEqual(childPane.aggregationMode, AggregationMode.MAX);
         });
+  });
+
+  test('allocatorColumn_getInfos', function() {
+    var c = new AllocatorColumn('test_column', 'ms', tr.b.identity,
+        AggregationMode.MAX);
+
+    var attr1 = new ScalarAttribute('bytes', 64);
+    attr1.infos = [
+      new AttributeInfo(AttributeInfoType.INFORMATION, 'boring')
+    ];
+
+    var attr2 = new ScalarAttribute('bytes', 128);
+    var hasHeapDumpInfo =
+        new AttributeInfo(AttributeInfoType.HAS_HEAP_DUMP, 'exciting');
+    attr2.infos = [
+      new AttributeInfo(AttributeInfoType.INFORMATION, 'boring'),
+      hasHeapDumpInfo
+    ];
+
+    var attr3 = new ScalarAttribute('bytes', 256);
+    attr3.infos = [
+      new AttributeInfo(AttributeInfoType.INFORMATION, 'boring')
+    ];
+
+    assert.deepEqual(c.getInfos([attr1]), []);
+    assert.deepEqual(c.getInfos([attr2]), [hasHeapDumpInfo]);
+    assert.deepEqual(c.getInfos([attr1, attr2, attr3]), [hasHeapDumpInfo]);
   });
 });
 </script>

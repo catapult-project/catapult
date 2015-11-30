@@ -695,27 +695,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     getInfos: function(attrs) {
       if (attrs.length !== 1) {
-        // TODO(petrcermak): Somehow aggregate infos for multiple attributes
-        // and get rid of the hack below.
-
-        // Determine if at least one of the attributes has an associated heap
-        // dump.
-        var hasDumpInfo = undefined;
-        attrs.some(function(attr) {
-          if (attr === undefined)
-            return false;
-          return attr.infos.some(function(info) {
-            if (info.type !== tr.model.AttributeInfoType.HAS_HEAP_DUMP)
-              return false;
-            hasDumpInfo = info;
-            return true;
-          });
-        });
-
-        if (hasDumpInfo)
-          return [hasDumpInfo];
-        else
-          return [];
+        // Don't aggregate infos for multiple attributes (it is unclear how
+        // they should be aggregated in the first place).
+        return [];
       }
 
       return attrs[0].infos;
