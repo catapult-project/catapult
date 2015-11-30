@@ -5,32 +5,35 @@
 
 import contextlib
 import os
+import shutil
 import tempfile
 
 
 @contextlib.contextmanager
-def TempDeploymentDir(paths):
+def TempDeploymentDir(paths, use_symlinks=True):
   """Sets up and tears down a directory for deploying an app."""
+  if use_symlinks:
+    link_func = os.symlink
+  else:
+    link_func = _Copy
+
   try:
     deployment_dir = tempfile.mkdtemp(prefix='deploy-')
-    _PopulateDeploymentDir(deployment_dir, paths)
+    _PopulateDeploymentDir(deployment_dir, paths, link_func)
     yield deployment_dir
   finally:
-    _CleanUp(deployment_dir)
+    shutil.rmtree(deployment_dir)
 
 
-def _PopulateDeploymentDir(deployment_dir, paths):
-  """Fills the deployment directory with symlinks."""
+def _Copy(src, dst):
+  if os.path.isdir(src):
+    shutil.copytree(src, dst)
+  else:
+    shutil.copy2(src, dst)
+
+
+def _PopulateDeploymentDir(deployment_dir, paths, link_func):
+  """Fills the deployment directory using the link_func specified."""
   for path in paths:
     destination = os.path.join(deployment_dir, os.path.basename(path))
-    os.symlink(path, destination)
-
-
-def _CleanUp(deployment_dir):
-  """Removes a directory that is populated with symlinks."""
-  for symlink_name in os.listdir(deployment_dir):
-    link_path = os.path.join(deployment_dir, symlink_name)
-    if os.path.islink(link_path):
-      os.unlink(link_path)
-  os.rmdir(deployment_dir)
-
+    link_func(path, destination)
