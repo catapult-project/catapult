@@ -2,12 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-import stat
 import unittest
 
 import mock
-from pyfakefs import fake_filesystem_unittest
 
 from catapult_base import dependency_manager
 from catapult_base import cloud_storage
@@ -15,6 +12,15 @@ from catapult_base.dependency_manager import exceptions
 
 
 class DependencyManagerTest(unittest.TestCase):
+
+  def setUp(self):
+    self.local_paths = ['path0', 'path1', 'path2']
+    self.cloud_storage_info = dependency_manager.CloudStorageInfo(
+        'cs_bucket', 'cs_hash', 'download_path', 'cs_remote_path')
+
+    self.dep_info = dependency_manager.DependencyInfo(
+        'dep', 'platform', 'config_file', local_paths=self.local_paths,
+        cloud_storage_info=self.cloud_storage_info)
 
   # TODO(nednguyen): add a test that construct
   # dependency_manager.DependencyManager from a list of DependencyInfo.
@@ -24,16 +30,14 @@ class DependencyManagerTest(unittest.TestCase):
     with self.assertRaises(ValueError):
       dependency_manager.DependencyManager('config_file?')
 
-  @mock.patch('os.path')
   @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._CloudStoragePath')
+      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathUnititializedDependency(
-      self, local_path_mock, cs_path_mock, dep_info_mock, sb_find_path_mock,
-      path_mock):
+      self, local_path_mock, cs_path_mock, dep_info_mock, sb_find_path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
@@ -87,7 +91,7 @@ class DependencyManagerTest(unittest.TestCase):
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._CloudStoragePath')
+      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathLocalFile(self, local_path_mock, cs_path_mock, dep_info_mock,
                     sb_find_path_mock, path_mock):
@@ -98,13 +102,12 @@ class DependencyManagerTest(unittest.TestCase):
     sb_path = 'sb_path'
     local_path = 'local_path'
     cs_path = 'cs_path'
-    dep_info = 'dep_info'
+    dep_info = self.dep_info
     local_path_mock.return_value = local_path
     cs_path_mock.return_value = cs_path
     sb_find_path_mock.return_value = sb_path
     # The DependencyInfo returned should be passed through to LocalPath.
     dep_info_mock.return_value = dep_info
-
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path exists.
@@ -114,7 +117,7 @@ class DependencyManagerTest(unittest.TestCase):
     found_path = dep_manager.FetchPath('dep1', 'plat')
 
     self.assertEqual(local_path, found_path)
-    local_path_mock.assert_called_with('dep_info')
+    local_path_mock.assert_called_with(self.dep_info)
     dep_info_mock.assert_called_once_with('dep1', 'plat')
     self.assertFalse(cs_path_mock.call_args)
     self.assertFalse(sb_find_path_mock.call_args)
@@ -130,34 +133,29 @@ class DependencyManagerTest(unittest.TestCase):
   @mock.patch('os.path')
   @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
-  @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._CloudStoragePath')
+      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
-  def testFetchPathRemoteFile(self, local_path_mock, cs_path_mock,
-                              dep_info_mock, sb_find_path_mock, path_mock):
+  def testFetchPathRemoteFile(
+      self, local_path_mock, cs_path_mock, sb_find_path_mock, path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
     self.assertFalse(sb_find_path_mock.call_args)
     local_path = 'local_path'
     cs_path = 'cs_path'
-    dep_info = 'dep_info'
     cs_path_mock.return_value = cs_path
-    dep_info_mock.return_value = dep_info
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path doesn't exist, but cloud_storage_path is downloaded.
-    dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
-                                'dep2': mock.MagicMock()}
+    dep_manager._lookup_dict = {'dep': {'platform' : self.dep_info,
+                                        'plat1': mock.MagicMock()},
+                                'dep2': {'plat2': mock.MagicMock()}}
     path_mock.exists.side_effect = [False, True]
     local_path_mock.return_value = local_path
-    found_path = dep_manager.FetchPath('dep1', 'plat')
+    found_path = dep_manager.FetchPath('dep', 'platform')
 
     self.assertEqual(cs_path, found_path)
-    local_path_mock.assert_called_with(dep_info)
-    dep_info_mock.assert_called_once_with('dep1', 'plat')
-    cs_path_mock.assert_called_once_with(dep_info)
+    local_path_mock.assert_called_with(self.dep_info)
     self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
@@ -166,60 +164,56 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
     sb_find_path_mock.reset_mock()
-    dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path isn't found, but cloud_storage_path is downloaded.
-    dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
-                                'dep2': mock.MagicMock()}
+    dep_manager._lookup_dict = {'dep': {'platform' : self.dep_info,
+                                        'plat1': mock.MagicMock()},
+                                'dep2': {'plat2': mock.MagicMock()}}
     path_mock.exists.side_effect = [True]
     local_path_mock.return_value = None
-    found_path = dep_manager.FetchPath('dep1', 'plat')
+    found_path = dep_manager.FetchPath('dep', 'platform')
 
     self.assertEqual(cs_path, found_path)
-    local_path_mock.assert_called_with(dep_info)
-    cs_path_mock.assert_called_once_with(dep_info)
-    dep_info_mock.assert_called_once_with('dep1', 'plat')
+    local_path_mock.assert_called_with(self.dep_info)
     self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_has_calls([mock.call(local_path),
                                        mock.call(cs_path)], any_order=False)
 
-  @mock.patch('os.path')
   @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
-  @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._CloudStoragePath')
+      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
-  def testFetchPathError(self, local_path_mock, cs_path_mock, dep_info_mock,
-                    sb_find_path_mock, path_mock):
+  def testFetchPathError(
+      self, local_path_mock, cs_path_mock, sb_find_path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
     self.assertFalse(sb_find_path_mock.call_args)
     local_path_mock.return_value = None
     cs_path_mock.return_value = None
-    dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
-                                'dep2': mock.MagicMock()}
+    dep_manager._lookup_dict = {'dep': {'platform' : self.dep_info,
+                                        'plat1': mock.MagicMock()},
+                                'dep2': {'plat2': mock.MagicMock()}}
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path doesn't exist, and cloud_storage path wasn't successfully
     # found.
     self.assertRaises(exceptions.NoPathFoundError,
-                      dep_manager.FetchPath, 'dep1', 'plat')
+                      dep_manager.FetchPath, 'dep', 'platform')
 
     cs_path_mock.side_effect = cloud_storage.CredentialsError
     self.assertRaises(cloud_storage.CredentialsError,
-                      dep_manager.FetchPath, 'dep1', 'plat')
+                      dep_manager.FetchPath, 'dep', 'platform')
 
     cs_path_mock.side_effect = cloud_storage.CloudStorageError
     self.assertRaises(cloud_storage.CloudStorageError,
-                      dep_manager.FetchPath, 'dep1', 'plat')
+                      dep_manager.FetchPath, 'dep', 'platform')
 
     cs_path_mock.side_effect = cloud_storage.PermissionError
     self.assertRaises(cloud_storage.PermissionError,
-                      dep_manager.FetchPath, 'dep1', 'plat')
+                      dep_manager.FetchPath, 'dep', 'platform')
 
   @mock.patch('os.path')
   @mock.patch('catapult_base.support_binaries.FindLocallyBuiltPath')
@@ -705,79 +699,3 @@ class DependencyManagerTest(unittest.TestCase):
     exists_mock.assert_has_calls(expected_calls, any_order=False)
     exists_mock.reset_mock()
 
-
-class TestCloudStoragePath(fake_filesystem_unittest.TestCase):
-  def setUp(self):
-    self.setUpPyfakefs()
-    self.config_path = '/test/dep_config.json'
-    self.fs.CreateFile(self.config_path, contents='{}')
-    self.download_path = '/foo/download_path'
-    self.fs.CreateFile(
-        self.download_path, contents='1010110', st_mode=stat.S_IWOTH)
-    self.dep_info = dependency_manager.DependencyInfo(
-        dependency='test-dep', platform='linux', config_file=self.config_path,
-        cs_bucket='cs_bucket',
-        cs_hash='cs_hash',
-        version_in_cs='1.2.3.4',
-        cs_remote_path='cs_remote_path',
-        download_path=self.download_path)
-
-  @mock.patch(
-      'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePathMissingData(self, cs_get_mock):
-    # No dependency info.
-    self.assertEqual(
-        None, dependency_manager.DependencyManager._CloudStoragePath(None))
-
-    # There is no cloud_storage information for the dependency.
-    empty_dep_info = dependency_manager.DependencyInfo(
-        dependency='test-dep', platform='linux', config_file=self.config_path)
-    self.assertEqual(
-        None,
-        dependency_manager.DependencyManager._CloudStoragePath(empty_dep_info))
-
-  @mock.patch(
-      'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePath(self, cs_get_mock):
-
-    # All of the needed information is given, and the downloaded path exists
-    # after calling cloud storage.
-    self.assertEqual(
-        os.path.abspath(self.download_path),
-        dependency_manager.DependencyManager._CloudStoragePath(self.dep_info))
-    self.assertEqual(os.stat(self.download_path).st_mode,
-                     stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
-
-    # All of the needed information is given, but the downloaded path doesn't
-    # exists after calling cloud storage.
-    self.fs.RemoveObject(self.download_path)
-    with self.assertRaises(exceptions.FileNotFoundError):
-      dependency_manager.DependencyManager._CloudStoragePath(self.dep_info)
-
-  @mock.patch(
-      'catapult_base.cloud_storage.GetIfHashChanged')
-  def testCloudStoragePathCloudStorageErrors(self, cs_get_mock):
-    cs_get_mock.side_effect = cloud_storage.CloudStorageError
-    self.assertRaises(
-        cloud_storage.CloudStorageError,
-        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
-
-    cs_get_mock.side_effect = cloud_storage.ServerError
-    self.assertRaises(
-        cloud_storage.ServerError,
-        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
-
-    cs_get_mock.side_effect = cloud_storage.NotFoundError
-    self.assertRaises(
-        cloud_storage.NotFoundError,
-        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
-
-    cs_get_mock.side_effect = cloud_storage.PermissionError
-    self.assertRaises(
-        cloud_storage.PermissionError,
-        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)
-
-    cs_get_mock.side_effect = cloud_storage.CredentialsError
-    self.assertRaises(
-        cloud_storage.CredentialsError,
-        dependency_manager.DependencyManager._CloudStoragePath, self.dep_info)

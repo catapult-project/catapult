@@ -7,6 +7,8 @@ import logging
 import os
 
 from catapult_base import cloud_storage
+from catapult_base.dependency_manager import archive_info
+from catapult_base.dependency_manager import cloud_storage_info
 from catapult_base.dependency_manager import dependency_info
 from catapult_base.dependency_manager import exceptions
 from catapult_base.dependency_manager import uploader
@@ -126,11 +128,10 @@ class BaseConfig(object):
     base_path = os.path.dirname(self._config_path)
     for dependency in self._config_data:
       dependency_dict = self._config_data.get(dependency)
-      cs_bucket = dependency_dict.get('cloud_storage_bucket')
-      cs_base_folder = dependency_dict.get('cloud_storage_base_folder', '')
       platforms_dict = dependency_dict.get('file_info', {})
       for platform in platforms_dict:
         platform_info = platforms_dict.get(platform)
+
         local_paths = platform_info.get('local_paths', [])
         if local_paths:
           paths = []
@@ -139,33 +140,40 @@ class BaseConfig(object):
             paths.append(os.path.abspath(os.path.join(base_path, path)))
           local_paths = paths
 
-        download_path = platform_info.get('download_path', None)
+        cs_info = None
+        cs_bucket = dependency_dict.get('cloud_storage_bucket')
+        cs_base_folder = dependency_dict.get('cloud_storage_base_folder', '')
+        download_path = platform_info.get('download_path')
         if download_path:
           download_path = self._FormatPath(download_path)
           download_path = os.path.abspath(
               os.path.join(base_path, download_path))
 
-        cs_remote_path = None
-        cs_hash = platform_info.get('cloud_storage_hash', None)
-        if cs_hash:
-          cs_remote_file = '%s_%s' % (dependency, cs_hash)
-          cs_remote_path = cs_remote_file if not cs_base_folder else (
-              '%s/%s' % (cs_base_folder, cs_remote_file))
+          cs_hash = platform_info.get('cloud_storage_hash')
+          if not cs_hash:
+            raise exceptions.ConfigError(
+                'Dependency %s has cloud storage info on platform %s, but is '
+                'missing a cloud storage hash.', dependency, platform)
+          cs_remote_path = self._CloudStorageRemotePath(
+              dependency, cs_hash, cs_base_folder)
+          version_in_cs = platform_info.get('version_in_cs')
 
-        version_in_cs = platform_info.get('version_in_cs', None)
-        path_within_archive = platform_info.get('path_within_archive', None)
+          zip_info = None
+          path_within_archive = platform_info.get('path_within_archive')
+          if path_within_archive:
+            unzip_path = os.path.abspath(
+                os.path.join(os.path.dirname(download_path),
+                             '%s_%s_%s' % (dependency, platform, cs_hash)))
+            zip_info = archive_info.ArchiveInfo(
+                download_path, unzip_path, path_within_archive)
 
-        if any([download_path, cs_remote_path, cs_hash, version_in_cs,
-                path_within_archive]):
-          dep_info = dependency_info.DependencyInfo(
-              dependency, platform, self._config_path, cs_bucket=cs_bucket,
-              cs_remote_path=cs_remote_path, download_path=download_path,
-              cs_hash=cs_hash, version_in_cs=version_in_cs,
-              path_within_archive=path_within_archive, local_paths=local_paths)
-        else:
-          dep_info = dependency_info.DependencyInfo(
-              dependency, platform, self._config_path, local_paths=local_paths)
+          cs_info = cloud_storage_info.CloudStorageInfo(
+              cs_bucket, cs_hash, download_path, cs_remote_path,
+              version_in_cs=version_in_cs, archive_info=zip_info)
 
+        dep_info = dependency_info.DependencyInfo(
+            dependency, platform, self._config_path, local_paths=local_paths,
+            cloud_storage_info=cs_info)
         yield dep_info
 
   @classmethod
@@ -235,7 +243,7 @@ class BaseConfig(object):
       self.ExecuteUpdateJobs()
 
   def ExecuteUpdateJobs(self, force=False):
-    """Write all config changes to the config_file specified in __init__.
+    """Write all config changes to the config_path specified in __init__.
 
     Upload all files pending upload and then write the updated config to
     file. Attempt to remove all uploaded files on failure.
@@ -278,12 +286,8 @@ class BaseConfig(object):
 
   def GetVersion(self, dependency, platform):
     """Return the Version information for the given dependency."""
-    if not self._config_data(dependency):
-      raise ValueError('Dependency %s is not in config.' % dependency)
-    if not self.config_data[dependency].get(platform):
-      raise ValueError('Dependency %s has no information for platform %s in '
-                       'this config.' % (dependency, platform))
-    return self._config_data[dependency][platform].get('version_in_cs')
+    return self._GetPlatformData(
+        dependency, platform, data_type='version_in_cs')
 
   def _SetPlatformData(self, dependency, platform, data_type, data):
     self._ValidateIsConfigWritable()
@@ -300,6 +304,8 @@ class BaseConfig(object):
 
   def _GetPlatformData(self, dependency, platform, data_type=None):
     dependency_dict = self._config_data.get(dependency, {})
+    if not dependency_dict:
+      raise ValueError('Dependency %s is not in config.' % dependency)
     platform_dict = dependency_dict.get('file_info', {}).get(platform)
     if not platform_dict:
       raise ValueError('No platform data for platform %s on dependency %s' %
