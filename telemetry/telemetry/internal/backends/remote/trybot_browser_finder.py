@@ -31,7 +31,14 @@ EXCLUDED_BOTS = {
     'linux_perf_bisect_builder',
     'mac_perf_bisect_builder',
     'android_perf_bisect_builder',
-    'android_arm64_perf_bisect_builder'
+    'android_arm64_perf_bisect_builder',
+    # Bisect FYI bots are not meant for testing actual perf regressions.
+    # Hardware configuration on these bots is different from actual bisect bot
+    # and these bots runs E2E integration tests for auto-bisect
+    # using dummy benchmarks.
+    'linux_fyi_perf_bisect',
+    'mac_fyi_perf_bisect',
+    'win_fyi_perf_bisect',
 }
 
 INCLUDE_BOTS = [
