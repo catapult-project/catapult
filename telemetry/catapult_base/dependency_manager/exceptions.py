@@ -41,6 +41,7 @@ class CloudStorageUploadConflictError(cloud_storage.CloudStorageError):
     super(CloudStorageUploadConflictError, self).__init__(
         'File location %s already exists in bucket %s' % (path, bucket))
 
+
 class ArchiveError(Exception):
   def __init__(self, msg):
     super(ArchiveError, self).__init__(msg)

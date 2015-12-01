@@ -4,12 +4,10 @@
 
 import logging
 import os
-import shutil
-import stat
-import tempfile
-import zipfile
+import sys
 
-from catapult_base import cloud_storage
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))))
 from catapult_base import support_binaries
 from catapult_base.dependency_manager import base_config
 from catapult_base.dependency_manager import exceptions
@@ -110,7 +108,7 @@ class DependencyManager(object):
                                        platform_os)
     path = self._LocalPath(dependency_info)
     if not path or not os.path.exists(path):
-      path = self._CloudStoragePath(dependency_info)
+      path = dependency_info.GetRemotePath()
       if not path or not os.path.exists(path):
         raise exceptions.NoPathFoundError(dependency, platform)
     return path
@@ -218,117 +216,3 @@ class DependencyManager(object):
         if os.path.exists(local_path):
           return local_path
     return None
-
-  @staticmethod
-  def _CloudStoragePath(dependency_info):
-    """Return a path to a downloaded file for |dependency_info|.
-
-    May not download the file if it has already been downloaded.
-
-    Args:
-        dependency_info: A DependencyInfo instance for the dependency to be
-            found and the platform it should run on.
-
-    Returns: A path to an executable that was stored in cloud_storage, or None
-       if not found.
-
-    Raises:
-        CredentialsError: If cloud_storage credentials aren't configured.
-        PermissionError: If cloud_storage credentials are configured, but not
-            with an account that has permission to download the needed file.
-        NotFoundError: If the needed file does not exist where expected in
-            cloud_storage.
-        ServerError: If an internal server error is hit while downloading the
-            needed file.
-        CloudStorageError: If another error occured while downloading the remote
-            path.
-        FileNotFoundError: If the download was otherwise unsuccessful.
-    """
-    if not dependency_info:
-      return None
-    cs_path = dependency_info.cs_remote_path
-    cs_hash = dependency_info.cs_hash
-    cs_bucket = dependency_info.cs_bucket
-    download_path = dependency_info.download_path
-    if not cs_path or not cs_bucket or not cs_hash or not download_path:
-      return None
-
-    download_dir = os.path.dirname(download_path)
-    if not os.path.exists(download_dir):
-      os.makedirs(download_dir)
-
-    cloud_storage.GetIfHashChanged(cs_path, download_path, cs_bucket, cs_hash)
-    if not os.path.exists(download_path):
-      raise exceptions.FileNotFoundError(download_path)
-
-    # TODO(aiolos): Add tests once the refactor is completed. crbug.com/551158
-    unzip_location = dependency_info.unzip_location
-    if unzip_location:
-      download_path = DependencyManager._UnzipFile(
-          download_path, unzip_location, dependency_info.path_within_archive)
-
-    os.chmod(download_path,
-             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP)
-    return os.path.abspath(download_path)
-
-
-  @staticmethod
-  def _UnzipFile(archive_file, unzip_location, path_within_archive):
-    """Unzips a file if it is a zip file.
-
-    Args:
-        archive_file: The downloaded file to unzip.
-        unzip_location: The destination directory to unzip to.
-        path_within_archive: The relative location of the dependency
-            within the unzipped archive.
-
-    Returns:
-        The path to the unzipped dependency.
-
-    Raises:
-        ValueError: If |archive_file| is not a zipfile.
-        ArchiveError: If the dependency cannot be found in the unzipped
-            location.
-    """
-    # TODO(aiolos): Add tests once the refactor is completed. crbug.com/551158
-    if not zipfile.is_zipfile(archive_file):
-      raise ValueError(
-          'Attempting to unzip a non-archive file at %s' % archive_file)
-    tmp_location = None
-    if os.path.exists(unzip_location):
-      os_tmp_dir = '%stmp' % os.sep
-      tmp_location = tempfile.mkdtemp(dir=os_tmp_dir)
-      shutil.move(unzip_location, tmp_location)
-    try:
-      with zipfile.ZipFile(archive_file, 'r') as archive:
-        for content in archive.namelist():
-          # Ensure all contents in zip file are extracted into the
-          # unzip_location. zipfile.extractall() is a security risk, and should
-          # not be used without prior verification that the python verion
-          # being used is at least 2.7.4
-          dest = os.path.join(unzip_location,
-                              content[content.find(os.path.sep)+1:])
-          if not os.path.isdir(os.path.dirname(dest)):
-            os.makedirs(os.path.dirname(dest))
-          if not os.path.basename(dest):
-            continue
-          with archive.open(content) as unzipped_content:
-            logging.debug(
-                'Extracting %s to %s (%s)', content, dest, archive_file)
-            with file(dest, 'wb') as dest_file:
-              dest_file.write(unzipped_content.read())
-            permissions = archive.getinfo(content).external_attr >> 16
-            if permissions:
-              os.chmod(dest, permissions)
-      download_path = os.path.join(unzip_location, path_within_archive)
-      if not download_path:
-        raise exceptions.ArchiveError('Expected path %s was not extracted from '
-                                      'the downloaded archive.', download_path)
-    except:
-      if tmp_location:
-        shutil.move(tmp_location, unzip_location)
-      raise
-    if tmp_location:
-      shutil.rmtree(tmp_location)
-    return download_path
-
