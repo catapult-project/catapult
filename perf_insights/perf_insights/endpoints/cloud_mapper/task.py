@@ -15,16 +15,6 @@ from perf_insights.endpoints.cloud_mapper import cloud_helper
 from perf_insights.endpoints.cloud_mapper import job_info
 from perf_insights import cloud_config
 
-_STARTUP_SCRIPT = \
-"""#!/bin/bash
-cd /catapult
-git pull
-git checkout {revision}
-
-perf_insights/bin/gce_instance_map_job --jobs=32\
- {mapper} {path}{gcs} {path}{gcs}.result
-"""
-
 
 class TaskPage(webapp2.RequestHandler):
 
