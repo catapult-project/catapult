@@ -15,6 +15,8 @@ from perf_insights.endpoints.cloud_mapper import cloud_helper
 from perf_insights.endpoints.cloud_mapper import job_info
 from perf_insights import cloud_config
 
+DEFAULT_TRACES_PER_INSTANCE = 64
+
 
 class TaskPage(webapp2.RequestHandler):
 
@@ -124,12 +126,17 @@ class TaskPage(webapp2.RequestHandler):
     job.results = results
     job.put()
 
-  def _RunMappers(self, job):
-    # TODO(simonhatch): Figure out the optimal # of instances to spawn.
-    num_instances = 1
+  def _CalculateNumInstancesNeeded(self, num_traces):
+    return 1 + int(num_traces / DEFAULT_TRACES_PER_INSTANCE)
 
+  def _RunMappers(self, job):
     # Get all the traces to process
     traces = self._QueryForTraces(job.corpus, job.query)
+
+    # We can probably be smarter about this down the road, maybe breaking
+    # this into many smaller tasks and allowing each instance to run
+    # several tasks at once. For now we'll just break it into a few big ones.
+    num_instances = self._CalculateNumInstancesNeeded(len(traces))
 
     return self._DispatchTracesAndWaitForResult(job, traces, num_instances)
 
