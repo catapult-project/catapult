@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import argparse
+import json
 import logging
 import os
 import re
@@ -18,8 +19,23 @@ import zipfile
 
 from hooks import install
 
-# URL on omahaproxy.appspot.com which lists cloud storage buckets.
-OMAHA_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=%s'
+# URL on omahaproxy.appspot.com which lists the current version for the os
+# and channel.
+VERSION_LOOKUP_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=%s'
+
+# URL on omahaproxy.appspot.com which looks up base positions from versions.
+BASE_POS_LOOKUP_URL = 'http://omahaproxy.appspot.com/revision.json?version=%s'
+
+# URL on cloud storage which looks up the chromium download url from base pos.
+CLOUD_STORAGE_LOOKUP_URL = ('https://www.googleapis.com/storage/v1/b/'
+                            'chromium-browser-snapshots/o?delimiter=/&prefix='
+                            '%s/%s&fields=items(kind,mediaLink,metadata,name,'
+                            'size,updated),kind,prefixes,nextPageToken')
+
+# URL on cloud storage to download chromium at a base pos from.
+CLOUD_STORAGE_DOWNLOAD_URL = ('https://www.googleapis.com/download/storage/v1/b'
+                              '/chromium-browser-snapshots/o/%s%%2F%s%%2F'
+                              'chrome-%s.zip?alt=media')
 
 # URL in cloud storage to download Chrome zip from.
 CLOUDSTORAGE_URL = ('https://commondatastorage.googleapis.com/chrome-unsigned'
@@ -32,36 +48,29 @@ DEFAULT_PORT = '8111'
 PLATFORM_MAPPING = {
     'linux2': {
         'omaha': 'linux',
-        'cs_dir': 'precise64',
-        'cs_filename': 'precise64',
-        'chromepath': 'chrome-precise64/chrome',
+        'prefix': 'Linux_x64',
+        'zip_prefix': 'linux',
+        'chromepath': 'chrome-linux/chrome',
         'use_xfvb': True,
     },
     'win32': {
         'omaha': 'win',
-        'cs_dir': 'win',
-        'cs_filename': 'win',
-        'chromepath': 'Chrome-bin\\chrome.exe',
-        'installer_url': ('https://commondatastorage.googleapis.com/'
-                          'chrome-signed/desktop-W15K3Y/%VERSION%/win/'
-                          '%VERSION%_chrome_installer.exe'),
+        'prefix': 'Win',
+        'zip_prefix': 'win32',
+        'chromepath': 'chrome-win32\\chrome.exe',
     },
     'darwin': {
         'omaha': 'mac',
-        'cs_dir': 'mac64',
-        'cs_filename': 'mac',
-        'chromepath': ('chrome-mac/Google Chrome.app/'
-                       'Contents/MacOS/Google Chrome'),
+        'prefix': 'Mac',
+        'zip_prefix': 'mac',
+        'chromepath': ('chrome-mac/Chromium.app/Contents/MacOS/Chromium'),
+        'version_path': 'chrome-mac/Chromium.app/Contents/Versions/',
         'additional_paths': [
-            ('chrome-mac/Google Chrome.app/Contents/Versions/%VERSION%/'
-             'Google Chrome Helper.app/Contents/MacOS/Google Chrome Helper'),
+            ('chrome-mac/Chromium.app/Contents/Versions/%VERSION%/'
+             'Chromium Helper.app/Contents/MacOS/Chromium Helper'),
         ],
     },
 }
-
-# Pin the Chrome Canary used for testing to a known version on Windows.
-# See https://github.com/catapult-project/catapult/issues/1786.
-PINNED_WIN_CHROME_CANARY_VERSION = '49.0.2565.0'
 
 
 def StartXvfb():
@@ -103,46 +112,52 @@ def FindDepotTools():
   return None
 
 
-def DownloadSignedWinChrome(url, version):
-  """On Windows, use signed Chrome since it may be more stable."""
-  url = url.replace('%VERSION%', version)
-  tmpdir = tempfile.mkdtemp()
-  installer_path = os.path.join(tmpdir, url[url.rindex('/') + 1:])
-  with open(installer_path, 'wb') as local_file:
-    local_file.write(urllib2.urlopen(url).read())
-  depot_tools_path = FindDepotTools()
-  path_7z = os.path.join(depot_tools_path, 'win_toolchain', '7z', '7z.exe')
-  command_7z = [path_7z, 'x', '-o' + tmpdir, installer_path]
-  process_7z = subprocess.Popen(
-    command_7z, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  out_7z, err_7z = process_7z.communicate()
-  del out_7z, err_7z
-  command_7z = [path_7z, 'x', '-o' + tmpdir, os.path.join(tmpdir, 'chrome.7z')]
-  process_7z = subprocess.Popen(
-    command_7z, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  out_7z, err_7z = process_7z.communicate()
-  return tmpdir, version
-
-
-def DownloadChrome(channel):
+def DownloadChromium(channel):
+  """
+  Gets the version of Chrome current for the given channel from omahaproxy, then
+  follows instructions for downloading a prebuilt version of chromium from the
+  commit at the branch cut for that version. This downloads a chromium binary
+  which does not have any commits merged onto the branch. It is close to the
+  released Chrome, but not exact. Downloading the released Chrome is not
+  supported.
+  https://www.chromium.org/getting-involved/download-chromium
+  """
+  # Get the version for the current channel from omahaproxy
   platform_data = PLATFORM_MAPPING[sys.platform]
   omaha_platform = platform_data['omaha']
-  omaha_url = OMAHA_URL % (omaha_platform, channel)
-  response = urllib2.urlopen(omaha_url)
+  version_lookup_url = VERSION_LOOKUP_URL % (omaha_platform, channel)
+  response = urllib2.urlopen(version_lookup_url)
   version = response.readlines()[1].split(',')[2]
-  if 'installer_url' in platform_data:
-    if channel == 'canary':
-      version = PINNED_WIN_CHROME_CANARY_VERSION
-    return DownloadSignedWinChrome(
-        platform_data['installer_url'], version)
-  cs_url = CLOUDSTORAGE_URL % (
-      version,
-      platform_data['cs_dir'],
-      platform_data['cs_filename'])
+
+  # Get the base position for that version from omahaproxy
+  base_pos_lookup_url = BASE_POS_LOOKUP_URL % version
+  response = urllib2.urlopen(base_pos_lookup_url)
+  base_pos = json.load(response)['chromium_base_position']
+
+  # Find the build from that base position in cloud storage. If it's not found,
+  # decrement base position until one is found.
+  cloud_storage_lookup_url = CLOUD_STORAGE_LOOKUP_URL % (
+      platform_data['prefix'], base_pos)
+  download_url = None
+  while not download_url:
+    response = urllib2.urlopen(cloud_storage_lookup_url)
+    prefixes = json.load(response).get('prefixes')
+    if prefixes:
+      download_url = CLOUD_STORAGE_DOWNLOAD_URL % (
+          platform_data['prefix'], base_pos, platform_data['zip_prefix'])
+      break
+    base_pos = int(base_pos) - 1
+    cloud_storage_lookup_url = CLOUD_STORAGE_LOOKUP_URL % (
+        platform_data['prefix'], base_pos)
+
+  print 'Approximating Chrome %s with chromium from base position %s.' % (
+      version, base_pos)
+  print 'Downloading from %s' % download_url
+
   tmpdir = tempfile.mkdtemp()
   zip_path = os.path.join(tmpdir, 'chrome.zip')
   with open(zip_path, 'wb') as local_file:
-    local_file.write(urllib2.urlopen(cs_url).read())
+    local_file.write(urllib2.urlopen(download_url).read())
   zf = zipfile.ZipFile(zip_path)
   zf.extractall(path=tmpdir)
   return tmpdir, version
@@ -236,17 +251,27 @@ def Main(argv):
       if sys.platform == 'linux2' and channel == 'canary':
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
-      tmpdir, version = DownloadChrome(channel)
+      tmpdir, version = DownloadChromium(channel)
       if platform_data.get('use_xfvb'):
         xvfb_process = StartXvfb()
       chrome_path = os.path.join(
           tmpdir, platform_data['chromepath'])
       os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
+      # On Mac, we need to update a file with the version in the path, and
+      # the version we downloaded could be slightly different than what we
+      # requested. Update it.
+      if platform_data.get('version_path'):
+        contents = os.listdir(
+            os.path.join(tmpdir, platform_data['version_path']))
+        for path in contents:
+          if re.match('\d+\.\d+\.\d+\.\d+', path):
+            version = path
       if platform_data.get('additional_paths'):
         for path in platform_data.get('additional_paths'):
           path = path.replace('%VERSION%', version)
           path = os.path.join(tmpdir, path)
-          os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+          if os.path.exists(path):
+            os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
       chrome_info = version
     chrome_command = [
         chrome_path,
