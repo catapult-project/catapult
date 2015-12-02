@@ -2,8 +2,8 @@
   "config_type": "BaseConfig",
   "dependencies": {
     "crash_service": {
-      "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "win_AMD64": {
           "cloud_storage_hash": "4a0961e972895f4af3b7cfab959c5bfd4de7174b",
@@ -12,16 +12,46 @@
       }
     },
     "memtrack_helper": {
-      "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "android_armeabi-v7a": {
-          "cloud_storage_hash": "e96693a5ba39c47c6c8b9fd36694ac89616a780a",
-          "download_path": "../../bin/android/armeabi-v7a/memtrack_helper"
-        },
         "android_arm64-v8a": {
           "cloud_storage_hash": "4f49c360f969128e12d98d4cf530717946c5ffcf",
           "download_path": "../../bin/android/arm64-v8a/memtrack_helper"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "e96693a5ba39c47c6c8b9fd36694ac89616a780a",
+          "download_path": "../../bin/android/armeabi-v7a/memtrack_helper"
+        }
+      }
+    },
+    "reference_build": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chrome-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "1127314a527d7e981dd83d7adc48288cd9c3d2ce",
+          "download_path": "bin/reference_build/chrome-linux64.zip",
+          "path_within_archive": "chrome-precise64/chrome",
+          "version_in_cs": "46.0.2490.86"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "28dd229a28d596d8365885f048b696486486e586",
+          "download_path": "bin/reference_builds/chrome-mac64.zip",
+          "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "version_in_cs": "46.0.2490.86"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "8b2f547fec2e14e0d3d82ccdc3020f4f2b96a2e6",
+          "download_path": "bin\\reference_build\\chrome-win64.zip",
+          "path_within_archive": "chrome-win64\\chrome.exe",
+          "version_in_cs": "46.0.2490.86"
+        },
+        "win_x86": {
+          "cloud_storage_hash": "f011be63d5ce3ad50a6b21306270c151e87b8ebd",
+          "download_path": "bin\\reference_build\\chrome-win32.zip",
+          "path_within_archive": "chrome-win32\\chrome.exe",
+          "version_in_cs": "46.0.2490.86"
         }
       }
     }

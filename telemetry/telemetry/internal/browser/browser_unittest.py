@@ -247,7 +247,6 @@ class BrowserRestoreSessionTest(unittest.TestCase):
 
 class ReferenceBrowserTest(unittest.TestCase):
 
-  @decorators.Disabled('all')
   @decorators.Enabled('win', 'mac', 'linux')
   def testBasicBrowserActions(self):
     options = options_for_unittests.GetCopy()

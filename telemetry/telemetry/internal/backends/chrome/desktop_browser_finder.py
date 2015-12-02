@@ -13,6 +13,7 @@ from telemetry.internal.backends.chrome import desktop_browser_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import desktop_device
+from telemetry.internal.util import binary_manager
 # This is a workaround for https://goo.gl/1tGNgd
 from telemetry.internal.util import path as path_module
 
@@ -218,11 +219,14 @@ def FindAllAvailableBrowsers(finder_options, device):
     AddIfFound('content-shell-' + build_type.lower(), build_dir, build_type,
                content_shell_app_name, True)
 
-  reference_build_root = None
-  if finder_options.chrome_root:
-    reference_build_root = os.path.join(
-        finder_options.chrome_root, 'chrome', 'tools', 'test',
-        'reference_build')
+  reference_build = None
+  if finder_options.browser_type == 'reference':
+    # Reference builds are only available in a Chromium checkout. We should not
+    # raise an error just because they don't exist.
+    os_name = platform_module.GetHostPlatform().GetOSName()
+    arch_name = platform_module.GetHostPlatform().GetArchName()
+    reference_build = binary_manager.FetchPath(
+        'reference_build', arch_name, os_name)
 
   # Mac-specific options.
   if sys.platform == 'darwin':
@@ -239,14 +243,13 @@ def FindAllAvailableBrowsers(finder_options, device):
       browsers.append(PossibleDesktopBrowser('system', finder_options,
                                              mac_system, None, False,
                                              mac_system_root))
-    if reference_build_root:
-      mac_reference_root = (
-          reference_build_root + '/chrome_mac/Google Chrome.app/')
-      mac_reference = mac_reference_root + 'Contents/MacOS/Google Chrome'
-      if path_module.IsExecutable(mac_reference):
-        browsers.append(PossibleDesktopBrowser('reference', finder_options,
-                                               mac_reference, None, False,
-                                               mac_reference_root))
+
+    if reference_build and path_module.IsExecutable(reference_build):
+      reference_root = os.path.dirname(os.path.dirname(os.path.dirname(
+          reference_build)))
+      browsers.append(PossibleDesktopBrowser('reference', finder_options,
+                                             reference_build, None, False,
+                                             reference_root))
 
   # Linux specific options.
   if sys.platform.startswith('linux'):
@@ -262,13 +265,11 @@ def FindAllAvailableBrowsers(finder_options, device):
       if path_module.IsExecutable(browser_path):
         browsers.append(PossibleDesktopBrowser(version, finder_options,
                                                browser_path, None, False, root))
-    if reference_build_root:
-      linux_reference_root = os.path.join(reference_build_root, 'chrome_linux')
-      linux_reference = os.path.join(linux_reference_root, 'chrome')
-      if path_module.IsExecutable(linux_reference):
-        browsers.append(PossibleDesktopBrowser('reference', finder_options,
-                                               linux_reference, None, False,
-                                               linux_reference_root))
+    if reference_build and path_module.IsExecutable(reference_build):
+      reference_root = os.path.dirname(reference_build)
+      browsers.append(PossibleDesktopBrowser('reference', finder_options,
+                                             reference_build, None, False,
+                                             reference_root))
 
   # Win32-specific options.
   if sys.platform.startswith('win'):
@@ -276,9 +277,9 @@ def FindAllAvailableBrowsers(finder_options, device):
         ('system', os.path.join('Google', 'Chrome', 'Application')),
         ('canary', os.path.join('Google', 'Chrome SxS', 'Application')),
     ]
-    if reference_build_root:
+    if reference_build:
       app_paths.append(
-          ('reference', os.path.join(reference_build_root, 'chrome_win')))
+          ('reference', os.path.dirname(reference_build)))
 
     for browser_name, app_path in app_paths:
       for chromium_app_name in chromium_app_names:
