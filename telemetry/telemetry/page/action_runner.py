@@ -362,7 +362,8 @@ class ActionRunner(object):
   def RepeatableBrowserDrivenScroll(self, x_scroll_distance_ratio=0.0,
                                     y_scroll_distance_ratio=0.5,
                                     repeat_count=0,
-                                    repeat_delay_ms=250):
+                                    repeat_delay_ms=250,
+                                    timeout=60):
     """Perform a browser driven repeatable scroll gesture.
 
     The scroll gesture is driven from the browser, this is useful because the
@@ -381,7 +382,7 @@ class ActionRunner(object):
         x_scroll_distance_ratio=x_scroll_distance_ratio,
         y_scroll_distance_ratio=y_scroll_distance_ratio,
         repeat_count=repeat_count,
-        repeat_delay_ms=repeat_delay_ms))
+        repeat_delay_ms=repeat_delay_ms, timeout=timeout))
 
   def ScrollElement(self, selector=None, text=None, element_function=None,
                     left_start_ratio=0.5, top_start_ratio=0.5,

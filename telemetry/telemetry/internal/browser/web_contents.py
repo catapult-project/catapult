@@ -300,7 +300,8 @@ class WebContents(object):
                               xOverscroll=None, yOverscroll=None,
                               preventFling=True, speed=None,
                               gestureSourceType=None, repeatCount=None,
-                              repeatDelayMs=None, interactionMarkerName=None):
+                              repeatDelayMs=None, interactionMarkerName=None,
+                              timeout=60):
     """Runs an inspector command that causes a repeatable browser driven scroll.
 
     Args:
@@ -327,4 +328,5 @@ class WebContents(object):
         preventFling=preventFling, speed=speed,
         gestureSourceType=gestureSourceType, repeatCount=repeatCount,
         repeatDelayMs=repeatDelayMs,
-        interactionMarkerName=interactionMarkerName)
+        interactionMarkerName=interactionMarkerName,
+        timeout=timeout)
