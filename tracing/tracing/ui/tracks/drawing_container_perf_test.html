@@ -83,8 +83,10 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  test(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
-                                 {iterations: 1}));
+  // Failing on Chrome canary, see
+  // https://github.com/catapult-project/catapult/issues/1826
+  //test(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
+  //                               {iterations: 1}));
   test(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
                                  {iterations: 10}));
   test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
