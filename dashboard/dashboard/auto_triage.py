@@ -36,17 +36,11 @@ _MAX_UNTRIAGED_ANOMALIES = 2000
 # Number of days to query for bugs.
 _OLDEST_BUG_DELTA = datetime.timedelta(days=30)
 
-# Default parameters used when deciding whether or not an alert should
-# be considered recovered, if not overridden by the anomaly threshold
-# config of a test. These may be, but are not necessarily, the same as
-# the related constants in the find_change_points module.
-# TODO(qyearsley): If possible, simplify _IsAnomalyRecovered so that
-# these values are no longer needed, or change it to use a method in
-# find_change_points.
-_DEFAULT_MULTIPLE_OF_STD_DEV = 3.5
-_DEFAULT_MIN_RELATIVE_CHANGE = 0.01
-_DEFAULT_MIN_ABSOLUTE_CHANGE = 0.0
-
+# Maximum relative difference between two steps for them to be considered
+# similar enough for the second to be a "recovery" of the first.
+# For example, if there's an increase of 5 units followed by a decrease of 6
+# units, the relative difference of the deltas is 0.2.
+_MAX_DELTA_DIFFERENCE = 0.25
 
 class AutoTriageHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically triage anomalies and bugs."""
@@ -180,107 +174,53 @@ def _FindAndUpdateRecoveredAnomalies(anomalies):
   """Finds and updates anomalies that recovered."""
   recovered_anomalies = []
   for anomaly_entity in anomalies:
-    is_recovered, measurements = _IsAnomalyRecovered(anomaly_entity)
-    if is_recovered:
+    if _IsAnomalyRecovered(anomaly_entity):
       anomaly_entity.recovered = True
       recovered_anomalies.append(anomaly_entity)
-      logging.debug('Anomaly %s recovered with measurements %s.',
-                    anomaly_entity.key, measurements)
   ndb.put_multi(recovered_anomalies)
   return recovered_anomalies
 
 
 def _IsAnomalyRecovered(anomaly_entity):
-  """Checks whether anomaly has recovered.
+  """Checks whether an Anomaly has recovered.
 
-  We have the measurements for the segment before the anomaly.  If we take
-  the measurements for the latest segment after the anomaly, we can find if
-  the anomaly recovered.
+  An Anomaly will be considered "recovered" if there's a change point in
+  the series after the Anomaly with roughly equal magnitude and opposite
+  direction.
 
   Args:
-    anomaly_entity: The original regression anomaly.
+    anomaly_entity: The original regression Anomaly.
 
   Returns:
-    A tuple (is_anomaly_recovered, measurements), where is_anomaly_recovered
-    is True if anomaly has recovered, and measurements is dictionary
-    of name to value of measurements used to evaluate if anomaly recovered.
-    measurements is None if anomaly has not recovered.
+    True if the Anomaly should be marked as recovered, False otherwise.
   """
-  # 1. Check if the Anomaly entity has std_dev_before_anomaly and
-  #    window_end_revision properties which we're using to decide whether or
-  #    not it is recovered.
-  if (anomaly_entity.std_dev_before_anomaly is None or
-      anomaly_entity.window_end_revision is None):
-    return False, None
-
   test = anomaly_entity.test.get()
   config = anomaly_config.GetAnomalyConfigDict(test)
-  latest_rows = find_anomalies.GetRowsToAnalyze(
-      test, anomaly_entity.segment_size_after)
-  latest_values = [row.value for row in latest_rows
-                   if row.revision > anomaly_entity.window_end_revision]
+  max_num_rows = config.get(
+      'max_window_size', find_anomalies.DEFAULT_NUM_POINTS)
+  rows = [r for r in find_anomalies.GetRowsToAnalyze(test, max_num_rows)
+          if r.revision > anomaly_entity.end_revision]
+  change_points = find_anomalies.FindChangePointsForTest(rows, config)
+  delta_anomaly = (anomaly_entity.median_after_anomaly -
+                   anomaly_entity.median_before_anomaly)
+  for change in change_points:
+    delta_change = change.median_after - change.median_before
+    if (_IsOppositeDirection(delta_anomaly, delta_change) and
+        _IsApproximatelyEqual(delta_anomaly, -delta_change)):
+      logging.debug('Anomaly %s recovered; recovery change point %s.',
+                    anomaly_entity.key, change.AsDict())
+      return True
+  return False
 
-  # 2. Segment size filter.
-  if len(latest_values) < anomaly_entity.segment_size_after:
-    return False, None
 
-  median_before = anomaly_entity.median_before_anomaly
-  median_after = math_utils.Median(latest_values)
-  std_dev_before = anomaly_entity.std_dev_before_anomaly
-  std_dev_after = math_utils.StandardDeviation(latest_values)
-  multiple_of_std_dev = config.get('multiple_of_std_dev',
-                                   _DEFAULT_MULTIPLE_OF_STD_DEV)
-  min_relative_change = config.get('min_relative_change',
-                                   _DEFAULT_MIN_RELATIVE_CHANGE)
-  min_absolute_change = config.get('min_absolute_change',
-                                   _DEFAULT_MIN_ABSOLUTE_CHANGE)
+def _IsOppositeDirection(delta1, delta2):
+  return delta1 * delta2 < 0
 
-  # If no improvement direction is provided, use absolute changes.
-  if test.improvement_direction == anomaly.UNKNOWN:
-    absolute_change = abs(median_after - median_before)
-    relative_change = abs(
-        math_utils.RelativeChange(median_before, median_after))
-  else:
-    if test.improvement_direction == anomaly.UP:
-      direction = -1
-    else:
-      direction = 1
-    absolute_change = direction * (median_after - median_before)
-    relative_change = direction * math_utils.RelativeChange(
-        median_before, median_after)
 
-  measurements = {
-      'segment_size_after': anomaly_entity.segment_size_after,
-      'window_end_revision': anomaly_entity.window_end_revision,
-      'median_before': median_before,
-      'median_after': median_after,
-      'std_dev_before': std_dev_before,
-      'std_dev_after': std_dev_after,
-      'multiple_of_std_dev': multiple_of_std_dev,
-      'min_relative_change': min_relative_change,
-      'min_absolute_change': min_absolute_change,
-      'absolute_change': absolute_change,
-      'relative_change': relative_change,
-  }
-
-  # 3. If it's an improvement, return.
-  if absolute_change <= 0:
-    return True, measurements
-
-  # 4. Absolute change filter.
-  if min_absolute_change > 0 and absolute_change >= min_absolute_change:
-    return False, None
-
-  # 5. Relative change filter.
-  if relative_change >= min_relative_change:
-    return False, None
-
-  # 6. Standard deviation filter.
-  min_std_dev = min(std_dev_before, std_dev_after)
-  if absolute_change > min_std_dev:
-    return False, None
-
-  return True, measurements
+def _IsApproximatelyEqual(delta1, delta2):
+  smaller = min(delta1, delta2)
+  larger = max(delta1, delta2)
+  return math_utils.RelativeChange(smaller, larger) <= _MAX_DELTA_DIFFERENCE
 
 
 def _AddLogForRecoveredAnomaly(anomaly_entity):
