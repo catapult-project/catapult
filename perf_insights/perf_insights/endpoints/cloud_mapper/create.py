@@ -35,6 +35,7 @@ class CreatePage(webapp2.RequestHandler):
     job.query = query
     job.corpus = corpus
     job.revision = revision
+    job.running_tasks = []
     job.put()
 
     response = {

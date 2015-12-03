@@ -77,6 +77,9 @@ class TaskPage(webapp2.RequestHandler):
           params=payload)
       tasks[task_id] = {'status': 'IN_PROGRESS'}
 
+    job.running_tasks = [task_id for task_id, _ in tasks.iteritems()]
+    job.put()
+
     # On production servers, we could just sit and wait for the results, but
     # dev_server is single threaded and won't run any other tasks until the
     # current one is finished. We'll just do the easy thing for now and
