@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Base class for api services."""
 
+import base64
 import contextlib
 import datetime
 import logging
@@ -126,12 +127,29 @@ def NormalizeApiEndpoint(api_endpoint):
     return api_endpoint
 
 
+def _urljoin(base, url):  # pylint: disable=invalid-name
+    """Custom urljoin replacement supporting : before / in url."""
+    # In general, it's unsafe to simply join base and url. However, for
+    # the case of discovery documents, we know:
+    #  * base will never contain params, query, or fragment
+    #  * url will never contain a scheme or net_loc.
+    # In general, this means we can safely join on /; we just need to
+    # ensure we end up with precisely one / joining base and url. The
+    # exception here is the case of media uploads, where url will be an
+    # absolute url.
+    if url.startswith('http://') or url.startswith('https://'):
+        return urllib.parse.urljoin(base, url)
+    new_base = base if base.endswith('/') else base + '/'
+    new_url = url[1:] if url.startswith('/') else url
+    return new_base + new_url
+
+
 class _UrlBuilder(object):
 
     """Convenient container for url data."""
 
     def __init__(self, base_url, relative_path=None, query_params=None):
-        components = urllib.parse.urlsplit(urllib.parse.urljoin(
+        components = urllib.parse.urlsplit(_urljoin(
             base_url, relative_path or ''))
         if components.fragment:
             raise exceptions.ConfigurationValueError(
@@ -184,6 +202,11 @@ class _UrlBuilder(object):
             self.__scheme, self.__netloc, self.relative_path, self.query, ''))
 
 
+def _SkipGetCredentials():
+    """Hook for skipping credentials. For internal use."""
+    return False
+
+
 class BaseApiClient(object):
 
     """Base class for client libraries."""
@@ -198,7 +221,7 @@ class BaseApiClient(object):
 
     def __init__(self, url, credentials=None, get_credentials=True, http=None,
                  model=None, log_request=False, log_response=False,
-                 num_retries=5, credentials_args=None,
+                 num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
@@ -207,9 +230,12 @@ class BaseApiClient(object):
         self.log_request = log_request
         self.log_response = log_response
         self.__num_retries = 5
+        self.__max_retry_wait = 60
         # We let the @property machinery below do our validation.
         self.num_retries = num_retries
+        self.max_retry_wait = max_retry_wait
         self._credentials = credentials
+        get_credentials = get_credentials and not _SkipGetCredentials()
         if get_credentials and not credentials:
             credentials_args = credentials_args or {}
             self._SetCredentials(**credentials_args)
@@ -334,6 +360,18 @@ class BaseApiClient(object):
                 'Cannot have negative value for num_retries')
         self.__num_retries = value
 
+    @property
+    def max_retry_wait(self):
+        return self.__max_retry_wait
+
+    @max_retry_wait.setter
+    def max_retry_wait(self, value):
+        util.Typecheck(value, six.integer_types)
+        if value <= 0:
+            raise exceptions.InvalidDataError(
+                'max_retry_wait must be a postiive integer')
+        self.__max_retry_wait = value
+
     @contextlib.contextmanager
     def WithRetries(self, num_retries):
         old_num_retries = self.num_retries
@@ -452,6 +490,18 @@ class BaseApiService(object):
             query_info['pp'] = 0
         return query_info
 
+    def __FinalUrlValue(self, value, field):
+        """Encode value for the URL, using field to skip encoding for bytes."""
+        if isinstance(field, messages.BytesField) and value is not None:
+            return base64.urlsafe_b64encode(value)
+        elif isinstance(value, six.text_type):
+            return value.encode('utf8')
+        elif isinstance(value, six.binary_type):
+            return value.decode('utf8')
+        elif isinstance(value, datetime.datetime):
+            return value.isoformat()
+        return value
+
     def __ConstructQueryParams(self, query_params, request, global_params):
         """Construct a dictionary of query parameters for this request."""
         # First, handle the global params.
@@ -460,23 +510,24 @@ class BaseApiService(object):
         global_param_names = util.MapParamNames(
             [x.name for x in self.__client.params_type.all_fields()],
             self.__client.params_type)
-        query_info = dict((param, getattr(global_params, param))
-                          for param in global_param_names)
+        global_params_type = type(global_params)
+        query_info = dict(
+            (param,
+             self.__FinalUrlValue(getattr(global_params, param),
+                                  getattr(global_params_type, param)))
+            for param in global_param_names)
         # Next, add the query params.
         query_param_names = util.MapParamNames(query_params, type(request))
-        query_info.update((param, getattr(request, param, None))
-                          for param in query_param_names)
+        request_type = type(request)
+        query_info.update(
+            (param,
+             self.__FinalUrlValue(getattr(request, param, None),
+                                  getattr(request_type, param)))
+            for param in query_param_names)
         query_info = dict((k, v) for k, v in query_info.items()
                           if v is not None)
         query_info = self.__EncodePrettyPrint(query_info)
         query_info = util.MapRequestParams(query_info, type(request))
-        for k, v in query_info.items():
-            if isinstance(v, six.text_type):
-                query_info[k] = v.encode('utf8')
-            elif isinstance(v, str):
-                query_info[k] = v.decode('utf8')
-            elif isinstance(v, datetime.datetime):
-                query_info[k] = v.isoformat()
         return query_info
 
     def __ConstructRelativePath(self, method_config, request,
@@ -547,6 +598,9 @@ class BaseApiService(object):
             util.Typecheck(body_field, messages.MessageField)
             body_type = body_field.type
 
+        # If there was no body provided, we use an empty message of the
+        # appropriate type.
+        body_value = body_value or body_type()
         if upload and not body_value:
             # We're going to fill in the body later.
             return
@@ -617,7 +671,8 @@ class BaseApiService(object):
             if upload and upload.bytes_http:
                 http = upload.bytes_http
             http_response = http_wrapper.MakeRequest(
-                http, http_request, retries=self.__client.num_retries)
+                http, http_request, retries=self.__client.num_retries,
+                max_retry_wait=self.__client.max_retry_wait)
 
         return self.ProcessHttpResponse(method_config, http_response)
 

@@ -31,6 +31,7 @@ from boto import config
 import crcmod
 
 from gslib import copy_helper
+from gslib.bucket_listing_ref import BucketListingObject
 from gslib.cloud_api import NotFoundException
 from gslib.command import Command
 from gslib.command import DummyArgChecker
@@ -253,8 +254,13 @@ _DETAILED_HELP_TEXT = ("""
      match those of the source object (it can't; timestamp setting is not
      allowed by the GCS API).
 
-  2. The gsutil rsync command ignores versioning, synchronizing only the live
-     object versions in versioned buckets.
+  2. The gsutil rsync command considers only the current object generations in
+     the source and destination buckets when deciding what to copy / delete. If
+     versioning is enabled in the destination bucket then gsutil rsync's
+     overwriting or deleting objects will end up creating versions, but the
+     command doesn't try to make the archived generations match in the source
+     and destination buckets.
+
 
 
 <B>OPTIONS</B>
@@ -303,7 +309,8 @@ _DETAILED_HELP_TEXT = ("""
                 and destination URLs match, skipping any sub-directories.
 
   -U            Skip objects with unsupported object types instead of failing.
-                Unsupported object types are s3 glacier objects.
+                Unsupported object types are Amazon S3 Objects in the GLACIER
+                storage class.
 
   -x pattern    Causes files/objects matching pattern to be excluded, i.e., any
                 matching files/objects will not be copied or deleted. Note that
@@ -472,6 +479,26 @@ def _ListUrlRootFunc(cls, args_tuple, thread_state=None):
   out_file.close()
 
 
+def _LocalDirIterator(base_url):
+  """A generator that yields a BLR for each file in a local directory.
+
+     We use this function instead of WildcardIterator for listing a local
+     directory without recursion, because the glob.globi implementation called
+     by WildcardIterator skips "dot" files (which we don't want to do when
+     synchronizing to or from a local directory).
+
+  Args:
+    base_url: URL for the directory over which to iterate.
+
+  Yields:
+    BucketListingObject for each file in the directory.
+  """
+  for filename in os.listdir(base_url.object_name):
+    filename = os.path.join(base_url.object_name, filename)
+    if os.path.isfile(filename):
+      yield BucketListingObject(StorageUrlFromString(filename), None)
+
+
 def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
   """Iterator over base_url_str formatting output per _BuildTmpOutputLine.
 
@@ -484,16 +511,22 @@ def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
   Yields:
     Output line formatted per _BuildTmpOutputLine.
   """
-  if cls.recursion_requested:
-    wildcard = '%s/**' % base_url_str.rstrip('/\\')
+  base_url = StorageUrlFromString(base_url_str)
+  if base_url.scheme == 'file' and not cls.recursion_requested:
+    iterator = _LocalDirIterator(base_url)
   else:
-    wildcard = '%s/*' % base_url_str.rstrip('/\\')
+    if cls.recursion_requested:
+      wildcard = '%s/**' % base_url_str.rstrip('/\\')
+    else:
+      wildcard = '%s/*' % base_url_str.rstrip('/\\')
+    iterator = CreateWildcardIterator(
+        wildcard, gsutil_api, debug=cls.debug,
+        project_id=cls.project_id).IterObjects(
+            # Request just the needed fields, to reduce bandwidth usage.
+            bucket_listing_fields=['crc32c', 'md5Hash', 'name', 'size'])
+
   i = 0
-  for blr in CreateWildcardIterator(
-      wildcard, gsutil_api, debug=cls.debug,
-      project_id=cls.project_id).IterObjects(
-          # Request just the needed fields, to reduce bandwidth usage.
-          bucket_listing_fields=['crc32c', 'md5Hash', 'name', 'size']):
+  for blr in iterator:
     # Various GUI tools (like the GCS web console) create placeholder objects
     # ending with '/' when the user creates an empty directory. Normally these
     # tools should delete those placeholders once objects have been written
@@ -504,10 +537,8 @@ def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
     # local directory "mydata" exists).
     url = blr.storage_url
     if IsCloudSubdirPlaceholder(url, blr=blr):
-      cls.logger.info('Skipping cloud sub-directory placeholder object (%s) '
-                      'because such objects aren\'t needed in (and would '
-                      'interfere with) directories in the local file system',
-                      url)
+      # We used to output the message 'Skipping cloud sub-directory placeholder
+      # object...' but we no longer do so because it caused customer confusion.
       continue
     if (cls.exclude_symlinks and url.IsFileUrl()
         and os.path.islink(url.object_name)):

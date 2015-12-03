@@ -16,82 +16,28 @@
 
 from __future__ import absolute_import
 
-import multiprocessing
 import threading
 
 
-class BasicIncrementDict(object):
-  """Dictionary meant for storing values for which increment is defined.
+class AtomicDict(object):
+  """Thread-safe (and optionally process-safe) dictionary protected by a lock.
 
-  This handles any values for which the "+" operation is defined (e.g., floats,
-  lists, etc.). This class is neither thread- nor process-safe.
+  If a multiprocessing.Manager is supplied on init, the dictionary is
+  both process and thread safe. Otherwise, it is only thread-safe.
   """
 
-  def __init__(self):
-    self.dict = {}
-
-  def Get(self, key, default_value=None):
-    return self.dict.get(key, default_value)
-
-  def Put(self, key, value):
-    self.dict[key] = value
-
-  def Update(self, key, inc, default_value=0):
-    """Update the stored value associated with the given key.
-
-    Performs the equivalent of
-    self.put(key, self.get(key, default_value) + inc).
+  def __init__(self, manager=None):
+    """Initializes the dict.
 
     Args:
-      key: lookup key for the value of the first operand of the "+" operation.
-      inc: Second operand of the "+" operation.
-      default_value: Default value if there is no existing value for the key.
-
-    Returns:
-      Incremented value.
+      manager: multiprocessing.Manager instance (required for process safety).
     """
-    val = self.dict.get(key, default_value) + inc
-    self.dict[key] = val
-    return val
-
-
-class AtomicIncrementDict(BasicIncrementDict):
-  """Dictionary meant for storing values for which increment is defined.
-
-  This handles any values for which the "+" operation is defined (e.g., floats,
-  lists, etc.) in a thread- and process-safe way that allows for atomic get,
-  put, and update.
-  """
-
-  def __init__(self, manager):  # pylint: disable=super-init-not-called
-    self.dict = ThreadAndProcessSafeDict(manager)
-    self.lock = multiprocessing.Lock()
-
-  def Update(self, key, inc, default_value=0):
-    """Atomically update the stored value associated with the given key.
-
-    Performs the atomic equivalent of
-    self.put(key, self.get(key, default_value) + inc).
-
-    Args:
-      key: lookup key for the value of the first operand of the "+" operation.
-      inc: Second operand of the "+" operation.
-      default_value: Default value if there is no existing value for the key.
-
-    Returns:
-      Incremented value.
-    """
-    with self.lock:
-      return super(AtomicIncrementDict, self).Update(key, inc, default_value)
-
-
-class ThreadSafeDict(object):
-  """Provides a thread-safe dictionary (protected by a lock)."""
-
-  def __init__(self):
-    """Initializes the thread-safe dict."""
-    self.lock = threading.Lock()
-    self.dict = {}
+    if manager:
+      self.lock = manager.Lock()
+      self.dict = manager.dict()
+    else:
+      self.lock = threading.Lock()
+      self.dict = {}
 
   def __getitem__(self, key):
     with self.lock:
@@ -110,21 +56,21 @@ class ThreadSafeDict(object):
     with self.lock:
       del self.dict[key]
 
+  def Increment(self, key, inc, default_value=0):
+    """Atomically updates the stored value associated with the given key.
 
-class ThreadAndProcessSafeDict(ThreadSafeDict):
-  """Wraps a multiprocessing.Manager's proxy objects for thread-safety.
-
-  The proxy objects returned by a manager are process-safe but not necessarily
-  thread-safe, so this class simply wraps their access with a lock for ease of
-  use. Since the objects are process-safe, we can use the more efficient
-  threading Lock.
-  """
-
-  def __init__(self, manager):
-    """Initializes the thread and process safe dict.
+    Performs the atomic equivalent of
+    dict[key] = dict.get(key, default_value) + inc.
 
     Args:
-      manager: Multiprocessing.manager object.
+      key: lookup key for the value of the first operand of the "+" operation.
+      inc: Second operand of the "+" operation.
+      default_value: Default value if there is no existing value for the key.
+
+    Returns:
+      Incremented value.
     """
-    super(ThreadAndProcessSafeDict, self).__init__()
-    self.dict = manager.dict()
+    with self.lock:
+      val = self.dict.get(key, default_value) + inc
+      self.dict[key] = val
+      return val

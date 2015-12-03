@@ -31,7 +31,7 @@ REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'oauth2client>=1.4.8',
     'protorpc>=0.9.1',
-    'six>=1.8.0',
+    'six>=1.9.0',
     ]
 
 CLI_PACKAGES = [
@@ -47,14 +47,15 @@ TESTING_PACKAGES = [
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:run_main',
-    ]
+    'oauth2l = apitools.scripts.oauth2l:run_main [cli]',
+]
 
 py_version = platform.python_version()
 
 if py_version < '2.7':
     REQUIRED_PACKAGES.append('argparse>=1.2.1')
 
-_APITOOLS_VERSION = '0.4.8'
+_APITOOLS_VERSION = '0.4.10'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
@@ -78,6 +79,11 @@ setuptools.setup(
         'cli': CLI_PACKAGES,
         'testing': TESTING_PACKAGES,
         },
+    # Add in any packaged data.
+    include_package_data=True,
+    package_data={
+        'apitools.data': ['*'],
+    },
     # PyPI package information.
     classifiers=[
         'License :: OSI Approved :: Apache Software License',

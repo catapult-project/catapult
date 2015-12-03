@@ -44,6 +44,11 @@ class TestRb(testcase.GsUtilIntegrationTestCase):
     self.assertIn('Bucket is not empty. Note: this is a versioned bucket',
                   stderr)
 
+  def test_rb_nonexistent_bucket(self):
+    stderr = self.RunGsUtil(['rb', 'gs://%s' % self.nonexistent_bucket_name],
+                            return_stderr=True, expected_status=1)
+    self.assertIn('does not exist.', stderr)
+
   def test_rb_minus_f(self):
     bucket_uri = self.CreateBucket()
     stderr = self.RunGsUtil([

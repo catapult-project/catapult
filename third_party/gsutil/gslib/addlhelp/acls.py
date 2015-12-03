@@ -34,22 +34,23 @@ _DETAILED_HELP_TEXT = ("""
 <B>BUCKET VS OBJECT ACLS</B>
   In Google Cloud Storage, the bucket ACL works as follows:
 
-  - Users granted READ access are allowed to list the bucket contents.
+  - Users granted READ access are allowed to list the bucket contents and read
+    bucket metadata other than its ACL.
 
-  - Users granted WRITE access are allowed READ access and also are
-    allowed to write and delete objects in that bucket -- including
-    overwriting previously written objects.
+  - Users granted WRITE access are allowed READ access and also are allowed to
+    write and delete objects in that bucket, including overwriting previously
+    written objects.
 
-  - Users granted OWNER access are allowed WRITE access and also
-    are allowed to read and write the bucket's ACL.
+  - Users granted OWNER access are allowed WRITE access and also are allowed to
+    read and write the bucket's ACL.
 
   The object ACL works as follows:
 
   - Users granted READ access are allowed to read the object's data and
     metadata.
 
-  - Users granted OWNER access are allowed READ access and also
-    are allowed to read and write the object's ACL.
+  - Users granted OWNER access are allowed READ access and also are allowed to
+    read and write the object's ACL.
 
   A couple of points are worth noting, that sometimes surprise users:
 
@@ -60,13 +61,13 @@ _DETAILED_HELP_TEXT = ("""
      object ACL matters for that purpose. This is different from how things
      work in Linux file systems, where both the file and directory permission
      control file read access. It also means, for example, that someone with
-     OWNER over the bucket may not have read access to objects in
-     the bucket.  This is by design, and supports useful cases. For example,
-     you might want to set up bucket ownership so that a small group of
-     administrators have OWNER on the bucket (with the ability to
-     delete data to control storage costs), but not grant those users read
-     access to the object data (which might be sensitive data that should
-     only be accessed by a different specific group of users).
+     OWNER over the bucket may not have read access to objects in the bucket.
+     This is by design, and supports useful cases. For example, you might want
+     to set up bucket ownership so that a small group of administrators have
+     OWNER on the bucket (with the ability to delete data to control storage
+     costs), but not grant those users read access to the object data (which
+     might be sensitive data that should only be accessed by a different
+     specific group of users).
 
 
 <B>CANNED ACLS</B>

@@ -103,16 +103,29 @@ def _CopyLocalFile(filename):
         out.write(src_data)
 
 
+_DISCOVERY_DOC = None
+
+
+def _GetDiscoveryDocFromFlags():
+    """Get the discovery doc from flags."""
+    global _DISCOVERY_DOC  # pylint: disable=global-statement
+    if _DISCOVERY_DOC is None:
+        if FLAGS.discovery_url:
+            try:
+                discovery_doc = util.FetchDiscoveryDoc(FLAGS.discovery_url)
+            except exceptions.CommunicationError:
+                raise exceptions.GeneratedClientError(
+                    'Could not fetch discovery doc')
+        else:
+            infile = os.path.expanduser(FLAGS.infile) or '/dev/stdin'
+            discovery_doc = json.load(open(infile))
+        _DISCOVERY_DOC = discovery_doc
+    return _DISCOVERY_DOC
+
+
 def _GetCodegenFromFlags():
     """Create a codegen object from flags."""
-    if FLAGS.discovery_url:
-        try:
-            discovery_doc = util.FetchDiscoveryDoc(FLAGS.discovery_url)
-        except exceptions.CommunicationError:
-            return None
-    else:
-        infile = os.path.expanduser(FLAGS.infile) or '/dev/stdin'
-        discovery_doc = json.load(open(infile))
+    discovery_doc = _GetDiscoveryDocFromFlags()
     names = util.Names(
         FLAGS.strip_prefix,
         FLAGS.experimental_name_convention,
@@ -122,7 +135,7 @@ def _GetCodegenFromFlags():
         try:
             with open(FLAGS.client_json) as client_json:
                 f = json.loads(client_json.read())
-                web = f.get('web', {})
+                web = f.get('installed', f.get('web', {}))
                 client_id = web.get('client_id')
                 client_secret = web.get('client_secret')
         except IOError:
@@ -148,9 +161,10 @@ def _GetCodegenFromFlags():
         raise exceptions.ConfigurationValueError(
             'Output directory exists, pass --overwrite to replace '
             'the existing files.')
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
-    root_package = FLAGS.root_package or util.GetPackage(
-        outdir)  # pylint: disable=line-too-long
+    root_package = FLAGS.root_package or util.GetPackage(outdir)
     return gen_client_lib.DescriptorGenerator(
         discovery_doc, client_info, names, root_package, outdir,
         base_package=FLAGS.base_package,
@@ -167,6 +181,11 @@ def _WriteBaseFiles(codegen):
         _CopyLocalFile('base_cli.py')
         _CopyLocalFile('credentials_lib.py')
         _CopyLocalFile('exceptions.py')
+
+
+def _WriteIntermediateInit(codegen):
+    with open('__init__.py', 'w') as out:
+        codegen.WriteIntermediateInit(out)
 
 
 def _WriteProtoFiles(codegen):
@@ -197,6 +216,11 @@ def _WriteInit(codegen):
             codegen.WriteInit(out)
 
 
+def _WriteSetupPy(codegen):
+    with open('setup.py', 'w') as out:
+        codegen.WriteSetupPy(out)
+
+
 class GenerateClient(appcommands.Cmd):
 
     """Driver for client code generation."""
@@ -209,6 +233,33 @@ class GenerateClient(appcommands.Cmd):
             return 128
         _WriteGeneratedFiles(codegen)
         _WriteInit(codegen)
+
+
+class GeneratePipPackage(appcommands.Cmd):
+
+    """Generate a client as a pip-installable tarball."""
+
+    def Run(self, _):
+        """Create a client in a pip package."""
+        discovery_doc = _GetDiscoveryDocFromFlags()
+        package = discovery_doc['name']
+        original_outdir = os.path.expanduser(FLAGS.outdir)
+        FLAGS.outdir = os.path.join(
+            FLAGS.outdir, 'apitools/clients/%s' % package)
+        FLAGS.root_package = 'apitools.clients.%s' % package
+        FLAGS.generate_cli = False
+        codegen = _GetCodegenFromFlags()
+        if codegen is None:
+            logging.error('Failed to create codegen, exiting.')
+            return 1
+        _WriteGeneratedFiles(codegen)
+        _WriteInit(codegen)
+        with util.Chdir(original_outdir):
+            _WriteSetupPy(codegen)
+            with util.Chdir('apitools'):
+                _WriteIntermediateInit(codegen)
+                with util.Chdir('clients'):
+                    _WriteIntermediateInit(codegen)
 
 
 class GenerateProto(appcommands.Cmd):
@@ -247,6 +298,7 @@ def run_main():
 
 def main(_):
     appcommands.AddCmd('client', GenerateClient)
+    appcommands.AddCmd('pip_package', GeneratePipPackage)
     appcommands.AddCmd('proto', GenerateProto)
 
 

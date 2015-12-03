@@ -36,14 +36,14 @@ import os
 
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
-from gslib.tests.util import PerformsFileToObjectUpload
+from gslib.tests.util import SequentialAndParallelTransfer
 from gslib.util import Retry
 
 
 class TestParallelCp(testcase.GsUtilIntegrationTestCase):
   """Unit tests for gsutil naming logic."""
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingTopLevelFileToBucket(self):
     """Tests copying one top-level file to a bucket."""
     src_file = self.CreateTempFile(file_name='f0')
@@ -53,7 +53,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     lines = self.AssertNObjectsInBucket(dst_bucket_uri, 1)
     self.assertEqual(suri(dst_bucket_uri, 'f0'), lines[0])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingMultipleFilesToBucket(self):
     """Tests copying multiple files to a bucket."""
     src_file0 = self.CreateTempFile(file_name='f0')
@@ -65,7 +65,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(suri(dst_bucket_uri, 'f0'), lines[0])
     self.assertEqual(suri(dst_bucket_uri, 'f1'), lines[1])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingNestedFileToBucketSubdir(self):
     """Tests copying a nested file to a bucket subdir.
 
@@ -85,7 +85,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(suri(dst_bucket_uri, 'subdir/a'), lines[0])
     self.assertEqual(suri(dst_bucket_uri, 'subdir/obj'), lines[1])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingAbsolutePathDirToBucket(self):
     """Tests recursively copying absolute path directory to a bucket."""
     dst_bucket_uri = self.CreateBucket()
@@ -101,7 +101,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(suri(dst_bucket_uri, src_tmpdir, 'f1'), lines[2])
     self.assertEqual(suri(dst_bucket_uri, src_tmpdir, 'f2.txt'), lines[3])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingDirContainingOneFileToBucket(self):
     """Tests copying a directory containing 1 file to a bucket.
 
@@ -116,7 +116,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     lines = self.AssertNObjectsInBucket(dst_bucket_uri, 1)
     self.assertEqual(suri(dst_bucket_uri, 'dir1', 'foo'), lines[0])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingFileToObjectWithConsecutiveSlashes(self):
     """Tests copying a file to an object containing consecutive slashes."""
     src_file = self.CreateTempFile(file_name='f0')
@@ -126,7 +126,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     lines = self.AssertNObjectsInBucket(dst_bucket_uri, 1)
     self.assertEqual(suri(dst_bucket_uri) + '//obj', lines[0])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingObjsAndFilesToBucket(self):
     """Tests copying objects and files to a bucket."""
     src_bucket_uri = self.CreateBucket()
@@ -140,7 +140,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(suri(dst_bucket_uri, 'f1'), lines[0])
     self.assertEqual(suri(dst_bucket_uri, 'f2'), lines[1])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingSubdirRecursiveToNonexistentSubdir(self):
     """Tests copying a directory with a single file recursively to a bucket.
 
@@ -161,7 +161,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     lines = self.AssertNObjectsInBucket(dst_bucket_uri, 1)
     self.assertEqual(suri(dst_bucket_uri, 'dir3/dir2/foo'), lines[0])
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingWildcardedFilesToBucketSubDir(self):
     """Tests copying wildcarded files to a bucket subdir."""
     # Test with and without final slash on dest subdir.
@@ -193,7 +193,7 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
           self.assertEqual(suri(dst_bucket_uri, 'subdir%d' % i, 'f2'), lines[3])
         _Check1()
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def testCopyingOneNestedFileToBucketSubDir(self):
     """Tests copying one nested file to a bucket subdir."""
     # Test with and without final slash on dest subdir.

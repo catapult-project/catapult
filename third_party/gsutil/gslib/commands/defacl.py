@@ -30,6 +30,7 @@ from gslib.exception import CommandException
 from gslib.help_provider import CreateHelpText
 from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.translation_helper import PRIVATE_DEFAULT_OBJ_ACL
 from gslib.util import NO_MAX
 from gslib.util import Retry
 from gslib.util import UrlsAreForSingleProvider
@@ -101,10 +102,15 @@ _CH_DESCRIPTION = """
 
     gsutil defacl ch -g admins@example.com:O gs://example-bucket
 
-  Grant the owners of project example-project-123 READ access to new objects
-  created in the bucket example-bucket:
+  Remove the group admins@example.com from the default object ACL on bucket
+  example-bucket:
 
-    gsutil acl ch -p owners-example-project-123:R gs://example-bucket
+    gsutil defacl ch -d admins@example.com gs://example-bucket
+
+  Add the owners of project example-project-123 to the default object ACL on
+  bucket example-bucket with READ access:
+
+    gsutil defacl ch -p owners-example-project-123:R gs://example-bucket
 
   NOTE: You can replace 'owners' with 'viewers' or 'editors' to grant access
   to a project's viewers/editors respectively.
@@ -267,6 +273,11 @@ class DefAclCommand(Command):
     if modification_count == 0:
       self.logger.info('No changes to %s', url)
       return
+
+    if not current_acl:
+      # Use a sentinel value to indicate a private (no entries) default
+      # object ACL.
+      current_acl.append(PRIVATE_DEFAULT_OBJ_ACL)
 
     try:
       preconditions = Preconditions(meta_gen_match=bucket.metageneration)

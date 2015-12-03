@@ -1,6 +1,7 @@
 import operator
 import sys
 import types
+import unittest
 
 import py
 
@@ -389,6 +390,24 @@ def test_dictionary_iterators(monkeypatch):
         monkeypatch.undo()
 
 
+@py.test.mark.skipif(sys.version_info[:2] < (2, 7),
+                reason="view methods on dictionaries only available on 2.7+")
+def test_dictionary_views():
+    def stock_method_name(viewwhat):
+        """Given a method suffix like "keys" or "values", return the name
+        of the dict method that delivers those on the version of Python
+        we're running in."""
+        if six.PY3:
+            return viewwhat
+        return 'view' + viewwhat
+
+    d = dict(zip(range(10), (range(11, 20))))
+    for name in "keys", "values", "items":
+        meth = getattr(six, "view" + name)
+        view = meth(d)
+        assert set(view) == set(getattr(d, name)())
+
+
 def test_advance_iterator():
     assert six.next is six.advance_iterator
     l = [1, 2]
@@ -570,6 +589,27 @@ def test_reraise():
         assert tb is get_next(tb2)
 
 
+def test_raise_from():
+    try:
+        try:
+            raise Exception("blah")
+        except Exception:
+            ctx = sys.exc_info()[1]
+            f = Exception("foo")
+            six.raise_from(f, None)
+    except Exception:
+        tp, val, tb = sys.exc_info()
+    if sys.version_info[:2] > (3, 0):
+        # We should have done a raise f from None equivalent.
+        assert val.__cause__ is None
+        assert val.__context__ is ctx
+    if sys.version_info[:2] >= (3, 3):
+        # And that should suppress the context on the exception.
+        assert val.__suppress_context__
+    # For all versions the outer exception should have raised successfully.
+    assert str(val) == "foo"
+
+
 def test_print_():
     save = sys.stdout
     out = sys.stdout = six.moves.StringIO()
@@ -596,6 +636,17 @@ def test_print_():
     out = six.StringIO()
     six.print_(None, file=out)
     assert out.getvalue() == "None\n"
+    class FlushableStringIO(six.StringIO):
+        def __init__(self):
+            six.StringIO.__init__(self)
+            self.flushed = False
+        def flush(self):
+            self.flushed = True
+    out = FlushableStringIO()
+    six.print_("Hello", file=out)
+    assert not out.flushed
+    six.print_("Hello", file=out, flush=True)
+    assert out.flushed
 
 
 @py.test.mark.skipif("sys.version_info[:2] >= (2, 6)")
@@ -661,6 +712,18 @@ def test_wraps():
     k = k.__wrapped__
     assert k is original_k
     assert not hasattr(k, '__wrapped__')
+
+    def f(g, assign, update):
+        def w():
+            return 42
+        w.glue = {"foo" : "bar"}
+        return six.wraps(g, assign, update)(w)
+    k.glue = {"melon" : "egg"}
+    k.turnip = 43
+    k = f(k, ["turnip"], ["glue"])
+    assert k.__name__ == "w"
+    assert k.turnip == 43
+    assert k.glue == {"melon" : "egg", "foo" : "bar"}
 
 
 def test_add_metaclass():
@@ -734,3 +797,62 @@ def test_add_metaclass():
         __slots__ = "__weakref__",
     MySlotsWeakref = six.add_metaclass(Meta)(MySlotsWeakref)
     assert type(MySlotsWeakref) is Meta
+
+
+@py.test.mark.skipif("sys.version_info[:2] < (2, 7)")
+def test_assertCountEqual():
+    class TestAssertCountEqual(unittest.TestCase):
+        def test(self):
+            with self.assertRaises(AssertionError):
+                six.assertCountEqual(self, (1, 2), [3, 4, 5])
+
+            six.assertCountEqual(self, (1, 2), [2, 1])
+
+    TestAssertCountEqual('test').test()
+
+
+@py.test.mark.skipif("sys.version_info[:2] < (2, 7)")
+def test_assertRegex():
+    class TestAssertRegex(unittest.TestCase):
+        def test(self):
+            with self.assertRaises(AssertionError):
+                six.assertRegex(self, 'test', r'^a')
+
+            six.assertRegex(self, 'test', r'^t')
+
+    TestAssertRegex('test').test()
+
+
+@py.test.mark.skipif("sys.version_info[:2] < (2, 7)")
+def test_assertRaisesRegex():
+    class TestAssertRaisesRegex(unittest.TestCase):
+        def test(self):
+            with six.assertRaisesRegex(self, AssertionError, '^Foo'):
+                raise AssertionError('Foo')
+
+            with self.assertRaises(AssertionError):
+                with six.assertRaisesRegex(self, AssertionError, r'^Foo'):
+                    raise AssertionError('Bar')
+
+    TestAssertRaisesRegex('test').test()
+
+
+def test_python_2_unicode_compatible():
+    @six.python_2_unicode_compatible
+    class MyTest(object):
+        def __str__(self):
+            return six.u('hello')
+
+        def __bytes__(self):
+            return six.b('hello')
+
+    my_test = MyTest()
+
+    if six.PY2:
+        assert str(my_test) == six.b("hello")
+        assert unicode(my_test) == six.u("hello")
+    elif six.PY3:
+        assert bytes(my_test) == six.b("hello")
+        assert str(my_test) == six.u("hello")
+
+    assert getattr(six.moves.builtins, 'bytes', str)(my_test) == six.b("hello")

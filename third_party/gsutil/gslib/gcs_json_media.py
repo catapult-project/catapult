@@ -454,17 +454,18 @@ class HttpWithDownloadStream(httplib2.Http):
   class doc).
   """
 
-  def __init__(self, stream=None, *args, **kwds):
-    if stream is None:
-      raise apitools_exceptions.InvalidUserInputError(
-          'Cannot create HttpWithDownloadStream with no stream')
-    self._stream = stream
+  def __init__(self, *args, **kwds):
+    self._stream = None
     self._logger = logging.getLogger()
     super(HttpWithDownloadStream, self).__init__(*args, **kwds)
 
   @property
   def stream(self):
     return self._stream
+
+  @stream.setter
+  def stream(self, value):
+    self._stream = value
 
   def _conn_request(self, conn, request_uri, method, body, headers):  # pylint: disable=too-many-statements
     try:
@@ -513,6 +514,9 @@ class HttpWithDownloadStream(httplib2.Http):
           while True:
             new_data = http_stream.read(TRANSFER_BUFFER_SIZE)
             if new_data:
+              if self.stream is None:
+                raise apitools_exceptions.InvalidUserInputError(
+                    'Cannot exercise HttpWithDownloadStream with no stream')
               self.stream.write(new_data)
               bytes_read += len(new_data)
             else:

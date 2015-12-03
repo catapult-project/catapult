@@ -6,7 +6,8 @@ import collections
 import datetime
 import json
 import logging
-
+import os
+import sys
 
 from protorpc import message_types
 from protorpc import messages
@@ -265,10 +266,12 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
         # remove this later.
         old_level = logging.getLogger().level
         logging.getLogger().setLevel(logging.ERROR)
-        result = _DecodeCustomFieldNames(message_type, encoded_message)
-        result = super(_ProtoJsonApiTools, self).decode_message(
-            message_type, result)
-        logging.getLogger().setLevel(old_level)
+        try:
+            result = _DecodeCustomFieldNames(message_type, encoded_message)
+            result = super(_ProtoJsonApiTools, self).decode_message(
+                message_type, result)
+        finally:
+            logging.getLogger().setLevel(old_level)
         result = _ProcessUnknownEnums(result, encoded_message)
         result = _ProcessUnknownMessages(result, encoded_message)
         return _DecodeUnknownFields(result, encoded_message)
@@ -382,6 +385,8 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
         if name in all_field_names:
             continue
         value = PyValueToMessage(field_type, value_dict)
+        if pair_type.value.repeated:
+            value = _AsMessageList(value)
         new_pair = pair_type(key=name, value=value)
         new_values.append(new_pair)
     return new_values
@@ -399,6 +404,8 @@ def _DecodeUnrecognizedFields(message, pair_type):
         value_type = pair_type.field_by_name('value')
         if isinstance(value_type, messages.MessageField):
             decoded_value = DictToMessage(value, pair_type.value.message_type)
+        elif isinstance(value_type, messages.EnumField):
+            decoded_value = pair_type.value.type(value)
         else:
             decoded_value = value
         new_pair = pair_type(key=str(unknown_field), value=decoded_value)
@@ -520,7 +527,30 @@ _JSON_ENUM_MAPPINGS = {}
 _JSON_FIELD_MAPPINGS = {}
 
 
-def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
+def _GetTypeKey(message_type, package):
+    """Get the prefix for this message type in mapping dicts."""
+    key = message_type.definition_name()
+    if package and key.startswith(package + '.'):
+        module_name = message_type.__module__
+        # We normalize '__main__' to something unique, if possible.
+        if module_name == '__main__':
+            try:
+                file_name = sys.modules[module_name].__file__
+            except (AttributeError, KeyError):
+                pass
+            else:
+                base_name = os.path.basename(file_name)
+                split_name = os.path.splitext(base_name)
+                if len(split_name) == 1:
+                    module_name = unicode(base_name)
+                else:
+                    module_name = u'.'.join(split_name[:-1])
+        key = module_name + '.' + key.partition('.')[2]
+    return key
+
+
+def AddCustomJsonEnumMapping(enum_type, python_name, json_name,
+                             package=''):
     """Add a custom wire encoding for a given enum value.
 
     This is primarily used in generated code, to handle enum values
@@ -530,11 +560,14 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
       enum_type: (messages.Enum) An enum type
       python_name: (string) Python name for this value.
       json_name: (string) JSON name to be used on the wire.
+      package: (basestring, optional) Package prefix for this enum, if
+          present. We strip this off the enum name in order to generate
+          unique keys.
     """
     if not issubclass(enum_type, messages.Enum):
         raise exceptions.TypecheckError(
             'Cannot set JSON enum mapping for non-enum "%s"' % enum_type)
-    enum_name = enum_type.definition_name()
+    enum_name = _GetTypeKey(enum_type, package)
     if python_name not in enum_type.names():
         raise exceptions.InvalidDataError(
             'Enum value %s not a value for type %s' % (python_name, enum_type))
@@ -543,7 +576,8 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
     field_mappings[python_name] = json_name
 
 
-def AddCustomJsonFieldMapping(message_type, python_name, json_name):
+def AddCustomJsonFieldMapping(message_type, python_name, json_name,
+                              package=''):
     """Add a custom wire encoding for a given message field.
 
     This is primarily used in generated code, to handle enum values
@@ -553,12 +587,15 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name):
       message_type: (messages.Message) A message type
       python_name: (string) Python name for this value.
       json_name: (string) JSON name to be used on the wire.
+      package: (basestring, optional) Package prefix for this message, if
+          present. We strip this off the message name in order to generate
+          unique keys.
     """
     if not issubclass(message_type, messages.Message):
         raise exceptions.TypecheckError(
             'Cannot set JSON field mapping for '
             'non-message "%s"' % message_type)
-    message_name = message_type.definition_name()
+    message_name = _GetTypeKey(message_type, package)
     try:
         _ = message_type.field_by_name(python_name)
     except KeyError:
@@ -647,3 +684,28 @@ def _DecodeCustomFieldNames(message_type, encoded_message):
                 decoded_message[python_name] = decoded_message.pop(json_name)
         encoded_message = json.dumps(decoded_message)
     return encoded_message
+
+
+def _AsMessageList(msg):
+    """Convert the provided list-as-JsonValue to a list."""
+    # This really needs to live in extra_types, but extra_types needs
+    # to import this file to be able to register codecs.
+    # TODO(craigcitro): Split out a codecs module and fix this ugly
+    # import.
+    from apitools.base.py import extra_types
+
+    def _IsRepeatedJsonValue(msg):
+        """Return True if msg is a repeated value as a JsonValue."""
+        if isinstance(msg, extra_types.JsonArray):
+            return True
+        if isinstance(msg, extra_types.JsonValue) and msg.array_value:
+            return True
+        return False
+
+    if not _IsRepeatedJsonValue(msg):
+        raise ValueError('invalid argument to _AsMessageList')
+    if isinstance(msg, extra_types.JsonValue):
+        msg = msg.array_value
+    if isinstance(msg, extra_types.JsonArray):
+        msg = msg.entries
+    return msg

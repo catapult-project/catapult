@@ -33,7 +33,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"six"
-copyright = u"2010-2014, Benjamin Peterson"
+copyright = u"2010-2015, Benjamin Peterson"
 
 sys.path.append(os.path.abspath(os.path.join(".", "..")))
 from six import __version__ as six_version
@@ -213,5 +213,5 @@ man_pages = [
 
 # -- Intersphinx ---------------------------------------------------------------
 
-intersphinx_mapping = {"py2" : ("http://docs.python.org/2/", None),
-                       "py3" : ("http://docs.python.org/3/", None)}
+intersphinx_mapping = {"py2" : ("https://docs.python.org/2/", None),
+                       "py3" : ("https://docs.python.org/3/", None)}

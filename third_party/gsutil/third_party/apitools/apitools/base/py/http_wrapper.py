@@ -47,7 +47,8 @@ _REDIRECT_STATUS_CODES = (
 # exc: Exception being raised.
 # num_retries: Number of retries consumed; used for exponential backoff.
 ExceptionRetryArgs = collections.namedtuple(
-    'ExceptionRetryArgs', ['http', 'http_request', 'exc', 'num_retries'])
+    'ExceptionRetryArgs', ['http', 'http_request', 'exc', 'num_retries',
+                           'max_retry_wait'])
 
 
 @contextlib.contextmanager
@@ -276,10 +277,12 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
     logging.debug('Retrying request to url %s after exception %s',
                   retry_args.http_request.url, retry_args.exc)
     time.sleep(
-        retry_after or util.CalculateWaitForRetry(retry_args.num_retries))
+        retry_after or util.CalculateWaitForRetry(
+            retry_args.num_retries, max_wait=retry_args.max_retry_wait))
 
 
-def MakeRequest(http, http_request, retries=7, redirections=5,
+def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
+                redirections=5,
                 retry_func=HandleExceptionsAndRebuildHttpConnections,
                 check_response_func=CheckResponse):
     """Send http_request via the given http, performing error/retry handling.
@@ -288,7 +291,10 @@ def MakeRequest(http, http_request, retries=7, redirections=5,
       http: An httplib2.Http instance, or a http multiplexer that delegates to
           an underlying http, for example, HTTPMultiplexer.
       http_request: A Request to send.
-      retries: (int, default 5) Number of retries to attempt on 5XX replies.
+      retries: (int, default 7) Number of retries to attempt on retryable
+          replies (such as 429 or 5XX).
+      max_retry_wait: (int, default 60) Maximum number of seconds to wait
+          when retrying.
       redirections: (int, default 5) Number of redirects to follow.
       retry_func: Function to handle retries on exceptions. Arguments are
           (Httplib2.Http, Request, Exception, int num_retries).
@@ -315,7 +321,8 @@ def MakeRequest(http, http_request, retries=7, redirections=5,
             if retry >= retries:
                 raise
             else:
-                retry_func(ExceptionRetryArgs(http, http_request, e, retry))
+                retry_func(ExceptionRetryArgs(
+                    http, http_request, e, retry, max_retry_wait))
 
 
 def _MakeRequestNoRetry(http, http_request, redirections=5,
@@ -365,5 +372,16 @@ def _MakeRequestNoRetry(http, http_request, redirections=5,
     return response
 
 
+_HTTP_FACTORIES = []
+
+
+def _RegisterHttpFactory(factory):
+    _HTTP_FACTORIES.append(factory)
+
+
 def GetHttp(**kwds):
+    for factory in _HTTP_FACTORIES:
+        http = factory(**kwds)
+        if http is not None:
+            return http
     return httplib2.Http(**kwds)

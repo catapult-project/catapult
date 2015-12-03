@@ -12,3 +12,9 @@ cause pain.
 
 from apitools.base.py.app2 import *
 from apitools.base.py.base_cli import *
+
+try:
+    # pylint:disable=no-name-in-module
+    from apitools.base.py.internal.cli import *
+except ImportError:
+    pass

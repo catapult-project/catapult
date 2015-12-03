@@ -106,12 +106,6 @@ _DETAILED_HELP_TEXT = ("""
               threads or processes, and the number of failed operations (if any)
               will be reported at the end of the command's execution.
 
-              WARNING: If you use the gsutil -m option when copying data
-              between versioned buckets, object version ordering will not be
-              preserved. For more information see the
-              "COPYING VERSIONED BUCKETS" section under
-              'gsutil help versions'.
-
   -o          Set/override values in the boto configuration value, in the format
               <section>:<name>=<value>, e.g. gsutil -o "Boto:proxy=host" ...
               This will not pass the option to gsutil integration tests, which

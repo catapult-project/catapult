@@ -14,6 +14,7 @@
 """Generated client library for storage version v1."""
 
 import os
+import platform
 import sys
 
 from apitools.base.py import base_api
@@ -32,7 +33,8 @@ class StorageV1(base_api.BaseApiClient):
   _VERSION = u'v1'
   _CLIENT_ID = 'nomatter'
   _CLIENT_SECRET = 'nomatter'
-  _USER_AGENT = 'apitools gsutil/%s (%s)' % (gslib.VERSION, sys.platform)
+  _USER_AGENT = 'apitools gsutil/%s Python/%s (%s)' % (
+      gslib.VERSION, platform.python_version(), sys.platform)
   if os.environ.get('CLOUDSDK_WRAPPER') == '1':
     _USER_AGENT += ' Cloud SDK Command Line Tool'
     if os.environ.get('CLOUDSDK_VERSION'):

@@ -98,6 +98,22 @@ _DETAILED_HELP_TEXT = ("""
     gs://bucket/[a-m]??.j*g
 
 
+<B>DIFFERENT BEHAVIOR FOR "DOT" FILES IN LOCAL FILE SYSTEM</B>
+  Per standard Unix behavior, the wildcard "*" only matches files that don't
+  start with a "." character (to avoid confusion with the "." and ".."
+  directories present in all Unix directories). gsutil provides this same
+  behavior when using wildcards over a file system URI, but does not provide
+  this behavior over cloud URIs. For example, the following command will copy
+  all objects from gs://bucket1 to gs://bucket2:
+
+    gsutil cp gs://bucket1/* gs://bucket2
+
+  but the following command will copy only files that don't start with a "."
+  from the directory "dir" to gs://bucket1:
+
+    gsutil cp dir/* gs://bucket1
+
+
 <B>EFFICIENCY CONSIDERATION: USING WILDCARDS OVER MANY OBJECTS</B>
   It is more efficient, faster, and less network traffic-intensive
   to use wildcards that have a non-wildcard object-name prefix, like:

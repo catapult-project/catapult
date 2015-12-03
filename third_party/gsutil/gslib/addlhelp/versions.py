@@ -143,7 +143,7 @@ _DETAILED_HELP_TEXT = ("""
 <B>COPYING VERSIONED BUCKETS</B>
   You can copy data between two versioned buckets, using a command like:
 
-    gsutil cp -r gs://bucket1/* gs://bucket2
+    gsutil cp -r -A gs://bucket1/* gs://bucket2
 
   When run using versioned buckets, this command will cause every object version
   to be copied. The copies made in gs://bucket2 will have different generation
@@ -167,12 +167,6 @@ _DETAILED_HELP_TEXT = ("""
   same sequence of sizes in both listings), but the generation numbers (and
   timestamps) are newer in gs://bucket2.
 
-  WARNING: If you use the gsutil -m option when copying the objects (to parallel
-  copy the data), object version ordering will NOT be preserved. All object
-  versions will be copied, but (for example) the latest/live version in the
-  destination bucket might be from one of the earlier versions in the source
-  bucket (and similarly, other versions may be out of order). When copying
-  versioned data it is advisable not to use the gsutil -m option.
 
 
 <B>CONCURRENCY CONTROL</B>

@@ -44,7 +44,9 @@
 
 [MESSAGES CONTROL]
 
+# TODO: remove cyclic-import.
 disable =
+    cyclic-import,
     fixme,
     import-error,
     locally-disabled,
@@ -55,12 +57,14 @@ disable =
     no-member,
     no-self-use,
     redefined-builtin,
+    redundant-keyword-arg,
     similarities,
     star-args,
     super-on-old-class,
     too-few-public-methods,
     too-many-arguments,
     too-many-branches,
+    too-many-function-args,
     too-many-instance-attributes,
     too-many-locals,
     too-many-public-methods,

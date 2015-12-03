@@ -39,7 +39,6 @@ from gslib import copy_helper
 from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import ServiceException
 from gslib.exception import CommandException
-from gslib.exception import HashMismatchException
 from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
@@ -61,7 +60,7 @@ def _Append(fp):
   fp.flush()
 
 
-# TODO: Re-enable PerformsFileToObjectUpload decorator on tests in this file
+# TODO: Re-enable SequentialAndParallelTransfer decorator on tests in this file
 # once we refactor to a thread-safe mock storage service implementation.
 class GsutilNamingTests(testcase.GsUtilUnitTestCase):
   """Unit tests for gsutil naming logic."""
@@ -87,7 +86,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
                      copy_helper.GetPathBeforeFinalDir(
                          StorageUrlFromString(suri(subdir))))
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingTopLevelFileToBucket(self):
     """Tests copying one top-level file to a bucket."""
     src_file = self.CreateTempFile(file_name='f0')
@@ -98,7 +97,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     self.assertEqual(1, len(actual))
     self.assertEqual('f0', actual[0].root_object.name)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingMultipleFilesToBucket(self):
     """Tests copying multiple files to a bucket."""
     src_file0 = self.CreateTempFile(file_name='f0')
@@ -113,7 +112,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     ])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingNestedFileToBucketSubdir(self):
     """Tests copying a nested file to a bucket subdir.
 
@@ -136,7 +135,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     ])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingAbsolutePathDirToBucket(self):
     """Tests recursively copying absolute path directory to a bucket."""
     dst_bucket_uri = self.CreateBucket()
@@ -153,7 +152,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
         suri(dst_bucket_uri, src_tmpdir, 'dir0', 'dir1', 'nested')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingRelativePathDirToBucket(self):
     """Tests recursively copying relative directory to a bucket."""
     dst_bucket_uri = self.CreateBucket()
@@ -164,15 +163,15 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_bucket_uri, 'dir0', 'f1')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingRelPathSubDirToBucketSubdirWithDollarFolderObj(self):
     """Tests recursively copying relative sub-directory to bucket subdir.
 
     Subdir is signified by a $folder$ object.
     """
-    # Create a $folder$ object to simulate a folder created by GCS manager (or
-    # various other tools), which gsutil understands to mean there is a folder
-    # into which the object is being copied.
+    # Create a $folder$ object to simulate a folder created by the legacy GCS
+    # console (or various other tools), which gsutil understands to mean there
+    # is a folder into which the object is being copied.
     dst_bucket_uri = self.CreateBucket()
     self.CreateObject(bucket_uri=dst_bucket_uri, object_name='abc_$folder$',
                       contents='')
@@ -185,7 +184,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
                     suri(dst_bucket_uri, 'abc', 'dir1', 'f1')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingRelativePathSubDirToBucketSubdirSignifiedBySlash(self):
     """Tests recursively copying relative sub-directory to bucket subdir.
 
@@ -200,7 +199,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_bucket_uri, 'abc', 'dir1', 'f1')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingRelativePathSubDirToBucket(self):
     """Tests recursively copying relative sub-directory to a bucket."""
     dst_bucket_uri = self.CreateBucket()
@@ -212,7 +211,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_bucket_uri, 'dir1', 'f1')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingDotSlashToBucket(self):
     """Tests copying ./ to a bucket produces expected naming."""
     # When running a command like gsutil cp -r . gs://dest we expect the dest
@@ -227,7 +226,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
       expected = set([suri(dst_bucket_uri, 'foo')])
       self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingDirContainingOneFileToBucket(self):
     """Tests copying a directory containing 1 file to a bucket.
 
@@ -301,7 +300,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     self.assertEqual(1, len(actual))
     self.assertEqual(suri(dst_dir, 'foo'), str(actual[0]))
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingFileToObjectWithConsecutiveSlashes(self):
     """Tests copying a file to an object containing consecutive slashes."""
     src_file = self.CreateTempFile(file_name='f0')
@@ -386,7 +385,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
       expected = set([os.path.join(dst_dir, 'f1')])
       self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingObjsAndFilesToBucket(self):
     """Tests copying objects and files to a bucket."""
     src_bucket_uri = self.CreateBucket(test_objects=['f1'])
@@ -399,7 +398,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_bucket_uri, 'f1'), suri(dst_bucket_uri, 'f2')])
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingSubdirRecursiveToNonexistentSubdir(self):
     """Tests copying a directory with a single file recursively to a bucket.
 
@@ -639,7 +638,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     except CommandException, e:
       self.assertIn('URL must name a bucket', e.reason)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testMinusDOptionWorks(self):
     """Tests using gsutil -D option."""
     src_file = self.CreateTempFile(file_name='f0')
@@ -650,47 +649,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     self.assertEqual(1, len(actual))
     self.assertEqual('f0', actual[0].root_object.name)
 
-  def DownloadTestHelper(self, func):
-    """Test resumable download with custom test function.
-
-    The custom function distorts downloaded data. We expect an exception to be
-    raised and the dest file to be removed.
-
-    Args:
-      func: Custom test function used to distort the downloaded data.
-    """
-    object_uri = self.CreateObject(contents='foo')
-    # Need to explicitly tell the key to populate its etag so that hash
-    # validation will be performed.
-    object_uri.get_key().set_etag()
-    dst_dir = self.CreateTempDir()
-    got_expected_exception = False
-    try:
-      self.RunCommand('cp', [suri(object_uri), dst_dir], test_method=func)
-      self.fail('Did not get expected CommandException')
-    except HashMismatchException:
-      self.assertFalse(os.listdir(dst_dir))
-      got_expected_exception = True
-    except Exception, e:
-      self.fail('Unexpected exception raised: %s' % e)
-    if not got_expected_exception:
-      self.fail('Did not get expected CommandException')
-
-  def testDownloadWithObjectSizeChange(self):
-    """Test resumable download on an object that changes size.
-
-    Size change occurs before the downloaded file's checksum is validated.
-    """
-    self.DownloadTestHelper(_Append)
-
-  def testDownloadWithFileContentChange(self):
-    """Tests resumable download on an object that changes content.
-
-    Content change occurs before the downloaded file's checksum is validated.
-    """
-    self.DownloadTestHelper(_Overwrite)
-
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testFlatCopyingObjsAndFilesToBucketSubDir(self):
     """Tests copying flatly listed objects and files to bucket subdir."""
     src_bucket_uri = self.CreateBucket(test_objects=['f0', 'd0/f1', 'd1/d2/f2'])
@@ -713,7 +672,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
         expected.add(suri(dst_bucket_uri, 'dst_subdir%d' % i, 'f%d' % j))
     self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testRecursiveCopyObjsAndFilesToExistingBucketSubDir(self):
     """Tests recursive copy of objects and files to existing bucket subdir."""
     src_bucket_uri = self.CreateBucket(test_objects=['f0', 'nested/f1'])
@@ -739,7 +698,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
       ])
       self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testRecursiveCopyObjsAndFilesToNonExistentBucketSubDir(self):
     """Tests recursive copy of objs + files to non-existent bucket subdir."""
     src_bucket_uri = self.CreateBucket(test_objects=['f0', 'nested/f1'])
@@ -891,7 +850,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
                       suri(dst_bucket_uri, 'dir%d' % i, 'existing')])
       self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingWildcardedFilesToBucketSubDir(self):
     """Tests copying wildcarded files to a bucket subdir."""
     dst_bucket_uri = self.CreateBucket(test_objects=['subdir0/existing',
@@ -911,7 +870,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
                       suri(dst_bucket_uri, 'subdir%d' % i, 'f2')])
       self.assertEqual(expected, actual)
 
-  # @PerformsFileToObjectUpload
+  # @SequentialAndParallelTransfer
   def testCopyingOneNestedFileToBucketSubDir(self):
     """Tests copying one nested file to a bucket subdir."""
     dst_bucket_uri = self.CreateBucket(test_objects=['d0/placeholder',
@@ -1129,16 +1088,6 @@ class GsUtilCommandTests(testcase.GsUtilUnitTestCase):
       self.fail('Did not get expected StorageCreateError')
     except ServiceException, e:
       self.assertEqual(e.status, 409)
-
-  def testRemoveBucketsCommand(self):
-    """Test rb on non-existent bucket."""
-    dst_bucket_uri = self.CreateBucket()
-    try:
-      self.RunCommand(
-          'rb', ['gs://no_exist_%s' % dst_bucket_uri.bucket_name])
-      self.fail('Did not get expected NotFoundException')
-    except NotFoundException, e:
-      self.assertEqual(e.status, 404)
 
   def testRemoveObjsCommand(self):
     """Test rm command on non-existent object."""

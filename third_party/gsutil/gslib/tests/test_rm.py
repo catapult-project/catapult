@@ -435,9 +435,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     ouri1 = self.CreateObject(bucket_uri=buri1,
                               object_name='foo',
                               contents='foocontents')
-    ouri2 = self.CreateObject(bucket_uri=buri1,
-                              object_name='bar',
-                              contents='barcontents')
+    self.CreateObject(bucket_uri=buri1, object_name='bar',
+                      contents='barcontents')
     ouri3 = self.CreateObject(bucket_uri=buri1,
                               object_name='baz',
                               contents='bazcontents')
@@ -457,3 +456,19 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
                                    stdin=stdin)
     self.AssertNObjectsInBucket(buri1, 1, versioned=True)
     self.AssertNObjectsInBucket(buri2, 0, versioned=True)
+
+  def test_rm_nonexistent_bucket_recursive(self):
+    stderr = self.RunGsUtil(
+        ['rm', '-rf', '%s://%s' % (self.default_provider,
+                                   self.nonexistent_bucket_name)],
+        return_stderr=True, expected_status=1)
+    self.assertIn('Encountered non-existent bucket', stderr)
+
+  def test_rm_multiple_nonexistent_objects(self):
+    bucket_uri = self.CreateBucket()
+    nonexistent_object1 = suri(bucket_uri, 'nonexistent1')
+    nonexistent_object2 = suri(bucket_uri, 'nonexistent1')
+    stderr = self.RunGsUtil(
+        ['rm', '-rf', nonexistent_object1, nonexistent_object2],
+        return_stderr=True, expected_status=1)
+    self.assertIn('2 files/objects could not be removed.', stderr)

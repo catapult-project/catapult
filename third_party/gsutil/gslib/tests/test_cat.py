@@ -48,6 +48,9 @@ class TestCat(testcase.GsUtilIntegrationTestCase):
     stdout = self.RunGsUtil(['cat', '-r 8-', suri(key_uri)],
                             return_stdout=True)
     self.assertEqual('89', stdout)
+    stdout = self.RunGsUtil(['cat', '-r 0-0', suri(key_uri)],
+                            return_stdout=True)
+    self.assertEqual('0', stdout)
     stdout = self.RunGsUtil(['cat', '-r -3', suri(key_uri)],
                             return_stdout=True)
     self.assertEqual('789', stdout)

@@ -35,7 +35,7 @@ _DETAILED_HELP_TEXT = ("""
   threshold is 2 MiB). When a transfer fails partway through (e.g., because of
   an intermittent network problem), gsutil uses a truncated randomized binary
   exponential backoff-and-retry strategy that by default will retry transfers up
-  to 6 times over a 63 second period of time (see "gsutil help retries" for
+  to 23 times over a 10 minute period of time (see "gsutil help retries" for
   details). If the transfer fails each of these attempts with no intervening
   progress, gsutil gives up on the transfer, but keeps a "tracker" file for
   it in a configurable location (the default location is ~/.gsutil/, in a file
@@ -53,8 +53,8 @@ _DETAILED_HELP_TEXT = ("""
   we offer a number of suggestions about how this type of scripting should
   be implemented:
 
-  1. When resumable transfers fail without any progress 6 times in a row
-     over the course of up to 63 seconds, it probably won't work to simply
+  1. When resumable transfers fail without any progress 23 times in a row
+     over the course of up to 10 minutes, it probably won't work to simply
      retry the transfer immediately. A more successful strategy would be to
      have a cron job that runs every 30 minutes, determines which transfers
      need to be run, and runs them. If the network experiences intermittent
@@ -107,15 +107,11 @@ _DETAILED_HELP_TEXT = ("""
      your periodic download script by querying the database locally instead
      of performing a bucket listing.
 
-  5. Make sure you don't delete partially downloaded files after a transfer
-     fails: gsutil picks up where it left off (and performs an MD5 check of
-     the final downloaded content to ensure data integrity), so deleting
+  5. Make sure you don't delete partially downloaded temporary files after a
+     transfer fails: gsutil picks up where it left off (and performs a hash
+     of the final downloaded content to ensure data integrity), so deleting
      partially transferred files will cause you to lose progress and make
-     more wasteful use of your network. You should also make sure whatever
-     process is waiting to consume the downloaded data doesn't get pointed
-     at the partially downloaded files. One way to do this is to download
-     into a staging directory and then move successfully downloaded files to
-     a directory where consumer processes will read them.
+     more wasteful use of your network.
 
   6. If you have a fast network connection, you can speed up the transfer of
      large numbers of files by using the gsutil -m (multi-threading /
@@ -134,17 +130,6 @@ _DETAILED_HELP_TEXT = ("""
      speed, available memory, CPU load, and other conditions, this may or may
      not be optimal. Try experimenting with higher or lower numbers of threads
      to find the best number of threads for your environment.
-
-<B>RUNNING GSUTIL ON MULTIPLE MACHINES</B>
-  When running gsutil on multiple machines that are all attempting to use the
-  same OAuth2 refresh token, it is possible to encounter rate limiting errors
-  for the refresh requests (especially if all of these machines are likely to
-  start running gsutil at the same time). To account for this, gsutil will
-  automatically retry OAuth2 refresh requests with a truncated randomized
-  exponential backoff strategy like that which is described in the
-  "BACKGROUND ON RESUMABLE TRANSFERS" section above. The number of retries
-  attempted for OAuth2 refresh requests can be controlled via the
-  "oauth2_refresh_retries" variable in the .boto config file.
 """)
 
 

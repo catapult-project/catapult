@@ -41,13 +41,13 @@ from gslib.exception import CommandException
 from gslib.gcs_json_api import GcsJsonApi
 from gslib.no_op_credentials import NoOpCredentials
 from gslib.tab_complete import MakeCompleter
+from gslib.util import CheckMultiprocessingAvailableAndInit
 from gslib.util import CompareVersions
 from gslib.util import GetGsutilVersionModifiedTime
 from gslib.util import GSUTIL_PUB_TARBALL
 from gslib.util import IsRunningInteractively
 from gslib.util import LAST_CHECKED_FOR_GSUTIL_UPDATE_TIMESTAMP_FILE
 from gslib.util import LookUpGsutilVersion
-from gslib.util import MultiprocessingIsAvailable
 from gslib.util import RELEASE_NOTES_URL
 from gslib.util import SECONDS_PER_DAY
 from gslib.util import UTF8
@@ -199,7 +199,7 @@ class CommandRunner(object):
             command_parser, command.command_spec.argparse_arguments, gsutil_api)
 
   def RunNamedCommand(self, command_name, args=None, headers=None, debug=0,
-                      parallel_operations=False, test_method=None,
+                      trace_token=None, parallel_operations=False,
                       skip_update_check=False, logging_filters=None,
                       do_shutdown=True):
     """Runs the named command.
@@ -211,10 +211,8 @@ class CommandRunner(object):
       args: Command-line args (arg0 = actual arg, not command name ala bash).
       headers: Dictionary containing optional HTTP headers to pass to boto.
       debug: Debug level to pass in to boto connection (range 0..3).
+      trace_token: Trace token to pass to the underlying API.
       parallel_operations: Should command operations be executed in parallel?
-      test_method: Optional general purpose method for testing purposes.
-                   Application and semantics of this method will vary by
-                   command and test type.
       skip_update_check: Set to True to disable checking for gsutil updates.
       logging_filters: Optional list of logging.Filters to apply to this
                        command's logger.
@@ -226,9 +224,11 @@ class CommandRunner(object):
     Returns:
       Return value(s) from Command that was run.
     """
+    command_changed_to_update = False
     if (not skip_update_check and
         self.MaybeCheckForAndOfferSoftwareUpdate(command_name, debug)):
       command_name = 'update'
+      command_changed_to_update = True
       args = ['-n']
 
     if not args:
@@ -271,15 +271,22 @@ class CommandRunner(object):
 
     command_class = self.command_map[command_name]
     command_inst = command_class(
-        self, args, headers, debug, parallel_operations,
+        self, args, headers, debug, trace_token, parallel_operations,
         self.bucket_storage_uri_class, self.gsutil_api_class_map_factory,
-        test_method, logging_filters, command_alias_used=command_name)
+        logging_filters, command_alias_used=command_name)
     return_code = command_inst.RunCommand()
 
-    if MultiprocessingIsAvailable()[0] and do_shutdown:
+    if CheckMultiprocessingAvailableAndInit().is_available and do_shutdown:
       ShutDownGsutil()
     if GetFailureCount() > 0:
       return_code = 1
+    if command_changed_to_update:
+      # If the command changed to update, the user's original command was
+      # not executed.
+      return_code = 1
+      print '\n'.join(textwrap.wrap(
+          'Update was successful. Exiting with code 1 as the original command '
+          'issued prior to the update was not executed and should be re-run.'))
     return return_code
 
   def MaybeCheckForAndOfferSoftwareUpdate(self, command_name, debug):

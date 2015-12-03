@@ -133,7 +133,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
       sys.stderr.write('==== end log output ====\n')
 
   def RunCommand(self, command_name, args=None, headers=None, debug=0,
-                 test_method=None, return_stdout=False, return_stderr=False,
+                 return_stdout=False, return_stderr=False,
                  return_log_handler=False, cwd=None):
     """Method for calling gslib.command_runner.CommandRunner.
 
@@ -148,9 +148,6 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
       args: Command-line args (arg0 = actual arg, not command name ala bash).
       headers: Dictionary containing optional HTTP headers to pass to boto.
       debug: Debug level to pass in to boto connection (range 0..3).
-      test_method: Optional general purpose method for testing purposes.
-                   Application and semantics of this method will vary by
-                   command and test type.
       return_stdout: If True, will save and return stdout produced by command.
       return_stderr: If True, will save and return stderr produced by command.
       return_log_handler: If True, will return a MockLoggingHandler instance
@@ -193,8 +190,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
       with WorkingDirectory(cwd):
         self.command_runner.RunNamedCommand(
             command_name, args=args, headers=headers, debug=debug,
-            parallel_operations=False, test_method=test_method,
-            do_shutdown=False)
+            parallel_operations=False, do_shutdown=False)
     finally:
       sys.stdout.seek(0)
       stdout = sys.stdout.read()

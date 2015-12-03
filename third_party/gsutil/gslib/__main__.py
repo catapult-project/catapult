@@ -103,6 +103,14 @@ DEBUG_WARNING = """
 ***************************** WARNING *****************************
 """.lstrip()
 
+TRACE_WARNING = """
+***************************** WARNING *****************************
+*** You are running gsutil with trace output enabled.
+*** Be aware that trace output includes authentication credentials
+*** and may include the contents of any files accessed during the trace.
+***************************** WARNING *****************************
+""".lstrip()
+
 HTTP_WARNING = """
 ***************************** WARNING *****************************
 *** You are running gsutil with the "https_validate_certificates" config
@@ -187,14 +195,16 @@ def main():
   from gslib.util import CERTIFICATE_VALIDATION_ENABLED
   # pylint: disable=unused-variable
   from gcs_oauth2_boto_plugin import oauth2_client
+  from apitools.base.py import credentials_lib
   # pylint: enable=unused-variable
-  from gslib.util import MultiprocessingIsAvailable
-  if MultiprocessingIsAvailable()[0]:
+  from gslib.util import CheckMultiprocessingAvailableAndInit
+  if CheckMultiprocessingAvailableAndInit().is_available:
     # These setup methods must be called, and, on Windows, they can only be
     # called from within an "if __name__ == '__main__':" block.
-    gslib.util.InitializeMultiprocessingVariables()
     gslib.command.InitializeMultiprocessingVariables()
     gslib.boto_translation.InitializeMultiprocessingVariables()
+  else:
+    gslib.command.InitializeThreadingVariables()
 
   # This needs to be done after gslib.util.InitializeMultiprocessingVariables(),
   # since otherwise we can't call gslib.util.CreateLock.
@@ -204,6 +214,7 @@ def main():
     gcs_oauth2_boto_plugin.oauth2_helper.SetFallbackClientIdAndSecret(
         GSUTIL_CLIENT_ID, GSUTIL_CLIENT_NOTSOSECRET)
     gcs_oauth2_boto_plugin.oauth2_helper.SetLock(CreateLock())
+    credentials_lib.SetCredentialsCacheFileLock(CreateLock())
   except ImportError:
     pass
 
@@ -230,6 +241,7 @@ def main():
   quiet = False
   version = False
   debug = 0
+  trace_token = None
   test_exception_traces = False
 
   # If user enters no commands just print the usage info.
@@ -253,7 +265,7 @@ def main():
       opts, args = getopt.getopt(sys.argv[1:], 'dDvo:h:mq',
                                  ['debug', 'detailedDebug', 'version', 'option',
                                   'help', 'header', 'multithreaded', 'quiet',
-                                  'testexceptiontraces'])
+                                  'testexceptiontraces', 'trace-token='])
     except getopt.GetoptError as e:
       _HandleCommandException(gslib.exception.CommandException(e.msg))
     for o, a in opts:
@@ -282,6 +294,8 @@ def main():
         quiet = True
       elif o in ('-v', '--version'):
         version = True
+      elif o == '--trace-token':
+        trace_token = a
       elif o == '--testexceptiontraces':  # Hidden flag for integration tests.
         test_exception_traces = True
       elif o in ('-o', '--option'):
@@ -295,6 +309,8 @@ def main():
           boto.config.add_section(opt_section)
         boto.config.set(opt_section, opt_name, opt_value)
     httplib2.debuglevel = debug
+    if trace_token:
+      sys.stderr.write(TRACE_WARNING)
     if debug > 1:
       sys.stderr.write(DEBUG_WARNING)
     if debug >= 2:
@@ -339,7 +355,8 @@ def main():
 
     return _RunNamedCommandAndHandleExceptions(
         command_runner, command_name, args=args[1:], headers=headers,
-        debug_level=debug, parallel_operations=parallel_operations)
+        debug_level=debug, trace_token=trace_token,
+        parallel_operations=parallel_operations)
   finally:
     _Cleanup()
 
@@ -389,14 +406,8 @@ def _CheckAndWarnForProxyDifferences():
 
 
 def _HandleUnknownFailure(e):
-  # Called if we fall through all known/handled exceptions. Allows us to
-  # print a stacktrace if -D option used.
-  if debug >= 2:
-    stack_trace = traceback.format_exc()
-    sys.stderr.write('DEBUG: Exception stack trace:\n    %s\n' %
-                     re.sub('\\n', '\n    ', stack_trace))
-  else:
-    _OutputAndExit('Failure: %s.' % e)
+  # Called if we fall through all known/handled exceptions.
+  _OutputAndExit('Failure: %s.' % e)
 
 
 def _HandleCommandException(e):
@@ -506,6 +517,7 @@ def _CheckAndHandleCredentialException(e, args):
 
 def _RunNamedCommandAndHandleExceptions(command_runner, command_name, args=None,
                                         headers=None, debug_level=0,
+                                        trace_token=None,
                                         parallel_operations=False):
   """Runs the command with the given command runner and arguments."""
   # pylint: disable=g-import-not-at-top
@@ -521,7 +533,8 @@ def _RunNamedCommandAndHandleExceptions(command_runner, command_name, args=None,
     if not IS_WINDOWS:
       RegisterSignalHandler(signal.SIGQUIT, _HandleSigQuit)
     return command_runner.RunNamedCommand(command_name, args, headers,
-                                          debug_level, parallel_operations)
+                                          debug_level, trace_token,
+                                          parallel_operations)
   except AttributeError as e:
     if str(e).find('secret_access_key') != -1:
       _OutputAndExit('Missing credentials for the given URI(s). Does your '
