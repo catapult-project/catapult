@@ -48,8 +48,9 @@ handlers:
   static_dir: dashboard/static/
   secure: always
 
-- url: /dashboard/elements/
-  static_dir: dashboard/elements/
+- url: /dashboard/elements/(.*\.html)$
+  static_files: dashboard/elements/\1
+  upload: dashboard/elements/.*\.html$
   secure: always
 
 - url: /components/(.*)/(.*\.(html|js|css))$
