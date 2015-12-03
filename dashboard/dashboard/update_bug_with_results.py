@@ -298,7 +298,7 @@ def _GetBisectResults(job):
   # Fetch bisect bot results from Rietveld server.
   if job.use_buildbucket:
     try_job_info = _ValidateAndConvertBuildbucketResponse(
-        buildbucket_service.GetJobStatus(job.buildbucket_job_id))
+        buildbucket_service.GetJobStatus(job.buildbucket_job_id), job)
     hostname = app_identity.get_default_version_hostname()
     job_id = job.buildbucket_job_id
     issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
@@ -527,7 +527,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
                  job.bug_id, commit_cache_key)
 
 
-def _ValidateAndConvertBuildbucketResponse(job_info):
+def _ValidateAndConvertBuildbucketResponse(job_info, job=None):
   """Checks the response from the buildbucket service and converts it.
 
   The response is converted to a similar format to that used by Rietveld for
@@ -535,6 +535,7 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
 
   Args:
     job_info: A dictionary containing the response from the buildbucket service.
+    job: Bisect TryJob entity object.
 
   Returns:
     Try job info dict in the same format as _ValidateRietveldResponse; will
@@ -550,6 +551,24 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
   if job_info.get('result') is None:
     raise UnexpectedJsonError('No "result" in try job results. '
                               'Buildbucket response: %s' % json_response)
+  # This is a case where the buildbucket job was triggered but never got
+  # scheduled on buildbot probably due to long pending job queue.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') == 'CANCELED' and
+      job_info.get('cancelation_reason') == 'TIMEOUT'):
+    job.SetFailed()
+    raise UnexpectedJsonError('Try job timed out before it got scheduled. '
+                              'Buildbucket response: %s' % json_response)
+
+  # This is a case where the buildbucket job failed due to invalid config.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') == 'FAILURE' and
+      job_info.get('failure_reason') != 'BUILD_FAILURE'):
+    job.SetFailed()
+    job.key.delete()
+    raise UnexpectedJsonError('Invalid bisect configuration. '
+                              'Buildbucket response: %s' % json_response)
+
   if job_info.get('url') is None:
     raise UnexpectedJsonError('No "url" in try job results. This could mean '
                               'that the job has not started. '

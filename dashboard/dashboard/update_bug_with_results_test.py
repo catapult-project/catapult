@@ -1113,6 +1113,51 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(converted_response['result'],
                      update_bug_with_results.SUCCESS)
 
+  def testValidateAndConvertBuildbucketResponse_Canceled(self):
+    buildbucket_response_canceled = r"""{
+      "build": {
+        "status": "COMPLETED",
+        "cancelation_reason": "TIMEOUT",
+        "id": "9043278384371361584",
+        "result": "CANCELED"
+      }
+    }"""
+    try_job.TryJob(
+          bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+          status='started', bot='win_perf').put()
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(1, len(pending_jobs))
+    # Create bug.
+    bug_data.Bug(id=12345).put()
+    with self.assertRaises(update_bug_with_results.UnexpectedJsonError):
+      update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), pending_jobs[0])
+    pending_jobs = try_job.TryJob.query(
+        try_job.TryJob.status == 'failed').fetch()
+    self.assertEqual(1, len(pending_jobs))
+
+  def testValidateAndConvertBuildbucketResponse_InvalidConfig(self):
+    buildbucket_response_canceled = r"""{
+      "build": {
+        "status": "COMPLETED",
+        "failure_reason": "INVALID_BUILD_DEFINITION",
+        "id": "9043278384371361584",
+        "result": "FAILURE"
+      }
+    }"""
+    try_job.TryJob(
+          bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+          status='started', bot='win_perf').put()
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(1, len(pending_jobs))
+    # Create bug.
+    bug_data.Bug(id=12345).put()
+    with self.assertRaises(update_bug_with_results.UnexpectedJsonError):
+      update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), pending_jobs[0])
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(0, len(pending_jobs))
+
   @mock.patch('logging.error')
   def testValidateAndConvertBuildbucketResponse_NoTesterInConfig(
       self, mock_logging_error):
