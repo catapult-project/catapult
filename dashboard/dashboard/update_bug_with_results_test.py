@@ -453,6 +453,12 @@ def _MockFetch(url=None):
   return testing_common.FakeResponseObject(response_code, response)
 
 
+def _MockMakeRequest(path, method):  # pylint: disable=unused-argument
+  url = 'https://test-rietveld.appspot.com/' + path
+  response = _MockFetch(url=url)
+  return response, response.content
+
+
 def _MockSendPerfTryJobEmail(_, results):
   global _TEST_RECEIEVED_EMAIL_RESULTS
   _TEST_RECEIEVED_EMAIL_RESULTS = results
@@ -499,6 +505,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   @mock.patch.object(
@@ -542,6 +551,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   def testCreateTryJob_WithoutExistingBug(self):
@@ -559,6 +571,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock(return_value=False))
@@ -591,6 +606,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_BisectJobWithPartialResults(self, mock_update_bug):
@@ -612,6 +630,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -635,6 +656,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_MultipleCulpritsSameAuthor_AssignsAuthor(self, mock_update_bug):
@@ -657,6 +681,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -692,6 +719,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_FailedRevisionResponse(self, mock_add_bug):
@@ -715,6 +745,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -822,6 +855,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
   def testCheckBisectBotForInfraFailure_BotFailure(
       self, log_bisect_failure_mock):
@@ -840,6 +876,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
   def testCheckBisectBotForInfraFailure_BuildFailure(
       self, log_bisect_failure_mock):
@@ -858,6 +897,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -882,6 +924,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results, '_SendPerfTryJobEmail',
       mock.MagicMock(side_effect=_MockSendPerfTryJobEmail))
@@ -917,6 +962,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results, '_SendPerfTryJobEmail',
       mock.MagicMock(side_effect=_MockSendPerfTryJobEmail))
   @mock.patch.object(
@@ -941,6 +989,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -968,6 +1019,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -996,9 +1050,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
-      update_bug_with_results, '_RietveldIssueJSONURL',
-      mock.MagicMock(
-          return_value='https://test-rietveld.appspot.com/api/200037/1'))
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -1096,6 +1149,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   @mock.patch.object(
@@ -1129,6 +1185,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -1173,6 +1232,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))

@@ -228,7 +228,7 @@ def _GetPerfTryResults(job):
   """
   results = {}
   # Fetch bisect bot results from Rietveld server.
-  response = _FetchURL(_RietveldIssueJSONURL(job))
+  response = _FetchRietveldIssueJSON(job)
   issue_url = _RietveldIssueURL(job)
   try_job_info = _ValidateRietveldResponse(response)
 
@@ -303,7 +303,7 @@ def _GetBisectResults(job):
     job_id = job.buildbucket_job_id
     issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
   else:
-    response = _FetchURL(_RietveldIssueJSONURL(job))
+    response = _FetchRietveldIssueJSON(job)
     issue_url = _RietveldIssueURL(job)
     try_job_info = _ValidateRietveldResponse(response)
 
@@ -831,11 +831,11 @@ def _FetchURL(request_url, skip_status_code=False):
   return response
 
 
-def _RietveldIssueJSONURL(job):
-  config = rietveld_service.GetDefaultRietveldConfig()
-  host = config.internal_server_url if job.internal_only else config.server_url
-  return '%s/api/%d/%d' % (
-      host, job.rietveld_issue_id, job.rietveld_patchset_id)
+def _FetchRietveldIssueJSON(job):
+    server = rietveld_service.RietveldService(internal_only=job.internal_only)
+    path = 'api/%d/%d' % (job.rietveld_issue_id, job.rietveld_patchset_id)
+    response, _ = server.MakeRequest(path, method='GET')
+    return response
 
 
 def _RietveldIssueURL(job):

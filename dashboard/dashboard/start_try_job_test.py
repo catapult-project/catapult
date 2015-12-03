@@ -756,7 +756,7 @@ class StartBisectTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisect(self):
     self.SetCurrentUser('foo@chromium.org')
@@ -792,7 +792,7 @@ class StartBisectTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformPerfTry(self):
     self.SetCurrentUser('foo@chromium.org')
@@ -818,7 +818,7 @@ class StartBisectTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFailedFetch))
   @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisectStep_DeleteJobOnFailedBisect(self):
     self.SetCurrentUser('foo@chromium.org')
@@ -853,7 +853,7 @@ class StartBisectTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFailedFetch))
   @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, '_MakeRequest',
+      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformPerfTryStep_DeleteJobOnFailedBisect(self):
     self.SetCurrentUser('foo@chromium.org')

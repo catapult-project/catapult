@@ -71,6 +71,16 @@ class RietveldService(object):
       self._config = GetDefaultRietveldConfig()
     return self._config
 
+  def MakeRequest(self, path, *args, **kwwargs):
+    """Makes a request to the Rietveld server."""
+    if self.internal_only:
+      server_url = self.Config().internal_server_url
+    else:
+      server_url = self.Config().server_url
+    url = '%s/%s' % (server_url, path)
+    response, content = self._Http().request(url, *args, **kwwargs)
+    return (response, content)
+
   def _Http(self):
     if not self._http:
       self._http = httplib2.Http()
@@ -80,18 +90,8 @@ class RietveldService(object):
 
   def _XsrfToken(self):
     """Requests a XSRF token from Rietveld."""
-    return self._MakeRequest(
+    return self.MakeRequest(
         'xsrf_token', headers={'X-Requesting-XSRF-Token': 1})[1]
-
-  def _MakeRequest(self, path, *args, **kwwargs):
-    """Makes a request to the Rietveld server."""
-    if self.internal_only:
-      server_url = self.Config().internal_server_url
-    else:
-      server_url = self.Config().server_url
-    url = '%s/%s' % (server_url, path)
-    response, content = self._Http().request(url, *args, **kwwargs)
-    return (response, content)
 
   def _EncodeMultipartFormData(self, fields, files):
     """Encode form fields for multipart/form-data.
@@ -169,7 +169,7 @@ class RietveldService(object):
     uploaded_diff_file = [('data', 'data.diff', patch)]
     ctype, body = self._EncodeMultipartFormData(
         form_fields, uploaded_diff_file)
-    response, content = self._MakeRequest(
+    response, content = self.MakeRequest(
         'upload', method='POST', body=body, headers={'content-type': ctype})
     if response.get('status') != '200':
       logging.error('Error %s uploading to /upload', response.get('status'))
@@ -202,7 +202,7 @@ class RietveldService(object):
     ]
     uploaded_diff_file = [('data', config_path, base_content)]
     ctype, body = self._EncodeMultipartFormData(form_fields, uploaded_diff_file)
-    response, content = self._MakeRequest(
+    response, content = self.MakeRequest(
         request_path, method='POST', body=body, headers={'content-type': ctype})
     if response.get('status') != '200':
       logging.error(
@@ -211,7 +211,7 @@ class RietveldService(object):
       return (None, None)
 
     request_path = '%s/upload_complete/%s' % (issue_id, patchset_id)
-    response, content = self._MakeRequest(request_path, method='POST')
+    response, content = self.MakeRequest(request_path, method='POST')
     if response.get('status') != '200':
       logging.error(
           'Error %s uploading to %s', response.get('status'), request_path)
@@ -242,7 +242,7 @@ class RietveldService(object):
         'clobber': 'False',
     }
     request_path = '%s/try/%s' % (issue_id, patchset_id)
-    response, content = self._MakeRequest(
+    response, content = self.MakeRequest(
         request_path, method='POST', body=urllib.urlencode(args))
     if response.get('status') != '200':
       status = response.get('status')
