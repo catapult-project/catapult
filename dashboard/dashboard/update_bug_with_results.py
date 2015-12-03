@@ -20,6 +20,7 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_fyi
 from dashboard import buildbucket_service
+from dashboard import datastore_hooks
 from dashboard import email_template
 from dashboard import issue_tracker_service
 from dashboard import layered_cache
@@ -95,6 +96,9 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
         rietveld_service.PROJECTHOSTING_SCOPE)
     issue_tracker = issue_tracker_service.IssueTrackerService(
         additional_credentials=credentials)
+
+    # Set privilege so we can also fetch internal try_job entities.
+    datastore_hooks.SetPrivilegedRequest()
 
     jobs_to_check = try_job.TryJob.query(
         try_job.TryJob.status == 'started').fetch()
@@ -481,7 +485,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   commit_cache_key = _GetCommitHashCacheKey(bisect_results['results'])
   result_is_positive = _BisectResultIsPositive(bisect_results['results'])
   if bug and result_is_positive:
-    merge_issue = layered_cache.Get(commit_cache_key)
+    merge_issue = layered_cache.GetExternal(commit_cache_key)
     if not merge_issue:
       authors_to_cc = _GetAuthorsToCC(bisect_results['results'])
 
@@ -517,7 +521,8 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
   if commit_cache_key and not merge_issue and result_is_positive:
-    layered_cache.Set(commit_cache_key, str(job.bug_id), days_to_keep=30)
+    layered_cache.SetExternal(commit_cache_key, str(job.bug_id),
+                              days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
 

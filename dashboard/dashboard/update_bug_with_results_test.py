@@ -9,6 +9,7 @@ import mock
 import webapp2
 import webtest
 
+from google.appengine.ext import ndb
 from dashboard import bisect_fyi
 from dashboard import bisect_fyi_test
 from dashboard import layered_cache
@@ -777,7 +778,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
-    self.assertEqual('12345', layered_cache.Get('commit_hash_abcd123'))
+    self.assertEqual('12345', layered_cache.GetExternal('commit_hash_abcd123'))
 
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
@@ -796,7 +797,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
-    self.assertIsNone(layered_cache.Get('commit_hash_a121212'))
+    self.assertIsNone(layered_cache.GetExternal('commit_hash_a121212'))
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
@@ -1006,6 +1007,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     try_job.TryJob(
         bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
         status='started', bot='win_perf', internal_only=True).put()
+
     # Create bug.
     bug_data.Bug(id=12345).put()
     self.testapp.get('/update_bug_with_results')
