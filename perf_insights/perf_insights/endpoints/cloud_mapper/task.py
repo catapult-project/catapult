@@ -124,6 +124,8 @@ class TaskPage(webapp2.RequestHandler):
           self.request.get('timeout'), '%Y-%m-%d %H:%M:%S')
       if datetime.datetime.now() > timeout:
         self._CancelTasks(tasks)
+        job.status = 'ERROR'
+        job.put()
         logging.error('Task timed out waiting for results.')
         return
       taskqueue.add(
