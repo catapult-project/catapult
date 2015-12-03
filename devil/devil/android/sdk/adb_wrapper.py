@@ -29,7 +29,7 @@ _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 _READY_STATE = 'device'
 
 
-def _VerifyLocalFileExists(path):
+def VerifyLocalFileExists(path):
   """Verifies a local file exists.
 
   Args:
@@ -226,7 +226,7 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    _VerifyLocalFileExists(local)
+    VerifyLocalFileExists(local)
     self._RunDeviceAdbCmd(['push', local, remote], timeout, retries)
 
   def Pull(self, remote, local, timeout=60*5, retries=_DEFAULT_RETRIES):
@@ -241,7 +241,7 @@ class AdbWrapper(object):
     cmd = ['pull', remote, local]
     self._RunDeviceAdbCmd(cmd, timeout, retries)
     try:
-      _VerifyLocalFileExists(local)
+      VerifyLocalFileExists(local)
     except IOError:
       raise device_errors.AdbCommandFailedError(
           cmd, 'File not found on host: %s' % local, device_serial=str(self))
@@ -450,7 +450,7 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    _VerifyLocalFileExists(apk_path)
+    VerifyLocalFileExists(apk_path)
     cmd = ['install']
     if forward_lock:
       cmd.append('-l')
@@ -480,7 +480,7 @@ class AdbWrapper(object):
       partial: (optional) Package ID if apk_paths doesn't include all .apks.
     """
     for path in apk_paths:
-      _VerifyLocalFileExists(path)
+      VerifyLocalFileExists(path)
     cmd = ['install-multiple']
     if forward_lock:
       cmd.append('-l')
@@ -547,7 +547,7 @@ class AdbWrapper(object):
     assert bool(packages) ^ bool(include_all), (
         'Provide \'packages\' or set \'include_all\' but not both.')
     ret = self._RunDeviceAdbCmd(cmd, timeout, retries)
-    _VerifyLocalFileExists(path)
+    VerifyLocalFileExists(path)
     return ret
 
   def Restore(self, path, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
@@ -558,7 +558,7 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    _VerifyLocalFileExists(path)
+    VerifyLocalFileExists(path)
     self._RunDeviceAdbCmd(['restore'] + [path], timeout, retries)
 
   def WaitForDevice(self, timeout=60*5, retries=_DEFAULT_RETRIES):

@@ -31,6 +31,7 @@ from devil.android import device_temp_file
 from devil.android import logcat_monitor
 from devil.android import md5sum
 from devil.android.sdk import adb_wrapper
+from devil.android.sdk import gce_adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
 from devil.android.sdk import split_select
@@ -95,6 +96,7 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
 
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
+_IPV4_ADDRESS_RE = re.compile(r'([0-9]{1,3}\.){3}[0-9]{1,3}\:[0-9]{4,5}')
 
 @decorators.WithExplicitTimeoutAndRetries(
     _DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
@@ -152,6 +154,20 @@ def _JoinLines(lines):
   return ''.join(s for line in lines for s in (line, '\n'))
 
 
+def _IsGceInstance(serial):
+  return _IPV4_ADDRESS_RE.match(serial)
+
+
+def _CreateAdbWrapper(device):
+  if _IsGceInstance(str(device)):
+    return gce_adb_wrapper.GceAdbWrapper(str(device))
+  else:
+    if isinstance(device, adb_wrapper.AdbWrapper):
+      return device
+    else:
+      return adb_wrapper.AdbWrapper(device)
+
+
 class DeviceUtils(object):
 
   _MAX_ADB_COMMAND_LENGTH = 512
@@ -182,7 +198,7 @@ class DeviceUtils(object):
     """
     self.adb = None
     if isinstance(device, basestring):
-      self.adb = adb_wrapper.AdbWrapper(device)
+      self.adb = _CreateAdbWrapper(device)
     elif isinstance(device, adb_wrapper.AdbWrapper):
       self.adb = device
     else:
@@ -2054,8 +2070,11 @@ class DeviceUtils(object):
         return True
       return False
 
-    return [cls(adb, **kwargs) for adb in adb_wrapper.AdbWrapper.Devices()
-            if not blacklisted(adb)]
+    devices = []
+    for adb in adb_wrapper.AdbWrapper.Devices():
+      if not blacklisted(adb):
+        devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+    return devices
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
