@@ -914,7 +914,7 @@ def _SendFYIBisectEmail(job, results):
     logging.error('Failed to create "email_data" from results for %s.\n'
                   ' Results: %s', job.job_name, results)
     return
-  mail.send_mail(sender='auto-bisect-team@google.com',
+  mail.send_mail(sender='gasper-alerts@google.com',
                  to='prasadv@google.com',
                  subject=email_data['subject'],
                  body=email_data['body'],
