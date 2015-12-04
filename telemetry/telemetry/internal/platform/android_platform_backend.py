@@ -71,7 +71,6 @@ def _SetupPrebuiltTools(device):
     'memtrack_helper',
     'md5sum_dist/md5sum_bin',
     'purge_ashmem',
-    'run_pie',
   ]
 
   host_tools = [
