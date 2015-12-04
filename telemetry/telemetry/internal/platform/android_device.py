@@ -129,6 +129,9 @@ def GetDevice(finder_options):
 
 def CanDiscoverDevices():
   """Returns true if devices are discoverable via adb."""
+  if os.name != 'posix':
+    return False
+
   adb_path = constants.GetAdbPath()
   if os.path.isabs(adb_path) and not os.path.exists(adb_path):
     return False

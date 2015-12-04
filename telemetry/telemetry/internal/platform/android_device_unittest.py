@@ -4,6 +4,7 @@
 
 import unittest
 
+from telemetry import decorators
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import android_device
 from telemetry.testing import system_stub
@@ -38,6 +39,7 @@ class _BaseAndroidDeviceTest(unittest.TestCase):
 
 
 class AndroidDeviceTest(_BaseAndroidDeviceTest):
+  @decorators.Enabled('android')
   def testGetAllAttachedAndroidDevices(self):
     self._healthy_device_mock.return_value = [
         self._GetMockDeviceUtils('01'),
@@ -49,6 +51,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
         set(device.device_id for device in
             android_device.AndroidDevice.GetAllConnectedDevices(None)))
 
+  @decorators.Enabled('android')
   def testNoAdbReturnsNone(self):
     finder_options = browser_options.BrowserFinderOptions()
     with (
@@ -57,6 +60,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
       self.assertEquals([], self._android_device_stub.logging.warnings)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
+  @decorators.Enabled('android')
   def testAdbNoDevicesReturnsNone(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
@@ -64,6 +68,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
       self.assertEquals([], self._android_device_stub.logging.warnings)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
+  @decorators.Enabled('android')
   def testAdbTwoDevicesReturnsNone(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
@@ -78,6 +83,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
           self._android_device_stub.logging.warnings)
       self.assertIsNone(device)
 
+  @decorators.Enabled('android')
   def testAdbPickOneDeviceReturnsDeviceInstance(self):
     finder_options = browser_options.BrowserFinderOptions()
     finder_options.device = '555d14fecddddddd'  # pick one
@@ -89,6 +95,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
       self.assertEquals([], self._android_device_stub.logging.warnings)
       self.assertEquals('555d14fecddddddd', device.device_id)
 
+  @decorators.Enabled('android')
   def testAdbOneDeviceReturnsDeviceInstance(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
@@ -100,6 +107,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
 
 
 class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
+  @decorators.Enabled('android')
   def testAdbNoDeviceReturnsEmptyList(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
@@ -109,6 +117,7 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
       self.assertIsNotNone(devices)
       self.assertEquals(len(devices), 0)
 
+  @decorators.Enabled('android')
   def testAdbOneDeviceReturnsListWithOneDeviceInstance(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
@@ -120,6 +129,7 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
       self.assertEquals(len(devices), 1)
       self.assertEquals('015d14fec128220c', devices[0].device_id)
 
+  @decorators.Enabled('android')
   def testAdbMultipleDevicesReturnsListWithAllDeviceInstances(self):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
