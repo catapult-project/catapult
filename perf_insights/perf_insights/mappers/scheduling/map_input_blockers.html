@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/function_handle.html">
+<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pie', function() {
+  // Collects the set of tasks that are preventing user input from being
+  // processed on the main thread.
+  // See https://goo.gl/l7V5xg.
+  function mapInputBlockers(results, runInfo, model) {
+    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+    var rendererHelpers = modelHelper.rendererHelpers;
+
+    if (!rendererHelpers) {
+      // If we didn't detect any renderer processes, bail out.
+      results.addValue(new pi.v.SkipValue(runInfo, 'inputBlockers'));
+      return;
+    }
+
+    // Look for main thread input handling in each renderer process.
+    var inputBlockers = {};
+    var foundInputBlockers = false;
+    for (var pid in rendererHelpers) {
+      var rendererHelper = rendererHelpers[pid];
+      var mainThread = rendererHelper.mainThread;
+      // Look for events that represent main thread input handling that also
+      // have one associated flow event showing where the input came from.
+      mainThread.iterateAllEvents(function(event) {
+        if (event.title !== 'LatencyInfo.Flow' ||
+            event.args['step'] !== 'HandleInputEventMain' ||
+            event.inFlowEvents.length !== 1) {
+          return;
+        }
+
+        // Now we can derive the queueing interval from the flow event.
+        var flowEvent = event.inFlowEvents[0];
+        var queueRange =
+            tr.b.Range.fromExplicitRange(flowEvent.start, event.start);
+
+        // Find all events that intersect the queueing interval and compute how
+        // much they contributed to it.
+        mainThread.iterateAllEvents(function(event) {
+          var eventRange =
+              tr.b.Range.fromExplicitRange(event.start,
+                                           event.start + event.duration);
+          var intersection = queueRange.findIntersection(eventRange);
+          if (intersection.isEmpty || intersection.duration === 0)
+            return;
+          if (inputBlockers[event.title] === undefined)
+            inputBlockers[event.title] = [];
+          inputBlockers[event.title].push(intersection.duration);
+          foundInputBlockers = true;
+        });
+      });
+    }
+
+    if (!foundInputBlockers) {
+      results.addValue(new pi.v.SkipValue(runInfo, 'inputBlockers'));
+      return;
+    }
+
+    results.addValue(new pi.v.DictValue(
+        runInfo,
+        'inputBlockers', inputBlockers));
+  }
+
+  pi.FunctionRegistry.register(mapInputBlockers);
+
+  return {
+    mapInputBlockersForTest: mapInputBlockers
+  };
+});
+</script>
