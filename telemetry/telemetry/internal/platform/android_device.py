@@ -103,21 +103,21 @@ def GetDevice(finder_options):
         'No adb command found. Will not try searching for Android browsers.')
     return None
 
-  if (finder_options.device
-      and finder_options.device in GetDeviceSerials(finder_options)):
-    return AndroidDevice(
-        finder_options.device,
-        enable_performance_mode=not finder_options.no_performance_mode)
-
   if finder_options.android_blacklist_file:
     blacklist = device_blacklist.Blacklist(
         finder_options.android_blacklist_file)
   else:
     blacklist = None
 
+  if (finder_options.device
+      and finder_options.device in GetDeviceSerials(blacklist)):
+    return AndroidDevice(
+        finder_options.device,
+        enable_performance_mode=not finder_options.no_performance_mode)
+
   devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   if len(devices) == 0:
-    logging.info('No android devices found.')
+    logging.warn('No android devices found.')
     return None
   if len(devices) > 1:
     logging.warn(

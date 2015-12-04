@@ -33,8 +33,10 @@ class SharedAndroidState(story_module.SharedState):
     self._finder_options = finder_options
     self._android_app = None
     self._current_story = None
+    device = android_device.GetDevice(finder_options)
+    assert device, 'Android device required.'
     self._android_platform = platform.GetPlatformForDevice(
-        android_device.GetDevice(finder_options), finder_options)
+        device, finder_options)
     assert self._android_platform, 'Unable to create android platform.'
     assert isinstance(
         self._android_platform, android_platform.AndroidPlatform)
