@@ -119,6 +119,10 @@ tr.exportTo('tr.e.importer', function() {
   GzipImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'GzipImporter';
+    },
+
     /**
      * Called by the Model to check whether the importer just encapsulates
      * the actual trace data which needs to be imported by another importer.

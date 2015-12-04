@@ -12,6 +12,7 @@ found in the LICENSE file.
 <script src="/components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/ui/extras/full_config.html">
@@ -47,10 +48,12 @@ found in the LICENSE file.
   <script>
   'use strict';
 
+  var Timing = tr.b.Timing;
   var timelineViewEl;
   var selectEl;
 
   function loadTraces(filenames, onTracesLoaded) {
+    Timing.markTimeBegin('loadTraces');
     var traces = [];
     for (var i = 0; i < filenames.length; i++) {
       traces.push(undefined);
@@ -61,18 +64,21 @@ found in the LICENSE file.
       getAsync(filename, function(trace) {
         traces[i] = trace;
         numTracesPending--;
-        if (numTracesPending == 0)
+        if (numTracesPending == 0) {
+          Timing.markTimeEnd('loadTraces');
           onTracesLoaded(filenames, traces);
+        }
       });
     });
   }
 
 
   function getAsync(url, cb) {
-    tr.b.getAsync(url).then(cb);
+    return tr.b.getAsync(url).then(cb);
   }
 
   function createViewFromTraces(filenames, traces) {
+    Timing.markTimeBegin('createViewFromTraces');
     var m = new tr.Model();
     var i = new tr.importer.Import(m);
     var p = i.importTracesWithProgressDialog(traces);
@@ -83,12 +89,14 @@ found in the LICENSE file.
         timelineViewEl.updateDocumentFavicon();
         timelineViewEl.globalMode = true;
         timelineViewEl.viewTitle = '';
+        Timing.markTimeEnd('createViewFromTraces');
       },
       function(err) {
         var overlay = new tr.ui.b.Overlay();
         overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
+        Timing.markTimeEnd('createViewFromTraces');
       });
   }
 
@@ -130,6 +138,7 @@ found in the LICENSE file.
   window.addEventListener('hashchange', onHashChange);
 
   function onLoad() {
+    Timing.markTimeBegin('onLoad');
     timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
 
@@ -153,7 +162,7 @@ found in the LICENSE file.
       } else {
         onHashChange();
       }
-    });
+    }).then(Timing.markTimeEnd.call(this, 'onLoad'));
   }
   window.addEventListener('load', onLoad);
   </script>

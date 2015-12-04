@@ -189,6 +189,10 @@ tr.exportTo('tr.e.importer', function() {
   TraceEventImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'TraceEventImporter';
+    },
+
     extractSubtraces: function() {
       var systemEventsTmp = this.systemTraceEvents_;
       var battorDataTmp = this.battorData_;

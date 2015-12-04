@@ -300,6 +300,10 @@ tr.exportTo('tr.e.importer.etw', function() {
   EtwImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'EtwImporter';
+    },
+
     get model() {
       return this.model_;
     },

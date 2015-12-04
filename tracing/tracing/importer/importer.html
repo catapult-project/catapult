@@ -18,6 +18,10 @@ tr.exportTo('tr.importer', function() {
   Importer.prototype = {
     __proto__: Object.prototype,
 
+    get importerName() {
+      return 'Importer';
+    },
+
     /**
      * Called by the Model to check whether the importer type stores the actual
      * trace data or just holds it as container for further extraction.

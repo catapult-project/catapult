@@ -58,6 +58,7 @@
       'tracing/base/sorted_array_utils.html',
       'tracing/base/statistics.html',
       'tracing/base/task.html',
+      'tracing/base/timing.html',
       'tracing/base/units/generic_table.html',
       'tracing/base/units/histogram.html',
       'tracing/base/units/scalar.html',

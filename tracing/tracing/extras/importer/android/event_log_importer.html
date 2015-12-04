@@ -103,6 +103,10 @@ tr.exportTo('tr.e.importer.android', function() {
   EventLogImporter.prototype = {
     __proto__: Importer.prototype,
 
+    get importerName() {
+      return 'EventLogImporter';
+    },
+
     get model() {
       return this.model_;
     },

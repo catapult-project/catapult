@@ -32,7 +32,11 @@ tr.exportTo('tr.importer', function() {
   };
 
   EmptyImporter.prototype = {
-    __proto__: tr.importer.Importer.prototype
+    __proto__: tr.importer.Importer.prototype,
+
+    get importerName() {
+      return 'EmptyImporter';
+    }
   };
 
   tr.importer.Importer.register(EmptyImporter);

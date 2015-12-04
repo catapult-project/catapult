@@ -11,55 +11,66 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  function markTimeBegin(functionName) {
+  function Timing() {
+  }
+
+  Timing.markTimeBegin = function(functionName) {
     if (tr.isHeadless)
       return;
     window.performance.mark(functionName + '_Begin');
-  }
+  };
 
-  function markTimeEnd(functionName) {
+  Timing.markTimeEnd = function(functionName) {
     if (tr.isHeadless)
       return;
     window.performance.mark(functionName + '_End');
     window.performance.measure(functionName,
                                functionName + '_Begin',
                                functionName + '_End');
-  }
-
-  var timeFunction = function(callback) {
-    if (callback.name === '')
-      throw new Error('Anonymous function is not allowed');
-    timeNamedFunction(callback.name, callback);
   };
 
-  var timeNamedFunction = function(functionName, callback) {
-    markTimeBegin(functionName);
-    try {
-      callback();
-    } finally {
-      markTimeEnd(functionName);
+  Timing.wrap = function(callback) {
+    if (callback.name === '')
+      throw new Error('Anonymous function is not allowed');
+    function timedFunction() {
+      Timing.markTimeBegin(callback.name);
+      try {
+        callback.apply(this, arguments);
+      } finally {
+        Timing.markTimeEnd(callback.name);
+      }
     }
+    return timedFunction;
+  };
+
+  Timing.wrapNamedFunction = function(functionName, callback) {
+    function timedNamedFunction() {
+      Timing.markTimeBegin(functionName);
+      try {
+        callback.apply(this, arguments);
+      } finally {
+        Timing.markTimeEnd(functionName);
+      }
+    }
+    return timedNamedFunction;
   };
 
   function TimedNamedPromise(name, executor) {
-    markTimeBegin(name);
+    Timing.markTimeBegin(name);
     var promise = new Promise(executor);
     promise.then(function(result) {
-      markTimeEnd(name);
+      Timing.markTimeEnd(name);
       return result;
     }, function(e) {
-      markTimeEnd(name);
+      Timing.markTimeEnd(name);
       throw e;
     });
     return promise;
   }
 
   return {
-    timeFunction: timeFunction,
-    timeNamedFunction: timeNamedFunction,
-    markTimeBegin: markTimeBegin,
-    markTimeEnd: markTimeEnd,
-    TimedNamedPromise: TimedNamedPromise
+    TimedNamedPromise: TimedNamedPromise,
+    Timing: Timing
   };
 });
 </script>
