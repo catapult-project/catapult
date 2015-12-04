@@ -11,19 +11,17 @@ Unit tests for the contents of fastboot_utils.py
 
 import io
 import logging
-import os
 import sys
 import unittest
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android import fastboot_utils
 from devil.android.sdk import fastboot
 from devil.utils import mock_calls
-from pylib import constants
 
-sys.path.append(os.path.join(
-    constants.DIR_SOURCE_ROOT, 'third_party', 'pymock'))
+sys.path.append(devil_env.config.LocalPath('pymock'))
 import mock # pylint: disable=import-error
 
 _BOARD = 'board_type'

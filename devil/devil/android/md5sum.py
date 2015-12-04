@@ -6,9 +6,9 @@ import os
 import posixpath
 import re
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.utils import cmd_helper
-from pylib import constants
 
 MD5SUM_DEVICE_LIB_PATH = '/data/local/tmp/md5sum'
 MD5SUM_DEVICE_BIN_PATH = MD5SUM_DEVICE_LIB_PATH + '/md5sum_bin'
@@ -30,8 +30,7 @@ def CalculateHostMd5Sums(paths):
   if isinstance(paths, basestring):
     paths = [paths]
 
-  md5sum_bin_host_path = os.path.join(
-      constants.GetOutDirectory(), 'md5sum_bin_host')
+  md5sum_bin_host_path = devil_env.config.FetchPath('md5sum_host')
   if not os.path.exists(md5sum_bin_host_path):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
   out = cmd_helper.GetCmdOutput([md5sum_bin_host_path] + [p for p in paths])
@@ -58,8 +57,12 @@ def CalculateDeviceMd5Sums(paths, device):
   # Allow generators
   paths = list(paths)
 
-  md5sum_dist_path = os.path.join(constants.GetOutDirectory(), 'md5sum_dist')
-  md5sum_dist_bin_path = os.path.join(md5sum_dist_path, 'md5sum_bin')
+  md5sum_dist_path = devil_env.config.FetchPath('md5sum_device', device=device)
+
+  if os.path.isdir(md5sum_dist_path):
+    md5sum_dist_bin_path = os.path.join(md5sum_dist_path, 'md5sum_bin')
+  else:
+    md5sum_dist_bin_path = md5sum_dist_path
 
   if not os.path.exists(md5sum_dist_path):
     raise IOError('File not built: %s' % md5sum_dist_path)
@@ -95,7 +98,13 @@ def CalculateDeviceMd5Sums(paths, device):
       # actually fail. So, wipe the directory first.
       device.RunShellCommand(['rm', '-rf', MD5SUM_DEVICE_LIB_PATH],
                              as_root=True, check_return=True)
-      device.adb.Push(md5sum_dist_path, MD5SUM_DEVICE_LIB_PATH)
+      if os.path.isdir(md5sum_dist_path):
+        device.adb.Push(md5sum_dist_path, MD5SUM_DEVICE_LIB_PATH)
+      else:
+        mkdir_cmd = 'a=%s;[[ -e $a ]] || mkdir $a' % MD5SUM_DEVICE_LIB_PATH
+        device.RunShellCommand(mkdir_cmd, check_return=True)
+        device.adb.Push(md5sum_dist_bin_path, MD5SUM_DEVICE_BIN_PATH)
+
       out = device.RunShellCommand(md5sum_script, check_return=True)
     else:
       raise

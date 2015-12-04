@@ -14,11 +14,15 @@ import logging
 import os
 import re
 
+from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
 from devil.utils import cmd_helper
+from devil.utils import lazy
 from devil.utils import timeout_retry
-from pylib import constants
+
+with devil_env.SysPath(devil_env.CATAPULT_BASE_PATH):
+  from catapult_base import dependency_manager # pylint: disable=import-error
 
 
 _DEFAULT_TIMEOUT = 30
@@ -42,12 +46,29 @@ def VerifyLocalFileExists(path):
     raise IOError(errno.ENOENT, os.strerror(errno.ENOENT), path)
 
 
+def _FindAdb():
+  try:
+    return devil_env.config.LocalPath('adb')
+  except dependency_manager.NoPathFoundError:
+    pass
+
+  try:
+    return os.path.join(devil_env.config.LocalPath('android_sdk'),
+                        'platform-tools', 'adb')
+  except dependency_manager.NoPathFoundError:
+    pass
+
+  return devil_env.config.FetchPath('adb')
+
+
 DeviceStat = collections.namedtuple('DeviceStat',
                                     ['st_mode', 'st_size', 'st_time'])
 
 
 class AdbWrapper(object):
   """A wrapper around a local Android Debug Bridge executable."""
+
+  _adb_path = lazy.WeakConstant(_FindAdb)
 
   def __init__(self, device_serial):
     """Initializes the AdbWrapper.
@@ -59,19 +80,21 @@ class AdbWrapper(object):
       raise ValueError('A device serial must be specified')
     self._device_serial = str(device_serial)
 
-  # pylint: disable=unused-argument
+  @classmethod
+  def GetAdbPath(cls):
+    return cls._adb_path.read()
+
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
     if cpu_affinity is not None:
       cmd = ['taskset', '-c', str(cpu_affinity)]
     else:
       cmd = []
-    cmd.append(constants.GetAdbPath())
+    cmd.append(cls.GetAdbPath())
     if device_serial is not None:
       cmd.extend(['-s', device_serial])
     cmd.extend(args)
     return cmd
-  # pylint: enable=unused-argument
 
   # pylint: disable=unused-argument
   @classmethod

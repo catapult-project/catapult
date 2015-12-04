@@ -11,18 +11,20 @@ should be delegated to a higher level (ex. FastbootUtils).
 
 import os
 
+from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
 from devil.utils import cmd_helper
-from pylib import constants
+from devil.utils import lazy
 
-_FASTBOOT_CMD = os.path.join(
-    constants.ANDROID_SDK_ROOT, 'platform-tools', 'fastboot')
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10
 
 class Fastboot(object):
+
+  _fastboot_path = lazy.WeakConstant(lambda: os.path.join(
+      devil_env.config.LocalPath('android_sdk'), 'platform-tools', 'adb'))
 
   def __init__(self, device_serial, default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
@@ -51,7 +53,7 @@ class Fastboot(object):
       TypeError: If cmd is not of type list.
     """
     if type(cmd) == list:
-      cmd = [_FASTBOOT_CMD, '-s', self._device_serial] + cmd
+      cmd = [self._fastboot_path.read(), '-s', self._device_serial] + cmd
     else:
       raise TypeError(
           'Command for _RunFastbootCommand must be a list.')
