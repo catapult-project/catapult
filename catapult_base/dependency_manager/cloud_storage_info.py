@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import errno
 import logging
 import os
 import stat
@@ -63,7 +64,13 @@ class CloudStorageInfo(object):
 
     download_dir = os.path.dirname(self._download_path)
     if not os.path.exists(download_dir):
-      os.makedirs(download_dir)
+      try:
+        os.makedirs(download_dir)
+      except OSError as e:
+        # The logic above is racy, and os.makedirs will raise an OSError if
+        # the directory exists.
+        if e.errno != errno.EEXIST:
+          raise
 
     dependency_path = self._download_path
     cloud_storage.GetIfHashChanged(
