@@ -23,12 +23,11 @@ def GetBaseDir():
 
 def GetTelemetryDir():
   return os.path.normpath(os.path.join(
-      __file__, '..', '..', '..'))
+      os.path.abspath(__file__), '..', '..', '..'))
 
 
 def GetTelemetryThirdPartyDir():
-  return os.path.normpath(os.path.join(
-      __file__, '..', '..', '..', 'third_party'))
+  return os.path.join(GetTelemetryDir(), 'third_party')
 
 
 def GetUnittestDataDir():
@@ -38,6 +37,12 @@ def GetUnittestDataDir():
 
 def GetChromiumSrcDir():
   return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..'))
+
+
+# TODO(aiolos): Move this over to the path in catapult after the migration.
+def GetCatapultDir():
+  return os.path.normpath(os.path.join(
+      GetTelemetryDir(), '..', '..', 'third_party', 'catapult'))
 
 
 _counter = [0]

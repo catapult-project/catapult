@@ -7,7 +7,7 @@ import os
 from telemetry.core import util
 
 
-# TODO(dtu): Move these functions from core.util to here.
+# TODO(aiolos): Move these functions to catapult_base or here.
 GetBaseDir = util.GetBaseDir
 GetTelemetryDir = util.GetTelemetryDir
 GetUnittestDataDir = util.GetUnittestDataDir

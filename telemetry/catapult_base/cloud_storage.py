@@ -43,7 +43,7 @@ BUCKET_ALIASES = collections.OrderedDict((
 BUCKET_ALIAS_NAMES = BUCKET_ALIASES.keys()
 
 
-_GSUTIL_PATH = os.path.join(path.GetTelemetryDir(), 'third_party', 'gsutilz',
+_GSUTIL_PATH = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
                             'gsutil')
 
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
