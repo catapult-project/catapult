@@ -29,11 +29,13 @@ found in the LICENSE file.
   x-html-test-case-result > #status,
   x-html-test-case-result > #details > x-html-test-case-error > #message,
   x-html-test-case-result > #details > x-html-test-case-error > #stack,
-  x-html-test-case-result > #details > x-html-test-case-error > #return-value {
+  x-html-test-case-result > #details > x-html-test-case-error > #return-value,
+  x-html-test-case-result > #details > x-html-test-case-flaky > #message {
     -webkit-user-select: auto;
   }
 
-  x-html-test-case-result > #details > x-html-test-case-error {
+  x-html-test-case-result > #details > x-html-test-case-error,
+  x-html-test-case-result > #details > x-html-test-case-flaky {
     display: block;
     border: 1px solid grey;
     border-radius: 5px;
@@ -42,7 +44,8 @@ found in the LICENSE file.
   }
 
   x-html-test-case-result > #details > x-html-test-case-error > #message,
-  x-html-test-case-result > #details > x-html-test-case-error > #stack {
+  x-html-test-case-result > #details > x-html-test-case-error > #stack,
+  x-html-test-case-result > #details > x-html-test-case-flaky > #message {
     white-space: pre;
   }
 
@@ -67,6 +70,10 @@ found in the LICENSE file.
     font-weight: bold;
   }
 
+  .unittest-flaky {
+    color: darkorange;
+  }
+
   .unittest-exception {
     color: red;
     font-weight: bold;
@@ -87,6 +94,10 @@ found in the LICENSE file.
 
 <template id="x-html-test-case-error-template">
   <div id="stack"></div>
+</template>
+
+<template id="x-html-test-case-flaky-template">
+  <div id="message"></div>
 </template>
 
 <script>
@@ -167,6 +178,15 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateColorAndStatus_();
     },
 
+    addFlaky: function() {
+      var flakyEl = document.createElement('x-html-test-case-flaky');
+      flakyEl.appendChild(tr.ui.b.instantiateTemplate(
+          '#x-html-test-case-flaky-template', THIS_DOC));
+      flakyEl.querySelector('#message').textContent = 'FLAKY';
+      this.querySelector('#details').appendChild(flakyEl);
+      this.updateColorAndStatus_();
+    },
+
     addHTMLOutput: function(element) {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       htmlResultEl.appendChild(element);
@@ -190,6 +210,10 @@ tr.exportTo('tr.b.unittest', function() {
 
     get hadErrors() {
       return !!this.querySelector('x-html-test-case-error');
+    },
+
+    get isFlaky() {
+      return !!this.querySelector('x-html-test-case-flaky');
     },
 
     get duration() {
@@ -217,6 +241,9 @@ tr.exportTo('tr.b.unittest', function() {
       if (this.hadErrors) {
         colorCls = 'unittest-failed';
         status = 'failed';
+      } else if (this.isFlaky) {
+        colorCls = 'unittest-flaky';
+        status = 'flaky';
       } else if (this.testStatus_ == TestStatus.PENDING) {
         colorCls = 'unittest-pending';
         status = 'pending';
@@ -263,6 +290,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.totalRunTime_ = 0;
       this.numTestsThatPassed_ = 0;
       this.numTestsThatFailed_ = 0;
+      this.numFlakyTests_ = 0;
       this.showHTMLOutput_ = false;
       this.showPendingAndPassedTests_ = false;
       this.linkifyCallback_ = undefined;
@@ -381,6 +409,11 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
     },
 
+    setCurrentTestFlaky: function() {
+      this.currentTestCaseResult_.addFlaky();
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+    },
+
     setReturnValueFromCurrentTest: function(returnValue) {
       this.currentTestCaseResult_.testReturnValue = returnValue;
     },
@@ -392,20 +425,24 @@ tr.exportTo('tr.b.unittest', function() {
       this.currentTestCaseResult_.testStatus = TestStatus.DONE_RUNNING;
       testCaseResult.duration = testCaseDuration;
       this.totalRunTime_ += testCaseDuration;
+      var resultString;
       if (testCaseResult.hadErrors) {
-        this.log_('[FAILED]\n');
+        resultString = 'FAILED';
         this.numTestsThatFailed_ += 1;
         tr.b.dispatchSimpleEvent(this, 'testfailed');
+      } else if (testCaseResult.isFlaky) {
+        resultString = 'FLAKY';
+        this.numFlakyTests_ += 1;
+        tr.b.dispatchSimpleEvent(this, 'testflaky');
       } else {
-        this.log_('[PASSED]\n');
+        resultString = 'PASSED';
         this.numTestsThatPassed_ += 1;
         tr.b.dispatchSimpleEvent(this, 'testpassed');
       }
+      this.log_('[' + resultString + ']\n');
 
-      if (this.headless_) {
-        this.notifyTestResultToDevServer_(testCaseResult.hadErrors ?
-                                          'FAILED' : 'PASSED');
-      }
+      if (this.headless_)
+        this.notifyTestResultToDevServer_(resultString);
 
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
       this.currentTestCaseResult_ = undefined;
@@ -421,6 +458,7 @@ tr.exportTo('tr.b.unittest', function() {
       return {
         numTestsThatPassed: this.numTestsThatPassed_,
         numTestsThatFailed: this.numTestsThatFailed_,
+        numFlakyTests: this.numFlakyTests_,
         totalRunTime: this.totalRunTime_
       };
     },
@@ -433,11 +471,14 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     notifyTestCompletionToDevServer_: function() {
-      if (this.numTestsThatPassed_ + this.numTestsThatFailed_ == 0)
+      if (this.numTestsThatPassed_ + this.numTestsThatFailed_ +
+          this.numFlakyTests_ == 0) {
         return;
+      }
       var data = this.numTestsThatFailed_ == 0 ? 'ALL_PASSED' : 'HAD_FAILURES';
       data += '\nPassed tests: ' + this.numTestsThatPassed_ +
-              '  Failed tests: ' + this.numTestsThatFailed_;
+              '  Failed tests: ' + this.numTestsThatFailed_ +
+              '  Flaky tests: ' + this.numFlakyTests_;
 
       tr.b.postAsync('/tracing/notify_tests_completed', data);
     },

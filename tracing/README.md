@@ -28,7 +28,7 @@ To run all python unittests:
   ./tracing/run_py_tests
 
 To run all tracing unittests in d8 environment:
- ./tracing/run_d8_tests
+ ./tracing/run_vinn_tests
 
 To run all the unittests, you can also do:
 

@@ -66,6 +66,10 @@ found in the LICENSE file.
     font-weight: bold;
   }
 
+  x-base-interactive-test-runner > #shortform-results > .flaky {
+    color: darkorange;
+  }
+
   x-base-interactive-test-runner > #results-container {
     flex: 1 1 auto;
     min-height: 0;
@@ -88,6 +92,10 @@ found in the LICENSE file.
   .unittest-failed {
     color: darkred;
     font-weight: bold;
+  }
+
+  .unittest-flaky {
+    color: darkorange;
   }
 
   .unittest-exception {
@@ -173,6 +181,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       this.onResultsStatsChanged_ = this.onResultsStatsChanged_.bind(this);
       this.onTestFailed_ = this.onTestFailed_.bind(this);
+      this.onTestFlaky_ = this.onTestFlaky_.bind(this);
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
       this.appendChild(tr.ui.b.instantiateTemplate(
@@ -338,16 +347,26 @@ tr.exportTo('tr.b.unittest', function() {
       this.querySelector('#shortform-results').appendChild(span);
     },
 
+    onTestFlaky_: function() {
+      var span = document.createElement('span');
+      span.classList.add('flaky');
+      span.appendChild(document.createTextNode('~'));
+      this.querySelector('#shortform-results').appendChild(span);
+    },
+
     onResultsStatsChanged_: function() {
       var statsEl = this.querySelector('#stats');
       var stats = this.results_.getStats();
       var numTestsOverall = this.runner_.testCases.length;
-      var numTestsThatRan = stats.numTestsThatPassed + stats.numTestsThatFailed;
+      var numTestsThatRan = stats.numTestsThatPassed +
+          stats.numTestsThatFailed + stats.numFlakyTests;
       statsEl.innerHTML =
           '<span>' + numTestsThatRan + '/' + numTestsOverall +
           '</span> tests run, ' +
           '<span class="unittest-failed">' + stats.numTestsThatFailed +
           '</span> failures, ' +
+          '<span class="unittest-flaky">' + stats.numFlakyTests +
+          '</span> flaky, ' +
           ' in ' + stats.totalRunTime.toFixed(2) + 'ms.';
     },
 
@@ -371,10 +390,9 @@ tr.exportTo('tr.b.unittest', function() {
     beginRunning_: function() {
       var resultsContainer = this.querySelector('#results-container');
       if (this.results_) {
-        this.results_.removeEventListener('testpassed',
-                                          this.onTestPassed_);
-        this.results_.removeEventListener('testfailed',
-                                          this.onTestFailed_);
+        this.results_.removeEventListener('testpassed', this.onTestPassed_);
+        this.results_.removeEventListener('testfailed', this.onTestFailed_);
+        this.results_.removeEventListener('testflaky', this.onTestFlaky_);
         this.results_.removeEventListener('statschange',
                                           this.onResultsStatsChanged_);
         delete this.results_.getHRefForTestCase;
@@ -387,10 +405,9 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateResultsGivenShortFormat_();
 
       this.results_.shortFormat = this.shortFormat_;
-      this.results_.addEventListener('testpassed',
-                                     this.onTestPassed_);
-      this.results_.addEventListener('testfailed',
-                                     this.onTestFailed_);
+      this.results_.addEventListener('testpassed', this.onTestPassed_);
+      this.results_.addEventListener('testfailed', this.onTestFailed_);
+      this.results_.addEventListener('testflaky', this.onTestFlaky_);
       this.results_.addEventListener('statschange',
                                      this.onResultsStatsChanged_);
       resultsContainer.appendChild(this.results_);

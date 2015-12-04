@@ -134,6 +134,15 @@ tr.exportTo('tr.b.unittest', function() {
       this.currentTestCase_ = this.pendingTestCases_.splice(0, 1)[0];
 
       this.results_.willRunTest(this.currentTestCase_);
+
+      if (this.isCurrentTestFlaky_()) {
+        this.results_.setCurrentTestFlaky();
+        this.results_.didCurrentTestEnd();
+        this.currentTestCase_ = undefined;
+        this.scheduleRunOneTestCase_();
+        return;
+      }
+
       if (!this.setUpCurrentTestCase_()) {
         this.results_.didCurrentTestEnd();
         this.currentTestCase_ = undefined;
@@ -167,6 +176,10 @@ tr.exportTo('tr.b.unittest', function() {
               throw e;
             }
           }.bind(this));
+    },
+
+    isCurrentTestFlaky_: function() {
+      return !!this.currentTestCase_.options['flaky'];
     },
 
     setUpCurrentTestCase_: function() {
