@@ -67,7 +67,28 @@ class MockPageTest(page_test.PageTest):
 
 class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
-  mock_story_set = None
+
+  def __init__(self):
+    super(MockBenchmark, self).__init__()
+    self.mock_story_set = None
+
+  @classmethod
+  def AddBenchmarkCommandLineArgs(cls, group):
+    group.add_option('', '--mock-benchmark-url', action='store', type='string')
+
+  def CreateStorySet(self, options):
+    kwargs = {}
+    if options.mock_benchmark_url:
+      kwargs['url'] = options.mock_benchmark_url
+    self.mock_story_set = MockStorySet(**kwargs)
+    return self.mock_story_set
+
+
+class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
+
+  def __init__(self):
+    super(MockTimelineBasedMeasurementBenchmark, self).__init__()
+    self.mock_story_set = None
 
   @classmethod
   def AddBenchmarkCommandLineArgs(cls, group):
@@ -141,6 +162,17 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--mock-benchmark-url', self._url])
     mock_benchmark = MockBenchmark()
+    wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
+                                          flags)
+    results = wpr_recorder.CreateResults()
+    wpr_recorder.Record(results)
+    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
+                     results.pages_that_succeeded)
+
+  def testWprRecorderWithTimelineBasedMeasurementBenchmark(self):
+    flags = self.GetBrowserDeviceFlags()
+    flags.extend(['--mock-benchmark-url', self._url])
+    mock_benchmark = MockTimelineBasedMeasurementBenchmark()
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
     results = wpr_recorder.CreateResults()
