@@ -76,6 +76,10 @@
         "android_arm64-v8a": {
           "cloud_storage_hash": "bbe410e2ffb48367ac4ca0874598d4f85fd16d9d",
           "download_path": "../bin/arm64-v8a/md5sum_device"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "b578a5c2c400ce39761e2558cdf2237567a57257",
+          "download_path": "../bin/x86/md5sum_device"
         }
       }
     },
