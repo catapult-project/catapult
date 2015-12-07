@@ -287,22 +287,22 @@ def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
   """Mocks out a request, returning a canned response."""
   if path.endswith('xsrf_token'):
     assert kwargs['headers']['X-Requesting-XSRF-Token'] == 1
-    return (httplib2.Response({'status': '200'}), _FAKE_XSRF_TOKEN)
+    return testing_common.FakeResponseObject(200, _FAKE_XSRF_TOKEN)
   if path == 'upload':
     assert kwargs['method'] == 'POST'
     assert _EXPECTED_CONFIG_DIFF in kwargs['body'], (
         '%s\nnot in\n%s\n' % (_EXPECTED_CONFIG_DIFF, kwargs['body']))
-    return (httplib2.Response({'status': '200'}), _ISSUE_CREATED_RESPONSE)
+    return testing_common.FakeResponseObject(200, _ISSUE_CREATED_RESPONSE)
   if path == '33001/upload_content/1/1001':
     assert kwargs['method'] == 'POST'
     assert _TEST_EXPECTED_CONFIG_CONTENTS in kwargs['body']
-    return (httplib2.Response({'status': '200'}), 'Dummy content')
+    return testing_common.FakeResponseObject(200, 'Dummy content')
   if path == '33001/upload_complete/1':
     assert kwargs['method'] == 'POST'
-    return (httplib2.Response({'status': '200'}), 'Dummy content')
+    return testing_common.FakeResponseObject(200, 'Dummy content')
   if path == '33001/try/1':
     assert _TEST_EXPECTED_BOT in kwargs['body']
-    return (httplib2.Response({'status': '200'}), 'Dummy content')
+    return testing_common.FakeResponseObject(200, 'Dummy content')
   assert False, 'Invalid url %s requested!' % path
 
 

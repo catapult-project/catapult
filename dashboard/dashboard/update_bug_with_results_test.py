@@ -455,8 +455,7 @@ def _MockFetch(url=None):
 
 def _MockMakeRequest(path, method):  # pylint: disable=unused-argument
   url = 'https://test-rietveld.appspot.com/' + path
-  response = _MockFetch(url=url)
-  return response, response.content
+  return _MockFetch(url=url)
 
 
 def _MockSendPerfTryJobEmail(_, results):
