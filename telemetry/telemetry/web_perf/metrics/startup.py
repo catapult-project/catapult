@@ -32,8 +32,8 @@ _METRICS = {
   'foreground_tab_load_complete':
       (_MAIN_ENTRY_POINT, 'loadEventEnd'),
 
-  # TODO(gabadie): Implement foreground_tab_request_start between
-  # _MAIN_ENTRY_POINT and 'requestStart' once crbug.com/552472 fixed.
+  'foreground_tab_request_start':
+      (_MAIN_ENTRY_POINT, 'requestStart'),
 }
 
 _TRACKED_EVENT_NAMES = set()

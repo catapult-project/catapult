@@ -59,35 +59,41 @@ class StartupTimelineMetricTest(unittest.TestCase):
     self.AddEvent(startup._MAIN_ENTRY_POINT, START1)
     self.AddEvent('loadEventEnd', START0 + DURATION0)
     self.AddEvent('loadEventEnd', START1 + DURATION1)
+    self.AddEvent('requestStart', START0 + DURATION0 * 2)
+    self.AddEvent('requestStart', START1 + DURATION1 * 2)
 
     results = self.ComputeStartupMetrics()
     results.AssertHasPageSpecificScalarValue('foreground_tab_load_complete',
         'ms', DURATION0)
+    results.AssertHasPageSpecificScalarValue('foreground_tab_request_start',
+        'ms', DURATION0 * 2)
 
-  def testBeginEndEventsBasedValue(self):
+  def testDurationEventsBasedValues(self):
+    DURATION_EVENTS = set([
+        'messageloop_start_time',
+        'window_display_time',
+        'open_tabs_time',
+        'first_non_empty_paint_time',
+        'first_main_frame_load_time'])
+
     # Test case to get the duration of the first occurrence of a duration event.
     i = 1
-    for event_names in startup._METRICS.values():
-      if len(event_names) != 1:
-        continue
+    for display_name in DURATION_EVENTS:
+      self.assertTrue(len(startup._METRICS[display_name]) == 1)
+      event_name = startup._METRICS[display_name][0]
 
       duration = 13 * i
       i += 1
 
       # Generate duplicated events to make sure only the first event is
       # considered.
-      self.AddEvent(event_names[0], 5, duration)
-      self.AddEvent(event_names[0], 6, duration + 2)
-
-    self.assertTrue(i > 1)
+      self.AddEvent(event_name, 5, duration)
+      self.AddEvent(event_name, 6, duration + 2)
 
     results = self.ComputeStartupMetrics()
 
     i = 1
-    for display_name, event_names in startup._METRICS.iteritems():
-      if len(event_names) != 1:
-        continue
-
+    for display_name in DURATION_EVENTS:
       duration = 13 * i
       i += 1
 
