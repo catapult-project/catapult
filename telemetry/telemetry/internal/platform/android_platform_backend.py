@@ -36,6 +36,7 @@ import adb_install_cert
 import certutils
 import platformsettings
 
+from devil.android import app_ui
 from devil.android import battery_utils
 from devil.android import device_errors
 from devil.android import device_utils
@@ -178,6 +179,7 @@ class AndroidPlatformBackend(
     self._wpr_ca_cert_path = None
     self._device_cert_util = None
     self._is_test_ca_installed = False
+    self._system_ui = None
 
     self._use_rndis_forwarder = (
         finder_options.android_rndis or
@@ -215,6 +217,11 @@ class AndroidPlatformBackend(
   @property
   def device(self):
     return self._device
+
+  def GetSystemUi(self):
+    if self._system_ui is None:
+      self._system_ui = app_ui.AppUi(self.device, 'com.android.systemui')
+    return self._system_ui
 
   def IsSvelte(self):
     try:

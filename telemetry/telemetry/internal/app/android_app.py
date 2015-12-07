@@ -18,6 +18,14 @@ class AndroidApp(app.App):
                                      platform_backend=platform_backend)
     self._app_backend.Start()
 
+  @property
+  def ui(self):
+    """Returns an AppUi object to interact with the app's UI.
+
+    See devil.android.app_ui for the documentation of the API provided.
+    """
+    return self._app_backend.GetAppUi()
+
   def Close(self):
     self._app_backend.Close()
 

@@ -10,6 +10,8 @@ from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import app_backend
 
+from devil.android import app_ui
+
 
 class AndroidAppBackend(app_backend.AppBackend):
 
@@ -23,10 +25,16 @@ class AndroidAppBackend(app_backend.AppBackend):
     self._is_running = False
     self._app_has_webviews = app_has_webviews
     self._existing_processes_by_pid = {}
+    self._app_ui = None
 
   @property
   def device(self):
     return self.platform_backend.device
+
+  def GetAppUi(self):
+    if self._app_ui is None:
+      self._app_ui = app_ui.AppUi(self.device, self._start_intent.package)
+    return self._app_ui
 
   def _LaunchAndWaitForApplication(self):
     """Launch the app and wait for it to be ready."""
