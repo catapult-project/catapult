@@ -58,7 +58,10 @@ def _FindAdb():
   except dependency_manager.NoPathFoundError:
     pass
 
-  return devil_env.config.FetchPath('adb')
+  try:
+    return devil_env.config.FetchPath('adb')
+  except dependency_manager.NoPathFoundError:
+    raise device_errors.NoAdbError()
 
 
 DeviceStat = collections.namedtuple('DeviceStat',

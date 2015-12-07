@@ -5,7 +5,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "7448de3cb5e834afdedeaad8b40ba63ac53f3dc4",
           "download_path": "../bin/aapt"
         }
@@ -15,7 +15,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "0c2043552619c8ec8bb5d986ba75703a598611fc",
           "download_path": "../bin/adb"
         }
@@ -25,7 +25,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "52d150a7ccde835f38b4337392152f3013d5f303",
           "download_path": "../bin/lib/libc++.so"
         }
@@ -35,7 +35,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "38765b5b358c29003e56b1d214606ea13467b6fe",
           "download_path": "../bin/dexdump"
         }
@@ -59,7 +59,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "b3dda9fbdd4a3fb933b64111c11070aa809c7ed4",
           "download_path": "../bin/forwarder_host"
         }
@@ -87,7 +87,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "49e36c9c4246cfebef26cbd07436c1a8343254aa",
           "download_path": "../bin/md5sum_host"
         }
@@ -95,7 +95,17 @@
     },
     "pymock": {
       "file_info": {
-        "android_host": {
+        "android_darwin": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        },
+        "android_linux2": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        },
+        "android_win32": {
           "local_paths": [
             "../../../tools/telemetry/third_party/mock"
           ]
@@ -106,7 +116,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
-        "android_host": {
+        "android_linux2": {
           "cloud_storage_hash": "3327881fa3951a503b9467425ea8e781cdffeb9f",
           "download_path": "../bin/split-select"
         }

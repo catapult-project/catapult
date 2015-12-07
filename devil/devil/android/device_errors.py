@@ -41,6 +41,7 @@ class _BaseCommandFailedError(CommandFailedError):
       message = ''.join(message)
     super(_BaseCommandFailedError, self).__init__(message, device_serial)
 
+
 class AdbCommandFailedError(_BaseCommandFailedError):
   """Exception for adb command failures."""
 
@@ -106,3 +107,11 @@ class NoDevicesError(base_error.BaseError):
   def __init__(self):
     super(NoDevicesError, self).__init__(
         'No devices attached.', is_infra_error=True)
+
+
+class NoAdbError(base_error.BaseError):
+  """Exception for being unable to find ADB."""
+
+  def __init__(self):
+    super(NoAdbError, self).__init__(
+        'Unable to find adb.', is_infra_error=True)

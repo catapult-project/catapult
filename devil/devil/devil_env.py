@@ -37,11 +37,11 @@ _DEVIL_DEFAULT_CONFIG = os.path.abspath(os.path.join(
 _LEGACY_ENVIRONMENT_VARIABLES = {
   'ADB_PATH': {
     'dependency_name': 'adb',
-    'platform': 'android_host',
+    'platform': 'android_linux2',
   },
   'ANDROID_SDK_ROOT': {
     'dependency_name': 'android_sdk',
-    'platform': 'android_host',
+    'platform': 'android_linux2',
   },
 }
 
@@ -120,17 +120,17 @@ class _Environment(object):
       self.Initialize()
     if dependency in _ANDROID_BUILD_TOOLS:
       self.FetchPath('android_build_tools_libc++', arch=arch, device=device)
-    return self._dm.FetchPath(dependency, _GetPlatform(arch, device))
+    return self._dm.FetchPath(dependency, GetPlatform(arch, device))
 
   def LocalPath(self, dependency, arch=None, device=None):
     if self._dm is None:
       self.Initialize()
-    return self._dm.LocalPath(dependency, _GetPlatform(arch, device))
+    return self._dm.LocalPath(dependency, GetPlatform(arch, device))
 
 
-def _GetPlatform(arch, device):
+def GetPlatform(arch=None, device=None):
   if not arch:
-    arch = device.product_cpu_abi if device else 'host'
+    arch = device.product_cpu_abi if device else sys.platform
   return 'android_%s' % arch
 
 
