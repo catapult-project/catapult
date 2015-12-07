@@ -278,6 +278,11 @@ var GRAPH_INDENT = 64;
 var PADDING_UNDER_GRAPH = 5;
 // px Indentation for nested children left-margins
 var INDENTATION = 40;
+// Bit field enums for active test types
+var MEMORY_TEST = 1 << 0;
+var TIME_TEST = 1 << 1;
+var NO_TESTS = 0;
+var ALL_TESTS = MEMORY_TEST | TIME_TEST;
 
 function TestResult(metric, values, associatedRun, std, degreesOfFreedom) {
     if (values) {
@@ -688,6 +693,34 @@ function setUpSortClicks(runs)
         $('#' + run.id()).click(sortByResult);
         $('#' + run.id() + COMPARISON_SUFFIX).click(sortByReference);
      });
+}
+
+function getTestTypes(tests) {
+    var testTypes = NO_TESTS;
+    for (testName in tests) {
+        if (tests[testName].isMemoryTest()) {
+            testTypes |= MEMORY_TEST;
+        } else {
+            testTypes |= TIME_TEST;
+        }
+        if (testTypes === ALL_TESTS) {
+            // Early out as soon as we've found all the test types.
+            break;
+        }
+    }
+    return testTypes;
+ }
+
+function areMemoryResultsIgnoredForTestTypes(testTypes) {
+    return testTypes !== MEMORY_TEST;
+}
+
+function setUpUIForTestTypes(testTypes) {
+    var withFirstTestTypeRemoved = testTypes & (testTypes-1);
+    if (withFirstTestTypeRemoved === NO_TESTS) {
+        // Hide button when there are zero or one test types.
+        document.getElementById('time-memory').style.display = 'none';
+    }
 }
 
 var topLevelRows;
@@ -1375,7 +1408,11 @@ function init() {
     });
 
     var useLargeLinePlots = false;
-    var shouldIgnoreMemory= true;
+
+    var testTypes = getTestTypes(metrics);
+
+    setUpUIForTestTypes(testTypes);
+    var shouldIgnoreMemory = areMemoryResultsIgnoredForTestTypes(testTypes);
     var referenceIndex = 0;
 
     createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
