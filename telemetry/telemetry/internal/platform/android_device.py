@@ -172,7 +172,18 @@ def FindAllAvailableDevices(options):
   else:
     blacklist = None
 
-  if not CanDiscoverDevices():
-    return []
-  else:
-    return AndroidDevice.GetAllConnectedDevices(blacklist)
+  devices = []
+
+  try:
+    if not CanDiscoverDevices():
+      devices = []
+    else:
+      devices = AndroidDevice.GetAllConnectedDevices(blacklist)
+  finally:
+    if not devices:
+      try:
+        adb_wrapper.AdbWrapper.KillServer()
+      except device_errors.NoAdbError:
+        pass
+
+  return devices
