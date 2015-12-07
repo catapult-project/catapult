@@ -13,7 +13,7 @@ from telemetry.internal.platform.profiler import monsoon
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
-from pylib import constants
+from devil.android.sdk import adb_wrapper
 
 
 class AndroidDevice(device.Device):
@@ -132,9 +132,14 @@ def CanDiscoverDevices():
   if os.name != 'posix':
     return False
 
-  adb_path = constants.GetAdbPath()
+  try:
+    adb_path = adb_wrapper.AdbWrapper.GetAdbPath()
+  except device_errors.NoAdbError:
+    return False
+
   if os.path.isabs(adb_path) and not os.path.exists(adb_path):
     return False
+
   try:
     with open(os.devnull, 'w') as devnull:
       adb_process = subprocess.Popen(
