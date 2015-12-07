@@ -1646,8 +1646,11 @@ class DeviceUtils(object):
       480: 'xxhdpi',
       640: 'xxxhdpi',
     }
-    dpi = int(self.GetProp('ro.sf.lcd_density', cache=True))
-    return DPI_TO_DENSITY.get(dpi, 'tvdpi')
+    return DPI_TO_DENSITY.get(self.pixel_density, 'tvdpi')
+
+  @property
+  def pixel_density(self):
+    return int(self.GetProp('ro.sf.lcd_density', cache=True))
 
   @property
   def build_description(self):
