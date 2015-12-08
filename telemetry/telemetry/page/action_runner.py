@@ -656,6 +656,14 @@ class ActionRunner(object):
     """Forces JavaScript garbage collection on the page."""
     self._tab.CollectGarbage()
 
+  def SimulateMemoryPressureNotification(self, pressure_level):
+    """Simulate memory pressure notification.
+
+    Args:
+      pressure_level: 'moderate' or 'critical'.
+    """
+    self._tab.browser.SimulateMemoryPressureNotification(pressure_level)
+
   def PauseInteractive(self):
     """Pause the page execution and wait for terminal interaction.
 
