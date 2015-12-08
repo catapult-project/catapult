@@ -453,8 +453,7 @@ tr.exportTo('tr.e.importer', function() {
                 '\' metadata event'
           });
         } else {
-          this.importStackFrames_(
-              stackFrames, 'p' + event.pid + ':', true /* addRootFrame */);
+          this.importStackFrames_(stackFrames, 'p' + event.pid + ':');
         }
       } else {
         this.model_.importWarning({
@@ -688,10 +687,8 @@ tr.exportTo('tr.e.importer', function() {
     importEvents: function() {
       var csr = new tr.ClockSyncRecord('ftrace_importer', 0, {});
       this.model_.clockSyncRecords.push(csr);
-      if (this.stackFrameEvents_) {
-        this.importStackFrames_(
-            this.stackFrameEvents_, 'g', false /* addRootFrame */);
-      }
+      if (this.stackFrameEvents_)
+        this.importStackFrames_(this.stackFrameEvents_, 'g');
 
       if (this.traceAnnotations_)
         this.importAnnotations_();
@@ -759,25 +756,8 @@ tr.exportTo('tr.e.importer', function() {
       });
     },
 
-    importStackFrames_: function(rawStackFrames, idPrefix, addRootFrame) {
+    importStackFrames_: function(rawStackFrames, idPrefix) {
       var model = this.model_;
-
-      var rootStackFrame;
-      if (addRootFrame) {
-        // In certain cases (heap dumps), we need to be able to distinguish
-        // between an empty and an undefined stack trace. To this end, we add
-        // an auxiliary root stack frame which is common to all stack frames
-        // in a process. An empty stack trace is then represented by setting
-        // the root stack frame as the leaf stack frame (of the relevant model
-        // object with an associated empty stack trace, e.g. HeapEntry in the
-        // case of heap dumps).
-        rootStackFrame = new tr.model.StackFrame(
-            undefined /* parentFrame */, idPrefix, undefined /* title */,
-            undefined /* colorId */);
-        model.addStackFrame(rootStackFrame);
-      } else {
-        rootStackFrame = undefined;
-      }
 
       for (var id in rawStackFrames) {
         var rawStackFrame = rawStackFrames[id];
@@ -800,7 +780,7 @@ tr.exportTo('tr.e.importer', function() {
         var parentId = rawStackFrame.parent;
         var parentStackFrame;
         if (parentId === undefined) {
-          parentStackFrame = rootStackFrame;
+          parentStackFrame = undefined;
         } else {
           var parentFullId = idPrefix + parentId;
           parentStackFrame = model.stackFrames[parentFullId];
@@ -811,7 +791,6 @@ tr.exportTo('tr.e.importer', function() {
                   ' for stack frame \'' + stackFrame.name + '\' (ID ' + fullId +
                   ').'
             });
-            parentStackFrame = rootStackFrame;
           }
         }
         stackFrame.parentFrame = parentStackFrame;
@@ -2114,16 +2093,22 @@ tr.exportTo('tr.e.importer', function() {
 
       for (var allocatorName in rawHeapDumps) {
         var entries = rawHeapDumps[allocatorName].entries;
-        if (entries === undefined) {
+        if (entries === undefined || entries.length === 0) {
           this.model_.importWarning({
             type: 'memory_dump_parse_error',
-            message: 'Missing heap entries in a ' + allocatorName +
+            message: 'No heap entries in a ' + allocatorName +
                 ' heap dump for PID=' + pid + ' and dump ID=' + dumpId + '.'
           });
           continue;
         }
 
         var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
+
+        // The old format always starts with a {size: <total>} entry.
+        // See https://goo.gl/WYStil
+        // TODO(petrcermak): Remove support for the old format once the new
+        // format has been around long enough.
+        var isOldFormat = entries[0].bt === undefined;
 
         for (var i = 0; i < entries.length; i++) {
           var entry = entries[i];
@@ -2135,24 +2120,84 @@ tr.exportTo('tr.e.importer', function() {
             // crbug.com/524631.
             continue;
           }
+
           var size = parseInt(entry.size, 16);
           var leafStackFrameIndex = entry.bt;
           var leafStackFrame;
-          if (leafStackFrameIndex === undefined) {
-            leafStackFrame = undefined;
+
+          // There are two possible mappings from leaf stack frame indices
+          // (provided in the trace) to the corresponding stack frames
+          // depending on the format.
+          if (isOldFormat) {
+            // Old format:
+            //   Undefined index        -> / (root)
+            //   Defined index for /A/B -> /A/B/<self>
+            if (leafStackFrameIndex === undefined) {
+              leafStackFrame = undefined /* root */;
+            } else {
+              // Get the leaf stack frame corresponding to the provided index.
+              var leafStackFrameId = idPrefix + leafStackFrameIndex;
+              if (leafStackFrameIndex === '') {
+                leafStackFrame = undefined /* root */;
+              } else {
+                leafStackFrame = model.stackFrames[leafStackFrameId];
+                if (leafStackFrame === undefined) {
+                  this.model_.importWarning({
+                    type: 'memory_dump_parse_error',
+                    message: 'Missing leaf stack frame (ID ' +
+                        leafStackFrameId + ') of heap entry ' + i + ' (size ' +
+                        size + ') in a ' + allocatorName +
+                        ' heap dump for PID=' + pid + '.'
+                  });
+                  continue;
+                }
+              }
+
+              // Inject an artificial <self> leaf stack frame.
+              leafStackFrameId += ':self';
+              if (model.stackFrames[leafStackFrameId] !== undefined) {
+                // The frame might already exist if there are multiple process
+                // memory dumps (for the same process) in the trace.
+                leafStackFrame = model.stackFrames[leafStackFrameId];
+              } else {
+                leafStackFrame = new tr.model.StackFrame(
+                    leafStackFrame, leafStackFrameId, '<self>',
+                    undefined /* colorId */);
+                model.addStackFrame(leafStackFrame);
+              }
+            }
           } else {
-            var leafStackFrameId = idPrefix + leafStackFrameIndex;
-            leafStackFrame = model.stackFrames[leafStackFrameId];
-            if (leafStackFrame === undefined) {
+            // New format:
+            //   Undefined index        -> (invalid value)
+            //   Defined index for /A/B -> /A/B
+            if (leafStackFrameIndex === undefined) {
               this.model_.importWarning({
                 type: 'memory_dump_parse_error',
-                message: 'Missing leaf stack frame (ID ' + leafStackFrameId +
-                    ') of heap entry ' + i + ' (size ' + size + ') in a ' +
-                    allocatorName + ' heap dump for PID=' + pid + '.'
+                message: 'Missing stack frame ID of heap entry ' + i +
+                    ' (size ' + size + ') in a ' + allocatorName +
+                    ' heap dump for PID=' + pid + '.'
               });
               continue;
             }
+
+            // Get the leaf stack frame corresponding to the provided index.
+            var leafStackFrameId = idPrefix + leafStackFrameIndex;
+            if (leafStackFrameIndex === '') {
+              leafStackFrame = undefined /* root */;
+            } else {
+              leafStackFrame = model.stackFrames[leafStackFrameId];
+              if (leafStackFrame === undefined) {
+                this.model_.importWarning({
+                  type: 'memory_dump_parse_error',
+                  message: 'Missing leaf stack frame (ID ' + leafStackFrameId +
+                      ') of heap entry ' + i + ' (size ' + size + ') in a ' +
+                      allocatorName + ' heap dump for PID=' + pid + '.'
+                });
+                continue;
+              }
+            }
           }
+
           heapDump.addEntry(leafStackFrame, size);
         }
         heapDumps[allocatorName] = heapDump;

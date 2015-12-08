@@ -28,6 +28,24 @@ tr.b.unittest.testSuite(function() {
     return makeModel(events, false);
   }
 
+  function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles) {
+    assert.strictEqual(entry.heapDump, expectedDump);
+    assert.strictEqual(entry.size, expectedSize);
+    if (expectedTitles === undefined) {
+      assert.isUndefined(entry.leafStackFrame);
+    } else {
+      assert.deepEqual(
+          entry.leafStackFrame.getUserFriendlyStackTrace(), expectedTitles);
+    }
+  }
+
+  function getFrame(heapEntry, distance) {
+    var frame = heapEntry.leafStackFrame;
+    for (; distance > 0; distance--)
+      frame = frame.parentFrame;
+    return frame;
+  }
+
   test('canImportEmpty', function() {
     assert.isFalse(tr.e.importer.TraceEventImporter.canImport([]));
     assert.isFalse(tr.e.importer.TraceEventImporter.canImport(''));
@@ -3742,25 +3760,7 @@ tr.b.unittest.testSuite(function() {
         ['light', undefined]);
   });
 
-  test('importMemoryDumps_heapDumps', function() {
-    function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles) {
-      assert.strictEqual(entry.heapDump, expectedDump);
-      assert.strictEqual(entry.size, expectedSize);
-      if (expectedTitles === undefined) {
-        assert.isUndefined(entry.leafStackFrame);
-      } else {
-        assert.deepEqual(
-            entry.leafStackFrame.getUserFriendlyStackTrace(), expectedTitles);
-      }
-    }
-
-    function getFrame(entry, distance) {
-      var frame = entry.leafStackFrame;
-      while (distance-- > 0)
-        frame = frame.parentFrame;
-      return frame;
-    }
-
+  test('importMemoryDumps_heapDumps_oldFormat', function() {
     var events = [  // Intentionally shuffled.
       {
         pid: 21,
@@ -3809,7 +3809,7 @@ tr.b.unittest.testSuite(function() {
               partition_alloc: {
                 entries: [
                   { size: '5cdf91' },
-                  { size: 'abcde', type: '' /* entry should be ignored */ },
+                  { size: 'abcde', type: '42' /* entry should be ignored */ },
                   { bt: '' /* empty stack trace */, size: '5b6cd6' },
                   { bt: '4', size: '18f0' },
                   { bt: '3', size: 'e3a8' }
@@ -3817,6 +3817,7 @@ tr.b.unittest.testSuite(function() {
               },
               malloc: {
                 entries: [
+                  { size: '789' },
                   { bt: '0', size: '123' },
                   { bt: '5', size: '456' }
                 ]
@@ -3867,16 +3868,20 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
         {
-          'p21:': undefined /* root */,
           'p21:0': 'FrameView::layout',
+          'p21:0:self': '<self>',
           'p21:1': 'MessageLoop::RunTask',
-          'p42:': undefined /* root */,
+          'p42::self': '<self>',
           'p42:0': 'MessageLoop::RunTask',
+          'p42:0:self': '<self>',
           'p42:1': 'TimerBase::run',
           'p42:TWO': 'ScheduledAction::execute',
           'p42:3': 'FunctionCall',
+          'p42:3:self': '<self>',
           'p42:4': 'UpdateLayoutTree',
-          'p42:5': 'MessageLoop::JogTask'
+          'p42:4:self': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:5:self': '<self>'
         });
 
     // 1. Process 21, first dump.
@@ -3892,7 +3897,7 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
         undefined);
     checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
-        ['FrameView::layout', 'MessageLoop::RunTask', undefined]);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
 
     // 2. Process 21, second dump.
     var pmd2 = p1.memoryDumps[1];
@@ -3907,11 +3912,11 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
         undefined);
     checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
-        ['FrameView::layout', 'MessageLoop::RunTask', undefined]);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
 
     // All heap dumps in Process 21 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries2[1], 0),
+        getFrame(partitionAllocEntries1[1], 0),
         getFrame(partitionAllocEntries2[1], 0));
 
     // 3. Process 42.
@@ -3927,37 +3932,265 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
         undefined);
     checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 5991638,
-        [undefined]);
+        ['<self>']);
     checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 6384,
-        ['UpdateLayoutTree', 'TimerBase::run', 'MessageLoop::RunTask',
-        undefined]);
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask']);
     checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 58280,
-        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask', undefined]);
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask']);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
     assert.equal(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
-    assert.lengthOf(mallocEntries3, 2);
-    checkHeapEntry(mallocEntries3[0], mallocDump3, 291,
-        ['MessageLoop::RunTask', undefined]);
-    checkHeapEntry(mallocEntries3[1], mallocDump3, 1110,
-        ['MessageLoop::JogTask', undefined]);
+    assert.lengthOf(mallocEntries3, 3);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined);
+    checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
+        ['<self>', 'MessageLoop::RunTask']);
+    checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
+        ['<self>', 'MessageLoop::JogTask']);
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[2], 3),
-        getFrame(partitionAllocEntries3[1], 0));
+        getFrame(partitionAllocEntries3[2], 4),
+        getFrame(partitionAllocEntries3[1], 1));
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[3], 2),
-        getFrame(partitionAllocEntries3[2], 1));
-    assert.strictEqual(
-        getFrame(mallocEntries3[0], 0),
+        getFrame(partitionAllocEntries3[3], 3),
         getFrame(partitionAllocEntries3[2], 2));
     assert.strictEqual(
+        getFrame(mallocEntries3[1], 2),
+        getFrame(mallocEntries3[0], 0));
+    assert.strictEqual(
         getFrame(mallocEntries3[1], 1),
-        getFrame(mallocEntries3[0], 1));
+        getFrame(partitionAllocEntries3[2], 3));
+    assert.strictEqual(
+        getFrame(mallocEntries3[2], 2),
+        getFrame(mallocEntries3[1], 2));
+  });
+
+  test('importMemoryDumps_heapDumps_newFormat', function() {
+    var events = [  // Intentionally shuffled.
+      {
+        pid: 21,
+        ts: 9,
+        ph: 'v',
+        id: '0123',
+        args: {
+          dumps: {
+            heaps: {
+              partition_alloc: {
+                entries: [
+                  { bt: '', size: '1000' },
+                  { bt: 'A', size: 'abc' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 42,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '-1': { name: '<self>' },
+            '0': { name: 'MessageLoop::RunTask' },
+            '0.5': { name: '<self>', parent: '0' },
+            '1': { name: 'TimerBase::run', parent: '0' },
+            'TWO': { name: 'ScheduledAction::execute', 'parent': '1' },
+            '2.72': { name: '<self>', 'parent': 'TWO' },
+            '3': { name: 'FunctionCall', parent: 'TWO' },
+            '\u03C0': { name: '<self>', parent: '3' },
+            '4': { name: 'UpdateLayoutTree', parent: '1' },
+            'FOUR-AND-A-BIT': { name: '<self>', parent: '4' },
+            '5': { name: 'MessageLoop::JogTask' },
+            'NaN': { name: '<self>', parent: '5' }
+          }
+        }
+      },
+      {
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0123',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '0'
+            },
+            heaps: {
+              partition_alloc: {
+                entries: [
+                  { bt: '' /* root total */, size: '5cdf91' },
+                  { bt: '', size: 'abcde',
+                    type: '42' /* entry should be ignored */ },
+                  { bt: '-1' /* root self */, size: '5b6cd6' },
+                  { bt: 'FOUR-AND-A-BIT', size: '18f0' },
+                  { bt: '\u03C0', size: 'e3a8' }
+                ]
+              },
+              malloc: {
+                entries: [
+                  { bt: '', size: '789' },
+                  { bt: '0.5', size: '123' },
+                  { bt: 'NaN', size: '456' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            // Intentionally in reverse order.
+            'A': { name: '<self>', parent: '0' },
+            '0': { name: 'FrameView::layout', parent: '1' },
+            '1': { name: 'MessageLoop::RunTask' }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ts: 12,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              winheap: {
+                entries: []  // Intentionally empty.
+              },
+              partition_alloc: {
+                entries: [
+                  { bt: '', size: '2000' },
+                  { bt: 'A', size: 'def' },
+                  { bt: '0', size: 'fff' }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p1 = m.getProcess(21);
+    var p2 = m.getProcess(42);
+    assert.lengthOf(m.globalMemoryDumps, 2);
+    assert.lengthOf(p1.memoryDumps, 2);
+    assert.lengthOf(p2.memoryDumps, 1);
+
+    // Stack frames.
+    assert.deepEqual(
+        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
+        {
+          'p21:0': 'FrameView::layout',
+          'p21:A': '<self>',
+          'p21:1': 'MessageLoop::RunTask',
+          'p42:-1': '<self>',
+          'p42:0': 'MessageLoop::RunTask',
+          'p42:0.5': '<self>',
+          'p42:1': 'TimerBase::run',
+          'p42:TWO': 'ScheduledAction::execute',
+          'p42:2.72': '<self>',
+          'p42:3': 'FunctionCall',
+          'p42:\u03C0': '<self>',
+          'p42:4': 'UpdateLayoutTree',
+          'p42:FOUR-AND-A-BIT': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:NaN': '<self>'
+        });
+
+    // 1. Process 21, first dump.
+    var pmd1 = p1.memoryDumps[0];
+    var hds1 = pmd1.heapDumps;
+    assert.sameMembers(Object.keys(hds1), ['partition_alloc']);
+
+    var partitionAllocDump1 = hds1['partition_alloc'];
+    assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
+    assert.equal(partitionAllocDump1.allocatorName, 'partition_alloc');
+    var partitionAllocEntries1 = partitionAllocDump1.entries;
+    assert.lengthOf(partitionAllocEntries1, 2);
+    checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
+        undefined);
+    checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
+
+    // 2. Process 21, second dump.
+    var pmd2 = p1.memoryDumps[1];
+    var hds2 = pmd2.heapDumps;
+    assert.sameMembers(Object.keys(hds2), ['partition_alloc']);
+
+    var partitionAllocDump2 = hds2['partition_alloc'];
+    assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
+    assert.equal(partitionAllocDump2.allocatorName, 'partition_alloc');
+    var partitionAllocEntries2 = partitionAllocDump2.entries;
+    assert.lengthOf(partitionAllocEntries2, 3);
+    checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
+        undefined);
+    checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
+    checkHeapEntry(partitionAllocEntries2[2], partitionAllocDump2, 4095,
+        ['FrameView::layout', 'MessageLoop::RunTask']);
+
+    // All heap dumps in Process 21 should use the same stack frames.
+    assert.strictEqual(
+        getFrame(partitionAllocEntries1[1], 0),
+        getFrame(partitionAllocEntries2[1], 0));
+
+    // 3. Process 42.
+    var pmd3 = p2.memoryDumps[0];
+    var hds3 = pmd3.heapDumps;
+    assert.sameMembers(Object.keys(hds3), ['partition_alloc', 'malloc']);
+
+    var partitionAllocDump3 = hds3['partition_alloc'];
+    assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
+    assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
+    var partitionAllocEntries3 = partitionAllocDump3.entries;
+    assert.lengthOf(partitionAllocEntries3, 4);
+    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
+        undefined);
+    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 5991638,
+        ['<self>']);
+    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 6384,
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask']);
+    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 58280,
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask']);
+
+    var mallocDump3 = hds3['malloc'];
+    assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
+    assert.equal(mallocDump3.allocatorName, 'malloc');
+    var mallocEntries3 = mallocDump3.entries;
+    assert.lengthOf(mallocEntries3, 3);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined);
+    checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
+        ['<self>', 'MessageLoop::RunTask']);
+    checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
+        ['<self>', 'MessageLoop::JogTask']);
+
+    // All heap dumps in Process 42 should use the same stack frames.
+    assert.strictEqual(
+        getFrame(partitionAllocEntries3[2], 4),
+        getFrame(partitionAllocEntries3[1], 1));
+    assert.strictEqual(
+        getFrame(partitionAllocEntries3[3], 3),
+        getFrame(partitionAllocEntries3[2], 2));
+    assert.strictEqual(
+        getFrame(mallocEntries3[1], 2),
+        getFrame(mallocEntries3[0], 0));
+    assert.strictEqual(
+        getFrame(mallocEntries3[1], 1),
+        getFrame(partitionAllocEntries3[2], 3));
+    assert.strictEqual(
+        getFrame(mallocEntries3[2], 2),
+        getFrame(mallocEntries3[1], 2));
   });
 
   test('importMemoryDumps_composableDumps', function() {
@@ -3976,7 +4209,7 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
-                  { size: '500' }
+                  { bt: '', size: '500' }
                 ]
               }
             }

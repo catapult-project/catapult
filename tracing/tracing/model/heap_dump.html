@@ -27,9 +27,7 @@ tr.exportTo('tr.model', function() {
 
     // The leaf stack frame of the associated backtrace (e.g. drawQuad for the
     // drawQuad <- draw <- MessageLoop::RunTask backtrace). If undefined, the
-    // heap entry is a sum over all backtraces. On the other hand, an empty
-    // backtrace is represented by the root stack frame, which has an undefined
-    // name.
+    // backtrace is empty.
     this.leafStackFrame = leafStackFrame;
 
     this.size = size;
