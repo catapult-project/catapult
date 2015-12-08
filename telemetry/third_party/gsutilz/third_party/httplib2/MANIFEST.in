@@ -1,3 +1,0 @@
-recursive-include python2 *.py *.txt
-recursive-include python3 *.py *.txt
-include python2/httplib2/test/*.txt
