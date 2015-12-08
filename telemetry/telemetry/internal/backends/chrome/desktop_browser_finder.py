@@ -7,6 +7,8 @@ import logging
 import os
 import sys
 
+from catapult_base.dependency_manager import exceptions as dm_exceptions
+
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import desktop_browser_backend
@@ -135,14 +137,12 @@ def FindAllAvailableBrowsers(finder_options, device):
       os.getenv('DISPLAY') == None):
     has_x11_display = False
 
-  flash_bin_dir = None
-  # Define flash_bin_dir when the standard chrome build locations is specified.
-  if finder_options.chrome_root:
-    flash_bin_dir = os.path.join(
-        finder_options.chrome_root, 'third_party', 'adobe', 'flash', 'binaries',
-        'ppapi')
-
-  if not flash_bin_dir:
+  os_name = platform_module.GetHostPlatform().GetOSName()
+  arch_name = platform_module.GetHostPlatform().GetArchName()
+  try:
+    flash_path = binary_manager.LocalPath('flash', arch_name, os_name)
+  except dm_exceptions.NoPathFoundError:
+    flash_path = None
     logging.warning(
         'Chrome build location is not specified. Browser will be run without '
         'Flash.')
@@ -152,24 +152,12 @@ def FindAllAvailableBrowsers(finder_options, device):
     chromium_app_names.append('Chromium.app/Contents/MacOS/Chromium')
     chromium_app_names.append('Google Chrome.app/Contents/MacOS/Google Chrome')
     content_shell_app_name = 'Content Shell.app/Contents/MacOS/Content Shell'
-    if flash_bin_dir:
-      flash_bin = 'PepperFlashPlayer.plugin'
-      flash_path = os.path.join(flash_bin_dir, 'mac', flash_bin)
-      flash_path_64 = os.path.join(flash_bin_dir, 'mac_64', flash_bin)
   elif sys.platform.startswith('linux'):
     chromium_app_names.append('chrome')
     content_shell_app_name = 'content_shell'
-    if flash_bin_dir:
-      flash_bin = 'libpepflashplayer.so'
-      flash_path = os.path.join(flash_bin_dir, 'linux', flash_bin)
-      flash_path_64 = os.path.join(flash_bin_dir, 'linux_x64', flash_bin)
   elif sys.platform.startswith('win'):
     chromium_app_names.append('chrome.exe')
     content_shell_app_name = 'content_shell.exe'
-    if flash_bin_dir:
-      flash_bin = 'pepflashplayer.dll'
-      flash_path = os.path.join(flash_bin_dir, 'win', flash_bin)
-      flash_path_64 = os.path.join(flash_bin_dir, 'win_x64', flash_bin)
   else:
     raise Exception('Platform not recognized')
 
@@ -203,10 +191,8 @@ def FindAllAvailableBrowsers(finder_options, device):
                                      build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
     if path_module.IsExecutable(app):
-      is_64 = browser_type.endswith('_x64')
       browsers.append(PossibleDesktopBrowser(
-          browser_type, finder_options, app,
-          flash_path_64 if is_64 else flash_path,
+          browser_type, finder_options, app, flash_path,
           content_shell, browser_directory, is_local_build=True))
       return True
     return False
