@@ -42,7 +42,7 @@ def IsDevToolsAgentAvailable(port, app_backend):
 
   devtools_http_instance = devtools_http.DevToolsHttp(port)
   try:
-    return _IsDevToolsAgentAvailable(devtools_http.DevToolsHttp(port))
+    return _IsDevToolsAgentAvailable(devtools_http_instance)
   finally:
     devtools_http_instance.Disconnect()
 
@@ -164,7 +164,8 @@ class DevToolsClientBackend(object):
 
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
-    return _IsDevToolsAgentAvailable(self._devtools_http)
+    return (self._devtools_http and
+        _IsDevToolsAgentAvailable(self._devtools_http))
 
   def Close(self):
     if self._tracing_backend:
@@ -182,6 +183,10 @@ class DevToolsClientBackend(object):
     if self._browser_inspector_websocket:
       self._browser_inspector_websocket.Disconnect()
       self._browser_inspector_websocket = None
+
+    assert self._devtools_http
+    self._devtools_http.Disconnect()
+    self._devtools_http = None
 
 
   @decorators.Cache
