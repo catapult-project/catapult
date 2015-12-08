@@ -116,6 +116,15 @@ class DebugAlertTest(testing_common.TestCase):
     # The config JSON should also be put into the form on the page.
     self.assertIn('"min_relative_change": 0.75', response.body)
 
+  @mock.patch.object(debug_alert, 'SimulateAlertProcessing')
+  def testGet_WithBogusParameterNames_ParameterIgnored(self, simulate_mock):
+    test_key = self._AddSampleData()
+    response = self.testapp.get(
+        '/debug_alert?test_path=%s&config=%s' %
+        (utils.TestPath(test_key), '{"foo":0.75}'))
+    simulate_mock.assert_called_once_with(mock.ANY)
+    self.assertNotIn('"foo"', response.body)
+
   def testGet_WithInvalidCustomConfig_ErrorShown(self):
     test_key = self._AddSampleData()
     response = self.testapp.get(

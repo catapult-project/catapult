@@ -43,7 +43,8 @@ class DebugAlertHandler(request_handler.RequestHandler):
     try:
       test = self._GetTest()
       num_before, num_after = self._GetNumBeforeAfter()
-      config_name, config_dict = self._GetAnomalyConfigNameAndDict(test)
+      config_name = self._GetConfigName(test)
+      config_dict = anomaly_config.CleanConfigDict(self._GetConfigDict(test))
     except QueryParameterError as e:
       self.RenderHtml('debug_alert.html', {'error': e.message})
       return
@@ -104,34 +105,23 @@ class DebugAlertHandler(request_handler.RequestHandler):
       raise QueryParameterError('Invalid "num_before" or "num_after".')
     return num_before, num_after
 
-  def _GetAnomalyConfigNameAndDict(self, test):
-    """Gets the anomaly threshold dict to use and its name.
-
-    Args:
-      test: A Test entity.
-
-    Returns:
-      A (name, config dict) pair.
-
-    Raises:
-      ValueError: The user-specified dict couldn't be parsed.
-    """
-    # Get the anomaly config name and config dict based on the test.
-    config_name = 'Default config'
+  def _GetConfigName(self, test):
+    """Gets the name of the custom anomaly threshold, just for display."""
     if test.overridden_anomaly_config:
-      config_name = test.overridden_anomaly_config.string_id()
-    config_dict = anomaly_config.GetAnomalyConfigDict(test)
+      return test.overridden_anomaly_config.string_id()
+    if self.request.get('config'):
+      return 'Custom config'
+    return 'Default config'
 
-    # If the user specified a config, then use that.
+  def _GetConfigDict(self, test):
+    """Gets the name of the anomaly threshold dict to use."""
     input_config_json = self.request.get('config')
-    if input_config_json:
-      try:
-        config_dict = json.loads(input_config_json)
-      except ValueError:
-        raise QueryParameterError('Invalid JSON.')
-      config_name = 'Custom config'
-
-    return config_name, config_dict
+    if not input_config_json:
+      return anomaly_config.GetAnomalyConfigDict(test)
+    try:
+      return json.loads(input_config_json)
+    except ValueError:
+      raise QueryParameterError('Invalid JSON.')
 
 
 def SimulateAlertProcessing(chart_series, **config_dict):

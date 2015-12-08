@@ -36,6 +36,17 @@ class AnomalyConfig(ndb.Model):
   patterns = ndb.StringProperty(repeated=True, indexed=False)
 
 
+def CleanConfigDict(config_dict):
+  """Removes invalid parameters from a config dictionary.
+
+  In the config dict there may be extra "comment" parameters which
+  should be ignored. These are removed so that the parameters can
+  be passed to FindChangePoints using ** notation.
+  """
+  return {key: value for key, value in config_dict.iteritems()
+          if key in _VALID_ANOMALY_CONFIG_PARAMETERS}
+
+
 def GetAnomalyConfigDict(test):
   """Gets the anomaly threshold config for the given test.
 
@@ -55,8 +66,4 @@ def GetAnomalyConfigDict(test):
     # in the pre-put hook of the Test entity.
     test.put()
     return {}
-  config_dict = anomaly_config.config
-  # In the config dict there may be extra "comment" parameters which
-  # should be ignored.
-  return {key: value for key, value in config_dict.iteritems()
-          if key in _VALID_ANOMALY_CONFIG_PARAMETERS}
+  return CleanConfigDict(anomaly_config.config)
