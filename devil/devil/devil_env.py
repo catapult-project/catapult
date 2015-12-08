@@ -47,18 +47,21 @@ _LEGACY_ENVIRONMENT_VARIABLES = {
 
 
 def _GetEnvironmentVariableConfig():
-  env_var_config = {}
-  for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems():
-    path = os.environ.get(k)
-    if path:
-      env_var_config[v['dependency_name']] = {
+  path_config = (
+      (os.environ.get(k), v)
+      for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems())
+  return {
+    'config_type': 'BaseConfig',
+    'dependencies': {
+      c['dependency_name']: {
         'file_info': {
-          v['platform']: {
-            'local_paths': [path]
-          }
-        }
-      }
-  return env_var_config
+          c['platform']: {
+            'local_paths': [p],
+          },
+        },
+      } for p, c in path_config if p
+    },
+  }
 
 
 class _Environment(object):
@@ -100,12 +103,16 @@ class _Environment(object):
     # TODO(jbudorick): Remove this recursion if/when dependency_manager
     # supports loading configurations directly from a dict.
     if configs:
-      with tempfile.NamedTemporaryFile() as next_config_file:
-        next_config_file.write(json.dumps(configs[0]))
-        next_config_file.flush()
-        self._InitializeRecursive(
-            configs=configs[1:],
-            config_files=[next_config_file.name] + (config_files or []))
+      with tempfile.NamedTemporaryFile(delete=False) as next_config_file:
+        try:
+          next_config_file.write(json.dumps(configs[0]))
+          next_config_file.close()
+          self._InitializeRecursive(
+              configs=configs[1:],
+              config_files=[next_config_file.name] + (config_files or []))
+        finally:
+          if os.path.exists(next_config_file.name):
+            os.remove(next_config_file.name)
     else:
       config_files = config_files or []
       if 'DEVIL_ENV_CONFIG' in os.environ:
