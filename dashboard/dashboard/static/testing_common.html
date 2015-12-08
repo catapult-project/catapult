@@ -68,14 +68,6 @@ var testing_common = (function() {
     return JSON.parse(JSON.stringify(obj));
   };
 
-  var paramString = function(params) {
-    var strings = [];
-    for (var name in params) {
-      strings.push(name + '=' + encodeURIComponent(params[name]));
-    }
-    return strings.join('&');
-  };
-
   function addToFixture(node) {
     if (!fixture) {
       fixture = document.createElement('div');
@@ -95,8 +87,7 @@ var testing_common = (function() {
     clearXhrMock: clearXhrMock,
     deepCopy: deepCopy,
     addToFixture: addToFixture,
-    clearFixture: clearFixture,
-    paramString: paramString
+    clearFixture: clearFixture
   };
 })();
 
