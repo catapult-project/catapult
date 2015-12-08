@@ -51,7 +51,7 @@ def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
 
 def CheckChangeLogBug(input_api, output_api):
   if input_api.change.BUG is None or re.match(
-      '(catapult\:\#\d+)(,\s*\#\d+)*$', input_api.change.BUG):
+      'catapult\:\#\d+(,\s*catapult\:\#\d+)*$', input_api.change.BUG):
     return []
   return [output_api.PresubmitError(
       ('Invalid bug "%s". BUG= should either not be present or start with '
