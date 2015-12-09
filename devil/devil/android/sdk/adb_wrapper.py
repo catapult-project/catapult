@@ -105,9 +105,16 @@ class AdbWrapper(object):
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
                  check_error=True, cpu_affinity=None):
     # pylint: disable=no-member
-    status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-        cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
-        timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
+    try:
+      status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+          cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
+          timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
+    except OSError as e:
+      if e.errno in (errno.ENOENT, errno.ENOEXEC):
+        raise device_errors.NoAdbError()
+      else:
+        raise
+
     if status != 0:
       raise device_errors.AdbCommandFailedError(
           args, output, status, device_serial)
