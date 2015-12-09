@@ -36,7 +36,7 @@ def Main():
   ]
   for cur_set in file_sets:
     with temp_deployment_dir.TempDeploymentDir(
-        paths, use_symlinks=True) as temp_dir:
+        paths, use_symlinks=False) as temp_dir:
       cmd = ['gcloud', 'preview', 'app', 'deploy']
       cmd += cur_set
       cmd += [
