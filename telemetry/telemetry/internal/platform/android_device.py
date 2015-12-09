@@ -7,6 +7,7 @@ import re
 import subprocess
 
 from telemetry.core import util
+from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import device
 from telemetry.internal.platform.profiler import monsoon
 
@@ -129,7 +130,7 @@ def GetDevice(finder_options):
 
 def CanDiscoverDevices():
   """Returns true if devices are discoverable via adb."""
-  if os.name != 'posix':
+  if os.name != 'posix' or cros_device.IsRunningOnCrOS():
     return False
 
   try:
