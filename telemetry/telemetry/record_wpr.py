@@ -178,6 +178,10 @@ class WprRecorder(object):
 
   def _ProcessCommandLineArgs(self):
     story_runner.ProcessCommandLineArgs(self._parser, self._options)
+
+    if self._options.use_live_sites:
+      self._parser.error("Can't --use-live-sites while recording")
+
     if self._benchmark is not None:
       self._benchmark.ProcessCommandLineArgs(self._parser, self._options)
 

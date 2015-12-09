@@ -231,3 +231,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
         'CustomizeBrowserOptions' in record_page_test.page_test.func_calls)
     self.assertTrue('WillStartBrowser' in record_page_test.page_test.func_calls)
     self.assertTrue('DidStartBrowser' in record_page_test.page_test.func_calls)
+
+  def testUseLiveSitesUnsupported(self):
+    flags = ['--use-live-sites']
+    with self.assertRaises(SystemExit):
+      record_wpr.WprRecorder(self._test_data_dir, MockBenchmark(), flags)
