@@ -276,7 +276,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
             page, 'percentage_smooth', 'score', percentage_smooth,
             description='Percentage of frames that were hitting 60 fps.',
             none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.DOWN)
+            improvement_direction=improvement_direction.UP)
     )
 
   def _ComputeFrameTimeDiscrepancy(self, page, stats):
