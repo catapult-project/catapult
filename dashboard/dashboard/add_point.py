@@ -185,6 +185,7 @@ def _DashboardJsonToRawRows(dash_json_dict):
     raise BadRequestError('No point_id number given.')
   if not dash_json_dict.get('chart_data'):
     raise BadRequestError('No chart data given.')
+  test_suite_name = _TestSuiteName(dash_json_dict)
 
   charts = dash_json_dict['chart_data']['charts']
   # Links to about:tracing traces are listed under 'trace'; if they
@@ -196,7 +197,6 @@ def _DashboardJsonToRawRows(dash_json_dict):
     del charts['trace']
   row_template = _MakeRowTemplate(dash_json_dict)
 
-  benchmark_name = dash_json_dict['chart_data']['benchmark_name']
   benchmark_description = dash_json_dict['chart_data'].get(
       'benchmark_description', '')
   trace_rerun_options = dash_json_dict['chart_data'].get(
@@ -210,7 +210,7 @@ def _DashboardJsonToRawRows(dash_json_dict):
       # Need to do a deep copy here so we don't copy a_tracing_uri data.
       row = copy.deepcopy(row_template)
       specific_vals = _FlattenTrace(
-          benchmark_name, chart, trace, charts[chart][trace], is_ref,
+          test_suite_name, chart, trace, charts[chart][trace], is_ref,
           tracing_links, benchmark_description)
       # Telemetry may validly produce rows that represent a value of NaN. To
       # avoid getting into messy situations with alerts, we do not add such
@@ -227,6 +227,21 @@ def _DashboardJsonToRawRows(dash_json_dict):
         rows.append(row)
 
   return rows
+
+
+def _TestSuiteName(dash_json_dict):
+  """Extracts a test suite name from Dashboard JSON.
+
+  The dashboard JSON may contain a field "test_suite_name". If this is not
+  present or it is None, the dashboard will fall back to using "benchmark_name"
+  in the "chart_data" dict.
+  """
+  if dash_json_dict.get('test_suite_name'):
+    return dash_json_dict['test_suite_name']
+  try:
+    return dash_json_dict['chart_data']['benchmark_name']
+  except KeyError as e:
+    raise BadRequestError('Could not find test suite name. ' + e.message)
 
 
 def _AddTasksAsync(data):

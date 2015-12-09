@@ -19,6 +19,7 @@ from dashboard import bot_whitelist
 from dashboard import layered_cache
 from dashboard import testing_common
 from dashboard import units_to_direction
+from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
@@ -42,6 +43,7 @@ _SAMPLE_DASHBOARD_JSON = {
     'master': 'ChromiumPerf',
     'bot': 'win7',
     'point_id': '12345',
+    'test_suite_name': 'my_test_suite',
     'supplemental': {
         'os': 'mavericks',
         'gpu_oem': 'intel'
@@ -51,7 +53,7 @@ _SAMPLE_DASHBOARD_JSON = {
         'blink': '234567'
     },
     'chart_data': {
-        'benchmark_name': 'my_test_suite',
+        'benchmark_name': 'my_benchmark',
         'benchmark_description': 'foo',
         'format_version': '1.0',
         'charts': {
@@ -72,6 +74,7 @@ _SAMPLE_DASHBOARD_JSON_WITH_TRACE = {
     'master': 'ChromiumPerf',
     'bot': 'win7',
     'point_id': '12345',
+    'test_suite_name': 'my_test_suite',
     'supplemental': {
         'os': 'mavericks',
         'gpu_oem': 'intel'
@@ -81,7 +84,7 @@ _SAMPLE_DASHBOARD_JSON_WITH_TRACE = {
         'blink': '234567'
     },
     'chart_data': {
-        'benchmark_name': 'my_test_suite',
+        'benchmark_name': 'my_benchmark',
         'benchmark_description': 'foo',
         'format_version': '1.0',
         'charts': {
@@ -1023,6 +1026,28 @@ class AddPointTest(testing_common.TestCase):
     test_suite = ndb.Key(
         'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
     self.assertEqual('foo', test_suite.description)
+
+  def testPost_NoTestSuiteName_BenchmarkNameUsed(self):
+    sample = _SAMPLE_DASHBOARD_JSON.copy()
+    del sample['test_suite_name']
+    data_param = json.dumps(sample)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
+    self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
+
+  def testPost_TestSuiteNameIsNone_BenchmarkNameUsed(self):
+    sample = _SAMPLE_DASHBOARD_JSON.copy()
+    sample['test_suite_name'] = None
+    data_param = json.dumps(sample)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
+    self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
 
   def testPost_WithBenchmarkRerunOptions_AddsTraceRerunOptions(self):
     sample_json = _SAMPLE_DASHBOARD_JSON.copy()
