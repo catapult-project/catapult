@@ -18,7 +18,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
 
   def _LoginUsingMock(self, backend, login_page_url, email_element_id,
                       password_element_id, form_element_id,
-                      already_logged_in_js): # pylint: disable=R0201
+                      already_logged_in_js): # pylint: disable=no-self-use
     tab = simple_mock.MockObject()
     ar = simple_mock.MockObject()
 

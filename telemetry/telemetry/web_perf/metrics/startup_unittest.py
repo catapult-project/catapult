@@ -20,7 +20,7 @@ class StartupTimelineMetricTest(unittest.TestCase):
     self.events.append(event)
 
   # Attributes defined outside __init__
-  # pylint: disable=W0201
+  # pylint: disable=attribute-defined-outside-init
   def ComputeStartupMetrics(self):
     results = test_page_test_results.TestPageTestResults(self)
 

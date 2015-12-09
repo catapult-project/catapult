@@ -54,7 +54,7 @@ def HistogramDistance(hist1, hist2, default_color=None):
 class ColorHistogram(
     collections.namedtuple('ColorHistogram', ['r', 'g', 'b', 'default_color'])):
   # pylint: disable=no-init
-  # pylint: disable=E1002
+  # pylint: disable=super-on-old-class
 
   def __new__(cls, r, g, b, default_color=None):
     return super(ColorHistogram, cls).__new__(cls, r, g, b, default_color)

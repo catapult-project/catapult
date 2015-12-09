@@ -27,7 +27,7 @@ def CreateFooCached(_):
 
 
 class DecoratorsUnitTest(unittest.TestCase):
-  # pylint: disable=C0102
+  # pylint: disable=blacklisted-name
 
   def testCacheDecorator(self):
     self.assertNotEquals(CreateFooUncached(1), CreateFooUncached(2))

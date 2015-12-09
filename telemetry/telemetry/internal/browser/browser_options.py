@@ -336,14 +336,14 @@ class BrowserOptions(object):
     self.browser_type = finder_options.browser_type
     self._finder_options = finder_options
 
-    if hasattr(self, 'extra_browser_args_as_string'): # pylint: disable=E1101
+    if hasattr(self, 'extra_browser_args_as_string'):
       tmp = shlex.split(
-        self.extra_browser_args_as_string) # pylint: disable=E1101
+        self.extra_browser_args_as_string)
       self.AppendExtraBrowserArgs(tmp)
       delattr(self, 'extra_browser_args_as_string')
-    if hasattr(self, 'extra_wpr_args_as_string'): # pylint: disable=E1101
+    if hasattr(self, 'extra_wpr_args_as_string'):
       tmp = shlex.split(
-        self.extra_wpr_args_as_string) # pylint: disable=E1101
+        self.extra_wpr_args_as_string)
       self.extra_wpr_args.extend(tmp)
       delattr(self, 'extra_wpr_args_as_string')
     if self.profile_type == 'default':

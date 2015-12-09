@@ -49,7 +49,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
   @decorators.Enabled('cros-chrome')
-  def testGetFileContents(self): # pylint: disable=R0201
+  def testGetFileContents(self): # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       hosts = cri.GetFileContents('/etc/lsb-release')
       self.assertTrue('CHROMEOS' in hosts)
@@ -65,7 +65,7 @@ class CrOSInterfaceTest(unittest.TestCase):
           lambda: cri.GetFileContents(f.name))
 
   @decorators.Enabled('cros-chrome')
-  def testGetFile(self): # pylint: disable=R0201
+  def testGetFile(self): # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       f = tempfile.NamedTemporaryFile()
       cri.GetFile('/etc/lsb-release', f.name)

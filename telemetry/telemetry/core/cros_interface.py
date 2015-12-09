@@ -78,7 +78,6 @@ class DNSFailureException(LoginException):
   pass
 
 class CrOSInterface(object):
-  # pylint: disable=R0923
   def __init__(self, hostname=None, ssh_port=None, ssh_identity=None):
     self._hostname = hostname
     self._ssh_port = ssh_port
@@ -323,7 +322,7 @@ class CrOSInterface(object):
         '-o', 'pid,ppid,args:4096,state'], quiet=True)
     assert stderr == '', stderr
     procs = []
-    for l in stdout.split('\n'): # pylint: disable=E1103
+    for l in stdout.split('\n'):
       if l == '':
         continue
       m = re.match(r'^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)

@@ -30,11 +30,11 @@ class InspectorConsole(object):
 
   # False positive in PyLint 0.25.1: http://www.logilab.org/89092
   @property
-  def message_output_stream(self):  # pylint: disable=E0202
+  def message_output_stream(self):  # pylint: disable=method-hidden
     return self._message_output_stream
 
   @message_output_stream.setter
-  def message_output_stream(self, stream):  # pylint: disable=E0202
+  def message_output_stream(self, stream):  # pylint: disable=method-hidden
     self._message_output_stream = stream
     self._UpdateConsoleEnabledState()
 
