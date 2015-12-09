@@ -36,6 +36,10 @@ cron:
   url: /update_test_suites
   schedule: every 20 minutes
 
+- description: Triggers bisect FYI jobs.
+  url: /bisect_fyi
+  schedule: every 24 hours
+
 # Scheduled backup.
 # If you add new datastore kinds and want them to be backed up,
 # you must add kind=argument to the URL below. Backups are available at:
