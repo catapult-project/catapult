@@ -161,7 +161,7 @@ def CanDiscoverDevices():
     device_utils.DeviceUtils.HealthyDevices(None)
     return True
   except (device_errors.CommandFailedError, device_errors.CommandTimeoutError,
-          OSError):
+          device_errors.NoAdbError, OSError):
     return False
 
 
@@ -176,9 +176,7 @@ def FindAllAvailableDevices(options):
   devices = []
 
   try:
-    if not CanDiscoverDevices():
-      devices = []
-    else:
+    if CanDiscoverDevices():
       devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   finally:
     if not devices:
