@@ -128,8 +128,8 @@ def GetDevice(finder_options):
   return devices[0]
 
 
-def CanDiscoverDevices():
-  """Returns true if devices are discoverable via adb."""
+def _HasValidAdb():
+  """Returns true if adb is present."""
   if os.name != 'posix' or cros_device.IsRunningOnCrOS():
     return False
 
@@ -139,6 +139,14 @@ def CanDiscoverDevices():
     return False
 
   if os.path.isabs(adb_path) and not os.path.exists(adb_path):
+    return False
+
+  return True
+
+
+def CanDiscoverDevices():
+  """Returns true if devices are discoverable via adb."""
+  if not _HasValidAdb():
     return False
 
   try:
@@ -156,6 +164,7 @@ def CanDiscoverDevices():
   except OSError:
     pass
   try:
+    adb_path = adb_wrapper.AdbWrapper.GetAdbPath()
     os.environ['PATH'] = os.pathsep.join(
         [os.path.dirname(adb_path), os.environ['PATH']])
     device_utils.DeviceUtils.HealthyDevices(None)
@@ -168,21 +177,15 @@ def CanDiscoverDevices():
 def FindAllAvailableDevices(options):
   """Returns a list of available devices.
   """
-  if options.android_blacklist_file:
-    blacklist = device_blacklist.Blacklist(options.android_blacklist_file)
-  else:
-    blacklist = None
-
   devices = []
-
   try:
     if CanDiscoverDevices():
+      blacklist = None
+      if options.android_blacklist_file:
+        blacklist = device_blacklist.Blacklist(options.android_blacklist_file)
       devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   finally:
-    if not devices:
-      try:
-        adb_wrapper.AdbWrapper.KillServer()
-      except device_errors.NoAdbError:
-        pass
+    if not devices and _HasValidAdb():
+      adb_wrapper.AdbWrapper.KillServer()
 
   return devices
