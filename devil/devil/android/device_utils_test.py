@@ -572,7 +572,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(self.call.device.build_version_sdk, return_value=23):
       with self.assertCalls(
           (self.call.device._GetApplicationPathsInternal('test.package'), []),
-          self.call.adb.Install('/fake/test/app.apk', reinstall=False),
+          self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                                allow_downgrade=False),
           (self.call.device.GrantPermissions('test.package', ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -580,21 +581,24 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(self.call.device.build_version_sdk, return_value=20):
       with self.assertCalls(
           (self.call.device._GetApplicationPathsInternal('test.package'), []),
-          (self.call.adb.Install('/fake/test/app.apk', reinstall=False))):
+          (self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                                 allow_downgrade=False))):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_findPermissions(self):
     with self.patch_call(self.call.device.build_version_sdk, return_value=23):
       with self.assertCalls(
           (self.call.device._GetApplicationPathsInternal('test.package'), []),
-          (self.call.adb.Install('/fake/test/app.apk', reinstall=False)),
+          (self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                                 allow_downgrade=False)),
           (self.call.device.GrantPermissions('test.package', ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_passPermissions(self):
     with self.assertCalls(
         (self.call.device._GetApplicationPathsInternal('test.package'), []),
-        (self.call.adb.Install('/fake/test/app.apk', reinstall=False)),
+        (self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                               allow_downgrade=False)),
         (self.call.device.GrantPermissions('test.package', ['p1', 'p2']), [])):
       self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0,
                           permissions=['p1', 'p2'])
@@ -607,7 +611,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
             ['/fake/test/app.apk']),
          (['/fake/test/app.apk'], None)),
         self.call.device.Uninstall('test.package'),
-        self.call.adb.Install('/fake/test/app.apk', reinstall=False)):
+        self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                              allow_downgrade=False)):
       self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0,
                           permissions=[])
 
@@ -618,7 +623,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._ComputeStaleApks('test.package',
             ['/fake/test/app.apk']),
          (['/fake/test/app.apk'], None)),
-        self.call.adb.Install('/fake/test/app.apk', reinstall=True)):
+        self.call.adb.Install('/fake/test/app.apk', reinstall=True,
+                              allow_downgrade=False)):
       self.device.Install(DeviceUtilsInstallTest.mock_apk,
           reinstall=True, retries=0, permissions=[])
 
@@ -636,10 +642,24 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
   def testInstall_fails(self):
     with self.assertCalls(
         (self.call.device._GetApplicationPathsInternal('test.package'), []),
-        (self.call.adb.Install('/fake/test/app.apk', reinstall=False),
+        (self.call.adb.Install('/fake/test/app.apk', reinstall=False,
+                               allow_downgrade=False),
          self.CommandError('Failure\r\n'))):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
+
+  def testInstall_downgrade(self):
+    with self.assertCalls(
+        (self.call.device._GetApplicationPathsInternal('test.package'),
+         ['/fake/data/app/test.package.apk']),
+        (self.call.device._ComputeStaleApks('test.package',
+            ['/fake/test/app.apk']),
+         (['/fake/test/app.apk'], None)),
+        self.call.adb.Install('/fake/test/app.apk', reinstall=True,
+                              allow_downgrade=True)):
+      self.device.Install(DeviceUtilsInstallTest.mock_apk,
+          reinstall=True, retries=0, permissions=[], allow_downgrade=True)
+
 
 class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
@@ -655,7 +675,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
          ['split2.apk']),
         (self.call.device._GetApplicationPathsInternal('test.package'), []),
         (self.call.adb.InstallMultiple(
-            ['base.apk', 'split2.apk'], partial=None, reinstall=False))):
+            ['base.apk', 'split2.apk'], partial=None, reinstall=False,
+            allow_downgrade=False))):
       self.device.InstallSplitApk(DeviceUtilsInstallSplitApkTest.mock_apk,
           ['split1.apk', 'split2.apk', 'split3.apk'], permissions=[], retries=0)
 
@@ -673,10 +694,32 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                             ['base.apk', 'split2.apk']),
          (['split2.apk'], None)),
         (self.call.adb.InstallMultiple(
-            ['split2.apk'], partial='test.package', reinstall=True))):
+            ['split2.apk'], partial='test.package', reinstall=True,
+            allow_downgrade=False))):
       self.device.InstallSplitApk(DeviceUtilsInstallSplitApkTest.mock_apk,
                                   ['split1.apk', 'split2.apk', 'split3.apk'],
                                   reinstall=True, permissions=[], retries=0)
+
+  def testInstallSplitApk_downgrade(self):
+    with self.assertCalls(
+        (self.call.device._CheckSdkLevel(21)),
+        (mock.call.devil.android.sdk.split_select.SelectSplits(
+            self.device, 'base.apk',
+            ['split1.apk', 'split2.apk', 'split3.apk'],
+            allow_cached_props=False),
+         ['split2.apk']),
+        (self.call.device._GetApplicationPathsInternal('test.package'),
+         ['base-on-device.apk', 'split2-on-device.apk']),
+        (self.call.device._ComputeStaleApks('test.package',
+                                            ['base.apk', 'split2.apk']),
+         (['split2.apk'], None)),
+        (self.call.adb.InstallMultiple(
+            ['split2.apk'], partial='test.package', reinstall=True,
+            allow_downgrade=True))):
+      self.device.InstallSplitApk(DeviceUtilsInstallSplitApkTest.mock_apk,
+                                  ['split1.apk', 'split2.apk', 'split3.apk'],
+                                  reinstall=True, permissions=[], retries=0,
+                                  allow_downgrade=True)
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):

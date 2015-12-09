@@ -544,17 +544,18 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
-  def Install(self, apk, reinstall=False, permissions=None, timeout=None,
-              retries=None):
+  def Install(self, apk, allow_downgrade=False, reinstall=False,
+              permissions=None, timeout=None, retries=None):
     """Install an APK.
 
     Noop if an identical APK is already installed.
 
     Args:
       apk: An ApkHelper instance or string containing the path to the APK.
+      allow_downgrade: A boolean indicating if we should allow downgrades.
+      reinstall: A boolean indicating if we should keep any existing app data.
       permissions: Set of permissions to set. If not set, finds permissions with
           apk helper. To set no permissions, pass [].
-      reinstall: A boolean indicating if we should keep any existing app data.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -563,14 +564,14 @@ class DeviceUtils(object):
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
     """
-    self._InstallInternal(apk, None, reinstall=reinstall,
-                          permissions=permissions)
+    self._InstallInternal(apk, None, allow_downgrade=allow_downgrade,
+                          reinstall=reinstall, permissions=permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
-  def InstallSplitApk(self, base_apk, split_apks, reinstall=False,
-                      allow_cached_props=False, permissions=None, timeout=None,
-                      retries=None):
+  def InstallSplitApk(self, base_apk, split_apks, allow_downgrade=False,
+                      reinstall=False, allow_cached_props=False,
+                      permissions=None, timeout=None, retries=None):
     """Install a split APK.
 
     Noop if all of the APK splits are already installed.
@@ -579,6 +580,7 @@ class DeviceUtils(object):
       base_apk: An ApkHelper instance or string containing the path to the base
           APK.
       split_apks: A list of strings of paths of all of the APK splits.
+      allow_downgrade: A boolean indicating if we should allow downgrades.
       reinstall: A boolean indicating if we should keep any existing app data.
       allow_cached_props: Whether to use cached values for device properties.
       permissions: Set of permissions to set. If not set, finds permissions with
@@ -594,10 +596,12 @@ class DeviceUtils(object):
     """
     self._InstallInternal(base_apk, split_apks, reinstall=reinstall,
                           allow_cached_props=allow_cached_props,
-                          permissions=permissions)
+                          permissions=permissions,
+                          allow_downgrade=allow_downgrade)
 
-  def _InstallInternal(self, base_apk, split_apks, reinstall=False,
-                       allow_cached_props=False, permissions=None):
+  def _InstallInternal(self, base_apk, split_apks, allow_downgrade=False,
+                       reinstall=False, allow_cached_props=False,
+                       permissions=None):
     if split_apks:
       self._CheckSdkLevel(version_codes.LOLLIPOP)
 
@@ -643,9 +647,11 @@ class DeviceUtils(object):
       if split_apks:
         partial = package_name if len(apks_to_install) < len(all_apks) else None
         self.adb.InstallMultiple(
-            apks_to_install, partial=partial, reinstall=reinstall)
+            apks_to_install, partial=partial, reinstall=reinstall,
+            allow_downgrade=allow_downgrade)
       else:
-        self.adb.Install(base_apk.path, reinstall=reinstall)
+        self.adb.Install(
+            base_apk.path, reinstall=reinstall, allow_downgrade=allow_downgrade)
       if (permissions is None
           and self.build_version_sdk >= version_codes.MARSHMALLOW):
         permissions = base_apk.GetPermissions()

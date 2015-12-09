@@ -471,13 +471,15 @@ class AdbWrapper(object):
     return [a.strip() for a in
             self._RunDeviceAdbCmd(['jdwp'], timeout, retries).split('\n')]
 
-  def Install(self, apk_path, forward_lock=False, reinstall=False,
-              sd_card=False, timeout=60*2, retries=_DEFAULT_RETRIES):
+  def Install(self, apk_path, forward_lock=False, allow_downgrade=False,
+              reinstall=False, sd_card=False, timeout=60*2,
+              retries=_DEFAULT_RETRIES):
     """Install an apk on the device.
 
     Args:
       apk_path: Host path to the APK file.
       forward_lock: (optional) If set forward-locks the app.
+      allow_downgrade: (optional) If set, allows for downgrades.
       reinstall: (optional) If set reinstalls the app, keeping its data.
       sd_card: (optional) If set installs on the SD card.
       timeout: (optional) Timeout per try in seconds.
@@ -491,6 +493,8 @@ class AdbWrapper(object):
       cmd.append('-r')
     if sd_card:
       cmd.append('-s')
+    if allow_downgrade:
+      cmd.append('-d')
     cmd.append(apk_path)
     output = self._RunDeviceAdbCmd(cmd, timeout, retries)
     if 'Success' not in output:
@@ -507,10 +511,10 @@ class AdbWrapper(object):
       forward_lock: (optional) If set forward-locks the app.
       reinstall: (optional) If set reinstalls the app, keeping its data.
       sd_card: (optional) If set installs on the SD card.
-      timeout: (optional) Timeout per try in seconds.
-      retries: (optional) Number of retries to attempt.
       allow_downgrade: (optional) Allow versionCode downgrade.
       partial: (optional) Package ID if apk_paths doesn't include all .apks.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
     """
     for path in apk_paths:
       VerifyLocalFileExists(path)
