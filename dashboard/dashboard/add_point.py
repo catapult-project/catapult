@@ -142,7 +142,7 @@ class AddPointHandler(post_data_handler.PostDataHandler):
     try:
       if type(data) is dict:
         if data.get('chart_data'):
-          data = self._DashboardJsonToRawRows(data)
+          data = _DashboardJsonToRawRows(data)
         else:
           self.ReportError(
               'Data should be a list of rows or a Dashboard JSON v1.0 dict.',
@@ -156,77 +156,77 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       # If any of the data was invalid, abort immediately and return an error.
       self.ReportError(error.message, status=400)
 
-  def _DashboardJsonToRawRows(self, dash_json_dict):
-    """Formats a Dashboard JSON dict as a list of row dicts.
 
-    For the dashboard to begin accepting the Telemetry Dashboard JSON format
-    as per go/telemetry-json, this function chunks a Dashboard JSON literal
-    into rows and passes the resulting list to _AddTasksAsync.
+def _DashboardJsonToRawRows(dash_json_dict):
+  """Formats a Dashboard JSON dict as a list of row dicts.
 
-    Args:
-      dash_json_dict: A dashboard JSON v1.0 dict.
+  For the dashboard to begin accepting the Telemetry Dashboard JSON format
+  as per go/telemetry-json, this function chunks a Dashboard JSON literal
+  into rows and passes the resulting list to _AddTasksAsync.
 
-    Returns:
-      A list of dicts, each of which represents a point.
+  Args:
+    dash_json_dict: A dashboard JSON v1.0 dict.
 
-    Raises:
-      AssertionError: The given argument wasn't a dict.
-      BadRequestError: The content of the input wasn't valid.
-    """
-    assert type(dash_json_dict) is dict
-    # A Dashboard JSON dict should at least have all charts coming from the
-    # same master, bot and rev. It can contain multiple charts, however.
-    if not dash_json_dict.get('master'):
-      raise BadRequestError('No master name given.')
-    if not dash_json_dict.get('bot'):
-      raise BadRequestError('No bot name given.')
-    if not dash_json_dict.get('point_id'):
-      raise BadRequestError('No point_id number given.')
-    if not dash_json_dict.get('chart_data'):
-      self.ReportError('No chart data given.', status=400)
-      return None
+  Returns:
+    A list of dicts, each of which represents a point.
 
-    charts = dash_json_dict['chart_data']['charts']
-    # Links to about:tracing traces are listed under 'trace'; if they
-    # exist copy them to a separate dictionary and delete from the chartjson
-    # so that we don't try to process them as data points.
-    tracing_links = None
-    if 'trace' in charts:
-      tracing_links = charts['trace'].copy()
-      del charts['trace']
-    row_template = _MakeRowTemplate(dash_json_dict)
+  Raises:
+    AssertionError: The given argument wasn't a dict.
+    BadRequestError: The content of the input wasn't valid.
+  """
+  assert type(dash_json_dict) is dict
+  # A Dashboard JSON dict should at least have all charts coming from the
+  # same master, bot and rev. It can contain multiple charts, however.
+  if not dash_json_dict.get('master'):
+    raise BadRequestError('No master name given.')
+  if not dash_json_dict.get('bot'):
+    raise BadRequestError('No bot name given.')
+  if not dash_json_dict.get('point_id'):
+    raise BadRequestError('No point_id number given.')
+  if not dash_json_dict.get('chart_data'):
+    raise BadRequestError('No chart data given.')
 
-    benchmark_name = dash_json_dict['chart_data']['benchmark_name']
-    benchmark_description = dash_json_dict['chart_data'].get(
-        'benchmark_description', '')
-    trace_rerun_options = dash_json_dict['chart_data'].get(
-        'trace_rerun_options', [])
-    trace_rerun_options = dict((k, v) for (k, v) in trace_rerun_options)
-    is_ref = bool(dash_json_dict.get('is_ref'))
-    rows = []
+  charts = dash_json_dict['chart_data']['charts']
+  # Links to about:tracing traces are listed under 'trace'; if they
+  # exist copy them to a separate dictionary and delete from the chartjson
+  # so that we don't try to process them as data points.
+  tracing_links = None
+  if 'trace' in charts:
+    tracing_links = charts['trace'].copy()
+    del charts['trace']
+  row_template = _MakeRowTemplate(dash_json_dict)
 
-    for chart in charts:
-      for trace in charts[chart]:
-        # Need to do a deep copy here so we don't copy a_tracing_uri data.
-        row = copy.deepcopy(row_template)
-        specific_vals = _FlattenTrace(
-            benchmark_name, chart, trace, charts[chart][trace], is_ref,
-            tracing_links, benchmark_description)
-        # Telemetry may validly produce rows that represent a value of NaN. To
-        # avoid getting into messy situations with alerts, we do not add such
-        # rows to be processed.
-        if not (math.isnan(specific_vals['value']) or
-                math.isnan(specific_vals['error'])):
-          if specific_vals['tracing_uri']:
-            row['supplemental_columns']['a_tracing_uri'] = specific_vals[
-                'tracing_uri']
-          if trace_rerun_options:
-            row['supplemental_columns']['a_trace_rerun_options'] = (
-                trace_rerun_options)
-          row.update(specific_vals)
-          rows.append(row)
+  benchmark_name = dash_json_dict['chart_data']['benchmark_name']
+  benchmark_description = dash_json_dict['chart_data'].get(
+      'benchmark_description', '')
+  trace_rerun_options = dash_json_dict['chart_data'].get(
+      'trace_rerun_options', [])
+  trace_rerun_options = dict((k, v) for (k, v) in trace_rerun_options)
+  is_ref = bool(dash_json_dict.get('is_ref'))
+  rows = []
 
-    return rows
+  for chart in charts:
+    for trace in charts[chart]:
+      # Need to do a deep copy here so we don't copy a_tracing_uri data.
+      row = copy.deepcopy(row_template)
+      specific_vals = _FlattenTrace(
+          benchmark_name, chart, trace, charts[chart][trace], is_ref,
+          tracing_links, benchmark_description)
+      # Telemetry may validly produce rows that represent a value of NaN. To
+      # avoid getting into messy situations with alerts, we do not add such
+      # rows to be processed.
+      if not (math.isnan(specific_vals['value']) or
+              math.isnan(specific_vals['error'])):
+        if specific_vals['tracing_uri']:
+          row['supplemental_columns']['a_tracing_uri'] = specific_vals[
+              'tracing_uri']
+        if trace_rerun_options:
+          row['supplemental_columns']['a_trace_rerun_options'] = (
+              trace_rerun_options)
+        row.update(specific_vals)
+        rows.append(row)
+
+  return rows
 
 
 def _AddTasksAsync(data):

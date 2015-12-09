@@ -1093,7 +1093,7 @@ class FlattenTraceTest(testing_common.TestCase):
     """Tests that rows from a chart from a ref build have the correct name."""
     chart = _SAMPLE_DASHBOARD_JSON.copy()
     chart['is_ref'] = True
-    rows = add_point.AddPointHandler()._DashboardJsonToRawRows(chart)
+    rows = add_point._DashboardJsonToRawRows(chart)
     self.assertEqual('my_test_suite/my_test/ref', rows[0]['test'])
 
   def testFlattenTrace_PreservesUnits(self):
