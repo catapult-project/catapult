@@ -14,6 +14,11 @@ handlers:
   script: perf_insights.endpoints.upload.app
   secure: always
 
+- url: /corpus_cleanup
+  script: perf_insights.endpoints.corpus_cleanup.app
+  secure: always
+  login: admin
+
 - url: /query
   script: perf_insights.endpoints.query.app
   secure: always
