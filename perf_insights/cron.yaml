@@ -3,6 +3,6 @@
 # found in the LICENSE file.
 
 cron:
-- description: Daily cleanup job
+- description: Hourly cleanup job
   url: /corpus_cleanup
-  schedule: every 24 hours
+  schedule: every 1 hours
