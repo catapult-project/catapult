@@ -82,6 +82,36 @@ class DecoratorsTest(unittest.TestCase):
           timeout=10, retries=1)
     self.assertEquals(exception_desc, str(e.exception))
 
+  def testConditionalRetriesDecoratorRetries(self):
+    def do_not_retry_no_adb_error(exc):
+      return not isinstance(exc, device_errors.NoAdbError)
+
+    actual_tries = [0]
+
+    @decorators.WithTimeoutAndConditionalRetries(do_not_retry_no_adb_error)
+    def alwaysRaisesCommandFailedError(timeout=None, retries=None):
+      actual_tries[0] += 1
+      raise device_errors.CommandFailedError('Command failed :(')
+
+    with self.assertRaises(device_errors.CommandFailedError):
+      alwaysRaisesCommandFailedError(timeout=10, retries=10)
+    self.assertEquals(11, actual_tries[0])
+
+  def testConditionalRetriesDecoratorDoesntRetry(self):
+    def do_not_retry_no_adb_error(exc):
+      return not isinstance(exc, device_errors.NoAdbError)
+
+    actual_tries = [0]
+
+    @decorators.WithTimeoutAndConditionalRetries(do_not_retry_no_adb_error)
+    def alwaysRaisesNoAdbError(timeout=None, retries=None):
+      actual_tries[0] += 1
+      raise device_errors.NoAdbError()
+
+    with self.assertRaises(device_errors.NoAdbError):
+      alwaysRaisesNoAdbError(timeout=10, retries=10)
+    self.assertEquals(1, actual_tries[0])
+
   def testDefaultsFunctionDecoratorDoesTimeouts(self):
     """Tests that the defaults decorator handles timeout logic."""
     DecoratorsTest._decorated_function_called_count = 0

@@ -125,8 +125,12 @@ def _LogLastException(thread_name, attempt, max_attempts, log_func):
   log_func('*' * 80)
 
 
+def AlwaysRetry(_exception):
+  return True
+
+
 def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
-        error_log_func=logging.critical):
+        error_log_func=logging.critical, retry_if_func=AlwaysRetry):
   """Runs the passed function in a separate thread with timeouts and retries.
 
   Args:
@@ -138,6 +142,8 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
     desc: An optional description of |func| used in logging. If omitted,
       |func.__name__| will be used.
     error_log_func: Logging function when logging errors.
+    retry_if_func: Unary callable that takes an exception and returns
+      whether |func| should be retried. Defaults to always retrying.
 
   Returns:
     The return value of func(*args, **kwargs).
@@ -163,13 +169,13 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
           logging.info('Still working on %s', desc if desc else func.__name__)
         else:
           return thread_group.GetAllReturnValues()[0]
-    except reraiser_thread.TimeoutError:
+    except reraiser_thread.TimeoutError as e:
       # Timeouts already get their stacks logged.
-      if num_try > retries:
+      if num_try > retries or not retry_if_func(e):
         raise
       # Do not catch KeyboardInterrupt.
-    except Exception:  # pylint: disable=broad-except
-      if num_try > retries:
+    except Exception as e:  # pylint: disable=broad-except
+      if num_try > retries or not retry_if_func(e):
         raise
       _LogLastException(thread_name, num_try, retries + 1, error_log_func)
     num_try += 1

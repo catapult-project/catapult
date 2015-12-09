@@ -19,7 +19,9 @@ DEFAULT_TIMEOUT_ATTR = '_default_timeout'
 DEFAULT_RETRIES_ATTR = '_default_retries'
 
 
-def _TimeoutRetryWrapper(f, timeout_func, retries_func, pass_values=False):
+def _TimeoutRetryWrapper(
+    f, timeout_func, retries_func, retry_if_func=timeout_retry.AlwaysRetry,
+    pass_values=False):
   """ Wraps a funcion with timeout and retry handling logic.
 
   Args:
@@ -50,7 +52,8 @@ def _TimeoutRetryWrapper(f, timeout_func, retries_func, pass_values=False):
         desc = '%s(%s)' % (f.__name__, ', '.join(itertools.chain(
             (str(a) for a in args),
             ('%s=%s' % (k, str(v)) for k, v in kwargs.iteritems()))))
-        return timeout_retry.Run(impl, timeout, retries, desc=desc)
+        return timeout_retry.Run(impl, timeout, retries, desc=desc,
+                                 retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
       raise device_errors.CommandTimeoutError(str(e)), None, (
           sys.exc_info()[2])
@@ -73,6 +76,25 @@ def WithTimeoutAndRetries(f):
   get_timeout = lambda *a, **kw: kw['timeout']
   get_retries = lambda *a, **kw: kw['retries']
   return _TimeoutRetryWrapper(f, get_timeout, get_retries)
+
+
+def WithTimeoutAndConditionalRetries(retry_if_func):
+  """Returns a decorator that handles timeouts and, in some cases, retries.
+
+  'timeout' and 'retries' kwargs must be passed to the function.
+
+  Args:
+    retry_if_func: A unary callable that takes an exception and returns
+      whether failures should be retried.
+  Returns:
+    The actual decorator.
+  """
+  def decorator(f):
+    get_timeout = lambda *a, **kw: kw['timeout']
+    get_retries = lambda *a, **kw: kw['retries']
+    return _TimeoutRetryWrapper(
+        f, get_timeout, get_retries, retry_if_func=retry_if_func)
+  return decorator
 
 
 def WithExplicitTimeoutAndRetries(timeout, retries):

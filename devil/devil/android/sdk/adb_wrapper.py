@@ -64,6 +64,10 @@ def _FindAdb():
     raise device_errors.NoAdbError()
 
 
+def _ShouldRetryAdbCmd(exc):
+  return not isinstance(exc, device_errors.NoAdbError)
+
+
 DeviceStat = collections.namedtuple('DeviceStat',
                                     ['st_mode', 'st_size', 'st_time'])
 
@@ -99,9 +103,9 @@ class AdbWrapper(object):
     cmd.extend(args)
     return cmd
 
-  # pylint: disable=unused-argument
+  #pylint: disable=unused-argument
   @classmethod
-  @decorators.WithTimeoutAndRetries
+  @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
                  check_error=True, cpu_affinity=None):
     # pylint: disable=no-member
