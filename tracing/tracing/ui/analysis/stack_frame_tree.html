@@ -74,6 +74,7 @@ tr.exportTo('tr.ui.analysis', function() {
    *   topDownRoot.addStackTrace(trace2, size2);
    *   ...
    *   topDownRoot.addStackTrace(traceN, sizeN);
+   *   topDownRoot.finalizeTotalSizes();
    *
    * The corresponding bottom-up view is constructed indirectly by converting
    * the top-down view:
@@ -82,6 +83,7 @@ tr.exportTo('tr.ui.analysis', function() {
    *
    * @{constructor}
    */
+  // TODO(petrcermak): Convert the code to a builder.
   function StackFrameTreeNode(title, opt_frame) {
     this.title = title;
     this.frame = opt_frame;
@@ -143,31 +145,48 @@ tr.exportTo('tr.ui.analysis', function() {
      *   var frameC = new StackFrame(frameB, tr.b.GUID.allocate(), 'C');
      *   root.addStackTrace(frameC.stackTrace, 42)
      *
-     * will add the path root -> A -> B -> C to the tree (if necessary), add 42
-     * to the total value of all the nodes on the path (root, A, B, C), and add
-     * 42 to the self value of the leaf node (C).
+     * will add the path root -> A -> B -> C to the tree (if necessary) and 42
+     * to the self or total (depending on the isTotal parameter) value of the
+     * leaf node (C).
      *
-     * Important: No stack traces should be added to a bottom-up view (once it
-     * has been converted). Doing so will not update the structure and values
-     * of the view correctly!
+     * Important: No stack traces should be added to a top-down view once its
+     * total values have been finalized or a bottom-up view (once it has been
+     * converted). Doing so will not update the structure and values of the
+     * view correctly!
      */
-    addStackTrace: function(trace, value, opt_traceContainsRootFrame) {
+    addStackTrace: function(trace, value, isTotal) {
       var currentNode = this;
-      var startIndex = trace.length - (opt_traceContainsRootFrame ? 2 : 1);
-      for (var i = startIndex; i >= 0; i--) {
-        currentNode.total += value;
+      for (var i = trace.length - 1; i >= 0; i--) {
         var stackFrame = trace[i];
         currentNode =
             currentNode.getOrCreateChild(stackFrame.title, stackFrame);
       }
-      currentNode.total += value;
-      currentNode.self += value;
+      if (isTotal)
+        currentNode.total += value;
+      else
+        currentNode.self += value;
+    },
+
+    /**
+     * Finalize the total sizes of all nodes in the tree. This ensures that the
+     * total value of every node is greater than or equal to the sum of its
+     * children's total sizes and its own self size.
+     */
+    finalizeTotalSizes: function() {
+      var totalChildrenSize = 0;
+      this.children.forEach(function(child) {
+        child.finalizeTotalSizes();
+        totalChildrenSize += child.total;
+      });
+      this.total = Math.max(this.total, totalChildrenSize + this.self);
     },
 
     /**
      * Converts this stack frame tree from top-down view to the corresponding
      * bottom-up view. This method returns the root of the tree representing
      * the bottom-up view.
+     *
+     * This method assumes that total sizes have already been finalized.
      *
      * Note that there is no connection between the two representations after
      * the conversion (modifying the structure and/or values of one of them

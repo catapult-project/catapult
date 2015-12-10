@@ -102,8 +102,9 @@ tr.b.unittest.testSuite(function() {
 
   test('views_rootOnly', function() {
     var topDownRoot = new StackFrameTreeNode('root', undefined);
-    topDownRoot.addStackTrace(trace(), 39);
-    topDownRoot.addStackTrace(trace(), 3);
+    topDownRoot.addStackTrace(trace(), 39, false /* self */);
+    topDownRoot.addStackTrace(trace(), 3, false /* self */);
+    topDownRoot.finalizeTotalSizes();
     var bottomUpRoot = topDownRoot.convertToBottomUpView();
 
     checkTree(topDownRoot, {
@@ -121,12 +122,13 @@ tr.b.unittest.testSuite(function() {
 
   test('views_noRecursion', function() {
     var topDownRoot = new StackFrameTreeNode('root', undefined);
-    topDownRoot.addStackTrace(trace('A', 'B', 'C'), 10);
-    topDownRoot.addStackTrace(trace('A', 'B'), 20);
-    topDownRoot.addStackTrace(trace('B', 'D'), 30);
-    topDownRoot.addStackTrace(trace('A', 'B', 'D'), 40);
-    topDownRoot.addStackTrace(trace('A', 'C'), 50);
-    topDownRoot.addStackTrace(trace(), 60);
+    topDownRoot.addStackTrace(trace('A', 'B', 'C'), 10, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'B'), 20, false /* self */);
+    topDownRoot.addStackTrace(trace('B', 'D'), 30, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'B', 'D'), 40, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'C'), 50, false /* self */);
+    topDownRoot.addStackTrace(trace(), 60, false /* self */);
+    topDownRoot.finalizeTotalSizes();
     var bottomUpRoot = topDownRoot.convertToBottomUpView();
 
     checkTree(topDownRoot, {
@@ -249,10 +251,11 @@ tr.b.unittest.testSuite(function() {
 
   test('views_simpleRecursion', function() {
     var topDownRoot = new StackFrameTreeNode('root', undefined);
-    topDownRoot.addStackTrace(trace('A'), 10);
-    topDownRoot.addStackTrace(trace('A', 'A', 'A'), 20);
-    topDownRoot.addStackTrace(trace('A', 'A'), 30);
-    topDownRoot.addStackTrace(trace('A', 'A', 'A', 'A'), 40);
+    topDownRoot.addStackTrace(trace('A'), 10, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'A', 'A'), 20, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'A'), 30, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'A', 'A', 'A'), 40, false /* self */);
+    topDownRoot.finalizeTotalSizes();
     var bottomUpRoot = topDownRoot.convertToBottomUpView();
 
     checkTree(topDownRoot, {
@@ -326,11 +329,15 @@ tr.b.unittest.testSuite(function() {
 
   test('views_complexRecursion', function() {
     var topDownRoot = new StackFrameTreeNode('root', undefined);
-    topDownRoot.addStackTrace(trace('A', 'B', 'C'), 10);
-    topDownRoot.addStackTrace(trace('A', 'D', 'B', 'C', 'A', 'B', 'C'), 20);
-    topDownRoot.addStackTrace(trace('A', 'D', 'B', 'C', 'A', 'B', 'D'), 30);
-    topDownRoot.addStackTrace(trace('C', 'B', 'C'), 40);
-    topDownRoot.addStackTrace(trace('C', 'B', 'C', 'B', 'C'), 50);
+    topDownRoot.addStackTrace(trace('A', 'B', 'C'), 10, false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'D', 'B', 'C', 'A', 'B', 'C'), 20,
+        false /* self */);
+    topDownRoot.addStackTrace(trace('A', 'D', 'B', 'C', 'A', 'B', 'D'), 30,
+        false /* self */);
+    topDownRoot.addStackTrace(trace('C', 'B', 'C'), 40, false /* self */);
+    topDownRoot.addStackTrace(trace('C', 'B', 'C', 'B', 'C'), 50,
+        false /* self */);
+    topDownRoot.finalizeTotalSizes();
     var bottomUpRoot = topDownRoot.convertToBottomUpView();
 
     checkTree(topDownRoot, {
@@ -676,6 +683,54 @@ tr.b.unittest.testSuite(function() {
               ]
             }
           ]
+        }
+      ]
+    });
+  });
+
+  test('views_finalizeTotalSizes', function() {
+    var topDownRoot = new StackFrameTreeNode('A', undefined);
+    topDownRoot.addStackTrace(trace('B', 'C'), 10, true /* total */);
+    topDownRoot.addStackTrace(trace('B', 'C', 'D'), 5, true /* total */);
+    topDownRoot.addStackTrace(trace('B'), 15, false /* self */);
+    topDownRoot.addStackTrace(trace('B'), 20, true /* total */);
+    topDownRoot.addStackTrace(trace('B', 'D'), 40, false /* self */);
+    topDownRoot.addStackTrace(trace('C'), 50, true /* total */);
+    topDownRoot.finalizeTotalSizes();
+
+    checkTree(topDownRoot, {
+      title: 'A',
+      total: 115,
+      self: 0,
+      children: [
+        {
+          title: 'B',
+          total: 65,
+          self: 15,
+          children: [
+            {
+              title: 'C',
+              total: 10,
+              self: 0,
+              children: [
+                {
+                  title: 'D',
+                  total: 5,
+                  self: 0
+                }
+              ]
+            },
+            {
+              title: 'D',
+              total: 40,
+              self: 40
+            }
+          ]
+        },
+        {
+          title: 'C',
+          total: 50,
+          self: 0
         }
       ]
     });

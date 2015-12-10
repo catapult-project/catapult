@@ -188,7 +188,6 @@ tr.exportTo('tr.ui.analysis', function() {
 
         var rootNode =
             new tr.ui.analysis.StackFrameTreeNode(heapDump.allocatorName);
-        var sumSize = undefined;
 
         // Build the heap tree.
         heapDump.entries.forEach(function(entry) {
@@ -197,25 +196,13 @@ tr.exportTo('tr.ui.analysis', function() {
           // See https://github.com/catapult-project/catapult/issues/1625.
           if (entry.objectTypeName !== undefined)
             return;
-          var size = entry.size;
           var leafStackFrame = entry.leafStackFrame;
-          if (leafStackFrame === undefined) {
-            if (sumSize !== undefined)
-              throw new Error('Multiple sum stack frames');
-            sumSize = size;
-            return;
-          }
-          rootNode.addStackTrace(leafStackFrame.stackTrace, size, true);
+          var stackTrace = leafStackFrame === undefined ?
+              [] : leafStackFrame.stackTrace;
+          rootNode.addStackTrace(stackTrace, entry.size, true /* total */);
         }, this);
 
-        // Add an <unspecified> node (if applicable).
-        if (sumSize !== undefined && sumSize > rootNode.total) {
-          var unspecifiedSize = sumSize - rootNode.total;
-          rootNode.total = sumSize;
-          var unspecifiedNode = rootNode.getOrCreateChild('<unspecified>');
-          unspecifiedNode.total += unspecifiedSize;
-          unspecifiedNode.self += unspecifiedSize;
-        }
+        rootNode.finalizeTotalSizes();
 
         if (this.bottomUpView)
           return rootNode.convertToBottomUpView();
@@ -244,8 +231,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // of the values of its attribute).
       var cells = tr.ui.analysis.createCells(nodes, function(node) {
         return {
-          'Total size': new tr.model.ScalarAttribute('bytes', node.total),
-          'Self size': new tr.model.ScalarAttribute('bytes', node.self)
+          'Size': new tr.model.ScalarAttribute('bytes', node.total)
         };
       });
 
@@ -253,7 +239,14 @@ tr.exportTo('tr.ui.analysis', function() {
       // Timestamp (list index) -> Child stack frame tree node.
       var groupedChildNodes = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(nodes, function(node) {
-            return node.children;
+            // TODO(petrcermak): Use node.childMap directly.
+            var childDict = {};
+            var children = node.children;
+            for (var i = 0; i < children.length; i++) {
+              var child = children[i];
+              childDict[child.title] = child;
+            }
+            return childDict;
           }));
 
       var row = {

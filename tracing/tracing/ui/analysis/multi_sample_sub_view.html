@@ -84,8 +84,9 @@ found in the LICENSE file.
         var samples = selection.getEventsOrganizedByBaseType().sample;
 
         samples.forEach(function(sample) {
-          root.addStackTrace(sample.stackTrace, 1);
+          root.addStackTrace(sample.stackTrace, 1, false /* self */);
         });
+        root.finalizeTotalSizes();
 
         switch (viewOption) {
           case 'TOPDOWNVIEW':

@@ -140,7 +140,7 @@ tr.exportTo('tr.ui.analysis', function() {
           var v8HeapDump = new HeapDump(pmd1C, 'v8');
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
-                  [undefined /* root */, 'V8.Execute', 'UpdateLayoutTree']),
+                  ['V8.Execute', 'UpdateLayoutTree']),
               536870912 /* 512 MiB */);
           return v8HeapDump;
         })()
@@ -315,11 +315,11 @@ tr.exportTo('tr.ui.analysis', function() {
           var v8HeapDump = new HeapDump(pmd1C, 'v8');
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
-                  [undefined /* root */, 'V8.Execute', 'UpdateLayoutTree']),
+                  ['V8.Execute', 'UpdateLayoutTree']),
               268435456 /* 256 MiB */);
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
-                  [undefined /* root */, 'V8.Execute', 'FrameView::layout']),
+                  ['V8.Execute', 'FrameView::layout']),
               134217728 /* 128 MiB */);
           return v8HeapDump;
         })()

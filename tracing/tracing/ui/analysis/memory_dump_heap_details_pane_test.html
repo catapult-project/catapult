@@ -30,9 +30,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(1);
 
     function heapTrace(/* topStackFrame, ..., leafStackFrame */) {
-      var titles =
-          Array.prototype.concat.apply([undefined /* root */], arguments);
-      return tr.c.TestUtils.newStackTrace(model, titles);
+      return tr.c.TestUtils.newStackTrace(
+          model, Array.prototype.slice.call(arguments));
     }
 
     // First timestamp.
@@ -42,7 +41,7 @@ tr.b.unittest.testSuite(function() {
 
     hd1.addEntry(undefined /* sum over all traces */,
         undefined /* sum over all types */, 4194304 /* 4 MiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall', '<self>'),
         undefined /* sum over all types */, 102400 /* 100 KiB */);
     hd1.addEntry(
         heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
@@ -51,7 +50,8 @@ tr.b.unittest.testSuite(function() {
         heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
         undefined /* sum over all types */, 204800 /* 200 KiB */);
     hd1.addEntry(
-        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            '<self>'),
         'v8::Context',  // Whole entry should be ignored because it has a type.
         3145728 /* 3 MiB */);
     hd1.addEntry(
@@ -59,7 +59,8 @@ tr.b.unittest.testSuite(function() {
             'V8.Execute'),
         undefined /* sum over all types */, 2097152 /* 2 MiB */);
     hd1.addEntry(
-        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            '<self>'),
         undefined /* sum over all types */, 307200 /* 300 KiB */);
 
     // Second timestamp.
@@ -70,9 +71,9 @@ tr.b.unittest.testSuite(function() {
     hd2.addEntry(undefined /* sum over all traces */,
         undefined /* sum over all types */,
         3145728 /* 3 MiB, lower than the actual sum (should be ignored) */);
-    hd2.addEntry(heapTrace(/* empty trace */),
+    hd2.addEntry(heapTrace('<self>'),
         undefined /* sum over all types */, 131072 /* 128 KiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall', '<self>'),
         undefined /* sum over all types */, 393216 /* 384 KiB */);
     hd2.addEntry(
         heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
@@ -99,8 +100,7 @@ tr.b.unittest.testSuite(function() {
   function checkColumns(columns, expectedAggregationMode) {
     var EXPECTED_COLUMN_NAMES = [
       'Stack frame',
-      'Total size',
-      'Self size'
+      'Size'
     ];
 
     // First column doesn't change value over time (no aggregation).
@@ -118,13 +118,12 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
-  function checkRow(columns, row, expectedTitle, expectedTotalSizes,
-      expectedSelfSizes, expectedDefinedValues) {
+  function checkRow(columns, row, expectedTitle, expectedSizes,
+      expectedDefinedValues) {
     var formattedTitle = columns[0].formatTitle(row);
     assert.equal(formattedTitle, expectedTitle);
 
-    checkSizeAttributes(row, columns[1], expectedTotalSizes);
-    checkSizeAttributes(row, columns[2], expectedSelfSizes);
+    checkSizeAttributes(row, columns[1], expectedSizes);
 
     if (expectedDefinedValues)
       assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
@@ -148,8 +147,7 @@ tr.b.unittest.testSuite(function() {
       var row = rows[i];
       var expectedRowStructure = expectedStructure[i];
       checkRow(columns, row, expectedRowStructure.title,
-          expectedRowStructure.total, expectedRowStructure.self,
-          expectedRowStructure.defined);
+          expectedRowStructure.size, expectedRowStructure.defined);
       checkRows(columns, row.subRows, expectedRowStructure.children);
     }
   }
@@ -191,8 +189,7 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, undefined /* no aggregation */, [
       {
         title: 'partition_alloc',
-        total: [0],
-        self: [0],
+        size: [0],
         defined: [true]
       }
     ]);
@@ -203,8 +200,7 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, undefined /* no aggregation */, [
       {
         title: 'partition_alloc',
-        total: [0],
-        self: [0],
+        size: [0],
         defined: [true]
       }
     ]);
@@ -225,52 +221,54 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, undefined /* no aggregation */, [
       {
         title: 'partition_alloc',
-        total: [4194304],
-        self: [0],
+        size: [4194304],
         defined: [true],
         children: [
           {
             title: 'MessageLoop::RunTask',
-            total: [3760128],
-            self: [0],
+            size: [3760128],
             defined: [true],
             children: [
               {
                 title: 'FunctionCall',
-                total: [1355776],
-                self: [102400],
+                size: [1355776],
                 defined: [true],
                 children: [
                   {
+                    title: '<self>',
+                    size: [102400],
+                    defined: [true]
+                  },
+                  {
                     title: 'V8.Execute',
-                    total: [1048576],
-                    self: [1048576],
+                    size: [1048576],
                     defined: [true]
                   },
                   {
                     title: 'FunctionCall',
-                    total: [204800],
-                    self: [204800],
+                    size: [204800],
                     defined: [true]
                   }
                 ]
               },
               {
                 title: 'V8.Execute',
-                total: [2404352],
-                self: [0],
+                size: [2404352],
                 defined: [true],
                 children: [
                   {
                     title: 'FunctionCall',
-                    total: [2404352],
-                    self: [307200],
+                    size: [2404352],
                     defined: [true],
                     children: [
                       {
                         title: 'V8.Execute',
-                        total: [2097152],
-                        self: [2097152],
+                        size: [2097152],
+                        defined: [true]
+                      },
+                      {
+                        title: '<self>',
+                        size: [307200],
                         defined: [true]
                       }
                     ]
@@ -278,12 +276,6 @@ tr.b.unittest.testSuite(function() {
                 ]
               }
             ]
-          },
-          {
-            title: '<unspecified>',
-            total: [434176],
-            self: [434176],
-            defined: [true]
           }
         ]
       }
@@ -293,52 +285,44 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, undefined /* no aggregation */, [
       {
         title: 'partition_alloc',
-        total: [4194304],
-        self: [0],
+        size: [4194304],
         defined: [true],
         children: [
           {
             title: 'MessageLoop::RunTask',
-            total: [3760128],
-            self: [0],
+            size: [3760128],
             defined: [true]
           },
           {
             title: 'FunctionCall',
-            total: [3760128],
-            self: [614400],
+            size: [3760128],
             defined: [true],
             children: [
               {
                 title: 'MessageLoop::RunTask',
-                total: [1355776],
-                self: [102400],
+                size: [1355776],
                 defined: [true]
               },
               {
                 title: 'FunctionCall',
-                total: [204800],
-                self: [204800],
+                size: [204800],
                 defined: [true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [204800],
-                    self: [204800],
+                    size: [204800],
                     defined: [true]
                   }
                 ]
               },
               {
                 title: 'V8.Execute',
-                total: [2404352],
-                self: [307200],
+                size: [2404352],
                 defined: [true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [2404352],
-                    self: [307200],
+                    size: [2404352],
                     defined: [true]
                   }
                 ]
@@ -346,33 +330,59 @@ tr.b.unittest.testSuite(function() {
             ]
           },
           {
-            title: 'V8.Execute',
-            total: [3452928],
-            self: [3145728],
+            title: '<self>',
+            size: [409600],
             defined: [true],
             children: [
               {
                 title: 'FunctionCall',
-                total: [3145728],
-                self: [3145728],
+                size: [409600],
                 defined: [true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [1048576],
-                    self: [1048576],
+                    size: [102400],
                     defined: [true]
                   },
                   {
                     title: 'V8.Execute',
-                    total: [2097152],
-                    self: [2097152],
+                    size: [307200],
                     defined: [true],
                     children: [
                       {
                         title: 'MessageLoop::RunTask',
-                        total: [2097152],
-                        self: [2097152],
+                        size: [307200],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: 'V8.Execute',
+            size: [3452928],
+            defined: [true],
+            children: [
+              {
+                title: 'FunctionCall',
+                size: [3145728],
+                defined: [true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    size: [1048576],
+                    defined: [true]
+                  },
+                  {
+                    title: 'V8.Execute',
+                    size: [2097152],
+                    defined: [true],
+                    children: [
+                      {
+                        title: 'MessageLoop::RunTask',
+                        size: [2097152],
                         defined: [true]
                       }
                     ]
@@ -381,17 +391,10 @@ tr.b.unittest.testSuite(function() {
               },
               {
                 title: 'MessageLoop::RunTask',
-                total: [2404352],
-                self: [0],
+                size: [2404352],
                 defined: [true]
               }
             ]
-          },
-          {
-            title: '<unspecified>',
-            total: [434176],
-            self: [434176],
-            defined: [true]
           }
         ]
       }
@@ -412,50 +415,42 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, AggregationMode.DIFF, [
       {
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4923392],
         defined: [true, true],
         children: [
           {
             title: 'MessageLoop::RunTask',
-            total: [3760128, 4792320],
-            self: [0, 0],
+            size: [3760128, 4792320],
             defined: [true, true]
           },
           {
             title: 'FunctionCall',
-            total: [3760128, 4792320],
-            self: [614400, 598016],
+            size: [3760128, 4792320],
             defined: [true, true],
             children: [
               {
                 title: 'MessageLoop::RunTask',
-                total: [1355776, 2170880],
-                self: [102400, 393216],
+                size: [1355776, 2170880],
                 defined: [true, true]
               },
               {
                 title: 'FunctionCall',
-                total: [204800, 204800],
-                self: [204800, 204800],
+                size: [204800, 204800],
                 defined: [true, true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [204800, 204800],
-                    self: [204800, 0],
+                    size: [204800, 204800],
                     defined: [true, true]
                   },
                   {
                     title: 'FunctionCall',
-                    total: [undefined, 204800],
-                    self: [undefined, 204800],
+                    size: [undefined, 204800],
                     defined: [undefined, true],
                     children: [
                       {
                         title: 'MessageLoop::RunTask',
-                        total: [undefined, 204800],
-                        self: [undefined, 204800],
+                        size: [undefined, 204800],
                         defined: [undefined, true]
                       }
                     ]
@@ -464,14 +459,12 @@ tr.b.unittest.testSuite(function() {
               },
               {
                 title: 'V8.Execute',
-                total: [2404352, 2621440],
-                self: [307200, 0],
+                size: [2404352, 2621440],
                 defined: [true, true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [2404352, 2621440],
-                    self: [307200, 0],
+                    size: [2404352, 2621440],
                     defined: [true, true]
                   }
                 ]
@@ -479,33 +472,59 @@ tr.b.unittest.testSuite(function() {
             ]
           },
           {
-            title: 'V8.Execute',
-            total: [3452928, 4194304],
-            self: [3145728, 4194304],
+            title: '<self>',
+            size: [409600, 524288],
             defined: [true, true],
             children: [
               {
                 title: 'FunctionCall',
-                total: [3145728, 4194304],
-                self: [3145728, 4194304],
+                size: [409600, 393216],
                 defined: [true, true],
                 children: [
                   {
                     title: 'MessageLoop::RunTask',
-                    total: [1048576, 1572864],
-                    self: [1048576, 1572864],
+                    size: [102400, 393216],
                     defined: [true, true]
                   },
                   {
                     title: 'V8.Execute',
-                    total: [2097152, 2621440],
-                    self: [2097152, 2621440],
+                    size: [307200, undefined],
+                    defined: [true, undefined],
+                    children: [
+                      {
+                        title: 'MessageLoop::RunTask',
+                        size: [307200, undefined],
+                        defined: [true, undefined]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            title: 'V8.Execute',
+            size: [3452928, 4194304],
+            defined: [true, true],
+            children: [
+              {
+                title: 'FunctionCall',
+                size: [3145728, 4194304],
+                defined: [true, true],
+                children: [
+                  {
+                    title: 'MessageLoop::RunTask',
+                    size: [1048576, 1572864],
+                    defined: [true, true]
+                  },
+                  {
+                    title: 'V8.Execute',
+                    size: [2097152, 2621440],
                     defined: [true, true],
                     children: [
                       {
                         title: 'MessageLoop::RunTask',
-                        total: [2097152, 2621440],
-                        self: [2097152, 2621440],
+                        size: [2097152, 2621440],
                         defined: [true, true]
                       }
                     ]
@@ -514,17 +533,10 @@ tr.b.unittest.testSuite(function() {
               },
               {
                 title: 'MessageLoop::RunTask',
-                total: [2404352, 2621440],
-                self: [0, 0],
+                size: [2404352, 2621440],
                 defined: [true, true]
               }
             ]
-          },
-          {
-            title: '<unspecified>',
-            total: [434176, undefined],
-            self: [434176, undefined],
-            defined: [true, undefined]
           }
         ]
       }
@@ -534,38 +546,37 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, AggregationMode.DIFF, [
       {
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4923392],
         defined: [true, true],
         children: [
           {
             title: 'MessageLoop::RunTask',
-            total: [3760128, 4792320],
-            self: [0, 0],
+            size: [3760128, 4792320],
             defined: [true, true],
             children: [
               {
                 title: 'FunctionCall',
-                total: [1355776, 2170880],
-                self: [102400, 393216],
+                size: [1355776, 2170880],
                 defined: [true, true],
                 children: [
                   {
+                    title: '<self>',
+                    size: [102400, 393216],
+                    defined: [true, true]
+                  },
+                  {
                     title: 'V8.Execute',
-                    total: [1048576, 1572864],
-                    self: [1048576, 1572864],
+                    size: [1048576, 1572864],
                     defined: [true, true]
                   },
                   {
                     title: 'FunctionCall',
-                    total: [204800, 204800],
-                    self: [204800, 0],
+                    size: [204800, 204800],
                     defined: [true, true],
                     children: [
                       {
                         title: 'FunctionCall',
-                        total: [undefined, 204800],
-                        self: [undefined, 204800],
+                        size: [undefined, 204800],
                         defined: [undefined, true]
                       }
                     ]
@@ -574,21 +585,23 @@ tr.b.unittest.testSuite(function() {
               },
               {
                 title: 'V8.Execute',
-                total: [2404352, 2621440],
-                self: [0, 0],
+                size: [2404352, 2621440],
                 defined: [true, true],
                 children: [
                   {
                     title: 'FunctionCall',
-                    total: [2404352, 2621440],
-                    self: [307200, 0],
+                    size: [2404352, 2621440],
                     defined: [true, true],
                     children: [
                       {
                         title: 'V8.Execute',
-                        total: [2097152, 2621440],
-                        self: [2097152, 2621440],
+                        size: [2097152, 2621440],
                         defined: [true, true]
+                      },
+                      {
+                        title: '<self>',
+                        size: [307200, undefined],
+                        defined: [true, undefined]
                       }
                     ]
                   }
@@ -597,10 +610,9 @@ tr.b.unittest.testSuite(function() {
             ]
           },
           {
-            title: '<unspecified>',
-            total: [434176, undefined],
-            self: [434176, undefined],
-            defined: [true, undefined]
+            title: '<self>',
+            size: [undefined, 131072],
+            defined: [undefined, true]
           }
         ]
       }
@@ -621,8 +633,7 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, AggregationMode.MAX, [
       {
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4923392],
         defined: [true, true],
         children: 4  // No need to check the full structure again.
       }
@@ -644,8 +655,7 @@ tr.b.unittest.testSuite(function() {
     checkTable(viewEl, AggregationMode.DIFF, [
       {
         title: 'partition_alloc',
-        total: [4194304, undefined, 4923392],
-        self: [0, undefined, 131072],
+        size: [4194304, undefined, 4923392],
         defined: [true, false, true],
         children: 2  // No need to check the full structure again.
       }
