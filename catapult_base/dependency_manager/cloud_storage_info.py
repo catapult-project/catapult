@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import errno
-import logging
 import os
 import stat
 
@@ -79,7 +78,6 @@ class CloudStorageInfo(object):
     if not os.path.exists(dependency_path):
       raise exceptions.FileNotFoundError(dependency_path)
 
-    logging.error('has archive_info %s', self._archive_info)
     if self.has_archive_info:
       dependency_path = self._archive_info.GetUnzippedPath()
     else:
