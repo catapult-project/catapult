@@ -278,6 +278,10 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     the bisect config, commits it, uploads the CL to rietveld, and runs a
     tryjob on the given bot.
     """
+    logging.warning('PLEASE NOTE: Due to the schedule lab move, '
+                    'try jobs might not work on Android perf bisect bots. '
+                    'Please refer to crbug.com/568661')
+
     # First check if there are chromium changes to upload.
     status = self._AttemptTryjob(CHROMIUM_CONFIG_FILENAME)
     if status not in [SUCCESS, ERROR]:
