@@ -187,7 +187,11 @@ def _DashboardJsonToRawRows(dash_json_dict):
     raise BadRequestError('No chart data given.')
   test_suite_name = _TestSuiteName(dash_json_dict)
 
-  charts = dash_json_dict['chart_data']['charts']
+  chart_data = dash_json_dict.get('chart_data', {})
+  charts = chart_data.get('charts', [])
+  if not charts:
+    raise BadRequestError('Empty "charts" in "chart_data" field.')
+
   # Links to about:tracing traces are listed under 'trace'; if they
   # exist copy them to a separate dictionary and delete from the chartjson
   # so that we don't try to process them as data points.
@@ -197,11 +201,8 @@ def _DashboardJsonToRawRows(dash_json_dict):
     del charts['trace']
   row_template = _MakeRowTemplate(dash_json_dict)
 
-  benchmark_description = dash_json_dict['chart_data'].get(
-      'benchmark_description', '')
-  trace_rerun_options = dash_json_dict['chart_data'].get(
-      'trace_rerun_options', [])
-  trace_rerun_options = dict((k, v) for (k, v) in trace_rerun_options)
+  benchmark_description = chart_data.get('benchmark_description', '')
+  trace_rerun_options = dict(chart_data.get('trace_rerun_options', []))
   is_ref = bool(dash_json_dict.get('is_ref'))
   rows = []
 
