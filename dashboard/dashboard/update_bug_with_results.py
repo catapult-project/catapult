@@ -889,6 +889,9 @@ def _CheckFYIBisectJob(job, issue_tracker):
       # results matches with the expectations; if they don't match then
       # bisect_results['status'] gets set to 'Failure'.
       bisect_fyi.VerifyBisectFYIResults(job, bisect_results)
+      # Verify whether the issue is updated with bisect results, if not
+      # then mark the results status='Failure'.
+      bisect_fyi.VerifyBugUpdate(job, issue_tracker, bisect_results)
     elif 'Failure' in bisect_results['status']:
       _PostFailedResult(
           job, bisect_results, issue_tracker, add_bug_comment=True)

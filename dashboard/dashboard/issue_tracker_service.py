@@ -125,6 +125,34 @@ class IssueTrackerService(object):
       return response['id']
     return None
 
+  def GetLastBugCommentsAndTimestamp(self, bug_id):
+    """Gets last updated comments and timestamp in the given bug.
+
+    Args:
+      bug_id: Bug ID of the issue to update.
+
+    Returns:
+      A dictionary with last comment and timestamp, or None on failure.
+    """
+    if not bug_id or bug_id < 0:
+      return None
+    response = self._MakeGetCommentsRequest(bug_id)
+    if response and all(v in response.keys() for v in ['totalResults','items']):
+      bug_comments = response.get('items')[response.get('totalResults') - 1]
+      if bug_comments.get('content') and bug_comments.get('published'):
+        return {
+            'comment': bug_comments.get('content'),
+            'timestamp': bug_comments.get('published')
+        }
+    return None
+
+  def _MakeGetCommentsRequest(self, bug_id):
+    """Make a request to the issue tracker to get comments in the bug."""
+    request = self._service.issues().comments().list(
+        projectId='chromium',
+        issueId=bug_id)
+    return self._ExecuteRequest(request)
+
   def _ExecuteRequest(self, request):
     """Make a request to the issue tracker.
 

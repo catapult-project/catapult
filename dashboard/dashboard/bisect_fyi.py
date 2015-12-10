@@ -4,6 +4,9 @@
 
 """URL endpoint for a cron job to run bisects integration tests."""
 
+import datetime
+import time
+
 from google.appengine.api import mail
 
 from dashboard import auto_bisect
@@ -121,7 +124,28 @@ def VerifyBisectFYIResults(job, bisect_results):
       if errors:
         bisect_results['status'] = 'Failure'
         bisect_results['errors'] = errors
+  return bisect_results
 
+
+def VerifyBugUpdate(job, issue_tracker, bisect_results):
+  """Verifies whether bug is updated with the bisect results."""
+  comment_info = issue_tracker.GetLastBugCommentsAndTimestamp(job.bug_id)
+  err_msg = 'Failed to update bug %s with bisect results.' % job.bug_id
+  if not comment_info:
+    bisect_results['status'] = 'Failure'
+    if bisect_results.get('errors'):
+      errors = '%s\n%s' % (bisect_results['errors'], err_msg)
+    bisect_results['errors'] = errors
+    return bisect_results
+
+  bug_update_timestamp = datetime.datetime.strptime(
+      comment_info['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+  try_job_timestamp = time.mktime(job.last_ran_timestamp.timetuple())
+  if bug_update_timestamp <= try_job_timestamp:
+    bisect_results['status'] = 'Failure'
+    if bisect_results.get('errors'):
+      errors = '%s\n%s' % (bisect_results['errors'], err_msg)
+    bisect_results['errors'] = errors
   return bisect_results
 
 
