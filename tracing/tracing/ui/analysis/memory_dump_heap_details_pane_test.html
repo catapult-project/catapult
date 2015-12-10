@@ -40,17 +40,27 @@ tr.b.unittest.testSuite(function() {
     var pmd1 = addProcessMemoryDump(gmd1, process, -11);
     var hd1 = new HeapDump(pmd1, 'partition_alloc');
 
-    hd1.addEntry(undefined /* sum over all traces */, 4194304 /* 4 MiB */);
+    hd1.addEntry(undefined /* sum over all traces */,
+        undefined /* sum over all types */, 4194304 /* 4 MiB */);
     hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
-        102400 /* 100 KiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'V8.Execute'), 1048576 /* 1 MiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'FunctionCall'), 204800 /* 200 KiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
-        'V8.Execute'), 2097152 /* 2 MiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute',
-        'FunctionCall'), 307200 /* 300 KiB */);
+        undefined /* sum over all types */, 102400 /* 100 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        undefined /* sum over all types */, 1048576 /* 1 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
+        undefined /* sum over all types */, 204800 /* 200 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        'v8::Context',  // Whole entry should be ignored because it has a type.
+        3145728 /* 3 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            'V8.Execute'),
+        undefined /* sum over all types */, 2097152 /* 2 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        undefined /* sum over all types */, 307200 /* 300 KiB */);
 
     // Second timestamp.
     var gmd2 = addGlobalMemoryDump(model, 10);
@@ -58,17 +68,23 @@ tr.b.unittest.testSuite(function() {
     var hd2 = new HeapDump(pmd2, 'partition_alloc');
 
     hd2.addEntry(undefined /* sum over all traces */,
+        undefined /* sum over all types */,
         3145728 /* 3 MiB, lower than the actual sum (should be ignored) */);
     hd2.addEntry(heapTrace(/* empty trace */),
-        131072 /* 128 KiB */);
+        undefined /* sum over all types */, 131072 /* 128 KiB */);
     hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
-        393216 /* 384 KiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'V8.Execute'), 1572864 /* 1.5 MiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
-        'V8.Execute'), 2621440 /* 2.5 MiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'FunctionCall', 'FunctionCall'), 204800 /* 200 KiB */);
+        undefined /* sum over all types */, 393216 /* 384 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        undefined /* sum over all types */, 1572864 /* 1.5 MiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            'V8.Execute'),
+        undefined /* sum over all types */, 2621440 /* 2.5 MiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall',
+            'FunctionCall'),
+        undefined /* sum over all types */, 204800 /* 200 KiB */);
 
     return [hd1, hd2];
   }

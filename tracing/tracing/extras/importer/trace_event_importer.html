@@ -58,6 +58,25 @@ tr.exportTo('tr.e.importer', function() {
   var MEMORY_DUMP_LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
+  // Object type name patterns for various compilers.
+  var OBJECT_TYPE_NAME_PATTERNS = [
+    {
+      // Clang.
+      prefix: 'const char *WTF::getStringWithTypeName() [T = ',
+      suffix: ']'
+    },
+    {
+      // GCC.
+      prefix: 'const char* WTF::getStringWithTypeName() [with T = ',
+      suffix: ']'
+    },
+    {
+      // Microsoft Visual C++
+      prefix: 'const char *__cdecl WTF::getStringWithTypeName<',
+      suffix: '>(void)'
+    }
+  ];
+
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
@@ -80,6 +99,9 @@ tr.exportTo('tr.e.importer', function() {
 
     // Dump ID -> PID -> [process memory dump events].
     this.allMemoryDumpEvents_ = {};
+
+    // PID -> Object type ID -> Object type name.
+    this.objectTypeNameMap_ = {};
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
@@ -455,6 +477,17 @@ tr.exportTo('tr.e.importer', function() {
         } else {
           this.importStackFrames_(stackFrames, 'p' + event.pid + ':');
         }
+      } else if (event.name === 'typeNames') {
+        var objectTypeNameMap = event.args.typeNames;
+        if (objectTypeNameMap === undefined) {
+          this.model_.importWarning({
+            type: 'metadata_parse_error',
+            message: 'No mapping from object type IDs to names found in a \'' +
+                event.name + '\' metadata event'
+          });
+        } else {
+          this.importObjectTypeNameMap_(objectTypeNameMap, event.pid);
+        }
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',
@@ -795,6 +828,54 @@ tr.exportTo('tr.e.importer', function() {
         }
         stackFrame.parentFrame = parentStackFrame;
       }
+    },
+
+    importObjectTypeNameMap_: function(rawObjectTypeNameMap, pid) {
+      if (pid in this.objectTypeNameMap_) {
+        this.model_.importWarning({
+          type: 'metadata_parse_error',
+          message: 'Mapping from object type IDs to names provided for pid=' +
+              pid + ' multiple times.'
+        });
+        return;
+      }
+
+      var objectTypeNamePrefix = undefined;
+      var objectTypeNameSuffix = undefined;
+      var objectTypeNameMap = {};
+      for (var objectTypeId in rawObjectTypeNameMap) {
+        var rawObjectTypeName = rawObjectTypeNameMap[objectTypeId];
+
+        // If we haven't figured out yet which compiler the object type names
+        // come from, we try to do it now.
+        if (objectTypeNamePrefix === undefined) {
+          for (var i = 0; i < OBJECT_TYPE_NAME_PATTERNS.length; i++) {
+            var pattern = OBJECT_TYPE_NAME_PATTERNS[i];
+            if (rawObjectTypeName.startsWith(pattern.prefix) &&
+                rawObjectTypeName.endsWith(pattern.suffix)) {
+              objectTypeNamePrefix = pattern.prefix;
+              objectTypeNameSuffix = pattern.suffix;
+              break;
+            }
+          }
+        }
+
+        if (objectTypeNamePrefix !== undefined &&
+            rawObjectTypeName.startsWith(objectTypeNamePrefix) &&
+            rawObjectTypeName.endsWith(objectTypeNameSuffix)) {
+          // With compiler-specific prefix and suffix (automatically annotated
+          // object types).
+          objectTypeNameMap[objectTypeId] = rawObjectTypeName.substring(
+               objectTypeNamePrefix.length,
+               rawObjectTypeName.length - objectTypeNameSuffix.length);
+        } else {
+          // Without compiler-specific prefix and suffix (manually annotated
+          // object types and '[unknown]').
+          objectTypeNameMap[objectTypeId] = rawObjectTypeName;
+        }
+      }
+
+      this.objectTypeNameMap_[pid] = objectTypeNameMap;
     },
 
     importAnnotations_: function() {
@@ -2091,6 +2172,14 @@ tr.exportTo('tr.e.importer', function() {
       var idPrefix = 'p' + pid + ':';
       var heapDumps = {};
 
+      var objectTypeNameMap = this.objectTypeNameMap_[pid];
+      if (objectTypeNameMap === undefined) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'Missing mapping from object type IDs to names.'
+        });
+      }
+
       for (var allocatorName in rawHeapDumps) {
         var entries = rawHeapDumps[allocatorName].entries;
         if (entries === undefined || entries.length === 0) {
@@ -2102,26 +2191,21 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         }
 
-        var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
-
         // The old format always starts with a {size: <total>} entry.
         // See https://goo.gl/WYStil
         // TODO(petrcermak): Remove support for the old format once the new
         // format has been around long enough.
         var isOldFormat = entries[0].bt === undefined;
+        if (!isOldFormat && objectTypeNameMap === undefined) {
+          // Mapping from object type IDs to names must be provided in the new
+          // format.
+          continue;
+        }
+
+        var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
 
         for (var i = 0; i < entries.length; i++) {
           var entry = entries[i];
-          var type = entry.type;
-          if (type !== undefined) {
-            // Heap dump entries with specified object type ID need to be
-            // ignored for the time being because Chrome doesn't dump the
-            // mapping from object type IDs to object type names yet. See
-            // crbug.com/524631.
-            continue;
-          }
-
-          var size = parseInt(entry.size, 16);
           var leafStackFrameIndex = entry.bt;
           var leafStackFrame;
 
@@ -2198,12 +2282,39 @@ tr.exportTo('tr.e.importer', function() {
             }
           }
 
-          heapDump.addEntry(leafStackFrame, size);
+          var objectTypeId = entry.type;
+          var objectTypeName;
+          if (objectTypeId === undefined) {
+            objectTypeName = undefined /* total over all types */;
+          } else if (objectTypeNameMap === undefined) {
+            // This can only happen when the old format is used.
+            continue;
+          } else {
+            objectTypeName = objectTypeNameMap[objectTypeId];
+            if (objectTypeName === undefined) {
+              this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Missing object type name (ID ' + objectTypeId +
+                    ') of heap entry ' + i + ' (size ' + size + ') in a ' +
+                    allocatorName + ' heap dump for pid=' + pid + '.'
+              });
+              continue;
+            }
+          }
+
+          var size = parseInt(entry.size, 16);
+          heapDump.addEntry(leafStackFrame, objectTypeName, size);
         }
-        heapDumps[allocatorName] = heapDump;
+
+        // Throw away heap dumps with no entries. This can happen if all raw
+        // entries in the trace are skipped for some reason (e.g. invalid leaf
+        // stack frame ID).
+        if (heapDump.entries.length > 0)
+          heapDumps[allocatorName] = heapDump;
       }
 
-      processMemoryDump.heapDumps = heapDumps;
+      if (Object.keys(heapDumps).length > 0)
+        processMemoryDump.heapDumps = heapDumps;
     },
 
     parseMemoryDumpLevelOfDetail_: function(levelOfDetailIndices, dumps, pid,

@@ -28,9 +28,11 @@ tr.b.unittest.testSuite(function() {
     return makeModel(events, false);
   }
 
-  function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles) {
+  function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles,
+      expectedObjectTypeName) {
     assert.strictEqual(entry.heapDump, expectedDump);
     assert.strictEqual(entry.size, expectedSize);
+    assert.strictEqual(entry.objectTypeName, expectedObjectTypeName);
     if (expectedTitles === undefined) {
       assert.isUndefined(entry.leafStackFrame);
     } else {
@@ -3797,6 +3799,23 @@ tr.b.unittest.testSuite(function() {
       },
       {
         pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // GCC.
+            '22': '[unknown]',
+            '23': 'testing::ManuallyAnnotatedMockClass',
+            '24': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'blink::Event]',
+            '25': 'blink::ContextLifecycleObserver*',
+            '26': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'blink::WebFrame*]'
+          }
+        }
+      },
+      {
+        pid: 42,
         ts: 10,
         ph: 'v',
         id: '0123',
@@ -3808,9 +3827,10 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
+                  { type: '24', size: '2e6fc8' },
                   { size: '5cdf91' },
-                  { size: 'abcde', type: '42' /* entry should be ignored */ },
-                  { bt: '' /* empty stack trace */, size: '5b6cd6' },
+                  { type: '25', size: '1737e4' },
+                  { bt: '', size: '5b6cd6' },
                   { bt: '4', size: '18f0' },
                   { bt: '3', size: 'e3a8' }
                 ]
@@ -3819,7 +3839,8 @@ tr.b.unittest.testSuite(function() {
                 entries: [
                   { size: '789' },
                   { bt: '0', size: '123' },
-                  { bt: '5', size: '456' }
+                  { bt: '5', size: '456' },
+                  { type: '25', size: 'cd' }
                 ]
               }
             }
@@ -3895,7 +3916,7 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries1 = partitionAllocDump1.entries;
     assert.lengthOf(partitionAllocEntries1, 2);
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
-        undefined);
+        undefined /* root */, undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
         ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
 
@@ -3910,9 +3931,10 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries2 = partitionAllocDump2.entries;
     assert.lengthOf(partitionAllocEntries2, 2);
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
-        undefined);
+        undefined /* root */, undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
-        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
 
     // All heap dumps in Process 21 should use the same stack frames.
     assert.strictEqual(
@@ -3928,45 +3950,43 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
     assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
     var partitionAllocEntries3 = partitionAllocDump3.entries;
-    assert.lengthOf(partitionAllocEntries3, 4);
-    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
-        undefined);
-    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 5991638,
-        ['<self>']);
-    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 6384,
+    assert.lengthOf(partitionAllocEntries3, 6);
+    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 3043272,
+        undefined /* root */, 'blink::Event');
+    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 6086545,
+        undefined /* root */, undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 1521636,
+        undefined /* root */, 'blink::ContextLifecycleObserver*');
+    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
+        ['<self>'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask']);
-    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 58280,
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 58280,
         ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask']);
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
     assert.equal(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
-    assert.lengthOf(mallocEntries3, 3);
-    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined);
+    assert.lengthOf(mallocEntries3, 4);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
+        undefined /* sum over all types */);
     checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
-        ['<self>', 'MessageLoop::RunTask']);
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
     checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
-        ['<self>', 'MessageLoop::JogTask']);
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[3], mallocDump3, 205, undefined /* root */,
+        'blink::ContextLifecycleObserver*');
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[2], 4),
-        getFrame(partitionAllocEntries3[1], 1));
-    assert.strictEqual(
-        getFrame(partitionAllocEntries3[3], 3),
-        getFrame(partitionAllocEntries3[2], 2));
-    assert.strictEqual(
-        getFrame(mallocEntries3[1], 2),
-        getFrame(mallocEntries3[0], 0));
+        getFrame(partitionAllocEntries3[5], 3),
+        getFrame(partitionAllocEntries3[4], 2));
     assert.strictEqual(
         getFrame(mallocEntries3[1], 1),
-        getFrame(partitionAllocEntries3[2], 3));
-    assert.strictEqual(
-        getFrame(mallocEntries3[2], 2),
-        getFrame(mallocEntries3[1], 2));
+        getFrame(partitionAllocEntries3[4], 3));
   });
 
   test('importMemoryDumps_heapDumps_newFormat', function() {
@@ -3981,7 +4001,7 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
-                  { bt: '', size: '1000' },
+                  { bt: '', type: '25', size: '1000' },
                   { bt: 'A', size: 'abc' }
                 ]
               }
@@ -4012,6 +4032,23 @@ tr.b.unittest.testSuite(function() {
       },
       {
         pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // Clang.
+            '22': '[unknown]',
+            '23': 'testing::ManuallyAnnotatedMockClass',
+            '24': 'const char *WTF::getStringWithTypeName() [T = ' +
+                'blink::Event]',
+            '25': 'blink::ContextLifecycleObserver *',
+            '26': 'const char *WTF::getStringWithTypeName() [T = ' +
+                'blink::WebFrame *]'
+          }
+        }
+      },
+      {
+        pid: 42,
         ts: 10,
         ph: 'v',
         id: '0123',
@@ -4023,11 +4060,12 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
-                  { bt: '' /* root total */, size: '5cdf91' },
-                  { bt: '', size: 'abcde',
-                    type: '42' /* entry should be ignored */ },
-                  { bt: '-1' /* root self */, size: '5b6cd6' },
+                  { bt: '' /* root */, size: '5cdf91' },
+                  { bt: '' /* root */, type: '24', size: '2e6fc8' },
+                  { bt: '' /* root */, type: '25', size: '1737e4' },
+                  { bt: '-1', type: '22', size: '5b6cd6' },
                   { bt: 'FOUR-AND-A-BIT', size: '18f0' },
+                  { bt: 'FOUR-AND-A-BIT', type: '26', size: 'c78' },
                   { bt: '\u03C0', size: 'e3a8' }
                 ]
               },
@@ -4035,7 +4073,8 @@ tr.b.unittest.testSuite(function() {
                 entries: [
                   { bt: '', size: '789' },
                   { bt: '0.5', size: '123' },
-                  { bt: 'NaN', size: '456' }
+                  { bt: 'NaN', size: '456' },
+                  { bt: '3', type: '25', size: 'cd' }
                 ]
               }
             }
@@ -4069,8 +4108,95 @@ tr.b.unittest.testSuite(function() {
               partition_alloc: {
                 entries: [
                   { bt: '', size: '2000' },
-                  { bt: 'A', size: 'def' },
+                  { bt: 'A', type: '25', size: 'def' },
+                  { bt: '3' /* invalid */, size: 'aaa' },
+                  { bt: 'A', type: '24' /* invalid */, size: 'bbb' },
                   { bt: '0', size: 'fff' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // Microsoft Visual C++.
+            '25': 'const char *__cdecl WTF::getStringWithTypeName<class ' +
+                'v8::FunctionCallbackInfo<class v8::Value>>(void)'
+          }
+        }
+      },
+      {
+        pid: 63,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {}  // Intentionally empty.
+        }
+      },
+      {
+        pid: 63,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {}  // Intentionally empty.
+        }
+      },
+      {
+        pid: 63,
+        ts: 13,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              winheap: {
+                entries: [
+                  { bt: '', size: '10000' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 84,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '5': { name: 'MessageLoop::WalkTask' }
+          }
+        }
+      },
+      {
+        pid: 84,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            '0': '[unknown]',
+            '1': 'base::All',
+            '3': 'content::Manually',
+            '4': 'net::Annotated'
+          }
+        }
+      },
+      {
+        pid: 84,
+        ts: 14,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              malloc: {
+                entries: [
+                  { bt: '5', type: '3', size: 'abcd' }
                 ]
               }
             }
@@ -4081,9 +4207,13 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p1 = m.getProcess(21);
     var p2 = m.getProcess(42);
+    var p3 = m.getProcess(63);
+    var p4 = m.getProcess(84);
     assert.lengthOf(m.globalMemoryDumps, 2);
     assert.lengthOf(p1.memoryDumps, 2);
     assert.lengthOf(p2.memoryDumps, 1);
+    assert.lengthOf(p3.memoryDumps, 1);
+    assert.lengthOf(p4.memoryDumps, 1);
 
     // Stack frames.
     assert.deepEqual(
@@ -4103,7 +4233,8 @@ tr.b.unittest.testSuite(function() {
           'p42:4': 'UpdateLayoutTree',
           'p42:FOUR-AND-A-BIT': '<self>',
           'p42:5': 'MessageLoop::JogTask',
-          'p42:NaN': '<self>'
+          'p42:NaN': '<self>',
+          'p84:5': 'MessageLoop::WalkTask'
         });
 
     // 1. Process 21, first dump.
@@ -4117,9 +4248,11 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries1 = partitionAllocDump1.entries;
     assert.lengthOf(partitionAllocEntries1, 2);
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
-        undefined);
+        undefined /* root */,
+        'class v8::FunctionCallbackInfo<class v8::Value>');
     checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
-        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
 
     // 2. Process 21, second dump.
     var pmd2 = p1.memoryDumps[1];
@@ -4132,16 +4265,21 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries2 = partitionAllocDump2.entries;
     assert.lengthOf(partitionAllocEntries2, 3);
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
-        undefined);
+        undefined /* root */, undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
-        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        'class v8::FunctionCallbackInfo<class v8::Value>');
     checkHeapEntry(partitionAllocEntries2[2], partitionAllocDump2, 4095,
-        ['FrameView::layout', 'MessageLoop::RunTask']);
+        ['FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
 
     // All heap dumps in Process 21 should use the same stack frames.
     assert.strictEqual(
         getFrame(partitionAllocEntries1[1], 0),
         getFrame(partitionAllocEntries2[1], 0));
+    assert.strictEqual(
+        getFrame(partitionAllocEntries2[2], 0),
+        getFrame(partitionAllocEntries2[1], 1));
 
     // 3. Process 42.
     var pmd3 = p2.memoryDumps[0];
@@ -4152,45 +4290,79 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
     assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
     var partitionAllocEntries3 = partitionAllocDump3.entries;
-    assert.lengthOf(partitionAllocEntries3, 4);
+    assert.lengthOf(partitionAllocEntries3, 7);
     checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
-        undefined);
-    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 5991638,
-        ['<self>']);
-    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 6384,
+        undefined /* root */, undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 3043272,
+        undefined /* root */, 'blink::Event');
+    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 1521636,
+        undefined /* root */, 'blink::ContextLifecycleObserver *');
+    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
+        ['<self>'], '[unknown]');
+    checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask']);
-    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 58280,
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask'], 'blink::WebFrame *');
+    checkHeapEntry(partitionAllocEntries3[6], partitionAllocDump3, 58280,
         ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask']);
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
     assert.equal(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
-    assert.lengthOf(mallocEntries3, 3);
-    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined);
+    assert.lengthOf(mallocEntries3, 4);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
+        undefined /* sum over all types */);
     checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
-        ['<self>', 'MessageLoop::RunTask']);
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
     checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
-        ['<self>', 'MessageLoop::JogTask']);
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
+        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *');
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[2], 4),
-        getFrame(partitionAllocEntries3[1], 1));
+        getFrame(partitionAllocEntries3[5], 0),
+        getFrame(partitionAllocEntries3[4], 0));
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[3], 3),
-        getFrame(partitionAllocEntries3[2], 2));
-    assert.strictEqual(
-        getFrame(mallocEntries3[1], 2),
-        getFrame(mallocEntries3[0], 0));
+        getFrame(partitionAllocEntries3[6], 3),
+        getFrame(partitionAllocEntries3[4], 2));
     assert.strictEqual(
         getFrame(mallocEntries3[1], 1),
-        getFrame(partitionAllocEntries3[2], 3));
+        getFrame(partitionAllocEntries3[4], 3));
     assert.strictEqual(
-        getFrame(mallocEntries3[2], 2),
-        getFrame(mallocEntries3[1], 2));
+        getFrame(mallocEntries3[3], 0),
+        getFrame(partitionAllocEntries3[6], 1));
+
+    // 4. Process 63.
+    var pmd4 = p3.memoryDumps[0];
+    var hds4 = pmd4.heapDumps;
+    assert.sameMembers(Object.keys(hds4), ['winheap']);
+
+    var winheapDump = hds4['winheap'];
+    assert.strictEqual(winheapDump.processMemoryDump, pmd4);
+    assert.equal(winheapDump.allocatorName, 'winheap');
+    var winheapEntries = winheapDump.entries;
+    assert.lengthOf(winheapEntries, 1);
+    checkHeapEntry(winheapEntries[0], winheapDump, 65536,
+        undefined /* root */, undefined /* sum over all types */);
+
+    // 5. Process 84.
+    var pmd5 = p4.memoryDumps[0];
+    var hds5 = pmd5.heapDumps;
+    assert.sameMembers(Object.keys(hds5), ['malloc']);
+
+    var mallocDump4 = hds5['malloc'];
+    assert.strictEqual(mallocDump4.processMemoryDump, pmd5);
+    assert.equal(mallocDump4.allocatorName, 'malloc');
+    var mallocEntries4 = mallocDump4.entries;
+    assert.lengthOf(mallocEntries4, 1);
+    checkHeapEntry(mallocEntries4[0], mallocDump4, 43981,
+        ['MessageLoop::WalkTask'], 'content::Manually');
   });
 
   test('importMemoryDumps_composableDumps', function() {
@@ -4209,7 +4381,7 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
-                  { bt: '', size: '500' }
+                  { bt: '99', type: '888', size: '500' }
                 ]
               }
             }
@@ -4245,6 +4417,16 @@ tr.b.unittest.testSuite(function() {
                 type: 'ownership'
               }
             ]
+          }
+        }
+      },
+      {  // Stack frames (required for heap dumps).
+        pid: 42,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '99': { name: 'MessageLoop::RunTask' }
           }
         }
       },
@@ -4356,6 +4538,18 @@ tr.b.unittest.testSuite(function() {
                 type: 'retention'
               }
             ]
+          }
+        }
+      },
+      {  // Object type names (required for heap dumps).
+        pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // GCC.
+            '888': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'cc::SurfaceFactory]'
           }
         }
       },
@@ -4511,7 +4705,8 @@ tr.b.unittest.testSuite(function() {
     var entries = heapDump.entries;
     assert.lengthOf(entries, 1);
     assert.strictEqual(entries[0].heapDump, heapDump);
-    assert.isUndefined(entries[0].leafStackFrame);
+    assert.strictEqual(entries[0].leafStackFrame.title, 'MessageLoop::RunTask');
+    assert.strictEqual(entries[0].objectTypeName, 'cc::SurfaceFactory');
     assert.strictEqual(entries[0].size, 1280);
 
     // Check the other dumps.

@@ -192,6 +192,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
         // Build the heap tree.
         heapDump.entries.forEach(function(entry) {
+          // Heap dump entries with specified object type names need to be
+          // ignored until the UI can handle them correctly (work in progress).
+          // See https://github.com/catapult-project/catapult/issues/1625.
+          if (entry.objectTypeName !== undefined)
+            return;
           var size = entry.size;
           var leafStackFrame = entry.leafStackFrame;
           if (leafStackFrame === undefined) {
