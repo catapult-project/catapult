@@ -76,6 +76,7 @@ _PERMISSIONS_BLACKLIST = [
     'android.permission.NFC',
     'android.permission.READ_SYNC_SETTINGS',
     'android.permission.READ_SYNC_STATS',
+    'android.permission.RECEIVE_BOOT_COMPLETED',
     'android.permission.USE_CREDENTIALS',
     'android.permission.VIBRATE',
     'android.permission.WAKE_LOCK',
@@ -90,6 +91,9 @@ _PERMISSIONS_BLACKLIST = [
     'com.google.android.c2dm.permission.RECEIVE',
     'com.google.android.providers.gsf.permission.READ_GSERVICES',
     'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
+    'org.chromium.chrome.permission.C2D_MESSAGE',
+    'org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
+    'org.chromium.chrome.TOS_ACKED',
 ]
 
 _CURRENT_FOCUS_CRASH_RE = re.compile(
@@ -2108,13 +2112,14 @@ class DeviceUtils(object):
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
       permissions.append('android.permission.READ_EXTERNAL_STORAGE')
-    cmd = ';'.join('pm grant %s %s' %(package, p) for p in permissions)
+    cmd = ';'.join('pm grant %s %s' % (package, p) for p in permissions)
     if cmd:
       output = self.RunShellCommand(cmd)
       if output:
         logging.warning('Possible problem when granting permissions. Blacklist '
                         'may need to be updated.')
-        logging.warning(output)
+        for line in output:
+          logging.warning('  %s', line)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def IsScreenOn(self, timeout=None, retries=None):
