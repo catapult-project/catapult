@@ -31,6 +31,16 @@
         }
       }
     },
+    "chromium_commands": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "android_linux2": {
+          "cloud_storage_hash": "049f482f29bc34e2ed844e2e47b7609f8ffbeb4f",
+          "download_path": "../bin/lib.java/chromium_commands.dex.jar"
+        }
+      }
+    },
     "dexdump": {
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",

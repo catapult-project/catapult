@@ -29,6 +29,7 @@ from devil.android import device_signal
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android import device_temp_file
+from devil.android import install_commands
 from devil.android import logcat_monitor
 from devil.android import md5sum
 from devil.android.sdk import adb_wrapper
@@ -42,7 +43,6 @@ from devil.utils import parallelizer
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
-from pylib.device.commands import install_commands
 
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
