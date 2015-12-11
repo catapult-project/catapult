@@ -33,7 +33,8 @@ def CalculateHostMd5Sums(paths):
   md5sum_bin_host_path = devil_env.config.FetchPath('md5sum_host')
   if not os.path.exists(md5sum_bin_host_path):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
-  out = cmd_helper.GetCmdOutput([md5sum_bin_host_path] + [p for p in paths])
+  out = cmd_helper.GetCmdOutput(
+    [md5sum_bin_host_path] + [os.path.realpath(p) for p in paths])
 
   return _ParseMd5SumOutput(out.splitlines())
 
