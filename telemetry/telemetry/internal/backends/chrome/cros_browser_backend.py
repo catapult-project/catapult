@@ -68,6 +68,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
             '--start-maximized',
+            # Disable system startup sound.
+            '--ash-disable-system-sounds',
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
             # Debug logging.
