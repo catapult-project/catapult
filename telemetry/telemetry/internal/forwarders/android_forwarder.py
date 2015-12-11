@@ -16,13 +16,13 @@ from telemetry.core import util
 from telemetry.internal import forwarders
 from telemetry.internal.platform import android_device
 
-try:
-  from pylib import forwarder
-except ImportError:
-  forwarder = None
-
 from devil.android import device_errors
 from devil.android import device_utils
+
+try:
+  from devil.android import forwarder
+except ImportError:
+  forwarder = None
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):
