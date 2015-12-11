@@ -236,6 +236,8 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       return os_version_module.WIN7
     if os_version.startswith('6.2.'):
       return os_version_module.WIN8
+    if os_version.startswith('10.'):
+      return os_version_module.WIN10
 
     raise NotImplementedError('Unknown win version %s.' % os_version)
 
