@@ -105,3 +105,6 @@ class DependencyInfo(object):
   def has_cloud_storage_info(self):
     return bool(self._cloud_storage_info)
 
+  @property
+  def cloud_storage_info(self):
+    return self._cloud_storage_info

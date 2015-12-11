@@ -376,4 +376,3 @@ class BaseConfig(object):
     json_dict = {'config_type': cls.GetConfigType(),
                  'dependencies': dependencies}
     return json_dict
-
