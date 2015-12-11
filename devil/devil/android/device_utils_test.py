@@ -11,7 +11,6 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 # pylint: disable=unused-argument
 
 import logging
-import sys
 import unittest
 
 from devil import devil_env
@@ -24,8 +23,8 @@ from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
 
-sys.path.append(devil_env.config.LocalPath('pymock'))
-import mock # pylint: disable=import-error
+with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+  import mock # pylint: disable=import-error
 
 
 class _MockApkHelper(object):

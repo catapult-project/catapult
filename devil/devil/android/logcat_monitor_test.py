@@ -6,15 +6,14 @@
 # pylint: disable=protected-access
 
 import itertools
-import sys
 import unittest
 
 from devil import devil_env
 from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 
-sys.path.append(devil_env.config.LocalPath('pymock'))
-import mock # pylint: disable=import-error
+with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+  import mock # pylint: disable=import-error
 
 
 def _CreateTestLog(raw_logcat=None):

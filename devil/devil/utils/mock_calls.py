@@ -6,13 +6,12 @@
 A test facility to assert call sequences while mocking their behavior.
 """
 
-import sys
 import unittest
 
 from devil import devil_env
 
-sys.path.append(devil_env.config.LocalPath('pymock'))
-import mock # pylint: disable=F0401
+with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+  import mock # pylint: disable=import-error
 
 
 class TestCase(unittest.TestCase):

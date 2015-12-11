@@ -12,7 +12,6 @@ import os
 import tempfile
 import unittest
 
-from pylib import constants
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
@@ -33,8 +32,6 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     self.adb.WaitForDevice()
     self.device = device_utils.DeviceUtils(
         self.adb, default_timeout=10, default_retries=0)
-    default_build_type = os.environ.get('BUILDTYPE', 'Debug')
-    constants.SetBuildType(default_build_type)
 
   @staticmethod
   def _MakeTempFile(contents):

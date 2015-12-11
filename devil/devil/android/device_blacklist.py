@@ -8,13 +8,6 @@ import os
 import threading
 import time
 
-from pylib import constants
-
-# TODO(jbudorick): Remove this once the blacklist is optional.
-BLACKLIST_JSON = os.path.join(
-    constants.DIR_SOURCE_ROOT,
-    os.environ.get('CHROMIUM_OUT_DIR', 'out'),
-    'bad_devices.json')
 
 class Blacklist(object):
 

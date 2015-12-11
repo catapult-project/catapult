@@ -9,15 +9,14 @@ Unit tests for the contents of mock_calls.py.
 
 import logging
 import os
-import sys
 import unittest
 
 from devil import devil_env
 from devil.android.sdk import version_codes
 from devil.utils import mock_calls
 
-sys.path.append(devil_env.config.LocalPath('pymock'))
-import mock # pylint: disable=F0401
+with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+  import mock # pylint: disable=import-error
 
 
 class _DummyAdb(object):

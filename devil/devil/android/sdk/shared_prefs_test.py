@@ -8,15 +8,14 @@ Unit tests for the contents of shared_prefs.py (mostly SharedPrefs).
 """
 
 import logging
-import sys
 import unittest
 
 from devil import devil_env
 from devil.android import device_utils
 from devil.android.sdk import shared_prefs
 
-sys.path.append(devil_env.config.LocalPath('pymock'))
-import mock # pylint: disable=import-error
+with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+  import mock # pylint: disable=import-error
 
 
 def MockDeviceWithFiles(files=None):
