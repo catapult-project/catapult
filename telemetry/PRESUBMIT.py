@@ -15,6 +15,45 @@ def _CommonChecks(input_api, output_api):
   return results
 
 
+def _RunArgs(args, input_api):
+  p = input_api.subprocess.Popen(args, stdout=input_api.subprocess.PIPE,
+                                 stderr=input_api.subprocess.STDOUT)
+  out, _ = p.communicate()
+  return (out, p.returncode)
+
+
+def _CheckTelemetryBinaryDependencies(input_api, output_api):
+  """ Check that binary_dependencies.json has valid format and content.
+
+  This check should only be done in CheckChangeOnUpload() only since it invokes
+  network I/O.
+  """
+  results = []
+  telemetry_dir = input_api.PresubmitLocalPath()
+  telemetry_binary_dependencies_path = input_api.os_path.join(
+      telemetry_dir, 'telemetry', 'internal', 'binary_dependencies.json')
+  for f in input_api.AffectedFiles():
+    if not f.AbsoluteLocalPath() == telemetry_binary_dependencies_path:
+      continue
+    out, return_code = _RunArgs([
+        input_api.python_executable,
+        input_api.os_path.join(telemetry_dir, 'json_format'),
+        telemetry_binary_dependencies_path], input_api)
+    if return_code:
+      results.append(output_api.PresubmitError(
+           'Validating binary_dependencies.json failed:', long_text=out))
+      break
+    out, return_code = _RunArgs([
+        input_api.python_executable,
+        input_api.os_path.join(telemetry_dir, 'validate_binary_dependencies'),
+        telemetry_binary_dependencies_path], input_api)
+    if return_code:
+      results.append(output_api.PresubmitError(
+          'Validating binary_dependencies.json failed:', long_text=out))
+      break
+  return results
+
+
 def _CheckNoMoreUsageOfDeprecatedCode(
     input_api, output_api, deprecated_code, crbug_number):
   results = []
@@ -69,9 +108,11 @@ def _GetPathsToPrepend(input_api):
   ]
 
 
+
 def CheckChangeOnUpload(input_api, output_api):
   results = []
   results.extend(_CommonChecks(input_api, output_api))
+  results.extend(_CheckTelemetryBinaryDependencies(input_api, output_api))
   return results
 
 

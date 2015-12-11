@@ -36,6 +36,9 @@ class CloudStorageInfo(object):
           'Not enough information specified to initialize a cloud storage info.'
           ' %s' % self)
 
+  def DependencyExistsInCloudStorage(self):
+    return cloud_storage.Exists(self._cs_bucket, self._cs_remote_path)
+
   def GetRemotePath(self):
     """Gets the path to a downloaded version of the dependency.
 
