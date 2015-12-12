@@ -4,6 +4,7 @@
 
 """Print prettier and more detailed exceptions."""
 
+import logging
 import math
 import os
 import sys
@@ -15,6 +16,8 @@ from telemetry.core import util
 
 def PrintFormattedException(exception_class=None, exception=None, tb=None,
                             msg=None):
+  logging.info('Try printing formatted exception: %s %s %s' %
+               (exception_class, exception, tb))
   assert bool(exception_class) == bool(exception) == bool(tb), (
       'Must specify all or none of exception_class, exception, and tb')
 
