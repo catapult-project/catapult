@@ -129,7 +129,11 @@ def GetDevice(finder_options):
 
 
 def _HasValidAdb():
-  """Returns true if adb is present."""
+  """Returns true if adb is present.
+
+  Note that this currently will return True even if the adb that's present
+  cannot run on this system.
+  """
   if os.name != 'posix' or cros_device.IsRunningOnCrOS():
     return False
 
@@ -186,6 +190,10 @@ def FindAllAvailableDevices(options):
       devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   finally:
     if not devices and _HasValidAdb():
-      adb_wrapper.AdbWrapper.KillServer()
+      try:
+        adb_wrapper.AdbWrapper.KillServer()
+      except device_errors.NoAdbError as e:
+        logging.warning(
+            'adb reported as present, but NoAdbError thrown: %s', str(e))
 
   return devices
