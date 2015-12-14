@@ -115,7 +115,7 @@ class AdbWrapper(object):
           timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
-        raise device_errors.NoAdbError()
+        raise device_errors.NoAdbError(msg=str(e))
       else:
         raise
 

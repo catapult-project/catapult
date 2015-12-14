@@ -112,6 +112,6 @@ class NoDevicesError(base_error.BaseError):
 class NoAdbError(base_error.BaseError):
   """Exception for being unable to find ADB."""
 
-  def __init__(self):
+  def __init__(self, msg=None):
     super(NoAdbError, self).__init__(
-        'Unable to find adb.', is_infra_error=True)
+        msg or 'Unable to find adb.', is_infra_error=True)
