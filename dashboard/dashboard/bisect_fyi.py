@@ -180,7 +180,7 @@ def _TextBody(errors_list):
 def _SendEmailAlert(errors_list):
   """Sends email alert about bisect integration tests failures."""
   mail.send_mail(
-      sender='auto-bisect-team@google.com',
-      to='prasadv@google.com',
+      sender='gasper-alerts@google.com',
+      to='auto-bisect-team@google.com',
       subject='[Bisect FYI Alert]Failed to run bisect integration tests.',
       body=_TextBody(errors_list))

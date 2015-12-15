@@ -1270,7 +1270,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
-    self.assertIn('prasadv@google.com',
+    self.assertIn('auto-bisect-team@google.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
   @mock.patch(
@@ -1315,7 +1315,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
-    self.assertIn('prasadv@google.com',
+    self.assertIn('auto-bisect-team@google.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
 

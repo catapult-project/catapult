@@ -917,7 +917,7 @@ def _SendFYIBisectEmail(job, results):
                   ' Results: %s', job.job_name, results)
     return
   mail.send_mail(sender='gasper-alerts@google.com',
-                 to='prasadv@google.com',
+                 to='auto-bisect-team@google.com',
                  subject=email_data['subject'],
                  body=email_data['body'],
                  html=email_data['html'])
