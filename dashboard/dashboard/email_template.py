@@ -92,16 +92,16 @@ _BISECT_FYI_EMAIL_SUBJECT = (
     'Bisect FYI Try Job Failed on %(bot)s for %(test_name)s.')
 
 _BISECT_FYI_EMAIL_HTML_BODY = """
-Bisect FYI Try Job Failed
+<font color="red"><b>Bisect FYI Try Job Failed</b></font>
 <br><br>
 A Bisect FYI Try Job for %(test_name)s was submitted on %(bot)s at
 <a href="%(job_url)s">%(job_url)s</a>.<br>
 <table cellpadding='4'>
   <tr><td>Bot:</td><td><b>%(bot)s</b></td>
   <tr><td>Test Case:</td><td><b>%(test_name)s</b></td>
-  <tr><td>Bisect Config:</td><td><b>%(config)s</b></td>
-  <tr><td>Error Details:</td><td><b>%(errors)s</b></td>
-  <tr><td>Bisect Results:</td><td><b>%(results)s</b></td>
+  <tr><td>Bisect Config:</td><td><b><pre>%(config)s</pre></b></td>
+  <tr><td>Error Details:</td><td><b><pre>%(errors)s</pre></b></td>
+  <tr><td>Bisect Results:</td><td><b><pre>%(results)s</pre></b></td>
 </table>
 """
 

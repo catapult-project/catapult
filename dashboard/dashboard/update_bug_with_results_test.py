@@ -1266,7 +1266,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     _TEST_RECEIVED_EMAIL = None
 
     self.testapp.get('/update_bug_with_results')
-    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+    self.assertIn('<font color="red"><b>Bisect FYI Try Job Failed</b></font>',
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
@@ -1311,7 +1311,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     _TEST_RECEIVED_EMAIL = None
 
     self.testapp.get('/update_bug_with_results')
-    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+    self.assertIn('<font color="red"><b>Bisect FYI Try Job Failed</b></font>',
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
