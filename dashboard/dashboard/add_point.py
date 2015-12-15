@@ -143,6 +143,8 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       if type(data) is dict:
         if data.get('chart_data'):
           data = _DashboardJsonToRawRows(data)
+          if not data:
+            return  # No data to add, bail out.
         else:
           self.ReportError(
               'Data should be a list of rows or a Dashboard JSON v1.0 dict.',
@@ -188,9 +190,9 @@ def _DashboardJsonToRawRows(dash_json_dict):
   test_suite_name = _TestSuiteName(dash_json_dict)
 
   chart_data = dash_json_dict.get('chart_data', {})
-  charts = chart_data.get('charts', [])
+  charts = chart_data.get('charts', {})
   if not charts:
-    raise BadRequestError('Empty "charts" in "chart_data" field.')
+    return []  # No charts implies no data to add.
 
   # Links to about:tracing traces are listed under 'trace'; if they
   # exist copy them to a separate dictionary and delete from the chartjson

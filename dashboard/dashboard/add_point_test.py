@@ -1105,19 +1105,21 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps(chart)}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
-  def testPost_FormatV1_EmptyCharts_Rejected(self):
-    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
-    chart['chart_data']['charts'] = []
-    self.testapp.post(
-        '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-
   def testPost_GarbageDict_Rejected(self):
     """Tests that posting an ill-formatted dict will error."""
     chart = {'foo': 'garbage'}
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+  def testPost_FormatV1_EmptyCharts_NothingAdded(self):
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    chart['chart_data']['charts'] = {}
+    self.testapp.post(
+        '/add_point', {'data': json.dumps(chart)},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    # Status is OK, but no rows are added.
+    self.assertIsNone(graph_data.Row.query().get())
 
 
 class FlattenTraceTest(testing_common.TestCase):
