@@ -30,41 +30,25 @@ class DependencyManagerTest(unittest.TestCase):
     with self.assertRaises(ValueError):
       dependency_manager.DependencyManager('config_file?')
 
-  @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch(
       'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathUnititializedDependency(
-      self, local_path_mock, cs_path_mock, dep_info_mock, sb_find_path_mock):
+      self, local_path_mock, cs_path_mock, dep_info_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
-    sb_path = 'sb_path'
     local_path = 'local_path'
     cs_path = 'cs_path'
     local_path_mock.return_value = local_path
     cs_path_mock.return_value = cs_path
-    sb_find_path_mock.return_value = sb_path
     dep_info_mock.return_value = None
 
     # Empty lookup_dict
     with self.assertRaises(exceptions.NoPathFoundError):
       dep_manager.FetchPath('dep', 'plat_arch_x86')
-    dep_info_mock.reset_mock()
-
-    found_path = dep_manager.FetchPath(
-        'dep', 'plat_arch_x86', try_support_binaries=True)
-    self.assertEqual(sb_path, found_path)
-    self.assertFalse(local_path_mock.call_args)
-    self.assertFalse(cs_path_mock.call_args)
-    dep_info_mock.assert_called_once_with('dep', 'plat_arch_x86')
-    sb_find_path_mock.assert_called_once_with('dep', 'arch_x86', 'plat')
-    local_path_mock.reset_mock()
-    cs_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that doesn't contain the dependency we're looking
@@ -73,39 +57,24 @@ class DependencyManagerTest(unittest.TestCase):
                                 'dep2': mock.MagicMock()}
     with self.assertRaises(exceptions.NoPathFoundError):
       dep_manager.FetchPath('dep', 'plat_arch_x86')
-    dep_info_mock.reset_mock()
 
-    found_path = dep_manager.FetchPath(
-        'dep', 'plat_arch_x86', try_support_binaries=True)
-    self.assertEqual(sb_path, found_path)
-    self.assertFalse(local_path_mock.call_args)
-    self.assertFalse(cs_path_mock.call_args)
-    dep_info_mock.assert_called_once_with('dep', 'plat_arch_x86')
-    sb_find_path_mock.assert_called_once_with('dep', 'arch_x86', 'plat')
-    local_path_mock.reset_mock()
-    cs_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
 
   @mock.patch('os.path')
-  @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch(
       'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathLocalFile(self, local_path_mock, cs_path_mock, dep_info_mock,
-                    sb_find_path_mock, path_mock):
+                             path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
-    sb_path = 'sb_path'
     local_path = 'local_path'
     cs_path = 'cs_path'
     dep_info = self.dep_info
     local_path_mock.return_value = local_path
     cs_path_mock.return_value = cs_path
-    sb_find_path_mock.return_value = sb_path
     # The DependencyInfo returned should be passed through to LocalPath.
     dep_info_mock.return_value = dep_info
 
@@ -120,27 +89,23 @@ class DependencyManagerTest(unittest.TestCase):
     local_path_mock.assert_called_with(self.dep_info)
     dep_info_mock.assert_called_once_with('dep1', 'plat')
     self.assertFalse(cs_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_called_once_with('local_path')
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
 
 
   @mock.patch('os.path')
-  @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
       'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathRemoteFile(
-      self, local_path_mock, cs_path_mock, sb_find_path_mock, path_mock):
+      self, local_path_mock, cs_path_mock, path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
     local_path = 'local_path'
     cs_path = 'cs_path'
     cs_path_mock.return_value = cs_path
@@ -156,14 +121,12 @@ class DependencyManagerTest(unittest.TestCase):
 
     self.assertEqual(cs_path, found_path)
     local_path_mock.assert_called_with(self.dep_info)
-    self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_has_calls([mock.call(local_path),
                                        mock.call(cs_path)], any_order=False)
     local_path_mock.reset_mock()
     cs_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
     # Local path isn't found, but cloud_storage_path is downloaded.
@@ -176,22 +139,19 @@ class DependencyManagerTest(unittest.TestCase):
 
     self.assertEqual(cs_path, found_path)
     local_path_mock.assert_called_with(self.dep_info)
-    self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_has_calls([mock.call(local_path),
                                        mock.call(cs_path)], any_order=False)
 
-  @mock.patch('catapult_base.support_binaries.FindPath')
   @mock.patch(
       'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
   def testFetchPathError(
-      self, local_path_mock, cs_path_mock, sb_find_path_mock):
+      self, local_path_mock, cs_path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
     self.assertFalse(cs_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
     local_path_mock.return_value = None
     cs_path_mock.return_value = None
     dep_manager._lookup_dict = {'dep': {'platform' : self.dep_info,
@@ -216,20 +176,15 @@ class DependencyManagerTest(unittest.TestCase):
                       dep_manager.FetchPath, 'dep', 'platform')
 
   @mock.patch('os.path')
-  @mock.patch('catapult_base.support_binaries.FindLocallyBuiltPath')
   @mock.patch(
       'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch('catapult_base.dependency_manager.DependencyManager._LocalPath')
-  def testLocalPath(self, local_path_mock, dep_info_mock, sb_find_path_mock,
-                    path_mock):
+  def testLocalPath(self, local_path_mock, dep_info_mock, path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(local_path_mock.call_args)
-    self.assertFalse(sb_find_path_mock.call_args)
-    sb_path = 'sb_path'
     local_path = 'local_path'
     dep_info = 'dep_info'
     local_path_mock.return_value = local_path
-    sb_find_path_mock.return_value = sb_path
 
     # GetDependencyInfo should return None when missing from the lookup dict.
     dep_info_mock.return_value = None
@@ -239,32 +194,12 @@ class DependencyManagerTest(unittest.TestCase):
       dep_manager.LocalPath('dep', 'plat')
     dep_info_mock.reset_mock()
 
-    found_path = dep_manager.LocalPath(
-        'dep', 'plat', try_support_binaries=True)
-    self.assertEqual(sb_path, found_path)
-    self.assertFalse(local_path_mock.call_args)
-    sb_find_path_mock.assert_called_once_with('dep')
-    dep_info_mock.assert_called_once_with('dep', 'plat')
-    local_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
-    dep_info_mock.reset_mock()
-
     # Non-empty lookup dict that doesn't contain the dependency we're looking
     # for.
     dep_manager._lookup_dict = {'dep1': mock.MagicMock(),
                                 'dep2': mock.MagicMock()}
     with self.assertRaises(exceptions.NoPathFoundError):
       dep_manager.LocalPath('dep', 'plat')
-    dep_info_mock.reset_mock()
-
-    found_path = dep_manager.LocalPath(
-        'dep', 'plat', try_support_binaries=True)
-    self.assertEqual(sb_path, found_path)
-    self.assertFalse(local_path_mock.call_args)
-    sb_find_path_mock.assert_called_once_with('dep')
-    dep_info_mock.assert_called_once_with('dep', 'plat')
-    local_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
 
     # The DependencyInfo returned should be passed through to LocalPath.
@@ -279,13 +214,11 @@ class DependencyManagerTest(unittest.TestCase):
 
     self.assertEqual(local_path, found_path)
     local_path_mock.assert_called_with('dep_info')
-    self.assertFalse(sb_find_path_mock.call_args)
     # If the below assert fails, the ordering assumption that determined the
     # path_mock return values is incorrect, and should be updated.
     path_mock.exists.assert_called_once_with('local_path')
     dep_info_mock.assert_called_once_with('dep1', 'plat')
     local_path_mock.reset_mock()
-    sb_find_path_mock.reset_mock()
     dep_info_mock.reset_mock()
 
     # Non-empty lookup dict that contains the dependency we're looking for.
