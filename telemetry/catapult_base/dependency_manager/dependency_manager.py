@@ -2,13 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
-from catapult_base import support_binaries
 from catapult_base.dependency_manager import base_config
 from catapult_base.dependency_manager import exceptions
 
@@ -54,7 +52,7 @@ class DependencyManager(object):
     for config in configs:
       self._UpdateDependencies(config)
 
-  def FetchPath(self, dependency, platform, try_support_binaries=False):
+  def FetchPath(self, dependency, platform):
     """Get a path to an executable for |dependency|, downloading as needed.
 
     A path to a default executable may be returned if a platform specific
@@ -66,9 +64,6 @@ class DependencyManager(object):
         platform: Name of the platform the dependency will run on. Often of the
             form 'os_architecture'. Must match those specified in the config(s)
             used in this DependencyManager.
-        try_support_binaries: True if support_binaries should be queried if the
-            dependency_manager was not initialized with data for |dependency|.
-
     Returns:
         A path to an executable of |dependency| that will run on |platform|,
         downloading from cloud storage if needed.
@@ -90,22 +85,7 @@ class DependencyManager(object):
     """
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
-      if not try_support_binaries:
-        raise exceptions.NoPathFoundError(dependency, platform)
-      # TODO(aiolos): Remove the support_binaries call and always raise
-      # NoPathFound once the binary dependencies are moved over to the new
-      # system.
-
-      # platform should be of the form '%s_%s' % (os_name, arch_name) when
-      # called from the binary_manager.
-      platform_parts = platform.split('_', 1)
-      assert len(platform_parts) == 2
-      platform_os, platform_arch = platform_parts
-      logging.info('Calling into support_binaries with dependency %s, platform '
-                   '%s and arch %s. support_binaries is deprecated.'
-                   % (dependency, platform_os, platform_arch))
-      return support_binaries.FindPath(dependency, platform_arch,
-                                       platform_os)
+      raise exceptions.NoPathFoundError(dependency, platform)
     path = self._LocalPath(dependency_info)
     if not path or not os.path.exists(path):
       path = dependency_info.GetRemotePath()
@@ -113,7 +93,7 @@ class DependencyManager(object):
         raise exceptions.NoPathFoundError(dependency, platform)
     return path
 
-  def LocalPath(self, dependency, platform, try_support_binaries=False):
+  def LocalPath(self, dependency, platform):
     """Get a path to a locally stored executable for |dependency|.
 
     A path to a default executable may be returned if a platform specific
@@ -126,23 +106,15 @@ class DependencyManager(object):
         platform: Name of the platform the dependency will run on. Often of the
             form 'os_architecture'. Must match those specified in the config(s)
             used in this DependencyManager.
-        try_support_binaries: True if support_binaries should be queried if the
-            dependency_manager was not initialized with data for |dependency|.
-
     Returns:
         A path to an executable for |dependency| that will run on |platform|.
 
     Raises:
         NoPathFoundError: If a local copy of the executable cannot be found.
     """
-    # TODO(aiolos): Remove the support_binaries call and always raise
-    # NoPathFound once the binary dependencies are moved over to the new
-    # system.
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
-      if not try_support_binaries:
-        raise exceptions.NoPathFoundError(dependency, platform)
-      return support_binaries.FindLocallyBuiltPath(dependency)
+      raise exceptions.NoPathFoundError(dependency, platform)
     local_path = self._LocalPath(dependency_info)
     if not local_path or not os.path.exists(local_path):
       raise exceptions.NoPathFoundError(dependency, platform)

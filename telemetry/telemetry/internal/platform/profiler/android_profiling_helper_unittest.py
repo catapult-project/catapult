@@ -102,6 +102,7 @@ class TestFileMetadataMatches(unittest.TestCase):
 
 class TestAndroidProfilingHelper(unittest.TestCase):
 
+  @decorators.Enabled('linux')
   def testGetRequiredLibrariesForPerfProfile(self):
     perf_output = os.path.join(
         util.GetUnittestDataDir(), 'sample_perf_report_output.txt')

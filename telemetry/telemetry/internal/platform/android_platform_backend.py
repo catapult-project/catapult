@@ -59,6 +59,25 @@ _DEVICE_COPY_SCRIPT_FILE = os.path.join(
 _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
 
+# TODO(nednguyen): Remove this method and update the client config to point to
+# the correct binary instead.
+def _FindLocallyBuiltPath(binary_name):
+  """Finds the most recently built |binary_name|."""
+  command = None
+  command_mtime = 0
+  chrome_root = util.GetChromiumSrcDir()
+  required_mode = os.X_OK
+  if binary_name.endswith('.apk'):
+    required_mode = os.R_OK
+  for build_dir, build_type in util.GetBuildDirectories():
+    candidate = os.path.join(chrome_root, build_dir, build_type, binary_name)
+    if os.path.isfile(candidate) and os.access(candidate, required_mode):
+      candidate_mtime = os.stat(candidate).st_mtime
+      if candidate_mtime > command_mtime:
+        command = candidate
+        command_mtime = candidate_mtime
+  return command
+
 
 def _SetupPrebuiltTools(device):
   """Some of the android pylib scripts we depend on are lame and expect
@@ -94,8 +113,7 @@ def _SetupPrebuiltTools(device):
   build_type = None
   for t in device_tools + host_tools:
     executable = os.path.basename(t)
-    locally_built_path = binary_manager.LocalPath(
-        t, platform_name, arch_name)
+    locally_built_path = _FindLocallyBuiltPath(t)
     if not build_type:
       build_type = _GetBuildTypeOfPath(locally_built_path) or 'Release'
       constants.SetBuildType(build_type)

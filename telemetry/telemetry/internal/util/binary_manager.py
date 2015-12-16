@@ -48,7 +48,7 @@ def FetchPath(binary_name, arch, platform):
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
   return _dependency_manager.FetchPath(
-      binary_name, '%s_%s' % (platform, arch), try_support_binaries=True)
+      binary_name, '%s_%s' % (platform, arch))
 
 
 def LocalPath(binary_name, arch, platform):
@@ -61,4 +61,4 @@ def LocalPath(binary_name, arch, platform):
     raise exceptions.InitializationError(
         'Called LocalPath with uninitialized binary manager.')
   return _dependency_manager.LocalPath(
-      binary_name, '%s_%s' % (platform, arch), try_support_binaries=True)
+      binary_name, '%s_%s' % (platform, arch))
