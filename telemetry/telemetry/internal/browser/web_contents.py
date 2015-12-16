@@ -256,24 +256,6 @@ class WebContents(object):
   def timeline_model(self):
     return self._inspector_backend.timeline_model
 
-  def StartTimelineRecording(self):
-    """Starts timeline recording.
-
-    Raises:
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    self._inspector_backend.StartTimelineRecording()
-
-  def StopTimelineRecording(self):
-    """Stops timeline recording.
-
-    Raises:
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    self._inspector_backend.StopTimelineRecording()
-
   def IsAlive(self):
     """Whether the WebContents is still operating normally.
 

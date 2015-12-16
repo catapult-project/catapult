@@ -13,13 +13,10 @@ from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_console
 from telemetry.internal.backends.chrome_inspector import inspector_memory
-from telemetry.internal.backends.chrome_inspector import inspector_network
 from telemetry.internal.backends.chrome_inspector import inspector_page
 from telemetry.internal.backends.chrome_inspector import inspector_runtime
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
-from telemetry.timeline import model as timeline_model_module
-from telemetry.timeline import trace_data as trace_data_module
 
 
 def _HandleInspectorWebSocketExceptions(func):
@@ -70,8 +67,6 @@ class InspectorBackend(object):
     self._page = inspector_page.InspectorPage(
         self._websocket, timeout=timeout)
     self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
-    self._network = inspector_network.InspectorNetwork(self._websocket)
-    self._timeline_model = None
 
   def Disconnect(self):
     """Disconnects the inspector websocket.
@@ -281,32 +276,6 @@ class InspectorBackend(object):
       'params': params
     }
     return self._runtime.RunInspectorCommand(scroll_command, timeout)
-
-  # Timeline public methods.
-
-  @property
-  def timeline_model(self):
-    return self._timeline_model
-
-  @_HandleInspectorWebSocketExceptions
-  def StartTimelineRecording(self):
-    self._network.timeline_recorder.Start()
-
-  @_HandleInspectorWebSocketExceptions
-  def StopTimelineRecording(self):
-    builder = trace_data_module.TraceDataBuilder()
-
-    data = self._network.timeline_recorder.Stop()
-    if data:
-      builder.AddEventsTo(trace_data_module.INSPECTOR_TRACE_PART, data)
-    self._timeline_model = timeline_model_module.TimelineModel(
-        builder.AsData(), shift_world_to_zero=False)
-
-  # Network public methods.
-
-  @_HandleInspectorWebSocketExceptions
-  def ClearCache(self):
-    self._network.ClearCache()
 
   # Methods used internally by other backends.
 
