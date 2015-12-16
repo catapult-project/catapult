@@ -3,7 +3,7 @@ Short Name: webpagereplay
 URL: https://github.com/chromium/web-page-replay
 Version: ac5d71a0938d98c82220398fbdc9036fdda1240f (commit hash)
 License: BSD
-License File: no
+License File: NOT_SHIPPED
 Security Critical: no
 
 Local modification: Remove webpagereplay/third_party/ipaddr/OWNERS to avoid

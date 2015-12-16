@@ -3,7 +3,7 @@ Short Name: Blink
 URL: http://www.chromium.org/blink
 Version: N/A
 License: BSD license
-License File: LICENSE
+License File: NOT_SHIPPED
 Security Critical: no
 Description: Blink javascripts libraries are used for visualize performance
 metrics.
