@@ -483,8 +483,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   bug = ndb.Key('Bug', job.bug_id).get()
 
   commit_cache_key = _GetCommitHashCacheKey(bisect_results['results'])
-  result_is_positive = _BisectResultIsPositive(bisect_results['results'])
-  if bug and result_is_positive:
+  if bug:
     merge_issue = layered_cache.GetExternal(commit_cache_key)
     if not merge_issue:
       authors_to_cc = _GetAuthorsToCC(bisect_results['results'])
@@ -520,7 +519,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
-  if commit_cache_key and not merge_issue and result_is_positive:
+  if commit_cache_key and not merge_issue:
     layered_cache.SetExternal(commit_cache_key, str(job.bug_id),
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
@@ -705,34 +704,27 @@ def _LogBisectInfraFailure(bug_id, failure_message, stdio_url):
   logger.Save()
 
 
-def _BisectResultIsPositive(results_output):
-  """Returns True if the bisect found a culprit with high confidence."""
-  return 'Status: Positive' in results_output
-
-
 def _GetCommitHashCacheKey(results_output):
   """Gets a commit hash cache key for the given bisect results output.
-
-  One commit hash key represents a set of culprit CLs. This information is
-  stored so in case one issue has the same set of culprit CLs as another,
-  in which case one can be marked as duplicate of the other.
 
   Args:
     results_output: The bisect results output.
 
   Returns:
-    A cache key, less than 500 characters long.
+    A string to use as a layered_cache key, or None if we don't want
+    to merge any bugs based on this bisect result.
   """
+  if not _BisectResultIsPositive(results_output):
+    return None
   commits_list = re.findall(r'Commit  : (.*)', results_output)
-  commit_hashes = sorted({commit.strip() for commit in commits_list})
-  # Generate a cache key by concatenating commit hashes found in bisect
-  # results and prepend it with commit_hash.
-  commit_cache_key = _COMMIT_HASH_CACHE_KEY % ''.join(commit_hashes)
-  # Datastore key name strings must be non-empty strings up to
-  # 500 bytes.
-  if sys.getsizeof(commit_cache_key) >= 500:
-    commit_cache_key = commit_cache_key[:400] + '...'
-  return commit_cache_key
+  if len(commits_list) != 1:
+    return None
+  return _COMMIT_HASH_CACHE_KEY % commits_list[0].strip()
+
+
+def _BisectResultIsPositive(results_output):
+  """Returns True if the bisect found a culprit with high confidence."""
+  return 'Status: Positive' in results_output
 
 
 def _GetAuthorsToCC(results_output):

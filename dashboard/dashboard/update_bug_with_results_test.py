@@ -824,12 +824,31 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
           'issue_url': 'bar',
           'buildbot_log_url': 'bar',
       }))
-  def testGet_NegativeResult_StoresCommitHash(self):
+  def testGet_NegativeResult_DoesNotStoreCommitHash(self):
     try_job.TryJob(
         bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
     self.assertIsNone(layered_cache.GetExternal('commit_hash_a121212'))
+
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': 'Status: Positive\nCommit  : a12\nCommit  : b23',
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testGet_MultipleCommits_DoesNotStoreCommitHash(self):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    self.testapp.get('/update_bug_with_results')
+    self.assertIsNone(layered_cache.GetExternal('commit_hash_a12b23'))
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
