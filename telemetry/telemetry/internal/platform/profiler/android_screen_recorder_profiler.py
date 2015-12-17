@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# pylib may not be available if we're not in an Android checkout.
+# devil may not be available if we're not in an Android checkout.
 try:
-  from pylib import screenshot
+  from devil.android.tools import video_recorder
 except ImportError:
-  screenshot = None
+  video_recorder = None
 
 from telemetry.internal.platform import profiler
 from telemetry.internal.backends.chrome import android_browser_finder
@@ -22,7 +22,7 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
     super(AndroidScreenRecordingProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     self._output_path = output_path + '.mp4'
-    self._recorder = screenshot.VideoRecorder(
+    self._recorder = video_recorder.VideoRecorder(
         browser_backend.device,
         megabits_per_second=_VIDEO_MEGABITS_PER_SECOND)
     self._recorder.Start()

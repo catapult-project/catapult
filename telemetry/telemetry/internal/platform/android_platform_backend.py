@@ -44,8 +44,8 @@ from devil.android.perf import cache_control
 from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
 from devil.android.sdk import version_codes
+from devil.android.tools import video_recorder
 from pylib import constants
-from pylib import screenshot
 
 try:
   from devil.android.perf import surface_stats_collector
@@ -476,10 +476,9 @@ class AndroidPlatformBackend(
                        'Max capture rate is 100mbps.' % min_bitrate_mbps)
     if self.is_video_capture_running:
       self._video_recorder.Stop()
-    self._video_recorder = screenshot.VideoRecorder(
+    self._video_recorder = video_recorder.VideoRecorder(
         self._device, megabits_per_second=min_bitrate_mbps)
-    self._video_recorder.Start()
-    util.WaitFor(self._video_recorder.IsStarted, 5)
+    self._video_recorder.Start(timeout=5)
 
   @property
   def is_video_capture_running(self):
