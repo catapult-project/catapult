@@ -10,7 +10,7 @@ from telemetry.internal.backends.chrome_inspector import inspector_backend_list
 from telemetry.internal.browser import tab
 
 
-class TabUnexpectedResponseException(exceptions.Error):
+class TabUnexpectedResponseException(exceptions.DevtoolsTargetCrashException):
   pass
 
 
@@ -36,7 +36,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
       response = json.loads(response)
       context_id = response['id']
     except (KeyError, ValueError):
-      raise TabUnexpectedResponseException('Received response: %s' % response)
+      raise TabUnexpectedResponseException(
+          app=self._browser_backend.browser,
+          msg='Received response: %s' % response)
     return self.GetBackendFromContextId(context_id)
 
   def CloseTab(self, tab_id, timeout=300):
@@ -57,7 +59,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     response = self._browser_backend.devtools_client.CloseTab(tab_id, timeout)
 
     if response != 'Target is closing':
-      raise TabUnexpectedResponseException('Received response: %s' % response)
+      raise TabUnexpectedResponseException(
+          app=self._browser_backend.browser,
+          msg='Received response: %s' % response)
 
     util.WaitFor(lambda: tab_id not in self.IterContextIds(), timeout=5)
 
@@ -75,7 +79,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
                                                                  timeout)
 
     if response != 'Target activated':
-      raise TabUnexpectedResponseException('Received response: %s' % response)
+      raise TabUnexpectedResponseException(
+          app=self._browser_backend.browser,
+          msg='Received response: %s' % response)
 
   def Get(self, index, ret):
     """Returns self[index] if it exists, or ret if index is out of bounds."""
