@@ -18,10 +18,6 @@ def _AddDirToPythonPath(*path_parts):
     sys.path.insert(1, path)
 
 _AddDirToPythonPath(os.path.join(util.GetCatapultDir(), 'third_party', 'mock'))
-
-# TODO(nednguyen, aiolos): Copy these lib to catapult/third_party before
-# actually moving catapult_base/ to catapult/
+_AddDirToPythonPath(os.path.join(util.GetCatapultDir(), 'third_party', 'mox3'))
 _AddDirToPythonPath(
-    os.path.join(os.path.dirname(__file__), '..', 'third_party', 'mox3'))
-_AddDirToPythonPath(
-    os.path.join(os.path.dirname(__file__), '..', 'third_party', 'pyfakefs'))
+    os.path.join(util.GetCatapultDir(), 'third_party', 'pyfakefs'))
