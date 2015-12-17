@@ -60,7 +60,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     pass
 
   def log_request(self, code='-', size='-'):
-    # Dont spam the console unless it is important.
+    # Don't spam the console unless it is important.
     pass
 
   def SendHead(self):

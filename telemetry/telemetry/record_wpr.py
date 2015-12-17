@@ -195,7 +195,7 @@ class WprRecorder(object):
                        % target)
       if not self._HintMostLikelyBenchmarksStories(target):
         sys.stderr.write(
-            'Found no similiar benchmark or story. Please use '
+            'Found no similar benchmark or story. Please use '
             '--list-benchmarks or --list-stories to list candidates.\n')
         self._parser.print_usage()
       sys.exit(1)

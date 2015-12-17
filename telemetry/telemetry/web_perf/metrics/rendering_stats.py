@@ -46,7 +46,7 @@ def GetLatencyEvents(process, timeline_range):
 
   Input events dump their LatencyInfo into trace buffer as async trace event
   of name starting with "InputLatency". Non-input events with name starting
-  with "Latency". The trace event has a memeber 'data' containing its latency
+  with "Latency". The trace event has a member 'data' containing its latency
   history.
 
   """
@@ -68,7 +68,7 @@ def ComputeEventLatencies(input_events):
 
   Input event latency is the time from when the input event is created to
   when its resulted page is swap buffered.
-  Input event on differnt platforms uses different LatencyInfo component to
+  Input event on different platforms uses different LatencyInfo component to
   record its creation timestamp. We go through the following component list
   to find the creation timestamp:
   1. INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT -- when event is created in OS

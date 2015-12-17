@@ -21,7 +21,7 @@ class StorySetSmokeTest(unittest.TestCase):
     self.longMessage = True
 
   def GetAllStorySetClasses(self, story_sets_dir, top_level_dir):
-    # We can't test page sets that aren't directly constructable since we
+    # We can't test page sets that aren't directly constructible since we
     # don't know what arguments to put for the constructor.
     return discover.DiscoverClasses(story_sets_dir, top_level_dir,
                                     story_module.StorySet,
@@ -101,7 +101,7 @@ class StorySetSmokeTest(unittest.TestCase):
     if not isinstance(story, page.Page):
       return
     self.assertTrue(
-       # We use basestring instead of str because story's url can be string of
+       # We use basestring instead of str because story's URL can be string of
        # unicode.
        isinstance(story.url, basestring),
        msg='page %s \'s url must have type string' % story.display_name)

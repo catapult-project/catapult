@@ -45,7 +45,7 @@ class NetworkControllerBackend(object):
       wpr_mode: one of wpr_modes.WPR_OFF, wpr_modes.WPR_APPEND,
           wpr_modes.WPR_REPLAY, or wpr_modes.WPR_RECORD.
       netsim: a net_config string ('dialup', '3g', 'dsl', 'cable', or 'fios').
-      extra_wpr_args: a list of addtional replay args (or an empty list).
+      extra_wpr_args: a list of additional replay args (or an empty list).
       make_javascript_deterministic: True if replay should inject a script
           to make JavaScript behave deterministically (e.g., override Date()).
     """

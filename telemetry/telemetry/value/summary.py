@@ -123,7 +123,7 @@ class Summary(object):
     for key in keys:
       per_page_values = per_page_values_by_key.get(key, [])
 
-      # Sort the values by their url
+      # Sort the values by their URL.
       sorted_per_page_values = list(per_page_values)
       sorted_per_page_values.sort(
           key=lambda per_page_values: per_page_values.page.display_name)

@@ -5,7 +5,7 @@
 
 class TimelineBasedMetricException(Exception):
   """Exception that can be thrown from metrics that implements
-     TimelineBasedMetric to indicate a problem arised when computing the metric.
+     TimelineBasedMetric to indicate a problem arose when computing the metric.
      """
 
 

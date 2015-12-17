@@ -27,7 +27,7 @@ class AndroidActionRunner(object):
 
   def SmoothScrollBy(self, left_start_coord, top_start_coord, direction,
                      scroll_distance):
-    """Perfrom gesture to scroll down on the android device.
+    """Perform gesture to scroll down on the android device.
     """
     if direction not in ['down', 'up', 'left', 'right']:
       raise ActionNotSupported('Invalid scroll direction: %s' % direction)

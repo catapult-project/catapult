@@ -98,16 +98,16 @@ class WebMediaPlayerMsRenderingStats(object):
     In this paragraph I will be using regex notation. What is intended by the
     word cadence is a sort of extended instantaneous 'Cadence' (thus not
     necessarily periodic). Just as an example, a normal 'Cadence' could be
-    something like [2 3] which means possibly an observed frame persistance
+    something like [2 3] which means possibly an observed frame persistence
     progression of [{2 3}+] for an ideal 20FPS video source. So what we are
-    calculating here is the list of frame persistance, kind of a
+    calculating here is the list of frame persistence, kind of a
     'Proto-Cadence', but cadence is shorter so we abuse the word.
 
     Args:
       relevant_events: list of Telemetry events.
 
     Returns:
-      a list of frame persistance values.
+      a list of frame persistence values.
     """
     cadence = []
     frame_persistence = 0
@@ -136,7 +136,7 @@ class WebMediaPlayerMsRenderingStats(object):
     and p=Card(k in C).
 
     Args:
-      cadence: list of frame persistance values.
+      cadence: list of frame persistence values.
 
     Returns:
       a dictionary containing the distribution

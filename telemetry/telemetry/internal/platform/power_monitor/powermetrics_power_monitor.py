@@ -71,7 +71,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     entirety so we can safely ignore any errors in it's output.
 
     Returns:
-        Parser output on succesful parse, None on parse error.
+        Parser output on successful parse, None on parse error.
     """
     try:
       return plistlib.readPlistFromString(plist_string)

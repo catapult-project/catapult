@@ -371,9 +371,9 @@ class ActionRunner(object):
     delay between the scroll gestures should be consistent.
 
     Args:
-      x_scroll_distance_ratio: The horizontal lenght of the scroll as a fraction
+      x_scroll_distance_ratio: The horizontal length of the scroll as a fraction
           of the screen width.
-      y_scroll_distance_ratio: The vertical lenght of the scroll as a fraction
+      y_scroll_distance_ratio: The vertical length of the scroll as a fraction
           of the screen height.
       repeat_count: The number of additional times to repeat the gesture.
       repeat_delay_ms: The delay in milliseconds between each scroll gesture.

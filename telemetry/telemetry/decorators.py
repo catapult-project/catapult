@@ -77,7 +77,7 @@ class Deprecated(object):
     elif inspect.isclass(target):
       original_ctor = target.__init__
 
-      # We have to handle case original_ctor is object.__init__ seperately
+      # We have to handle case original_ctor is object.__init__ separately
       # since object.__init__ does not have __module__ defined, which
       # cause functools.wraps() to raise exception.
       if original_ctor == object.__init__:

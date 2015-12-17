@@ -51,7 +51,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
             'disabled-by-default-memory-infra'))
 
     # Request several memory dumps in a row and test that they were all
-    # succesfully created with unique IDs.
+    # successfully created with unique IDs.
     expected_dump_ids = []
     for _ in xrange(self._REQUESTED_DUMP_COUNT):
       dump_id = self._browser.DumpMemory()

@@ -38,7 +38,7 @@ class TracingAgent(object):
         tracing until time out.
 
     Returns:
-      True if tracing agent started succesfully.
+      True if tracing agent started successfully.
     """
     raise NotImplementedError
 

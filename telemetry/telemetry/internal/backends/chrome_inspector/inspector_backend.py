@@ -307,7 +307,7 @@ class InspectorBackend(object):
     Args:
       error: An instance of socket.error or websocket.WebSocketException.
     Raises:
-      exceptions.TimeoutException: A timeout occured.
+      exceptions.TimeoutException: A timeout occurred.
       exceptions.DevtoolsTargetCrashException: On any other error, the most
         likely explanation is that the devtool's target crashed.
     """

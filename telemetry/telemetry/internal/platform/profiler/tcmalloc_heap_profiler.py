@@ -9,7 +9,7 @@ import sys
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 
-# Enviroment variables to (android properties, default value) mapping.
+# Environment variables to (android properties, default value) mapping.
 _ENV_VARIABLES = {
   'HEAP_PROFILE_TIME_INTERVAL': ('heapprof.time_interval', 20),
   'HEAP_PROFILE_MMAP': ('heapprof.mmap', 1),
@@ -87,7 +87,7 @@ class _TCMallocHeapProfilerLinux(object):
       if key not in os.environ:
         msg += '%s=%s ' % (key, str(values[1]))
     if msg:
-      raise Exception('Need enviroment variables, try again with:\n %s' % msg)
+      raise Exception('Need environment variables, try again with:\n %s' % msg)
     if not os.path.exists(os.environ['HEAPPROFILE']):
       os.makedirs(os.environ['HEAPPROFILE'])
     assert os.path.isdir(os.environ['HEAPPROFILE']), 'HEAPPROFILE is not a dir'

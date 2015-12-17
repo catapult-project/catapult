@@ -98,7 +98,7 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
                     TestInteraction(30, 40)]
 
     # We ignore events outside of the interaction intervals, and we use the
-    # begining of the first event of the interval and the end of the last
+    # beginning of the first event of the interval and the end of the last
     # event.
     # 18 - 10 = 8
     # 37 - 32 = 5

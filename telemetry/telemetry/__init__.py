@@ -14,14 +14,15 @@ if sys.version_info < (2, 7):
 from telemetry.internal.util import global_hooks
 global_hooks.InstallHooks()
 
-# Add depdendencies into our path.
+# Add dependencies into our path.
 from telemetry.core import util
 
 def _AddDirToPythonPath(*path_parts):
   path = os.path.abspath(os.path.join(*path_parts))
   if os.path.isdir(path) and path not in sys.path:
-    # Some callsite that use telemetry assumes that sys.path[0] is the directory
-    # containing the script, so we add these extra paths to right after it.
+    # Some call sites that use Telemetry assume that sys.path[0] is the
+    # directory containing the script, so we add these extra paths to right
+    # after sys.path[0].
     sys.path.insert(1, path)
 
 
