@@ -1891,7 +1891,8 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     if not host_path:
-      host_path = os.path.abspath('screenshot-%s.png' % _GetTimeStamp())
+      host_path = os.path.abspath('screenshot-%s-%s.png' % (
+          self.adb.GetDeviceSerial(), _GetTimeStamp()))
     with device_temp_file.DeviceTempFile(self.adb, suffix='.png') as device_tmp:
       self.RunShellCommand(['/system/bin/screencap', '-p', device_tmp.name],
                            check_return=True)

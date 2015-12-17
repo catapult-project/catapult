@@ -40,6 +40,7 @@ def _RunUnitTests(input_api, output_api):
           J('android', 'fastboot_utils_test.py'),
           J('android', 'md5sum_test.py'),
           J('android', 'logcat_monitor_test.py'),
+          J('android', 'tools', 'script_common_test.py'),
           J('utils', 'cmd_helper_test.py'),
           J('utils', 'timeout_retry_unittest.py'),
       ],

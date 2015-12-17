@@ -5,8 +5,12 @@
 
 import argparse
 import logging
+import os
 import sys
 
+if __name__ == '__main__':
+  sys.path.append(os.path.abspath(os.path.join(
+      os.path.dirname(__file__), os.pardir, os.pardir, os.pardir)))
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
