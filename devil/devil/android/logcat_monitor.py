@@ -6,24 +6,32 @@
 
 import logging
 import re
+import shutil
+import tempfile
+import threading
+import time
 
 from devil.android import decorators
+from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
+from devil.utils import reraiser_thread
 
 
 class LogcatMonitor(object):
 
+  _WAIT_TIME = 0.2
   _THREADTIME_RE_FORMAT = (
       r'(?P<date>\S*) +(?P<time>\S*) +(?P<proc_id>%s) +(?P<thread_id>%s) +'
       r'(?P<log_level>%s) +(?P<component>%s) *: +(?P<message>%s)$')
 
-  def __init__(self, adb, clear=True, filter_specs=None):
+  def __init__(self, adb, clear=True, filter_specs=None, output_file=None):
     """Create a LogcatMonitor instance.
 
     Args:
       adb: An instance of adb_wrapper.AdbWrapper.
       clear: If True, clear the logcat when monitoring starts.
       filter_specs: An optional list of '<tag>[:priority]' strings.
+      output_file: File path to save recorded logcat.
     """
     if isinstance(adb, adb_wrapper.AdbWrapper):
       self._adb = adb
@@ -31,9 +39,10 @@ class LogcatMonitor(object):
       raise ValueError('Unsupported type passed for argument "device"')
     self._clear = clear
     self._filter_specs = filter_specs
-    self._logcat_out = None
-    self._logcat_out_file = None
-    self._logcat_proc = None
+    self._output_file = output_file
+    self._record_file = None
+    self._record_thread = None
+    self._stop_recording_event = threading.Event()
 
   @decorators.WithTimeoutAndRetriesDefaults(10, 0)
   def WaitFor(self, success_regex, failure_regex=None, timeout=None,
@@ -60,7 +69,13 @@ class LogcatMonitor(object):
       CommandTimeoutError if no logcat line matching either |success_regex| or
         |failure_regex| is found in |timeout| seconds.
       DeviceUnreachableError if the device becomes unreachable.
+      LogcatMonitorCommandError when calling |WaitFor| while not recording
+        logcat.
     """
+    if self._record_thread is None:
+      raise LogcatMonitorCommandError(
+          'Must be recording logcat when calling |WaitFor|',
+          device_serial=str(self._adb))
     if isinstance(success_regex, basestring):
       success_regex = re.compile(success_regex)
     if isinstance(failure_regex, basestring):
@@ -73,12 +88,17 @@ class LogcatMonitor(object):
     #    returned.
     #  - failure_regex matches a line, in which case None is returned
     #  - the timeout is hit, in which case a CommandTimeoutError is raised.
-    for l in self._adb.Logcat(filter_specs=self._filter_specs):
-      m = success_regex.search(l)
-      if m:
-        return m
-      if failure_regex and failure_regex.search(l):
-        return None
+    with open(self._record_file.name, 'r') as f:
+      while True:
+        line = f.readline()
+        if line:
+          m = success_regex.search(line)
+          if m:
+            return m
+          if failure_regex and failure_regex.search(line):
+            return None
+        else:
+          time.sleep(self._WAIT_TIME)
 
   def FindAll(self, message_regex, proc_id=None, thread_id=None, log_level=None,
               component=None):
@@ -92,12 +112,19 @@ class LogcatMonitor(object):
       log_level: The log level to match. If None, matches any log level.
       component: The component to match. If None, matches any component.
 
+    Raises:
+      LogcatMonitorCommandError when calling |FindAll| before recording logcat.
+
     Yields:
       A match object for each matching line in the logcat. The match object
       will always contain, in addition to groups defined in |message_regex|,
       the following named groups: 'date', 'time', 'proc_id', 'thread_id',
       'log_level', 'component', and 'message'.
     """
+    if self._record_file is None:
+      raise LogcatMonitorCommandError(
+          'Must have recorded or be recording a logcat to call |FindAll|',
+          device_serial=str(self._adb))
     if proc_id is None:
       proc_id = r'\d+'
     if thread_id is None:
@@ -111,10 +138,39 @@ class LogcatMonitor(object):
         type(self)._THREADTIME_RE_FORMAT % (
             proc_id, thread_id, log_level, component, message_regex))
 
-    for line in self._adb.Logcat(dump=True, logcat_format='threadtime'):
-      m = re.match(threadtime_re, line)
-      if m:
-        yield m
+    with open(self._record_file.name, 'r') as f:
+      for line in f:
+        m = re.match(threadtime_re, line)
+        if m:
+          yield m
+
+  def _StartRecording(self):
+    """Starts recording logcat to file.
+
+    Function spawns a thread that records logcat to file and will not die
+    until |StopRecording| is called.
+    """
+    def record_to_file():
+      with open(self._record_file.name, 'a') as f:
+        for data in self._adb.Logcat(filter_specs=self._filter_specs,
+                                     logcat_format='threadtime'):
+          if self._stop_recording_event.isSet():
+            f.flush()
+            return
+          f.write(data + '\n')
+
+    self._stop_recording_event.clear()
+    if not self._record_thread:
+      self._record_thread = reraiser_thread.ReraiserThread(record_to_file)
+      self._record_thread.start()
+
+  def _StopRecording(self):
+    """Finish recording logcat."""
+    if self._record_thread:
+      self._stop_recording_event.set()
+      self._record_thread.join()
+      self._record_thread.ReraiseIfException()
+      self._record_thread = None
 
   def Start(self):
     """Starts the logcat monitor.
@@ -123,6 +179,28 @@ class LogcatMonitor(object):
     """
     if self._clear:
       self._adb.Logcat(clear=True)
+    if not self._record_file:
+      self._record_file = tempfile.NamedTemporaryFile()
+    self._StartRecording()
+
+  def Stop(self):
+    """Stops the logcat monitor.
+
+    Stops recording the logcat. Copies currently recorded logcat to
+    |self._output_file|.
+    """
+    self._StopRecording()
+    if self._record_file and self._output_file:
+      shutil.copy(self._record_file.name, self._output_file)
+
+  def Close(self):
+    """Closes logcat recording file.
+
+    Should be called when finished using the logcat monitor.
+    """
+    if self._record_file:
+      self._record_file.close()
+      self._record_file = None
 
   def __enter__(self):
     """Starts the logcat monitor."""
@@ -131,4 +209,14 @@ class LogcatMonitor(object):
 
   def __exit__(self, exc_type, exc_val, exc_tb):
     """Stops the logcat monitor."""
-    pass
+    self.Stop()
+
+  def __del__(self):
+    """Closes logcat recording file in case |Close| was never called."""
+    if self._record_file:
+      logging.warning('Need to call |Close| on the logcat monitor when done!')
+      self._record_file.close()
+
+class LogcatMonitorCommandError(device_errors.CommandFailedError):
+  """Exception for errors with logcat monitor commands."""
+  pass

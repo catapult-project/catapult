@@ -1987,16 +1987,11 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError(
         'Could not find memory peak value for pid %s', str(pid))
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetLogcatMonitor(self, timeout=None, retries=None, *args, **kwargs):
+  def GetLogcatMonitor(self, *args, **kwargs):
     """Returns a new LogcatMonitor associated with this device.
 
     Parameters passed to this function are passed directly to
     |logcat_monitor.LogcatMonitor| and are documented there.
-
-    Args:
-      timeout: timeout in seconds
-      retries: number of retries
     """
     return logcat_monitor.LogcatMonitor(self.adb, *args, **kwargs)
 
