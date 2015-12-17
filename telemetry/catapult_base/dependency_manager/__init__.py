@@ -10,4 +10,5 @@ from catapult_base.dependency_manager.dependency_manager import DependencyManage
 from catapult_base.dependency_manager.exceptions import (
     EmptyConfigError, FileNotFoundError, NoPathFoundError, ReadWriteError,
     UnsupportedConfigFormatError)
+from catapult_base.dependency_manager.local_path_info import LocalPathInfo
 

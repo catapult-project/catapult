@@ -86,7 +86,7 @@ class DependencyManager(object):
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
       raise exceptions.NoPathFoundError(dependency, platform)
-    path = self._LocalPath(dependency_info)
+    path = dependency_info.GetLocalPath()
     if not path or not os.path.exists(path):
       path = dependency_info.GetRemotePath()
       if not path or not os.path.exists(path):
@@ -115,7 +115,7 @@ class DependencyManager(object):
     dependency_info = self._GetDependencyInfo(dependency, platform)
     if not dependency_info:
       raise exceptions.NoPathFoundError(dependency, platform)
-    local_path = self._LocalPath(dependency_info)
+    local_path = dependency_info.GetLocalPath()
     if not local_path or not os.path.exists(local_path):
       raise exceptions.NoPathFoundError(dependency, platform)
     return local_path
@@ -170,21 +170,3 @@ class DependencyManager(object):
       device_type = DEFAULT_TYPE
     return dependency_dict.get(device_type)
 
-  @staticmethod
-  def _LocalPath(dependency_info):
-    """Return a path to a locally stored file for |dependency_info|.
-
-    Will not download the file.
-
-    Args:
-        dependency_info: A DependencyInfo instance for the dependency to be
-            found and the platform it should run on.
-
-    Returns: A path to a local file, or None if not found.
-    """
-    if dependency_info:
-      paths = dependency_info.local_paths
-      for local_path in paths:
-        if os.path.exists(local_path):
-          return local_path
-    return None
