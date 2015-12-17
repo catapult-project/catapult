@@ -11,6 +11,7 @@ from catapult_base.dependency_manager import archive_info
 from catapult_base.dependency_manager import cloud_storage_info
 from catapult_base.dependency_manager import dependency_info
 from catapult_base.dependency_manager import exceptions
+from catapult_base.dependency_manager import local_path_info
 from catapult_base.dependency_manager import uploader
 
 
@@ -132,13 +133,14 @@ class BaseConfig(object):
       for platform in platforms_dict:
         platform_info = platforms_dict.get(platform)
 
+        local_info = None
         local_paths = platform_info.get('local_paths', [])
         if local_paths:
           paths = []
           for path in local_paths:
             path = self._FormatPath(path)
             paths.append(os.path.abspath(os.path.join(base_path, path)))
-          local_paths = paths
+          local_info = local_path_info.LocalPathInfo(paths)
 
         cs_info = None
         cs_bucket = dependency_dict.get('cloud_storage_bucket')
@@ -172,7 +174,7 @@ class BaseConfig(object):
               version_in_cs=version_in_cs, archive_info=zip_info)
 
         dep_info = dependency_info.DependencyInfo(
-            dependency, platform, self._config_path, local_paths=local_paths,
+            dependency, platform, self._config_path, local_path_info=local_info,
             cloud_storage_info=cs_info)
         yield dep_info
 

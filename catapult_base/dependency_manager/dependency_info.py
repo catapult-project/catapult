@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 class DependencyInfo(object):
-  def __init__(self, dependency, platform, config_path, local_paths=None,
+  def __init__(self, dependency, platform, config_path, local_path_info=None,
       cloud_storage_info=None):
     """ Container for the information needed for each dependency/platform pair
     in the dependency_manager.
@@ -29,7 +29,7 @@ class DependencyInfo(object):
     self._dependency = dependency
     self._platform = platform
     self._config_paths = [config_path]
-    self._local_paths = local_paths or []
+    self._local_path_info = local_path_info
     self._cloud_storage_info = cloud_storage_info
 
   def Update(self, new_dep_info):
@@ -53,10 +53,10 @@ class DependencyInfo(object):
                                   self.config_paths))
       else:
         self._cloud_storage_info = new_dep_info._cloud_storage_info
-    if new_dep_info.local_paths:
-      for path in new_dep_info.local_paths:
-        if path not in self._local_paths:
-          self._local_paths.append(path)
+    if not self._local_path_info:
+      self._local_path_info = new_dep_info._local_path_info
+    else:
+      self._local_path_info.Update(new_dep_info._local_path_info)
 
   def GetRemotePath(self):
     """Gets the path to a downloaded version of the dependency.
@@ -84,6 +84,15 @@ class DependencyInfo(object):
       return self._cloud_storage_info.GetRemotePath()
     return None
 
+  def GetLocalPath(self):
+    """Gets the path to a local version of the dependency.
+
+    Returns: A path to a local dependency, or None if not found.
+
+    """
+    if self.has_local_path_info:
+      return self._local_path_info.GetLocalPath()
+    return None
 
   @property
   def dependency(self):
@@ -98,12 +107,16 @@ class DependencyInfo(object):
     return self._config_paths
 
   @property
-  def local_paths(self):
-    return self._local_paths
+  def local_path_info(self):
+    return self._local_path_info
 
   @property
   def has_cloud_storage_info(self):
     return bool(self._cloud_storage_info)
+
+  @property
+  def has_local_path_info(self):
+    return bool(self._local_path_info)
 
   @property
   def cloud_storage_info(self):
