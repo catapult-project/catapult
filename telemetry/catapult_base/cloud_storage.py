@@ -21,9 +21,7 @@ try:
 except ImportError:
   fcntl = None
 
-from telemetry.core import util
-from telemetry import decorators
-from telemetry.internal.util import path
+from catapult_base import util
 
 
 PUBLIC_BUCKET = 'chromium-telemetry'
@@ -49,6 +47,7 @@ _GSUTIL_PATH = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
 #     http://crbug.com/359293. See |_RunCommand|.
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
+
 
 
 class CloudStorageError(Exception):
@@ -90,7 +89,7 @@ def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
   search_paths = list(extra_search_paths) + os.environ['PATH'].split(os.pathsep)
   for search_path in search_paths:
     executable_path = os.path.join(search_path, relative_executable_path)
-    if path.IsExecutable(executable_path):
+    if util.IsExecutable(executable_path):
       return executable_path
   return None
 
@@ -313,8 +312,6 @@ def GetIfChanged(file_path, bucket):
     return True
 
 
-# TODO(aiolos): remove @decorators.Cache for http://crbug.com/459787
-@decorators.Cache
 def GetFilesInDirectoryIfChanged(directory, bucket):
   """ Scan the directory for .sha1 files, and download them from the given
   bucket in cloud storage if the local and remote hash don't match or

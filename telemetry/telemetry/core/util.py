@@ -10,7 +10,13 @@ import socket
 import sys
 import time
 
+from catapult_base import util as catapult_util
+
 from telemetry.core import exceptions
+
+
+IsRunningOnCrosDevice = catapult_util.IsRunningOnCrosDevice
+GetCatapultDir = catapult_util.GetCatapultDir
 
 
 def GetBaseDir():
@@ -37,12 +43,6 @@ def GetUnittestDataDir():
 
 def GetChromiumSrcDir():
   return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..'))
-
-
-# TODO(aiolos): Move this over to the path in catapult after the migration.
-def GetCatapultDir():
-  return os.path.normpath(os.path.join(
-      GetTelemetryDir(), '..', '..', 'third_party', 'catapult'))
 
 
 _counter = [0]
@@ -159,13 +159,3 @@ def GetSequentialFileName(base_name):
       break
     index = index + 1
   return output_name
-
-def IsRunningOnCrosDevice():
-  """Returns True if we're on a ChromeOS device."""
-  lsb_release = '/etc/lsb-release'
-  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
-    with open(lsb_release, 'r') as f:
-      res = f.read()
-      if res.count('CHROMEOS_RELEASE_NAME'):
-        return True
-  return False

@@ -5,7 +5,7 @@
 import os
 
 from telemetry.core import util
-
+from catapult_base import util as catapult_util
 
 # TODO(aiolos): Move these functions to catapult_base or here.
 GetBaseDir = util.GetBaseDir
@@ -14,9 +14,7 @@ GetUnittestDataDir = util.GetUnittestDataDir
 GetChromiumSrcDir = util.GetChromiumSrcDir
 GetBuildDirectories = util.GetBuildDirectories
 
-
-def IsExecutable(path):
-  return os.path.isfile(path) and os.access(path, os.X_OK)
+IsExecutable = catapult_util.IsExecutable
 
 
 def FindInstalledWindowsApplication(application_path):

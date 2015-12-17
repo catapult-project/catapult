@@ -23,14 +23,18 @@ class FindTestBase(unittest.TestCase):
                                               ['os', 'subprocess', 'sys'])
     self._path_stubs = system_stub.Override(desktop_mandoline_finder.path,
                                             ['os', 'sys'])
+    self._catapult_path_stubs = system_stub.Override(
+        desktop_mandoline_finder.path.catapult_util, ['os', 'sys'])
+
 
   def tearDown(self):
     self._finder_stubs.Restore()
     self._path_stubs.Restore()
+    self._catapult_path_stubs.Restore()
 
   @property
   def _files(self):
-    return self._path_stubs.os.path.files
+    return self._catapult_path_stubs.os.path.files
 
   def DoFindAll(self):
     return desktop_mandoline_finder.FindAllAvailableBrowsers(
