@@ -190,18 +190,7 @@ def IsEnabled(test, possible_browser):
 
 def ShouldSkip(test, possible_browser):
   """Returns whether the test should be skipped and the reason for it."""
-  platform_attributes = [a.lower() for a in [
-      possible_browser.browser_type,
-      possible_browser.platform.GetOSName(),
-      possible_browser.platform.GetOSVersionName(),
-      ]]
-  if possible_browser.supports_tab_control:
-    platform_attributes.append('has tabs')
-  # Match browser type filters against "content-shell" and "mandoline" prefixes.
-  if 'content-shell' in possible_browser.browser_type:
-    platform_attributes.append('content-shell')
-  if 'mandoline' in possible_browser.browser_type:
-    platform_attributes.append('mandoline')
+  platform_attributes = _PlatformAttributes(possible_browser)
 
   if hasattr(test, '__name__'):
     name = test.__name__
@@ -229,15 +218,9 @@ def ShouldSkip(test, possible_browser):
 
   return False, None
 
-def ShouldBeIsolated(test, possible_browser):
-  platform_attributes = [a.lower() for a in [
-      possible_browser.browser_type,
-      possible_browser.platform.GetOSName(),
-      possible_browser.platform.GetOSVersionName(),
-      ]]
-  if possible_browser.supports_tab_control:
-    platform_attributes.append('has tabs')
 
+def ShouldBeIsolated(test, possible_browser):
+  platform_attributes = _PlatformAttributes(possible_browser)
   if hasattr(test, '_isolated_strings'):
     isolated_strings = test._isolated_strings
     if not isolated_strings:
@@ -247,3 +230,19 @@ def ShouldBeIsolated(test, possible_browser):
         return True
     return False
   return False
+
+
+def _PlatformAttributes(possible_browser):
+  """Returns a list of platform attribute strings."""
+  attributes = [a.lower() for a in [
+      possible_browser.browser_type,
+      possible_browser.platform.GetOSName(),
+      possible_browser.platform.GetOSVersionName(),
+  ]]
+  if possible_browser.supports_tab_control:
+    attributes.append('has tabs')
+  if 'content-shell' in possible_browser.browser_type:
+    attributes.append('content-shell')
+  if 'mandoline' in possible_browser.browser_type:
+    attributes.append('mandoline')
+  return attributes
