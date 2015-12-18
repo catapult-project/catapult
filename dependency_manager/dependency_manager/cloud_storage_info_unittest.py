@@ -10,9 +10,9 @@ import mock
 from pyfakefs import fake_filesystem_unittest
 from catapult_base import cloud_storage
 
-from catapult_base.dependency_manager import archive_info
-from catapult_base.dependency_manager import cloud_storage_info
-from catapult_base.dependency_manager import exceptions
+from dependency_manager import archive_info
+from dependency_manager import cloud_storage_info
+from dependency_manager import exceptions
 
 class CloudStorageInfoTest(unittest.TestCase):
   def testInitCloudStorageInfoErrors(self):
@@ -149,9 +149,9 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
         exceptions.FileNotFoundError, self.cs_info.GetRemotePath)
 
   @mock.patch(
-      'catapult_base.dependency_manager.dependency_manager_util.UnzipArchive')
+      'dependency_manager.dependency_manager_util.UnzipArchive')
   @mock.patch(
-      'catapult_base.dependency_manager.cloud_storage_info.cloud_storage.GetIfHashChanged') # pylint: disable=line-too-long
+      'dependency_manager.cloud_storage_info.cloud_storage.GetIfHashChanged') # pylint: disable=line-too-long
   def testGetRemotePathWithArchive(self, cs_get_mock, unzip_mock):
     def _GetIfHashChangedMock(cs_path, download_path, bucket, file_hash):
       del cs_path, bucket, file_hash

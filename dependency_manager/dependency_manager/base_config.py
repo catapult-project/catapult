@@ -7,12 +7,12 @@ import logging
 import os
 
 from catapult_base import cloud_storage
-from catapult_base.dependency_manager import archive_info
-from catapult_base.dependency_manager import cloud_storage_info
-from catapult_base.dependency_manager import dependency_info
-from catapult_base.dependency_manager import exceptions
-from catapult_base.dependency_manager import local_path_info
-from catapult_base.dependency_manager import uploader
+from dependency_manager import archive_info
+from dependency_manager import cloud_storage_info
+from dependency_manager import dependency_info
+from dependency_manager import exceptions
+from dependency_manager import local_path_info
+from dependency_manager import uploader
 
 
 class BaseConfig(object):

@@ -4,12 +4,12 @@
 
 # pylint: disable=unused-argument
 
+from catapult_base import cloud_storage
 import mock
 from pyfakefs import fake_filesystem_unittest
 
-from catapult_base import dependency_manager
-from catapult_base import cloud_storage
-from catapult_base.dependency_manager import exceptions
+import dependency_manager
+from dependency_manager import exceptions
 
 
 class DependencyManagerTest(fake_filesystem_unittest.TestCase):
@@ -381,7 +381,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
 
 
   @mock.patch(
-      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
+      'dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   def testFetchPathUnititializedDependency(
       self, cs_path_mock):
     dep_manager = dependency_manager.DependencyManager([])
@@ -402,9 +402,9 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
 
   @mock.patch('os.path')
   @mock.patch(
-      'catapult_base.dependency_manager.DependencyManager._GetDependencyInfo')
+      'dependency_manager.DependencyManager._GetDependencyInfo')
   @mock.patch(
-      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
+      'dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   def testFetchPathLocalFile(self, cs_path_mock, dep_info_mock, path_mock):
     dep_manager = dependency_manager.DependencyManager([])
     self.assertFalse(cs_path_mock.call_args)
@@ -426,7 +426,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
 
 
   @mock.patch(
-      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
+      'dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   def testFetchPathRemoteFile(
       self, cs_path_mock):
     dep_manager = dependency_manager.DependencyManager([])
@@ -447,7 +447,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
 
 
   @mock.patch(
-      'catapult_base.dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
+      'dependency_manager.dependency_info.DependencyInfo.GetRemotePath')  # pylint: disable=line-too-long
   def testFetchPathError(
       self, cs_path_mock):
     dep_manager = dependency_manager.DependencyManager([])

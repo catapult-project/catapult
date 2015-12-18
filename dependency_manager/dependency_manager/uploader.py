@@ -7,7 +7,7 @@ import os
 
 from catapult_base import cloud_storage
 
-from catapult_base.dependency_manager import exceptions
+from dependency_manager import exceptions
 
 
 BACKUP_PATH_EXTENSION = 'old'
@@ -50,8 +50,10 @@ class CloudStorageUploader(object):
     """
     if cloud_storage.Exists(self._cs_bucket, self._cs_remote_path):
       if not force:
+        #pylint: disable=nonstandard-exception
         raise exceptions.CloudStorageUploadConflictError(self._cs_bucket,
                                                          self._cs_remote_path)
+        #pylint: enable=nonstandard-exception
       logging.debug('A file already exists at upload path %s in self.cs_bucket'
                     ' %s', self._cs_remote_path, self._cs_bucket)
       try:

@@ -5,16 +5,16 @@
 # pylint: disable=unused-argument
 
 import os
+import sys
 import unittest
 
+from catapult_base import cloud_storage
 import mock
 from pyfakefs import fake_filesystem_unittest
 from pyfakefs import fake_filesystem
 
-from catapult_base import cloud_storage
-from catapult_base.dependency_manager import base_config
-from catapult_base.dependency_manager import exceptions
-from catapult_base.dependency_manager import uploader
+import dependency_manager
+from dependency_manager import uploader
 
 
 class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
@@ -153,7 +153,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                            '"config_type": "BaseConfig",',
                            '"dependencies": {}',
                            '}']
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
 
     file_module = fake_filesystem.FakeFileOpen(self.fs)
     for line in file_module(self.file_path):
@@ -163,40 +163,40 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(self.file_path, config._config_path)
 
   def testCreateEmptyConfigError(self):
-    self.assertRaises(exceptions.EmptyConfigError,
-        base_config.BaseConfig, self.file_path)
+    self.assertRaises(dependency_manager.EmptyConfigError,
+        dependency_manager.BaseConfig, self.file_path)
 
   def testCloudStorageRemotePath(self):
     dependency = 'dep_name'
     cs_hash = self.new_dep_hash
     cs_base_folder = 'dependency_remote_folder'
     expected_remote_path = '%s/%s_%s' % (cs_base_folder, dependency, cs_hash)
-    remote_path = base_config.BaseConfig._CloudStorageRemotePath(
+    remote_path = dependency_manager.BaseConfig._CloudStorageRemotePath(
         dependency, cs_hash, cs_base_folder)
     self.assertEqual(expected_remote_path, remote_path)
 
     cs_base_folder = 'dependency_remote_folder'
     expected_remote_path = '%s_%s' % (dependency, cs_hash)
-    remote_path = base_config.BaseConfig._CloudStorageRemotePath(
+    remote_path = dependency_manager.BaseConfig._CloudStorageRemotePath(
         dependency, cs_hash, cs_base_folder)
 
   def testGetEmptyJsonDict(self):
     expected_json_dict = {'config_type': 'BaseConfig',
                           'dependencies': {}}
-    json_dict = base_config.BaseConfig._GetJsonDict()
+    json_dict = dependency_manager.BaseConfig._GetJsonDict()
     self.assertEqual(expected_json_dict, json_dict)
 
   def testGetNonEmptyJsonDict(self):
     expected_json_dict = {"config_type": "BaseConfig",
                           "dependencies": self.dependencies}
-    json_dict = base_config.BaseConfig._GetJsonDict(self.dependencies)
+    json_dict = dependency_manager.BaseConfig._GetJsonDict(self.dependencies)
     self.assertEqual(expected_json_dict, json_dict)
 
   def testWriteEmptyConfigToFile(self):
     expected_file_lines = ['{', '"config_type": "BaseConfig",',
                            '"dependencies": {}', '}']
     self.assertFalse(os.path.exists(self.file_path))
-    base_config.BaseConfig._WriteConfigToFile(self.file_path)
+    dependency_manager.BaseConfig._WriteConfigToFile(self.file_path)
     self.assertTrue(os.path.exists(self.file_path))
     file_module = fake_filesystem.FakeFileOpen(self.fs)
     for line in file_module(self.file_path):
@@ -205,7 +205,8 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
 
   def testWriteNonEmptyConfigToFile(self):
     self.assertFalse(os.path.exists(self.file_path))
-    base_config.BaseConfig._WriteConfigToFile(self.file_path, self.dependencies)
+    dependency_manager.BaseConfig._WriteConfigToFile(self.file_path,
+                                                     self.dependencies)
     self.assertTrue(os.path.exists(self.file_path))
     expected_file_lines = list(self.expected_file_lines)
     file_module = fake_filesystem.FakeFileOpen(self.fs)
@@ -213,11 +214,11 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
       self.assertEqual(expected_file_lines.pop(0), line.strip())
     self.fs.CloseOpenFile(file_module(self.file_path))
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsNoOp(self, uploader_cs_mock):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
 
     self.assertFalse(config.ExecuteUpdateJobs())
     self.assertFalse(config._is_dirty)
@@ -229,14 +230,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
       self.assertEqual(expected_file_lines.pop(0), line.strip())
     self.fs.CloseOpenFile(file_module(self.file_path))
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnInsertNoCSCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = False
     uploader_cs_mock.Insert.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -272,14 +273,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnInsertCSCollisionForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
     uploader_cs_mock.Insert.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -320,14 +321,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnInsertCSCollisionNoForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
     uploader_cs_mock.Insert.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -362,14 +363,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnCopy(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
     uploader_cs_mock.Copy.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -406,7 +407,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondInsertNoCSCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = False
@@ -414,7 +415,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         True, cloud_storage.CloudStorageError]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -456,7 +457,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondInsertCSCollisionForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
@@ -464,7 +465,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         True, cloud_storage.CloudStorageError]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -517,7 +518,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondInsertFirstCSCollisionForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.side_effect = [True, False, True]
@@ -525,7 +526,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         True, cloud_storage.CloudStorageError]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -572,7 +573,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnFirstCSCollisionNoForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.side_effect = [True, False, True]
@@ -580,7 +581,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         True, cloud_storage.CloudStorageError]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -616,7 +617,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondCopyCSCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
@@ -625,7 +626,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         True, cloud_storage.CloudStorageError, True]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -672,14 +673,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondCopyNoCSCollisionForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.side_effect = [False, True, False]
     uploader_cs_mock.Copy.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -720,14 +721,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsFailureOnSecondCopyNoCSCollisionNoForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.side_effect = [False, True, False]
     uploader_cs_mock.Copy.side_effect = cloud_storage.CloudStorageError
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -766,13 +767,13 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsSuccessOnePendingDepNoCloudStorageCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = False
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -805,13 +806,13 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_delete_calls,
                      uploader_cs_mock.Delete.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsSuccessOnePendingDepCloudStorageCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -843,13 +844,13 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_copy_calls,
                      uploader_cs_mock.Copy.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsErrorOnePendingDepCloudStorageCollisionNoForce(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.return_value = True
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
@@ -861,7 +862,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     expected_insert_calls = []
     expected_copy_calls = []
 
-    self.assertRaises(exceptions.CloudStorageUploadConflictError,
+    self.assertRaises(dependency_manager.CloudStorageUploadConflictError,
                       config.ExecuteUpdateJobs)
     self.assertTrue(config._is_dirty)
     self.assertTrue(config._pending_uploads)
@@ -880,13 +881,13 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_copy_calls,
                      uploader_cs_mock.Copy.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testExecuteUpdateJobsSuccessMultiplePendingDepsOneCloudStorageCollision(
       self, uploader_cs_mock):
     uploader_cs_mock.Exists.side_effect = [False, True]
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.final_dependencies.copy()
     config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
@@ -926,31 +927,31 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(expected_copy_calls,
                      uploader_cs_mock.Copy.call_args_list)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testUpdateCloudStorageDependenciesReadOnlyConfig(
       self, uploader_cs_mock):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path)
-    self.assertRaises(
-        exceptions.ReadWriteError, config.AddCloudStorageDependencyUpdateJob,
-                      'dep', 'plat', 'path')
-    self.assertRaises(
-        exceptions.ReadWriteError, config.AddCloudStorageDependencyUpdateJob,
-                      'dep', 'plat', 'path', version='1.2.3')
-    self.assertRaises(
-        exceptions.ReadWriteError, config.AddCloudStorageDependencyUpdateJob,
-                      'dep', 'plat', 'path', execute_job=False)
-    self.assertRaises(
-        exceptions.ReadWriteError, config.AddCloudStorageDependencyUpdateJob,
-                      'dep', 'plat', 'path', version='1.2.3', execute_job=False)
+    config = dependency_manager.BaseConfig(self.file_path)
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.AddCloudStorageDependencyUpdateJob(
+          'dep', 'plat', 'path')
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.AddCloudStorageDependencyUpdateJob(
+          'dep', 'plat', 'path', version='1.2.3')
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.AddCloudStorageDependencyUpdateJob(
+          'dep', 'plat', 'path', execute_job=False)
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.AddCloudStorageDependencyUpdateJob(
+          'dep', 'plat', 'path', version='1.2.3', execute_job=False)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
   def testUpdateCloudStorageDependenciesMissingDependency(
       self, uploader_cs_mock):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertRaises(ValueError, config.AddCloudStorageDependencyUpdateJob,
                       'dep', 'plat', 'path')
     self.assertRaises(ValueError, config.AddCloudStorageDependencyUpdateJob,
@@ -960,14 +961,14 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.assertRaises(ValueError, config.AddCloudStorageDependencyUpdateJob,
                       'dep', 'plat', 'path', version='1.2.3', execute_job=False)
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
-  @mock.patch('catapult_base.dependency_manager.base_config.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.base_config.cloud_storage')
   def testUpdateCloudStorageDependenciesWrite(
       self, base_config_cs_mock, uploader_cs_mock):
     expected_dependencies = self.dependencies
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertFalse(config._is_dirty)
     self.assertEqual(expected_dependencies, config._config_data)
 
@@ -1000,13 +1001,13 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
       self.assertEqual(expected_file_lines.pop(0), line.strip())
     self.fs.CloseOpenFile(file_module(self.file_path))
 
-  @mock.patch('catapult_base.dependency_manager.uploader.cloud_storage')
-  @mock.patch('catapult_base.dependency_manager.base_config.cloud_storage')
+  @mock.patch('dependency_manager.uploader.cloud_storage')
+  @mock.patch('dependency_manager.base_config.cloud_storage')
   def testUpdateCloudStorageDependenciesNoWrite(
       self, base_config_cs_mock, uploader_cs_mock):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
 
     self.assertRaises(ValueError, config.AddCloudStorageDependencyUpdateJob,
                       'dep', 'plat', 'path')
@@ -1014,7 +1015,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                       'dep', 'plat', 'path', version='1.2.3')
 
     expected_dependencies = self.dependencies
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertFalse(config._is_dirty)
     self.assertFalse(config._pending_uploads)
     self.assertEqual(expected_dependencies, config._config_data)
@@ -1117,13 +1118,14 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
 
 
   def testSetPlatformDataFailureNotWritable(self):
-    config = base_config.BaseConfig(self.file_path)
-    self.assertRaises(exceptions.ReadWriteError, config._SetPlatformData,
-                      'dep1', 'plat1', 'cloud_storage_bucket', 'new_bucket')
+    config = dependency_manager.BaseConfig(self.file_path)
+    self.assertRaises(
+        dependency_manager.ReadWriteError, config._SetPlatformData,
+        'dep1', 'plat1', 'cloud_storage_bucket', 'new_bucket')
     self.assertEqual(self.dependencies, config._config_data)
 
   def testSetPlatformDataFailure(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertRaises(ValueError, config._SetPlatformData, 'missing_dep',
                       'plat2', 'cloud_storage_bucket', 'new_bucket')
     self.assertEqual(self.dependencies, config._config_data)
@@ -1133,7 +1135,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
 
 
   def testSetPlatformDataCloudStorageBucketSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     updated_cs_dependencies = {
       'dep1': {'cloud_storage_bucket': 'new_bucket',
                'cloud_storage_base_folder': 'dependencies_folder',
@@ -1163,7 +1165,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(updated_cs_dependencies, config._config_data)
 
   def testSetPlatformDataCloudStorageBaseFolderSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     updated_cs_dependencies = {
       'dep1': {'cloud_storage_bucket': 'bucket1',
                'cloud_storage_base_folder': 'new_dependencies_folder',
@@ -1193,7 +1195,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(updated_cs_dependencies, config._config_data)
 
   def testSetPlatformDataHashSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     updated_cs_dependencies = {
       'dep1': {'cloud_storage_bucket': 'bucket1',
                'cloud_storage_base_folder': 'dependencies_folder',
@@ -1223,7 +1225,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(updated_cs_dependencies, config._config_data)
 
   def testSetPlatformDataDownloadPathSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     updated_cs_dependencies = {
       'dep1': {'cloud_storage_bucket': 'bucket1',
                'cloud_storage_base_folder': 'dependencies_folder',
@@ -1253,7 +1255,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(updated_cs_dependencies, config._config_data)
 
   def testSetPlatformDataLocalPathSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     updated_cs_dependencies = {
       'dep1': {'cloud_storage_bucket': 'bucket1',
                'cloud_storage_base_folder': 'dependencies_folder',
@@ -1284,7 +1286,7 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(updated_cs_dependencies, config._config_data)
 
   def testGetPlatformDataFailure(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertRaises(ValueError, config._GetPlatformData, 'missing_dep',
                       'plat2', 'cloud_storage_bucket')
     self.assertEqual(self.dependencies, config._config_data)
@@ -1293,37 +1295,37 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataDictSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.platform_dict,
                      config._GetPlatformData('dep1', 'plat2'))
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataCloudStorageBucketSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.cs_bucket, config._GetPlatformData(
         'dep1', 'plat2', 'cloud_storage_bucket'))
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataCloudStorageBaseFolderSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.cs_base_folder, config._GetPlatformData(
           'dep1', 'plat2', 'cloud_storage_base_folder'))
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataHashSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.cs_hash, config._GetPlatformData(
                      'dep1', 'plat2', 'cloud_storage_hash'))
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataDownloadPathSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.download_path, config._GetPlatformData(
           'dep1', 'plat2', 'download_path'))
     self.assertEqual(self.dependencies, config._config_data)
 
   def testGetPlatformDataLocalPathSuccess(self):
-    config = base_config.BaseConfig(self.file_path, writable=True)
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
     self.assertEqual(self.local_paths, config._GetPlatformData(
           'dep1', 'plat2', 'local_paths'))
     self.assertEqual(self.dependencies, config._config_data)
@@ -1344,8 +1346,8 @@ class BaseConfigTest(unittest.TestCase):
   """
   def setUp(self):
     self.config_type = 'BaseConfig'
-    self.config_class = base_config.BaseConfig
-    self.config_module = 'catapult_base.dependency_manager.base_config'
+    self.config_class = dependency_manager.BaseConfig
+    self.config_module = 'dependency_manager.base_config'
 
     self.empty_dict = {'config_type': self.config_type,
                        'dependencies': {}}
@@ -1396,7 +1398,7 @@ class BaseConfigTest(unittest.TestCase):
   def testInitBaseProperties(self, open_mock, path_mock):
     # Init is not meant to be overridden, so we should be mocking the
     # base_config's json module, even in subclasses.
-    json_module = 'catapult_base.dependency_manager.base_config.json'
+    json_module = 'dependency_manager.base_config.json'
     with mock.patch(json_module) as json_mock:
       json_mock.load.return_value = self.empty_dict.copy()
       config = self.config_class('file_path')
@@ -1406,13 +1408,13 @@ class BaseConfigTest(unittest.TestCase):
                        config._config_data)
 
 
-  @mock.patch('catapult_base.dependency_manager.dependency_info.DependencyInfo')
+  @mock.patch('dependency_manager.dependency_info.DependencyInfo')
   @mock.patch('os.path')
   @mock.patch('__builtin__.open')
   def testInitWithDependencies(self, open_mock, path_mock, dep_info_mock):
     # Init is not meant to be overridden, so we should be mocking the
     # base_config's json module, even in subclasses.
-    json_module = 'catapult_base.dependency_manager.base_config.json'
+    json_module = 'dependency_manager.base_config.json'
     with mock.patch(json_module) as json_mock:
       json_mock.load.return_value = self.one_dep_dict
       config = self.config_class('file_path')
@@ -1433,8 +1435,8 @@ class BaseConfigTest(unittest.TestCase):
     self.assertEqual(expected_path,
                      self.config_class._FormatPath('some\\file\\path'))
 
-  @mock.patch('catapult_base.dependency_manager.base_config.json')
-  @mock.patch('catapult_base.dependency_manager.dependency_info.DependencyInfo')
+  @mock.patch('dependency_manager.base_config.json')
+  @mock.patch('dependency_manager.dependency_info.DependencyInfo')
   @mock.patch('os.path.exists')
   @mock.patch('__builtin__.open')
   def testIterDependenciesError(
@@ -1446,12 +1448,12 @@ class BaseConfigTest(unittest.TestCase):
     self.assertEqual(self.GetConfigDataFromDict(self.one_dep_dict),
                      config._config_data)
     self.assertTrue(config._writable)
-    with self.assertRaises(exceptions.ReadWriteError):
+    with self.assertRaises(dependency_manager.ReadWriteError):
       for _ in config.IterDependencyInfo():
         pass
 
-  @mock.patch('catapult_base.dependency_manager.base_config.json')
-  @mock.patch('catapult_base.dependency_manager.dependency_info.DependencyInfo')
+  @mock.patch('dependency_manager.base_config.json')
+  @mock.patch('dependency_manager.dependency_info.DependencyInfo')
   @mock.patch('os.path.exists')
   @mock.patch('__builtin__.open')
   def testIterDependencies(

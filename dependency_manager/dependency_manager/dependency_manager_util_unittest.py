@@ -13,8 +13,8 @@ import zipfile
 
 import mock
 
-from catapult_base.dependency_manager import dependency_manager_util
-from catapult_base.dependency_manager import exceptions
+from dependency_manager import dependency_manager_util
+from dependency_manager import exceptions
 
 
 class DependencyManagerUtilTest(unittest.TestCase):
@@ -139,7 +139,7 @@ class DependencyManagerUtilTest(unittest.TestCase):
     unzip_path = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
     self.assertFalse(os.path.exists(unzip_path))
     with mock.patch(
-        'catapult_base.dependency_manager.dependency_manager_util.zipfile.ZipFile.extractall'  # pylint: disable=line-too-long
+        'dependency_manager.dependency_manager_util.zipfile.ZipFile.extractall'  # pylint: disable=line-too-long
         ) as zipfile_mock:
       zipfile_mock.side_effect = IOError
       self.assertRaises(

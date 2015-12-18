@@ -8,7 +8,7 @@ import stat
 
 from catapult_base import cloud_storage
 
-from catapult_base.dependency_manager import exceptions
+from dependency_manager import exceptions
 
 class CloudStorageInfo(object):
   def __init__(self, cs_bucket, cs_hash, download_path, cs_remote_path,

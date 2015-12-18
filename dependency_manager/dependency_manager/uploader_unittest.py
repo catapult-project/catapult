@@ -6,7 +6,7 @@ import os
 
 from pyfakefs import fake_filesystem_unittest
 
-from catapult_base.dependency_manager import uploader
+from dependency_manager import uploader
 
 
 class CloudStorageUploaderTest(fake_filesystem_unittest.TestCase):

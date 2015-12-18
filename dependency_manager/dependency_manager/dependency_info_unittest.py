@@ -4,7 +4,7 @@
 
 import unittest
 
-from catapult_base import dependency_manager
+import dependency_manager
 
 class DependencyInfoTest(unittest.TestCase):
   def testInitRequiredInfo(self):

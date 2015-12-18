@@ -4,8 +4,8 @@
 
 import os
 
-from catapult_base.dependency_manager import exceptions
-from catapult_base.dependency_manager import dependency_manager_util
+from dependency_manager import exceptions
+from dependency_manager import dependency_manager_util
 
 
 class ArchiveInfo(object):

@@ -8,7 +8,7 @@ import stat
 import sys
 import zipfile
 
-from . import exceptions
+from dependency_manager import exceptions
 
 
 def _WinReadOnlyHandler(func, path, execinfo):

@@ -5,10 +5,8 @@
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__)))))
-from catapult_base.dependency_manager import base_config
-from catapult_base.dependency_manager import exceptions
+from dependency_manager import base_config
+from dependency_manager import exceptions
 
 
 DEFAULT_TYPE = 'default'
