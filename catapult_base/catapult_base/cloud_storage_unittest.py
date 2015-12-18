@@ -3,14 +3,15 @@
 # found in the LICENSE file.
 
 # pylint: disable=unused-argument
-
 import os
 import unittest
 
 import mock
-from telemetry.testing import system_stub
+from pyfakefs import fake_filesystem_unittest
+
 
 from catapult_base import cloud_storage
+from catapult_base import util
 
 
 def _FakeReadHash(_):
@@ -23,7 +24,19 @@ def _FakeCalulateHashNewHash(_):
   return 'omgnewhash'
 
 
-class CloudStorageUnitTest(unittest.TestCase):
+class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
+
+  def setUp(self):
+    self.setUpPyfakefs()
+    self.fs.CreateFile(
+        os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil', 'gsutil'))
+
+  def CreateFiles(self, file_paths):
+    for f in file_paths:
+      self.fs.CreateFile(f)
+
+  def tearDown(self):
+    self.tearDownPyfakefs()
 
   def _FakeRunCommand(self, cmd):
     pass
@@ -32,15 +45,13 @@ class CloudStorageUnitTest(unittest.TestCase):
     pass
 
   def _assertRunCommandRaisesError(self, communicate_strs, error):
-    stubs = system_stub.Override(cloud_storage, ['open', 'subprocess'])
-    stubs.open.files = {'fake gsutil path':''}
-    stubs.subprocess.Popen.returncode_result = 1
-    try:
-      for string in communicate_strs:
-        stubs.subprocess.Popen.communicate_result = ('', string)
+    with mock.patch('catapult_base.cloud_storage.subprocess.Popen') as popen:
+      p_mock = mock.Mock()
+      popen.return_value = p_mock
+      p_mock.returncode = 1
+      for stderr in communicate_strs:
+        p_mock.communicate.return_value = ('', stderr)
         self.assertRaises(error, cloud_storage._RunCommand, [])
-    finally:
-      stubs.Restore()
 
   def testRunCommandCredentialsError(self):
     strs = ['You are attempting to access protected data with no configured',
@@ -78,17 +89,16 @@ class CloudStorageUnitTest(unittest.TestCase):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
-  def testExistsReturnsFalse(self):
-    stubs = system_stub.Override(cloud_storage, ['subprocess'])
-    try:
-      stubs.subprocess.Popen.communicate_result = (
-        '',
-        'CommandException: One or more URLs matched no objects.\n')
-      stubs.subprocess.Popen.returncode_result = 1
-      self.assertFalse(cloud_storage.Exists('fake bucket',
-                                            'fake remote path'))
-    finally:
-      stubs.Restore()
+  @mock.patch('catapult_base.cloud_storage.subprocess')
+  def testExistsReturnsFalse(self, subprocess_mock):
+    p_mock = mock.Mock()
+    subprocess_mock.Popen.return_value = p_mock
+    p_mock.communicate.return_value = (
+      '',
+      'CommandException: One or more URLs matched no objects.\n')
+    p_mock.returncode_result = 1
+    self.assertFalse(cloud_storage.Exists('fake bucket',
+                                          'fake remote path'))
 
   @mock.patch('catapult_base.cloud_storage.CalculateHash')
   @mock.patch('catapult_base.cloud_storage._GetLocked')
@@ -128,7 +138,6 @@ class CloudStorageUnitTest(unittest.TestCase):
 
   @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
   def testGetIfChanged(self, lock_mock):
-    stubs = system_stub.Override(cloud_storage, ['os', 'open'])
     orig_get = cloud_storage._GetLocked
     orig_read_hash = cloud_storage.ReadHash
     orig_calculate_hash = cloud_storage.CalculateHash
@@ -142,11 +151,11 @@ class CloudStorageUnitTest(unittest.TestCase):
       self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                   cloud_storage.PUBLIC_BUCKET))
       # hash_path exists, but file_path doesn't.
-      stubs.os.path.files.append(hash_path)
+      self.CreateFiles([hash_path])
       self.assertTrue(cloud_storage.GetIfChanged(file_path,
                                                  cloud_storage.PUBLIC_BUCKET))
       # hash_path and file_path exist, and have same hash.
-      stubs.os.path.files.append(file_path)
+      self.CreateFiles([file_path])
       self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                   cloud_storage.PUBLIC_BUCKET))
       # hash_path and file_path exist, and have different hashes.
@@ -154,16 +163,17 @@ class CloudStorageUnitTest(unittest.TestCase):
       self.assertTrue(cloud_storage.GetIfChanged(file_path,
                                                  cloud_storage.PUBLIC_BUCKET))
     finally:
-      stubs.Restore()
       cloud_storage._GetLocked = orig_get
       cloud_storage.CalculateHash = orig_calculate_hash
       cloud_storage.ReadHash = orig_read_hash
 
   def testGetFilesInDirectoryIfChanged(self):
-    stubs = system_stub.Override(cloud_storage, ['os'])
-    stubs.os._directory = {'dir1':['1file1.sha1', '1file2.txt', '1file3.sha1'],
-                           'dir2':['2file.txt'], 'dir3':['3file1.sha1']}
-    stubs.os.path.dirs = ['real_dir_path']
+    self.CreateFiles([
+      'real_dir_path/dir1/1file1.sha1',
+      'real_dir_path/dir1/1file2.txt',
+      'real_dir_path/dir1/1file3.sha1',
+      'real_dir_path/dir2/2file.txt',
+      'real_dir_path/dir3/3file1.sha1'])
     def IncrementFilesUpdated(*_):
       IncrementFilesUpdated.files_updated += 1
     IncrementFilesUpdated.files_updated = 0
@@ -181,7 +191,6 @@ class CloudStorageUnitTest(unittest.TestCase):
       self.assertEqual(3, IncrementFilesUpdated.files_updated)
     finally:
       cloud_storage.GetIfChanged = orig_get_if_changed
-      stubs.Restore()
 
   def testCopy(self):
     orig_run_command = cloud_storage._RunCommand

@@ -6,15 +6,15 @@
 import os
 import sys
 
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
+
 _CATAPULT_BASE_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..'))
-_TELEMETRY_BASE_PATH = os.path.abspath(os.path.join(_CATAPULT_BASE_PATH, '..'))
-_CATAPULT_PATH = os.path.abspath(os.path.join(
-    _CATAPULT_BASE_PATH, '..', '..', '..', 'third_party', 'catapult'))
+    os.path.join(_CATAPULT_PATH, 'catapult_base'))
 
 
 def _RunTestsOrDie(top_level_dir):
-  exit_code = run_with_typ.Run(top_level_dir, path=[_TELEMETRY_BASE_PATH])
+  exit_code = run_with_typ.Run(top_level_dir, path=[_CATAPULT_BASE_PATH])
   if exit_code:
     sys.exit(exit_code)
 
