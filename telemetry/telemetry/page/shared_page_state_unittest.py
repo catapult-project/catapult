@@ -31,8 +31,9 @@ class FakeNetworkController(object):
     self.archive_path = None
     self.wpr_mode = None
 
-  def SetReplayArgs(self, archive_path, wpr_mode, _netsim, _extra_wpr_args,
-                    _make_javascript_deterministic=False):
+  def SetReplayArgs(self, archive_path, wpr_mode, netsim, extra_wpr_args,
+                    make_javascript_deterministic=False):
+    del netsim, extra_wpr_args, make_javascript_deterministic  # unused
     self.archive_path = archive_path
     self.wpr_mode = wpr_mode
 

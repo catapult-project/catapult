@@ -9,7 +9,7 @@ class FuelGaugePowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
   """PowerMonitor that relies on the fuel gauge chips to monitor the power
   consumption of a android device.
   """
-  def __init__(self, battery, platform_backend):
+  def __init__(self, battery):
     """Constructor.
 
     Args:

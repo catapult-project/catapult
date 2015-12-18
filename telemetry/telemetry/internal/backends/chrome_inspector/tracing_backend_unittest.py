@@ -178,6 +178,7 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
 
     done = {'done': False}
     def mark_done(data):
+      del data  # unused
       done['done'] = True
 
     reader = _DevToolsStreamReader(self._inspector_socket, 'dummy')

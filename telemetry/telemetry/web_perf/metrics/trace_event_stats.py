@@ -71,6 +71,7 @@ class TraceEventStats(object):
       return event.duration
 
   def AddResults(self, model, renderer_process, interactions, results):
+    del renderer_process  # unused
     assert interactions
     for p in model.GetAllProcesses():
       if p.name not in self._inputs_by_process_name:

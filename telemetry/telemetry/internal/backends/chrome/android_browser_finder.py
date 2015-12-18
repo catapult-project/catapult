@@ -165,7 +165,8 @@ def CanPossiblyHandlePath(target_path):
   return os.path.splitext(target_path.lower())[1] == '.apk'
 
 
-def FindAllBrowserTypes(_options):
+def FindAllBrowserTypes(options):
+  del options  # unused
   return CHROME_PACKAGE_NAMES.keys() + ['exact']
 
 

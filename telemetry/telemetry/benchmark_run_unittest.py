@@ -82,7 +82,7 @@ class BenchmarkRunTest(unittest.TestCase):
     parser = finder_options.CreateParser()
     benchmark_module.AddCommandLineArgs(parser)
     benchmarkclass.AddCommandLineArgs(parser)
-    options, unused_args = parser.parse_args([])
+    options, _ = parser.parse_args([])
     benchmark_module.ProcessCommandLineArgs(parser, options)
     benchmarkclass.ProcessCommandLineArgs(parser, options)
     benchmark = benchmarkclass()

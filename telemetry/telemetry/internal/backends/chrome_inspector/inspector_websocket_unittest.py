@@ -47,8 +47,8 @@ class FakeSocket(object):
     self._timeout = timeout
 
 
-def _DoNothingHandler(_elapsed_time):
-  pass
+def _DoNothingHandler(elapsed_time):
+  del elapsed_time  # unused
 
 
 class InspectorWebsocketUnittest(unittest.TestCase):

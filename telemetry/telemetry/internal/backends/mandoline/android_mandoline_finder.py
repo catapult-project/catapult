@@ -78,7 +78,8 @@ def CanFindAvailableBrowsers():
   return android_device.CanDiscoverDevices()
 
 
-def FindAllBrowserTypes(_options):
+def FindAllBrowserTypes(options):
+  del options  # unused
   return [
       'android-mandoline-debug',
       'android-mandoline-release',]

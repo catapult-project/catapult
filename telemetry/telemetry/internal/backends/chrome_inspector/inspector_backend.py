@@ -265,6 +265,9 @@ class InspectorBackend(object):
     if repeatCount is not None:
       params['repeatCount'] = repeatCount
 
+    if gestureSourceType is not None:
+      params['gestureSourceType'] = gestureSourceType
+
     if repeatDelayMs is not None:
       params['repeatDelayMs'] = repeatDelayMs
 

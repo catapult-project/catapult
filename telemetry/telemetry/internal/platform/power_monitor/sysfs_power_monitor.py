@@ -52,7 +52,8 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     return bool(self._platform.RunCommand(
         'if [ -e %s ]; then echo true; fi' % CPU_PATH))
 
-  def StartMonitoringPower(self, _browser):
+  def StartMonitoringPower(self, browser):
+    del browser  # unused
     self._CheckStart()
     if self.CanMonitorPower():
       self._cpus = filter(  # pylint: disable=deprecated-lambda

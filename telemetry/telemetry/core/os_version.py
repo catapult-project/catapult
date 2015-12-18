@@ -4,7 +4,7 @@
 
 # pylint: disable=protected-access
 class OSVersion(str):
-  def __new__(cls, friendly_name, sortable_name, *args, **kwargs):
+  def __new__(cls, friendly_name, sortable_name):
     version = str.__new__(cls, friendly_name)
     version._sortable_name = sortable_name
     return version

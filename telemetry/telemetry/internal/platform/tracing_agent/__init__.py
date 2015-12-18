@@ -20,7 +20,8 @@ class TracingAgent(object):
     self._platform_backend = platform_backend
 
   @classmethod
-  def IsSupported(cls, _platform_backend):
+  def IsSupported(cls, platform_backend):
+    del platform_backend  # unused
     return False
 
   def Start(self, trace_options, category_filter, timeout):

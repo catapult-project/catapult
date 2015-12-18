@@ -9,7 +9,7 @@ from telemetry.internal.platform.tracing_agent import display_tracing_agent
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
 
-# pylint: disable=super-init-not-called,abstract-method
+# pylint: disable=super-init-not-called, abstract-method, unused-argument
 class FakeAndroidPlatformBackend(
     android_platform_backend.AndroidPlatformBackend):
   def __init__(self):

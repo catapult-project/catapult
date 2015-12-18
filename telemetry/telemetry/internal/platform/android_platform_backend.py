@@ -118,7 +118,7 @@ class AndroidPlatformBackend(
           self._battery, self),
         sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
         android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
-            self._battery, self),
+            self._battery),
     ], self._battery))
     self._video_recorder = None
     self._installed_applications = None

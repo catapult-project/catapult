@@ -30,6 +30,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self.battery_patcher.start()
 
     def get_prop(name, cache=None):
+      del cache  # unused
       return {'ro.product.cpu.abi': 'armeabi-v7a'}.get(name)
 
     self.device_patcher = mock.patch.multiple(
@@ -173,6 +174,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     self._actual_ps_util = android_platform_backend.psutil
 
     def get_prop(name, cache=None):
+      del cache  # unused
       return {'ro.product.cpu.abi': 'armeabi-v7a'}.get(name)
 
     self.device_patcher = mock.patch.multiple(

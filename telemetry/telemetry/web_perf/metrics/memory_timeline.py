@@ -25,7 +25,8 @@ def _AggregateDicts(dicts):
 class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
   """MemoryTimelineMetric reports summary stats from memory dump events."""
 
-  def AddResults(self, model, _renderer_thread, interactions, results):
+  def AddResults(self, model, renderer_thread, interactions, results):
+    del renderer_thread  # unused
     def ContainedIn(dump, interaction):
       return interaction.start < dump.start and dump.end < interaction.end
 

@@ -79,6 +79,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         'Pass --browser to list benchmarks for another browser.\n\n')
     @classmethod
     def FakeShouldDisable(cls, possible_browser):
+      del possible_browser  # unused
       return cls is BenchmarkFoo
     BenchmarkFoo.ShouldDisable = FakeShouldDisable
     BenchmarkBar.ShouldDisable = FakeShouldDisable

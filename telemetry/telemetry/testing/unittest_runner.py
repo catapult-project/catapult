@@ -9,7 +9,7 @@ import sys
 from telemetry.core import util
 
 
-def Run(project_config, no_browser=False, stream=None):
+def Run(project_config, no_browser=False):
   args = sys.argv[1:]
   assert '--top-level-dir' not in args, (
       'Top level directory for running tests should be specified through '

@@ -286,6 +286,7 @@ class SharedPageState(story.SharedState):
       browser_info: an instance of telemetry.core.browser_info.BrowserInfo
       page: an instance of telemetry.page.Page
     """
+    del browser_info, page  # unused
     return True
 
   def _PreparePage(self):

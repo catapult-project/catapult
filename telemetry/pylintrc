@@ -2,19 +2,13 @@
 
 # Disable the message, report, category or checker with the given id(s).
 # TODO(telemetry-team): Shrink this list to as small as possible.
-disable=abstract-class-little-used,abstract-class-not-used,bad-builtin,bad-continuation,broad-except,fixme,global-statement,interface-not-implemented,invalid-name,locally-disabled,locally-enabled,logging-not-lazy,missing-docstring,no-member,no-self-use,protected-access,star-args,too-few-public-methods,too-many-arguments,too-many-branches,too-many-function-args,too-many-instance-attributes,too-many-lines,too-many-locals,too-many-public-methods,too-many-return-statements,too-many-statements,unused-argument
+disable=abstract-class-little-used,abstract-class-not-used,bad-builtin,bad-continuation,broad-except,fixme,global-statement,interface-not-implemented,invalid-name,locally-disabled,locally-enabled,logging-not-lazy,missing-docstring,no-member,no-self-use,protected-access,star-args,too-few-public-methods,too-many-arguments,too-many-branches,too-many-function-args,too-many-instance-attributes,too-many-lines,too-many-locals,too-many-public-methods,too-many-return-statements,too-many-statements
 
 
 [REPORTS]
 
 # Don't write out full reports, just messages.
 reports=no
-
-
-[VARIABLES]
-
-# Google style
-dummy-variables-rgx=_$|unused_
 
 
 [FORMAT]

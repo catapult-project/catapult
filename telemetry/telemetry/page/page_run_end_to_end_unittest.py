@@ -263,7 +263,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page)
 
     class TestUserAgent(page_test.PageTest):
-      def ValidateAndMeasurePage(self, _1, tab, _2):
+      def ValidateAndMeasurePage(self, page, tab, results):
+        del page, results  # unused
         actual_user_agent = tab.EvaluateJavaScript('window.navigator.userAgent')
         expected_user_agent = user_agent.UA_TYPE_MAPPING['tablet']
         assert actual_user_agent.strip() == expected_user_agent
@@ -295,7 +296,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       def DidStartBrowser(self, browser):
         browser.tabs.New()
 
-      def ValidateAndMeasurePage(self, _, tab, __):
+      def ValidateAndMeasurePage(self, page, tab, results):
+        del page, results  # unused
         assert len(tab.browser.tabs) == 1
 
     test = TestOneTab()
@@ -315,10 +317,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page)
 
     class TestMultiTabs(page_test.PageTest):
-      def TabForPage(self, _, browser):
+      def TabForPage(self, page, browser):
+        del page  # unused
         return browser.tabs.New()
 
-      def ValidateAndMeasurePage(self, _, tab, __):
+      def ValidateAndMeasurePage(self, page, tab, results):
+        del page, results  # unused
         assert len(tab.browser.tabs) == 2
 
     test = TestMultiTabs()
@@ -430,7 +434,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set = story.StorySet()
 
     class UnrunnableSharedState(shared_page_state.SharedPageState):
-      def CanRunOnBrowser(self, _, dummy):
+      def CanRunOnBrowser(self, browser_info, page):
+        del browser_info, page  # unused
         return False
       def ValidateAndMeasurePage(self, _):
         pass
@@ -445,10 +450,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         super(Test, self).__init__(*args, **kwargs)
         self.will_navigate_to_page_called = False
 
-      def ValidateAndMeasurePage(self, *_args):
+      def ValidateAndMeasurePage(self, *args):
+        del args  # unused
         raise Exception('Exception should not be thrown')
 
-      def WillNavigateToPage(self, _1, _2):
+      def WillNavigateToPage(self, page, tab):
+        del page, tab  # unused
         self.will_navigate_to_page_called = True
 
     test = Test()
@@ -543,7 +550,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set = example_domain.ExampleDomainPageSet()
     body = []
     class TestWpr(page_test.PageTest):
-      def ValidateAndMeasurePage(self, _, tab, __):
+      def ValidateAndMeasurePage(self, page, tab, results):
+        del page, results  # unused
         body.append(tab.EvaluateJavaScript('document.body.innerText'))
     test = TestWpr()
     options = options_for_unittests.GetCopy()

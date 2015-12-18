@@ -99,6 +99,7 @@ class FakeLinuxPlatform(FakePlatform):
 
 class FakeHTTPServer(object):
   def UrlOf(self, url):
+    del url  # unused
     return 'file:///foo'
 
 
@@ -115,6 +116,7 @@ class FakePossibleBrowser(object):
     return self._returned_browser
 
   def Create(self, finder_options):
+    del finder_options  # unused
     return self.returned_browser
 
   @property
@@ -313,6 +315,7 @@ class _FakeTabList(object):
     self._browser = browser
 
   def New(self, timeout=300):
+    del timeout  # unused
     type(self)._current_tab_id += 1
     t = _FakeTab(self._browser, type(self)._current_tab_id)
     self._tabs.append(t)
@@ -373,7 +376,8 @@ class FakeInspectorWebsocket(object):
   def AddResponseHandler(self, method, handler):
     self._response_handlers[method] = handler
 
-  def SyncRequest(self, request, *_args, **_kwargs):
+  def SyncRequest(self, request, *args, **kwargs):
+    del args, kwargs  # unused
     handler = self._response_handlers[request['method']]
     return handler(request) if handler else None
 

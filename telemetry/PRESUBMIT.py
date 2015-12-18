@@ -6,9 +6,14 @@
 def _CommonChecks(input_api, output_api):
   results = []
 
+  # TODO(nednguyen): Remove this once telemetry is switched over to use
+  # catapult/catapult_base/. (crbug.com/565604)
+  black_list = list(input_api.DEFAULT_BLACK_LIST) + [
+    r'.*catapult_base/.*']
+
   results.extend(input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='pylintrc')))
+      black_list=black_list, pylintrc='pylintrc')))
   results.extend(_CheckNoMoreUsageOfDeprecatedCode(
     input_api, output_api, deprecated_code='GetChromiumSrcDir()',
     crbug_number=511332))

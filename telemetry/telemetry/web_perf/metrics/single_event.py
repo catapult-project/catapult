@@ -18,7 +18,8 @@ class _SingleEventMetric(timeline_based_metric.TimelineBasedMetric):
     self._metric_name = metric_name
     self._metric_description = metric_description
 
-  def AddResults(self, _model, renderer_thread, interactions, results):
+  def AddResults(self, model, renderer_thread, interactions, results):
+    del model  # unused
     assert interactions
     self._AddResultsInternal(renderer_thread.parent.IterAllSlices(),
                              interactions, results)
