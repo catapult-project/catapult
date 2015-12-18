@@ -122,7 +122,6 @@ def _RunCommand(args):
 
   gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, env=gsutil_env)
-  print gsutil
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
