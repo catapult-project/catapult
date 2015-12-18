@@ -17,7 +17,7 @@ from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
 
 try:
-  from pylib import constants
+  from devil.android.sdk import keyevent
 except ImportError:
   pass
 
@@ -91,7 +91,7 @@ class AndroidMandolineBackend(
     logging_process = shell.ShowLogs(output)
 
     # Unlock device screen.
-    self.device.SendKeyEvent(constants.keyevent.KEYCODE_MENU)
+    self.device.SendKeyEvent(keyevent.KEYCODE_MENU)
     shell.StartActivity(self.activity, args, output, logging_process.terminate)
 
     try:

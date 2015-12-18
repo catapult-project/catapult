@@ -17,11 +17,14 @@ import time
 
 from .paths import Paths
 
+from telemetry.internal.util import binary_manager
+
 from devil import base_error
 from devil.android import apk_helper
 from devil.android import device_errors
 from devil.android import device_utils
-from pylib import constants
+from devil.android.sdk import adb_wrapper
+from devil.constants import exit_codes
 
 
 # Tags used by the mojo shell application logs.
@@ -49,17 +52,15 @@ class AndroidShell(object):
   |config| is the mopy.config.Config for the build.
   '''
   def __init__(self, config, chrome_root):
-    self.adb_path = constants.GetAdbPath()
+    self.adb_path = adb_wrapper.AdbWrapper.GetAdbPath()
     self.config = config
     self.paths = Paths(config, chrome_root)
     self.device = None
     self.shell_args = []
     self.target_package = apk_helper.GetPackageName(self.paths.apk_path)
     self.temp_gdb_dir = None
-    # This is used by decive_utils.Install to check if the apk needs updating.
-    constants.SetOutputDirectory(self.paths.build_dir)
 
-  # TODO(msw): Use pylib's adb_wrapper and device_utils instead.
+  # TODO(msw): Use devil's adb_wrapper and device_utils instead.
   def _CreateADBCommand(self, args):
     adb_command = [self.adb_path, '-s', self.device.adb.GetDeviceSerial()]
     adb_command.extend(args)
@@ -114,15 +115,15 @@ class AndroidShell(object):
 
       logging.getLogger().debug('Using device: %s', self.device)
       # Clean the logs on the device to avoid displaying prior activity.
-      subprocess.check_call(self._CreateADBCommand(['logcat', '-c']))
+      self.device.adb.Logcat(clear=True)
       self.device.EnableRoot()
       self.device.Install(self.paths.apk_path)
     except base_error.BaseError as e:
       # Report 'device not found' as infra failures. See http://crbug.com/493900
       print 'Exception in AndroidShell.InitShell:\n%s' % str(e)
       if e.is_infra_error or 'error: device not found' in str(e):
-        return constants.INFRA_EXIT_CODE
-      return constants.ERROR_EXIT_CODE
+        return exit_codes.INFRA
+      return exit_codes.ERROR
 
     return 0
 
@@ -138,20 +139,9 @@ class AndroidShell(object):
 
   def _GetLocalGdbPath(self):
     '''Returns the path to the android gdb.'''
-    if self.config.target_cpu == 'arm':
-      return os.path.join(constants.ANDROID_NDK_ROOT, 'toolchains',
-                          'arm-linux-androideabi-4.9', 'prebuilt',
-                          'linux-x86_64', 'bin', 'arm-linux-androideabi-gdb')
-    elif self.config.target_cpu == 'x86':
-      return os.path.join(constants.ANDROID_NDK_ROOT, 'toolchains',
-                          'x86-4.9', 'prebuilt', 'linux-x86_64', 'bin',
-                          'i686-linux-android-gdb')
-    elif self.config.target_cpu == 'x64':
-      return os.path.join(constants.ANDROID_NDK_ROOT, 'toolchains',
-                          'x86_64-4.9', 'prebuilt', 'linux-x86_64', 'bin',
-                          'x86_64-linux-android-gdb')
-    else:
+    if self.config.target_cpu not in ('arm', 'x86', 'x64'):
       raise Exception('Unknown target_cpu: %s' % self.config.target_cpu)
+    return binary_manager.FetchPath('gdb', self.config.target_cpu, 'android')
 
   def _WaitForProcessIdAndStartGdb(self, process):
     '''

@@ -6,11 +6,9 @@ import logging
 import os
 import re
 import shutil
-import stat
 import subprocess
 import tempfile
 
-from telemetry.internal.util import binary_manager
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import platform
@@ -45,7 +43,6 @@ from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
 from devil.android.sdk import version_codes
 from devil.android.tools import video_recorder
-from pylib import constants
 
 try:
   from devil.android.perf import surface_stats_collector
@@ -53,9 +50,8 @@ except Exception:
   surface_stats_collector = None
 
 
-_DEVICE_COPY_SCRIPT_FILE = os.path.join(
-    constants.DIR_SOURCE_ROOT, 'build', 'android', 'pylib',
-    'efficient_android_directory_copy.sh')
+_DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
 _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
 
@@ -79,66 +75,6 @@ def _FindLocallyBuiltPath(binary_name):
   return command
 
 
-def _SetupPrebuiltTools(device):
-  """Some of the android pylib scripts we depend on are lame and expect
-  binaries to be in the out/ directory. So we copy any prebuilt binaries there
-  as a prereq."""
-
-  # TODO(bulach): Build the targets for x86/mips.
-  device_tools = [
-    'file_poller',
-    'forwarder_dist/device_forwarder',
-    'memtrack_helper',
-    'md5sum_dist/md5sum_bin',
-    'purge_ashmem',
-  ]
-
-  host_tools = [
-    'bitmaptools',
-    'md5sum_bin_host',
-  ]
-
-  platform_name = platform.GetHostPlatform().GetOSName()
-  if platform_name == 'linux':
-    host_tools.append('host_forwarder')
-
-  arch_name = device.product_cpu_abi
-  has_device_prebuilt = (arch_name.startswith('armeabi')
-                         or arch_name.startswith('arm64'))
-  if not has_device_prebuilt:
-    logging.warning('Unknown architecture type: %s' % arch_name)
-    return all([binary_manager.LocalPath(t, platform_name, arch_name)
-        for t in device_tools])
-
-  build_type = None
-  for t in device_tools + host_tools:
-    executable = os.path.basename(t)
-    locally_built_path = _FindLocallyBuiltPath(t)
-    if not build_type:
-      build_type = _GetBuildTypeOfPath(locally_built_path) or 'Release'
-      constants.SetBuildType(build_type)
-    dest = os.path.join(constants.GetOutDirectory(), t)
-    if not locally_built_path:
-      logging.info('Setting up prebuilt %s', dest)
-      if not os.path.exists(os.path.dirname(dest)):
-        os.makedirs(os.path.dirname(dest))
-      platform_name = ('android' if t in device_tools else
-                       platform.GetHostPlatform().GetOSName())
-      bin_arch_name = (arch_name if t in device_tools else
-                       platform.GetHostPlatform().GetArchName())
-      prebuilt_path = binary_manager.FetchPath(
-          executable, bin_arch_name, platform_name)
-      if not prebuilt_path or not os.path.exists(prebuilt_path):
-        raise NotImplementedError("""
-%s must be checked into cloud storage.
-Instructions:
-http://www.chromium.org/developers/telemetry/upload_to_cloud_storage
-""" % t)
-      shutil.copyfile(prebuilt_path, dest)
-      os.chmod(dest, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-  return True
-
-
 def _GetBuildTypeOfPath(path):
   if not path:
     return None
@@ -155,13 +91,6 @@ class AndroidPlatformBackend(
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
     self._device = device_utils.DeviceUtils(device.device_id)
-    installed_prebuilt_tools = _SetupPrebuiltTools(self._device)
-    if not installed_prebuilt_tools:
-      logging.error(
-          '%s detected, however prebuilt android tools could not '
-          'be used. To run on Android you must build them first:\n'
-          '  $ ninja -C out/Release android_tools' % device.name)
-      raise exceptions.PlatformError()
     # Trying to root the device, if possible.
     if not self._device.HasRoot():
       try:

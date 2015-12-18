@@ -7,15 +7,15 @@ import os
 import subprocess
 import threading
 
+from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
+from telemetry.internal.util import binary_manager
 
 try:
   from devil.android import device_errors  # pylint: disable=import-error
-  from pylib import constants  # pylint: disable=import-error
 except ImportError:
-  constants = None
   device_errors = None
 
 
@@ -61,8 +61,10 @@ class JavaHeapProfiler(profiler.Profiler):
       if os.path.splitext(f)[1] == '.aprof':
         input_file = os.path.join(self._output_path, f)
         output_file = input_file.replace('.aprof', '.hprof')
-        hprof_conv = os.path.join(constants.ANDROID_SDK_ROOT,
-                                  'tools', 'hprof-conv')
+        hprof_conv = binary_manager.FetchPath(
+            'hprof-conv',
+            platform.GetHostPlatform().GetArchName(),
+            platform.GetHostPlatform().GetOSName())
         subprocess.call([hprof_conv, input_file, output_file])
         output_files.append(output_file)
     return output_files

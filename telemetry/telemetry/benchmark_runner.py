@@ -298,7 +298,7 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
   """Returns a list of all enabled benchmarks in a JSON format expected by
   buildbots.
 
-  JSON format (see build/android/pylib/perf/benchmark_runner.py):
+  JSON format:
   { "version": <int>,
     "steps": {
       <string>: {
