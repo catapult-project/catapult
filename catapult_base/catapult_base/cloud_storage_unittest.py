@@ -4,6 +4,7 @@
 
 # pylint: disable=unused-argument
 import os
+import sys
 import unittest
 
 import mock
@@ -167,6 +168,8 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage.CalculateHash = orig_calculate_hash
       cloud_storage.ReadHash = orig_read_hash
 
+  @unittest.skipIf(sys.platform.startswith('win'),
+                   'https://github.com/catapult-project/catapult/issues/1861')
   def testGetFilesInDirectoryIfChanged(self):
     self.CreateFiles([
       'real_dir_path/dir1/1file1.sha1',
