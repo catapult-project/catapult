@@ -6,7 +6,6 @@ import base64
 import json
 import unittest
 
-import httplib2
 import mock
 import webapp2
 import webtest

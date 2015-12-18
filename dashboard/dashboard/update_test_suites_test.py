@@ -11,7 +11,6 @@ from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import update_test_suites
 from dashboard import utils
-from dashboard.models import graph_data
 
 
 class ListTestSuitesTest(testing_common.TestCase):

@@ -4,8 +4,6 @@
 
 """URL endpoint to show a chart with minimal UI."""
 
-from google.appengine.api import users
-
 from dashboard import chart_handler
 
 

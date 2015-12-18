@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import datetime
-import sys
 import unittest
 
 import mock

@@ -17,7 +17,6 @@ from google.appengine.ext import ndb
 from dashboard import datastore_hooks
 from dashboard import math_utils
 from dashboard import post_data_handler
-from dashboard.models import anomaly
 from dashboard.models import graph_data
 
 _TASK_QUEUE_NAME = 'add-point-queue'

@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
-import sys
 import unittest
 
 import mock
@@ -11,13 +9,9 @@ import webapp2
 import webtest
 
 from dashboard import bisect_fyi
-from dashboard import request_handler
 from dashboard import start_try_job
 from dashboard import stored_object
 from dashboard import testing_common
-from dashboard import utils
-from dashboard.models import anomaly
-from dashboard.models import try_job
 
 TEST_FYI_CONFIGS = {
   'positive_culprit': {

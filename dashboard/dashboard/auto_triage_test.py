@@ -14,9 +14,7 @@ from dashboard import auto_triage
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
-from dashboard.models import anomaly_config
 from dashboard.models import bug_data
-from dashboard.models import graph_data
 from dashboard.models import sheriff
 
 

@@ -9,7 +9,6 @@ import mock
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
 from dashboard import bisect_fyi
 from dashboard import bisect_fyi_test
 from dashboard import layered_cache

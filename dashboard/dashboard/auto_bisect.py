@@ -5,7 +5,6 @@
 """URL endpoint for a cron job to automatically run bisects."""
 
 import datetime
-import json
 import logging
 
 from dashboard import datastore_hooks

@@ -8,7 +8,6 @@ import datetime
 import json
 import logging
 import re
-import sys
 import traceback
 import urllib
 
