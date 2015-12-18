@@ -26,7 +26,6 @@ from dashboard import edit_sheriffs
 from dashboard import edit_site_config
 from dashboard import edit_test_owners
 from dashboard import email_summary
-from dashboard import embed
 from dashboard import file_bug
 from dashboard import get_logs
 from dashboard import graph_csv
@@ -78,7 +77,6 @@ _URL_MAPPING = [
     ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
     ('/edit_test_owners', edit_test_owners.EditTestOwnersHandler),
     ('/email_summary', email_summary.EmailSummaryHandler),
-    ('/embed', embed.EmbedHandler),
     ('/file_bug', file_bug.FileBugHandler),
     ('/get_logs', get_logs.GetLogsHandler),
     ('/graph_csv', graph_csv.GraphCsvHandler),
