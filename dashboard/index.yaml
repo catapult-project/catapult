@@ -136,17 +136,6 @@ indexes:
   - name: revision
     direction: desc
   - name: value
-# Might be unused!
-# The version of the above index that filters by internal_only may not be used
-# since requests to /add_point_queue should always be made by task queue, and
-# should always be authorized to fetch internal points.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-    direction: desc
-  - name: value
 
 # Used in graph_revisions.py to do a projection query for timestamp, revision
 # and value for points from a particular test.
