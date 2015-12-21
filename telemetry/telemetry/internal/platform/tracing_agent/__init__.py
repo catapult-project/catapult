@@ -24,17 +24,20 @@ class TracingAgent(object):
     del platform_backend  # unused
     return False
 
-  def Start(self, trace_options, category_filter, timeout):
+  def Start(self, config, timeout):
     """ Override to add tracing agent's custom logic to start tracing.
 
     Depending on trace_options and category_filter, the tracing agent may choose
     to start or not start tracing.
 
     Args:
-      trace_options: an instance of tracing_options.TracingOptions that
-        control which core tracing systems should be enabled.
-      category_filter: an instance of
-        tracing_category_filter.TracingCategoryFilter
+      config: tracing_config instance that contains trace_option and
+        category_filter
+
+        trace_options: an instance of tracing_options.TracingOptions that
+          control which core tracing systems should be enabled.
+        category_filter: an instance of
+          tracing_category_filter.TracingCategoryFilter
       timeout: number of seconds that this tracing agent should try to start
         tracing until time out.
 

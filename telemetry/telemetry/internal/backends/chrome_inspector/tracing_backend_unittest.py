@@ -11,8 +11,7 @@ from telemetry.testing import fakes
 from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
-from telemetry.timeline import tracing_category_filter
-from telemetry.timeline import tracing_options
+from telemetry.timeline import tracing_config
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):
@@ -44,11 +43,11 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     self.assertRaises(Exception, self._browser.DumpMemory)
 
     # Start tracing with memory dumps enabled.
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    self._tracing_controller.Start(
-        options, tracing_category_filter.TracingCategoryFilter(
-            'disabled-by-default-memory-infra'))
+    config = tracing_config.TracingConfig()
+    config.tracing_category_filter.AddDisabledByDefault(
+        'disabled-by-default-memory-infra')
+    config.tracing_options.enable_chrome_trace = True
+    self._tracing_controller.Start(config)
 
     # Request several memory dumps in a row and test that they were all
     # successfully created with unique IDs.
@@ -78,10 +77,9 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     self.assertRaises(Exception, self._browser.DumpMemory)
 
     # Start tracing with memory dumps disabled.
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    self._tracing_controller.Start(
-        options, tracing_category_filter.TracingCategoryFilter())
+    config = tracing_config.TracingConfig()
+    config.tracing_options.enable_chrome_trace = True
+    self._tracing_controller.Start(config)
 
     # Check that the method returns None if the dump was not successful.
     self.assertIsNone(self._browser.DumpMemory())

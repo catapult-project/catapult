@@ -10,8 +10,7 @@ from telemetry.page import page_test
 from telemetry.testing import page_test_test_case
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
-from telemetry.timeline import tracing_category_filter
-from telemetry.timeline import tracing_options
+from telemetry.timeline import tracing_config
 from telemetry.web_perf import smooth_gesture_util as sg_util
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
@@ -125,11 +124,10 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
         super(ScrollingGestureTestMeasurement, self).__init__()
 
       def WillNavigateToPage(self, page, tab):
-        del page  # unused
-        options = tracing_options.TracingOptions()
-        options.enable_chrome_trace = True
-        tab.browser.platform.tracing_controller.Start(
-          options, tracing_category_filter.TracingCategoryFilter())
+        del page # unused
+        config = tracing_config.TracingConfig()
+        config.tracing_options.enable_chrome_trace = True
+        tab.browser.platform.tracing_controller.Start(config)
 
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
