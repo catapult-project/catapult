@@ -3408,6 +3408,7 @@ tr.b.unittest.testSuite(function() {
               },
               {
                 'name': 'sibling',
+                'size': 5,
                 'attrs': {
                   'summed': new ScalarAttribute('bytes', 13)
                 }
@@ -3432,25 +3433,35 @@ tr.b.unittest.testSuite(function() {
 
     var directOwnerDump = pmd.getMemoryAllocatorDumpByFullName('direct_owner');
     assertSizeAttribute(directOwnerDump, 'summed', 27);
-    assertUndefinedAttribute(directOwnerDump, 'size');
-    assertUndefinedAttribute(directOwnerDump, 'effective_size');
+    assertSizeAttribute(directOwnerDump, 'size', 10);
+    assertSizeAttribute(directOwnerDump, 'effective_size', 3.3333, [
+      ownedInfo('indirect_owner', 'Process 0', 0),
+      ownerInfo('owned_root', 'global space', 0, 'parent_owner/child_owner',
+          'Process 0', 0, 'precedent_owner', 'Process 0', 0)
+    ]);
 
     var childOwnerDump =
         pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner');
     assertSizeAttribute(childOwnerDump, 'summed', 27);
-    assertUndefinedAttribute(childOwnerDump, 'size');
-    assertUndefinedAttribute(childOwnerDump, 'effective_size');
+    assertSizeAttribute(childOwnerDump, 'size', 10);
+    assertSizeAttribute(childOwnerDump, 'effective_size', 3.3333, [
+      ownerInfo('owned_root', 'global space', 0, 'direct_owner', 'Process 0', 0,
+          'precedent_owner', 'Process 0', 0)
+    ]);
 
     var parentOwnerDump = pmd.getMemoryAllocatorDumpByFullName('parent_owner');
     assertSizeAttribute(parentOwnerDump, 'summed', 40);
-    assertUndefinedAttribute(parentOwnerDump, 'size');
-    assertUndefinedAttribute(parentOwnerDump, 'effective_size');
+    assertSizeAttribute(parentOwnerDump, 'size', 15);
+    assertSizeAttribute(parentOwnerDump, 'effective_size', 8.3333);
 
     var precedentOwnerDump =
         pmd.getMemoryAllocatorDumpByFullName('precedent_owner');
     assertSizeAttribute(precedentOwnerDump, 'summed', 0);
-    assertUndefinedAttribute(precedentOwnerDump, 'size');
-    assertUndefinedAttribute(precedentOwnerDump, 'effective_size');
+    assertSizeAttribute(precedentOwnerDump, 'size', 10);
+    assertSizeAttribute(precedentOwnerDump, 'effective_size', 3.3333, [
+      ownerInfo('owned_root', 'global space', 0, 'direct_owner', 'Process 0', 0,
+          'parent_owner/child_owner', 'Process 0', 0)
+    ]);
 
     var indirectOwnerDump =
         pmd.getMemoryAllocatorDumpByFullName('indirect_owner');

@@ -3690,8 +3690,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.memoryAllocatorDumps.length, 1);
     var noCrashRoot = d.getMemoryAllocatorDumpByFullName('no_crash');
     assert.lengthOf(noCrashRoot.children, 0);
-    assert.deepEqual(noCrashRoot.attributes,
-        { size: undefined, effective_size: undefined });
+    assert.deepEqual(noCrashRoot.attributes, {});
     assert.isUndefined(noCrashRoot.parent);
     assert.isUndefined(noCrashRoot.guid);
   });
@@ -4672,14 +4671,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local1Dump.fullName, 'local1');
     assert.isUndefined(local1Dump.parent);
     assert.lengthOf(local1Dump.children, 0);
-    assert.sameMembers(Object.keys(local1Dump.attributes),
-        ['A', 'B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(local1Dump.attributes), ['A', 'B']);
     checkAttribute(local1Dump.attributes['A'], tr.model.StringAttribute, '',
         'blue');
     checkAttribute(local1Dump.attributes['B'], tr.model.StringAttribute, '',
         'red');
-    assert.isUndefined(local1Dump.attributes['size']);
-    assert.isUndefined(local1Dump.attributes['effective_size']);
     checkLinkCounts(local1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 
@@ -4688,12 +4684,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local2Dump.fullName, 'local2');
     assert.isUndefined(local2Dump.parent);
     assert.lengthOf(local2Dump.children, 0);
-    assert.sameMembers(Object.keys(local2Dump.attributes),
-        ['B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(local2Dump.attributes), ['B']);
     checkAttribute(local2Dump.attributes['B'], tr.model.StringAttribute, '',
         'yellow');
-    assert.isUndefined(local2Dump.attributes['size']);
-    assert.isUndefined(local2Dump.attributes['effective_size']);
     checkLinkCounts(local2Dump, false /* owns */, 0 /* owned by */,
         1 /* retains */, 0 /* retained by */);
 
@@ -4717,12 +4710,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherLocal1Dump, pmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherLocal1Dump.fullName, 'local1');
     assert.isUndefined(otherLocal1Dump.parent);
-    assert.sameMembers(Object.keys(otherLocal1Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(otherLocal1Dump.attributes), ['A']);
     checkAttribute(otherLocal1Dump.attributes['A'], tr.model.ScalarAttribute,
         'bytes', 2989);
-    assert.isUndefined(otherLocal1Dump.attributes['size']);
-    assert.isUndefined(otherLocal1Dump.attributes['effective_size']);
     assert.isUndefined(pmd2.heapDumps);
     checkLinkCounts(otherLocal1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
@@ -4745,26 +4735,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(shared1Dump, gmd1.memoryAllocatorDumps[0]);
     assert.strictEqual(shared1Dump.fullName, 'shared1');
     assert.isUndefined(shared1Dump.parent);
-    assert.sameMembers(Object.keys(shared1Dump.attributes),
-        ['A', 'B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(shared1Dump.attributes), ['A', 'B']);
     checkAttribute(shared1Dump.attributes['A'], tr.model.StringAttribute, '',
         'purple');
     checkAttribute(shared1Dump.attributes['B'], tr.model.StringAttribute, '',
         'green');
-    assert.isUndefined(shared1Dump.attributes['size']);
-    assert.isUndefined(shared1Dump.attributes['effective_size']);
     checkLinkCounts(shared1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
     var shared2Dump = gmd1.getMemoryAllocatorDumpByFullName('shared2');
     assert.strictEqual(shared2Dump, gmd1.memoryAllocatorDumps[1]);
     assert.strictEqual(shared2Dump.fullName, 'shared2');
     assert.isUndefined(shared2Dump.parent);
-    assert.sameMembers(Object.keys(shared2Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(shared2Dump.attributes), ['A']);
     checkAttribute(shared2Dump.attributes['A'], tr.model.StringAttribute, '',
         'cyan');
-    assert.isUndefined(shared2Dump.attributes['size']);
-    assert.isUndefined(shared2Dump.attributes['effective_size']);
     checkLinkCounts(shared2Dump, false /* owns */, 0 /* owned by */,
         0 /* retains */, 1 /* retained by */);
 
@@ -4773,12 +4757,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherShared1Dump, gmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherShared1Dump.fullName, 'shared1');
     assert.isUndefined(otherShared1Dump.parent);
-    assert.sameMembers(Object.keys(otherShared1Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(otherShared1Dump.attributes), ['A']);
     checkAttribute(otherShared1Dump.attributes['A'], tr.model.StringAttribute,
         '', 'brown');
-    assert.isUndefined(otherShared1Dump.attributes['size']);
-    assert.isUndefined(otherShared1Dump.attributes['effective_size']);
     checkLinkCounts(otherShared1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 

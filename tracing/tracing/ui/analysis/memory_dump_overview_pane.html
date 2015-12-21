@@ -452,8 +452,7 @@ tr.exportTo('tr.ui.analysis', function() {
                 var allocatorName = allocatorDump.fullName;
                 // Clone the attribute so that we could provide custom infos
                 // (instead of the original ones).
-                var overviewAttribute = new rootAttribute.constructor(
-                    rootAttribute.units, rootAttribute.value);
+                var overviewAttribute = rootAttribute.cloneWithoutInfos();
                 if (dump.heapDumps !== undefined &&
                     dump.heapDumps[allocatorName] !== undefined) {
                   overviewAttribute.infos.push(new tr.model.AttributeInfo(

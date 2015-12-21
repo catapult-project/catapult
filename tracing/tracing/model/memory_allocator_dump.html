@@ -80,6 +80,13 @@ tr.exportTo('tr.model', function() {
       this.children.forEach(function(child) {
         child.aggregateAttributes(opt_model);
         tr.b.iterItems(child.attributes, function(name) {
+          if (name === MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME ||
+              name === MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME) {
+            // Don't aggregate size and effective attributes. These are
+            // calculated in GlobalMemoryDump.prototype.calculateSizes() and
+            // GlobalMemoryDump.prototype.calculateEffectiveSizes respectively.
+            return;
+          }
           attributes[name] = true;
         }, this);
       }, this);

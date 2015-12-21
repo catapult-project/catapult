@@ -165,6 +165,16 @@ tr.exportTo('tr.model', function() {
     }
   };
 
+  Attribute.prototype.cloneWithoutInfos = function() {
+    return new Attribute(this.units);
+  };
+
+  Attribute.prototype.cloneWithInfos = function() {
+    var attr = this.cloneWithoutInfos();
+    attr.infos = this.infos.slice();
+    return attr;
+  };
+
   var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(Attribute, options);
 
@@ -197,9 +207,13 @@ tr.exportTo('tr.model', function() {
       sum += childAttribute.value;
     });
     return new ScalarAttribute(units, sum);
-  }
+  };
 
   ScalarAttribute.prototype.__proto__ = Attribute.prototype;
+
+  ScalarAttribute.prototype.cloneWithoutInfos = function() {
+    return new ScalarAttribute(this.units, this.value);
+  };
 
   Attribute.register(ScalarAttribute, {type: 'scalar'});
 
@@ -215,13 +229,19 @@ tr.exportTo('tr.model', function() {
     return new StringAttribute(dict.units, dict.value);
   };
 
+  StringAttribute.prototype.__proto__ = Attribute.prototype;
+
+  StringAttribute.prototype.cloneWithoutInfos = function() {
+    return new StringAttribute(this.units, this.value);
+  };
+
   Attribute.register(StringAttribute, {type: 'string'});
 
   /**
    * @constructor
    */
   function UnknownAttribute(units, opt_value) {
-    Attribute.call(this, units, opt_value);
+    Attribute.call(this, units);
     this.value = opt_value;
   }
 
@@ -230,6 +250,10 @@ tr.exportTo('tr.model', function() {
   };
 
   UnknownAttribute.prototype.__proto__ = Attribute.prototype;
+
+  UnknownAttribute.prototype.cloneWithoutInfos = function() {
+    return new UnknownAttribute(this.units, this.value);
+  };
 
   /**
    * @constructor

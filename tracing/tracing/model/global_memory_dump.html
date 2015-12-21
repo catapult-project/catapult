@@ -71,24 +71,26 @@ tr.exportTo('tr.model', function() {
       // them later (step 3).
       this.setUpTracingOverheadOwnership();
 
-      // 2. Calculate the sizes of all memory allocator dumps (MADs). This step
+      // 2. Aggregate all other attributes of all MADs (*excluding* sizes and
+      // effective sizes) and propagate attributes from global MADs to their
+      // owners (*including* sizes and effective sizes). This step must be
+      // carried out before the sizes of all MADs are calculated (step 3).
+      // Otherwise, the propagated sizes of all MADs would not be aggregated.
+      this.aggregateAttributes();
+
+      // 3. Calculate the sizes of all memory allocator dumps (MADs). This step
       // requires that the memory allocator dump graph has been finalized (step
-      // 1). Subsequent modifications of the graph will most likely break the
+      // 1) and attributes were propagated from global MADs (step 2).
+      // Subsequent modifications of the graph will most likely break the
       // calculation invariants.
       this.calculateSizes();
 
-      // 3. Calculate the effective sizes of all MADs. This step requires that
-      // the sizes of all MADs have already been calculated (step 2).
+      // 4. Calculate the effective sizes of all MADs. This step requires that
+      // the sizes of all MADs have already been calculated (step 3).
       this.calculateEffectiveSizes();
 
-      // 4. Aggregate all other attributes of all MADs. This step must be
-      // carried out after the sizes of all MADs were calculated (step 2).
-      // Otherwise, the sizes of all MADs would be aggregated as direct sums
-      // of their children, which would most likely lead to double-counting.
-      this.aggregateAttributes();
-
       // 5. Discount tracing from VM regions stats. This steps requires that
-      // sizes (step 2) and resident sizes (step 4) of the tracing MADs have
+      // resident sizes (step 2) and sizes (step 3) of the tracing MADs have
       // already been calculated.
       this.discountTracingOverheadFromVmRegions();
     },
@@ -256,7 +258,7 @@ tr.exportTo('tr.model', function() {
       if (!shouldDefineSize) {
         // The rest of the pipeline relies on size being either a valid
         // ScalarAttribute, or undefined.
-        dump.attributes[SIZE_ATTRIBUTE_NAME] = undefined;
+        delete dump.attributes[SIZE_ATTRIBUTE_NAME];
         return;
       }
 
@@ -618,7 +620,7 @@ tr.exportTo('tr.model', function() {
       if (!hasSize(dump)) {
         // The rest of the pipeline relies on effective size being either a
         // valid ScalarAttribute, or undefined.
-        dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] = undefined;
+        delete dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME];
         return;
       }
 
@@ -696,13 +698,6 @@ tr.exportTo('tr.model', function() {
 
     propagateAttributesRecursively: function(globalAllocatorDump) {
       tr.b.iterItems(globalAllocatorDump.attributes, function(attrName, attr) {
-        if (attrName === SIZE_ATTRIBUTE_NAME ||
-            attrName === EFFECTIVE_SIZE_ATTRIBUTE_NAME) {
-          // We cannot propagate size and effective_size attributes because it
-          // would break the complex maths [see calculateSizes() and
-          // calculateEffectiveSizes()].
-          return;
-        }
         globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
           var processAllocatorDump = ownershipLink.source;
           if (processAllocatorDump.attributes[attrName] !== undefined) {
@@ -711,7 +706,7 @@ tr.exportTo('tr.model', function() {
             // allocator dumps.
             return;
           }
-          processAllocatorDump.attributes[attrName] = attr;
+          processAllocatorDump.attributes[attrName] = attr.cloneWithInfos();
         });
       });
       // Recursively propagate attributes from all child memory allocator dumps.
