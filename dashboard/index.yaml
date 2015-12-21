@@ -220,6 +220,24 @@ indexes:
   - name: timestamp
     direction: desc
 
+# Used in /alerts to query for stoppage alerts, for internal and external
+# sheriffs.
+- kind: StoppageAlert
+  properties:
+  - name: bug_id
+  - name: internal_only
+  - name: recovered
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+- kind: StoppageAlert
+  properties:
+  - name: bug_id
+  - name: recovered
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+
 # Used in update_test_suites to query keys of test suites (parent_test == None)
 # with deprecated and description projection. Two separate lists of
 # test suites are kept, one for external and one for internal.
