@@ -58,6 +58,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.drift_time,
         important=True,
         description='Drift time for a rendered frame',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.DOWN,
         none_value_reason=none_reason))
 
@@ -68,6 +69,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.percent_badly_out_of_sync,
         important=True,
         description='Percentage of frame which drifted more than 2 VSYNC',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.DOWN,
         none_value_reason=none_reason))
 
@@ -78,6 +80,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.percent_out_of_sync,
         important=True,
         description='Percentage of frame which drifted more than 1 VSYNC',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.DOWN,
         none_value_reason=none_reason))
 
@@ -92,6 +95,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.fps,
         important=True,
         description='Calculated Frame Rate of video rendering',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.UP,
         none_value_reason=none_reason))
 
@@ -102,6 +106,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.smoothness_score,
         important=True,
         description='Smoothness score of rendering',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.UP,
         none_value_reason=none_reason))
 
@@ -112,6 +117,7 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.freezing_score,
         important=True,
         description='Freezing score of rendering',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.UP,
         none_value_reason=none_reason))
 
@@ -122,5 +128,6 @@ class WebRtcRenderingTimelineMetric(timeline_based_metric.TimelineBasedMetric):
         rendering_stats.rendering_length_error,
         important=True,
         description='Rendering length error rate',
+        tir_label=interactions[0].label,
         improvement_direction=improvement_direction.DOWN,
         none_value_reason=none_reason))
