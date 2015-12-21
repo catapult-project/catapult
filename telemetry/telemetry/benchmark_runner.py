@@ -324,20 +324,15 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
                 '-v', '--output-format=chartjson', '--upload-results',
                 base_name]
     perf_dashboard_id = base_name
-    # TODO(fmeawad): Currently we set the device affinity to a stable hash of
-    # the benchmark name. This somewhat evenly distributes benchmarks among the
-    # requested number of shards. However, it is far from optimal in terms of
-    # cycle time.  We should add a benchmark size decorator (e.g. small, medium,
-    # large) and let that inform sharding.
 
     # Based on the current timings, we shift the result of the hash function to
     # achieve better load balancing. Those shift values are to be revised when
-    # necessary. (See tools/build/scripts/tools/perf/chrome-perf-step-timings.py
-    # for more details)
+    # necessary. The shift value is calculated such that the total cycle time
+    # is minimized.
     hash_shift = {
-      2 : 47,
-      5 : 56,
-      8 : 50
+      2 : 47,  # for old desktop configurations with 2 slaves
+      5 : 56,  # for new desktop configurations with 5 slaves
+      21 : 43  # for Android 3 slaves 7 devices configurations
     }
     shift = hash_shift.get(num_shards, 0)
     base_name_hash = hashlib.sha1(base_name).hexdigest()
