@@ -48,7 +48,7 @@ class DevilEnvTest(unittest.TestCase):
         {
           'adb': {
             'file_info': {
-              'android_linux2': {
+              'linux_x86_64': {
                 'local_paths': ['/my/fake/adb/path'],
               },
             },

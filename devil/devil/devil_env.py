@@ -6,6 +6,7 @@ import contextlib
 import json
 import logging
 import os
+import platform
 import sys
 import tempfile
 import threading
@@ -37,11 +38,11 @@ _DEVIL_DEFAULT_CONFIG = os.path.abspath(os.path.join(
 _LEGACY_ENVIRONMENT_VARIABLES = {
   'ADB_PATH': {
     'dependency_name': 'adb',
-    'platform': 'android_linux2',
+    'platform': 'linux_x86_64',
   },
   'ANDROID_SDK_ROOT': {
     'dependency_name': 'android_sdk',
-    'platform': 'android_linux2',
+    'platform': 'linux_x86_64',
   },
 }
 
@@ -136,9 +137,9 @@ class _Environment(object):
 
 
 def GetPlatform(arch=None, device=None):
-  if not arch:
-    arch = device.product_cpu_abi if device else sys.platform
-  return 'android_%s' % arch
+  if device:
+    return 'android_%s' % (arch or device.product_cpu_abi)
+  return 'linux_%s' % platform.machine()
 
 
 config = _Environment()
