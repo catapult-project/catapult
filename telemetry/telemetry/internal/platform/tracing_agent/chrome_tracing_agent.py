@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import shutil
 import stat
@@ -160,7 +161,9 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       self._trace_config_file = os.path.join(tempfile.mkdtemp(),
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       with open(self._trace_config_file, 'w') as f:
-        f.write(self._CreateTraceConfigFileString(config))
+        trace_config_string = self._CreateTraceConfigFileString(config)
+        logging.info('Trace config file string: %s', trace_config_string)
+        f.write(trace_config_string)
       os.chmod(self._trace_config_file,
                os.stat(self._trace_config_file).st_mode | stat.S_IROTH)
     else:

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import logging
 import socket
 import time
 import traceback
@@ -116,6 +117,7 @@ class TracingBackend(object):
     }
     if custom_categories:
       req['params']['categories'] = custom_categories
+    logging.info('Start Tracing Request: %s', repr(req))
     self._inspector_websocket.SyncRequest(req, timeout)
     self._is_tracing_running = True
     return True
