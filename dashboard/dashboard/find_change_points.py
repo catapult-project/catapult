@@ -35,7 +35,7 @@ _MIN_RELATIVE_CHANGE = 0.01
 
 # "Steppiness" is a number between 0 and 1 that indicates how similar the
 # shape is to a perfect step function, where 1 represents a step function.
-_MIN_STEPPINESS = 0.3
+_MIN_STEPPINESS = 0.5
 
 # The "standard deviation" is based on a subset of points in the series.
 # This parameter is the minimum acceptable ratio of the relative change
