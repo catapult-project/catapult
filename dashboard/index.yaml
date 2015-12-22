@@ -104,15 +104,6 @@ indexes:
     direction: asc
 
 # Might be unused!
-# This index would enable querying for non-internal-only points for a
-# particular test, filtering or sorting by revision.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-
-# Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
 # query including value.
