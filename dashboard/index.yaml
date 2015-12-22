@@ -103,6 +103,13 @@ indexes:
   - name: end_revision
     direction: asc
 
+# Used in graph_json.py for logged out users.
+- kind: Row
+  properties:
+  - name: internal_only
+  - name: parent_test
+  - name: revision
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
