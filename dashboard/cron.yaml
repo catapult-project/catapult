@@ -43,7 +43,7 @@ cron:
 # Scheduled backup.
 # If you add new datastore kinds and want them to be backed up,
 # you must add kind=argument to the URL below. Backups are available at:
-# https://appengine.google.com/datastore/admin?&app_id=s~chromeperf
+# https://console.developers.google.com/datastore/settings?project=chromeperf
 # See: https://cloud.google.com/appengine/articles/scheduled_backups
 - description: Back up all entities in the datastore.
   url: "/_ah/datastore_admin/backup.create?name=ScheduledBackup\
@@ -59,7 +59,8 @@ cron:
 &kind=BotWhitelist\
 &kind=BugLabelPatterns\
 &kind=MultipartEntity\
-&kind=PartEntity"
+&kind=PartEntity\
+&filesystem=gs\
+&gs_bucket_name=chromeperf.appspot.com"
   schedule: every saturday 05:00
   target: ah-builtin-python-bundle
-
