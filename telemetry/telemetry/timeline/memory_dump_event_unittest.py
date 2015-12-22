@@ -36,7 +36,27 @@ def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
 
 
 class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
-  def testProcessMemoryDump_categories(self):
+  def testProcessMemoryDump_allocators(self):
+    memory_dump = TestProcessDumpEvent(allocators={
+      'v8': {'size': 10, 'allocated_objects_size' : 5},
+      'v8/allocated_objects': {'size': 4},
+      'skia': {'not_size': 10, 'allocated_objects_size' : 5},
+      'skia/cache1': {'size': 24},
+      'skia/cache2': {'not_size': 20},
+      'skia/cache2/obj1': {'size': 8},
+      'skia/cache2/obj2': {'size': 9},
+      'skia_different/obj': {'size': 30},
+      'skia_different/obj/not_counted': {'size': 26},
+      'global/0xdead': {'size': 26}
+    })
+    EXPECTED = {
+      'skia': {'allocated_objects_size': 5, 'not_size': 30, 'size': 41},
+      'v8': {'allocated_objects_size': 5, 'size': 10},
+      'skia_different': {'size': 30}}
+
+    self.assertEquals(memory_dump._allocators, EXPECTED)
+
+  def testProcessMemoryDump_mmaps(self):
     ALL = [2 ** x for x in range(8)]
     (JAVA_SPACES, JAVA_CACHE, ASHMEM, NATIVE_1, NATIVE_2,
      STACK, FILES_APK, DEVICE_GPU) = ALL

@@ -160,12 +160,15 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     except KeyError:
       allocators_dict = {}
     self._allocators = {}
-    for allocator_name, size_values in allocators_dict.iteritems():
-      name_parts = allocator_name.split('/')
-      # we want to skip allocated_objects, since they are already counted by
-      # outer allocator names.
-      if name_parts[-1] == 'allocated_objects':
+    parent_path = ''
+    parent_has_size = False
+    for allocator_name, size_values in sorted(allocators_dict.iteritems()):
+      if ((allocator_name.startswith(parent_path) and parent_has_size)
+          or allocator_name.startswith('global/')):
         continue
+      parent_path = allocator_name + '/'
+      parent_has_size = 'size' in size_values['attrs']
+      name_parts = allocator_name.split('/')
       allocator_name = name_parts[0]
       # For 'gpu/android_memtrack/*' we want to keep track of individual
       # components. E.g. 'gpu/android_memtrack/gl' will be stored as
@@ -245,6 +248,10 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     """Get a dictionary with the memory usage of this process."""
     usage = {}
     for name, values in self._allocators.iteritems():
+      # If you wish to track more attributes here, make sure they are correctly
+      # calculated by the ProcessMemoryDumpEvent method. All dumps whose parent
+      # has "size" attribute are ignored to avoid double counting. So, the
+      # other attributes are totals of only top level dumps.
       if 'size' in values:
         usage['allocator_%s' % name] = values['size']
       if 'allocated_objects_size' in values:
