@@ -10,7 +10,9 @@ from telemetry import decorators
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
+from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_config
+from telemetry.timeline import tracing_options
 
 from devil.android import device_utils
 
@@ -80,11 +82,11 @@ class ChromeTracingAgentTest(unittest.TestCase):
   def StartTracing(self, platform_backend, enable_chrome_trace=True):
     assert chrome_tracing_agent.ChromeTracingAgent.IsSupported(platform_backend)
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
-    config = tracing_config.TracingConfig()
-    config.tracing_category_filter.AddIncludedCategory('foo')
-    config.tracing_options.enable_chrome_trace = enable_chrome_trace
+    trace_options = tracing_options.TracingOptions()
+    trace_options.enable_chrome_trace = enable_chrome_trace
+    category_filter = tracing_category_filter.TracingCategoryFilter('foo')
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True
-    agent.Start(config, 10)
+    agent.Start(trace_options, category_filter, 10)
     return agent
 
   def StopTracing(self, agent):
@@ -229,7 +231,9 @@ class ChromeTracingAgentTest(unittest.TestCase):
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     self.assertIsNone(agent.trace_config_file)
 
-    config = tracing_config.TracingConfig()
+    config = tracing_config.TracingConfig(
+        tracing_options.TracingOptions(),
+        tracing_category_filter.TracingCategoryFilter())
     agent._CreateTraceConfigFile(config)
     self.assertIsNotNone(agent.trace_config_file)
     self.assertTrue(platform_backend.device.PathExists(agent.trace_config_file))
@@ -253,7 +257,9 @@ class ChromeTracingAgentTest(unittest.TestCase):
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     self.assertIsNone(agent.trace_config_file)
 
-    config = tracing_config.TracingConfig()
+    config = tracing_config.TracingConfig(
+        tracing_options.TracingOptions(),
+        tracing_category_filter.TracingCategoryFilter())
     agent._CreateTraceConfigFile(config)
     self.assertIsNotNone(agent.trace_config_file)
     self.assertTrue(os.path.exists(agent.trace_config_file))

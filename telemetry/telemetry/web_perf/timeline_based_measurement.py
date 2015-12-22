@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_category_filter
-from telemetry.timeline import tracing_config
+from telemetry.timeline import tracing_options
 from telemetry.value import trace
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf.metrics import blob_timeline
@@ -168,48 +168,45 @@ class Options(object):
         one of NO_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL or
         DEBUG_OVERHEAD_LEVEL.
     """
-    self._config = tracing_config.TracingConfig()
-    self._config.tracing_options.enable_chrome_trace = True
-    self._config.tracing_options.enable_platform_display_trace = True
-
+    self._category_filter = None
     if isinstance(overhead_level,
                   tracing_category_filter.TracingCategoryFilter):
-      self._config.SetTracingCategoryFilter = overhead_level
+      self._category_filter = overhead_level
     elif overhead_level in ALL_OVERHEAD_LEVELS:
       if overhead_level == NO_OVERHEAD_LEVEL:
-        self._config.SetNoOverheadFilter()
+        self._category_filter = tracing_category_filter.CreateNoOverheadFilter()
       elif overhead_level == MINIMAL_OVERHEAD_LEVEL:
-        self._config.SetMinimalOverheadFilter()
+        self._category_filter = (
+          tracing_category_filter.CreateMinimalOverheadFilter())
       else:
-        self._config.SetDebugOverheadFilter()
+        self._category_filter = (
+          tracing_category_filter.CreateDebugOverheadFilter())
     else:
       raise Exception("Overhead level must be a TracingCategoryFilter object"
                       " or valid overhead level string."
                       " Given overhead level: %s" % overhead_level)
 
+    self._tracing_options = tracing_options.TracingOptions()
+    self._tracing_options.enable_chrome_trace = True
+    self._tracing_options.enable_platform_display_trace = True
     self._timeline_based_metrics = _GetAllTimelineBasedMetrics()
 
 
   def ExtendTraceCategoryFilter(self, filters):
     for new_category_filter in filters:
-      self._config.tracing_category_filter.AddIncludedCategory(
-          new_category_filter)
+      self._category_filter.AddIncludedCategory(new_category_filter)
 
   @property
   def category_filter(self):
-    return self._config.tracing_category_filter
-
-  @property
-  def config(self):
-    return self._config
+    return self._category_filter
 
   @property
   def tracing_options(self):
-    return self._config.tracing_options
+    return self._tracing_options
 
   @tracing_options.setter
   def tracing_options(self, value):
-    self._config.tracing_options = value
+    self._tracing_options = value
 
   def SetTimelineBasedMetrics(self, metrics):
     assert isinstance(metrics, collections.Iterable)
@@ -258,7 +255,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Configure and start tracing."""
     if not platform.tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
-    platform.tracing_controller.Start(self._tbm_options.config)
+    platform.tracing_controller.Start(self._tbm_options.tracing_options,
+                                      self._tbm_options.category_filter)
 
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""

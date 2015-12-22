@@ -7,15 +7,17 @@ from telemetry.core import platform as platform_module
 from telemetry.testing import browser_test_case
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
-from telemetry.timeline import tracing_config
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_options
 
 class TracingControllerTest(tab_test_case.TabTestCase):
 
   def testModifiedConsoleTime(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
-    config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    category_filter = tracing_category_filter.TracingCategoryFilter()
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    tracing_controller.Start(options, category_filter)
     self.Navigate('blank.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -36,16 +38,17 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
     # Check that subsequent tests will be able to use tracing normally.
     self.assertFalse(tracing_controller.is_tracing_running)
-    tracing_controller.Start(config)
+    tracing_controller.Start(options, category_filter)
     self.assertTrue(tracing_controller.is_tracing_running)
     tracing_controller.Stop()
     self.assertFalse(tracing_controller.is_tracing_running)
 
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
-    config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    category_filter = tracing_category_filter.TracingCategoryFilter()
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    tracing_controller.Start(options, category_filter)
 
     self.Navigate('blank.html')
     self._tab.EvaluateJavaScript("""
@@ -60,9 +63,10 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
   def testGotTrace(self):
     tracing_controller = self._browser.platform.tracing_controller
-    config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    tracing_controller.Start(
+      options, tracing_category_filter.TracingCategoryFilter())
 
     trace_data = tracing_controller.Stop()
     # Test that trace data is parsable
@@ -71,10 +75,12 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
   def testStartAndStopTraceMultipleTimes(self):
     tracing_controller = self._browser.platform.tracing_controller
-    config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
-    tracing_controller.Start(config)
-    self.assertFalse(tracing_controller.Start(config))
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    tracing_controller.Start(
+      options, tracing_category_filter.TracingCategoryFilter())
+    self.assertFalse(tracing_controller.Start(
+      options, tracing_category_filter.TracingCategoryFilter()))
     trace_data = tracing_controller.Stop()
     # Test that trace data is parsable
     model_module.TimelineModel(trace_data)
@@ -88,9 +94,10 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
     # Start tracing
     self.assertFalse(platform.tracing_controller.is_tracing_running)
-    config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
-    platform.tracing_controller.Start(config)
+    trace_options = tracing_options.TracingOptions()
+    trace_options.enable_chrome_trace = True
+    category_filter = tracing_category_filter.TracingCategoryFilter()
+    platform.tracing_controller.Start(trace_options, category_filter)
     self.assertTrue(platform.tracing_controller.is_tracing_running)
 
     try:
@@ -100,7 +107,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
       self.assertEquals(platform, self._browser.platform)
       # Calling start tracing again will return False
-      self.assertFalse(self._browser.platform.tracing_controller.Start(config))
+      self.assertFalse(self._browser.platform.tracing_controller.Start(
+          trace_options, category_filter))
 
       trace_data = self._browser.platform.tracing_controller.Stop()
       # Test that trace data is parsable

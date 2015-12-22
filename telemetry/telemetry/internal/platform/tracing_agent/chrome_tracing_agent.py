@@ -12,6 +12,7 @@ import traceback
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
+from telemetry.timeline import tracing_config
 
 _DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
 _STARTUP_TRACING_OS_NAMES = _DESKTOP_OS_NAMES + ['android']
@@ -65,7 +66,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     self._CreateTraceConfigFile(config)
     return True
 
-  def _StartDevToolsTracing(self, config, timeout):
+  def _StartDevToolsTracing(self, trace_options, category_filter, timeout):
     if not chrome_tracing_devtools_manager.IsSupported(self._platform_backend):
       return False
     devtools_clients = (chrome_tracing_devtools_manager
@@ -77,13 +78,12 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         raise ChromeTracingStartedError(
             'Tracing is already running on devtools at port %s on platform'
             'backend %s.' % (client.remote_port, self._platform_backend))
-      client.StartChromeTracing(config.tracing_options,
-                                config.tracing_category_filter.filter_string,
-                                timeout)
+      client.StartChromeTracing(
+          trace_options, category_filter.filter_string, timeout)
     return True
 
-  def Start(self, config, timeout):
-    if not config.tracing_options.enable_chrome_trace:
+  def Start(self, trace_options, category_filter, timeout):
+    if not trace_options.enable_chrome_trace:
       return False
 
     if self._trace_config:
@@ -91,7 +91,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           'Tracing is already running on platform backend %s.'
           % self._platform_backend)
 
-    if (config.tracing_options.enable_android_graphics_memtrack and
+    if (trace_options.enable_android_graphics_memtrack and
         self._platform_backend.GetOSName() == 'android'):
       self._platform_backend.SetGraphicsMemoryTrackingEnabled(True)
 
@@ -101,8 +101,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     # this point to use it for enabling tracing upon browser startup. For the
     # latter, we invoke start tracing command through devtools for browsers that
     # are already started and tracked by chrome_tracing_devtools_manager.
+    config = tracing_config.TracingConfig(trace_options, category_filter)
     started_startup_tracing = self._StartStartupTracing(config)
-    started_devtools_tracing = self._StartDevToolsTracing(config, timeout)
+    started_devtools_tracing = self._StartDevToolsTracing(
+        trace_options, category_filter, timeout)
     if started_startup_tracing or started_devtools_tracing:
       self._trace_config = config
       return True
@@ -144,7 +146,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
   def _CreateTraceConfigFileString(self, config):
     # See src/components/tracing/trace_config_file.h for the format
-    trace_config_str = config.GetChromeTraceConfigJsonString()
+    trace_config_str = config.GetTraceConfigJsonString()
     return '{"trace_config":' + trace_config_str + '}'
 
   def _CreateTraceConfigFile(self, config):

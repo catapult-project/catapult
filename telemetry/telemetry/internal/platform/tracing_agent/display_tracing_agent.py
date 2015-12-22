@@ -14,9 +14,9 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
   def IsSupported(cls, platform_backend):
     return platform_backend.IsDisplayTracingSupported()
 
-  def Start(self, config, timeout):
-    del timeout # unsude
-    if config.tracing_options.enable_platform_display_trace:
+  def Start(self, trace_options, category_filter, timeout):
+    del timeout  # unused
+    if trace_options.enable_platform_display_trace:
       self._platform_backend.StartDisplayTracing()
       return True
 
