@@ -1,12 +1,12 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import unittest
 
 import BaseHTTPServer
 import SimpleHTTPServer
 
 from telemetry.core import local_server
-from telemetry import decorators
 from telemetry.testing import tab_test_case
 
 
@@ -61,7 +61,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     cls._server = SimpleLocalServer()
     cls._platform.StartLocalServer(cls._server)
 
-  @decorators.Disabled('win')  # flakily times out: https://crbug.com/570955
+  @unittest.skip("flakily times out: https://crbug.com/570955")
   def testLocalServer(self):
     self.assertTrue(self._server in self._platform.local_servers)
     self._tab.Navigate(self._server.url)
@@ -70,7 +70,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     body_text = body_text.strip()
     self.assertEquals('hello world', body_text)
 
-  @decorators.Disabled('win')  # flakily times out: https://crbug.com/570955
+  @unittest.skip("flakily times out: https://crbug.com/570955")
   def testStartingAndRestarting(self):
     server2 = SimpleLocalServer()
     self.assertRaises(Exception,
