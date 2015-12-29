@@ -118,6 +118,11 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
     for cpu in self._cpus:
       cpu_freq_path = os.path.join(
           CPU_PATH, cpu, 'cpufreq/stats/time_in_state')
+      if not self._platform.PathExists(cpu_freq_path):
+        logging.warning(
+            'Cannot read cpu frequency times for %s due to %s not existing'
+            % (cpu, cpu_freq_path))
+        continue
       try:
         stats[cpu] = self._platform.GetFileContents(cpu_freq_path)
       except Exception as e:
