@@ -122,6 +122,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         logging.warning(
             'Cannot read cpu frequency times for %s due to %s not existing'
             % (cpu, cpu_freq_path))
+        stats[cpu] = None
         continue
       try:
         stats[cpu] = self._platform.GetFileContents(cpu_freq_path)
