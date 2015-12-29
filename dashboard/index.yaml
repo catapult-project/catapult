@@ -96,32 +96,12 @@ indexes:
   - name: timestamp
     direction: desc
 
-# Used in group_report.py when querying for anomalies around a revision.
-- kind: Anomaly
-  properties:
-  - name: internal_only
-  - name: end_revision
-    direction: asc
-
-# Used in graph_json.py for logged out users.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
 # query including value.
 - kind: Row
   properties:
-  - name: parent_test
-  - name: revision
-  - name: value
-- kind: Row
-  properties:
-  - name: internal_only
   - name: parent_test
   - name: revision
   - name: value
@@ -143,24 +123,11 @@ indexes:
   - name: revision
   - name: timestamp
   - name: value
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-  - name: timestamp
-  - name: value
 
 # Used in several modules (graph_json.py and graph_csv.py) to fetch the latest
 # points for a test.
 - kind: Row
   properties:
-  - name: parent_test
-  - name: revision
-    direction: desc
-- kind: Row
-  properties:
-  - name: internal_only
   - name: parent_test
   - name: revision
     direction: desc
@@ -172,15 +139,6 @@ indexes:
   properties:
   - name: parent_test
   - name: revision
-
-# Used in new_points.py to query newest points for all tests.
-# There is no composite index required when the user is logged in, since
-# then the query only depends on one property (timestamp).
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: timestamp
-    direction: desc
 
 # May be unused!
 # Likely used in new_points.py to query newest points for a particular test.
