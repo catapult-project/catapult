@@ -30,6 +30,7 @@ class DebugAlertTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/debug_alert', debug_alert.DebugAlertHandler)])
     self.testapp = webtest.TestApp(app)
+    self.PatchDatastoreHooksRequest()
 
   def _AddSampleData(self):
     """Adds a Test and Row entities, and returns the Test key."""
@@ -147,7 +148,7 @@ class DebugAlertTest(testing_common.TestCase):
 
   def testFetchLatestRows(self):
     test_key = self._AddSampleData()
-    rows = debug_alert._FetchLatestRows(test_key, 4)
+    rows = debug_alert._FetchLatestRows(test_key.get(), 4)
     revisions = [r.revision for r in rows]
     self.assertEqual([316, 317, 318, 319], revisions)
 

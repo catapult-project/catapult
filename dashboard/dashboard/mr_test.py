@@ -4,6 +4,8 @@
 
 import datetime
 import unittest
+import webapp2
+import webtest
 
 from mapreduce import operation as op
 
@@ -28,6 +30,13 @@ _TESTS = {
 
 
 class MrTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(MrTest, self).setUp()
+    app = webapp2.WSGIApplication([])
+    self.testapp = webtest.TestApp(app)
+    self.SetCurrentUser('foo@bar.com', is_admin=True)
+    self.PatchDatastoreHooksRequest()
 
   def _ExecOperation(self, operation):
     """Helper method to run a datastore mutation operation.

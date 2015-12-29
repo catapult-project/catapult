@@ -7,6 +7,7 @@
 import json
 import urllib
 
+from dashboard import datastore_hooks
 from dashboard import find_anomalies
 from dashboard import find_change_points
 from dashboard import request_handler
@@ -53,7 +54,7 @@ class DebugAlertHandler(request_handler.RequestHandler):
     if revision:
       rows = _FetchRowsAroundRev(test.key, int(revision), num_before, num_after)
     else:
-      rows = _FetchLatestRows(test.key, num_before)
+      rows = _FetchLatestRows(test, num_before)
 
     chart_series = _ChartSeries(rows)
     lookup = _RevisionList(rows)
@@ -236,19 +237,21 @@ def _RevisionList(rows):
   return [r.revision for r in rows]
 
 
-def _FetchLatestRows(test_key, num_points):
+def _FetchLatestRows(test, num_points):
   """Does a query for the latest Row entities in the given test.
 
   Args:
-    test_key: A Test entity key to fetch Row entities for.
+    test: A Test entity to fetch Row entities for.
     num_points: Number of points to fetch.
 
   Returns:
     A list of Row entities, ordered by revision. The number to fetch is limited
     to the number that is expected to be processed at once by GASP.
   """
+  assert(utils.IsInternalUser() or not test.internal_only)
+  datastore_hooks.SetSinglePrivilegedRequest()
   q = graph_data.Row.query(projection=['revision', 'value'])
-  q = q.filter(graph_data.Row.parent_test == test_key)
+  q = q.filter(graph_data.Row.parent_test == test.key)
   q = q.order(-graph_data.Row.revision)
   rows = list(reversed(q.fetch(limit=num_points)))
   return rows
@@ -329,4 +332,3 @@ def _GetDisplayBugId(bug_id):
   """Returns a display string for the given bug ID property of an anomaly."""
   special_ids = {-1: 'INVALID', -2: 'IGNORE', None: 'NONE'}
   return special_ids.get(bug_id, str(bug_id))
-

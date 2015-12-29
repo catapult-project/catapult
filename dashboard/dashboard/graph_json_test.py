@@ -26,6 +26,7 @@ class GraphJsonTest(testing_common.TestCase):
         [('/graph_json', graph_json.GraphJsonHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetInternalDomain('google.com')
+    self.PatchDatastoreHooksRequest()
 
   # TODO(qyearsley): graph_json_test is very slow (it takes 60+ seconds
   # to run sometimes), and I have a hypothesis that most of the time is

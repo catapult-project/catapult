@@ -56,6 +56,23 @@ def SetPrivilegedRequest():
   request.registry['privileged'] = True
 
 
+def SetSinglePrivilegedRequest():
+  """Allows the current request to act as a privileged user only ONCE.
+
+  This should be called ONLY by handlers that have checked privilege immediately
+  before making a query. It will be automatically unset when the next query is
+  made.
+  """
+  request = webapp2.get_request()
+  request.registry['single_privileged'] = True
+
+
+def CancelSinglePrivilegedRequest():
+  """Disallows the current request to act as a privileged user only."""
+  request = webapp2.get_request()
+  request.registry['single_privileged'] = False
+
+
 def _IsServicingPrivilegedRequest():
   """Checks whether the request is considered privileged."""
   try:
@@ -69,6 +86,9 @@ def _IsServicingPrivilegedRequest():
     # Running a mapreduce.
     return True
   if request.registry.get('privileged', False):
+    return True
+  if request.registry.get('single_privileged', False):
+    request.registry['single_privileged'] = False
     return True
   whitelist = utils.GetIpWhitelist()
   if whitelist and hasattr(request, 'remote_addr'):

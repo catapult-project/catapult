@@ -18,6 +18,7 @@ import urllib
 from google.appengine.ext import ndb
 
 from dashboard import alerts
+from dashboard import datastore_hooks
 from dashboard import list_tests
 from dashboard import request_handler
 from dashboard import utils
@@ -134,15 +135,17 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
     end_rev: End revision number (optional).
   """
   anomaly_annotation_map = _GetAnomalyAnnotationMap(parent_test.key)
+  assert(datastore_hooks.IsUnalteredQueryPermitted() or
+         not parent_test.internal_only)
 
   if start_rev and end_rev:
-    rows = _GetRowsForTestInRange(parent_test.key, start_rev, end_rev)
+    rows = _GetRowsForTestInRange(parent_test.key, start_rev, end_rev, True)
   elif rev:
     assert num_points
-    rows = _GetRowsForTestAroundRev(parent_test.key, rev, num_points)
+    rows = _GetRowsForTestAroundRev(parent_test.key, rev, num_points, True)
   else:
     assert num_points
-    rows = _GetLatestRowsForTest(parent_test.key, num_points)
+    rows = _GetLatestRowsForTest(parent_test.key, num_points, True)
 
   parent_test_key = parent_test.key.urlsafe()
   for row in rows:
@@ -250,8 +253,10 @@ def _GetBuildbotUriPrefix(test, row=None):
   return 'http://build.chromium.org/p'
 
 
-def _GetRowsForTestInRange(test_key, start_rev, end_rev):
+def _GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
   """Gets all the Row entities for a Test between a given start and end."""
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision >= start_rev,
@@ -259,17 +264,21 @@ def _GetRowsForTestInRange(test_key, start_rev, end_rev):
   return query.fetch(batch_size=100)
 
 
-def _GetRowsForTestAroundRev(test_key, rev, num_points):
+def _GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
   """Gets up to num_points Row entities for a Test centered on a revision."""
   num_rows_before = int(num_points / 2) + 1
   num_rows_after = int(num_points / 2)
 
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query_up_to_rev = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision <= rev)
   query_up_to_rev = query_up_to_rev.order(-graph_data.Row.revision)
   rows_up_to_rev = query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)
 
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query_after_rev = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision > rev)
@@ -279,8 +288,10 @@ def _GetRowsForTestAroundRev(test_key, rev, num_points):
   return rows_up_to_rev + rows_after_rev
 
 
-def _GetLatestRowsForTest(test_key, num_points):
+def _GetLatestRowsForTest(test_key, num_points, privileged=False):
   """Gets the latest num_points Row entities for a Test."""
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
   query = query.order(-graph_data.Row.revision)
   return query.fetch(limit=num_points, batch_size=100)
