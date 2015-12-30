@@ -128,5 +128,6 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self._StartupTracing(self._browser.platform)
 
   @decorators.Enabled('linux', 'mac', 'win')
+  @decorators.Isolated
   def testStartupTracingOnDesktop(self):
     self._StartupTracing(platform_module.GetHostPlatform())
