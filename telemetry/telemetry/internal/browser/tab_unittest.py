@@ -99,6 +99,7 @@ class TabTest(tab_test_case.TabTestCase):
   # Test failing on android: http://crbug.com/437057
   # and mac: http://crbug.com/468675
   @decorators.Disabled('android', 'chromeos', 'mac')
+  @decorators.Disabled('win')  # crbug.com/570955
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     options = tracing_options.TracingOptions()

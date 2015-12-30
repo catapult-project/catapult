@@ -127,7 +127,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testStartupTracingOnAndroid(self):
     self._StartupTracing(self._browser.platform)
 
-  @decorators.Enabled('linux', 'mac', 'win')
+  # Not enabled on win because of crbug.com/570955
+  @decorators.Enabled('linux', 'mac')
   @decorators.Isolated
   def testStartupTracingOnDesktop(self):
     self._StartupTracing(platform_module.GetHostPlatform())

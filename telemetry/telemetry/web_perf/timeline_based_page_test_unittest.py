@@ -48,6 +48,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
   # This test is flaky when run in parallel on the mac: crbug.com/426676
   # Also, fails on android: crbug.com/437057, and chromeos: crbug.com/483212
   @decorators.Disabled('android', 'mac', 'chromeos')
+  @decorators.Disabled('win')  # crbug.com/570955
   def testSmoothnessTimelineBasedMeasurementForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(
