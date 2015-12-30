@@ -8,6 +8,7 @@ import base64
 import binascii
 import json
 import logging
+import os
 import re
 import time
 
@@ -278,3 +279,8 @@ def DownloadChromiumFile(path):
     logging.error('Failed to decode "%s" from "%s".', response.content, url)
     return None
   return plaintext_content
+
+
+def GetRequestId():
+  """Returns the request log ID which can be used to find a specific log."""
+  return os.environ.get('REQUEST_LOG_ID')

@@ -396,7 +396,7 @@ class AddPointTest(testing_common.TestCase):
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.assertEqual(
+    self.assertIn(
         'Bad value for "revision", should be numerical.\n', response.body)
 
   def testPost_InvalidSupplementalRevision_DropsRevision(self):
@@ -848,7 +848,7 @@ class AddPointTest(testing_common.TestCase):
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.assertEqual('No "value" given.\n', response.body)
+    self.assertIn('No "value" given.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
   def testPost_WithBadValue_Rejected(self):
@@ -859,7 +859,7 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    self.assertEqual(
+    self.assertIn(
         'Bad value for "value", should be numerical.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
