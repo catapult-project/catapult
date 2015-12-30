@@ -37,6 +37,12 @@ class AlertsHandler(request_handler.RequestHandler):
     """
     sheriff_name = self.request.get('sheriff', 'Chromium Perf Sheriff')
     sheriff_key = ndb.Key('Sheriff', sheriff_name)
+    if sheriff_key.get() is None:
+      self.RenderHtml('alerts.html', {
+          'error': 'Sheriff "%s" not found.' % sheriff_name
+      })
+      return
+
     include_improvements = bool(self.request.get('improvements'))
     include_triaged = bool(self.request.get('triaged'))
 

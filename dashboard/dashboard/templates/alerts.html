@@ -79,6 +79,7 @@
       <paper-button raised noink id="triaged-toggle"
                     class="alert-togglebutton">Show triaged</paper-button>
     </div>
+    {% if error %}<div class="error">{{error}}</div>{% endif %}
     {% if have_anomalies %}
       <h2>Performance alerts</h2>
       <p id='num-alerts'></p>
@@ -98,7 +99,7 @@
       <alerts-table id="stoppage-alert-table" xsrfToken="{{xsrf_token | safe}}">
       </alerts-table>
     {% endif %}
-    {% if not have_anomalies and not have_stoppage_alerts %}
+    {% if not have_anomalies and not have_stoppage_alerts and not error %}
       <h2 class="center">All alerts triaged!</h2>
       <img class="center" src="http://thecatapi.com/api/images/get?api_key=MjUzMDQ&category=space&size=small">
     {% endif %}
