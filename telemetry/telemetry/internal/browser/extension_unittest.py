@@ -67,6 +67,7 @@ class ExtensionTest(unittest.TestCase):
         ext[0].EvaluateJavaScript('chrome.runtime != null'))
 
   @decorators.Disabled('mac')
+  @decorators.Disabled('win')  # crbug.com/570955
   def testWebApp(self):
     """Tests GetByExtensionId for a web app with multiple pages."""
     if not self.CreateBrowserWithExtension('simple_app'):

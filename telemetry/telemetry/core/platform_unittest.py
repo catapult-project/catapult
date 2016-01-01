@@ -19,6 +19,7 @@ class PlatformScreenshotTest(tab_test_case.TabTestCase):
   # Run this test in serial to avoid multiple browsers pop up on the screen.
   @decorators.Isolated
   @decorators.Disabled('linux')  # crbug.com/563656
+  @decorators.Disabled('win')  # crbug.com/570955
   def testScreenshot(self):
     if not self._platform.CanTakeScreenshot():
       self.skipTest('Platform does not support screenshots, skipping test.')
