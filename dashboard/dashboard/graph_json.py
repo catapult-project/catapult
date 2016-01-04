@@ -83,12 +83,12 @@ class GraphJsonHandler(request_handler.RequestHandler):
 
     arguments = {
         'test_path_dict': graphs['test_path_dict'],
-        'rev': PositiveIntOrNone(graphs.get('rev')),
-        'num_points': (PositiveIntOrNone(graphs.get('num_points'))
+        'rev': _PositiveIntOrNone(graphs.get('rev')),
+        'num_points': (_PositiveIntOrNone(graphs.get('num_points'))
                        or _DEFAULT_NUM_POINTS),
         'is_selected': graphs.get('is_selected'),
-        'start_rev': PositiveIntOrNone(graphs.get('start_rev')),
-        'end_rev': PositiveIntOrNone(graphs.get('end_rev')),
+        'start_rev': _PositiveIntOrNone(graphs.get('start_rev')),
+        'end_rev': _PositiveIntOrNone(graphs.get('end_rev')),
     }
     return arguments
 
@@ -141,7 +141,7 @@ def GetGraphJson(
   return _GetFlotJson(revision_map, test_entities)
 
 
-def PositiveIntOrNone(input_str):
+def _PositiveIntOrNone(input_str):
   """Parses a string as a positive int if possible, otherwise returns None."""
   if not input_str:
     return None
@@ -659,5 +659,3 @@ def _GetSubTestTraces(test_parts, sub_test_tree):
     if value['has_rows']:
       traces.append(key)
   return traces
-
-
