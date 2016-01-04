@@ -12,9 +12,12 @@ import tempfile
 import threading
 
 # TODO(jbudorick): Update this once dependency_manager moves to catapult.
-CATAPULT_BASE_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-    'tools', 'telemetry'))
+CATAPULT_ROOT_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), os.pardir, os.pardir))
+DEPENDENCY_MANAGER_PATH = os.path.join(
+    CATAPULT_ROOT_PATH, 'dependency_manager')
+PYMOCK_PATH = os.path.join(
+    CATAPULT_ROOT_PATH, 'third_party', 'mock')
 
 @contextlib.contextmanager
 def SysPath(path):
@@ -27,8 +30,8 @@ def SysPath(path):
   else:
     sys.path.pop()
 
-with SysPath(CATAPULT_BASE_PATH):
-  from catapult_base import dependency_manager # pylint: disable=import-error
+with SysPath(DEPENDENCY_MANAGER_PATH):
+  import dependency_manager # pylint: disable=import-error
 
 _ANDROID_BUILD_TOOLS = {'aapt', 'dexdump', 'split-select'}
 

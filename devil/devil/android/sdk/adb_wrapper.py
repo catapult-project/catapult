@@ -21,8 +21,8 @@ from devil.utils import cmd_helper
 from devil.utils import lazy
 from devil.utils import timeout_retry
 
-with devil_env.SysPath(devil_env.CATAPULT_BASE_PATH):
-  from catapult_base import dependency_manager # pylint: disable=import-error
+with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
+  import dependency_manager # pylint: disable=import-error
 
 
 _DEFAULT_TIMEOUT = 30

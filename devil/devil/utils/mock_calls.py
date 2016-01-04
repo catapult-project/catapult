@@ -10,7 +10,7 @@ import unittest
 
 from devil import devil_env
 
-with devil_env.SysPath(devil_env.config.LocalPath('pymock')):
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock # pylint: disable=import-error
 
 

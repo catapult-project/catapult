@@ -103,30 +103,6 @@
         }
       }
     },
-    "pymock": {
-      "file_info": {
-        "linux_x86_64": {
-          "local_paths": [
-            "../../../tools/telemetry/third_party/mock"
-          ]
-        },
-        "mac_x86_64": {
-          "local_paths": [
-            "../../../tools/telemetry/third_party/mock"
-          ]
-        },
-        "win_AMD64": {
-          "local_paths": [
-            "../../../tools/telemetry/third_party/mock"
-          ]
-        },
-        "win_x86": {
-          "local_paths": [
-            "../../../tools/telemetry/third_party/mock"
-          ]
-        }
-      }
-    },
     "split-select": {
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
