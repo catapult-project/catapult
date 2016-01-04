@@ -93,6 +93,54 @@ class GraphJsonHandler(request_handler.RequestHandler):
     return arguments
 
 
+def GetGraphJson(
+    test_path_dict, rev=None, num_points=None,
+    is_selected=True, start_rev=None, end_rev=None):
+  """Makes a JSON serialization of data for one chart with multiple series.
+
+  This function can return data for one chart (with multiple data series
+  plotted on it) with revisions on the x-axis, for a certain range of
+  revisions. The particular set of revisions to get data for can be specified
+  with the arguments rev, num_points, start_rev, and end_rev.
+
+  Args:
+    test_path_dict: Dictionary of test path to list of selected series.
+    rev: A revision number that the chart may be clamped relative to.
+    num_points: Number of points to plot.
+    is_selected: Whether this request is for selected or un-selected series.
+    start_rev: The lowest revision to get trace data for.
+    end_rev: The highest revision to get trace data for.
+
+  Returns:
+    JSON serialization of a dict with info that will be used to plot a chart.
+  """
+  # TODO(qyearsley): Parallelize queries if possible.
+
+  # Get a list of Test entities.
+  if is_selected:
+    test_paths = _GetTestPathFromDict(test_path_dict)
+  else:
+    test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
+
+  test_keys = map(utils.TestKey, test_paths)
+  test_entities = ndb.get_multi(test_keys)
+  test_entities = [t for t in test_entities if t is not None]
+
+  # Filter out deprecated tests, but only if not all the tests are deprecated.
+  all_deprecated = all(t.deprecated for t in test_entities)
+  if not all_deprecated:
+    test_entities = [t for t in test_entities if not t.deprecated]
+
+  test_entities = [t for t in test_entities if t.has_rows]
+  revision_map = {}
+  num_points = num_points or _DEFAULT_NUM_POINTS
+  for test in test_entities:
+    _UpdateRevisionMap(revision_map, test, rev, num_points, start_rev, end_rev)
+  if not (start_rev and end_rev):
+    _ClampRevisionMap(revision_map, rev, num_points)
+  return _GetFlotJson(revision_map, test_entities)
+
+
 def PositiveIntOrNone(input_str):
   """Parses a string as a positive int if possible, otherwise returns None."""
   if not input_str:
@@ -613,49 +661,3 @@ def _GetSubTestTraces(test_parts, sub_test_tree):
   return traces
 
 
-def GetGraphJson(
-    test_path_dict, rev=None, num_points=None,
-    is_selected=True, start_rev=None, end_rev=None):
-  """Makes a JSON serialization of data for one chart with multiple series.
-
-  This function can return data for one chart (with multiple data series
-  plotted on it) with revisions on the x-axis, for a certain range of
-  revisions. The particular set of revisions to get data for can be specified
-  with the arguments rev, num_points, start_rev, and end_rev.
-
-  Args:
-    test_path_dict: Dictionary of test path to list of selected series.
-    rev: A revision number that the chart may be clamped relative to.
-    num_points: Number of points to plot.
-    is_selected: Whether this request is for selected or un-selected series.
-    start_rev: The lowest revision to get trace data for.
-    end_rev: The highest revision to get trace data for.
-
-  Returns:
-    JSON serialization of a dict with info that will be used to plot a chart.
-  """
-  # TODO(qyearsley): Parallelize queries if possible.
-
-  # Get a list of Test entities.
-  if is_selected:
-    test_paths = _GetTestPathFromDict(test_path_dict)
-  else:
-    test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
-
-  test_keys = map(utils.TestKey, test_paths)
-  test_entities = ndb.get_multi(test_keys)
-  test_entities = [t for t in test_entities if t is not None]
-
-  # Filter out deprecated tests, but only if not all the tests are deprecated.
-  all_deprecated = all(t.deprecated for t in test_entities)
-  if not all_deprecated:
-    test_entities = [t for t in test_entities if not t.deprecated]
-
-  test_entities = [t for t in test_entities if t.has_rows]
-  revision_map = {}
-  num_points = num_points or _DEFAULT_NUM_POINTS
-  for test in test_entities:
-    _UpdateRevisionMap(revision_map, test, rev, num_points, start_rev, end_rev)
-  if not (start_rev and end_rev):
-    _ClampRevisionMap(revision_map, rev, num_points)
-  return _GetFlotJson(revision_map, test_entities)
