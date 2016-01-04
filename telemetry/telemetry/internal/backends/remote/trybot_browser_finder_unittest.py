@@ -505,4 +505,3 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     self._stubs.open.files = {cfg_filename: cfg}
     self.assertEquals((0, 'https://codereview.chromium.org/12345'),
         browser._UpdateConfigAndRunTryjob('android', cfg_filename))
-
