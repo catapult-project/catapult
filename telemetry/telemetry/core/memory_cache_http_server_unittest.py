@@ -9,6 +9,7 @@ from telemetry.testing import tab_test_case
 
 
 class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
+
   def setUp(self):
     super(MemoryCacheHTTPServerTest, self).setUp()
     self._test_filename = 'bear.webm'
@@ -29,20 +30,17 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
     self.CheckContentHeaders('0-', '0-%d' % last_byte, file_size)
 
     # Test byte range request: greater than zero start byte.
-    self.CheckContentHeaders('100-', '100-%d' % last_byte,
-                             file_size - 100)
+    self.CheckContentHeaders('100-', '100-%d' % last_byte, file_size - 100)
 
     # Test byte range request: explicit byte range.
     self.CheckContentHeaders('2-500', '2-500', '499')
 
     # Test byte range request: no start byte.
-    self.CheckContentHeaders('-228',
-                             '%d-%d' % (file_size - 228, last_byte),
+    self.CheckContentHeaders('-228', '%d-%d' % (file_size - 228, last_byte),
                              '228')
 
     # Test byte range request: end byte less than start byte.
-    self.CheckContentHeaders('100-5', '100-%d' % last_byte,
-                             file_size - 100)
+    self.CheckContentHeaders('100-5', '100-%d' % last_byte, file_size - 100)
 
   def CheckContentHeaders(self, content_range_request, content_range_response,
                           content_length_response):
@@ -56,13 +54,12 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
         xmlhttp.open('GET', "%s?t=" + Date.now(), true);
         xmlhttp.setRequestHeader('Range', 'bytes=%s');
         xmlhttp.send();
-    """ % (self.UrlOfUnittestFile(self._test_filename),
-           content_range_request))
+    """ % (self.UrlOfUnittestFile(self._test_filename), content_range_request))
     self._tab.WaitForJavaScriptExpression('loaded', 5)
     content_range = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Range");')
-    content_range_response = 'bytes %s/%d' % (
-        content_range_response, self._test_file_size)
+    content_range_response = 'bytes %s/%d' % (content_range_response,
+                                              self._test_file_size)
     self.assertEquals(content_range, content_range_response)
     content_length = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Length");')

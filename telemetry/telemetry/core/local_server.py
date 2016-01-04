@@ -18,6 +18,7 @@ NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
 
 
 class LocalServerBackend(object):
+
   def __init__(self):
     pass
 
@@ -34,14 +35,15 @@ class LocalServerBackend(object):
 
 
 class LocalServer(object):
+
   def __init__(self, server_backend_class):
     assert LocalServerBackend in server_backend_class.__bases__
     server_module_name = server_backend_class.__module__
     assert server_module_name in sys.modules, \
-            'The server class\' module must be findable via sys.modules'
+        'The server class\' module must be findable via sys.modules'
     assert getattr(sys.modules[server_module_name],
                    server_backend_class.__name__), \
-      'The server class must getattrable from its __module__ by its __name__'
+        'The server class must getattrable from its __module__ by its __name__'
 
     self._server_backend_class = server_backend_class
     self._subprocess = None
@@ -62,26 +64,29 @@ class LocalServer(object):
 
     self._devnull = open(os.devnull, 'w')
     cmd = [
-        sys.executable, '-m', __name__,
+        sys.executable,
+        '-m',
+        __name__,
         'run_backend',
         server_module_name,
         self._server_backend_class.__name__,
         server_args_as_json,
-        ]
+    ]
 
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(sys.path)
 
-    self._subprocess = subprocess.Popen(
-        cmd, cwd=util.GetTelemetryDir(), env=env, stdout=subprocess.PIPE)
+    self._subprocess = subprocess.Popen(cmd,
+                                        cwd=util.GetTelemetryDir(),
+                                        env=env,
+                                        stdout=subprocess.PIPE)
 
     named_ports = self._GetNamedPortsFromBackend()
     named_port_pair_map = {'http': None, 'https': None, 'dns': None}
     for name, port in named_ports:
       assert name in named_port_pair_map, '%s forwarding is unsupported' % name
-      named_port_pair_map[name] = (
-          forwarders.PortPair(port,
-                              local_server_controller.GetRemotePort(port)))
+      named_port_pair_map[name] = (forwarders.PortPair(
+          port, local_server_controller.GetRemotePort(port)))
     self.forwarder = local_server_controller.CreateForwarder(
         forwarders.PortPairs(**named_port_pair_map))
 
@@ -140,6 +145,7 @@ class LocalServerController(object):
   to prevent LocalServer subclasses from accessing the browser backend directly.
 
   """
+
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._local_servers_by_class = {}
@@ -184,8 +190,8 @@ class LocalServerController(object):
 
 def _LocalServerBackendMain(args):
   assert len(args) == 4
-  (cmd, server_module_name,
-   server_backend_class_name, server_args_as_json) = args[:4]
+  (cmd, server_module_name, server_backend_class_name,
+   server_args_as_json) = args[:4]
   assert cmd == 'run_backend'
   server_module = __import__(server_module_name, fromlist=[True])
   server_backend_class = getattr(server_module, server_backend_class_name)
@@ -200,9 +206,9 @@ def _LocalServerBackendMain(args):
 
   # Note: This message is scraped by the parent process'
   # _GetNamedPortsFromBackend(). Do **not** change it.
-  print 'LocalServerBackend started: %s' % json.dumps(
-      [pair._asdict()  # pylint: disable=protected-access
-       for pair in named_ports])
+  # pylint: disable=protected-access
+  print 'LocalServerBackend started: %s' % json.dumps([pair._asdict()
+                                                       for pair in named_ports])
   sys.stdout.flush()
 
   return server.ServeForever()
@@ -212,7 +218,7 @@ if __name__ == '__main__':
   # This trick is needed because local_server.NamedPort is not the
   # same as sys.modules['__main__'].NamedPort. The module itself is loaded
   # twice, basically.
-  from telemetry.core import local_server # pylint: disable=import-self
+  from telemetry.core import local_server  # pylint: disable=import-self
   sys.exit(
-      local_server._LocalServerBackendMain( # pylint: disable=protected-access
-      sys.argv[1:]))
+      local_server._LocalServerBackendMain(  # pylint: disable=protected-access
+          sys.argv[1:]))

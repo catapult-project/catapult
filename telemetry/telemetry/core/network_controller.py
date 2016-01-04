@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 class NetworkController(object):
   """Control network settings and servers to simulate the Web.
 
@@ -12,7 +13,11 @@ class NetworkController(object):
   def __init__(self, network_controller_backend):
     self._network_controller_backend = network_controller_backend
 
-  def SetReplayArgs(self, archive_path, wpr_mode, netsim, extra_wpr_args,
+  def SetReplayArgs(self,
+                    archive_path,
+                    wpr_mode,
+                    netsim,
+                    extra_wpr_args,
                     make_javascript_deterministic=False):
     """Save the arguments needed for replay."""
     self._network_controller_backend.SetReplayArgs(

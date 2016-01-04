@@ -7,6 +7,7 @@ import time
 
 from telemetry.core import util
 
+
 class ActionNotSupported(Exception):
   pass
 
@@ -133,6 +134,7 @@ class AndroidActionRunner(object):
     Raises:
       Timeout: If the screen is on and device fails to turn screen off.
     """
+
     def is_screen_off():
       return not self._platform_backend.device.IsScreenOn()
 
@@ -146,6 +148,7 @@ class AndroidActionRunner(object):
     Raises:
       Timeout: If device fails to unlock screen.
     """
+
     def is_screen_unlocked():
       return not self._platform_backend.IsScreenLocked()
 

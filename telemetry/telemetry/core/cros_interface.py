@@ -16,6 +16,7 @@ import tempfile
 _CHROME_PROCESS_REGEX = [re.compile(r'^/opt/google/chrome/chrome '),
                          re.compile(r'^/usr/local/?.*/chrome/chrome ')]
 
+
 def RunCmd(args, cwd=None, quiet=False):
   """Opens a subprocess to execute a program and returns its return value.
 
@@ -31,9 +32,14 @@ def RunCmd(args, cwd=None, quiet=False):
   if not quiet:
     logging.debug(' '.join(args) + ' ' + (cwd or ''))
   with open(os.devnull, 'w') as devnull:
-    p = subprocess.Popen(args=args, cwd=cwd, stdout=devnull,
-                         stderr=devnull, stdin=devnull, shell=False)
+    p = subprocess.Popen(args=args,
+                         cwd=cwd,
+                         stdout=devnull,
+                         stderr=devnull,
+                         stdin=devnull,
+                         shell=False)
     return p.wait()
+
 
 def GetAllCmdOutput(args, cwd=None, quiet=False):
   """Open a subprocess to execute a program and returns its output.
@@ -51,12 +57,16 @@ def GetAllCmdOutput(args, cwd=None, quiet=False):
   if not quiet:
     logging.debug(' '.join(args) + ' ' + (cwd or ''))
   with open(os.devnull, 'w') as devnull:
-    p = subprocess.Popen(args=args, cwd=cwd, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=devnull)
+    p = subprocess.Popen(args=args,
+                         cwd=cwd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         stdin=devnull)
     stdout, stderr = p.communicate()
     if not quiet:
       logging.debug(' > stdout=[%s], stderr=[%s]', stdout, stderr)
     return stdout, stderr
+
 
 def HasSSH():
   try:
@@ -68,16 +78,21 @@ def HasSSH():
     logging.debug("HasSSH()->False")
     return False
 
+
 class LoginException(Exception):
   pass
+
 
 class KeylessLoginRequiredException(LoginException):
   pass
 
+
 class DNSFailureException(LoginException):
   pass
 
+
 class CrOSInterface(object):
+
   def __init__(self, hostname=None, ssh_port=None, ssh_identity=None):
     self._hostname = hostname
     self._ssh_port = ssh_port
@@ -89,12 +104,10 @@ class CrOSInterface(object):
       return
 
     self._ssh_identity = None
-    self._ssh_args = ['-o ConnectTimeout=5',
-                      '-o StrictHostKeyChecking=no',
+    self._ssh_args = ['-o ConnectTimeout=5', '-o StrictHostKeyChecking=no',
                       '-o KbdInteractiveAuthentication=no',
                       '-o PreferredAuthentications=publickey',
-                      '-o UserKnownHostsFile=/dev/null',
-                      '-o ControlMaster=no']
+                      '-o UserKnownHostsFile=/dev/null', '-o ControlMaster=no']
 
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
@@ -105,8 +118,11 @@ class CrOSInterface(object):
     # the control socket filename can be telemetry@hostname.
     self._ssh_control_file = '/tmp/' + 'telemetry' + '@' + hostname
     with open(os.devnull, 'w') as devnull:
-      subprocess.call(self.FormSSHCommandLine(['-M', '-o ControlPersist=yes']),
-                       stdin=devnull, stdout=devnull, stderr=devnull)
+      subprocess.call(
+          self.FormSSHCommandLine(['-M', '-o ControlPersist=yes']),
+          stdin=devnull,
+          stdout=devnull,
+          stderr=devnull)
 
   def __enter__(self):
     return self
@@ -136,10 +152,8 @@ class CrOSInterface(object):
       # connection to run remote commands (crbug.com/239607).
       return ['sh', '-c', " ".join(args)]
 
-    full_args = ['ssh',
-                 '-o ForwardX11=no',
-                 '-o ForwardX11Trusted=no',
-                 '-n', '-S', self._ssh_control_file] + self._ssh_args
+    full_args = ['ssh', '-o ForwardX11=no', '-o ForwardX11Trusted=no', '-n',
+                 '-S', self._ssh_control_file] + self._ssh_args
     if self._ssh_identity is not None:
       full_args.extend(['-i', self._ssh_identity])
     if extra_ssh_args:
@@ -158,8 +172,7 @@ class CrOSInterface(object):
     """
     assert not self.local, "Cannot use SCP on local target."
 
-    args = ['scp',
-            '-P', str(self._ssh_port)] + self._ssh_args
+    args = ['scp', '-P', str(self._ssh_port)] + self._ssh_args
     if self._ssh_identity:
       args.extend(['-i', self._ssh_identity])
     if extra_scp_args:
@@ -167,18 +180,25 @@ class CrOSInterface(object):
     args += [src, dst]
     return args
 
-  def _FormSCPToRemote(self, source, remote_dest, extra_scp_args=None,
-                      user='root'):
+  def _FormSCPToRemote(self,
+                       source,
+                       remote_dest,
+                       extra_scp_args=None,
+                       user='root'):
     return self._FormSCPCommandLine(source,
                                     '%s@%s:%s' % (user, self._hostname,
                                                   remote_dest),
                                     extra_scp_args=extra_scp_args)
 
-  def _FormSCPFromRemote(self, remote_source, dest, extra_scp_args=None,
-                        user='root'):
+  def _FormSCPFromRemote(self,
+                         remote_source,
+                         dest,
+                         extra_scp_args=None,
+                         user='root'):
     return self._FormSCPCommandLine('%s@%s:%s' % (user, self._hostname,
                                                   remote_source),
-                                    dest, extra_scp_args=extra_scp_args)
+                                    dest,
+                                    extra_scp_args=extra_scp_args)
 
   def _RemoveSSHWarnings(self, toClean):
     """Removes specific ssh warning lines from a string.
@@ -196,7 +216,9 @@ class CrOSInterface(object):
 
   def RunCmdOnDevice(self, args, cwd=None, quiet=False):
     stdout, stderr = GetAllCmdOutput(
-        self.FormSSHCommandLine(args), cwd, quiet=quiet)
+        self.FormSSHCommandLine(args),
+        cwd,
+        quiet=quiet)
     # The initial login will add the host to the hosts file but will also print
     # a warning to stderr that we need to remove.
     stderr = self._RemoveSSHWarnings(stderr)
@@ -209,8 +231,8 @@ class CrOSInterface(object):
     if stderr != '':
       if 'Host key verification failed' in stderr:
         raise LoginException(('%s host key verification failed. ' +
-                             'SSH to it manually to fix connectivity.') %
-            self._hostname)
+                              'SSH to it manually to fix connectivity.') %
+                             self._hostname)
       if 'Operation timed out' in stderr:
         raise LoginException('Timed out while logging into %s' % self._hostname)
       if 'UNPROTECTED PRIVATE KEY FILE!' in stderr:
@@ -218,31 +240,29 @@ class CrOSInterface(object):
                              'chmod 600 %s' % (self._ssh_identity,
                                                self._ssh_identity))
       if 'Permission denied (publickey,keyboard-interactive)' in stderr:
-        raise KeylessLoginRequiredException(
-          'Need to set up ssh auth for %s' % self._hostname)
+        raise KeylessLoginRequiredException('Need to set up ssh auth for %s' %
+                                            self._hostname)
       if 'Could not resolve hostname' in stderr:
-        raise DNSFailureException(
-          'Unable to resolve the hostname for: %s' % self._hostname)
-      raise LoginException('While logging into %s, got %s' % (
-          self._hostname, stderr))
+        raise DNSFailureException('Unable to resolve the hostname for: %s' %
+                                  self._hostname)
+      raise LoginException('While logging into %s, got %s' % (self._hostname,
+                                                              stderr))
     if stdout != 'root\n':
-      raise LoginException(
-        'Logged into %s, expected $USER=root, but got %s.' % (
-          self._hostname, stdout))
+      raise LoginException('Logged into %s, expected $USER=root, but got %s.' %
+                           (self._hostname, stdout))
 
   def FileExistsOnDevice(self, file_name):
     if self.local:
       return os.path.exists(file_name)
 
-    stdout, stderr = self.RunCmdOnDevice([
-        'if', 'test', '-e', file_name, ';',
-        'then', 'echo', '1', ';',
-        'fi'
-        ], quiet=True)
+    stdout, stderr = self.RunCmdOnDevice(
+        [
+            'if', 'test', '-e', file_name, ';', 'then', 'echo', '1', ';', 'fi'
+        ],
+        quiet=True)
     if stderr != '':
       if "Connection timed out" in stderr:
-        raise OSError('Machine wasn\'t responding to ssh: %s' %
-                      stderr)
+        raise OSError('Machine wasn\'t responding to ssh: %s' % stderr)
       raise OSError('Unexpected error: %s' % stderr)
     exists = stdout == '1\n'
     logging.debug("FileExistsOnDevice(<text>, %s)->%s" % (file_name, exists))
@@ -256,8 +276,10 @@ class CrOSInterface(object):
         raise OSError('No such file or directory %s' % stderr)
       return
 
-    args = self._FormSCPToRemote(os.path.abspath(filename), remote_filename,
-                                 extra_scp_args=['-r'])
+    args = self._FormSCPToRemote(
+        os.path.abspath(filename),
+        remote_filename,
+        extra_scp_args=['-r'])
 
     stdout, stderr = GetAllCmdOutput(args, quiet=True)
     stderr = self._RemoveSSHWarnings(stderr)
@@ -316,10 +338,11 @@ class CrOSInterface(object):
 
   def ListProcesses(self):
     """Returns (pid, cmd, ppid, state) of all processes on the device."""
-    stdout, stderr = self.RunCmdOnDevice([
-        '/bin/ps', '--no-headers',
-        '-A',
-        '-o', 'pid,ppid,args:4096,state'], quiet=True)
+    stdout, stderr = self.RunCmdOnDevice(
+        [
+            '/bin/ps', '--no-headers', '-A', '-o', 'pid,ppid,args:4096,state'
+        ],
+        quiet=True)
     assert stderr == '', stderr
     procs = []
     for l in stdout.split('\n'):
@@ -327,8 +350,8 @@ class CrOSInterface(object):
         continue
       m = re.match(r'^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)
       assert m
-      procs.append((int(m.group(1)), m.group(3).rstrip(),
-                    int(m.group(2)), m.group(4)))
+      procs.append((int(m.group(1)), m.group(3).rstrip(), int(m.group(2)),
+                    m.group(4)))
     logging.debug("ListProcesses(<predicate>)->[%i processes]" % len(procs))
     return procs
 
@@ -394,8 +417,7 @@ class CrOSInterface(object):
     return len(kills) - 2
 
   def IsServiceRunning(self, service_name):
-    stdout, stderr = self.RunCmdOnDevice([
-        'status', service_name], quiet=True)
+    stdout, stderr = self.RunCmdOnDevice(['status', service_name], quiet=True)
     assert stderr == '', stderr
     running = 'running, process' in stdout
     logging.debug("IsServiceRunning(%s)->%s" % (service_name, running))
@@ -421,8 +443,8 @@ class CrOSInterface(object):
     return new_port
 
   def IsHTTPServerRunningOnPort(self, port):
-    wget_output = self.RunCmdOnDevice(
-        ['wget', 'localhost:%i' % (port), '-T1', '-t1'])
+    wget_output = self.RunCmdOnDevice(['wget', 'localhost:%i' % (port), '-T1',
+                                       '-t1'])
 
     if 'Connection refused' in wget_output[1]:
       return False
@@ -442,8 +464,8 @@ class CrOSInterface(object):
 
   def CryptohomePath(self, user):
     """Returns the cryptohome mount point for |user|."""
-    stdout, stderr = self.RunCmdOnDevice(
-        ['cryptohome-path', 'user', "'%s'" % user])
+    stdout, stderr = self.RunCmdOnDevice(['cryptohome-path', 'user', "'%s'" %
+                                          user])
     if stderr != '':
       raise OSError('cryptohome-path failed: %s' % stderr)
     return stdout.rstrip()
@@ -470,8 +492,8 @@ class CrOSInterface(object):
                          (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
       if not self.FileExistsOnDevice(screenshot_file):
         self.RunCmdOnDevice([
-            '/usr/local/autotest/bin/screenshot.py',
-            screenshot_file])
+            '/usr/local/autotest/bin/screenshot.py', screenshot_file
+        ])
         return
     logging.warning('screenshot directory full.')
 
@@ -490,5 +512,7 @@ class CrOSInterface(object):
   def CloseConnection(self):
     if not self.local:
       with open(os.devnull, 'w') as devnull:
-        subprocess.call(self.FormSSHCommandLine(['-O', 'exit', self._hostname]),
-                        stdout=devnull, stderr=devnull)
+        subprocess.call(
+            self.FormSSHCommandLine(['-O', 'exit', self._hostname]),
+            stdout=devnull,
+            stderr=devnull)

@@ -19,6 +19,7 @@ from telemetry.testing import options_for_unittests
 
 
 class CrOSInterfaceTest(unittest.TestCase):
+
   def _GetCRI(self):
     remote = options_for_unittests.GetCopy().cros_remote
     remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
@@ -49,7 +50,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
   @decorators.Enabled('cros-chrome')
-  def testGetFileContents(self): # pylint: disable=no-self-use
+  def testGetFileContents(self):  # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       hosts = cri.GetFileContents('/etc/lsb-release')
       self.assertTrue('CHROMEOS' in hosts)
@@ -60,12 +61,10 @@ class CrOSInterfaceTest(unittest.TestCase):
       f = tempfile.NamedTemporaryFile()
       cri.PushContents('testGetFileNonExistent', f.name)
       cri.RmRF(f.name)
-      self.assertRaises(
-          OSError,
-          lambda: cri.GetFileContents(f.name))
+      self.assertRaises(OSError, lambda: cri.GetFileContents(f.name))
 
   @decorators.Enabled('cros-chrome')
-  def testGetFile(self): # pylint: disable=no-self-use
+  def testGetFile(self):  # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       f = tempfile.NamedTemporaryFile()
       cri.GetFile('/etc/lsb-release', f.name)
@@ -79,9 +78,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       f = tempfile.NamedTemporaryFile()
       cri.PushContents('testGetFileNonExistent', f.name)
       cri.RmRF(f.name)
-      self.assertRaises(
-          OSError,
-          lambda: cri.GetFile(f.name))
+      self.assertRaises(OSError, lambda: cri.GetFile(f.name))
 
   @decorators.Enabled('cros-chrome')
   def testIsServiceRunning(self):
@@ -109,7 +106,8 @@ class CrOSInterfaceTest(unittest.TestCase):
       # Forward local server's port to remote device's remote_port.
       forwarder = cros_forwarder.CrOsForwarderFactory(cri).Create(
           forwarders.PortPairs(http=forwarders.PortPair(port, remote_port),
-                               https=None, dns=None))
+                               https=None,
+                               dns=None))
 
       # At this point, remote device should be able to connect to local server.
       self.assertTrue(cri.IsHTTPServerRunningOnPort(remote_port))
@@ -117,7 +115,6 @@ class CrOSInterfaceTest(unittest.TestCase):
       # Next remote port shouldn't be the same as remote_port, since remote_port
       # is now in use.
       self.assertTrue(cri.GetRemotePort() != remote_port)
-
 
       # Close forwarder and local server ports.
       forwarder.Close()
@@ -140,8 +137,10 @@ class CrOSInterfaceTest(unittest.TestCase):
   @decorators.Enabled('cros-chrome')
   def testTakeScreenShot(self):
     with self._GetCRI() as cri:
+
       def _Cleanup():
         cri.RmRF('/var/log/screenshots/test-prefix*')
+
       _Cleanup()
       cri.TakeScreenShot('test-prefix')
       self.assertTrue(cri.FileExistsOnDevice(
@@ -157,13 +156,13 @@ class CrOSInterfaceTest(unittest.TestCase):
     and locally on the device to check for consistency.
     """
     options = options_for_unittests.GetCopy()
-    with cros_interface.CrOSInterface(
-        options.cros_remote, options.cros_remote_ssh_port,
-        options.cros_ssh_identity) as cri:
+    with cros_interface.CrOSInterface(options.cros_remote,
+                                      options.cros_remote_ssh_port,
+                                      options.cros_ssh_identity) as cri:
 
       # Check arguments with no special characters
       stdout, _ = cri.RunCmdOnDevice(['echo', '--arg1=value1', '--arg2=value2',
-          '--arg3="value3"'])
+                                      '--arg3="value3"'])
       assert stdout.strip() == '--arg1=value1 --arg2=value2 --arg3=value3'
 
       # Check argument with special characters escaped
@@ -179,8 +178,7 @@ class CrOSInterfaceTest(unittest.TestCase):
   def testTryLoginSuccess(self, mock_run_cmd):
     mock_run_cmd.return_value = ('root\n', '')
     cri = cros_interface.CrOSInterface(
-        "testhostname", 22,
-        options_for_unittests.GetCopy().cros_ssh_identity)
+        "testhostname", 22, options_for_unittests.GetCopy().cros_ssh_identity)
     cri.TryLogin()
     mock_run_cmd.assert_called_once_with(['echo', '$USER'], quiet=True)
 
@@ -223,10 +221,7 @@ class CrOSInterfaceTest(unittest.TestCase):
   def testTryLoginStdout(self, mock_run_cmd):
     mock_run_cmd.return_value = ('notrooot', '')
     cri = cros_interface.CrOSInterface(
-        "testhostname", 22,
-        options_for_unittests.GetCopy().cros_ssh_identity)
-    self.assertRaisesRegexp(
-        cros_interface.LoginException,
-        r'Logged into .*, expected \$USER=root, but got .*',
-        cri.TryLogin)
-
+        "testhostname", 22, options_for_unittests.GetCopy().cros_ssh_identity)
+    self.assertRaisesRegexp(cros_interface.LoginException,
+                            r'Logged into .*, expected \$USER=root, but got .*',
+                            cri.TryLogin)

@@ -10,6 +10,7 @@ from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_options
 
+
 class TracingControllerTest(tab_test_case.TabTestCase):
 
   def testModifiedConsoleTime(self):
@@ -65,8 +66,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller = self._browser.platform.tracing_controller
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
-    tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter())
+    tracing_controller.Start(options,
+                             tracing_category_filter.TracingCategoryFilter())
 
     trace_data = tracing_controller.Stop()
     # Test that trace data is parsable
@@ -77,10 +78,10 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller = self._browser.platform.tracing_controller
     options = tracing_options.TracingOptions()
     options.enable_chrome_trace = True
-    tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter())
+    tracing_controller.Start(options,
+                             tracing_category_filter.TracingCategoryFilter())
     self.assertFalse(tracing_controller.Start(
-      options, tracing_category_filter.TracingCategoryFilter()))
+        options, tracing_category_filter.TracingCategoryFilter()))
     trace_data = tracing_controller.Stop()
     # Test that trace data is parsable
     model_module.TimelineModel(trace_data)

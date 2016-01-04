@@ -40,8 +40,8 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
         continue
 
       # Find the module.
-      module_rel_path = os.path.relpath(os.path.join(dir_path, filename),
-                                        top_level_dir)
+      module_rel_path = os.path.relpath(
+          os.path.join(dir_path, filename), top_level_dir)
       module_name = re.sub(r'[/\\]', '.', os.path.splitext(module_rel_path)[0])
 
       # Import the module.
@@ -53,8 +53,12 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
 # TODO(dtu): Normalize all discoverable classes to have corresponding module
 # and class names, then always index by class name.
 @decorators.Cache
-def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
-                    index_by_class_name=True, directly_constructable=False):
+def DiscoverClasses(start_dir,
+                    top_level_dir,
+                    base_class,
+                    pattern='*',
+                    index_by_class_name=True,
+                    directly_constructable=False):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
   Base classes that contain subclasses are ignored by default.
@@ -80,8 +84,11 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
     classes = dict(classes.items() + new_classes.items())
   return classes
 
+
 @decorators.Cache
-def DiscoverClassesInModule(module, base_class, index_by_class_name=False,
+def DiscoverClassesInModule(module,
+                            base_class,
+                            index_by_class_name=False,
                             directly_constructable=False):
   """Discover all classes in |module| which subclass |base_class|.
 
@@ -127,6 +134,8 @@ def DiscoverClassesInModule(module, base_class, index_by_class_name=False,
 
 
 _counter = [0]
+
+
 def _GetUniqueModuleName():
   _counter[0] += 1
   return "module_" + str(_counter[0])

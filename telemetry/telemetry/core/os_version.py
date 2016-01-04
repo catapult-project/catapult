@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 # pylint: disable=protected-access
+
+
 class OSVersion(str):
   def __new__(cls, friendly_name, sortable_name):
     version = str.__new__(cls, friendly_name)

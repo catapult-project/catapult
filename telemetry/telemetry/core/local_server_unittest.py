@@ -12,6 +12,7 @@ from telemetry.testing import tab_test_case
 
 class SimpleLocalServerBackendRequestHandler(
     SimpleHTTPServer.SimpleHTTPRequestHandler):
+
   def do_GET(self):
     msg = """<!DOCTYPE html>
 <html>
@@ -19,6 +20,7 @@ class SimpleLocalServerBackendRequestHandler(
 hello world
 </body>
 """
+
     self.send_response(200)
     self.send_header('Content-Type', 'text/html')
     self.send_header('Content-Length', len(msg))
@@ -28,11 +30,13 @@ hello world
   def log_request(self, code='-', size='-'):
     pass
 
+
 class SimpleLocalServerBackend(BaseHTTPServer.HTTPServer,
                                local_server.LocalServerBackend):
+
   def __init__(self):
-    BaseHTTPServer.HTTPServer.__init__(
-      self, ('127.0.0.1', 0), SimpleLocalServerBackendRequestHandler)
+    BaseHTTPServer.HTTPServer.__init__(self, ('127.0.0.1', 0),
+                                       SimpleLocalServerBackendRequestHandler)
     local_server.LocalServerBackend.__init__(self)
 
   def StartAndGetNamedPorts(self, args):
@@ -43,7 +47,9 @@ class SimpleLocalServerBackend(BaseHTTPServer.HTTPServer,
   def ServeForever(self):
     self.serve_forever()
 
+
 class SimpleLocalServer(local_server.LocalServer):
+
   def __init__(self):
     super(SimpleLocalServer, self).__init__(SimpleLocalServerBackend)
 
@@ -54,7 +60,9 @@ class SimpleLocalServer(local_server.LocalServer):
   def url(self):
     return self.forwarder.url + '/'
 
+
 class LocalServerUnittest(tab_test_case.TabTestCase):
+
   @classmethod
   def setUpClass(cls):
     super(LocalServerUnittest, cls).setUpClass()

@@ -11,9 +11,8 @@ from telemetry.core import memory_cache_http_server
 from telemetry.core import network_controller
 from telemetry.core import tracing_controller
 from telemetry.core import util
-from telemetry.internal.platform import (
-    platform_backend as platform_backend_module)
-
+from telemetry.internal.platform import (platform_backend as
+                                         platform_backend_module)
 
 _host_platform = None
 # Remote platform is a dictionary from device ids to remote platform instances.
@@ -41,8 +40,8 @@ def GetHostPlatform():
 
 
 def _IterAllPlatformBackendClasses():
-  platform_dir = os.path.dirname(
-      os.path.realpath(platform_backend_module.__file__))
+  platform_dir = os.path.dirname(os.path.realpath(
+      platform_backend_module.__file__))
   return discover.DiscoverClasses(
       platform_dir, util.GetTelemetryDir(),
       platform_backend_module.PlatformBackend).itervalues()
@@ -76,6 +75,7 @@ class Platform(object):
   possible. It's important to note that platforms may not provide a specific
   API, so check with IsFooBar() for availability.
   """
+
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._platform_backend.InitPlatformBackend()
@@ -171,7 +171,9 @@ class Platform(object):
     This function may require root or administrator access."""
     return self._platform_backend.FlushDnsCache()
 
-  def LaunchApplication(self, application, parameters=None,
+  def LaunchApplication(self,
+                        application,
+                        parameters=None,
                         elevate_privilege=False):
     """"Launches the given |application| with a list of |parameters| on the OS.
 
@@ -181,7 +183,9 @@ class Platform(object):
       A popen style process handle for host platforms.
     """
     return self._platform_backend.LaunchApplication(
-        application, parameters, elevate_privilege=elevate_privilege)
+        application,
+        parameters,
+        elevate_privilege=elevate_privilege)
 
   def IsApplicationRunning(self, application):
     """Returns whether an application is currently running."""

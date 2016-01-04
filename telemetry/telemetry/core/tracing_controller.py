@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 class TracingController(object):
+
   def __init__(self, tracing_controller_backend):
     """Provides control of the tracing systems supported by telemetry."""
     self._tracing_controller_backend = tracing_controller_backend
@@ -24,8 +26,8 @@ class TracingController(object):
     your code fail gracefully when the data you require is not present in the
     resulting trace.
     """
-    self._tracing_controller_backend.Start(
-        trace_options, category_filter, timeout)
+    self._tracing_controller_backend.Start(trace_options, category_filter,
+                                           timeout)
 
   def Stop(self):
     """Stops tracing and returns a TraceValue."""

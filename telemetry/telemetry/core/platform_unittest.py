@@ -12,6 +12,7 @@ from telemetry.testing import tab_test_case
 
 
 class PlatformScreenshotTest(tab_test_case.TabTestCase):
+
   def testScreenshotSupported(self):
     if self._platform.GetOSName() == 'android':
       self.assertTrue(self._platform.CanTakeScreenshot())
@@ -26,8 +27,8 @@ class PlatformScreenshotTest(tab_test_case.TabTestCase):
     # Skip the test on Mac 10.5, 10.6, 10.7 because png format isn't
     # recognizable on Mac < 10.8 (crbug.com/369490#c13)
     if (self._platform.GetOSName() == 'mac' and
-        self._platform.GetOSVersionName() in (
-            os_version.LEOPARD, os_version.SNOWLEOPARD, os_version.LION)):
+        self._platform.GetOSVersionName() in
+        (os_version.LEOPARD, os_version.SNOWLEOPARD, os_version.LION)):
       self.skipTest('OS X version %s too old' % self._platform.GetOSName())
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     tf.close()

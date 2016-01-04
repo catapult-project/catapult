@@ -7,6 +7,7 @@ import sys
 
 class Error(Exception):
   """Base class for Telemetry exceptions."""
+
   def __init__(self, msg=''):
     super(Error, self).__init__(msg)
     self._debugging_messages = []
@@ -51,6 +52,7 @@ class TimeoutException(Error):
 
 
 class AppCrashException(Error):
+
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)
     self._msg = msg
@@ -87,6 +89,7 @@ class DevtoolsTargetCrashException(AppCrashException):
   This can be a tab or a WebView. In this state, the tab/WebView is
   gone, but the underlying browser is still alive.
   """
+
   def __init__(self, app, msg='Devtools target crashed'):
     super(DevtoolsTargetCrashException, self).__init__(app, msg)
 
@@ -95,12 +98,14 @@ class BrowserGoneException(AppCrashException):
   """Represents a crash of the entire browser.
 
   In this state, all bets are pretty much off."""
+
   def __init__(self, app, msg='Browser crashed'):
     super(BrowserGoneException, self).__init__(app, msg)
 
 
 class BrowserConnectionGoneException(BrowserGoneException):
   """Represents a browser that still exists but cannot be reached."""
+
   def __init__(self, app, msg='Browser exists but the connection is gone'):
     super(BrowserConnectionGoneException, self).__init__(app, msg)
 
@@ -114,6 +119,7 @@ class IntentionalException(Error):
 
 
 class InitializationError(Error):
+
   def __init__(self, string):
     super(InitializationError, self).__init__(string)
 
@@ -144,4 +150,3 @@ class PackageDetectionError(Error):
 
 class AndroidDeviceParsingError(Error):
   """Represents an error when parsing output from an android device"""
-

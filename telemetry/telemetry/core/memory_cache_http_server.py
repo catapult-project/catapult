@@ -29,7 +29,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def handle(self):
     try:
       BaseHTTPServer.BaseHTTPRequestHandler.handle(self)
-    except socket.error, e:
+    except socket.error as e:
       # Connection reset errors happen all the time due to the browser closing
       # without terminating the connection properly.  They can be safely
       # ignored.
@@ -75,10 +75,9 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     if byte_range:
       # request specified a range, so set response code to 206.
       self.send_response(206)
-      self.send_header('Content-Range',
-                       'bytes %d-%d/%d' % (byte_range.from_byte,
-                                           byte_range.to_byte,
-                                           total_num_of_bytes))
+      self.send_header('Content-Range', 'bytes %d-%d/%d' %
+                       (byte_range.from_byte, byte_range.to_byte,
+                        total_num_of_bytes))
       total_num_of_bytes = byte_range.to_byte - byte_range.from_byte + 1
     else:
       self.send_response(200)
@@ -123,11 +122,11 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     if len(byte_range_values) == 2:
       # If to_range is not defined return all bytes starting from from_byte.
-      to_byte = (int(byte_range_values[1]) if  byte_range_values[1]
-          else total_num_of_bytes - 1)
+      to_byte = (int(byte_range_values[1]) if byte_range_values[1] else
+                 total_num_of_bytes - 1)
       # If from_range is not defined return last 'to_byte' bytes.
-      from_byte = (int(byte_range_values[0]) if byte_range_values[0]
-          else total_num_of_bytes - to_byte)
+      from_byte = (int(byte_range_values[0]) if byte_range_values[0] else
+                   total_num_of_bytes - to_byte)
     else:
       return None
 
@@ -200,7 +199,7 @@ class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
         'last-modified': fs.st_mtime,
         'response': response,
         'zipped': zipped
-        }
+    }
 
     index = 'index.html'
     if os.path.basename(file_path) == index:
@@ -209,6 +208,7 @@ class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
 
 
 class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
+
   def __init__(self):
     super(MemoryCacheHTTPServerBackend, self).__init__()
     self._httpd = None
@@ -234,9 +234,9 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
 
 
 class MemoryCacheHTTPServer(local_server.LocalServer):
+
   def __init__(self, paths):
-    super(MemoryCacheHTTPServer, self).__init__(
-        MemoryCacheHTTPServerBackend)
+    super(MemoryCacheHTTPServer, self).__init__(MemoryCacheHTTPServerBackend)
     self._base_dir = None
 
     for path in paths:
