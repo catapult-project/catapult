@@ -6,7 +6,6 @@
     ['OS=="android" or OS=="linux" or OS=="mac" or OS=="win"', {
       'variables': {
         'files': [
-          '../../build/android/pylib/',
           '../../build/android/devil/',
           '../../third_party/catapult/',
           './',

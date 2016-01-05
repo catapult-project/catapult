@@ -6,7 +6,6 @@ group("telemetry_test_support") {
   # Generic telemetry deps
   data = [
     "//build/android/devil/",
-    "//build/android/pylib/",
     "//third_party/catapult/",
     "//tools/telemetry/",
   ]
