@@ -53,7 +53,9 @@ class TracingCategoryFilter(object):
     self._disabled_by_default_categories = set()
     self._synthetic_delays = set()
     self.contains_wildcards = False
+    self.AddFilterString(filter_string)
 
+  def AddFilterString(self, filter_string):
     if filter_string == None:
       return
 
@@ -135,6 +137,10 @@ class TracingCategoryFilter(object):
     if self._synthetic_delays:
       result[SYNTHETIC_DELAYS_PARAM] = list(self._synthetic_delays)
     return result
+
+  def AddDisabledByDefault(self, category):
+    assert category.startswith('disabled-by-default-')
+    self._disabled_by_default_categories.add(category)
 
   def AddIncludedCategory(self, category_glob):
     """Explicitly enables anything matching category_glob."""
