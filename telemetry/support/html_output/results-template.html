@@ -249,7 +249,7 @@ td.missingReference {
 </head>
 <body onload="init()">
 <div style="padding: 0 10px; white-space: nowrap;">
-Result <span id="time-memory" class="checkbox"><span class="checked">Time</span><span>Memory</span></span>
+Result <span id="time-memory" class="checkbox"></span>
 Reference <span id="reference" class="checkbox"></span>
 Style <span id="scatter-line" class="checkbox"><span class="checked">Scatter</span><span>Line</span></span>
 <span class="checkbox"><span class="checked" id="undelete">Undelete</span></span><br>
@@ -278,11 +278,6 @@ var GRAPH_INDENT = 64;
 var PADDING_UNDER_GRAPH = 5;
 // px Indentation for nested children left-margins
 var INDENTATION = 40;
-// Bit field enums for active test types
-var MEMORY_TEST = 1 << 0;
-var TIME_TEST = 1 << 1;
-var NO_TESTS = 0;
-var ALL_TESTS = MEMORY_TEST | TIME_TEST;
 
 function TestResult(metric, values, associatedRun, std, degreesOfFreedom) {
     if (values) {
@@ -319,13 +314,13 @@ function TestResult(metric, values, associatedRun, std, degreesOfFreedom) {
         values = [];
     }
 
-    this.test = function () { return metric; }
-    this.values = function () { return values.map(function (value) { return metric.scalingFactor() * value; }); }
-    this.unscaledMean = function () { return Statistics.sum(values) / values.length; }
-    this.mean = function () { return metric.scalingFactor() * this.unscaledMean(); }
-    this.min = function () { return metric.scalingFactor() * Statistics.min(values); }
-    this.max = function () { return metric.scalingFactor() * Statistics.max(values); }
-    this.confidenceIntervalDelta = function () {
+    this.test = function() { return metric; }
+    this.values = function() { return values.map(function(value) { return metric.scalingFactor() * value; }); }
+    this.unscaledMean = function() { return Statistics.sum(values) / values.length; }
+    this.mean = function() { return metric.scalingFactor() * this.unscaledMean(); }
+    this.min = function() { return metric.scalingFactor() * Statistics.min(values); }
+    this.max = function() { return metric.scalingFactor() * Statistics.max(values); }
+    this.confidenceIntervalDelta = function() {
         if (std !== undefined) {
             return metric.scalingFactor() * Statistics.confidenceIntervalDeltaFromStd(0.95, values.length,
                 std, degreesOfFreedom);
@@ -333,26 +328,26 @@ function TestResult(metric, values, associatedRun, std, degreesOfFreedom) {
         return metric.scalingFactor() * Statistics.confidenceIntervalDelta(0.95, values.length,
             Statistics.sum(values), Statistics.squareSum(values));
     }
-    this.confidenceIntervalDeltaRatio = function () { return this.confidenceIntervalDelta() / this.mean(); }
+    this.confidenceIntervalDeltaRatio = function() { return this.confidenceIntervalDelta() / this.mean(); }
     this.percentDifference = function(other) {
         if (other === undefined) {
             return undefined;
         }
         return (other.unscaledMean() - this.unscaledMean()) / this.unscaledMean();
     }
-    this.isStatisticallySignificant = function (other) {
+    this.isStatisticallySignificant = function(other) {
         if (other === undefined) {
             return false;
         }
         var diff = Math.abs(other.mean() - this.mean());
         return diff > this.confidenceIntervalDelta() && diff > other.confidenceIntervalDelta();
     }
-    this.run = function () { return associatedRun; }
+    this.run = function() { return associatedRun; }
 }
 
 function TestRun(entry) {
     this.id = function() { return entry['buildTime'].replace(/[:.-]/g,''); }
-    this.label = function () {
+    this.label = function() {
         if (labelKey in localStorage)
             return localStorage[labelKey];
         return entry['label'];
@@ -395,9 +390,9 @@ function PerfTestMetric(name, metric, unit, isImportant) {
         }
     }
 
-    this.name = function () { return name + ':' + metric; }
+    this.name = function() { return name + ':' + metric; }
     this.isImportant = isImportant;
-    this.isMemoryTest = function () {
+    this.isMemoryTest = function() {
         return (unit == 'kb' ||
                 unit == 'KB' ||
                 unit == 'MB' ||
@@ -405,21 +400,21 @@ function PerfTestMetric(name, metric, unit, isImportant) {
                 unit == 'count' ||
                 !metric.indexOf('V8.'));
     }
-    this.addResult = function (newResult) {
+    this.addResult = function(newResult) {
         testResults.push(newResult);
         cachedUnit = null;
         cachedScalingFactor = null;
     }
-    this.results = function () { return testResults; }
+    this.results = function() { return testResults; }
     this.scalingFactor = function() {
         computeScalingFactorIfNeeded();
         return cachedScalingFactor;
     }
-    this.unit = function () {
+    this.unit = function() {
         computeScalingFactorIfNeeded();
         return cachedUnit;
     }
-    this.biggerIsBetter = function () {
+    this.biggerIsBetter = function() {
         if (window.unitToBiggerIsBetter == undefined) {
             window.unitToBiggerIsBetter = {};
             var units = JSON.parse(document.getElementById('units-json').textContent);
@@ -536,7 +531,7 @@ function createPlot(container, test, useLargeLinePlots) {
         attachLinePlots(test, section.children('.line-plots'), useLargeLinePlots);
 
         var tooltip = section.children('.tooltip');
-        plotContainer.bind('plothover', function (event, position, item) {
+        plotContainer.bind('plothover', function(event, position, item) {
             if (item) {
                 var postfix = item.series.id ? ' (' + item.series.id + ')' : '';
                 tooltip.html(item.datapoint[1].toPrecision(4) + postfix);
@@ -546,10 +541,10 @@ function createPlot(container, test, useLargeLinePlots) {
             } else
                 tooltip.hide();
         });
-        plotContainer.mouseout(function () {
+        plotContainer.mouseout(function() {
             tooltip.hide();
         });
-        plotContainer.click(function (event) {
+        plotContainer.click(function(event) {
             event.preventDefault();
             minIsZero = !minIsZero;
             attachPlot(test, plotContainer, minIsZero);
@@ -592,7 +587,7 @@ function attachLinePlots(test, container, useLargeLinePlots) {
                                 xaxis: {min: -0.5, max: values.length - 0.5},
                                 points: {show: (values.length < 2) ? true : false}});
         }
-        $.plot(container.children().last(), [values.map(function (value, index) { return [index, value]; })], options);
+        $.plot(container.children().last(), [values.map(function(value, index) { return [index, value]; })], options);
     }
     if (!attachedPlot)
         container.children().remove();
@@ -652,23 +647,23 @@ function attachLinePlotLabels(test, container) {
 function attachPlot(test, plotContainer, minIsZero) {
     var results = test.results();
 
-    var values = results.reduce(function (values, result, index) {
+    var values = results.reduce(function(values, result, index) {
         var newValues = result.values();
-        return newValues ? values.concat(newValues.map(function (value) { return [index, value]; })) : values;
+        return newValues ? values.concat(newValues.map(function(value) { return [index, value]; })) : values;
     }, []);
 
     var plotData = [$.extend(true, {}, subpointsPlotOptions, {data: values})];
-    plotData.push({id: '&mu;', data: results.map(function (result, index) { return [index, result.mean()]; }), color: plotColor});
+    plotData.push({id: '&mu;', data: results.map(function(result, index) { return [index, result.mean()]; }), color: plotColor});
 
-    var overallMax = Statistics.max(results.map(function (result, index) { return result.max(); }));
-    var overallMin = Statistics.min(results.map(function (result, index) { return result.min(); }));
+    var overallMax = Statistics.max(results.map(function(result, index) { return result.max(); }));
+    var overallMin = Statistics.min(results.map(function(result, index) { return result.min(); }));
     var margin = (overallMax - overallMin) * 0.1;
     var currentPlotOptions = $.extend(true, {}, mainPlotOptions, {yaxis: {
         min: minIsZero ? 0 : overallMin - margin,
         max: minIsZero ? overallMax * 1.1 : overallMax + margin}});
 
     currentPlotOptions.xaxis.max = results.length - 0.5;
-    currentPlotOptions.xaxis.ticks = results.map(function (result, index) { return [index, result.run().label()]; });
+    currentPlotOptions.xaxis.ticks = results.map(function(result, index) { return [index, result.run().label()]; });
 
     $.plot(plotContainer, plotData, currentPlotOptions);
 }
@@ -695,39 +690,66 @@ function setUpSortClicks(runs)
      });
 }
 
-function getTestTypes(tests) {
-    var testTypes = NO_TESTS;
-    for (testName in tests) {
-        if (tests[testName].isMemoryTest()) {
-            testTypes |= MEMORY_TEST;
-        } else {
-            testTypes |= TIME_TEST;
-        }
-        if (testTypes === ALL_TESTS) {
-            // Early out as soon as we've found all the test types.
-            break;
-        }
-    }
-    return testTypes;
- }
-
-function areMemoryResultsIgnoredForTestTypes(testTypes) {
-    return testTypes !== MEMORY_TEST;
+function TestTypeSelector(tests) {
+    this.recognizers = {
+        'Time': function(test) { return test.isMemoryTest(); },
+        'Memory': function(test) { return !test.isMemoryTest(); }
+    };
+    this.testTypeNames = this.generateUsedTestTypeNames(tests);
+    // Default to selecting the first test-type name in the list.
+    this.testTypeName = this.testTypeNames[0];
 }
 
-function setUpUIForTestTypes(testTypes) {
-    var withFirstTestTypeRemoved = testTypes & (testTypes-1);
-    if (withFirstTestTypeRemoved === NO_TESTS) {
-        // Hide button when there are zero or one test types.
-        document.getElementById('time-memory').style.display = 'none';
+TestTypeSelector.prototype = {
+    set testTypeName(testTypeName) {
+        this._testTypeName = testTypeName;
+        this.shouldShowTest = this.recognizers[testTypeName];
+    },
+
+    generateUsedTestTypeNames: function(allTests) {
+        var testTypeNames = [];
+
+        for (var recognizedTestName in this.recognizers) {
+            var recognizes = this.recognizers[recognizedTestName];
+            for (var testName in allTests) {
+                var test = allTests[testName];
+                if (recognizes(test)) {
+                    testTypeNames.push(recognizedTestName);
+                    break;
+                }
+            }
+        }
+
+        if (testTypeNames.length === 0) {
+            // No test types we recognize, add 'No Results' with a dummy recognizer.
+            var noResults = 'No Results';
+            this.recognizers[noResults] = function() { return false; };
+            testTypeNames.push(noResults);
+        } else if (testTypeNames.length > 1) {
+            // We have more than one test type, so add 'All' with a recognizer that always succeeds.
+            var allResults = 'All';
+            this.recognizers[allResults] = function() { return true; };
+            testTypeNames.push(allResults);
+        }
+
+        return testTypeNames;
+    },
+
+    buildButtonHTMLForUsedTestTypes: function() {
+        var selectedTestTypeName = this._testTypeName;
+        // Build spans for all recognised test names with the selected test highlighted.
+        return this.testTypeNames.map(function(testTypeName) {
+            var classAttribute = testTypeName === selectedTestTypeName ? ' class=checked' : '';
+            return '<span' + classAttribute + '>' + testTypeName + '</span>';
+        }).join('');
     }
-}
+};
 
 var topLevelRows;
 var allTableRows;
 
-function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots) {
-    var resultHeaders = runs.map(function (run, index) {
+function displayTable(tests, runs, testTypeSelector, referenceIndex, useLargeLinePlots) {
+    var resultHeaders = runs.map(function(run, index) {
          var header = '<th id="' + run.id() + '" ' +
                           'colspan=2 ' +
                           'title="' + run.description() + '">' +
@@ -782,10 +804,9 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLi
     allTableRows = [];
     testNames.forEach(function(testName) {
         var test = tests[testName];
-        if (test.isMemoryTest() === shouldIgnoreMemory) {
-            return;
+        if (testTypeSelector.shouldShowTest(test)) {
+            allTableRows.push(new TableRow(runs, test, referenceIndex, useLargeLinePlots));
         }
-        allTableRows.push(new TableRow(runs, test, referenceIndex, useLargeLinePlots));
     });
 
     // Build a list of top level rows with attached children
@@ -861,10 +882,10 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLi
                         location.reload();
                     }
                 });
-                $('#labelEditor').click(function (event) {
+                $('#labelEditor').click(function(event) {
                     event.stopPropagation();
                 });
-                $('#labelEditor').mousedown(function (event) {
+                $('#labelEditor').mousedown(function(event) {
                     event.stopPropagation();
                 });
                 $('#labelEditor').select();
@@ -1376,7 +1397,7 @@ function init() {
     var runs = [];
     var metrics = {};
     var deletedRunsById = {};
-    $.each(JSON.parse(document.getElementById('results-json').textContent), function (index, entry) {
+    $.each(JSON.parse(document.getElementById('results-json').textContent), function(index, entry) {
         var run = new TestRun(entry);
         if (run.isHidden()) {
             deletedRunsById[run.id()] = run;
@@ -1408,36 +1429,35 @@ function init() {
     });
 
     var useLargeLinePlots = false;
-
-    var testTypes = getTestTypes(metrics);
-
-    setUpUIForTestTypes(testTypes);
-    var shouldIgnoreMemory = areMemoryResultsIgnoredForTestTypes(testTypes);
     var referenceIndex = 0;
 
-    createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
+    var testTypeSelector = new TestTypeSelector(metrics);
+    var buttonHTML = testTypeSelector.buildButtonHTMLForUsedTestTypes();
+    $('#time-memory').append(buttonHTML);
 
-    $('#time-memory').bind('change', function (event, checkedElement) {
-        shouldIgnoreMemory = checkedElement.textContent == 'Time';
-        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
-    });
-
-    $('#scatter-line').bind('change', function (event, checkedElement) {
+    $('#scatter-line').bind('change', function(event, checkedElement) {
         useLargeLinePlots = checkedElement.textContent == 'Line';
-        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
+        displayTable(metrics, runs, testTypeSelector, referenceIndex, useLargeLinePlots);
     });
 
-    runs.map(function (run, index) {
+    runs.map(function(run, index) {
         $('#reference').append('<span value="' + index + '"' + (index == referenceIndex ? ' class="checked"' : '') + ' title="' + run.description() + '">' + run.label() + '</span>');
     })
 
-    $('#reference').bind('change', function (event, checkedElement) {
-        referenceIndex = parseInt(checkedElement.getAttribute('value'));
-        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
+    $('#time-memory').bind('change', function(event, checkedElement) {
+        testTypeSelector.testTypeName = checkedElement.textContent;
+        displayTable(metrics, runs, testTypeSelector, referenceIndex, useLargeLinePlots);
     });
 
-    $('.checkbox').each(function (index, checkbox) {
-        $(checkbox).children('span').click(function (event) {
+    $('#reference').bind('change', function(event, checkedElement) {
+        referenceIndex = parseInt(checkedElement.getAttribute('value'));
+        displayTable(metrics, runs, testTypeSelector, referenceIndex, useLargeLinePlots);
+    });
+
+    displayTable(metrics, runs, testTypeSelector, referenceIndex, useLargeLinePlots);
+
+    $('.checkbox').each(function(index, checkbox) {
+        $(checkbox).children('span').click(function(event) {
             if ($(this).hasClass('checked'))
                 return;
             $(checkbox).children('span').removeClass('checked');
@@ -1451,7 +1471,7 @@ function init() {
     if (runToUndelete) {
         $('#undelete').html('Undelete ' + runToUndelete.label());
         $('#undelete').attr('title', runToUndelete.description());
-        $('#undelete').click(function (event) {
+        $('#undelete').click(function(event) {
             runToUndelete.show();
             undeleteManager.undeleteMostRecent();
             location.reload();
