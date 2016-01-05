@@ -152,7 +152,7 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       test_map = _ConstructTestPathMap(data)
       for row_dict in data:
         _ValidateRowDict(row_dict, test_map)
-      _AddTasksAsync(data)
+      _AddTasks(data)
     except BadRequestError as error:
       # If any of the data was invalid, abort immediately and return an error.
       self.ReportError(error.message, status=400)
@@ -163,7 +163,7 @@ def _DashboardJsonToRawRows(dash_json_dict):
 
   For the dashboard to begin accepting the Telemetry Dashboard JSON format
   as per go/telemetry-json, this function chunks a Dashboard JSON literal
-  into rows and passes the resulting list to _AddTasksAsync.
+  into rows and passes the resulting list to _AddTasks.
 
   Args:
     dash_json_dict: A dashboard JSON v1.0 dict.
@@ -246,20 +246,30 @@ def _TestSuiteName(dash_json_dict):
     raise BadRequestError('Could not find test suite name. ' + e.message)
 
 
-def _AddTasksAsync(data):
-  """Puts tasks on queue for adding row and analyzing for anomalies.
+def _AddTasks(data):
+  """Puts tasks on queue for adding data.
 
   Args:
-    data: A list of dictionary each of which represents one point.
+    data: A list of dictionaries, each of which represents one point.
   """
-  queue = taskqueue.Queue(_TASK_QUEUE_NAME)
   task_list = []
-  for i in range(0, len(data), _TASK_QUEUE_SIZE):
-    data_chunk = data[i:i + _TASK_QUEUE_SIZE]
-    task = taskqueue.Task(url='/add_point_queue',
-                          params={'data': json.dumps(data_chunk)})
-    task_list.append(task)
-  queue.add_async(task_list).get_result()
+  for data_sublist in _Chunk(data, _TASK_QUEUE_SIZE):
+    task_list.append(taskqueue.Task(
+        url='/add_point_queue',
+        params={'data': json.dumps(data_sublist)}))
+  queue = taskqueue.Queue(_TASK_QUEUE_NAME)
+  for task_sublist in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD):
+    # Calling get_result waits for all tasks to be added. It's possible that
+    # this is different, and maybe faster, than just calling queue.add.
+    queue.add_async(task_sublist).get_result()
+
+
+def _Chunk(items, chunk_size):
+  """Breaks a long list into sub-lists of a particular size."""
+  chunks = []
+  for i in range(0, len(items), chunk_size):
+    chunks.append(items[i:i + chunk_size])
+  return chunks
 
 
 def _MakeRowTemplate(dash_json_dict):
