@@ -11,9 +11,6 @@ from telemetry.internal.browser import browser_options
 from telemetry.testing import simple_mock
 from telemetry.testing import system_stub
 
-TRYBOT_OUTAGE_WARNING = ('PLEASE NOTE: Due to the schedule lab move, '
-                         'try jobs might not work on Android perf bisect bots. '
-                         'Please refer to crbug.com/568661\n')
 
 class TrybotBrowserFinderTest(unittest.TestCase):
 
@@ -25,8 +22,10 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     self._stubs = system_stub.Override(trybot_browser_finder,
                                        ['sys', 'open', 'os'])
     self._builder_list = ""
+    trybot_browser_finder.raw_input = lambda _: 'c'
 
   def tearDown(self):
+    trybot_browser_finder.raw_input = raw_input
     logging.getLogger().removeHandler(self.stream_handler)
     self.log_output.close()
     trybot_browser_finder.subprocess = self._real_subprocess
@@ -253,7 +252,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
         (['git', 'rev-parse', '--abbrev-ref', 'HEAD'], (128, None, None)),
     ))
     browser.RunRemote()
-    self.assertEquals(TRYBOT_OUTAGE_WARNING +
+    self.assertEquals(
         'Must be in a git repository to send changes to trybots.\n',
         self.log_output.getvalue())
 
@@ -269,7 +268,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     ))
 
     browser.RunRemote()
-    self.assertEquals(TRYBOT_OUTAGE_WARNING +
+    self.assertEquals(
         'Cannot send a try job with a dirty tree. Commit locally first.\n',
         self.log_output.getvalue())
 
@@ -290,7 +289,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     ))
 
     browser.RunRemote()
-    self.assertEquals(TRYBOT_OUTAGE_WARNING +
+    self.assertEquals(
         ('No local changes found in chromium or blink trees. '
          'browser=trybot-android-nexus4 argument sends local changes to the '
          'perf trybot(s): '
@@ -312,7 +311,7 @@ class TrybotBrowserFinderTest(unittest.TestCase):
     ))
 
     browser.RunRemote()
-    self.assertEquals(TRYBOT_OUTAGE_WARNING +
+    self.assertEquals(
         ('Error creating branch telemetry-tryjob. '
          'Please delete it if it exists.\n'
          'fatal: A branch named \'telemetry-try\' already exists.\n'),

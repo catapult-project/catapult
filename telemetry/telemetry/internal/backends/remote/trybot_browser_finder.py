@@ -278,9 +278,15 @@ class PossibleTrybotBrowser(possible_browser.PossibleBrowser):
     the bisect config, commits it, uploads the CL to rietveld, and runs a
     tryjob on the given bot.
     """
-    logging.warning('PLEASE NOTE: Due to the schedule lab move, '
-                    'try jobs might not work on Android perf bisect bots. '
-                    'Please refer to crbug.com/568661')
+    print '\n**** WARNING ****'
+    print ('Running telemetry benchmark on trybot using --browser=trybot-... '
+           'is deprecated (see crbug.com/566605) and will be removed on '
+           'Jan 20th 2016. To run benchmark on trybot, use the '
+           'command `run_benchmark trybot ...` instead.')
+    user_input = raw_input(
+        "Enter 'c' to keep running the current command anyway: ")
+    if user_input != 'c':
+      return
 
     # First check if there are chromium changes to upload.
     status = self._AttemptTryjob(CHROMIUM_CONFIG_FILENAME)
@@ -380,6 +386,5 @@ def FindAllAvailableBrowsers(finder_options, device):
   """Find all perf trybots on tryserver.chromium.perf."""
   if not isinstance(device, trybot_device.TrybotDevice):
     return []
-
   return [PossibleTrybotBrowser(b, finder_options) for b in
           FindAllBrowserTypes(finder_options)]
