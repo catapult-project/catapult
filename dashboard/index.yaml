@@ -96,6 +96,14 @@ indexes:
   - name: timestamp
     direction: desc
 
+# Used in group_report.py when querying for anomalies around a revision.
+# No composite index is required without internal_only because then the
+# query uses only one (indexed) property, end_revision.
+ - kind: Anomaly
+   properties:
+   - name: internal_only
+   - name: end_revision
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
