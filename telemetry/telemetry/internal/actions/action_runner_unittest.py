@@ -10,7 +10,8 @@ from telemetry.page import action_runner as action_runner_module
 from telemetry.testing import tab_test_case
 import mock
 from telemetry.timeline import model
-from telemetry.timeline import tracing_config
+from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import tracing_options
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
@@ -30,10 +31,10 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
                                                       skip_waits=True)
     self.Navigate('interaction_enabled_page.html')
     action_runner.Wait(1)
-    config = tracing_config.TracingConfig()
-    config.SetNoOverheadFilter()
-    config.tracing_options.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.Start(config)
+    options = tracing_options.TracingOptions()
+    options.enable_chrome_trace = True
+    self._browser.platform.tracing_controller.Start(
+        options, tracing_category_filter.CreateNoOverheadFilter())
     with action_runner.CreateInteraction('InteractionName',
                                                  **interaction_kwargs):
       pass
