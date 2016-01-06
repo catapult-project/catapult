@@ -1,0 +1,141 @@
+{
+  "config_type": "BaseConfig",
+  "dependencies": {
+    "aapt": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "7448de3cb5e834afdedeaad8b40ba63ac53f3dc4",
+          "download_path": "../bin/aapt"
+        }
+      }
+    },
+    "adb": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "0c2043552619c8ec8bb5d986ba75703a598611fc",
+          "download_path": "../bin/adb"
+        }
+      }
+    },
+    "android_build_tools_libc++": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "52d150a7ccde835f38b4337392152f3013d5f303",
+          "download_path": "../bin/lib/libc++.so"
+        }
+      }
+    },
+    "chromium_commands": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "049f482f29bc34e2ed844e2e47b7609f8ffbeb4f",
+          "download_path": "../bin/lib.java/chromium_commands.dex.jar"
+        }
+      }
+    },
+    "dexdump": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "38765b5b358c29003e56b1d214606ea13467b6fe",
+          "download_path": "../bin/dexdump"
+        }
+      }
+    },
+    "forwarder_device": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "4858c9e41da72ad8ff24414731feae2137229361",
+          "download_path": "../bin/armeabi-v7a/forwarder_device"
+        },
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "8cbd1ac2079ee82ce5f1cf4d3e85fc1e53a8f018",
+          "download_path": "../bin/arm64-v8a/forwarder_device"
+        }
+      }
+    },
+    "forwarder_host": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "b3dda9fbdd4a3fb933b64111c11070aa809c7ed4",
+          "download_path": "../bin/forwarder_host"
+        }
+      }
+    },
+    "md5sum_device": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "c8894480be71d5e49118483d83ba7a6e0097cba6",
+          "download_path": "../bin/armeabi-v7a/md5sum_device"
+        },
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "bbe410e2ffb48367ac4ca0874598d4f85fd16d9d",
+          "download_path": "../bin/arm64-v8a/md5sum_device"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "b578a5c2c400ce39761e2558cdf2237567a57257",
+          "download_path": "../bin/x86/md5sum_device"
+        }
+      }
+    },
+    "md5sum_host": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "49e36c9c4246cfebef26cbd07436c1a8343254aa",
+          "download_path": "../bin/md5sum_host"
+        }
+      }
+    },
+    "pymock": {
+      "file_info": {
+        "linux_x86_64": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        },
+        "mac_x86_64": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        },
+        "win_AMD64": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        },
+        "win_x86": {
+          "local_paths": [
+            "../../../tools/telemetry/third_party/mock"
+          ]
+        }
+      }
+    },
+    "split-select": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "3327881fa3951a503b9467425ea8e781cdffeb9f",
+          "download_path": "../bin/split-select"
+        }
+      }
+    }
+  }
+}
