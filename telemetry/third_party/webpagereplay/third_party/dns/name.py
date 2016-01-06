@@ -176,7 +176,7 @@ class Name(object):
     def fullcompare(self, other):
         """Compare two names, returning a 3-tuple (relation, order, nlabels).
 
-        I{relation} describes the relation ship beween the names,
+        I{relation} describes the relation ship between the names,
         and is one of: dns.name.NAMERELN_NONE,
         dns.name.NAMERELN_SUPERDOMAIN, dns.name.NAMERELN_SUBDOMAIN,
         dns.name.NAMERELN_EQUAL, or dns.name.NAMERELN_COMMONANCESTOR

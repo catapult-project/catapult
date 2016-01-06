@@ -67,7 +67,7 @@ class TimedTcpHandler(SocketServer.StreamRequestHandler):
 
   It can respond with the number of bytes specified in the request.
   The request looks like:
-    request_data -> RESPONSE_SIZE_KEY num_reponse_bytes '\n' ANY_DATA
+    request_data -> RESPONSE_SIZE_KEY num_response_bytes '\n' ANY_DATA
   """
 
   def handle(self):

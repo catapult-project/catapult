@@ -75,7 +75,11 @@ def configure_logging(log_level_name, log_file_name=None):
     logging.critical('A logging method (e.g. "logging.warn(...)")'
                      ' was called before logging was configured.')
   log_level = getattr(logging, log_level_name.upper())
-  log_format = '%(asctime)s %(levelname)s %(message)s'
+  log_format = (
+    '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+    '%(message)s')
+
+
   logging.basicConfig(level=log_level, format=log_format)
   logger = logging.getLogger()
   if log_file_name:

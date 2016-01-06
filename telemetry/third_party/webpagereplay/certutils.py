@@ -137,7 +137,7 @@ def generate_dummy_ca_cert(subject='_WebPageReplayCert'):
       crypto.X509Extension('subjectKeyIdentifier', False, 'hash',
                            subject=ca_cert),
       ])
-  ca_cert.sign(key, 'sha1')
+  ca_cert.sign(key, 'sha256')
   key_str = _dump_privatekey(key)
   ca_cert_str = _dump_cert(ca_cert)
   return ca_cert_str, key_str
@@ -243,7 +243,7 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   req = crypto.X509Req()
   req.get_subject().CN = common_name
   req.set_pubkey(ca_cert.get_pubkey())
-  req.sign(key, 'sha1')
+  req.sign(key, 'sha256')
 
   cert.gmtime_adj_notBefore(-60 * 60)
   cert.gmtime_adj_notAfter(60 * 60 * 24 * 30)
@@ -251,6 +251,6 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   cert.set_subject(req.get_subject())
   cert.set_serial_number(int(time.time()*10000))
   cert.set_pubkey(req.get_pubkey())
-  cert.sign(key, 'sha1')
+  cert.sign(key, 'sha256')
 
   return _dump_cert(cert)

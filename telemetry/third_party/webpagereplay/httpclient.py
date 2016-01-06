@@ -343,9 +343,9 @@ class RealHttpFetch(object):
       except Exception, e:
         if retries:
           retries -= 1
-          logging.warning('Retrying fetch %s: %s', request, e)
+          logging.warning('Retrying fetch %s: %s', request, repr(e))
           continue
-        logging.critical('Could not fetch %s: %s', request, e)
+        logging.critical('Could not fetch %s: %s', request, repr(e))
         return None
 
 

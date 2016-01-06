@@ -665,6 +665,8 @@ class ArchivedHttpRequest(object):
       transient state of the transport layer.
     - user-agent: Changes with every Chrome version.
     - proxy-connection: Sent for proxy requests.
+    - x-chrome-variations, x-client-data: Unique to each Chrome binary. Used by
+      Google to collect statistics about Chrome's enabled features.
 
     Another variant to consider is dropping only the value from the header.
     However, this is particularly bad for the cookie header, because the
@@ -682,6 +684,8 @@ class ArchivedHttpRequest(object):
     if 'accept-encoding' in headers:
       accept_encoding = headers['accept-encoding']
       accept_encoding = accept_encoding.replace('sdch', '')
+      # Strip lzma so Opera's requests matches archives recorded using Chrome.
+      accept_encoding = accept_encoding.replace('lzma', '')
       stripped_encodings = [e.strip() for e in accept_encoding.split(',')]
       accept_encoding = ','.join(filter(bool, stripped_encodings))
       headers['accept-encoding'] = accept_encoding
@@ -689,7 +693,7 @@ class ArchivedHttpRequest(object):
         'accept', 'accept-charset', 'accept-language', 'cache-control',
         'connection', 'cookie', 'keep-alive', 'method',
         'referer', 'scheme', 'url', 'version', 'user-agent', 'proxy-connection',
-        'x-chrome-variations']
+        'x-chrome-variations', 'x-client-data']
     return sorted([(k, v) for k, v in headers.items()
                    if k.lower() not in undesirable_keys])
 
