@@ -561,10 +561,10 @@ def _ValidateAndConvertBuildbucketResponse(job_info, job=None):
   # This is a case where the buildbucket job failed due to invalid config.
   if (job_info.get('status') == 'COMPLETED' and
       job_info.get('result') == 'FAILURE' and
-      job_info.get('failure_reason') != 'BUILD_FAILURE'):
+      job_info.get('failure_reason') == 'INVALID_BUILD_DEFINITION'):
     job.SetFailed()
     job.key.delete()
-    raise UnexpectedJsonError('Invalid bisect configuration. '
+    raise UnexpectedJsonError('Invalid job configuration. '
                               'Buildbucket response: %s' % json_response)
 
   if job_info.get('url') is None:
