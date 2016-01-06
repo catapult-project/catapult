@@ -17,11 +17,13 @@ from telemetry.wpr import archive_info
 
 
 class PageTestThatFails(page_test.PageTest):
+
   def ValidateAndMeasurePage(self, page, tab, results):
     raise page_test.Failure
 
 
 class PageTestForBlank(page_test.PageTest):
+
   def ValidateAndMeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if contents.strip() != 'Hello world':
@@ -30,6 +32,7 @@ class PageTestForBlank(page_test.PageTest):
 
 
 class PageTestForReplay(page_test.PageTest):
+
   def ValidateAndMeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
     contents = tab.EvaluateJavaScript('document.body.textContent')
@@ -38,6 +41,7 @@ class PageTestForReplay(page_test.PageTest):
 
 
 class PageTestQueryParams(page_test.PageTest):
+
   def ValidateAndMeasurePage(self, page, tab, results):
     query = tab.EvaluateJavaScript('window.location.search')
     expected = '?foo=1'
@@ -47,6 +51,7 @@ class PageTestQueryParams(page_test.PageTest):
 
 
 class PageTestWithAction(page_test.PageTest):
+
   def __init__(self):
     super(PageTestWithAction, self).__init__()
 
@@ -55,6 +60,7 @@ class PageTestWithAction(page_test.PageTest):
 
 
 class PageWithAction(page_module.Page):
+
   def __init__(self, url, story_set):
     super(PageWithAction, self).__init__(url, story_set, story_set.base_dir)
     self.run_test_action_called = False
@@ -77,7 +83,8 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
-    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html?foo=1')
+    story_set = self.CreateStorySetFromFileInUnittestDataDir(
+        'blank.html?foo=1')
     measurement = PageTestQueryParams()
     all_results = self.RunMeasurement(
         measurement, story_set, options=self._options)
@@ -111,10 +118,9 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       # First record an archive with only www.google.com.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
-      # pylint: disable=protected-access
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(archive_info_template %
-                                        (test_archive, google_url)))
+          '', '', story_set.bucket, json.loads(
+              archive_info_template % (test_archive, google_url)))
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
@@ -123,19 +129,18 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
-      # pylint: disable=protected-access
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(archive_info_template %
-                                        (test_archive, foo_url)))
+          '', '', story_set.bucket, json.loads(
+              archive_info_template %
+              (test_archive, foo_url)))
       story_set.pages = [page_module.Page(foo_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
       self.assertEquals(1, len(all_results.failures))
 
-      # pylint: disable=protected-access
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(archive_info_template %
-                                        (test_archive, google_url)))
+          '', '', story_set.bucket, json.loads(
+              archive_info_template % (test_archive, google_url)))
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
@@ -157,8 +162,10 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
 
 
 class MultiTabPageTestUnitTest(unittest.TestCase):
+
   def testNoTabForPageReturnsFalse(self):
     class PageTestWithoutTabForPage(page_test.PageTest):
+
       def ValidateAndMeasurePage(self, *_):
         pass
     test = PageTestWithoutTabForPage()
@@ -166,8 +173,10 @@ class MultiTabPageTestUnitTest(unittest.TestCase):
 
   def testHasTabForPageReturnsTrue(self):
     class PageTestWithTabForPage(page_test.PageTest):
+
       def ValidateAndMeasurePage(self, *_):
         pass
+
       def TabForPage(self, *_):
         pass
     test = PageTestWithTabForPage()
@@ -175,10 +184,13 @@ class MultiTabPageTestUnitTest(unittest.TestCase):
 
   def testHasTabForPageInAncestor(self):
     class PageTestWithTabForPage(page_test.PageTest):
+
       def ValidateAndMeasurePage(self, *_):
         pass
+
       def TabForPage(self, *_):
         pass
+
     class PageTestWithTabForPageInParent(PageTestWithTabForPage):
       pass
     test = PageTestWithTabForPageInParent()

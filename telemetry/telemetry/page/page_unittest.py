@@ -12,6 +12,7 @@ import mock
 
 
 class TestPage(unittest.TestCase):
+
   def assertPathEqual(self, path1, path2):
     self.assertEqual(os.path.normpath(path1), os.path.normpath(path2))
 
@@ -50,16 +51,16 @@ class TestPage(unittest.TestCase):
     story_set.AddStory(
         page.Page('http://www.bar.com/', story_set, story_set.base_dir))
 
-    pages = [story_set.stories[0], story_set.stories[1]]
-    pages.sort()
+    pages = sorted([story_set.stories[0], story_set.stories[1]])
     self.assertEquals([story_set.stories[1], story_set.stories[0]],
                       pages)
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     base_dir = os.path.dirname(__file__)
-    file_path = os.path.join(os.path.dirname(base_dir), 'otherdir', 'file.html')
+    file_path = os.path.join(
+        os.path.dirname(base_dir), 'otherdir', 'file.html')
     story_set = story.StorySet(base_dir=base_dir,
-                          serving_dirs=[os.path.join('..', 'somedir', '')])
+                               serving_dirs=[os.path.join('..', 'somedir', '')])
     story_set.AddStory(
         page.Page('file://../otherdir/file.html', story_set,
                   story_set.base_dir))
@@ -150,17 +151,17 @@ class TestPage(unittest.TestCase):
     self.assertIn('id', nameless_dict)
     del nameless_dict['id']
     self.assertEquals({
-          'url': 'http://example.com/',
-        }, nameless_dict)
+                      'url': 'http://example.com/',
+                      }, nameless_dict)
 
   def testNamedPageAsDict(self):
     named_dict = page.Page('http://example.com/', name='Example').AsDict()
     self.assertIn('id', named_dict)
     del named_dict['id']
     self.assertEquals({
-          'url': 'http://example.com/',
-          'name': 'Example'
-        }, named_dict)
+                      'url': 'http://example.com/',
+                      'name': 'Example'
+                      }, named_dict)
 
   def testIsLocal(self):
     p = page.Page('file://foo.html')
@@ -177,6 +178,7 @@ class TestPage(unittest.TestCase):
 
 
 class TestPageRun(unittest.TestCase):
+
   def testFiveGarbageCollectionCallsByDefault(self):
     mock_shared_state = mock.Mock()
     p = page.Page('file://foo.html')
@@ -187,16 +189,18 @@ class TestPageRun(unittest.TestCase):
                 mock.call.current_tab.CollectGarbage(),
                 mock.call.current_tab.CollectGarbage(),
                 mock.call.page_test.WillNavigateToPage(
-                  p, mock_shared_state.current_tab),
+                p, mock_shared_state.current_tab),
                 mock.call.page_test.RunNavigateSteps(
-                  p, mock_shared_state.current_tab),
+                p, mock_shared_state.current_tab),
                 mock.call.page_test.DidNavigateToPage(
-                  p, mock_shared_state.current_tab)]
+                p, mock_shared_state.current_tab)]
     self.assertEquals(mock_shared_state.mock_calls, expected)
 
   def testNoGarbageCollectionCalls(self):
     mock_shared_state = mock.Mock()
+
     class NonGarbageCollectPage(page.Page):
+
       def __init__(self, url):
         super(NonGarbageCollectPage, self).__init__(url)
         self._collect_garbage_before_run = False
@@ -204,9 +208,9 @@ class TestPageRun(unittest.TestCase):
     p = NonGarbageCollectPage('file://foo.html')
     p.Run(mock_shared_state)
     expected = [mock.call.page_test.WillNavigateToPage(
-                  p, mock_shared_state.current_tab),
+                p, mock_shared_state.current_tab),
                 mock.call.page_test.RunNavigateSteps(
-                  p, mock_shared_state.current_tab),
+                p, mock_shared_state.current_tab),
                 mock.call.page_test.DidNavigateToPage(
-                  p, mock_shared_state.current_tab)]
+                p, mock_shared_state.current_tab)]
     self.assertEquals(mock_shared_state.mock_calls, expected)

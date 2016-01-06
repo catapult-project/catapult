@@ -106,7 +106,7 @@ class ActionRunner(object):
 
   def Navigate(self, url, script_to_evaluate_on_commit=None,
                timeout_in_seconds=60):
-    """Navigates to url.
+    """Navigates to |url|.
 
     If |script_to_evaluate_on_commit| is given, the script source string will be
     evaluated when the navigation is committed. This is after the context of
@@ -125,7 +125,7 @@ class ActionRunner(object):
     self._tab.WaitForNavigate(timeout_in_seconds_seconds)
 
     time_left_in_seconds = (start_time + timeout_in_seconds_seconds
-        - time.time())
+                            - time.time())
     time_left_in_seconds = max(0, time_left_in_seconds)
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter(
         time_left_in_seconds)
@@ -461,11 +461,12 @@ class ActionRunner(object):
         overscroll=overscroll, repeat_count=repeat_count,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
 
-  def ScrollBounceElement(self, selector=None, text=None, element_function=None,
-                          left_start_ratio=0.5, top_start_ratio=0.5,
-                          direction='down', distance=100,
-                          overscroll=10, repeat_count=10,
-                          speed_in_pixels_per_second=400):
+  def ScrollBounceElement(
+      self, selector=None, text=None, element_function=None,
+      left_start_ratio=0.5, top_start_ratio=0.5,
+      direction='down', distance=100,
+      overscroll=10, repeat_count=10,
+      speed_in_pixels_per_second=400):
     """Perform scroll bounce gesture on the element.
 
     This gesture scrolls on the element by the number of pixels specified in
@@ -489,7 +490,7 @@ class ActionRunner(object):
           'up', 'down', 'upleft', 'upright', 'downleft', or 'downright'
       distance: The distance to scroll (in pixel).
       overscroll: The number of additional pixels to scroll back, in
-          addition to the givendistance.
+          addition to the given distance.
       repeat_count: How often we want to repeat the full gesture.
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
@@ -683,6 +684,7 @@ class ActionRunner(object):
     self._RunAction(RepaintContinuouslyAction(
         seconds=0 if self._skip_waits else seconds))
 
+
 class Interaction(object):
 
   def __init__(self, action_runner, label, flags):
@@ -710,13 +712,15 @@ class Interaction(object):
   def Begin(self):
     assert not self._started
     self._started = True
-    self._action_runner.ExecuteJavaScript('console.time("%s");' %
+    self._action_runner.ExecuteJavaScript(
+        'console.time("%s");' %
         timeline_interaction_record.GetJavaScriptMarker(
-            self._label, self._flags))
+        self._label, self._flags))
 
   def End(self):
     assert self._started
     self._started = False
-    self._action_runner.ExecuteJavaScript('console.timeEnd("%s");' %
+    self._action_runner.ExecuteJavaScript(
+        'console.timeEnd("%s");' %
         timeline_interaction_record.GetJavaScriptMarker(
-            self._label, self._flags))
+        self._label, self._flags))

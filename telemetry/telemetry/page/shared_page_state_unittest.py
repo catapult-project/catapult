@@ -22,11 +22,13 @@ def SetUpPageRunnerArguments(options):
 
 
 class DummyTest(page_test.PageTest):
+
   def ValidateAndMeasurePage(self, *_):
     pass
 
 
 class FakeNetworkController(object):
+
   def __init__(self):
     self.archive_path = None
     self.wpr_mode = None
@@ -46,7 +48,6 @@ class SharedPageStateTests(unittest.TestCase):
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
 
-  # pylint: disable=protected-access
   def TestUseLiveSitesFlag(self, expected_wpr_mode):
     with tempfile.NamedTemporaryFile() as f:
       run_state = shared_page_state.SharedPageState(
@@ -115,4 +116,4 @@ class SharedPageStateTests(unittest.TestCase):
     for p in (google_page, example_page, gmail_page):
       shared_state.WillRunStory(p)
       self.assertEquals(
-        p.startup_url, self.options.browser_options.startup_url)
+          p.startup_url, self.options.browser_options.startup_url)

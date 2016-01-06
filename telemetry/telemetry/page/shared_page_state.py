@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
 import shutil
@@ -36,6 +37,7 @@ def _PrepareFinderOptions(finder_options, test, device_type):
     profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
                                            finder_options)
 
+
 class SharedPageState(story.SharedState):
   """
   This class contains all specific logic necessary to run a Chrome browser
@@ -47,11 +49,11 @@ class SharedPageState(story.SharedState):
   def __init__(self, test, finder_options, story_set):
     super(SharedPageState, self).__init__(test, finder_options, story_set)
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
-      assert not finder_options.profiler, ('This is a Timeline Based '
-          'Measurement benchmark. You cannot run it with the --profiler flag. '
-          'If you need trace data, tracing is always enabled in Timeline Based '
-          'Measurement benchmarks and you can get the trace data by using '
-          '--output-format=json.')
+      assert not finder_options.profiler, (
+          'This is a Timeline Based Measurement benchmark. You cannot run it '
+          'with the --profiler flag. If you need trace data, tracing is always '
+          ' enabled in Timeline Based Measurement benchmarks and you can get '
+          'the trace data by using --output-format=json.')
       # This is to avoid the cyclic-import caused by timeline_based_page_test.
       from telemetry.web_perf import timeline_based_page_test
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)
@@ -61,6 +63,7 @@ class SharedPageState(story.SharedState):
     # TODO(aiolos, nednguyen): Remove this logic of pulling out user_agent_type
     # from story_set once all page_set are converted to story_set
     # (crbug.com/439512).
+
     def _IsPageSetInstance(s):
       # This is needed to avoid importing telemetry.page.page_set which will
       # cause cyclic import.
@@ -103,12 +106,12 @@ class SharedPageState(story.SharedState):
     finder_options.browser_options.browser_type = (
         possible_browser.browser_type)
 
-    (enabled, msg) = decorators.IsEnabled(test, possible_browser)
-    if (not enabled and
-        not finder_options.run_disabled_tests):
+    enabled, msg = decorators.IsEnabled(test, possible_browser)
+    if not enabled and not finder_options.run_disabled_tests:
       logging.warning(msg)
       logging.warning('You are trying to run a disabled test.')
-      logging.warning('Pass --also-run-disabled-tests to squelch this message.')
+      logging.warning(
+          'Pass --also-run-disabled-tests to squelch this message.')
       sys.exit(0)
 
     if possible_browser.IsRemote():
@@ -226,7 +229,6 @@ class SharedPageState(story.SharedState):
       else:
         logging.warning('System info not supported')
 
-
   def WillRunStory(self, page):
     if self._ShouldDownloadPregeneratedProfileArchive():
       self._DownloadPregeneratedProfileArchive()
@@ -262,7 +264,7 @@ class SharedPageState(story.SharedState):
       # navigation has begun and RenderFrameHostManager::DidNavigateMainFrame()
       # will cancel the next navigation because it's pending. This manifests as
       # the first navigation in a PageSet freezing indefinitely because the
-      # navigation was silently cancelled when |self.browser.tabs[0]| was
+      # navigation was silently canceled when |self.browser.tabs[0]| was
       # committed. Only do this when we just started the browser, otherwise
       # there are cases where previous pages in a PageSet never complete
       # loading so we'll wait forever.
@@ -402,23 +404,23 @@ class SharedPageState(story.SharedState):
     finder_options.output_profile_path = saved_output_profile
 
   def _MigratePregeneratedProfile(self):
-    """Migrates the pregenerated profile by launching Chrome with it.
+    """Migrates the pre-generated profile by launching Chrome with it.
 
     On success, updates self._migrated_profile and
     self._finder_options.browser_options.profile_dir with the directory of the
     migrated profile.
     """
     self._migrated_profile = tempfile.mkdtemp()
-    logging.info("Starting migration of pregenerated profile to %s",
-        self._migrated_profile)
+    logging.info("Starting migration of pre-generated profile to %s",
+                 self._migrated_profile)
     pregenerated_profile = self._finder_options.browser_options.profile_dir
 
     possible_browser = self._FindBrowser(self._finder_options)
     self._MigrateProfile(self._finder_options, possible_browser,
                          pregenerated_profile, self._migrated_profile)
     self._finder_options.browser_options.profile_dir = self._migrated_profile
-    logging.info("Finished migration of pregenerated profile to %s",
-        self._migrated_profile)
+    logging.info("Finished migration of pre-generated profile to %s",
+                 self._migrated_profile)
 
   def GetPregeneratedProfileArchiveDir(self):
     return self._pregenerated_profile_archive_dir
@@ -427,7 +429,7 @@ class SharedPageState(story.SharedState):
     """
     Benchmarks can set a pre-generated profile archive to indicate that when
     Chrome is launched, it should have a --user-data-dir set to the
-    pregenerated profile, rather than to an empty profile.
+    pre-generated profile, rather than to an empty profile.
 
     If the benchmark is invoked with the option --profile-dir=<dir>, that
     option overrides this value.
@@ -443,8 +445,8 @@ class SharedPageState(story.SharedState):
     # If profile dir is specified on command line, use that instead.
     if self._finder_options.browser_options.profile_dir:
       logging.warning("Profile directory specified on command line: %s, this"
-          "overrides the benchmark's default profile directory.",
-          self._finder_options.browser_options.profile_dir)
+                      "overrides the benchmark's default profile directory.",
+                      self._finder_options.browser_options.profile_dir)
       return False
 
     # If the browser is remote, a local download has no effect.
@@ -464,14 +466,14 @@ class SharedPageState(story.SharedState):
 
     try:
       cloud_storage.GetIfChanged(generated_profile_archive_path,
-          cloud_storage.PUBLIC_BUCKET)
+                                 cloud_storage.PUBLIC_BUCKET)
     except (cloud_storage.CredentialsError,
             cloud_storage.PermissionError) as e:
       if os.path.exists(generated_profile_archive_path):
         # If the profile directory archive exists, assume the user has their
         # own local copy simply warn.
         logging.warning('Could not download Profile archive: %s',
-            generated_profile_archive_path)
+                        generated_profile_archive_path)
       else:
         # If the archive profile directory doesn't exist, this is fatal.
         logging.error('Can not run without required profile archive: %s. '
@@ -484,7 +486,7 @@ class SharedPageState(story.SharedState):
     # Check to make sure the zip file exists.
     if not os.path.isfile(generated_profile_archive_path):
       raise Exception("Profile directory archive not downloaded: ",
-          generated_profile_archive_path)
+                      generated_profile_archive_path)
 
     # The location to extract the profile into.
     extracted_profile_dir_path = (
@@ -503,9 +505,10 @@ class SharedPageState(story.SharedState):
 
     # Run with freshly extracted profile directory.
     logging.info("Using profile archive directory: %s",
-        extracted_profile_dir_path)
+                 extracted_profile_dir_path)
     self._finder_options.browser_options.profile_dir = (
         extracted_profile_dir_path)
+
 
 class SharedMobilePageState(SharedPageState):
   _device_type = 'mobile'
