@@ -662,6 +662,18 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(5, len(flot['annotations'].get(sub_test_a_index).keys()))
     self.assertEqual(5, len(flot['annotations'].get(sub_test_b_index).keys()))
 
+  def testGetGraphJson_ManyUnselected_ReturnsNothing(self):
+    testing_common.AddTests(
+        ['M'], ['b'], {'suite': {str(i): {} for i in range(100)}})
+    test_paths = ['M/b/suite/%s' % i for i in range(100)]
+    for p in test_paths:
+      testing_common.AddRows(p, [1])
+    response = graph_json.GetGraphJson(
+        test_path_dict={p: [] for p in test_paths}, is_selected=False)
+    self.assertEqual(
+        {'data': {}, 'annotations': {}, 'error_bars': {}},
+        json.loads(response))
+
 
 class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
 

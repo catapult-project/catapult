@@ -29,6 +29,10 @@ from dashboard.models import graph_data
 # This can be overridden by specifying num_points or start_rev and end_rev.
 _DEFAULT_NUM_POINTS = 150
 
+# If data for more than this many tests is requested for unselected tests,
+# an empty response will be returned.
+_MAX_UNSELECTED_TESTS = 50
+
 # Dictionary mapping improvement directions constants to strings.
 _BETTER_DICT = {
     anomaly.UP: 'Higher',
@@ -116,11 +120,17 @@ def GetGraphJson(
   """
   # TODO(qyearsley): Parallelize queries if possible.
 
-  # Get a list of Test entities.
   if is_selected:
     test_paths = _GetTestPathFromDict(test_path_dict)
   else:
     test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
+
+  # If a particular test has a lot of children, then a request will be made
+  # for data for a lot of unselected series, which may be very slow and may
+  # time out. In this case, return nothing.
+  # TODO(qyearsley): Stop doing this when there's a better solution (#1876).
+  if not is_selected and len(test_paths) > _MAX_UNSELECTED_TESTS:
+    return json.dumps({'data': {}, 'annotations': {}, 'error_bars': {}})
 
   test_keys = map(utils.TestKey, test_paths)
   test_entities = ndb.get_multi(test_keys)
@@ -130,8 +140,8 @@ def GetGraphJson(
   all_deprecated = all(t.deprecated for t in test_entities)
   if not all_deprecated:
     test_entities = [t for t in test_entities if not t.deprecated]
-
   test_entities = [t for t in test_entities if t.has_rows]
+
   revision_map = {}
   num_points = num_points or _DEFAULT_NUM_POINTS
   for test in test_entities:
