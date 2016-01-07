@@ -12,35 +12,18 @@ if __name__ == '__main__':
   sys.path.append(os.path.abspath(os.path.join(
       os.path.dirname(__file__), os.pardir, os.pardir, os.pardir)))
 from devil.android import device_blacklist
-from devil.android import device_errors
 from devil.android import device_utils
 from devil.android import fastboot_utils
-from devil.android.sdk import adb_wrapper
+from devil.android.tools import script_common
 from devil.constants import exit_codes
 from devil.utils import run_tests_helper
-
-
-def GetDeviceList(device=None):
-  """Returns a list of devices.
-
-  If device is passed to it, returns only that device.
-  """
-  available_devices = [device_utils.DeviceUtils(d)
-                       for d in adb_wrapper.AdbWrapper.GetDevices()]
-  if not available_devices:
-    raise device_errors.NoDevicesError
-  if not device:
-    return available_devices
-  for d in available_devices:
-    if str(d) == device:
-      return [d]
-  raise device_errors.NoDevicesError
 
 
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('build_path', help='Path to android build.')
-  parser.add_argument('-d', '--device', help='Device to flash.')
+  parser.add_argument('-d', '--device', dest='devices', action='append',
+                      help='Device(s) to flash.')
   parser.add_argument('-v', '--verbose', default=0, action='count',
                       help='Verbose level (multiple times for more)')
   parser.add_argument('-w', '--wipe', action='store_true',
@@ -69,7 +52,7 @@ def main():
       logging.exception('Device %s failed to flash.', str(device))
       failed_devices.append(device)
 
-  devices = GetDeviceList(device=args.device)
+  devices = script_common.GetDevices(args.devices, args.blacklist_file)
   device_utils.DeviceUtils.parallel(devices).pMap(flash)
 
   if flashed_devices:
