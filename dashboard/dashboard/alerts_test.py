@@ -208,6 +208,14 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual(0, len(response.html('img')))
     self.assertEqual(0, len(response.html('alerts-table')))
 
+  def testGet_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
+    sheriff.Sheriff(id='Foo', internal_only=True).put()
+    self.assertFalse(utils.IsInternalUser())
+    response = self.testapp.get('/alerts?sheriff=Foo')
+    self.assertIn('class="error"', response.body)
+    self.assertEqual(0, len(response.html('img')))
+    self.assertEqual(0, len(response.html('alerts-table')))
+
 
 if __name__ == '__main__':
   unittest.main()
