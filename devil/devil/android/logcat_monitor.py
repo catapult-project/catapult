@@ -5,6 +5,7 @@
 # pylint: disable=unused-argument
 
 import logging
+import os
 import re
 import shutil
 import tempfile
@@ -191,6 +192,7 @@ class LogcatMonitor(object):
     """
     self._StopRecording()
     if self._record_file and self._output_file:
+      os.makedirs(os.path.dirname(self._output_file))
       shutil.copy(self._record_file.name, self._output_file)
 
   def Close(self):
