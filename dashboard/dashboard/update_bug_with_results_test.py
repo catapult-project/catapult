@@ -275,7 +275,7 @@ _ISSUE_RESPONSE = """
 _BISECT_LOG_INFRA_FAILURE = 'Failed to produce build'
 
 # Globals that are set in mock functions and then checked in tests.
-_TEST_RECEIEVED_EMAIL_RESULTS = None
+_TEST_RECEIVED_EMAIL_RESULTS = None
 _TEST_RECEIVED_EMAIL = None
 
 
@@ -458,8 +458,8 @@ def _MockMakeRequest(path, method):  # pylint: disable=unused-argument
 
 
 def _MockSendPerfTryJobEmail(_, results):
-  global _TEST_RECEIEVED_EMAIL_RESULTS
-  _TEST_RECEIEVED_EMAIL_RESULTS = results
+  global _TEST_RECEIVED_EMAIL_RESULTS
+  _TEST_RECEIVED_EMAIL_RESULTS = results
 
 
 def _MockSendMail(**kwargs):
@@ -1009,12 +1009,12 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf', email='just@atestemail.com',
         job_type='perf-try', config=_PERF_TEST_CONFIG).put()
-    global _TEST_RECEIEVED_EMAIL_RESULTS
-    _TEST_RECEIEVED_EMAIL_RESULTS = None
+    global _TEST_RECEIVED_EMAIL_RESULTS
+    _TEST_RECEIVED_EMAIL_RESULTS = None
 
     self.testapp.get('/update_bug_with_results')
 
-    results = _TEST_RECEIEVED_EMAIL_RESULTS
+    results = _TEST_RECEIVED_EMAIL_RESULTS
     self.assertEqual('Completed', results['status'])
     self.assertEqual(2, len(results['profiler_results']))
     self.assertEqual(_PERF_LOG_EXPECTED_HTML_LINK,
@@ -1046,12 +1046,12 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         rietveld_issue_id=200035, rietveld_patchset_id=1,
         status='started', bot='win_perf', email='just@atestemail.com',
         job_type='perf-try', config=_PERF_TEST_CONFIG).put()
-    global _TEST_RECEIEVED_EMAIL_RESULTS
-    _TEST_RECEIEVED_EMAIL_RESULTS = None
+    global _TEST_RECEIVED_EMAIL_RESULTS
+    _TEST_RECEIVED_EMAIL_RESULTS = None
 
     self.testapp.get('/update_bug_with_results')
 
-    results = _TEST_RECEIEVED_EMAIL_RESULTS
+    results = _TEST_RECEIVED_EMAIL_RESULTS
     self.assertEqual('Completed', results['status'])
     self.assertEqual(0, len(results['profiler_results']))
     self.assertEqual('', results['html_results'])
@@ -1188,7 +1188,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     buildbucket_response_canceled = r"""{
       "build": {
         "status": "COMPLETED",
-        "cancelation_reason": "TIMEOUT",
+        "cancellation_reason": "TIMEOUT",
         "id": "9043278384371361584",
         "result": "CANCELED"
       }

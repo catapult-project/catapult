@@ -50,7 +50,7 @@ _BISECT_BOT_TIMEOUT = 12 * 60
 # Amount of time to pass before deleting a try job.
 _STALE_TRYJOB_DELTA = datetime.timedelta(days=7)
 
-# Amount of time pass before deleteing try jobs that use Buildbucket.
+# Amount of time pass before deleting try jobs that use Buildbucket.
 _STALE_TRYJOB_DELTA_BUILDBUCKET = datetime.timedelta(days=21)
 
 _BUG_COMMENT_TEMPLATE = """Bisect job status: %(status)s
@@ -271,7 +271,7 @@ def _CheckBisectJob(job, issue_tracker):
     return
   logging.info('Bisect job status: %s.', bisect_results['status'])
   if bisect_results['status'] == 'Completed':
-    _PostSucessfulResult(job, bisect_results, issue_tracker)
+    _PostSuccessfulResult(job, bisect_results, issue_tracker)
     job.SetCompleted()
   elif bisect_results['status'] == 'Failure with partial results':
     _PostFailedResult(
@@ -338,7 +338,7 @@ def _GetBisectResults(job):
   bisect_result = _BeautifyContent(str(response.content))
 
   # Bisect is considered success if result is provided.
-  # "BISECTION ABORTED" is added when a job is ealy aborted because the
+  # "BISECTION ABORTED" is added when a job is early aborted because the
   # associated issue was closed.
   # TODO(robertocn): Make sure we are outputting this string
   if ('BISECT JOB RESULTS' in bisect_result or
@@ -407,7 +407,7 @@ def _GetBotFailureInfo(build_data):
       total_build += 1
   message += 'Completed %s/%s builds.\n' % (num_success_build, total_build)
 
-  # Add run time messsage.
+  # Add run time message.
   run_time = build_data['times'][1] - build_data['times'][0]
   run_time = int(run_time / 60)  # Minutes.
   message += 'Run time: %s/%s minutes.\n' % (run_time, _BISECT_BOT_TIMEOUT)
@@ -472,7 +472,7 @@ def _PostFailedResult(
                job.bug_id, job.rietveld_issue_id)
 
 
-def _PostSucessfulResult(job, bisect_results, issue_tracker):
+def _PostSuccessfulResult(job, bisect_results, issue_tracker):
   """Posts successful bisect results on logger and issue tracker."""
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
@@ -553,7 +553,7 @@ def _ValidateAndConvertBuildbucketResponse(job_info, job=None):
   # scheduled on buildbot probably due to long pending job queue.
   if (job_info.get('status') == 'COMPLETED' and
       job_info.get('result') == 'CANCELED' and
-      job_info.get('cancelation_reason') == 'TIMEOUT'):
+      job_info.get('cancellation_reason') == 'TIMEOUT'):
     job.SetFailed()
     raise UnexpectedJsonError('Try job timed out before it got scheduled. '
                               'Buildbucket response: %s' % json_response)
@@ -776,7 +776,7 @@ def _GetReviewersFromBisectLog(results_output):
   revisions_links = {rev.strip() for rev in revisions_list}
   # Sometime revision page content consist of multiple "Review URL" strings
   # due to some reverted CLs, such CLs are prefixed with ">"(&gt;) symbols.
-  # Should only parse CL link correspoinding the revision found by the bisect.
+  # Should only parse CL link corresponding the revision found by the bisect.
   link_pattern = (r'(?<!&gt;\s)Review URL: <a href=[\'"]'
                   r'https://codereview.chromium.org/(\d+)[\'"].*>')
   for link in revisions_links:
@@ -875,7 +875,7 @@ def _CheckFYIBisectJob(job, issue_tracker):
                job.job_name, bisect_results['status'])
   try:
     if bisect_results['status'] == 'Completed':
-      _PostSucessfulResult(job, bisect_results, issue_tracker)
+      _PostSuccessfulResult(job, bisect_results, issue_tracker)
       # Below in VerifyBisectFYIResults we verify whether the actual
       # results matches with the expectations; if they don't match then
       # bisect_results['status'] gets set to 'Failure'.

@@ -415,7 +415,7 @@ def _GetTracingUri(point):
   """Gets the URI string for tracing in cloud storage, if available.
 
   Args:
-    point: A Row entitiy.
+    point: A Row entity.
 
   Returns:
     An URI string, or None if there is no trace available.
@@ -429,7 +429,7 @@ def _GetTracingRerunOptions(point):
   """Gets the trace rerun options, if available.
 
   Args:
-    point: A Row entitiy.
+    point: A Row entity.
 
   Returns:
     A dict of {description: params} strings, or None.
@@ -448,7 +448,7 @@ def _GetFlotJson(revision_map, tests):
 
   Returns:
     JSON serialization of a dict with line data, annotations, error range data,
-    (This data may not be passed exactly as-is to the Flot plot funciton, but
+    (This data may not be passed exactly as-is to the Flot plot function, but
     it will all be used when plotting.)
   """
   # TODO(qyearsley): Break this function into smaller functions.

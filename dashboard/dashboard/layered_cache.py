@@ -145,7 +145,7 @@ def Set(key, value, days_to_keep=None, namespace=None):
 def SetExternal(key, value, days_to_keep=None):
   """Sets the value in the datastore for the externally namespaced key.
 
-  Needed for things like /add_point that update internal/exteral data at the
+  Needed for things like /add_point that update internal/external data at the
   same time.
 
   Args:

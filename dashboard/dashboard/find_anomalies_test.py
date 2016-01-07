@@ -219,7 +219,7 @@ class ProcessAlertsTest(testing_common.TestCase):
           _MakeSampleChangePoint(10041, 45.2, 37.8),
       ]))
   @mock.patch.object(find_anomalies.email_sheriff, 'EmailSheriff')
-  def testProcessTest_FiltersOutImpovements(self, mock_email_sheriff):
+  def testProcessTest_FiltersOutImprovements(self, mock_email_sheriff):
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()

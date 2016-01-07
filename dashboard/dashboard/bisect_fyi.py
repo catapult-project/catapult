@@ -36,10 +36,10 @@ class BisectFYIHandler(request_handler.RequestHandler):
   def post(self):
     """Runs auto bisects."""
     datastore_hooks.SetPrivilegedRequest()
-    _RunBisectIngrationTests()
+    _RunBisectIntegrationTests()
 
 
-def _RunBisectIngrationTests():
+def _RunBisectIntegrationTests():
   """Runs bisect jobs with pre determined configs."""
   errors_list = {}
   bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)

@@ -155,7 +155,7 @@ class QuickLog(ndb.Model):
 
     log_parts = []
     for i in xrange(0, length, chunk_size):
-      # +1 to start entitiy key at 1.
+      # +1 to start entity key at 1.
       part_id = i // chunk_size + 1
       part_value = serialized[i:i+chunk_size]
       parent_key = ndb.Key('QuickLog', key)

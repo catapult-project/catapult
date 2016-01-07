@@ -25,8 +25,8 @@ bisect try job. It should not be submitted."""
 class ResponseObject(object):
   """Class for Response Object.
 
-  This class holds attributes similiar to response object returned by
-  google.appengine.api.urlfetch.  This is used to convert response object
+  This class holds attributes similar to response object returned by
+  google.appengine.api.urlfetch. This is used to convert response object
   returned by httplib2.Http.request.
   """
   def __init__(self, status_code, content):
@@ -83,14 +83,14 @@ class RietveldService(object):
       self._config = GetDefaultRietveldConfig()
     return self._config
 
-  def MakeRequest(self, path, *args, **kwwargs):
+  def MakeRequest(self, path, *args, **kwargs):
     """Makes a request to the Rietveld server."""
     if self.internal_only:
       server_url = self.Config().internal_server_url
     else:
       server_url = self.Config().server_url
     url = '%s/%s' % (server_url, path)
-    response, content = self._Http().request(url, *args, **kwwargs)
+    response, content = self._Http().request(url, *args, **kwargs)
     return ResponseObject(response.get('status'), content)
 
   def _Http(self):

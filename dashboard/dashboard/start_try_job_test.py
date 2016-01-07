@@ -921,7 +921,7 @@ class StartBisectTest(testing_common.TestCase):
                                   '/buildbucket_job_status/1234567')}),
         response.body)
 
-  def testGetBisectconfig_UseArchive(self):
+  def testGetBisectConfig_UseArchive(self):
     self._TestGetBisectConfig(
         {
             'bisect_bot': 'win_perf_bisect',

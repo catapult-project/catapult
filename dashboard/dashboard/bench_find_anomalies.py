@@ -323,7 +323,7 @@ class RunExperimentalChunkPipeline(pipeline.Pipeline):
     """Runs the experimental find_change_points on each TestBench entity.
 
     This runs SimulateAlertProcessing in parallel and returns a list of
-    the combinded results.
+    the combined results.
 
     Args:
       bench_name: A string bench name.
@@ -395,7 +395,7 @@ def BenchFindChangePoints(bench_name, description):
 
   Raises:
     ValueError: The input was not valid.
-    Exception: Not enough data valable.
+    Exception: Not enough data available.
   """
   if bench_name not in _EXPERIMENTAL_FUNCTIONS:
     raise ValueError('%s is not a valid find anomalies bench function.' %
