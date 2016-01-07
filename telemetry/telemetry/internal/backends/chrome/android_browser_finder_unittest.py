@@ -41,6 +41,8 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self.assertEqual([], possible_browsers)
 
   def testCanLaunchAlwaysTrueReturnsAllExceptExact(self):
+    if not self.finder_options.chrome_root:
+      self.skipTest('--chrome-root is not specified, skip the test')
     fake_platform = FakeAndroidPlatform(can_launch=True)
     all_types = set(
         android_browser_finder.FindAllBrowserTypes(self.finder_options))
@@ -52,6 +54,8 @@ class AndroidBrowserFinderTest(unittest.TestCase):
         set([b.browser_type for b in possible_browsers]))
 
   def testCanLaunchAlwaysTrueWithExactApkReturnsAll(self):
+    if not self.finder_options.chrome_root:
+      self.skipTest('--chrome-root is not specified, skip the test')
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/ContentShell.apk')
     self.finder_options.browser_executable = '/foo/ContentShell.apk'
@@ -87,6 +91,8 @@ class AndroidBrowserFinderTest(unittest.TestCase):
         self.finder_options, fake_platform)
 
   def testNoErrorWithUnrecognizedApkName(self):
+    if not self.finder_options.chrome_root:
+      self.skipTest('--chrome-root is not specified, skip the test')
     self._android_browser_finder_stub.os.path.files.append(
         '/foo/unknown.apk')
     self.finder_options.browser_executable = '/foo/unknown.apk'
