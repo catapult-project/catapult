@@ -128,8 +128,8 @@ class BenchFindChangePointsTest(testing_common.TestCase):
     self.assertEqual({bench_key: True}, layered_cache.Get(
         bench_find_anomalies._FIND_ANOMALIES_BENCH_CACHE_KEY))
 
-    taskq = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
-    test_support.execute_until_empty(taskq,
+    task_queue = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
+    test_support.execute_until_empty(task_queue,
                                      bench_find_anomalies._TASK_QUEUE_NAME)
 
     expected_result_dict = {
@@ -161,8 +161,8 @@ class BenchFindChangePointsTest(testing_common.TestCase):
     bench_find_anomalies.BenchFindChangePoints(bench_name, bench_description)
 
     # A task should be added.
-    taskq = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
-    tasks = taskq.GetTasks(bench_find_anomalies._TASK_QUEUE_NAME)
+    task_queue = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
+    tasks = task_queue.GetTasks(bench_find_anomalies._TASK_QUEUE_NAME)
     self.assertEqual(1, len(tasks))
 
     with self.assertRaises(ValueError):

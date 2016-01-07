@@ -553,10 +553,10 @@ class AddPointTest(testing_common.TestCase):
     if the Test matches the pattern of the AnomalyConfig.
     """
     anomaly_config1 = anomaly_config.AnomalyConfig(
-        id='modelset1', config='',
+        id='anomaly_config1', config='',
         patterns=['ChromiumPerf/*/dromaeo/jslib']).put()
     anomaly_config2 = anomaly_config.AnomalyConfig(
-        id='modelset2', config='',
+        id='anomaly_config2', config='',
         patterns=['*/*image_benchmark/*', '*/*/scrolling_benchmark/*']).put()
 
     data_param = json.dumps([

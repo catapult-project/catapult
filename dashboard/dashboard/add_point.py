@@ -37,7 +37,7 @@ _MAX_NUM_COLUMNS = 30
 # Maximum length for a test path. This limit is required because the test path
 # used as the string ID for TestContainer (the parent in the datastore for Row
 # entities), and datastore imposes a maximum string ID length.
-_MAX_TESTPATH_LENGTH = 500
+_MAX_TEST_PATH_LENGTH = 500
 
 
 class BadRequestError(Exception):
@@ -508,7 +508,7 @@ def _ConstructTestPathMap(row_dicts):
     if not ('master' in row and 'bot' in row and 'test' in row):
       continue
     path = '%s/%s/%s' % (row['master'], row['bot'], row['test'].strip('/'))
-    if len(path) > _MAX_TESTPATH_LENGTH:
+    if len(path) > _MAX_TEST_PATH_LENGTH:
       continue
     last_added_revision_keys.append(ndb.Key('LastAddedRevision', path))
 
@@ -565,7 +565,7 @@ def _ValidateTestPath(test_path):
   """Checks whether all the parts of the test path are valid."""
   # A test with a test path length over the max key length shouldn't be
   # created, since the test path is used in TestContainer keys.
-  if len(test_path) > _MAX_TESTPATH_LENGTH:
+  if len(test_path) > _MAX_TEST_PATH_LENGTH:
     raise BadRequestError('Test path too long: %s' % test_path)
 
   # Stars are reserved for test path patterns, so they can't be used in names.
