@@ -13,6 +13,7 @@ from telemetry.testing import tab_test_case
 
 class PlatformScreenshotTest(tab_test_case.TabTestCase):
 
+  @decorators.Disabled('win')  # crbug.com/570955
   def testScreenshotSupported(self):
     if self._platform.GetOSName() == 'android':
       self.assertTrue(self._platform.CanTakeScreenshot())
