@@ -102,4 +102,3 @@ def CreateStoppageAlert(test, row):
   test.stoppage_alert = new_alert.key
   test.put()
   return new_alert
-

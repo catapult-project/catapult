@@ -28,6 +28,7 @@ _UNBISECTABLE_SUITES = [
     'v8',
 ]
 
+
 class AutoBisectHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically run bisects."""
 

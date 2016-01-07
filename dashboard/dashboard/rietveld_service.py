@@ -29,6 +29,7 @@ class ResponseObject(object):
   google.appengine.api.urlfetch. This is used to convert response object
   returned by httplib2.Http.request.
   """
+
   def __init__(self, status_code, content):
     self.status_code = int(status_code)
     self.content = content
@@ -200,7 +201,7 @@ class RietveldService(object):
       return (None, None)
 
     msg = lines[0]
-    issue_id = msg[msg.rfind('/')+1:]
+    issue_id = msg[msg.rfind('/') + 1:]
     patchset_id = lines[1].strip()
     patches = [x.split(' ', 1) for x in lines[2:]]
     request_path = '%d/upload_content/%d/%d' % (

@@ -842,9 +842,9 @@ def _FetchURL(request_url, skip_status_code=False):
 
 
 def _FetchRietveldIssueJSON(job):
-    server = rietveld_service.RietveldService(internal_only=job.internal_only)
-    path = 'api/%d/%d' % (job.rietveld_issue_id, job.rietveld_patchset_id)
-    return server.MakeRequest(path, method='GET')
+  server = rietveld_service.RietveldService(internal_only=job.internal_only)
+  path = 'api/%d/%d' % (job.rietveld_issue_id, job.rietveld_patchset_id)
+  return server.MakeRequest(path, method='GET')
 
 
 def _RietveldIssueURL(job):

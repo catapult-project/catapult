@@ -391,7 +391,7 @@ def _MockFetch(url=None):
       ('http://build.chromium.org/builders/bb66666'
        '/steps/Results/logs/stdio/text'): [
            404, ''
-       ],
+      ],
       'http://build.chromium.org/json/builders/516': [
           200,
           json.dumps({'steps': [{'name': 'gclient', 'results': [2]}]})
@@ -1194,8 +1194,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       }
     }"""
     try_job.TryJob(
-          bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
-          status='started', bot='win_perf').put()
+        bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
     pending_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(1, len(pending_jobs))
     # Create bug.
@@ -1217,8 +1217,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       }
     }"""
     try_job.TryJob(
-          bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
-          status='started', bot='win_perf').put()
+        bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
     pending_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(1, len(pending_jobs))
     # Create bug.

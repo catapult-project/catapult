@@ -126,7 +126,7 @@ class QuickLog(ndb.Model):
       return None
 
     string_id = self.key.string_id()
-    log_part_keys = [ndb.Key('QuickLog', string_id, 'QuickLogPart', i+1)
+    log_part_keys = [ndb.Key('QuickLog', string_id, 'QuickLogPart', i + 1)
                      for i in xrange(self.size)]
     log_parts = ndb.get_multi(log_part_keys)
     serialized = ''.join(l.value for l in log_parts if l is not None)
@@ -157,7 +157,7 @@ class QuickLog(ndb.Model):
     for i in xrange(0, length, chunk_size):
       # +1 to start entity key at 1.
       part_id = i // chunk_size + 1
-      part_value = serialized[i:i+chunk_size]
+      part_value = serialized[i:i + chunk_size]
       parent_key = ndb.Key('QuickLog', key)
       log_part = QuickLogPart(id=part_id, parent=parent_key, value=part_value)
       log_parts.append(log_part)

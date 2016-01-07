@@ -137,7 +137,8 @@ class IssueTrackerService(object):
     if not bug_id or bug_id < 0:
       return None
     response = self._MakeGetCommentsRequest(bug_id)
-    if response and all(v in response.keys() for v in ['totalResults','items']):
+    if response and all(v in response.keys()
+                        for v in ['totalResults', 'items']):
       bug_comments = response.get('items')[response.get('totalResults') - 1]
       if bug_comments.get('content') and bug_comments.get('published'):
         return {

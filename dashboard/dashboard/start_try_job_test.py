@@ -283,7 +283,7 @@ def _MockFetch(url=None):
 
 
 def _MockFailedFetch(url=None):  # pylint: disable=unused-argument
-    return testing_common.FakeResponseObject(404, {})
+  return testing_common.FakeResponseObject(404, {})
 
 
 def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
@@ -392,7 +392,7 @@ class StartBisectTest(testing_common.TestCase):
              'blink_perf': {
                  'Animation_balls': {}
              }
-         }
+        }
     )
     tests = graph_data.Test.query().fetch()
     for test in tests:

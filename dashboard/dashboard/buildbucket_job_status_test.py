@@ -98,7 +98,6 @@ SAMPLE_RESPONSE_NOT_FOUND = r"""{
 }"""
 
 
-
 class BuildbucketJobStatusTest(testing_common.TestCase):
 
   def setUp(self):

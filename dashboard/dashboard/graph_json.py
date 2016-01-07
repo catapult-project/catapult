@@ -455,7 +455,7 @@ def _GetFlotJson(revision_map, tests):
 
   # Each entry in the following dict is one Flot series object. The actual
   # x-y values will be put into the 'data' properties for each object.
-  cols = {i: _FlotSeries(i) for i in  range(len(tests))}
+  cols = {i: _FlotSeries(i) for i in range(len(tests))}
 
   flot_annotations = {}
   flot_annotations['series'] = _GetSeriesAnnotations(tests)

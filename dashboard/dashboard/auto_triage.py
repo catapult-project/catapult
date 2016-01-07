@@ -42,6 +42,7 @@ _OLDEST_BUG_DELTA = datetime.timedelta(days=30)
 # units, the relative difference of the deltas is 0.2.
 _MAX_DELTA_DIFFERENCE = 0.25
 
+
 class AutoTriageHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically triage anomalies and bugs."""
 

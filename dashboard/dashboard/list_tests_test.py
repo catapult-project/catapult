@@ -175,7 +175,6 @@ class ListTestsTest(testing_common.TestCase):
     }
     self.assertEqual(expected, json.loads(response.body))
 
-
   def testGetSubTests_InternalData_OnlyReturnedForAuthorizedUsers(self):
     # When the user has a an internal account, internal-only data is given.
     self.SetCurrentUser('foo@google.com')

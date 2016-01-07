@@ -49,7 +49,7 @@ def _RunBisectIntegrationTests():
       if 'error' in results:
         errors_list[test_name] = {
             'error': results['error'],
-            'info':config.get('bisect_config')}
+            'info': config.get('bisect_config')}
     else:
       errors_list[test_name] = {'error': 'Missing bisect config.'}
   if errors_list:
@@ -169,7 +169,7 @@ def _TextBody(errors_list):
   for test_name, data in errors_list.iteritems():
     test_alerts.append(
         _TEST_FAILURE_TEMPLATE % {
-            'test_name':test_name,
+            'test_name': test_name,
             'error': data.get('error'),
             'info': data.get('info', '')
         }
