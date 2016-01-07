@@ -646,6 +646,9 @@ def PerformBisect(bisect_job):
     the field "issue_id" and "issue_url", otherwise it contains "error".
   """
   assert bisect_job.bot and bisect_job.config
+  if not bisect_job.key:
+    bisect_job.put()
+
   if bisect_job.use_buildbucket:
     result = _PerformBuildbucketBisect(bisect_job)
   else:
@@ -658,13 +661,14 @@ def PerformBisect(bisect_job):
 
 def _PerformLegacyBisect(bisect_job):
   config_dict = bisect_job.GetConfigDict()
-  config = bisect_job.config
   bot = bisect_job.bot
   email = bisect_job.email
   bug_id = bisect_job.bug_id
 
   # We need to rewrite the metric name for legacy bisect.
   config_dict['metric'] = _RewriteMetricName(config_dict['metric'])
+
+  config_dict['try_job_id'] = bisect_job.key.id()
   bisect_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
@@ -672,7 +676,7 @@ def _PerformLegacyBisect(bisect_job):
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, config, _BISECT_CONFIG_PATH)
+      base_config, bisect_job.config, _BISECT_CONFIG_PATH)
 
   # Check if bisect is for internal only tests.
   bisect_internal = _IsBisectInternalOnly(bisect_job)
@@ -746,16 +750,23 @@ def _PerformPerfTryJob(perf_job):
     the field "issue_id", otherwise it contains "error".
   """
   assert perf_job.bot and perf_job.config
-  config = perf_job.config
+
+  if not perf_job.key:
+    perf_job.put()
+
   bot = perf_job.bot
   email = perf_job.email
+
+  config_dict = perf_job.GetConfigDict()
+  config_dict['try_job_id'] = perf_job.key.id()
+  perf_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
   base_config = utils.DownloadChromiumFile(_PERF_CONFIG_PATH)
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, config, _PERF_CONFIG_PATH)
+      base_config, perf_job.config, _PERF_CONFIG_PATH)
 
   # Upload the patch to Rietveld.
   server = rietveld_service.RietveldService()
@@ -824,6 +835,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
   tester_name = config['recipe_tester_name']
 
   return buildbucket_job.BisectJob(
+      try_job_id=bisect_job.key.id(),
       bisect_director=GetBisectDirectorForTester(tester_name),
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],

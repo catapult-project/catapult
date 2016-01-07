@@ -73,13 +73,13 @@ def _StartBisectFYIJob(test_name, bisect_config):
     bisect_job = _MakeBisectFYITryJob(test_name, bisect_config)
   except auto_bisect.NotBisectableError as e:
     return {'error': e.message}
-  bisect_job_key = bisect_job.put()
   try:
     bisect_result = start_try_job.PerformBisect(bisect_job)
   except request_handler.InvalidInputError as e:
     bisect_result = {'error': e.message}
   if 'error' in bisect_result:
-    bisect_job_key.delete()
+    if bisect_job.key:
+      bisect_job.key.delete()
   return bisect_result
 
 

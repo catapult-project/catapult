@@ -10,15 +10,17 @@ import re
 class BisectJob(object):
   """A buildbot bisect job started and monitored through buildbucket."""
 
-  def __init__(self, bisect_director, good_revision, bad_revision, test_command,
-               metric, repeats, timeout_minutes, bug_id, gs_bucket,
-               recipe_tester_name, builder_host=None, builder_port=None,
-               test_type='perf', required_initial_confidence=None):
+  def __init__(self, try_job_id, bisect_director, good_revision, bad_revision,
+               test_command, metric, repeats, timeout_minutes, bug_id,
+               gs_bucket, recipe_tester_name, builder_host=None,
+               builder_port=None, test_type='perf',
+               required_initial_confidence=None):
     if not all([good_revision, bad_revision, test_command, metric,
                 repeats, timeout_minutes, recipe_tester_name]):
       raise ValueError('At least one of the values required for BisectJob '
                        'construction was not given or was given with a None '
                        'value.')
+    self.try_job_id = try_job_id
     self.bisect_director = bisect_director
     self.good_revision = good_revision
     self.bad_revision = bad_revision
@@ -48,6 +50,7 @@ class BisectJob(object):
     """Prepares a nested dict containing the bisect config."""
     # TODO(robertocn): Some of these should be optional.
     bisect_config = {
+        'try_job_id': self.try_job_id,
         'test_type': self.test_type,
         'command': self.command,
         'good_revision': self.good_revision,

@@ -40,7 +40,8 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
 +  "repeat_count": "20",
-+  "target_arch": "ia32"
++  "target_arch": "ia32",
++  "try_job_id": 1
  }
 """
 
@@ -60,7 +61,8 @@ _EXPECTED_BISECT_CONFIG_DIFF_FOR_INTERNAL_TEST = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "foreground_tab_request_start/foreground_tab_request_start",
 +  "repeat_count": "20",
-+  "target_arch": "ia32"
++  "target_arch": "ia32",
++  "try_job_id": 1
  }
 """
 
@@ -80,7 +82,8 @@ _EXPECTED_BISECT_CONFIG_DIFF_WITH_ARCHIVE = """config = {
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
 +  "repeat_count": "20",
-+  "target_arch": "ia32"
++  "target_arch": "ia32",
++  "try_job_id": 1
  }
 """
 
@@ -93,7 +96,8 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
 +  "command": "tools/perf/run_benchmark -v --browser=release --output-format=buildbot --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "60",
-+  "repeat_count": "1"
++  "repeat_count": "1",
++  "try_job_id": 1
  }
 """
 
