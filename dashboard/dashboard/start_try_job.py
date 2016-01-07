@@ -554,33 +554,6 @@ def _HasChildTest(test_path):
   return bool(child)
 
 
-def _RewriteMetricName(metric):
-  """Rewrites a metric name for legacy bisect.
-
-  With the introduction of test names with interaction record labels coming
-  from Telemetry, it is necessary to rewrite names to the format described in
-  goo.gl/CXGyxT so that they can be interpreted by legacy bisect. Recipe bisect
-  does the rewriting itself.
-
-  For instance, foo/bar/baz would be rewritten as bar-foo/baz.
-
-  Args:
-    metric: The slash-separated metric name, generally from GuessMetric.
-
-  Returns:
-    The Buildbot output format-compatible metric name.
-  """
-  test_parts = metric.split('/')
-
-  if len(test_parts) == 3:
-    chart_name, interaction_record_name, trace_name = test_parts
-    return '%s-%s/%s' % (interaction_record_name,
-                         chart_name,
-                         trace_name)
-  else:
-    return metric
-
-
 def _CreatePatch(base_config, config_changes, config_path):
   """Takes the base config file and the changes and generates a patch.
 
@@ -660,14 +633,11 @@ def PerformBisect(bisect_job):
 
 
 def _PerformLegacyBisect(bisect_job):
-  config_dict = bisect_job.GetConfigDict()
   bot = bisect_job.bot
   email = bisect_job.email
   bug_id = bisect_job.bug_id
 
-  # We need to rewrite the metric name for legacy bisect.
-  config_dict['metric'] = _RewriteMetricName(config_dict['metric'])
-
+  config_dict = bisect_job.GetConfigDict()
   config_dict['try_job_id'] = bisect_job.key.id()
   bisect_job.config = utils.BisectConfigPythonString(config_dict)
 
