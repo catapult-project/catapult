@@ -482,7 +482,7 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   bug = ndb.Key('Bug', job.bug_id).get()
 
   commit_cache_key = _GetCommitHashCacheKey(bisect_results['results'])
-  if bug:
+  if bug and _BisectResultIsPositive(bisect_results['results']):
     merge_issue = layered_cache.GetExternal(commit_cache_key)
     if not merge_issue:
       authors_to_cc = _GetAuthorsToCC(bisect_results['results'])

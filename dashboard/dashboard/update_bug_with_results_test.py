@@ -798,7 +798,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_GetBisectResults',
       mock.MagicMock(return_value={
-          'results': 'Status: Positive\nCommit  : abcd123',
+          'results': ('Status: Positive\n'
+                      'Commit  : abcd123\n'
+                      'Author  : culprit@chromium.org\n'),
           'status': 'Completed',
           'bisect_bot': 'bar',
           'issue_url': 'bar',
@@ -817,7 +819,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_GetBisectResults',
       mock.MagicMock(return_value={
-          'results': 'Status: Negative\nCommit  : a121212',
+          'results': ('Status: Negative\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
           'status': 'Completed',
           'bisect_bot': 'bar',
           'issue_url': 'bar',
@@ -836,7 +840,10 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_GetBisectResults',
       mock.MagicMock(return_value={
-          'results': 'Status: Positive\nCommit  : a12\nCommit  : b23',
+          'results': ('Status: Positive\n'
+                      'Commit  : a12\n'
+                      'Commit  : b23\n'
+                      'Author  : culprit@chromium.org\n'),
           'status': 'Completed',
           'bisect_bot': 'bar',
           'issue_url': 'bar',
@@ -848,6 +855,53 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
     self.assertIsNone(layered_cache.GetExternal('commit_hash_a12b23'))
+
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Status: Positive\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_PositiveResult_CCsAuthor(self, mock_update_bug):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    bug_data.Bug(id=12345).put()
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_with(
+        12345, mock.ANY, cc_list=['culprit@chromium.org'],
+        merge_issue=None, labels=None, owner='culprit@chromium.org')
+
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Status: Negative\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_NegativeResult_DoesNotCCAuthor(self, mock_update_bug):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    bug_data.Bug(id=12345).put()
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_with(
+        12345, mock.ANY, cc_list=[], merge_issue=None, labels=None, owner=None)
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
