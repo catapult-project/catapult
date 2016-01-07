@@ -27,11 +27,7 @@ class ReportHandler(chart_handler.ChartHandler):
       self.redirect('/report?' + query_string)
       return
 
-    dev_version = ('Development' in os.environ['SERVER_SOFTWARE'] or
-                   self.request.host == 'chrome-perf.googleplex.com')
-
     self.RenderHtml('report.html', {
-        'dev_version': dev_version,
         'test_suites': json.dumps(update_test_suites.FetchCachedTestSuites()),
     })
 
