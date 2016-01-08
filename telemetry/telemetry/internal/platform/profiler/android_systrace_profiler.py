@@ -11,7 +11,7 @@ from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 from telemetry.timeline import trace_data as trace_data_module
-from telemetry.timeline import tracing_options
+from telemetry.timeline import tracing_config
 
 _SYSTRACE_CATEGORIES = [
     'gfx',
@@ -35,9 +35,9 @@ class AndroidSystraceProfiler(profiler.Profiler):
     # Use telemetry's own tracing backend instead the combined mode in
     # adb_profile_chrome because some benchmarks also do tracing of their own
     # and the two methods conflict.
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    self._browser_backend.StartTracing(options, timeout=10)
+    config = tracing_config.TracingConfig()
+    config.tracing_options.enable_chrome_trace = True
+    self._browser_backend.StartTracing(config.tracing_options, timeout=10)
     command = ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
                                       'profile_chrome.py'),
                '--categories', '', '--continuous', '--output',

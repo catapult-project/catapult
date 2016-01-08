@@ -6,7 +6,6 @@ import unittest
 
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_config
-from telemetry.timeline import tracing_options
 
 
 class TracingConfigTests(unittest.TestCase):
@@ -25,7 +24,7 @@ class TracingConfigTests(unittest.TestCase):
     config = tracing_config.TracingConfig()
     config.SetTracingCategoryFilter(category_filter)
     config.tracing_options.enable_systrace = True
-    config.tracing_options.record_mode = tracing_options.RECORD_UNTIL_FULL
+    config.tracing_options.record_mode = tracing_config.RECORD_UNTIL_FULL
     config_string = config.GetChromeTraceConfigJsonString()
     self.assertEquals(
         '{'

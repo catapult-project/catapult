@@ -6,7 +6,7 @@ from telemetry import decorators
 from telemetry.testing import browser_test_case
 from telemetry.timeline import model
 from telemetry.timeline import trace_data
-from telemetry.timeline import tracing_options
+from telemetry.timeline import tracing_config
 
 
 class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
@@ -82,9 +82,9 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
       self.skipTest('Browser does not support tracing, skipping test.')
 
     # Start Chrome tracing.
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
-    devtools_client.StartChromeTracing(options)
+    config = tracing_config.TracingConfig()
+    config.tracing_options.enable_chrome_trace = True
+    devtools_client.StartChromeTracing(config.tracing_options)
 
     # Stop Chrome tracing and check that the resulting data is valid.
     builder = trace_data.TraceDataBuilder()

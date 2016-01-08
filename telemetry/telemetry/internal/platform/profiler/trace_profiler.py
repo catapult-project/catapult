@@ -8,7 +8,7 @@ import zipfile
 
 from telemetry.internal.platform import profiler
 from telemetry.timeline import trace_data as trace_data_module
-from telemetry.timeline import tracing_options
+from telemetry.timeline import tracing_config
 
 
 class TraceProfiler(profiler.Profiler):
@@ -22,10 +22,10 @@ class TraceProfiler(profiler.Profiler):
     categories_with_flow = 'disabled-by-default-toplevel.flow'
     if categories:
       categories_with_flow += ',%s' % categories
-    options = tracing_options.TracingOptions()
-    options.enable_chrome_trace = True
+    config = tracing_config.TracingConfig()
+    config.tracing_options.enable_chrome_trace = True
     self._browser_backend.StartTracing(
-        options, categories_with_flow, timeout=10)
+        config.tracing_options, categories_with_flow, timeout=10)
 
   @classmethod
   def name(cls):
