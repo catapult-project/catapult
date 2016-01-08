@@ -6,6 +6,7 @@
 # pylint: disable=protected-access
 
 import itertools
+import threading
 import unittest
 
 from devil import devil_env
@@ -82,6 +83,31 @@ class LogcatMonitorTest(unittest.TestCase):
     actual_match = test_log.WaitFor(
         r'.*My Success Regex.*', r'.*(fatal|error) logcat monitor.*')
     self.assertIsNone(actual_match)
+    test_log.Stop()
+    test_log.Close()
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testWaitFor_buffering(self):
+    # Simulate an adb log stream which does not complete until the test tells it
+    # to. This checks that the log matcher can receive individual lines from the
+    # log reader thread even if adb is not producing enough output to fill an
+    # entire file io buffer.
+    finished_lock = threading.Lock()
+    finished_lock.acquire()
+
+    def LogGenerator():
+      for line in type(self)._TEST_THREADTIME_LOGCAT_DATA:
+        yield line
+      finished_lock.acquire()
+
+    test_adb = adb_wrapper.AdbWrapper('0123456789abcdef')
+    test_adb.Logcat = mock.Mock(return_value=LogGenerator())
+    test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
+    test_log.Start()
+
+    actual_match = test_log.WaitFor(r'.*last line.*', None)
+    finished_lock.release()
+    self.assertTrue(actual_match)
     test_log.Stop()
     test_log.Close()
 
