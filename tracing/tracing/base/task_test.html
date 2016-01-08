@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
     var startingTask = new Task(function(task) {
       results.push('a');
     }, this);
-    startingTask.timedAfter(function pushB() {
+    startingTask.timedAfter('Test', function pushB() {
       results.push('b');
     }, this).after(function() {
       results.push('c');
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
 
     Task.RunSynchronously(startingTask);
     assert.deepEqual(results, ['a', 'b', 'c']);
-    var result = window.performance.getEntriesByName('pushB');
+    var result = window.performance.getEntriesByName('Test:pushB');
     var duration = parseFloat(result[0].duration);
     assert.isAbove(duration, 0.0);
   });
@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
         results.push('a/2');
       }, this);
     }, this);
-    startingTask.timedAfter(function pushB() {
+    startingTask.timedAfter('Test', function pushB() {
       results.push('b');
     }, this).after(function() {
       results.push('c');
@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() {
 
     Task.RunSynchronously(startingTask);
     assert.deepEqual(results, ['a', 'a/1', 'a/2', 'b', 'c']);
-    var result = window.performance.getEntriesByName('pushB');
+    var result = window.performance.getEntriesByName('Test:pushB');
     var duration = parseFloat(result[0].duration);
     assert.isAbove(duration, 0.0);
   });
@@ -136,7 +136,7 @@ tr.b.unittest.testSuite(function() {
       results.push('a');
     }, this);
     assert.throw(function() {
-      startingTask.timedAfter(function() {
+      startingTask.timedAfter('Test', function() {
         results.push('b');
       }, this);
     }, Error, 'Anonymous Task is not allowed');
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
     var startingTask = new Task(function(task) {
       results.push('a');
     }, this);
-    startingTask.namedTimedAfter('pushB', function() {
+    startingTask.namedTimedAfter('Test', 'pushB', function() {
       results.push('b');
     }, this).after(function() {
       results.push('c');
@@ -162,7 +162,7 @@ tr.b.unittest.testSuite(function() {
 
     Task.RunSynchronously(startingTask);
     assert.deepEqual(results, ['a', 'b', 'c']);
-    var result = window.performance.getEntriesByName('pushB');
+    var result = window.performance.getEntriesByName('Test:pushB');
     var duration = parseFloat(result[0].duration);
     assert.isAbove(duration, 0.0);
   });

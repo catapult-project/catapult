@@ -13,6 +13,12 @@ tr.exportTo('tr.e.measure', function() {
   var AsyncSlice = tr.model.AsyncSlice;
 
   function MeasureAsyncSlice() {
+    this.groupTitle_ = 'Ungrouped Measure';
+    var matched = /([^\/:]+):([^\/:]+)\/?(.*)/.exec(arguments[1]);
+    if (matched !== null) {
+      arguments[1] = matched[2];
+      this.groupTitle_ = matched[1];
+    }
     AsyncSlice.apply(this, arguments);
   }
 
@@ -20,7 +26,7 @@ tr.exportTo('tr.e.measure', function() {
     __proto__: AsyncSlice.prototype,
 
     get viewSubGroupTitle() {
-      return 'Mark/Measure';
+      return this.groupTitle_;
     },
 
     get title() {

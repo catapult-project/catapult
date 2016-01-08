@@ -105,10 +105,10 @@ tr.exportTo('tr.b', function() {
      * This is because task system doesn't support catching currently.
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
-    timedAfter: function(cb, thisArg) {
+    timedAfter: function(groupName, cb, thisArg, opt_args) {
       if (cb.name === '')
         throw new Error('Anonymous Task is not allowed');
-      return this.namedTimedAfter(cb.name, cb, thisArg);
+      return this.namedTimedAfter(groupName, cb.name, cb, thisArg, opt_args);
     },
 
     /*
@@ -117,7 +117,7 @@ tr.exportTo('tr.b', function() {
      * This is because task system doesn't support catching currently.
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
-    namedTimedAfter: function(name, cb, thisArg) {
+    namedTimedAfter: function(groupName, name, cb, thisArg, opt_args) {
       if (this.afterTask_)
         throw new Error('Has an after task already');
       var realTask;
@@ -126,10 +126,10 @@ tr.exportTo('tr.b', function() {
       else
         realTask = new Task(cb, thisArg);
       this.afterTask_ = new Task(function(task) {
-        Timing.markTimeBegin(name);
+        var markedTask = Timing.mark(groupName, name, opt_args);
         task.subTask(realTask, thisArg);
         task.subTask(function() {
-          Timing.markTimeEnd(name);
+          markedTask.end();
         }, thisArg);
       }, thisArg);
       return this.afterTask_;
