@@ -1597,7 +1597,10 @@ class DeviceUtils(object):
       for index, line in enumerate(lines):
         if line.strip() == '':
           continue
-        key, value = (s.strip() for s in line.split('=', 1))
+        key_value = tuple(s.strip() for s in line.split('=', 1))
+        if len(key_value) != 2:
+          continue
+        key, value = key_value
         if key == property_name:
           return index, value
       return None, ''

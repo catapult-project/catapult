@@ -1823,6 +1823,16 @@ class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
         (self.call.device.GetProp('dalvik.vm.enableassertions'), 'all')):
       self.assertFalse(self.device.SetJavaAsserts(True))
 
+  def testSetJavaAsserts_malformedLocalProp(self):
+    with self.assertCalls(
+        (self.call.device.ReadFile(self.device.LOCAL_PROPERTIES_PATH),
+         'some.example.prop=with an example value\n'
+         'malformed_property\n'
+         'dalvik.vm.enableassertions=all\n'
+         'some.other.prop=value_ok\n'),
+        (self.call.device.GetProp('dalvik.vm.enableassertions'), 'all')):
+      self.assertFalse(self.device.SetJavaAsserts(True))
+
 
 class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
