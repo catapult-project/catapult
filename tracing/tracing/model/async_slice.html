@@ -40,7 +40,7 @@ tr.exportTo('tr.model', function() {
     this.didNotFinish = false;
     this.important = false;
     this.subSlices = [];
-    this.parentContainer = undefined;
+    this.parentContainer_ = undefined;
 
     this.id = undefined;
     this.startThread = undefined;
@@ -73,6 +73,19 @@ tr.exportTo('tr.model', function() {
 
     get analysisTypeName() {
       return this.title;
+    },
+
+    get parentContainer() {
+      return this.parentContainer_;
+    },
+
+    set parentContainer(parentContainer) {
+      this.parentContainer_ = parentContainer;
+      for (var i = 0; i < this.subSlices.length; i++) {
+        var subSlice = this.subSlices[i];
+        if (subSlice.parentContainer === undefined)
+          subSlice.parentContainer = parentContainer;
+      }
     },
 
     get viewSubGroupTitle() {
