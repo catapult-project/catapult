@@ -1024,6 +1024,7 @@ tr.exportTo('tr.e.importer', function() {
       // Group nestable async events by ID. Events with the same ID should
       // belong to the same parent async event.
       var nestableAsyncEventsByKey = {};
+      var nestableMeasureAsyncEventsByKey = {};
       for (var i = 0; i < this.allAsyncEvents_.length; i++) {
         var asyncEventState = this.allAsyncEvents_[i];
         var event = asyncEventState.event;
@@ -1058,6 +1059,19 @@ tr.exportTo('tr.e.importer', function() {
           });
           continue;
         }
+
+        if (event.cat === 'blink.user_timing') {
+          var matched = /([^\/:]+):([^\/:]+)\/?(.*)/.exec(event.name);
+          if (matched !== null) {
+            var key = matched[1] + ':' + event.cat;
+            event.args = JSON.parse(window.atob(matched[3]) || '{}');
+            if (nestableMeasureAsyncEventsByKey[key] === undefined)
+              nestableMeasureAsyncEventsByKey[key] = [];
+            nestableMeasureAsyncEventsByKey[key].push(asyncEventState);
+            continue;
+          }
+        }
+
         var key = event.cat + ':' + event.id;
         if (nestableAsyncEventsByKey[key] === undefined)
            nestableAsyncEventsByKey[key] = [];
@@ -1066,153 +1080,11 @@ tr.exportTo('tr.e.importer', function() {
       // Handle legacy async events.
       this.createLegacyAsyncSlices_(legacyEvents);
 
+      // Parse nestable measure async events into AsyncSlices.
+      this.createNestableAsyncSlices_(nestableMeasureAsyncEventsByKey);
+
       // Parse nestable async events into AsyncSlices.
-      for (var key in nestableAsyncEventsByKey) {
-        var eventStateEntries = nestableAsyncEventsByKey[key];
-        // Stack of enclosing BEGIN events.
-        var parentStack = [];
-        for (var i = 0; i < eventStateEntries.length; ++i) {
-          var eventStateEntry = eventStateEntries[i];
-          // If this is the end of an event, match it to the start.
-          if (eventStateEntry.event.ph === 'e') {
-            // Walk up the parent stack to find the corresponding BEGIN for
-            // this END.
-            var parentIndex = -1;
-            for (var k = parentStack.length - 1; k >= 0; --k) {
-              if (parentStack[k].event.name === eventStateEntry.event.name) {
-                parentIndex = k;
-                break;
-              }
-            }
-            if (parentIndex === -1) {
-              // Unmatched end.
-              eventStateEntry.finished = false;
-            } else {
-              parentStack[parentIndex].end = eventStateEntry;
-              // Pop off all enclosing unmatched BEGINs util parentIndex.
-              while (parentIndex < parentStack.length) {
-                parentStack.pop();
-              }
-            }
-          }
-          // Inherit the current parent.
-          if (parentStack.length > 0)
-            eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
-          if (eventStateEntry.event.ph === 'b')
-            parentStack.push(eventStateEntry);
-        }
-        var topLevelSlices = [];
-        for (var i = 0; i < eventStateEntries.length; ++i) {
-          var eventStateEntry = eventStateEntries[i];
-          // Skip matched END, as its slice will be created when we
-          // encounter its corresponding BEGIN.
-          if (eventStateEntry.event.ph === 'e' &&
-              eventStateEntry.finished === undefined) {
-            continue;
-          }
-          var startState = undefined;
-          var endState = undefined;
-          var sliceArgs = eventStateEntry.event.args || {};
-          var sliceError = undefined;
-          if (eventStateEntry.event.ph === 'n') {
-            startState = eventStateEntry;
-            endState = eventStateEntry;
-          } else if (eventStateEntry.event.ph === 'b') {
-            if (eventStateEntry.end === undefined) {
-              // Unmatched BEGIN. End it when last event with this ID ends.
-              eventStateEntry.end =
-                  eventStateEntries[eventStateEntries.length - 1];
-              sliceError =
-                  'Slice has no matching END. End time has been adjusted.';
-              this.model_.importWarning({
-                type: 'async_slice_parse_error',
-                message: 'Nestable async BEGIN event at ' +
-                    eventStateEntry.event.ts + ' with name=' +
-                    eventStateEntry.event.name +
-                    ' and id=' + eventStateEntry.event.id + ' was unmatched.'
-              });
-            } else {
-              // Include args for both END and BEGIN for a matched pair.
-              function concatenateArguments(args1, args2) {
-                if (args1.params === undefined || args2.params === undefined)
-                  return tr.b.concatenateObjects(args1, args2);
-                // Make an argument object to hold the combined params.
-                var args3 = {};
-                args3.params = tr.b.concatenateObjects(args1.params,
-                                                       args2.params);
-                return tr.b.concatenateObjects(args1, args2, args3);
-              }
-              var endArgs = eventStateEntry.end.event.args || {};
-              sliceArgs = concatenateArguments(sliceArgs, endArgs);
-            }
-            startState = eventStateEntry;
-            endState = eventStateEntry.end;
-          } else {
-            // Unmatched END. Start it at the first event with this ID starts.
-            sliceError =
-                'Slice has no matching BEGIN. Start time has been adjusted.';
-            this.model_.importWarning({
-              type: 'async_slice_parse_error',
-              message: 'Nestable async END event at ' +
-                  eventStateEntry.event.ts + ' with name=' +
-                  eventStateEntry.event.name +
-                  ' and id=' + eventStateEntry.event.id + ' was unmatched.'
-            });
-            startState = eventStateEntries[0];
-            endState = eventStateEntry;
-          }
-
-          var isTopLevel = (eventStateEntry.parentEntry === undefined);
-          var asyncSliceConstructor =
-             tr.model.AsyncSlice.getConstructor(
-                eventStateEntry.event.cat,
-                eventStateEntry.event.name);
-
-          var thread_start = undefined;
-          var thread_duration = undefined;
-          if (startState.event.tts && startState.event.use_async_tts) {
-            thread_start = timestampFromUs(startState.event.tts);
-            if (endState.event.tts) {
-              var thread_end = timestampFromUs(endState.event.tts);
-              thread_duration = thread_end - thread_start;
-            }
-          }
-
-          var slice = new asyncSliceConstructor(
-              eventStateEntry.event.cat,
-              eventStateEntry.event.name,
-              getEventColor(endState.event),
-              timestampFromUs(startState.event.ts),
-              sliceArgs,
-              timestampFromUs(endState.event.ts - startState.event.ts),
-              isTopLevel,
-              thread_start,
-              thread_duration,
-              startState.event.argsStripped);
-
-          slice.startThread = startState.thread;
-          slice.endThread = endState.thread;
-
-          slice.startStackFrame = this.getStackFrameForEvent_(startState.event);
-          slice.endStackFrame = this.getStackFrameForEvent_(endState.event);
-
-          slice.id = key;
-          if (sliceError !== undefined)
-            slice.error = sliceError;
-          eventStateEntry.slice = slice;
-          // Add the slice to the topLevelSlices array if there is no parent.
-          // Otherwise, add the slice to the subSlices of its parent.
-          if (isTopLevel) {
-            topLevelSlices.push(slice);
-          } else if (eventStateEntry.parentEntry.slice !== undefined) {
-            eventStateEntry.parentEntry.slice.subSlices.push(slice);
-          }
-        }
-        for (var si = 0; si < topLevelSlices.length; si++) {
-          topLevelSlices[si].startThread.asyncSliceGroup.push(
-              topLevelSlices[si]);
-        }
-      }
+      this.createNestableAsyncSlices_(nestableAsyncEventsByKey);
     },
 
     createLegacyAsyncSlices_: function(legacyEvents) {
@@ -1373,6 +1245,156 @@ tr.exportTo('tr.e.importer', function() {
 
             delete asyncEventStatesByNameThenID[name][id];
           }
+        }
+      }
+    },
+
+    createNestableAsyncSlices_: function(nestableEventsByKey) {
+      for (var key in nestableEventsByKey) {
+        var eventStateEntries = nestableEventsByKey[key];
+        // Stack of enclosing BEGIN events.
+        var parentStack = [];
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          // If this is the end of an event, match it to the start.
+          if (eventStateEntry.event.ph === 'e') {
+            // Walk up the parent stack to find the corresponding BEGIN for
+            // this END.
+            var parentIndex = -1;
+            for (var k = parentStack.length - 1; k >= 0; --k) {
+              if (parentStack[k].event.name === eventStateEntry.event.name) {
+                parentIndex = k;
+                break;
+              }
+            }
+            if (parentIndex === -1) {
+              // Unmatched end.
+              eventStateEntry.finished = false;
+            } else {
+              parentStack[parentIndex].end = eventStateEntry;
+              // Pop off all enclosing unmatched BEGINs util parentIndex.
+              while (parentIndex < parentStack.length) {
+                parentStack.pop();
+              }
+            }
+          }
+          // Inherit the current parent.
+          if (parentStack.length > 0)
+            eventStateEntry.parentEntry = parentStack[parentStack.length - 1];
+          if (eventStateEntry.event.ph === 'b') {
+            parentStack.push(eventStateEntry);
+          }
+        }
+        var topLevelSlices = [];
+        for (var i = 0; i < eventStateEntries.length; ++i) {
+          var eventStateEntry = eventStateEntries[i];
+          // Skip matched END, as its slice will be created when we
+          // encounter its corresponding BEGIN.
+          if (eventStateEntry.event.ph === 'e' &&
+              eventStateEntry.finished === undefined) {
+            continue;
+          }
+          var startState = undefined;
+          var endState = undefined;
+          var sliceArgs = eventStateEntry.event.args || {};
+          var sliceError = undefined;
+          if (eventStateEntry.event.ph === 'n') {
+            startState = eventStateEntry;
+            endState = eventStateEntry;
+          } else if (eventStateEntry.event.ph === 'b') {
+            if (eventStateEntry.end === undefined) {
+              // Unmatched BEGIN. End it when last event with this ID ends.
+              eventStateEntry.end =
+                eventStateEntries[eventStateEntries.length - 1];
+              sliceError =
+                'Slice has no matching END. End time has been adjusted.';
+              this.model_.importWarning({
+                type: 'async_slice_parse_error',
+                message: 'Nestable async BEGIN event at ' +
+                  eventStateEntry.event.ts + ' with name=' +
+                  eventStateEntry.event.name +
+                  ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+              });
+            } else {
+              // Include args for both END and BEGIN for a matched pair.
+              function concatenateArguments(args1, args2) {
+                if (args1.params === undefined || args2.params === undefined)
+                  return tr.b.concatenateObjects(args1, args2);
+                // Make an argument object to hold the combined params.
+                var args3 = {};
+                args3.params = tr.b.concatenateObjects(args1.params,
+                                                       args2.params);
+                return tr.b.concatenateObjects(args1, args2, args3);
+              }
+              var endArgs = eventStateEntry.end.event.args || {};
+              sliceArgs = concatenateArguments(sliceArgs, endArgs);
+            }
+            startState = eventStateEntry;
+            endState = eventStateEntry.end;
+          } else {
+            // Unmatched END. Start it at the first event with this ID starts.
+            sliceError =
+              'Slice has no matching BEGIN. Start time has been adjusted.';
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'Nestable async END event at ' +
+                eventStateEntry.event.ts + ' with name=' +
+                eventStateEntry.event.name +
+                ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+            });
+            startState = eventStateEntries[0];
+            endState = eventStateEntry;
+          }
+
+          var isTopLevel = (eventStateEntry.parentEntry === undefined);
+          var asyncSliceConstructor =
+              tr.model.AsyncSlice.getConstructor(
+                eventStateEntry.event.cat,
+                eventStateEntry.event.name);
+
+          var thread_start = undefined;
+          var thread_duration = undefined;
+          if (startState.event.tts && startState.event.use_async_tts) {
+            thread_start = timestampFromUs(startState.event.tts);
+            if (endState.event.tts) {
+              var thread_end = timestampFromUs(endState.event.tts);
+              thread_duration = thread_end - thread_start;
+            }
+          }
+
+          var slice = new asyncSliceConstructor(
+            eventStateEntry.event.cat,
+            eventStateEntry.event.name,
+            getEventColor(endState.event),
+            timestampFromUs(startState.event.ts),
+            sliceArgs,
+            timestampFromUs(endState.event.ts - startState.event.ts),
+            isTopLevel,
+            thread_start,
+            thread_duration,
+            startState.event.argsStripped);
+
+          slice.startThread = startState.thread;
+          slice.endThread = endState.thread;
+
+          slice.startStackFrame = this.getStackFrameForEvent_(startState.event);
+          slice.endStackFrame = this.getStackFrameForEvent_(endState.event);
+
+          slice.id = key;
+          if (sliceError !== undefined)
+            slice.error = sliceError;
+          eventStateEntry.slice = slice;
+          // Add the slice to the topLevelSlices array if there is no parent.
+          // Otherwise, add the slice to the subSlices of its parent.
+          if (isTopLevel) {
+            topLevelSlices.push(slice);
+          } else if (eventStateEntry.parentEntry.slice !== undefined) {
+            eventStateEntry.parentEntry.slice.subSlices.push(slice);
+          }
+        }
+        for (var si = 0; si < topLevelSlices.length; si++) {
+          topLevelSlices[si].startThread.asyncSliceGroup.push(
+            topLevelSlices[si]);
         }
       }
     },
