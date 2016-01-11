@@ -78,13 +78,12 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         raise ChromeTracingStartedError(
             'Tracing is already running on devtools at port %s on platform'
             'backend %s.' % (client.remote_port, self._platform_backend))
-      client.StartChromeTracing(config.tracing_options,
-                                config.tracing_category_filter.filter_string,
-                                timeout)
+      client.StartChromeTracing(
+          config, config.tracing_category_filter.filter_string, timeout)
     return True
 
   def Start(self, config, timeout):
-    if not config.tracing_options.enable_chrome_trace:
+    if not config.enable_chrome_trace:
       return False
 
     if self._trace_config:
@@ -92,7 +91,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           'Tracing is already running on platform backend %s.'
           % self._platform_backend)
 
-    if (config.tracing_options.enable_android_graphics_memtrack and
+    if (config.enable_android_graphics_memtrack and
         self._platform_backend.GetOSName() == 'android'):
       self._platform_backend.SetGraphicsMemoryTrackingEnabled(True)
 
@@ -133,7 +132,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           % (client.remote_port,
              ''.join(traceback.format_exception(*sys.exc_info()))))
 
-    if (self._trace_config.tracing_options.enable_android_graphics_memtrack and
+    if (self._trace_config.enable_android_graphics_memtrack and
         self._platform_backend.GetOSName() == 'android'):
       self._platform_backend.SetGraphicsMemoryTrackingEnabled(False)
 

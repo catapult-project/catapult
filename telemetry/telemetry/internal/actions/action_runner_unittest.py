@@ -32,7 +32,7 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     action_runner.Wait(1)
     config = tracing_config.TracingConfig()
     config.SetNoOverheadFilter()
-    config.tracing_options.enable_chrome_trace = True
+    config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.Start(config)
     with action_runner.CreateInteraction('InteractionName',
                                                  **interaction_kwargs):

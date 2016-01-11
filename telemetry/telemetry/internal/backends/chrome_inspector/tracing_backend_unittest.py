@@ -48,7 +48,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     config = tracing_config.TracingConfig()
     config.tracing_category_filter.AddDisabledByDefault(
         'disabled-by-default-memory-infra')
-    config.tracing_options.enable_chrome_trace = True
+    config.enable_chrome_trace = True
     self._tracing_controller.Start(config)
 
     # Request several memory dumps in a row and test that they were all
@@ -81,7 +81,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
     # Start tracing with memory dumps disabled.
     config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
+    config.enable_chrome_trace = True
     self._tracing_controller.Start(config)
 
     # Check that the method returns None if the dump was not successful.

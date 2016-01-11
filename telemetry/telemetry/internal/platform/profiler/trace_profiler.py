@@ -23,9 +23,9 @@ class TraceProfiler(profiler.Profiler):
     if categories:
       categories_with_flow += ',%s' % categories
     config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
+    config.enable_chrome_trace = True
     self._browser_backend.StartTracing(
-        config.tracing_options, categories_with_flow, timeout=10)
+        config, categories_with_flow, timeout=10)
 
   @classmethod
   def name(cls):

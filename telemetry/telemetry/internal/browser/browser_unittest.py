@@ -121,7 +121,7 @@ class BrowserTest(browser_test_case.BrowserTestCase):
       return
     self.assertFalse(tracing_controller.is_tracing_running)
     config = tracing_config.TracingConfig()
-    config.tracing_options.enable_chrome_trace = True
+    config.enable_chrome_trace = True
     tracing_controller.Start(config)
     self.assertTrue(tracing_controller.is_tracing_running)
     tracing_controller.Stop()

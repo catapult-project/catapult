@@ -122,7 +122,7 @@ class DevToolsClientBackend(object):
 
     self._CreateTracingBackendIfNeeded(is_tracing_running=False)
     self.StartChromeTracing(
-        trace_options=trace_config.tracing_options,
+        trace_options=trace_config,
         custom_categories=trace_config.tracing_category_filter.filter_string)
 
   @property
@@ -321,7 +321,7 @@ class DevToolsClientBackend(object):
       self, trace_options, custom_categories=None, timeout=10):
     """
     Args:
-        trace_options: An tracing_options.TracingOptions instance.
+        trace_options: An tracing_config.TracingConfig instance.
         custom_categories: An optional string containing a list of
                          comma separated categories that will be traced
                          instead of the default category set.  Example: use
