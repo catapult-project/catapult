@@ -68,6 +68,10 @@ class AppCrashException(Error):
       except Exception as err:
         logging.error('Problem when trying to gather standard output: %s' % err)
 
+  @property
+  def stack_trace(self):
+    return self._stack_trace
+
   def __str__(self):
     divider = '*' * 80
     debug_messages = []
