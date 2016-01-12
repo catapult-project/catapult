@@ -67,7 +67,7 @@ def CheckChange(input_api, output_api):
     results += input_api.canned_checks.PanProjectChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
     results += input_api.canned_checks.RunPylint(
-        input_api, output_api, black_list=_EXCLUDED_PATHS)
+        input_api, output_api, black_list=_EXCLUDED_PATHS, pylintrc='pylintrc')
     results += CheckChangeLogBug(input_api, output_api)
     results += js_checks.RunChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
