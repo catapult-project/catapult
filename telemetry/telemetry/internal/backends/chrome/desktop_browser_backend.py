@@ -34,23 +34,6 @@ def ParseCrashpadDateTime(date_time_str):
   return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
-def GetSymbolBinary(executable, os_name):
-  # Returns binary file where symbols are located.
-  if os_name == 'mac':
-    version_dir = os.path.join(os.path.dirname(executable),
-                               '..',
-                               'Versions')
-    for version_num in os.listdir(version_dir):
-      framework_file = os.path.join(version_dir,
-                                    version_num,
-                                    'Chromium Framework.framework',
-                                    'Chromium Framework')
-      if os.path.isfile(framework_file):
-        return framework_file
-
-  return executable
-
-
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
@@ -470,8 +453,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cmd = [
           sys.executable,
           generate_breakpad_symbols_command,
-          '--binary=%s' % GetSymbolBinary(self._executable,
-                                          self.browser.platform.GetOSName()),
+          '--binary=%s' % self._executable,
           '--symbols-dir=%s' % symbols_path,
           '--build-dir=%s' % self._browser_directory,
           ]
