@@ -47,7 +47,8 @@ class Token(object):
         a separate metadata pass.
   """
 
-  def __init__(self, string, token_type, line, line_number, values=None):
+  def __init__(self, string, token_type, line, line_number, values=None,
+               orig_line_number=None):
     """Creates a new Token object.
 
     Args:
@@ -58,13 +59,18 @@ class Token(object):
       values: A dict of named values within the token.  For instance, a
         function declaration may have a value called 'name' which captures the
         name of the function.
+      orig_line_number: The line number of the original file this token comes
+        from. This should be only set during the tokenization process. For newly
+        created error fix tokens after that, it should be None.
     """
     self.type = token_type
     self.string = string
     self.length = len(string)
     self.line = line
     self.line_number = line_number
+    self.orig_line_number = orig_line_number
     self.values = values
+    self.is_deleted = False
 
     # These parts can only be computed when the file is fully tokenized
     self.previous = None

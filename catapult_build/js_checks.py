@@ -83,7 +83,7 @@ class JSChecker(object):
 
       warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-      from closure_linter import checker, errors
+      from closure_linter import runner, errors
       from closure_linter.common import errorhandler
 
     finally:
@@ -121,7 +121,6 @@ class JSChecker(object):
 
         return not is_grit_statement and error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
-            errors.JSDOC_TAG_DESCRIPTION_ENDS_WITH_INVALID_CHARACTER,
             errors.MISSING_JSDOC_TAG_THIS,
         ]
 
@@ -157,8 +156,7 @@ class JSChecker(object):
       import gflags as flags
       flags.FLAGS.strict = True
       error_handler = ErrorHandlerImpl()
-      js_checker = checker.JavaScriptStyleChecker(error_handler)
-      js_checker.Check(f.AbsoluteLocalPath())
+      runner.Run(f.AbsoluteLocalPath(), error_handler)
 
       for error in error_handler.GetErrors():
         highlight = self._ErrorHighlight(

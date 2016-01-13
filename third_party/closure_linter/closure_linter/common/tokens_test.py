@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-
+__author__ = 'nnaze@google.com (Nathan Naze)'
 
 import unittest as googletest
 from closure_linter.common import tokens

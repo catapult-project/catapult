@@ -28,8 +28,8 @@ import unittest
 import gflags as flags
 import unittest as googletest
 
-from closure_linter import checker
 from closure_linter import errors
+from closure_linter import runner
 from closure_linter.common import filetestcase
 
 _RESOURCE_PREFIX = 'closure_linter/testdata'
@@ -66,7 +66,7 @@ class GJsLintTestSuite(unittest.TestSuite):
     for test_file in test_files:
       resource_path = os.path.join(_RESOURCE_PREFIX, test_file)
       self.addTest(filetestcase.AnnotatedFileTestCase(resource_path,
-                                                      checker.GJsLintRunner(),
+                                                      runner.Run,
                                                       errors.ByName))
 
 if __name__ == '__main__':

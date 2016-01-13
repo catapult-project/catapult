@@ -23,7 +23,6 @@ devtools/javascript/gpylint/full_test.py
 __author__ = ('robbyw@google.com (Robert Walker)',
               'ajp@google.com (Andy Perelson)')
 
-import re
 import os
 import sys
 import unittest
@@ -31,9 +30,9 @@ import unittest
 import gflags as flags
 import unittest as googletest
 
-from closure_linter import checker
-from closure_linter import errors
 from closure_linter import error_check
+from closure_linter import errors
+from closure_linter import runner
 from closure_linter.common import filetestcase
 
 _RESOURCE_PREFIX = 'closure_linter/testdata'
@@ -52,6 +51,7 @@ _TEST_FILES = [
     'all_js_wrapped.js',
     'blank_lines.js',
     'ends_with_block.js',
+    'empty_file.js',
     'externs.js',
     'externs_jsdoc.js',
     'goog_scope.js',
@@ -65,6 +65,7 @@ _TEST_FILES = [
     'provide_blank.js',
     'provide_extra.js',
     'provide_missing.js',
+    'require_alias.js',
     'require_all_caps.js',
     'require_blank.js',
     'require_extra.js',
@@ -73,20 +74,24 @@ _TEST_FILES = [
     'require_function_through_both.js',
     'require_function_through_namespace.js',
     'require_interface.js',
+    'require_interface_alias.js',
     'require_interface_base.js',
     'require_lower_case.js',
     'require_missing.js',
     'require_numeric.js',
     'require_provide_blank.js',
-    'require_provide_ok.js',
     'require_provide_missing.js',
+    'require_provide_ok.js',
+    'semicolon_missing.js',
+    'semicolon_missing2.js',
     'simple.html',
     'spaces.js',
     'tokenizer.js',
     'unparseable.js',
+    'unused_local_variables.js',
     'unused_private_members.js',
-    'utf8.html'
-    ]
+    'utf8.html',
+]
 
 
 class GJsLintTestSuite(unittest.TestSuite):
@@ -106,8 +111,11 @@ class GJsLintTestSuite(unittest.TestSuite):
       test_files = _TEST_FILES
     for test_file in test_files:
       resource_path = os.path.join(_RESOURCE_PREFIX, test_file)
-      self.addTest(filetestcase.AnnotatedFileTestCase(resource_path,
-          checker.GJsLintRunner(), errors.ByName))
+      self.addTest(
+          filetestcase.AnnotatedFileTestCase(
+              resource_path,
+              runner.Run,
+              errors.ByName))
 
 if __name__ == '__main__':
   # Don't let main parse args; it happens in the TestSuite.

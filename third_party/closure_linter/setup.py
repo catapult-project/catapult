@@ -20,12 +20,12 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='closure_linter',
-      version='2.3.5',
+      version='2.3.19',
       description='Closure Linter',
       license='Apache',
       author='The Closure Linter Authors',
       author_email='opensource@google.com',
-      url='http://code.google.com/p/closure-linter',
+      url='https://github.com/google/closure-linter',
       install_requires=['python-gflags'],
       package_dir={'closure_linter': 'closure_linter'},
       packages=['closure_linter', 'closure_linter.common'],

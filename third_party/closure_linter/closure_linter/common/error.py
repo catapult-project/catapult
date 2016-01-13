@@ -23,7 +23,7 @@ __author__ = ('robbyw@google.com (Robert Walker)',
 class Error(object):
   """Object representing a style error."""
 
-  def __init__(self, code, message, token, position, fix_data):
+  def __init__(self, code, message, token=None, position=None, fix_data=None):
     """Initialize the error object.
 
     Args:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#
 # Copyright 2008 The Closure Linter Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +35,8 @@ class JsDocFlag(statetracker.DocFlag):
       including braces.
     type_end_token: The last token specifying the flag JS type,
       including braces.
-    type: The JavaScript type spec.
+    type: The type spec string.
+    jstype: The type spec, a TypeAnnotation instance.
     name_token: The token specifying the flag name.
     name: The flag name
     description_start_token: The first token in the description.
@@ -50,17 +50,9 @@ class JsDocFlag(statetracker.DocFlag):
   # TODO(robbyw): determine which of these, if any, should be illegal.
   EXTENDED_DOC = frozenset([
       'class', 'code', 'desc', 'final', 'hidden', 'inheritDoc', 'link',
-      'meaning', 'protected', 'notypecheck', 'throws'])
+      'meaning', 'provideGoog', 'throws'])
 
   LEGAL_DOC = EXTENDED_DOC | statetracker.DocFlag.LEGAL_DOC
-
-  def __init__(self, flag_token):
-    """Creates the JsDocFlag object and attaches it to the given start token.
-
-    Args:
-      flag_token: The starting token of the flag.
-    """
-    statetracker.DocFlag.__init__(self, flag_token)
 
 
 class JavaScriptStateTracker(statetracker.StateTracker):
@@ -74,6 +66,11 @@ class JavaScriptStateTracker(statetracker.StateTracker):
     """Initializes a JavaScript token stream state tracker."""
     statetracker.StateTracker.__init__(self, JsDocFlag)
 
+  def Reset(self):
+    self._scope_depth = 0
+    self._block_stack = []
+    super(JavaScriptStateTracker, self).Reset()
+
   def InTopLevel(self):
     """Compute whether we are at the top level in the class.
 
@@ -85,7 +82,26 @@ class JavaScriptStateTracker(statetracker.StateTracker):
     Returns:
       Whether we are at the top level in the class.
     """
-    return not self.InParentheses()
+    return self._scope_depth == self.ParenthesesDepth()
+
+  def InFunction(self):
+    """Returns true if the current token is within a function.
+
+    This js-specific override ignores goog.scope functions.
+
+    Returns:
+      True if the current token is within a function.
+    """
+    return self._scope_depth != self.FunctionDepth()
+
+  def InNonScopeBlock(self):
+    """Compute whether we are nested within a non-goog.scope block.
+
+    Returns:
+      True if the token is not enclosed in a block that does not originate from
+      a goog.scope statement. False otherwise.
+    """
+    return self._scope_depth != self.BlockDepth()
 
   def GetBlockType(self, token):
     """Determine the block type given a START_BLOCK token.
@@ -97,20 +113,38 @@ class JavaScriptStateTracker(statetracker.StateTracker):
     Returns:
       Code block type for current token.
     """
-    last_code = tokenutil.SearchExcept(token, Type.NON_CODE_TYPES, None,
-                                       True)
+    last_code = tokenutil.SearchExcept(token, Type.NON_CODE_TYPES, reverse=True)
     if last_code.type in (Type.END_PARAMETERS, Type.END_PAREN,
                           Type.KEYWORD) and not last_code.IsKeyword('return'):
       return self.CODE
     else:
       return self.OBJECT_LITERAL
 
+  def GetCurrentBlockStart(self):
+    """Gets the start token of current block.
+
+    Returns:
+      Starting token of current block. None if not in block.
+    """
+    if self._block_stack:
+      return self._block_stack[-1]
+    else:
+      return None
+
   def HandleToken(self, token, last_non_space_token):
     """Handles the given token and updates state.
 
     Args:
       token: The token to handle.
-      last_non_space_token:
+      last_non_space_token: The last non space token encountered
     """
+    if token.type == Type.START_BLOCK:
+      self._block_stack.append(token)
+    if token.type == Type.IDENTIFIER and token.string == 'goog.scope':
+      self._scope_depth += 1
+    if token.type == Type.END_BLOCK:
+      start_token = self._block_stack.pop()
+      if tokenutil.GoogScopeOrNoneFromStartBlock(start_token):
+        self._scope_depth -= 1
     super(JavaScriptStateTracker, self).HandleToken(token,
                                                     last_non_space_token)

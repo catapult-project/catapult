@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# python2.6 for command-line runs using p4lib.  pylint: disable-msg=C6301
-#
 # Copyright 2007 The Closure Linter Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,23 +32,27 @@ is in tokenizer.py and checker.py.
 """
 
 __author__ = ('robbyw@google.com (Robert Walker)',
-              'ajp@google.com (Andy Perelson)')
+              'ajp@google.com (Andy Perelson)',
+              'nnaze@google.com (Nathan Naze)',)
 
-import functools
+import errno
 import itertools
+import os
+import platform
+import re
 import sys
 import time
 
 import gflags as flags
 
-from closure_linter import checker
 from closure_linter import errorrecord
+from closure_linter import runner
 from closure_linter.common import erroraccumulator
 from closure_linter.common import simplefileflags as fileflags
 
 # Attempt import of multiprocessing (should be available in Python 2.6 and up).
 try:
-  # pylint: disable-msg=C6204
+  # pylint: disable=g-import-not-at-top
   import multiprocessing
 except ImportError:
   multiprocessing = None
@@ -60,6 +62,9 @@ flags.DEFINE_boolean('unix_mode', False,
                      'Whether to emit warnings in standard unix format.')
 flags.DEFINE_boolean('beep', True, 'Whether to beep when errors are found.')
 flags.DEFINE_boolean('time', False, 'Whether to emit timing statistics.')
+flags.DEFINE_boolean('quiet', False, 'Whether to minimize logged messages. '
+                     'Most useful for per-file linting, such as that performed '
+                     'by the presubmit linter service.')
 flags.DEFINE_boolean('check_html', False,
                      'Whether to check javascript in html files.')
 flags.DEFINE_boolean('summary', False,
@@ -67,13 +72,20 @@ flags.DEFINE_boolean('summary', False,
 flags.DEFINE_list('additional_extensions', None, 'List of additional file '
                   'extensions (not js) that should be treated as '
                   'JavaScript files.')
-flags.DEFINE_boolean('multiprocess', False,
-                     'Whether to parallalize linting using the '
-                     'multiprocessing module.  Disabled by default.')
+flags.DEFINE_boolean('multiprocess',
+                     platform.system() is 'Linux' and bool(multiprocessing),
+                     'Whether to attempt parallelized linting using the '
+                     'multiprocessing module.  Enabled by default on Linux '
+                     'if the multiprocessing module is present (Python 2.6+). '
+                     'Otherwise disabled by default. '
+                     'Disabling may make debugging easier.')
+flags.ADOPT_module_key_flags(fileflags)
+flags.ADOPT_module_key_flags(runner)
 
 
 GJSLINT_ONLY_FLAGS = ['--unix_mode', '--beep', '--nobeep', '--time',
-                      '--check_html', '--summary']
+                      '--check_html', '--summary', '--quiet']
+
 
 
 def _MultiprocessCheckPaths(paths):
@@ -92,12 +104,20 @@ def _MultiprocessCheckPaths(paths):
 
   pool = multiprocessing.Pool()
 
-  for results in pool.imap(_CheckPath, paths):
-    for record in results:
-      yield record
+  path_results = pool.imap(_CheckPath, paths)
+  for results in path_results:
+    for result in results:
+      yield result
 
-  pool.close()
-  pool.join()
+  # Force destruct before returning, as this can sometimes raise spurious
+  # "interrupted system call" (EINTR), which we can ignore.
+  try:
+    pool.close()
+    pool.join()
+    del pool
+  except OSError as err:
+    if err.errno is not errno.EINTR:
+      raise err
 
 
 def _CheckPaths(paths):
@@ -126,13 +146,11 @@ def _CheckPath(path):
     A list of errorrecord.ErrorRecords for any found errors.
   """
 
-  error_accumulator = erroraccumulator.ErrorAccumulator()
-  style_checker = checker.JavaScriptStyleChecker(error_accumulator)
-  style_checker.Check(path)
+  error_handler = erroraccumulator.ErrorAccumulator()
+  runner.Run(path, error_handler)
 
-  # Return any errors as error records.
-  make_error_record = functools.partial(errorrecord.MakeErrorRecord, path)
-  return map(make_error_record, error_accumulator.GetErrors())
+  make_error_record = lambda err: errorrecord.MakeErrorRecord(path, err)
+  return map(make_error_record, error_handler.GetErrors())
 
 
 def _GetFilePaths(argv):
@@ -178,13 +196,20 @@ def _PrintSummary(paths, error_records):
   error_paths_count = len(error_paths)
   no_error_paths_count = all_paths_count - error_paths_count
 
-  if error_count or new_error_count:
-    print ('Found %d errors, including %d new errors, in %d files '
-           '(%d files OK).' % (
-               error_count,
-               new_error_count,
-               error_paths_count,
-               no_error_paths_count))
+  if (error_count or new_error_count) and not FLAGS.quiet:
+    error_noun = 'error' if error_count == 1 else 'errors'
+    new_error_noun = 'error' if new_error_count == 1 else 'errors'
+    error_file_noun = 'file' if error_paths_count == 1 else 'files'
+    ok_file_noun = 'file' if no_error_paths_count == 1 else 'files'
+    print ('Found %d %s, including %d new %s, in %d %s (%d %s OK).' %
+           (error_count,
+            error_noun,
+            new_error_count,
+            new_error_noun,
+            error_paths_count,
+            error_file_noun,
+            no_error_paths_count,
+            ok_file_noun))
 
 
 def _PrintErrorRecords(error_records):
@@ -216,7 +241,9 @@ def _FormatTime(t):
     return '%.2fs' % t
 
 
-def main(argv = None):
+
+
+def main(argv=None):
   """Main function.
 
   Args:
@@ -227,6 +254,14 @@ def main(argv = None):
 
   if FLAGS.time:
     start_time = time.time()
+
+  # Emacs sets the environment variable INSIDE_EMACS in the subshell.
+  # Request Unix mode as emacs will expect output to be in Unix format
+  # for integration.
+  # See https://www.gnu.org/software/emacs/manual/html_node/emacs/
+  # Interactive-Shell.html
+  if 'INSIDE_EMACS' in os.environ:
+    FLAGS.unix_mode = True
 
   suffixes = ['.js']
   if FLAGS.additional_extensions:
@@ -274,7 +309,8 @@ def main(argv = None):
       else:
         fix_args.append(flag)
 
-    print """
+    if not FLAGS.quiet:
+      print """
 Some of the errors reported by GJsLint may be auto-fixable using the script
 fixjsstyle. Please double check any changes it makes and report any bugs. The
 script can be run by executing:

@@ -16,27 +16,15 @@
 
 """Base classes for writing checkers that operate on tokens."""
 
+# Allow non-Google copyright
+# pylint: disable=g-bad-file-header
+
 __author__ = ('robbyw@google.com (Robert Walker)',
               'ajp@google.com (Andy Perelson)',
               'jacobr@google.com (Jacob Richman)')
 
-import StringIO
-import traceback
-
-import gflags as flags
-from closure_linter import ecmametadatapass
 from closure_linter import errorrules
-from closure_linter import errors
-from closure_linter import javascripttokenizer
 from closure_linter.common import error
-from closure_linter.common import htmlutil
-
-FLAGS = flags.FLAGS
-flags.DEFINE_boolean('debug_tokens', False,
-                     'Whether to print all tokens for debugging.')
-
-flags.DEFINE_boolean('error_trace', False,
-                     'Whether to show error exceptions.')
 
 
 class LintRulesBase(object):
@@ -83,12 +71,11 @@ class LintRulesBase(object):
     """
     raise TypeError('Abstract method CheckToken not implemented')
 
-  def Finalize(self, parser_state, tokenizer_mode):
+  def Finalize(self, parser_state):
     """Perform all checks that need to occur after all lines are processed.
 
     Args:
       parser_state: State of the parser after parsing all tokens
-      tokenizer_mode: Mode of the tokenizer after parsing the entire page
 
     Raises:
       TypeError: If not overridden.
@@ -99,8 +86,7 @@ class LintRulesBase(object):
 class CheckerBase(object):
   """This class handles checking a LintRules object against a file."""
 
-  def __init__(self, error_handler, lint_rules, state_tracker,
-               limited_doc_files=None, metadata_pass=None):
+  def __init__(self, error_handler, lint_rules, state_tracker):
     """Initialize a checker object.
 
     Args:
@@ -108,19 +94,11 @@ class CheckerBase(object):
       lint_rules: LintRules object defining lint errors given a token
         and state_tracker object.
       state_tracker: Object that tracks the current state in the token stream.
-      limited_doc_files: List of filenames that are not required to have
-        documentation comments.
-      metadata_pass: Object that builds metadata about the token stream.
+
     """
     self._error_handler = error_handler
     self._lint_rules = lint_rules
     self._state_tracker = state_tracker
-    self._metadata_pass = metadata_pass
-    self._limited_doc_files = limited_doc_files
-
-    # TODO(user): Factor out. A checker does not need to know about the
-    # tokenizer, only the token stream.
-    self._tokenizer = javascripttokenizer.JavaScriptTokenizer()
 
     self._has_errors = False
 
@@ -148,103 +126,21 @@ class CheckerBase(object):
     """
     return self._has_errors
 
-  def Check(self, filename, source=None):
-    """Checks the file, printing warnings and errors as they are found.
+  def Check(self, start_token, limited_doc_checks=False, is_html=False,
+            stop_token=None):
+    """Checks a token stream, reporting errors to the error reporter.
 
     Args:
-      filename: The name of the file to check.
-      source: Optional. The contents of the file.  Can be either a string or
-          file-like object.  If omitted, contents will be read from disk from
-          the given filename.
-    """
-
-    if source is None:
-      try:
-        f = open(filename)
-      except IOError:
-        self._error_handler.HandleFile(filename, None)
-        self.HandleError(errors.FILE_NOT_FOUND, 'File not found', None)
-        self._error_handler.FinishFile()
-        return
-    else:
-      if type(source) in [str, unicode]:
-        f = StringIO.StringIO(source)
-      else:
-        f = source
-
-    try:
-      if filename.endswith('.html') or filename.endswith('.htm'):
-        self.CheckLines(filename, htmlutil.GetScriptLines(f), True)
-      else:
-        self.CheckLines(filename, f, False)
-    finally:
-      f.close()
-
-  def CheckLines(self, filename, lines_iter, is_html):
-    """Checks a file, given as an iterable of lines, for warnings and errors.
-
-    Args:
-      filename: The name of the file to check.
-      lines_iter: An iterator that yields one line of the file at a time.
+      start_token: First token in token stream.
+      limited_doc_checks: Whether doc checking is relaxed for this file.
       is_html: Whether the file being checked is an HTML file with extracted
           contents.
-
-    Returns:
-      A boolean indicating whether the full file could be checked or if checking
-      failed prematurely.
+      stop_token: If given, check should stop at this token.
     """
-    limited_doc_checks = False
-    if self._limited_doc_files:
-      for limited_doc_filename in self._limited_doc_files:
-        if filename.endswith(limited_doc_filename):
-          limited_doc_checks = True
-          break
 
-    lint_rules = self._lint_rules
-    lint_rules.Initialize(self, limited_doc_checks, is_html)
-
-    token = self._tokenizer.TokenizeFile(lines_iter)
-
-    parse_error = None
-    if self._metadata_pass:
-      try:
-        self._metadata_pass.Reset()
-        self._metadata_pass.Process(token)
-      except ecmametadatapass.ParseError, caught_parse_error:
-        if FLAGS.error_trace:
-          traceback.print_exc()
-        parse_error = caught_parse_error
-      except Exception:
-        print 'Internal error in %s' % filename
-        traceback.print_exc()
-        return False
-
-    self._error_handler.HandleFile(filename, token)
-
-    return self._CheckTokens(token, parse_error=parse_error,
-                             debug_tokens=FLAGS.debug_tokens)
-
-  def _CheckTokens(self, token, parse_error, debug_tokens):
-    """Checks a token stream for lint warnings/errors.
-
-    Args:
-      token: The first token in the token stream to check.
-      parse_error: A ParseError if any errors occurred.
-      debug_tokens: Whether every token should be printed as it is encountered
-          during the pass.
-
-    Returns:
-      A boolean indicating whether the full token stream could be checked or if
-      checking failed prematurely.
-    """
-    result = self._ExecutePass(token, self._LintPass, parse_error, debug_tokens)
-
-    if not result:
-      return False
-
-    self._lint_rules.Finalize(self._state_tracker, self._tokenizer.mode)
-    self._error_handler.FinishFile()
-    return True
+    self._lint_rules.Initialize(self, limited_doc_checks, is_html)
+    self._ExecutePass(start_token, self._LintPass, stop_token=stop_token)
+    self._lint_rules.Finalize(self._state_tracker)
 
   def _LintPass(self, token):
     """Checks an individual token for lint warnings/errors.
@@ -257,8 +153,7 @@ class CheckerBase(object):
     """
     self._lint_rules.CheckToken(token, self._state_tracker)
 
-  def _ExecutePass(self, token, pass_function, parse_error=None,
-                   debug_tokens=False):
+  def _ExecutePass(self, token, pass_function, stop_token=None):
     """Calls the given function for every token in the given token stream.
 
     As each token is passed to the given function, state is kept up to date and,
@@ -270,43 +165,28 @@ class CheckerBase(object):
     Args:
       token: The first token in the token stream.
       pass_function: The function to call for each token in the token stream.
-      parse_error: A ParseError if any errors occurred.
-      debug_tokens: Whether every token should be printed as it is encountered
-          during the pass.
-
-    Returns:
-      A boolean indicating whether the full token stream could be checked or if
-      checking failed prematurely.
+      stop_token: The last token to check (if given).
 
     Raises:
       Exception: If any error occurred while calling the given function.
     """
+
     self._state_tracker.Reset()
     while token:
-      if debug_tokens:
-        print token
+      # When we are looking at a token and decided to delete the whole line, we
+      # will delete all of them in the "HandleToken()" below.  So the current
+      # token and subsequent ones may already be deleted here.  The way we
+      # delete a token does not wipe out the previous and next pointers of the
+      # deleted token.  So we need to check the token itself to make sure it is
+      # not deleted.
+      if not token.is_deleted:
+        # End the pass at the stop token
+        if stop_token and token is stop_token:
+          return
 
-      if parse_error and parse_error.token == token:
-        message = ('Error parsing file at token "%s". Unable to '
-                   'check the rest of file.' % token.string)
-        self.HandleError(errors.FILE_DOES_NOT_PARSE, message, token)
-        self._error_handler.FinishFile()
-        return
-
-      try:
         self._state_tracker.HandleToken(
             token, self._state_tracker.GetLastNonSpaceToken())
         pass_function(token)
         self._state_tracker.HandleAfterToken(token)
-      except:
-        if FLAGS.error_trace:
-          raise
-        else:
-          self.HandleError(errors.FILE_DOES_NOT_PARSE,
-                           ('Error parsing file at token "%s". Unable to '
-                            'check the rest of file.' % token.string),
-                           token)
-          self._error_handler.FinishFile()
-        return False
+
       token = token.next
-    return True

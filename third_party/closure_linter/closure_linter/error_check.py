@@ -34,7 +34,9 @@ class Rule(object):
   NO_BRACES_AROUND_INHERIT_DOC = 'no_braces_around_inherit_doc'
   BRACES_AROUND_TYPE = 'braces_around_type'
   OPTIONAL_TYPE_MARKER = 'optional_type_marker'
+  VARIABLE_ARG_MARKER = 'variable_arg_marker'
   UNUSED_PRIVATE_MEMBERS = 'unused_private_members'
+  UNUSED_LOCAL_VARIABLES = 'unused_local_variables'
 
   # Rule to raise all known errors.
   ALL = 'all'
@@ -46,7 +48,8 @@ class Rule(object):
                              WELL_FORMED_AUTHOR,
                              NO_BRACES_AROUND_INHERIT_DOC,
                              BRACES_AROUND_TYPE,
-                             OPTIONAL_TYPE_MARKER])
+                             OPTIONAL_TYPE_MARKER,
+                             VARIABLE_ARG_MARKER])
 
 
 flags.DEFINE_boolean('strict', False,
@@ -69,7 +72,9 @@ flags.DEFINE_multistring('jslint_error', [],
                          ' - ' + Rule.OPTIONAL_TYPE_MARKER + ': checks correct '
                          'use of optional marker = in param types.\n'
                          ' - ' + Rule.UNUSED_PRIVATE_MEMBERS + ': checks for '
-                         'unused private variables.\n')
+                         'unused private variables.\n'
+                         ' - ' + Rule.UNUSED_LOCAL_VARIABLES + ': checks for '
+                         'unused local variables.\n')
 
 
 def ShouldCheck(rule):
@@ -84,6 +89,8 @@ def ShouldCheck(rule):
   Returns:
     True if the rule should be checked according to the flags, otherwise False.
   """
+  if 'no_' + rule in FLAGS.jslint_error:
+    return False
   if rule in FLAGS.jslint_error or Rule.ALL in FLAGS.jslint_error:
     return True
   # Checks strict rules.
