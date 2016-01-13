@@ -93,7 +93,7 @@ class TracingControllerBackend(object):
   def _GetActiveChromeTracingAgent(self):
     if not self.is_tracing_running:
       return None
-    if not self._current_config.enable_chrome_trace:
+    if not self._current_config.tracing_options.enable_chrome_trace:
       return None
     for agent in self._active_agents_instances:
       if isinstance(agent, chrome_tracing_agent.ChromeTracingAgent):

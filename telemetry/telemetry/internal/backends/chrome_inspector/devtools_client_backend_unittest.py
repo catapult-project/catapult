@@ -83,8 +83,8 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
 
     # Start Chrome tracing.
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    devtools_client.StartChromeTracing(config)
+    config.tracing_options.enable_chrome_trace = True
+    devtools_client.StartChromeTracing(config.tracing_options)
 
     # Stop Chrome tracing and check that the resulting data is valid.
     builder = trace_data.TraceDataBuilder()

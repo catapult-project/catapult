@@ -15,7 +15,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testModifiedConsoleTime(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
+    config.tracing_options.enable_chrome_trace = True
     tracing_controller.Start(config)
     self.Navigate('blank.html')
     self.assertEquals(
@@ -45,7 +45,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
+    config.tracing_options.enable_chrome_trace = True
     tracing_controller.Start(config)
 
     self.Navigate('blank.html')
@@ -62,7 +62,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testGotTrace(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
+    config.tracing_options.enable_chrome_trace = True
     tracing_controller.Start(config)
 
     trace_data = tracing_controller.Stop()
@@ -73,7 +73,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testStartAndStopTraceMultipleTimes(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
+    config.tracing_options.enable_chrome_trace = True
     tracing_controller.Start(config)
     self.assertFalse(tracing_controller.Start(config))
 
@@ -91,7 +91,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     # Start tracing
     self.assertFalse(platform.tracing_controller.is_tracing_running)
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
+    config.tracing_options.enable_chrome_trace = True
     platform.tracing_controller.Start(config)
     self.assertTrue(platform.tracing_controller.is_tracing_running)
 

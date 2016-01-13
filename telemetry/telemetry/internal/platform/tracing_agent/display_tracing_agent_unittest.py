@@ -27,7 +27,7 @@ class FakeAndroidPlatformBackend(
 class DisplayTracingAgentTest(unittest.TestCase):
   def setUp(self):
     self._config = tracing_config.TracingConfig()
-    self._config.enable_platform_display_trace = True
+    self._config.tracing_options.enable_platform_display_trace = True
     self._platform_backend = FakeAndroidPlatformBackend()
     self._agent = display_tracing_agent.DisplayTracingAgent(
         self._platform_backend)

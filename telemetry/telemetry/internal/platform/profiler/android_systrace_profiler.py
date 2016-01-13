@@ -36,8 +36,8 @@ class AndroidSystraceProfiler(profiler.Profiler):
     # adb_profile_chrome because some benchmarks also do tracing of their own
     # and the two methods conflict.
     config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    self._browser_backend.StartTracing(config, timeout=10)
+    config.tracing_options.enable_chrome_trace = True
+    self._browser_backend.StartTracing(config.tracing_options, timeout=10)
     command = ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
                                       'profile_chrome.py'),
                '--categories', '', '--continuous', '--output',

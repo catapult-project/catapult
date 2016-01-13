@@ -127,7 +127,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
       def WillNavigateToPage(self, page, tab):
         del page  # unused
         config = tracing_config.TracingConfig()
-        config.enable_chrome_trace = True
+        config.tracing_options.enable_chrome_trace = True
         tab.browser.platform.tracing_controller.Start(config)
 
       def ValidateAndMeasurePage(self, page, tab, results):
