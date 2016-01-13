@@ -139,7 +139,7 @@ def write_trace_html(html_filename, script_dir, agents):
 
   html_file.write(html_suffix)
   html_file.close()
-  print('\n    wrote file://%s\n' % os.path.abspath(html_filename))
+  print '\n    wrote file://%s\n' % os.path.abspath(html_filename)
 
 
 def create_agents(options, categories):

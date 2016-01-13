@@ -40,7 +40,6 @@ disable =
   no-init,
   no-name-in-module,
   old-style-class,
-  superfluous-parens,
   super-on-old-class,
   unnecessary-semicolon,
   unused-argument,

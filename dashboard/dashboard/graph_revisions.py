@@ -81,7 +81,7 @@ def _UpdateCache(test_key):
   test = test_key.get()
   if not test:
     return []
-  assert(utils.IsInternalUser() or not test.internal_only)
+  assert utils.IsInternalUser() or not test.internal_only
   datastore_hooks.SetSinglePrivilegedRequest()
 
   # A projection query queries just for the values of particular properties;

@@ -248,7 +248,7 @@ def _FetchLatestRows(test, num_points):
     A list of Row entities, ordered by revision. The number to fetch is limited
     to the number that is expected to be processed at once by GASP.
   """
-  assert(utils.IsInternalUser() or not test.internal_only)
+  assert utils.IsInternalUser() or not test.internal_only
   datastore_hooks.SetSinglePrivilegedRequest()
   q = graph_data.Row.query(projection=['revision', 'value'])
   q = q.filter(graph_data.Row.parent_test == test.key)
