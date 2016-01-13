@@ -116,10 +116,14 @@ class JSChecker(object):
 
         Most errors are valid, with a few exceptions which are listed here.
         """
-        is_grit_statement = bool(
-          re.search('</?(include|if)', error.token.line))
+        if re.search('</?(include|if)', error.token.line):
+          return False  # GRIT statement.
 
-        return not is_grit_statement and error.code not in [
+        if (error.code == errors.MISSING_SEMICOLON and
+            error.token.string == 'of'):
+          return False  # ES6 for...of statement.
+
+        return error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
             errors.MISSING_JSDOC_TAG_THIS,
         ]
