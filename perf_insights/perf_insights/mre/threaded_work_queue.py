@@ -9,7 +9,9 @@ import time
 import traceback
 import Queue
 
+
 class ThreadedWorkQueue:
+
   def __init__(self, num_threads):
     self._num_threads = num_threads
 
@@ -99,10 +101,10 @@ class ThreadedWorkQueue:
   def _RunMultiThreaded(self):
     threads = []
     for _ in range(self._num_threads):
-        t = threading.Thread(target=self._ThreadMain)
-        t.setDaemon(True)
-        t.start()
-        threads.append(t)
+      t = threading.Thread(target=self._ThreadMain)
+      t.setDaemon(True)
+      t.start()
+      threads.append(t)
 
     while True:
       if self._stop:

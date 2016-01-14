@@ -14,8 +14,9 @@ from devil import devil_env
 _sys_path_before = list(sys.path)
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   _sys_path_with_pymock = list(sys.path)
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 _sys_path_after = list(sys.path)
+
 
 class DevilEnvTest(unittest.TestCase):
 

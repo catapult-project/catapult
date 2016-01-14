@@ -83,6 +83,7 @@ class CmdHelperShinkToSnippetTest(unittest.TestCase):
     self.assertEquals('foo \' \'"$a""$a"\' \'',
         cmd_helper.ShrinkToSnippet(['foo', ' barbar '], 'a', 'bar'))
 
+
 class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
   """Test IterCmdOutputLines with some calls to the unix 'seq' command."""
 

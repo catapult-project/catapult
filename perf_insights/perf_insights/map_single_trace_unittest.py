@@ -17,6 +17,8 @@ def _Handle(filename):
   module = function_handle.ModuleToLoad(filename=filename)
   return function_handle.FunctionHandle(modules_to_load=[module],
                                         function_name='MyMapFunction')
+
+
 class MapSingleTraceTests(unittest.TestCase):
 
   def testPassingMapScript(self):
@@ -30,7 +32,6 @@ class MapSingleTraceTests(unittest.TestCase):
     ]
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
-
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
@@ -57,7 +58,6 @@ class MapSingleTraceTests(unittest.TestCase):
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, trace_string)
 
-
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
@@ -82,7 +82,6 @@ class MapSingleTraceTests(unittest.TestCase):
     ]
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
-
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
@@ -110,7 +109,6 @@ class MapSingleTraceTests(unittest.TestCase):
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
 
-
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       throw new Error('Expected load error');
@@ -121,7 +119,6 @@ class MapSingleTraceTests(unittest.TestCase):
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
     self.assertIsInstance(v, map_single_trace.FunctionLoadingErrorValue)
-
 
   def testNoMapper(self):
     run_info = run_info_module.RunInfo('file:///a.json', '/a.json',
@@ -135,7 +132,6 @@ class MapSingleTraceTests(unittest.TestCase):
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
 
-
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
     """) as map_script:
@@ -145,7 +141,6 @@ class MapSingleTraceTests(unittest.TestCase):
     self.assertEquals(len(results.all_values), 1)
     v = results.all_values[0]
     self.assertIsInstance(v, map_single_trace.FunctionNotDefinedErrorValue)
-
 
   def testMapperDoesntAddValues(self):
     run_info = run_info_module.RunInfo('file:///a.json', '/a.json',
@@ -158,7 +153,6 @@ class MapSingleTraceTests(unittest.TestCase):
     ]
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
-
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
@@ -184,7 +178,6 @@ class MapSingleTraceTests(unittest.TestCase):
     ]
     trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
         run_info, json.dumps(events))
-
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""

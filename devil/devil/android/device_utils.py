@@ -103,6 +103,7 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
 _IPV4_ADDRESS_RE = re.compile(r'([0-9]{1,3}\.){3}[0-9]{1,3}\:[0-9]{4,5}')
 
+
 @decorators.WithExplicitTimeoutAndRetries(
     _DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
 def GetAVDs():
@@ -709,7 +710,6 @@ class DeviceUtils(object):
            (required_sdk_level, self.build_version_sdk)),
            device_serial=self.adb.GetDeviceSerial())
 
-
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
                       as_root=False, single_line=False, large_output=False,
@@ -903,7 +903,7 @@ class DeviceUtils(object):
 
     logging.info(
         'KillAll(%r, ...) attempting to kill the following:', process_name)
-    for name, ids  in procs_pids.iteritems():
+    for name, ids in procs_pids.iteritems():
       for i in ids:
         logging.info('  %05s %s', str(i), name)
 
@@ -1303,12 +1303,12 @@ class DeviceUtils(object):
     #     c6: compression ratio (unitless)
 
     # All of these are approximations.
-    ADB_CALL_PENALTY = 0.1 # seconds
-    ADB_PUSH_PENALTY = 0.01 # seconds
-    ZIP_PENALTY = 2.0 # seconds
-    ZIP_RATE = 10000000.0 # bytes / second
-    TRANSFER_RATE = 2000000.0 # bytes / second
-    COMPRESSION_RATIO = 2.0 # unitless
+    ADB_CALL_PENALTY = 0.1  # seconds
+    ADB_PUSH_PENALTY = 0.01  # seconds
+    ZIP_PENALTY = 2.0  # seconds
+    ZIP_RATE = 10000000.0  # bytes / second
+    TRANSFER_RATE = 2000000.0  # bytes / second
+    COMPRESSION_RATIO = 2.0  # unitless
 
     adb_call_time = ADB_CALL_PENALTY * adb_calls
     adb_push_setup_time = ADB_PUSH_PENALTY * file_count
@@ -1621,7 +1621,7 @@ class DeviceUtils(object):
         else:
           properties[index] = new_line
       else:
-        assert index is not None # since new_value == '' and new_value != value
+        assert index is not None  # since new_value == '' and new_value != value
         properties.pop(index)
       self.WriteFile(self.LOCAL_PROPERTIES_PATH, _JoinLines(properties))
 
@@ -1648,7 +1648,6 @@ class DeviceUtils(object):
       cache: Whether to use cached properties when available.
     """
     return self.GetProp('persist.sys.country', cache=cache)
-
 
   @property
   def screen_density(self):
@@ -2079,6 +2078,7 @@ class DeviceUtils(object):
   @classmethod
   def HealthyDevices(cls, blacklist=None, **kwargs):
     blacklisted_devices = blacklist.Read() if blacklist else []
+
     def blacklisted(adb):
       if adb.GetDeviceSerial() in blacklisted_devices:
         logging.warning('Device %s is blacklisted.', adb.GetDeviceSerial())
@@ -2143,11 +2143,11 @@ class DeviceUtils(object):
       device_errors.CommandFailedError: If screen state cannot be found.
     """
     if self.build_version_sdk < version_codes.LOLLIPOP:
-       input_check = 'mScreenOn'
-       check_value = 'mScreenOn=true'
+      input_check = 'mScreenOn'
+      check_value = 'mScreenOn=true'
     else:
-       input_check = 'mInteractive'
-       check_value = 'mInteractive=true'
+      input_check = 'mInteractive'
+      check_value = 'mInteractive=true'
     dumpsys_out = self._RunPipedShellCommand(
         'dumpsys input_method | grep %s' % input_check)
     if not dumpsys_out:

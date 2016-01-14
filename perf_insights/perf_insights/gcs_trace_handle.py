@@ -8,6 +8,7 @@ from perf_insights import trace_handle
 
 
 class GCSTraceHandle(trace_handle.TraceHandle):
+
   def __init__(self, run_info, cache_directory):
     super(GCSTraceHandle, self).__init__(run_info)
     file_name = run_info.run_id.split('/')[-1]

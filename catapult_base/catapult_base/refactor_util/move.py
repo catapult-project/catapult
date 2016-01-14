@@ -39,6 +39,7 @@ def _Update(moves, module):
 
 
 class _Move(object):
+
   def __init__(self, source, target):
     self._source_path = os.path.realpath(source)
     self._target_path = os.path.realpath(target)

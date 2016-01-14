@@ -21,6 +21,7 @@ _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10
 
+
 class Fastboot(object):
 
   _fastboot_path = lazy.WeakConstant(lambda: os.path.join(

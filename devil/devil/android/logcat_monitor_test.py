@@ -14,7 +14,7 @@ from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 def _CreateTestLog(raw_logcat=None):
@@ -23,23 +23,25 @@ def _CreateTestLog(raw_logcat=None):
   test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
   return test_log
 
+
 class LogcatMonitorTest(unittest.TestCase):
 
   _TEST_THREADTIME_LOGCAT_DATA = [
-        '01-01 01:02:03.456  7890  0987 V LogcatMonitorTest: '
-            'verbose logcat monitor test message 1',
-        '01-01 01:02:03.457  8901  1098 D LogcatMonitorTest: '
-            'debug logcat monitor test message 2',
-        '01-01 01:02:03.458  9012  2109 I LogcatMonitorTest: '
-            'info logcat monitor test message 3',
-        '01-01 01:02:03.459  0123  3210 W LogcatMonitorTest: '
-            'warning logcat monitor test message 4',
-        '01-01 01:02:03.460  1234  4321 E LogcatMonitorTest: '
-            'error logcat monitor test message 5',
-        '01-01 01:02:03.461  2345  5432 F LogcatMonitorTest: '
-            'fatal logcat monitor test message 6',
-        '01-01 01:02:03.462  3456  6543 D LogcatMonitorTest: '
-            'last line',]
+      '01-01 01:02:03.456  7890  0987 V LogcatMonitorTest: '
+          'verbose logcat monitor test message 1',
+      '01-01 01:02:03.457  8901  1098 D LogcatMonitorTest: '
+          'debug logcat monitor test message 2',
+      '01-01 01:02:03.458  9012  2109 I LogcatMonitorTest: '
+          'info logcat monitor test message 3',
+      '01-01 01:02:03.459  0123  3210 W LogcatMonitorTest: '
+          'warning logcat monitor test message 4',
+      '01-01 01:02:03.460  1234  4321 E LogcatMonitorTest: '
+          'error logcat monitor test message 5',
+      '01-01 01:02:03.461  2345  5432 F LogcatMonitorTest: '
+          'fatal logcat monitor test message 6',
+      '01-01 01:02:03.462  3456  6543 D LogcatMonitorTest: '
+          'last line'
+  ]
 
   def assertIterEqual(self, expected_iter, actual_iter):
     for expected, actual in itertools.izip_longest(expected_iter, actual_iter):
@@ -190,7 +192,8 @@ class LogcatMonitorTest(unittest.TestCase):
         ('8901', '1098', 'D', 'LogcatMonitorTest',
          'debug logcat monitor test message 2'),
         ('0123', '3210', 'W', 'LogcatMonitorTest',
-         'warning logcat monitor test message 4'),]
+         'warning logcat monitor test message 4')
+    ]
     self.assertIterEqual(iter(expected_results), actual_results)
     test_log.Close()
 
@@ -216,7 +219,8 @@ class LogcatMonitorTest(unittest.TestCase):
         ('2345', '5432', 'F', 'LogcatMonitorTest',
          'fatal logcat monitor test message 6'),
         ('3456', '6543', 'D', 'LogcatMonitorTest',
-         'last line'),]
+         'last line')
+    ]
     self.assertIterEqual(iter(expected_results), actual_results)
     test_log.Close()
 

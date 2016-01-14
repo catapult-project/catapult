@@ -19,12 +19,14 @@ from devil.utils import reraiser_thread
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 
+
 class DecoratorsTest(unittest.TestCase):
   _decorated_function_called_count = 0
 
   def testFunctionDecoratorDoesTimeouts(self):
     """Tests that the base decorator handles the timeout logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithTimeoutAndRetries
     def alwaysTimesOut(timeout=None, retries=None):
       DecoratorsTest._decorated_function_called_count += 1
@@ -40,6 +42,7 @@ class DecoratorsTest(unittest.TestCase):
   def testFunctionDecoratorDoesRetries(self):
     """Tests that the base decorator handles the retries logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithTimeoutAndRetries
     def alwaysRaisesCommandFailedError(timeout=None, retries=None):
       DecoratorsTest._decorated_function_called_count += 1
@@ -115,6 +118,7 @@ class DecoratorsTest(unittest.TestCase):
   def testDefaultsFunctionDecoratorDoesTimeouts(self):
     """Tests that the defaults decorator handles timeout logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithTimeoutAndRetriesDefaults(1, 0)
     def alwaysTimesOut(timeout=None, retries=None):
       DecoratorsTest._decorated_function_called_count += 1
@@ -137,6 +141,7 @@ class DecoratorsTest(unittest.TestCase):
   def testDefaultsFunctionDecoratorDoesRetries(self):
     """Tests that the defaults decorator handles retries logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithTimeoutAndRetriesDefaults(30, 10)
     def alwaysRaisesCommandFailedError(timeout=None, retries=None):
       DecoratorsTest._decorated_function_called_count += 1
@@ -182,6 +187,7 @@ class DecoratorsTest(unittest.TestCase):
   def testExplicitFunctionDecoratorDoesTimeouts(self):
     """Tests that the explicit decorator handles timeout logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithExplicitTimeoutAndRetries(1, 0)
     def alwaysTimesOut():
       DecoratorsTest._decorated_function_called_count += 1
@@ -197,6 +203,7 @@ class DecoratorsTest(unittest.TestCase):
   def testExplicitFunctionDecoratorDoesRetries(self):
     """Tests that the explicit decorator handles retries logic."""
     DecoratorsTest._decorated_function_called_count = 0
+
     @decorators.WithExplicitTimeoutAndRetries(30, 10)
     def alwaysRaisesCommandFailedError():
       DecoratorsTest._decorated_function_called_count += 1
@@ -269,7 +276,6 @@ class DecoratorsTest(unittest.TestCase):
       raise exception
 
     # pylint: enable=no-self-use
-
 
   def testMethodDecoratorDoesTimeout(self):
     """Tests that the method decorator handles timeout logic."""

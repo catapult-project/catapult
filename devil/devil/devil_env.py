@@ -17,6 +17,7 @@ DEPENDENCY_MANAGER_PATH = os.path.join(
 PYMOCK_PATH = os.path.join(
     CATAPULT_ROOT_PATH, 'third_party', 'mock')
 
+
 @contextlib.contextmanager
 def SysPath(path):
   sys.path.append(path)
@@ -27,7 +28,7 @@ def SysPath(path):
     sys.path.pop()
 
 with SysPath(DEPENDENCY_MANAGER_PATH):
-  import dependency_manager # pylint: disable=import-error
+  import dependency_manager  # pylint: disable=import-error
 
 _ANDROID_BUILD_TOOLS = {'aapt', 'dexdump', 'split-select'}
 

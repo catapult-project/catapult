@@ -10,6 +10,7 @@ PI_VALUE_RUN_INFO_ID = 'perf_insights.value.RunInfo'
 
 
 class RunInfo(object):
+
   def __init__(self, url, display_name=None, run_id=None, metadata=None):
     if run_id is not None:
       self.run_id = run_id

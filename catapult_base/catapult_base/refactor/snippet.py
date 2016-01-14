@@ -93,6 +93,7 @@ class TokenSnippet(Snippet):
   A list of tokens may start with any number of comments and non-terminating
   newlines, but must end with a syntactically meaningful token.
   """
+
   def __init__(self, token_type, tokens):
     # For operators and delimiters, the TokenSnippet's type may be more specific
     # than the type of the constituent token. E.g. the TokenSnippet type is
@@ -152,6 +153,7 @@ class Symbol(Snippet):
   """A Snippet containing sub-Snippets.
 
   The possible types and type_names are defined in Python's symbol module."""
+
   def __init__(self, symbol_type, children):
     self._type = symbol_type
     self._children = children
@@ -194,7 +196,7 @@ class Symbol(Snippet):
 
     print >> stream, node.type_name
     for child in node.children:
-      child.PrintTree(indent+2, stream)
+      child.PrintTree(indent + 2, stream)
 
 
 def Snippetize(f):

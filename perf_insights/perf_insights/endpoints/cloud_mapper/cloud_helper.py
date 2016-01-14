@@ -16,8 +16,10 @@ default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_retry_period=15)
 gcs.set_default_retry_params(default_retry_params)
 
+
 def _remove_gcs_prefix(full_url):
   return full_url.split('gs:/')[1]
+
 
 def WriteGCS(fullurl, data):
   gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
@@ -27,6 +29,7 @@ def WriteGCS(fullurl, data):
                       retry_params=default_retry_params)
   gcs_file.write(data)
   gcs_file.close()
+
 
 def ReadGCS(fullurl):
   gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
@@ -38,8 +41,10 @@ def ReadGCS(fullurl):
 
   return contents
 
+
 def ReadGCSToFile(fullurl, output_file):
   output_file.write(ReadGCS(fullurl))
+
 
 def StatGCS(fullurl):
   try:

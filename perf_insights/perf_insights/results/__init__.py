@@ -4,7 +4,9 @@
 
 from perf_insights import value as value_module
 
+
 class Results(object):
+
   def __init__(self):
     self.all_values = []
     self._run_infos_that_have_failures = set()

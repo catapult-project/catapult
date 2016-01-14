@@ -176,7 +176,7 @@ class BatteryUtils(object):
       device_errors.CommandFailedError: If fuel gauge chip not found.
     """
     if self.SupportsFuelGauge():
-       return int(self._device.ReadFile(
+      return int(self._device.ReadFile(
           self._cache['profile']['charge_counter']))
     raise device_errors.CommandFailedError(
         'Unable to find fuel gauge.')
@@ -423,6 +423,7 @@ class BatteryUtils(object):
       return
 
     self._HardwareSetCharging(False)
+
     def device_discharged():
       self._HardwareSetCharging(True)
       current_level = int(self.GetBatteryInfo().get('level'))

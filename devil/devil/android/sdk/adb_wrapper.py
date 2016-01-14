@@ -22,7 +22,7 @@ from devil.utils import lazy
 from devil.utils import timeout_retry
 
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
-  import dependency_manager # pylint: disable=import-error
+  import dependency_manager  # pylint: disable=import-error
 
 
 _DEFAULT_TIMEOUT = 30
@@ -103,7 +103,7 @@ class AdbWrapper(object):
     cmd.extend(args)
     return cmd
 
-  #pylint: disable=unused-argument
+  # pylint: disable=unused-argument
   @classmethod
   @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
@@ -254,7 +254,7 @@ class AdbWrapper(object):
     """
     return self._device_serial
 
-  def Push(self, local, remote, timeout=60*5, retries=_DEFAULT_RETRIES):
+  def Push(self, local, remote, timeout=60 * 5, retries=_DEFAULT_RETRIES):
     """Pushes a file from the host to the device.
 
     Args:
@@ -266,7 +266,7 @@ class AdbWrapper(object):
     VerifyLocalFileExists(local)
     self._RunDeviceAdbCmd(['push', local, remote], timeout, retries)
 
-  def Pull(self, remote, local, timeout=60*5, retries=_DEFAULT_RETRIES):
+  def Pull(self, remote, local, timeout=60 * 5, retries=_DEFAULT_RETRIES):
     """Pulls a file from the device to the host.
 
     Args:
@@ -313,7 +313,7 @@ class AdbWrapper(object):
         output_end = len(output)
 
       try:
-        status = int(output[output_end+1:])
+        status = int(output[output_end + 1:])
       except ValueError:
         logging.warning('exit status of shell command %r missing.', command)
         raise device_errors.AdbShellCommandFailedError(
@@ -476,7 +476,7 @@ class AdbWrapper(object):
             self._RunDeviceAdbCmd(['jdwp'], timeout, retries).split('\n')]
 
   def Install(self, apk_path, forward_lock=False, allow_downgrade=False,
-              reinstall=False, sd_card=False, timeout=60*2,
+              reinstall=False, sd_card=False, timeout=60 * 2,
               retries=_DEFAULT_RETRIES):
     """Install an apk on the device.
 
@@ -507,7 +507,7 @@ class AdbWrapper(object):
 
   def InstallMultiple(self, apk_paths, forward_lock=False, reinstall=False,
                       sd_card=False, allow_downgrade=False, partial=False,
-                      timeout=60*2, retries=_DEFAULT_RETRIES):
+                      timeout=60 * 2, retries=_DEFAULT_RETRIES):
     """Install an apk with splits on the device.
 
     Args:
@@ -602,7 +602,7 @@ class AdbWrapper(object):
     VerifyLocalFileExists(path)
     self._RunDeviceAdbCmd(['restore'] + [path], timeout, retries)
 
-  def WaitForDevice(self, timeout=60*5, retries=_DEFAULT_RETRIES):
+  def WaitForDevice(self, timeout=60 * 5, retries=_DEFAULT_RETRIES):
     """Block until the device is online.
 
     Args:
@@ -631,7 +631,6 @@ class AdbWrapper(object):
         return line[1]
     return 'offline'
 
-
   def GetDevPath(self, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
     """Gets the device path.
 
@@ -648,7 +647,7 @@ class AdbWrapper(object):
     """Remounts the /system partition on the device read-write."""
     self._RunDeviceAdbCmd(['remount'], timeout, retries)
 
-  def Reboot(self, to_bootloader=False, timeout=60*5,
+  def Reboot(self, to_bootloader=False, timeout=60 * 5,
              retries=_DEFAULT_RETRIES):
     """Reboots the device.
 

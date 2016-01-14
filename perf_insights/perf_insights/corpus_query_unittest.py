@@ -7,7 +7,9 @@ import unittest
 
 from perf_insights import corpus_query
 
+
 class FilterTests(unittest.TestCase):
+
   def testEqNumber(self):
     f = corpus_query.Filter.FromString("a = 3")
 
@@ -65,6 +67,7 @@ class FilterTests(unittest.TestCase):
 
 
 class CorpusQueryTests(unittest.TestCase):
+
   def testSimple(self):
     q = corpus_query.CorpusQuery.FromString('')
     self.assertTrue(q.Eval({'a': 1}))

@@ -20,7 +20,9 @@ from webapp2 import Route, RedirectHandler
 def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
 
+
 class TestListHandler(webapp2.RequestHandler):
+
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     project = tracing_project.TracingProject()
     test_relpaths = ['/' + _RelPathToUnixPath(x)
@@ -33,6 +35,7 @@ class TestListHandler(webapp2.RequestHandler):
 
 
 class TracingDevServerConfig(object):
+
   def __init__(self):
     self.project = tracing_project.TracingProject()
 

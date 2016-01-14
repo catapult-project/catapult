@@ -10,6 +10,7 @@ import sys
 
 from catapult_base import util
 
+
 def _AddDirToPythonPath(*path_parts):
   path = os.path.abspath(os.path.join(*path_parts))
   if os.path.isdir(path) and path not in sys.path:

@@ -29,6 +29,7 @@ def _RunSplitSelectCmd(args):
                     (' '.join(cmd), output))
   return output
 
+
 def _SplitConfig(device, allow_cached_props=False):
   """Returns a config specifying which APK splits are required by the device.
 
@@ -41,6 +42,7 @@ def _SplitConfig(device, allow_cached_props=False):
            device.GetCountry(cache=allow_cached_props),
            device.screen_density,
            device.product_cpu_abi))
+
 
 def SelectSplits(device, base_apk, split_apks, allow_cached_props=False):
   """Determines which APK splits the device requires.

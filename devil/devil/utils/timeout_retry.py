@@ -14,8 +14,8 @@ from devil.utils import reraiser_thread
 from devil.utils import watchdog_timer
 
 
-
 class TimeoutRetryThreadGroup(reraiser_thread.ReraiserThreadGroup):
+
   def __init__(self, timeout, threads=None):
     super(TimeoutRetryThreadGroup, self).__init__(threads)
     self._watcher = watchdog_timer.WatchdogTimer(timeout)

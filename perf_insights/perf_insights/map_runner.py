@@ -17,12 +17,16 @@ from perf_insights.results import gtest_progress_reporter
 
 AUTO_JOB_COUNT = -1
 
+
 class MapError(Exception):
+
   def __init__(self, *args):
     super(MapError, self).__init__(*args)
     self.run_info = None
 
+
 class MapRunner(object):
+
   def __init__(self, trace_handles, map_function_handle,
                stop_on_error=False, progress_reporter=None,
                jobs=AUTO_JOB_COUNT,

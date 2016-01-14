@@ -8,6 +8,7 @@ This is generally intended to be used with functions that calls Android's
 Am command.
 """
 
+
 class Intent(object):
 
   def __init__(self, action='android.intent.action.VIEW', activity=None,

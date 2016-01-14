@@ -70,6 +70,7 @@ def _ParseManifestFromApk(apk_path):
 
 
 class ApkHelper(object):
+
   def __init__(self, path):
     self._apk_path = path
     self._manifest = None

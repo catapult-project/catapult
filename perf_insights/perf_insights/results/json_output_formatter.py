@@ -7,6 +7,7 @@ from perf_insights.results import output_formatter
 
 
 class JSONOutputFormatter(output_formatter.OutputFormatter):
+
   def __init__(self, output_file):
     # TODO(nduca): Resolve output_file here vs output_stream in base class.
     super(JSONOutputFormatter, self).__init__(output_file)

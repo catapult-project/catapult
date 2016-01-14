@@ -25,11 +25,12 @@ _SSH_KEY_FILE = '/tmp/ssh_android_gce_instance'
 
 
 class GceAdbWrapper(adb_wrapper.AdbWrapper):
+
   def __init__(self, device_serial):
     super(GceAdbWrapper, self).__init__(device_serial)
     self._instance_ip = self.Shell('getprop net.gce.ip_address').strip()
 
-  #override
+  # override
   def Push(self, local, remote, **kwargs):
     """Pushes an object from the host to the gce instance.
 
@@ -77,7 +78,7 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
           cmd, 'File not reachable on host: %s' % local,
           device_serial=str(self))
 
-  #override
+  # override
   def Pull(self, remote, local, **kwargs):
     """Pulls a file from the gce instance to the host.
 
@@ -110,7 +111,7 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
           cmd, 'File not reachable on host: %s' % local,
           device_serial=str(self))
 
-  #override
+  # override
   def Install(self, apk_path, forward_lock=False, reinstall=False,
               sd_card=False, **kwargs):
     """Installs an apk on the gce instance
@@ -139,7 +140,7 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
-  #override
+  # override
   @property
   def is_emulator(self):
     return True

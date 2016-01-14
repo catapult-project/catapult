@@ -13,7 +13,7 @@ from devil.android import device_utils
 from devil.android.tools import script_common
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 class ScriptCommonTest(unittest.TestCase):

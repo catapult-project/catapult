@@ -25,6 +25,7 @@ class _FileLock(object):
   File locks are needed for cross-process synchronization when the
   multiprocessing Python module is used.
   """
+
   def __init__(self, path):
     self._fd = -1
     self._path = path

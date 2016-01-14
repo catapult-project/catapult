@@ -49,8 +49,8 @@ _GSUTIL_PATH = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
 
 
-
 class CloudStorageError(Exception):
+
   @staticmethod
   def _GetConfigInstructions():
     command = _GSUTIL_PATH
@@ -63,6 +63,7 @@ class CloudStorageError(Exception):
 
 
 class PermissionError(CloudStorageError):
+
   def __init__(self):
     super(PermissionError, self).__init__(
         'Attempted to access a file from Cloud Storage but you don\'t '
@@ -70,6 +71,7 @@ class PermissionError(CloudStorageError):
 
 
 class CredentialsError(CloudStorageError):
+
   def __init__(self):
     super(CredentialsError, self).__init__(
         'Attempted to access a file from Cloud Storage but you have no '
@@ -93,11 +95,13 @@ def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
       return executable_path
   return None
 
+
 def _EnsureExecutable(gsutil):
   """chmod +x if gsutil is not executable."""
   st = os.stat(gsutil)
   if not st.st_mode & stat.S_IEXEC:
     os.chmod(gsutil, st.st_mode | stat.S_IEXEC)
+
 
 def _RunCommand(args):
   # On cros device, as telemetry is running as root, home will be set to /root/,
@@ -330,13 +334,14 @@ def GetFilesInDirectoryIfChanged(directory, bucket):
         continue
       GetIfChanged(path_name, bucket)
 
+
 def CalculateHash(file_path):
   """Calculates and returns the hash of the file at file_path."""
   sha1 = hashlib.sha1()
   with open(file_path, 'rb') as f:
     while True:
       # Read in 1mb chunks, so it doesn't all have to be loaded into memory.
-      chunk = f.read(1024*1024)
+      chunk = f.read(1024 * 1024)
       if not chunk:
         break
       sha1.update(chunk)

@@ -162,6 +162,7 @@ _PREF_TYPES = {c.tag_name: c for c in [BooleanPref, FloatPref, IntPref,
 
 
 class SharedPrefs(object):
+
   def __init__(self, device, package, filename):
     """Helper object to read and update "Shared Prefs" of Android apps.
 
@@ -252,7 +253,7 @@ class SharedPrefs(object):
 
   def Clear(self):
     """Clear all of the preferences contained in this object."""
-    if self._xml is not None and len(self): # only clear if not already empty
+    if self._xml is not None and len(self):  # only clear if not already empty
       self._xml = None
       self._changed = True
 

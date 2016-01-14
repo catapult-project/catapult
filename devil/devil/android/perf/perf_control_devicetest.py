@@ -12,7 +12,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from devil.android import device_utils
 from devil.android.perf import perf_control
 
+
 class TestPerfControl(unittest.TestCase):
+
   def setUp(self):
     if not os.getenv('BUILDTYPE'):
       os.environ['BUILDTYPE'] = 'Debug'

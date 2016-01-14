@@ -23,6 +23,7 @@ _SUB_DIR = "sub"
 _SUB_DIR1 = "sub1"
 _SUB_DIR2 = "sub2"
 
+
 class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
 
   def setUp(self):

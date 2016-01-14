@@ -10,6 +10,7 @@ from catapult_base import util
 
 @unittest.skipIf(sys.platform.startswith('win'), 'crbug.com/570512')
 class PathTest(unittest.TestCase):
+
   def GetFileInTestDir(self, file_name):
     return os.path.join(os.path.dirname(__file__), 'test_data', file_name)
 

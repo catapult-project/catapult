@@ -11,11 +11,12 @@ from devil.android import device_errors
 from devil.android import md5sum
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 TEST_OUT_DIR = os.path.join('test', 'out', 'directory')
 HOST_MD5_EXECUTABLE = os.path.join(TEST_OUT_DIR, 'md5sum_bin_host')
 MD5_DIST = os.path.join(TEST_OUT_DIR, 'md5sum_dist')
+
 
 class Md5SumTest(unittest.TestCase):
 
@@ -201,7 +202,6 @@ class Md5SumTest(unittest.TestCase):
       self.assertEquals('0123456789abcdeffedcba9876543210',
                         out['/storage/emulated/legacy/test/file0.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
-
 
   def testCalculateDeviceMd5Sums_requiresBinary(self):
     test_path = '/storage/emulated/legacy/test/file.dat'

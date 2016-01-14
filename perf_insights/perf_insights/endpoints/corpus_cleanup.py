@@ -13,8 +13,9 @@ from perf_insights.endpoints.cloud_mapper.cloud_helper import \
 from perf_insights.trace_info import TraceInfo
 import third_party.cloudstorage as gcs
 
-BATCH_SIZE=100
-MAX_DAYS=30
+BATCH_SIZE = 100
+MAX_DAYS = 30
+
 
 class CorpusCleanupPage(webapp2.RequestHandler):
 

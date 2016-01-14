@@ -6,6 +6,7 @@ from catapult_base.refactor import annotated_symbol
 
 
 class Module(object):
+
   def __init__(self, file_path):
     self._file_path = file_path
 

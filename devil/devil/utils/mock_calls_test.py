@@ -16,10 +16,11 @@ from devil.android.sdk import version_codes
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 class _DummyAdb(object):
+
   def __str__(self):
     return '0123456789abcdef'
 
@@ -44,6 +45,7 @@ class _DummyAdb(object):
 
 
 class TestCaseWithAssertCallsTest(mock_calls.TestCase):
+
   def setUp(self):
     self.adb = _DummyAdb()
 
@@ -154,7 +156,7 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
         self.adb.Reboot()
 
   def testAssertCalls_succeeds_NoCalls(self):
-    self.watchMethodCalls(self.call.adb) # we are watching all adb methods
+    self.watchMethodCalls(self.call.adb)  # we are watching all adb methods
     with self.assertCalls():
       pass
 

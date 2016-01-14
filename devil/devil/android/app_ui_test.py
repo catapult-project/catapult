@@ -13,7 +13,7 @@ from devil.android import device_errors
 from devil.utils import geometry
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 MOCK_XML_LOADING = '''
@@ -56,6 +56,7 @@ MOCK_XML_LOADED = '''
 
 
 class UiAppTest(unittest.TestCase):
+
   def setUp(self):
     self.device = mock.Mock()
     self.device.pixel_density = 320  # Each dp pixel is 2 real pixels.

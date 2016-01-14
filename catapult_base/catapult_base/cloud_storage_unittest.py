@@ -18,8 +18,10 @@ from catapult_base import util
 def _FakeReadHash(_):
   return 'hashthis!'
 
+
 def _FakeCalulateHashMatchesRead(_):
   return 'hashthis!'
+
 
 def _FakeCalulateHashNewHash(_):
   return 'omgnewhash'
@@ -56,7 +58,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
 
   def testRunCommandCredentialsError(self):
     strs = ['You are attempting to access protected data with no configured',
-             'Failure: No handler was ready to authenticate.']
+            'Failure: No handler was ready to authenticate.']
     self._assertRunCommandRaisesError(strs, cloud_storage.CredentialsError)
 
   def testRunCommandPermissionError(self):
@@ -95,8 +97,8 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     p_mock = mock.Mock()
     subprocess_mock.Popen.return_value = p_mock
     p_mock.communicate.return_value = (
-      '',
-      'CommandException: One or more URLs matched no objects.\n')
+        '',
+        'CommandException: One or more URLs matched no objects.\n')
     p_mock.returncode_result = 1
     self.assertFalse(cloud_storage.Exists('fake bucket',
                                           'fake remote path'))
@@ -172,11 +174,12 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
                    'https://github.com/catapult-project/catapult/issues/1861')
   def testGetFilesInDirectoryIfChanged(self):
     self.CreateFiles([
-      'real_dir_path/dir1/1file1.sha1',
-      'real_dir_path/dir1/1file2.txt',
-      'real_dir_path/dir1/1file3.sha1',
-      'real_dir_path/dir2/2file.txt',
-      'real_dir_path/dir3/3file1.sha1'])
+        'real_dir_path/dir1/1file1.sha1',
+        'real_dir_path/dir1/1file2.txt',
+        'real_dir_path/dir1/1file3.sha1',
+        'real_dir_path/dir2/2file.txt',
+        'real_dir_path/dir3/3file1.sha1'])
+
     def IncrementFilesUpdated(*_):
       IncrementFilesUpdated.files_updated += 1
     IncrementFilesUpdated.files_updated = 0
@@ -197,6 +200,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
 
   def testCopy(self):
     orig_run_command = cloud_storage._RunCommand
+
     def AssertCorrectRunCommandArgs(args):
       self.assertEqual(expected_args, args)
     cloud_storage._RunCommand = AssertCorrectRunCommandArgs

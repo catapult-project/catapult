@@ -9,10 +9,13 @@ import operator
 import re
 import datetime
 
+
 def _InOp(a, b):
   return a in b
 
+
 class _ReadField(object):
+
   def __init__(self, fieldName):
     self.fieldName = fieldName
 
@@ -22,7 +25,9 @@ class _ReadField(object):
   def Eval(self, metadata):
     return metadata[self.fieldName]
 
+
 class _Constant(object):
+
   def __init__(self, constant):
     self.constant = constant
 
@@ -42,6 +47,7 @@ class _Constant(object):
   def Eval(self, metadata):
     # pylint: disable=unused-argument
     return self.constant
+
 
 def _StringToValue(s):
   try:
@@ -74,11 +80,12 @@ _OPERATORS = {
   '=': operator.eq,
   '<': operator.lt,
   '<=': operator.le,
-  '>':  operator.gt,
+  '>': operator.gt,
   '>=': operator.ge,
   '!=': operator.ne,
-  ' IN ': _InOp # Spaces matter for proper parsing.
+  ' IN ': _InOp  # Spaces matter for proper parsing.
 }
+
 
 def _OperatorToString(op):
   for k, v in _OPERATORS.iteritems():
@@ -93,7 +100,9 @@ def _OperatorToString(op):
 _TOKEN_SEARCH_ORDER = list(_OPERATORS.keys())
 _TOKEN_SEARCH_ORDER.sort(lambda x, y: len(y) - len(x))
 
+
 class Filter(object):
+
   def __init__(self, a, op, b):
     self.a = a
     self.op = op
@@ -142,7 +151,9 @@ class Filter(object):
                   _OPERATORS[found_op_key],
                   rvalue)
 
+
 class CorpusQuery(object):
+
   def __init__(self):
     self.max_trace_handles = None
     self.filters = []
@@ -169,7 +180,7 @@ class CorpusQuery(object):
         else:
           b_string = f.b.fieldName
 
-        filter_strings.append( '%s %s %s' % (a_string,
+        filter_strings.append('%s %s %s' % (a_string,
                                              _OperatorToString(f.op).strip(),
                                              b_string))
       gql = 'WHERE ' + ' AND '.join(filter_strings)

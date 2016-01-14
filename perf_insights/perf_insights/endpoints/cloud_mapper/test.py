@@ -14,8 +14,9 @@ from google.appengine.api import urlfetch
 from perf_insights.endpoints.cloud_mapper import job_info
 from perf_insights import cloud_config
 
+
 def _is_devserver():
-  return os.environ.get('SERVER_SOFTWARE','').startswith('Development')
+  return os.environ.get('SERVER_SOFTWARE', '').startswith('Development')
 
 _DEFAULT_MAPPER = """
 <!DOCTYPE html>
@@ -70,6 +71,7 @@ Corpus: <br><input type="text" name="corpus" value="{corpus}"/>
 </body>
 </html>
 """
+
 
 class TestPage(webapp2.RequestHandler):
 

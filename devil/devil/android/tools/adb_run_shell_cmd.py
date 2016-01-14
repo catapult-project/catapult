@@ -56,7 +56,7 @@ def main():
   data = {}
   for device, output in zip(selected_devices, p_out):
     for line in output:
-      print '%s: %s' %(device, line)
+      print '%s: %s' % (device, line)
     data[str(device)] = output
 
   if args.json_output:

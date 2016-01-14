@@ -29,6 +29,7 @@ ALL_PARTITIONS = [
     'cache',
 ]
 
+
 class FastbootUtils(object):
 
   _FASTBOOT_WAIT_TIME = 1

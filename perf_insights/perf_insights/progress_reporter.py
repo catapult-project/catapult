@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
 class RunReporter(object):
+
   def __init__(self, run_info):
     self.run_info = run_info
 
@@ -16,6 +18,7 @@ class RunReporter(object):
 # Derived from telemetry ProgressReporter. Should stay close in architecture
 # to telemetry ProgressReporter.
 class ProgressReporter(object):
+
   def WillRun(self, run_info):
     return RunReporter(run_info)
 

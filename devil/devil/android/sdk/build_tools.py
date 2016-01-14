@@ -8,7 +8,7 @@ from devil import devil_env
 from devil.utils import lazy
 
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
-  import dependency_manager # pylint: disable=import-error
+  import dependency_manager  # pylint: disable=import-error
 
 
 def GetPath(build_tool):

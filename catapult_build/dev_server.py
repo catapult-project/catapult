@@ -75,7 +75,7 @@ class TestsCompletedHandler(webapp2.RequestHandler):
   def post(self, *args, **kwargs):  # pylint: disable=unused-argument
     msg = self.request.body
     sys.stdout.write(msg + '\n')
-    exit_code=(0 if 'ALL_PASSED' in msg else 1)
+    exit_code = 0 if 'ALL_PASSED' in msg else 1
     if hasattr(self.app.server, 'please_exit'):
       self.app.server.please_exit(exit_code)
     return self.response.write('')
@@ -272,8 +272,8 @@ def _AddPleaseExitMixinToServer(server):
     try:
       real_serve_forever()
     except KeyboardInterrupt:
-        # allow CTRL+C to shutdown
-        return 255
+      # allow CTRL+C to shutdown
+      return 255
 
     if len(exitCodeAttempt) == 1:
       return exitCodeAttempt[0]

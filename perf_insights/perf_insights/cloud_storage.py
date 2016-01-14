@@ -12,6 +12,7 @@ _GSUTIL_PATH = os.path.abspath(
 
 
 class CloudStorageError(Exception):
+
   @staticmethod
   def _GetConfigInstructions():
     command = _GSUTIL_PATH
@@ -22,6 +23,7 @@ class CloudStorageError(Exception):
 
 
 class PermissionError(CloudStorageError):
+
   def __init__(self):
     super(PermissionError, self).__init__(
         'Attempted to access a file from Cloud Storage but you don\'t '
@@ -29,6 +31,7 @@ class PermissionError(CloudStorageError):
 
 
 class CredentialsError(CloudStorageError):
+
   def __init__(self):
     super(CredentialsError, self).__init__(
         'Attempted to access a file from Cloud Storage but you have no '

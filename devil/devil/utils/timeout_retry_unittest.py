@@ -34,6 +34,7 @@ class TestRun(unittest.TestCase):
 
   def testTimeout(self):
     tries = [0]
+
     def _sleep():
       tries[0] += 1
       time.sleep(1)
@@ -64,6 +65,7 @@ class TestRun(unittest.TestCase):
     def InnerFunc():
       current_thread_group = timeout_retry.CurrentTimeoutThreadGroup()
       self.assertIsNotNone(current_thread_group)
+
       def InnerInnerFunc():
         self.assertEqual(current_thread_group,
                          timeout_retry.CurrentTimeoutThreadGroup())

@@ -191,7 +191,7 @@ def CheckStrictMode(contents, is_html_file=False):
     statements_to_check.append(_FirstStatement(contents))
   error_lines = []
   for s in statements_to_check:
-    if s !=  "'use strict'":
+    if s != "'use strict'":
       error_lines.append('Expected "\'use strict\'" as first statement, '
                          'but found "%s" instead.' % s)
   return error_lines

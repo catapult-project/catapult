@@ -5,7 +5,9 @@
 import unittest
 from perf_insights import local_directory_corpus_driver
 
+
 class LocalDirectoryCorpusDriverTests(unittest.TestCase):
+
   def testTags(self):
     self.assertEquals(
         local_directory_corpus_driver._GetTagsForRelPath('a.json'), [])

@@ -42,7 +42,7 @@ class TestAdbWrapper(unittest.TestCase):
     output = self._adb.Shell('echo test')
     self.assertEqual(output.strip(), 'test')
     with self.assertRaises(device_errors.AdbCommandFailedError):
-        self._adb.Shell('echo test', expect_status=1)
+      self._adb.Shell('echo test', expect_status=1)
 
   def testPushLsPull(self):
     path = self._MakeTempFile('foo')

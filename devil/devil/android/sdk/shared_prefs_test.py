@@ -15,7 +15,7 @@ from devil.android import device_utils
 from devil.android.sdk import shared_prefs
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 def MockDeviceWithFiles(files=None):
@@ -56,7 +56,7 @@ class SharedPrefsTest(unittest.TestCase):
   def testPropertyLifetime(self):
     prefs = shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml')
-    self.assertEquals(len(prefs), 0) # collection is empty before loading
+    self.assertEquals(len(prefs), 0)  # collection is empty before loading
     prefs.SetInt('myValue', 444)
     self.assertEquals(len(prefs), 1)
     self.assertEquals(prefs.GetInt('myValue'), 444)
@@ -80,7 +80,7 @@ class SharedPrefsTest(unittest.TestCase):
   def testLoad(self):
     prefs = shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml')
-    self.assertEquals(len(prefs), 0) # collection is empty before loading
+    self.assertEquals(len(prefs), 0)  # collection is empty before loading
     prefs.Load()
     self.assertEquals(len(prefs), len(self.expected_data))
     self.assertEquals(prefs.AsDict(), self.expected_data)
@@ -93,42 +93,42 @@ class SharedPrefsTest(unittest.TestCase):
     self.assertEquals(prefs.AsDict(), self.expected_data)
     self.assertFalse(prefs.changed)
     prefs.Clear()
-    self.assertEquals(len(prefs), 0) # collection is empty now
+    self.assertEquals(len(prefs), 0)  # collection is empty now
     self.assertTrue(prefs.changed)
 
   def testCommit(self):
     prefs = shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'other_prefs.xml')
-    self.assertFalse(self.device.FileExists(prefs.path)) # file does not exist
+    self.assertFalse(self.device.FileExists(prefs.path))  # file does not exist
     prefs.Load()
-    self.assertEquals(len(prefs), 0) # file did not exist, collection is empty
+    self.assertEquals(len(prefs), 0)  # file did not exist, collection is empty
     prefs.SetInt('magicNumber', 42)
     prefs.SetFloat('myMetric', 3.14)
     prefs.SetLong('bigNumner', 6000000000)
     prefs.SetStringSet('apps', ['gmail', 'chrome', 'music'])
-    self.assertFalse(self.device.FileExists(prefs.path)) # still does not exist
+    self.assertFalse(self.device.FileExists(prefs.path))  # still does not exist
     self.assertTrue(prefs.changed)
     prefs.Commit()
-    self.assertTrue(self.device.FileExists(prefs.path)) # should exist now
+    self.assertTrue(self.device.FileExists(prefs.path))  # should exist now
     self.device.KillAll.assert_called_once_with(prefs.package, exact=True,
                                                 as_root=True, quiet=True)
     self.assertFalse(prefs.changed)
 
     prefs = shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'other_prefs.xml')
-    self.assertEquals(len(prefs), 0) # collection is empty before loading
+    self.assertEquals(len(prefs), 0)  # collection is empty before loading
     prefs.Load()
     self.assertEquals(prefs.AsDict(), {
         'magicNumber': 42,
         'myMetric': 3.14,
         'bigNumner': 6000000000,
-        'apps': ['gmail', 'chrome', 'music']}) # data survived roundtrip
+        'apps': ['gmail', 'chrome', 'music']})  # data survived roundtrip
 
   def testAsContextManager_onlyReads(self):
     with shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml') as prefs:
-      self.assertEquals(prefs.AsDict(), self.expected_data) # loaded and ready
-    self.assertEquals(self.device.WriteFile.call_args_list, []) # did not write
+      self.assertEquals(prefs.AsDict(), self.expected_data)  # loaded and ready
+    self.assertEquals(self.device.WriteFile.call_args_list, [])  # did not write
 
   def testAsContextManager_readAndWrite(self):
     with shared_prefs.SharedPrefs(
@@ -137,14 +137,14 @@ class SharedPrefsTest(unittest.TestCase):
       prefs.Remove('someHashValue')
       prefs.SetString('newString', 'hello')
 
-    self.assertTrue(self.device.WriteFile.called) # did write
+    self.assertTrue(self.device.WriteFile.called)  # did write
     with shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml') as prefs:
       # changes persisted
       self.assertTrue(prefs.GetBoolean('featureEnabled'))
       self.assertFalse(prefs.HasProperty('someHashValue'))
       self.assertEquals(prefs.GetString('newString'), 'hello')
-      self.assertTrue(prefs.HasProperty('databaseVersion')) # still there
+      self.assertTrue(prefs.HasProperty('databaseVersion'))  # still there
 
   def testAsContextManager_commitAborted(self):
     with self.assertRaises(TypeError):
@@ -153,9 +153,9 @@ class SharedPrefsTest(unittest.TestCase):
         prefs.SetBoolean('featureEnabled', True)
         prefs.Remove('someHashValue')
         prefs.SetString('newString', 'hello')
-        prefs.SetInt('newString', 123) # oops!
+        prefs.SetInt('newString', 123)  # oops!
 
-    self.assertEquals(self.device.WriteFile.call_args_list, []) # did not write
+    self.assertEquals(self.device.WriteFile.call_args_list, [])  # did not write
     with shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml') as prefs:
       # contents were not modified

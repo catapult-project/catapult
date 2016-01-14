@@ -30,6 +30,7 @@ def RunTests():
     js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
 
+
 def Main(argv):
   parser = argparse.ArgumentParser(
       description='Run d8 tests.')

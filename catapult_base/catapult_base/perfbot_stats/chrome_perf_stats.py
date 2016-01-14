@@ -51,7 +51,7 @@ def main():
       days = range(1, calendar.monthrange(year, month)[1] + 1)
     else:
       day = int(sys.argv[3])
-      if day > 31 or day <=0:
+      if day > 31 or day <= 0:
         print USAGE
         sys.exit(0)
       days = [day]
@@ -84,6 +84,7 @@ def _UpdateSuccessRatesWithResult(
   success_rates[date_dict_str][builder]['count'] += count
   success_rates[date_dict_str][builder]['success_count'] += success_count
 
+
 def _SummarizeSuccessRates(success_rates):
   overall_success_rates = []
   for day, results in success_rates.iteritems():
@@ -102,8 +103,9 @@ def _SummarizeSuccessRates(success_rates):
 
 def UploadToPerfDashboard(success_rates):
   for success_rate in success_rates:
-    date_str = ('%s-%s-%s' %
-        (success_rate[0][0:4], success_rate[0][4:6], success_rate[0][6:8]))
+    date_str = '%s-%s-%s' % (success_rate[0][0:4],
+                             success_rate[0][4:6],
+                             success_rate[0][6:8])
     dashboard_data = {
         'master': 'WaterfallStats',
         'bot': 'ChromiumPerf',

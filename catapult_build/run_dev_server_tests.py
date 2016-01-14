@@ -107,7 +107,7 @@ def FindDepotTools():
   # Check if depot_tools is in the path
   for path in os.environ['PATH'].split(os.pathsep):
     if IsDepotToolsPath(path):
-        return path.rstrip(os.sep)
+      return path.rstrip(os.sep)
 
   return None
 
@@ -227,7 +227,7 @@ def Main(argv):
       port = '0'
     server_command = [server_path, '--no-install-hooks', '--port', port]
     if sys.platform.startswith('win'):
-        server_command = ['python.exe'] + server_command
+      server_command = ['python.exe'] + server_command
     print "Starting dev_server..."
     server_process = subprocess.Popen(
         server_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

@@ -41,6 +41,7 @@ def _TimeoutRetryWrapper(
     if pass_values:
       kwargs['timeout'] = timeout
       kwargs['retries'] = retries
+
     @functools.wraps(f)
     def impl():
       return f(*args, **kwargs)
@@ -167,6 +168,7 @@ def WithTimeoutAndRetriesFromInstance(
       if min_default_timeout is not None:
         ret = max(min_default_timeout, ret)
       return kwargs.get('timeout', ret)
+
     def get_retries(inst, *_args, **kwargs):
       return kwargs.get('retries', getattr(inst, default_retries_name))
     return _TimeoutRetryWrapper(f, get_timeout, get_retries, pass_values=True)

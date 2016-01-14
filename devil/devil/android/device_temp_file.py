@@ -15,6 +15,7 @@ from devil.utils import cmd_helper
 
 
 class DeviceTempFile(object):
+
   def __init__(self, adb, suffix='', prefix='temp_file', dir='/data/local/tmp'):
     """Find an unused temporary file path on the device.
 

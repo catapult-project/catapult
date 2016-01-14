@@ -21,7 +21,7 @@ from devil.android.sdk import fastboot
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 _BOARD = 'board_type'
 _SERIAL = '0123456789abcdef'
@@ -59,6 +59,7 @@ def _FastbootWrapperMock(test_serial):
   fastbooter.__str__ = mock.Mock(return_value=test_serial)
   fastbooter.Devices.return_value = [test_serial]
   return fastbooter
+
 
 def _DeviceUtilsMock(test_serial):
   device = mock.Mock(spec=device_utils.DeviceUtils)
@@ -231,6 +232,7 @@ class FastbootUtilsVerifyBoard(FastbootUtilsTest):
     with mock.patch('__builtin__.open', return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_INVALID_FILES):
         self.assertFalse(self.fastboot._VerifyBoard('test'))
+
 
 class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
 

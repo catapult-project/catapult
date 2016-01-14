@@ -24,10 +24,11 @@ from devil.utils import cmd_helper
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 class _MockApkHelper(object):
+
   def __init__(self, path, package_name, perms=None):
     self.path = path
     self.package_name = package_name
@@ -123,6 +124,7 @@ class MockTempFile(object):
 
 
 class _PatchedFunction(object):
+
   def __init__(self, patched=None, mocked=None):
     self.patched = patched
     self.mocked = mocked
@@ -722,6 +724,7 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):
+
   def testUninstall_callsThrough(self):
     with self.assertCalls(
         (self.call.device._GetApplicationPathsInternal('test.package'),
@@ -736,6 +739,7 @@ class DeviceUtilsUninstallTest(DeviceUtilsTest):
 
 
 class DeviceUtilsSuTest(DeviceUtilsTest):
+
   def testSu_preM(self):
     with self.patch_call(
         self.call.device.build_version_sdk,
@@ -989,7 +993,7 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
         (self.call.device.GetPids('some.process'),
          {'some.processing.thing': ['5678']}),
         (self.call.device.GetPids('some.process'),
-         {'some.process': ['1111']})): #  Other instance with different pid.
+         {'some.process': ['1111']})):  # Other instance with different pid.
       self.assertEquals(
           2, self.device.KillAll('some.process', blocking=True))
 
@@ -1360,6 +1364,7 @@ class DeviceUtilsGoHomeTest(DeviceUtilsTest):
          ['mCurrentFocus Launcher'])):
       self.device.GoHome()
 
+
 class DeviceUtilsForceStopTest(DeviceUtilsTest):
 
   def testForceStop(self):
@@ -1692,7 +1697,7 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
         self.device._WriteFileWithPush('/path/to/device/file', contents)
 
   def testWriteFile_withPush(self):
-    contents = 'some large contents ' * 26 # 20 * 26 = 520 chars
+    contents = 'some large contents ' * 26  # 20 * 26 = 520 chars
     with self.assertCalls(
         self.call.device._WriteFileWithPush('/path/to/device/file', contents)):
       self.device.WriteFile('/path/to/device/file', contents)
@@ -1704,7 +1709,7 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
       self.device.WriteFile('/path/to/device/file', contents, force_push=True)
 
   def testWriteFile_withPushAndSU(self):
-    contents = 'some large contents ' * 26 # 20 * 26 = 520 chars
+    contents = 'some large contents ' * 26  # 20 * 26 = 520 chars
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
@@ -2185,8 +2190,8 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
   def testGrantPermissions_BlackList(self):
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
-        self.device.GrantPermissions(
-            'package', ['android.permission.ACCESS_MOCK_LOCATION'])
+      self.device.GrantPermissions(
+          'package', ['android.permission.ACCESS_MOCK_LOCATION'])
 
 
 class DeviecUtilsIsScreenOn(DeviceUtilsTest):
@@ -2253,7 +2258,6 @@ class DeviecUtilsSetScreen(DeviceUtilsTest):
         (self.call.device.RunShellCommand('input keyevent 26'), []),
         (self.call.device.IsScreenOn(), True)):
       self.device.SetScreen(True)
-
 
   @mock.patch('time.sleep', mock.Mock())
   def testSetScreen_off(self):

@@ -8,6 +8,7 @@ from perf_insights import trace_handle
 
 
 class InMemoryTraceHandle(trace_handle.TraceHandle):
+
   def __init__(self, run_info, data):
     super(InMemoryTraceHandle, self).__init__(run_info)
     self.data = data

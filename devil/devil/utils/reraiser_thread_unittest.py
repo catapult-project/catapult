@@ -17,6 +17,7 @@ class TestException(Exception):
 
 class TestReraiserThread(unittest.TestCase):
   """Tests for reraiser_thread.ReraiserThread."""
+
   def testNominal(self):
     result = [None, None]
 
@@ -43,8 +44,10 @@ class TestReraiserThread(unittest.TestCase):
 
 class TestReraiserThreadGroup(unittest.TestCase):
   """Tests for reraiser_thread.ReraiserThreadGroup."""
+
   def testInit(self):
     ran = [False] * 5
+
     def f(i):
       ran[i] = True
 
@@ -57,6 +60,7 @@ class TestReraiserThreadGroup(unittest.TestCase):
 
   def testAdd(self):
     ran = [False] * 5
+
     def f(i):
       ran[i] = True
 
@@ -81,6 +85,7 @@ class TestReraiserThreadGroup(unittest.TestCase):
     def f():
       pass
     event = threading.Event()
+
     def g():
       event.wait()
     group = reraiser_thread.ReraiserThreadGroup(
@@ -94,6 +99,7 @@ class TestReraiserThreadGroup(unittest.TestCase):
 
 class TestRunAsync(unittest.TestCase):
   """Tests for reraiser_thread.RunAsync."""
+
   def testNoArgs(self):
     results = reraiser_thread.RunAsync([])
     self.assertEqual([], results)

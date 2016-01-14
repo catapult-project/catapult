@@ -6,6 +6,7 @@ import unittest
 
 from perf_insights import function_handle
 
+
 class ModuleToLoadTests(unittest.TestCase):
 
   def testExactlyOneHrefOrFilename(self):
@@ -69,7 +70,7 @@ class FunctionHandleTests(unittest.TestCase):
 
     self.assertEquals(
         handle.AsDict(), {
-            'modules_to_load' : [{'href': '/foo'}],
+            'modules_to_load': [{'href': '/foo'}],
             'function_name': 'Bar'
         })
 

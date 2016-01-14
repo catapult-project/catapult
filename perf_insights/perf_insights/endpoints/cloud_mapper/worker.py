@@ -23,6 +23,7 @@ _DEFAULT_PARALLEL_DOWNLOADS = 16
 
 
 class EnvVarModifier(object):
+
   def __init__(self, **kwargs):
     self._vars = {}
     self._kwargs = kwargs
@@ -39,7 +40,7 @@ class EnvVarModifier(object):
 
 
 def _is_devserver():
-  server_software = os.environ.get('SERVER_SOFTWARE','')
+  server_software = os.environ.get('SERVER_SOFTWARE', '')
   return server_software and server_software.startswith('Development')
 
 
@@ -72,6 +73,7 @@ def _DownloadTraces(traces):
 
 
 class TaskPage(webapp2.RequestHandler):
+
   def post(self):
     os.putenv('PI_CLOUD_WORKER', '1')
     try:

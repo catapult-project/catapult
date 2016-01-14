@@ -6,7 +6,9 @@ import unittest
 from perf_insights import value as value_module
 from perf_insights.value import run_info as run_info_module
 
+
 class ValueTests(unittest.TestCase):
+
   def testDict(self):
     run_info = run_info_module.RunInfo('file:///a.json', '/a.json',
                                        metadata={'m': 1})
@@ -22,7 +24,6 @@ class ValueTests(unittest.TestCase):
     d2 = v.AsDict()
 
     self.assertEquals(d, d2)
-
 
   def testFailure(self):
     run_info = run_info_module.RunInfo('file:///a.json', '/a.json',

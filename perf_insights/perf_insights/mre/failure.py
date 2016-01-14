@@ -15,7 +15,7 @@ class Failure(object):
     self.stack = stack
 
   def AsDict(self):
-    return  {
+    return {
         'job_guid': self.job_guid,
         'function_handle_guid': self.function_handle_guid,
         'trace_guid': self.trace_guid,

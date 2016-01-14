@@ -71,6 +71,7 @@ def run_adb_shell(shell_args, device_serial):
 
   return (adb_output, adb_return_code)
 
+
 def get_device_sdk_version():
   """Uses adb to attempt to determine the SDK version of a running device."""
 
@@ -81,7 +82,7 @@ def get_device_sdk_version():
   # command-line so we can send the adb command to the correct device.
   parser = OptionParserIgnoreErrors()
   parser.add_option('-e', '--serial', dest='device_serial', type='string')
-  options, unused_args = parser.parse_args() # pylint: disable=unused-variable
+  options, unused_args = parser.parse_args()  # pylint: disable=unused-variable
 
   success = False
 

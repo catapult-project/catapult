@@ -32,36 +32,36 @@ STEP_STATS_URL = ('https://chrome-infra-stats.appspot.com/_ah/api/stats/v1/'
                   'stats/last/chromium.perf/%s/%s/20')
 
 IGNORED_STEPS = [
-  'List Perf Tests',
-  'Sharded Perf Tests',
-  'authorize_adb_devices',
-  'bot_update',
-  'build__schedule__time__',
-  'clean local files',
-  'cleanup_temp',
-  'device_status_check',
-  'extract build',
-  'gclient runhooks',
-  'get compile targets for scripts',
-  'get perf test list',
-  'gsutil download_build_product',
-  'host_info',
-  'install ChromeShell.apk',
-  'json.output cache',
-  'json.output cache',
-  'overall__build__result__',
-  'overall__queued__time__',
-  'provision_devices',
-  'read test spec',
-  'rmtree build directory',
-  'setup_build',
-  'spawn_logcat_monitor',
-  'stack_tool_for_tombstones',
-  'stack_tool_with_logcat_dump',
-  'steps',
-  'test_report',
-  'unzip_build_product',
-  'update_scripts'
+    'List Perf Tests',
+    'Sharded Perf Tests',
+    'authorize_adb_devices',
+    'bot_update',
+    'build__schedule__time__',
+    'clean local files',
+    'cleanup_temp',
+    'device_status_check',
+    'extract build',
+    'gclient runhooks',
+    'get compile targets for scripts',
+    'get perf test list',
+    'gsutil download_build_product',
+    'host_info',
+    'install ChromeShell.apk',
+    'json.output cache',
+    'json.output cache',
+    'overall__build__result__',
+    'overall__queued__time__',
+    'provision_devices',
+    'read test spec',
+    'rmtree build directory',
+    'setup_build',
+    'spawn_logcat_monitor',
+    'stack_tool_for_tombstones',
+    'stack_tool_with_logcat_dump',
+    'steps',
+    'test_report',
+    'unzip_build_product',
+    'update_scripts'
 ]
 
 KNOWN_TESTERS_LIST = [
@@ -117,7 +117,7 @@ outfilename = sys.argv[1]
 threshold_time = datetime.now() - timedelta(days=2)
 
 col_names = [('builder', 'step', 'run_count', 'stddev', 'mean', 'maximum',
-             'median', 'seventyfive', 'ninety', 'ninetynine')]
+              'median', 'seventyfive', 'ninety', 'ninetynine')]
 with open(outfilename, 'wb') as f:
   writer = csv.writer(f)
   writer.writerows(col_names)
@@ -128,7 +128,7 @@ for builder in KNOWN_TESTERS_LIST:
   response = urllib2.urlopen(url)
   results = json.load(response)
   steps = results['steps']
-  steps.sort() # to group tests and their references together.
+  steps.sort()  # to group tests and their references together.
   for step in steps:
     if step in IGNORED_STEPS:
       continue

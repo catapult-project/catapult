@@ -55,6 +55,7 @@ ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
 
 class AtraceAgentTest(unittest.TestCase):
+
   def test_construct_trace_command(self):
     options, categories = systrace.parse_options(SYSTRACE_CMD)
     agent = atrace_agent.AtraceAgent(options, categories)
@@ -62,10 +63,9 @@ class AtraceAgentTest(unittest.TestCase):
     self.assertEqual(' '.join(TRACE_CMD), ' '.join(tracer_args))
     self.assertEqual(True, agent.expect_trace())
 
-
   def test_extract_thread_list(self):
     with contextlib.nested(open(ATRACE_EXTRACTED_THREADS, 'r'),
-                           open(ATRACE_THREAD_LIST)) as (f1,f2):
+                           open(ATRACE_THREAD_LIST)) as (f1, f2):
 
       atrace_result = f1.read()
       ps_dump = f2.read()
@@ -150,6 +150,7 @@ class AtraceAgentTest(unittest.TestCase):
 
 
 class AtraceLegacyAgentTest(unittest.TestCase):
+
   def test_construct_trace_command(self):
     options, categories = systrace.parse_options(SYSTRACE_CMD)
     agent = atrace_agent.AtraceLegacyAgent(options, categories)
@@ -159,6 +160,7 @@ class AtraceLegacyAgentTest(unittest.TestCase):
 
 
 class BootAgentTest(unittest.TestCase):
+
   def test_boot(self):
     options, categories = systrace.parse_options(SYSTRACE_BOOT_CMD)
     agent = atrace_agent.BootAgent(options, categories)

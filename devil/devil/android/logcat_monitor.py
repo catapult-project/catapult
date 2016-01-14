@@ -221,6 +221,7 @@ class LogcatMonitor(object):
       logging.warning('Need to call |Close| on the logcat monitor when done!')
       self._record_file.close()
 
+
 class LogcatMonitorCommandError(device_errors.CommandFailedError):
   """Exception for errors with logcat monitor commands."""
   pass

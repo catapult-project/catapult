@@ -22,6 +22,7 @@ except ImportError:
 
 _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
 
+
 def SingleQuote(s):
   """Return an shell-escaped version of the string using single quotes.
 
@@ -38,6 +39,7 @@ def SingleQuote(s):
     The string quoted using single quotes.
   """
   return pipes.quote(s)
+
 
 def DoubleQuote(s):
   """Return an shell-escaped version of the string using double quotes.
@@ -175,6 +177,7 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False):
     logging.debug('Truncated output:')
   logging.debug(stdout[:4096])
   return (status, stdout)
+
 
 def GetCmdStatusOutputAndError(args, cwd=None, shell=False):
   """Executes a subprocess and returns its exit code, output, and errors.

@@ -4,7 +4,10 @@
 
 # Simplified version of telemetry Value system, just enough for us to get
 # perf_insights up and running.
+
+
 class Value(object):
+
   def __init__(self, run_info, name, units, description=None, important=False,
                ir_stable_id=None):
     self.run_info = run_info
@@ -53,7 +56,8 @@ class Value(object):
 
 
 class DictValue(Value):
-  def __init__(self,  run_info, name, value, description=None, important=False,
+
+  def __init__(self, run_info, name, value, description=None, important=False,
                ir_stable_id=None):
     assert isinstance(value, dict)
     super(DictValue, self).__init__(run_info, name, units=None,
@@ -81,13 +85,14 @@ class DictValue(Value):
 
   @property
   def value(self):
-      return self._value
+    return self._value
 
   def __getitem__(self, key):
     return self._value[key]
 
 
 class FailureValue(Value):
+
   def __init__(self, run_info, failure_type_name, description, stack,
                important=False, ir_stable_id=None):
     super(FailureValue, self).__init__(run_info,
@@ -122,6 +127,7 @@ class FailureValue(Value):
 
 
 class SkipValue(Value):
+
   def __init__(self, run_info, skipped_result_name,
                description=None, important=False, ir_stable_id=None):
     super(SkipValue, self).__init__(run_info,

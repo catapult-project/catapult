@@ -23,6 +23,7 @@ _RE_BOUNDS = re.compile(
 
 
 class _UiNode(object):
+
   def __init__(self, device, xml_node, package=None):
     """Object to interact with a UI node from an xml snapshot.
 

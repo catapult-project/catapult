@@ -15,6 +15,7 @@ import vinn
 
 
 class TemporaryMapScript(object):
+
   def __init__(self, js):
     self.file = tempfile.NamedTemporaryFile()
     self.file.write("""
@@ -35,23 +36,28 @@ class TemporaryMapScript(object):
 
   @property
   def filename(self):
-      return self.file.name
+    return self.file.name
 
 
 class FunctionLoadingErrorValue(value_module.FailureValue):
   pass
 
+
 class FunctionNotDefinedErrorValue(value_module.FailureValue):
   pass
+
 
 class MapFunctionErrorValue(value_module.FailureValue):
   pass
 
+
 class TraceImportErrorValue(value_module.FailureValue):
   pass
 
+
 class NoResultsAddedErrorValue(value_module.FailureValue):
   pass
+
 
 class InternalMapError(Exception):
   pass
@@ -63,6 +69,7 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
   'MapFunctionError': MapFunctionErrorValue,
   'NoResultsAddedError': NoResultsAddedErrorValue
 }
+
 
 def MapSingleTrace(results, trace_handle, map_function_handle):
   project = perf_insights_project.PerfInsightsProject()
@@ -108,8 +115,7 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
         'vinn runtime error while mapping trace.', 'Unknown stack'))
     return
 
-
-  found_at_least_one_result=False
+  found_at_least_one_result = False
   for line in res.stdout.split('\n'):
     m = re.match('^MAP_RESULT_VALUE: (.+)', line, re.DOTALL)
     if m:

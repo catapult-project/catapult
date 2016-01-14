@@ -156,7 +156,7 @@ class ParallelizerTest(unittest.TestCase):
       self.assertEquals(str(i), results[i])
 
   def testGetItem(self):
-    devices = [ParallelizerTestObject(range(i, i+10)) for i in xrange(0, 10)]
+    devices = [ParallelizerTestObject(range(i, i + 10)) for i in xrange(0, 10)]
     results = ParallelizerTestObject.parallel(devices)[9].pGet(1)
     self.assertEquals(range(9, 19), results)
 

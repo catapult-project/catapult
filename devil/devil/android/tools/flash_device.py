@@ -48,7 +48,7 @@ def main():
     try:
       fastboot.FlashDevice(args.build_path, wipe=args.wipe)
       flashed_devices.append(device)
-    except Exception: # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
       logging.exception('Device %s failed to flash.', str(device))
       failed_devices.append(device)
 

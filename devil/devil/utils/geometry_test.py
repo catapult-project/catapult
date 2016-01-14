@@ -10,6 +10,7 @@ from devil.utils import geometry as g
 
 
 class PointTest(unittest.TestCase):
+
   def testStr(self):
     p = g.Point(1, 2)
     self.assertEquals(str(p), '(1, 2)')
@@ -42,7 +43,9 @@ class PointTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       p * 4  # Can't multiply by a scalar on the right.
 
+
 class RectangleTest(unittest.TestCase):
+
   def testStr(self):
     r = g.Rectangle(g.Point(0, 1), g.Point(2, 3))
     self.assertEquals(str(r), '[(0, 1), (2, 3)]')

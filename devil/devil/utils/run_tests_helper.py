@@ -12,14 +12,14 @@ import time
 class CustomFormatter(logging.Formatter):
   """Custom log formatter."""
 
-  #override
+  # override
   def __init__(self, fmt='%(threadName)-4s  %(message)s'):
     # Can't use super() because in older Python versions logging.Formatter does
     # not inherit from object.
     logging.Formatter.__init__(self, fmt=fmt)
     self._creation_time = time.time()
 
-  #override
+  # override
   def format(self, record):
     # Can't use super() because in older Python versions logging.Formatter does
     # not inherit from object.

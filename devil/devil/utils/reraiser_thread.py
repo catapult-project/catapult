@@ -74,12 +74,12 @@ class ReraiserThread(threading.Thread):
     self.ReraiseIfException()
     return self._ret
 
-  #override
+  # override
   def run(self):
     """Overrides Thread.run() to add support for reraising exceptions."""
     try:
       self._ret = self._func(*self._args, **self._kwargs)
-    except: # pylint: disable=W0702
+    except:  # pylint: disable=W0702
       self._exc_info = sys.exc_info()
 
 

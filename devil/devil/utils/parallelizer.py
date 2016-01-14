@@ -122,7 +122,7 @@ class Parallelizer(object):
             o, args=args, kwargs=kwargs,
             name='%s.%s' % (str(d), o.__name__))
          for d, o in zip(self._orig_objs, self._objs)])
-    r._objs.StartAll() # pylint: disable=W0212
+    r._objs.StartAll()  # pylint: disable=W0212
     return r
 
   def pFinish(self, timeout):
@@ -178,7 +178,7 @@ class Parallelizer(object):
             f, args=tuple([o] + list(args)), kwargs=kwargs,
             name='%s(%s)' % (f.__name__, d))
          for d, o in zip(self._orig_objs, self._objs)])
-    r._objs.StartAll() # pylint: disable=W0212
+    r._objs.StartAll()  # pylint: disable=W0212
     return r
 
   def _assertNoShadow(self, attr_name):
@@ -204,7 +204,7 @@ class Parallelizer(object):
 class SyncParallelizer(Parallelizer):
   """A Parallelizer that blocks on function calls."""
 
-  #override
+  # override
   def __call__(self, *args, **kwargs):
     """Emulate calling |self| with |args| and |kwargs|.
 
@@ -220,7 +220,7 @@ class SyncParallelizer(Parallelizer):
     r.pFinish(None)
     return r
 
-  #override
+  # override
   def pMap(self, f, *args, **kwargs):
     """Map a function across the current wrapped objects in parallel.
 

@@ -11,12 +11,13 @@ import unittest
 from devil import devil_env
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 
 class TestCase(unittest.TestCase):
   """Adds assertCalls to TestCase objects."""
   class _AssertCalls(object):
+
     def __init__(self, test_case, expected_calls, watched):
       def call_action(pair):
         if isinstance(pair, type(mock.call)):
@@ -45,7 +46,7 @@ class TestCase(unittest.TestCase):
 
       self._test_case = test_case
       self._expected_calls = [call_action(pair) for pair in expected_calls]
-      watched = watched.copy() # do not pollute the caller's dict
+      watched = watched.copy()  # do not pollute the caller's dict
       watched.update((call.parent.name, call.parent)
                      for call, _ in self._expected_calls)
       self._patched = [test_case.patch_call(call, side_effect=do_check(call))

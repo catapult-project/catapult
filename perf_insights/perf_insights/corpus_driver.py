@@ -4,6 +4,8 @@
 import os
 import sys
 
+
 class CorpusDriver(object):
+
   def GetTraceHandlesMatchingQuery(self, query):
     raise NotImplementedError()

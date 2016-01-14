@@ -22,6 +22,7 @@ class OffsetToken(object):
   representing the content, and an offset. Using relative positions makes it
   easy to insert and remove tokens.
   """
+
   def __init__(self, token_type, string, offset):
     self._type = token_type
     self._string = string
@@ -72,9 +73,10 @@ def Tokenize(f):
     else:
       erow, ecol = prev_token[3]
       if erow == srow:
-        offset_tokens.append(OffsetToken(token_type, string, (0, scol-ecol)))
+        offset_tokens.append(OffsetToken(token_type, string, (0, scol - ecol)))
       else:
-        offset_tokens.append(OffsetToken(token_type, string, (srow-erow, scol)))
+        offset_tokens.append(OffsetToken(
+            token_type, string, (srow - erow, scol)))
 
   return offset_tokens
 

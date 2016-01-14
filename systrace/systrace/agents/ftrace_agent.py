@@ -8,7 +8,9 @@ import time
 
 import systrace_agent
 
+
 class FtraceAgentIo(object):
+
   @staticmethod
   def writeFile(path, data):
     with open(path, 'w') as f:
@@ -23,52 +25,70 @@ class FtraceAgentIo(object):
   def haveWritePermissions(path):
     return os.access(path, os.W_OK)
 
-FT_DIR          = "/sys/kernel/debug/tracing/"
-FT_CLOCK        = FT_DIR + "trace_clock"
-FT_BUFFER_SIZE  = FT_DIR + "buffer_size_kb"
-FT_TRACER       = FT_DIR + "current_tracer"
-FT_PRINT_TGID   = FT_DIR + "options/print-tgid"
-FT_TRACE_ON     = FT_DIR + "tracing_on"
-FT_TRACE        = FT_DIR + "trace"
+FT_DIR = "/sys/kernel/debug/tracing/"
+FT_CLOCK = FT_DIR + "trace_clock"
+FT_BUFFER_SIZE = FT_DIR + "buffer_size_kb"
+FT_TRACER = FT_DIR + "current_tracer"
+FT_PRINT_TGID = FT_DIR + "options/print-tgid"
+FT_TRACE_ON = FT_DIR + "tracing_on"
+FT_TRACE = FT_DIR + "trace"
 FT_TRACE_MARKER = FT_DIR + "trace_marker"
-FT_OVERWRITE    = FT_DIR + "options/overwrite"
+FT_OVERWRITE = FT_DIR + "options/overwrite"
 
 all_categories = {
-  "sched"      : {"desc" : "CPU Scheduling",
-                  "req" : ["sched/sched_switch/", "sched/sched_wakeup/"]},
-  "freq"       : {"desc" : "CPU Frequency",
-                  "req" : ["power/cpu_frequency/", "power/clock_set_rate/"]},
-  "irq"        : {"desc" : "CPU IRQS and IPIS",
-                  "req" : ["irq/"],
-                  "opt" : ["ipi/"]},
-  "workq"      : {"desc" : "Kernel workqueues",
-                  "req" : ["workqueue/"]},
-  "memreclaim" : {"desc" : "Kernel Memory Reclaim",
-                  "req" : ["vmscan/mm_vmscan_direct_reclaim_begin/",
-                           "vmscan/mm_vmscan_direct_reclaim_end/",
-                           "vmscan/mm_vmscan_kswapd_wake/",
-                           "vmscan/mm_vmscan_kswapd_sleep/"]},
-  "idle"       : {"desc" : "CPU Idle",
-                  "req" : ["power/cpu_idle/"]},
-  "regulators" : {"desc" : "Voltage and Current Regulators",
-                  "req" : ["regulator/"]},
-  "disk"       : {"desc" : "Disk I/O",
-                  "req" : ["block/block_rq_issue/",
-                           "block/block_rq_complete/"],
-                  "opt" : ["f2fs/f2fs_sync_file_enter/",
-                           "f2fs/f2fs_sync_file_exit/",
-                           "f2fs/f2fs_write_begin/",
-                           "f2fs/f2fs_write_end/",
-                           "ext4/ext4_da_write_begin/",
-                           "ext4/ext4_da_write_end/",
-                           "ext4/ext4_sync_file_enter/",
-                           "ext4/ext4_sync_file_exit/"]}
+    "sched": {
+          "desc": "CPU Scheduling",
+          "req": ["sched/sched_switch/", "sched/sched_wakeup/"]
+    },
+    "freq": {
+          "desc": "CPU Frequency",
+          "req": ["power/cpu_frequency/", "power/clock_set_rate/"]
+    },
+    "irq": {
+          "desc": "CPU IRQS and IPIS",
+          "req": ["irq/"],
+          "opt": ["ipi/"]
+    },
+    "workq": {
+          "desc": "Kernel workqueues",
+          "req": ["workqueue/"]
+    },
+    "memreclaim": {
+          "desc": "Kernel Memory Reclaim",
+          "req": ["vmscan/mm_vmscan_direct_reclaim_begin/",
+                  "vmscan/mm_vmscan_direct_reclaim_end/",
+                  "vmscan/mm_vmscan_kswapd_wake/",
+                  "vmscan/mm_vmscan_kswapd_sleep/"]
+    },
+    "idle": {
+          "desc": "CPU Idle",
+          "req": ["power/cpu_idle/"]
+    },
+    "regulators": {
+          "desc": "Voltage and Current Regulators",
+          "req": ["regulator/"]
+    },
+    "disk": {
+          "desc": "Disk I/O",
+          "req": ["block/block_rq_issue/",
+                  "block/block_rq_complete/"],
+          "opt": ["f2fs/f2fs_sync_file_enter/",
+                  "f2fs/f2fs_sync_file_exit/",
+                  "f2fs/f2fs_write_begin/",
+                  "f2fs/f2fs_write_end/",
+                  "ext4/ext4_da_write_begin/",
+                  "ext4/ext4_da_write_end/",
+                  "ext4/ext4_sync_file_enter/",
+                  "ext4/ext4_sync_file_exit/"]
+    }
 }
+
 
 def try_create_agent(options, categories):
   if options.target != 'linux':
     return False
   return FtraceAgent(options, categories, FtraceAgentIo)
+
 
 class FtraceAgent(systrace_agent.SystraceAgent):
 
@@ -88,18 +108,18 @@ class FtraceAgent(systrace_agent.SystraceAgent):
     self._expect_trace = False
 
   def _get_trace_buffer_size(self):
-      buffer_size = 4096
-      if ((self._options.trace_buf_size is not None)
-          and (self._options.trace_buf_size > 0)):
-        buffer_size = self._options.trace_buf_size
-      return buffer_size
+    buffer_size = 4096
+    if ((self._options.trace_buf_size is not None)
+        and (self._options.trace_buf_size > 0)):
+      buffer_size = self._options.trace_buf_size
+    return buffer_size
 
   def _get_trace_time(self):
-      wait_time = 5
-      if ((self._options.trace_time is not None)
-          and (self._options.trace_time > 0)):
-        wait_time = self._options.trace_time
-      return wait_time
+    wait_time = 5
+    if ((self._options.trace_time is not None)
+        and (self._options.trace_time > 0)):
+      wait_time = self._options.trace_time
+    return wait_time
 
   def start(self):
     """Start tracing.
@@ -190,18 +210,18 @@ class FtraceAgent(systrace_agent.SystraceAgent):
     ret = []
     for event in all_categories:
       if self._is_category_available(event):
-         ret.append(event)
+        ret.append(event)
     return ret
 
   def _print_avail_categories(self):
-     avail = self._avail_categories()
-     if len(avail):
-       print "tracing options:"
-       for category in self._avail_categories():
-         desc = all_categories[category]["desc"]
-         print "{0: <16}".format(category), ": ", desc
-     else:
-       print "No tracing categories available - perhaps you need root?"
+    avail = self._avail_categories()
+    if len(avail):
+      print "tracing options:"
+      for category in self._avail_categories():
+        desc = all_categories[category]["desc"]
+        print "{0: <16}".format(category), ": ", desc
+    else:
+      print "No tracing categories available - perhaps you need root?"
 
   def _category_enable_paths(self, category):
     events_dir = FT_DIR + "events/"

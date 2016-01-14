@@ -20,7 +20,7 @@ from devil.android import device_utils_test
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 _DUMPSYS_OUTPUT = [
     '9,0,i,uid,1000,test_package1',
@@ -101,7 +101,9 @@ class BatteryUtilsInitTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       battery_utils.BatteryUtils('')
 
+
 class BatteryUtilsSetChargingTest(BatteryUtilsTest):
+
   @mock.patch('time.sleep', mock.Mock())
   def testHardwareSetCharging_enabled(self):
     self.battery._cache['profile'] = self._NEXUS_5
@@ -197,31 +199,31 @@ class BatteryUtilsGetPowerData(BatteryUtilsTest):
       self.assertEqual(data, check)
 
   def testGetPowerData_packageCollisionSame(self):
-      self.battery._cache['uids'] = {'test_package1': '1000'}
-      with self.assertCall(
-          self.call.device.RunShellCommand(
-              ['dumpsys', 'batterystats', '-c'],
-              check_return=True, large_output=True),
-          _DUMPSYS_OUTPUT):
-        data = self.battery.GetPowerData()
-        check = {
-          'system_total': 2000.0,
-          'per_package': {
-            'test_package1': {'uid': '1000', 'data': [1.0]},
-            'test_package2': {'uid': '1001', 'data': [2.0]}
-          }
+    self.battery._cache['uids'] = {'test_package1': '1000'}
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['dumpsys', 'batterystats', '-c'],
+            check_return=True, large_output=True),
+        _DUMPSYS_OUTPUT):
+      data = self.battery.GetPowerData()
+      check = {
+        'system_total': 2000.0,
+        'per_package': {
+          'test_package1': {'uid': '1000', 'data': [1.0]},
+          'test_package2': {'uid': '1001', 'data': [2.0]}
         }
-        self.assertEqual(data, check)
+      }
+      self.assertEqual(data, check)
 
   def testGetPowerData_packageCollisionDifferent(self):
-      self.battery._cache['uids'] = {'test_package1': '1'}
-      with self.assertCall(
-          self.call.device.RunShellCommand(
-              ['dumpsys', 'batterystats', '-c'],
-              check_return=True, large_output=True),
-          _DUMPSYS_OUTPUT):
-        with self.assertRaises(device_errors.CommandFailedError):
-          self.battery.GetPowerData()
+    self.battery._cache['uids'] = {'test_package1': '1'}
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['dumpsys', 'batterystats', '-c'],
+            check_return=True, large_output=True),
+        _DUMPSYS_OUTPUT):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.battery.GetPowerData()
 
   def testGetPowerData_cacheCleared(self):
     with self.assertCalls(
@@ -301,11 +303,11 @@ class BatteryUtilsDischargeDevice(BatteryUtilsTest):
     with self.assertCalls(
         (self.call.battery.GetBatteryInfo(), {'level': '100'})):
       with self.assertRaises(ValueError):
-          self.battery._DischargeDevice(100)
+        self.battery._DischargeDevice(100)
     with self.assertCalls(
         (self.call.battery.GetBatteryInfo(), {'level': '100'})):
       with self.assertRaises(ValueError):
-          self.battery._DischargeDevice(0)
+        self.battery._DischargeDevice(0)
 
 
 class BatteryUtilsGetBatteryInfoTest(BatteryUtilsTest):
@@ -478,7 +480,7 @@ class BatteryUtilsGetFuelGaugeChargeCounterTest(BatteryUtilsTest):
   def testGetFuelGaugeChargeCounter_noFuelGauge(self):
     self.battery._cache['profile'] = self._NEXUS_5
     with self.assertRaises(device_errors.CommandFailedError):
-        self.battery.GetFuelGaugeChargeCounter()
+      self.battery.GetFuelGaugeChargeCounter()
 
   def testGetFuelGaugeChargeCounter_fuelGaugePresent(self):
     self.battery._cache['profile'] = self._NEXUS_6
