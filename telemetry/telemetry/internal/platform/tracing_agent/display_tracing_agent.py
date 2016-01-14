@@ -16,7 +16,7 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
 
   def Start(self, config, timeout):
     del timeout  # unused
-    if config.tracing_options.enable_platform_display_trace:
+    if config.enable_platform_display_trace:
       self._platform_backend.StartDisplayTracing()
       return True
 

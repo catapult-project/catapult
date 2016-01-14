@@ -82,7 +82,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     config = tracing_config.TracingConfig()
     config.tracing_category_filter.AddIncludedCategory('foo')
-    config.tracing_options.enable_chrome_trace = enable_chrome_trace
+    config.enable_chrome_trace = enable_chrome_trace
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True
     agent.Start(config, 10)
     return agent

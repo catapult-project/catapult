@@ -122,7 +122,7 @@ class DevToolsClientBackend(object):
 
     self._CreateTracingBackendIfNeeded(is_tracing_running=False)
     self.StartChromeTracing(
-        trace_options=trace_config.tracing_options,
+        trace_config=trace_config,
         custom_categories=trace_config.tracing_category_filter.filter_string)
 
   @property
@@ -318,20 +318,20 @@ class DevToolsClientBackend(object):
     return self._tracing_backend.IsTracingSupported()
 
   def StartChromeTracing(
-      self, trace_options, custom_categories=None, timeout=10):
+      self, trace_config, custom_categories=None, timeout=10):
     """
     Args:
-        trace_options: An tracing_options.TracingOptions instance.
+        trace_config: An tracing_config.TracingConfig instance.
         custom_categories: An optional string containing a list of
                          comma separated categories that will be traced
                          instead of the default category set.  Example: use
                          "webkit,cc,disabled-by-default-cc.debug" to trace only
                          those three event categories.
     """
-    assert trace_options and trace_options.enable_chrome_trace
+    assert trace_config and trace_config.enable_chrome_trace
     self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.StartTracing(
-        trace_options, custom_categories, timeout)
+        trace_config, custom_categories, timeout)
 
   def StopChromeTracing(self, trace_data_builder, timeout=30):
     assert self.is_tracing_running
