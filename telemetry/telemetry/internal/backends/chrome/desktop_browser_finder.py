@@ -164,19 +164,22 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Add the explicit browser executable if given and we can handle it.
   if (finder_options.browser_executable and
       CanPossiblyHandlePath(finder_options.browser_executable)):
-    app_name = os.path.basename(finder_options.browser_executable)
+    is_content_shell = finder_options.browser_executable.endswith(
+        content_shell_app_name)
+    is_chrome_or_chromium = len([x for x in chromium_app_names if
+        finder_options.browser_executable.endswith(x)]) != 0
 
     # It is okay if the executable name doesn't match any of known chrome
     # browser executables, since it may be of a different browser (say,
     # mandoline).
-    if app_name in chromium_app_names or app_name == content_shell_app_name:
+    if is_chrome_or_chromium or is_content_shell:
       normalized_executable = os.path.expanduser(
           finder_options.browser_executable)
       if path_module.IsExecutable(normalized_executable):
         browser_directory = os.path.dirname(finder_options.browser_executable)
         browsers.append(PossibleDesktopBrowser(
             'exact', finder_options, normalized_executable, flash_path,
-            app_name == content_shell_app_name,
+            is_content_shell,
             browser_directory))
       else:
         raise exceptions.PathMissingError(

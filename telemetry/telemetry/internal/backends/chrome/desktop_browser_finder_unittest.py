@@ -147,6 +147,26 @@ class OSXFindTest(FindTestBase):
            'content-shell-debug', 'content-shell-release',
            'canary', 'system']))
 
+  def testFindExact(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._files.append(
+      '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
+    self._finder_options.browser_executable = (
+        '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
+    types = self.DoFindAllTypes()
+    self.assertTrue('exact' in types)
+
+  def testCannotFindExact(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
+    self._files.append(
+      '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
+    self._finder_options.browser_executable = (
+        '../../../foo2/Chromium.app/Contents/MacOS/Chromium')
+    self.assertRaises(Exception, self.DoFindAllTypes)
 
 class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
