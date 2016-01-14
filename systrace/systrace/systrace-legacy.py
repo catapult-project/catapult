@@ -10,7 +10,12 @@ This is a tool for capturing a trace that includes data from both userland and
 the kernel.  It creates an HTML file for visualizing the trace.
 """
 
-import errno, optparse, os, select, subprocess, sys, time, zlib
+import optparse
+import os
+import select
+import subprocess
+import sys
+import zlib
 
 # This list is based on the tags in frameworks/native/include/utils/Trace.h.
 trace_tag_bits = {

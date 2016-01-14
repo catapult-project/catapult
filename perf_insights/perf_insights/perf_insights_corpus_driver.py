@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import json
 import os
-import tempfile
 import urllib
 import urllib2
 

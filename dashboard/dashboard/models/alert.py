@@ -6,7 +6,6 @@
 
 from google.appengine.ext import ndb
 
-from dashboard.models import alert_group
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
 

@@ -25,7 +25,6 @@ import imp
 import optparse
 import os
 
-import util
 
 
 # The default agent directory.

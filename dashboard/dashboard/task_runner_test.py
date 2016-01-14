@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import mock
-import unittest
 
 from dashboard import task_runner
 from dashboard import testing_common

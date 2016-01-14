@@ -5,7 +5,6 @@
 # pylint: disable=unused-argument
 
 import os
-import sys
 import unittest
 
 from catapult_base import cloud_storage

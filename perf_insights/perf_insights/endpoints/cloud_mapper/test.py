@@ -1,17 +1,9 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
-import logging
 import os
-import urllib
-import uuid
 import webapp2
 
-from google.appengine.api import modules
-from google.appengine.api import taskqueue
-from google.appengine.api import urlfetch
-from perf_insights.endpoints.cloud_mapper import job_info
 from perf_insights import cloud_config
 
 

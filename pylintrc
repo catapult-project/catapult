@@ -38,7 +38,6 @@ disable =
   old-style-class,
   super-on-old-class,
   unused-argument,
-  unused-import,
 
 [REPORTS]
 

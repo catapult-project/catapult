@@ -23,13 +23,18 @@ _AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'mock')
 _AddDirToPythonPath(CATAPULT_PATH, 'catapult_base')
 
 
+# pylint: disable=unused-import
 from .archive_info import ArchiveInfo
 from .base_config import BaseConfig
 from .cloud_storage_info import CloudStorageInfo
 from .dependency_info import DependencyInfo
-from .manager import DependencyManager
-from .exceptions import (
-    CloudStorageUploadConflictError, EmptyConfigError, FileNotFoundError,
-    NoPathFoundError, ReadWriteError, UnsupportedConfigFormatError)
+from .exceptions import CloudStorageUploadConflictError
+from .exceptions import EmptyConfigError
+from .exceptions import FileNotFoundError
+from .exceptions import NoPathFoundError
+from .exceptions import ReadWriteError
+from .exceptions import UnsupportedConfigFormatError
 from .local_path_info import LocalPathInfo
+from .manager import DependencyManager
+# pylint: enable=unused-import
 

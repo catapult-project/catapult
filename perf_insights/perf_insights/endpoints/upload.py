@@ -14,7 +14,6 @@ from perf_insights import cloud_config
 
 import third_party.cloudstorage as gcs
 
-from google.appengine.api import app_identity
 from google.appengine.api import datastore_errors
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,

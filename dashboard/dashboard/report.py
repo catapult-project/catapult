@@ -5,7 +5,6 @@
 """Provides the web interface for reporting a graph of traces."""
 
 import json
-import os
 
 from google.appengine.ext import ndb
 

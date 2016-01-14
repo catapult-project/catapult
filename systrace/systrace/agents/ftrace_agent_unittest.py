@@ -4,13 +4,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import contextlib
-import os
 import unittest
 
 import agents.ftrace_agent as ftrace_agent
 import systrace
-import util
 
 SYSTRACE_HOST_CMD_DEFAULT = ['./systrace.py', '--target=linux']
 FT_DIR = "/sys/kernel/debug/tracing/"

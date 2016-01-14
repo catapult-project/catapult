@@ -13,8 +13,6 @@ import threading
 import traceback
 import webapp2
 
-from google.appengine.api import taskqueue
-from google.appengine.api import urlfetch
 from perf_insights import cloud_config
 from perf_insights.endpoints.cloud_mapper import cloud_helper
 

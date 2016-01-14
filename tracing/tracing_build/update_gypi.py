@@ -5,7 +5,6 @@
 import collections
 import os
 import re
-import sys
 
 import tracing_project
 from tracing_build import check_common

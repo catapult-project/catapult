@@ -1,12 +1,8 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import Queue as queue
-import os
 import multiprocessing
 import sys
-import threading
-import time
 
 from perf_insights import map_single_trace
 from perf_insights import results as results_module

@@ -34,7 +34,6 @@ datastore writes that may corrupt or unintentionally delete data.
 """
 
 import datetime
-import logging
 import marshal
 import cStringIO
 import sys

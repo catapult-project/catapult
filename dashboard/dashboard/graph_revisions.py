@@ -16,7 +16,6 @@ long time. This module also provides a function for updating the cache.
 
 import bisect
 import json
-import logging
 
 from dashboard import datastore_hooks
 from dashboard import namespaced_stored_object

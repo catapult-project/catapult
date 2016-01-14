@@ -4,7 +4,6 @@
 
 import datetime
 import logging
-import time
 import webapp2
 
 from perf_insights import cloud_config

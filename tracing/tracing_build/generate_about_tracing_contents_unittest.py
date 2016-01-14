@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import unittest
 import tempfile
 import shutil
-import sys
 
 from tracing_build import generate_about_tracing_contents
 

@@ -13,7 +13,6 @@ https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
 
-import calendar
 import csv
 import json
 import sys

@@ -6,7 +6,6 @@ import os
 import re
 import sys
 import tempfile
-import traceback
 
 
 from perf_insights import value as value_module

@@ -4,7 +4,6 @@
 
 """Checks to use in PRESUBMIT.py for HTML style violations."""
 
-import os
 import re
 
 import bs4

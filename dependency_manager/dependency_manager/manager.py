@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import os
-import sys
 
 from dependency_manager import base_config
 from dependency_manager import exceptions

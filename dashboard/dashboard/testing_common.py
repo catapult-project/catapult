@@ -11,7 +11,6 @@ import os
 import re
 import unittest
 import urllib
-import webapp2
 
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb

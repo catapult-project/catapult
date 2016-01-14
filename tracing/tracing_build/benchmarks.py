@@ -8,11 +8,7 @@ import pstats
 import StringIO
 import inspect
 import sys
-import os
 
-import tracing_project
-from py_vulcanize import generate
-from py_vulcanize import project
 
 
 class Bench(object):

@@ -16,9 +16,6 @@ findit/common/gitRepository.py (https://goo.gl/Rr8j9O).
 
 import argparse
 import json
-import os
-import re
-import sys
 import urllib2
 
 import depot_map  # pylint: disable=relative-import

@@ -10,7 +10,6 @@ import unittest
 
 import agents.atrace_agent as atrace_agent
 import systrace
-import util
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
 ATRACE_ARGS = ['atrace', '-z', '-t', '10', '-b', '4096']

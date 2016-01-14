@@ -2,19 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import json
 import os
-import sys
 
 import tracing_project
-from hooks import install
 
-from paste import httpserver
-from paste import fileapp
 
 import webapp2
-from webapp2 import Route, RedirectHandler
+from webapp2 import Route
 
 
 def _RelPathToUnixPath(p):

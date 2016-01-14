@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import json
-import tempfile
 import unittest
 
 from perf_insights import in_memory_trace_handle
