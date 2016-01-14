@@ -236,7 +236,7 @@ def Main(argv):
     if sys.platform != 'win32':
       output = server_process.stderr.readline()
       port = re.search(
-          'Now running on http://127.0.0.1:([\d]+)', output).group(1)
+          r'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
     xvfb_process = None
     chrome_info = None
@@ -264,7 +264,7 @@ def Main(argv):
         contents = os.listdir(
             os.path.join(tmpdir, platform_data['version_path']))
         for path in contents:
-          if re.match('\d+\.\d+\.\d+\.\d+', path):
+          if re.match(r'\d+\.\d+\.\d+\.\d+', path):
             version = path
       if platform_data.get('additional_paths'):
         for path in platform_data.get('additional_paths'):

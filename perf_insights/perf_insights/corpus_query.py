@@ -57,18 +57,18 @@ def _StringToValue(s):
     pass
 
   # Barewords are assumed to be fields.
-  m = re.match('([a-zA-Z0-9_]+)$', s)
+  m = re.match(r'([a-zA-Z0-9_]+)$', s)
   if m:
     return _ReadField(m.group(1))
 
   # Tuples.
-  m = re.match('\(.+\)$', s)
+  m = re.match(r'\(.+\)$', s)
   if m:
-    items = m.group(0).split(',\s*')
+    items = m.group(0).split(r',\s*')
     return _Constant([_StringToValue(x) for x in items])
 
   # Dates.
-  m = re.match('Date\((.+)\)$', s)
+  m = re.match(r'Date\((.+)\)$', s)
   if m:
     d = datetime.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S.%f")
     return _Constant(d)
@@ -206,7 +206,7 @@ class CorpusQuery(object):
     q = CorpusQuery()
     exprs = filterString.split(' AND ')
     for expr in exprs:
-      m = re.match('MAX_TRACE_HANDLES\s*=\s*(\d+)', expr)
+      m = re.match(r'MAX_TRACE_HANDLES\s*=\s*(\d+)', expr)
       if m:
         q.max_trace_handles = int(m.group(1))
         continue

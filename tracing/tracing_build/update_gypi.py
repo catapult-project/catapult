@@ -85,7 +85,7 @@ class GypiFile(BuildFile):
     # In the match,
     # group 1 is : 'file_group_name'
     # group 2 is : """  'path/to/one/file.extension',\n  'another/file.ex',\n"""
-    regexp_str = "'(%s)': \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
+    regexp_str = r"'(%s)': \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
     return re.compile(regexp_str, re.MULTILINE | re.DOTALL)
 
   def _GetReplacementListAsString(self, existing_list_as_string, filelist):

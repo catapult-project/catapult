@@ -33,7 +33,7 @@ def get_catapult_rev_in_file_():
     for line in lines[::-1]:
       if CATAPULT_REV_ in line:
         tokens = line.split(CATAPULT_REV_)
-        rev = re.sub('[=\->]', '', tokens[1]).strip()
+        rev = re.sub(r'[=\->]', '', tokens[1]).strip()
         break
   return rev
 

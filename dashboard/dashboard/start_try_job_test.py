@@ -1008,7 +1008,7 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGetConfig_UseBuildbucket_IdbPerf(self):
     self._TestGetConfigCommand(
-        ('.\src\out\Release\performance_ui_tests.exe '
+        ('.\\src\\out\\Release\\performance_ui_tests.exe '
          '--gtest_filter=IndexedDBTest.Perf'),
         bisect_bot='win_perf_bisect',
         suite='idb_perf',
