@@ -18,6 +18,7 @@ def MockProcessDumpEvent(dump_id, name, start, memory_usage):
   process_dump.dump_id = dump_id
   process_dump.process_name = name
   process_dump.start = start
+  process_dump.end = start
   if memory_usage is None:
     memory_usage = {}
   elif not isinstance(memory_usage, dict):

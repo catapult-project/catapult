@@ -8,16 +8,17 @@ from telemetry.timeline import memory_dump_event
 import mock
 
 
-def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
-                         allocators=None):
+def MakeRawMemoryDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0,
+                           mmaps=None, allocators=None):
+
   def vm_region(mapped_file, byte_stats):
     return {
-        'mf': mapped_file,
-        'bs': {k: hex(v) for k, v in byte_stats.iteritems()}}
+      'mf': mapped_file,
+      'bs': {k: hex(v) for k, v in byte_stats.iteritems()}}
 
   def attrs(sizes):
     return {'attrs': {k: {'value': hex(v), 'units': 'bytes'}
-               for k, v in sizes.iteritems()}}
+                      for k, v in sizes.iteritems()}}
 
   if allocators is None:
     allocators = {}
@@ -27,39 +28,68 @@ def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
                name: attrs(sizes) for name, sizes in allocators.iteritems()}}}}
   if mmaps:
     event['args']['dumps']['process_mmaps'] = {
-        'vm_regions': [vm_region(mapped_file, byte_stats)
-                       for mapped_file, byte_stats in mmaps.iteritems()]}
+      'vm_regions': [vm_region(mapped_file, byte_stats)
+                     for mapped_file, byte_stats in mmaps.iteritems()]}
 
+  return event
+
+
+def TestProcessDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0, mmaps=None,
+                         allocators=None):
+  event = MakeRawMemoryDumpEvent(dump_id, pid, start, mmaps=mmaps,
+                                allocators=allocators)
   process = mock.Mock()
   process.pid = event['pid']
-  return memory_dump_event.ProcessMemoryDumpEvent(process, event)
+  return memory_dump_event.ProcessMemoryDumpEvent(process, [event])
 
 
 class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
-  def testProcessMemoryDump_allocators(self):
-    memory_dump = TestProcessDumpEvent(allocators={
-      'v8': {'size': 10, 'allocated_objects_size' : 5},
-      'v8/allocated_objects': {'size': 4},
-      'skia': {'not_size': 10, 'allocated_objects_size' : 5},
-      'skia/cache1': {'size': 24},
-      'skia/cache2': {'not_size': 20},
-      'skia/cache2/obj1': {'size': 8},
-      'skia/cache2/obj2': {'size': 9},
-      'skia_different/obj': {'size': 30},
-      'skia_different/obj/not_counted': {'size': 26},
-      'global/0xdead': {'size': 26}
-    })
-    EXPECTED = {
-      'skia': {'allocated_objects_size': 5, 'not_size': 30, 'size': 41},
-      'v8': {'allocated_objects_size': 5, 'size': 10},
-      'skia_different': {'size': 30}}
 
-    self.assertEquals(memory_dump._allocators, EXPECTED)
+  def testProcessMemoryDump_allocators(self):
+    process = mock.Mock()
+    process.pid = 1234
+    events = [
+      MakeRawMemoryDumpEvent(
+        pid=process.pid, allocators={
+          'v8': {'size': 10, 'allocated_objects_size': 5},
+          'v8/allocated_objects': {'size': 4},
+          'skia': {'not_size': 10,
+          'allocated_objects_size': 5},
+          'skia/cache1': {'size': 24}
+        }
+      ),
+      MakeRawMemoryDumpEvent(
+        pid=process.pid, allocators={
+          'skia/cache2': {'not_size': 20},
+          'skia/cache2/obj1': {'size': 8},
+          'skia/cache2/obj2': {'size': 9},
+          'skia_different/obj': {'size': 30},
+          'skia_different/obj/not_counted': {'size': 26},
+          'global/0xdead': {'size': 26}
+        }
+      )
+    ]
+    memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process, events)
+
+    EXPECTED_ALLOCATORS = {
+      'skia': {
+        'allocated_objects_size': 5,
+        'not_size': 30,
+        'size': 41
+      },
+      'v8': {
+        'allocated_objects_size': 5,
+        'size': 10
+      },
+      'skia_different': {'size': 30}
+    }
+
+    self.assertEquals(memory_dump._allocators, EXPECTED_ALLOCATORS)
 
   def testProcessMemoryDump_mmaps(self):
     ALL = [2 ** x for x in range(8)]
-    (JAVA_SPACES, JAVA_CACHE, ASHMEM, NATIVE_1, NATIVE_2,
-     STACK, FILES_APK, DEVICE_GPU) = ALL
+    (JAVA_SPACES, JAVA_CACHE, ASHMEM, NATIVE_1, NATIVE_2, STACK, FILES_APK,
+     DEVICE_GPU) = ALL
 
     memory_dump = TestProcessDumpEvent(mmaps={
       '/dev/ashmem/dalvik-space-foo': {'pss': JAVA_SPACES},
@@ -69,7 +99,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
       '': {'pss': NATIVE_2},
       '[stack thingy]': {'pss': STACK},
       'my_little_app.apk': {'pss': FILES_APK},
-      '/dev/mali': {'pss': DEVICE_GPU},
+      '/dev/mali': {'pss': DEVICE_GPU}
     })
 
     EXPECTED = {
@@ -84,9 +114,33 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
 
     self.assertTrue(memory_dump.has_mmaps)
     for path, value in EXPECTED.iteritems():
+      self.assertEquals(
+          value,
+          memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))
+
+  def testProcessMemoryDump_composability(self):
+    java_spaces = 100
+    process = mock.Mock()
+    process.pid = 1234
+    allocators = {'v8': {'size': 10}}
+    mmaps = {'/dev/ashmem/dalvik-space-foo': {'pss': java_spaces}}
+
+    events = [MakeRawMemoryDumpEvent(pid=process.pid, allocators=allocators),
+              MakeRawMemoryDumpEvent(pid=process.pid, mmaps=mmaps)]
+    memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process, events)
+
+    self.assertEquals(memory_dump._allocators, allocators)
+
+    EXPECTED_MMAPS = {
+      '/': java_spaces,
+      '/Android/Java runtime': java_spaces,
+      '/Android': java_spaces,
+    }
+
+    self.assertTrue(memory_dump.has_mmaps)
+    for path, value in EXPECTED_MMAPS.iteritems():
       self.assertEquals(value,
-                        memory_dump.GetMemoryBucket(path).GetValue(
-                            'proportional_resident'))
+          memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))
 
 
 class MemoryDumpEventUnitTest(unittest.TestCase):
@@ -120,21 +174,29 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
         ' mmaps_private_dirty=27]')
 
   def testDumpEventsTiming(self):
+    process = mock.Mock()
+    process.pid = 1
+    composable_dump = memory_dump_event.ProcessMemoryDumpEvent(
+        process,
+        [
+          MakeRawMemoryDumpEvent(pid=process.pid, start=8),
+          MakeRawMemoryDumpEvent(pid=process.pid, start=16),
+          MakeRawMemoryDumpEvent(pid=process.pid, start=10)
+        ])
+    self.assertAlmostEquals(8.0, composable_dump.start)
+    self.assertAlmostEquals(16.0, composable_dump.end)
+
     memory_dump = memory_dump_event.GlobalMemoryDump([
+        composable_dump,
         TestProcessDumpEvent(pid=3, start=8),
-        TestProcessDumpEvent(pid=1, start=4),
         TestProcessDumpEvent(pid=2, start=13),
         TestProcessDumpEvent(pid=4, start=7)])
 
     self.assertFalse(memory_dump.has_mmaps)
-    self.assertEquals(4,
-                      len(list(memory_dump.IterProcessMemoryDumps())))
-    self.assertAlmostEquals(4.0,
-                            memory_dump.start)
-    self.assertAlmostEquals(13.0,
-                            memory_dump.end)
-    self.assertAlmostEquals(9.0,
-                            memory_dump.duration)
+    self.assertEquals(4, len(list(memory_dump.IterProcessMemoryDumps())))
+    self.assertAlmostEquals(7.0, memory_dump.start)
+    self.assertAlmostEquals(16.0, memory_dump.end)
+    self.assertAlmostEquals(9.0, memory_dump.duration)
 
   def testGetMemoryUsage(self):
     ALL = [2 ** x for x in range(7)]

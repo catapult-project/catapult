@@ -194,16 +194,26 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         'event': event,
         'thread': thread})
 
-  def _ProcessMemoryDumpEvent(self, event):
-    process = self._GetOrCreateProcess(event['pid'])
-    memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process, event)
-    process.AddMemoryDumpEvent(memory_dump)
-    self._all_memory_dumps_by_dump_id[memory_dump.dump_id].append(memory_dump)
+  def _ProcessMemoryDumpEvents(self, events):
+    # Dictionary to order dumps by id and process.
+    global_dumps = {}
+    for event in events:
+      global_dump = global_dumps.setdefault(event['id'], {})
+      dump_events = global_dump.setdefault(event['pid'], [])
+      dump_events.append(event)
+    for dump_id, global_dump in global_dumps.iteritems():
+      for pid, dump_events in global_dump.iteritems():
+        process = self._GetOrCreateProcess(pid)
+        memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process,
+                                                               dump_events)
+        process.AddMemoryDumpEvent(memory_dump)
+        self._all_memory_dumps_by_dump_id[dump_id].append(memory_dump)
 
   def ImportEvents(self):
     """Walks through the events_ list and outputs the structures discovered to
     model_.
     """
+    memory_dump_events = []
     for event in self._events:
       phase = event.get('ph', None)
       if phase == 'B' or phase == 'E':
@@ -231,13 +241,16 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       elif phase == 's' or phase == 't' or phase == 'f':
         self._ProcessFlowEvent(event)
       elif phase == 'v':
-        self._ProcessMemoryDumpEvent(event)
+        memory_dump_events.append(event)
       elif phase == 'R':
         self._ProcessMarkEvent(event)
       else:
         self._model.import_errors.append('Unrecognized event phase: ' +
             phase + '(' + event['name'] + ')')
 
+    # Memory dumps of a process with the same dump id need to be merged before
+    # processing. So, memory dump events are processed all at once.
+    self._ProcessMemoryDumpEvents(memory_dump_events)
     return self._model
 
   def FinalizeImport(self):

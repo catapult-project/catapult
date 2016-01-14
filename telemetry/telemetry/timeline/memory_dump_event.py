@@ -140,31 +140,49 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
   the stream of events contained in timeline.model objects, and have its
   timing correlated with that of other events in the model.
 
+  Args:
+    process: The Process object associated with the memory dump.
+    dump_events: A list of dump events of the process with the same dump id.
+
   Properties:
     dump_id: A string to identify events belonging to the same global dump.
     process: The timeline.Process object that owns this memory dump event.
     has_mmaps: True if the memory dump has mmaps information. If False then
         GetMemoryUsage will report all zeros.
   """
-  def __init__(self, process, event):
-    assert event['ph'] == 'v' and process.pid == event['pid']
+  def __init__(self, process, dump_events):
+    assert dump_events
 
-    super(ProcessMemoryDumpEvent, self).__init__(
-        'memory', 'memory_dump', event['ts'] / 1000.0, 0.0)
+    start_time = min(event['ts'] for event in dump_events) / 1000.0
+    duration = max(event['ts'] for event in dump_events) / 1000.0 - start_time
+    super(ProcessMemoryDumpEvent, self).__init__('memory', 'memory_dump',
+                                                 start_time, duration)
 
     self.process = process
-    self.dump_id = event['id']
+    self.dump_id = dump_events[0]['id']
 
-    try:
-      allocators_dict = event['args']['dumps']['allocators']
-    except KeyError:
-      allocators_dict = {}
+    allocator_dumps = {}
+    vm_regions = []
+    for event in dump_events:
+      assert (event['ph'] == 'v' and self.process.pid == event['pid'] and
+              self.dump_id == event['id'])
+      try:
+        allocator_dumps.update(event['args']['dumps']['allocators'])
+      except KeyError:
+        pass  # It's ok if any of those keys are not present.
+      try:
+        value = event['args']['dumps']['process_mmaps']['vm_regions']
+        assert not vm_regions
+        vm_regions = value
+      except KeyError:
+        pass  # It's ok if any of those keys are not present.
+
     self._allocators = {}
     parent_path = ''
     parent_has_size = False
-    for allocator_name, size_values in sorted(allocators_dict.iteritems()):
-      if ((allocator_name.startswith(parent_path) and parent_has_size)
-          or allocator_name.startswith('global/')):
+    for allocator_name, size_values in sorted(allocator_dumps.iteritems()):
+      if ((allocator_name.startswith(parent_path) and parent_has_size) or
+          allocator_name.startswith('global/')):
         continue
       parent_path = allocator_name + '/'
       parent_has_size = 'size' in size_values['attrs']
@@ -173,8 +191,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
       # For 'gpu/android_memtrack/*' we want to keep track of individual
       # components. E.g. 'gpu/android_memtrack/gl' will be stored as
       # 'android_memtrack_gl' in the allocators dict.
-      if (len(name_parts) == 3 and allocator_name == 'gpu'
-          and name_parts[1] == 'android_memtrack'):
+      if (len(name_parts) == 3 and allocator_name == 'gpu' and
+          name_parts[1] == 'android_memtrack'):
         allocator_name = '_'.join(name_parts[1:3])
       allocator = self._allocators.setdefault(allocator_name, {})
       for size_key, size_value in size_values['attrs'].iteritems():
@@ -185,14 +203,10 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     try:
       self._allocators['malloc']['size'] -= self._allocators['tracing']['size']
     except KeyError:
-      pass # it's ok if any of those keys are not present
+      pass  # It's ok if any of those keys are not present.
 
-    self._buckets = {}
-    try:
-      vm_regions = event['args']['dumps']['process_mmaps']['vm_regions']
-    except KeyError:
-      vm_regions = []
     self.has_mmaps = bool(vm_regions)
+    self._buckets = {}
     for vm_region in vm_regions:
       self._AddRegion(vm_region)
 
@@ -297,7 +311,7 @@ class GlobalMemoryDump(object):
 
   @property
   def end(self):
-    return self._process_dumps[-1].start
+    return max(dump.end for dump in self._process_dumps)
 
   @property
   def duration(self):

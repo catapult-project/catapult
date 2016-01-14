@@ -1059,18 +1059,27 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'id': '1234ABCD'},
       {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 134,
        'id': '1234ABCD'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 144,
+       'id': '1234ABCD'},
       {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 245,
        'id': '1234ABDF'},
       {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 54, 'ts': 256,
        'id': '1234ABDF'},
+      {'name': 'a', 'cat': 'b', 'ph': 'v', 'pid': 52, 'ts': 233,
+       'id': '1234ABDF'},
     ]
 
-    expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
+    expected_processes = set([52, 54])
+    expected_results = [['1234ABCD', 0, 21], ['1234ABDF', 110, 23]]
     trace_data = trace_data_module.TraceData(events)
     m = timeline_model.TimelineModel(trace_data)
+    assert set(p.pid for p in m.GetAllProcesses()) == expected_processes
+
     memory_dumps = list(m.IterGlobalMemoryDumps())
-    self.assertEqual(len(expected), len(memory_dumps))
-    for memory_dump, test_values in zip(memory_dumps, expected):
+    self.assertEqual(len(expected_results), len(memory_dumps))
+    for memory_dump, test_values in zip(memory_dumps, expected_results):
+      assert len(list(memory_dump.IterProcessMemoryDumps())) == len(
+          expected_processes)
       dump_id, start, duration = test_values
       self.assertEquals(dump_id, memory_dump.dump_id)
       self.assertAlmostEqual(start / 1000.0, memory_dump.start)
