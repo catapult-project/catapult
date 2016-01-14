@@ -7,7 +7,7 @@ import os
 import sys
 import unittest
 
-sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from devil.android import device_utils
 from devil.android.perf import perf_control

@@ -14,7 +14,7 @@ import sys
 
 if __name__ == '__main__':
   sys.path.append(os.path.abspath(os.path.join(
-      os.path.dirname(__file__), os.pardir, os.pardir, os.pardir)))
+      os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import device_signal
 from devil.android import device_utils
 from devil.android.tools import script_common
