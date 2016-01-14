@@ -1507,32 +1507,45 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
 
 class DeviceUtilsPathExistsTest(DeviceUtilsTest):
 
-  def testPathExists_usingTest_pathExists(self):
+  def testPathExists_pathExists(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            "test -e '/path/file exists';echo $?",
-            check_return=True, timeout=None, retries=None), ['0']):
+            "test -e '/path/file exists'",
+            as_root=False, check_return=True, timeout=None, retries=None),
+        []):
       self.assertTrue(self.device.PathExists('/path/file exists'))
 
-  def testPathExists_usingTest_multiplePathExists(self):
+  def testPathExists_multiplePathExists(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            "test -e '/path 1' -a -e /path2;echo $?",
-            check_return=True, timeout=None, retries=None), ['0']):
+            "test -e '/path 1' -a -e /path2",
+            as_root=False, check_return=True, timeout=None, retries=None),
+        []):
       self.assertTrue(self.device.PathExists(('/path 1', '/path2')))
 
-  def testPathExists_usingTest_pathDoesntExist(self):
+  def testPathExists_pathDoesntExist(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            "test -e /path/file.not.exists;echo $?",
-            check_return=True, timeout=None, retries=None), ['1']):
+            "test -e /path/file.not.exists",
+            as_root=False, check_return=True, timeout=None, retries=None),
+        self.ShellError()):
       self.assertFalse(self.device.PathExists('/path/file.not.exists'))
 
-  def testFileExists_usingTest_pathDoesntExist(self):
+  def testPathExists_asRoot(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
-            "test -e /path/file.not.exists;echo $?",
-            check_return=True, timeout=None, retries=None), ['1']):
+            "test -e /root/path/exists",
+            as_root=True, check_return=True, timeout=None, retries=None),
+        self.ShellError()):
+      self.assertFalse(
+          self.device.PathExists('/root/path/exists', as_root=True))
+
+  def testFileExists_pathDoesntExist(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            "test -e /path/file.not.exists",
+            as_root=False, check_return=True, timeout=None, retries=None),
+        self.ShellError()):
       self.assertFalse(self.device.FileExists('/path/file.not.exists'))
 
 
