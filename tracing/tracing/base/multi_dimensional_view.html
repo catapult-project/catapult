@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Multi-dimensional view data structure.
+ *
+ * A multi-dimensional view provides a hierarchical representation of a
+ * collection of multi-dimensional paths with associated scalar values. Unlike
+ * separate single-dimensional views (e.g. one tree for each dimension),
+ * multi-dimensional views facilitate aggregation over combinations of
+ * substrings of the path dimensions (rather than just substrings of a single
+ * path dimension).
+ *
+ * Every view consists of multi-dimensional nodes (see MultiDimensionalViewNode
+ * for more details). This file also provides a builder class for constructing
+ * top-down and bottom-up representations of arbitrary collections of
+ * multi-dimensional paths (see MultiDimensionalViewBuilder for more details).
+ *
+ * Example: Given the following collection of two dimensional paths:
+ *
+ *    <----------- dimension 0 ------------>  <-- dimension 1 -->
+ *   [['Loop::Run()', 'Execute()', 'Call()'], ['Object', 'View']]:   total=1
+ *   [['Loop::Run()', 'Execute()', 'Call()'], ['Object', 'Widget']]: total=2
+ *   [['Loop::Run()', 'Execute()', 'Load()'], ['Object']]:           total=4
+ *   [['Loop::Run()', 'Execute()'],           ['int']]:              total=8
+ *   [['Loop::Run()'],                        ['Object', 'Window']]: total=16
+ *   [['Loop::Stop()'],                       ['Object']]:           total=32
+ *
+ * a multi-dimensional view provides a recursive breakdown of the aggregated
+ * values, e.g.:
+ *
+ *   (root):      total=63
+ *     |
+ *     | break down by 0th dimension
+ *     v
+ *   Loop::Run(): total=31
+ *     |
+ *     | break down by 0th dimension
+ *     v
+ *   Execute():   total=15
+ *     |
+ *     | break down by 1st dimension
+ *     v
+ *   Object:      total=7
+ *     |
+ *     | break down by 0th dimension again
+ *     v
+ *   Call():      total=3
+ *     |
+ *     | break down by 1st dimension again
+ *     v
+ *   View:        total=1
+ *
+ * Observe that the recursive breakdown above is over both dimensions.
+ * Furthermore, the underlying single-dimension paths (Loop::Run() -> Execute()
+ * -> Call() and Object -> View) can be arbitrarily interleaved in the
+ * breakdown.
+ */
+tr.exportTo('tr.b', function() {
+
+  /**
+   * Node of a multi-dimensional view.
+   *
+   * The structure of a view is encoded in the nodes using links to their
+   * children wrt each dimension. The diagram below shows how the nodes
+   * corresponding to the following four two-dimensional view paths:
+   *
+   *   1. [['A', 'B'], ['1', '2']]
+   *   2. [['A', 'C'], ['1', '2']]
+   *   3. [['A', 'B'], ['1', '3']]
+   *   4. [['A', 'C'], ['1', '3']]
+   *
+   * can be reached from the root of a two-dimensional view using these links
+   * ('*' stands for undefined):
+   *
+   *                       +---------------------+
+   *                       | title: [*,*] (root) |
+   *                       +---------------------+
+   *                     children wrt    children wrt
+   *                    0th dimension    1st dimension
+   *                              |        :
+   *              _______A________|        :........1.........
+   *             |                                           :
+   *             v                                           v
+   *         +--------------+                     +--------------+
+   *         | title: [A,*] |                     | title: [*,1] |
+   *         +--------------+                     +--------------+
+   *    children wrt   children wrt         children wrt   children wrt
+   *   0th dimension   1st dimension       0th dimension   1st dimension
+   *           | |       :.....1......    _____A_____|       : :
+   *        _B_| |__C__              :   |             ...2..: :.3..
+   *       |           |             :   |             :           :
+   *       v           v             v   v             v           v
+   *   +-------+   +-------+       +-------+       +-------+   +-------+
+   *   | [B,*] |   | [C,*] |       | [A,1] |       | [*,2] |   | [*,3] |
+   *   +-------+   +-------+       +-------+       +-------+   +-------+
+   *       :        ___:_____B______| | : :......3.....|....       |
+   *       :.1..   |   :.1..    __C___| :...2...    _A_|   :    _A_|
+   *           :   |       :   |               :   |       :   |
+   *           v   v       v   v               v   v       v   v
+   *         +-------+   +-------+           +-------+   +-------+
+   *         | [B,1] |   | [C,1] |           | [A,2] |   | [A,3] |
+   *         +-------+   +-------+           +-------+   +-------+
+   *           :   :       :   :.......3.......||..........   ||
+   *           :   :..3....:................   BC         :   BC
+   *           :     ______:_______________:___||         :   ||
+   *           2    |      2        _______:____|   ______:___||
+   *           :    |      :       |       :       |      :    |
+   *           v    v      v       v       v       v      v    v
+   *       +----------+   +----------+   +----------+   +----------+
+   *       |  [B,2]   |   |  [C,2]   |   |  [B,3]   |   |  [C,3]   |
+   *       | (node 1) |   | (node 2) |   | (node 3) |   | (node 4) |
+   *       +----------+   +----------+   +----------+   +----------+
+   *
+   * The self/total value of a node represents the aggregated value of all
+   * paths (in the collection from which the view was built) matching the node
+   * excluding/including the node's descendants.
+   *
+   * @{constructor}
+   */
+  function MultiDimensionalViewNode(title, isLowerBound) {
+    // List of titles of this node wrt each dimension.
+    this.title = title;
+
+    // Map from child name to child node for each dimension.
+    var dimensions = title.length;
+    this.children = new Array(dimensions);
+    for (var i = 0; i < dimensions; i++)
+      this.children[i] = new Map();
+
+    this.total = 0;
+    this.self = 0;
+
+    // Flag whether the values of this node are only lower bounds (i.e.
+    // aggregated from children rather than provided directly).
+    this.isLowerBound = !!isLowerBound;
+  }
+
+  MultiDimensionalViewNode.prototype = {
+    /** Duck type <tr-ui-b-table> rows. */
+    get subRows() {
+      return tr.b.mapValues(this.children[0]);
+    }
+  };
+
+  /**
+   * Builder for multi-dimensional views.
+   *
+   * Given a collection of multi-dimensional paths, a builder can be used to
+   * construct the following four representations of the paths:
+   *
+   *   1. Top-down tree view
+   *      A multi-dimensional path in the view corresponds to all paths in the
+   *      collection that have it as their prefix.
+   *
+   *   2. Top-down heavy view
+   *      A multi-dimensional path in the view corresponds to all paths in the
+   *      collection that have it as their substring
+   *
+   *   3. Bottom-up tree view
+   *      A multi-dimensional path in the view corresponds to all paths in the
+   *      collection that have it as their suffix reversed.
+   *
+   *   4. Bottom-up heavy view
+   *      A multi-dimensional path in the view corresponds to all paths in the
+   *      collection that have it as their substring reversed.
+   *
+   * For example, the following collection of 2-dimensional paths:
+   *
+   *                  2-dimensional path                | self
+   *    Time (0th dimension) | Activity (1st dimension) | value
+   *   ========================+========================+=======
+   *    Saturday             | Cooking                  |   1 h
+   *    Saturday             | Sports -> Football       |   2 h
+   *    Sunday               | Sports -> Basketball     |   3 h
+   *
+   * gives rise to the following top-down tree view, which aggregates the
+   * scalar values over prefixes of the given paths:
+   *
+   *                              +---------+
+   *                              |    *    |
+   *                              |    *    |
+   *                              | self=0  |
+   *                              | total=6 |
+   *                              +---------+
+   *                                | : | :
+   *         _________Cooking_______| : | :............Sunday............
+   *        |                         : |                               :
+   *        |            ...Saturday..: |_Sports_                       :
+   *        |            :                       |                      :
+   *        v            v                       v                      v
+   *   +---------+  +---------+            +---------+             +---------+
+   *   |    *    |  |   Sat   |            |    *    |             |   Sun   |
+   *   | Cooking |  |    *    |            | Sports  |             |    *    |
+   *   | self=0  |  | self=0  |            | self=0  |             | self=0  |
+   *   | total=1 |  | total=3 |            | total=5 |             | total=3 |
+   *   +---------+  +---------+            +---------+             +---------+
+   *      :          |   |                   : | | :                     |
+   *    Saturday     | Sports                : | | :                  Sports
+   *      :          |   |  .....Saturday....: | | :.....Sunday.......   |
+   *      :    _Cook_|   |  :            _Foot_| |_Bask_             :   |
+   *      :   |          |  :           |               |            :   |
+   *      v   v          v  v           v               v            v   v
+   *   +---------+  +---------+  +------------+  +--------------+  +---------+
+   *   |   Sat   |  |   Sat   |  |     *      |  |      *       |  |   Sun   |
+   *   | Cooking |  | Sports  |  | S/Football |  | S/Basketball |  | Sports  |
+   *   | self=1  |  | self=0  |  | self=0     |  | self=0       |  | self=0  |
+   *   | total=1 |  | total=2 |  | total=2    |  | total=3      |  | total=3 |
+   *   +---------+  +---------+  +------------+  +--------------+  +---------+
+   *                    |              :                 :               |
+   *                    |_Foot_  ..Sat.:                 :.Sun..   _Bask_|
+   *                           | :                             :  |
+   *                           v v                             v  v
+   *                     +------------+                   +--------------+
+   *                     |    Sat     |                   |     Sun      |
+   *                     | S/Football |                   | S/Basketball |
+   *                     | self=2     |                   | self=3       |
+   *                     | total=2    |                   | total=3      |
+   *                     +------------+                   +--------------+
+   *
+   * To build a multi-dimensional view of a collection of multi-dimensional
+   * paths, you create a builder, add the paths to it and then use it to
+   * construct the view. For example, the following code generates the
+   * 2-dimensional top-down tree view shown above:
+   *
+   *   var builder = new MultiDimensionalViewBuilder(2);
+   *   builder.addPath([['Saturday'], ['Cooking']], 1, SELF);
+   *   builder.addPath([['Saturday'], ['Sports', 'Football']], 2, SELF);
+   *   builder.addPath([['Sunday'], ['Sports', 'Basketball']], 3, SELF);
+   *   var treeViewRoot = builder.buildTreeView();
+   *
+   * The heavy view can be constructed analogously (by calling buildHeavyView()
+   * at the end instead).
+   *
+   * Note that the same builder can be used to construct both the tree and
+   * heavy view (for the same collection of paths). However, no more paths can
+   * be added once either view has been built.
+   *
+   * @{constructor}
+   */
+  function MultiDimensionalViewBuilder(dimensions) {
+    if (dimensions < 0)
+      throw new Error('Dimensions must be non-negative');
+    this.dimensions_ = dimensions;
+
+    this.buildRoot_ = this.createRootNode_();
+    this.treeViewRoot_ = undefined;
+    this.heavyViewRoot_ = undefined;
+
+    this.maxDimensionDepths_ = new Array(dimensions);
+    for (var d = 0; d < dimensions; d++)
+      this.maxDimensionDepths_[d] = 0;
+  }
+
+  /** @{enum} */
+  MultiDimensionalViewBuilder.ValueKind = {
+    SELF: 0,
+    TOTAL: 1
+  };
+
+  MultiDimensionalViewBuilder.prototype = {
+    /**
+     * Add a value associated with a multi-dimensional path to the tree.
+     *
+     * The path must have the same number of dimensions as the builder. Its
+     * elements must be single-dimension paths (lists of strings) of arbitrary
+     * length (empty for the root of the given dimension). Starting from the
+     * root of the tree, each single-dimension path is traversed from left to
+     * right to reach the node corresponding to the whole path.
+     *
+     * The builder supports adding both kinds of values (self/total) for an
+     * arbitrary multi-dimensional path. The rationale for adding a total value
+     * (in addition to/instead of a self value) is to cater for missing
+     * sub-paths. Example: Consider the following collection of
+     * single-dimensional paths:
+     *
+     *   [['Loop::Run()', 'Execute()', 'FunctionBig']]:       self=99000
+     *   [['Loop::Run()', 'Execute()', 'FunctionSmall1']]:    self=1
+     *   [['Loop::Run()', 'Execute()', 'FunctionSmall2']]:    self=1
+     *   ...
+     *   [['Loop::Run()', 'Execute()', 'FunctionSmall1000']]: self=1
+     *
+     * If we required that only self values could be added to the builder, then
+     * all of the 1001 paths would need to be provided (most likely in a trace)
+     * to obtain the correct total of [['Loop::Run()', 'Execute()']]. However,
+     * since we allow adding total values as well, only the following 2 paths
+     * need to be provided to get the correct numbers explaining 99% of the
+     * aggregated total value:
+     *
+     *   [['Loop::Run()', 'Execute()']]:                total=100000
+     *   [['Loop::Run()', 'Execute()', 'FunctionBig']]: self=99000
+     *
+     * In other words, the long tail containing 1000 small paths need not be
+     * dumped (greatly reducing the size of a trace where applicable).
+     *
+     * Important: No paths can be added to a builder once either view has been
+     * built!
+     */
+    addPath: function(path, value, valueKind) {
+      if (this.buildRoot_ === undefined) {
+        throw new Error(
+            'Paths cannot be added after either view has been built');
+      }
+      if (path.length !== this.dimensions_)
+        throw new Error('Path must be ' + this.dimensions_ + '-dimensional');
+
+      var node = this.buildRoot_;
+
+      for (var d = 0; d < path.length; d++) {
+        var singleDimensionPath = path[d];
+        var singleDimensionPathLength = singleDimensionPath.length;
+        this.maxDimensionDepths_[d] =
+            Math.max(this.maxDimensionDepths_[d], singleDimensionPathLength);
+        for (var i = 0; i < singleDimensionPathLength; i++)
+          node = this.getOrCreateChildNode_(node, d, singleDimensionPath[i]);
+      }
+
+      switch (valueKind) {
+        case MultiDimensionalViewBuilder.ValueKind.SELF:
+          node.self += value;
+          break;
+
+        case MultiDimensionalViewBuilder.ValueKind.TOTAL:
+          node.total += value;
+          break;
+
+        default:
+          throw new Error('Invalid value kind: ' + valueKind);
+      }
+
+      node.isLowerBound = false;
+    },
+
+    /**
+     * Build the tree view of the multi-dimensional view.
+     *
+     * Note that no more paths can be added to the builder once either view has
+     * been built.
+     */
+    buildTreeView: function() {
+      if (this.treeViewRoot_ === undefined) {
+        var treeViewRoot = this.buildRoot_;
+        this.buildRoot_ = undefined;
+
+        this.setUpMissingChildRelationships_(treeViewRoot,
+            0 /* firstDimensionToSetUp */);
+        this.finalizeTotalValues_(treeViewRoot,
+            0 /* firstDimensionToFinalize */,
+            new WeakMap() /* dimensionalSelfSumsMap */);
+
+        this.treeViewRoot_ = treeViewRoot;
+      }
+
+      return this.treeViewRoot_;
+    },
+
+    /**
+     * Build the heavy view of the multi-dimensional view.
+     *
+     * Note that no more paths can be added to the builder once either view has
+     * been built.
+     */
+    buildHeavyView: function() {
+      if (this.heavyViewRoot_ === undefined) {
+        // Copy values from the tree-view root.
+        var treeViewRoot = this.buildTreeView();
+        var heavyViewRoot = this.createRootNode_();
+        heavyViewRoot.total = treeViewRoot.total;
+        heavyViewRoot.self = treeViewRoot.self;
+        heavyViewRoot.isLowerBound = treeViewRoot.isLowerBound;
+
+        var recursionDepthTrackers = new Array(this.dimensions_);
+        for (var d = 0; d < this.dimensions_; d++) {
+          recursionDepthTrackers[d] =
+              new RecursionDepthTracker(this.maxDimensionDepths_[d]);
+        }
+
+        this.addDimensionsToHeavyViewNode_(treeViewRoot, heavyViewRoot,
+            0 /* startDimension */, recursionDepthTrackers,
+            false /* previousDimensionsRecursive */);
+        this.setUpMissingChildRelationships_(heavyViewRoot,
+            0 /* firstDimensionToSetUp */);
+
+        this.heavyViewRoot_ = heavyViewRoot;
+      }
+
+      return this.heavyViewRoot_;
+    },
+
+    createRootNode_: function() {
+      return new MultiDimensionalViewNode(
+          new Array(this.dimensions_) /* title */, true /* isLowerBound */);
+    },
+
+    getOrCreateChildNode_: function(
+        parentNode, dimension, childDimensionTitle) {
+      if (dimension < 0 || dimension >= this.dimensions_)
+        throw new Error('Invalid dimension');
+
+      var dimensionChildren = parentNode.children[dimension];
+
+      var childNode = dimensionChildren.get(childDimensionTitle);
+      if (childNode !== undefined)
+        return childNode;
+
+      var childTitle = parentNode.title.slice();
+      childTitle[dimension] = childDimensionTitle;
+      childNode = new MultiDimensionalViewNode(
+          childTitle, true /* isLowerBound */);
+      dimensionChildren.set(childDimensionTitle, childNode);
+
+      return childNode;
+    },
+
+    /**
+     * Set up missing child relationships.
+     *
+     * When an arbitrary multi-dimensional path [path1, path2, ..., pathN] is
+     * added to the build tree (see addPath), only the nodes on the path1 ->
+     * path2 -> ... -> pathN chain are created (i.e. no interleavings of the
+     * single-dimensional paths are added to the tree). This method recursively
+     * adds all the missing paths.
+     *
+     * Two-dimensional example:
+     *
+     *    Initial build tree   .       After path      .  After missing child
+     *        (root only)      .    [[A, B], [1, 2]]   .   relationships were
+     *                         .       was added       .        set up
+     *                         .                       .
+     *           +---+         .         +---+         .         +---+
+     *           |*,*|         .         |*,*|         .         |*,*|
+     *           +---+         .         +---+         .         +---+
+     *                         .         A             .         A   1
+     *                         .         |             .         |   :
+     *                         .         v             .         v   V
+     *                         .     +---+             .     +---+   +---+
+     *                         .     |A,*|             .     |A,*|   |*,1|
+     *                         .     +---+             .     +---+   +---+
+     *                         .     B                 .     B   1   A   2
+     *                         .     |                 .     |   :   |   :
+     *                         .     v                 .     v   v   v   v
+     *                         . +---+                 . +---+   +---+   +---+
+     *                         . |B,*|                 . |B,*|   |A,1|   |*,2|
+     *                         . +---+                 . +---+   +---+   +---+
+     *                         .     1                 .     1   B   2   A
+     *                         .     :                 .     :   |   :   |
+     *                         .     v                 .     v   v   v   v
+     *                         .     +---+             .     +---+   +---+
+     *                         .     |B,1|             .     |B,1|   |A,2|
+     *                         .     +---+             .     +---+   +---+
+     *                         .         2             .         2   B
+     *                         .         :             .         :   |
+     *                         .         v             .         v   V
+     *                         .         +---+         .         +---+
+     *                         .         |B,2|         .         |B,2|
+     *                         .         +---+         .         +---+
+     */
+    setUpMissingChildRelationships_: function(node, firstDimensionToSetUp) {
+      // Missing child relationships of this node wrt dimensions 0, ...,
+      // (firstDimensionToSetUp - 1) and all descendants of the associated
+      // children have already been set up. Now we do the same for dimensions
+      // firstDimensionToSetUp, ..., (this.dimensions_ - 1).
+      for (var d = firstDimensionToSetUp; d < this.dimensions_; d++) {
+        // Step 1. Gather the names of all children wrt the current dimension.
+        var currentDimensionChildTitles = new Set(node.children[d].keys());
+        for (var i = 0; i < d; i++) {
+          for (var previousDimensionChildNode of node.children[i].values()) {
+            for (var previousDimensionGrandChildTitle of
+                 previousDimensionChildNode.children[d].keys()) {
+              currentDimensionChildTitles.add(previousDimensionGrandChildTitle);
+            }
+          }
+        }
+
+        // Step 2. Add missing children wrt the current dimension and
+        // recursively set up its missing child relationships.
+        for (var currentDimensionChildTitle of currentDimensionChildTitles) {
+          // Add a missing child (if it doesn't exist).
+          var currentDimensionChildNode =
+              this.getOrCreateChildNode_(node, d, currentDimensionChildTitle);
+
+          // Set-up child relationships (of the child node) wrt dimensions 0,
+          // ..., d - 1.
+          for (var i = 0; i < d; i++) {
+            for (var previousDimensionChildNode of node.children[i].values()) {
+              var previousDimensionGrandChildNode =
+                  previousDimensionChildNode.children[d].get(
+                      currentDimensionChildTitle);
+              if (previousDimensionGrandChildNode !== undefined) {
+                currentDimensionChildNode.children[i].set(
+                    previousDimensionChildNode.title[i],
+                    previousDimensionGrandChildNode);
+              }
+            }
+          }
+
+          // Set-up child relationships (of the child node) wrt dimensions d,
+          // ..., (this.dimensions_ - 1).
+          this.setUpMissingChildRelationships_(currentDimensionChildNode, d);
+        }
+      }
+    },
+
+    /**
+     * Finalize the total values of a multi-dimensional tree.
+     *
+     * The intermediate builder tree, a node of which we want to finalize
+     * recursively, already has the right shape. The only thing that needs to
+     * be done is to propagate self and total values from subsumed child nodes
+     * in each dimension.
+     *
+     * To derive the expression for the lower bound on the total value, we rely
+     * on the following assumptions:
+     *
+     *   1. Each node's self value does NOT overlap with the self or total value
+     *      of any other node.
+     *
+     *   2. The total values of a node's children wrt a single dimension (e.g.
+     *      [path1/A, path2] and [path1/B, path2]) do NOT overlap.
+     *
+     *   3. The total values of a node's children wrt different dimensions
+     *      (e.g. [path1/A, path2] and [path1, path2/1]) MIGHT overlap.
+     *
+     * As a consequence of assumptions 1 and 3, the total value of a node can
+     * be split into the part that cannot overlap (so-called "self-sum") and
+     * the part that can overlap (so-called "residual"):
+     *
+     *   total(N) = selfSum(N) + residual(N)                            (A)
+     *
+     * where the self-sum is calculated as the sum of the node's self value
+     * plus the sum of its descendants' self values (summed over all
+     * dimensions):
+     *
+     *   selfSum(N) = self(N) + sum over all descendants C of N {
+     *       self (C)                                                   (B)
+     *   }
+     *
+     * Observe that the residual of a node does not include any self value (of
+     * any node in the view). Furthermore, by assumption 2, we derive that the
+     * residuals of a node's children wrt a single dimension don't overlap. On
+     * the other hand, the residuals of a node's children wrt different
+     * dimensions might overlap. This gives us the following lower bound on the
+     * residual of a node:
+     *
+     *   residual(N) >= minResidual(N) = max over dimensions D {
+     *       sum over children C of N at dimension D {
+     *           residual(C)                                            (C)
+     *       }
+     *   })
+     *
+     * By combining equation (A) and inequality (C), we get a lower bound on
+     * the total value of a node:
+     *
+     *   total(N) >= selfSum(N) + minResidual(N)
+     *
+     * For example, given a two-dimensional node [path1, path2] with self value
+     * 10 and four children (2 wrt each dimension):
+     *
+     *    Child            | Self value | Total value
+     *   ==================+============+=============
+     *    [path1/A, path2] |         21 |          30
+     *    [path1/B, path2] |         25 |          32
+     *    [path1, path2/1] |         3  |          15
+     *    [path1, path2/2] |         40 |          41
+     *
+     * and assuming that the children have no further descendants (i.e. their
+     * residual values are equal to the differences between their total and
+     * self values), the lower bound on the total value of [path1, path2] is:
+     *
+     *   total([path1, path2])
+     *       >= selfSum([path1, path2]) +
+     *          minResidual([path1, path2])
+     *        = self([path1, path2]) +
+     *          sum over all descendants C of [path1, path2] {
+     *              self (C)
+     *          } +
+     *          max over dimensions D {
+     *              sum over children C of [path1, path2] at dimension D {
+     *                  residual(C)
+     *              }
+     *          }
+     *        = self([path1, path2]) +
+     *          ((self([path1/A, path2]) + self([path1/B, path2])) +
+     *           (self([path1, path2/1]) + self([path1, path2/2]))) +
+     *          max(residual([path1/A, path2]) + residual([path1/B, path2]),
+     *              residual([path1, path2/1]) + residual([path1, path2/2]))
+     *        = 10 +
+     *          ((21 + 25) + (3 + 40)) +
+     *          max((30 - 21) + (32 - 25), (15 - 3) + (41 - 40))
+     *        = 115
+     *
+     * To reduce the complexity of the calculation, we keep a temporary list of
+     * dimensional self-sums for each node that we have already visited. For a
+     * given node, the Kth element in the list is equal to the self size of the
+     * node plus the sum of self sizes of all its descendants wrt dimensions 0
+     * to K (inclusive). The list has two important properties:
+     *
+     *   1. The last element in the list is equal to the self-sum of the
+     *      associated node (equation (B)).
+     *
+     *   2. The calculation of the list can be performed recursively using the
+     *      lists of the associated node's children (avoids square complexity
+     *      in the size of the graph):
+     *
+     *        dimensionalSelfSum(N)[D] =
+     *            self(N) +
+     *            sum I = 0 to D {
+     *                sum over children C of N at dimension I {
+     *                    dimensionalSelfSum(C)[I]
+     *                }
+     *            }
+     */
+    finalizeTotalValues_: function(
+        node, firstDimensionToFinalize, dimensionalSelfSumsMap) {
+      var dimensionalSelfSums = new Array(this.dimensions_);
+      var maxChildResidualSum = 0;
+      var nodeSelfSum = node.self;
+
+      for (var d = 0; d < this.dimensions_; d++) {
+        var childResidualSum = 0;
+        for (var childNode of node.children[d].values()) {
+          if (d >= firstDimensionToFinalize)
+            this.finalizeTotalValues_(childNode, d, dimensionalSelfSumsMap);
+          var childNodeSelfSums = dimensionalSelfSumsMap.get(childNode);
+          nodeSelfSum += childNodeSelfSums[d];
+          var residual =
+              childNode.total - childNodeSelfSums[this.dimensions_ - 1];
+          childResidualSum += residual;
+        }
+        dimensionalSelfSums[d] = nodeSelfSum;
+        maxChildResidualSum = Math.max(maxChildResidualSum, childResidualSum);
+      }
+
+      node.total = Math.max(node.total, nodeSelfSum + maxChildResidualSum);
+
+      if (dimensionalSelfSumsMap.has(node))
+        throw new Error('Internal error: Node finalized more than once');
+      dimensionalSelfSumsMap.set(node, dimensionalSelfSums);
+    },
+
+    /**
+     * Add descendants of a tree-view node wrt multiple dimensions to a
+     * heavy-view node.
+     *
+     * This method recursively adds all descendants of a tree-view parent node
+     * wrt dimensions starting from a given dimension with their subtrees as
+     * children of a heavy-view parent node. Example:
+     *
+     *       +----------------+                    +-----------------+
+     *       |     source     |                    |   destination   |
+     *       | tree-view root |  ===============>  | heavy-view root |
+     *       |     self=0     |                    |     self=0      |
+     *       |    total=48    |                    |    total=48     |
+     *       +----------------+                    +-----------------+
+     *         |            |                  ______|      |      |______
+     *         v            v                 v             v             v
+     *    +----------+ +----------+      +----------+ +----------+ +----------+
+     *    |    A*    | |    B     |      |    A***  | |    B     | |    C     |
+     *    | self=10  | | self=12  |      | self=13  | | self=13  | | self=2   |
+     *    | total=30 | | total=18 |      | total=30 | | total=34 | | total=7  |
+     *    +----------+ +----------+      +----------+ +----------+ +----------+
+     *         |                              :            :   :.........
+     *         v                              v            v            v
+     *    +----------+                   ............ ............ ............
+     *    |    B     |                   :    B     : :    A     : :    C     :
+     *    | self=1   |                   : self=1   : : self=3   : : self=2   :
+     *    | total=16 |                   : total=16 : : total=8  : : total=7  :
+     *    +----------+                   ............ ............ ............
+     *         |   |________                  :   :.........
+     *         v            v                 v            v
+     *    +----------+ +----------+      ............ ............
+     *    |    A**   | |    C     |      :    A     : :    C     :
+     *    | self=3   | | self=2   |      : self=3   : : self=2   :
+     *    | total=8  | | total=7  |      : total=8  : : total=7  :
+     *    +----------+ +----------+      ............ ............
+     *
+     * Observe that care needs to be taken when dealing with recursion to avoid
+     * double-counting, e.g. the total value of A** (8) was not added to the
+     * total value of A*** (30) because it is already included in the total
+     * value of A* (30) (which was also added to A***). That is why we need to
+     * keep track of the path we traversed along the current dimension (to
+     * determine whether total value should be added or not).
+     */
+    addDimensionsToHeavyViewNode_: function(treeViewParentNode,
+        heavyViewParentNode, startDimension, recursionDepthTrackers,
+        previousDimensionsRecursive) {
+      for (var d = startDimension; d < this.dimensions_; d++) {
+        this.addDimensionDescendantsToHeavyViewNode_(treeViewParentNode,
+            heavyViewParentNode, d, recursionDepthTrackers,
+            previousDimensionsRecursive);
+      }
+    },
+
+    /**
+     * Add descendants of a tree-view node wrt a single dimension to a
+     * heavy-view node.
+     *
+     * This method recursively adds all descendants of a tree-view parent node
+     * wrt a given dimension with their subtrees as children of a heavy-view
+     * parent node.
+     */
+    addDimensionDescendantsToHeavyViewNode_: function(
+        treeViewParentNode, heavyViewParentNode, currentDimension,
+        recursionDepthTrackers, previousDimensionsRecursive) {
+      var treeViewChildren = treeViewParentNode.children[currentDimension];
+      var recursionDepthTracker = recursionDepthTrackers[currentDimension];
+      for (var treeViewChildNode of treeViewChildren.values()) {
+        recursionDepthTracker.push(treeViewChildNode.title[currentDimension]);
+
+        // Add the tree view child node (and its sub-tree) to the heavy view
+        // node.
+        this.addTreeToHeavyViewNode_(
+            treeViewChildNode, heavyViewParentNode, currentDimension,
+            recursionDepthTrackers, 1 /* subTreeDepth */,
+            previousDimensionsRecursive);
+
+        // Recursively add all descendants of the tree view child node to the
+        // heavy view parent node.
+        this.addDimensionDescendantsToHeavyViewNode_(treeViewChildNode,
+            heavyViewParentNode, currentDimension, recursionDepthTrackers,
+            previousDimensionsRecursive);
+
+        recursionDepthTracker.pop();
+      }
+    },
+
+    /**
+     * Add a tree-view child node with its subtree to a heavy-view parent node.
+     *
+     * See addDimensionsToHeavyViewNode_ documentation for more details.
+     */
+    addTreeToHeavyViewNode_: function(treeViewChildNode, heavyViewParentNode,
+        currentDimension, recursionDepthTrackers, subTreeDepth,
+        previousDimensionsRecursive) {
+      var recursionDepthTracker = recursionDepthTrackers[currentDimension];
+      var currentDimensionRecursive =
+          subTreeDepth <= recursionDepthTracker.recursionDepth;
+      var currentOrPreviousDimensionsRecursive =
+          currentDimensionRecursive || previousDimensionsRecursive;
+
+      var dimensionTitle = treeViewChildNode.title[currentDimension];
+      var heavyViewChildNode = this.getOrCreateChildNode_(
+          heavyViewParentNode, currentDimension, dimensionTitle);
+
+      heavyViewChildNode.self += treeViewChildNode.self;
+      if (!currentOrPreviousDimensionsRecursive)
+        heavyViewChildNode.total += treeViewChildNode.total;
+
+      // Add the descendants of the tree-view child node wrt the next
+      // dimensions as children of the heavy-view child node.
+      this.addDimensionsToHeavyViewNode_(treeViewChildNode, heavyViewChildNode,
+          currentDimension + 1, recursionDepthTrackers,
+          currentOrPreviousDimensionsRecursive);
+
+      for (var treeViewGrandChildNode of
+           treeViewChildNode.children[currentDimension].values()) {
+        recursionDepthTracker.push(
+            treeViewGrandChildNode.title[currentDimension]);
+
+        // Recursively add the tree-view grandchild node to the heavy-view
+        // child node.
+        this.addTreeToHeavyViewNode_(treeViewGrandChildNode, heavyViewChildNode,
+            currentDimension, recursionDepthTrackers, subTreeDepth + 1,
+            previousDimensionsRecursive);
+
+        recursionDepthTracker.pop();
+      }
+    }
+  };
+
+  /**
+   * Recursion depth tracker.
+   *
+   * This class tracks the recursion depth of the current stack (updated via
+   * the push and pop methods). The recursion depth of a stack is the lengh of
+   * its longest leaf suffix that is repeated within the stack itself.
+   *
+   * For example, the recursion depth of the stack A -> B -> C -> A -> B -> B
+   * -> C (where C is the leaf node) is 2 because the suffix B -> C is repeated
+   * within it.
+   *
+   * @{constructor}
+   */
+  function RecursionDepthTracker(maxDepth) {
+    this.currentPath_ = new Array(maxDepth);
+    this.currentPathStartIndex_ = this.currentPath_.length;
+    this.currentNode_ =
+        this.createNode_(0 /* recursionDepth */, undefined /* parent */);
+  }
+
+  RecursionDepthTracker.prototype = {
+    push: function(title) {
+      if (this.currentPathStartIndex_ === 0)
+        throw new Error('Cannot push to a full tracker');
+      this.currentPathStartIndex_--;
+      this.currentPath_[this.currentPathStartIndex_] = title;
+
+      var childNode = this.currentNode_.children.get(title);
+      if (childNode !== undefined) {
+        // Child node already exists, so we don't need to calculate anything.
+        this.currentNode_ = childNode;
+        return;
+      }
+
+      // Child node doesn't exist yet, so we need to calculate its recursion
+      // depth.
+      var maxLengths =
+          zFunction(this.currentPath_, this.currentPathStartIndex_);
+      var recursionDepth = 0;
+      for (var i = 0; i < maxLengths.length; i++)
+        recursionDepth = Math.max(recursionDepth, maxLengths[i]);
+
+      var childNode = this.createNode_(recursionDepth, this.currentNode_);
+      this.currentNode_.children.set(title, childNode);
+      this.currentNode_ = childNode;
+    },
+
+    pop: function() {
+      if (this.currentPathStartIndex_ === this.currentPath_.length)
+        throw new Error('Cannot pop from an empty tracker');
+
+      this.currentPath_[this.currentPathStartIndex_] = undefined;
+      this.currentPathStartIndex_++;
+
+      this.currentNode_ = this.currentNode_.parent;
+    },
+
+    get recursionDepth() {
+      return this.currentNode_.recursionDepth;
+    },
+
+    createNode_: function(recursionDepth, parent) {
+      return {
+        recursionDepth: recursionDepth,
+        parent: parent,
+        children: new Map()
+      };
+    }
+  };
+
+  /**
+   * Calculate the Z-function of (a suffix of) a list.
+   *
+   * Z-function: Given a list (or a string) of length n, for each index i from
+   * 1 to n - 1, find the length z[i] of the longest substring starting at
+   * position i which is also a prefix of the list. This function returns the
+   * list of maximum lengths z.
+   *
+   * Mathematically, for each i from 1 to n - 1, z[i] is the maximum value such
+   * that [list[0], ..., list[i - 1]] = [list[i], ..., list[i + z[i] - 1]].
+   * z[0] is defined to be zero for convenience.
+   *
+   * Example:
+   *
+   *   Input (list): ['A', 'B', 'A', 'C', 'A', 'B', 'A']
+   *   Output (z):   [ 0 ,  0 ,  1 ,  0 ,  3 ,  0 ,  1 ]
+   *
+   * Unlike the brute-force approach (which is O(n^2) in the worst case), the
+   * complexity of this implementation is linear in the size of the list, i.e.
+   * O(n).
+   *
+   * Source: http://e-maxx-eng.github.io/string/z-function.html
+   */
+  function zFunction(list, startIndex) {
+    var n = list.length - startIndex;
+    if (n === 0)
+      return [];
+
+    var z = new Array(n);
+    z[0] = 0;
+
+    for (var i = 1, left = 0, right = 0; i < n; ++i) {
+      var maxLength;
+      if (i <= right)
+        maxLength = Math.min(right - i + 1, z[i - left]);
+      else
+        maxLength = 0;
+
+      while (i + maxLength < n && list[startIndex + maxLength] ===
+             list[startIndex + i + maxLength]) {
+        ++maxLength;
+      }
+
+      if (i + maxLength - 1 > right) {
+        left = i;
+        right = i + maxLength - 1;
+      }
+
+      z[i] = maxLength;
+    }
+
+    return z;
+  }
+
+  return {
+    MultiDimensionalViewBuilder: MultiDimensionalViewBuilder,
+    RecursionDepthTracker: RecursionDepthTracker,  // Exported for testing.
+    zFunction: zFunction  // Exported for testing.
+  };
+});
+</script>
