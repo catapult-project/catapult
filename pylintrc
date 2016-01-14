@@ -41,7 +41,6 @@ disable =
   no-name-in-module,
   old-style-class,
   super-on-old-class,
-  unnecessary-semicolon,
   unused-argument,
   unused-import,
 

@@ -100,7 +100,7 @@ class AtraceAgentTest(unittest.TestCase):
     with contextlib.nested(open(ATRACE_DATA_STRIPPED, 'r'),
                            open(ATRACE_DATA_RAW, 'r')) as (f1, f2):
       atrace_data = f1.read()
-      atrace_data_raw = f2.read();
+      atrace_data_raw = f2.read()
 
       options, categories = systrace.parse_options(STOP_FIX_UPS)
       agent = atrace_agent.AtraceAgent(options, categories)
@@ -143,7 +143,7 @@ class AtraceAgentTest(unittest.TestCase):
 
       atrace_data = f2.read()
       tgid_map = eval(f1.read())
-      fixed = f3.read();
+      fixed = f3.read()
 
       res = atrace_agent.fix_missing_tgids(atrace_data, tgid_map)
       self.assertEqual(res, fixed)

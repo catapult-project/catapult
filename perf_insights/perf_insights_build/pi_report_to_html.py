@@ -92,7 +92,7 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
   results = _MapTraces(corpus_driver, map_function_handle, query, stop_on_error,
                        jobs, quiet)
   if stop_on_error and results.had_failures:
-    sys.stderr.write('There were mapping errors. Aborting.');
+    sys.stderr.write('There were mapping errors. Aborting.')
     return 255
 
   if json_output:

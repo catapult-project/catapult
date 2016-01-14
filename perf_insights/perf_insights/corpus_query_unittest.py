@@ -20,18 +20,18 @@ class FilterTests(unittest.TestCase):
 
   def testInTuple(self):
     f = corpus_query.Filter.FromString("a IN (1, 2)")
-    self.assertEquals(f.a.fieldName, 'a');
-    self.assertEquals(f.op, corpus_query._InOp);
-    self.assertEquals(f.b.constant, (1, 2));
+    self.assertEquals(f.a.fieldName, 'a')
+    self.assertEquals(f.op, corpus_query._InOp)
+    self.assertEquals(f.b.constant, (1, 2))
 
     self.assertFalse(f.Eval({'a': 3}))
     self.assertTrue(f.Eval({'a': 1}))
 
   def testInTupleStr(self):
     f = corpus_query.Filter.FromString("a IN ('a', 'b')")
-    self.assertEquals(f.a.fieldName, 'a');
-    self.assertEquals(f.op, corpus_query._InOp);
-    self.assertEquals(f.b.constant, ('a', 'b'));
+    self.assertEquals(f.a.fieldName, 'a')
+    self.assertEquals(f.op, corpus_query._InOp)
+    self.assertEquals(f.b.constant, ('a', 'b'))
 
     self.assertFalse(f.Eval({'a': 'c'}))
     self.assertTrue(f.Eval({'a': 'a'}))
@@ -49,10 +49,10 @@ class FilterTests(unittest.TestCase):
   def testDateComparison(self):
     f = corpus_query.Filter.FromString(
         "date >= Date(2015-01-02 3:04:05.678)")
-    self.assertEquals(f.a.fieldName, 'date');
-    self.assertEquals(f.op, operator.ge);
+    self.assertEquals(f.a.fieldName, 'date')
+    self.assertEquals(f.op, operator.ge)
 
-    self.assertTrue(isinstance(f.b.constant, datetime.datetime));
+    self.assertTrue(isinstance(f.b.constant, datetime.datetime))
     at = datetime.datetime(2015, 1, 2, 3, 4, 5, 678000)
     self.assertEquals(f.b.constant, at)
 

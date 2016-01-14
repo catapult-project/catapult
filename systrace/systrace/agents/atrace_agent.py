@@ -536,7 +536,7 @@ def extract_tgids(trace_text):
     result = re.match('^/proc/([0-9]+)/task/([0-9]+)', line)
     if result:
       parent_pid, tgid = result.group(1,2)
-      tgid_2pid[tgid] = parent_pid;
+      tgid_2pid[tgid] = parent_pid
 
   return tgid_2pid
 
@@ -625,7 +625,7 @@ def fix_missing_tgids(trace_data, pid2_tgid):
   # Binder_2-895 (-----)
   trace_data = re.sub(r'^\s*(\S+)-(\d+)\s+(\(\S+\))', repl, trace_data,
                       flags=re.MULTILINE)
-  return trace_data;
+  return trace_data
 
 
 
