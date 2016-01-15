@@ -5,11 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel='import' href='/tracing/ui/base/info_bar.html'>
 <link rel="import" href="/tracing/ui/base/table.html">
 
 <polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
@@ -73,6 +75,8 @@ found in the LICENSE file.
       </div>
     </div>
     <div id="contents">
+      <tr-ui-b-info-bar id="info_bar" class="info-bar-hidden">
+      </tr-ui-b-info-bar>
       <div id="info_text">No heap dump selected</div>
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
@@ -83,10 +87,72 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var COLUMN_IMPORTANCE_RULES =
-      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
-          'Total size',
-          'Self size']);
+  /** @{enum} */
+  var RowDimension = {
+    ROOT: -1,
+    STACK_FRAME: 0,
+    OBJECT_TYPE: 1
+  };
+
+  var LATIN_SMALL_LETTER_F_WITH_HOOK = String.fromCharCode(0x0192);
+  var CIRCLED_LATIN_CAPITAL_LETTER_T = String.fromCharCode(0x24C9);
+
+  /** @{constructor} */
+  function HeapDumpNodeTitleColumn(title) {
+    tr.ui.analysis.TitleColumn.call(this, title);
+  }
+
+  HeapDumpNodeTitleColumn.prototype = {
+    __proto__: tr.ui.analysis.TitleColumn.prototype,
+
+    formatTitle: function(row) {
+      var title = row.title;
+      var dimension = row.dimension;
+      switch (dimension) {
+        case RowDimension.ROOT:
+          return title;
+
+        case RowDimension.STACK_FRAME:
+        case RowDimension.OBJECT_TYPE:
+          return this.formatSubRow_(title, dimension);
+
+        default:
+          throw new Error('Invalid row dimension: ' + row.dimension);
+      }
+    },
+
+    cmp: function(rowA, rowB) {
+      if (rowA.dimension !== rowB.dimension)
+        return rowA.dimension - rowB.dimension;
+      return tr.ui.analysis.TitleColumn.prototype.cmp.call(this, rowA, rowB);
+    },
+
+    formatSubRow_: function(title, dimension) {
+      var titleEl = document.createElement('span');
+
+      var symbolEl = document.createElement('span');
+      var symbolColorName;
+      if (dimension === RowDimension.STACK_FRAME) {
+        symbolEl.textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
+        symbolEl.title = 'Stack frame';
+        symbolColorName = 'heap_dump_stack_frame';
+      } else {
+        symbolEl.textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
+        symbolEl.title = 'Object type';
+        symbolColorName = 'heap_dump_object_type';
+      }
+      symbolEl.style.color =
+          tr.b.ColorScheme.getColorForReservedNameAsString(symbolColorName);
+      symbolEl.style.paddingRight = '4px';
+      symbolEl.style.cursor = 'help';
+      symbolEl.style.weight = 'bold';
+      titleEl.appendChild(symbolEl);
+
+      titleEl.appendChild(document.createTextNode(title));
+
+      return titleEl;
+    }
+  };
 
   Polymer('tr-ui-a-memory-dump-heap-details-pane', {
     created: function() {
@@ -97,17 +163,19 @@ tr.exportTo('tr.ui.analysis', function() {
 
     ready: function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.info_bar.message = 'Note: Values displayed in the heavy view ' +
+          'are lower bounds (except for the root).';
 
       this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
           this, 'heavyView', 'memoryDumpHeapDetailsPane.heavyView',
           false /* Tree view default */,
           [
             {
-              label: 'Tree view',
+              label: 'Tree',
               value: false
             },
             {
-              label: 'Heavy view',
+              label: 'Heavy',
               value: true
             }
           ]));
@@ -145,7 +213,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     set heavyView(heavyView) {
-      this.heavyView_ = heavyView;
+      this.heavyView_ = !!heavyView;
       this.scheduleRebuildPane_();
     },
 
@@ -160,6 +228,7 @@ tr.exportTo('tr.ui.analysis', function() {
         this.$.info_text.style.display = 'block';
         this.$.table.style.display = 'none';
         this.$.view_mode_container.style.display = 'none';
+        this.$.info_bar.visible = false;
 
         this.$.table.clear();
         this.$.table.rebuild();
@@ -170,6 +239,9 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info_text.style.display = 'none';
       this.$.table.style.display = 'block';
       this.$.view_mode_container.style.display = 'block';
+
+      // Show the info bar if in heavy view mode.
+      this.$.info_bar.visible = this.heavyView;
 
       var stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
       var rows = this.createRows_(stackFrameTrees);
@@ -210,18 +282,17 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createRows_: function(stackFrameTrees) {
-      return [this.createHeapRowRecursively_(stackFrameTrees)];
+      var definedHeapDump = tr.b.findFirstInArray(this.heapDumps);
+      if (definedHeapDump === undefined)
+        return [];
+
+      // The title of the root row is the name of the allocator.
+      var rootRowTitle = definedHeapDump.allocatorName;
+      return [this.createHeapRowRecursively_(
+          stackFrameTrees, RowDimension.ROOT, rootRowTitle)];
     },
 
-    createHeapRowRecursively_: function(nodes) {
-      // Get the name of the stack frame tree nodes. We can use any defined
-      // node since they all have the same name.
-      var title = tr.b.findFirstInArray(nodes).title[0];
-      if (title === undefined) {
-        // The title of the root row is the name of the allocator.
-        title = tr.b.findFirstInArray(this.heapDumps).allocatorName;
-      }
-
+    createHeapRowRecursively_: function(nodes, dimension, title) {
       // Determine at which timestamps (indices of the current selection)
       // the stack frame tree node was provided.
       var defined = nodes.map(function(node) {
@@ -237,26 +308,50 @@ tr.exportTo('tr.ui.analysis', function() {
         };
       });
 
-      // Child stack frame tree node index (list index) ->
-      // Timestamp (list index) -> Child stack frame tree node.
-      var groupedChildNodes = tr.b.dictionaryValues(
+      var row = {
+        dimension: dimension,
+        title: title,
+        defined: defined,
+        cells: cells
+      };
+
+      // Recursively create sub-rows for children (if applicable).
+      var stackFrameSubRows = this.createHeapDimensionSubRowsRecursively_(
+          nodes, RowDimension.STACK_FRAME);
+      var objectTypeSubRows = this.createHeapDimensionSubRowsRecursively_(
+          nodes, RowDimension.OBJECT_TYPE);
+      var subRows = stackFrameSubRows.concat(objectTypeSubRows);
+      if (subRows.length > 0)
+        row.subRows = subRows;
+
+      return row;
+    },
+
+    createHeapDimensionSubRowsRecursively_: function(nodes, dimension) {
+      // Sub-row name (list index) -> Timestamp (list index) -> Child
+      // MultiDimensionalViewNode.
+      var dimensionGroupedChildNodes = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(nodes, function(node) {
-            // TODO(petrcermak): Use node.childMap directly.
-            // TODO(petrcermak): Break down by object type as well.
             var childDict = {};
-            var children = node.children[0];
-            var childrenTotal = 0;
-            for (var child of children.values()) {
-              childrenTotal += child.total;
-              childDict[child.title[0]] = child;
+            var displayedChildrenTotal = 0;
+            var hasDisplayedChildren = false;
+            for (var child of node.children[dimension].values()) {
+              // Don't show lower-bound sub-rows in tree-view.
+              if (!this.heavyView && child.isLowerBound)
+                continue;
+              childDict[child.title[dimension]] = child;
+              displayedChildrenTotal += child.total;
+              hasDisplayedChildren = true;
             }
 
-            // Add '<other>' nodes if necessary in tree-view.
-            if (!this.heavyView && childrenTotal < node.total &&
-                children.size > 0) {
+            // Add '<other>' node if necessary in tree-view.
+            if (!this.heavyView && displayedChildrenTotal < node.total &&
+                hasDisplayedChildren) {
+              var otherTitle = node.title.slice();
+              otherTitle[dimension] = '<other>';
               childDict['<other>'] = {
-                title: ['<other>', undefined],
-                total: node.total - childrenTotal,
+                title: otherTitle,
+                total: node.total - displayedChildrenTotal,
                 children: [new Map(), new Map()]
               };
             }
@@ -264,29 +359,20 @@ tr.exportTo('tr.ui.analysis', function() {
             return childDict;
           }, this));
 
-      var row = {
-        title: title,
-        defined: defined,
-        cells: cells
-      };
-
-      // Recursively create sub-rows for children (if applicable).
-      if (groupedChildNodes.length > 0) {
-        row.subRows =
-            groupedChildNodes.map(this.createHeapRowRecursively_, this);
-      }
-
-      return row;
+      // Sub-row name (list index) -> Sub-row.
+      return dimensionGroupedChildNodes.map(function(subRowNodes) {
+        var subRowTitle = tr.b.findFirstInArray(subRowNodes).title[dimension];
+        return this.createHeapRowRecursively_(
+            subRowNodes, dimension, subRowTitle);
+      }, this);
     },
 
     createColumns_: function(rows) {
-      var titleColumn = new tr.ui.analysis.TitleColumn('Stack frame');
+      var titleColumn = new HeapDumpNodeTitleColumn('Stack frame');
       titleColumn.width = '500px';
 
       var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
           rows, 'cells', this.aggregationMode_);
-      tr.ui.analysis.MemoryColumn.sortByImportance(
-          attributeColumns, COLUMN_IMPORTANCE_RULES);
       tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
 
       var columns = [titleColumn].concat(attributeColumns);
@@ -294,6 +380,8 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   });
 
-  return {};
+  return {
+    RowDimension: RowDimension  // Exported for testing.
+  };
 });
 </script>
