@@ -4,6 +4,7 @@
 
 # pylint: disable=unused-argument
 
+import errno
 import logging
 import os
 import re
@@ -194,7 +195,11 @@ class LogcatMonitor(object):
     """
     self._StopRecording()
     if self._record_file and self._output_file:
-      os.makedirs(os.path.dirname(self._output_file))
+      try:
+        os.makedirs(os.path.dirname(self._output_file))
+      except OSError as e:
+        if e.errno != errno.EEXIST:
+          raise
       shutil.copy(self._record_file.name, self._output_file)
 
   def Close(self):
