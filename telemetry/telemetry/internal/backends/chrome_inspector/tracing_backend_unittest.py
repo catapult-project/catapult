@@ -49,7 +49,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     config.tracing_category_filter.AddDisabledByDefault(
         'disabled-by-default-memory-infra')
     config.enable_chrome_trace = True
-    self._tracing_controller.Start(config)
+    self._tracing_controller.StartTracing(config)
 
     # Request several memory dumps in a row and test that they were all
     # successfully created with unique IDs.
@@ -60,7 +60,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.assertNotIn(dump_id, expected_dump_ids)
       expected_dump_ids.append(dump_id)
 
-    trace_data = self._tracing_controller.Stop()
+    trace_data = self._tracing_controller.StopTracing()
 
     # Check that dumping memory after tracing stopped raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
@@ -82,12 +82,12 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # Start tracing with memory dumps disabled.
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    self._tracing_controller.Start(config)
+    self._tracing_controller.StartTracing(config)
 
     # Check that the method returns None if the dump was not successful.
     self.assertIsNone(self._browser.DumpMemory())
 
-    trace_data = self._tracing_controller.Stop()
+    trace_data = self._tracing_controller.StopTracing()
 
     # Check that dumping memory after tracing stopped raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)

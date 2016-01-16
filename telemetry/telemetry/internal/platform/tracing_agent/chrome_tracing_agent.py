@@ -82,7 +82,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           config, config.tracing_category_filter.filter_string, timeout)
     return True
 
-  def Start(self, config, timeout):
+  def StartAgentTracing(self, config, timeout):
     if not config.enable_chrome_trace:
       return False
 
@@ -108,7 +108,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       return True
     return False
 
-  def Stop(self, trace_data_builder):
+  def StopAgentTracing(self, trace_data_builder):
     if not self._trace_config:
       raise ChromeTracingStoppedError(
           'Tracing is not running on platform backend %s.'

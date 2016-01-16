@@ -250,11 +250,11 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Configure and start tracing."""
     if not platform.tracing_controller.IsChromeTracingSupported():
       raise Exception('Not supported')
-    platform.tracing_controller.Start(self._tbm_options.config)
+    platform.tracing_controller.StartTracing(self._tbm_options.config)
 
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
-    trace_result = platform.tracing_controller.Stop()
+    trace_result = platform.tracing_controller.StopTracing()
     results.AddValue(trace.TraceValue(results.current_page, trace_result))
     model = model_module.TimelineModel(trace_result)
     threads_to_records_map = _GetRendererThreadsToInteractionRecordsMap(model)
@@ -281,4 +281,4 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def DidRunStory(self, platform):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
-      platform.tracing_controller.Stop()
+      platform.tracing_controller.StopTracing()

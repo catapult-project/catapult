@@ -2,17 +2,21 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.internal.platform import tracing_agent
 
-class TracingController(object):
+
+class TracingController(tracing_agent.TracingAgent):
 
   def __init__(self, tracing_controller_backend):
     """Provides control of the tracing systems supported by telemetry."""
+    super(TracingController, self).__init__(
+        tracing_controller_backend._platform_backend)
     self._tracing_controller_backend = tracing_controller_backend
 
-  def Start(self, tracing_config, timeout=10):
+  def StartTracing(self, tracing_config, timeout=10):
     """Starts tracing.
 
-    tracing config contains both tracing optoins and category filters.
+    tracing config contains both tracing options and category filters.
 
     trace_options specifies which tracing systems to activate. Category filter
     allows fine-tuning of the data that are collected by the selected tracing
@@ -28,11 +32,11 @@ class TracingController(object):
     your code fail gracefully when the data you require is not present in the
     resulting trace.
     """
-    self._tracing_controller_backend.Start(tracing_config, timeout)
+    self._tracing_controller_backend.StartTracing(tracing_config, timeout)
 
-  def Stop(self):
+  def StopTracing(self):
     """Stops tracing and returns a TraceValue."""
-    return self._tracing_controller_backend.Stop()
+    return self._tracing_controller_backend.StopTracing()
 
   @property
   def is_tracing_running(self):
@@ -41,3 +45,17 @@ class TracingController(object):
   def IsChromeTracingSupported(self):
     """Returns whether chrome tracing is supported."""
     return self._tracing_controller_backend.IsChromeTracingSupported()
+
+  def StartAgentTracing(self, config, timeout=10):
+    """ Starts agent tracing for tracing controller"""
+    return self._tracing_controller_backend.StartAgentTracing(config, timeout)
+
+  def StopAgentTracing(self, trace_data_builder):
+    """ Stops agent tracing for tracing controller. """
+    return self._tracing_controller_backend.StopAgentTracing(trace_data_builder)
+
+  def SupportsExplicitClockSync(self):
+    return self._tracing_controller_backend.SupportsExplicitClockSync()
+
+  def RecordClockSyncMarker(self, sync_id):
+    return self._tracing_controller_backend.RecordClockSyncMarker(sync_id)

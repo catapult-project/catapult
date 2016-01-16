@@ -104,10 +104,10 @@ class TabTest(tab_test_case.TabTestCase):
     config = tracing_config.TracingConfig()
     config.SetNoOverheadFilter()
     config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.Start(config)
+    self._browser.platform.tracing_controller.StartTracing(config)
     self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
     self._tab.ClearHighlight(rgba_color.WEB_PAGE_TEST_ORANGE)
-    trace_data = self._browser.platform.tracing_controller.Stop()
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
     renderer_thread = timeline_model.GetRendererThreadFromTabId(
         self._tab.id)
@@ -124,7 +124,7 @@ class TabTest(tab_test_case.TabTestCase):
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
-    # tracing_controller.Start.
+    # tracing_controller.StartTracing.
     first_tab = self._tab
     second_tab = self._browser.tabs.New()
     second_tab.Navigate('about:blank')
@@ -136,12 +136,12 @@ class TabTest(tab_test_case.TabTestCase):
     config = tracing_config.TracingConfig()
     config.SetNoOverheadFilter()
     config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.Start(config)
+    self._browser.platform.tracing_controller.StartTracing(config)
     first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
     first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
     second_tab.ExecuteJavaScript('console.time("second-tab-marker");')
     second_tab.ExecuteJavaScript('console.timeEnd("second-tab-marker");')
-    trace_data = self._browser.platform.tracing_controller.Stop()
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
 
     # Assert that the renderer_thread of the first tab contains

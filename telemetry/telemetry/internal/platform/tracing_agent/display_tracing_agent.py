@@ -14,13 +14,13 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
   def IsSupported(cls, platform_backend):
     return platform_backend.IsDisplayTracingSupported()
 
-  def Start(self, config, timeout):
+  def StartAgentTracing(self, config, timeout):
     del timeout  # unused
     if config.enable_platform_display_trace:
       self._platform_backend.StartDisplayTracing()
       return True
 
-  def Stop(self, trace_data_builder):
+  def StopAgentTracing(self, trace_data_builder):
     surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
     trace_data_builder.AddEventsTo(
           trace_data.SURFACE_FLINGER_PART, surface_flinger_trace_data)

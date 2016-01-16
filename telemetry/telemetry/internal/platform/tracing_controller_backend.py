@@ -36,7 +36,7 @@ class TracingControllerBackend(object):
         agent_classes.IsSupported(platform_backend)]
     self._active_agents_instances = []
 
-  def Start(self, config, timeout):
+  def StartTracing(self, config, timeout):
     if self.is_tracing_running:
       return False
 
@@ -57,17 +57,17 @@ class TracingControllerBackend(object):
 
     for agent_class in self._supported_agents_classes:
       agent = agent_class(self._platform_backend)
-      if agent.Start(config, timeout):
+      if agent.StartAgentTracing(config, timeout):
         self._active_agents_instances.append(agent)
 
-  def Stop(self):
+  def StopTracing(self):
     assert self.is_tracing_running, 'Can only stop tracing when tracing is on.'
     trace_data_builder = trace_data_module.TraceDataBuilder()
 
     raised_execption_messages = []
     for agent in self._active_agents_instances:
       try:
-        agent.Stop(trace_data_builder)
+        agent.StopAgentTracing(trace_data_builder)
       except Exception:
         raised_execption_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -81,6 +81,26 @@ class TracingControllerBackend(object):
           '\n'.join(raised_execption_messages))
 
     return trace_data_builder.AsData()
+
+  def StartAgentTracing(self, config, timeout):
+    # TODO(rnephew): Used when implementing clock sync.
+    pass
+
+  def StopAgentTracing(self, trace_data_builder):
+    # TODO(rnephew) Used when implementing clock sync.
+    pass
+
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id):
+    """ Record clock sync event.
+
+    Args:
+      sync_id: Unqiue id for sync event.
+    """
+    # TODO(rnephew): Implement clock sync for trace controller.
+    del sync_id # unused
 
   def IsChromeTracingSupported(self):
     return chrome_tracing_agent.ChromeTracingAgent.IsSupported(

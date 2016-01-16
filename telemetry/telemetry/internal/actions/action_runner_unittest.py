@@ -33,11 +33,11 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     config = tracing_config.TracingConfig()
     config.SetNoOverheadFilter()
     config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.Start(config)
+    self._browser.platform.tracing_controller.StartTracing(config)
     with action_runner.CreateInteraction('InteractionName',
                                                  **interaction_kwargs):
       pass
-    trace_data = self._browser.platform.tracing_controller.Stop()
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
 
     records = self.GetInteractionRecords(trace_data)
     self.assertEqual(

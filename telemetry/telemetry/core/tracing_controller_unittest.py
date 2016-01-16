@@ -16,7 +16,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    tracing_controller.StartTracing(config)
     self.Navigate('blank.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -27,7 +27,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
         console.time = function() { };
         """)
     with self.assertRaisesRegexp(Exception, 'Page stomped on console.time'):
-      tracing_controller.Stop()
+      tracing_controller.StopTracing()
 
     # Restore console.time
     self._tab.EvaluateJavaScript("""
@@ -37,16 +37,16 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
     # Check that subsequent tests will be able to use tracing normally.
     self.assertFalse(tracing_controller.is_tracing_running)
-    tracing_controller.Start(config)
+    tracing_controller.StartTracing(config)
     self.assertTrue(tracing_controller.is_tracing_running)
-    tracing_controller.Stop()
+    tracing_controller.StopTracing()
     self.assertFalse(tracing_controller.is_tracing_running)
 
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    tracing_controller.StartTracing(config)
 
     self.Navigate('blank.html')
     self._tab.EvaluateJavaScript("""
@@ -54,7 +54,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
         console.time = function() { };
         """)
     with self.assertRaisesRegexp(Exception, 'Page stomped on console.time'):
-      tracing_controller.Stop()
+      tracing_controller.StopTracing()
 
     # Tracing is stopped even if there is exception.
     self.assertFalse(tracing_controller.is_tracing_running)
@@ -63,9 +63,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    tracing_controller.Start(config)
+    tracing_controller.StartTracing(config)
 
-    trace_data = tracing_controller.Stop()
+    trace_data = tracing_controller.StopTracing()
     # Test that trace data is parsable
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
@@ -74,15 +74,15 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    tracing_controller.Start(config)
-    self.assertFalse(tracing_controller.Start(config))
+    tracing_controller.StartTracing(config)
+    self.assertFalse(tracing_controller.StartTracing(config))
 
-    trace_data = tracing_controller.Stop()
+    trace_data = tracing_controller.StopTracing()
     # Test that trace data is parsable
     model_module.TimelineModel(trace_data)
     self.assertFalse(tracing_controller.is_tracing_running)
     # Calling stop again will raise exception
-    self.assertRaises(Exception, tracing_controller.Stop)
+    self.assertRaises(Exception, tracing_controller.StopTracing)
 
   def _StartupTracing(self, platform):
     # Stop browser
@@ -92,7 +92,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertFalse(platform.tracing_controller.is_tracing_running)
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
-    platform.tracing_controller.Start(config)
+    platform.tracing_controller.StartTracing(config)
     self.assertTrue(platform.tracing_controller.is_tracing_running)
 
     try:
@@ -102,16 +102,17 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
       self.assertEquals(platform, self._browser.platform)
       # Calling start tracing again will return False
-      self.assertFalse(self._browser.platform.tracing_controller.Start(config))
+      self.assertFalse(
+          self._browser.platform.tracing_controller.StartTracing(config))
 
-      trace_data = self._browser.platform.tracing_controller.Stop()
+      trace_data = self._browser.platform.tracing_controller.StopTracing()
       # Test that trace data is parsable
       model_module.TimelineModel(trace_data)
       self.assertFalse(
           self._browser.platform.tracing_controller.is_tracing_running)
       # Calling stop tracing again will raise exception
       self.assertRaises(Exception,
-                        self._browser.platform.tracing_controller.Stop)
+                        self._browser.platform.tracing_controller.StopTracing)
     finally:
       if self._browser:
         self._browser.Close()

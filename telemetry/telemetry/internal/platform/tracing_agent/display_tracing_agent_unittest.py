@@ -35,30 +35,30 @@ class DisplayTracingAgentTest(unittest.TestCase):
   @mock.patch(
       'devil.android.perf.surface_stats_collector.SurfaceStatsCollector')
   def testStartAndStopTracing(self, MockSurfaceStatsCollector):
-    self._agent.Start(self._config, 10)
+    self._agent.StartAgentTracing(self._config, 10)
     # Second start tracing will raise error.
     with self.assertRaises(AssertionError):
-      self._agent.Start(self._config, 10)
+      self._agent.StartAgentTracing(self._config, 10)
     self._platform_backend.surface_stats_collector.Stop.return_value = (0, [])
-    self._agent.Stop(mock.MagicMock())
+    self._agent.StopAgentTracing(mock.MagicMock())
 
     # Can start and stop tracing multiple times.
-    self._agent.Start(self._config, 10)
+    self._agent.StartAgentTracing(self._config, 10)
     self._platform_backend.surface_stats_collector.Stop.return_value = (0, [])
-    self._agent.Stop(mock.MagicMock())
+    self._agent.StopAgentTracing(mock.MagicMock())
 
   @mock.patch(
       'devil.android.perf.surface_stats_collector.SurfaceStatsCollector')
   def testExceptionRaisedInStopTracing(self, MockSurfaceStatsCollector):
-    self._agent.Start(self._config, 10)
+    self._agent.StartAgentTracing(self._config, 10)
     self._platform_backend.surface_stats_collector.Stop.side_effect = Exception(
         'Raise error when stopping tracing.')
     with self.assertRaises(Exception):
-      self._agent.Stop(mock.MagicMock())
+      self._agent.StopAgentTracing(mock.MagicMock())
 
     # Tracing is stopped even if there is exception. And the agent can start
     # tracing again.
-    self._agent.Start(self._config, 10)
+    self._agent.StartAgentTracing(self._config, 10)
     self._platform_backend.surface_stats_collector.Stop.side_effect = None
     self._platform_backend.surface_stats_collector.Stop.return_value = (0, [])
-    self._agent.Stop(mock.MagicMock())
+    self._agent.StopAgentTracing(mock.MagicMock())
