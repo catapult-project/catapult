@@ -1,5 +1,6 @@
 <!--
-Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
@@ -7,140 +8,84 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="paper-item-behavior.html">
+<link rel="import" href="paper-item-shared-styles.html">
+
 <!--
+Material design: [Lists](https://www.google.com/design/spec/components/lists.html)
 
-Material Design: <a href="http://www.google.com/design/spec/components/menus.html">Menus</a>
+`<paper-item>` is an interactive list item. By default, it is a horizontal flexbox.
 
-`paper-item` is a simple item object for use in menus. When the user touches the item, a ripple
-effect emanates from the point of contact. If used in a `core-selector`, the selected item will
-be highlighted.
+    <paper-item>Item</paper-item>
 
-Example:
+Use this element with `<paper-item-body>` to make Material Design styled two-line and three-line
+items.
 
-    <core-menu>
-        <paper-item>Cut</paper-item>
-        <paper-item>Copy</paper-item>
-        <paper-item>Paste</paper-item>
-    </core-menu>
+    <paper-item>
+      <paper-item-body two-line>
+        <div>Show your status</div>
+        <div secondary>Your status is visible to everyone</div>
+      </paper-item-body>
+      <iron-icon icon="warning"></iron-icon>
+    </paper-item>
 
-Links
------
+### Styling
 
-To use as a link, put an `<a>` element in the item. You may also use the `noink` attribute to
-prevent the ripple from "freezing" during a page navigation.
+The following custom properties and mixins are available for styling:
 
-Example:
+Custom property               | Description                                  | Default
+------------------------------|----------------------------------------------|----------
+`--paper-item-min-height`     | Minimum height of the item                   | `48px`
+`--paper-item`                | Mixin applied to the item                    | `{}`
+`--paper-item-selected-weight`| The font weight of a selected item           | `bold`
+`--paper-item-selected`       | Mixin applied to selected paper-items        | `{}`
+`--paper-item-disabled-color` | The color for disabled paper-items           | `--disabled-text-color`
+`--paper-item-disabled`       | Mixin applied to disabled paper-items        | `{}`
+`--paper-item-focused`        | Mixin applied to focused paper-items         | `{}`
+`--paper-item-focused-before` | Mixin applied to :before focused paper-items | `{}`
 
-    <paper-item noink>
-        <a href="http://www.polymer-project.org" layout horizontal center>Polymer</a>
+### Accessibility
+
+This element has `role="listitem"` by default. Depending on usage, it may be more appropriate to set
+`role="menuitem"`, `role="menuitemcheckbox"` or `role="menuitemradio"`.
+
+    <paper-item role="menuitemcheckbox">
+      <paper-item-body>
+        Show your status
+      </paper-item-body>
+      <paper-checkbox></paper-checkbox>
     </paper-item>
 
 @group Paper Elements
 @element paper-item
-@extends paper-button-base
-@status unstable
+@demo demo/index.html
 -->
 
-<link href="../polymer/polymer.html" rel="import">
-<link href="../paper-button/paper-button-base.html" rel="import">
-<link href="../paper-ripple/paper-ripple.html" rel="import">
-
-<polymer-element name="paper-item" extends="paper-button-base">
-
+<dom-module id="paper-item">
   <template>
-
+    <style include="paper-item-shared-styles"></style>
     <style>
-
       :host {
-        display: block;
-        position: relative;
-        font-size: 16px;
-        box-sizing: border-box;
-        min-width: 7em;
-        outline: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -webkit-user-select: none;
-        user-select: none;
-        cursor: pointer;
-        z-index: 0;
-      }
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+        @apply(--paper-font-subhead);
 
-      :host([disabled]) {
-        color: #a8a8a8;
-        cursor: auto;
-        pointer-events: none;
+        @apply(--paper-item);
       }
-
-      :host(.core-selected) {
-        background-color: #eaeaea;
-      }
-
-      #ripple {
-        pointer-events: none;
-        z-index: -1;
-      }
-
-      .button-content {
-        padding: 0.9em 1em;
-      }
-
-      polyfill-next-selector { content: '.button-content > a'; }
-      ::content > a {
-        height: 100%;
-        /* flex */
-        -ms-flex: 1 1 0.000000001px;
-        -webkit-flex: 1;
-        flex: 1;
-        -webkit-flex-basis: 0.000000001px;
-        flex-basis: 0.000000001px;
-      }
-
     </style>
 
-    <!-- this div is needed to position the ripple behind text content -->
-    <div class="button-content" relative layout horizontal center>
-      <content></content>
-    </div>
-
+    <content></content>
   </template>
 
   <script>
     Polymer({
+      is: 'paper-item',
 
-      publish: {
-
-        /**
-         * If true, the button will be styled with a shadow.
-         *
-         * @attribute raised
-         * @type boolean
-         * @default false
-         */
-        raised: false,
-
-        /**
-         * By default the ripple emanates from where the user touched the button.
-         * Set this to true to always center the ripple.
-         *
-         * @attribute recenteringTouch
-         * @type boolean
-         * @default false
-         */
-        recenteringTouch: false,
-
-        /**
-         * By default the ripple expands to fill the button. Set this to false to
-         * constrain the ripple to a circle within the button.
-         *
-         * @attribute fill
-         * @type boolean
-         * @default true
-         */
-        fill: true
-
-      }
-
+      behaviors: [
+        Polymer.PaperItemBehavior
+      ]
     });
   </script>
-</polymer-element>
+</dom-module>

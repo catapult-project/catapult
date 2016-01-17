@@ -1,14 +1,21 @@
 {
   "name": "webcomponentsjs",
   "main": "webcomponents.js",
-  "version": "0.5.5",
+  "version": "0.7.20",
   "homepage": "http://webcomponents.org",
   "authors": [
     "The Polymer Authors"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webcomponents/webcomponentsjs.git"
+  },
   "keywords": [
     "webcomponents"
   ],
   "license": "BSD",
-  "ignore": []
+  "ignore": [],
+  "devDependencies": {
+    "web-component-tester": "^4.0.1"
+  }
 }

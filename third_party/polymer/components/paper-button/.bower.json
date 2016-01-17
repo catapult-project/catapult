@@ -1,26 +1,51 @@
 {
   "name": "paper-button",
+  "version": "1.0.11",
+  "description": "Material design button",
+  "authors": [
+    "The Polymer Authors"
+  ],
+  "keywords": [
+    "web-components",
+    "web-component",
+    "polymer",
+    "paper",
+    "button"
+  ],
+  "main": "paper-button.html",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/PolymerElements/paper-button"
+  },
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/PolymerElements/paper-button",
   "dependencies": {
-    "polymer": "Polymer/polymer#^0.5",
-    "core-a11y-keys": "Polymer/core-a11y-keys#^0.5",
-    "core-focusable": "Polymer/core-focusable#^0.5",
-    "core-icon": "Polymer/core-icon#^0.5",
-    "paper-ripple": "Polymer/paper-ripple#^0.5",
-    "paper-shadow": "Polymer/paper-shadow#^0.5"
+    "polymer": "Polymer/polymer#^1.1.0",
+    "paper-ripple": "polymerelements/paper-ripple#^1.0.0",
+    "paper-material": "polymerelements/paper-material#^1.0.0",
+    "paper-behaviors": "polymerelements/paper-behaviors#^1.0.0",
+    "iron-flex-layout": "polymerelements/iron-flex-layout#^1.0.0"
   },
   "devDependencies": {
-    "web-component-tester": "Polymer/web-component-tester#^1.1.4"
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
+    "web-component-tester": "polymer/web-component-tester#^3.4.0",
+    "test-fixture": "polymerelements/test-fixture#^1.0.0",
+    "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "iron-icon": "polymerelements/iron-icon#^1.0.0",
+    "iron-icons": "polymerelements/iron-icons#^1.0.0",
+    "iron-test-helpers": "polymerelements/iron-test-helpers#^1.0.0",
+    "paper-styles": "polymerelements/paper-styles#^1.0.0"
   },
-  "version": "0.5.5",
-  "homepage": "https://github.com/Polymer/paper-button",
-  "_release": "0.5.5",
+  "ignore": [],
+  "_release": "1.0.11",
   "_resolution": {
     "type": "version",
-    "tag": "0.5.5",
-    "commit": "8c6cd88068a6aa45761376a33ea4a783c5ef7658"
+    "tag": "v1.0.11",
+    "commit": "7d0f75300372d91835ae7298593d50987d4a610f"
   },
-  "_source": "git://github.com/Polymer/paper-button.git",
-  "_target": "0.5.5",
-  "_originalSource": "Polymer/paper-button"
+  "_source": "git://github.com/PolymerElements/paper-button.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-button"
 }
