@@ -4,6 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/ui/timeline_view.html">
 <script>
 'use strict';
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Trim leading newlines off the text. They happen during writing.
     while (text[0] == '\n')
       text = text.substring(1);
-    traces.push(atob(text));
+    traces.push(tr.b.Base64.atob(text));
   }
 
   var m = new tr.Model();

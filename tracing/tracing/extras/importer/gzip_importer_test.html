@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/extras/importer/gzip_importer.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
@@ -13,6 +14,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var Base64 = tr.b.Base64;
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
   var original_data =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
@@ -30,7 +32,7 @@ tr.b.unittest.testSuite(function() {
 
   test('inflateString', function() {
     // Test inflating the data from a string.
-    var gzip_data = atob(gzip_data_base64);
+    var gzip_data = Base64.atob(gzip_data_base64);
     var importer = new tr.e.importer.GzipImporter(null, gzip_data);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
     assert.equal(importer.extractSubtraces()[0], original_data);
@@ -38,7 +40,7 @@ tr.b.unittest.testSuite(function() {
 
   test('inflateArrayBuffer', function() {
     // Test inflating the data from an ArrayBuffer.
-    var gzip_data = atob(gzip_data_base64);
+    var gzip_data = Base64.atob(gzip_data_base64);
     var buffer = new ArrayBuffer(gzip_data.length);
     var view = new Uint8Array(buffer);
     for (var i = 0; i < gzip_data.length; i++)
@@ -49,7 +51,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('import', function() {
-    var gzip_data = atob(gzip_data_base64);
+    var gzip_data = Base64.atob(gzip_data_base64);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
 
     var model = tr.c.TestUtils.newModelWithEvents(gzip_data);

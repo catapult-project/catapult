@@ -6,11 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/base64.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.b', function() {
+  var Base64 = tr.b.Base64;
+
   function computeUserTimingMarkName(groupName, functionName, opt_args) {
     if (groupName === undefined)
       throw new Error('getMeasureString should have group name');
@@ -19,7 +22,7 @@ tr.exportTo('tr.b', function() {
     var userTimingMarkName = groupName + ':' + functionName;
     if (opt_args !== undefined) {
       userTimingMarkName += '/';
-      userTimingMarkName += window.btoa(JSON.stringify(opt_args));
+      userTimingMarkName += Base64.btoa(JSON.stringify(opt_args));
     }
     return userTimingMarkName;
   }

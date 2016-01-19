@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
@@ -36,6 +37,7 @@ found in the LICENSE file.
  * into the provided model.
  */
 tr.exportTo('tr.e.importer', function() {
+  var Base64 = tr.b.Base64;
   var deepCopy = tr.b.deepCopy;
   var ColorScheme = tr.b.ColorScheme;
 
@@ -1064,7 +1066,7 @@ tr.exportTo('tr.e.importer', function() {
           var matched = /([^\/:]+):([^\/:]+)\/?(.*)/.exec(event.name);
           if (matched !== null) {
             var key = matched[1] + ':' + event.cat;
-            event.args = JSON.parse(window.atob(matched[3]) || '{}');
+            event.args = JSON.parse(Base64.atob(matched[3]) || '{}');
             if (nestableMeasureAsyncEventsByKey[key] === undefined)
               nestableMeasureAsyncEventsByKey[key] = [];
             nestableMeasureAsyncEventsByKey[key].push(asyncEventState);
