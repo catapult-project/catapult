@@ -22,6 +22,30 @@ RECORD_MODE_MAP = {
 }
 
 
+class MemoryDumpConfig(object):
+  """Stores the triggers for memory dumps in tracing config."""
+  def __init__(self):
+    self._triggers = []
+
+  def AddTrigger(self, mode, periodic_interval_ms):
+    """Adds a new trigger to config.
+
+    Args:
+      periodic_interval_ms: Dump time period in milliseconds.
+      level_of_detail: Memory dump level of detail string.
+          Valid arguments are "light" and "detailed".
+    """
+    assert mode in ['light', 'detailed']
+    assert periodic_interval_ms > 0
+    self._triggers.append({'mode': mode,
+                           'periodic_interval_ms': periodic_interval_ms})
+
+  def GetDictForChromeTracing(self):
+    """Returns the dump config as dictionary for chrome tracing."""
+    # An empty trigger list would mean no periodic memory dumps.
+    return {'memory_dump_config': {'triggers': self._triggers}}
+
+
 class TracingConfig(object):
   """Tracing config is the configuration for Chrome tracing.
 
@@ -62,6 +86,7 @@ class TracingConfig(object):
     # Tracing category filter.
     self._tracing_category_filter = (
         tracing_category_filter.TracingCategoryFilter())
+    self._memory_dump_config = None
 
   @property
   def tracing_category_filter(self):
@@ -71,6 +96,8 @@ class TracingConfig(object):
     result = {}
     result.update(self.GetDictForChromeTracing())
     result.update(self._tracing_category_filter.GetDictForChromeTracing())
+    if self._memory_dump_config:
+      result.update(self._memory_dump_config.GetDictForChromeTracing())
     return json.dumps(result, sort_keys=True)
 
   def SetNoOverheadFilter(self):
@@ -109,6 +136,13 @@ class TracingConfig(object):
     else:
       raise TypeError(
           'Must pass SetTracingCategoryFilter a TracingCategoryFilter instance')
+
+  def SetMemoryDumpConfig(self, dump_config):
+    if isinstance(dump_config, MemoryDumpConfig):
+      self._memory_dump_config = dump_config
+    else:
+      raise TypeError(
+          'Must pass SetMemoryDumpConfig a MemoryDumpConfig instance')
 
   # Trace Options
   @property
