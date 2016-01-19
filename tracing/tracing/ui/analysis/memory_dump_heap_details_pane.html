@@ -293,12 +293,6 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createHeapRowRecursively_: function(nodes, dimension, title) {
-      // Determine at which timestamps (indices of the current selection)
-      // the stack frame tree node was provided.
-      var defined = nodes.map(function(node) {
-        return node !== undefined;
-      });
-
       // Transform a chronological list of stack frame tree nodes into a
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its attribute).
@@ -311,7 +305,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var row = {
         dimension: dimension,
         title: title,
-        defined: defined,
+        contexts: nodes,
         cells: cells
       };
 

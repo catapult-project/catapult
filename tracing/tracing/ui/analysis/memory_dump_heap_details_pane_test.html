@@ -240,10 +240,10 @@ tr.b.unittest.testSuite(function() {
 
     checkSizeAttributes(row, columns[1], expectedSizes);
 
-    if (expectedDefinedValues)
-      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
-    else
-      assert.isUndefined(row.defined);
+    var actualDefinedValues = new Array(row.contexts.length);
+    for (var i = 0; i < row.contexts.length; i++)
+      actualDefinedValues[i] = row.contexts[i] !== undefined;
+    assert.deepEqual(actualDefinedValues, expectedDefinedValues);
   }
 
   function checkRows(columns, rows, expectedStructure) {
@@ -1485,7 +1485,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'blink::Node',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   },
@@ -1505,7 +1505,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: OBJECT_TYPE,
                             title: 'MissingSumOverAllTypes',
                             size: [51200, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -1519,13 +1519,13 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'MissingSumOverAllTypes',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: STACK_FRAME,
                             title: 'FunctionCall',
                             size: [51200, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -1541,7 +1541,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'V8.Execute',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   },
@@ -1569,19 +1569,19 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'MissingSumOverAllTypes',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: STACK_FRAME,
                             title: 'FunctionCall',
                             size: [51200, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -1593,13 +1593,13 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: 'MissingParent',
                 size: [10, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [10, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   }
                 ]
               },
@@ -1619,13 +1619,13 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<self>',
                         size: [307200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: OBJECT_TYPE,
                             title: 'v8::Context',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -1639,7 +1639,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: 'V8.Execute',
                             size: [2097152, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -1653,7 +1653,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: '<self>',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -1661,7 +1661,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'WTF::StringImpl',
                         size: [undefined, 126362],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   },
@@ -1681,7 +1681,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: '<self>',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -1691,13 +1691,13 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'WTF::StringImpl',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [undefined, 126362],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -1745,7 +1745,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: '<self>',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -1769,7 +1769,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'V8.Execute',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -1779,25 +1779,25 @@ tr.b.unittest.testSuite(function() {
                 dimension: OBJECT_TYPE,
                 title: 'MissingSumOverAllTypes',
                 size: [51200, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: STACK_FRAME,
                             title: 'FunctionCall',
                             size: [51200, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -1809,19 +1809,19 @@ tr.b.unittest.testSuite(function() {
                 dimension: OBJECT_TYPE,
                 title: 'WTF::StringImpl',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'V8.Execute',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [undefined, 126362],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -1845,7 +1845,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'v8::Context',
                     size: [15360, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   }
                 ]
               },
@@ -1859,7 +1859,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: 'V8.Execute',
                     size: [2097152, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   },
                   {
                     dimension: OBJECT_TYPE,
@@ -1871,7 +1871,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'blink::Node',
                     size: [undefined, 819200],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               },
@@ -1891,7 +1891,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'MissingSumOverAllTypes',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   },
@@ -1905,13 +1905,13 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'MissingSumOverAllTypes',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   }
@@ -1927,7 +1927,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: 'V8.Execute',
                     size: [undefined, 819200],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               },
@@ -1941,7 +1941,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: '<self>',
                     size: [15360, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   },
                   {
                     dimension: STACK_FRAME,
@@ -1961,19 +1961,19 @@ tr.b.unittest.testSuite(function() {
                 dimension: OBJECT_TYPE,
                 title: 'MissingSumOverAllTypes',
                 size: [51200, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   }
@@ -1983,7 +1983,7 @@ tr.b.unittest.testSuite(function() {
                 dimension: OBJECT_TYPE,
                 title: 'WTF::StringImpl',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
               }
             ]
           },
@@ -2017,13 +2017,13 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: '<self>',
                     size: [307200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: OBJECT_TYPE,
                         title: 'v8::Context',
                         size: [15360, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   },
@@ -2037,7 +2037,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'V8.Execute',
                         size: [2097152, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   },
@@ -2051,7 +2051,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<self>',
                         size: [15360, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   },
@@ -2059,7 +2059,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: OBJECT_TYPE,
                     title: 'WTF::StringImpl',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               },
@@ -2067,7 +2067,7 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: 'V8.Execute',
                 size: [2097152, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
               },
               {
                 dimension: OBJECT_TYPE,
@@ -2085,7 +2085,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<self>',
                         size: [15360, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   }
@@ -2095,19 +2095,19 @@ tr.b.unittest.testSuite(function() {
                 dimension: OBJECT_TYPE,
                 title: 'blink::Node',
                 size: [undefined, 819200],
-                defined: [undefined, true],
+                defined: [false, true],
               },
               {
                 dimension: OBJECT_TYPE,
                 title: 'WTF::StringImpl',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               }
@@ -2117,13 +2117,13 @@ tr.b.unittest.testSuite(function() {
             dimension: STACK_FRAME,
             title: 'MissingParent',
             size: [10, undefined],
-            defined: [true, undefined],
+            defined: [true, false],
             children: [
               {
                 dimension: STACK_FRAME,
                 title: 'FunctionCall',
                 size: [10, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
               }
             ]
           },
@@ -2175,7 +2175,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: '<self>',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -2193,7 +2193,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: '<self>',
                     size: [15360, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   },
                   {
                     dimension: STACK_FRAME,
@@ -2231,7 +2231,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<self>',
                         size: [15360, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   }
@@ -2261,7 +2261,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'V8.Execute',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -2277,7 +2277,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: 'V8.Execute',
                     size: [undefined, 819200],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               },
@@ -2285,7 +2285,7 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: 'V8.Execute',
                 size: [undefined, 819200],
-                defined: [undefined, true],
+                defined: [false, true],
               }
             ]
           },
@@ -2293,31 +2293,31 @@ tr.b.unittest.testSuite(function() {
             dimension: OBJECT_TYPE,
             title: 'MissingSumOverAllTypes',
             size: [51200, undefined],
-            defined: [true, undefined],
+            defined: [true, false],
             children: [
               {
                 dimension: STACK_FRAME,
                 title: 'MessageLoop::RunTask',
                 size: [51200, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: STACK_FRAME,
                             title: 'FunctionCall',
                             size: [51200, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       }
@@ -2329,19 +2329,19 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: 'FunctionCall',
                 size: [51200, undefined],
-                defined: [true, undefined],
+                defined: [true, false],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [51200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                       }
                     ]
                   }
@@ -2353,25 +2353,25 @@ tr.b.unittest.testSuite(function() {
             dimension: OBJECT_TYPE,
             title: 'WTF::StringImpl',
             size: [undefined, 126362],
-            defined: [undefined, true],
+            defined: [false, true],
             children: [
               {
                 dimension: STACK_FRAME,
                 title: 'MessageLoop::RunTask',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'V8.Execute',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                     children: [
                       {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [undefined, 126362],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -2381,19 +2381,19 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: 'FunctionCall',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
               },
               {
                 dimension: STACK_FRAME,
                 title: 'V8.Execute',
                 size: [undefined, 126362],
-                defined: [undefined, true],
+                defined: [false, true],
                 children: [
                   {
                     dimension: STACK_FRAME,
                     title: 'FunctionCall',
                     size: [undefined, 126362],
-                    defined: [undefined, true],
+                    defined: [false, true],
                   }
                 ]
               }
@@ -2451,7 +2451,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'blink::Node',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   },
@@ -2465,7 +2465,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'FunctionCall',
                         size: [undefined, 204800],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       },
                       {
                         dimension: OBJECT_TYPE,
@@ -2485,7 +2485,7 @@ tr.b.unittest.testSuite(function() {
                     dimension: STACK_FRAME,
                     title: '<other>',
                     size: [51200, undefined],
-                    defined: [true, undefined],
+                    defined: [true, false],
                   },
                   {
                     dimension: OBJECT_TYPE,
@@ -2497,7 +2497,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: 'V8.Execute',
                         size: [undefined, 819200],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   },
@@ -2551,19 +2551,19 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<self>',
                         size: [307200, undefined],
-                        defined: [true, undefined],
+                        defined: [true, false],
                         children: [
                           {
                             dimension: OBJECT_TYPE,
                             title: 'v8::Context',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           },
                           {
                             dimension: OBJECT_TYPE,
                             title: '<other>',
                             size: [291840, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -2577,7 +2577,7 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: 'V8.Execute',
                             size: [2097152, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -2585,7 +2585,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: STACK_FRAME,
                         title: '<other>',
                         size: [undefined, 104858],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       },
                       {
                         dimension: OBJECT_TYPE,
@@ -2597,13 +2597,13 @@ tr.b.unittest.testSuite(function() {
                             dimension: STACK_FRAME,
                             title: '<self>',
                             size: [15360, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           },
                           {
                             dimension: STACK_FRAME,
                             title: '<other>',
                             size: [5120, undefined],
-                            defined: [true, undefined],
+                            defined: [true, false],
                           }
                         ]
                       },
@@ -2617,7 +2617,7 @@ tr.b.unittest.testSuite(function() {
                         dimension: OBJECT_TYPE,
                         title: 'WTF::StringImpl',
                         size: [undefined, 126362],
-                        defined: [undefined, true],
+                        defined: [false, true],
                       }
                     ]
                   }
@@ -2681,13 +2681,13 @@ tr.b.unittest.testSuite(function() {
             dimension: STACK_FRAME,
             title: '<self>',
             size: [undefined, 131072],
-            defined: [undefined, true],
+            defined: [false, true],
             children: [
               {
                 dimension: OBJECT_TYPE,
                 title: 'v8::Context',
                 size: [undefined, 131072],
-                defined: [undefined, true],
+                defined: [false, true],
               }
             ]
           },
@@ -2741,7 +2741,7 @@ tr.b.unittest.testSuite(function() {
                 dimension: STACK_FRAME,
                 title: '<self>',
                 size: [undefined, 131072],
-                defined: [undefined, true],
+                defined: [false, true],
               }
             ]
           },

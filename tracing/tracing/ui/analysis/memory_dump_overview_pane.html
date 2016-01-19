@@ -345,12 +345,6 @@ tr.exportTo('tr.ui.analysis', function() {
         // process memory dump in timeToDump since they all have the same pid.
         var process = tr.b.findFirstInArray(timeToDump).process;
 
-        // Determine at which timestamps (indices of the current selection)
-        // the dump was provided.
-        var defined = timeToDump.map(function(dump) {
-          return dump !== undefined;
-        });
-
         // Used memory (total resident, PSS, ...).
         var timeToVmRegions = timeToDump.map(function(dump) {
           if (dump === undefined)
@@ -491,7 +485,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return {
           title: process.userFriendlyName,
-          defined: defined,
+          contexts: timeToDump,
           usedMemoryCells: usedMemoryCells,
           allocatorCells: allocatorCells
         };

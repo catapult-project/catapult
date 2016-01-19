@@ -175,39 +175,41 @@ tr.b.unittest.testSuite(function() {
     assert.equal(column.title, 'column_title');
     assert.isFalse(column.supportsCellSelection);
 
-    var row = {title: 'undefined', defined: undefined};
+    var row = {title: 'undefined', contexts: undefined};
     assert.equal(column.formatTitle(row), 'undefined');
     assert.equal(column.value(row), 'undefined');
 
-    var row = {title: 'constant', defined: [true, true, true, true]};
+    var row = {title: 'constant', contexts: [{}, {}, {}, {}]};
     assert.equal(column.formatTitle(row), 'constant');
     assert.equal(column.value(row), 'constant');
 
-    var row = {title: 'added', defined: [false, false, false, true]};
+    var row = {title: 'added', contexts: [undefined, undefined, undefined, {}]};
     assert.equal(column.formatTitle(row), 'added');
     var value = column.value(row);
     assert.equal(value.textContent, '+++\u00A0added');
     assert.equal(value.style.color, 'red');
 
-    var row = {title: 'removed', defined: [true, true, false, false]};
+    var row = {title: 'removed', contexts: [true, true, undefined, undefined]};
     assert.equal(column.formatTitle(row), 'removed');
     var value = column.value(row);
     assert.equal(value.textContent, '---\u00A0removed');
     assert.equal(value.style.color, 'green');
 
-    var row = {title: 'flaky', defined: [true, false, true, true]};
+    var row = {title: 'flaky', contexts: [true, undefined, true, true]};
     assert.equal(column.formatTitle(row), 'flaky');
     var value = column.value(row);
     assert.equal(value.textContent, 'flaky');
     assert.equal(value.style.color, 'purple');
 
-    var row = {title: 'added-flaky', defined: [false, true, false, true]};
+    var row =
+        {title: 'added-flaky', contexts: [undefined, {}, undefined, true]};
     assert.equal(column.formatTitle(row), 'added-flaky');
     var value = column.value(row);
     assert.equal(value.textContent, '+++\u00A0added-flaky');
     assert.equal(value.style.color, 'purple');
 
-    var row = {title: 'removed-flaky', defined: [true, false, true, false]};
+    var row =
+        {title: 'removed-flaky', contexts: [true, undefined, {}, undefined]};
     assert.equal(column.formatTitle(row), 'removed-flaky');
     var value = column.value(row);
     assert.equal(value.textContent, '---\u00A0removed-flaky');

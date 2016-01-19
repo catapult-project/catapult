@@ -436,7 +436,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (childPaneBuilder === undefined)
         return undefined;
       return childPaneBuilder();
-    }
+    };
 
     return paneEl;
   }
@@ -475,6 +475,16 @@ tr.exportTo('tr.ui.analysis', function() {
   function convertToProcessMemoryDumps(containerMemoryDumps) {
     return containerMemoryDumps.map(function(containerMemoryDump) {
       return containerMemoryDump.processMemoryDumps;
+    });
+  }
+
+  /**
+   * Extract a chronological list of ProcessMemoryDump(s) (for a given process)
+   * from a chronological list of dictionaries of ProcessMemoryDump(s).
+   */
+  function extractProcessMemoryDumps(processMemoryDumps, pid) {
+    return processMemoryDumps.map(function(memoryDumps) {
+      return memoryDumps[pid];
     });
   }
 
@@ -533,6 +543,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createTestPane: createTestPane,
     isElementDisplayed: isElementDisplayed,
     convertToProcessMemoryDumps: convertToProcessMemoryDumps,
+    extractProcessMemoryDumps: extractProcessMemoryDumps,
     extractVmRegions: extractVmRegions,
     extractMemoryAllocatorDumps: extractMemoryAllocatorDumps,
     extractHeapDumps: extractHeapDumps

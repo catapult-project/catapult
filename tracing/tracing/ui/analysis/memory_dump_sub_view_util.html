@@ -40,18 +40,19 @@ tr.exportTo('tr.ui.analysis', function() {
      * Get the title associated with a given row.
      *
      * This method will decorate the title with color and '+++'/'---' prefix if
-     * appropriate (as determined by the optional row.defined field). Examples:
+     * appropriate (as determined by the optional row.contexts field).
+     * Examples:
      *
-     *   +-------------------------+-----------------+--------+--------+
-     *   | Defined (at timestamps) | Interpretation  | Prefix | Color  |
-     *   +-------------------------+-----------------+--------+--------+
-     *   | 1111111111              | always present  |        |        |
-     *   | 0000111111              | added           | +++    | red    |
-     *   | 1111111000              | deleted         | ---    | green  |
-     *   | 1100111111*             | flaky           |        | purple |
-     *   | 0001001111              | added + flaky   | +++    | purple |
-     *   | 1111100010              | deleted + flaky | ---    | purple |
-     *   +-------------------------+-----------------+--------+--------+
+     *   +----------------------+-----------------+--------+--------+
+     *   | Contexts provided at | Interpretation  | Prefix | Color  |
+     *   +----------------------+-----------------+--------+--------+
+     *   | 1111111111           | always present  |        |        |
+     *   | 0000111111           | added           | +++    | red    |
+     *   | 1111111000           | deleted         | ---    | green  |
+     *   | 1100111111*          | flaky           |        | purple |
+     *   | 0001001111           | added + flaky   | +++    | purple |
+     *   | 1111100010           | deleted + flaky | ---    | purple |
+     *   +----------------------+-----------------+--------+--------+
      *
      *   *) This means that, given a selection of 10 memory dumps, a particular
      *      row (e.g. a process) was present in the first 2 and last 6 of them
@@ -63,33 +64,33 @@ tr.exportTo('tr.ui.analysis', function() {
     value: function(row) {
       var formattedTitle = this.formatTitle(row);
 
-      var defined = row.defined;
-      if (defined === undefined || defined.length === 0)
+      var contexts = row.contexts;
+      if (contexts === undefined || contexts.length === 0)
         return formattedTitle;
 
       // Determine if the row was provided in the first and last row and how
       // many times it changed between being provided and not provided.
-      var firstDefined = defined[0];
-      var lastDefined = defined[defined.length - 1];
-      var changeDefinedCount = 0;
-      for (var i = 1; i < defined.length; i++) {
-        if (defined[i] !== defined[i - 1])
-          changeDefinedCount++;
+      var firstContext = contexts[0];
+      var lastContext = contexts[contexts.length - 1];
+      var changeDefinedContextCount = 0;
+      for (var i = 1; i < contexts.length; i++) {
+        if ((contexts[i] === undefined) !== (contexts[i - 1] === undefined))
+          changeDefinedContextCount++;
       }
 
       // Determine the color and prefix of the title.
       var color = undefined;
       var prefix = undefined;
-      if (!firstDefined && lastDefined) {
+      if (!firstContext && lastContext) {
         // The row was added.
         color = 'red';
         prefix = '+++';
-      } else if (firstDefined && !lastDefined) {
+      } else if (firstContext && !lastContext) {
         // The row was removed.
         color = 'green';
         prefix = '---';
       }
-      if (changeDefinedCount > 1) {
+      if (changeDefinedContextCount > 1) {
         // The row was flaky (added/removed more than once).
         color = 'purple';
       }

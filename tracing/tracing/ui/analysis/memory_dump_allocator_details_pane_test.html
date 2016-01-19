@@ -30,6 +30,7 @@ tr.b.unittest.testSuite(function() {
   var checkAttributes = tr.ui.analysis.checkAttributes;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  var SUBALLOCATION_CONTEXT = tr.ui.analysis.SUBALLOCATION_CONTEXT;
 
   // TODO(petrcermak): This function is the same as newChildDump in
   // memory_allocator_dump_test.html. It should probably be factored out.
@@ -173,7 +174,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkRow(columns, row, expectedTitle, expectedSizes,
       expectedEffectiveSizes, expectedInnerSizes, expectedObjectCounts,
-      expectedSubRowCount, expectedDefinedValues) {
+      expectedSubRowCount, expectedContexts) {
     var formattedTitle = columns[0].formatTitle(row);
     if (typeof expectedTitle === 'function')
       expectedTitle(formattedTitle);
@@ -191,10 +192,24 @@ tr.b.unittest.testSuite(function() {
     else
       assert.lengthOf(row.subRows, expectedSubRowCount);
 
-    if (expectedDefinedValues)
-      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
+    if (expectedContexts)
+      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
     else
-      assert.isUndefined(row.defined);
+      assert.isUndefined(row.contexts);
+  }
+
+  function getDescendants(rootDumps, fullName) {
+    return rootDumps.map(function(rootDump) {
+      var nameParts = fullName.split('/');
+      var currentDump = { children: rootDump === undefined ? [] : [rootDump] };
+      for (var i = 0; i < nameParts.length && currentDump !== undefined; i++) {
+        currentDump = tr.b.findFirstInArray(currentDump.children,
+            function(child) {
+              return child.name === nameParts[i];
+            });
+      }
+      return currentDump;
+    });
   }
 
   test('instantiate_empty', function() {
@@ -230,27 +245,30 @@ tr.b.unittest.testSuite(function() {
     // Check the rows of the table.
     var rootRow = rows[0];
     checkRow(columns, rootRow, 'v8', [941571072], [1075788800], [2097152],
-        [204], 3, [true]);
+        [204], 3, memoryAllocatorDumps);
 
     var heapsSubRow = rootRow.subRows[0];
     checkRow(columns, heapsSubRow, 'heaps', [805306368], [805306368], undefined,
-        undefined, 2, [true]);
+        undefined, 2, getDescendants(memoryAllocatorDumps, 'v8/heaps'));
 
     var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
     checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>', [524288],
-        [524288], undefined, undefined, undefined, [true]);
+        [524288], undefined, undefined, undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/heaps/<unspecified>'));
 
     var suballocationsSubRow = rootRow.subRows[2];
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
-    }, [134217728], [268435456], undefined, undefined, 2, [true]);
+    }, [134217728], [268435456], undefined, undefined, 2,
+        [SUBALLOCATION_CONTEXT]);
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
     checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'oilpan');
       assert.equal(formattedTitle.title, '');
-    }, [125829120], [251658240], undefined, undefined, 2, [true]);
+    }, [125829120], [251658240], undefined, undefined, 2,
+        [SUBALLOCATION_CONTEXT]);
 
     var oilpanUnspecifiedSuballocationSubRow =
         oilpanSuballocationSubRow.subRows[0];
@@ -258,27 +276,31 @@ tr.b.unittest.testSuite(function() {
         function(formattedTitle) {
           assert.equal(formattedTitle.textContent, '<unspecified>');
           assert.equal(formattedTitle.title, 'v8/__99BEAD');
-        }, [75497472], [150994944], undefined, undefined, undefined, [true]);
+        }, [75497472], [150994944], undefined, undefined, undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/__99BEAD'));
 
     var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
     checkRow(columns, oilpanAnimalsSuballocationSubRow,
         function(formattedTitle) {
           assert.equal(formattedTitle.textContent, 'animals');
           assert.equal(formattedTitle.title, '');
-        }, [50331648], [100663296], undefined, undefined, 2, [true]);
+        }, [50331648], [100663296], undefined, undefined, 2,
+        [SUBALLOCATION_CONTEXT]);
 
     var oilpanCowSuballocationSubRow =
         oilpanAnimalsSuballocationSubRow.subRows[0];
     checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'cow');
       assert.equal(formattedTitle.title, 'v8/__42BEEF');
-    }, [33554432], [67108864], undefined, undefined, undefined, [true]);
+    }, [33554432], [67108864], undefined, undefined, undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/__42BEEF'));
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
     checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'skia');
       assert.equal(formattedTitle.title, 'v8/__15FADE');
-    }, [8388608], [16777216], undefined, undefined, undefined, [true]);
+    }, [8388608], [16777216], undefined, undefined, undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/__15FADE'));
   });
 
   test('instantiate_multipleDiff', function() {
@@ -306,35 +328,37 @@ tr.b.unittest.testSuite(function() {
     var rootRow = rows[0];
     checkRow(columns, rootRow, 'v8', [941571072, 1073741824],
         [1075788800, 1073741824], [2097152, 2097152], [204, 204], 4,
-        [true, true]);
+        memoryAllocatorDumps);
 
     var heapsSubRow = rootRow.subRows[0];
     checkRow(columns, heapsSubRow, 'heaps', [805306368, undefined],
-        [805306368, undefined], undefined, undefined, 2, [true, undefined]);
+        [805306368, undefined], undefined, undefined, 2,
+        getDescendants(memoryAllocatorDumps, 'v8/heaps'));
 
     var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
     checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>',
         [524288, undefined], [524288, undefined], undefined, undefined,
-        undefined, [true, undefined]);
+        undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/heaps/<unspecified>'));
 
     var unspecifiedSubRow = rootRow.subRows[2];
     checkRow(columns, unspecifiedSubRow, '<unspecified>',
         [undefined, 803259392], [undefined, 803259392], undefined, undefined,
-        undefined, [undefined, true]);
+        undefined, getDescendants(memoryAllocatorDumps, 'v8/<unspecified>'));
 
     var suballocationsSubRow = rootRow.subRows[3];
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
     }, [134217728, 268435456], [268435456, 268435456], undefined, undefined,
-        2, [true, true]);
+        2, [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
     checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'oilpan');
       assert.equal(formattedTitle.title, '');
     }, [125829120, 268435456], [251658240, 268435456], undefined, undefined, 2,
-        [true, true]);
+        [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
 
     var oilpanUnspecifiedSuballocationSubRow =
         oilpanSuballocationSubRow.subRows[0];
@@ -343,7 +367,7 @@ tr.b.unittest.testSuite(function() {
           assert.equal(formattedTitle.textContent, '<unspecified>');
           assert.equal(formattedTitle.title, 'v8/__99BEAD');
         }, [75497472, 268435456], [150994944, 268435456], undefined, undefined,
-            undefined, [true, true]);
+            undefined, getDescendants(memoryAllocatorDumps, 'v8/__99BEAD'));
 
     var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
     checkRow(columns, oilpanAnimalsSuballocationSubRow,
@@ -351,7 +375,7 @@ tr.b.unittest.testSuite(function() {
           assert.equal(formattedTitle.textContent, 'animals');
           assert.equal(formattedTitle.title, '');
         }, [50331648, undefined], [100663296, undefined], undefined, undefined,
-            2, [true, undefined]);
+            2, [SUBALLOCATION_CONTEXT, undefined]);
 
     var oilpanCowSuballocationSubRow =
         oilpanAnimalsSuballocationSubRow.subRows[0];
@@ -359,14 +383,14 @@ tr.b.unittest.testSuite(function() {
       assert.equal(formattedTitle.textContent, 'cow');
       assert.equal(formattedTitle.title, 'v8/__42BEEF');
     }, [33554432, undefined], [67108864, undefined], undefined, undefined,
-        undefined, [true, undefined]);
+        undefined, getDescendants(memoryAllocatorDumps, 'v8/__42BEEF'));
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
     checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'skia');
       assert.equal(formattedTitle.title, 'v8/__15FADE');
     }, [8388608, undefined], [16777216, undefined], undefined, undefined,
-        undefined, [true, undefined]);
+        undefined, getDescendants(memoryAllocatorDumps, 'v8/__15FADE'));
   });
 
   test('instantiate_multipleMax', function() {
@@ -418,19 +442,21 @@ tr.b.unittest.testSuite(function() {
     var rootRow = rows[0];
     checkRow(columns, rootRow, 'v8', [941571072, undefined, 1073741824],
         [1075788800, undefined, 1073741824], [2097152, undefined, 2097152],
-        [204, undefined, 204], 4, [true, false, true]);
+        [204, undefined, 204], 4, memoryAllocatorDumps);
 
     var unspecifiedSubRow = rootRow.subRows[2];
     checkRow(columns, unspecifiedSubRow, '<unspecified>',
         [undefined, undefined, 803259392], [undefined, undefined, 803259392],
-        undefined, undefined, undefined, [undefined, undefined, true]);
+        undefined, undefined, undefined,
+        getDescendants(memoryAllocatorDumps, 'v8/<unspecified>'));
 
     var suballocationsSubRow = rootRow.subRows[3];
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
     }, [134217728, undefined, 268435456], [268435456, undefined, 268435456],
-        undefined, undefined, 2, [true, undefined, true]);
+        undefined, undefined, 2,
+        [SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT]);
   });
 
   test('sortTitles', function() {
