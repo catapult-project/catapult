@@ -82,16 +82,17 @@ def FindAllBrowserTypes(_):
 
 def FindAllAvailableBrowsers(finder_options, device):
   """Finds all available CrOS browsers, locally and remotely."""
+  browsers = []
   if not isinstance(device, cros_device.CrOSDevice):
-    return []
+    return browsers
 
   if cros_device.IsRunningOnCrOS():
-    return [PossibleCrOSBrowser('system', finder_options,
-                                platform_module.GetHostPlatform(),
-                                is_guest=False),
-            PossibleCrOSBrowser('system-guest', finder_options,
-                                platform_module.GetHostPlatform(),
-                                is_guest=True)]
+    browsers = [PossibleCrOSBrowser('system', finder_options,
+                                    platform_module.GetHostPlatform(),
+                                    is_guest=False),
+                PossibleCrOSBrowser('system-guest', finder_options,
+                                    platform_module.GetHostPlatform(),
+                                    is_guest=True)]
 
   # Check ssh
   try:
@@ -125,12 +126,11 @@ def FindAllAvailableBrowsers(finder_options, device):
       logging.warn('   -  chown go-rx /root/.ssh')
       logging.warn('   -  cat /tmp/id_rsa.pub >> /root/.ssh/authorized_keys')
       logging.warn('   -  chown 0600 /root/.ssh/authorized_keys')
-      logging.warn('There, that was easy!')
-      logging.warn('')
-      logging.warn('P.S. Please, tell your manager how INANE this is.')
     raise browser_finder_exceptions.BrowserFinderException(str(ex))
 
-  return [PossibleCrOSBrowser('cros-chrome', finder_options, platform,
-                              is_guest=False),
-          PossibleCrOSBrowser('cros-chrome-guest', finder_options, platform,
-                              is_guest=True)]
+  browsers.extend([PossibleCrOSBrowser('cros-chrome', finder_options,
+                                       platform, is_guest=False),
+                   PossibleCrOSBrowser('cros-chrome-guest',
+                                       finder_options, platform,
+                                       is_guest=True)])
+  return browsers

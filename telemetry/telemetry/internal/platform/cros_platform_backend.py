@@ -18,7 +18,7 @@ class CrosPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self, device=None):
     super(CrosPlatformBackend, self).__init__(device)
-    if device:
+    if device and not device.is_local:
       self._cri = cros_interface.CrOSInterface(
           device.host_name, device.ssh_port, device.ssh_identity)
       self._cri.TryLogin()

@@ -9,14 +9,14 @@ from telemetry.internal.platform import device
 
 
 class CrOSDevice(device.Device):
-  def __init__(self, host_name, ssh_port, ssh_identity=None):
+  def __init__(self, host_name, ssh_port, ssh_identity, is_local):
     super(CrOSDevice, self).__init__(
-        name='ChromeOs with host %s' % host_name,
-        guid='cros:%s' % host_name)
-    assert host_name and ssh_port
+        name='ChromeOs with host %s' % host_name or 'localhost',
+        guid='cros:%s' % host_name or 'localhost')
     self._host_name = host_name
     self._ssh_port = ssh_port
     self._ssh_identity = ssh_identity
+    self._is_local = is_local
 
   @classmethod
   def GetAllConnectedDevices(cls, blacklist):
@@ -34,24 +34,21 @@ class CrOSDevice(device.Device):
   def ssh_identity(self):
     return self._ssh_identity
 
+  @property
+  def is_local(self):
+    return self._is_local
+
 
 def IsRunningOnCrOS():
   return platform.GetHostPlatform().GetOSName() == 'chromeos'
 
 
 def FindAllAvailableDevices(options):
-  """Returns a list of available device types.
-  """
-  if IsRunningOnCrOS():
-    return [CrOSDevice('localhost', -1)]
-
-  if options.cros_remote == None:
-    logging.debug('No --remote specified, will not probe for CrOS.')
-    return []
-
-  if not cros_interface.HasSSH():
-    logging.debug('ssh not found. Cannot talk to CrOS devices.')
+  """Returns a list of available device types."""
+  use_ssh = options.cros_remote and cros_interface.HasSSH()
+  if not use_ssh and not IsRunningOnCrOS():
+    logging.debug('No --remote specified, and not running on ChromeOs.')
     return []
 
   return [CrOSDevice(options.cros_remote, options.cros_remote_ssh_port,
-                     options.cros_ssh_identity)]
+                     options.cros_ssh_identity, not use_ssh)]
