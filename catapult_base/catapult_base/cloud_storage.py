@@ -322,7 +322,7 @@ def GetFilesInDirectoryIfChanged(directory, bucket):
   there is no local copy.
   """
   if not os.path.isdir(directory):
-    raise ValueError('Must provide a valid directory.')
+    raise ValueError('%s does not exist. Must provide a valid directory path.')
   # Don't allow the root directory to be a serving_dir.
   if directory == os.path.abspath(os.sep):
     raise ValueError('Trying to serve root directory from HTTP server.')
