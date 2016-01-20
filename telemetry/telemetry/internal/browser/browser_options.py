@@ -21,6 +21,7 @@ from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import profile_types
 from telemetry.internal.platform import device_finder
 from telemetry.internal.platform.profiler import profiler_finder
+from telemetry.internal.util import binary_manager
 from telemetry.util import wpr_modes
 
 
@@ -161,6 +162,8 @@ class BrowserFinderOptions(optparse.Values):
         logging.getLogger().setLevel(logging.WARNING)
 
       if self.device == 'list':
+        if binary_manager.NeedsInit():
+          binary_manager.InitDependencyManager(None)
         devices = device_finder.GetDevicesMatchingOptions(self)
         print 'Available devices:'
         for device in devices:
@@ -170,6 +173,8 @@ class BrowserFinderOptions(optparse.Values):
       if self.browser_executable and not self.browser_type:
         self.browser_type = 'exact'
       if self.browser_type == 'list':
+        if binary_manager.NeedsInit():
+          binary_manager.InitDependencyManager(None)
         devices = device_finder.GetDevicesMatchingOptions(self)
         if not devices:
           sys.exit(0)
