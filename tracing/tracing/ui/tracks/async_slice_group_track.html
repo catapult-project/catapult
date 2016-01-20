@@ -95,7 +95,7 @@ tr.exportTo('tr.ui.tracks', function() {
           return true;
         }
         return false;
-      }
+      };
 
       var subRows = [];
       for (var i = 0; i < slices.length; i++) {
@@ -121,10 +121,10 @@ tr.exportTo('tr.ui.tracks', function() {
           if (level === rows.length)
             rows.push([]);
           for (var h = 0; h < subSlices.length; h++) {
-             rows[level].push(subSlices[h]);
-             fitSubSlicesRecursively(subSlices[h].subSlices, level + 1, rows);
+            rows[level].push(subSlices[h]);
+            fitSubSlicesRecursively(subSlices[h].subSlices, level + 1, rows);
           }
-        }
+        };
         fitSubSlicesRecursively(slice.subSlices, index + 1, subRows);
       }
       return subRows;
