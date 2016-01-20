@@ -7,35 +7,38 @@ import re
 
 from devil.utils import cmd_helper
 
+_COULDNT_OPEN_ERROR_RE = re.compile(r'Couldn\'t open device.*')
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')
 _LSUSB_ENTRY_RE = re.compile(r'^ *([^ ]+) +([^ ]+) *([^ ].*)?$')
 _LSUSB_GROUP_RE = re.compile(r'^ *([^ ]+.*):$')
 
-_USBDEVFS_RESET = ord('U') << 8 | 20
 
+def _lsusbv_on_device(bus_id, dev_id):
+  """Calls lsusb -v on device."""
+  _, raw_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+      ['lsusb', '-v', '-s', '%s:%s' % (bus_id, dev_id)], timeout=2)
 
-def lsusb():
-  """Call lsusb and return the parsed output."""
-  lsusb_raw_output = cmd_helper.GetCmdOutput(['lsusb', '-v'])
-  device = None
-  devices = []
-  depth_stack = []
-  for line in lsusb_raw_output.splitlines():
+  device = {'bus': bus_id, 'device': dev_id}
+  depth_stack = [device]
+
+  # TODO(jbudorick): Add documentation for parsing.
+  for line in raw_output.splitlines():
+    # Ignore blank lines.
     if not line:
-      if device:
-        devices.append(device)
-      device = None
       continue
-
-    if not device:
-      m = _LSUSB_BUS_DEVICE_RE.match(line)
-      if m:
-        device = {
-          'bus': m.group(1),
-          'device': m.group(2)
-        }
-        depth_stack = [device]
+    # Filter out error mesage about opening device.
+    if _COULDNT_OPEN_ERROR_RE.match(line):
+      continue
+    # Find start of device information.
+    m = _LSUSB_BUS_DEVICE_RE.match(line)
+    if m:
+      if m.group(1) != bus_id:
+        logging.warning(
+            'Expected bus_id value: %r, seen %r', bus_id, m.group(1))
+      if m.group(2) != dev_id:
+        logging.warning(
+            'Expected dev_id value: %r, seen %r', dev_id, m.group(2))
       continue
 
     indent_match = _INDENTATION_RE.match(line)
@@ -44,7 +47,8 @@ def lsusb():
 
     depth = 1 + len(indent_match.group(1)) / 2
     if depth > len(depth_stack):
-      logging.error('lsusb parsing error: unexpected indentation: "%s"', line)
+      logging.error(
+          'lsusb parsing error: unexpected indentation: "%s"', line)
       continue
 
     while depth < len(depth_stack):
@@ -71,17 +75,27 @@ def lsusb():
 
     logging.error('lsusb parsing error: unrecognized line: "%s"', line)
 
-  if device:
-    devices.append(device)
+  return device
 
+def lsusb():
+  """Call lsusb and return the parsed output."""
+  _, lsusb_list_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+      ['lsusb'], timeout=2)
+  devices = []
+  for line in lsusb_list_output.splitlines():
+    m = _LSUSB_BUS_DEVICE_RE.match(line)
+    if m:
+      bus_num = m.group(1)
+      dev_num = m.group(2)
+      devices.append(_lsusbv_on_device(bus_num, dev_num))
   return devices
 
-
 def get_lsusb_serial(device):
-  return device.get('Device Descriptor', {}).get('iSerial', {}).get('_desc')
-
+  try:
+    return device['Device Descriptor']['iSerial']['_desc']
+  except KeyError:
+    return None
 
 def get_android_devices():
   return [serial for serial in (get_lsusb_serial(d) for d in lsusb())
           if serial]
-
