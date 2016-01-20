@@ -6,7 +6,6 @@
     ['OS=="android" or OS=="linux" or OS=="mac" or OS=="win"', {
       'variables': {
         'files': [
-          '../../build/android/devil/',
           '../../third_party/catapult/',
           './',
           # For Telemetry's screenshot support.

@@ -5,7 +5,6 @@
 group("telemetry_test_support") {
   # Generic telemetry deps
   data = [
-    "//build/android/devil/",
     "//third_party/catapult/",
     "//tools/telemetry/",
   ]
