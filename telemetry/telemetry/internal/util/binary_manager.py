@@ -7,7 +7,8 @@
 import logging
 import os
 
-from catapult_base import dependency_manager
+import dependency_manager  # pylint: disable=import-error
+
 from telemetry.core import exceptions
 from telemetry.core import util
 from devil import devil_env

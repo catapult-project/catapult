@@ -13,6 +13,9 @@ import os
 import re
 import sys
 
+sys.path.insert(1, os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '..', '..', 'third_party', 'catapult',
+    'catapult_base')
 from catapult_base import refactor
 from catapult_base.refactor_util import move
 

@@ -6,26 +6,33 @@
 import os
 import sys
 
+from telemetry.core import util
+
+
 # Ensure Python >= 2.7.
 if sys.version_info < (2, 7):
   print >> sys.stderr, 'Need Python 2.7 or greater.'
   sys.exit(-1)
 
-from telemetry.internal.util import global_hooks
-global_hooks.InstallHooks()
 
-# Add dependencies into our path.
-from telemetry.core import util
+def _JoinPath(*path_parts):
+  return os.path.abspath(os.path.join(*path_parts))
 
 def _AddDirToPythonPath(*path_parts):
-  path = os.path.abspath(os.path.join(*path_parts))
+  path = _JoinPath(*path_parts)
   if os.path.isdir(path) and path not in sys.path:
     # Some call sites that use Telemetry assume that sys.path[0] is the
     # directory containing the script, so we add these extra paths to right
     # after sys.path[0].
     sys.path.insert(1, path)
 
+# Add Catapult dependencies to our path.
+_AddDirToPythonPath(util.GetCatapultDir(), 'catapult_base')
+_AddDirToPythonPath(util.GetCatapultDir(), 'dependency_manager')
+_AddDirToPythonPath(util.GetCatapultDir(), 'tracing')
 
+
+# Add Telemetry third party dependencies into our path.
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
@@ -41,5 +48,6 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
 _AddDirToPythonPath(os.path.dirname(__file__), os.path.pardir, os.path.pardir,
                     os.path.pardir, 'build', 'android')
 
-_AddDirToPythonPath(os.path.dirname(__file__), os.path.pardir, os.path.pardir,
-                    os.path.pardir, 'third_party', 'catapult', 'tracing')
+# Install Telemtry global hooks.
+from telemetry.internal.util import global_hooks
+global_hooks.InstallHooks()

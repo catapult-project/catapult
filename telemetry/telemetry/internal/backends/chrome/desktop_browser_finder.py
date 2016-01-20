@@ -7,7 +7,7 @@ import logging
 import os
 import sys
 
-from catapult_base.dependency_manager import exceptions as dm_exceptions
+import dependency_manager  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
@@ -141,7 +141,7 @@ def FindAllAvailableBrowsers(finder_options, device):
   arch_name = platform_module.GetHostPlatform().GetArchName()
   try:
     flash_path = binary_manager.LocalPath('flash', arch_name, os_name)
-  except dm_exceptions.NoPathFoundError:
+  except dependency_manager.NoPathFoundError:
     flash_path = None
     logging.warning(
         'Chrome build location is not specified. Browser will be run without '

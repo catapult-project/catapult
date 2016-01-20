@@ -8,7 +8,8 @@ import os
 import sys
 import time
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder

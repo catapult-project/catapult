@@ -10,6 +10,10 @@ import shlex
 import socket
 import sys
 
+import net_configs
+
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -18,10 +22,6 @@ from telemetry.internal.browser import profile_types
 from telemetry.internal.platform import device_finder
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.util import wpr_modes
-
-from catapult_base import cloud_storage
-
-import net_configs
 
 
 class BrowserFinderOptions(optparse.Values):

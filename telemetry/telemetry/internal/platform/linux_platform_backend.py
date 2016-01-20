@@ -8,7 +8,8 @@ import platform
 import subprocess
 import sys
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.internal.util import binary_manager
 from telemetry.core import os_version
 from telemetry.core import util

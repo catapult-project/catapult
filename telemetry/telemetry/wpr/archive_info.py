@@ -9,7 +9,7 @@ import re
 import shutil
 import tempfile
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
 
 
 def AssertValidCloudStorageBucket(bucket):

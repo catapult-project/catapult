@@ -6,8 +6,9 @@ import logging
 import os
 import urlparse
 
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry import story
-from catapult_base import cloud_storage
 from telemetry.page import shared_page_state
 from telemetry.page import action_runner as action_runner_module
 

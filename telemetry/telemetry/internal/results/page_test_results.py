@@ -10,7 +10,8 @@ import random
 import sys
 import traceback
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run

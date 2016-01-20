@@ -9,7 +9,8 @@ import sys
 import tempfile
 import zipfile
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators

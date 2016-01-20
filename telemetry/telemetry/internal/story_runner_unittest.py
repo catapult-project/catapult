@@ -7,7 +7,8 @@ import StringIO
 import sys
 import unittest
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util

@@ -4,9 +4,10 @@
 import uuid
 import sys
 
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.core import platform
 from telemetry import decorators
-from catapult_base import cloud_storage
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
 from telemetry.internal.platform import profiling_controller_backend

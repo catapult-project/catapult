@@ -6,7 +6,8 @@ import optparse
 import os
 import sys
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.core import util
 from telemetry.internal.results import buildbot_output_formatter
 from telemetry.internal.results import chart_json_output_formatter

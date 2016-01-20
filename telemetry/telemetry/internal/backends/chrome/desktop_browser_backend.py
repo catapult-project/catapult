@@ -16,7 +16,8 @@ import sys
 import tempfile
 import time
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions

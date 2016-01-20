@@ -11,7 +11,8 @@ import StringIO
 import sys
 import tempfile
 
-from catapult_base import cloud_storage
+from catapult_base import cloud_storage  # pylint: disable=import-error
+
 from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry import value as value_module

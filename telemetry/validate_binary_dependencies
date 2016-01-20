@@ -7,8 +7,14 @@ import json
 import os
 import sys
 
+from telemetry.core import util
+
+sys.path.insert(1, os.path.abspath(os.path.join(
+    util.GetCatapultDir(), 'catapult_base')))
+sys.path.insert(1, os.path.abspath(os.path.join(
+    util.GetCatapultDir(), 'dependency_manager')))
 from catapult_base import cloud_storage
-from catapult_base import dependency_manager
+import dependency_manager
 
 
 def ValidateCloudStorageDependencies(file_path):

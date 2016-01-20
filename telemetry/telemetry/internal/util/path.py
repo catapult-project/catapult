@@ -5,7 +5,7 @@
 import os
 
 from telemetry.core import util
-from catapult_base import util as catapult_util
+from catapult_base import util as catapult_util  # pylint: disable=import-error
 
 # TODO(aiolos): Move these functions to catapult_base or here.
 GetBaseDir = util.GetBaseDir

@@ -9,7 +9,11 @@ import os
 import subprocess
 import sys
 
+from telemetry.core import util
 from telemetry.internal.util import command_line
+
+sys.path.insert(1, os.path.abspath(os.path.join(
+    util.GetCatapultDir(), 'catapult_base')))
 from catapult_base import cloud_storage
 
 
