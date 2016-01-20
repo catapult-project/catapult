@@ -54,6 +54,8 @@ found in the LICENSE file.
 using custom elements specialized for different event types.
 -->
 <polymer-element name="tr-ui-a-analysis-view">
+
+<dom-module id="tr-ui-a-analysis-view">
   <template>
     <style>
       :host {
@@ -74,12 +76,17 @@ using custom elements specialized for different event types.
     </style>
     <content></content>
   </template>
+</dom-module>
+
   <script>
   'use strict';
   (function() {
     var EventRegistry = tr.model.EventRegistry;
 
     Polymer({
+
+      is: 'tr-ui-a-analysis-view',
+
       ready: function() {
         this.tabView_ = document.createElement('tr-ui-a-tab-view');
         this.tabView_.style.flex = '1 1 auto';
@@ -215,8 +222,8 @@ using custom elements specialized for different event types.
         else
           tagName = eventTypeInfo.metadata.multiViewElementName;
 
-        if (!tr.ui.b.getPolymerElementNamed(tagName))
-          throw new Error('Element not registered: ' + tagName);
+        // if (!tr.ui.b.getPolymerElementNamed(tagName))
+        //   throw new Error('Element not registered: ' + tagName);
 
         // Create if necessary.
         var subView;
@@ -226,6 +233,8 @@ using custom elements specialized for different event types.
         else
           subView = document.createElement(tagName);
 
+        if (subView.constructor === HTMLElement)
+          throw new Error('Element not registered: ' + tagName);
         // Set label.
         var camelLabel;
         if (subSelection.length === 1)
@@ -255,4 +264,3 @@ using custom elements specialized for different event types.
     });
   })();
   </script>
-</polymer-element>

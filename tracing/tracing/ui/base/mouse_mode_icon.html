@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/mouse_modes.html">
 
 <polymer-element name="tr-ui-b-mouse-mode-icon">
+<dom-module id="tr-ui-b-mouse-mode-icon">
   <template>
     <style>
     :host {
@@ -21,15 +22,20 @@ found in the LICENSE file.
     }
     </style>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
-    publish: {
+
+    is: "tr-ui-b-mouse-mode-icon",
+
+    properties: {
       modeName: {
-        value: undefined,
-        reflect: true
-      }
+        type: String,
+        reflectToAttribute: true,
+        observer: 'modeNameChanged'
+      },
     },
 
     created: function() {
@@ -109,4 +115,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

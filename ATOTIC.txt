@@ -1,0 +1,347 @@
+third_party has polymer
+
+# RUN
+
+bin/run_dev_server
+
+side_panel
+
+# PLAN
+- update third_party/polymer to 1.0
+- update includes
+
+
+# EXECUTE
+
+core-collapse
+core-icons
+core-icon-button
+core-item
+core-menu
+core-overlay
+core-selector
+core-overlay: is now a behavior
+paper-dropdown is gone
+paper-shadow is gone
+
+dashboard/perf_insights
+
+# GENERAL COMMENTS
+- did not use properties, lots of unnecessary code
+- few global property leaks, should always have closures
+- did not use Polymer to create views, lots of imperative dom manipulation code
+- appendChild might not work without Polymer.dom. But then, it might
+- if property is used inside a template, it getter/setter will be generated automatically, overriding the defined setter (tab_view.html)
+
+# TODO
+
+find . -name "*.html" -exec grep -H -C 0 "tr-ui-a-stacked-pane" {} \;
+- force webcomponents shadowDom mode
+- grep for shadowRoot everywhere
+
+# FAILING TESTS
+/tracing/tracing/ui/extras/about_tracing/mock_tracing_controller_client.html -- not Polymer related?
+changeTabCausesEvent
+
+# DIRECTORIES
+dashboard/dashboard/elements
+perf_insights/perf_insights/ui/generic_results_view
+tracing/tracing/ui
+
+./analysis/analysis_sub_view.html:<polymer-element name="tr-ui-a-sub-view">
+- Converted to  behavior Catapult.tr_ui_a_sub_view_behavior
+
+./analysis/alert_sub_view.html:<polymer-element name="tr-ui-a-alert-sub-view"
+
+./analysis/analysis_link.html:<polymer-element name="tr-ui-a-analysis-link" is="a"
+- Was is="a", solved by creating anchor element inside
+- had to add element handlers
+
+./analysis/analysis_view.html:<polymer-element name="tr-ui-a-analysis-view">
+- Had chaeck with getPolymerElementNamed. Rewrote with subView.constructor === HTMLElement
+- np
+
+./analysis/container_memory_dump_sub_view.html:<polymer-element name="tr-ui-a-container-memory-dump-sub-view"
+- np
+
+./analysis/counter_sample_sub_view.html:<polymer-element name='tr-ui-a-counter-sample-sub-view'
+- np
+
+./analysis/frame_power_usage_chart.html:<polymer-element name="tr-ui-a-frame-power-usage-chart">
+- np
+
+./analysis/generic_object_view.html:<polymer-element name="tr-ui-a-generic-object-view"
+./analysis/generic_object_view.html:<polymer-element name="tr-ui-a-generic-object-view-with-label"
+- why tr-ui-a-generic-object-view is="HTMLUnknownElement"
+- why tr-ui-a-generic-object-view-with-label is="HTMLUnknownElement"
+  - inside ready(), direct dom manipulation, and shadowRoot. Should let Polymer do it
+
+./analysis/memory_dump_allocator_details_pane.html:<polymer-element name="tr-ui-a-memory-dump-allocator-details-pane"
+-np
+
+./analysis/memory_dump_header_pane.html:<polymer-element name="tr-ui-a-memory-dump-header-pane"
+why sole </tr-ui-b-view-specific-brushing-state>
+
+./analysis/memory_dump_heap_details_pane.html:<polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
+- np
+
+./analysis/memory_dump_overview_pane.html:<polymer-element name="tr-ui-a-memory-dump-overview-pane"
+- np
+
+./analysis/memory_dump_vm_regions_details_pane.html:<polymer-element name="tr-ui-a-memory-dump-vm-regions-details-pane"
+- np
+
+./analysis/multi_async_slice_sub_view.html:<polymer-element name="tr-ui-a-multi-async-slice-sub-view"
+- np
+
+./analysis/multi_cpu_slice_sub_view.html:<polymer-element name="tr-ui-a-multi-cpu-slice-sub-view"
+-np
+
+./analysis/multi_event_details_table.html:<polymer-element name='tr-ui-a-multi-event-details-table'>
+-np
+
+./analysis/multi_event_sub_view.html:<polymer-element name="tr-ui-a-multi-event-sub-view"
+-np
+
+./analysis/multi_event_summary_table.html:<polymer-element name='tr-ui-a-multi-event-summary-table'>
+- spurious </script> tag, can cause problems with vulcanize
+
+./analysis/multi_flow_event_sub_view.html:<polymer-element name="tr-ui-a-multi-flow-event-sub-view"
+-np
+
+./analysis/multi_frame_sub_view.html:<polymer-element name="tr-ui-a-multi-frame-sub-view"
+-np
+
+./analysis/multi_instant_event_sub_view.html:<polymer-element name="tr-ui-a-multi-instant-event-sub-view"
+-np
+
+./analysis/multi_interaction_record_sub_view.html:<polymer-element name="tr-ui-a-multi-interaction-record-sub-view"
+-np
+
+./analysis/multi_object_sub_view.html:<polymer-element name="tr-ui-a-multi-object-sub-view"
+-np
+
+./analysis/multi_power_sample_sub_view.html:<polymer-element name="tr-ui-a-multi-power-sample-sub-view"
+-np
+
+./analysis/multi_sample_sub_view.html:<polymer-element name="tr-ui-a-multi-sample-sub-view"
+-np
+
+./analysis/multi_thread_slice_sub_view.html:<polymer-element name="tr-ui-a-multi-thread-slice-sub-view"
+-np
+
+./analysis/multi_thread_time_slice_sub_view.html:<polymer-element name="tr-ui-a-multi-thread-time-slice-sub-view"
+-np
+
+./analysis/power_sample_summary_table.html:<polymer-element name="tr-ui-a-power-sample-summary-table">
+-np
+
+./analysis/power_sample_table.html:<polymer-element name="tr-ui-a-power-sample-table">
+-np
+
+./analysis/related_events.html:<polymer-element name="tr-ui-a-related-events">
+-np
+
+./analysis/selection_summary_table.html:<polymer-element name='tr-ui-a-selection-summary-table'>
+-np
+
+./analysis/single_alert_sub_view.html:<polymer-element name="tr-ui-a-single-alert-sub-view"
+-np
+
+./analysis/single_async_slice_sub_view.html:<polymer-element name="tr-ui-a-single-async-slice-sub-view"
+-np
+
+./analysis/single_cpu_slice_sub_view.html:<polymer-element name="tr-ui-a-single-cpu-slice-sub-view"
+-np
+
+./analysis/single_event_sub_view.html:<polymer-element name="tr-ui-a-single-event-sub-view"
+-np
+
+./analysis/single_flow_event_sub_view.html:<polymer-element name="tr-ui-a-single-flow-event-sub-view"
+FIXME
+-problematic: extends tr-ui-a-single-event-sub-view
+   tr-ui-a-single-event-sub-view has large api. All it does is override getEventRows
+- solution: tr-ui-a-single-event-sub-view should have an attribute that enables getEventRows oeverraide
+- where do these elements get created?
+
+./analysis/single_frame_sub_view.html:<polymer-element name="tr-ui-a-single-frame-sub-view"
+-np
+
+./analysis/single_instant_event_sub_view.html:<polymer-element name="tr-ui-a-single-instant-event-sub-view"
+-np
+
+./analysis/single_interaction_record_sub_view.html:<polymer-element name="tr-ui-a-single-interaction-record-sub-view"
+-np
+
+./analysis/single_object_instance_sub_view.html:<polymer-element name="tr-ui-a-single-object-instance-sub-view"
+- uses innerHtml. This might not work without Polymer.dom
+
+./analysis/single_object_snapshot_sub_view.html:<polymer-element name="tr-ui-a-single-object-snapshot-sub-view"
+- appendChild, might not work without Polymer.dom
+
+./analysis/single_power_sample_sub_view.html:<polymer-element name="tr-ui-a-single-power-sample-sub-view"
+- np
+
+./analysis/single_sample_sub_view.html:<polymer-element name="tr-ui-a-single-sample-sub-view"
+-np
+
+./analysis/single_thread_slice_sub_view.html:<polymer-element name="tr-ui-a-single-thread-slice-sub-view"
+-np
+
+./analysis/single_thread_time_slice_sub_view.html:<polymer-element name="tr-ui-a-single-thread-time-slice-sub-view"
+-np
+
+./analysis/stack_frame.html:<polymer-element name="tr-ui-a-stack-frame">
+-np
+
+./analysis/stacked_pane.html:<polymer-element name="tr-ui-a-stacked-pane">
+- converted to behavior Catapult.tr_ui_a_stacked_pane
+
+./analysis/stacked_pane_view.html:<polymer-element name="tr-ui-a-stacked-pane-view">
+- np
+
+./analysis/tab_view.html:<polymer-element name="tr-ui-a-tab-view"
+- has constructor, had to fake this
+- fixed up template expressions
+- there is a getter and a setter for selectedTab
+./base/color_legend.html:<polymer-element name="tr-ui-b-color-legend">
+- np
+
+./base/drag_handle.html:<polymer-element name="tr-ui-b-drag-handle">
+- FIXME: has a __proto__ HTMLDivElement. Why, and how do we fix this?
+
+./base/dropdown.html:<polymer-element name="tr-ui-b-dropdown">
+- np
+
+./base/heading.html:<polymer-element name='tr-ui-heading'>
+- np
+
+./base/hotkey_controller.html:<polymer-element name="tv-ui-b-hotkey-controller">
+- np
+
+./base/info_bar.html:<polymer-element name='tr-ui-b-info-bar' is='HTMLDivElement'>
+- why does it extend HTMLDivElement?
+
+./base/info_bar_group.html:<polymer-element name='tr-ui-b-info-bar-group' is='HTMLUnknownElement'>
+- why does it extend HTMLUnknownElement
+
+./base/mouse_mode_icon.html:<polymer-element name="tr-ui-b-mouse-mode-icon">
+- np
+
+./base/mouse_mode_selector.html:<polymer-element name="tr-ui-b-mouse-mode-selector">
+- why __proto__: HTMLDivElement.prototype,
+
+./base/resize_sensor.html:<polymer-element name="tr-ui-b-resize-sensor">
+- np
+
+./base/table.html:<polymer-element name="tr-ui-b-table">
+- np
+./base/table.html:<polymer-element name="tr-ui-b-table-header-cell" on-tap="onTap_">
+-np
+
+./base/table_header_cell.html:<polymer-element name="tr-ui-b-table-header-cell"
+-np
+
+./base/toolbar_button.html:<polymer-element name='tr-ui-b-toolbar-button' noscript>
+-np
+
+./base/utils_test.html:<polymer-element name="instantiate-template-polymer-element-test">
+-np
+
+./extras/chrome/cc/raster_task_view.html:<polymer-element name="tr-ui-e-chrome-cc-raster-task-view">
+-np
+
+./extras/deep_reports/html_results.html:<polymer-element name="tr-ui-e-deep-reports-html-results">
+-np
+
+./extras/drive/comment_element.html:<polymer-element name="tr-ui-e-drive-comment-element" attributes="comment">
+-np
+
+./extras/drive/comments_side_panel.html:<polymer-element name='tr-ui-e-drive-comments-side-panel'
+- np
+
+./extras/rail/ir_verifier_row.html:<polymer-element name="tr-ui-e-rail-ir-verifier-row">
+- np
+
+./extras/rail/ir_verifier_view.html:<polymer-element name="tr-ui-e-rail-ir-verifier-view">
+- np
+
+./extras/rail/rail_score_side_panel.html:<polymer-element name='tr-ui-e-rail-rail-score-side-panel'
+- np
+
+./extras/rail/rail_score_span.html:<polymer-element name="tr-ui-e-rail-rail-score-span">
+- np
+
+./extras/side_panel/alerts_side_panel.html:<polymer-element name='tr-ui-e-s-alerts-side-panel'
+- np
+
+./extras/side_panel/category_summary_side_panel.html:<polymer-element name='tr-ui-e-s-category-summary-side-panel'
+- np
+
+./extras/side_panel/input_latency_side_panel.html:<polymer-element name='tr-ui-e-s-input-latency-side-panel'
+- np
+
+./extras/side_panel/time_summary_side_panel.html:<polymer-element name="tr-ui-e-s-time-summary-side-panel"
+- np
+
+./find_control.html:<polymer-element name="tr-ui-find-control">
+- np
+
+./scripting_control.html:<polymer-element
+- np
+
+./side_panel/side_panel.html:<polymer-element name='tr-ui-side-panel'>
+- converted to behavior Catapult.tr_ui_side_panel
+
+./side_panel/side_panel_container.html:<polymer-element name='tr-ui-side-panel-container' is='HTMLUnknownElement'>
+- why is='HTMLUnknownElement'
+
+./timeline_track_view.html:<polymer-element name='tr-ui-timeline-track-view'>
+- np
+
+./timeline_view.html:<polymer-element name='tr-ui-timeline-view'>
+- had domReady
+- np
+
+./timeline_view_help_overlay.html:<polymer-element name="tr-ui-timeline-view-help-overlay">
+- np
+
+./timeline_view_metadata_overlay.html:<polymer-element name="tr-ui-timeline-view-metadata-overlay">
+- np
+
+./units/array_of_numbers_span.html:<polymer-element name="tr-ui-u-array-of-numbers-span">
+- np
+
+./units/generic_table_view.html:<polymer-element name="tr-ui-u-generic-table-view">
+- np
+
+./units/histogram_span.html:<polymer-element name="tr-ui-u-histogram-span">
+- np
+
+./units/preferred_display_unit.html:<polymer-element name="tr-ui-u-preferred-display-unit">
+- np
+
+./units/scalar_span.html:<polymer-element name="tr-ui-u-scalar-span">
+- added couple of methods so tr-ui-u-time-duration-span do not have to subclass
+-
+
+./units/time_duration_span.html:<polymer-element name="tr-ui-u-time-duration-span" extends="tr-ui-u-scalar-span">
+FIXME
+- moved functionality to tr-ui-u-scalar-span, had to rename all usage
+
+./units/time_stamp_span.html:<polymer-element name="tr-ui-u-time-stamp-span"  extends="tr-ui-u-scalar-span"
+FIXME
+- moved functionality to tr-ui-u-scalar-span, had to rename all usage
+
+./view_specific_brushing_state.html:<polymer-element name="tr-ui-b-view-specific-brushing-state">
+- np
+
+base/unittest/interactive_test_runner.html
+- FIXME Polymer.whenReady is no longer available
+
+base/utils.html
+- replace template.createInstance with document.importNode(el.content);
+
+base/polymer_utils.html
+- Polymer.waitingFor is not found
+- FIXME getPolymerElementsThatSubclass:

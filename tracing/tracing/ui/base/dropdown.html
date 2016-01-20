@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 
-<polymer-element name="tr-ui-b-dropdown">
+<dom-module id="tr-ui-b-dropdown">
   <template>
     <style>
     :host {
@@ -57,23 +57,27 @@ found in the LICENSE file.
     }
     </style>
     <tr-ui-b-toolbar-button id="outer"
-        on-keydown="{{ onOuterKeyDown_ }}"
-        on-click="{{ onOuterClick_ }}">
+        on-keydown="onOuterKeyDown_"
+        on-click="onOuterClick_">
       <div id="icon">&#9881;</div>
       <div id="state">&#9662;</div>
     </tr-ui-b-toolbar-button>
     <dialog id="dialog"
-        on-click="{{ onDialogClick_ }}"
-        on-cancel="{{ onDialogCancel_ }}">
+        on-click="onDialogClick_"
+        on-cancel="onDialogCancel_">
       <div id="dialog-frame">
         <content></content>
       </div>
     </dialog>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-b-dropdown",
+
     ready: function() {
       this.$.outer.tabIndex = 0;
     },
@@ -155,4 +159,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

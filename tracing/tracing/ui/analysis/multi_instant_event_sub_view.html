@@ -8,8 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-multi-instant-event-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id="tr-ui-a-multi-instant-event-sub-view">
   <template>
     <style>
     :host {
@@ -18,11 +17,16 @@ found in the LICENSE file.
     </style>
     <div id='content'></div>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-a-multi-instant-event-sub-view",
+
+    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+
     created: function() {
       this.currentSelection_ = undefined;
     },
@@ -44,4 +48,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

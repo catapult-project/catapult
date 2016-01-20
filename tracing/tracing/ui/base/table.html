@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.b', function() {
 });
 </script>
 
-<polymer-element name="tr-ui-b-table">
+<dom-module id="tr-ui-b-table">
   <template>
     <style>
       :host {
@@ -195,6 +195,7 @@ tr.exportTo('tr.ui.b', function() {
       </tfoot>
     </table>
   </template>
+</dom-module>
   <script>
   'use strict';
   (function() {
@@ -209,6 +210,9 @@ tr.exportTo('tr.ui.b', function() {
     var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
     Polymer({
+
+      is: "tr-ui-b-table",
+
       created: function() {
         this.selectionMode_ = SelectionMode.NONE;
         this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
@@ -1472,9 +1476,9 @@ tr.exportTo('tr.ui.b', function() {
     });
   })();
   </script>
-</polymer-element>
 
 <polymer-element name="tr-ui-b-table-header-cell">
+<dom-module id="tr-ui-b-table-header-cell">
   <template>
   <style>
     :host {
@@ -1517,6 +1521,7 @@ tr.exportTo('tr.ui.b', function() {
     <button id="button"></button>
     <button id="side"></button>
   </template>
+</dom-module>
 
   <script>
   'use strict';
@@ -1524,6 +1529,13 @@ tr.exportTo('tr.ui.b', function() {
   var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
   Polymer({
+
+    is: "tr-ui-b-table-header-cell",
+
+    listeners: {
+      'tap': 'onTap_'
+    },
+
     created: function() {
       this.tapCallback_ = undefined;
       this.cellTitle_ = '';
@@ -1646,4 +1658,3 @@ tr.exportTo('tr.ui.b', function() {
     }
   });
 </script>
-</polymer-element>

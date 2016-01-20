@@ -7,8 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/extras/tquery/tquery.html">
 
-<polymer-element
-    name="tr-ui-scripting-control">
+<dom-module id="tr-ui-scripting-control">
   <template>
     <style>
       :host {
@@ -64,19 +63,22 @@ found in the LICENSE file.
     </style>
 
     <div id="root" class="root hidden" tabindex="0"
-         on-focus="{{ onConsoleFocus }}">
+         on-focus="onConsoleFocus">
       <div id='history'></div>
       <div id='prompt'
-           on-keypress="{{ promptKeyPress }}"
-           on-keydown="{{ promptKeyDown }}"
-           on-blur="{{ onConsoleBlur }}"></div>
+           on-keypress="promptKeyPress"
+           on-keydown="promptKeyDown"
+           on-blur="onConsoleBlur"></div>
     </div>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-scripting-control",
+
     _isEnterKey: function(event) {
       // Check if in IME.
       // Remove keyIdentifier after reference build rolls past M51 when
@@ -188,4 +190,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

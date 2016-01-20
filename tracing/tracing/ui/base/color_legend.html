@@ -15,7 +15,7 @@ found in the LICENSE file.
 The colored square is typically filled with the color associated with
 that label, using the getColorId* methods from base/color_scheme.
 -->
-<polymer-element name="tr-ui-b-color-legend">
+<dom-module id="tr-ui-b-color-legend">
   <template>
     <style>
     :host {
@@ -30,10 +30,14 @@ that label, using the getColorId* methods from base/color_scheme.
     <span id="square"></span>
     <span id="label"></span>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-b-color-legend",
+
     ready: function() {
       var blackSquareCharCode = 9632;
       this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
@@ -76,4 +80,3 @@ that label, using the getColorId* methods from base/color_scheme.
     }
   });
   </script>
-</polymer-element>

@@ -16,8 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
-    extends="tr-ui-a-stacked-pane">
+<dom-module id="tr-ui-a-memory-dump-heap-details-pane">
   <template>
     <style>
       :host {
@@ -83,7 +82,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -200,7 +199,12 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  Polymer('tr-ui-a-memory-dump-heap-details-pane', {
+  Polymer({
+
+    is: 'tr-ui-a-memory-dump-heap-details-pane',
+
+    behaviors: [Catapult.tr_ui_a_stacked_pane],
+
     created: function() {
       this.heapDumps_ = undefined;
       this.aggregationMode_ = undefined;

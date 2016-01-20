@@ -11,8 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-multi-sample-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id="tr-ui-a-multi-sample-sub-view">
   <template>
     <style>
     :host { display: block; }
@@ -39,6 +38,7 @@ found in the LICENSE file.
     <tr-ui-b-table id="table">
     </tr-ui-b-table>
   </template>
+</dom-module>
 
   <script>
   'use strict';
@@ -55,6 +55,10 @@ found in the LICENSE file.
     };
 
     Polymer({
+      is: "tr-ui-a-multi-sample-sub-view",
+
+      behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+
       created: function() {
         this.viewOption_ = undefined;
         this.selection_ = undefined;
@@ -265,4 +269,3 @@ found in the LICENSE file.
     });
   })();
   </script>
-</polymer-element>

@@ -30,6 +30,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/preferred_display_unit.html">
 
 <polymer-element name='tr-ui-timeline-view'>
+<dom-module id='tr-ui-timeline-view'>
   <template>
     <style>
     :host {
@@ -133,12 +134,25 @@ found in the LICENSE file.
     <tr-v-ui-preferred-display-unit id="display_unit">
     </tr-v-ui-preferred-display-unit>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: 'tr-ui-timeline-view',
+
+    attached: function() {
+      this.async(function() {
+        this.trackViewContainer_ = this.querySelector('#track_view_container');
+        if (!this.trackViewContainer_)
+          console.error('missing trackviewContainer');
+      });
+    },
+
     ready: function() {
+
+
       this.tabIndex = 0; // Let the timeline able to receive key events.
 
       this.titleEl_ = this.$.title;
@@ -207,10 +221,6 @@ found in the LICENSE file.
       this.bindKeyListeners_();
 
       this.dragEl_.target = this.analysisEl_;
-    },
-
-    domReady: function() {
-      this.trackViewContainer_ = this.querySelector('#track_view_container');
     },
 
     get globalMode() {
@@ -529,4 +539,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

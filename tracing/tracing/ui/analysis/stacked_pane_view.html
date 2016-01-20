@@ -71,6 +71,7 @@ Sample use case:
     }
 -->
 <polymer-element name="tr-ui-a-stacked-pane-view">
+<dom-module id="tr-ui-a-stacked-pane-view">
   <template>
     <style>
     :host {
@@ -85,10 +86,14 @@ Sample use case:
     <div id="pane_container">
     </div>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-a-stacked-pane-view",
+
     /**
      * Add a pane to the stacked pane view. This method performs two operations:
      *

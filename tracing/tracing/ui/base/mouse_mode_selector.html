@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/mouse_modes.html">
 <link rel="import" href="/tracing/ui/base/mouse_mode_icon.html">
 
-<polymer-element name="tr-ui-b-mouse-mode-selector">
+<dom-module id="tr-ui-b-mouse-mode-selector">
   <template>
     <style>
     :host {
@@ -61,7 +61,7 @@ found in the LICENSE file.
     <div class="buttons">
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -90,8 +90,9 @@ tr.exportTo('tr.ui.b', function() {
    * It handles the user interaction and dispatches events for the various
    * modes.
    */
-  Polymer('tr-ui-b-mouse-mode-selector', {
-    __proto__: HTMLDivElement.prototype,
+  Polymer({
+
+    is: "tr-ui-b-mouse-mode-selector",
 
     created: function() {
       this.supportedModeMask_ = MOUSE_SELECTOR_MODE.ALL_MODES;

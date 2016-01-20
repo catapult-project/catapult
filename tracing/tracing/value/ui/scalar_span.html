@@ -79,23 +79,31 @@ tr.exportTo('tr.v.ui', function() {
   }
 
   tr.v.Unit.addEventListener('display-mode-changed', function(e) {
-    var scalarSpanTagName = 'tr-v-ui-scalar-span';
-    var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
-        scalarSpanTagName);
-    subclassNames.push(scalarSpanTagName);
-    var isSubclass = {};
-    subclassNames.forEach(function(n) {
-      isSubclass[n.toUpperCase()] = true;
-    });
 
-    var m = tr.b.findDeepElementsMatchingPredicate(
-        document.body,
-        function(el) {
-         return isSubclass[el.tagName];
-        });
-    m.forEach(function(el) {
-      el.updateContent_();
-    });
+    // Can't do this subclass dependency, and subclasses
+    // have been eliminated, so querySelectorAll works
+
+    var scalarSpans = document.querySelectorAll('tr-v-ui-scalar-span');
+    for (var i=0; i< scalarSpans.length; i++)
+      scalarSpans[i].updateContent_();
+
+//    var scalarSpanTagName = 'tr-v-ui-scalar-span';
+//    var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
+//        scalarSpanTagName);
+//    subclassNames.push(scalarSpanTagName);
+//    var isSubclass = {};
+//    subclassNames.forEach(function(n) {
+//      isSubclass[n.toUpperCase()] = true;
+//    });
+
+//    var m = tr.b.findDeepElementsMatchingPredicate(
+//        document.body,
+//        function(el) {
+//         return isSubclass[el.tagName];
+//        });
+//    m.forEach(function(el) {
+//      el.updateContent_();
+//    });
   });
 
   return {
@@ -105,7 +113,7 @@ tr.exportTo('tr.v.ui', function() {
 });
 </script>
 
-<polymer-element name="tr-v-ui-scalar-span">
+<dom-module id="tr-v-ui-scalar-span">
   <template>
     <style>
     :host {
@@ -148,11 +156,15 @@ tr.exportTo('tr.v.ui', function() {
     <span id="content"></span>
     <span id="warning" style="display:none">&#9888;</span>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
-    created: function() {
+
+    is: "tr-v-ui-scalar-span",
+
+    ready: function() {
       this.value_ = undefined;
       this.unit_ = undefined;
       this.context_ = undefined;
@@ -346,7 +358,32 @@ tr.exportTo('tr.v.ui', function() {
         warningEl.title = '';
         warningEl.style.display = 'none';
       }
+    },
+
+    // tr-v-ui-time-stamp-span property
+    get timestamp() {
+      return this.value;
+    },
+
+    set timestamp(timestamp) {
+      if (timestamp instanceof tr.b.u.TimeStamp) {
+        this.value = timestamp;
+        return;
+      }
+      this.setValueAndUnit(timestamp, tr.b.u.Units.timeStampInMs);
+    },
+
+    // tr-v-ui-time-duration-span property
+    get duration() {
+      return this.value;
+    },
+
+    set duration(duration) {
+      if (duration instanceof tr.b.u.TimeDuration) {
+        this.value = duration;
+        return;
+      }
+      this.setValueAndUnit(duration, tr.b.u.Units.timeDurationInMs);
     }
   });
   </script>
-</polymer-element>

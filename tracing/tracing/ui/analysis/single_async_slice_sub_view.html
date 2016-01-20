@@ -10,8 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/related_events.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-async-slice-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id="tr-ui-a-single-async-slice-sub-view">
   <template>
     <style>
     :host {
@@ -28,11 +27,16 @@ found in the LICENSE file.
       <tr-ui-a-related-events id="relatedEvents"></tr-ui-a-related-events>
     </div>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-a-single-async-slice-sub-view",
+
+    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+
     get selection() {
       return this.$.content.selection;
     },
@@ -68,4 +72,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

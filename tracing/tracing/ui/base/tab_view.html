@@ -5,8 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<polymer-element name="tr-ui-a-tab-view"
-    constructor="TracingAnalysisTabView">
+<dom-module id="tr-ui-a-tab-view">
   <template>
     <style>
       :host {
@@ -82,12 +81,12 @@ found in the LICENSE file.
       <tab-strip-heading id="tshh">
         <span id="tsh"></span>
       </tab-strip-heading>
-      <template repeat="{{tab in tabs_}}">
+      <template is="dom-repeat" items="{{tabs_}}">
         <tab-button
-            button-id="{{ tab.id }}"
-            on-click="{{ tabButtonSelectHandler_ }}"
-            selected="{{ selectedTab_.id === tab.id }}">
-          <button-label>{{ tab.label ? tab.label : 'No Label'}}</button-label>
+            button-id="{{item.id }}"
+            on-click="tabButtonSelectHandler_"
+            selected="{{_computeTabSelectState(selectedTab_, item)}}">
+          <button-label>{{_computeTabLabel(item)}}</button-label>
         </tab-button>
       </template>
     </tab-strip>
@@ -97,10 +96,23 @@ found in the LICENSE file.
     </tabs-content-container>
 
   </template>
-
+</dom-module>
   <script>
   'use strict';
-  Polymer({
+  window.TracingAnalysisTabView = Polymer({
+
+    is: "tr-ui-a-tab-view",
+
+    properties: {
+      tabs_: {
+        type: Array,
+        value: function() { return [];}
+      },
+      selectedTab_: {
+        type: Object
+      }
+    },
+
     ready: function() {
       this.$.tshh.style.display = 'none';
 
@@ -120,8 +132,6 @@ found in the LICENSE file.
       //     tabs. The values are generally saved when a tab switch occurs.
       //
       // The order of the tabs is relevant for the tab ordering.
-      this.tabs_ = [];
-      this.selectedTab_ = undefined;
 
       // Register any already existing children.
       for (var i = 0; i < this.children.length; i++)
@@ -222,8 +232,8 @@ found in the LICENSE file.
           forAttributeTabLabel: observerAttributeTabLabel
         }
       };
-
-      this.tabs_.push(tabObject);
+      // this.tabs_.push(tabObject);
+      this.push('tabs_',tabObject);
       if (child.hasAttribute('selected')) {
         // When receiving a child with the selected attribute, if we have no
         // selected tab, mark the child as the selected tab, otherwise keep
@@ -287,7 +297,7 @@ found in the LICENSE file.
           child.removeAttribute('selected');
           delete child.selected;
           // Remove the observer since we no longer care about this child.
-          this.tabs_.splice(i, 1);
+          this.splice('tabs_', i, 1);
           i--;
         }
       }
@@ -422,7 +432,16 @@ found in the LICENSE file.
             this.selectedTab_.content, { attributeFilter: ['selected'] });
         this.selectedTab_ = undefined;
       }
+    },
+
+    _computeTabLabel: function(tab) {
+      return tab.label ? tab .label : 'No Label'
+    },
+
+    _computeTabSelectState: function(selectedTab, tab) {
+      return selectedTab.id === tab.id;
     }
+
   });
   </script>
-</polymer-element>
+

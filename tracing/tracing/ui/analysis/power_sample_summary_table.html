@@ -10,14 +10,18 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-power-sample-summary-table">
+<dom-module id="tr-ui-a-power-sample-summary-table">
   <template>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-ui-a-power-sample-summary-table",
+
     ready: function() {
       this.$.table.tableColumns = [
         {
@@ -126,4 +130,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

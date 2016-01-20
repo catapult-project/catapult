@@ -12,7 +12,7 @@ found in the LICENSE file.
 <!--
 @fileoverview A container that senses when its size changes.
 -->
-<polymer-element name="tr-ui-b-resize-sensor">
+<dom-module id="tr-ui-b-resize-sensor">
   <template>
     <style>
       :host {
@@ -24,11 +24,14 @@ found in the LICENSE file.
       <content></content>
     </div>
   </template>
-
+</dom-module>
   <script>
   'use strict';
   (function() {
     Polymer({
+
+      is: "tr-ui-b-resize-sensor",
+
       attached: function() {
         // ResizeSensor only works if it's rooted in a document when it's
         // created, so wait until the tr-ui-b-resize-sensor is attached to the
@@ -47,4 +50,3 @@ found in the LICENSE file.
     });
   })();
   </script>
-</polymer-element>

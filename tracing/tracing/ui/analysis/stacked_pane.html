@@ -11,11 +11,13 @@ found in the LICENSE file.
 @fileoverview Analysis view stacked pane. See the stacked pane view element
 (tr-ui-a-stacked-pane-view) documentation for more details.
 -->
-<polymer-element name="tr-ui-a-stacked-pane">
   <script>
+  (function() {
   'use strict';
 
-  Polymer({
+  /** @behavior tr-ui-a-stacked-pane */
+  var tr_ui_a_stacked_pane = {
+
     rebuild: function() {
       /**
        * Rebuild the pane if necessary.
@@ -84,6 +86,18 @@ found in the LICENSE file.
     appended: function() {
       this.rebuild();
     }
+  };
+
+  if (!window.Catapult)
+    window.Catapult = {};
+  window.Catapult.tr_ui_a_stacked_pane =  tr_ui_a_stacked_pane;
+
+  /** this element is still used */
+  Polymer({
+    is: 'tr-ui-a-stacked-pane',
+    behaviors: [tr_ui_a_stacked_pane]
   });
+
+  }());
+
   </script>
-</polymer-element>

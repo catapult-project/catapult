@@ -12,8 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/line_chart.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 
-<polymer-element name='tr-ui-e-s-input-latency-side-panel'
-    extends='tr-ui-side-panel'>
+<dom-module id='tr-ui-e-s-input-latency-side-panel'>
   <template>
     <style>
     :host {
@@ -36,11 +35,17 @@ found in the LICENSE file.
     <toolbar id='toolbar'></toolbar>
     <result-area id='result_area'></result-area>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: 'tr-ui-e-s-input-latency-side-panel',
+
+    behaviors: [Catapult.tr_ui_side_panel],
+
+
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
       this.frametimeType_ = tr.model.helpers.IMPL_FRAMETIME_TYPE;
@@ -323,4 +328,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

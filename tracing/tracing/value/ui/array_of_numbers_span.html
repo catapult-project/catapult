@@ -17,13 +17,17 @@ tr.exportTo('tr.v.ui', function() {
   };
 });
 </script>
-<polymer-element name="tr-v-ui-array-of-numbers-span">
+<dom-module id="tr-v-ui-array-of-numbers-span">
   <template>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: "tr-v-ui-array-of-numbers-span",
+
     created: function() {
       this.numbers_ = undefined;
       this.summaryMode_ = tr.v.ui.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
@@ -72,4 +76,3 @@ tr.exportTo('tr.v.ui', function() {
     }
   });
   </script>
-</polymer-element>

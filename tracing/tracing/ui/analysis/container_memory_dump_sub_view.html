@@ -15,18 +15,22 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-container-memory-dump-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id="tr-ui-a-container-memory-dump-sub-view">
   <template>
     <div id="content"></div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  Polymer('tr-ui-a-container-memory-dump-sub-view', {
+  Polymer({
+
+    is: 'tr-ui-a-container-memory-dump-sub-view',
+
+    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+
     set selection(selection) {
       if (selection === undefined) {
         this.currentSelection_ = undefined;

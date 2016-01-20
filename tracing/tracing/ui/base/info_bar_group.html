@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel='import' href='/tracing/ui/base/info_bar.html'>
 
-<polymer-element name='tr-ui-b-info-bar-group' is='HTMLUnknownElement'>
+<dom-module id='tr-ui-b-info-bar-group'>
   <template>
     <style>
     :host {
@@ -17,10 +17,14 @@ found in the LICENSE file.
     </style>
     <div id='messages'></div>
   </template>
+</dom-module>
 
   <script>
   'use strict';
   Polymer({
+
+    is: 'tr-ui-b-info-bar-group',
+
     ready: function() {
       this.messages_ = [];
     },
@@ -62,4 +66,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

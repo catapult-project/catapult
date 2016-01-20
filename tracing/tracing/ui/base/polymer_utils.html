@@ -22,10 +22,12 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function getPolymerElementsThatSubclass(tagName) {
-    if (Polymer.waitingFor().length) {
-      throw new Error('There are unresolved polymer elements. ' +
-        'Wait until Polymer.whenReady');
-    }
+    // if (Polymer.waitingFor().length) {
+    //   throw new Error('There are unresolved polymer elements. ' +
+    //     'Wait until Polymer.whenReady');
+    // }
+
+    return [];
 
     var baseElement;
     var elementNamesThatExtend = {};

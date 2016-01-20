@@ -16,7 +16,8 @@ tr.exportTo('tr.ui.b', function() {
     var el = doc.querySelector(selector);
     if (!el)
       throw new Error('Element not found');
-    return el.createInstance();
+    return doc.importNode(el.content, true);
+//    return el.createInstance();
   }
 
   function windowRectForElement(element) {

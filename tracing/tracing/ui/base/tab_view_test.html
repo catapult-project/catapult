@@ -127,8 +127,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiateChildrenAlreadyInside', function() {
     var tabViewTemplate = THIS_DOC.querySelector('#tab-view-test-template');
-    var tabView = tabViewTemplate.createInstance();
-
+    // var tabView = tabViewTemplate.createInstance();
+    var tabView = THIS_DOC.importNode(tabViewTemplate.content, true);
     var tabViewContainer = document.createElement('div');
     tabViewContainer.style.width = '400px';
     tabViewContainer.style.height = '200px';
@@ -284,6 +284,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(numChangeEvents, 2);
     tabView.selectedTab = undefined;
     assert.equal(numChangeEvents, 3);
+    Polymer.dom.flush();
   });
 
   /**

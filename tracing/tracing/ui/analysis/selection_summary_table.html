@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-ui-a-selection-summary-table'>
+<dom-module id='tr-ui-a-selection-summary-table'>
   <template>
     <style>
     :host {
@@ -25,10 +25,14 @@ found in the LICENSE file.
     </tr-ui-b-table>
     </div>
   </template>
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: 'tr-ui-a-selection-summary-table',
+
     created: function() {
       this.selection_ = new tr.b.Range();
     },
@@ -91,4 +95,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

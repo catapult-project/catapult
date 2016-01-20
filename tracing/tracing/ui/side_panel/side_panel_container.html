@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel='import' href='/tracing/ui/base/polymer_utils.html'>
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 
-<polymer-element name='tr-ui-side-panel-container' is='HTMLUnknownElement'>
+<dom-module id="tr-ui-side-panel-container">
   <template>
     <style>
     :host {
@@ -71,10 +71,13 @@ found in the LICENSE file.
     </active-panel-container>
     <tab-strip id='tab_strip'></tab-strip>
   </template>
-
+</dom-module>
   <script>
   'use strict';
   Polymer({
+
+    is: 'tr-ui-side-panel-container',
+
     ready: function() {
       this.activePanelContainer_ = this.$.active_panel_container;
       this.tabStrip_ = this.$.tab_strip;
@@ -248,5 +251,4 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>
 

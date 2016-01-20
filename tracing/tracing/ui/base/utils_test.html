@@ -7,16 +7,16 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/utils.html">
 
-<polymer-element name="instantiate-template-polymer-element-test">
+<dom-module id="instantiate-template-polymer-element-test">
   <template></template>
   <script>
   'use strict';
   Polymer({
+    is: "instantiate-template-polymer-element-test",
     testProperty: 'Test'
   });
   </script>
-</polymer-element>
-
+</dom-module>
 <template id="instantiate-template-polymer-test">
   <instantiate-template-polymer-element-test>
   </instantiate-template-polymer-element-test>
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(outerElement.children[1].testProperty, 'Test');
 
     // Make sure we can still instantiate inner templates, if we need them.
-    var innerElement = outerElement.children[0].createInstance();
+    var innerElement = THIS_DOC.importNode(outerElement.children[0].content, true);
     assert.equal(innerElement.children.length, 2);
     assert.equal(innerElement.children[0].testProperty, 'Test');
     assert.equal(

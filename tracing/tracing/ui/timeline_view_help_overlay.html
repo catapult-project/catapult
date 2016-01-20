@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/mouse_mode_icon.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 
-<polymer-element name="tr-ui-timeline-view-help-overlay">
+<dom-module id="tr-ui-timeline-view-help-overlay">
   <template>
     <style>
     :host {
@@ -226,11 +226,14 @@ found in the LICENSE file.
       </div>
     </div>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
-  Polymer('tr-ui-timeline-view-help-overlay', {
+  Polymer({
+
+    is: "tr-ui-timeline-view-help-overlay",
+
     ready: function() {
       var mod = tr.isMac ? 'cmd ' : 'ctrl';
       var spans = this.shadowRoot.querySelectorAll('span.mod');
@@ -240,4 +243,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

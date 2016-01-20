@@ -7,8 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/extras/drive/comment_element.html">
 
-<polymer-element name='tr-ui-e-drive-comments-side-panel'
-    extends='tr-ui-side-panel'>
+<dom-module id='tr-ui-e-drive-comments-side-panel'>
   <template>
     <style>
     :host {
@@ -40,23 +39,28 @@ found in the LICENSE file.
 
     <toolbar id='toolbar'></toolbar>
     <result-area id='result_area'>
-      <template repeat="{{ comment in comments_ }}">
+      <template is="dom-repeat" items="{{comments_}}" repeat="{{ comment in comments_ }}">
         <tr-ui-e-drive-comment-element comment="{{comment}}"
-                         on-click="{{commentClick}}">
+                         on-click="commentClick">
         </tr-ui-e-drive-comment-element>
       </template>
       <div id="comments-textarea-container">
-        <textarea id="commentinput" on-focus='{{textAreaFocus}}'
-            on-blur='{{textAreaBlur}}'
-            on-keypress="{{textareaKeypress}}"></textarea>
+        <textarea id="commentinput" on-focus='textAreaFocus'
+            on-blur='textAreaBlur'
+            on-keypress="textareaKeypress"></textarea>
       </div>
     </result-area>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+
+    is: 'tr-ui-e-drive-comments-side-panel',
+
+    behaviors: [Catapult.tr_ui_side_panel],
+
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
       this.selection_ = undefined;
@@ -177,4 +181,3 @@ found in the LICENSE file.
   });
 
   </script>
-</polymer-element>

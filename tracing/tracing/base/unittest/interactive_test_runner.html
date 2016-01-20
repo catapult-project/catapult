@@ -570,9 +570,14 @@ tr.exportTo('tr.b.unittest', function() {
       p = p.then(
         function() {
           hideLoadingOverlay();
-          Polymer.whenReady(function() {
+          // FIXME
+          window.addEventListener('WebComponentsReady', function() {
             runTests(loader, state);
           });
+          runTests(loader, state);
+          // Polymer.whenReady(function() {
+          //   runTests(loader, state);
+          // });
         },
         function(err) {
           hideLoadingOverlay();

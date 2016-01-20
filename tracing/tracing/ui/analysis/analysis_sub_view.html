@@ -10,16 +10,19 @@ found in the LICENSE file.
 <!--
 @fileoverview Polymer element for various analysis sub-views.
 -->
-<polymer-element name="tr-ui-a-sub-view">
-  <script>
-  'use strict';
-  Polymer({
-    set tabLabel(label) {
-      return this.setAttribute('tab-label', label);
-    },
+<script>
 
-    get tabLabel() {
-      return this.getAttribute('tab-label');
+(function() {
+  'use strict';
+
+  /** @behavior tr_ui_a_sub_view_behavior */
+  var tr_ui_a_sub_view_behavior = {
+
+    properties: {
+      tabLabel: {
+        type: String,
+        reflectToAttribute: true
+      }
     },
 
     get requiresTallView() {
@@ -41,6 +44,16 @@ found in the LICENSE file.
     get selection() {
       throw new Error('Not implemented!');
     }
+  }
+
+  if (!window.Catapult)
+    window.Catapult = {};
+  window.Catapult.tr_ui_a_sub_view_behavior =  tr_ui_a_sub_view_behavior;
+
+  // Dummy element for testing
+  Polymer({
+    is: 'tr-ui-a-sub-view',
+    behaviors: [Catapult.tr_ui_a_sub_view_behavior]
   });
-  </script>
-</polymer-element>
+  }());
+</script>

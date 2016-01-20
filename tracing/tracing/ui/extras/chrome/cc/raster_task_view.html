@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-e-chrome-cc-raster-task-view">
+<dom-module id="tr-ui-e-chrome-cc-raster-task-view">
   <template>
     <style>
     :host {
@@ -30,10 +30,13 @@ found in the LICENSE file.
     </div>
     <tr-ui-b-table id="content"></tr-ui-b-table>
   </template>
-
+</dom-module>
   <script>
   'use strict';
   Polymer({
+
+    is: "tr-ui-e-chrome-cc-raster-task-view",
+
     created: function() {
       this.selection_ = undefined;
     },
@@ -213,4 +216,3 @@ found in the LICENSE file.
     }
   });
   </script>
-</polymer-element>

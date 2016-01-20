@@ -13,7 +13,11 @@ found in the LICENSE file.
         type="image/x-icon">
 
   <script src="/components/webcomponentsjs/webcomponents.js"></script>
-
+  <script>
+      // Force Polymer into native shadowDom mode
+      window.Polymer = window.Polymer || {};
+      window.Polymer.dom = 'shadow';
+  </script>
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
   <style>
@@ -29,7 +33,6 @@ found in the LICENSE file.
 <body>
   <script>
     'use strict';
-
 
     window.addEventListener('load', function() {
       tr.b.unittest.loadAndRunTests({
