@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 from telemetry import value as value_module
+from telemetry.value import (improvement_direction
+                             as improvement_direction_module)
 
 
 class SummarizableValue(value_module.Value):
@@ -22,7 +24,7 @@ class SummarizableValue(value_module.Value):
 
   def AsDict(self):
     d = super(SummarizableValue, self).AsDict()
-    if self.improvement_direction is not None:
+    if improvement_direction_module.IsValid(self.improvement_direction):
       d['improvement_direction'] = self.improvement_direction
     return d
 

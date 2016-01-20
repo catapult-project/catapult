@@ -20,3 +20,11 @@ class SummarizableTest(unittest.TestCase):
         tir_label=None, improvement_direction=None)
 
     self.assertFalse(value.AsDictWithoutBaseClassEntries())
+
+  def testAsDictWithInvalidImprovementDirection(self):
+    # TODO(eakuefner): Remove this test when we check I.D. in constructor
+    value = summarizable.SummarizableValue(
+        None, 'foo', 'bars', important=False, description='desc',
+        tir_label=None, improvement_direction='baz')
+
+    self.assertNotIn('improvement_direction', value.AsDict())
