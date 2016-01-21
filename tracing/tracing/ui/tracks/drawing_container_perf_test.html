@@ -87,7 +87,9 @@ tr.b.unittest.testSuite(function() {
   // https://github.com/catapult-project/catapult/issues/1826
   flakyTest(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
                                       {iterations: 1}));
-  test(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
+  // Failing on Chrome stable on Windows, see
+  // https://github.com/catapult-project/catapult/issues/1908
+  flakyTest(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
                                  {iterations: 10}));
   test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
                                  {iterations: 100}));
