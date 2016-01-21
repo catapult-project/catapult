@@ -46,8 +46,11 @@ class AndroidAppBackend(app_backend.AppBackend):
     # TODO(slamm): check if the wait for "ps" check is really needed, or
     # whether the "blocking=True" fall back is sufficient.
     has_ready_predicate = self._is_app_ready_predicate is not None
-    self.device.StartActivity(self._start_intent,
-                              blocking=not has_ready_predicate)
+    self.device.StartActivity(
+        self._start_intent,
+        blocking=not has_ready_predicate,
+        force_stop=True,  # Ensure app was not running.
+    )
     if has_ready_predicate:
       util.WaitFor(is_app_ready, timeout=60)
 
@@ -87,7 +90,9 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   def GetProcesses(self, process_filter=None):
     if process_filter is None:
-      process_filter = lambda n: re.match('^' + self._default_process_name, n)
+      # Match process names of the form: 'process_name[:subprocess]'.
+      process_filter = re.compile(
+          '^%s(:|$)' % re.escape(self._default_process_name)).match
 
     processes = set()
     ps_output = self.platform_backend.GetPsOutput(['pid', 'name'])
