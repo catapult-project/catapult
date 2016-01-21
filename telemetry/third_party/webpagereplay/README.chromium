@@ -1,0 +1,14 @@
+Name: chromite
+Short Name: webpagereplay
+URL: https://github.com/chromium/web-page-replay
+Version: baa1ef964a0758e14871be0676899335149a3d78 (commit hash)
+License: BSD
+License File: NOT_SHIPPED
+Security Critical: no
+
+Local modification: Remove webpagereplay/third_party/ipaddr/OWNERS to avoid
+PRESUBMIT complainings about non-standard OWNER format.
+
+Description:
+This contains webpagereplay used by telemetry for record & replay web requests &
+responses.

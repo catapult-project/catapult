@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+"""Starts the telemetry.web_components dev server.
+
+During normal usage of telemetry, telemetry.web_components files are
+compiled into standalone HTML+JS+CSS snippets that are then
+embedded in telemetry's various test resuls.
+
+The telemetry.web_components dev server allows edit-reload style development of
+these components. To use, start the dev server, navigate to the URL the script
+prints, and run any of the tests listed. Reloading in the browser loads the
+latest content from disk, enabling a traditional web development workflow.
+"""
+import sys
+
+from telemetry.web_components import dev_server
+
+COMPONENTS_PORT = 8014
+
+if __name__ == '__main__':
+  sys.exit(dev_server.Main(COMPONENTS_PORT, sys.argv[1:]))

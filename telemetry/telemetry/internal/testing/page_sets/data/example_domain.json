@@ -1,0 +1,9 @@
+{
+    "description": "Describes the Web Page Replay archives for a user story set. Don't edit by hand! Use record_wpr for updating.", 
+    "archives": {
+        "example_domain_001.wpr": [
+            "http://www.example.com",
+            "https://www.example.com"
+        ]
+    }
+}
