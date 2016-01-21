@@ -6,9 +6,6 @@
 import os
 import sys
 
-from telemetry.core import util
-from telemetry.internal.util import global_hooks
-
 
 # Ensure Python >= 2.7.
 if sys.version_info < (2, 7):
@@ -30,10 +27,18 @@ def _AddDirToPythonPath(*path_parts):
 
 
 # Add Catapult dependencies to our path.
-_AddDirToPythonPath(util.GetCatapultDir(), 'catapult_base')
-_AddDirToPythonPath(util.GetCatapultDir(), 'dependency_manager')
-_AddDirToPythonPath(util.GetCatapultDir(), 'devil')
-_AddDirToPythonPath(util.GetCatapultDir(), 'tracing')
+# util depends on catapult_base, so we can't use it to get the catapult dir.
+_CATAPULT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             '..', '..', '..', 'third_party', 'catapult')
+_AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
+_AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
+_AddDirToPythonPath(_CATAPULT_DIR, 'devil')
+_AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
+
+
+from telemetry.core import util
+from telemetry.internal.util import global_hooks
+
 
 # Add Telemetry third party dependencies into our path.
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
