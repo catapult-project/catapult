@@ -41,7 +41,7 @@ def GetUnittestDataDir():
 
 
 def GetChromiumSrcDir():
-  return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..'))
+  return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..', '..'))
 
 
 _counter = [0]
