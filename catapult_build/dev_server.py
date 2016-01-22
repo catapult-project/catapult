@@ -259,30 +259,30 @@ def _AddPleaseExitMixinToServer(server):
   # Shutting down httpserver gracefully and yielding a return code requires
   # a bit of mixin code.
 
-  exitCodeAttempt = []
-  def please_exit(exitCode):
-    if len(exitCodeAttempt) > 0:
+  exit_code_attempt = []
+  def PleaseExit(exit_code):
+    if len(exit_code_attempt) > 0:
       return
-    exitCodeAttempt.append(exitCode)
+    exit_code_attempt.append(exit_code)
     server.running = False
 
   real_serve_forever = server.serve_forever
 
-  def serve_forever():
+  def ServeForever():
     try:
       real_serve_forever()
     except KeyboardInterrupt:
       # allow CTRL+C to shutdown
       return 255
 
-    if len(exitCodeAttempt) == 1:
-      return exitCodeAttempt[0]
+    if len(exit_code_attempt) == 1:
+      return exit_code_attempt[0]
     # The serve_forever returned for some reason separate from
     # exit_please.
     return 0
 
-  server.please_exit = please_exit
-  server.serve_forever = serve_forever
+  server.please_exit = PleaseExit
+  server.serve_forever = ServeForever
 
 
 def _AddCommandLineArguments(pds, argv):

@@ -6,12 +6,12 @@
 def _CommonChecks(input_api, output_api):
   results = []
 
-  results.extend(input_api.RunTests(input_api.canned_checks.GetPylint(
+  results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='pylintrc')))
-  results.extend(_CheckNoMoreUsageOfDeprecatedCode(
-    input_api, output_api, deprecated_code='GetChromiumSrcDir()',
-    crbug_number=511332))
+      pylintrc='pylintrc'))
+  results += _CheckNoMoreUsageOfDeprecatedCode(
+      input_api, output_api, deprecated_code='GetChromiumSrcDir()',
+      crbug_number=511332)
   return results
 
 
@@ -88,39 +88,38 @@ def _CheckNoMoreUsageOfDeprecatedCode(
 
 def _GetPathsToPrepend(input_api):
   telemetry_dir = input_api.PresubmitLocalPath()
-  chromium_src_dir = input_api.os_path.join(telemetry_dir, '..', '..')
+  catapult_dir = input_api.os_path.join(telemetry_dir, '..')
   return [
       telemetry_dir,
+
       input_api.os_path.join(telemetry_dir, 'third_party', 'altgraph'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'mock'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'modulegraph'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'pexpect'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'png'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'pyfakefs'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'pyserial'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'typ'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'webpagereplay'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
 
-      input_api.os_path.join(chromium_src_dir, 'build', 'android'),
-      input_api.os_path.join(chromium_src_dir,
-                             'third_party', 'catapult', 'catapult_base'),
-      input_api.os_path.join(chromium_src_dir,
-                             'third_party', 'catapult', 'dependency_manager'),
-      input_api.os_path.join(chromium_src_dir,
-                             'third_party', 'catapult', 'tracing'),
+      input_api.os_path.join(catapult_dir, 'catapult_base'),
+      input_api.os_path.join(catapult_dir, 'dependency_manager'),
+      input_api.os_path.join(catapult_dir, 'devil'),
+      input_api.os_path.join(catapult_dir, 'tracing'),
+
+      input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
+      input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
+      input_api.os_path.join(catapult_dir, 'third_party', 'pyserial'),
   ]
 
 
 
 def CheckChangeOnUpload(input_api, output_api):
   results = []
-  results.extend(_CommonChecks(input_api, output_api))
-  results.extend(_CheckTelemetryBinaryDependencies(input_api, output_api))
+  results += _CommonChecks(input_api, output_api)
+  results += _CheckTelemetryBinaryDependencies(input_api, output_api)
   return results
 
 
 def CheckChangeOnCommit(input_api, output_api):
   results = []
-  results.extend(_CommonChecks(input_api, output_api))
+  results += _CommonChecks(input_api, output_api)
   return results

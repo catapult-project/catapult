@@ -26,7 +26,7 @@ class Function(base_symbol.AnnotatedSymbol):
     if statement.type == symbol.funcdef:
       return cls(statement.type, statement.children)
     elif (statement.type == symbol.decorated and
-        statement.children[-1].type == symbol.funcdef):
+          statement.children[-1].type == symbol.funcdef):
       return cls(statement.type, statement.children)
     else:
       return None

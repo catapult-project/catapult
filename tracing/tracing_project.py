@@ -53,7 +53,7 @@ def _IsFilenameATest(x):  # pylint: disable=unused-argument
   return False
 
 
-class TracingProject():
+class TracingProject(object):
   catapult_path = os.path.abspath(
       os.path.join(os.path.dirname(__file__), os.path.pardir))
 

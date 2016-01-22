@@ -13,7 +13,7 @@ from perf_insights_build import pi_report_to_html
 import perf_insights_project
 
 
-class TestArgs:
+class TestArgs(object):
   def __init__(self, trace_directory):
     self.corpus = 'local-directory'
     self.trace_directory = trace_directory

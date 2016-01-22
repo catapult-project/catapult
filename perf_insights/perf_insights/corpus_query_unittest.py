@@ -104,7 +104,7 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertFalse(f.Eval({'date': end}))
     self.assertFalse(f.Eval({'date': way_after}))
 
-  def testSimpleOp(self):
+  def testSimpleOpWithMaxTraceHandles(self):
     q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
     self.assertTrue(q.Eval({'a': 3}, 0))
     self.assertFalse(q.Eval({'a': 3}, 3))
@@ -124,7 +124,7 @@ class CorpusQueryTests(unittest.TestCase):
 
     (gql, args) = q.AsGQLWhereClause()
     self.assertEquals(gql, 'WHERE a = :1')
-    self.assertEquals(args[0], 1)
+    self.assertEquals(args[0], 3)
 
   def testMultipleFiltersOpQueryString(self):
     q = corpus_query.CorpusQuery.FromString(
@@ -149,7 +149,7 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertEquals(args[0], datetime.datetime(2015, 01, 01, 0, 0, 0))
     self.assertEquals(args[1], datetime.datetime(2015, 02, 01, 0, 0, 0))
 
-  def testSimpleOpQueryString(self):
+  def testSimpleOpWithMaxTraceHandlesQueryString(self):
     q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
     self.assertEquals(q.AsQueryString(), 'a = 3 AND MAX_TRACE_HANDLES=3')
 

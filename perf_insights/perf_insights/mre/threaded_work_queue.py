@@ -6,7 +6,7 @@ import traceback
 import Queue
 
 
-class ThreadedWorkQueue:
+class ThreadedWorkQueue(object):
 
   def __init__(self, num_threads):
     self._num_threads = num_threads

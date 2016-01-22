@@ -33,15 +33,15 @@ def QueryBuild(build):
   trace_results = step.results['chart_data']['charts'][VALUE_NAME].iteritems()
   for user_story_name, user_story_data in trace_results:
     revision_data.append({
-      'user_story': user_story_name,
-      'start_time': step.start_time,
-      'end_time': step.end_time,
-      'values': user_story_data['values'],
+        'user_story': user_story_name,
+        'start_time': step.start_time,
+        'end_time': step.end_time,
+        'values': user_story_data['values'],
     })
   return {
-    'start_time': build.start_time,
-    'end_time': build.end_time,
-    'user_story_runs': revision_data,
+      'start_time': build.start_time,
+      'end_time': build.end_time,
+      'user_story_runs': revision_data,
   }
 
 

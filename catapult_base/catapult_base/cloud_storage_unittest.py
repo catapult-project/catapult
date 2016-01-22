@@ -47,7 +47,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
   def _FakeGet(self, bucket, remote_path, local_path):
     pass
 
-  def _assertRunCommandRaisesError(self, communicate_strs, error):
+  def _AssertRunCommandRaisesError(self, communicate_strs, error):
     with mock.patch('catapult_base.cloud_storage.subprocess.Popen') as popen:
       p_mock = mock.Mock()
       popen.return_value = p_mock
@@ -59,24 +59,24 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
   def testRunCommandCredentialsError(self):
     strs = ['You are attempting to access protected data with no configured',
             'Failure: No handler was ready to authenticate.']
-    self._assertRunCommandRaisesError(strs, cloud_storage.CredentialsError)
+    self._AssertRunCommandRaisesError(strs, cloud_storage.CredentialsError)
 
   def testRunCommandPermissionError(self):
     strs = ['status=403', 'status 403', '403 Forbidden']
-    self._assertRunCommandRaisesError(strs, cloud_storage.PermissionError)
+    self._AssertRunCommandRaisesError(strs, cloud_storage.PermissionError)
 
   def testRunCommandNotFoundError(self):
     strs = ['InvalidUriError', 'No such object', 'No URLs matched',
             'One or more URLs matched no', 'InvalidUriError']
-    self._assertRunCommandRaisesError(strs, cloud_storage.NotFoundError)
+    self._AssertRunCommandRaisesError(strs, cloud_storage.NotFoundError)
 
   def testRunCommandServerError(self):
     strs = ['500 Internal Server Error']
-    self._assertRunCommandRaisesError(strs, cloud_storage.ServerError)
+    self._AssertRunCommandRaisesError(strs, cloud_storage.ServerError)
 
   def testRunCommandGenericError(self):
     strs = ['Random string']
-    self._assertRunCommandRaisesError(strs, cloud_storage.CloudStorageError)
+    self._AssertRunCommandRaisesError(strs, cloud_storage.CloudStorageError)
 
   def testInsertCreatesValidCloudUrl(self):
     orig_run_command = cloud_storage._RunCommand

@@ -116,7 +116,7 @@ class Builder(object):
     """
     build_numbers = tuple(build_number for build_number in build_numbers
                           if not (build_number in self._builds and
-                          self._builds[build_number].complete))
+                                  self._builds[build_number].complete))
     if not build_numbers:
       return ()
 
@@ -214,9 +214,11 @@ class Build(object):
     self._complete = not ('currentStep' in data and data['currentStep'])
     self._start_time, self._end_time = data['times']
 
-    self._steps = {step_info['name']:
-        Step(self._master, self._builder_name, self._number, step_info)
-        for step_info in data['steps']}
+    self._steps = {
+        step_info['name']:
+            Step(self._master, self._builder_name, self._number, step_info)
+        for step_info in data['steps']
+    }
 
   def __str__(self):
     return str(self.number)
@@ -308,15 +310,15 @@ class Step(object):
 
   def __getstate__(self):
     return {
-      '_master': self._master,
-      '_builder_name': self._builder_name,
-      '_build_number': self._build_number,
-      '_name': self._name,
-      '_result': self._result,
-      '_start_time': self._start_time,
-      '_end_time': self._end_time,
-      '_log_link': self._log_link,
-      '_results_link': self._results_link,
+        '_master': self._master,
+        '_builder_name': self._builder_name,
+        '_build_number': self._build_number,
+        '_name': self._name,
+        '_result': self._result,
+        '_start_time': self._start_time,
+        '_end_time': self._end_time,
+        '_log_link': self._log_link,
+        '_results_link': self._results_link,
     }
 
   def __setstate__(self, state):
@@ -436,7 +438,3 @@ class Step(object):
     if self._stack_trace is None:
       self._stack_trace = _ParseTraceFromLog(self.log)
     return self._stack_trace
-
-  @property
-  def chrome_stack_trace(self):
-    raise NotImplementedError()

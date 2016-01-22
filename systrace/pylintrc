@@ -1,34 +1,21 @@
 [MESSAGES CONTROL]
 
 # Disable the message, report, category or checker with the given id(s).
-# TODO(telemetry-team): Shrink this list to as small as possible.
+# TODO: Shrink this list to as small as possible.
 disable=
-  abstract-class-little-used,
   abstract-class-not-used,
   bad-builtin,
   bad-continuation,
-  broad-except,
+  eval-used,
   fixme,
-  global-statement,
-  interface-not-implemented,
   invalid-name,
   locally-disabled,
-  locally-enabled,
-  logging-not-lazy,
   missing-docstring,
-  no-member,
-  no-self-use,
   protected-access,
   star-args,
   too-few-public-methods,
-  too-many-arguments,
   too-many-branches,
-  too-many-function-args,
-  too-many-instance-attributes,
-  too-many-lines,
   too-many-locals,
-  too-many-public-methods,
-  too-many-return-statements,
   too-many-statements,
 
 
@@ -41,10 +28,10 @@ reports=no
 [BASIC]
 
 # Regular expression which should only match correct function names
-function-rgx=^(?:(?P<exempt>setUp|tearDown|setUpModule|tearDownModule)|(?P<camel_case>_?[A-Z][a-zA-Z0-9]*))$
+function-rgx=^(?:(?P<exempt>setUp|tearDown|setUpModule|tearDownModule)|(?P<camel_case>_?[A-Z][a-zA-Z0-9]*)|(?P<snake_case>_?[a-z][a-z0-9_]*))$
 
 # Regular expression which should only match correct method names
-method-rgx=^(?:(?P<exempt>_[a-z0-9_]+__|get|post|runTest|setUp|tearDown|setUpTestCase|tearDownTestCase|setupSelf|tearDownClass|setUpClass)|(?P<camel_case>(_{0,2}|test|assert)[A-Z][a-zA-Z0-9_]*))$
+method-rgx=^(?:(?P<exempt>_[a-z0-9_]+__|get|post|runTest|setUp|tearDown|setUpTestCase|tearDownTestCase|setupSelf|tearDownClass|setUpClass)|(?P<camel_case>(_{0,2}|test|assert)[A-Z][a-zA-Z0-9_]*)|(?P<snake_case>_{0,2}[a-z][a-z0-9_]*))$
 
 # Regular expression which should only match correct argument names
 argument-rgx=^[a-z][a-z0-9_]*$

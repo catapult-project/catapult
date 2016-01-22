@@ -314,8 +314,8 @@ def Main(argv):
         shutil.rmtree(tmpdir)
         shutil.rmtree(user_data_dir)
       except OSError as e:
-        logging.error('Error cleaning up temp dirs %s and %s: %s' % (
-            tmpdir, user_data_dir, e))
+        logging.error('Error cleaning up temp dirs %s and %s: %s',
+                      tmpdir, user_data_dir, e)
     if xvfb_process:
       xvfb_process.kill()
 

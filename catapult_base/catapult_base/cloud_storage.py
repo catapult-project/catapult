@@ -163,7 +163,7 @@ def Exists(bucket, remote_path):
 def Move(bucket1, bucket2, remote_path):
   url1 = 'gs://%s/%s' % (bucket1, remote_path)
   url2 = 'gs://%s/%s' % (bucket2, remote_path)
-  logging.info('Moving %s to %s' % (url1, url2))
+  logging.info('Moving %s to %s', url1, url2)
   _RunCommand(['mv', url1, url2])
 
 
@@ -181,13 +181,13 @@ def Copy(bucket_from, bucket_to, remote_path_from, remote_path_to):
   """
   url1 = 'gs://%s/%s' % (bucket_from, remote_path_from)
   url2 = 'gs://%s/%s' % (bucket_to, remote_path_to)
-  logging.info('Copying %s to %s' % (url1, url2))
+  logging.info('Copying %s to %s', url1, url2)
   _RunCommand(['cp', url1, url2])
 
 
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.info('Deleting %s' % url)
+  logging.info('Deleting %s', url)
   _RunCommand(['rm', url])
 
 
@@ -229,7 +229,7 @@ def _CreateDirectoryIfNecessary(directory):
 
 def _GetLocked(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.info('Downloading %s to %s' % (url, local_path))
+  logging.info('Downloading %s to %s', url, local_path)
   _CreateDirectoryIfNecessary(os.path.dirname(local_path))
   with tempfile.NamedTemporaryFile(
       dir=os.path.dirname(local_path),
@@ -267,7 +267,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
     command_and_args += ['-a', 'public-read']
     extra_info = ' (publicly readable)'
   command_and_args += [local_path, url]
-  logging.info('Uploading %s to %s%s' % (local_path, url, extra_info))
+  logging.info('Uploading %s to %s%s', local_path, url, extra_info)
   _RunCommand(command_and_args)
   return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
       bucket, remote_path)
@@ -306,7 +306,7 @@ def GetIfChanged(file_path, bucket):
   with _PseudoFileLock(file_path):
     hash_path = file_path + '.sha1'
     if not os.path.exists(hash_path):
-      logging.warning('Hash file not found: %s' % hash_path)
+      logging.warning('Hash file not found: %s', hash_path)
       return False
 
     expected_hash = ReadHash(hash_path)

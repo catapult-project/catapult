@@ -85,15 +85,15 @@ def _CommitPositionFromMessage(message):
   return None
 
 
-def Main():
+def main():
   parser = argparse.ArgumentParser()
-  parser.addArgument('start')
-  parser.addArgument('end')
-  parser.addArgument('depot', choices=list(depot_map.DEPOT_PATH_MAP))
-  args = parser.parseArgs()
+  parser.add_argument('start')
+  parser.add_argument('end')
+  parser.add_argument('depot', choices=list(depot_map.DEPOT_PATH_MAP))
+  args = parser.parse_args()
   revision_pairs = FetchInterveningRevisions(args.start, args.end, args.depot)
   print json.dumps(revision_pairs)
 
 
 if __name__ == '__main__':
-  Main()
+  main()

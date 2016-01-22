@@ -39,7 +39,7 @@ _EXCLUDED_PATHS = (
 )
 
 
-def GetPreferredTryMasters(project, change):  # pylint: disable=unused-argument
+def GetPreferredTryMasters(project, change):
   return {
       'tryserver.client.catapult': {
           'Catapult Linux Tryserver': {'defaulttests'},
@@ -66,8 +66,6 @@ def CheckChange(input_api, output_api):
     from catapult_build import html_checks
     results += input_api.canned_checks.PanProjectChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
-    results += input_api.canned_checks.RunPylint(
-        input_api, output_api, black_list=_EXCLUDED_PATHS, pylintrc='pylintrc')
     results += CheckChangeLogBug(input_api, output_api)
     results += js_checks.RunChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
