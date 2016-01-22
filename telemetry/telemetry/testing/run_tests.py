@@ -17,6 +17,8 @@ from telemetry.internal.util import ps_util
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
+from catapult_base import xvfb
+
 import typ
 
 
@@ -24,6 +26,7 @@ class RunTestsCommand(command_line.OptparseCommand):
   """Run unit tests"""
 
   usage = '[test_name ...] [<options>]'
+  xvfb_process = None
 
   def __init__(self):
     super(RunTestsCommand, self).__init__()
@@ -38,6 +41,8 @@ class RunTestsCommand(command_line.OptparseCommand):
 
   @classmethod
   def AddCommandLineArgs(cls, parser, _):
+    parser.add_option('--start-xvfb', action='store_true',
+                      default=False, help='Start Xvfb display if needed.')
     parser.add_option('--repeat-count', type='int', default=1,
                       help='Repeats each a provided number of times.')
     parser.add_option('--no-browser', action='store_true', default=False,
@@ -71,6 +76,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     if args.no_browser:
       return
 
+    if args.start_xvfb and xvfb.ShouldStartXvfb():
+      cls.xvfb_process = xvfb.StartXvfb()
     try:
       possible_browser = browser_finder.FindBrowser(args)
     except browser_finder_exceptions.BrowserFinderException, ex:
@@ -89,15 +96,19 @@ class RunTestsCommand(command_line.OptparseCommand):
     options, positional_args = parser.parse_args(args)
     options.positional_args = positional_args
 
-    # Must initialize the DependencyManager before calling
-    # browser_finder.FindBrowser(args)
-    binary_manager.InitDependencyManager(options.client_config)
-    cls.ProcessCommandLineArgs(parser, options, None)
+    try:
+      # Must initialize the DependencyManager before calling
+      # browser_finder.FindBrowser(args)
+      binary_manager.InitDependencyManager(options.client_config)
+      cls.ProcessCommandLineArgs(parser, options, None)
 
-    obj = cls()
-    if stream is not None:
-      obj.stream = stream
-    return obj.Run(options)
+      obj = cls()
+      if stream is not None:
+        obj.stream = stream
+      return obj.Run(options)
+    finally:
+      if cls.xvfb_process:
+        cls.xvfb_process.kill()
 
   def Run(self, args):
     runner = typ.Runner()

@@ -19,6 +19,8 @@ import zipfile
 
 from hooks import install
 
+from catapult_base import xvfb
+
 # URL on omahaproxy.appspot.com which lists the current version for the os
 # and channel.
 VERSION_LOOKUP_URL = 'https://omahaproxy.appspot.com/all?os=%s&channel=%s'
@@ -50,8 +52,7 @@ PLATFORM_MAPPING = {
         'omaha': 'linux',
         'prefix': 'Linux_x64',
         'zip_prefix': 'linux',
-        'chromepath': 'chrome-linux/chrome',
-        'use_xfvb': True,
+        'chromepath': 'chrome-linux/chrome'
     },
     'win32': {
         'omaha': 'win',
@@ -71,27 +72,6 @@ PLATFORM_MAPPING = {
         ],
     },
 }
-
-
-def StartXvfb():
-  display = ':99'
-  xvfb_command = [
-    'Xvfb',
-    display,
-    '-screen',
-    '0',
-    '1024x769x24',
-    '-ac'
-  ]
-  xvfb_process = subprocess.Popen(
-      xvfb_command, stdout=open(os.devnull), stderr=open(os.devnull))
-  time.sleep(0.2)
-  returncode = xvfb_process.poll()
-  if returncode is None:
-    os.environ['DISPLAY'] = display
-  else:
-    logging.error('Xvfb did not start, returncode: %s', returncode)
-  return xvfb_process
 
 
 def IsDepotToolsPath(path):
@@ -252,8 +232,8 @@ def Main(argv):
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
       tmpdir, version = DownloadChromium(channel)
-      if platform_data.get('use_xfvb'):
-        xvfb_process = StartXvfb()
+      if xvfb.ShouldStartXvfb():
+        xvfb_process = xvfb.StartXvfb()
       chrome_path = os.path.join(
           tmpdir, platform_data['chromepath'])
       os.chmod(chrome_path, os.stat(chrome_path).st_mode | stat.S_IEXEC)
