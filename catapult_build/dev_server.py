@@ -33,8 +33,10 @@ _MAIN_HTML = """<html><body>
 """
 
 _QUICK_LINKS = [
-  ('Trace File Viewer', '/tracing_examples/trace_viewer.html'),
-  ('Perf Insights Viewer', '/perf_insights_examples/perf_insights_viewer.html')
+    ('Trace File Viewer',
+     '/tracing_examples/trace_viewer.html'),
+    ('Perf Insights Viewer',
+     '/perf_insights_examples/perf_insights_viewer.html')
 ]
 
 _LINK_ITEM = '<li><a href="%s">%s</a></li>'
@@ -162,7 +164,7 @@ class TestOverviewHandler(webapp2.RequestHandler):
     for name, path in _QUICK_LINKS:
       quick_links.append(_LINK_ITEM % (path, name))
     self.response.out.write(_MAIN_HTML % ('\n'.join(test_links),
-        '\n'.join(quick_links)))
+                                          '\n'.join(quick_links)))
 
 class DevServerApp(webapp2.WSGIApplication):
   def __init__(self, pds, args):
@@ -185,18 +187,18 @@ class DevServerApp(webapp2.WSGIApplication):
     default_tests = dict((pd.GetName(), pd.GetRunUnitTestsUrl())
                          for pd in self.pds)
     routes = [
-      Route('/tests.html', TestOverviewHandler,
-            defaults={'pds': default_tests}),
-      Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
-      Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
+        Route('/tests.html', TestOverviewHandler,
+              defaults={'pds': default_tests}),
+        Route('', RedirectHandler, defaults={'_uri': '/tests.html'}),
+        Route('/', RedirectHandler, defaults={'_uri': '/tests.html'}),
     ]
     for pd in self.pds:
       routes += pd.GetRoutes(args)
       routes += [
-        Route('/%s/notify_test_result' % pd.GetName(),
-              TestResultHandler),
-        Route('/%s/notify_tests_completed' % pd.GetName(),
-              TestsCompletedHandler)
+          Route('/%s/notify_test_result' % pd.GetName(),
+                TestResultHandler),
+          Route('/%s/notify_tests_completed' % pd.GetName(),
+                TestsCompletedHandler)
       ]
 
     for pd in self.pds:
@@ -220,8 +222,8 @@ class DevServerApp(webapp2.WSGIApplication):
     for pd in self.pds:
       self._all_source_paths += pd.GetSourcePaths(args)
     routes.append(
-      Route('/<:.+>', SourcePathsHandler,
-            defaults={'_source_paths': self._all_source_paths}))
+        Route('/<:.+>', SourcePathsHandler,
+              defaults={'_source_paths': self._all_source_paths}))
 
     for route in routes:
       self.router.add(route)
@@ -288,7 +290,7 @@ def _AddPleaseExitMixinToServer(server):
 def _AddCommandLineArguments(pds, argv):
   parser = argparse.ArgumentParser(description='Run development server')
   parser.add_argument(
-    '--no-install-hooks', dest='install_hooks', action='store_false')
+      '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.add_argument('-p', '--port', default=8003, type=int)
   for pd in pds:
     g = parser.add_argument_group(pd.GetName())
@@ -314,6 +316,7 @@ def Main(argv):
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
                             start_loop=False)
   _AddPleaseExitMixinToServer(server)
+  # pylint: disable=no-member
   server.urlbase = 'http://127.0.0.1:%i' % server.server_port
   app.server = server
 

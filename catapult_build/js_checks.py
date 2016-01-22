@@ -66,11 +66,11 @@ class JSChecker(object):
 
     try:
       base_path = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '..'))
+          os.path.dirname(__file__), '..'))
       closure_linter_path = os.path.join(
-        base_path, 'third_party', 'closure_linter')
+          base_path, 'third_party', 'closure_linter')
       gflags_path = os.path.join(
-        base_path, 'third_party', 'python_gflags')
+          base_path, 'third_party', 'python_gflags')
       sys.path.insert(0, closure_linter_path)
       sys.path.insert(0, gflags_path)
 
@@ -124,12 +124,9 @@ class JSChecker(object):
 
     results = []
 
-    try:
-      affected_files = self.input_api.AffectedFiles(
-          file_filter=self.file_filter,
-          include_deletes=False)
-    except Exception:
-      affected_files = []
+    affected_files = self.input_api.AffectedFiles(
+        file_filter=self.file_filter,
+        include_deletes=False)
 
     def ShouldCheck(f):
       if f.LocalPath().endswith('.js'):

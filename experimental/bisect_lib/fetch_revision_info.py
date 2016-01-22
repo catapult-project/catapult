@@ -14,7 +14,7 @@ import argparse
 import json
 import urllib2
 
-import depot_map  # pylint: disable=relative-import
+from bisect_lib import depot_map
 
 _GITILES_PADDING = ')]}\'\n'
 _URL_TEMPLATE = 'https://chromium.googlesource.com/%s/+/%s?format=json'

@@ -149,7 +149,7 @@ def GetLocalChromePath(path_from_command_line):
 
   if sys.platform == 'darwin':  # Mac
     chrome_path = (
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
     if os.path.isfile(chrome_path):
       return chrome_path
   elif sys.platform.startswith('linux'):
@@ -262,7 +262,7 @@ def Main(argv):
         '--noerrdialogs',
         '--window-size=1280,1024',
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
-            'headless=true&testTypeToRun=all',
+        'headless=true&testTypeToRun=all',
     ]
     print "Starting Chrome %s..." % chrome_info
     chrome_process = subprocess.Popen(

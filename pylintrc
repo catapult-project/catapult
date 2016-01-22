@@ -6,24 +6,12 @@ disable=
   design,
   similarities,
 
-  abstract-class-not-used,
-  bad-builtin,
-  bad-continuation,
-  broad-except,
   fixme,
-  global-statement,
-  import-error,
-  invalid-name,
+  missing-docstring,
+  no-self-use,
   locally-disabled,
   locally-enabled,
-  missing-docstring,
-  no-init,
-  no-member,
-  no-name-in-module,
-  no-self-use,
-  old-style-class,
   protected-access,
-  super-on-old-class,
   star-args,
 
 
@@ -74,3 +62,6 @@ ignore-mixin-members=yes
 
 # We use two spaces for indents, instead of the usual four spaces or tab.
 indent-string='  '
+
+# Make sure : in dicts and trailing commas are checked for whitespace.
+no-space-check=

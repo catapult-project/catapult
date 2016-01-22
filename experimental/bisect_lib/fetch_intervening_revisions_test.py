@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(_CATAPULT_PATH, 'third_party', 'mock'))
 
 import mock
 
-import fetch_intervening_revisions  # pylint: disable=relative-import
+from bisect_lib import fetch_intervening_revisions
 
 _TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
 

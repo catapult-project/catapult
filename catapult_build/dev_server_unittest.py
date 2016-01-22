@@ -15,8 +15,8 @@ class DevServerTests(unittest.TestCase):
 
   def setUp(self):
     self.pds = [
-      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
-      tracing_dev_server_config.TracingDevServerConfig(),
+        perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
+        tracing_dev_server_config.TracingDevServerConfig(),
     ]
 
     self.args = dev_server._AddCommandLineArguments(self.pds, [])

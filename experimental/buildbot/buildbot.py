@@ -81,6 +81,8 @@ def Update(master, builders):
 
 
 class Builder(object):
+  # pylint: disable=too-many-instance-attributes
+
   def __init__(self, master, name, data):
     self._master = master
     self._name = name
@@ -288,6 +290,8 @@ def _ParseTraceFromLog(log):
 
 
 class Step(object):
+  # pylint: disable=too-many-instance-attributes
+
   def __init__(self, master, builder_name, build_number, data):
     self._master = master
     self._builder_name = builder_name

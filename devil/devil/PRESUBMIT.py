@@ -10,13 +10,13 @@ details on the presubmit API built into depot_tools.
 
 
 def _RunPylint(input_api, output_api):
-  return input_api.canned_checks.RunPylint(
+  return input_api.RunTests(input_api.canned_checks.RunPylint(
       input_api,
       output_api,
       pylintrc='pylintrc',
       extra_paths_list=[
           input_api.os_path.join(input_api.PresubmitLocalPath(), '..'),
-      ])
+      ]))
 
 
 def _RunUnitTests(input_api, output_api):
@@ -86,3 +86,4 @@ def CheckChangeOnUpload(input_api, output_api):
 
 def CheckChangeOnCommit(input_api, output_api):
   return CommonChecks(input_api, output_api)
+

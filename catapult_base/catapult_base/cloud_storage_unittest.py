@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# pylint: disable=unused-argument
 import os
 import sys
 import unittest
@@ -107,7 +106,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
   @mock.patch('catapult_base.cloud_storage._GetLocked')
   @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
   @mock.patch('catapult_base.cloud_storage.os.path')
-  def testGetIfHashChanged(self, path_mock, lock_mock, get_mock,
+  def testGetIfHashChanged(self, path_mock, unused_lock_mock, get_mock,
                            calc_hash_mock):
     path_mock.exists.side_effect = [False, True, True]
     calc_hash_mock.return_value = 'hash'
@@ -140,7 +139,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     get_mock.reset_mock()
 
   @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
-  def testGetIfChanged(self, lock_mock):
+  def testGetIfChanged(self, unused_lock_mock):
     orig_get = cloud_storage._GetLocked
     orig_read_hash = cloud_storage.ReadHash
     orig_calculate_hash = cloud_storage.CalculateHash
