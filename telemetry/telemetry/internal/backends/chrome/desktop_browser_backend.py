@@ -35,21 +35,48 @@ def ParseCrashpadDateTime(date_time_str):
   return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
-def GetSymbolBinary(executable, os_name):
+def GetSymbolBinaries(executable, os_name):
   # Returns binary file where symbols are located.
   if os_name == 'mac':
-    version_dir = os.path.join(os.path.dirname(executable),
-                               '..',
-                               'Versions')
-    for version_num in os.listdir(version_dir):
-      framework_file = os.path.join(version_dir,
-                                    version_num,
-                                    'Chromium Framework.framework',
-                                    'Chromium Framework')
-      if os.path.isfile(framework_file):
-        return framework_file
+    executables = []
+    version_dir = os.path.abspath(os.path.join(os.path.dirname(executable),
+                                  '..',
+                                  'Versions'))
 
-  return executable
+    # Add possible executable files.
+    for version_num in os.listdir(version_dir):
+      version_num_dir = os.path.join(version_dir, version_num)
+      possible_files = [os.path.join(version_num_dir,
+                                     'Chromium Framework.framework',
+                                     'Chromium Framework'),
+                        os.path.join(version_num_dir,
+                                     'Chromium Helper.app',
+                                     'Contents',
+                                     'MacOS',
+                                     'Chromium Helper')]
+      executables.extend([file_path
+                          for file_path in possible_files
+                          if os.path.isfile(file_path)])
+
+    # Add possible dynamic library files.
+    output_dir = os.path.abspath(os.path.join(version_dir, '..', '..', '..'))
+    executables.extend([os.path.join(output_dir, filename)
+                        for filename in os.listdir(output_dir)
+                        if filename.endswith('.dylib')])
+
+    # Sometimes dyld returns symbols for a different file. Emulate what it
+    # does here by using the same mechanism to find the binary file.
+    def GetDyldPath(file_path):
+      import fcntl
+      F_GETPATH = 50
+      with open(file_path, 'rb') as f:
+        path2 = fcntl.fcntl(f.fileno(), F_GETPATH, b'\0' * 1024).rstrip(b'\0')
+      if os.path.isfile(path2):
+        return path2
+      return file_path
+    return [GetDyldPath(file_path) for file_path in executables]
+
+  return [executable]
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -468,20 +495,21 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if generate_breakpad_symbols_command is None:
         return
 
-      cmd = [
-          sys.executable,
-          generate_breakpad_symbols_command,
-          '--binary=%s' % GetSymbolBinary(self._executable,
-                                          self.browser.platform.GetOSName()),
-          '--symbols-dir=%s' % symbols_path,
-          '--build-dir=%s' % self._browser_directory,
-          ]
+      for executable in GetSymbolBinaries(self._executable,
+                                          self.browser.platform.GetOSName()):
+        cmd = [
+            sys.executable,
+            generate_breakpad_symbols_command,
+            '--binary=%s' % executable,
+            '--symbols-dir=%s' % symbols_path,
+            '--build-dir=%s' % self._browser_directory,
+            ]
 
-      try:
-        subprocess.check_output(cmd, stderr=open(os.devnull, 'w'))
-      except subprocess.CalledProcessError:
-        logging.warning('Failed to execute "%s"' % ' '.join(cmd))
-        return
+        try:
+          subprocess.check_output(cmd, stderr=open(os.devnull, 'w'))
+        except subprocess.CalledProcessError:
+          logging.warning('Failed to execute "%s"' % ' '.join(cmd))
+          return
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
