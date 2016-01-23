@@ -68,6 +68,9 @@ tr.exportTo('tr.model', function() {
 
     var totalEventCount = associatedEvents.length + unassociatedEvents.length;
     var totalCpuMs = associatedCpuMs + unassociatedCpuMs;
+    var coveredEventsCpuTimeRatio = undefined;
+    if (totalCpuMs !== 0)
+      coveredEventsCpuTimeRatio = associatedCpuMs / totalCpuMs;
 
     return {
       associatedEventsCount: associatedEvents.length,
@@ -75,7 +78,7 @@ tr.exportTo('tr.model', function() {
       associatedEventsCpuTimeMs: associatedCpuMs,
       unassociatedEventsCpuTimeMs: unassociatedCpuMs,
       coveredEventsCountRatio: associatedEvents.length / totalEventCount,
-      coveredEventsCpuTimeRatio: associatedCpuMs / totalCpuMs
+      coveredEventsCpuTimeRatio: coveredEventsCpuTimeRatio
     };
   }
 

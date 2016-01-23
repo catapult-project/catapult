@@ -189,6 +189,15 @@ found in the LICENSE file.
       var unassociatedEvents = tr.model.getUnassociatedEvents(
           this.model, associatedEvents);
 
+      // coveredEventsCountRatio is guaranteed to be defined because
+      // getIRCoverageFromModel would have returned undefined if there were zero
+      // events.
+      // However, totalCpuMs may be zero for traces from windows, so
+      // coveredEventsCpuTimeRatio may be undefined.
+      var unassociatedCpuRatio = undefined;
+      if (coverage.coveredEventsCpuTimeRatio !== undefined)
+        unassociatedCpuRatio = 1.0 - coverage.coveredEventsCpuTimeRatio;
+
       setCoverageLink(this.shadowRoot.querySelector('#associated-events'),
                       'Associated',
                       associatedEvents,
@@ -200,7 +209,7 @@ found in the LICENSE file.
                       unassociatedEvents,
                       1.0 - coverage.coveredEventsCountRatio,
                       coverage.unassociatedEventsCpuTimeMs,
-                      1.0 - coverage.coveredEventsCpuTimeRatio);
+                      unassociatedCpuRatio);
     },
 
     updateTable_: function() {
