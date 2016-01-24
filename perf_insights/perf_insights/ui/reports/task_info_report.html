@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/grouping_table.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
@@ -14,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
-<link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/reduce.html">
@@ -51,7 +51,7 @@ found in the LICENSE file.
         flex: 1 1 auto;
       }
     </style>
-    <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+    <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
     <h2>Histogram</h2>
     <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
     <h2>Links</h2>

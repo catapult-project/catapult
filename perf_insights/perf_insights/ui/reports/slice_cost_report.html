@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/grouping_table.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
@@ -13,7 +14,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
-<link rel="import" href="/perf_insights/ui/grouping_table.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
@@ -71,7 +71,7 @@ found in the LICENSE file.
     <top-controls></top-controls>
     <content-pane>
       <table-container>
-        <pi-ui-grouping-table id="table"></pi-ui-grouping-table>
+        <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
       </table-container>
       <right-pane>
         <div id="script-costs">
