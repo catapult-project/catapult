@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -25,15 +25,18 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.b', function() {
 
-  function Row(title, data, groupingKeyFuncs, compareFunc) {
+  function Row(title, data, groupingKeyFuncs, rowStatsConstructor) {
     this.title = title;
     this.data_ = data;
     if (groupingKeyFuncs === undefined)
       groupingKeyFuncs = [];
     this.groupingKeyFuncs_ = groupingKeyFuncs;
+    this.rowStatsConstructor_ = rowStatsConstructor;
 
     this.subRowsBuilt_ = false;
     this.subRows_ = undefined;
+
+    this.rowStats_ = undefined;
   }
 
   Row.prototype = {
@@ -45,6 +48,13 @@ tr.exportTo('tr.ui.b', function() {
 
     get data() {
       return this.data_;
+    },
+
+    get rowStats() {
+      if (this.rowStats_ === undefined) {
+        this.rowStats_ = new this.rowStatsConstructor_(this);
+      }
+      return this.rowStats_;
     },
 
     rebuildSubRowsIfNeeded_: function() {
@@ -75,8 +85,9 @@ tr.exportTo('tr.ui.b', function() {
       this.subRows_ = [];
       for (var key in dataByKey) {
         var row = new Row(key,
-                       dataByKey[key],
-                       this.groupingKeyFuncs_.slice(1));
+                          dataByKey[key],
+                          this.groupingKeyFuncs_.slice(1),
+                          this.rowStatsConstructor_);
         this.subRows_.push(row);
       }
     },
@@ -97,6 +108,7 @@ tr.exportTo('tr.ui.b', function() {
     created: function() {
       this.dataToGroup_ = undefined;
       this.groupBy_ = undefined;
+      this.rowStatsConstructor_ = undefined;
     },
 
     get tableColumns() {
@@ -185,6 +197,15 @@ tr.exportTo('tr.ui.b', function() {
       this.updateContents_();
     },
 
+    get rowStatsConstructor() {
+      return this.rowStatsConstructor_;
+    },
+
+    set rowStatsConstructor(rowStatsConstructor) {
+      this.rowStatsConstructor_ = rowStatsConstructor;
+      this.updateContents_();
+    },
+
     rebuild: function() {
       this.$.table.rebuild();
     },
@@ -192,8 +213,10 @@ tr.exportTo('tr.ui.b', function() {
     updateContents_: function() {
       var groupBy = this.groupBy_ || [];
       var dataToGroup = this.dataToGroup_ || [];
+      var rowStatsConstructor = this.rowStatsConstructor_ || function() {};
 
-      var superRow = new Row('', dataToGroup, groupBy);
+      var superRow = new Row('', dataToGroup, groupBy,
+                             rowStatsConstructor);
       this.$.table.tableRows = superRow.subRows || [];
     }
   });

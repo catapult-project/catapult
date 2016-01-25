@@ -6,13 +6,13 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/grouping_table.html">
+<link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/perf_insights/results/results.html">
-<link rel="import" href="/perf_insights/ui/caching_column.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
@@ -68,7 +68,11 @@ found in the LICENSE file.
         overflow: auto;
       }
     </style>
-    <top-controls></top-controls>
+    <top-controls>
+      <span>Group by:</span>
+      <tr-ui-b-grouping-table-groupby-picker id="picker">
+      </tr-ui-b-grouping-table-groupby-picker>
+    </top-controls>
     <content-pane>
       <table-container>
         <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
@@ -103,48 +107,43 @@ found in the LICENSE file.
           'selection-changed', this.onSelectionChanged_.bind(this));
 
       var topControls = this.shadowRoot.querySelector('top-controls');
-
-      this.groupByThreadName_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByThreadName', true,
-          'Group by thread name',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByThreadName_);
-
-      this.groupByRAILTypeName_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByRAILTypeName', true,
-          'Group by RAIL Stage',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByRAILTypeName_);
-
-      this.groupByUserFriendlyCategory_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByUserFriendlyCategory', true,
-          'Group by Event Category',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByUserFriendlyCategory_);
-
-      this.groupByTitle_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByTitle', false,
-          'Group by Event Title',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByTitle_);
-
-      this.groupByDomainCategory_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByDomainCategory', true,
-          'Group by Domain Category',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByDomainCategory_);
-
-      this.groupByDomain_ = tr.ui.b.createCheckBox(
-          undefined, undefined,
-          'pi.ui.wr.weather_report.groupByDomain', true,
-          'Group by Domain',
-          this.updateContents_.bind(this));
-      topControls.appendChild(this.groupByDomain_);
+      var picker = this.$.picker;
+      picker.settingsKey = 'slice-cost-report-grouping-picker';
+      picker.possibleGroups = [
+        {
+          key: 'threadGroup', label: 'Thread name',
+          dataFn: function(datum) { return datum.sliceCostInfo.threadGroup; }
+        },
+        {
+          key: 'railTypeName', label: 'RAIL Stage',
+          dataFn: function(datum) { return datum.sliceCostInfo.railTypeName; }
+        },
+        {
+          key: 'userFriendlyCategory', label: 'User Friendly Category',
+          dataFn: function(datum) {
+              return datum.sliceCostInfo.userFriendlyCategory || 'other';
+          }
+        },
+        {
+          key: 'title', label: 'Title',
+          dataFn: function(datum) { return datum.sliceCostInfo.title; }
+        },
+        {
+          key: 'domain', label: 'Domain',
+          dataFn: function(datum) { return datum.sliceCostInfo.domain; }
+        },
+        {
+          key: 'domainCategory', label: 'Domain Category',
+          dataFn: function(datum) {
+            return datum.sliceCostInfo.domainCategory;
+          }
+        }
+      ];
+      picker.defaultGroupKeys = [
+          'threadGroup', 'railTypeName', 'userFriendlyCategory'
+      ];
+      picker.addEventListener('current-groups-changed',
+                              this.updateContents_.bind(this));
 
       this.updateRightPane_();
       this.initCostsHistogram_();
@@ -240,6 +239,7 @@ found in the LICENSE file.
       if (!results)
         results = new tr.r.Results();
 
+      table.rowStatsConstructor = this.createRowStatsConstructor_();
       var columns = this.createColumns_();
       table.tableColumns = columns;
       table.sortColumnIndex = 2;
@@ -259,64 +259,23 @@ found in the LICENSE file.
         });
       });
 
-      var groupBy = [];
-      if (this.groupByThreadName_.checked) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.threadGroup;
-        });
-      }
-      if (this.groupByRAILTypeName_.checked) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.railTypeName;
-        });
-      }
-
-      if (this.groupByUserFriendlyCategory_.checked) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.userFriendlyCategory || 'other';
-        });
-      }
-
-      var didGroupByDomainCategoryOrDomain;
-      if (groupBy.length === 0) {
-        if (this.groupByDomainCategory_.checked) {
-          groupBy.push(function(datum) {
-            return datum.sliceCostInfo.domainCategory;
-          });
-          didGroupByDomainCategoryOrDomain = true;
-        }
-        if (this.groupByDomain_.checked) {
-          groupBy.push(function(datum) {
-            return datum.sliceCostInfo.domain;
-          });
-          didGroupByDomainCategoryOrDomain = true;
-        }
-      }
-
-      if (this.groupByTitle_.checked) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.title;
-        });
-      }
-
-      if (this.groupByDomainCategory_.checked &&
-          !didGroupByDomainCategoryOrDomain) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.domainCategory;
-        });
-      }
-
-      if (this.groupByDomain_.checked && !didGroupByDomainCategoryOrDomain) {
-        groupBy.push(function(datum) {
-          return datum.sliceCostInfo.domain;
-        });
-      }
-
       table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      table.groupBy = groupBy;
+      table.groupBy = this.$.picker.currentGroups.map(function(group) {
+        return group.dataFn;
+      });
       table.dataToGroup = allSliceCosts;
       table.rebuild();
       this.updateRightPane_();
+    },
+
+    createRowStatsConstructor_: function() {
+      return function SliceCostRowStats(row) {
+        var stats = new pi.m.SliceCostInfo();
+        row.data.forEach(function(datum) {
+          stats.push(undefined, datum.sliceCostInfo);
+        });
+        return stats;
+      }
     },
 
     createColumns_: function() {
@@ -331,34 +290,34 @@ found in the LICENSE file.
           },
           width: '500px'
         },
-        this.createCachingColumn_('Self time (total)', function(datum) {
-          return datum.sliceCostInfo.selfTime;
-        }),
-        this.createCachingColumn_('CPU Self time (total)', function(datum) {
-          return datum.sliceCostInfo.cpuSelfTime;
-        })
+        {
+          title: 'Self time (total)',
+          textAlign: 'right',
+          value: function(row) {
+            return tr.ui.units.createTimeDurationSpan(row.rowStats.selfTime);
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(a, b,
+                function(a, b) {
+                  return a.rowStats.selfTime - b.rowStats.selfTime;
+                });
+          }
+        },
+        {
+          title: 'CPU Self time (total)',
+          textAlign: 'right',
+          value: function(row) {
+            return tr.ui.units.createTimeDurationSpan(row.rowStats.cpuSelfTime);
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(a, b,
+                function(a, b) {
+                  return a.rowStats.cpuSelfTime - b.rowStats.cpuSelfTime;
+                });
+          }
+        }
       ];
       return columns;
-    },
-
-    createCachingColumn_(title, getDataFunction) {
-      function computeStats(sliceCostInfo) {
-        var sum = tr.b.Statistics.sum(sliceCostInfo, getDataFunction);
-        return sum === undefined ? undefined :
-            tr.ui.units.createTimeDurationSpan(sum);
-      }
-
-      var column = new pi.ui.CachingColumn(title, computeStats);
-      column.textAlign = 'right';
-      column.cmp = function(row0, row1) {
-        var value0 = column.value(row0);
-        var value1 = column.value(row1);
-        return tr.b.comparePossiblyUndefinedValues(value0, value1,
-            function(v0, v1) {
-              return v0.duration - v1.duration;
-            });
-      };
-      return column;
     },
 
     initCostsHistogram_: function() {
