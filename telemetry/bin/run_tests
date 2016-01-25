@@ -13,9 +13,6 @@ from telemetry.testing import unittest_runner
 
 
 def main():
-  # TODO(aiolos): Reenable telemetry tests on linux once we can start xvfb.
-  if sys.platform.startswith('linux'):
-    return 0
   config = project_config.ProjectConfig(
       top_level_dir=TELEMETRY_DIR)
   return unittest_runner.Run(config)
