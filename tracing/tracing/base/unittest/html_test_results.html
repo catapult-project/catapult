@@ -18,15 +18,15 @@ found in the LICENSE file.
     flex: 0 0 auto;
   }
 
-  x-tr-b-unittest-test-results > x-html-test-case-result.dark {
+  x-tr-b-unittest-test-results > x-html-test-case-result.dark > #summary {
     background-color: #eee;
   }
 
   x-html-test-case-result {
     display: block;
   }
-  x-html-test-case-result > #title,
-  x-html-test-case-result > #status,
+  x-html-test-case-result > #summary > #title,
+  x-html-test-case-result > #summary > #status,
   x-html-test-case-result > #details > x-html-test-case-error > #message,
   x-html-test-case-result > #details > x-html-test-case-error > #stack,
   x-html-test-case-result > #details > x-html-test-case-error > #return-value,
@@ -86,9 +86,11 @@ found in the LICENSE file.
   }
 </style>
 <template id="x-html-test-case-result-template">
-  <span id="title"></span>&nbsp;
-  <span id="status"></span>&nbsp;
-  <span id="return-value"></span>
+  <div id="summary">
+    <span id="title"></span>&nbsp;
+    <span id="status"></span>&nbsp;
+    <span id="return-value"></span>
+  </div>
   <div id="details"></div>
 </template>
 
