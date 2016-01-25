@@ -15,9 +15,9 @@ class _Token(object):
   def __init__(self, data, token_id=None):
     self.data = data
     if token_id:
-      self.id = token_id
+      self.token_id = token_id
     else:
-      self.id = 'plain'
+      self.token_id = 'plain'
 
 
 class BuildFile(object):
@@ -47,10 +47,10 @@ class BuildFile(object):
 
   def Update(self, files_by_group):
     for token in self._tokens:
-      if token.id in files_by_group:
+      if token.token_id in files_by_group:
         token.data = self._GetReplacementListAsString(
             token.data,
-            files_by_group[token.id])
+            files_by_group[token.token_id])
 
   def Write(self, f):
     for token in self._tokens:
@@ -94,10 +94,10 @@ class GypiFile(BuildFile):
                     for filename in filelist])
 
 
-def _GroupFiles(fileNameToGroupNameFunc, filenames):
+def _GroupFiles(file_name_to_group_name_func, filenames):
   file_groups = collections.defaultdict(lambda: [])
   for filename in filenames:
-    file_groups[fileNameToGroupNameFunc(filename)].append(filename)
+    file_groups[file_name_to_group_name_func(filename)].append(filename)
   for group in file_groups:
     file_groups[group].sort()
   return file_groups

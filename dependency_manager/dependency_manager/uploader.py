@@ -62,8 +62,8 @@ class CloudStorageUploader(object):
         self._backed_up = True
       except cloud_storage.CloudStorageError:
         logging.error('Failed to copy existing file %s in cloud storage bucket '
-            '%s to backup location %s', self._cs_remote_path, self._cs_bucket,
-            self._cs_backup_path)
+                      '%s to backup location %s', self._cs_remote_path,
+                      self._cs_bucket, self._cs_backup_path)
         raise
 
     try:

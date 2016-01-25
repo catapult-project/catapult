@@ -36,7 +36,7 @@ def _FindAllFilesRecursive(source_paths):
         all_filenames.add(x)
   return all_filenames
 
-def _IsFilenameATest(x):  # pylint: disable=unused-argument
+def _IsFilenameATest(x):
   if x.endswith('_test.js'):
     return True
 

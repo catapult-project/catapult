@@ -64,6 +64,6 @@ class ArchiveInfo(object):
     return (
         'ArchiveInfo(archive_file=%s, unzip_path=%s, path_within_archive=%s, '
         'dependency_path =%s)' % (
-          self._archive_file, self._unzip_path, self._path_within_archive,
-          self._dependency_path))
+            self._archive_file, self._unzip_path, self._path_within_archive,
+            self._dependency_path))
 

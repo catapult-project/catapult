@@ -11,7 +11,7 @@ from tracing_build import generate_about_tracing_contents
 
 class GenerateAboutTracingContentsUnittTest(unittest.TestCase):
 
-  def test_smokeTest(self):
+  def testSmoke(self):
     try:
       tmpdir = tempfile.mkdtemp()
       res = generate_about_tracing_contents.Main(['--outdir', tmpdir])

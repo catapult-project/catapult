@@ -11,18 +11,14 @@ details on the presubmit API built into depot_tools.
 
 def _RunPylint(input_api, output_api):
   return input_api.RunTests(input_api.canned_checks.RunPylint(
-      input_api,
-      output_api,
-      pylintrc='pylintrc',
-      extra_paths_list=[
-          input_api.os_path.join(input_api.PresubmitLocalPath(), '..'),
-      ]))
+      input_api, output_api, pylintrc='pylintrc'))
 
 
 def _RunUnitTests(input_api, output_api):
   def J(*dirs):
     """Returns a path relative to presubmit directory."""
-    return input_api.os_path.join(input_api.PresubmitLocalPath(), *dirs)
+    return input_api.os_path.join(
+        input_api.PresubmitLocalPath(), 'devil', *dirs)
 
   test_env = dict(input_api.environ)
   test_env.update({

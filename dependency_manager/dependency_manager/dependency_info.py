@@ -4,7 +4,7 @@
 
 class DependencyInfo(object):
   def __init__(self, dependency, platform, config_path, local_path_info=None,
-      cloud_storage_info=None):
+               cloud_storage_info=None):
     """ Container for the information needed for each dependency/platform pair
     in the dependency_manager.
 
@@ -50,7 +50,7 @@ class DependencyInfo(object):
             'Overriding cloud storage data is not allowed when updating a '
             'DependencyInfo. Conflict in dependency %s on platform %s in '
             'config_paths: %s.' % (self.dependency, self.platform,
-                                  self.config_paths))
+                                   self.config_paths))
       else:
         self._cloud_storage_info = new_dep_info._cloud_storage_info
     if not self._local_path_info:

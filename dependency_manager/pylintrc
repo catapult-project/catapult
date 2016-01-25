@@ -6,8 +6,6 @@ disable=
   design,
   similarities,
 
-  bad-builtin,
-  bad-continuation,
   fixme,
   locally-disabled,
   locally-enabled,
@@ -62,6 +60,9 @@ ignore-mixin-members=yes
 
 
 [FORMAT]
+
+# Maximum number of lines in a module.
+max-module-lines=2000
 
 # We use two spaces for indents, instead of the usual four spaces or tab.
 indent-string='  '

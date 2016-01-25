@@ -15,7 +15,7 @@ def GypiCheck():
   gyp = f.read()
   f.close()
 
-  data = eval(gyp)
+  data = eval(gyp)  # pylint: disable=eval-used
   listed_files = []
   error = ''
   for group in check_common.FILE_GROUPS:

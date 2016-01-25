@@ -7,10 +7,10 @@ disable=
   similarities,
 
   fixme,
-  missing-docstring,
-  no-self-use,
   locally-disabled,
   locally-enabled,
+  missing-docstring,
+  no-self-use,
   protected-access,
   star-args,
 

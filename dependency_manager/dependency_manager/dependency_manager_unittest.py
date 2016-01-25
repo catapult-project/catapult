@@ -100,7 +100,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
     base_config_mock.IterDependencyInfo.return_value = iter(
         [dep_info1, dep_info2, dep_info3])
     expected_lookup_dict = {dep1: {plat1: dep_info1,
-                                  plat2: dep_info2},
+                                   plat2: dep_info2},
                             dep2: {plat2: dep_info3}}
     dep_manager._UpdateDependencies(base_config_mock)
     self.assertEqual(expected_lookup_dict, dep_manager._lookup_dict)
@@ -213,7 +213,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
     # Ensure the testing data wasn't corrupted.
     self.assertEqual(start_lookup_dict,
                      {dep: {plat1: dep_info_a,
-                             plat2: dep_info_b},
+                            plat2: dep_info_b},
                       dep1: {plat1: dep_info_c}})
 
   def testFollowupUpdateDependenciesWithCollisions(self):

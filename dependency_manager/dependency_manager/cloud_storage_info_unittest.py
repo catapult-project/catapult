@@ -55,7 +55,7 @@ class CloudStorageInfoTest(unittest.TestCase):
 
   def testInitWithArchiveInfoErrors(self):
     zip_info = archive_info.ArchiveInfo(
-      'download_path', 'unzip_location', 'path_within_archive')
+        'download_path', 'unzip_location', 'path_within_archive')
     self.assertRaises(
         ValueError, cloud_storage_info.CloudStorageInfo, None, None, None, None,
         archive_info=zip_info)
@@ -73,7 +73,7 @@ class CloudStorageInfoTest(unittest.TestCase):
 
   def testInitWithArchiveInfo(self):
     zip_info = archive_info.ArchiveInfo(
-      'download_path', 'unzip_location', 'path_within_archive')
+        'download_path', 'unzip_location', 'path_within_archive')
     cs_info = cloud_storage_info.CloudStorageInfo(
         'cs_bucket', 'cs_hash', 'download_path', 'cs_remote_path',
         archive_info=zip_info)
@@ -86,7 +86,7 @@ class CloudStorageInfoTest(unittest.TestCase):
 
   def testInitWithVersionAndArchiveInfo(self):
     zip_info = archive_info.ArchiveInfo(
-      'download_path', 'unzip_location', 'path_within_archive')
+        'download_path', 'unzip_location', 'path_within_archive')
     cs_info = cloud_storage_info.CloudStorageInfo(
         'cs_bucket', 'cs_hash', 'download_path',
         'cs_remote_path', version_in_cs='version_in_cs',
@@ -202,20 +202,20 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
   def testGetRemotePathCloudStorageErrors(self, cs_get_mock):
     cs_get_mock.side_effect = cloud_storage.CloudStorageError
     self.assertRaises(cloud_storage.CloudStorageError,
-        self.cs_info.GetRemotePath)
+                      self.cs_info.GetRemotePath)
 
     cs_get_mock.side_effect = cloud_storage.ServerError
     self.assertRaises(cloud_storage.ServerError,
-        self.cs_info.GetRemotePath)
+                      self.cs_info.GetRemotePath)
 
     cs_get_mock.side_effect = cloud_storage.NotFoundError
     self.assertRaises(cloud_storage.NotFoundError,
-        self.cs_info.GetRemotePath)
+                      self.cs_info.GetRemotePath)
 
     cs_get_mock.side_effect = cloud_storage.PermissionError
     self.assertRaises(cloud_storage.PermissionError,
-        self.cs_info.GetRemotePath)
+                      self.cs_info.GetRemotePath)
 
     cs_get_mock.side_effect = cloud_storage.CredentialsError
     self.assertRaises(cloud_storage.CredentialsError,
-        self.cs_info.GetRemotePath)
+                      self.cs_info.GetRemotePath)

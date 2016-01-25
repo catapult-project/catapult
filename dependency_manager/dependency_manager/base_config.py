@@ -240,7 +240,7 @@ class BaseConfig(object):
     cs_remote_path = self._CloudStorageRemotePath(
         dependency, cs_hash, cs_base_folder)
     self._pending_uploads.append(uploader.CloudStorageUploader(
-          cs_bucket, cs_remote_path, dependency_path))
+        cs_bucket, cs_remote_path, dependency_path))
     if execute_job:
       self.ExecuteUpdateJobs()
 
