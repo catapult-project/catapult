@@ -222,25 +222,25 @@ class LsusbTest(mock_calls.TestCase):
   def testLsusb(self):
     with self.assertCalls(
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-            ['lsusb'], timeout=2), (None, DEVICE_LIST)),
+            ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=2), (None, RAW_OUTPUT))):
+          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       self.assertDictEqual(lsusb.lsusb().pop(), EXPECTED_RESULT)
 
   def testGetSerial(self):
     with self.assertCalls(
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-            ['lsusb'], timeout=2), (None, DEVICE_LIST)),
+            ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=2), (None, RAW_OUTPUT))):
+          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       self.assertEqual(lsusb.get_android_devices(), ['01d2450ea194a93b'])
 
   def testGetLsusbSerial(self):
     with self.assertCalls(
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-            ['lsusb'], timeout=2), (None, DEVICE_LIST)),
+            ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=2), (None, RAW_OUTPUT))):
+          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       out = lsusb.lsusb().pop()
       self.assertEqual(lsusb.get_lsusb_serial(out), '01d2450ea194a93b')
 

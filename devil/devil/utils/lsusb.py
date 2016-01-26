@@ -17,7 +17,7 @@ _LSUSB_GROUP_RE = re.compile(r'^ *([^ ]+.*):$')
 def _lsusbv_on_device(bus_id, dev_id):
   """Calls lsusb -v on device."""
   _, raw_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-      ['lsusb', '-v', '-s', '%s:%s' % (bus_id, dev_id)], timeout=2)
+      ['lsusb', '-v', '-s', '%s:%s' % (bus_id, dev_id)], timeout=10)
 
   device = {'bus': bus_id, 'device': dev_id}
   depth_stack = [device]
@@ -80,7 +80,7 @@ def _lsusbv_on_device(bus_id, dev_id):
 def lsusb():
   """Call lsusb and return the parsed output."""
   _, lsusb_list_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-      ['lsusb'], timeout=2)
+      ['lsusb'], timeout=10)
   devices = []
   for line in lsusb_list_output.splitlines():
     m = _LSUSB_BUS_DEVICE_RE.match(line)
