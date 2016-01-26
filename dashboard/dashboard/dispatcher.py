@@ -16,6 +16,7 @@ from dashboard import bisect_stats
 from dashboard import bisect_fyi
 from dashboard import bot_whitelist
 from dashboard import buildbucket_job_status
+from dashboard import can_bisect
 from dashboard import change_internal_only
 from dashboard import debug_alert
 from dashboard import dump_graph_json
@@ -65,6 +66,7 @@ _URL_MAPPING = [
     ('/bot_whitelist', bot_whitelist.BotWhitelistHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
+    ('/can_bisect', can_bisect.CanBisectHandler),
     ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities', layered_cache.DeleteExpiredEntitiesHandler),

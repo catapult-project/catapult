@@ -21,6 +21,9 @@ from dashboard.models import bug_data
 from dashboard.models import graph_data
 from dashboard.models import try_job
 
+# TODO(qyearsley): Shorten this module.
+# See https://github.com/catapult-project/catapult/issues/1917
+# pylint: disable=too-many-lines
 
 # Below is a series of test strings which may contain long lines.
 # pylint: disable=line-too-long

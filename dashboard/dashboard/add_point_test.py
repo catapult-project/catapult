@@ -26,6 +26,10 @@ from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import sheriff
 
+# TODO(qyearsley): Shorten this module.
+# See https://github.com/catapult-project/catapult/issues/1917
+# pylint: disable=too-many-lines
+
 # A limit to the number of entities that can be fetched. This is just an
 # safe-guard to prevent possibly fetching too many entities.
 _FETCH_LIMIT = 100

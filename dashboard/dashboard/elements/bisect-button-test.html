@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="/dashboard/elements/bisect-button.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    tearDown: function() {
+      testing_common.clearXhrMock();
+      testing_common.clearFixture();
+    }
+  };
+
+  test('instantiate_basic', function() {
+    var button = document.createElement('bisect-button');
+    this.addHTMLOutput(button);
+  }, testOptions);
+
+  test('canBisect false if there is no bisectInfo', function() {
+    var button = document.createElement('bisect-button');
+    testing_common.addToFixture(button);
+    button.bugId = 500500;
+    assert.isFalse(button.canBisect);
+  }, testOptions);
+
+  test('empty', function() {
+  }, testOptions);
+
+  test('canBisect set to true for valid tests after check', function() {
+    testing_common.addXhrMock(
+        '/can_bisect?test_path=ChromiumPerf%2Flinux%2Fsunspider%2FTotal' +
+        '&start_revision=323400&end_revision=323500',
+        'true');
+
+    var button = document.createElement('bisect-button');
+    testing_common.addToFixture(button);
+    button.bisectInfo = {
+      'testPath': 'ChromiumPerf/linux/sunspider/Total',
+      'goodRev': 323400,
+      'badRev': 323500
+    };
+
+    return new Promise(function(resolve) {
+      function check() {
+        assert.isTrue(button.canBisect);
+        resolve();
+      }
+      setTimeout(check, 10);
+    });
+  }, testOptions);
+
+  test('canBisect set to false for invalid tests after check', function() {
+    testing_common.addXhrMock(
+        '/can_bisect?test_path=Chromium%2Flinux%2Fsizes' +
+        '&start_revision=323400&end_revision=323500',
+        'false');
+
+    var button = document.createElement('bisect-button');
+    testing_common.addToFixture(button);
+    button.bisectInfo = {
+      'testPath': 'Chromium/linux/sizes',
+      'goodRev': 323400,
+      'badRev': 323500
+    };
+
+    return new Promise(function(resolve) {
+      function check() {
+        assert.isFalse(button.canBisect);
+        resolve();
+      }
+      setTimeout(check, 100);
+    });
+  }, testOptions);
+
+});
+</script>

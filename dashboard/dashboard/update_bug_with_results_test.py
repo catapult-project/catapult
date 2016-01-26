@@ -21,6 +21,10 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
 
+# TODO(qyearsley): Shorten this module.
+# See https://github.com/catapult-project/catapult/issues/1917
+# pylint: disable=too-many-lines
+
 # Bisect log with multiple potential culprits with different authors.
 _BISECT_LOG_MULTI_OWNER = """
 @@@STEP_CURSOR Results@@@

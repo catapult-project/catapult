@@ -1,7 +1,14 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2016 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/bisect-form.html">
-<link rel="import" href="/dashboard/static/bisect_utils.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="bisect-button" attributes="bisectInfo bugId xsrfToken">
   <template>
@@ -69,9 +76,21 @@
             this.canBisect = false;
             return;
           }
-          var testPath = this.bisectInfo.testPath;
-          var rev = this.bisectInfo.badRev;
-          this.canBisect = bisect_utils.canBisect(testPath, rev);
+          this.canBisect = true;
+          var that = this;
+          simple_xhr.send(
+              '/can_bisect',
+              {
+                'test_path': this.bisectInfo.testPath,
+                'start_revision': this.bisectInfo.goodRev,
+                'end_revision': this.bisectInfo.badRev,
+              },
+              function loadCallback(responseBool) {
+                that.canBisect = responseBool;
+              },
+              function errorCallback(message) {
+                console.warn('Request to /can_bisect failed.', message);
+              });
         },
 
         /**

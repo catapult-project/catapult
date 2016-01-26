@@ -8,7 +8,6 @@ import difflib
 import hashlib
 import json
 import logging
-import re
 
 import httplib2
 
@@ -17,6 +16,7 @@ from google.appengine.api import app_identity
 
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
+from dashboard import can_bisect
 from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
@@ -277,20 +277,15 @@ def GetBisectConfig(
     return {'error': 'Could not guess command for %r.' % suite}
 
   try:
-    if not _IsGitHash(good_revision):
-      good_revision = int(good_revision)
-    if not _IsGitHash(bad_revision):
-      bad_revision = int(bad_revision)
     repeat_count = int(repeat_count)
     max_time_minutes = int(max_time_minutes)
     bug_id = int(bug_id)
   except ValueError:
-    return {'error': ('repeat count and max time must be integers '
-                      'and revision as git hash or int.')}
+    return {'error': 'repeat count, max time and bug_id must be integers.'}
 
-  if not IsValidRevisionForBisect(good_revision):
+  if not can_bisect.IsValidRevisionForBisect(good_revision):
     return {'error': 'Invalid "good" revision "%s".' % good_revision}
-  if not IsValidRevisionForBisect(bad_revision):
+  if not can_bisect.IsValidRevisionForBisect(bad_revision):
     return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
@@ -359,9 +354,9 @@ def _GetPerfTryConfig(
   if not command:
     return {'error': 'Only Telemetry is supported at the moment.'}
 
-  if not IsValidRevisionForBisect(good_revision):
+  if not can_bisect.IsValidRevisionForBisect(good_revision):
     return {'error': 'Invalid "good" revision "%s".' % good_revision}
-  if not IsValidRevisionForBisect(bad_revision):
+  if not can_bisect.IsValidRevisionForBisect(bad_revision):
     return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
@@ -372,16 +367,6 @@ def _GetPerfTryConfig(
       'max_time_minutes': '60',
   }
   return config_dict
-
-
-def IsValidRevisionForBisect(revision):
-  """Checks whether a revision looks like a valid revision for bisect."""
-  return _IsGitHash(revision) or re.match(r'^[0-9]{5,7}$', str(revision))
-
-
-def _IsGitHash(revision):
-  """Checks whether the input looks like a SHA1 hash."""
-  return re.match(r'[a-fA-F0-9]{40}$', str(revision))
 
 
 def _GetAvailableBisectBots(master_name):
