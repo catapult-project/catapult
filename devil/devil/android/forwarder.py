@@ -9,6 +9,7 @@ import logging
 import os
 import psutil
 
+from devil import base_error
 from devil import devil_env
 from devil.android.constants import file_system
 from devil.android.valgrind_tools import base_tool
@@ -39,6 +40,13 @@ class _FileLock(object):
   def __exit__(self, _exception_type, _exception_value, traceback):
     fcntl.flock(self._fd, fcntl.LOCK_UN)
     os.close(self._fd)
+
+
+class HostForwarderError(base_error.BaseError):
+  """Exception for failures involving host_forwarder."""
+
+  def __init__(self, message):
+    super(HostForwarderError, self).__init__(message)
 
 
 class Forwarder(object):
@@ -91,8 +99,9 @@ class Forwarder(object):
               [instance._host_forwarder_path] + redirection_command)
         except OSError as e:
           if e.errno == 2:
-            raise Exception('Unable to start host forwarder. Make sure you have'
-                            ' built host_forwarder.')
+            raise HostForwarderError(
+                'Unable to start host forwarder. '
+                'Make sure you have built host_forwarder.')
           else: raise
         if exit_code != 0:
           Forwarder._KillDeviceLocked(device, tool)
@@ -102,12 +111,14 @@ class Forwarder(object):
           for line in ps_out:
             if 'device_forwarder' in line:
               logging.info('    %s', line)
-          raise Exception('%s exited with %d:\n%s' % (
-              instance._host_forwarder_path, exit_code, '\n'.join(output)))
+          raise HostForwarderError(
+              '%s exited with %d:\n%s' % (instance._host_forwarder_path,
+                                          exit_code, '\n'.join(output)))
         tokens = output.split(':')
         if len(tokens) != 2:
-          raise Exception('Unexpected host forwarder output "%s", '
-                          'expected "device_port:host_port"' % output)
+          raise HostForwarderError(
+              'Unexpected host forwarder output "%s", '
+              'expected "device_port:host_port"' % output)
         device_port = int(tokens[0])
         host_port = int(tokens[1])
         serial_with_port = (device_serial, device_port)
@@ -306,8 +317,9 @@ class Forwarder(object):
       (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
           ['pkill', '-9', 'host_forwarder'])
       if exit_code != 0:
-        raise Exception('%s exited with %d:\n%s' % (
-              self._host_forwarder_path, exit_code, '\n'.join(output)))
+        raise HostForwarderError(
+            '%s exited with %d:\n%s' % (self._host_forwarder_path, exit_code,
+                                        '\n'.join(output)))
 
   @staticmethod
   def _KillDeviceLocked(device, tool):
