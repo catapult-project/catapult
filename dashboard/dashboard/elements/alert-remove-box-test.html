@@ -14,6 +14,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   /**
    * Mock XMLHttpRequest which returns a canned response.
+   *
+   * TODO(qyearsley): Replace this with the XHR mock in testing_common.html.
+   *
    * @param {string} responseText Text to put in mock XHR response.
    * @param {Object} expectedData Parameter data expected by the test.
    * @return {Function} A fake constructor for XMLHttpRequest.
@@ -49,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  test('onRemoveBug, request parameters are used.', function() {
+  test('onRemoveBug sends request with parameters', function() {
     var box = document.createElement('alert-remove-box');
     box['key'] = 'alert-key';
     box['xsrfToken'] = 'xsrf-token';
@@ -65,8 +68,7 @@ tr.b.unittest.testSuite(function() {
     });
   }, testOptions);
 
-  test('onRemoveBug, an "untriaged" event is fired when the XHR completes.',
-       function() {
+  test('onRemoveBug causes an "untriaged" event to be fired', function() {
     var box = document.createElement('alert-remove-box');
     window.XMLHttpRequest = new XMLHttpRequestMock('{"bug_id": "REMOVE"}');
     box.addEventListener('untriaged', function() {
