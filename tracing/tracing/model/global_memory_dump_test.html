@@ -3469,5 +3469,46 @@ tr.b.unittest.testSuite(function() {
     assertUndefinedAttribute(indirectOwnerDump, 'size');
     assertUndefinedAttribute(indirectOwnerDump, 'effective_size');
   });
+
+  test('indicesUpdatedCorrectly', function() {
+    var gmd, rootDump, childDump;
+    var model = tr.c.TestUtils.newModel(function(model) {
+      gmd = new GlobalMemoryDump(model, 10);
+      model.globalMemoryDumps.push(gmd);
+
+      rootDump = new MemoryAllocatorDump(gmd, 'root');
+      rootDump.addAttribute('size', new ScalarAttribute('bytes', 64));
+
+      childDump = new MemoryAllocatorDump(gmd, 'root/child');
+      childDump.addAttribute('size', new ScalarAttribute('bytes', 48));
+      childDump.parent = rootDump;
+      rootDump.children.push(childDump);
+
+      gmd.memoryAllocatorDumps = [rootDump];
+
+      // Before model is finalized.
+      assert.strictEqual(
+          gmd.getMemoryAllocatorDumpByFullName('root'), rootDump);
+      assert.strictEqual(
+          gmd.getMemoryAllocatorDumpByFullName('root/child'), childDump);
+      assert.isUndefined(
+          gmd.getMemoryAllocatorDumpByFullName('root/<unspecified>'));
+    });
+
+    // Test sanity check.
+    assert.isDefined(gmd);
+    assert.isDefined(rootDump);
+    assert.isDefined(childDump);
+
+    // After model is finalized.
+    assert.strictEqual(gmd.getMemoryAllocatorDumpByFullName('root'), rootDump);
+    assert.strictEqual(
+        gmd.getMemoryAllocatorDumpByFullName('root/child'), childDump);
+    var unspecifiedDump =
+        gmd.getMemoryAllocatorDumpByFullName('root/<unspecified>');
+    assert.strictEqual(unspecifiedDump.fullName, 'root/<unspecified>');
+    assert.strictEqual(unspecifiedDump.parent, rootDump);
+    assert.strictEqual(rootDump.children[0], unspecifiedDump);
+  });
 });
 </script>

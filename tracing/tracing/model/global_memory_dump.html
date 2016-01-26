@@ -93,6 +93,11 @@ tr.exportTo('tr.model', function() {
       // resident sizes (step 2) and sizes (step 3) of the tracing MADs have
       // already been calculated.
       this.discountTracingOverheadFromVmRegions();
+
+      // 6. The above steps (especially step 3) can create new memory allocator
+      // dumps, so we force rebuilding the memory allocator dump indices of all
+      // container memory dumps.
+      this.forceRebuildingMemoryAllocatorDumpByFullNameIndices();
     },
 
     /**
@@ -726,6 +731,12 @@ tr.exportTo('tr.model', function() {
       tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.discountTracingOverheadFromVmRegions(this.model);
       }, this);
+    },
+
+    forceRebuildingMemoryAllocatorDumpByFullNameIndices: function() {
+      this.iterateContainerDumps(function(containerDump) {
+        containerDump.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
+      });
     },
 
     iterateContainerDumps: function(fn) {
