@@ -82,7 +82,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     buildViewForSingleContainerName_: function() {
-      var containerMemoryDumps = this.currentSelection_;
+      var containerMemoryDumps =
+          tr.b.dictionaryValues(this.dumpsByContainerName_)[0];
       var dumpView = this.ownerDocument.createElement(
           'tr-ui-a-stacked-pane-view');
       this.$.content.appendChild(dumpView);
