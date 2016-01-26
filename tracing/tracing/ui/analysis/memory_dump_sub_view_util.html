@@ -729,6 +729,11 @@ tr.exportTo('tr.ui.analysis', function() {
     MemoryColumn.call(this, name, title, units, cellGetter, aggregationMode);
   }
 
+  // Avoid tiny positive/negative diffs (displayed in the UI as '+0.0 B' and
+  // '-0.0 B') due to imprecise floating-point arithmetic by treating all diffs
+  // within the (-DIFF_EPSILON, DIFF_EPSILON) range as zeros.
+  ScalarMemoryColumn.DIFF_EPSILON = 0.0001;
+
   ScalarMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
 
@@ -783,7 +788,8 @@ tr.exportTo('tr.ui.analysis', function() {
     getDiffAttrValue: function(firstAttr, lastAttr) {
       var firstValue = firstAttr === undefined ? 0 : firstAttr.value;
       var lastValue = lastAttr === undefined ? 0 : lastAttr.value;
-      return lastValue - firstValue;
+      var diff = lastValue - firstValue;
+      return Math.abs(diff) < ScalarMemoryColumn.DIFF_EPSILON ? 0 : diff;
     }
   };
 

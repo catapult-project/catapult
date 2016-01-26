@@ -903,6 +903,9 @@ tr.b.unittest.testSuite(function() {
         tr.b.u.Units.unitlessNumber, true, 'green');
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 0,
         tr.b.u.Units.unitlessNumber, true);
+    checkScalarMemoryColumnValueFormat(
+        this, c, [2.71828, 2.71829] /* diff within epsilon */, 0,
+        tr.b.u.Units.unitlessNumber, true);
 
     var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
         AggregationMode.DIFF);
@@ -912,6 +915,9 @@ tr.b.unittest.testSuite(function() {
         tr.b.u.Units.sizeInBytes, true, 'green');
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 0,
         tr.b.u.Units.sizeInBytes, true, undefined);
+    checkScalarMemoryColumnValueFormat(
+        this, c, [1.41421, 1.41422] /* diff within epsilon */, 0,
+        tr.b.u.Units.sizeInBytes, true);
   });
 
   test('checkScalarMemoryColumn_formatMultipleAttributeValues_max',
@@ -989,6 +995,10 @@ tr.b.unittest.testSuite(function() {
         buildScalarCell('W', [17, undefined, 17] /* diff 0 */).attrs,
         buildScalarCell('W',
             [undefined, 100, undefined] /* diff 0 */).attrs), 0);
+    assert.equal(c.compareMultipleAttributes(
+        buildScalarCell('bytes',
+            [3.14159, undefined, 3.14160] /* diff within epsilon */).attrs,
+        buildScalarCell('bytes', [100, 100, 100] /* diff 0 */).attrs), 0);
   });
 
   test('checkScalarMemoryColumn_compareMultipleAttributes_max', function() {
@@ -1007,6 +1017,31 @@ tr.b.unittest.testSuite(function() {
     assert.isBelow(c.compareMultipleAttributes(
         buildScalarCell('W', [17, undefined, 17]).attrs,
         buildScalarCell('W', [undefined, 100, undefined]).attrs), 0);
+  });
+
+  test('checkScalarMemoryColumn_getDiffAttrValue', function() {
+    var c = new ScalarMemoryColumn('test_column', 'ms', fieldGetter('x'),
+        AggregationMode.MAX);
+    function checkDiffValue(first, last, expectedDiffValue) {
+      var actualDiffValue = c.getDiffAttrValue(
+          first === undefined ? undefined : new ScalarAttribute('bytes', first),
+          last === undefined ? undefined : new ScalarAttribute('bytes', last));
+      assert.closeTo(actualDiffValue, expectedDiffValue, 1e-8);
+    }
+
+    // Diff outside epsilon range.
+    checkDiffValue(0, 0.0002, 0.0002);
+    checkDiffValue(undefined, 0.0003, 0.0003);
+    checkDiffValue(0.3334, 0.3332, -0.0002);
+    checkDiffValue(0.0005, undefined, -0.0005);
+
+    // Diff inside epsilon range.
+    checkDiffValue(5, 5.00009, 0);
+    checkDiffValue(undefined, 0.0000888, 0);
+    checkDiffValue(0.29999, 0.3, 0);
+    checkDiffValue(0.00009, undefined, 0);
+    checkDiffValue(0.777777, 0.777777, 0);
+    checkDiffValue(undefined, undefined, 0);
   });
 
   test('checkFieldGetter', function() {
