@@ -1360,6 +1360,7 @@ class DeviceUtils(object):
         zip_utils.WriteToZipFile(zip_file, host_path, device_path)
 
   # TODO(nednguyen): remove this and migrate the callsite to PathExists().
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def FileExists(self, device_path, timeout=None, retries=None):
     """Checks whether the given file exists on the device.
 
@@ -1367,6 +1368,7 @@ class DeviceUtils(object):
     """
     return self.PathExists(device_path, timeout=timeout, retries=retries)
 
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def PathExists(self, device_paths, as_root=False, timeout=None, retries=None):
     """Checks whether the given path(s) exists on the device.
 

@@ -1511,7 +1511,7 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
     with self.assertCall(
         self.call.device.RunShellCommand(
             "test -e '/path/file exists'",
-            as_root=False, check_return=True, timeout=None, retries=None),
+            as_root=False, check_return=True, timeout=10, retries=0),
         []):
       self.assertTrue(self.device.PathExists('/path/file exists'))
 
@@ -1519,7 +1519,7 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
     with self.assertCall(
         self.call.device.RunShellCommand(
             "test -e '/path 1' -a -e /path2",
-            as_root=False, check_return=True, timeout=None, retries=None),
+            as_root=False, check_return=True, timeout=10, retries=0),
         []):
       self.assertTrue(self.device.PathExists(('/path 1', '/path2')))
 
@@ -1527,7 +1527,7 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
     with self.assertCall(
         self.call.device.RunShellCommand(
             "test -e /path/file.not.exists",
-            as_root=False, check_return=True, timeout=None, retries=None),
+            as_root=False, check_return=True, timeout=10, retries=0),
         self.ShellError()):
       self.assertFalse(self.device.PathExists('/path/file.not.exists'))
 
@@ -1535,7 +1535,7 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
     with self.assertCall(
         self.call.device.RunShellCommand(
             "test -e /root/path/exists",
-            as_root=True, check_return=True, timeout=None, retries=None),
+            as_root=True, check_return=True, timeout=10, retries=0),
         self.ShellError()):
       self.assertFalse(
           self.device.PathExists('/root/path/exists', as_root=True))
@@ -1544,7 +1544,7 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
     with self.assertCall(
         self.call.device.RunShellCommand(
             "test -e /path/file.not.exists",
-            as_root=False, check_return=True, timeout=None, retries=None),
+            as_root=False, check_return=True, timeout=10, retries=0),
         self.ShellError()):
       self.assertFalse(self.device.FileExists('/path/file.not.exists'))
 
