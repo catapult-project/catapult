@@ -9,6 +9,7 @@ import sys
 import time
 import threading
 
+
 _lock = threading.Lock()
 
 _enabled = False
@@ -20,6 +21,7 @@ _tls = threading.local() # tls used to detect forking/etc
 _atexit_regsitered_for_pid = None
 
 _control_allowed = True
+
 
 class TraceException(Exception):
   pass
@@ -66,7 +68,8 @@ def _trace_enable(log_file=None):
     _note("trace_event: tracelog name is %s" % log_file)
     log_file = open("%s" % log_file, "ab", False)
   elif not hasattr(log_file, 'fileno'):
-    raise TraceException("Log file must be None, a string, or a file-like object with a fileno()")
+    raise TraceException(
+        "Log file must be None, a string, or file-like object with a fileno()")
 
   _log_file = log_file
   fcntl.lockf(_log_file.fileno(), fcntl.LOCK_EX)
@@ -155,10 +158,13 @@ def add_trace_event(ph, ts, category, name, args=None):
 
   if ts:
     ts = 1000000 * ts
-  _cur_events.append({"ph": ph, "category": category,
-                      "pid": _tls.pid, "tid": _tls.tid,
+  _cur_events.append({"ph": ph,
+                      "category": category,
+                      "pid": _tls.pid,
+                      "tid": _tls.tid,
                       "ts": ts,
-                      "name": name, "args": args or {}});
+                      "name": name,
+                      "args": args or {}});
 
 def trace_begin(name, args=None):
   add_trace_event("B", time.time(), "python", name, args)

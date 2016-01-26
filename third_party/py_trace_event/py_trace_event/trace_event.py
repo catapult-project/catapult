@@ -5,11 +5,11 @@ r"""Instrumentation-based profiling for Python.
 
 trace_event allows you to hand-instrument your code with areas of interest.
 When enabled, trace_event logs the start and stop times of these events to a
-logfile. These resulting logfiles can be viewed with either Chrome's about:tracing
-UI or with the standalone trace_event_viewer available at
+logfile. These resulting logfiles can be viewed with either Chrome's
+about:tracing UI or with the standalone trace_event_viewer available at
   http://www.github.com/natduca/trace_event_viewer/
 
-To use trace event, simply call trace_event_enable and start instrumenting your code:
+To use trace event, call trace_event_enable and start instrumenting your code:
    from trace_event import *
 
    if "--trace" in sys.argv:
@@ -25,8 +25,8 @@ To use trace event, simply call trace_event_enable and start instrumenting your 
        ...
 
 trace_event records trace events to an in-memory buffer. If your application is
-long running and you want to see the results of a trace before it exits, you can call
-trace_flush to write any in-memory events to disk.
+long running and you want to see the results of a trace before it exits, you can
+call trace_flush to write any in-memory events to disk.
 
 To help intregrating trace_event into existing codebases that dont want to add
 trace_event as a dependancy, trace_event is split into an import shim
@@ -34,8 +34,8 @@ trace_event as a dependancy, trace_event is split into an import shim
 shim, trace_event.py, directly into your including codebase. If the
 trace_event_impl is not found, the shim will simply noop.
 
-trace_event is safe with regard to Python threads. Simply trace as you normally would and each
-thread's timing will show up in the trace file.
+trace_event is safe with regard to Python threads. Simply trace as you normally
+would and each thread's timing will show up in the trace file.
 
 Multiple processes can safely output into a single trace_event logfile. If you
 fork after enabling tracing, the child process will continue outputting to the
@@ -49,6 +49,7 @@ try:
 except ImportError:
   trace_event_impl = None
 
+
 def trace_can_enable():
   """
   Returns True if a trace_event_impl was found. If false,
@@ -59,6 +60,7 @@ def trace_can_enable():
 
 if trace_event_impl:
   import time
+
 
   def trace_is_enabled():
     return trace_event_impl.trace_is_enabled()
@@ -74,7 +76,8 @@ if trace_event_impl:
 
   def trace_begin(name, **kwargs):
     args_to_log = {key: repr(value) for key, value in kwargs.iteritems()}
-    trace_event_impl.add_trace_event("B", time.time(), "python", name, args_to_log)
+    trace_event_impl.add_trace_event("B", time.time(), "python", name,
+                                     args_to_log)
 
   def trace_end(name):
     trace_event_impl.add_trace_event("E", time.time(), "python", name)
@@ -89,7 +92,8 @@ else:
   import contextlib
 
   def trace_enable():
-    raise TraceException("Cannot enable trace_event. No trace_event_impl module found.")
+    raise TraceException(
+        "Cannot enable trace_event. No trace_event_impl module found.")
 
   def trace_disable():
     pass
@@ -100,14 +104,19 @@ else:
   def trace_flush():
     pass
 
-  def trace_begin(self, name, **kwargs):
+  def trace_begin(name, **kwargs):
+    del name # unused.
+    del kwargs # unused.
     pass
 
-  def trace_end(self, name):
+  def trace_end(name):
+    del name # unused.
     pass
 
   @contextlib.contextmanager
   def trace(name, **kwargs):
+    del name # unused
+    del kwargs # unused
     yield
 
   def traced(fn):
@@ -135,7 +144,7 @@ trace_enable.__doc__ = """Enables tracing.
                       must support fcntl.lockf() operations.
   """
 
-trace_disable.__doc__ =   """Disables tracing, if enabled.
+trace_disable.__doc__ = """Disables tracing, if enabled.
 
   Will not disable tracing on any existing child proceses that were forked
   from this process. You must disable them yourself.
@@ -172,11 +181,12 @@ trace_begin.__doc__ = """Records the beginning of an event of the given name.
         trace_end("something_heavy")
 
   Note that a trace_end call must be issued for every trace_begin call. When
-  tracing around blocks that might throw exceptions, you should use the trace function,
-  or a try-finally pattern to ensure that the trace_end method is called.
+  tracing around blocks that might throw exceptions, you should use the trace
+  function, or a try-finally pattern to ensure that the trace_end method is
+  called.
 
-  See the documentation for the @traced decorator for a simpler way to instrument
-  functions and methods.
+  See the documentation for the @traced decorator for a simpler way to
+  instrument functions and methods.
   """
 
 trace_end.__doc__ = """Records the end of an event of the given name.
@@ -200,7 +210,8 @@ trace.__doc__ = """Traces a block of code using a with statement.
   """
 
 traced.__doc__ = """
-  Traces the provided function, using the function name for the actual generated event.
+  Traces the provided function, using the function name for the actual generated
+  event.
 
   Prefer this decorator over the explicit trace_begin and trace_end functions
   whenever you are tracing the start and stop of a function. It automatically

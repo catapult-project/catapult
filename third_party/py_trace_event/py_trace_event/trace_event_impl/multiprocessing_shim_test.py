@@ -2,13 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import multiprocessing
+import os
 import tempfile
 import time
 import unittest
+
 from .log import *
 from .trace_test import *
 
-import os
 
 def DoWork():
   """

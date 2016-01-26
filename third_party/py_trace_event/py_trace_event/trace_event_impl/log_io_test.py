@@ -6,9 +6,9 @@ import sys
 import tempfile
 import unittest
 
-
 from .log import *
 from .parsed_trace_events import *
+
 
 class LogIOTest(unittest.TestCase):
   def test_enable_with_file(self):

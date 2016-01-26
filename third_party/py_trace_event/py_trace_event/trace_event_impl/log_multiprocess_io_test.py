@@ -2,15 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import multiprocessing
+import os
 import tempfile
 import time
 import subprocess
 import sys
 import unittest
+
 from .log import *
 from .trace_test import *
 
-import os
 
 class LogMultipleProcessIOTest(TraceTest):
   def setUp(self):
@@ -24,9 +25,12 @@ class LogMultipleProcessIOTest(TraceTest):
   def test_one_subprocess(self):
     def test():
       trace_begin("parent")
-      proc = subprocess.Popen([sys.executable, "-m", __name__, self.trace_filename, "_test_one_subprocess_child"])
+      proc = subprocess.Popen([sys.executable, "-m", __name__,
+                               self.trace_filename,
+                               "_test_one_subprocess_child"])
       proc.wait()
       trace_end("parent")
+
     res = self.go(test)
     parent_events = res.findByName('parent')
     child_events = res.findByName('child')

@@ -5,9 +5,10 @@ import multiprocessing
 import log
 import time
 
-_RealProcess = multiprocessing.Process
 
+_RealProcess = multiprocessing.Process
 __all__ = []
+
 
 class ProcessSubclass(_RealProcess):
   def __init__(self, shim, *args, **kwards):
@@ -37,7 +38,8 @@ class ProcessShim():
 
   def terminate(self):
     if log.trace_is_enabled():
-      time.sleep(0.25) # give the flush a chance to finish --> ergh, find some other way
+      # give the flush a chance to finish --> TODO: find some other way.
+      time.sleep(0.25)
     self._proc.terminate()
 
   def join(self, timeout=None):

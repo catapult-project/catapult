@@ -12,6 +12,7 @@ import types
 import traceback
 import unittest
 
+
 def discover(dir, filters):
   if hasattr(unittest.TestLoader, 'discover'):
     return unittest.TestLoader().discover(dir, '*')
@@ -24,7 +25,8 @@ def discover(dir, filters):
     for filename in [x for x in filenames if re.match('.*_test\.py$', x)]:
       if filename.startswith('.') or filename.startswith('_'):
         continue
-      fqn = dirpath.replace('/', '.') + '.' + re.match('(.+)\.py$', filename).group(1)
+      fqn = dirpath.replace(
+          '/', '.') + '.' + re.match('(.+)\.py$', filename).group(1)
 
       # load the test
       try:
@@ -61,14 +63,18 @@ def discover(dir, filters):
 
   return unittest.TestSuite(subsuites)
 
+
 def main():
   parser = optparse.OptionParser()
   parser.add_option(
       '-v', '--verbose', action='count', default=0,
       help='Increase verbosity level (repeat as needed)')
-  parser.add_option('--debug', dest='debug', action='store_true', default=False, help='Break into pdb when an assertion fails')
-  parser.add_option('--incremental', dest='incremental', action='store_true', default=False, help='Run tests one at a time.')
-  parser.add_option('--stop', dest='stop_on_error', action='store_true', default=False, help='Stop running tests on error.')
+  parser.add_option('--debug', dest='debug', action='store_true', default=False,
+                    help='Break into pdb when an assertion fails')
+  parser.add_option('--incremental', dest='incremental', action='store_true',
+                    default=False, help='Run tests one at a time.')
+  parser.add_option('--stop', dest='stop_on_error', action='store_true',
+                    default=False, help='Stop running tests on error.')
   (options, args) = parser.parse_args()
 
   if options.verbose >= 2:
@@ -133,7 +139,7 @@ def main():
     for s in suites:
       if isinstance(s, unittest.TestSuite):
         for t in s:
-          print '----------------------------------------------------------------------'
+          print '--------------------------------------------------------------'
           print 'Running %s' % str(t)
           res = r.run(t)
           if not res.wasSuccessful():
@@ -151,6 +157,7 @@ def main():
     if ok:
       return 0
     return 255
+
 
 if __name__ == "__main__":
   sys.exit(main())

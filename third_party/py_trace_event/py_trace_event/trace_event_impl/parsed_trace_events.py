@@ -4,6 +4,7 @@
 import math
 import json
 
+
 class ParsedTraceEvents(object):
   def __init__(self, events = None, trace_filename = None):
     """
@@ -87,7 +88,8 @@ class ParsedTraceEvents(object):
     return ParsedTraceEvents([e for e in self.events if e["pid"] == pid])
 
   def findEventsOnThread(self, tid):
-    return ParsedTraceEvents([e for e in self.events if e["ph"] != "M" and e["tid"] == tid])
+    return ParsedTraceEvents(
+        [e for e in self.events if e["ph"] != "M" and e["tid"] == tid])
 
   def findByPhase(self, ph):
     return ParsedTraceEvents([e for e in self.events if e["ph"] == ph])

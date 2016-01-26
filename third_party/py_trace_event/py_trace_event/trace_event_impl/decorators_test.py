@@ -43,9 +43,11 @@ class DecoratorTests(TraceTest):
 
 
   def test_func_names_work(self):
-    self.assertEquals('traced_func', self._get_decorated_method_name(traced_func))
+    self.assertEquals('traced_func',
+                      self._get_decorated_method_name(traced_func))
 
   def test_method_names_work(self):
     ctt = ClassToTest()
     self.assertEquals('method1', self._get_decorated_method_name(ctt.method1))
-    self.assertEquals('ClassToTest.method2', self._get_decorated_method_name(ctt.method2))
+    self.assertEquals('ClassToTest.method2',
+                      self._get_decorated_method_name(ctt.method2))

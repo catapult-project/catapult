@@ -6,8 +6,10 @@ import math
 import tempfile
 import time
 import unittest
+
 from .log import *
 from .trace_test import *
+
 
 class SingleThreadTest(TraceTest):
   def test_one_func(self):

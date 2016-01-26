@@ -8,6 +8,7 @@ import functools
 
 import log
 
+
 @contextlib.contextmanager
 def trace(name, **kwargs):
   category = "python"
@@ -62,7 +63,7 @@ def traced(*args):
       else:
         name = "%s.%s" % (func.__module__, func.__name__)
 
-      # Be sure to repr before calling func, because the argument values may change.
+      # Be sure to repr before calling func. Argument values may change.
       arg_values = {
           name: repr(get_arg_value(name, index, default))
           for name, index, default in args_to_log}
