@@ -33,8 +33,8 @@ tr.b.unittest.testSuite(function() {
         start: 20, end: 30
       }));
 
-      var loadIr = new tr.e.rail.LoadInteractionRecord(m, 0, 10);
-      loadIr.name = 'Startup';
+      var loadIr = new tr.e.rail.LoadInteractionRecord(
+          m, tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP, 0, 10);
       m.interactionRecords.push(loadIr);
       loadIr.associatedEvents.push(t2_s1);
       loadIr.associatedEvents.push(t2_s2);

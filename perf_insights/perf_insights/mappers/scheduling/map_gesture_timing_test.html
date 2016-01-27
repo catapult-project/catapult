@@ -18,20 +18,20 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('mapperTest', function() {
     var m = tr.c.TestUtils.newModel(function(m) {
-      var loadIr = new tr.e.rail.LoadInteractionRecord(m, 0, 10);
-      loadIr.name = 'Load';
+      var loadIr = new tr.e.rail.LoadInteractionRecord(
+          m, tr.e.rail.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 10);
       m.interactionRecords.push(loadIr);
 
-      var scrollIr = new tr.e.rail.ResponseInteractionRecord(m, 50, 10);
-      scrollIr.name = 'Scroll';
+      var scrollIr = new tr.e.rail.ResponseInteractionRecord(
+          m, 'Scroll', 50, 10);
       m.interactionRecords.push(scrollIr);
 
-      var flingIr = new tr.e.rail.ResponseInteractionRecord(m, 60, 10);
-      flingIr.name = 'Fling';
+      var flingIr = new tr.e.rail.ResponseInteractionRecord(
+          m, 'Fling', 60, 10);
       m.interactionRecords.push(flingIr);
 
-      var scrollIr2 = new tr.e.rail.ResponseInteractionRecord(m, 100, 20);
-      scrollIr2.name = 'Scroll';
+      var scrollIr2 = new tr.e.rail.ResponseInteractionRecord(
+          m, 'Scroll', 100, 20);
       m.interactionRecords.push(scrollIr2);
     });
 

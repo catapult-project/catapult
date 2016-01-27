@@ -16,11 +16,30 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.rail', function() {
   function StubRAILInteractionRecord(args) {
+    this.typeName_ = args.typeName || 'Idle';
+    this.subtypeName_ = args.subtypeName || '';
+
+    this.title_ = args.title;
+    if (!this.title_) {
+      var defaultTitle = [];
+      if (this.subtypeName_)
+        defaultTitle.push(this.subtypeName_);
+      if (this.typeName_)
+        defaultTitle.push(this.typeName_);
+      this.title_ = defaultTitle.join(' ') || 'title';
+    }
+
+    this.normalizedUserComfort_ = args.normalizedUserComfort || 0;
+    this.normalizedEfficiency_ = args.normalizedEfficiency || 0;
+
     var sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
+
     tr.e.rail.RAILInteractionRecord.call(
-         this, args.parentModel, args.railTypeName, args.railTypeName,
-         sd.start, sd.duration);
-    this.args = args;
+        this, args.parentModel, this.subtypeName, sd.start, sd.duration);
+
+    // Must be set after base class call.
+    this.colorId_ = args.colorId || 0;
+
     if (args.associatedEvents) {
       args.associatedEvents.forEach(function(event) {
         this.associatedEvents.push(event);
@@ -31,12 +50,28 @@ tr.exportTo('tr.e.rail', function() {
   StubRAILInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
 
+    get colorId() {
+      return this.colorId_;
+    },
+
+    get title() {
+      return this.title_;
+    },
+
+    get typeName() {
+      return this.typeName_;
+    },
+
+    get subtypeName() {
+      return this.subtypeName_;
+    },
+
     get normalizedUserComfort() {
-      return this.args.normalizedUserComfort;
+      return this.normalizedUserComfort_;
     },
 
     get normalizedEfficiency() {
-      return this.args.normalizedEfficiency;
+      return this.normalizedEfficiency_;
     }
   };
 

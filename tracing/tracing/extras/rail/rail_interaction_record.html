@@ -18,8 +18,6 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.rail', function() {
-  var ColorScheme = tr.b.ColorScheme;
-
   // When computing an IR's RAIL score, the IR's comfort and efficiency are
   // averaged together such that the lower score has a higher weight.
   // Without knowing which sub-score is lower, comfort is
@@ -31,38 +29,12 @@ tr.exportTo('tr.e.rail', function() {
   // Must be greater than 0.
   var COMFORT_IMPORTANCE = 2;
 
-  // We need an up-front list of all IR types in order to keep various groupings
-  // stable, in presence of only a portion of interactions in a given trace.
-  var ALL_RAIL_TYPE_NAMES = [
-    'rail_response',
-    'rail_animate',
-    'rail_idle',
-    'rail_load'
-  ];
+  function RAILInteractionRecord(parentModel, initiatorTitle, start, duration) {
+    this.initiatorTitle_ = initiatorTitle;
+    this.typeInfo_ = undefined;
 
-  var DOES_RAIL_TYPE_NAME_EXIST = {};
-  ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
-    DOES_RAIL_TYPE_NAME_EXIST[railTypeName] = true;
-  });
-
-  var RAIL_ORDER = [];
-  ALL_RAIL_TYPE_NAMES.forEach(function(railTypeName) {
-    RAIL_ORDER.push(railTypeName.toUpperCase());
-    RAIL_ORDER.push(userFriendlyRailTypeName(railTypeName).toUpperCase());
-  });
-
-
-
-  function RAILInteractionRecord(
-      parentModel, title, railTypeName, start, duration) {
-    if (!DOES_RAIL_TYPE_NAME_EXIST[railTypeName])
-      throw new Error(railTypeName + ' is not listed in ALL_RAIL_TYPE_NAMES');
-
-    var colorId = ColorScheme.getColorIdForReservedName(railTypeName);
-    this.railTypeName_ = railTypeName;
-    this.name = '';
     tr.model.InteractionRecord.call(
-        this, parentModel, title, colorId, start, duration);
+        this, parentModel, -1, start, duration);
   }
 
   RAILInteractionRecord.prototype = {
@@ -85,8 +57,37 @@ tr.exportTo('tr.e.rail', function() {
       this.args = args;
     },
 
-    get railTypeName() {
-      return this.railTypeName_;
+    get typeInfo() {
+      if (!this.typeInfo_)
+        this.typeInfo_ = RAILInteractionRecord.findTypeInfo(this.constructor);
+
+      // If you set Subclass.prototype = {}, then you must explicitly specify
+      // constructor in that prototype object!
+      // http://javascript.info/tutorial/constructor
+
+      if (!this.typeInfo_)
+        throw new Error('Unregistered RAILInteractionRecord');
+
+      return this.typeInfo_;
+    },
+
+    get colorId() {
+      return this.typeInfo.metadata.colorId;
+    },
+
+    get stageTitle() {
+      return this.typeInfo.metadata.stageTitle;
+    },
+
+    get initiatorTitle() {
+      return this.initiatorTitle_;
+    },
+
+    get title() {
+      if (!this.initiatorTitle)
+        return this.stageTitle;
+
+      return this.initiatorTitle + ' ' + this.stageTitle;
     },
 
     /**
@@ -192,36 +193,26 @@ tr.exportTo('tr.e.rail', function() {
     return numerator / denominator;
   }
 
-  // A user friendly name is currently formed by dropping the rail_ prefix and
-  // capitalizing.
-  function userFriendlyRailTypeName(railTypeName) {
-    if (railTypeName.length < 6 || railTypeName.indexOf('rail_') != 0)
-      return railTypeName;
-    return railTypeName[5].toUpperCase() + railTypeName.slice(6);
-  }
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  tr.b.decorateExtensionRegistry(RAILInteractionRecord, options);
 
-  // Compare two rail type names or rail user-friendly names so they are sorted
-  // in R,A,I,L order. Capitalization is ignore. Non rail names are sorted
-  // lexicographically after rail names.
-  function railCompare(name1, name2) {
-    var i1 = RAIL_ORDER.indexOf(name1.toUpperCase());
-    var i2 = RAIL_ORDER.indexOf(name2.toUpperCase());
-    if (i1 == -1 && i2 == -1)
-      return name1.localeCompare(name2);
-    if (i1 == -1)
-      return 1;   // i2 is a RAIL name but not i1.
-    if (i2 == -1)
-      return -1;  // i1 is a RAIL name but not i2.
-    // Two rail names.
-    return i1 - i2;
-  }
+  RAILInteractionRecord.addEventListener('will-register', function(e) {
+    var metadata = e.typeInfo.metadata;
+
+    if (metadata.stageTitle === undefined) {
+      throw new Error('Registered RAILInteractionRecords must provide ' +
+          'stageTitle');
+    }
+
+    if (metadata.colorId === undefined) {
+      throw new Error('Registered RAILInteractionRecords must provide ' +
+          'colorId');
+    }
+  });
 
   return {
     RAILInteractionRecord: RAILInteractionRecord,
-    weightedAverage2: weightedAverage2,
-    userFriendlyRailTypeName: userFriendlyRailTypeName,
-    railCompare: railCompare,
-    ALL_RAIL_TYPE_NAMES: ALL_RAIL_TYPE_NAMES
+    weightedAverage2: weightedAverage2
   };
 });
 </script>

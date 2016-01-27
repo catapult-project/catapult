@@ -40,10 +40,23 @@ tr.exportTo('tr.e.rail', function() {
     overflowBin: {min: 60000, max: Number.MAX_VALUE, count: 0}
   });
 
-  function LoadInteractionRecord(parentModel, start, duration) {
+  var LOAD_SUBTYPE_NAMES = {
+    SUCCESSFUL: 'Successful',
+    FAILED: 'Failed',
+    STARTUP: 'Startup'
+  };
+
+  var DOES_LOAD_SUBTYPE_NAME_EXIST = {};
+  for (var key in LOAD_SUBTYPE_NAMES) {
+    DOES_LOAD_SUBTYPE_NAME_EXIST[LOAD_SUBTYPE_NAMES[key]] = true;;
+  }
+
+  function LoadInteractionRecord(parentModel, initiatorTitle, start, duration) {
+    if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle])
+      throw new Error(initiatorTitle + ' is not in LOAD_SUBTYPE_NAMES');
+
     tr.e.rail.RAILInteractionRecord.call(
-        this, parentModel, 'Load', 'rail_load',
-        start, duration);
+        this, parentModel, initiatorTitle, start, duration);
 
     // |renderProcess| is the renderer process that contains the loading
     // RenderFrame.
@@ -70,6 +83,7 @@ tr.exportTo('tr.e.rail', function() {
 
   LoadInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+    constructor: LoadInteractionRecord,
 
     get normalizedUserComfort() {
       return COMFORT_HISTOGRAM.getInterpolatedCountAt(this.duration) /
@@ -77,7 +91,13 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
+  tr.e.rail.RAILInteractionRecord.register(LoadInteractionRecord, {
+    stageTitle: 'Load',
+    colorId: tr.b.ColorScheme.getColorIdForReservedName('rail_load')
+  });
+
   return {
+    LOAD_SUBTYPE_NAMES: LOAD_SUBTYPE_NAMES,
     LoadInteractionRecord: LoadInteractionRecord
   };
 });

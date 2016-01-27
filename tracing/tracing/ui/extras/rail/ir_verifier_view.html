@@ -50,19 +50,6 @@ found in the LICENSE file.
       },
 
       set expectedIRs(irs) {
-        // Make getEventColor() for the expectedIRs match the actualIRs:
-        irs.forEach(function(eir) {
-          if (eir.title === 'Response') {
-            eir.railTypeName_ = 'rail_response';
-          } else if (eir.title === 'Animation') {
-            eir.railTypeName_ = 'rail_animate';
-          } else if (eir.title === 'Idle') {
-            eir.railTypeName_ = 'rail_idle';
-          } else if (eir.title === 'Load') {
-            eir.railTypeName_ = 'rail_load';
-          }
-        });
-
         this.$.expected.labelString = 'Expected:';
         this.$.actual.labelString = 'Actual:';
         this.$.expected.events = irs;

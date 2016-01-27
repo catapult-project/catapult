@@ -40,13 +40,15 @@ tr.exportTo('tr.e.rail', function() {
     overflowBin: {min: 5000, max: Number.MAX_VALUE, count: 0}
   });
 
-  function ResponseInteractionRecord(parentModel, start, duration) {
+  function ResponseInteractionRecord(
+      parentModel, initiatorTitle, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, parentModel, 'Response', 'rail_response', start, duration);
+        this, parentModel, initiatorTitle, start, duration);
   }
 
   ResponseInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+    constructor: ResponseInteractionRecord,
 
     get normalizedUserComfort() {
       // User comfort is derived from the time between when the user thinks they
@@ -62,6 +64,11 @@ tr.exportTo('tr.e.rail', function() {
         COMFORT_HISTOGRAM.maxCount;
     }
   };
+
+  tr.e.rail.RAILInteractionRecord.register(ResponseInteractionRecord, {
+    stageTitle: 'Response',
+    colorId: tr.b.ColorScheme.getColorIdForReservedName('rail_response')
+  });
 
   return {
     ResponseInteractionRecord: ResponseInteractionRecord

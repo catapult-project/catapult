@@ -15,13 +15,14 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.rail', function() {
   function IdleInteractionRecord(parentModel, start, duration) {
+    var initiatorTitle = '';
     tr.e.rail.RAILInteractionRecord.call(
-        this, parentModel, 'Idle', 'rail_idle',
-        start, duration);
+        this, parentModel, initiatorTitle, start, duration);
   }
 
   IdleInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+    constructor: IdleInteractionRecord,
 
     get normalizedUserComfort() {
       return 1;
@@ -38,6 +39,11 @@ tr.exportTo('tr.e.rail', function() {
       return 1;
     }
   };
+
+  tr.e.rail.RAILInteractionRecord.register(IdleInteractionRecord, {
+    stageTitle: 'Idle',
+    colorId: tr.b.ColorScheme.getColorIdForReservedName('rail_idle')
+  });
 
   return {
     IdleInteractionRecord: IdleInteractionRecord

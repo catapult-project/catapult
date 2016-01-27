@@ -19,12 +19,12 @@ tr.exportTo('pie', function() {
       return ir instanceof tr.e.rail.LoadInteractionRecord;
     });
     var responseIRs = model.interactionRecords.filter(function(ir) {
-      return ir.railTypeName === 'rail_response' &&
-          ir.name.indexOf('Scroll') >= 0;
+      return ir.stageTitle === 'Response' &&
+          ir.initiatorTitle.indexOf('Scroll') >= 0;
     });
     var animationIRs = model.interactionRecords.filter(function(ir) {
-      return ir.railTypeName === 'rail_animate' &&
-          ir.name.indexOf('Scroll') >= 0;
+      return ir.stageTitle === 'Animation' &&
+          ir.initiatorTitle.indexOf('Scroll') >= 0;
     });
 
     var firstGestureAfterLoadTimes = [];

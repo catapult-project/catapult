@@ -16,10 +16,9 @@ found in the LICENSE file.
 tr.exportTo('tr.model', function() {
   var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
-  function InteractionRecord(parentModel, title, colorId, start, duration) {
+  function InteractionRecord(parentModel, colorId, start, duration) {
     tr.model.TimedEvent.call(this, start);
-    this.title = title;
-    this.colorId = colorId;
+    this.colorId_ = colorId;
     this.duration = duration;
     this.args = {};
     this.associatedEvents = new tr.model.EventSet();
@@ -31,6 +30,18 @@ tr.exportTo('tr.model', function() {
 
   InteractionRecord.prototype = {
     __proto__: tr.model.TimedEvent.prototype,
+
+    get colorId() {
+      return this.colorId_;
+    },
+
+    set colorId(ci) {
+      this.colorId_ = ci;
+    },
+
+    get title() {
+      return 'Interaction';
+    },
 
     get subSlices() {
       return [];
