@@ -10,7 +10,7 @@ from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_options
-from telemetry.internal.platform import device_finder
+from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
@@ -47,6 +47,9 @@ class RunTestsCommand(command_line.OptparseCommand):
                       help='Repeats each a provided number of times.')
     parser.add_option('--no-browser', action='store_true', default=False,
                       help='Don\'t require an actual browser to run the tests.')
+    parser.add_option('--no-scale-jobs', action='store_false', default=True,
+                      dest='scale_jobs',
+                      help='Don\'t scale the number of jobs based on OS.')
     parser.add_option('-d', '--also-run-disabled-tests',
                       dest='run_disabled_tests',
                       action='store_true', default=False,
@@ -132,7 +135,10 @@ class RunTestsCommand(command_line.OptparseCommand):
     if platform.GetOSName() == 'chromeos':
       runner.args.jobs = 1
     elif platform.GetOSName() == 'android':
-      runner.args.jobs = len(device_finder.GetDevicesMatchingOptions(args))
+      android_devs = android_device.FindAllAvailableDevices(args)
+      runner.args.jobs = len(android_devs)
+      if runner.args.jobs == 0:
+        raise RuntimeError("No Android device found")
       print 'Running tests with %d Android device(s).' % runner.args.jobs
     elif platform.GetOSVersionName() == 'xp':
       # For an undiagnosed reason, XP falls over with more parallelism.
@@ -239,7 +245,10 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
         format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d'
               '  %(message)s')
   if args.device and args.device == 'android':
-    android_devices = device_finder.GetDevicesMatchingOptions(args)
+    android_devices = android_device.FindAllAvailableDevices(args)
+    if not android_devices:
+      raise RuntimeError("No Android device found")
+    android_devices.sort(key=lambda device: device.name)
     args.device = android_devices[child.worker_num-1].guid
   options_for_unittests.Push(args)
 
