@@ -22,6 +22,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/interaction_record.html">
 <link rel="import" href="/tracing/model/kernel.html">
 <link rel="import" href="/tracing/model/model_indices.html">
+<link rel="import" href="/tracing/model/model_stats.html">
 <link rel="import" href="/tracing/model/process.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/sample.html">
@@ -101,6 +102,8 @@ tr.exportTo('tr', function() {
 
     this.annotationsByGuid_ = {};
     this.modelIndices = undefined;
+
+    this.stats = new tr.model.ModelStats();
 
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};

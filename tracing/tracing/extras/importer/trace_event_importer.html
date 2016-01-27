@@ -728,18 +728,24 @@ tr.exportTo('tr.e.importer', function() {
       if (this.traceAnnotations_)
         this.importAnnotations_();
 
+      var modelStats = this.model_.stats;
       var events = this.events_;
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
+
         if (event.args === '__stripped__') {
           event.argsStripped = true;
           event.args = undefined;
         }
 
         if (event.ph === 'B' || event.ph === 'E') {
+          modelStats.willProcessBasicTraceEvent(
+              'begin_end (non-comopact)', event.cat, event.name);
           this.processDurationEvent(event);
 
         } else if (event.ph === 'X') {
+          modelStats.willProcessBasicTraceEvent(
+              'begin_end (compact)', event.cat, event.name);
           var slice = this.processCompleteEvent(event);
           // TODO(yuhaoz): If Chrome supports creating other events with flow,
           // we will need to call processFlowEvent for them also.
@@ -750,32 +756,50 @@ tr.exportTo('tr.e.importer', function() {
         } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
                    event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
                    event.ph === 'p') {
+          modelStats.willProcessBasicTraceEvent(
+              'async', event.cat, event.name);
           this.processAsyncEvent(event);
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
         } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
+          modelStats.willProcessBasicTraceEvent(
+              'instant', event.cat, event.name);
           this.processInstantEvent(event);
 
         } else if (event.ph === 'P') {
+          modelStats.willProcessBasicTraceEvent(
+              'samples', event.cat, event.name);
           this.processTraceSampleEvent(event);
 
         } else if (event.ph === 'C') {
+          modelStats.willProcessBasicTraceEvent(
+              'counters', event.cat, event.name);
           this.processCounterEvent(event);
 
         } else if (event.ph === 'M') {
+          modelStats.willProcessBasicTraceEvent(
+              'metadata', event.cat, event.name);
           this.processMetadataEvent(event);
 
         } else if (event.ph === 'N' || event.ph === 'D' || event.ph === 'O') {
+          modelStats.willProcessBasicTraceEvent(
+              'objects', event.cat, event.name);
           this.processObjectEvent(event);
 
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
+          modelStats.willProcessBasicTraceEvent(
+              'flows', event.cat, event.name);
           this.processFlowEvent(event);
 
         } else if (event.ph === 'v') {
+          modelStats.willProcessBasicTraceEvent(
+              'memory_dumps', event.cat, event.name);
           this.processMemoryDumpEvent(event);
 
         } else {
+          modelStats.willProcessBasicTraceEvent(
+              'unknown', event.cat, event.name);
           this.model_.importWarning({
             type: 'parse_error',
             message: 'Unrecognized event phase: ' +
