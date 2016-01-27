@@ -59,11 +59,9 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
     if not np:
       raise ImportError('This function requires Numpy.')
 
-    # pylint: disable=E1103
     np.random.seed(0)
     sample_1 = np.random.normal(loc=0, scale=1, size=30)
     sample_2 = np.random.normal(loc=1, scale=1, size=30)
-    # pylint: enable=E1103
 
     return [sample_1, sample_2]
 
