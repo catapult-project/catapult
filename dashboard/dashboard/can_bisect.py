@@ -7,6 +7,7 @@
 import re
 
 from dashboard import request_handler
+from dashboard import namespaced_stored_object
 
 # A set of suites for which we can't do performance bisects.
 # This list currently also exists in the front-end code.
@@ -17,6 +18,11 @@ _UNBISECTABLE_SUITES = [
     'sizes',
     'v8',
 ]
+
+# The bisect bot map stored in datastore is expected to be
+# a dict mapping master names to [perf bot, bisect bot] pairs.
+# If a master name is not in the dict, bisect isn't supported.
+BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 
 
 class CanBisectHandler(request_handler.RequestHandler):
@@ -45,11 +51,22 @@ def IsValidTestForBisect(test_path):
   path_parts = test_path.split('/')
   if len(path_parts) < 3:
     return False
+  if not _MasterNameIsWhitelisted(path_parts[0]):
+    return False
   if path_parts[2] in _UNBISECTABLE_SUITES:
     return False
   if test_path.endswith('/ref') or test_path.endswith('_ref'):
     return False
   return True
+
+
+def _MasterNameIsWhitelisted(master_name):
+  """Checks whether a master name is acceptable by checking a whitelist."""
+  bisect_bot_map = namespaced_stored_object.Get(BISECT_BOT_MAP_KEY)
+  if not bisect_bot_map:
+    return True  # If there's no list available, all names are OK.
+  whitelisted_masters = list(bisect_bot_map)
+  return master_name in whitelisted_masters
 
 
 def IsValidRevisionForBisect(revision):

@@ -38,7 +38,6 @@ diff --git a/%(filename_a)s b/%(filename_b)s
 index %(hash_a)s..%(hash_b)s 100644
 """
 
-_BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 _BOT_BROWSER_MAP_KEY = 'bot_browser_map'
 _INTERNAL_MASTERS_KEY = 'internal_masters'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
@@ -371,7 +370,7 @@ def _GetPerfTryConfig(
 
 def _GetAvailableBisectBots(master_name):
   """Get all available bisect bots corresponding to a master name."""
-  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
   for master, platform_bot_pairs in bisect_bot_map.iteritems():
     if master_name.startswith(master):
       return sorted({bot for _, bot in platform_bot_pairs})
@@ -386,7 +385,7 @@ def _CanDownloadBuilds(master_name):
 def GuessBisectBot(master_name, bot_name):
   """Returns a bisect bot name based on |bot_name| (perf_id) string."""
   fallback = 'linux_perf_bisect'
-  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
   if not bisect_bot_map:
     return fallback
   bot_name = bot_name.lower()

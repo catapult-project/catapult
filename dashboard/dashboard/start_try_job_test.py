@@ -12,6 +12,7 @@ import webtest
 
 from google.appengine.ext import ndb
 
+from dashboard import can_bisect
 from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
@@ -326,7 +327,7 @@ class StartBisectTest(testing_common.TestCase):
         [('/start_try_job', start_try_job.StartBisectHandler)])
     self.testapp = webtest.TestApp(app)
     namespaced_stored_object.Set(
-        start_try_job._BISECT_BOT_MAP_KEY,
+        can_bisect.BISECT_BOT_MAP_KEY,
         {
             'ChromiumPerf': [
                 ('nexus4', 'android_nexus4_perf_bisect'),
@@ -696,7 +697,7 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGuessBisectBot_FetchesNameFromBisectBotMap(self):
     namespaced_stored_object.Set(
-        start_try_job._BISECT_BOT_MAP_KEY,
+        can_bisect.BISECT_BOT_MAP_KEY,
         {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
     self.assertEqual(
         'super_foo_bisect_bot',
@@ -704,7 +705,7 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGuessBisectBot_PlatformNotFound_UsesFallback(self):
     namespaced_stored_object.Set(
-        start_try_job._BISECT_BOT_MAP_KEY,
+        can_bisect.BISECT_BOT_MAP_KEY,
         {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
     self.assertEqual(
         'linux_perf_bisect',
@@ -712,7 +713,7 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGuessBisectBot_TreatsMasterNameAsPrefix(self):
     namespaced_stored_object.Set(
-        start_try_job._BISECT_BOT_MAP_KEY,
+        can_bisect.BISECT_BOT_MAP_KEY,
         {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
     self.assertEqual(
         'super_foo_bisect_bot',
