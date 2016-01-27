@@ -119,8 +119,8 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(
-              archive_info_template % (test_archive, google_url)))
+          '', json.loads(archive_info_template % (test_archive, google_url)),
+          story_set.bucket)
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
@@ -130,17 +130,16 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(
-              archive_info_template %
-              (test_archive, foo_url)))
+          '', json.loads(archive_info_template % (test_archive, foo_url)),
+          story_set.bucket)
       story_set.pages = [page_module.Page(foo_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
       self.assertEquals(1, len(all_results.failures))
 
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', '', story_set.bucket, json.loads(
-              archive_info_template % (test_archive, google_url)))
+          '', json.loads(archive_info_template % (test_archive, google_url)),
+          story_set.bucket)
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
