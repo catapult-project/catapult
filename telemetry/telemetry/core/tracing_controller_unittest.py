@@ -101,19 +101,19 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       self._browser.tabs[0].Navigate('about:blank')
       self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
       self.assertEquals(platform, self._browser.platform)
-      # Calling start tracing again will return False
-      self.assertFalse(
-          self._browser.platform.tracing_controller.StartTracing(config))
 
-      trace_data = self._browser.platform.tracing_controller.StopTracing()
+      # Calling start tracing again will return False
+      self.assertFalse(platform.tracing_controller.StartTracing(config))
+
+      trace_data = platform.tracing_controller.StopTracing()
       # Test that trace data is parsable
       model_module.TimelineModel(trace_data)
-      self.assertFalse(
-          self._browser.platform.tracing_controller.is_tracing_running)
+      self.assertFalse(platform.tracing_controller.is_tracing_running)
       # Calling stop tracing again will raise exception
-      self.assertRaises(Exception,
-                        self._browser.platform.tracing_controller.StopTracing)
+      self.assertRaises(Exception, platform.tracing_controller.StopTracing)
     finally:
+      if platform.tracing_controller.is_tracing_running:
+        platform.tracing_controller.StopTracing()
       if self._browser:
         self._browser.Close()
         self._browser = None
