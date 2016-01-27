@@ -6,15 +6,14 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/utils.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 <script>
 'use strict';
 
 tr.exportTo('pi.v', function() {
-  function Value(runInfo, name, opt_options) {
+  function Value(canonicalUrl, name, opt_options) {
     var options = opt_options || {};
     this.guid = tr.b.GUID.allocate();
-    this.runInfo = runInfo;
+    this.canonicalUrl = canonicalUrl;
     this.name = name;
     this.units = options.units;
     this.description = options.description;
@@ -23,18 +22,15 @@ tr.exportTo('pi.v', function() {
     this.irStableID = options.irStableID;
   }
 
-  Value.fromDict = function(runInfo, d) {
-    if (d.run_id !== runInfo.runId)
-       throw new Error('run_ids mismatch');
-
+  Value.fromDict = function(d) {
     if (d.type === 'dict')
-      return DictValue.fromDict(runInfo, d);
+      return DictValue.fromDict(d);
 
     if (d.type == 'failure')
-      return FailureValue.fromDict(runInfo, d);
+      return FailureValue.fromDict(d);
 
     if (d.type === 'skip')
-      return SkipValue.fromDict(runInfo, d);
+      return SkipValue.fromDict(d);
 
     throw new Error('Not implemented');
   };
@@ -45,7 +41,7 @@ tr.exportTo('pi.v', function() {
     },
     asJSON: function() {
       var d = {
-        'run_id': this.runInfo.runId,
+        'canonical_url': this.canonicalUrl,
         'name': this.name,
         'units': this.units,
         'description': this.description,
@@ -64,19 +60,19 @@ tr.exportTo('pi.v', function() {
   };
 
 
-  function DictValue(runInfo, name, value, opt_options) {
+  function DictValue(canonicalUrl, name, value, opt_options) {
     var options = opt_options || {};
-    Value.call(this, runInfo, name, options);
+    Value.call(this, canonicalUrl, name, options);
     this.value = value;
   }
 
-  DictValue.fromDict = function(runInfo, d) {
+  DictValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
     if (d.value === undefined)
       throw new Error('Expected value to be provided');
-    return new DictValue(runInfo, d.name, d.value, d);
-  }
+    return new DictValue(d.canonical_url, d.name, d.value, d);
+  };
 
   DictValue.prototype = {
     __proto__: Value.prototype,
@@ -88,7 +84,7 @@ tr.exportTo('pi.v', function() {
   };
 
 
-  function FailureValue(runInfo, name, opt_options) {
+  function FailureValue(canonicalUrl, name, opt_options) {
     var options = opt_options || {};
 
     var stack;
@@ -105,26 +101,26 @@ tr.exportTo('pi.v', function() {
     if (typeof stack !== 'string')
       throw new Error('stack must be provided as a string');
 
-    Value.call(this, runInfo, name, options);
+    Value.call(this, canonicalUrl, name, options);
     this.stack = stack;
   }
 
-  FailureValue.fromError = function(runInfo, e) {
+  FailureValue.fromError = function(canonicalUrl, e) {
     var ex = tr.b.normalizeException(e);
-    return new FailureValue(runInfo,
+    return new FailureValue(canonicalUrl,
                             ex.typeName,
                             {description: ex.message,
                              stack: ex.stack});
 
-  }
+  };
 
-  FailureValue.fromDict = function(runInfo, d) {
+  FailureValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
     if (d.name === undefined)
       throw new Error('Expected stack_str to be provided');
-    return new FailureValue(runInfo, d.name, d);
-  }
+    return new FailureValue(d.canonicalUrl, d.name, d);
+  };
 
   FailureValue.prototype = {
     __proto__: Value.prototype,
@@ -136,18 +132,18 @@ tr.exportTo('pi.v', function() {
   };
 
 
-  function SkipValue(runInfo, name, opt_options) {
+  function SkipValue(canonicalUrl, name, opt_options) {
     var options = opt_options || {};
-    Value.call(this, runInfo, name, options);
+    Value.call(this, canonicalUrl, name, options);
   }
 
-  SkipValue.fromDict = function(runInfo, d) {
+  SkipValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
     if (d.name === undefined)
       throw new Error('Expected name to be provided');
-    return new SkipValue(runInfo, d.name, d);
-  }
+    return new SkipValue(d.canonicalUrl, d.name, d);
+  };
 
   SkipValue.prototype = {
     __proto__: Value.prototype,

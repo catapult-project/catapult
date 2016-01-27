@@ -13,16 +13,18 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/slice.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pi.m', function() {
   // Granularity of the histogram.
   var HISTOGRAM_MAX = 250;
   var NUM_BINS = 50;
 
-  function taskInfoMapFunction(results, run_info, model) {
+  function taskInfoMapFunction(results, canonicalUrl, model) {
     var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
-    addTimeInQueue(results, run_info, model, threadGrouping);
-    addTopLevelTasksDuration(results, run_info, model, threadGrouping);
+    addTimeInQueue(results, canonicalUrl, model, threadGrouping);
+    addTopLevelTasksDuration(results, canonicalUrl, model, threadGrouping);
   }
 
   function eatTrailingDigits(str) {
@@ -37,7 +39,7 @@ tr.exportTo('pi.m', function() {
     }
   }
 
-  function addTimeInQueue(results, run_info, model, threadGrouping) {
+  function addTimeInQueue(results, canonicalUrl, model, threadGrouping) {
     var timeInQueue = {};
     model.flowEvents.forEach(function(flowEvent) {
       if (!flowEvent.endSlice instanceof tr.model.Slice)
@@ -51,16 +53,17 @@ tr.exportTo('pi.m', function() {
       var threadName = eatTrailingDigits(thread.name) || 'Unknown';
       var processName = threadGrouping.getGroupNameForThread(thread);
       addToHistogram(timeInQueue, processName, threadName, flowEvent.duration,
-          run_info);
+          canonicalUrl);
     });
     histogramsToDict(timeInQueue);
     results.addValue(new pi.v.DictValue(
-        run_info,
+        canonicalUrl,
         'time_spent_in_queue',
         timeInQueue));
   }
 
-  function addTopLevelTasksDuration(results, run_info, model, threadGrouping) {
+  function addTopLevelTasksDuration(results, canonicalUrl, model,
+                                    threadGrouping) {
     var timeInTask = {};
     var cpuTimeInTask = {};
     model.getAllThreads().forEach(function(thread) {
@@ -75,19 +78,19 @@ tr.exportTo('pi.m', function() {
         if (!isTopLevelTask(slice))
           return;
         addToHistogram(timeInTask, processName, threadName, slice.duration,
-            run_info);
+            canonicalUrl);
         addToHistogram(cpuTimeInTask, processName, threadName,
-            slice.cpuDuration, run_info);
+            slice.cpuDuration, canonicalUrl);
       });
     });
     histogramsToDict(timeInTask);
     results.addValue(new pi.v.DictValue(
-        run_info,
+        canonicalUrl,
         'time_spent_in_top_level_task',
         timeInTask));
     histogramsToDict(cpuTimeInTask);
     results.addValue(new pi.v.DictValue(
-        run_info,
+        canonicalUrl,
         'cpu_time_spent_in_top_level_task',
         cpuTimeInTask));
   }

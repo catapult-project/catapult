@@ -14,7 +14,7 @@ found in the LICENSE file.
 tr.exportTo('pie', function() {
   // Reports the delay and length of scroll gestures relative to first paint.
   // See https://goo.gl/l7V5xg.
-  function mapGestureTiming(results, runInfo, model) {
+  function mapGestureTiming(results, canonicalUrl, model) {
     var loadIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.LoadInteractionRecord;
     });
@@ -63,7 +63,7 @@ tr.exportTo('pie', function() {
     });
 
     results.addValue(new pi.v.DictValue(
-        runInfo,
+        canonicalUrl,
         'gestureTiming', {
           firstGestureAfterLoadTime: firstGestureAfterLoadTimes,
           gestureDuration: gestureDurations,

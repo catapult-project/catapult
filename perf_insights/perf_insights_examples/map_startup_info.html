@@ -12,8 +12,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/chrome/chrome_renderer_helper.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pie', function() {
-  function mapStartupInfo(results, runInfo, model) {
+  function mapStartupInfo(results, canonicalUrl, model) {
     var startupIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.e.rail.LoadInteractionRecord &&
              ir.name === 'Startup';
@@ -37,10 +39,10 @@ tr.exportTo('pie', function() {
     });
 
     if (browser_startup.isEmpty && renderer_startup.isEmpty) {
-      results.addValue(new pi.v.SkipValue(runInfo, 'startup_info'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'startup_info'));
     } else {
       results.addValue(new pi.v.DictValue(
-          runInfo,
+          canonicalUrl,
           'startup_info',
           {
             'browserStartup': browser_startup,

@@ -30,7 +30,7 @@ tr.exportTo('pi.m', function() {
     }
   }
 
-  function getTraceImportCostReport(results, runInfo, model) {
+  function getTraceImportCostReport(results, canonicalUrl, model) {
     var top_level_slices = [];
     model.iterateAllEvents(function(event) {
       if (event instanceof MeasureAsyncSlice &&
@@ -44,7 +44,7 @@ tr.exportTo('pi.m', function() {
       fetchSlicesInfo(top_level_slices[i], traceImportCostInfos);
     }
 
-    results.addValue(new pi.v.DictValue(runInfo, 'trace_import_cost_info',
+    results.addValue(new pi.v.DictValue(canonicalUrl, 'trace_import_cost_info',
                                         {'slices': traceImportCostInfos}));
   }
 

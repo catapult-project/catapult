@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/perf_insights/map_single_trace.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
 
 <script>
@@ -17,21 +16,20 @@ tr.exportTo('pi', function() {
   var FailureValue = pi.v.FailureValue;
 
   function mapSingleTraceMain(args) {
-    if (args.length !== 4)
-      throw new Error('Must provide four arguments');
+    if (args.length !== 3)
+      throw new Error('Must provide three arguments');
 
     var options = {
-      runInfo: pi.v.RunInfo.fromDict(JSON.parse(args[0])),
+      canonicalUrl: args[0],
       mapFunctionHandle: pi.FunctionHandle.fromDict(JSON.parse(args[1])),
-      filenameToMap: args[2],
-      metadata: JSON.parse(args[3])
+      filenameToMap: args[2]
     };
 
     var results = new pi.r.Results();
-    results.willRun(options.runInfo);
+    results.willRun(options.canonicalUrl);
 
     pi.runAndConvertErrorsToFailureValues(
-        results, options.runInfo,
+        results, options.canonicalUrl,
         function() {
           var mapFunction = options.mapFunctionHandle.load();
 
@@ -44,11 +42,11 @@ tr.exportTo('pi', function() {
             throw err;
           }
 
-          pi.mapSingleTrace(results, options.runInfo, traceData,
+          pi.mapSingleTrace(results, options.canonicalUrl, traceData,
                             mapFunction, options.metadata);
         });
 
-    results.didRun(options.runInfo);
+    results.didRun(options.canonicalUrl);
     results.didFinishAllRuns();
 
     results.allValues.forEach(function(value) {

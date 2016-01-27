@@ -6,8 +6,8 @@ from perf_insights import trace_handle
 
 class LocalFileTraceHandle(trace_handle.TraceHandle):
 
-  def __init__(self, run_info, filename):
-    super(LocalFileTraceHandle, self).__init__(run_info)
+  def __init__(self, canonical_url, filename):
+    super(LocalFileTraceHandle, self).__init__(canonical_url)
     self.filename = filename
 
   def Open(self):

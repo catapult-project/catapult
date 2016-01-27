@@ -23,14 +23,14 @@ tr.exportTo('pie', function() {
   // Computes the thread time spent in BeginMainFrame during the loading phase
   // as a ratio of the overall main thread utilization during that time.
   // See https://goo.gl/l7V5xg.
-  function mapRenderingCost(results, runInfo, model) {
+  function mapRenderingCost(results, canonicalUrl, model) {
     var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     var browserHelper = modelHelper.browserHelper;
     var rendererHelpers = modelHelper.rendererHelpers;
 
     if (!browserHelper || !rendererHelpers) {
       // If we couldn't find both a browser and a renderer process, bail out.
-      results.addValue(new pi.v.SkipValue(runInfo, 'renderingCost'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'renderingCost'));
       return;
     }
 
@@ -74,12 +74,12 @@ tr.exportTo('pie', function() {
     });
 
     if (loadingDurations.length === 0) {
-      results.addValue(new pi.v.SkipValue(runInfo, 'renderingCost'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'renderingCost'));
       return;
     }
 
     results.addValue(new pi.v.DictValue(
-        runInfo,
+        canonicalUrl,
         'renderingCost', {
           loadingDuration: loadingDurations,
           loadingTotalCost: loadingTotalCost,

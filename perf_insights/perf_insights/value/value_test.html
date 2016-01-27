@@ -7,32 +7,31 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('dictValueBasic', function() {
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.DictValue(runInfo, 'MyFailure',
+    var canonicalUrl = 'my_test.json';
+    var v = new pi.v.DictValue(canonicalUrl, 'MyFailure',
                                {my_key: 'my_value'});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(runInfo, d);
+    var v2 = pi.v.Value.fromDict(d);
     assert.instanceOf(v2, pi.v.DictValue);
     assert.equal(v.name, v2.name);
     assert.deepEqual(v.value, v2.value);
   });
 
   test('failureValueBasic', function() {
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.FailureValue(runInfo, 'MyFailure',
+    var canonicalUrl = 'my_test.json';
+    var v = new pi.v.FailureValue(canonicalUrl, 'MyFailure',
                                   {description: 'Description',
                                    stack: tr.b.stackTraceAsString()});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(runInfo, d);
+    var v2 = pi.v.Value.fromDict(d);
     assert.instanceOf(v2, pi.v.FailureValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);
@@ -40,12 +39,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('skipValueBasic', function() {
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    var v = new pi.v.SkipValue(runInfo, 'MySkip',
+    var canonicalUrl = 'my_test.json';
+    var v = new pi.v.SkipValue(canonicalUrl, 'MySkip',
                                   {description: 'WhySkipped'});
     var d = v.asDict();
 
-    var v2 = pi.v.Value.fromDict(runInfo, d);
+    var v2 = pi.v.Value.fromDict(d);
     assert.instanceOf(v2, pi.v.SkipValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);

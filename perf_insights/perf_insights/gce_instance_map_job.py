@@ -13,7 +13,6 @@ from perf_insights import gcs_trace_handle
 from perf_insights import map_runner
 from perf_insights import function_handle
 from perf_insights.results import json_output_formatter
-from perf_insights.value import run_info as run_info_module
 
 
 _DEFAULT_PARALLEL_DOWNLOADS = 16
@@ -54,12 +53,7 @@ def _DownloadTraceHandles(url, temp_directory):
 
   trace_handles = []
   for trace_url in trace_urls:
-    run_info = run_info_module.RunInfo(
-        url=trace_url,
-        display_name=trace_url,
-        run_id=trace_url)
-
-    th = gcs_trace_handle.GCSTraceHandle(run_info, temp_directory)
+    th = gcs_trace_handle.GCSTraceHandle(trace_url, temp_directory)
     trace_handles.append(th)
   return trace_handles
 

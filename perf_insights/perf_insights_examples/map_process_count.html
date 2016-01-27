@@ -9,10 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/value/value.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pie', function() {
-  function mapProcessCount(results, runInfo, model) {
+  function mapProcessCount(results, canonicalUrl, model) {
     results.addValue(new pi.v.DictValue(
-        runInfo,
+        canonicalUrl,
         'load_info', {
           numProcesses: model.getAllProcesses().length
         }));

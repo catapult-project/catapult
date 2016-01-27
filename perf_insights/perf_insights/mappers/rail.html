@@ -9,14 +9,16 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/rail/rail_score.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pi.m', function() {
 
-  function railMapFunction(results, runInfo, model) {
+  function railMapFunction(results, canonicalUrl, model) {
     var railScore = tr.e.rail.RAILScore.fromModel(model);
     if (railScore === undefined) {
       return;
     }
-    results.addValue(new pi.v.DictValue(runInfo, 'railScore',
+    results.addValue(new pi.v.DictValue(canonicalUrl, 'railScore',
                                         railScore.asDict()));
   }
   pi.FunctionRegistry.register(railMapFunction);

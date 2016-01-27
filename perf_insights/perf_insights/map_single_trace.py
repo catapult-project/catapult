@@ -78,22 +78,21 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
   pi_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                          '..'))
   all_source_paths.append(pi_path)
-  run_info = trace_handle.run_info
+  canonical_url = trace_handle.canonical_url
 
   trace_file = trace_handle.Open()
   if not trace_file:
     results.AddValue(value_module.FailureValue(
-        run_info,
+        canonical_url,
         'Error', 'error while opening trace',
         'error while opening trace', 'Unknown stack'))
     return
 
   try:
     js_args = [
-      json.dumps(run_info.AsDict()),
+      canonical_url,
       json.dumps(map_function_handle.AsDict()),
-      os.path.abspath(trace_file.name),
-      json.dumps(run_info.metadata)
+      os.path.abspath(trace_file.name)
     ]
 
     res = vinn.RunFile(
@@ -109,7 +108,7 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
     except Exception:
       pass
     results.AddValue(value_module.FailureValue(
-        run_info,
+        trace_handle.canonical_url,
         'Error', 'vinn runtime error while mapping trace.',
         'vinn runtime error while mapping trace.', 'Unknown stack'))
     return
@@ -125,7 +124,7 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
           cls = value_module.FailureValue
       else:
         cls = value_module.Value
-      found_value = cls.FromDict(run_info, found_dict)
+      found_value = cls.FromDict(found_dict)
 
       results.AddValue(found_value)
       found_at_least_one_result = True

@@ -18,7 +18,7 @@ class MapError(Exception):
 
   def __init__(self, *args):
     super(MapError, self).__init__(*args)
-    self.run_info = None
+    self.canonical_url = None
 
 
 class MapRunner(object):
@@ -29,7 +29,7 @@ class MapRunner(object):
                output_formatters=None):
     self._map_function_handle = map_function_handle
     self._stop_on_error = stop_on_error
-    self._failed_run_info_to_dump = None
+    self._failed_canonical_url_to_dump = None
     if progress_reporter is None:
       self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
                                     sys.stdout)
@@ -46,15 +46,15 @@ class MapRunner(object):
     self._wq = threaded_work_queue.ThreadedWorkQueue(num_threads=jobs)
 
   def _ProcessOneTrace(self, trace_handle):
-    run_info = trace_handle.run_info
+    canonical_url = trace_handle.canonical_url
     subresults = results_module.Results()
-    run_reporter = self._progress_reporter.WillRun(run_info)
+    run_reporter = self._progress_reporter.WillRun(canonical_url)
     map_single_trace.MapSingleTrace(
         subresults,
         trace_handle,
         self._map_function_handle)
 
-    had_failure = subresults.DoesRunContainFailure(run_info)
+    had_failure = subresults.DoesRunContainFailure(canonical_url)
 
     for v in subresults.all_values:
       run_reporter.DidAddValue(v)
@@ -66,11 +66,11 @@ class MapRunner(object):
   def _MergeResultsToIntoMaster(self, trace_handle, subresults):
     self._results.Merge(subresults)
 
-    run_info = trace_handle.run_info
-    had_failure = subresults.DoesRunContainFailure(run_info)
+    canonical_url = trace_handle.canonical_url
+    had_failure = subresults.DoesRunContainFailure(canonical_url)
     if self._stop_on_error and had_failure:
       err = MapError("Mapping error")
-      err.run_info = run_info
+      err.canonical_url = canonical_url
       self._AbortMappingDueStopOnError(err)
       return
 
@@ -97,17 +97,17 @@ class MapRunner(object):
       of.Format(self._results)
 
     if err:
-      self._PrintFailedRunInfo(err.run_info)
+      self._PrintFailedCanonicalUrl(err.canonical_url)
 
     results = self._results
     self._results = None
     return results
 
-  def _PrintFailedRunInfo(self, run_info):
+  def _PrintFailedCanonicalUrl(self, canonical_url):
     sys.stderr.write('\n\nWhile mapping %s:\n' %
-                     run_info.display_name)
+                     canonical_url)
     failures = [v for v in self._results.all_values
-                if (v.run_info == run_info and
+                if (v.canonical_url == canonical_url and
                     isinstance(v, value_module.FailureValue))]
     for failure in failures:
       sys.stderr.write(failure.GetGTestPrintString())

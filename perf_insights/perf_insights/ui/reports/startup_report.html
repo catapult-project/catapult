@@ -194,7 +194,7 @@ found in the LICENSE file.
         result.value.sliceCosts.forEach(function(item) {
           var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
           allSliceCosts.push({
-            runInfo: result.runInfo,
+            canonicalUrl: result.canonicalUrl,
             sliceCostInfo: sliceCostInfo
           });
         });

@@ -88,7 +88,7 @@ tr.exportTo('pie', function() {
     }
   }
 
-  function mapWakeUps(results, runInfo, model) {
+  function mapWakeUps(results, canonicalUrl, model) {
     var allWakeUps = {};
     for (var pid in model.processes) {
       var process = model.processes[pid];
@@ -117,12 +117,12 @@ tr.exportTo('pie', function() {
     }
 
     if (!foundAnyWakeUps) {
-      results.addValue(new pi.v.SkipValue(runInfo, 'wakeUps'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'wakeUps'));
       return;
     }
 
     results.addValue(new pi.v.DictValue(
-        runInfo,
+        canonicalUrl,
         'wakeUps', allWakeUps));
   }
 

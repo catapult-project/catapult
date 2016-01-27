@@ -5,8 +5,8 @@
 
 class TraceHandle(object):
 
-  def __init__(self, run_info):
-    self.run_info = run_info
+  def __init__(self, canonical_url):
+    self.canonical_url = canonical_url
 
   def Open(self):
     # Returns a with-able object containing a name.

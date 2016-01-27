@@ -253,7 +253,7 @@ found in the LICENSE file.
         result.value.sliceCosts.forEach(function(item) {
           var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
           allSliceCosts.push({
-            runInfo: result.runInfo,
+            canonicalurl: result.canonicalUrl,
             sliceCostInfo: sliceCostInfo
           });
         });
@@ -387,7 +387,7 @@ found in the LICENSE file.
           100);
       this.$.table.selectedTableRow.data.forEach(function(datum) {
         var value = func(datum);
-        histogram.add(value, datum.runInfo);
+        histogram.add(value, datum.canonicalUrl);
       });
 
       var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
@@ -401,7 +401,7 @@ found in the LICENSE file.
       var urlSet = {};
       brushedBins.forEach(function(bin) {
         bin.sourceInfos.forEach(function(sourceInfo) {
-          urlSet[sourceInfo.url] = 1;
+          urlSet[sourceInfo] = 1;
         });
       });
       urlSet = Object.keys(urlSet);

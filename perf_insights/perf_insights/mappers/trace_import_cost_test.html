@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/mappers/trace_import_cost.html">
 <link rel="import" href="/tracing/core/test_utils.html">
@@ -71,8 +70,8 @@ tr.b.unittest.testSuite(function() {
       t2.asyncSliceGroup.push(s2);
     });
     var results = new pi.r.Results();
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    pi.m.getTraceImportCostReport(results, runInfo, m);
+    var canonicalUrl = 'my_test.json';
+    pi.m.getTraceImportCostReport(results, canonicalUrl, m);
 
     assert.equal(results.allValues.length, 1);
     assert.equal(results.allValues[0].value.slices.length, 2);

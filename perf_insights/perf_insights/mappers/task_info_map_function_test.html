@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/mappers/task_info_map_function.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
@@ -51,8 +50,8 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results = new pi.r.Results();
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    pi.m.taskInfoMapFunctionForTest(results, runInfo, m);
+    var canonicalUrl = 'my_test.json';
+    pi.m.taskInfoMapFunctionForTest(results, canonicalUrl, m);
 
     assert.equal(results.allValues.length, 3);
     var value = results.allValues[0];

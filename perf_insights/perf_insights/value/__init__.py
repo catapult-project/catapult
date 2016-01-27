@@ -8,9 +8,9 @@
 
 class Value(object):
 
-  def __init__(self, run_info, name, units, description=None, important=False,
-               ir_stable_id=None):
-    self.run_info = run_info
+  def __init__(self, canonical_url, name, units, description=None,
+               important=False, ir_stable_id=None):
+    self.canonical_url = canonical_url
     self.name = name
     self.units = units
     self.description = description
@@ -19,7 +19,7 @@ class Value(object):
 
   def AsDict(self):
     d = {
-      'run_id': self.run_info.run_id,
+      'canonical_url': self.canonical_url,
       'name': self.name,
       'important': self.important
     }
@@ -43,24 +43,23 @@ class Value(object):
     raise NotImplementedError()
 
   @classmethod
-  def FromDict(cls, run_info, d):
-    assert d['run_id'] == run_info.run_id
+  def FromDict(cls, d):
     if d['type'] == 'dict':
-      return DictValue.FromDict(run_info, d)
+      return DictValue.FromDict(d)
     elif d['type'] == 'failure':
-      return FailureValue.FromDict(run_info, d)
+      return FailureValue.FromDict(d)
     elif d['type'] == 'skip':
-      return SkipValue.FromDict(run_info, d)
+      return SkipValue.FromDict(d)
     else:
       raise NotImplementedError()
 
 
 class DictValue(Value):
 
-  def __init__(self, run_info, name, value, description=None, important=False,
-               ir_stable_id=None):
+  def __init__(self, canonical_url, name, value, description=None,
+               important=False, ir_stable_id=None):
     assert isinstance(value, dict)
-    super(DictValue, self).__init__(run_info, name, units=None,
+    super(DictValue, self).__init__(canonical_url, name, units=None,
                                     description=description,
                                     important=important,
                                     ir_stable_id=ir_stable_id)
@@ -75,9 +74,9 @@ class DictValue(Value):
     d['value'] = self._value
 
   @classmethod
-  def FromDict(cls, run_info, d):
+  def FromDict(cls, d):
     assert d.get('units', None) == None
-    return cls(run_info, name=d['name'],
+    return cls(d['canonical_url'], name=d['name'],
                description=d.get('description', None),
                value=d['value'],
                important=d['important'],
@@ -93,9 +92,9 @@ class DictValue(Value):
 
 class FailureValue(Value):
 
-  def __init__(self, run_info, failure_type_name, description, stack,
+  def __init__(self, canonical_url, failure_type_name, description, stack,
                important=False, ir_stable_id=None):
-    super(FailureValue, self).__init__(run_info,
+    super(FailureValue, self).__init__(canonical_url,
                                        name=failure_type_name,
                                        units=None,
                                        description=description,
@@ -113,9 +112,9 @@ class FailureValue(Value):
     d['stack_str'] = self.stack
 
   @classmethod
-  def FromDict(cls, run_info, d):
+  def FromDict(cls, d):
     assert d.get('units', None) == None
-    return cls(run_info,
+    return cls(d['canonical_url'],
                failure_type_name=d['name'],
                description=d.get('description', None),
                stack=d['stack_str'],
@@ -128,9 +127,9 @@ class FailureValue(Value):
 
 class SkipValue(Value):
 
-  def __init__(self, run_info, skipped_result_name,
+  def __init__(self, canonical_url, skipped_result_name,
                description=None, important=False, ir_stable_id=None):
-    super(SkipValue, self).__init__(run_info,
+    super(SkipValue, self).__init__(canonical_url,
                                     name=skipped_result_name,
                                     units=None,
                                     description=description,
@@ -145,9 +144,9 @@ class SkipValue(Value):
     d['type'] = 'skip'
 
   @classmethod
-  def FromDict(cls, run_info, d):
+  def FromDict(cls, d):
     assert d.get('units', None) == None
-    return cls(run_info,
+    return cls(d['canonical_url'],
                skipped_result_name=d['name'],
                description=d.get('description', None),
                important=d.get('important', False),

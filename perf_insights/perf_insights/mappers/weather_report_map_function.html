@@ -17,6 +17,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/ir_coverage.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pi.m', function() {
 
   function getWeatherReportFromModel(model) {
@@ -89,9 +91,9 @@ tr.exportTo('pi.m', function() {
     return railTypeNameByGUID;
   }
 
-  function weatherReportMapFunction(results, runInfo, model) {
+  function weatherReportMapFunction(results, canonicalUrl, model) {
     var wr = pi.m.getWeatherReportFromModel(model);
-    results.addValue(new pi.v.DictValue(runInfo, 'wr', wr));
+    results.addValue(new pi.v.DictValue(canonicalUrl, 'wr', wr));
   }
   pi.FunctionRegistry.register(weatherReportMapFunction);
 

@@ -9,11 +9,11 @@ class Results(object):
 
   def __init__(self):
     self.all_values = []
-    self._run_infos_that_have_failures = set()
+    self._canonical_urls_that_have_failures = set()
 
   @property
   def had_failures(self):
-    return len(self._run_infos_that_have_failures) > 0
+    return len(self._canonical_urls_that_have_failures) > 0
 
   @property
   def failure_values(self):
@@ -26,19 +26,19 @@ class Results(object):
             if isinstance(v, value_module.SkipValue)]
 
   @property
-  def all_run_infos(self):
-    all_run_infos = set()
+  def all_canonical_urls(self):
+    all_canonical_urls = set()
     for value in self.all_values:
-      all_run_infos.add(value.run_info)
-    return all_run_infos
+      all_canonical_urls.add(value.canonical_url)
+    return all_canonical_urls
 
-  def DoesRunContainFailure(self, run_info):
-    return run_info in self._run_infos_that_have_failures
+  def DoesRunContainFailure(self, canonical_url):
+    return canonical_url in self._canonical_urls_that_have_failures
 
   def AddValue(self, value):
     self.all_values.append(value)
     if isinstance(value, value_module.FailureValue):
-      self._run_infos_that_have_failures.add(value.run_info)
+      self._canonical_urls_that_have_failures.add(value.canonical_url)
 
   def Merge(self, results):
     for value in results.all_values:
@@ -57,10 +57,8 @@ class Results(object):
     return 'Results(%s)' % repr(self.all_values)
 
   def AsDict(self):
-    run_dict = dict([(run_info.run_id, run_info.AsDict()) for run_info
-                     in self.all_run_infos])
     all_values_list = [v.AsDict() for v in self.all_values]
     return {
-      'runs': run_dict,
+      'canonical_urls': list(self.all_canonical_urls),
       'values': all_values_list
     }

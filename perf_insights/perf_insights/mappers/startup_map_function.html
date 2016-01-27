@@ -12,8 +12,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pi.m', function() {
-  function startupMapFunction(results, runInfo, model) {
+  function startupMapFunction(results, canonicalUrl, model) {
     var startupIR;
     model.interactionRecords.forEach(function(ir) {
       if (ir instanceof tr.e.rail.LoadInteractionRecord &&
@@ -32,7 +34,7 @@ tr.exportTo('pi.m', function() {
         function(event) {
           return startupIR.bounds(event);
         });
-    results.addValue(new pi.v.DictValue(runInfo, 'sr',
+    results.addValue(new pi.v.DictValue(canonicalUrl, 'sr',
         {sliceCosts: sliceCosts,
          startupDuration: startupIR.duration}));
   }

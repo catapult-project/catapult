@@ -127,10 +127,10 @@ found in the LICENSE file.
       mapResultEl.appendChild(gov);
 
       var results = new pi.r.Results();
-      var runInfo = new pi.v.RunInfo(document.location.toString());
+      var canonicalUrl = document.location.toString();
 
       try {
-        this.currentMapFunctionTypeInfo.constructor(results, runInfo,
+        this.currentMapFunctionTypeInfo.constructor(results, canonicalUrl,
                                                     this.model_);
       } catch (ex) {
         ex = tr.b.normalizeException(ex);

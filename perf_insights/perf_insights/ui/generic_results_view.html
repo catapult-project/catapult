@@ -51,18 +51,18 @@ found in the LICENSE file.
         results = new tr.r.Results();
 
       var rows = [];
-      results.allRunInfos.forEach(function(runInfo) {
-        var valuesForRun = results.getValuesForRunInfo(runInfo);
+      results.allCanonicalUrls.forEach(function(canonicalUrl) {
+        var valuesForRun = results.getValuesForCanonicalUrl(canonicalUrl);
 
-        var urlSpan = tr.ui.b.createSpan({textContent: runInfo.displayName});
+        var urlSpan = tr.ui.b.createSpan({textContent: canonicalUrl});
         var row = {
           url: urlSpan
         };
 
-        if (results.doesRunContainFailure(runInfo)) {
+        if (results.doesRunContainFailure(canonicalUrl)) {
           urlSpan.style.backgroundColor = 'red';
           var failureValuesForRun = results.allValues.filter(function(v) {
-            if (v.runInfo !== runInfo)
+            if (v.canonicalUrl !== canonicalUrl)
               return false;
             if (v instanceof pi.v.FailureValue)
               return true;

@@ -5,8 +5,8 @@
 
 class RunReporter(object):
 
-  def __init__(self, run_info):
-    self.run_info = run_info
+  def __init__(self, canonical_url):
+    self.canonical_url = canonical_url
 
   def DidAddValue(self, value):
     pass
@@ -19,8 +19,8 @@ class RunReporter(object):
 # to telemetry ProgressReporter.
 class ProgressReporter(object):
 
-  def WillRun(self, run_info):
-    return RunReporter(run_info)
+  def WillRun(self, canonical_url):
+    return RunReporter(canonical_url)
 
   def DidFinishAllRuns(self, results):
     pass

@@ -17,13 +17,13 @@ tr.exportTo('pie', function() {
   // Collects the set of tasks that are preventing user input from being
   // processed on the main thread.
   // See https://goo.gl/l7V5xg.
-  function mapInputBlockers(results, runInfo, model) {
+  function mapInputBlockers(results, canonicalUrl, model) {
     var modelHelper = new tr.e.audits.ChromeModelHelper(model);
     var rendererHelpers = modelHelper.rendererHelpers;
 
     if (!rendererHelpers) {
       // If we didn't detect any renderer processes, bail out.
-      results.addValue(new pi.v.SkipValue(runInfo, 'inputBlockers'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'inputBlockers'));
       return;
     }
 
@@ -65,12 +65,12 @@ tr.exportTo('pie', function() {
     }
 
     if (!foundInputBlockers) {
-      results.addValue(new pi.v.SkipValue(runInfo, 'inputBlockers'));
+      results.addValue(new pi.v.SkipValue(canonicalUrl, 'inputBlockers'));
       return;
     }
 
     results.addValue(new pi.v.DictValue(
-        runInfo,
+        canonicalUrl,
         'inputBlockers', inputBlockers));
   }
 

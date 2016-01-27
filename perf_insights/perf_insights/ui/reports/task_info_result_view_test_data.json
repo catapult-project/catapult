@@ -1,24 +1,8 @@
 {
-  "runs": {
-    "8601fc46-415b-4939-a8c3-ad3cfee57c41": {
-      "url": "file:////Users/nduca/Local/measurmt-traces/desktop/v8-samples/trace_cnet.json.gz", 
-      "display_name": "trace_cnet.json.gz", 
-      "metadata": {
-        "tags": []
-      }, 
-      "type": "perf_insights.value.RunInfo", 
-      "run_id": "8601fc46-415b-4939-a8c3-ad3cfee57c41"
-    }, 
-    "4d6b4cd6-f0b0-4369-9e8a-ccf340ec0b98": {
-      "url": "file:////Users/nduca/Local/measurmt-traces/desktop/v8-samples/trace_aol.json.gz", 
-      "display_name": "trace_aol.json.gz", 
-      "metadata": {
-        "tags": []
-      }, 
-      "type": "perf_insights.value.RunInfo", 
-      "run_id": "4d6b4cd6-f0b0-4369-9e8a-ccf340ec0b98"
-    }
-  }, 
+  "canonical_urls": [
+    "trace_cnet.json.gz",
+    "trace_aol.json.gz"
+  ],
   "values": [
     {
       "important": false, 
