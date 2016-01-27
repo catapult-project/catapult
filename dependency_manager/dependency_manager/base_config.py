@@ -93,7 +93,6 @@ class BaseConfig(object):
     """
     self._config_path = file_path
     self._writable = writable
-    self._is_dirty = False
     self._pending_uploads = []
     if not self._config_path:
       raise ValueError('Must supply config file path.')
@@ -174,8 +173,8 @@ class BaseConfig(object):
               version_in_cs=version_in_cs, archive_info=zip_info)
 
         dep_info = dependency_info.DependencyInfo(
-            dependency, platform, self._config_path, local_path_info=local_info,
-            cloud_storage_info=cs_info)
+            dependency, platform, self._config_path,
+            local_path_info=local_info, cloud_storage_info=cs_info)
         yield dep_info
 
   @classmethod
@@ -227,7 +226,6 @@ class BaseConfig(object):
     """
     self._ValidateIsConfigUpdatable(
         execute_job=execute_job, dependency=dependency, platform=platform)
-    self._is_dirty = True
     cs_hash = cloud_storage.CalculateHash(dependency_path)
     if version:
       self._SetPlatformData(dependency, platform, 'version_in_cs', version)
@@ -265,7 +263,7 @@ class BaseConfig(object):
           or uploading a new file fails.
     """
     self._ValidateIsConfigUpdatable()
-    if not self._is_dirty:
+    if not self._IsDirty():
       logging.info('ExecuteUpdateJobs called on clean config')
       return False
     if not self._pending_uploads:
@@ -276,7 +274,6 @@ class BaseConfig(object):
           item_pending_upload.Upload(force)
         self._WriteConfigToFile(self._config_path, self._config_data)
         self._pending_uploads = []
-        self._is_dirty = False
       except:
         # Attempt to rollback the update in any instance of failure, even user
         # interrupt via Ctrl+C; but don't consume the exception.
@@ -290,6 +287,12 @@ class BaseConfig(object):
     """Return the Version information for the given dependency."""
     return self._GetPlatformData(
         dependency, platform, data_type='version_in_cs')
+
+  def _IsDirty(self):
+    with open(self._config_path, 'r') as fstream:
+      curr_config_data = json.load(fstream)
+    curr_config_data = curr_config_data.get('dependencies', {})
+    return self._config_data != curr_config_data
 
   def _SetPlatformData(self, dependency, platform, data_type, data):
     self._ValidateIsConfigWritable()
@@ -322,7 +325,7 @@ class BaseConfig(object):
   def _ValidateIsConfigUpdatable(
       self, execute_job=False, dependency=None, platform=None):
     self._ValidateIsConfigWritable()
-    if self._is_dirty and execute_job:
+    if self._IsDirty() and execute_job:
       raise exceptions.ReadWriteError(
           'A change has already been made to this config. Either call without'
           'using the execute_job option or first call ExecuteUpdateJobs().')

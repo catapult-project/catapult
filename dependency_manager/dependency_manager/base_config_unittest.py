@@ -223,7 +223,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
 
     self.assertFalse(config.ExecuteUpdateJobs())
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(self.dependencies, config._config_data)
     file_module = fake_filesystem.FakeFileOpen(self.fs)
@@ -777,10 +777,9 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                        contents='\n'.join(self.expected_file_lines))
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
-    config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
     self.assertEqual(self.new_dependencies, config._config_data)
-    self.assertTrue(config._is_dirty)
+    self.assertTrue(config._IsDirty())
     self.assertEqual(1, len(config._pending_uploads))
     self.assertEqual(self.new_pending_upload, config._pending_uploads[0])
     expected_exists_calls = [mock.call(self.new_bucket, self.new_remote_path)]
@@ -790,7 +789,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     expected_delete_calls = []
 
     self.assertTrue(config.ExecuteUpdateJobs())
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(self.new_dependencies, config._config_data)
     file_module = fake_filesystem.FakeFileOpen(self.fs)
@@ -816,10 +815,9 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                        contents='\n'.join(self.expected_file_lines))
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.new_dependencies.copy()
-    config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload]
     self.assertEqual(self.new_dependencies, config._config_data)
-    self.assertTrue(config._is_dirty)
+    self.assertTrue(config._IsDirty())
     self.assertEqual(1, len(config._pending_uploads))
     self.assertEqual(self.new_pending_upload, config._pending_uploads[0])
     expected_exists_calls = [mock.call(self.new_bucket, self.new_remote_path)]
@@ -830,7 +828,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                                      self.expected_new_backup_path)]
 
     self.assertTrue(config.ExecuteUpdateJobs(force=True))
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(self.new_dependencies, config._config_data)
     file_module = fake_filesystem.FakeFileOpen(self.fs)
@@ -891,11 +889,10 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                        contents='\n'.join(self.expected_file_lines))
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
     config._config_data = self.final_dependencies.copy()
-    config._is_dirty = True
     config._pending_uploads = [self.new_pending_upload,
                                self.final_pending_upload]
     self.assertEqual(self.final_dependencies, config._config_data)
-    self.assertTrue(config._is_dirty)
+    self.assertTrue(config._IsDirty())
     self.assertEqual(2, len(config._pending_uploads))
     self.assertEqual(self.new_pending_upload, config._pending_uploads[0])
     self.assertEqual(self.final_pending_upload, config._pending_uploads[1])
@@ -913,7 +910,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                                      self.expected_final_backup_path)]
 
     self.assertTrue(config.ExecuteUpdateJobs(force=True))
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(self.final_dependencies, config._config_data)
     file_module = fake_filesystem.FakeFileOpen(self.fs)
@@ -971,7 +968,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertEqual(expected_dependencies, config._config_data)
 
     base_config_cs_mock.CalculateHash.return_value = self.new_dep_hash
@@ -979,7 +976,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     expected_dependencies = self.new_dependencies
     config.AddCloudStorageDependencyUpdateJob(
         'dep1', 'plat2', self.new_dep_path, execute_job=True)
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(expected_dependencies, config._config_data)
     # check that file contents has been updated
@@ -993,7 +990,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     base_config_cs_mock.CalculateHash.return_value = self.final_dep_hash
     config.AddCloudStorageDependencyUpdateJob(
         'dep2', 'plat1', self.final_dep_path, execute_job=True)
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(expected_dependencies, config._config_data)
     # check that file contents has been updated
@@ -1018,7 +1015,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
 
     expected_dependencies = self.dependencies
     config = dependency_manager.BaseConfig(self.file_path, writable=True)
-    self.assertFalse(config._is_dirty)
+    self.assertFalse(config._IsDirty())
     self.assertFalse(config._pending_uploads)
     self.assertEqual(expected_dependencies, config._config_data)
 
@@ -1027,7 +1024,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     expected_dependencies = self.new_dependencies
     config.AddCloudStorageDependencyUpdateJob(
         'dep1', 'plat2', self.new_dep_path, execute_job=False)
-    self.assertTrue(config._is_dirty)
+    self.assertTrue(config._IsDirty())
     self.assertEqual(1, len(config._pending_uploads))
     self.assertEqual(self.new_pending_upload, config._pending_uploads[0])
     self.assertEqual(expected_dependencies, config._config_data)
@@ -1042,7 +1039,7 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
     base_config_cs_mock.CalculateHash.return_value = self.final_dep_hash
     config.AddCloudStorageDependencyUpdateJob(
         'dep2', 'plat1', self.final_dep_path, execute_job=False)
-    self.assertTrue(config._is_dirty)
+    self.assertTrue(config._IsDirty())
     self.assertEqual(expected_dependencies, config._config_data)
     # check that file contents have not been updated.
     expected_file_lines = list(self.expected_file_lines)
@@ -1489,4 +1486,3 @@ class BaseConfigTest(unittest.TestCase):
       deps_seen.append(dep_info)
     dep_info_mock.assert_call_args(expected_calls)
     self.assertItemsEqual(expected_dep_info, deps_seen)
-
