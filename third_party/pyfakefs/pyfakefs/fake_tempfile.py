@@ -24,8 +24,9 @@ import logging
 import os
 import stat
 import tempfile
+import warnings
 
-import fake_filesystem
+from pyfakefs import fake_filesystem
 
 try:
   import StringIO as io  # pylint: disable-msg=C6204
@@ -310,3 +311,59 @@ class FakeTempfileModule(object):
   def FakeMktempReset(self):
     """Clear the stored mktemp() values."""
     self._mktemp_retvals = []
+
+  def TemporaryDirectory(self, suffix='', prefix='tmp', dir=None):
+    """Return a file-like object deleted on close().
+  
+    Python 3.4 tempfile.TemporaryDirectory.__doc__ =
+    >Create and return a temporary directory.  This has the same
+    >behavior as mkdtemp but can be used as a context manager.  For
+    >example:
+    >
+    >    with TemporaryDirectory() as tmpdir:
+    >        ...
+    >
+    >Upon exiting the context, the directory and everything contained
+    >in it are removed.
+  
+    Args:
+      suffix: optional string, see above
+      prefix: optional string, see above
+      dir: optional string, see above
+    Returns:
+      a context manager
+    """
+    
+    class FakeTemporaryDirectory(object):
+      def __init__(self, filesystem, tempfile, suffix=None, prefix=None, dir=None):
+        self.closed = False
+        self.filesystem = filesystem
+        self.name = tempfile.mkdtemp(suffix, prefix, dir)
+        
+      def cleanup(self, _warn=False):
+        self.filesystem.RemoveObject(name)
+        warnings.warn(warn_message, ResourceWarning)
+    
+      def __repr__(self):
+        return "<{} {!r}>".format(self.__class__.__name__, self.name)
+    
+      def __enter__(self):
+        return self.name
+    
+      def __exit__(self, exc, value, tb):
+        self.cleanup()
+    
+      def cleanup(self, warn=False):
+        if self.name and not self.closed:
+          self.filesystem.RemoveObject(self.name)
+          self.closed = True
+          if warn:
+            warnings.warn("Implicitly cleaning up {!r}".format(self),
+                         ResourceWarning)
+          
+      def __del__(self):
+        # Issue a ResourceWarning if implicit cleanup needed
+        self.cleanup(warn=True)
+
+
+    return FakeTemporaryDirectory(self._filesystem, self, suffix, prefix, dir)

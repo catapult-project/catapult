@@ -25,7 +25,7 @@ Includes:
   FakeFileOpen:  Faked file() and open() function replacements.
 
 Usage:
->>> import fake_filesystem
+>>> from pyfakefs import fake_filesystem
 >>> filesystem = fake_filesystem.FakeFilesystem()
 >>> os_module = fake_filesystem.FakeOsModule(filesystem)
 >>> pathname = '/a/new/dir/new-file'
@@ -89,6 +89,8 @@ import stat
 import sys
 import time
 import warnings
+import binascii
+
 try:
   import cStringIO as io  # pylint: disable-msg=C6204
 except ImportError:
@@ -96,7 +98,7 @@ except ImportError:
 
 __pychecker__ = 'no-reimportself'
 
-__version__ = '2.5'
+__version__ = '2.7'
 
 PERM_READ = 0o400      # Read permission bit.
 PERM_WRITE = 0o200     # Write permission bit.
@@ -147,6 +149,21 @@ def CopyModule(old):
   new = __import__(old.__name__)
   sys.modules[old.__name__] = saved
   return new
+
+
+class Hexlified(object):
+  """Wraps binary data in non-binary string"""
+  def __init__(self, contents):
+    self.contents = binascii.hexlify(contents).decode('utf-8')
+
+  def __len__(self):
+    return len(self.contents)//2
+
+  def recover(self, binary):
+    if binary:
+      return binascii.unhexlify(bytearray(self.contents, 'utf-8'))
+    else:
+      return binascii.unhexlify(bytearray(self.contents, 'utf-8')).decode(sys.getdefaultencoding())
 
 
 class FakeFile(object):
@@ -224,11 +241,12 @@ class FakeFile(object):
     Args:
       contents: string, new content of file.
     """
-    # convert a byte array to a string
+    # Wrap byte arrays into a safe format
     if sys.version_info >= (3, 0) and isinstance(contents, bytes):
-      contents = ''.join(chr(i) for i in contents)
-    self.contents = contents
+      contents = Hexlified(contents)
+      
     self.st_size = len(contents)
+    self.contents = contents
     self.epoch += 1
 
   def SetSize(self, st_size):
@@ -1743,7 +1761,7 @@ class FakeOsModule(object):
           number of elements in the tuple is not equal to 2.
     """
     try:
-      file_object = self.filesystem.GetObject(path)
+      file_object = self.filesystem.ResolveObject(path)
     except IOError as io_error:
       if io_error.errno == errno.ENOENT:
         raise OSError(errno.ENOENT,
@@ -1758,7 +1776,7 @@ class FakeOsModule(object):
         raise TypeError('utime() arg 2 must be a tuple (atime, mtime)')
       for t in times:
         if not isinstance(t, (int, float)):
-          raise TypeError('an integer is required')
+          raise TypeError('atime and mtime must be numbers')
 
       file_object.st_atime = times[0]
       file_object.st_mtime = times[1]
@@ -1770,6 +1788,9 @@ class FakeOsModule(object):
       path: (str) Path to the file or directory.
       uid: (int) Numeric uid to set the file or directory to.
       gid: (int) Numeric gid to set the file or directory to.
+
+    `None` is also allowed for `uid` and `gid`.  This permits `os.rename` to
+    use `os.chown` even when the source file `uid` and `gid` are `None` (unset).
     """
     try:
       file_object = self.filesystem.GetObject(path)
@@ -1778,7 +1799,9 @@ class FakeOsModule(object):
         raise OSError(errno.ENOENT,
                       'No such file or directory in fake filesystem',
                       path)
-      raise
+    if not ((isinstance(uid, int) or uid is None) and
+            (isinstance(gid, int) or gid is None)):
+        raise TypeError("An integer is required")
     if uid != -1:
       file_object.st_uid = uid
     if gid != -1:
@@ -1970,6 +1993,8 @@ class FakeFileOpen(object):
         contents = file_object.contents
         newline_arg = {} if binary else {'newline': newline}
         io_class = io.StringIO
+        if contents and isinstance(contents, Hexlified):
+          contents = contents.recover(binary)
         # For Python 3, files opened as binary only read/write byte contents.
         if sys.version_info >= (3, 0) and binary:
           io_class = io.BytesIO
@@ -2189,12 +2214,12 @@ class FakeFileOpen(object):
     else:
       fakefile.filedes = self.filesystem.AddOpenFile(fakefile)
     return fakefile
- 
+
 
 def _RunDoctest():
   # pylint: disable-msg=C6204
   import doctest
-  import fake_filesystem  # pylint: disable-msg=W0406
+  from pyfakefs import fake_filesystem  # pylint: disable-msg=W0406
   return doctest.testmod(fake_filesystem)
 
 

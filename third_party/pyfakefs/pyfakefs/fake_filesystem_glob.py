@@ -19,8 +19,8 @@ Includes:
     glob module.
 
 Usage:
->>> import fake_filesystem
->>> import fake_filesystem_glob
+>>> from pyfakefs import fake_filesystem
+>>> from pyfakefs import fake_filesystem_glob
 >>> filesystem = fake_filesystem.FakeFilesystem()
 >>> glob_module = fake_filesystem_glob.FakeGlobModule(filesystem)
 
@@ -35,7 +35,7 @@ import fnmatch
 import glob
 import os
 
-import fake_filesystem
+from pyfakefs import fake_filesystem
 
 
 class FakeGlobModule(object):
@@ -112,7 +112,7 @@ class FakeGlobModule(object):
 def _RunDoctest():
   # pylint: disable-msg=C6111,C6204,W0406
   import doctest
-  import fake_filesystem_glob
+  from pyfakefs import fake_filesystem_glob
   return doctest.testmod(fake_filesystem_glob)
 
 

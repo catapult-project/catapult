@@ -23,8 +23,8 @@ Includes:
     shutil module.
 
 Usage:
->>> import fake_filesystem
->>> import fake_filesystem_shutil
+>>> from pyfakefs import fake_filesystem
+>>> from pyfakefs import fake_filesystem_shutil
 >>> filesystem = fake_filesystem.FakeFilesystem()
 >>> shutil_module = fake_filesystem_shutil.FakeShutilModule(filesystem)
 
@@ -212,7 +212,7 @@ class FakeShutilModule(object):
 def _RunDoctest():
   # pylint: disable-msg=C6111,C6204,W0406
   import doctest
-  import fake_filesystem_shutil
+  from pyfakefs import fake_filesystem_shutil
   return doctest.testmod(fake_filesystem_shutil)
 
 
