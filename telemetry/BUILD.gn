@@ -3,10 +3,9 @@
 # found in the LICENSE file.
 
 group("telemetry_test_support") {
-  # Generic telemetry deps
+  # Generic telemetry deps. For now, just include the whole catapult directory.
   data = [
-    "//third_party/catapult/",
-    "//tools/telemetry/",
+    "../",
   ]
 }
 
