@@ -80,7 +80,7 @@ catapult folder (third_party/catapult):
 # Code style
 
 We follow the [Chromium style]
-(https://www.chromium.org/developers/coding-style). 
+(https://www.chromium.org/developers/coding-style).
 
 If you're contributing to Trace Viewer, refer to the [Trace Viewer style guide](https://docs.google.com/document/d/1MMOfywou2Oaho4jOttUk-ZSJcHVd5G5BTsD48rPrBtQ/edit).
 
@@ -135,3 +135,16 @@ a line like:
 Update the number to the git hash you want to roll to, and [contribute a
 codereview to chrome](http://www.chromium.org/developers/contributing-code)
 for your edit. If you are a Chromium committer, feel free to TBR this.
+
+# Adding contributors
+
+Admins (nduca, sullivan) can add contributors to the project. There are two
+steps:
+
+1.  Add the person's github account to the [catapult]
+(https://github.com/orgs/catapult-project/teams/catapult) team.
+2.  Add the person's email to the [commit queue list]
+(https://chrome-infra-auth.appspot.com/auth/groups#project-catapult-committers).
+
+Because there is no API to retrieve a person's GitHub ID from their email
+address or vice versa, we cannot automate this into one step.
