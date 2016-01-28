@@ -518,9 +518,9 @@ tr.exportTo('tr', function() {
         this.processes[pid].sortMemoryDumps();
     },
 
-    calculateMemoryGraphAttributes: function() {
+    finalizeMemoryGraphs: function() {
       this.globalMemoryDumps.forEach(function(dump) {
-        dump.calculateGraphAttributes();
+        dump.finalizeGraph();
       });
     },
 

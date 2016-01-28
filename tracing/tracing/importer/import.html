@@ -277,11 +277,11 @@ tr.exportTo('tr.importer', function() {
         this.model_.sortMemoryDumps();
       }, this);
 
-      // Calculate memory dump graph attributes.
+      // Finalize memory dump graphs.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function calculateMemoryGraphAttributes() {
-        progressMeter.update('Calculating memory dump graph attributes...');
-        this.model_.calculateMemoryGraphAttributes();
+                                     function finalizeMemoryGraphs() {
+        progressMeter.update('Finalizing memory dump graphs...');
+        this.model_.finalizeMemoryGraphs();
       }, this);
 
       // Run initializers.

@@ -3697,6 +3697,226 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(noCrashRoot.guid);
   });
 
+  test('importMemoryDumps_weakMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            allocators: {
+              // Sinks for ownership edges (to check that the correct ownership
+              // edges are removed).
+              'root_sink': { guid: '100', attrs: {} },
+              'root_sink/child_sink': { guid: '200', attrs: {} },
+              'root_sink/child_sink/descendant_sink': {
+                guid: '300', attrs: {}
+              },
+
+              // Note: 'removed' in the name of a dump means that the dump will
+              // be removed despite being non-weak (strong), e.g. due to one of
+              // its ancestors being weak.
+
+              // All descendants of a weak root dump should be removed.
+              'weak_root': { guid: '1', attrs: {}, flags: 1 },
+              'weak_root/removed_child': { guid: '2', attrs: {} },
+              'weak_root/inferred_removed_child/removed_descendant': {
+                guid: '3', attrs: {}, flags: 0
+              },
+
+              // A strong root should be kept even if all its descendants are
+              // weak.
+              'strong_root': { guid: '4', attrs: {}, flags: 0 },
+              'strong_root/weak_child': { guid: '5', attrs: {}, flags: 1 },
+              'strong_root/inferred_weak_child/weak_descendant': {
+                guid: '6', attrs: {}, flags: 1
+              },
+
+              // All inferred ancestors of a weak descendant should be marked
+              // weak and, consequently, removed (provided that they don't have
+              // any non-weak descendants).
+              'inferred_weak_root/inferred_weak_child/weak_descendant': {
+                guid: '7', attrs: {}, flags: 1
+              },
+
+              // An inferred dump should be marked non-weak if it has at least
+              // one strong descendant.
+              'inferred_strong_root/child1_weak': {
+                guid: '8', attrs: {}, flags: 1
+              },
+              'inferred_strong_root/child2_strong': {
+                guid: '9', attrs: {}
+              },
+              'inferred_strong_root/child3_weak': {
+                guid: '10', attrs: {}, flags: 1
+              },
+              'inferred_strong_root2/inferred_strong_child/desc1_strong': {
+                guid: '11', attrs: {}
+              },
+              'inferred_strong_root2/inferred_strong_child/desc2_weak': {
+                guid: '12', attrs: {}, flags: 1
+              },
+              'inferred_strong_root2/inferred_strong_child/desc3_strong': {
+                guid: '13', attrs: {}
+              },
+              'inferred_strong_root2/weak_child': {
+                guid: '14', attrs: {}, flags: 1
+              },
+
+              // A desdendant dump should be removed if it has a weak ancestor.
+              'strong_root2': { guid: '15', attrs: {} },
+              'strong_root2/weak_child': { guid: '16', attrs: {}, flags: 1 },
+              'strong_root2/weak_child/removed_descendant': {
+                guid: '17', attrs: {}
+              },
+
+              // Check that "weakness" also propagates across ownership edges.
+              'removed_root': { guid: '18', attrs: {} },
+              'removed_root/removed_child': {
+                guid: '19', attrs: {}
+              },
+              'inferred_strong_root3/removed_child': {
+                guid: '20', attrs: {}
+              },
+            },
+            allocators_graph: [
+              { source: '1', target: '100', type: 'ownership' },
+              { source: '2', target: '200', type: 'ownership' },
+              { source: '3', target: '300', type: 'ownership' },
+
+              { source: '4', target: '100', type: 'ownership' },  // Kept.
+              { source: '5', target: '200', type: 'ownership' },
+              { source: '6', target: '300', type: 'ownership' },
+
+              { source: '7', target: '300', type: 'ownership' },
+
+              { source: '8', target: '200', type: 'ownership' },
+              { source: '9', target: '200', type: 'ownership' },  // Kept.
+              { source: '10', target: '200', type: 'ownership' },
+              { source: '11', target: '300', type: 'ownership' },  // Kept.
+              { source: '12', target: '300', type: 'ownership' },
+              { source: '13', target: '300', type: 'ownership' },  // Kept.
+              { source: '14', target: '200', type: 'ownership' },
+
+              { source: '15', target: '100', type: 'ownership' },  // Kept.
+              { source: '16', target: '200', type: 'ownership' },
+              { source: '17', target: '300', type: 'ownership' },
+
+              { source: '18', target: '3' /* not a sink */, type: 'ownership' },
+              { source: '19', target: '200', type: 'ownership' },
+              { source: '20', target: '19' /* not a sink */, type: 'ownership' }
+            ]
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+    var memoryAllocatorDumps = d.memoryAllocatorDumps;
+    assert.lengthOf(memoryAllocatorDumps, 6);
+
+    function checkDump(dump, expectedFullName, expectedGuid, expectedParent,
+        expectedChildCount, expectedOwnsLink, expectedOwnedByLinkCount) {
+      assert.strictEqual(dump.fullName, expectedFullName);
+      assert.strictEqual(dump.guid, expectedGuid);
+      assert.strictEqual(dump.parent, expectedParent);
+      assert.lengthOf(dump.children, expectedChildCount);
+      assert.strictEqual(dump.owns, expectedOwnsLink);
+      assert.lengthOf(dump.ownedBy, expectedOwnedByLinkCount);
+      assert.strictEqual(
+          d.getMemoryAllocatorDumpByFullName(expectedFullName), dump);
+    }
+
+    function checkOwnsLink(ownerDump, expectedTarget) {
+      assert.strictEqual(ownerDump.owns.source, ownerDump);
+      assert.strictEqual(ownerDump.owns.target, expectedTarget);
+    }
+
+    // Check root_sink/* dumps.
+    var rootSink = d.memoryAllocatorDumps[3];
+    checkDump(rootSink, 'root_sink', '100', undefined, 1, undefined, 2);
+    var childSink = rootSink.children[0];
+    checkDump(childSink, 'root_sink/child_sink', '200', rootSink, 1, undefined,
+        1);
+    var descendantSink = childSink.children[0];
+    checkDump(descendantSink, 'root_sink/child_sink/descendant_sink', '300',
+        childSink, 0, undefined, 2);
+
+    // Check strong_root/* dumps.
+    var strongRoot = d.memoryAllocatorDumps[4];
+    checkDump(strongRoot, 'strong_root', '4', undefined, 0, rootSink.ownedBy[0],
+        0);
+
+    // Check inferred_strong_root/* dumps.
+    var inferredStrongRoot = d.memoryAllocatorDumps[0];
+    checkDump(inferredStrongRoot, 'inferred_strong_root', undefined, undefined,
+        1, undefined, 0);
+    var child2Strong = inferredStrongRoot.children[0];
+    checkDump(child2Strong, 'inferred_strong_root/child2_strong', '9',
+        inferredStrongRoot, 0, childSink.ownedBy[0], 0);
+
+    // Check inferred_strong_root2/* dumps.
+    var inferredStrongRoot2 = d.memoryAllocatorDumps[1];
+    checkDump(inferredStrongRoot2, 'inferred_strong_root2', undefined,
+        undefined, 1, undefined, 0);
+    var inferredStrongChild = inferredStrongRoot2.children[0];
+    checkDump(inferredStrongChild,
+        'inferred_strong_root2/inferred_strong_child', undefined,
+        inferredStrongRoot2, 2, undefined, 0);
+    var desc1Strong = inferredStrongChild.children[0];
+    checkDump(desc1Strong,
+        'inferred_strong_root2/inferred_strong_child/desc1_strong', '11',
+        inferredStrongChild, 0, descendantSink.ownedBy[0], 0);
+    var desc3Strong = inferredStrongChild.children[1];
+    checkDump(desc3Strong,
+        'inferred_strong_root2/inferred_strong_child/desc3_strong', '13',
+        inferredStrongChild, 0, descendantSink.ownedBy[1], 0);
+
+    // Check strong_root2/* dumps.
+    var strongRoot2 = d.memoryAllocatorDumps[5];
+    checkDump(strongRoot2, 'strong_root2', '15', undefined, 0,
+        rootSink.ownedBy[1], 0);
+
+    // Check inferred_strong_root3/* dumps.
+    var inferredStrongRoot3 = d.memoryAllocatorDumps[2];
+    checkDump(inferredStrongRoot3, 'inferred_strong_root3', undefined,
+        undefined, 0, undefined, 0);
+
+    // Check the links.
+    checkOwnsLink(strongRoot, rootSink);
+    checkOwnsLink(child2Strong, childSink);
+    checkOwnsLink(desc1Strong, descendantSink);
+    checkOwnsLink(desc3Strong, descendantSink);
+    checkOwnsLink(strongRoot2, rootSink);
+
+    // Check that the removed weak dumps are not indexed.
+    [
+      'weak_root',
+      'weak_root/removed_child',
+      'weak_root/inferred_removed_child',
+      'weak_root/inferred_removed_child/removed_descendant',
+      'strong_root/weak_child',
+      'strong_root/inferred_weak_child/weak_descendant',
+      'inferred_weak_root',
+      'inferred_weak_root/inferred_weak_child',
+      'inferred_weak_root/inferred_weak_child/weak_descendant',
+      'inferred_strong_root/child1_weak',
+      'inferred_strong_root/child3_weak',
+      'inferred_strong_root2/inferred_strong_child/desc2_weak',
+      'inferred_strong_root2/weak_child',
+      'strong_root2/weak_child',
+      'strong_root2/removed_descendant',
+      'removed_root',
+      'removed_root/removed_child',
+      'inferred_strong_root3/removed_child'
+    ].forEach(function(fullName) {
+      assert.isUndefined(d.getMemoryAllocatorDumpByFullName(fullName));
+    });
+  });
+
   test('importMemoryDumps_levelsOfDetail', function() {
     function checkLevelsOfDetail(rawLevelsOfDetail, expectedGlobalLevelOfDetail,
         expectedProcessLevelsOfDetail) {

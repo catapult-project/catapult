@@ -34,6 +34,12 @@ tr.exportTo('tr.model', function() {
     this.retains = [];
     this.retainedBy = [];
 
+    // Weak memory allocator dumps are removed from the model after import in
+    // tr.model.GlobalMemoryDump.removeWeakDumps(). See
+    // base::trace_event::MemoryAllocatorDump::Flags::WEAK in the Chromium
+    // codebase.
+    this.weak = false;
+
     // For debugging purposes.
     this.guid = opt_guid;
   };

@@ -60,6 +60,11 @@ tr.exportTo('tr.e.importer', function() {
   var MEMORY_DUMP_LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
+  // See tr.model.MemoryAllocatorDump 'weak' field and
+  // base::trace_event::MemoryAllocatorDump::Flags::WEAK in the Chromium
+  // codebase.
+  var WEAK_MEMORY_ALLOCATOR_DUMP_FLAG = 1 << 0;
+
   // Object type name patterns for various compilers.
   var OBJECT_TYPE_NAME_PATTERNS = [
     {
@@ -2447,6 +2452,10 @@ tr.exportTo('tr.e.importer', function() {
           });
         }
 
+        // A memory allocator dump can have optional flags.
+        var flags = rawAllocatorDump.flags || 0;
+        var isWeakDump = !!(flags & WEAK_MEMORY_ALLOCATOR_DUMP_FLAG);
+
         // Determine if this is a global memory allocator dump (check if
         // it's prefixed with 'global/').
         var containerMemoryDump;
@@ -2479,6 +2488,7 @@ tr.exportTo('tr.e.importer', function() {
           }
           allocatorDump = new tr.model.MemoryAllocatorDump(
               containerMemoryDump, fullName, guid);
+          allocatorDump.weak = isWeakDump;
           dstIndex[fullName] = allocatorDump;
           if (guid !== undefined)
             allMemoryAllocatorDumpsByGuid[guid] = allocatorDump;
@@ -2504,6 +2514,11 @@ tr.exportTo('tr.e.importer', function() {
                 allocatorDump.fullName + ', ' + fullName + ' (ignored).'
             });
             continue;
+          }
+          if (!isWeakDump) {
+            // A MemoryAllocatorDump is non-weak if at least one process dumped
+            // it without WEAK_MEMORY_ALLOCATOR_DUMP_FLAG.
+            allocatorDump.weak = false;
           }
         }
 
@@ -2570,6 +2585,38 @@ tr.exportTo('tr.e.importer', function() {
             parentAlreadyExisted = false;
             parentAllocatorDump = new tr.model.MemoryAllocatorDump(
                 allocatorDump.containerMemoryDump, parentFullName);
+            if (allocatorDump.weak !== false) {
+              // If we are inferring a parent dump (e.g. 'root/parent') of a
+              // current dump (e.g. 'root/parent/current') which is weak (or
+              // was also inferred and we don't know yet whether it's weak or
+              // not), then we clear the weak flag on the parent dump because
+              // we don't know yet whether it should be weak or non-weak:
+              //
+              //   * We can't mark the parent as non-weak straightaway because
+              //     the parent might have no non-weak descendants (in which
+              //     case we want the inferred parent to be weak, so that it
+              //     would be later removed like the current dump).
+              //   * We can't mark the parent as weak immediately either. If we
+              //     did and later encounter a non-weak child of the parent
+              //     (e.g. 'root/parent/another_child'), then we couldn't
+              //     retroactively mark the inferred parent dump as non-weak
+              //     because we couldn't tell whether the parent dump was
+              //     dumped in the trace as weak (in which case it should stay
+              //     weak and be subsequently removed) or whether it was
+              //     inferred as weak (in which case it should be changed to
+              //     non-weak).
+              //
+              // Therefore, we defer marking the inferred parent as
+              // weak/non-weak. If an inferred parent dump does not have any
+              // non-weak child, it will be marked as weak at the end of this
+              // method.
+              //
+              // Note that this should not be confused with the recursive
+              // propagation of the weak flag from parent dumps to their
+              // children and from owned dumps to their owners, which is
+              // performed in GlobalMemoryDump.prototype.removeWeakDumps().
+              parentAllocatorDump.weak = undefined;
+            }
             memoryAllocatorDumpsByFullName[parentFullName] =
                 parentAllocatorDump;
           }
@@ -2580,12 +2627,30 @@ tr.exportTo('tr.e.importer', function() {
 
           // If the parent already existed, then its ancestors were/will be
           // constructed in another iteration of the forEach loop.
-          if (parentAlreadyExisted)
+          if (parentAlreadyExisted) {
+            if (!allocatorDump.weak) {
+              // If the current dump is non-weak, then we must ensure that all
+              // its inferred ancestors are also non-weak.
+              while (parentAllocatorDump !== undefined &&
+                     parentAllocatorDump.weak === undefined) {
+                parentAllocatorDump.weak = false;
+                parentAllocatorDump = parentAllocatorDump.parent;
+              }
+            }
             break;
+          }
 
           fullName = parentFullName;
           allocatorDump = parentAllocatorDump;
         }
+      }
+
+      // All inferred ancestor dumps that have a non-weak child have already
+      // been marked as non-weak. We now mark the rest as weak.
+      for (var fullName in memoryAllocatorDumpsByFullName) {
+        var allocatorDump = memoryAllocatorDumpsByFullName[fullName];
+        if (allocatorDump.weak === undefined)
+          allocatorDump.weak = true;
       }
 
       return rootAllocatorDumps;
