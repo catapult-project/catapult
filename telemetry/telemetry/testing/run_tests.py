@@ -47,9 +47,6 @@ class RunTestsCommand(command_line.OptparseCommand):
                       help='Repeats each a provided number of times.')
     parser.add_option('--no-browser', action='store_true', default=False,
                       help='Don\'t require an actual browser to run the tests.')
-    parser.add_option('--no-scale-jobs', action='store_false', default=True,
-                      dest='scale_jobs',
-                      help='Don\'t scale the number of jobs based on OS.')
     parser.add_option('-d', '--also-run-disabled-tests',
                       dest='run_disabled_tests',
                       action='store_true', default=False,
