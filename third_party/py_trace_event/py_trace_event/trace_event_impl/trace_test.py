@@ -4,9 +4,11 @@
 import tempfile
 import unittest
 
-from .log import *
-from .parsed_trace_events import *
+#from .log import *
+#from .parsed_trace_events import *
 
+from log import *
+from parsed_trace_events import *
 
 class TraceTest(unittest.TestCase):
   def __init__(self, *args):

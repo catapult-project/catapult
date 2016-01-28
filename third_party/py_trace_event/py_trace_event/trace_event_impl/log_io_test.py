@@ -1,13 +1,15 @@
+#!/usr/bin/env python
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import sys
 import tempfile
 import unittest
 
-from .log import *
-from .parsed_trace_events import *
+from log import *
+from parsed_trace_events import *
 
 
 class LogIOTest(unittest.TestCase):
@@ -41,3 +43,8 @@ class LogIOTest(unittest.TestCase):
     finally:
       if os.path.exists(expected_filename):
         os.unlink(expected_filename)
+
+if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.DEBUG)
+  unittest.main(verbosity=2)
+
