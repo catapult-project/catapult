@@ -8,7 +8,6 @@ import unittest
 from catapult_base import util
 
 
-@unittest.skipIf(sys.platform.startswith('win'), 'crbug.com/570512')
 class PathTest(unittest.TestCase):
 
   def testIsExecutable(self):

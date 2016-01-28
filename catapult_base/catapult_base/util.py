@@ -20,5 +20,17 @@ def IsRunningOnCrosDevice():
   return False
 
 
+def _ExecutableExtensions():
+  # pathext is, e.g. '.com;.exe;.bat;.cmd'
+  exts = os.getenv('PATHEXT').split(';') #e.g. ['.com','.exe','.bat','.cmd']
+  return [x[1:].upper() for x in exts] #e.g. ['COM','EXE','BAT','CMD']
+
+
 def IsExecutable(path):
-  return os.path.isfile(path) and os.access(path, os.X_OK)
+  if os.path.isfile(path):
+    if hasattr(os, 'name') and os.name == 'nt':
+      return path.split('.')[-1].upper() in _ExecutableExtensions()
+    else:
+      return os.access(path, os.X_OK)
+  else:
+    return False
