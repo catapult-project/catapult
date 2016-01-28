@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/ui/base/utils.html">
 
 <polymer-element name="tr-ui-e-rail-rail-score-span">
   <template>
@@ -54,9 +55,7 @@ found in the LICENSE file.
         this.$.score.textContent = '';
         return;
       }
-      this.$.score.textContent = overallScore.toLocaleString(
-          undefined,
-          {minimumFractionDigits: 3});
+      this.$.score.textContent = tr.ui.b.toThreeDigitLocaleString(overallScore);
     }
   });
   </script>

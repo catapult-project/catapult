@@ -210,6 +210,16 @@ tr.exportTo('tr.e.rail', function() {
     }
   });
 
+  tr.model.EventRegistry.register(
+      RAILInteractionRecord,
+      {
+        name: 'rail-interaction',
+        pluralName: 'rail-interactions',
+        singleViewElementName:
+          'tr-ui-a-single-rail-interaction-record-sub-view',
+        multiViewElementName: 'tr-ui-a-multi-interaction-record-sub-view'
+      });
+
   return {
     RAILInteractionRecord: RAILInteractionRecord,
     weightedAverage2: weightedAverage2

@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/base/color_legend.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/base/utils.html">
 <link rel="import" href="/tracing/ui/extras/rail/rail_score_span.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
@@ -212,12 +213,6 @@ found in the LICENSE file.
       if (!this.model)
         return;
 
-      function toThreeDigitLocaleString(value) {
-        return value.toLocaleString(undefined,
-                                    {minimumFractionDigits: 3,
-                                     maximumFractionDigits: 3});
-      }
-
       var columns = [
         {
           title: 'Type',
@@ -243,7 +238,7 @@ found in the LICENSE file.
           title: 'Efficiency',
           width: '33%',
           value: function(ir) {
-            return toThreeDigitLocaleString(ir.normalizedEfficiency);
+            return tr.ui.b.toThreeDigitLocaleString(ir.normalizedEfficiency);
           },
           textAlign: 'right',
           cmp: function(a, b) {
@@ -254,7 +249,7 @@ found in the LICENSE file.
           title: 'Comfort',
           width: '33%',
           value: function(ir) {
-            return toThreeDigitLocaleString(ir.normalizedUserComfort);
+            return tr.ui.b.toThreeDigitLocaleString(ir.normalizedUserComfort);
           },
           textAlign: 'right',
           cmp: function(a, b) {
@@ -267,7 +262,7 @@ found in the LICENSE file.
           value: function(ir) {
             var span = document.createElement('span');
             span.style.fontWeight = 'bold';
-            span.textContent = toThreeDigitLocaleString(ir.railScore);
+            span.textContent = tr.ui.b.toThreeDigitLocaleString(ir.railScore);
             return span;
           },
           textAlign: 'right',

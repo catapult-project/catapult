@@ -361,6 +361,7 @@
       'tracing/ui/extras/lean_config.html',
       'tracing/ui/extras/rail/rail_score_side_panel.html',
       'tracing/ui/extras/rail/rail_score_span.html',
+      'tracing/ui/extras/rail/single_rail_interaction_record_sub_view.html',
       'tracing/ui/extras/side_panel/alerts_side_panel.html',
       'tracing/ui/extras/side_panel/input_latency_side_panel.html',
       'tracing/ui/extras/side_panel/time_summary_side_panel.html',

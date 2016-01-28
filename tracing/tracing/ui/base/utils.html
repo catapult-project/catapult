@@ -52,7 +52,13 @@ tr.exportTo('tr.ui.b', function() {
     return extracted;
   }
 
+  function toThreeDigitLocaleString(value) {
+    return value.toLocaleString(
+        undefined, {minimumFractionDigits: 3, maximumFractionDigits: 3});
+  }
+
   return {
+    toThreeDigitLocaleString: toThreeDigitLocaleString,
     instantiateTemplate: instantiateTemplate,
     windowRectForElement: windowRectForElement,
     scrollIntoViewIfNeeded: scrollIntoViewIfNeeded,
