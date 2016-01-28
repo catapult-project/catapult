@@ -54,6 +54,37 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
 
     self.assertEqual(output, expected_output)
 
+  def testMergeTwoBenchmarkResultDicts(self):
+    """Unit test for merged result dict created from two benchmark dicts.
+
+    Creates two dicts containing the same three metrics and compares the output
+    dict against an expected predefined output dict. Also checks if exception
+    is raised for mismatching dicts.
+    """
+    input_dict_1 = {'messageloop_start_time': [55, 72, 60],
+                    'open_tabs_time': [54, 42, 65],
+                    'window_display_time': [44, 89]}
+    input_dict_2 = {'messageloop_start_time': [110, 144, 90],
+                    'window_display_time': [88, 178],
+                    'open_tabs_time': [108, 84, 130]}
+
+    input_dict_mismatch = {'messageloop_start_time': [55, 72, 60],
+                           'first_main_frame_load_time': [54, 42, 65],
+                           'window_display_time': [44, 89]}
+
+    with self.assertRaises(results_stats.DictMismatchError):
+      results_stats.MergeTwoBenchmarkResultDicts(input_dict_1,
+                                                 input_dict_mismatch)
+
+    output = results_stats.MergeTwoBenchmarkResultDicts(input_dict_1,
+                                                        input_dict_2)
+    expected_output = {'messageloop_start_time': ([55, 72, 60],
+                                                  [110, 144, 90]),
+                       'window_display_time': ([44, 89], [88, 178]),
+                       'open_tabs_time': ([54, 42, 65], [108, 84, 130])}
+
+    self.assertEqual(output, expected_output)
+
   def CreateRandomNormalDistributions(self):
     """Creates two pseudo random samples for testing in multiple methods."""
     if not np:

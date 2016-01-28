@@ -15,6 +15,13 @@ KOLMOGOROV = 'kolmogorov'
 WELCH = 'welch'
 
 
+class DictMismatchError(Exception):
+  """Provides exception for result dicts with mismatching keys/metrics."""
+  def __str__(self):
+    return ("Provided benchmark result dicts' keys/metrics do not match. "
+            "Check if they have been created by the same benchmark.")
+
+
 def CreateBenchmarkResultDictFromJson(benchmark_result_json):
   """Creates a dict of format {measure_name: list of benchmark results}.
 
@@ -23,6 +30,7 @@ def CreateBenchmarkResultDictFromJson(benchmark_result_json):
 
   Args:
     benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry
+
   Returns:
     Dictionary of benchmark results
     Example dict entry: 'first_main_frame_load_time': [650, 700, ...]
@@ -41,6 +49,31 @@ def CreateBenchmarkResultDictFromJson(benchmark_result_json):
   return benchmark_result_dict
 
 
+def MergeTwoBenchmarkResultDicts(benchmark_result_dict_1,
+                                 benchmark_result_dict_2):
+  """Merges two benchmark result dicts into a single dict.
+
+  Also checks if the dicts have been created from the same benchmark, i.e. if
+  measurement names match.
+
+  Args:
+    benchmark_result_dict_1: dict of format {metric: list of values}
+    benchmark_result_dict_2: dict of format {metric: list of values}
+
+  Returns:
+    Dict of format {metric: (list of values 1, list of values 2)}
+  """
+  if benchmark_result_dict_1.viewkeys() != benchmark_result_dict_2.viewkeys():
+    raise DictMismatchError()
+
+  merged_dict = {}
+  for measurement in benchmark_result_dict_1:
+    merged_dict[measurement] = (benchmark_result_dict_1[measurement],
+                                benchmark_result_dict_2[measurement])
+
+  return merged_dict
+
+
 def IsNormallyDistributed(result, significance_level=0.05,
                           return_p_value=False):
   """Calculates Shapiro-Wilk test for normality.
@@ -51,6 +84,7 @@ def IsNormallyDistributed(result, significance_level=0.05,
     result: List of values of benchmark result for a measure
     significance_level: The significance level the p-value is compared against
     return_p_value: Whether or not to return the calculated p-value
+
   Returns:
     is_normally_distributed: Returns True or False
     p_value: The calculated p-value, which is the probability for the given
@@ -87,6 +121,7 @@ def IsSignificantlyDifferent(sample_1, sample_2, test=MANN,
     test: Statistical test that is used
     significance_level: The significance level the p-value is compared against
     return_p_value: Whether or not to return the calculated p-value
+
   Returns:
     is_different: True or False, depending on test outcome
     p_value: The p-value the test has produced
