@@ -13,7 +13,6 @@ import datetime
 import json
 import logging
 import re
-import urllib
 
 from google.appengine.ext import ndb
 
@@ -210,10 +209,10 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
     if row.revision not in revision_map:
       revision_map[row.revision] = {}
     revision_map[row.revision][parent_test_key] = _PointInfoDict(
-        row, parent_test, anomaly_annotation_map)
+        row, anomaly_annotation_map)
 
 
-def _PointInfoDict(row, parent_test, anomaly_annotation_map):
+def _PointInfoDict(row, anomaly_annotation_map):
   """Makes a dict of properties of one Row."""
   point_info = {
       'value': row.value,
@@ -223,11 +222,6 @@ def _PointInfoDict(row, parent_test, anomaly_annotation_map):
   tracing_uri = _GetTracingUri(row)
   if tracing_uri:
     point_info['a_tracing_uri'] = tracing_uri
-
-  old_stdio_uri = _GetOldStdioUri(row, parent_test)
-  if old_stdio_uri:
-    point_info.update(
-        _CreateLinkProperty('stdio_uri', 'Buildbot stdio', old_stdio_uri))
 
   if row.error is not None:
     point_info['error'] = row.error
@@ -256,59 +250,6 @@ def _IsMarkdownLink(value):
 def _CreateLinkProperty(name, label, url):
   """Returns a dict containing markdown link to show on dashboard."""
   return {'a_' + name: '[%s](%s)' % (label, url)}
-
-
-def _GetOldStdioUri(row, test):
-  """Gets or makes the URI string for the buildbot stdio link.
-
-  This is here to support the deprecated method way of creating
-  Buildbot stdio URI.
-
-  TODO(chrisphan): Remove this after sometime.
-
-  Args:
-    row: A Row entity.
-    test: The Test entity for the given Row.
-
-  Returns:
-    An URI string, or None if none can be made.
-  """
-  # A masterid and buildname are required to construct a valid URI.
-  if (not hasattr(test, 'masterid') or not hasattr(test, 'buildername')
-      or not hasattr(row, 'buildnumber')):
-    return None
-
-  buildbot_uri_prefix = _GetBuildbotUriPrefix(test, row=row)
-  if not buildbot_uri_prefix:
-    return None
-  return '%s/%s/builders/%s/builds/%s/steps/%s/logs/stdio' % (
-      buildbot_uri_prefix,
-      urllib.quote(test.masterid),
-      urllib.quote(test.buildername),
-      urllib.quote(str(getattr(row, 'buildnumber'))),
-      urllib.quote(test.suite_name))
-
-
-def _GetBuildbotUriPrefix(test, row=None):
-  """Gets the start of the buildbot stdio or builder status URI.
-
-  Gets the uri prefix from 'a_stdio_uri_prefix' property if exist or
-  the public uri prefix if test is not internal.
-
-  Args:
-    test: A Test entity.
-    row: A Row entity, optional.
-
-  Returns:
-    The protocol, hostname and start of the pathname for Buildbot builder
-    status or stdio links.
-  """
-  if row and hasattr(row, 'a_stdio_uri_prefix'):
-    return row.a_stdio_uri_prefix
-
-  if test.internal_only:
-    return None
-  return 'http://build.chromium.org/p'
 
 
 def _GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):

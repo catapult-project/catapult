@@ -748,48 +748,6 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
 
 class GraphJsonHelperFunctionTest(testing_common.TestCase):
 
-  def testGetOldStdioUri_NoMasterId_NoURIReturned(self):
-    testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
-    test = utils.TestKey('Master/b/my_suite').get()
-    test.buildername = 'MyBuilder'
-    row = graph_data.Row(id=345, buildnumber=456)
-    self.assertIsNone(graph_json._GetOldStdioUri(row, test))
-
-  def testGetOldStdioUri_WithMasterId_URIReturned(self):
-    testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
-    test = utils.TestKey('Master/b/my_suite').get()
-    test.buildername = 'MyBuilder'
-    row = graph_data.Row(id=345, buildnumber=456)
-    test.masterid = 'my.master.id'
-    self.assertEqual(
-        ('http://build.chromium.org/p/my.master.id/builders/MyBuilder'
-         '/builds/456/steps/my_suite/logs/stdio'),
-        graph_json._GetOldStdioUri(row, test))
-
-  def testGetOldStdioUri_InternalOnly_NoURIReturned(self):
-    testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
-    test = utils.TestKey('Master/b/my_suite').get()
-    test.buildername = 'MyBuilder'
-    row = graph_data.Row(id=345, buildnumber=456)
-    test.masterid = 'my.master.id'
-    test.internal_only = True
-    self.assertIsNone(graph_json._GetOldStdioUri(row, test))
-
-  def testGetOldStdioUri_CustomPrefix_CustomPrefixUsed(self):
-    testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
-    test = utils.TestKey('Master/b/my_suite').get()
-    test.buildername = 'MyBuilder'
-    row = graph_data.Row(id=345, buildnumber=456)
-    test.masterid = 'my.master.id'
-    test.internal_only = True
-    # If the row has a custom prefix, that will be used, even if the test is
-    # internal-only.
-    row.a_stdio_uri_prefix = 'http://special-logs.chromium.org/x'
-    self.assertEqual(
-        ('http://special-logs.chromium.org/x/my.master.id/builders/MyBuilder'
-         '/builds/456/steps/my_suite/logs/stdio'),
-        graph_json._GetOldStdioUri(row, test))
-
   def testPointInfoDict_StdioUriMarkdown(self):
     testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
     test = utils.TestKey('Master/b/my_suite').get()
@@ -799,16 +757,15 @@ class GraphJsonHelperFunctionTest(testing_common.TestCase):
     row.a_stdio_uri = ('[Build stdio](http://build.chromium.org/p/my.master.id/'
                        'builders/MyBuilder/builds/456/steps/my_suite/logs/'
                        'stdio)')
-    point_info = graph_json._PointInfoDict(row, test, {})
+    point_info = graph_json._PointInfoDict(row, {})
     self.assertEqual(row.a_stdio_uri, point_info['a_stdio_uri'])
 
   def testPointInfoDict_RowHasNoTracingUri_ResultHasNoTracingUri(self):
     testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
-    test = utils.TestKey('Master/b/my_suite').get()
     rows = testing_common.AddRows('Master/b/my_suite', [345])
     # This row has no a_tracing_uri property, so there should be no
     # trace annotation returned by _PointInfoDict.
-    point_info = graph_json._PointInfoDict(rows[0], test, {})
+    point_info = graph_json._PointInfoDict(rows[0], {})
     self.assertFalse(hasattr(rows[0], 'a_tracing_uri'))
     self.assertNotIn('a_tracing_uri', point_info)
 
