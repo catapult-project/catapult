@@ -18,28 +18,38 @@ tr.exportTo('tr.model', function() {
   function ModelStats() {
     this.traceEventCountsByKey_ = new Map();
     this.allTraceEventStats_ = [];
+    this.hasEventSizesinBytes_ = false;
   }
 
   ModelStats.prototype = {
-    willProcessBasicTraceEvent: function(phase, category, title) {
+    willProcessBasicTraceEvent: function(phase, category, title,
+                                         opt_eventSizeinBytes) {
       var key = phase + '/' + category + '/' + title;
       var eventStats = this.traceEventCountsByKey_.get(key);
-      if (eventStats) {
-        eventStats.numEvents++;
-        return;
+      if (eventStats === undefined) {
+        eventStats = {
+          phase: phase,
+          category: category,
+          title: title,
+          numEvents: 0,
+          totalEventSizeinBytes: 0
+        };
+        this.traceEventCountsByKey_.set(key, eventStats);
+        this.allTraceEventStats_.push(eventStats);
       }
-      eventStats = {
-        phase: phase,
-        category: category,
-        title: title,
-        numEvents: 1
-      };
-      this.traceEventCountsByKey_.set(key, eventStats);
-      this.allTraceEventStats_.push(eventStats);
+      eventStats.numEvents++;
+      if (opt_eventSizeinBytes !== undefined) {
+        this.hasEventSizesinBytes_ = true;
+        eventStats.totalEventSizeinBytes += opt_eventSizeinBytes;
+      }
     },
 
     get allTraceEventStats() {
       return this.allTraceEventStats_;
+    },
+
+    get hasEventSizesinBytes() {
+      return this.hasEventSizesinBytes_;
     }
   };
 

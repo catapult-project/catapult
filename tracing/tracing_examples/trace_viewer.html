@@ -81,7 +81,13 @@ found in the LICENSE file.
     var createViewFromTracesTimer = Timing.mark(
         'TraceImport', 'createViewFromTraces');
     var m = new tr.Model();
-    var i = new tr.importer.Import(m);
+
+    var trackDetailedModelStatsEl =
+        tr.b.findDeepElementMatching(document.body,
+                                     '#track-detailed-model-stats');
+    var importOptions = new tr.importer.ImportOptions();
+    importOptions.trackDetailedModelStats = trackDetailedModelStatsEl.checked;
+    var i = new tr.importer.Import(m, importOptions);
     var p = i.importTracesWithProgressDialog(traces);
 
     p.then(
@@ -143,6 +149,7 @@ found in the LICENSE file.
     timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
 
+
     selectEl = document.createElement('select');
     timelineViewEl.leftControls.appendChild(selectEl);
 
@@ -164,7 +171,16 @@ found in the LICENSE file.
         onHashChange();
       }
     }).then(onLoadTimer.end.call(this));
+
+    var trackDetailedModelStatsEl = tr.ui.b.createCheckBox(
+        this, 'trackDetailedModelStats',
+        'traceViewer.trackDetailedModelStats', false,
+        'Detailed file size stats',
+        onHashChange);
+    trackDetailedModelStatsEl.id = 'track-detailed-model-stats';
+    timelineViewEl.leftControls.appendChild(trackDetailedModelStatsEl);
   }
+
   window.addEventListener('load', onLoad);
   </script>
 </body>

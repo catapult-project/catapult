@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/grouping_table.html">
@@ -124,7 +125,7 @@ found in the LICENSE file.
       this.selection_ = selection;
     },
 
-    createColumns_: function() {
+    createColumns_: function(stats) {
       var columns = [
         {
           title: 'Title',
@@ -137,7 +138,7 @@ found in the LICENSE file.
           cmp: function(a, b) {
             return a.title.localeCompare(b.title);
           },
-          width: '500px'
+          width: '400px'
         },
         {
           title: 'Num Events',
@@ -151,19 +152,41 @@ found in the LICENSE file.
           width: '80px'
         }
       ];
+
+      if (stats && stats.hasEventSizesinBytes) {
+        columns.push({
+          title: 'Bytes',
+          textAlign: 'right',
+          value: function(row) {
+            var value = new tr.b.u.Scalar(row.rowStats.totalEventSizeinBytes,
+                                          tr.b.u.Units.sizeInBytes);
+            var spanEl = tr.ui.units.createScalarSpan(value);
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.rowStats.totalEventSizeinBytes -
+                b.rowStats.totalEventSizeinBytes;
+          },
+          width: '80px'
+        });
+      }
       return columns;
     },
 
     updateContents_: function() {
       var table = this.$.table;
 
-      var columns = this.createColumns_();
+      var columns = this.createColumns_(this.model.stats);
       table.rowStatsConstructor = function ModelStatsRowStats(row) {
         var sum = tr.b.Statistics.sum(row.data, function(x) {
           return x.numEvents;
         });
+        var totalEventSizeinBytes = tr.b.Statistics.sum(row.data, function(x) {
+          return x.totalEventSizeinBytes;
+        });
         return {
-          numEvents: sum
+          numEvents: sum,
+          totalEventSizeinBytes: totalEventSizeinBytes
         };
       };
       table.tableColumns = columns;

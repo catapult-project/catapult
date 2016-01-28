@@ -728,7 +728,12 @@ tr.exportTo('tr.e.importer', function() {
       if (this.traceAnnotations_)
         this.importAnnotations_();
 
+      var importOptions = this.model_.importOptions;
+      var trackDetailedModelStats = importOptions.trackDetailedModelStats;
+
       var modelStats = this.model_.stats;
+      modelStats.size = 0;
+
       var events = this.events_;
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
@@ -738,14 +743,21 @@ tr.exportTo('tr.e.importer', function() {
           event.args = undefined;
         }
 
+        var eventSizeInBytes;
+        if (trackDetailedModelStats)
+          eventSizeInBytes = JSON.stringify(event).length;
+        else
+          eventSizeInBytes = undefined;
+
         if (event.ph === 'B' || event.ph === 'E') {
           modelStats.willProcessBasicTraceEvent(
-              'begin_end (non-comopact)', event.cat, event.name);
+              'begin_end (non-comopact)', event.cat, event.name,
+              eventSizeInBytes);
           this.processDurationEvent(event);
 
         } else if (event.ph === 'X') {
           modelStats.willProcessBasicTraceEvent(
-              'begin_end (compact)', event.cat, event.name);
+              'begin_end (compact)', event.cat, event.name, eventSizeInBytes);
           var slice = this.processCompleteEvent(event);
           // TODO(yuhaoz): If Chrome supports creating other events with flow,
           // we will need to call processFlowEvent for them also.
@@ -757,49 +769,49 @@ tr.exportTo('tr.e.importer', function() {
                    event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
                    event.ph === 'p') {
           modelStats.willProcessBasicTraceEvent(
-              'async', event.cat, event.name);
+              'async', event.cat, event.name, eventSizeInBytes);
           this.processAsyncEvent(event);
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
         } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
           modelStats.willProcessBasicTraceEvent(
-              'instant', event.cat, event.name);
+              'instant', event.cat, event.name, eventSizeInBytes);
           this.processInstantEvent(event);
 
         } else if (event.ph === 'P') {
           modelStats.willProcessBasicTraceEvent(
-              'samples', event.cat, event.name);
+              'samples', event.cat, event.name, eventSizeInBytes);
           this.processTraceSampleEvent(event);
 
         } else if (event.ph === 'C') {
           modelStats.willProcessBasicTraceEvent(
-              'counters', event.cat, event.name);
+              'counters', event.cat, event.name, eventSizeInBytes);
           this.processCounterEvent(event);
 
         } else if (event.ph === 'M') {
           modelStats.willProcessBasicTraceEvent(
-              'metadata', event.cat, event.name);
+              'metadata', event.cat, event.name, eventSizeInBytes);
           this.processMetadataEvent(event);
 
         } else if (event.ph === 'N' || event.ph === 'D' || event.ph === 'O') {
           modelStats.willProcessBasicTraceEvent(
-              'objects', event.cat, event.name);
+              'objects', event.cat, event.name, eventSizeInBytes);
           this.processObjectEvent(event);
 
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
           modelStats.willProcessBasicTraceEvent(
-              'flows', event.cat, event.name);
+              'flows', event.cat, event.name, eventSizeInBytes);
           this.processFlowEvent(event);
 
         } else if (event.ph === 'v') {
           modelStats.willProcessBasicTraceEvent(
-              'memory_dumps', event.cat, event.name);
+              'memory_dumps', event.cat, event.name, eventSizeInBytes);
           this.processMemoryDumpEvent(event);
 
         } else {
           modelStats.willProcessBasicTraceEvent(
-              'unknown', event.cat, event.name);
+              'unknown', event.cat, event.name, eventSizeInBytes);
           this.model_.importWarning({
             type: 'parse_error',
             message: 'Unrecognized event phase: ' +

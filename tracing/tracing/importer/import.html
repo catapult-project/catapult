@@ -20,6 +20,7 @@ tr.exportTo('tr.importer', function() {
     this.shiftWorldToZero = true;
     this.pruneEmptyContainers = true;
     this.showImportWarnings = true;
+    this.trackDetailedModelStats = false;
 
     // Callback called after
     // importers run in which more data can be added to the model, before it is
@@ -88,7 +89,7 @@ tr.exportTo('tr.importer', function() {
       overlay.msgEl.style.margin = '20px';
       overlay.update = function(msg) {
         this.msgEl.textContent = msg;
-      }
+      };
       overlay.visible = true;
 
       var promise =
