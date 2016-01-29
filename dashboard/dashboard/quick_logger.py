@@ -88,11 +88,6 @@ def _Set(namespace, key, records):
 class QuickLog(ndb.Model):
   """Represents a log entity."""
 
-  # A pickled list of Record. (Deprecated)
-  # TODO(chrisphan): Remove this in the future.  Old version of quick_logger
-  # storing logs in this property and we don't want to delete them yet.
-  records = ndb.PickleProperty()
-
   # Namespace for identifying logs.
   namespace = ndb.StringProperty(indexed=True)
 
@@ -103,15 +98,6 @@ class QuickLog(ndb.Model):
   size = ndb.IntegerProperty(default=0)
 
   def GetRecords(self):
-    """Gets records for this log."""
-    # Move old data from old version to use multi-entities storage.
-    if self.records:
-      records_copy = self.records
-      self.records = None
-      self.SetRecords(self.key.string_id(), records_copy)
-    return self.GetMultiEntityRecords()
-
-  def GetMultiEntityRecords(self):
     """Gets records store in multiple entities.
 
     Combines and deserializes the data stored in QuickLogPart for this log.
