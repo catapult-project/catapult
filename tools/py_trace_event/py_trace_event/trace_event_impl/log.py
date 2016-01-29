@@ -9,7 +9,6 @@ import sys
 import time
 import threading
 
-
 _lock = threading.Lock()
 
 _enabled = False
@@ -47,7 +46,7 @@ def _disallow_tracing_control():
 
 def trace_enable(log_file=None):
   _trace_enable(log_file)
-  
+
 @_locked
 def _trace_enable(log_file=None):
   global _enabled

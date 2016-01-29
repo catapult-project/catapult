@@ -74,7 +74,7 @@ class TraceEventTests(unittest.TestCase):
     except log.TraceException:
       return
     assert False
-      
+
   def testDisable(self):
     with self._test_trace(disable=False):
       with open(self._log_path, 'r') as f:
@@ -316,7 +316,7 @@ class TraceEventTests(unittest.TestCase):
       trace_event.trace_begin('one')
       trace_event.trace_begin('two')
       trace_event.trace_end('one')
-      trace_event.trace_end('two') 
+      trace_event.trace_end('two')
       trace_event.trace_flush()
       with open(self._log_path, 'r') as f:
         log_output = json.loads(f.read() + ']')
@@ -330,7 +330,7 @@ class TraceEventTests(unittest.TestCase):
         self.assertEquals(meta_data['name'], 'process_argv')
         self.assertTrue(meta_data['args']['argv'])
         self.assertEquals(meta_data['ph'], 'M')
- 
+
         self.assertEquals(one_open['category'], 'python')
         self.assertEquals(one_open['name'], 'one')
         self.assertEquals(one_open['ph'], 'B')
