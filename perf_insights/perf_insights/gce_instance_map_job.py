@@ -9,9 +9,9 @@ import shutil
 import tempfile
 
 from perf_insights import cloud_storage
-from perf_insights import gcs_trace_handle
 from perf_insights import map_runner
 from perf_insights import function_handle
+from perf_insights.mre import file_handle as file_handle_module
 from perf_insights.results import json_output_formatter
 
 
@@ -53,7 +53,7 @@ def _DownloadTraceHandles(url, temp_directory):
 
   trace_handles = []
   for trace_url in trace_urls:
-    th = gcs_trace_handle.GCSTraceHandle(trace_url, temp_directory)
+    th = file_handle_module.GCSFileHandle(trace_url, temp_directory)
     trace_handles.append(th)
   return trace_handles
 

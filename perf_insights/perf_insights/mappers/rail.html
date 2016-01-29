@@ -13,7 +13,8 @@ found in the LICENSE file.
 
 tr.exportTo('pi.m', function() {
 
-  function railMapFunction(results, canonicalUrl, model) {
+  function railMapFunction(results, model) {
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var railScore = tr.e.rail.RAILScore.fromModel(model);
     if (railScore === undefined) {
       return;

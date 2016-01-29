@@ -15,7 +15,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.m', function() {
-  function traceStatsFunction(results, canonicalUrl, model) {
+  function traceStatsFunction(results, model) {
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var eventCount = 0;
     var firstTime = Number.MAX_VALUE;
     var lastTime = 0;

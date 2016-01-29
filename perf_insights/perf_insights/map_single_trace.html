@@ -33,33 +33,7 @@ tr.exportTo('pi', function() {
     }
   }
 
-  function mapSingleTrace(results, canonicalUrl, traceData, mapFunction,
-                          opt_metadata) {
-    // Load the model.
-    var model = new tr.Model();
-    try {
-      var importOptions = new tr.importer.ImportOptions();
-      importOptions.pruneEmptyContainers = false;
-      importOptions.showImportWarnings = false;
-
-      var i = new tr.importer.Import(model, importOptions);
-      i.importTraces([traceData]);
-    } catch (ex) {
-      ex.name = 'TraceImportError';
-      throw ex;
-    }
-
-    // Mixin the metadata in case its interesting to the mapper.
-    var metadata = opt_metadata || {};
-    for (var k in metadata) {
-      if (model.metadata[k] !== undefined) {
-        var err = new Error(k + ' is on model and corpus tables!');
-        err.name = 'TraceImportError';
-        throw err;
-      }
-      model.metadata[k] = metadata[k];
-    }
-
+  function mapSingleTrace(results, model, mapFunction) {
     // Do not map the trace if its timer is low resolution.
     if (!model.isTimeHighResolution) {
       var err = new Error('Trace doesn\'t have high resolution time, ' +
@@ -71,7 +45,7 @@ tr.exportTo('pi', function() {
     // Map the function.
     var numResultsBeforeMapping = results.allValues.length;
     try {
-      mapFunction(results, canonicalUrl, model);
+      mapFunction(results, model);
     } catch (ex) {
       ex.name = 'MapFunctionError';
       throw ex;

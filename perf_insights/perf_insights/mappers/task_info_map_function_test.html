@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var canonicalUrl = 'my_test.json';
-    pi.m.taskInfoMapFunctionForTest(results, canonicalUrl, m);
+    pi.m.taskInfoMapFunctionForTest(results, m);
 
     assert.equal(results.allValues.length, 3);
     var value = results.allValues[0];

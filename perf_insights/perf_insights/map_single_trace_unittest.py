@@ -4,11 +4,11 @@
 import json
 import unittest
 
-from perf_insights import in_memory_trace_handle
 from perf_insights import map_single_trace
 from perf_insights import function_handle
 from perf_insights import results as results_module
 from perf_insights import value as value_module
+from perf_insights.mre import file_handle
 
 
 def _Handle(filename):
@@ -26,15 +26,16 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
-          function MyMapFunction(results, canonical_url, model) {
+          function MyMapFunction(results, model) {
+            var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
             results.addValue(new pi.v.DictValue(
-              canonical_url,
+              canonicalUrl,
               'result', {
                 numProcesses: model.getAllProcesses().length
               }));
@@ -49,13 +50,13 @@ class MapSingleTraceTests(unittest.TestCase):
 
   def testTraceDidntImport(self):
     trace_string = 'This is intentionally not a trace-formatted string.'
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', trace_string)
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
-          function MyMapFunction(results, canonical_url, model) {
+          function MyMapFunction(results, model) {
           });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
@@ -72,13 +73,13 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
-          function MyMapFunction(results, canonical_url, model) {
+          function MyMapFunction(results, model) {
             throw new Error('Expected error');
           });
     """) as map_script:
@@ -96,7 +97,7 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
@@ -117,7 +118,7 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
@@ -137,13 +138,13 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
-          function MyMapFunction(results, canonical_url, model) {
+          function MyMapFunction(results, model) {
       });
     """) as map_script:
       map_single_trace.MapSingleTrace(results, trace_handle,
@@ -160,15 +161,16 @@ class MapSingleTraceTests(unittest.TestCase):
       {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'b', 'cat': 'c',
        'ts': 3, 'dur': 5, 'args': {}}
     ]
-    trace_handle = in_memory_trace_handle.InMemoryTraceHandle(
+    trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', json.dumps(events))
 
     results = results_module.Results()
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
-          function MyMapFunction(results, canonical_url, model) {
+          function MyMapFunction(results, model) {
+            var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
             results.addValue(new pi.v.SkipValue(
-                canonical_url, 'SkippedFieldName',
+                canonicalUrl, 'SkippedFieldName',
                 {description: 'SkippedReason'}));
 
       });

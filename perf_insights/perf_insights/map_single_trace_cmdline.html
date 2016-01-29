@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/perf_insights/map_single_trace.html">
+<link rel="import" href="/perf_insights/mre/file_handle.html">
 <link rel="import" href="/perf_insights/results/results.html">
 
 <script>
@@ -15,38 +16,52 @@ tr.exportTo('pi', function() {
 
   var FailureValue = pi.v.FailureValue;
 
+  function createModelFromTraceData(traceData, canonicalUrl) {
+    var model = new tr.Model();
+    try {
+      var importOptions = new tr.importer.ImportOptions();
+      importOptions.pruneEmptyContainers = false;
+      importOptions.showImportWarnings = false;
+
+      var i = new tr.importer.Import(model, importOptions);
+      i.importTraces([traceData]);
+    } catch (ex) {
+      ex.name = 'TraceImportError';
+      throw ex;
+    }
+
+    model.canonicalUrlThatCreatedThisTrace = canonicalUrl;
+
+    return model;
+  }
+
   function mapSingleTraceMain(args) {
-    if (args.length !== 3)
-      throw new Error('Must provide three arguments');
+    if (args.length !== 2)
+      throw new Error('Must provide two arguments');
 
     var options = {
-      canonicalUrl: args[0],
-      mapFunctionHandle: pi.FunctionHandle.fromDict(JSON.parse(args[1])),
-      filenameToMap: args[2]
+      traceHandle: pi.mre.FileHandle.fromDict(JSON.parse(args[0])),
+      mapFunctionHandle: pi.FunctionHandle.fromDict(JSON.parse(args[1]))
     };
 
     var results = new pi.r.Results();
-    results.willRun(options.canonicalUrl);
+
+    var canonicalUrl = options.traceHandle.canonicalUrl;
+
+    results.willRun(options.traceHandle);
 
     pi.runAndConvertErrorsToFailureValues(
-        results, options.canonicalUrl,
+        results, canonicalUrl,
         function() {
           var mapFunction = options.mapFunctionHandle.load();
 
-          // Read the mapfile.
-          try {
-            var traceData = tr.b.getSync('file://' + options.filenameToMap);
-          } catch (ex) {
-            var err = new Error('Could not open ' + options.filenameToMap);
-            err.name = 'TraceImportError';
-            throw err;
-          }
+          var traceData = options.traceHandle.load();
 
-          pi.mapSingleTrace(results, options.canonicalUrl, traceData,
-                            mapFunction, options.metadata);
+          var model = createModelFromTraceData(traceData, canonicalUrl);
+          pi.mapSingleTrace(results, model, mapFunction);
         });
 
-    results.didRun(options.canonicalUrl);
+    results.didRun(options.traceHandle);
     results.didFinishAllRuns();
 
     results.allValues.forEach(function(value) {

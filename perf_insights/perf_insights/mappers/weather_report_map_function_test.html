@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var canonicalUrl = 'my_test.json';
-    pi.m.weatherReportMapFunction(results, canonicalUrl, m);
+    pi.m.weatherReportMapFunction(results, m);
 
     assert.equal(results.allValues.length, 1);
     assert.isTrue(results.allValues[0] instanceof pi.v.DictValue);

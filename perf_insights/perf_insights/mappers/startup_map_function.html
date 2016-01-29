@@ -15,8 +15,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.m', function() {
-  function startupMapFunction(results, canonicalUrl, model) {
+  function startupMapFunction(results, model) {
     var startupIR;
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     model.interactionRecords.forEach(function(ir) {
       if (ir instanceof tr.e.rail.LoadInteractionRecord &&
           ir.initiatorTitle === tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP) {

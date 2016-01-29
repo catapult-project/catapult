@@ -20,7 +20,8 @@ tr.exportTo('pi.m', function() {
   var HISTOGRAM_MAX = 250;
   var NUM_BINS = 50;
 
-  function taskInfoMapFunction(results, canonicalUrl, model) {
+  function taskInfoMapFunction(results, model) {
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
     addTimeInQueue(results, canonicalUrl, model, threadGrouping);

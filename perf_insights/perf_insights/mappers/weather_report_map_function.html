@@ -90,7 +90,8 @@ tr.exportTo('pi.m', function() {
     return railTypeNameByGUID;
   }
 
-  function weatherReportMapFunction(results, canonicalUrl, model) {
+  function weatherReportMapFunction(results, model) {
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var wr = pi.m.getWeatherReportFromModel(model);
     results.addValue(new pi.v.DictValue(canonicalUrl, 'wr', wr));
   }

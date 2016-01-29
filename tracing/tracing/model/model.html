@@ -396,16 +396,16 @@ tr.exportTo('tr', function() {
      * This is NOT the URL of a site being traced, but instead an indicator of
      * where the data is stored.
      */
-    get canonicalURLThatCreatedThisTrace() {
-      return this.canonicalURLThatCreatedThisTrace_;
+    get canonicalUrlThatCreatedThisTrace() {
+      return this.canonicalUrlThatCreatedThisTrace_;
     },
 
-    set canonicalURLThatCreatedThisTrace(value) {
-      if (this.canonicalURLThatCreatedThisTrace_ === value)
+    set canonicalUrlThatCreatedThisTrace(value) {
+      if (this.canonicalUrlThatCreatedThisTrace_ === value)
         return;
-      if (this.canonicalURLThatCreatedThisTrace_ !== undefined)
-        throw new Error('canonicalURLThatCreatedThisTrace already set');
-      this.canonicalURLThatCreatedThisTrace_ = value;
+      if (this.canonicalUrlThatCreatedThisTrace_ !== undefined)
+        throw new Error('canonicalUrlThatCreatedThisTrace already set');
+      this.canonicalUrlThatCreatedThisTrace_ = value;
     },
 
     /**

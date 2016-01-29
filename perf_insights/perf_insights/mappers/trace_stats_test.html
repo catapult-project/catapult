@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
 
     var results = new pi.r.Results();
     var canonicalUrl = 'my_test.json';
-    pi.m.traceStatsFunctionForTest(results, canonicalUrl, m);
+    pi.m.traceStatsFunctionForTest(results, m);
 
     assert.equal(results.allValues.length, 1);
     var dict = results.allValues[0];

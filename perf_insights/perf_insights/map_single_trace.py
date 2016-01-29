@@ -41,14 +41,14 @@ class TemporaryMapScript(object):
 class FunctionLoadingErrorValue(value_module.FailureValue):
   pass
 
-
 class FunctionNotDefinedErrorValue(value_module.FailureValue):
   pass
-
 
 class MapFunctionErrorValue(value_module.FailureValue):
   pass
 
+class FileLoadingErrorValue(value_module.FailureValue):
+  pass
 
 class TraceImportErrorValue(value_module.FailureValue):
   pass
@@ -62,6 +62,7 @@ class InternalMapError(Exception):
   pass
 
 _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
+  'FileLoadingErrorValue': FileLoadingErrorValue,
   'FunctionLoadingError': FunctionLoadingErrorValue,
   'FunctionNotDefinedError': FunctionNotDefinedErrorValue,
   'TraceImportError': TraceImportErrorValue,
@@ -78,29 +79,17 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
   pi_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                          '..'))
   all_source_paths.append(pi_path)
-  canonical_url = trace_handle.canonical_url
 
-  trace_file = trace_handle.Open()
-  if not trace_file:
-    results.AddValue(value_module.FailureValue(
-        canonical_url,
-        'Error', 'error while opening trace',
-        'error while opening trace', 'Unknown stack'))
-    return
-
-  try:
+  with trace_handle.PrepareFileForProcessing() as prepared_trace_handle:
     js_args = [
-      canonical_url,
-      json.dumps(map_function_handle.AsDict()),
-      os.path.abspath(trace_file.name)
+      json.dumps(prepared_trace_handle.AsDict()),
+      json.dumps(map_function_handle.AsDict())
     ]
 
     res = vinn.RunFile(
       os.path.join(pi_path, 'perf_insights', 'map_single_trace_cmdline.html'),
       source_paths=all_source_paths,
       js_args=js_args)
-  finally:
-    trace_file.close()
 
   if res.returncode != 0:
     try:
