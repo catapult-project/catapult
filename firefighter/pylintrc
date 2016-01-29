@@ -1,8 +1,3 @@
-[MASTER]
-
-extension-pkg-whitelist=numpy
-
-
 [MESSAGES CONTROL]
 
 # Disable the message, report, category or checker with the given id(s).
@@ -12,6 +7,7 @@ disable=
   similarities,
 
   fixme,
+  import-error,
   locally-disabled,
   locally-enabled,
   missing-docstring,
