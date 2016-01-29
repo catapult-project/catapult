@@ -231,6 +231,13 @@ def Main(argv):
       if sys.platform == 'linux2' and channel == 'canary':
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
+
+
+      # Skip canary channel temporarily
+      # https://github.com/catapult-project/catapult/issues/1939
+      if channel == 'canary':
+        return 0
+
       tmpdir, version = DownloadChromium(channel)
       if xvfb.ShouldStartXvfb():
         xvfb_process = xvfb.StartXvfb()
