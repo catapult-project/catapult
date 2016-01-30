@@ -269,7 +269,8 @@ class AndroidRndisConfigurator(object):
     """Returns the name of the host-side network interface."""
     interface_list = self._EnumerateHostInterfaces()
     ether_address = self._device.ReadFile(
-        '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE).strip()
+        '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE,
+        as_root=True, force_pull=True).strip()
     interface_name = None
     for line in interface_list:
       if not line.startswith((' ', '\t')):
