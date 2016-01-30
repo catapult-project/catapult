@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/mappers/thread_grouping.html">
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/perf_insights/mappers/thread_grouping.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/slice.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -57,7 +57,7 @@ tr.exportTo('pi.m', function() {
           canonicalUrl);
     });
     histogramsToDict(timeInQueue);
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'time_spent_in_queue',
         timeInQueue));
@@ -85,12 +85,12 @@ tr.exportTo('pi.m', function() {
       });
     });
     histogramsToDict(timeInTask);
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'time_spent_in_top_level_task',
         timeInTask));
     histogramsToDict(cpuTimeInTask);
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'cpu_time_spent_in_top_level_task',
         cpuTimeInTask));

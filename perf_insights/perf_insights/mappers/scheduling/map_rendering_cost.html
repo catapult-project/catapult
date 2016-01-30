@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_browser_helper.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.exportTo('pie', function() {
 
     if (!browserHelper || !rendererHelpers) {
       // If we couldn't find both a browser and a renderer process, bail out.
-      results.addValue(new pi.v.SkipValue(canonicalUrl, 'renderingCost'));
+      results.addValue(new tr.v.SkipValue(canonicalUrl, 'renderingCost'));
       return;
     }
 
@@ -74,11 +74,11 @@ tr.exportTo('pie', function() {
     });
 
     if (loadingDurations.length === 0) {
-      results.addValue(new pi.v.SkipValue(canonicalUrl, 'renderingCost'));
+      results.addValue(new tr.v.SkipValue(canonicalUrl, 'renderingCost'));
       return;
     }
 
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'renderingCost', {
           loadingDuration: loadingDurations,

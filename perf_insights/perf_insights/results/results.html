@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -24,7 +24,7 @@ tr.exportTo('pi.r', function() {
 
     var results = new Results();
     dict.values.forEach(function(valueDict) {
-      var value = pi.v.Value.fromDict(valueDict);
+      var value = tr.v.Value.fromDict(valueDict);
       results.addValue(value);
     });
     return results;
@@ -35,7 +35,7 @@ tr.exportTo('pi.r', function() {
     },
 
     addValue: function(value) {
-      if (value instanceof pi.v.FailureValue)
+      if (value instanceof tr.v.FailureValue)
         this.canonicalUrlsThatHaveFailures_[value.canonicalUrl] = true;
       this.allValues.push(value);
     },
@@ -52,7 +52,7 @@ tr.exportTo('pi.r', function() {
 
     get failureValues() {
       return this.allValues.filter(function(x) {
-        return x instanceof pi.v.FailureValue;
+        return x instanceof tr.v.FailureValue;
       });
     },
 

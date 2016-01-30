@@ -78,6 +78,8 @@ class TracingProject(object):
   chai_path = os.path.join(tracing_third_party_path, 'chai')
   mocha_path = os.path.join(tracing_third_party_path, 'mocha')
 
+  value_ui_path = os.path.join(tracing_src_path, 'value', 'ui')
+
   test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
 
@@ -101,7 +103,13 @@ class TracingProject(object):
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):
-    return not filename.startswith(self.ui_path)
+    if filename.startswith(self.ui_path):
+      return False
+
+    if filename.startswith(self.value_ui_path):
+      return False
+
+    return True
 
   def FindAllTestModuleRelPaths(self, pred=None):
     if pred is None:

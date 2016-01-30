@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/value/value.html">
-<link rel="import"href="/tracing/base/range.html">
-<link rel="import"href="/tracing/base/units/histogram.html">
-<link rel="import"href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/value/value.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/units/histogram.html">
+<link rel="import" href="/tracing/base/units/units.html">
 
 <script>
 'use strict';
@@ -62,7 +62,7 @@ tr.exportTo('pi.m', function() {
       events_seconds: histogram.asDict()
     };
 
-    results.addValue(new pi.v.DictValue(canonicalUrl, 'stats', stats));
+    results.addValue(new tr.v.DictValue(canonicalUrl, 'stats', stats));
   }
 
   pi.FunctionRegistry.register(traceStatsFunction);
