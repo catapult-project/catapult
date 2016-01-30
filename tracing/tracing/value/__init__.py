@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 # Simplified version of telemetry Value system, just enough for us to get
-# perf_insights up and running.
+# us up and running.
 
 
 class Value(object):
@@ -19,9 +19,9 @@ class Value(object):
 
   def AsDict(self):
     d = {
-      'canonical_url': self.canonical_url,
-      'name': self.name,
-      'important': self.important
+        'canonical_url': self.canonical_url,
+        'name': self.name,
+        'important': self.important
     }
     # Only dump values if they're non-None, because Python json-ification turns
     # these to null, instead of leaving them out.
@@ -67,7 +67,7 @@ class DictValue(Value):
 
   def __repr__(self):
     return '%s("%s", "%s")' % (self.__class__.__name__,
-                           self.name, self.value)
+                               self.name, self.value)
 
   def _AsDictInto(self, d):
     d['type'] = 'dict'
@@ -105,7 +105,7 @@ class FailureValue(Value):
 
   def __repr__(self):
     return '%s("%s", "%s")' % (self.__class__.__name__,
-                           self.name, self.description)
+                               self.name, self.description)
 
   def _AsDictInto(self, d):
     d['type'] = 'failure'

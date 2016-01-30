@@ -8,7 +8,7 @@ import sys
 import tempfile
 
 
-from perf_insights import value as value_module
+from tracing import value as value_module
 import perf_insights_project
 import vinn
 
@@ -19,7 +19,7 @@ class TemporaryMapScript(object):
     self.file = tempfile.NamedTemporaryFile()
     self.file.write("""
 <!DOCTYPE html>
-<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/value/value.html">
 <script>
 %s
 </script>

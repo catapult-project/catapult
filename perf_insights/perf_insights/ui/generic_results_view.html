@@ -64,7 +64,7 @@ found in the LICENSE file.
           var failureValuesForRun = results.allValues.filter(function(v) {
             if (v.canonicalUrl !== canonicalUrl)
               return false;
-            if (v instanceof pi.v.FailureValue)
+            if (v instanceof tr.v.FailureValue)
               return true;
             return false;
           });
@@ -85,14 +85,14 @@ found in the LICENSE file.
           row.failures = failuresSpan;
         }
         valuesForRun.forEach(function(v) {
-          if (v instanceof pi.v.FailureValue) {
+          if (v instanceof tr.v.FailureValue) {
             return;
-          } else if (v instanceof pi.v.SkipValue) {
+          } else if (v instanceof tr.v.SkipValue) {
             row[v.name] = tr.ui.b.createSpan({
                 textContent: 'Skipped',
                 tooltip: v.description,
                 backgroundColor: 'rgb(127,127,127)'});
-          } else if (v instanceof pi.v.DictValue) {
+          } else if (v instanceof tr.v.DictValue) {
             row[v.name] = tr.ui.b.createSpan({textContent: 'DictValue'});
           } else {
             throw new Error('omg');

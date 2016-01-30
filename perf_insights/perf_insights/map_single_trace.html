@@ -7,18 +7,17 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/extras/full_config.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/extras/full_config.html">
-
-<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pi', function() {
 
-  var FailureValue = pi.v.FailureValue;
+  var FailureValue = tr.v.FailureValue;
 
   function runAndConvertErrorsToFailureValues(results, canonicalUrl, cb,
                                               opt_this) {

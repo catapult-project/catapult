@@ -3,18 +3,18 @@
 # found in the LICENSE file.
 import unittest
 
-from perf_insights import value as value_module
+from tracing import value as value_module
 
 
 class ValueTests(unittest.TestCase):
 
   def testDict(self):
     d = {
-      'canonical_url': '/a.json',
-      'type': 'dict',
-      'name': 'MyDictValue',
-      'important': False,
-      'value': {'a': 1, 'b': 'b'}
+        'canonical_url': '/a.json',
+        'type': 'dict',
+        'name': 'MyDictValue',
+        'important': False,
+        'value': {'a': 1, 'b': 'b'}
     }
     v = value_module.Value.FromDict(d)
     self.assertTrue(isinstance(v, value_module.DictValue))
@@ -24,12 +24,12 @@ class ValueTests(unittest.TestCase):
 
   def testFailure(self):
     d = {
-      'canonical_url': '/a.json',
-      'type': 'failure',
-      'name': 'Error',
-      'important': False,
-      'description': 'Some error message',
-      'stack_str': 'Some stack string'
+        'canonical_url': '/a.json',
+        'type': 'failure',
+        'name': 'Error',
+        'important': False,
+        'description': 'Some error message',
+        'stack_str': 'Some stack string'
     }
     v = value_module.Value.FromDict(d)
     self.assertTrue(isinstance(v, value_module.FailureValue))

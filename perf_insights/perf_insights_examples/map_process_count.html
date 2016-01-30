@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/value/value.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pie', function() {
   function mapProcessCount(results, canonicalUrl, model) {
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'load_info', {
           numProcesses: model.getAllProcesses().length

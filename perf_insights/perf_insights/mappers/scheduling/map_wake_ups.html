@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -117,11 +117,11 @@ tr.exportTo('pie', function() {
     }
 
     if (!foundAnyWakeUps) {
-      results.addValue(new pi.v.SkipValue(canonicalUrl, 'wakeUps'));
+      results.addValue(new tr.v.SkipValue(canonicalUrl, 'wakeUps'));
       return;
     }
 
-    results.addValue(new pi.v.DictValue(
+    results.addValue(new tr.v.DictValue(
         canonicalUrl,
         'wakeUps', allWakeUps));
   }

@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from perf_insights import value as value_module
+from tracing import value as value_module
 
 
 class Results(object):

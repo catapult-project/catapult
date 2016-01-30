@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/results/results.html">
-<link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/perf_insights/mappers/weather_report_map_function.html">
+<link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/rail/idle_interaction_record.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     pi.m.weatherReportMapFunction(results, m);
 
     assert.equal(results.allValues.length, 1);
-    assert.isTrue(results.allValues[0] instanceof pi.v.DictValue);
+    assert.isTrue(results.allValues[0] instanceof tr.v.DictValue);
   });
 
   test('basicWrTest', function() {

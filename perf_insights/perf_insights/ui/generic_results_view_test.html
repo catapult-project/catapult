@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -22,27 +22,27 @@ tr.b.unittest.testSuite(function() {
     var results = new pi.r.Results();
 
     // Run 1. One failure.
-    results.addValue(new pi.v.FailureValue(canonicalUrl1, 'SomeFailureType',
+    results.addValue(new tr.v.FailureValue(canonicalUrl1, 'SomeFailureType',
                                            {description: 'Description',
                                             stack: tr.b.stackTraceAsString()}));
-    results.addValue(new pi.v.SkipValue(canonicalUrl1, 'col2',
+    results.addValue(new tr.v.SkipValue(canonicalUrl1, 'col2',
                                         {description: 'WhySkipped'}));
 
 
     // Run 2. Successful but had skip.
-    results.addValue(new pi.v.SkipValue(canonicalUrl2, 'col1',
+    results.addValue(new tr.v.SkipValue(canonicalUrl2, 'col1',
                                         {description: 'WhySkipped'}));
-    results.addValue(new pi.v.DictValue(canonicalUrl2, 'col2',
+    results.addValue(new tr.v.DictValue(canonicalUrl2, 'col2',
                                         {my_key: 'my_value'}));
 
     // Run 3. Two failures.
-    results.addValue(new pi.v.DictValue(canonicalUrl3, 'col1',
+    results.addValue(new tr.v.DictValue(canonicalUrl3, 'col1',
                                         {my_key: 'my_value'}));
-    results.addValue(new pi.v.FailureValue(canonicalUrl3,
+    results.addValue(new tr.v.FailureValue(canonicalUrl3,
                                            'SomeOtherFailureType',
                                            {description: 'Description',
                                             stack: tr.b.stackTraceAsString()}));
-    results.addValue(new pi.v.FailureValue(canonicalUrl3,
+    results.addValue(new tr.v.FailureValue(canonicalUrl3,
                                            'RunThreeHadABadDay',
                                            {description: 'Description',
                                             stack: tr.b.stackTraceAsString()}));

@@ -7,8 +7,8 @@ import unittest
 from perf_insights import map_single_trace
 from perf_insights import function_handle
 from perf_insights import results as results_module
-from perf_insights import value as value_module
 from perf_insights.mre import file_handle
+from tracing import value as value_module
 
 
 def _Handle(filename):
@@ -34,7 +34,7 @@ class MapSingleTraceTests(unittest.TestCase):
       pi.FunctionRegistry.register(
           function MyMapFunction(results, model) {
             var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
-            results.addValue(new pi.v.DictValue(
+            results.addValue(new tr.v.DictValue(
               canonicalUrl,
               'result', {
                 numProcesses: model.getAllProcesses().length
@@ -169,7 +169,7 @@ class MapSingleTraceTests(unittest.TestCase):
       pi.FunctionRegistry.register(
           function MyMapFunction(results, model) {
             var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
-            results.addValue(new pi.v.SkipValue(
+            results.addValue(new tr.v.SkipValue(
                 canonicalUrl, 'SkippedFieldName',
                 {description: 'SkippedReason'}));
 

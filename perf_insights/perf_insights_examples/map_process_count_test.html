@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/value/value.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights_examples/map_process_count.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
     pie.mapProcessCountForTest(results, canonicalUrl, m);
 
     assert.equal(results.allValues.length, 1);
-    assert.isTrue(results.allValues[0] instanceof pi.v.DictValue);
+    assert.isTrue(results.allValues[0] instanceof tr.v.DictValue);
   });
 });
 

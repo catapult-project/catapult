@@ -5,7 +5,7 @@
 import time
 
 from perf_insights import progress_reporter
-from perf_insights import value as value_module
+from tracing import value as value_module
 
 
 class GTestRunReporter(progress_reporter.RunReporter):

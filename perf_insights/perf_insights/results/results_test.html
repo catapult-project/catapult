@@ -17,9 +17,9 @@ tr.b.unittest.testSuite(function() {
     var canonicalUrl2 = 'file2.json';
 
     var results = new pi.r.Results();
-    results.addValue(new pi.v.DictValue(canonicalUrl1, 'res',
+    results.addValue(new tr.v.DictValue(canonicalUrl1, 'res',
                                         {my_key: 'my_value'}));
-    results.addValue(new pi.v.DictValue(canonicalUrl2, 'res',
+    results.addValue(new tr.v.DictValue(canonicalUrl2, 'res',
                                         {my_key: 'my_value'}));
     assert.isFalse(results.hadFailures);
     assert.equal(results.allValuesFromFailureFreeRuns.length, 2);
@@ -31,9 +31,9 @@ tr.b.unittest.testSuite(function() {
     var canonicalUrl2 = 'file2.json';
 
     var results = new pi.r.Results();
-    results.addValue(new pi.v.DictValue(canonicalUrl1, 'res',
+    results.addValue(new tr.v.DictValue(canonicalUrl1, 'res',
                                         {my_key: 'my_value'}));
-    results.addValue(new pi.v.FailureValue(canonicalUrl2, 'res',
+    results.addValue(new tr.v.FailureValue(canonicalUrl2, 'res',
                                            {description: 'blah',
                                             stack: 'stack'}));
     assert.isTrue(results.hadFailures);
