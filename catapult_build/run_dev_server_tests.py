@@ -198,6 +198,13 @@ def Main(argv):
     platform_data = PLATFORM_MAPPING[sys.platform]
     user_data_dir = tempfile.mkdtemp()
     tmpdir = None
+    xvfb_process = None
+
+    # Skip canary channel temporarily
+    # https://github.com/catapult-project/catapult/issues/1939
+    if args.channel == 'canary':
+      return 0
+
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
     # TODO(anniesullie): Make OS selection of port work on Windows. See #1235.
@@ -218,7 +225,6 @@ def Main(argv):
       port = re.search(
           r'Now running on http://127.0.0.1:([\d]+)', output).group(1)
 
-    xvfb_process = None
     chrome_info = None
     if args.use_local_chrome:
       chrome_path = GetLocalChromePath(args.chrome_path)
@@ -232,11 +238,6 @@ def Main(argv):
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
 
-
-      # Skip canary channel temporarily
-      # https://github.com/catapult-project/catapult/issues/1939
-      if channel == 'canary':
-        return 0
 
       tmpdir, version = DownloadChromium(channel)
       if xvfb.ShouldStartXvfb():
