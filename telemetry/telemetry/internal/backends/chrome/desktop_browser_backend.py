@@ -5,6 +5,7 @@
 import datetime
 import glob
 import heapq
+import itertools
 import logging
 import os
 import os.path
@@ -71,10 +72,13 @@ def GetSymbolBinaries(executable, os_name):
       F_GETPATH = 50
       with open(file_path, 'rb') as f:
         path2 = fcntl.fcntl(f.fileno(), F_GETPATH, b'\0' * 1024).rstrip(b'\0')
-      if os.path.isfile(path2):
-        return path2
-      return file_path
-    return [GetDyldPath(file_path) for file_path in executables]
+      if (os.path.basename(path2) != os.path.basename(file_path) and
+          os.path.isfile(path2)):
+        return [path2, file_path]
+      return [file_path]
+
+    file_list = [GetDyldPath(file_path) for file_path in executables]
+    return list(itertools.chain.from_iterable(file_list))
 
   return [executable]
 
