@@ -35,7 +35,7 @@ tr.exportTo('tr.e.importer.battor', function() {
 
   var battorDataLineRE = /^(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)$/;
   var battorHeaderLineRE = /^# BattOr/;
-  var sampleRateLineRE = /^# sample_rate=(\d+)Hz/;
+  var sampleRateLineRE = /^# sample_rate (\d+) Hz/;
 
   /**
    * Guesses whether the provided events is a BattOr string.
