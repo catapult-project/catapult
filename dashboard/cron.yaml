@@ -40,27 +40,31 @@ cron:
   url: /bisect_fyi
   schedule: every 24 hours
 
+# The backup cron job is disabled temporarily in order to check whether
+# it is responsible for increased cost on the weekends.
+# See: https://github.com/catapult-project/catapult/issues/1944
+#
 # Scheduled backup.
 # If you add new datastore kinds and want them to be backed up,
 # you must add kind=argument to the URL below. Backups are available at:
 # https://console.developers.google.com/datastore/settings?project=chromeperf
 # See: https://cloud.google.com/appengine/articles/scheduled_backups
-- description: Back up all entities in the datastore.
-  url: "/_ah/datastore_admin/backup.create?name=ScheduledBackup\
-&kind=Master\
-&kind=Bot\
-&kind=Test\
-&kind=Row\
-&kind=Sheriff\
-&kind=AnomalyConfig\
-&kind=Anomaly\
-&kind=StoppageAlert\
-&kind=IpWhitelist\
-&kind=BotWhitelist\
-&kind=BugLabelPatterns\
-&kind=MultipartEntity\
-&kind=PartEntity\
-&filesystem=gs\
-&gs_bucket_name=chromeperf.appspot.com"
-  schedule: every saturday 05:00
-  target: ah-builtin-python-bundle
+#- description: Back up all entities in the datastore.
+#  url: "/_ah/datastore_admin/backup.create?name=ScheduledBackup\
+#&kind=Master\
+#&kind=Bot\
+#&kind=Test\
+#&kind=Row\
+#&kind=Sheriff\
+#&kind=AnomalyConfig\
+#&kind=Anomaly\
+#&kind=StoppageAlert\
+#&kind=IpWhitelist\
+#&kind=BotWhitelist\
+#&kind=BugLabelPatterns\
+#&kind=MultipartEntity\
+#&kind=PartEntity\
+#&filesystem=gs\
+#&gs_bucket_name=chromeperf.appspot.com"
+#  schedule: every saturday 05:00
+#  target: ah-builtin-python-bundle
