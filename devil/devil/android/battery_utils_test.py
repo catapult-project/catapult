@@ -250,12 +250,14 @@ class BatteryUtilsChargeDevice(BatteryUtilsTest):
     with self.assertCalls(
         (self.call.battery.SetCharging(True)),
         (self.call.device.RunShellCommand(
-            ['dumpsys', 'battery', 'level', '50'], check_return=True), []),
+            ['dumpsys', 'battery', 'set', 'level', '50'],
+            check_return=True), []),
         (self.call.device.RunShellCommand(
             ['dumpsys', 'battery', 'reset'], check_return=True), []),
         (self.call.battery.GetBatteryInfo(), {'level': '50'}),
         (self.call.device.RunShellCommand(
-            ['dumpsys', 'battery', 'level', '50'], check_return=True), []),
+            ['dumpsys', 'battery', 'set', 'level', '50'],
+            check_return=True), []),
         (self.call.device.RunShellCommand(
             ['dumpsys', 'battery', 'reset'], check_return=True), []),
         (self.call.battery.GetBatteryInfo(), {'level': '100'})):
