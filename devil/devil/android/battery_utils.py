@@ -283,7 +283,7 @@ class BatteryUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance()
   def _ForceResetBatteryInfo(self, timeout=None, retries=None):
     # Sometimes battery information stops updating. This kick starts it.
-    self._device.RunShellCommand(['dumpsys', 'battery', 'level', '50'],
+    self._device.RunShellCommand(['dumpsys', 'battery', 'set', 'level', '50'],
                                  check_return=True)
     self._device.RunShellCommand(['dumpsys', 'battery', 'reset'],
                                  check_return=True)
