@@ -601,6 +601,11 @@ def PerformBisect(bisect_job):
   Returns:
     A dictionary containing the result; if successful, this dictionary contains
     the field "issue_id" and "issue_url", otherwise it contains "error".
+
+  Raises:
+    AssertionError: Bot or config not set as expected.
+    request_handler.InvalidInputError: Some property of the bisect job
+        is invalid.
   """
   assert bisect_job.bot and bisect_job.config
   if not bisect_job.key:

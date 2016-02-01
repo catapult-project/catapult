@@ -393,9 +393,7 @@ def _MockFetch(url=None):
               'text': ['failed', 'slave_steps', 'failed', 'Working on def']})
       ],
       ('http://build.chromium.org/builders/bb66666'
-       '/steps/Results/logs/stdio/text'): [
-           404, ''
-      ],
+       '/steps/Results/logs/stdio/text'): [404, ''],
       'http://build.chromium.org/json/builders/516': [
           200,
           json.dumps({'steps': [{'name': 'gclient', 'results': [2]}]})
