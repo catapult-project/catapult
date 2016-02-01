@@ -281,6 +281,14 @@ class BatteryUtils(object):
     return {'system_total': system_total, 'per_package': per_package}
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def _ForceResetBatteryInfo(self, timeout=None, retries=None):
+    # Sometimes battery information stops updating. This kick starts it.
+    self._device.RunShellCommand(['dumpsys', 'battery', 'level', '50'],
+                                 check_return=True)
+    self._device.RunShellCommand(['dumpsys', 'battery', 'reset'],
+                                 check_return=True)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def GetBatteryInfo(self, timeout=None, retries=None):
     """Gets battery info for the device.
 
@@ -445,6 +453,7 @@ class BatteryUtils(object):
     self.SetCharging(True)
 
     def device_charged():
+      self._ForceResetBatteryInfo()
       battery_level = self.GetBatteryInfo().get('level')
       if battery_level is None:
         logging.warning('Unable to find current battery level.')
