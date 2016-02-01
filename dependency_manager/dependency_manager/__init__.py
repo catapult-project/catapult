@@ -18,9 +18,10 @@ def _AddDirToPythonPath(*path_parts):
     sys.path.append(path)
 
 
-_AddDirToPythonPath(DEPENDENCY_MANAGER_PATH)
-_AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'mock')
 _AddDirToPythonPath(CATAPULT_PATH, 'catapult_base')
+_AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'mock')
+_AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'pyfakefs')
+_AddDirToPythonPath(DEPENDENCY_MANAGER_PATH)
 
 
 # pylint: disable=unused-import
