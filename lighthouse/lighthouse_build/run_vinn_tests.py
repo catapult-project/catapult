@@ -26,8 +26,8 @@ def RunTests():
   loadHTML('/tracing/base/d8_tests.html');
   """
   res = vinn.RunJsString(
-    cmd, source_paths=list(project.source_paths),
-    js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
+      cmd, source_paths=list(project.source_paths),
+      js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
 
 

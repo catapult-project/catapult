@@ -41,7 +41,7 @@ class LighthouseDevServerConfig(object):
 
   def GetRoutes(self, args):  # pylint: disable=unused-argument
     return [
-      Route('/lighthouse/tests', TestListHandler)
+        Route('/lighthouse/tests', TestListHandler)
     ]
 
   def GetSourcePaths(self, args):  # pylint: disable=unused-argument
