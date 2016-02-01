@@ -375,29 +375,31 @@ class StartBisectTest(testing_common.TestCase):
     self.SetCurrentUser('foo@chromium.org')
     testing_common.AddTests(
         ['ChromiumPerf'],
-        ['win7',
-         'android-nexus7',
-         'chromium-rel-win8-dual',
-         'chromium-rel-xp-single'], {
-             'page_cycler.morejs': {
-                 'times': {
-                     'page_load_time': {},
-                     'page_load_time_ref': {},
-                     'blog.chromium.org': {},
-                     'dev.chromium.org': {},
-                     'test.blogspot.com': {},
-                     'http___test.com_': {}
-                 },
-                 'vm_final_size_renderer': {
-                     'ref': {},
-                     'vm_final_size_renderer_extcs1': {}
-                 },
-             },
-             'blink_perf': {
-                 'Animation_balls': {}
-             }
-        }
-    )
+        [
+            'win7',
+            'android-nexus7',
+            'chromium-rel-win8-dual',
+            'chromium-rel-xp-single'
+        ],
+        {
+            'page_cycler.morejs': {
+                'times': {
+                    'page_load_time': {},
+                    'page_load_time_ref': {},
+                    'blog.chromium.org': {},
+                    'dev.chromium.org': {},
+                    'test.blogspot.com': {},
+                    'http___test.com_': {}
+                },
+                'vm_final_size_renderer': {
+                    'ref': {},
+                    'vm_final_size_renderer_extcs1': {}
+                },
+            },
+            'blink_perf': {
+                'Animation_balls': {}
+            }
+        })
     tests = graph_data.Test.query().fetch()
     for test in tests:
       name = test.key.string_id()

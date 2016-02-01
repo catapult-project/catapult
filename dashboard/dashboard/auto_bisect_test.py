@@ -194,7 +194,7 @@ class TickMonitoringCustomMetricTest(testing_common.TestCase):
   @mock.patch.object(utils, 'TickMonitoringCustomMetric')
   def testPost_RunCount1_ExceptionInPerformBisect_CustomMetricNotTicked(
       self, mock_tick, mock_perform_bisect):
-    mock_perform_bisect.side_effect = Exception('Error')
+    mock_perform_bisect.side_effect = request_handler.InvalidInputError()
     try_job.TryJob(
         bug_id=222, status='failed',
         last_ran_timestamp=datetime.datetime.now(),
@@ -206,7 +206,7 @@ class TickMonitoringCustomMetricTest(testing_common.TestCase):
   @mock.patch.object(utils, 'TickMonitoringCustomMetric')
   def testPost_RunCount2_ExceptionInPerformBisect_CustomMetricNotTicked(
       self, mock_tick, mock_perform_bisect):
-    mock_perform_bisect.side_effect = Exception('Error')
+    mock_perform_bisect.side_effect = request_handler.InvalidInputError()
     try_job.TryJob(
         bug_id=111, status='failed',
         last_ran_timestamp=datetime.datetime.now() - datetime.timedelta(days=8),

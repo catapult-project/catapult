@@ -81,7 +81,7 @@ def _TaskWrapper(code_string, function_name):
   start_time = time.time()
   try:
     returned_results = task_function()
-  except Exception as e:
+  except Exception as e:  # Intentionally broad -- pylint: disable=broad-except
     print str(e)
     returned_results = ''
   elapsed_time = time.time() - start_time

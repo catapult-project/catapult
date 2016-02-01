@@ -192,7 +192,7 @@ class Formatter(object):
 
 
 # Not subclassing object (aka old-style class) reduces the serialization size.
-class Record:
+class Record:  # pylint: disable=old-style-class
   """Class to hold a log."""
 
   def __init__(self, message):

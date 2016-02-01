@@ -6,10 +6,6 @@ disable=
   design,
   similarities,
 
-  abstract-class-not-used,
-  bad-builtin,
-  bad-continuation,
-  broad-except,
   fixme,
   global-statement,
   import-error,
@@ -21,10 +17,9 @@ disable=
   no-member,
   no-name-in-module,
   no-self-use,
-  old-style-class,
   protected-access,
-  super-on-old-class,
   star-args,
+  super-on-old-class,
 
 
 [REPORTS]

@@ -62,7 +62,7 @@ def _RestartFailedBisectJobs():
           if job.run_count == 1:
             try:
               start_try_job.PerformBisect(job)
-            except Exception as e:
+            except request_handler.InvalidInputError as e:
               logging.error(e.message)
               all_successful = False
           elif job.bug_id:
@@ -98,7 +98,7 @@ def _RestartBisect(bisect_job):
   bisect_job.put()
   try:
     start_try_job.PerformBisect(bisect_job)
-  except Exception as e:
+  except request_handler.InvalidInputError as e:
     logging.error(e.message)
     return False
   return True
