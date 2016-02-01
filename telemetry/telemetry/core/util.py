@@ -27,6 +27,10 @@ def GetBaseDir():
     return os.getcwd()
 
 
+def GetCatapultThirdPartyDir():
+  return os.path.normpath(os.path.join(GetCatapultDir(), 'third_party'))
+
+
 def GetTelemetryDir():
   return os.path.normpath(os.path.join(
       os.path.abspath(__file__), '..', '..', '..'))
