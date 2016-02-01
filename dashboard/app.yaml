@@ -88,11 +88,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /bisect
-  script: dashboard.dispatcher.app
-  login: required
-  secure: always
-
 - url: /bot_whitelist
   script: dashboard.dispatcher.app
   login: admin
@@ -128,6 +123,11 @@ handlers:
   login: required
   secure: always
 
+- url: /edit_site_config
+  script: dashboard.dispatcher.app
+  login: admin
+  secure: always
+
 - url: /email_summary
   script: dashboard.dispatcher.app
   login: admin
@@ -136,11 +136,6 @@ handlers:
 - url: /file_bug
   script: dashboard.dispatcher.app
   login: required
-  secure: always
-
-- url: /ip_whitelist
-  script: dashboard.dispatcher.app
-  login: admin
   secure: always
 
 - url: /load_from_prod
