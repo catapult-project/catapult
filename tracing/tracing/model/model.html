@@ -59,6 +59,9 @@ tr.exportTo('tr', function() {
   var InteractionRecord = tr.model.InteractionRecord;
   var Sample = tr.model.Sample;
 
+  // TODO(charliea): Rethink what ClockSyncRecords should look like in the
+  // world with the new clock sync. Should they have a duration? Should
+  // the have an ID instead of a name?
   function ClockSyncRecord(name, ts, args) {
     this.name = name;
     this.ts = ts;
