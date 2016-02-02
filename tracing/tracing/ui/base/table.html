@@ -1178,6 +1178,7 @@ tr.exportTo('tr.ui.b', function() {
           return;
 
         var code_to_command_names = {
+          13: 'ENTER',
           37: 'ARROW_LEFT',
           38: 'ARROW_UP',
           39: 'ARROW_RIGHT',
@@ -1280,6 +1281,16 @@ tr.exportTo('tr.ui.b', function() {
             default:
               throw new Error('Invalid selection mode ' + this.selectionMode_);
           }
+        }
+
+        if (cmdName === 'ENTER') {
+          if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+            return;
+          if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+            return;
+          this.setExpandedForTableRow(rowInfo.userRow, !rowInfo.isExpanded);
+          this.focusSelected_();
+          return;
         }
 
         throw new Error('Unrecognized command ' + cmdName);
