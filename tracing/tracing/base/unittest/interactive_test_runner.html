@@ -422,10 +422,6 @@ tr.exportTo('tr.b.unittest', function() {
         return true;
       }, this);
 
-      // Reverse the tests array to keep them in alphabetical order since
-      // TestRunner displays them last-to-first.
-      tests.reverse();
-
       this.runner_ = new tr.b.unittest.TestRunner(this.results_, tests);
       this.runner_.beginRunning();
 
@@ -686,7 +682,7 @@ tr.exportTo('tr.b.unittest', function() {
           return window.location.pathname + '?' + stateString;
         else
           return window.location.pathname;
-      }
+      };
     }
 
     loadAndRunTestsImpl();

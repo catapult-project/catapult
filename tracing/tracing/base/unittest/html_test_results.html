@@ -193,10 +193,6 @@ tr.exportTo('tr.b.unittest', function() {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       htmlResultEl.appendChild(element);
       this.querySelector('#details').appendChild(htmlResultEl);
-
-      var bounds = element.getBoundingClientRect();
-      assert(bounds.width !== 0, 'addHTMLOutput element as 0 width');
-      assert(bounds.height !== 0, 'addHTMLOutput element has 0 height');
     },
 
     updateHTMLOutputDisplayState_: function() {
@@ -288,6 +284,7 @@ tr.exportTo('tr.b.unittest', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      this.testCaseResultsByCaseGUID_ = {};
       this.currentTestCaseStartTime_ = undefined;
       this.totalRunTime_ = 0;
       this.numTestsThatPassed_ = 0;
@@ -348,48 +345,32 @@ tr.exportTo('tr.b.unittest', function() {
         display = '';
       }
       res.style.display = display;
+    },
 
-      // This bit of mess gives res objects a dark class based on whether their
-      // last visible sibling was not dark. It relies on the
-      // updateDisplayStateForResult_ being called on all next siblings of
-      // an element before being called on the element itself. Yay induction.
-      var dark;
-      if (!res.nextSibling) {
-        dark = true;
-      } else {
-        var lastVisible;
-        for (var cur = res.nextSibling;
-             cur;
-             cur = cur.nextSibling) {
-          if (cur.style.display == '') {
-            lastVisible = cur;
-            break;
-          }
-        }
-        if (lastVisible) {
-          dark = !lastVisible.classList.contains('dark');
-        } else {
-          dark = true;
-        }
-      }
+    willRunTests: function(testCases) {
+      this.timeAtBeginningOfTest_ = window.performance.now();
+      testCases.forEach(function(testCase, i) {
+        var testCaseResult = new HTMLTestCaseResult();
+        testCaseResult.showHTMLOutput = this.showHTMLOutput_;
+        testCaseResult.testCase = testCase;
+        if ((i % 2) === 0)
+          testCaseResult.classList.add('dark');
 
-      if (dark)
-        res.classList.add('dark');
-      else
-        res.classList.remove('dark');
+        var href = this.getHRefForTestCase(testCase);
+        if (href)
+          testCaseResult.testCaseHRef = href;
+        testCaseResult.testStatus = TestStatus.PENDING;
+        this.testCaseResultsByCaseGUID_[testCase.guid] = testCaseResult;
+        this.appendChild(testCaseResult);
+        this.updateDisplayStateForResult_(testCaseResult);
+      }, this);
     },
 
     willRunTest: function(testCase) {
-      this.currentTestCaseResult_ = new HTMLTestCaseResult();
-      this.currentTestCaseResult_.showHTMLOutput = this.showHTMLOutput_;
-      this.currentTestCaseResult_.testCase = testCase;
-      var href = this.getHRefForTestCase(testCase);
-      if (href)
-        this.currentTestCaseResult_.testCaseHRef = href;
-      this.currentTestCaseResult_.testStatus = TestStatus.RUNNING;
+      this.currentTestCaseResult_ = this.testCaseResultsByCaseGUID_[
+          testCase.guid];
       this.currentTestCaseStartTime_ = window.performance.now();
-      this.insertBefore(this.currentTestCaseResult_, this.firstChild);
-      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+      this.currentTestCaseResult_.testStatus = TestStatus.PENDING;
       this.log_(testCase.fullyQualifiedName + ': ');
     },
 
@@ -421,12 +402,12 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     didCurrentTestEnd: function() {
+      var now = window.performance.now();
       var testCaseResult = this.currentTestCaseResult_;
-      var testCaseDuration = window.performance.now() -
-          this.currentTestCaseStartTime_;
+      var testCaseDuration = now - this.currentTestCaseStartTime_;
       this.currentTestCaseResult_.testStatus = TestStatus.DONE_RUNNING;
       testCaseResult.duration = testCaseDuration;
-      this.totalRunTime_ += testCaseDuration;
+      this.totalRunTime_ = now - this.timeAtBeginningOfTest_;
       var resultString;
       if (testCaseResult.hadErrors) {
         resultString = 'FAILED';

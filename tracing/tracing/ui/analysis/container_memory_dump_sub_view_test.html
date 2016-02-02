@@ -121,13 +121,19 @@ tr.b.unittest.testSuite(function() {
     // All these views should be completely empty.
     var unsetViewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
-    assert.throws(this.addHTMLOutput.bind(this, unsetViewEl), '0 width');
+    this.addHTMLOutput(unsetViewEl);
+    assert.equal(unsetViewEl.getBoundingClientRect().width, 0);
+    assert.equal(unsetViewEl.getBoundingClientRect().height, 0);
 
     var undefinedViewEl = createViewWithSelection(undefined);
-    assert.throws(this.addHTMLOutput.bind(this, undefinedViewEl), '0 width');
+    this.addHTMLOutput(undefinedViewEl);
+    assert.equal(undefinedViewEl.getBoundingClientRect().width, 0);
+    assert.equal(undefinedViewEl.getBoundingClientRect().height, 0);
 
     var emptyViewEl = createViewWithSelection([]);
-    assert.throws(this.addHTMLOutput.bind(this, emptyViewEl), '0 width');
+    this.addHTMLOutput(emptyViewEl);
+    assert.equal(emptyViewEl.getBoundingClientRect().width, 0);
+    assert.equal(emptyViewEl.getBoundingClientRect().height, 0);
   });
 
   test('instantiate_singleGlobalMemoryDump', function() {

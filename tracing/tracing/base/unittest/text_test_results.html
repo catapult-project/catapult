@@ -40,6 +40,9 @@ tr.exportTo('tr.b.unittest', function() {
       return this.numFlakyTests_;
     },
 
+    willRunTests: function(testCases) {
+    },
+
     willRunTest: function(testCase) {
       this.write_(testCase.name + ' (' + testCase.suite.name + ') ... ');
       this.currentTestCaseHadErrors_ = false;
