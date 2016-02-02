@@ -96,7 +96,6 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(telemetry_dir, 'third_party', 'modulegraph'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'pexpect'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'png'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'typ'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'webpagereplay'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
 
@@ -108,6 +107,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyserial'),
+      input_api.os_path.join(catapult_dir, 'third_party', 'typ'),
   ]
 
 
