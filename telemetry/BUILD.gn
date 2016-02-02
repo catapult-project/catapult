@@ -4,6 +4,8 @@
 
 group("telemetry_test_support") {
   # Generic telemetry deps. For now, just include the whole catapult directory.
+  # TODO(nednguyen, aiolos): only include what telemetry needs.
+  # https://github.com/catapult-project/catapult/issues/1953
   data = [
     "../",
   ]
