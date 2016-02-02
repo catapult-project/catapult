@@ -8,6 +8,20 @@ from tracing import value as value_module
 
 class ValueTests(unittest.TestCase):
 
+  def testScalar(self):
+    d = {
+        'canonical_url': '/a.json',
+        'type': 'scalar',
+        'name': 'MyScalarValue',
+        'important': False,
+        'value': {'a': 1, 'b': 'b'}
+    }
+    v = value_module.Value.FromDict(d)
+    self.assertTrue(isinstance(v, value_module.ScalarValue))
+    d2 = v.AsDict()
+
+    self.assertEquals(d, d2)
+
   def testDict(self):
     d = {
         'canonical_url': '/a.json',

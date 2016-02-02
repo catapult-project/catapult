@@ -12,6 +12,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('scalarValueBasic', function() {
+    var canonicalUrl = 'my_test.json';
+    var v = new tr.v.ScalarValue(canonicalUrl, 'MyFailure',
+                               314);
+    var d = v.asDict();
+
+    var v2 = tr.v.Value.fromDict(d);
+    assert.instanceOf(v2, tr.v.ScalarValue);
+    assert.equal(v.name, v2.name);
+    assert.deepEqual(v.value, v2.value);
+  });
+
   test('dictValueBasic', function() {
     var canonicalUrl = 'my_test.json';
     var v = new tr.v.DictValue(canonicalUrl, 'MyFailure',

@@ -23,6 +23,9 @@ tr.exportTo('tr.v', function() {
   }
 
   Value.fromDict = function(d) {
+    if (d.type === 'scalar')
+      return ScalarValue.fromDict(d);
+
     if (d.type === 'dict')
       return DictValue.fromDict(d);
 
@@ -59,6 +62,28 @@ tr.exportTo('tr.v', function() {
     }
   };
 
+  function ScalarValue(canonicalUrl, name, value, opt_options) {
+    var options = opt_options || {};
+    Value.call(this, canonicalUrl, name, options);
+    this.value = value;
+  }
+
+  ScalarValue.fromDict = function(d) {
+    if (d.units !== undefined)
+      throw new Error('Expected units to be undefined');
+    if (d.value === undefined)
+      throw new Error('Expected value to be provided');
+    return new ScalarValue(d.canonical_url, d.name, d.value, d);
+  };
+
+  ScalarValue.prototype = {
+    __proto__: Value.prototype,
+
+    _asDictInto: function(d) {
+      d.type = 'scalar';
+      d.value = this.value;
+    }
+  };
 
   function DictValue(canonicalUrl, name, value, opt_options) {
     var options = opt_options || {};
@@ -156,6 +181,7 @@ tr.exportTo('tr.v', function() {
 
   return {
     Value: Value,
+    ScalarValue: ScalarValue,
     DictValue: DictValue,
     FailureValue: FailureValue,
     SkipValue: SkipValue
