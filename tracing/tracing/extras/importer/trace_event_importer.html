@@ -720,6 +720,39 @@ tr.exportTo('tr.e.importer', function() {
       processEvents.push(event);
     },
 
+    processClockSyncEvent: function(event) {
+      if (event.ph !== 'c')
+        throw new Error('Invalid clock sync event phase "' + event.ph + '".');
+
+      var sync_id = event.args.sync_id;
+      var issue_start_ts = event.args.issue_ts;
+      var issue_end_ts = event.ts;
+
+      if (sync_id === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync_parse_error',
+          message: 'Clock sync at time ' + issue_end_ts + ' without an ID.'
+        });
+        return;
+      }
+
+      if (issue_start_ts === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync_parse_error',
+          message: 'Clock sync at time ' + issue_end_ts + ' with ID ' +
+              sync_id + ' without a start timestamp.'
+        });
+        return;
+      }
+
+      var clock_sync_args = {
+        duration: timestampFromUs(issue_end_ts - issue_start_ts)
+      };
+      this.model_.clockSyncRecords.push(new tr.ClockSyncRecord(
+        sync_id, timestampFromUs(issue_start_ts), clock_sync_args
+      ));
+    },
+
     /**
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
@@ -788,12 +821,10 @@ tr.exportTo('tr.e.importer', function() {
           modelStats.willProcessBasicTraceEvent(
               'samples', event.cat, event.name, eventSizeInBytes);
           this.processTraceSampleEvent(event);
-
         } else if (event.ph === 'C') {
           modelStats.willProcessBasicTraceEvent(
               'counters', event.cat, event.name, eventSizeInBytes);
           this.processCounterEvent(event);
-
         } else if (event.ph === 'M') {
           modelStats.willProcessBasicTraceEvent(
               'metadata', event.cat, event.name, eventSizeInBytes);
@@ -814,6 +845,10 @@ tr.exportTo('tr.e.importer', function() {
               'memory_dumps', event.cat, event.name, eventSizeInBytes);
           this.processMemoryDumpEvent(event);
 
+        } else if (event.ph === 'c') {
+          modelStats.willProcessBasicTraceEvent(
+              'clock_sync', event.cat, event.name, eventSizeInBytes);
+          this.processClockSyncEvent(event);
         } else {
           modelStats.willProcessBasicTraceEvent(
               'unknown', event.cat, event.name, eventSizeInBytes);

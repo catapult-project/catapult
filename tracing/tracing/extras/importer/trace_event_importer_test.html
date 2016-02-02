@@ -5498,6 +5498,60 @@ tr.b.unittest.testSuite(function() {
     assert.equal(C.subSlices.length, 0);
   });
 
+  test('clockSync', function() {
+    var events = [{
+      name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
+      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+    }];
+
+    var m = makeModel(events);
+
+    var foundClockSync = false;
+    for (var i = 0; i < m.clockSyncRecords.length; i++) {
+      var clockSync = m.clockSyncRecords[i];
+      if (clockSync.name !== 'abc')
+        continue;
+
+      foundClockSync = true;
+      assert.equal(clockSync.ts, .005);
+      assert.equal(clockSync.args.duration, .010);
+    }
+
+    assert.isTrue(foundClockSync);
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('clockSync_missingSyncId', function() {
+    var events = [{
+      name: 'clock_sync', args: {issue_ts: 5},
+      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+    }];
+
+    var m = makeModel(events);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
+  test('clockSync_missingStartTs', function() {
+    var events = [{
+      name: 'clock_sync', args: {sync_id: 'abc'},
+      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+    }];
+
+    var m = makeModel(events);
+
+    var foundClockSync = false;
+    for (var i = 0; i < m.clockSyncRecords.length; i++) {
+      var clockSync = m.clockSyncRecords[i];
+      if (clockSync.name !== 'abc')
+        continue;
+
+      foundClockSync = true;
+    }
+
+    assert.isFalse(foundClockSync);
+    assert.isTrue(m.hasImportWarnings);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 
