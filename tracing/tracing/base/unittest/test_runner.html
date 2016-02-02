@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/event_target.html">
 <script>
 'use strict';
@@ -14,11 +15,13 @@ tr.exportTo('tr.b.unittest', function() {
   var realGlobalOnError;
   var realGlobalHistoryPushState;
 
+  var NUM_TESTS_PER_RIC = 16;
+
   function installGlobalTestHooks(runner) {
     realTvOnAnimationFrameError = tr.b.onAnimationFrameError;
     tr.b.onAnimationFrameError = function(error) {
       runner.results.addErrorForCurrentTest(error);
-    }
+    };
 
     if (tr.isExported('global.onerror')) {
       realGlobalOnError = global.onerror;
@@ -28,7 +31,7 @@ tr.exportTo('tr.b.unittest', function() {
         if (realGlobalOnError)
           return realGlobalOnError(errorMsg, url, lineNumber);
         return false;
-      }
+      };
     }
 
     if (tr.isExported('global.history')) {
@@ -39,7 +42,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     tr.b.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
-    }
+    };
 
     if (tr.isExported('global.sessionStorage')) {
       global.sessionStorage.clear();
@@ -73,6 +76,7 @@ tr.exportTo('tr.b.unittest', function() {
     this.pendingTestCases_ = [];
 
     this.runOneTestCaseScheduled_ = false;
+    this.numRunsSinceLastRIC_ = 0;
 
     this.runCompletedPromise = undefined;
     this.runCompletedResolver_ = undefined;
@@ -95,6 +99,8 @@ tr.exportTo('tr.b.unittest', function() {
       }.bind(this));
 
       this.pendingTestCases_ = this.testCases_.slice(0);
+
+      this.results_.willRunTests(this.pendingTestCases_);
 
       this.scheduleRunOneTestCase_();
 
@@ -120,7 +126,14 @@ tr.exportTo('tr.b.unittest', function() {
       if (this.runOneTestCaseScheduled_)
         return;
       this.runOneTestCaseScheduled_ = true;
-      tr.b.requestIdleCallback(this.runOneTestCase_, this);
+
+      this.numRunsSinceLastRIC_++;
+      if (this.numRunsSinceLastRIC_ === NUM_TESTS_PER_RIC) {
+        this.numRunsSinceLastRIC_ = 0;
+        tr.b.requestIdleCallback(this.runOneTestCase_, this);
+      } else {
+        Promise.resolve().then(this.runOneTestCase_.bind(this));
+      }
     },
 
     runOneTestCase_: function() {
@@ -132,12 +145,14 @@ tr.exportTo('tr.b.unittest', function() {
       }
 
       this.currentTestCase_ = this.pendingTestCases_.splice(0, 1)[0];
-
+      this.currentMark_ = tr.b.Timing.mark(
+          'TestRunner', 'RunTest', {testName: this.currentTestCase_.name});
       this.results_.willRunTest(this.currentTestCase_);
 
       if (this.isCurrentTestFlaky_()) {
         this.results_.setCurrentTestFlaky();
         this.results_.didCurrentTestEnd();
+        this.currentMark_.end();
         this.currentTestCase_ = undefined;
         this.scheduleRunOneTestCase_();
         return;
@@ -145,6 +160,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       if (!this.setUpCurrentTestCase_()) {
         this.results_.didCurrentTestEnd();
+        this.currentMark_.end();
         this.currentTestCase_ = undefined;
         this.scheduleRunOneTestCase_();
         return;
@@ -157,6 +173,7 @@ tr.exportTo('tr.b.unittest', function() {
               if (result)
                 this.results_.setReturnValueFromCurrentTest(result);
               this.results_.didCurrentTestEnd();
+              this.currentMark_.end();
               this.currentTestCase_ = undefined;
               this.scheduleRunOneTestCase_();
             } catch (e) {
@@ -169,6 +186,7 @@ tr.exportTo('tr.b.unittest', function() {
               this.results_.addErrorForCurrentTest(error);
               this.tearDownCurrentTestCase_(false);
               this.results_.didCurrentTestEnd();
+              this.currentMark_.end();
               this.currentTestCase_ = undefined;
               this.scheduleRunOneTestCase_();
             } catch (e) {
