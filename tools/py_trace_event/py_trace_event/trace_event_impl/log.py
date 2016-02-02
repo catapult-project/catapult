@@ -73,7 +73,7 @@ def _trace_enable(log_file=None):
         "Log file must be None, a string, or file-like object with a fileno()")
 
   _log_file = log_file
-  lock.LockFile(_log_file, lock.LOCK_EX)
+  lock.AcquireFileLock(_log_file, lock.LOCK_EX)
   _log_file.seek(0, os.SEEK_END)
 
   lastpos = _log_file.tell()
@@ -93,7 +93,7 @@ def _trace_enable(log_file=None):
   else:
     _note("trace_event: Opened existing tracelog")
   _log_file.flush()
-  lock.UnlockFile(_log_file)
+  lock.ReleaseFileLock(_log_file)
 
 @_locked
 def trace_flush():
@@ -112,7 +112,7 @@ def trace_disable():
 
 def _flush(close=False):
   global _log_file
-  lock.LockFile(_log_file, lock.LOCK_EX)
+  lock.AcquireFileLock(_log_file, lock.LOCK_EX)
   _log_file.seek(0, os.SEEK_END)
   if len(_cur_events):
     _log_file.write(",\n")
@@ -126,7 +126,7 @@ def _flush(close=False):
     # and will insert a trailing ] during loading.
     pass
   _log_file.flush()
-  lock.UnlockFile(_log_file)
+  lock.ReleaseFileLock(_log_file)
 
   if close:
     _note("trace_event: Closed")

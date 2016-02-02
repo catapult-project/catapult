@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import os
 
 LOCK_EX = None  # Exclusive lock
@@ -28,7 +29,21 @@ elif os.name == 'posix':
   LOCK_NB = fcntl.LOCK_NB
 
 
-def LockFile(target_file, flags):
+@contextlib.contextmanager
+def FileLock(target_file, flags):
+  """ Lock the target file. Similar to AcquireFileLock but allow user to write:
+        with FileLock(f, LOCK_EX):
+           ...do stuff on file f without worrying about race condition
+    Args: see AcquireFileLock's documentation.
+  """
+  AcquireFileLock(target_file, flags)
+  try:
+    yield
+  finally:
+    ReleaseFileLock(target_file)
+
+
+def AcquireFileLock(target_file, flags):
   """ Lock the target file. Note that if |target_file| is closed, the lock is
     automatically released.
   Args:
@@ -46,7 +61,7 @@ def LockFile(target_file, flags):
     raise NotImplementedError('%s is not supported' % os.name)
 
 
-def UnlockFile(target_file):
+def ReleaseFileLock(target_file):
   """ Unlock the target file.
   Args:
     target_file: file handle of the file to release the lock.
