@@ -320,6 +320,9 @@ class GlobalMemoryDump(object):
   def IterProcessMemoryDumps(self):
     return iter(self._process_dumps)
 
+  def CountProcessMemoryDumps(self):
+    return len(self._process_dumps)
+
   def __repr__(self):
     values = ['id=%s' % self.dump_id]
     for key, value in sorted(self.GetMemoryUsage().iteritems()):
