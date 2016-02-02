@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 /**
  * @fileoverview Imports text files in the BattOr format into the
- * Model. This format is output by the BattOr executable.
+ * Model. This format is output by the battor_agent executable and library.
  *
  * This importer assumes the events arrive as a string. The unit tests provide
  * examples of the trace format.
@@ -21,7 +21,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.e.importer.battor', function() {
   /**
-   * Imports linux perf events into a specified model.
+   * Imports a BattOr power trace into a specified model.
    * @constructor
    */
   function BattorImporter(model, events) {
