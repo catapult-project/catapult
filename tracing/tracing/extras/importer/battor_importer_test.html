@@ -73,6 +73,26 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(m.hasImportWarnings);
   });
 
+  test('crossCorrelateWithoutSyncMarkers', function() {
+    // Create model.
+    var m = new tr.Model();
+    var io = new tr.importer.ImportOptions();
+    io.showImportWarnings = false;
+    m.importOptions = io;
+
+    // Create importer and import power trace.
+    var importer = new tr.e.importer.battor.BattorImporter(
+        m, BATTOR_LINES.join('\n'));
+    var series = new tr.model.PowerSeries(m.device);
+    importer.importPowerSamples(series);
+
+    // Check to make sure corrleation sync fails because there are no marks.
+    var syncMarks = [];
+    assert.isUndefined(importer.correlationClockSync(series, syncMarks));
+    assert.isTrue(m.hasImportWarnings);
+    assert.isUndefined(m.device.powerSeries);
+  });
+
   test('importNotEnoughSamples', function() {
     var m = tr.c.TestUtils.newModelWithEvents(
         BATTOR_LINES.slice(0, 5).join('\n'));
