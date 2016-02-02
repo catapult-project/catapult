@@ -14,7 +14,7 @@ from catapult_base import lock
 
 def _AppendTextToFile(file_name):
   with open(file_name, 'a') as f:
-    lock.LockFile(f, lock.LOCK_EX)
+    lock.AcquireFileLock(f, lock.LOCK_EX)
     # Sleep 100 ms to increase the chance of another process trying to acquire
     # the lock of file as the same time.
     time.sleep(0.1)
@@ -26,17 +26,17 @@ def _AppendTextToFile(file_name):
 
 def _ReadFileWithSharedLockBlockingThenWrite(read_file, write_file):
   with open(read_file, 'r') as f:
-    lock.LockFile(f, lock.LOCK_SH)
+    lock.AcquireFileLock(f, lock.LOCK_SH)
     content = f.read()
     with open(write_file, 'a') as f2:
-      lock.LockFile(f2, lock.LOCK_EX)
+      lock.AcquireFileLock(f2, lock.LOCK_EX)
       f2.write(content)
 
 
 def _ReadFileWithExclusiveLockNonBlocking(target_file, status_file):
   with open(target_file, 'r') as f:
     try:
-      lock.LockFile(f, lock.LOCK_EX | lock.LOCK_NB)
+      lock.AcquireFileLock(f, lock.LOCK_EX | lock.LOCK_NB)
       with open(status_file, 'w') as f2:
         f2.write('LockException was not raised')
     except lock.LockException:
@@ -81,7 +81,7 @@ class FileLockTest(unittest.TestCase):
         f.write('0123456789')
       with open(self.temp_file_path, 'r') as f:
         # First, acquire a shared lock on temp_file_path
-        lock.LockFile(f, lock.LOCK_SH)
+        lock.AcquireFileLock(f, lock.LOCK_SH)
 
         processess = []
         # Create 10 processes that also try to acquire shared lock from
@@ -107,7 +107,7 @@ class FileLockTest(unittest.TestCase):
     temp_status_file = tf.name
     try:
       with open(self.temp_file_path, 'w') as f:
-        lock.LockFile(f, lock.LOCK_EX)
+        lock.AcquireFileLock(f, lock.LOCK_EX)
         p = multiprocessing.Process(
             target=_ReadFileWithExclusiveLockNonBlocking,
             args=(self.temp_file_path, temp_status_file))
@@ -124,8 +124,36 @@ class FileLockTest(unittest.TestCase):
     temp_status_file = tf.name
     try:
       with open(self.temp_file_path, 'r') as f:
-        lock.LockFile(f, lock.LOCK_SH)
-        lock.UnlockFile(f)
+        lock.AcquireFileLock(f, lock.LOCK_SH)
+        lock.ReleaseFileLock(f)
+        p = multiprocessing.Process(
+            target=_ReadFileWithExclusiveLockNonBlocking,
+            args=(self.temp_file_path, temp_status_file))
+        p.start()
+        p.join()
+      with open(temp_status_file, 'r') as f:
+        self.assertEquals('LockException was not raised', f.read())
+    finally:
+      os.remove(temp_status_file)
+
+  def testContextualLock(self):
+    tf = tempfile.NamedTemporaryFile(delete=False)
+    tf.close()
+    temp_status_file = tf.name
+    try:
+      with open(self.temp_file_path, 'r') as f:
+        with lock.FileLock(f, lock.LOCK_EX):
+          # Within this block, accessing self.temp_file_path from another
+          # process should raise exception.
+          p = multiprocessing.Process(
+              target=_ReadFileWithExclusiveLockNonBlocking,
+              args=(self.temp_file_path, temp_status_file))
+          p.start()
+          p.join()
+          with open(temp_status_file, 'r') as f:
+            self.assertEquals('LockException raised', f.read())
+
+        # Accessing self.temp_file_path here should not raise exception.
         p = multiprocessing.Process(
             target=_ReadFileWithExclusiveLockNonBlocking,
             args=(self.temp_file_path, temp_status_file))
