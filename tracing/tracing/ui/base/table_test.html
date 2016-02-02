@@ -797,6 +797,15 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_UP');
     assert.equal(table.selectedTableRow, rows[0]);
 
+    // Enter on collapsed row should expand.
+    table.selectedTableRow = rows[0];
+    table.performKeyCommand_('ENTER');
+    assert.equal(table.selectedTableRow, rows[0]);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ENTER');
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
     // Arrow right on collapsed row should expand.
     table.selectedTableRow = rows[0];
     table.performKeyCommand_('ARROW_RIGHT');

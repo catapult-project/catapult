@@ -58,6 +58,7 @@ found in the LICENSE file.
              {label: 'Heavy', value: 'HEAVYVIEW'}]
         );
         this.$.control.appendChild(viewSelector);
+        this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       },
 
       get selection() {
