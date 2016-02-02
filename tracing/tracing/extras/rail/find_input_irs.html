@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range_utils.html">
+<link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/extras/rail/proto_ir.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.rail', function() {
+  var ProtoIR = tr.e.rail.ProtoIR;
+
+  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
+
+  var KEYBOARD_TYPE_NAMES = [
+    INPUT_TYPE.CHAR,
+    INPUT_TYPE.KEY_DOWN_RAW,
+    INPUT_TYPE.KEY_DOWN,
+    INPUT_TYPE.KEY_UP
+  ];
+  var MOUSE_RESPONSE_TYPE_NAMES = [
+    INPUT_TYPE.CLICK,
+    INPUT_TYPE.CONTEXT_MENU
+  ];
+  var MOUSE_WHEEL_TYPE_NAMES = [
+    INPUT_TYPE.MOUSE_WHEEL
+  ];
+  var MOUSE_DRAG_TYPE_NAMES = [
+    INPUT_TYPE.MOUSE_DOWN,
+    INPUT_TYPE.MOUSE_MOVE,
+    INPUT_TYPE.MOUSE_UP
+  ];
+  var TAP_TYPE_NAMES = [
+    INPUT_TYPE.TAP,
+    INPUT_TYPE.TAP_CANCEL,
+    INPUT_TYPE.TAP_DOWN
+  ];
+  var PINCH_TYPE_NAMES = [
+    INPUT_TYPE.PINCH_BEGIN,
+    INPUT_TYPE.PINCH_END,
+    INPUT_TYPE.PINCH_UPDATE
+  ];
+  var FLING_TYPE_NAMES = [
+    INPUT_TYPE.FLING_CANCEL,
+    INPUT_TYPE.FLING_START
+  ];
+  var TOUCH_TYPE_NAMES = [
+    INPUT_TYPE.TOUCH_END,
+    INPUT_TYPE.TOUCH_MOVE,
+    INPUT_TYPE.TOUCH_START
+  ];
+  var SCROLL_TYPE_NAMES = [
+    INPUT_TYPE.SCROLL_BEGIN,
+    INPUT_TYPE.SCROLL_END,
+    INPUT_TYPE.SCROLL_UPDATE
+  ];
+  var ALL_HANDLED_TYPE_NAMES = [].concat(
+    KEYBOARD_TYPE_NAMES,
+    MOUSE_RESPONSE_TYPE_NAMES,
+    MOUSE_WHEEL_TYPE_NAMES,
+    MOUSE_DRAG_TYPE_NAMES,
+    PINCH_TYPE_NAMES,
+    TAP_TYPE_NAMES,
+    FLING_TYPE_NAMES,
+    TOUCH_TYPE_NAMES,
+    SCROLL_TYPE_NAMES
+  );
+
+  var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
+
+  // TODO(benjhayden) share with rail_ir_finder
+  var CSS_ANIMATION_TITLE = 'Animation';
+
+  // If there's less than this much time between the end of one event and the
+  // start of the next, then they might be merged.
+  // There was not enough thought given to this value, so if you have any slight
+  // reason to change it, then please do so. It might also be good to split this
+  // into multiple values.
+  var INPUT_MERGE_THRESHOLD_MS = 200;
+  var ANIMATION_MERGE_THRESHOLD_MS = 1;
+
+  // If two MouseWheel events begin this close together, then they're an
+  // Animation, not two responses.
+  var MOUSE_WHEEL_THRESHOLD_MS = 40;
+
+  // If two MouseMoves are more than this far apart, then they're two Responses,
+  // not Animation.
+  var MOUSE_MOVE_THRESHOLD_MS = 40;
+
+  // Strings used to name IRs.
+  var KEYBOARD_IR_NAME = 'Keyboard';
+  var MOUSE_IR_NAME = 'Mouse';
+  var MOUSEWHEEL_IR_NAME = 'MouseWheel';
+  var TAP_IR_NAME = 'Tap';
+  var PINCH_IR_NAME = 'Pinch';
+  var FLING_IR_NAME = 'Fling';
+  var TOUCH_IR_NAME = 'Touch';
+  var SCROLL_IR_NAME = 'Scroll';
+  var CSS_IR_NAME = 'CSS';
+
+  // TODO(benjhayden) Find a better home for this.
+  function compareEvents(x, y) {
+    if (x.start !== y.start)
+      return x.start - y.start;
+    if (x.end !== y.end)
+      return x.end - y.end;
+    if (x.guid && y.guid)
+      return x.guid - y.guid;
+    return 0;
+  }
+
+  function forEventTypesIn(events, typeNames, cb, opt_this) {
+    events.forEach(function(event) {
+      if (typeNames.indexOf(event.typeName) >= 0) {
+        cb.call(opt_this, event);
+      }
+    });
+  }
+
+  function causedFrame(event) {
+    for (var i = 0; i < event.associatedEvents.length; ++i) {
+      if (event.associatedEvents[i].title === tr.e.audits.IMPL_RENDERING_STATS)
+        return true;
+    }
+    return false;
+  }
+
+  function getSortedInputEvents(modelHelper) {
+    var inputEvents = [];
+
+    var browserProcess = modelHelper.browserHelper.process;
+    var mainThread = browserProcess.findAtMostOneThreadNamed(
+        'CrBrowserMain');
+    mainThread.asyncSliceGroup.iterateAllEvents(function(slice) {
+      if (!slice.isTopLevel)
+        return;
+
+      if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice))
+        return;
+
+      // TODO(beaudoin): This should never happen but it does. Investigate
+      // the trace linked at in #1567 and remove that when it's fixed.
+      if (isNaN(slice.start) ||
+          isNaN(slice.duration) ||
+          isNaN(slice.end))
+        return;
+
+      inputEvents.push(slice);
+    });
+
+    return inputEvents.sort(compareEvents);
+  }
+
+  function findProtoIRs(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    // This order is not important. Handlers are independent.
+    var handlers = [
+      handleKeyboardEvents,
+      handleMouseResponseEvents,
+      handleMouseWheelEvents,
+      handleMouseDragEvents,
+      handleTapResponseEvents,
+      handlePinchEvents,
+      handleFlingEvents,
+      handleTouchEvents,
+      handleScrollEvents,
+      handleCSSAnimations
+    ];
+    handlers.forEach(function(handler) {
+      protoIRs.push.apply(protoIRs, handler(modelHelper, sortedInputEvents));
+    });
+    protoIRs.sort(compareEvents);
+    return protoIRs;
+  }
+
+  // Every keyboard event is a Response.
+  function handleKeyboardEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
+      var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, KEYBOARD_IR_NAME);
+      pir.pushEvent(event);
+      protoIRs.push(pir);
+    });
+    return protoIRs;
+  }
+
+  // Some mouse events can be translated directly into Responses.
+  function handleMouseResponseEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    forEventTypesIn(
+        sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
+      var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
+      pir.pushEvent(event);
+      protoIRs.push(pir);
+    });
+    return protoIRs;
+  }
+
+  // MouseWheel events are caused either by a physical wheel on a physical
+  // mouse, or by a touch-drag gesture on a track-pad. The physical wheel
+  // causes MouseWheel events that are much more spaced out, and have no
+  // chance of hitting 60fps, so they are each turned into separate Response
+  // IRs. The track-pad causes MouseWheel events that are much closer
+  // together, and are expected to be 60fps, so the first event in a sequence
+  // is turned into a Response, and the rest are merged into an Animation.
+  // NB this threshold uses the two events' start times, unlike
+  // ProtoIR.isNear, which compares the end time of the previous event with
+  // the start time of the next.
+  function handleMouseWheelEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    var prevEvent_ = undefined;
+    forEventTypesIn(
+        sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
+      // Switch prevEvent in one place so that we can early-return later.
+      var prevEvent = prevEvent_;
+      prevEvent_ = event;
+
+      if (currentPIR &&
+          (prevEvent.start + MOUSE_WHEEL_THRESHOLD_MS) >= event.start) {
+        if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
+          currentPIR.pushEvent(event);
+        } else {
+          currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+              MOUSEWHEEL_IR_NAME);
+          currentPIR.pushEvent(event);
+          protoIRs.push(currentPIR);
+        }
+        return;
+      }
+      currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSEWHEEL_IR_NAME);
+      currentPIR.pushEvent(event);
+      protoIRs.push(currentPIR);
+    });
+    return protoIRs;
+  }
+
+  // Down events followed closely by Up events are click Responses, but the
+  // Response doesn't start until the Up event.
+  //
+  //     RRR
+  // DDD UUU
+  //
+  // If there are any Move events in between a Down and an Up, then the Down
+  // and the first Move are a Response, then the rest of the Moves are an
+  // Animation:
+  //
+  // RRRRRRRAAAAAAAAAAAAAAAAAAAA
+  // DDD MMM MMM MMM MMM MMM UUU
+  //
+  function handleMouseDragEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    var mouseDownEvent = undefined;
+    forEventTypesIn(
+        sortedInputEvents, MOUSE_DRAG_TYPE_NAMES, function(event) {
+      switch (event.typeName) {
+        case INPUT_TYPE.MOUSE_DOWN:
+          if (causedFrame(event)) {
+            var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+          } else {
+            // Responses typically don't start until the mouse up event.
+            // Add this MouseDown to the Response that starts at the MouseUp.
+            mouseDownEvent = event;
+          }
+          break;
+          // There may be more than 100ms between the start of the mouse down
+          // and the start of the mouse up. Chrome and the web don't start to
+          // respond until the mouse up. ResponseIRs start deducting comfort
+          // at 100ms duration. If more than that 100ms duration is burned
+          // through while waiting for the user to release the
+          // mouse button, then ResponseIR will unfairly start deducting
+          // comfort before Chrome even has a mouse up to respond to.
+          // It is technically possible for a site to afford one response on
+          // mouse down and another on mouse up, but that is an edge case. The
+          // vast majority of mouse downs are not responses.
+
+        case INPUT_TYPE.MOUSE_MOVE:
+          if (!causedFrame(event)) {
+            // Ignore MouseMoves that do not affect the screen. They are not
+            // part of an interaction record by definition.
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+          } else if (!currentPIR ||
+                      !currentPIR.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
+            // The first MouseMove after a MouseDown or after a while is a
+            // Response.
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
+            currentPIR.pushEvent(event);
+            if (mouseDownEvent) {
+              currentPIR.associatedEvents.push(mouseDownEvent);
+              mouseDownEvent = undefined;
+            }
+            protoIRs.push(currentPIR);
+          } else {
+            // Merge this event into an Animation.
+            if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
+              currentPIR.pushEvent(event);
+            } else {
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, MOUSE_IR_NAME);
+              currentPIR.pushEvent(event);
+              protoIRs.push(currentPIR);
+            }
+          }
+          break;
+
+        case INPUT_TYPE.MOUSE_UP:
+          if (!mouseDownEvent) {
+            var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
+                ProtoIR.IGNORED_TYPE, MOUSE_IR_NAME);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+            break;
+          }
+
+          if (currentPIR) {
+            currentPIR.pushEvent(event);
+          } else {
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
+            if (mouseDownEvent)
+              currentPIR.associatedEvents.push(mouseDownEvent);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          }
+          mouseDownEvent = undefined;
+          currentPIR = undefined;
+          break;
+      }
+    });
+    if (mouseDownEvent) {
+      currentPIR = new ProtoIR(ProtoIR.IGNORED_TYPE);
+      currentPIR.pushEvent(mouseDownEvent);
+      protoIRs.push(currentPIR);
+    }
+    return protoIRs;
+  }
+
+  // Solitary Tap events are simple Responses:
+  //
+  // RRR
+  // TTT
+  //
+  // TapDowns are part of Responses.
+  //
+  // RRRRRRR
+  // DDD TTT
+  //
+  // TapCancels are part of Responses, which seems strange. They always go
+  // with scrolls, so they'll probably be merged with scroll Responses.
+  // TapCancels can take a significant amount of time and account for a
+  // significant amount of work, which should be grouped with the scroll IRs
+  // if possible.
+  //
+  // RRRRRRR
+  // DDD CCC
+  //
+  function handleTapResponseEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    forEventTypesIn(sortedInputEvents, TAP_TYPE_NAMES, function(event) {
+      switch (event.typeName) {
+        case INPUT_TYPE.TAP_DOWN:
+          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
+          currentPIR.pushEvent(event);
+          protoIRs.push(currentPIR);
+          break;
+
+        case INPUT_TYPE.TAP:
+          if (currentPIR) {
+            currentPIR.pushEvent(event);
+          } else {
+            // Sometimes we get Tap events with no TapDown, sometimes we get
+            // TapDown events. Handle both.
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          }
+          currentPIR = undefined;
+          break;
+
+        case INPUT_TYPE.TAP_CANCEL:
+          if (!currentPIR) {
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+            break;
+          }
+
+          if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPIR.pushEvent(event);
+          } else {
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          }
+          currentPIR = undefined;
+          break;
+      }
+    });
+    return protoIRs;
+  }
+
+  // The PinchBegin and the first PinchUpdate comprise a Response, then the
+  // rest of the PinchUpdates comprise an Animation.
+  //
+  // RRRRRRRAAAAAAAAAAAAAAAAAAAA
+  // BBB UUU UUU UUU UUU UUU EEE
+  //
+  function handlePinchEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    var sawFirstUpdate = false;
+    var modelBounds = modelHelper.model.bounds;
+    forEventTypesIn(sortedInputEvents, PINCH_TYPE_NAMES, function(event) {
+      switch (event.typeName) {
+        case INPUT_TYPE.PINCH_BEGIN:
+          if (currentPIR &&
+              currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPIR.pushEvent(event);
+            break;
+          }
+          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, PINCH_IR_NAME);
+          currentPIR.pushEvent(event);
+          protoIRs.push(currentPIR);
+          sawFirstUpdate = false;
+          break;
+
+        case INPUT_TYPE.PINCH_UPDATE:
+          // Like ScrollUpdates, the Begin and the first Update constitute a
+          // Response, then the rest of the Updates constitute an Animation
+          // that begins when the Response ends. If the user pauses in the
+          // middle of an extended pinch gesture, then multiple Animations
+          // will be created.
+          if (!currentPIR ||
+              ((currentPIR.irType === ProtoIR.RESPONSE_TYPE) &&
+                sawFirstUpdate) ||
+              !currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, PINCH_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          } else {
+            currentPIR.pushEvent(event);
+            sawFirstUpdate = true;
+          }
+          break;
+
+        case INPUT_TYPE.PINCH_END:
+          if (currentPIR) {
+            currentPIR.pushEvent(event);
+          } else {
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+          }
+          currentPIR = undefined;
+          break;
+      }
+    });
+    return protoIRs;
+  }
+
+  // Flings are defined by 3 types of events: FlingStart, FlingCancel, and the
+  // renderer fling event. Flings do not begin with a Response. Flings end
+  // either at the beginning of a FlingCancel, or at the end of the renderer
+  // fling event.
+  //
+  // AAAAAAAAAAAAAAAAAAAAAAAAAA
+  // SSS
+  //     RRRRRRRRRRRRRRRRRRRRRR
+  //
+  //
+  // AAAAAAAAAAA
+  // SSS        CCC
+  //
+  function handleFlingEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+
+    function isRendererFling(event) {
+      return event.title === RENDERER_FLING_TITLE;
+    }
+    var browserHelper = modelHelper.browserHelper;
+    var flingEvents = browserHelper.getAllAsyncSlicesMatching(
+        isRendererFling);
+
+    forEventTypesIn(sortedInputEvents, FLING_TYPE_NAMES, function(event) {
+      flingEvents.push(event);
+    });
+    flingEvents.sort(compareEvents);
+
+    flingEvents.forEach(function(event) {
+      if (event.title === RENDERER_FLING_TITLE) {
+        if (currentPIR) {
+          currentPIR.pushEvent(event);
+        } else {
+          currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
+          currentPIR.pushEvent(event);
+          protoIRs.push(currentPIR);
+        }
+        return;
+      }
+
+      switch (event.typeName) {
+        case INPUT_TYPE.FLING_START:
+          if (currentPIR) {
+            console.error('Another FlingStart? File a bug with this trace!');
+            currentPIR.pushEvent(event);
+          } else {
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
+            currentPIR.pushEvent(event);
+            // Set end to an invalid value so that it can be noticed and fixed
+            // later.
+            currentPIR.end = 0;
+            protoIRs.push(currentPIR);
+          }
+          break;
+
+        case INPUT_TYPE.FLING_CANCEL:
+          if (currentPIR) {
+            currentPIR.pushEvent(event);
+            // FlingCancel events start when TouchStart events start, which is
+            // typically when a Response starts. FlingCancel events end when
+            // chrome acknowledges them, not when they update the screen. So
+            // there might be one more frame during the FlingCancel, after
+            // this Animation ends. That won't affect the scoring algorithms,
+            // and it will make the IRs look more correct if they don't
+            // overlap unnecessarily.
+            currentPIR.end = event.start;
+            currentPIR = undefined;
+          } else {
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+          }
+          break;
+      }
+    });
+    // If there was neither a FLING_CANCEL nor a renderer fling after the
+    // FLING_START, then assume that it ends at the end of the model, so set
+    // the end of currentPIR to the end of the model.
+    if (currentPIR && !currentPIR.end)
+      currentPIR.end = modelHelper.model.bounds.max;
+    return protoIRs;
+  }
+
+  // The TouchStart and the first TouchMove comprise a Response, then the
+  // rest of the TouchMoves comprise an Animation.
+  //
+  // RRRRRRRAAAAAAAAAAAAAAAAAAAA
+  // SSS MMM MMM MMM MMM MMM EEE
+  //
+  // If there are no TouchMove events in between a TouchStart and a TouchEnd,
+  // then it's just a Response.
+  //
+  // RRRRRRR
+  // SSS EEE
+  //
+  function handleTouchEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    var sawFirstMove = false;
+    forEventTypesIn(sortedInputEvents, TOUCH_TYPE_NAMES, function(event) {
+      switch (event.typeName) {
+        case INPUT_TYPE.TOUCH_START:
+          if (currentPIR) {
+            // NB: currentPIR will probably be merged with something from
+            // handlePinchEvents(). Multiple TouchStart events without an
+            // intervening TouchEnd logically implies that multiple fingers
+            // are on the screen, so this is probably a pinch gesture.
+            currentPIR.pushEvent(event);
+          } else {
+            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TOUCH_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+            sawFirstMove = false;
+          }
+          break;
+
+        case INPUT_TYPE.TOUCH_MOVE:
+          if (!currentPIR) {
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+            break;
+          }
+
+          // Like Scrolls and Pinches, the Response is defined to be the
+          // TouchStart plus the first TouchMove, then the rest of the
+          // TouchMoves constitute an Animation.
+          if ((sawFirstMove &&
+              (currentPIR.irType === ProtoIR.RESPONSE_TYPE)) ||
+              !currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            // If there's already a touchmove in the currentPIR or it's not
+            // near event, then finish it and start a new animation.
+            var prevEnd = currentPIR.end;
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
+            currentPIR.pushEvent(event);
+            // It's possible for there to be a gap between TouchMoves, but
+            // that doesn't mean that there should be an Idle IR there.
+            currentPIR.start = prevEnd;
+            protoIRs.push(currentPIR);
+          } else {
+            currentPIR.pushEvent(event);
+            sawFirstMove = true;
+          }
+          break;
+
+        case INPUT_TYPE.TOUCH_END:
+          if (!currentPIR) {
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+            break;
+          }
+          if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPIR.pushEvent(event);
+          } else {
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+          }
+          currentPIR = undefined;
+          break;
+      }
+    });
+    return protoIRs;
+  }
+
+  // The first ScrollBegin and the first ScrollUpdate comprise a Response,
+  // then the rest comprise an Animation.
+  //
+  // RRRRRRRAAAAAAAAAAAAAAAAAAAA
+  // BBB UUU UUU UUU UUU UUU EEE
+  //
+  function handleScrollEvents(modelHelper, sortedInputEvents) {
+    var protoIRs = [];
+    var currentPIR = undefined;
+    var sawFirstUpdate = false;
+    forEventTypesIn(sortedInputEvents, SCROLL_TYPE_NAMES, function(event) {
+      switch (event.typeName) {
+        case INPUT_TYPE.SCROLL_BEGIN:
+          // Always begin a new PIR even if there already is one, unlike
+          // PinchBegin.
+          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, SCROLL_IR_NAME);
+          currentPIR.pushEvent(event);
+          protoIRs.push(currentPIR);
+          sawFirstUpdate = false;
+          break;
+
+        case INPUT_TYPE.SCROLL_UPDATE:
+          if (currentPIR) {
+            if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS) &&
+                ((currentPIR.irType === ProtoIR.ANIMATION_TYPE) ||
+                !sawFirstUpdate)) {
+              currentPIR.pushEvent(event);
+              sawFirstUpdate = true;
+            } else {
+              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+                  SCROLL_IR_NAME);
+              currentPIR.pushEvent(event);
+              protoIRs.push(currentPIR);
+            }
+          } else {
+            // ScrollUpdate without ScrollBegin.
+            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, SCROLL_IR_NAME);
+            currentPIR.pushEvent(event);
+            protoIRs.push(currentPIR);
+          }
+          break;
+
+        case INPUT_TYPE.SCROLL_END:
+          if (!currentPIR) {
+            console.error('ScrollEnd without ScrollUpdate? ' +
+                          'File a bug with this trace!');
+            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
+            pir.pushEvent(event);
+            protoIRs.push(pir);
+            break;
+          }
+          currentPIR.pushEvent(event);
+          break;
+      }
+    });
+    return protoIRs;
+  }
+
+  // CSS Animations are merged into Animations when they intersect.
+  function handleCSSAnimations(modelHelper, sortedInputEvents) {
+    var animationEvents = modelHelper.browserHelper.
+        getAllAsyncSlicesMatching(function(event) {
+          return ((event.title === CSS_ANIMATION_TITLE) &&
+                  (event.duration > 0));
+    });
+
+    var animationRanges = [];
+    animationEvents.forEach(function(event) {
+      animationRanges.push({
+        min: event.start,
+        max: event.end,
+        event: event
+      });
+    });
+
+    function merge(ranges) {
+      var protoIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, CSS_IR_NAME);
+      ranges.forEach(function(range) {
+        protoIR.pushEvent(range.event);
+      });
+      return protoIR;
+    }
+
+    return tr.b.mergeRanges(animationRanges,
+                            ANIMATION_MERGE_THRESHOLD_MS,
+                            merge);
+  }
+
+  function postProcessProtoIRs(protoIRs) {
+    // protoIRs is input only. Returns a modified set of ProtoIRs.
+    // The order is important.
+    protoIRs = mergeIntersectingResponses(protoIRs);
+    protoIRs = mergeIntersectingAnimations(protoIRs);
+    protoIRs = fixResponseAnimationStarts(protoIRs);
+    protoIRs = fixTapResponseTouchAnimations(protoIRs);
+    return protoIRs;
+  }
+
+  // TouchStarts happen at the same time as ScrollBegins.
+  // It's easier to let multiple handlers create multiple overlapping
+  // Responses and then merge them, rather than make the handlers aware of the
+  // other handlers' PIRs.
+  //
+  // For example:
+  // RR
+  //  RRR  -> RRRRR
+  //    RR
+  //
+  // protoIRs is input only.
+  // Returns a modified set of ProtoIRs.
+  function mergeIntersectingResponses(protoIRs) {
+    var newPIRs = [];
+    while (protoIRs.length) {
+      var pir = protoIRs.shift();
+      newPIRs.push(pir);
+
+      // Only consider Responses for now.
+      if (pir.irType !== ProtoIR.RESPONSE_TYPE)
+        continue;
+
+      for (var i = 0; i < protoIRs.length; ++i) {
+        var otherPIR = protoIRs[i];
+
+        if (otherPIR.irType !== pir.irType)
+          continue;
+
+        if (!otherPIR.intersects(pir))
+          continue;
+
+        // Don't merge together Responses of the same type.
+        // If handleTouchEvents wanted two of its Responses to be merged, then
+        // it would have made them that way to begin with.
+        var typeNames = pir.associatedEvents.map(function(event) {
+          return event.typeName;
+        });
+        if (otherPIR.containsTypeNames(typeNames))
+          continue;
+
+        pir.merge(otherPIR);
+        protoIRs.splice(i, 1);
+        // Don't skip the next otherPIR!
+        --i;
+      }
+    }
+    return newPIRs;
+  }
+
+  // An animation is simply an expectation of 60fps between start and end.
+  // If two animations overlap, then merge them.
+  //
+  // For example:
+  // AA
+  //  AAA  -> AAAAA
+  //    AA
+  //
+  // protoIRs is input only.
+  // Returns a modified set of ProtoIRs.
+  function mergeIntersectingAnimations(protoIRs) {
+    var newPIRs = [];
+    while (protoIRs.length) {
+      var pir = protoIRs.shift();
+      newPIRs.push(pir);
+
+      // Only consider Animations for now.
+      if (pir.irType !== ProtoIR.ANIMATION_TYPE)
+        continue;
+
+      var isCSS = pir.containsSliceTitle(CSS_ANIMATION_TITLE);
+      var isFling = pir.containsTypeNames([INPUT_TYPE.FLING_START]);
+
+      for (var i = 0; i < protoIRs.length; ++i) {
+        var otherPIR = protoIRs[i];
+
+        if (otherPIR.irType !== pir.irType)
+          continue;
+
+        // Don't merge CSS Animations with any other types.
+        if (isCSS != otherPIR.containsSliceTitle(CSS_ANIMATION_TITLE))
+          continue;
+
+        if (!otherPIR.intersects(pir))
+          continue;
+
+        // Don't merge Fling Animations with any other types.
+        if (isFling != otherPIR.containsTypeNames([INPUT_TYPE.FLING_START]))
+          continue;
+
+        pir.merge(otherPIR);
+        protoIRs.splice(i, 1);
+        // Don't skip the next otherPIR!
+        --i;
+      }
+    }
+    return newPIRs;
+  }
+
+  // The ends of responses frequently overlap the starts of animations.
+  // Fix the animations to reflect the fact that the user can only start to
+  // expect 60fps after the response.
+  //
+  // For example:
+  // RRR   -> RRRAA
+  //  AAAA
+  //
+  // protoIRs is input only.
+  // Returns a modified set of ProtoIRs.
+  function fixResponseAnimationStarts(protoIRs) {
+    protoIRs.forEach(function(apir) {
+      // Only consider animations for now.
+      if (apir.irType !== ProtoIR.ANIMATION_TYPE)
+        return;
+
+      protoIRs.forEach(function(rpir) {
+        // Only consider responses for now.
+        if (rpir.irType !== ProtoIR.RESPONSE_TYPE)
+          return;
+
+        // Only consider responses that end during the animation.
+        if (!apir.containsTimestampInclusive(rpir.end))
+          return;
+
+        // Ignore Responses that are entirely contained by the animation.
+        if (apir.containsTimestampInclusive(rpir.start))
+          return;
+
+        // Move the animation start to the response end.
+        apir.start = rpir.end;
+      });
+    });
+    return protoIRs;
+  }
+
+  // Merge Tap Responses that overlap Touch-only Animations.
+  // https://github.com/catapult-project/catapult/issues/1431
+  function fixTapResponseTouchAnimations(protoIRs) {
+    function isTapResponse(pir) {
+      return (pir.irType === ProtoIR.RESPONSE_TYPE) &&
+              pir.containsTypeNames([INPUT_TYPE.TAP]);
+    }
+    function isTouchAnimation(pir) {
+      return (pir.irType === ProtoIR.ANIMATION_TYPE) &&
+              pir.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
+              !pir.containsTypeNames([
+                  INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
+    }
+    var newPIRs = [];
+    while (protoIRs.length) {
+      var pir = protoIRs.shift();
+      newPIRs.push(pir);
+
+      // protoIRs are sorted by start time, and we don't know whether the Tap
+      // Response or the Touch Animation will be first
+      var pirIsTapResponse = isTapResponse(pir);
+      var pirIsTouchAnimation = isTouchAnimation(pir);
+      if (!pirIsTapResponse && !pirIsTouchAnimation)
+        continue;
+
+      for (var i = 0; i < protoIRs.length; ++i) {
+        var otherPIR = protoIRs[i];
+
+        if (!otherPIR.intersects(pir))
+          continue;
+
+        if (pirIsTapResponse && !isTouchAnimation(otherPIR))
+          continue;
+
+        if (pirIsTouchAnimation && !isTapResponse(otherPIR))
+          continue;
+
+        // pir might be the Touch Animation, but the merged ProtoIR should be
+        // a Response.
+        pir.irType = ProtoIR.RESPONSE_TYPE;
+
+        pir.merge(otherPIR);
+        protoIRs.splice(i, 1);
+        // Don't skip the next otherPIR!
+        --i;
+      }
+    }
+    return newPIRs;
+  }
+
+  // Check that none of the handlers accidentally ignored an input event.
+  function checkAllInputEventsHandled(sortedInputEvents, protoIRs) {
+    var handledEvents = [];
+    protoIRs.forEach(function(protoIR) {
+      protoIR.associatedEvents.forEach(function(event) {
+        if (handledEvents.indexOf(event) >= 0) {
+          console.error('double-handled event', event.typeName,
+              parseInt(event.start), parseInt(event.end), protoIR);
+          return;
+        }
+        handledEvents.push(event);
+      });
+    });
+
+    sortedInputEvents.forEach(function(event) {
+      if (handledEvents.indexOf(event) < 0) {
+        console.error('UNHANDLED INPUT EVENT!',
+            event.typeName, parseInt(event.start), parseInt(event.end));
+      }
+    });
+  }
+
+  // Find ProtoIRs, post-process them, convert them to real IRs.
+  function findInputIRs(modelHelper) {
+    var sortedInputEvents = getSortedInputEvents(modelHelper);
+    var protoIRs = findProtoIRs(modelHelper, sortedInputEvents);
+    protoIRs = postProcessProtoIRs(protoIRs);
+    checkAllInputEventsHandled(sortedInputEvents, protoIRs);
+
+    var irs = [];
+    protoIRs.forEach(function(protoIR) {
+      var ir = protoIR.createInteractionRecord(modelHelper.model);
+      if (ir)
+        irs.push(ir);
+    });
+    return irs;
+  }
+
+  return {
+    findInputIRs: findInputIRs,
+    compareEvents: compareEvents,
+    CSS_ANIMATION_TITLE: CSS_ANIMATION_TITLE
+  };
+});
+</script>

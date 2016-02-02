@@ -147,6 +147,7 @@
       'tracing/extras/net/net.html',
       'tracing/extras/net/net_async_slice.html',
       'tracing/extras/rail/animation_interaction_record.html',
+      'tracing/extras/rail/find_input_irs.html',
       'tracing/extras/rail/idle_interaction_record.html',
       'tracing/extras/rail/load_interaction_record.html',
       'tracing/extras/rail/proto_ir.html',
