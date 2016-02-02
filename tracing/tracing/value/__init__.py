@@ -46,12 +46,50 @@ class Value(object):
   def FromDict(cls, d):
     if d['type'] == 'dict':
       return DictValue.FromDict(d)
+    elif d['type'] == 'scalar':
+      return ScalarValue.FromDict(d)
     elif d['type'] == 'failure':
       return FailureValue.FromDict(d)
     elif d['type'] == 'skip':
       return SkipValue.FromDict(d)
     else:
       raise NotImplementedError()
+
+
+class ScalarValue(Value):
+
+  def __init__(self, canonical_url, name, value, description=None,
+               important=False, ir_stable_id=None):
+    assert isinstance(value, dict)
+    super(ScalarValue, self).__init__(canonical_url, name, units=None,
+                                      description=description,
+                                      important=important,
+                                      ir_stable_id=ir_stable_id)
+    self._value = value
+
+  def __repr__(self):
+    return '%s("%s", "%s")' % (self.__class__.__name__,
+                               self.name, self.value)
+
+  def _AsDictInto(self, d):
+    d['type'] = 'scalar'
+    d['value'] = self._value
+
+  @classmethod
+  def FromDict(cls, d):
+    assert d.get('units', None) == None
+    return cls(d['canonical_url'], name=d['name'],
+               description=d.get('description', None),
+               value=d['value'],
+               important=d['important'],
+               ir_stable_id=d.get('ir_stable_id', None))
+
+  @property
+  def value(self):
+    return self._value
+
+  def __getitem__(self, key):
+    return self._value[key]
 
 
 class DictValue(Value):
@@ -88,7 +126,6 @@ class DictValue(Value):
 
   def __getitem__(self, key):
     return self._value[key]
-
 
 class FailureValue(Value):
 
