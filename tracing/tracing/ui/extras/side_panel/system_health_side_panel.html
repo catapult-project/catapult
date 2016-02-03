@@ -16,7 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 
-<polymer-element name='tr-ui-e-rail-rail-score-side-panel'
+<polymer-element name='tr-ui-e-s-system-health-side-panel'
     extends='tr-ui-side-panel'>
   <template>
     <style>
@@ -89,7 +89,7 @@ found in the LICENSE file.
 
   var FOOTER_ROW_STAGE_TITLE = 'Overall';
 
-  Polymer('tr-ui-e-rail-rail-score-side-panel', {
+  Polymer('tr-ui-e-s-system-health-side-panel', {
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
       this.model_ = undefined;
@@ -112,7 +112,7 @@ found in the LICENSE file.
     },
 
     get textLabel() {
-     return 'RAIL Info';
+     return 'System Health';
     },
 
     supportsModel: function(m) {
@@ -125,7 +125,7 @@ found in the LICENSE file.
       if (tr.metrics.sh.SystemHealthMetric.forModel(m) === undefined) {
         return {
           supported: false,
-          reason: 'RAIL interactions were not found on the model'
+          reason: 'No interactions found on the model'
         };
       }
       return {
