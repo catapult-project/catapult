@@ -25,6 +25,10 @@ class MockOAuth2Decorator(object):
     self.message = message
     self.callback_path = callback_path
 
+  # Lowercase method names are used in this class to match those
+  # in oauth2client.appengine.Oauth2Decorator.
+  # pylint: disable=invalid-name
+
   def http(self):
     # The body attribute is set after this is returned, so all we can do here
     # is to save the previous one before it's overridden.
@@ -38,7 +42,7 @@ class MockOAuth2Decorator(object):
     return check_oauth
 
 
-oauth2_decorator.decorator = MockOAuth2Decorator(
+oauth2_decorator.DECORATOR = MockOAuth2Decorator(
     client_id='client_id',
     client_secret='client_secret',
     scope='scope',

@@ -216,7 +216,7 @@ class ListTestsTest(testing_common.TestCase):
         'type': 'sub_tests', 'suite': 'dromaeo', 'bots': 'Chromium/win7'})
     self.assertEqual({}, json.loads(response.body))
 
-  def test_MergeSubTestsDict(self):
+  def testMergeSubTestsDict(self):
     a = {
         'foo': {
             'has_rows': True,
@@ -299,7 +299,7 @@ class ListTestsTest(testing_common.TestCase):
     self.assertEqual(
         expected, list_tests._SubTestsDict(paths, False))
 
-  def test_GetTestsMatchingPattern(self):
+  def testPost_GetTestsMatchingPattern(self):
     """Tests the basic functionality of the GetTestsMatchingPattern function."""
     self._AddSampleData()
 
@@ -328,7 +328,7 @@ class ListTestsTest(testing_common.TestCase):
         'p': '*/mac/*/*/www*'})
     self.assertEqual(expected, json.loads(response.body))
 
-  def test_GetTestsMatchingPattern_OnlyWithRows(self):
+  def testPost_GetTestsMatchingPattern_OnlyWithRows(self):
     """Tests GetTestsMatchingPattern with the parameter only_with_rows set."""
     self._AddSampleData()
 

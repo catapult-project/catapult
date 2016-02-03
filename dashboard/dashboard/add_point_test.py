@@ -320,7 +320,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mach_ports', tests[1].key.id())
     self.assertEqual('mach_ports_parent', tests[1].parent_test.id())
 
-  def test_LeadingSlash_Ignored(self):
+  def testPost_LeadingSlash_Ignored(self):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '/boot_time/pre_plugin_time'
     self.testapp.post(
