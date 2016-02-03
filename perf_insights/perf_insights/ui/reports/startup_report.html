@@ -247,7 +247,7 @@ found in the LICENSE file.
           return undefined;
         mean /= totalStartupDuration;
         var span = tr.ui.units.createScalarSpan(mean);
-        span.unit = tr.b.u.Units.normalizedPercentage;
+        span.unit = tr.b.u.Unit.byName.normalizedPercentage;
         span.percentage = mean;
         return span;
       }

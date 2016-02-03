@@ -16,7 +16,7 @@ tr.exportTo('tr.b.u', function() {
    * Float wrapper, representing a time stamp, capable of pretty-printing.
    */
   function TimeStamp(timestamp) {
-    tr.b.u.Scalar.call(this, timestamp, tr.b.u.Units.timeStampInMs);
+    tr.b.u.Scalar.call(this, timestamp, tr.b.u.Unit.byName.timeStampInMs);
   };
 
   TimeStamp.prototype = {
@@ -28,7 +28,7 @@ tr.exportTo('tr.b.u', function() {
   };
 
   TimeStamp.format = function(timestamp) {
-    return tr.b.u.Units.timeStampInMs.format(timestamp);
+    return tr.b.u.Unit.byName.timeStampInMs.format(timestamp);
   };
 
   return {

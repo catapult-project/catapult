@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/base/units/time_stamp.html">
-<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
 
@@ -45,7 +45,7 @@ tr.exportTo('tr.ui.units', function() {
         this.value = timestamp;
         return;
       }
-      this.setValueAndUnit(timestamp, tr.b.u.Units.timeStampInMs);
+      this.setValueAndUnit(timestamp, tr.b.u.Unit.byName.timeStampInMs);
     }
   });
   </script>

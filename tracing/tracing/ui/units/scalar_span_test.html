@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/units/scalar.html">
-<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
 
 <script>
@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createScalarSpan(value) {
-    var scalar = new tr.b.u.Scalar(value, tr.b.u.Units.sizeInBytes);
+    var scalar = new tr.b.u.Scalar(value, tr.b.u.Unit.byName.sizeInBytes);
     return tr.ui.units.createScalarSpan(scalar);
   }
 

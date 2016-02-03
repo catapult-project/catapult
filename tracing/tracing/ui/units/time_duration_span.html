@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/base/units/time_duration.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
 
@@ -24,7 +25,7 @@ tr.exportTo('tr.ui.units', function() {
     var config = opt_config || {};
     var ownerDocument = config.ownerDocument || document;
     var span = ownerDocument.createElement('tr-ui-u-time-duration-span');
-    span.setValueAndUnit(duration, tr.b.u.Units.timeDurationInMs);
+    span.setValueAndUnit(duration, tr.b.u.Unit.byName.timeDurationInMs);
     if (config.total)
       span.percentage = duration / config.total;
     span.duration = duration;
@@ -55,7 +56,7 @@ tr.exportTo('tr.ui.units', function() {
         this.value = duration;
         return;
       }
-      this.setValueAndUnit(duration, tr.b.u.Units.timeDurationInMs);
+      this.setValueAndUnit(duration, tr.b.u.Unit.byName.timeDurationInMs);
     }
   });
   </script>

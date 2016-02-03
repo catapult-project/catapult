@@ -63,7 +63,7 @@
       'tracing/base/units/time_display_mode.html',
       'tracing/base/units/time_duration.html',
       'tracing/base/units/time_stamp.html',
-      'tracing/base/units/units.html',
+      'tracing/base/units/unit.html',
       'tracing/base/utils.html',
       'tracing/core/auditor.html',
       'tracing/core/filter.html',

@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
-<link rel="import" href="/tracing/base/units/units.html">
-<link rel="import" href="/tracing/base/units/scalar.html">
 
 <script>
 'use strict';
@@ -23,7 +23,7 @@ tr.exportTo('tr.ui.units', function() {
     return span;
   }
 
-  tr.b.u.Units.addEventListener('display-mode-changed', function(e) {
+  tr.b.u.Unit.addEventListener('display-mode-changed', function(e) {
     var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
         'tr-ui-u-scalar-span');
     var isSubclass = {};

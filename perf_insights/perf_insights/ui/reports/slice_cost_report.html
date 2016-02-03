@@ -382,7 +382,7 @@ found in the LICENSE file.
       var func = selector.selectedItem.func;
 
       var histogram = tr.b.u.Histogram.createLinear(
-          tr.b.u.Units.timeDurationInMs,
+          tr.b.u.Unit.byName.timeDurationInMs,
           tr.b.Range.fromExplicitRange(0, 100),
           100);
       this.$.table.selectedTableRow.data.forEach(function(datum) {

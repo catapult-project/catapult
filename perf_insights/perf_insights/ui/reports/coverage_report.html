@@ -112,7 +112,7 @@ found in the LICENSE file.
         var floatValue = parseFloat(value);
         if (isNaN(floatValue))
           return 'N/A';
-        return tr.b.u.Units.normalizedPercentage.format(floatValue);
+        return tr.b.u.Unit.byName.normalizedPercentage.format(floatValue);
       }
 
       function formatCount(value) {

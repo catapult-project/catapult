@@ -4,7 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/statistics.html">
@@ -30,7 +30,7 @@ tr.exportTo('tr.b.u', function() {
     h.count = d.count;
     h.sourceInfos = d.sourceInfos;
     return h;
-  }
+  };
 
   HistogramBin.prototype = {
     add: function(value, sourceInfo) {
@@ -96,7 +96,7 @@ tr.exportTo('tr.b.u', function() {
     });
     binInfo.centralBinWidth = d.centralBinWidth;
     binInfo.overflowBin = HistogramBin.fromDict(undefined, d.overflowBin);
-    var h = new Histogram(tr.b.u.Units.fromJSON(d.unit), range, binInfo);
+    var h = new Histogram(tr.b.u.Unit.fromJSON(d.unit), range, binInfo);
     h.allBins.forEach(function(bin) {
       bin.parentHistogram = h;
     });
@@ -104,7 +104,7 @@ tr.exportTo('tr.b.u', function() {
     h.numNans = d.numNans;
     h.nanSourceInfos = d.nanSourceInfos;
     return h;
-  }
+  };
 
   Histogram.createLinear = function(unit, range, numBins) {
     if (range.isEmpty)
@@ -130,7 +130,7 @@ tr.exportTo('tr.b.u', function() {
       bin.parentHistogram = h;
     });
     return h;
-  },
+  };
 
   Histogram.prototype = {
     get numValues() {
