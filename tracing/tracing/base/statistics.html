@@ -22,7 +22,7 @@ tr.exportTo('tr.b', function() {
     if (denominator === 0)
       return 0;
     return numerator / denominator;
-  }
+  };
 
   Statistics.sum = function(ary, opt_func, opt_this) {
     var func = opt_func || identity;
@@ -44,8 +44,10 @@ tr.exportTo('tr.b', function() {
     var denominator = 0;
 
     for (var i = 0; i < ary.length; i++) {
-      var weight = weightCallback.call(opt_this, ary[i], i);
       var value = valueCallback.call(opt_this, ary[i], i);
+      if (value === undefined)
+        continue;
+      var weight = weightCallback.call(opt_this, ary[i], i, value);
       numerator += weight * value;
       denominator += weight;
     }
@@ -96,7 +98,7 @@ tr.exportTo('tr.b', function() {
     for (var i = 0; i < ary.length; i++)
       ret.addValue(func.call(opt_this, ary[i], i));
     return ret;
-  }
+  };
 
   Statistics.percentile = function(ary, percent, opt_func, opt_this) {
     if (!(percent >= 0 && percent <= 1))
@@ -116,7 +118,7 @@ tr.exportTo('tr.b', function() {
     opt_low = opt_low || 0.0;
     opt_high = opt_high || 1.0;
     return Math.min(Math.max(value, opt_low), opt_high);
-  }
+  };
 
   /**
    * Sorts the samples, and map them linearly to the range [0,1].
@@ -164,7 +166,7 @@ tr.exportTo('tr.b', function() {
       normalized_samples: samples,
       scale: scale
     };
-  }
+  };
 
   /**
    * Computes the discrepancy of a set of 1D samples from the interval [0,1].
@@ -445,7 +447,7 @@ tr.exportTo('tr.b', function() {
         samplesA[i] = samplesB[i];
       }
     }
-  }
+  };
 
   return {
     Statistics: Statistics

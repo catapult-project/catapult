@@ -16,16 +16,16 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.rail', function() {
   function StubRAILInteractionRecord(args) {
-    this.typeName_ = args.typeName || 'Idle';
-    this.subtypeName_ = args.subtypeName || '';
+    this.stageTitle_ = args.stageTitle || 'Idle';
+    this.initiatorTitle_ = args.initiatorTitle || '';
 
     this.title_ = args.title;
     if (!this.title_) {
       var defaultTitle = [];
-      if (this.subtypeName_)
-        defaultTitle.push(this.subtypeName_);
-      if (this.typeName_)
-        defaultTitle.push(this.typeName_);
+      if (this.initiatorTitle_)
+        defaultTitle.push(this.initiatorTitle_);
+      if (this.stageTitle_)
+        defaultTitle.push(this.stageTitle_);
       this.title_ = defaultTitle.join(' ') || 'title';
     }
 
@@ -35,7 +35,7 @@ tr.exportTo('tr.e.rail', function() {
     var sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
 
     tr.e.rail.RAILInteractionRecord.call(
-        this, args.parentModel, this.subtypeName, sd.start, sd.duration);
+        this, args.parentModel, this.initiatorTitle, sd.start, sd.duration);
 
     // Must be set after base class call.
     this.colorId_ = args.colorId || 0;
@@ -58,12 +58,12 @@ tr.exportTo('tr.e.rail', function() {
       return this.title_;
     },
 
-    get typeName() {
-      return this.typeName_;
+    get stageTitle() {
+      return this.stageTitle_;
     },
 
-    get subtypeName() {
-      return this.subtypeName_;
+    get initiatorTitle() {
+      return this.initiatorTitle_;
     },
 
     get normalizedUserComfort() {

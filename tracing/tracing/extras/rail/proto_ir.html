@@ -81,14 +81,14 @@ tr.exportTo('tr.e.rail', function() {
       if (constructor === undefined)
         return undefined;
 
-      var subtypeNames = [];
+      var initiatorTitles = [];
       this.names.forEach(function(name) {
-        subtypeNames.push(name);
+        initiatorTitles.push(name);
       });
-      subtypeNames = subtypeNames.sort().join(',');
+      initiatorTitles = initiatorTitles.sort().join(',');
 
       var duration = this.end - this.start;
-      var ir = new constructor(model, subtypeNames, this.start, duration);
+      var ir = new constructor(model, initiatorTitles, this.start, duration);
 
       ir.sourceEvents.addEventSet(this.associatedEvents);
 
