@@ -56,6 +56,7 @@ class Benchmark(command_line.Command):
   New benchmarks should override CreateStorySet.
   """
   options = {}
+  page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
 
   def __init__(self, max_failures=None):
@@ -100,8 +101,7 @@ class Benchmark(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
-    if hasattr(cls, 'AddBenchmarkCommandLineArgs'):
-      cls.AddBenchmarkCommandLineArgs(group)
+    cls.AddBenchmarkCommandLineArgs(group)
 
     if cls.HasTraceRerunDebugOption():
       group.add_option(
@@ -113,10 +113,11 @@ class Benchmark(command_line.Command):
       parser.add_option_group(group)
 
   @classmethod
+  def AddBenchmarkCommandLineArgs(cls, group):
+    del group  # unused
+
+  @classmethod
   def HasTraceRerunDebugOption(cls):
-    if hasattr(cls, 'HasBenchmarkTraceRerunDebugOption'):
-      if cls.HasBenchmarkTraceRerunDebugOption():
-        return True
     return False
 
   def GetTraceRerunCommands(self):
@@ -223,9 +224,9 @@ class Benchmark(command_line.Command):
     del options  # unused
     # TODO(aiolos, nednguyen, eakufner): replace class attribute page_set with
     # story_set.
-    if not hasattr(self, 'page_set'):
+    if not self.page_set:
       raise NotImplementedError('This test has no "page_set" attribute.')
-    return self.page_set()
+    return self.page_set()  # pylint: disable=not-callable
 
 
 def AddCommandLineArgs(parser):
