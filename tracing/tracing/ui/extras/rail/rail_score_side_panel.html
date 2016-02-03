@@ -41,6 +41,8 @@ found in the LICENSE file.
 
     #coverage {
       font-size: 10px;
+      margin-top: 1em;
+      margin-bottom: 1em;
     }
     </style>
 
@@ -51,6 +53,7 @@ found in the LICENSE file.
       <tr-ui-a-analysis-link id="associated-events"></tr-ui-a-analysis-link><br>
       <tr-ui-a-analysis-link id="unassociated-events"></tr-ui-a-analysis-link>
     </div>
+
     <button id="test">Create Test</button>
   </template>
 </polymer-element>
@@ -83,6 +86,8 @@ found in the LICENSE file.
     var cpuString = ' (' + parseInt(100 * cpuRatio) + '%)';
     link.appendChild(document.createTextNode(cpuString));
   }
+
+  var FOOTER_ROW_STAGE_TITLE = 'Overall';
 
   Polymer('tr-ui-e-rail-rail-score-side-panel', {
     ready: function() {
@@ -202,6 +207,9 @@ found in the LICENSE file.
           title: 'Type',
           width: '150px',
           value: function(ir) {
+            if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE)
+              return FOOTER_ROW_STAGE_TITLE;
+
             var events = new tr.model.EventSet([ir]);
             events.addEventSet(ir.associatedEvents);
 
@@ -222,11 +230,18 @@ found in the LICENSE file.
           title: 'Efficiency',
           width: '33%',
           value: function(ir) {
-            var efficiency = tr.metrics.sh.EfficiencyMetric.forIR(ir);
+            var efficiency;
+            if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
+              efficiency = tr.metrics.sh.EfficiencyMetric.forModel(
+                  this.model, this.effectiveRangeOfInterest);
+            } else {
+              efficiency = tr.metrics.sh.EfficiencyMetric.forIR(ir);
+            }
+
             if (efficiency === undefined)
               return '';
             return tr.ui.b.toThreeDigitLocaleString(efficiency);
-          },
+          }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
             return tr.metrics.sh.EfficiencyMetric.forIR(a) -
@@ -234,14 +249,21 @@ found in the LICENSE file.
           }
         },
         {
-          title: 'Comfort',
+          title: 'Responsiveness',
           width: '33%',
           value: function(ir) {
-            var responsiveness = tr.metrics.sh.ResponsivenessMetric.forIR(ir);
+            var responsiveness;
+            if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
+              responsiveness = tr.metrics.sh.ResponsivenessMetric.forModel(
+                  this.model, this.effectiveRangeOfInterest);
+            } else {
+              responsiveness = tr.metrics.sh.ResponsivenessMetric.forIR(ir);
+            }
+
             if (responsiveness === undefined)
               return '';
             return tr.ui.b.toThreeDigitLocaleString(responsiveness);
-          },
+          }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
             return tr.metrics.sh.ResponsivenessMetric.forIR(a) -
@@ -252,14 +274,22 @@ found in the LICENSE file.
           title: 'Score',
           width: '33%',
           value: function(ir) {
-            var sh = tr.metrics.sh.SystemHealthMetric.forIR(ir);
+            var sh;
+            if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
+              sh = tr.metrics.sh.SystemHealthMetric.forModel(
+                  this.model, this.effectiveRangeOfInterest);
+            } else {
+              sh = tr.metrics.sh.SystemHealthMetric.forIR(ir);
+            }
+
             if (sh === undefined)
               return '';
+
             var span = document.createElement('span');
             span.style.fontWeight = 'bold';
             span.textContent = tr.ui.b.toThreeDigitLocaleString(sh);
             return span;
-          },
+          }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
             return tr.metrics.sh.SystemHealthMetric.forIR(a) -
@@ -280,6 +310,7 @@ found in the LICENSE file.
       }, this);
 
       this.$.table.tableRows = rows;
+      this.$.table.footerRows = [{stageTitle: FOOTER_ROW_STAGE_TITLE}];
       this.$.table.rebuild();
     },
 

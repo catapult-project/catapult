@@ -41,7 +41,7 @@ tr.exportTo('tr.metrics.sh', function() {
       if (metric === tr.metrics.sh.ResponsivenessMetric)
         weight = 2;
 
-      return weight * tr.metrics.sh.perceptualBlend(score);
+      return weight * tr.metrics.sh.perceptualBlend(ir, index, score);
     }
     return tr.b.Statistics.weightedMean(
         [tr.metrics.sh.ResponsivenessMetric,
