@@ -12,6 +12,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var Unit = tr.b.u.Unit;
+  var ImprovementDirection = tr.b.u.ImprovementDirection;
 
   test('Unit.display-mode-changed', function() {
     var Unit = tr.b.u.Unit;
@@ -37,16 +38,47 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sizeInBytes', function() {
-    function checkFormat(value, expectation) {
-      assert.equal(Unit.byName.sizeInBytes.format(value), expectation);
+    var SOURCE_VALUES = [0, 1, 1536, 424.5 * 1024 * 1024,
+        1025 * 1024 * 1024 * 1024 * 1024, -2.5 * 1024 * 1024];
+    var EXPECTED_REGULAR_FORMATTED_VALUES = ['0.0 B', '1.0 B', '1.5 KiB',
+        '424.5 MiB', '1025.0 TiB', '-2.5 MiB'];
+    var EXPECTED_DELTA_FORMATTED_VALUES = ['\u00B10.0 B', '+1.0 B', '+1.5 KiB',
+        '+424.5 MiB', '+1025.0 TiB', '-2.5 MiB'];
+
+    function checkSizeUnit(unit, expectedAsJSON, expectedIsDelta,
+        expectedImprovementDirection, expectedFormattedValues) {
+      assert.strictEqual(unit.asJSON(), expectedAsJSON);
+      assert.strictEqual(unit.isDelta, expectedIsDelta);
+      assert.strictEqual(unit.improvementDirection,
+          expectedImprovementDirection);
+      assert.deepEqual(SOURCE_VALUES.map(unit.format.bind(unit)),
+          expectedFormattedValues);
     }
-    checkFormat(0, '0.0 B');
-    checkFormat(1, '1.0 B');
-    checkFormat(1536, '1.5 KiB');
-    checkFormat(424.2 * 1024 * 1024, '424.2 MiB');
-    checkFormat(5 * 1024 * 1024 * 1024, '5.0 GiB');
-    checkFormat(1025 * 1024 * 1024 * 1024 * 1024, '1025.0 TiB');
-    checkFormat(-2.5 * 1024 * 1024, '-2.5 MiB');
+
+    // Regular (non-delta).
+    checkSizeUnit(Unit.byName.sizeInBytes, 'sizeInBytes',
+        false /* expectedIsDelta */, ImprovementDirection.DONT_CARE,
+        EXPECTED_REGULAR_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytes_smallerIsBetter,
+        'sizeInBytes_smallerIsBetter', false /* expectedIsDelta */,
+        ImprovementDirection.SMALLER_IS_BETTER,
+        EXPECTED_REGULAR_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytes_biggerIsBetter,
+        'sizeInBytes_biggerIsBetter', false /* expectedIsDelta */,
+        ImprovementDirection.BIGGER_IS_BETTER,
+        EXPECTED_REGULAR_FORMATTED_VALUES);
+
+    // Delta.
+    checkSizeUnit(Unit.byName.sizeInBytesDelta, 'sizeInBytesDelta',
+        true /* expectedIsDelta */, ImprovementDirection.DONT_CARE,
+        EXPECTED_DELTA_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytesDelta_smallerIsBetter,
+        'sizeInBytesDelta_smallerIsBetter', true /* expectedIsDelta */,
+        ImprovementDirection.SMALLER_IS_BETTER,
+        EXPECTED_DELTA_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytesDelta_biggerIsBetter,
+        'sizeInBytesDelta_biggerIsBetter', true /* expectedIsDelta */,
+        ImprovementDirection.BIGGER_IS_BETTER, EXPECTED_DELTA_FORMATTED_VALUES);
   });
 
   test('energyInJoules', function() {

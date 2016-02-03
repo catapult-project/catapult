@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/event_target.html">
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
@@ -16,6 +15,10 @@ found in the LICENSE file.
 tr.exportTo('tr.b.u', function() {
   var TimeDisplayModes = tr.b.u.TimeDisplayModes;
 
+  var BINARY_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
+
+  var PLUS_MINUS_SIGN = String.fromCharCode(177);
+
   function max(a, b) {
     if (a === undefined)
       return b;
@@ -24,9 +27,36 @@ tr.exportTo('tr.b.u', function() {
     return a.scale > b.scale ? a : b;
   }
 
+  /** @enum */
+  var ImprovementDirection = {
+    DONT_CARE: 0,
+    BIGGER_IS_BETTER: 1,
+    SMALLER_IS_BETTER: 2
+  };
+
   /** @constructor */
-  function Unit() {
+  function Unit(jsonName, isDelta, improvementDirection, formatValue) {
+    this.jsonName = jsonName;
+    this.isDelta = isDelta;
+    this.improvementDirection = improvementDirection;
+    this.formatValue_ = formatValue;
   }
+
+  Unit.prototype = {
+    asJSON: function() {
+      return this.jsonName;
+    },
+
+    format: function(value) {
+      var formattedValue = this.formatValue_(value);
+      if (!this.isDelta || value < 0 /* already contains negative sign */)
+        return formattedValue;
+      if (value === 0)
+        return PLUS_MINUS_SIGN + formattedValue;
+      else
+        return '+' + formattedValue;
+    }
+  };
 
   Unit.reset = function() {
     Unit.currentTimeDisplayMode = TimeDisplayModes.ms;
@@ -77,37 +107,103 @@ tr.exportTo('tr.b.u', function() {
     throw new Error('Unrecognized unit');
   };
 
+  /**
+   * Define all combinations of a unit with isDelta and improvementDirection
+   * flags. For example, the following code:
+   *
+   *   Unit.define({
+   *     baseUnitName: 'powerInWatts'
+   *     baseJsonName: 'W'
+   *     formatValue: function(value) {
+   *       // Code for formatting the unit (independent of isDelta and
+   *       // improvementDirection flags).
+   *      }
+   *   });
+   *
+   * generates the following six units (JSON names shown in parentheses):
+   *
+   *   Unit.byName.powerInWatts (W)
+   *   Unit.byName.powerInWatts_smallerIsBetter (W_smallerIsBetter)
+   *   Unit.byName.powerInWatts_biggerIsBetter (W_biggerIsBetter)
+   *   Unit.byName.powerInWattsDelta (WDelta)
+   *   Unit.byName.powerInWattsDelta_smallerIsBetter (WDelta_smallerIsBetter)
+   *   Unit.byName.powerInWattsDelta_biggerIsBetter (WDelta_biggerIsBetter)
+   *
+   * with the appropriate flags and formatting code (including +/- prefixes
+   * for deltas).
+   */
+  Unit.define = function(params) {
+    [false, true].forEach(function(isDelta) {
+      tr.b.iterItems(ImprovementDirection, function(_, improvementDirection) {
+        Unit.defineUnitVariant_(params, isDelta, improvementDirection);
+      });
+    });
+  };
+
+  Unit.defineUnitVariant_ = function(params, isDelta, improvementDirection) {
+    var nameSuffix = isDelta ? 'Delta' : '';
+    switch (improvementDirection) {
+      case ImprovementDirection.DONT_CARE:
+        break;
+      case ImprovementDirection.BIGGER_IS_BETTER:
+        nameSuffix += '_biggerIsBetter';
+        break;
+      case ImprovementDirection.SMALLER_IS_BETTER:
+        nameSuffix += '_smallerIsBetter';
+        break;
+      default:
+        throw new Error(
+            'Unknown improvement direction: ' + improvementDirection);
+    }
+
+    var unitName = params.baseUnitName + nameSuffix;
+    var jsonName = params.baseJsonName + nameSuffix;
+    if (Unit.byName[unitName] !== undefined)
+      throw new Error('Unit \'' + unitName + '\' already exists');
+    if (Unit.byJSONName[jsonName] !== undefined)
+      throw new Error('JSON unit \'' + jsonName + '\' alread exists');
+
+    var unit = new Unit(
+        jsonName, isDelta, improvementDirection, params.formatValue);
+    Unit.byName[unitName] = unit;
+    Unit.byJSONName[jsonName] = unit;
+  };
+
   tr.b.EventTarget.decorate(Unit);
   Unit.reset();
 
   // Known display units follow.
   //////////////////////////////////////////////////////////////////////////////
-  Unit.byName.timeDurationInMs = Unit.byJSONName['ms'] = {
-    asJSON: function() { return 'ms'; },
-    format: function(value) {
+
+  Unit.define({
+    baseUnitName: 'timeDurationInMs',
+    baseJsonName: 'ms',
+    formatValue: function(value) {
       return Unit.currentTimeDisplayMode_.format(value);
     }
-  };
+  });
 
-  Unit.byName.timeStampInMs = Unit.byJSONName['tsMs'] = {
-    asJSON: function() { return 'tsMs'; },
-    format: function(value) {
+  Unit.define({
+    baseUnitName: 'timeStampInMs',
+    baseJsonName: 'tsMs',
+    formatValue: function(value) {
       return Unit.currentTimeDisplayMode_.format(value);
     }
-  };
+  });
 
-  Unit.byName.normalizedPercentage = Unit.byJSONName['n%'] = {
-    asJSON: function() { return 'n%'; },
-    format: function(value) {
+  Unit.define({
+    baseUnitName: 'normalizedPercentage',
+    baseJsonName: 'n%',
+    formatValue: function(value) {
       var tmp = new Number(Math.round(value * 100000) / 1000);
-      return tmp.toLocaleString(undefined, {minimumFractionDigits: 3}) + '%';
+      return tmp.toLocaleString(undefined, { minimumFractionDigits: 3 }) + '%';
     }
-  };
+  });
 
-  var SIZE_UNIT_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
-  Unit.byName.sizeInBytes = Unit.byJSONName['sizeInBytes'] = {
-    asJSON: function() { return 'sizeInBytes'; },
-    format: function(value) {
+  Unit.define({
+    baseUnitName: 'sizeInBytes',
+    baseJsonName: 'sizeInBytes',
+    formatValue: function(value) {
       var signPrefix = '';
       if (value < 0) {
         signPrefix = '-';
@@ -115,42 +211,44 @@ tr.exportTo('tr.b.u', function() {
       }
 
       var i = 0;
-      while (value >= 1024 && i < SIZE_UNIT_PREFIXES.length - 1) {
+      while (value >= 1024 && i < BINARY_PREFIXES.length - 1) {
         value /= 1024;
         i++;
       }
 
-      return signPrefix + value.toFixed(1) + ' ' + SIZE_UNIT_PREFIXES[i] + 'B';
+      return signPrefix + value.toFixed(1) + ' ' + BINARY_PREFIXES[i] + 'B';
     }
-  };
+  });
 
-  Unit.byName.energyInJoules = Unit.byJSONName['J'] = {
-    asJSON: function() { return 'J'; },
-    format: function(value) {
-      return value
-          .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' J';
-    }
-  };
-
-  Unit.byName.powerInWatts = Unit.byJSONName['W'] = {
-    asJSON: function() { return 'W'; },
-    format: function(value) {
-      return (value * 1000.0)
-          .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' mW';
-    }
-  };
-
-  Unit.byName.unitlessNumber = Unit.byJSONName['unitless'] = {
-    asJSON: function() { return 'unitless'; },
-    format: function(value) {
+  Unit.define({
+    baseUnitName: 'energyInJoules',
+    baseJsonName: 'J',
+    formatValue: function(value) {
       return value.toLocaleString(
-          undefined, {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3});
+          undefined, { minimumFractionDigits: 3 }) + ' J';
     }
-  };
+  });
+
+  Unit.define({
+    baseUnitName: 'powerInWatts',
+    baseJsonName: 'W',
+    formatValue: function(value) {
+      return (value * 1000.0).toLocaleString(
+          undefined, { minimumFractionDigits: 3 }) + ' mW';
+    }
+  });
+
+  Unit.define({
+    baseUnitName: 'unitlessNumber',
+    baseJsonName: 'unitless',
+    formatValue: function(value) {
+      return value.toLocaleString(
+          undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+  });
 
   return {
+    ImprovementDirection: ImprovementDirection,
     Unit: Unit
   };
 });
