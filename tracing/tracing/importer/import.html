@@ -260,8 +260,7 @@ tr.exportTo('tr.importer', function() {
       // Join refs.
       lastTask = lastTask.timedAfter('TraceImport', function joinRefs() {
         progressMeter.update('Joining object refs...');
-        for (var i = 0; i < importers.length; i++)
-          importers[i].joinRefs();
+        this.model_.joinRefs();
       }, this);
 
       // Delete any undeleted objects.

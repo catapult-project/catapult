@@ -17,16 +17,18 @@ tr.exportTo('tr.model', function() {
   /**
    * Tracks all the instances associated with a given ID over its lifetime.
    *
-   * An id can be used multiple times throughout a trace, referring to different
-   * objects at different times. This data structure does the bookkeeping to
-   * figure out what ObjectInstance is referred to at a given timestamp.
+   * A scoped id can be used multiple times throughout a trace, referring to
+   * different objects at different times. This data structure does the
+   * bookkeeping to figure out what ObjectInstance is referred to at a given
+   * timestamp.
    *
    * @constructor
    */
-  function TimeToObjectInstanceMap(createObjectInstanceFunction, parent, id) {
+  function TimeToObjectInstanceMap(
+      createObjectInstanceFunction, parent, scopedId) {
     this.createObjectInstanceFunction_ = createObjectInstanceFunction;
     this.parent = parent;
-    this.id = id;
+    this.scopedId = scopedId;
     this.instances = [];
   }
 
@@ -34,7 +36,7 @@ tr.exportTo('tr.model', function() {
     idWasCreated: function(category, name, ts) {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts));
+            this.parent, this.scopedId, category, name, ts));
         this.instances[0].creationTsWasExplicit = true;
         return this.instances[0];
       }
@@ -45,7 +47,7 @@ tr.exportTo('tr.model', function() {
                         'done in ascending timestamp order.');
       }
       lastInstance = this.createObjectInstanceFunction_(
-          this.parent, this.id, category, name, ts);
+          this.parent, this.scopedId, category, name, ts);
       lastInstance.creationTsWasExplicit = true;
       this.instances.push(lastInstance);
       return lastInstance;
@@ -54,7 +56,7 @@ tr.exportTo('tr.model', function() {
     addSnapshot: function(category, name, ts, args, opt_baseTypeName) {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts, opt_baseTypeName));
+            this.parent, this.scopedId, category, name, ts, opt_baseTypeName));
       }
 
       var i = tr.b.findIndexInSortedIntervals(
@@ -86,7 +88,7 @@ tr.exportTo('tr.model', function() {
           // The snap is added after our oldest and deleted instance. This means
           // that this is a new implicit instance.
           instance = this.createObjectInstanceFunction_(
-              this.parent, this.id, category, name, ts, opt_baseTypeName);
+              this.parent, this.scopedId, category, name, ts, opt_baseTypeName);
           this.instances.push(instance);
         } else {
           // If the ts is before the last objects deletion time, then the caller
@@ -128,11 +130,11 @@ tr.exportTo('tr.model', function() {
     idWasDeleted: function(category, name, ts) {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts));
+            this.parent, this.scopedId, category, name, ts));
       }
       var lastInstance = this.instances[this.instances.length - 1];
       if (ts < lastInstance.creationTs)
-        throw new Error('Cannot delete a id before it was crated');
+        throw new Error('Cannot delete an id before it was created');
       if (lastInstance.deletionTs == Number.MAX_VALUE) {
         lastInstance.wasDeleted(ts);
         return lastInstance;
@@ -144,7 +146,7 @@ tr.exportTo('tr.model', function() {
       // A new instance was deleted with no snapshots in-between.
       // Create an instance then kill it.
       lastInstance = this.createObjectInstanceFunction_(
-          this.parent, this.id, category, name, ts);
+          this.parent, this.scopedId, category, name, ts);
       this.instances.push(lastInstance);
       lastInstance.wasDeleted(ts);
       return lastInstance;

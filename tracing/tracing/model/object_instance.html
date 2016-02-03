@@ -27,10 +27,10 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function ObjectInstance(
-      parent, id, category, name, creationTs, opt_baseTypeName) {
+      parent, scopedId, category, name, creationTs, opt_baseTypeName) {
     tr.model.Event.call(this);
     this.parent = parent;
-    this.id = id;
+    this.scopedId = scopedId;
     this.category = category;
     this.baseTypeName = opt_baseTypeName ? opt_baseTypeName : name;
     this.name = name;
@@ -171,7 +171,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get userFriendlyName() {
-      return this.typeName + ' object ' + this.id;
+      return this.typeName + ' object ' + this.scopedId;
     }
   };
 

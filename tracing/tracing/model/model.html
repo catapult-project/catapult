@@ -8,12 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/interval_tree.html">
+<link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
+<link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/device.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/frame.html">
@@ -23,6 +25,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/kernel.html">
 <link rel="import" href="/tracing/model/model_indices.html">
 <link rel="import" href="/tracing/model/model_stats.html">
+<link rel="import" href="/tracing/model/object_snapshot.html">
 <link rel="import" href="/tracing/model/process.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/sample.html">
@@ -112,6 +115,8 @@ tr.exportTo('tr', function() {
     this.reportedImportWarnings_ = {};
 
     this.isTimeHighResolution_ = undefined;
+
+    this.patchupsToApply_ = [];
   }
 
   Model.prototype = {
@@ -543,6 +548,30 @@ tr.exportTo('tr', function() {
       });
     },
 
+    applyObjectRefPatchups: function() {
+      // Change all the fields pointing at id_refs to their real values.
+      var unresolved = [];
+      this.patchupsToApply_.forEach(function(patchup) {
+        if (patchup.pidRef in this.processes) {
+          var snapshot = this.processes[patchup.pidRef].objects.getSnapshotAt(
+              patchup.scopedId, patchup.ts);
+          if (snapshot) {
+            patchup.object[patchup.field] = snapshot;
+            return;
+          }
+        }
+        unresolved.push(patchup);
+      }, this);
+      this.patchupsToApply_ = unresolved;
+    },
+
+    replacePIDRefsInPatchups: function(old_pid_ref, new_pid_ref) {
+      this.patchupsToApply_.forEach(function(patchup) {
+        if (patchup.pidRef === old_pid_ref)
+          patchup.pidRef = new_pid_ref;
+      });
+    },
+
     isTimeHighResolutionHeuristic_: function() {
       if (this.intrinsicTimeUnit !== tr.b.u.TimeDisplayModes.ms)
         return false;
@@ -573,6 +602,89 @@ tr.exportTo('tr', function() {
       // If more than 90% of the events are snapped precisely on milliseconds
       // boundary we got a trace with a low resolution timer.
       return (maxEvents / nbEvents) < 0.9;
+    },
+
+    /**
+     * Called by the model to join references between objects, after final model
+     * bounds have been computed.
+     */
+    joinRefs: function() {
+      this.joinObjectRefs_();
+      this.applyObjectRefPatchups();
+    },
+
+    joinObjectRefs_: function() {
+      tr.b.iterItems(this.processes, function(pid, process) {
+        this.joinObjectRefsForProcess_(pid, process);
+      }, this);
+    },
+
+    joinObjectRefsForProcess_: function(pid, process) {
+      // Iterate the world, looking for id_refs
+      tr.b.iterItems(process.threads, function(tid, thread) {
+        thread.asyncSliceGroup.slices.forEach(function(item) {
+          this.searchItemForIDRefs_(pid, 'start', item);
+        }, this);
+        thread.sliceGroup.slices.forEach(function(item) {
+          this.searchItemForIDRefs_(pid, 'start', item);
+        }, this);
+      }, this);
+      process.objects.iterObjectInstances(function(instance) {
+        instance.snapshots.forEach(function(item) {
+          this.searchItemForIDRefs_(pid, 'ts', item);
+        }, this);
+      }, this);
+    },
+
+    searchItemForIDRefs_: function(pid, itemTimestampField, item) {
+      if (!item.args)
+        return;
+      var patchupsToApply = this.patchupsToApply_;
+
+      function handleField(object, fieldName, fieldValue) {
+        if (!fieldValue || (!fieldValue.id_ref && !fieldValue.idRef))
+          return;
+
+        var scope = fieldValue.scope || tr.model.OBJECT_DEFAULT_SCOPE;
+        var idRef = fieldValue.id_ref || fieldValue.idRef;
+        var scopedId = new tr.model.ScopedId(scope, idRef);
+        var pidRef = fieldValue.pid_ref || fieldValue.pidRef || pid;
+        var ts = item[itemTimestampField];
+        // We have to delay the actual change to the new value until after all
+        // refs have been located. Otherwise, we could end up recursing in
+        // ways we definitely didn't intend.
+        patchupsToApply.push({
+          object: object,
+          field: fieldName,
+          pidRef: pidRef,
+          scopedId: scopedId,
+          ts: ts});
+      }
+      function iterObjectFieldsRecursively(object) {
+        if (!(object instanceof Object))
+          return;
+
+        if ((object instanceof tr.model.ObjectSnapshot) ||
+            (object instanceof Float32Array) ||
+            (object instanceof tr.b.Quad))
+          return;
+
+        if (object instanceof Array) {
+          for (var i = 0; i < object.length; i++) {
+            handleField(object, i, object[i]);
+            iterObjectFieldsRecursively(object[i]);
+          }
+          return;
+        }
+
+        for (var key in object) {
+          var value = object[key];
+          handleField(object, key, value);
+          iterObjectFieldsRecursively(value);
+        }
+      }
+
+      iterObjectFieldsRecursively(item.args);
     }
   };
 
