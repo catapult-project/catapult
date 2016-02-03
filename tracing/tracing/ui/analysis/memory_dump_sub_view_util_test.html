@@ -77,30 +77,19 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkScalarMemoryColumnValueFormat(test, column, attrValues,
-      expectedValue, expectedUnits, expectedIsDelta, opt_expectedColor) {
+      expectedValue, expectedUnits) {
     var value = column.formatMultipleAttributeValues(
         buildScalarCell(column.unit, attrValues).attrs);
     if (expectedValue === undefined) {
       assert.equal(value, '');
       assert.isUndefined(expectedUnits);  // Test sanity check.
-      assert.isUndefined(expectedIsDelta);  // Test sanity check.
-      assert.isUndefined(opt_expectedColor);  // Test sanity check.
       return;
     }
 
     test.addHTMLOutput(value);
-    var scalarSpan;
-    if (opt_expectedColor === undefined) {
-      scalarSpan = value;
-    } else {
-      assert.lengthOf(value.childNodes, 1);
-      assert.equal(value.style.color, opt_expectedColor);
-      scalarSpan = value.childNodes[0];
-    }
-    assert.equal(scalarSpan.tagName, 'TR-UI-U-SCALAR-SPAN');
-    assert.equal(scalarSpan.value, expectedValue);
-    assert.equal(scalarSpan.unit, expectedUnits);
-    assert.equal(scalarSpan.isDelta, expectedIsDelta);
+    assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
+    assert.equal(value.value, expectedValue);
+    assert.equal(value.unit, expectedUnits);
   }
 
   function buildStringCell(units, values) {
@@ -848,7 +837,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(value.style.color, 'rgb(0, 153, 153)');
     assert.equal(value.childNodes[0].tagName, 'TR-UI-U-SCALAR-SPAN');
     assert.equal(value.childNodes[0].value, 5.4975581e13);
-    assert.equal(value.childNodes[0].unit, tr.b.u.Unit.byName.sizeInBytes);
+    assert.equal(value.childNodes[0].unit,
+        tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
     assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
     assert.equal(value.childNodes[1].title, 'This value is too cool');
     assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
@@ -864,14 +854,10 @@ tr.b.unittest.testSuite(function() {
     var value = c.value({x: cell});
     assert.lengthOf(value.childNodes, 1);
     assert.equal(value.style.color, 'rgb(0, 153, 153)');
-    assert.lengthOf(value.childNodes[0].childNodes, 1);
-    assert.equal(value.childNodes[0].style.color, 'green');
-    assert.equal(value.childNodes[0].childNodes[0].tagName,
-        'TR-UI-U-SCALAR-SPAN');
-    assert.equal(value.childNodes[0].childNodes[0].value, -3.2985348e13);
-    assert.equal(value.childNodes[0].childNodes[0].unit,
-        tr.b.u.Unit.byName.sizeInBytes);
-    assert.equal(value.childNodes[0].childNodes[0].isDelta, true);
+    assert.equal(value.childNodes[0].tagName, 'TR-UI-U-SCALAR-SPAN');
+    assert.equal(value.childNodes[0].value, -3.2985348e13);
+    assert.equal(value.childNodes[0].unit,
+        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
     this.addHTMLOutput(value);
   });
 
@@ -881,7 +867,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.formatSingleAttributeValue(new ScalarAttribute('ms', 123));
     assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
     assert.equal(value.value, 123);
-    assert.equal(value.unit, tr.b.u.Unit.byName.unitlessNumber);
+    assert.equal(value.unit, tr.b.u.Unit.byName.unitlessNumber_smallerIsBetter);
     this.addHTMLOutput(value);
 
     var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
@@ -889,7 +875,7 @@ tr.b.unittest.testSuite(function() {
     var value = c.formatSingleAttributeValue(new ScalarAttribute('bytes', 456));
     assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
     assert.equal(value.value, 456);
-    assert.equal(value.unit, tr.b.u.Unit.byName.sizeInBytes);
+    assert.equal(value.unit, tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
     this.addHTMLOutput(value);
   });
 
@@ -898,26 +884,26 @@ tr.b.unittest.testSuite(function() {
     var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
         AggregationMode.DIFF);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 2,
-        tr.b.u.Unit.byName.unitlessNumber, true, 'red');
+        tr.b.u.Unit.byName.unitlessNumberDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], -10,
-        tr.b.u.Unit.byName.unitlessNumber, true, 'green');
+        tr.b.u.Unit.byName.unitlessNumberDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 0,
-        tr.b.u.Unit.byName.unitlessNumber, true);
+        tr.b.u.Unit.byName.unitlessNumberDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(
         this, c, [2.71828, 2.71829] /* diff within epsilon */, 0,
-        tr.b.u.Unit.byName.unitlessNumber, true);
+        tr.b.u.Unit.byName.unitlessNumberDelta_smallerIsBetter);
 
     var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
         AggregationMode.DIFF);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 2,
-        tr.b.u.Unit.byName.sizeInBytes, true, 'red');
+        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], -10,
-        tr.b.u.Unit.byName.sizeInBytes, true, 'green');
+        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 0,
-        tr.b.u.Unit.byName.sizeInBytes, true, undefined);
+        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(
         this, c, [1.41421, 1.41422] /* diff within epsilon */, 0,
-        tr.b.u.Unit.byName.sizeInBytes, true);
+        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
   });
 
   test('checkScalarMemoryColumn_formatMultipleAttributeValues_max',
@@ -925,24 +911,24 @@ tr.b.unittest.testSuite(function() {
     var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
         AggregationMode.MAX);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 3,
-        tr.b.u.Unit.byName.unitlessNumber, false);
+        tr.b.u.Unit.byName.unitlessNumber_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], 10,
-        tr.b.u.Unit.byName.unitlessNumber, false);
+        tr.b.u.Unit.byName.unitlessNumber_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 60,
-        tr.b.u.Unit.byName.unitlessNumber, false);
+        tr.b.u.Unit.byName.unitlessNumber_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 10, 20, undefined],
-        20, tr.b.u.Unit.byName.unitlessNumber, false);
+        20, tr.b.u.Unit.byName.unitlessNumber_smallerIsBetter);
 
     var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
         AggregationMode.MAX);
     checkScalarMemoryColumnValueFormat(this, c, [1, 2, 3], 3,
-        tr.b.u.Unit.byName.sizeInBytes, false);
+        tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [10, undefined], 10,
-        tr.b.u.Unit.byName.sizeInBytes, false);
+        tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 60, 0], 60,
-        tr.b.u.Unit.byName.sizeInBytes, false);
+        tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
     checkScalarMemoryColumnValueFormat(this, c, [undefined, 10, 20, undefined],
-        20, tr.b.u.Unit.byName.sizeInBytes, false);
+        20, tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
   });
 
   test('checkScalarMemoryColumn_cmp', function() {

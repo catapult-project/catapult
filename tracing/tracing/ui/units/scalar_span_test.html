@@ -13,36 +13,66 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function createScalarSpan(value) {
-    var scalar = new tr.b.u.Scalar(value, tr.b.u.Unit.byName.sizeInBytes);
-    return tr.ui.units.createScalarSpan(scalar);
+  var Unit = tr.b.u.Unit;
+
+  function checkScalarSpan(
+      test, value, unit, expectedTextContent, opt_expectedColor) {
+    var span = tr.ui.units.createScalarSpan(new tr.b.u.Scalar(value, unit));
+    assert.strictEqual(span.$.content.textContent, expectedTextContent);
+    assert.strictEqual(span.$.content.style.color, opt_expectedColor || '');
+    test.addHTMLOutput(span);
   }
 
   test('instantiate', function() {
-    var checkSpan = (function(value, expectedTextContent) {
-      var span = createScalarSpan(value);
-      assert.strictEqual(span.$.content.textContent, expectedTextContent);
-      assert.isFalse(span.isDelta);
-      this.addHTMLOutput(span);
-    }).bind(this);
-
-    checkSpan(1023, '1023.0 B');
-    checkSpan(0, '0.0 B');
-    checkSpan(-1024, '-1.0 KiB');
+    checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMs,
+        '123.457 ms');
+    checkScalarSpan(this, 0, Unit.byName.normalizedPercentage, '0.000%');
+    checkScalarSpan(this, -2560, Unit.byName.sizeInBytes, '-2.5 KiB');
   });
 
-  test('instantiate_isDelta', function() {
-    var checkSpan = (function(value, expectedTextContent) {
-      var span = createScalarSpan(value);
-      span.isDelta = true;
-      assert.strictEqual(span.$.content.textContent, expectedTextContent);
-      assert.isTrue(span.isDelta);
-      this.addHTMLOutput(span);
-    }).bind(this);
+  test('instantiate_smallerIsBetter', function() {
+    checkScalarSpan(this, 45097156608, Unit.byName.sizeInBytes_smallerIsBetter,
+        '42.0 GiB');
+    checkScalarSpan(this, 0, Unit.byName.energyInJoules_smallerIsBetter,
+        '0.000 J');
+    checkScalarSpan(this, -0.25, Unit.byName.unitlessNumber_smallerIsBetter,
+        '-0.250');
+  });
 
-    checkSpan(1023, '+1023.0 B');
-    checkSpan(0, '\u00B10.0 B');
-    checkSpan(-1024, '-1.0 KiB');
+  test('instantiate_biggerIsBetter', function() {
+    checkScalarSpan(this, 0.07, Unit.byName.powerInWatts_smallerIsBetter,
+        '70.000 mW');
+    checkScalarSpan(this, 0, Unit.byName.timeStampInMs_biggerIsBetter,
+        '0.000 ms');
+    checkScalarSpan(this, -0.00003,
+        Unit.byName.normalizedPercentage_biggerIsBetter, '-0.003%');
+  });
+
+  test('instantiate_delta', function() {
+    checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMsDelta,
+        '+123.457 ms');
+    checkScalarSpan(this, 0, Unit.byName.normalizedPercentageDelta,
+        '\u00B10.000%');
+    checkScalarSpan(this, -2560, Unit.byName.sizeInBytesDelta,
+        '-2.5 KiB');
+  });
+
+  test('instantiate_delta_smallerIsBetter', function() {
+    checkScalarSpan(this, 45097156608,
+        Unit.byName.sizeInBytesDelta_smallerIsBetter, '+42.0 GiB', 'red');
+    checkScalarSpan(this, 0, Unit.byName.energyInJoulesDelta_smallerIsBetter,
+        '\u00B10.000 J');
+    checkScalarSpan(this, -0.25,
+        Unit.byName.unitlessNumberDelta_smallerIsBetter, '-0.250', 'green');
+  });
+
+  test('instantiate_delta_biggerIsBetter', function() {
+    checkScalarSpan(this, 0.07, Unit.byName.powerInWattsDelta_biggerIsBetter,
+        '+70.000 mW', 'green');
+    checkScalarSpan(this, 0, Unit.byName.timeStampInMsDelta_biggerIsBetter,
+        '\u00B10.000 ms');
+    checkScalarSpan(this, -0.00003,
+        Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.003%', 'red');
   });
 });
 </script>

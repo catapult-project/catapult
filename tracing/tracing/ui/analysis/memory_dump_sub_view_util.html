@@ -755,24 +755,15 @@ tr.exportTo('tr.ui.analysis', function() {
 
       var sizeEl = document.createElement('tr-ui-u-scalar-span');
       sizeEl.value = value;
-      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Unit.fromJSON.
-      if (this.units === 'bytes')
-        sizeEl.unit = tr.b.u.Unit.byName.sizeInBytes;
-      else
-        sizeEl.unit = tr.b.u.Unit.byName.unitlessNumber;
 
-      if (!isDelta)
-        return sizeEl;
+      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Units.fromJSON.
+      var unitBaseName = this.units === 'bytes' ?
+          'sizeInBytes' : 'unitlessNumber';
+      var unitSuffix = isDelta ? 'Delta' : '';
+      var unitName = unitBaseName + unitSuffix + '_smallerIsBetter';
+      sizeEl.unit = tr.b.u.Unit.byName[unitName];
 
-      sizeEl.isDelta = true;
-
-      if (value === 0)
-        return sizeEl;
-
-      var wrapperEl = document.createElement('span');
-      wrapperEl.style.color = value > 0 ? 'red' : 'green';
-      wrapperEl.appendChild(sizeEl);
-      return wrapperEl;
+      return sizeEl;
     },
 
     compareSingleAttributeValues: function(attrValueA, attrValueB) {

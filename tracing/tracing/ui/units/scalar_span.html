@@ -89,7 +89,6 @@ tr.exportTo('tr.ui.units', function() {
 
       this.warning_ = undefined;
       this.percentage_ = undefined;
-      this.isDelta_ = false;
     },
 
     set contentTextDecoration(deco) {
@@ -145,15 +144,6 @@ tr.exportTo('tr.ui.units', function() {
         this.$.content.classList.remove('right-align');
     },
 
-    get isDelta() {
-      return this.isDelta_;
-    },
-
-    set isDelta(isDelta) {
-      this.isDelta_ = isDelta;
-      this.updateContent_();
-    },
-
     updateSparkline_: function() {
       if (this.percentage_ === undefined) {
         this.$.sparkline.style.display = 'none';
@@ -167,21 +157,40 @@ tr.exportTo('tr.ui.units', function() {
     updateContent_: function() {
       if (this.unit_ === undefined) {
         this.$.content.textContent = '';
+        this.$.content.style.color = '';
         return;
       }
-      var content = this.unit_.format(this.value);
-      if (this.isDelta_) {
+
+      this.$.content.textContent = this.unit_.format(this.value);
+
+      var BIGGER_IS_BETTER = tr.b.u.ImprovementDirection.BIGGER_IS_BETTER;
+      var SMALLER_IS_BETTER = tr.b.u.ImprovementDirection.SMALLER_IS_BETTER;
+      var color = '';
+      if (this.unit_.isDelta) {
+        var improvementDirection = this.unit_.improvementDirection;
         if (this.value > 0) {
           // Positive delta.
-          content = '+' + content;
-        } else if (this.value === 0) {
-          // Zero delta.
-          var PLUS_MINUS_SIGN = String.fromCharCode(177);
-          content = PLUS_MINUS_SIGN + content;
+          switch (improvementDirection) {
+            case BIGGER_IS_BETTER:
+              color = 'green';
+              break;
+            case SMALLER_IS_BETTER:
+              color = 'red';
+              break;
+          }
+        } else if (this.value < 0) {
+          // Negative delta.
+          switch (improvementDirection) {
+            case BIGGER_IS_BETTER:
+              color = 'red';
+              break;
+            case SMALLER_IS_BETTER:
+              color = 'green';
+              break;
+          }
         }
-        // No need for this.value < 0 case (negative sign is alwas shown).
       }
-      this.$.content.textContent = content;
+      this.$.content.style.color = color;
     },
 
     get warning() {
