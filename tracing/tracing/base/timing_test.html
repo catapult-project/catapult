@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     var result = window.performance.getEntriesByName(
         'Test:TimingMarkWithoutArgs');
     var duration = parseFloat(result[0].duration);
-    assert.isAbove(duration, 0.0);
+    assert.isTrue(duration >= 0.0);
   });
 
   test('TimingMarkWithArgs', function() {
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     var result = window.performance.getEntriesByName(
         'Test:TimingMarkWithoutArgs/eyJhIjoxfQ==');
     var duration = parseFloat(result[0].duration);
-    assert.isAbove(duration, 0.0);
+    assert.isTrue(duration >= 0.0);
   });
 
   test('TimingWrapWithAnonymousFunction', function() {
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     })();
     var result = window.performance.getEntriesByName('Test:addTo1000');
     var duration = parseFloat(result[0].duration);
-    assert.isAbove(duration, 0.0);
+    assert.isTrue(duration >= 0.0);
   });
 
   test('TimingWrapNamedFunction', function() {
@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
     })();
     var result = window.performance.getEntriesByName('Test:addTo100');
     var duration = parseFloat(result[0].duration);
-    assert.isAbove(duration, 0.0);
+    assert.isTrue(duration >= 0.0);
   });
 
 
