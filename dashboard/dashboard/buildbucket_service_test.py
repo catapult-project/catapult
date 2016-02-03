@@ -24,7 +24,7 @@ class BuildbucketServiceTest(testing_common.TestCase):
     def __init__(self):
       pass
 
-    def GetBuildParameters(self):  # pylint: disable=invalid-name
+    def GetBuildParameters(self):
       return {
           'builder_name': 'dummy_builder',
           'properties': {'bisect_config': {}}

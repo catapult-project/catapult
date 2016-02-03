@@ -33,6 +33,10 @@ class StoppageAlert(alert.Alert):
   # Whether new points have been received for the test after this alert.
   recovered = ndb.BooleanProperty(indexed=True, default=False)
 
+  # Computed properties are treated like member variables, so they have
+  # lowercase names, even though they look like methods to pylint.
+  # pylint: disable=invalid-name
+
   @ndb.ComputedProperty
   def revision(self):
     return self.key.id()

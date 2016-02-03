@@ -105,8 +105,8 @@ _URL_MAPPING = [
     ('/update_bug_with_results',
      update_bug_with_results.UpdateBugWithResultsHandler),
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
-    (oauth2_decorator.decorator.callback_path,
-     oauth2_decorator.decorator.callback_handler())
+    (oauth2_decorator.DECORATOR.callback_path,
+     oauth2_decorator.DECORATOR.callback_handler())
 ]
 
-app = webapp2.WSGIApplication(_URL_MAPPING, debug=False)
+APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

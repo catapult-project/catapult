@@ -69,120 +69,120 @@ handlers:
   secure: always
 
 - url: /add_point_queue
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /associate_alerts
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: required
   secure: always
 
 - url: /auto_bisect
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /auto_triage
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /bot_whitelist
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /change_internal_only
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /delete_expired_entities
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /edit_anomaly_configs
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /edit_bug_labels
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /edit_sheriffs
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /edit_anomalies
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: required
   secure: always
 
 - url: /edit_site_config
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /email_summary
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /file_bug
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: required
   secure: always
 
 - url: /load_from_prod
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /migrate_test_names
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /mr_deprecate_tests
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /put_entities_task
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /send_stoppage_alert_emails
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /stats_around_revision
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /update_bug_with_results
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /update_test_metadata
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /update_test_suites
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   login: admin
   secure: always
 
 - url: /.*
-  script: dashboard.dispatcher.app
+  script: dashboard.dispatcher.APP
   secure: always

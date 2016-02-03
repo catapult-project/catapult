@@ -138,7 +138,7 @@ class TestBench(ndb.Model):
 
 class SimulateAlertProcessingPipeline(pipeline.Pipeline):
 
-  def run(self, bench_name, test_bench_id):
+  def run(self, bench_name, test_bench_id):  # pylint: disable=invalid-name
     """Runs one experimental alerting function for one TestBench entity.
 
     Args:
@@ -173,7 +173,8 @@ class SimulateAlertProcessingPipeline(pipeline.Pipeline):
 
 class GenerateComparisonReportPipeline(pipeline.Pipeline):
 
-  def run(self, bench_name, description, simulation_results):
+  def run(  # pylint: disable=invalid-name
+      self, bench_name, description, simulation_results):
     """"Generates a comparison report between experimental and base results.
 
     Args:
@@ -319,7 +320,7 @@ def _GraphLink(test_key, rev):
 
 class RunExperimentalChunkPipeline(pipeline.Pipeline):
 
-  def run(self, bench_name, test_bench_ids):
+  def run(self, bench_name, test_bench_ids):  # pylint: disable=invalid-name
     """Runs the experimental find_change_points on each TestBench entity.
 
     This runs SimulateAlertProcessing in parallel and returns a list of
@@ -342,7 +343,7 @@ class RunExperimentalChunkPipeline(pipeline.Pipeline):
 
 class RunExperimentalPipeline(pipeline.Pipeline):
 
-  def run(self, bench_name, description):
+  def run(self, bench_name, description):  # pylint: disable=invalid-name
     """The root pipeline that start simulation tasks and generating report.
 
     This spawns tasks to spawn more tasks that run simulation and executes the

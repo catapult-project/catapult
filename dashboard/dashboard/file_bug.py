@@ -37,7 +37,7 @@ class FileBugHandler(request_handler.RequestHandler):
     """Make all the functions available via POST as well as GET."""
     self.get()
 
-  @oauth2_decorator.decorator.oauth_required
+  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Either shows the form to file a bug, or if filled in, files the bug.
 
@@ -124,7 +124,7 @@ class FileBugHandler(request_handler.RequestHandler):
       })
       return
 
-    http = oauth2_decorator.decorator.http()
+    http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http=http)
     bug_id = service.NewBug(summary, description, labels=labels, owner=owner)
     if not bug_id:
@@ -170,7 +170,7 @@ class FileBugHandler(request_handler.RequestHandler):
     else:
       comment += '\nCould not extract bot names from the list of alerts.'
 
-    http = oauth2_decorator.decorator.http()
+    http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http=http)
     service.AddBugComment(bug_id, comment)
 

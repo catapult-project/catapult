@@ -76,7 +76,7 @@ class EditTestOwnersTest(testing_common.TestCase):
     ]
     self.assertEqual(expected_owner_info, owner_info)
 
-  def test_NonAdminAddsAndRemovesSelf_Succeeds(self):
+  def testPost_NonAdminAddsAndRemovesSelf_Succeeds(self):
     self.SetCurrentUser('chris@chromium.org', is_admin=False)
     self._SetOwnersDict(_SAMPLE_OWNER_DICT)
 
@@ -97,7 +97,7 @@ class EditTestOwnersTest(testing_common.TestCase):
     owner_dict = layered_cache.GetExternal(test_owner._MASTER_OWNER_CACHE_KEY)
     self.assertNotIn('ChromiumPerf/spaceport', owner_dict)
 
-  def test_AdminAddsAndRemovesOther_Succeeds(self):
+  def testPost_AdminAddsAndRemovesOther_Succeeds(self):
     self.SetCurrentUser('chris@chromium.org', is_admin=True)
     self._SetOwnersDict(_SAMPLE_OWNER_DICT)
 

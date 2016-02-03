@@ -168,8 +168,12 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
   # Command to run the test. Optional.
   command_line = ndb.StringProperty(indexed=False)
 
+  # Computed properties are treated like member variables, so they have
+  # lowercase names, even though they look like methods to pylint.
+  # pylint: disable=invalid-name
+
   @ndb.ComputedProperty
-  def bot(self):
+  def bot(self):  # pylint: disable=invalid-name
     """Immediate parent Bot entity, or None if this is not a test suite."""
     parent = self.key.parent()
     if parent.kind() == 'Bot':
@@ -177,7 +181,7 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
     return None
 
   @ndb.ComputedProperty
-  def parent_test(self):
+  def parent_test(self):  # pylint: disable=invalid-name
     """Immediate parent Test entity, or None if this is a test suite."""
     parent = self.key.parent()
     if parent.kind() == 'Test':
@@ -336,7 +340,7 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
 
   # The parent_test is the key of the Test entity that this Row belongs to.
   @ndb.ComputedProperty
-  def parent_test(self):
+  def parent_test(self):  # pylint: disable=invalid-name
     # The Test entity that a Row belongs to isn't actually its parent in the
     # datastore. Rather, the parent key of each Row contains a test path, which
     # contains the information necessary to get the actual Test key.
@@ -346,7 +350,7 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
   # SVN version number, but it might also be any other integer, as long as
   # newer points have higher numbers.
   @ndb.ComputedProperty
-  def revision(self):
+  def revision(self):  # pylint: disable=invalid-name
     return self.key.integer_id()
 
   # The time the revision was added to the dashboard is tracked in order
