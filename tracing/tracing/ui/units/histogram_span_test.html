@@ -4,14 +4,17 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
+
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
     var h = new tr.b.u.Histogram.createLinear(
-        tr.b.u.Units.timeDurationInMs,
+        tr.b.u.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
     h.add(-1, 'a');
@@ -39,7 +42,7 @@ tr.b.unittest.testSuite(function() {
 
   test('emptyHistogram', function() {
     var h = new tr.b.u.Histogram.createLinear(
-        tr.b.u.Units.timeDurationInMs,
+        tr.b.u.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
 
@@ -50,7 +53,7 @@ tr.b.unittest.testSuite(function() {
 
   test('nans', function() {
     var h = new tr.b.u.Histogram.createLinear(
-        tr.b.u.Units.timeDurationInMs,
+        tr.b.u.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
     h.add(undefined, 'b');

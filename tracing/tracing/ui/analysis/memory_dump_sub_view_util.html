@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
@@ -755,11 +755,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
       var sizeEl = document.createElement('tr-ui-u-scalar-span');
       sizeEl.value = value;
-      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Units.fromJSON.
+      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Unit.fromJSON.
       if (this.units === 'bytes')
-        sizeEl.unit = tr.b.u.Units.sizeInBytes;
+        sizeEl.unit = tr.b.u.Unit.byName.sizeInBytes;
       else
-        sizeEl.unit = tr.b.u.Units.unitlessNumber;
+        sizeEl.unit = tr.b.u.Unit.byName.unitlessNumber;
 
       if (!isDelta)
         return sizeEl;

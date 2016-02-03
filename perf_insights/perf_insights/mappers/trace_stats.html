@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/tracing/value/value.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
-<link rel="import" href="/tracing/base/units/units.html">
+<link rel="import" href="/tracing/base/units/unit.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -45,7 +45,7 @@ tr.exportTo('pi.m', function() {
     });
 
     var histogram = tr.b.u.Histogram.createLinear(
-        tr.b.u.Units.unitlessNumber,
+        tr.b.u.Unit.byName.unitlessNumber,
         tr.b.Range.fromExplicitRange(0, 50000),
         20);
 

@@ -5,9 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/deep_utils.html">
-<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/object_instance.html">
+<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 
 <script>
 'use strict';
@@ -184,12 +185,13 @@ tr.b.unittest.testSuite(function() {
 
   test('scalarValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
-    view.object = new tr.b.u.Scalar(.3, tr.b.u.Units.normalizedPercentage);
+    view.object =
+        new tr.b.u.Scalar(.3, tr.b.u.Unit.byName.normalizedPercentage);
     var m = tr.b.findDeepElementMatching(
         view.$.content, 'tr-ui-u-scalar-span');
     assert.isDefined(m);
     assert.equal(m.value, .3);
-    assert.equal(m.unit, tr.b.u.Units.normalizedPercentage);
+    assert.equal(m.unit, tr.b.u.Unit.byName.normalizedPercentage);
   });
 
 });

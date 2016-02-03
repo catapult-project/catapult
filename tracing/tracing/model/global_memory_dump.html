@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/units/time_stamp.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
@@ -223,9 +224,10 @@ tr.exportTo('tr.model', function() {
             dependentName) {
           if (size >= dependentSize)
             return;
-          var messageSuffix = ' (' + tr.b.u.Units.sizeInBytes.format(size) +
-              ') is less than ' + dependentName + ' (' +
-                tr.b.u.Units.sizeInBytes.format(dependentSize) + ').';
+          var messageSuffix = ' (' +
+              tr.b.u.Unit.byName.sizeInBytes.format(size) + ') is less than ' +
+              dependentName + ' (' +
+              tr.b.u.Unit.byName.sizeInBytes.format(dependentSize) + ').';
           this.model.importWarning({
             type: 'memory_dump_parse_error',
             message: 'Size provided by memory allocator dump \'' +
@@ -298,7 +300,7 @@ tr.exportTo('tr.model', function() {
         var message = tr.b.dictionaryValues(tr.b.mapItems(childOverlaps,
             function(ownerChildName, overlap) {
           return 'overlaps with its sibling \'' + ownerChildName + '\' (' +
-              tr.b.u.Units.sizeInBytes.format(overlap) + ')';
+              tr.b.u.Unit.byName.sizeInBytes.format(overlap) + ')';
         })).join(' ');
 
         childDump.attributes[SIZE_ATTRIBUTE_NAME].infos.push(
