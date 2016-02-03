@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/units/histogram.html">
+<link rel="import" href="/tracing/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
+<link rel="import" href="/tracing/extras/rail/response_interaction_record.html">
+<link rel="import" href="/tracing/metrics/system_health/utils.html">
+<link rel="import"
+    href="/tracing/metrics/system_health/animation_smoothness_metric.html">
+<link rel="import"
+    href="/tracing/metrics/system_health/animation_throughput_metric.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  // In the case of Response, Load, and DiscreteAnimation IRs, Responsiveness is
+  // derived from the time between when the user thinks they begin an interation
+  // (expectedStart) and the time when the screen first changes to reflect the
+  // interaction (actualEnd).  There may be a delay between expectedStart and
+  // when chrome first starts processing the interaction (actualStart) if the
+  // main thread is busy.  The user doesn't know when actualStart is, they only
+  // know when expectedStart is. User responsiveness, by definition, considers
+  // only what the user experiences, so "duration" is defined as actualEnd -
+  // expectedStart.
+
+  // This histogram represents the number of people who we believe would
+  // score the responsiveness at a certain value. We have set this with
+  // just a best-effort guess, though. In #1696, we plan to derive this
+  // experimentally.
+  var RESPONSE_HISTOGRAM = tr.b.u.Histogram.fromDict({
+    unit: 'unitless',
+    min: 150,
+    max: 5000,
+    centralBinWidth: 485,
+    underflowBin: {min: -Number.MAX_VALUE, max: 150, count: 1000},
+    centralBins: [
+      {min: 150, max: 635, count: 708},
+      {min: 635, max: 1120, count: 223},
+      {min: 1120, max: 1605, count: 50},
+      {min: 1605, max: 2090, count: 33},
+      {min: 2090, max: 2575, count: 23},
+      {min: 2575, max: 3060, count: 17},
+      {min: 3060, max: 3545, count: 12},
+      {min: 3545, max: 4030, count: 8},
+      {min: 4030, max: 4515, count: 4},
+      {min: 4515, max: 5000, count: 1}
+    ],
+    overflowBin: {min: 5000, max: Number.MAX_VALUE, count: 0}
+  });
+
+  var LOAD_HISTOGRAM = tr.b.u.Histogram.fromDict({
+    unit: 'unitless',
+    min: 1000,
+    max: 60000,
+    centralBinWidth: 5900,
+    underflowBin: {min: -Number.MAX_VALUE, max: 1000, count: 1000},
+    centralBins: [
+      {min: 1000, max: 6900, count: 901},
+      {min: 6900, max: 12800, count: 574},
+      {min: 12800, max: 18700, count: 298},
+      {min: 18700, max: 24600, count: 65},
+      {min: 24600, max: 30500, count: 35},
+      {min: 30500, max: 36400, count: 23},
+      {min: 36400, max: 42300, count: 16},
+      {min: 42300, max: 48200, count: 10},
+      {min: 48200, max: 54100, count: 5},
+      {min: 54100, max: 60000, count: 2}
+    ],
+    overflowBin: {min: 60000, max: Number.MAX_VALUE, count: 0}
+  });
+
+  function ResponsivenessMetric() {
+  }
+
+  ResponsivenessMetric.forModel = function(model, opt_rangeOfInterest) {
+    return tr.b.Statistics.weightedMean(
+        tr.metrics.sh.filterIRsByRange(
+            model.interactionRecords, opt_rangeOfInterest),
+        tr.metrics.sh.perceptualBlend,
+        ResponsivenessMetric.forIR);
+  };
+
+  ResponsivenessMetric.forIR = function(ir) {
+    if (ir instanceof tr.e.rail.ResponseInteractionRecord) {
+      return RESPONSE_HISTOGRAM.getInterpolatedCountAt(ir.duration) /
+        RESPONSE_HISTOGRAM.maxCount;
+    }
+
+    if (ir instanceof tr.e.rail.AnimationInteractionRecord) {
+      return tr.b.Statistics.weightedMean(
+          [tr.metrics.sh.AnimationThroughputMetric.forIR(ir),
+           tr.metrics.sh.AnimationSmoothnessMetric.forIR(ir)],
+          tr.metrics.sh.perceptualBlend);
+    }
+
+    if (ir instanceof tr.e.rail.LoadInteractionRecord) {
+      return LOAD_HISTOGRAM.getInterpolatedCountAt(ir.duration) /
+        LOAD_HISTOGRAM.maxCount;
+    }
+
+    return undefined;
+  };
+
+  return {
+    ResponsivenessMetric: ResponsivenessMetric
+  };
+});
+</script>

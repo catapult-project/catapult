@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/tracing/extras/rail/rail_score.html">
+<link rel="import"
+    href="/tracing/metrics/system_health/system_health_metric.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -15,12 +16,12 @@ tr.exportTo('pi.m', function() {
 
   function railMapFunction(results, model) {
     var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
-    var railScore = tr.e.rail.RAILScore.fromModel(model);
-    if (railScore === undefined) {
+    var health = tr.metrics.sh.SystemHealthMetric.forModel(model);
+    if (health === undefined) {
       return;
     }
-    results.addValue(new tr.v.DictValue(canonicalUrl, 'railScore',
-                                        railScore.asDict()));
+    results.addValue(new tr.v.DictValue(
+        canonicalUrl, 'railScore', {overallScore: health}));
   }
   pi.FunctionRegistry.register(railMapFunction);
 

@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
+<link rel="import"
+    href="/tracing/metrics/system_health/system_health_metric.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 
 <polymer-element name="tr-ui-e-rail-rail-score-span">
@@ -20,7 +21,7 @@ found in the LICENSE file.
     }
   </style>
   <span id="content">
-    <span>RAIL Score: </span><span id="score"></span>
+    <span>System Health: </span><span id="score"></span>
   </span>
   </template>
   <script>
@@ -35,22 +36,22 @@ found in the LICENSE file.
       this.updateContent_();
     },
 
-    get railScore() {
-      return this.railScore_;
+    get model() {
+      return this.model_;
     },
 
-    set railScore(railScore) {
-      this.railScore_ = railScore;
+    set model(model) {
+      this.model_ = model;
       this.updateContent_();
     },
 
     updateContent_: function() {
-      if (this.railScore_ === undefined) {
+      if (this.model_ === undefined) {
         this.$.content.style.display = 'none';
         return;
       }
       this.$.content.style.display = '';
-      var overallScore = this.railScore_.overallScore;
+      var overallScore = tr.metrics.sh.SystemHealthMetric.forModel(this.model_);
       if (overallScore === undefined) {
         this.$.score.textContent = '';
         return;

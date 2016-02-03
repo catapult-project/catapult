@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  // Returns a weight for this score.
+  // score should be a number between 0 and 1 inclusive.
+  // This function is expected to be passed to tr.b.Statistics.weightedMean as
+  // its weightCallback.
+  function perceptualBlend(ir, index, score) {
+    // Lower scores are exponentially more important than higher scores
+    // due to the Peak-end rule.
+    // Other than that general rule, there is no specific reasoning behind this
+    // specific formula -- it is fairly arbitrary.
+    return Math.exp(1 - score);
+  }
+
+  function filterIRsByRange(irs, opt_range) {
+    var filteredIRs = [];
+    irs.forEach(function(ir) {
+      // TODO(benjhayden) Remove this check when it's merged with the base.
+      if (!(ir instanceof tr.e.rail.RAILInteractionRecord))
+        return;
+
+      if (!opt_range ||
+          opt_range.intersectsExplicitRangeExclusive(ir.start, ir.end))
+        filteredIRs.push(ir);
+    });
+    return filteredIRs;
+  }
+
+  return {
+    perceptualBlend: perceptualBlend,
+    filterIRsByRange: filterIRsByRange
+  };
+});
+</script>

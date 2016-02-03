@@ -10,9 +10,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Base class for trace data Auditors.
- */
 tr.exportTo('tr.e.rail', function() {
   function IdleInteractionRecord(parentModel, start, duration) {
     var initiatorTitle = '';
@@ -22,22 +19,7 @@ tr.exportTo('tr.e.rail', function() {
 
   IdleInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
-    constructor: IdleInteractionRecord,
-
-    get normalizedUserComfort() {
-      return 1;
-    },
-
-    // Unlike during active IRs, while the user is idle, the CPU should not be
-    // utilized much.
-
-    get minCpuFraction() {
-      return 0.1;
-    },
-
-    get maxCpuFraction() {
-      return 1;
-    }
+    constructor: IdleInteractionRecord
   };
 
   tr.e.rail.RAILInteractionRecord.register(IdleInteractionRecord, {

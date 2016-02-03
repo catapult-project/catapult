@@ -11,35 +11,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview The Load phase of RAIL.
- */
 tr.exportTo('tr.e.rail', function() {
-  // This histogram represents the number of people who we believe would have
-  // comfort with a response level of a certain value. We have set this with
-  // just a best-effort guess, though. In #1696, we plan to derive this
-  // experimentally.
-  var COMFORT_HISTOGRAM = tr.b.u.Histogram.fromDict({
-    unit: 'unitless',
-    min: 1000,
-    max: 60000,
-    centralBinWidth: 5900,
-    underflowBin: {min: -Number.MAX_VALUE, max: 1000, count: 1000},
-    centralBins: [
-      {min: 1000, max: 6900, count: 901},
-      {min: 6900, max: 12800, count: 574},
-      {min: 12800, max: 18700, count: 298},
-      {min: 18700, max: 24600, count: 65},
-      {min: 24600, max: 30500, count: 35},
-      {min: 30500, max: 36400, count: 23},
-      {min: 36400, max: 42300, count: 16},
-      {min: 42300, max: 48200, count: 10},
-      {min: 48200, max: 54100, count: 5},
-      {min: 54100, max: 60000, count: 2}
-    ],
-    overflowBin: {min: 60000, max: Number.MAX_VALUE, count: 0}
-  });
-
   var LOAD_SUBTYPE_NAMES = {
     SUCCESSFUL: 'Successful',
     FAILED: 'Failed',
@@ -83,12 +55,7 @@ tr.exportTo('tr.e.rail', function() {
 
   LoadInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
-    constructor: LoadInteractionRecord,
-
-    get normalizedUserComfort() {
-      return COMFORT_HISTOGRAM.getInterpolatedCountAt(this.duration) /
-        COMFORT_HISTOGRAM.maxCount;
-    }
+    constructor: LoadInteractionRecord
   };
 
   tr.e.rail.RAILInteractionRecord.register(LoadInteractionRecord, {

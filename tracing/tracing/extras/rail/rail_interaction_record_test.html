@@ -39,40 +39,5 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(rir.args.layoutInfo.timeInLayout, 100);
   });
-
-  // This basically just tests weightedAverage2.
-  test('railScore', function() {
-    var ir = new tr.e.rail.StubRAILInteractionRecord({
-      start: 0, end: 100,
-      typeName: 'Idle',
-      normalizedUserComfort: 0,
-      normalizedEfficiency: 0
-    });
-    assert.closeTo(0, ir.railScore, 1e-5);
-
-    ir = new tr.e.rail.StubRAILInteractionRecord({
-      start: 0, end: 100,
-      typeName: 'Idle',
-      normalizedUserComfort: 1,
-      normalizedEfficiency: 1
-    });
-    assert.closeTo(1, ir.railScore, 1e-5);
-
-    ir = new tr.e.rail.StubRAILInteractionRecord({
-      start: 0, end: 100,
-      typeName: 'Idle',
-      normalizedUserComfort: 1,
-      normalizedEfficiency: 0
-    });
-    assert.closeTo(0.42388, ir.railScore, 1e-5);
-
-    ir = new tr.e.rail.StubRAILInteractionRecord({
-      start: 0, end: 100,
-      typeName: 'Idle',
-      normalizedUserComfort: 0,
-      normalizedEfficiency: 1
-    });
-    assert.closeTo(0.15536, ir.railScore, 1e-5);
-  });
 });
 </script>
