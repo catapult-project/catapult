@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/object_collection.html">
+<link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/selection_state.html">
 <link rel="import" href="/tracing/ui/timeline_viewport.html">
 <link rel="import" href="/tracing/ui/tracks/drawing_container.html">
@@ -23,15 +24,17 @@ tr.b.unittest.testSuite(function() {
 
   var createObjects = function() {
     var objects = new tr.model.ObjectCollection({});
-    objects.idWasCreated('0x1000', 'tr.e.cc', 'Frame', 10);
-    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 10, 'snapshot-1');
-    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 25, 'snapshot-2');
-    objects.addSnapshot('0x1000', 'tr.e.cc', 'Frame', 40, 'snapshot-3');
-    objects.idWasDeleted('0x1000', 'tr.e.cc', 'Frame', 45);
+    var scopedId1 = new tr.model.ScopedId('ptr', '0x1000');
+    objects.idWasCreated(scopedId1, 'tr.e.cc', 'Frame', 10);
+    objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 10, 'snapshot-1');
+    objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 25, 'snapshot-2');
+    objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 40, 'snapshot-3');
+    objects.idWasDeleted(scopedId1, 'tr.e.cc', 'Frame', 45);
 
-    objects.idWasCreated('0x1001', 'skia', 'Picture', 20);
-    objects.addSnapshot('0x1001', 'skia', 'Picture', 20, 'snapshot-1');
-    objects.idWasDeleted('0x1001', 'skia', 'Picture', 25);
+    var scopedId2 = new tr.model.ScopedId('ptr', '0x1001');
+    objects.idWasCreated(scopedId2, 'skia', 'Picture', 20);
+    objects.addSnapshot(scopedId2, 'skia', 'Picture', 20, 'snapshot-1');
+    objects.idWasDeleted(scopedId2, 'skia', 'Picture', 25);
     return objects;
   };
 
@@ -96,7 +99,7 @@ tr.b.unittest.testSuite(function() {
     track.objectInstances = frames;
 
     var instance = new tr.model.ObjectInstance(
-        {}, '0x1000', 'cat', 'n', 10);
+        {}, new tr.model.ScopedId('ptr', '0x1000'), 'cat', 'n', 10);
 
     assert.doesNotThrow(function() {
       track.addEventNearToProvidedEventToSelection(instance, 0, undefined);

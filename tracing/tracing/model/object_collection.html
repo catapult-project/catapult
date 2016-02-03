@@ -31,7 +31,8 @@ tr.exportTo('tr.model', function() {
   function ObjectCollection(parent) {
     tr.model.EventContainer.call(this);
     this.parent = parent;
-    this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
+    // scope -> {id -> TimeToObjectInstanceMap}
+    this.instanceMapsByScopedId_ = {};
     this.instancesByTypeName_ = {};
     this.createObjectInstance_ = this.createObjectInstance_.bind(this);
   }
@@ -57,11 +58,11 @@ tr.exportTo('tr.model', function() {
     },
 
     createObjectInstance_: function(
-        parent, id, category, name, creationTs, opt_baseTypeName) {
+        parent, scopedId, category, name, creationTs, opt_baseTypeName) {
       var constructor = tr.model.ObjectInstance.getConstructor(
           category, name);
       var instance = new constructor(
-          parent, id, category, name, creationTs, opt_baseTypeName);
+          parent, scopedId, category, name, creationTs, opt_baseTypeName);
       var typeName = instance.typeName;
       var instancesOfTypeName = this.instancesByTypeName_[typeName];
       if (!instancesOfTypeName) {
@@ -72,23 +73,31 @@ tr.exportTo('tr.model', function() {
       return instance;
     },
 
-    getOrCreateInstanceMap_: function(id) {
-      var instanceMap = this.instanceMapsById_[id];
+    getOrCreateInstanceMap_: function(scopedId) {
+      var dict;
+      if (scopedId.scope in this.instanceMapsByScopedId_) {
+        dict = this.instanceMapsByScopedId_[scopedId.scope];
+      } else {
+        dict = {};
+        this.instanceMapsByScopedId_[scopedId.scope] = dict;
+      }
+      var instanceMap = dict[scopedId.id];
       if (instanceMap)
         return instanceMap;
       instanceMap = new tr.model.TimeToObjectInstanceMap(
-          this.createObjectInstance_, this.parent, id);
-      this.instanceMapsById_[id] = instanceMap;
+          this.createObjectInstance_, this.parent, scopedId);
+      dict[scopedId.id] = instanceMap;
       return instanceMap;
     },
 
-    idWasCreated: function(id, category, name, ts) {
-      var instanceMap = this.getOrCreateInstanceMap_(id);
+    idWasCreated: function(scopedId, category, name, ts) {
+      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       return instanceMap.idWasCreated(category, name, ts);
     },
 
-    addSnapshot: function(id, category, name, ts, args, opt_baseTypeName) {
-      var instanceMap = this.getOrCreateInstanceMap_(id);
+    addSnapshot: function(
+        scopedId, category, name, ts, args, opt_baseTypeName) {
+      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var snapshot = instanceMap.addSnapshot(
           category, name, ts, args, opt_baseTypeName);
       if (snapshot.objectInstance.category != category) {
@@ -113,8 +122,8 @@ tr.exportTo('tr.model', function() {
       return snapshot;
     },
 
-    idWasDeleted: function(id, category, name, ts) {
-      var instanceMap = this.getOrCreateInstanceMap_(id);
+    idWasDeleted: function(scopedId, category, name, ts) {
+      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance)
         return;
@@ -135,27 +144,31 @@ tr.exportTo('tr.model', function() {
     },
 
     autoDeleteObjects: function(maxTimestamp) {
-      tr.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
-        var lastInstance = i2imap.lastInstance;
-        if (lastInstance.deletionTs != Number.MAX_VALUE)
-          return;
-        i2imap.idWasDeleted(
-            lastInstance.category, lastInstance.name, maxTimestamp);
-        // idWasDeleted will cause lastInstance.deletionTsWasExplicit to be set
-        // to true. Unset it here.
-        lastInstance.deletionTsWasExplicit = false;
+      tr.b.iterItems(this.instanceMapsByScopedId_, function(scope, imapById) {
+        tr.b.iterItems(imapById, function(id, i2imap) {
+          var lastInstance = i2imap.lastInstance;
+          if (lastInstance.deletionTs != Number.MAX_VALUE)
+            return;
+          i2imap.idWasDeleted(
+              lastInstance.category, lastInstance.name, maxTimestamp);
+          // idWasDeleted will cause lastInstance.deletionTsWasExplicit to be
+          // set to true. Unset it here.
+          lastInstance.deletionTsWasExplicit = false;
+        });
       });
     },
 
-    getObjectInstanceAt: function(id, ts) {
-      var instanceMap = this.instanceMapsById_[id];
+    getObjectInstanceAt: function(scopedId, ts) {
+      var instanceMap;
+      if (scopedId.scope in this.instanceMapsByScopedId_)
+        instanceMap = this.instanceMapsByScopedId_[scopedId.scope][scopedId.id];
       if (!instanceMap)
         return undefined;
       return instanceMap.getInstanceAt(ts);
     },
 
-    getSnapshotAt: function(id, ts) {
-      var instance = this.getObjectInstanceAt(id, ts);
+    getSnapshotAt: function(scopedId, ts) {
+      var instance = this.getObjectInstanceAt(scopedId, ts);
       if (!instance)
         return undefined;
       return instance.getSnapshotAt(ts);
@@ -163,8 +176,10 @@ tr.exportTo('tr.model', function() {
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
-      tr.b.iterItems(this.instanceMapsById_, function(id, i2imap) {
-        i2imap.instances.forEach(iter, opt_this);
+      tr.b.iterItems(this.instanceMapsByScopedId_, function(scope, imapById) {
+        tr.b.iterItems(imapById, function(id, i2imap) {
+          i2imap.instances.forEach(iter, opt_this);
+        });
       });
     },
 

@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
-<link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
@@ -17,6 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
+<link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/counter_series.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
@@ -26,6 +26,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/rect_annotation.html">
+<link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
 
@@ -1079,14 +1080,6 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    /**
-     * Called by the model to join references between objects, after final model
-     * bounds have been computed.
-     */
-    joinRefs: function() {
-      this.joinObjectRefs_();
-    },
-
     createAsyncSlices_: function() {
       if (this.allAsyncEvents_.length === 0)
         return;
@@ -1777,6 +1770,8 @@ tr.exportTo('tr.e.importer', function() {
 
       function processEvent(objectEventState) {
         var event = objectEventState.event;
+        var scopedId = new tr.model.ScopedId(
+            event.scope || tr.model.OBJECT_DEFAULT_SCOPE, event.id);
         var thread = objectEventState.thread;
         if (event.name === undefined) {
           this.model_.importWarning({
@@ -1786,7 +1781,7 @@ tr.exportTo('tr.e.importer', function() {
           });
         }
 
-        if (event.id === undefined) {
+        if (scopedId.id === undefined) {
           this.model_.importWarning({
             type: 'object_parse_error',
             message: 'While processing ' + JSON.stringify(event) + ': ' +
@@ -1799,12 +1794,12 @@ tr.exportTo('tr.e.importer', function() {
         if (event.ph === 'N') {
           try {
             instance = process.objects.idWasCreated(
-                event.id, event.cat, event.name, ts);
+                scopedId, event.cat, event.name, ts);
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
               message: 'While processing create of ' +
-                  event.id + ' at ts=' + ts + ': ' + e
+                  scopedId + ' at ts=' + ts + ': ' + e
             });
             return;
           }
@@ -1812,7 +1807,7 @@ tr.exportTo('tr.e.importer', function() {
           if (event.args.snapshot === undefined) {
             this.model_.importWarning({
               type: 'object_parse_error',
-              message: 'While processing ' + event.id + ' at ts=' + ts + ': ' +
+              message: 'While processing ' + scopedId + ' at ts=' + ts + ': ' +
                   'Snapshots must have args: {snapshot: ...}'
             });
             return;
@@ -1836,28 +1831,27 @@ tr.exportTo('tr.e.importer', function() {
               baseTypename = undefined;
             }
             snapshot = process.objects.addSnapshot(
-                event.id, cat, event.name, ts,
-                args, baseTypename);
+                scopedId, cat, event.name, ts, args, baseTypename);
             snapshot.snapshottedOnThread = thread;
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
               message: 'While processing snapshot of ' +
-                  event.id + ' at ts=' + ts + ': ' + e
+                  scopedId + ' at ts=' + ts + ': ' + e
             });
             return;
           }
           instance = snapshot.objectInstance;
         } else if (event.ph === 'D') {
           try {
-            process.objects.idWasDeleted(event.id, event.cat, event.name, ts);
-            var instanceMap = process.objects.getOrCreateInstanceMap_(event.id);
+            process.objects.idWasDeleted(scopedId, event.cat, event.name, ts);
+            var instanceMap = process.objects.getOrCreateInstanceMap_(scopedId);
             instance = instanceMap.lastInstance;
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
               message: 'While processing delete of ' +
-                  event.id + ' at ts=' + ts + ': ' + e
+                  scopedId + ' at ts=' + ts + ': ' + e
             });
             return;
           }
@@ -1935,9 +1929,11 @@ tr.exportTo('tr.e.importer', function() {
         else
           baseTypename = undefined;
 
+        var scope = containingSnapshot.objectInstance.scopedId.scope;
+
         try {
           res = process.objects.addSnapshot(
-              id, cat,
+              new tr.model.ScopedId(scope, id), cat,
               name, containingSnapshot.ts,
               implicitSnapshot, baseTypename);
         } catch (e) {
@@ -2771,87 +2767,6 @@ tr.exportTo('tr.e.importer', function() {
           }
         }
       }
-    },
-
-    joinObjectRefs_: function() {
-      tr.b.iterItems(this.model_.processes, function(pid, process) {
-        this.joinObjectRefsForProcess_(process);
-      }, this);
-    },
-
-    joinObjectRefsForProcess_: function(process) {
-      // Iterate the world, looking for id_refs
-      var patchupsToApply = [];
-      tr.b.iterItems(process.threads, function(tid, thread) {
-        thread.asyncSliceGroup.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(
-              patchupsToApply, process.objects, 'start', item);
-        }, this);
-        thread.sliceGroup.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(
-              patchupsToApply, process.objects, 'start', item);
-        }, this);
-      }, this);
-      process.objects.iterObjectInstances(function(instance) {
-        instance.snapshots.forEach(function(item) {
-          this.searchItemForIDRefs_(
-              patchupsToApply, process.objects, 'ts', item);
-        }, this);
-      }, this);
-
-      // Change all the fields pointing at id_refs to their real values.
-      patchupsToApply.forEach(function(patchup) {
-        patchup.object[patchup.field] = patchup.value;
-      });
-    },
-
-    searchItemForIDRefs_: function(patchupsToApply, objectCollection,
-                                   itemTimestampField, item) {
-      if (!item.args)
-        throw new Error('item is missing its args');
-
-      function handleField(object, fieldName, fieldValue) {
-        if (!fieldValue || (!fieldValue.id_ref && !fieldValue.idRef))
-          return;
-
-        var id = fieldValue.id_ref || fieldValue.idRef;
-        var ts = item[itemTimestampField];
-        var snapshot = objectCollection.getSnapshotAt(id, ts);
-        if (!snapshot)
-          return;
-
-        // We have to delay the actual change to the new value until after all
-        // refs have been located. Otherwise, we could end up recursing in
-        // ways we definitely didn't intend.
-        patchupsToApply.push({object: object,
-          field: fieldName,
-          value: snapshot});
-      }
-      function iterObjectFieldsRecursively(object) {
-        if (!(object instanceof Object))
-          return;
-
-        if ((object instanceof tr.model.ObjectSnapshot) ||
-            (object instanceof Float32Array) ||
-            (object instanceof tr.b.Quad))
-          return;
-
-        if (object instanceof Array) {
-          for (var i = 0; i < object.length; i++) {
-            handleField(object, i, object[i]);
-            iterObjectFieldsRecursively(object[i]);
-          }
-          return;
-        }
-
-        for (var key in object) {
-          var value = object[key];
-          handleField(object, key, value);
-          iterObjectFieldsRecursively(value);
-        }
-      }
-
-      iterObjectFieldsRecursively(item.args);
     }
   };
 

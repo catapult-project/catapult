@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
 <link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/model/scoped_id.html">
 
 <script>
 'use strict';
@@ -18,6 +19,7 @@ tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
   var ColorScheme = tr.b.ColorScheme;
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
+  var ScopedId = tr.model.ScopedId;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -560,7 +562,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     var p = m.processes[1];
-    var i = p.objects.instanceMapsById_[1].instances[0];
+    var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
     assert.equal(i.colorId,
                  ColorScheme.getColorIdForReservedName('generic_work'));
   });
@@ -574,7 +576,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     var p = m.processes[1];
-    var i = p.objects.instanceMapsById_[1].instances[0];
+    var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
     assert.equal(i.colorId,
                  ColorScheme.getColorIdForReservedName('generic_work'));
   });
@@ -1966,7 +1968,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     assert.isDefined(p);
 
-    var i10 = p.objects.getObjectInstanceAt('0x1000', 10);
+    var i10 = p.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
     assert.equal(i10.category, 'c');
     assert.equal(i10.creationTs, 10);
     assert.equal(i10.deletionTs, 50);
@@ -2004,12 +2006,13 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events, false);
     var p1 = m.processes[1];
 
-    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
     var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
         'subObject'];
 
     assert.equal(subObjectInstances.length, 2);
-    var subObject1 = p1.objects.getObjectInstanceAt('0x1', 15);
+    var subObject1 = p1.objects.getObjectInstanceAt(
+        new ScopedId('ptr', '0x1'), 15);
     assert.equal(subObject1.name, 'subObject');
     assert.equal(subObject1.creationTs, 15);
 
@@ -2019,7 +2022,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(subObject1.snapshots[1].ts, 20);
     assert.equal(subObject1.snapshots[1].args.foo, 2);
 
-    var subObject2 = p1.objects.getObjectInstanceAt('0x2', 20);
+    var subObject2 = p1.objects.getObjectInstanceAt(
+        new ScopedId('ptr', '0x2'), 20);
     assert.equal(subObject2.name, 'subObject');
     assert.equal(subObject2.creationTs, 20);
     assert.equal(subObject2.snapshots.length, 1);
@@ -2041,7 +2045,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p1 = m.processes[1];
 
-    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
     var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
         'subObject'];
 
@@ -2062,7 +2066,7 @@ tr.b.unittest.testSuite(function() {
     var p1 = m.processes[1];
     assert.equal(m.importWarnings.length, 0);
 
-    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
     assert.equal(iA.snapshots.length, 1);
   });
 
@@ -2082,7 +2086,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events, false);
     var p1 = m.processes[1];
 
-    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
     var s15 = iA.getSnapshotAt(15);
 
     var taskSlice = p1.threads[1].sliceGroup.slices[0];
@@ -2108,8 +2112,9 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p1 = m.processes[1];
 
-    var iA = p1.objects.getObjectInstanceAt('0x1000', 15);
-    var iFoo = p1.objects.getObjectInstanceAt('0x1001', 15);
+    var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 15);
+    var iFoo = p1.objects.getObjectInstanceAt(
+        new ScopedId('ptr', '0x1001'), 15);
     assert.isDefined(iA);
     assert.isDefined(iFoo);
 
@@ -2133,7 +2138,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events, false);
     var p1 = m.processes[1];
 
-    var sA = p1.objects.getSnapshotAt('0x1000', 15);
+    var sA = p1.objects.getSnapshotAt(new ScopedId('ptr', '0x1000'), 15);
     assert.isTrue(sA.args.x instanceof Array);
     assert.equal(sA.args.x.length, 3);
     assert.isTrue(sA.args.x[0] instanceof tr.model.ObjectSnapshot);
