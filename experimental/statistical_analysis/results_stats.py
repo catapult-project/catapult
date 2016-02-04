@@ -29,11 +29,11 @@ def CreateBenchmarkResultDictFromJson(benchmark_result_json):
   when running 'run_benchmark'.
 
   Args:
-    benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry
+    benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry.
 
   Returns:
-    Dictionary of benchmark results
-    Example dict entry: 'first_main_frame_load_time': [650, 700, ...]
+    Dictionary of benchmark results.
+    Example dict entry: 'first_main_frame_load_time': [650, 700, ...].
   """
   try:
     charts = benchmark_result_json['charts']
@@ -57,11 +57,11 @@ def MergeTwoBenchmarkResultDicts(benchmark_result_dict_1,
   measurement names match.
 
   Args:
-    benchmark_result_dict_1: dict of format {metric: list of values}
-    benchmark_result_dict_2: dict of format {metric: list of values}
+    benchmark_result_dict_1: dict of format {metric: list of values}.
+    benchmark_result_dict_2: dict of format {metric: list of values}.
 
   Returns:
-    Dict of format {metric: (list of values 1, list of values 2)}
+    Dict of format {metric: (list of values 1, list of values 2)}.
   """
   if benchmark_result_dict_1.viewkeys() != benchmark_result_dict_2.viewkeys():
     raise DictMismatchError()
@@ -74,29 +74,26 @@ def MergeTwoBenchmarkResultDicts(benchmark_result_dict_1,
   return merged_dict
 
 
-def IsNormallyDistributed(result, significance_level=0.05,
+def IsNormallyDistributed(sample, significance_level=0.05,
                           return_p_value=False):
   """Calculates Shapiro-Wilk test for normality.
 
   Note that normality is a requirement for Welch's t-test.
 
   Args:
-    result: List of values of benchmark result for a measure
-    significance_level: The significance level the p-value is compared against
-    return_p_value: Whether or not to return the calculated p-value
+    sample: List of values of benchmark result for a measure.
+    significance_level: The significance level the p-value is compared against.
+    return_p_value: Whether or not to return the calculated p-value.
 
   Returns:
-    is_normally_distributed: Returns True or False
-    p_value: The calculated p-value, which is the probability for the given
-    sample distribution to differ at least as much from a generic normal
-    distribution, assuming that the null hypothesis is true (= the sample is
-    drawn from an underlying normal distribution)
+    is_normally_distributed: Returns True or False.
+    p_value: The calculated p-value.
   """
   if not stats:
     raise ImportError('This function requires Scipy.')
 
   # pylint: disable=unbalanced-tuple-unpacking
-  _, p_value = stats.shapiro(result)
+  _, p_value = stats.shapiro(sample)
 
   is_normally_distributed = p_value >= significance_level
   if return_p_value:
@@ -109,27 +106,27 @@ def IsSignificantlyDifferent(sample_1, sample_2, test=MANN,
   """Calculates the specified statistical test for the given benchmark results.
 
   The null hypothesis for each test is that the two results are not
-  significantly different. The p-value that is produced by a test represents
-  the probability of an outcome at least as extreme (= the two results being at
-  least as different) assuming that the null hypothesis is true (= the results
-  are actually not different). The test outcome can be determined based on the
-  given significance level.
+  significantly different.
 
   Args:
-    sample_1: List of values of first benchmark result
-    sample_2: List of values of second benchmark result
-    test: Statistical test that is used
-    significance_level: The significance level the p-value is compared against
-    return_p_value: Whether or not to return the calculated p-value
+    sample_1: List of values of first benchmark result.
+    sample_2: List of values of second benchmark result.
+    test: Statistical test that is used.
+    significance_level: The significance level the p-value is compared against.
+    return_p_value: Whether or not to return the calculated p-value.
 
   Returns:
-    is_different: True or False, depending on test outcome
-    p_value: The p-value the test has produced
+    is_different: True or False, depending on test outcome.
+    p_value: The p-value the test has produced.
   """
   if not stats:
     raise ImportError('This function requires Scipy.')
 
   if test == MANN:
+    if len(sample_1) < 20 or len(sample_2) < 20:
+      print('Warning: At least one sample size is smaller than 20, so '
+            'Mann-Whitney U-test might be inaccurate. Consider increasing '
+            'sample size or picking a different test.')
     _, p_value = stats.mannwhitneyu(sample_1, sample_2, use_continuity=True)
     # Returns a one-sided p-value, so multiply result by 2 for a two-sided
     # p-value.
