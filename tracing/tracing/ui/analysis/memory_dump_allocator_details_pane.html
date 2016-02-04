@@ -6,6 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
@@ -66,33 +68,25 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var IMPORTANCE_RULES = [
-    {
-      condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME,
-      importance: 10
-    },
-    {
-      condition: tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME,
-      importance: 9
-    },
-    {
-      condition: 'page_size',
-      importance: 0
-    },
-    {
-      condition: /size/,
-      importance: 5
-    },
-    {
-      importance: 0
-    }
-  ];
-
+  // Constant representing the context in suballocation rows.
   var SUBALLOCATION_CONTEXT = true;
 
-  /** @{constructor} */
-  function AllocatorDumpNameColumn(title) {
-    tr.ui.analysis.TitleColumn.call(this, title);
+  // Size attribute names.
+  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
+      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+  var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
+      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
+
+  // Unicode symbols used for memory cell info icons and messages.
+  var LEFTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FD);
+  var RIGHTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FE);
+  var EN_DASH = String.fromCharCode(0x2013);
+  var CIRCLED_LATIN_SMALL_LETTER_I = String.fromCharCode(0x24D8);
+
+  /** @constructor */
+  function AllocatorDumpNameColumn() {
+    tr.ui.analysis.TitleColumn.call(this, 'Component');
   }
 
   AllocatorDumpNameColumn.prototype = {
@@ -108,6 +102,386 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     }
   };
+
+  /**
+   * Retrieve the entry associated with a given name from a map and increment
+   * its count.
+   *
+   * If there is no entry associated with the name, a new entry is created, the
+   * creation callback is called, the entry's count is incremented (from 0 to
+   * 1) and the newly created entry is returned.
+   */
+  function getAndUpdateEntry(map, name, createdCallback) {
+    var entry = map.get(name);
+    if (entry === undefined) {
+      entry = {count: 0};
+      createdCallback(entry);
+      map.set(name, entry);
+    }
+    entry.count++;
+    return entry;
+  }
+
+  /**
+   * Helper class for building size and effective size column info messages.
+   *
+   * @constructor
+   */
+  function SizeInfoMessageBuilder() {
+    this.parts_ = [];
+    this.indent_ = 0;
+  }
+
+  SizeInfoMessageBuilder.prototype = {
+    append: function(/* arguments */) {
+      this.parts_.push.apply(
+          this.parts_, Array.prototype.slice.apply(arguments));
+    },
+
+    /**
+     * Append the entries of a map to the message according to the following
+     * rules:
+     *
+     *   1. If the map is empty, append emptyText to the message (if provided).
+     *      Examples:
+     *
+     *                       emptyText=undefined
+     *        Hello, World! ====================> Hello, World!
+     *
+     *                        emptyText='empty'
+     *        The bottle is ====================> The bottle is empty
+     *
+     *   2. If the map contains a single entry, append a space and call
+     *      itemCallback on the entry (which is in turn expected to append a
+     *      message for the entry). Example:
+     *
+     *        Please do not ====================> Please do not [item-message]
+     *
+     *   3. If the map contains multiple entries, append them as a list
+     *      with itemCallback called on each entry. If hasPluralSuffix is true,
+     *      's' will be appended to the message before the list. Examples:
+     *
+     *                      hasPluralSuffix=false
+     *        I need to buy ====================> I need to buy:
+     *                                             - [item1-message]
+     *                                             - [item2-message]
+     *                                             [...]
+     *                                             - [itemN-message]
+     *
+     *                      hasPluralSuffix=true
+     *        Suspected CL  ====================> Suspected CLs:
+     *                                             - [item1-message]
+     *                                             - [item2-message]
+     *                                             [...]
+     *                                             - [itemN-message]
+     */
+    appendMap: function(
+        map, hasPluralSuffix, emptyText, itemCallback, opt_this) {
+      opt_this = opt_this || this;
+      if (map.size === 0) {
+        if (emptyText)
+          this.append(emptyText);
+      } else if (map.size === 1) {
+        this.parts_.push(' ');
+        var key = map.keys().next().value;
+        itemCallback.call(opt_this, key, map.get(key));
+      } else {
+        if (hasPluralSuffix)
+          this.parts_.push('s');
+        this.parts_.push(':');
+        this.indent_++;
+        for (var key of map.keys()) {
+          this.parts_.push('\n', ' '.repeat(3 * (this.indent_ - 1)), ' - ');
+          itemCallback.call(opt_this, key, map.get(key));
+        }
+        this.indent_--;
+      }
+    },
+
+    appendImportanceRange: function(range) {
+      this.append(' (importance: ');
+      if (range.min === range.max)
+        this.append(range.min);
+      else
+        this.append(range.min, EN_DASH, range.max);
+      this.append(')');
+    },
+
+    appendSizeIfDefined: function(size) {
+      if (size !== undefined)
+        this.append(' (', tr.b.u.Unit.byName.sizeInBytes.format(size), ')');
+    },
+
+    appendSomeTimestampsQuantifier: function() {
+      this.append(
+          ' ', tr.ui.analysis.MemoryColumn.SOME_TIMESTAMPS_INFO_QUANTIFIER);
+    },
+
+    build: function() {
+      return this.parts_.join('');
+    }
+  };
+
+  /** @constructor */
+  function EffectiveSizeColumn(name, units, cellGetter, aggregationMode) {
+    if (units !== 'bytes')
+      throw new Error('Invalid effective size column units: ' + units);
+    tr.ui.analysis.ScalarMemoryColumn.call(
+        this, name, units, cellGetter, aggregationMode);
+  }
+
+  EffectiveSizeColumn.prototype = {
+    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+
+    addInfos: function(attrs, memoryAllocatorDumps, infos) {
+      if (memoryAllocatorDumps === undefined)
+        return;
+
+      // Quantified name of an owner dump (of the given dump) -> {count,
+      // importanceRange}.
+      var ownerNameToEntry = new Map();
+
+      // Quantified name of an owned dump (by the given dump) -> {count,
+      // importanceRange, sharerNameToEntry}, where sharerNameToEntry is a map
+      // from quantified names of other owners of the owned dump to {count,
+      // importanceRange}.
+      var ownedNameToEntry = new Map();
+
+      for (var i = 0; i < attrs.length; i++) {
+        if (attrs[i] === undefined)
+          continue;
+        var dump = memoryAllocatorDumps[i];
+        if (dump === SUBALLOCATION_CONTEXT)
+          return;  // No ownership of suballocation internal rows.
+
+        // Gather owners of this dump.
+        dump.ownedBy.forEach(function(ownerLink) {
+          var ownerDump = ownerLink.source;
+          this.getAndUpdateOwnershipEntry_(
+              ownerNameToEntry, ownerDump, ownerLink);
+        }, this);
+
+        // Gather dumps owned by this dump and other owner dumps sharing them
+        // (with this dump).
+        var ownedLink = dump.owns;
+        if (ownedLink !== undefined) {
+          var ownedDump = ownedLink.target;
+          var ownedEntry = this.getAndUpdateOwnershipEntry_(ownedNameToEntry,
+              ownedDump, ownedLink, true /* opt_withSharerNameToEntry */);
+          var sharerNameToEntry = ownedEntry.sharerNameToEntry;
+          ownedDump.ownedBy.forEach(function(sharerLink) {
+            var sharerDump = sharerLink.source;
+            if (sharerDump === dump)
+              return;
+            this.getAndUpdateOwnershipEntry_(
+                sharerNameToEntry, sharerDump, sharerLink);
+          }, this);
+        }
+      }
+
+      // Emit a single info listing all owners of this dump.
+      if (ownerNameToEntry.size > 0) {
+        var messageBuilder = new SizeInfoMessageBuilder();
+        messageBuilder.append('shared by');
+        messageBuilder.appendMap(
+            ownerNameToEntry,
+            false /* hasPluralSuffix */,
+            undefined /* emptyText */,
+            function(ownerName, ownerEntry) {
+              messageBuilder.append(ownerName);
+              if (ownerEntry.count < attrs.length)
+                messageBuilder.appendSomeTimestampsQuantifier();
+              messageBuilder.appendImportanceRange(ownerEntry.importanceRange);
+            }, this);
+        infos.push({
+          message: messageBuilder.build(),
+          icon: LEFTWARDS_OPEN_HEADED_ARROW,
+          color: 'green'
+        });
+      }
+
+      // Emit a single info listing all dumps owned by this dump together
+      // with list(s) of other owner dumps sharing them with this dump.
+      if (ownedNameToEntry.size > 0) {
+        var messageBuilder = new SizeInfoMessageBuilder();
+        messageBuilder.append('shares');
+        messageBuilder.appendMap(
+            ownedNameToEntry,
+            false /* hasPluralSuffix */,
+            undefined /* emptyText */,
+            function(ownedName, ownedEntry) {
+              messageBuilder.append(ownedName);
+              var ownedCount = ownedEntry.count;
+              if (ownedCount < attrs.length)
+                messageBuilder.appendSomeTimestampsQuantifier();
+              messageBuilder.appendImportanceRange(ownedEntry.importanceRange);
+            messageBuilder.append(' with');
+            messageBuilder.appendMap(
+                ownedEntry.sharerNameToEntry,
+                false /* hasPluralSuffix */,
+                ' no other dumps',
+                function(sharerName, sharerEntry) {
+                  messageBuilder.append(sharerName);
+                  if (sharerEntry.count < ownedCount)
+                    messageBuilder.appendSomeTimestampsQuantifier();
+                  messageBuilder.appendImportanceRange(
+                      sharerEntry.importanceRange);
+                }, this);
+            }, this);
+        infos.push({
+          message: messageBuilder.build(),
+          icon: RIGHTWARDS_OPEN_HEADED_ARROW,
+          color: 'green'
+        });
+      }
+    },
+
+    getAndUpdateOwnershipEntry_: function(
+        map, dump, link, opt_withSharerNameToEntry) {
+      var entry = getAndUpdateEntry(map, dump.quantifiedName,
+          function(newEntry) {
+            newEntry.importanceRange = new tr.b.Range();
+            if (opt_withSharerNameToEntry)
+              newEntry.sharerNameToEntry = new Map();
+          });
+      entry.importanceRange.addValue(link.importance || 0);
+      return entry;
+    }
+  };
+
+  /** @constructor */
+  function SizeColumn(name, units, cellGetter, aggregationMode) {
+    if (units !== 'bytes')
+      throw new Error('Invalid size column units: ' + units);
+    tr.ui.analysis.ScalarMemoryColumn.call(
+        this, name, units, cellGetter, aggregationMode);
+  }
+
+  SizeColumn.prototype = {
+    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+
+    addInfos: function(attrs, memoryAllocatorDumps, infos) {
+      this.addOverlapInfo_(attrs, memoryAllocatorDumps, infos);
+      this.addProvidedSizeWarningInfos_(attrs, infos);
+    },
+
+    addOverlapInfo_: function(attrs, memoryAllocatorDumps, infos) {
+      if (memoryAllocatorDumps === undefined)
+        return;
+
+      // Sibling allocator dump name -> {count, size}. The latter field (size)
+      // is omitted in multi-selection mode.
+      var siblingNameToEntry = new Map();
+      for (var i = 0; i < attrs.length; i++) {
+        if (attrs[i] === undefined)
+          continue;
+        var dump = memoryAllocatorDumps[i];
+        if (dump === SUBALLOCATION_CONTEXT)
+          return;  // No ownership of suballocation internal rows.
+        var ownedBySiblingSizes = dump.ownedBySiblingSizes;
+        for (var siblingDump of ownedBySiblingSizes.keys()) {
+          var siblingName = siblingDump.name;
+          getAndUpdateEntry(siblingNameToEntry, siblingName,
+              function(newEntry) {
+                if (attrs.length === 1 /* single-selection mode */)
+                  newEntry.size = ownedBySiblingSizes.get(siblingDump);
+              });
+        }
+      }
+
+      // Emit a single info describing all overlaps with siblings (if
+      // applicable).
+      if (siblingNameToEntry.size > 0) {
+        var messageBuilder = new SizeInfoMessageBuilder();
+        messageBuilder.append('overlaps with its sibling');
+        messageBuilder.appendMap(
+            siblingNameToEntry,
+            true /* hasPluralSuffix */,
+            undefined /* emptyText */,
+            function(siblingName, siblingEntry) {
+              messageBuilder.append('\'', siblingName, '\'');
+              messageBuilder.appendSizeIfDefined(siblingEntry.size);
+              if (siblingEntry.count < attrs.length)
+                messageBuilder.appendSomeTimestampsQuantifier();
+            }, this);
+        infos.push({
+          message: messageBuilder.build(),
+          icon: CIRCLED_LATIN_SMALL_LETTER_I,
+          color: 'blue'
+        });
+      }
+    },
+
+    addProvidedSizeWarningInfos_: function(attrs, infos) {
+      // Info type (see SizeAttributeInfoType) -> {count, providedSize,
+      // dependencySize}. The latter two fields (providedSize and
+      // dependencySize) are omitted in multi-selection mode.
+      var infoTypeToEntry = new Map();
+      for (var i = 0; i < attrs.length; i++) {
+        var attr = attrs[i];
+        if (attr === undefined)
+          continue;
+        attr.infos.forEach(function(attrInfo) {
+          getAndUpdateEntry(infoTypeToEntry, attrInfo.type, function(newEntry) {
+            if (attrs.length === 1 /* single-selection mode */) {
+              newEntry.providedSize = attrInfo.providedSize;
+              newEntry.dependencySize = attrInfo.dependencySize;
+            }
+          });
+        });
+      }
+
+      // Emit a warning info for every info type.
+      for (var infoType of infoTypeToEntry.keys()) {
+        var entry = infoTypeToEntry.get(infoType);
+        var messageBuilder = new SizeInfoMessageBuilder();
+        messageBuilder.append('provided size');
+        messageBuilder.appendSizeIfDefined(entry.providedSize);
+        var dependencyName;
+        switch (infoType) {
+          case PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN:
+            dependencyName = 'the aggregated size of the children';
+            break;
+          case PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER:
+            dependencyName = 'the size of the largest owner';
+            break;
+          default:
+            dependencyName = 'an unknown dependency';
+            break;
+        }
+        messageBuilder.append(' was less than ', dependencyName);
+        messageBuilder.appendSizeIfDefined(entry.dependencySize);
+        if (entry.count < attrs.length)
+          messageBuilder.appendSomeTimestampsQuantifier();
+        infos.push(tr.ui.analysis.createWarningInfo(messageBuilder.build()));
+      }
+    }
+  };
+
+  var RULES = [
+    {
+      condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME,
+      importance: 10,
+      columnConstructor: EffectiveSizeColumn
+    },
+    {
+      condition: tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME,
+      importance: 9,
+      columnConstructor: SizeColumn
+    },
+    {
+      condition: 'page_size',
+      importance: 0
+    },
+    {
+      condition: /size/,
+      importance: 5
+    },
+    {
+      // All other columns.
+      importance: 0
+    }
+  ];
 
   Polymer('tr-ui-a-memory-dump-allocator-details-pane', {
     created: function() {
@@ -386,14 +760,13 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_: function(rows) {
-      var titleColumn = new AllocatorDumpNameColumn('Component');
+      var titleColumn = new AllocatorDumpNameColumn();
       titleColumn.width = '200px';
 
       var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'cells', this.aggregationMode_);
+          rows, 'cells', this.aggregationMode_, RULES);
       tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
-      tr.ui.analysis.MemoryColumn.sortByImportance(
-          attributeColumns, IMPORTANCE_RULES);
+      tr.ui.analysis.MemoryColumn.sortByImportance(attributeColumns, RULES);
 
       var columns = [titleColumn].concat(attributeColumns);
       return columns;
@@ -401,7 +774,11 @@ tr.exportTo('tr.ui.analysis', function() {
   });
 
   return {
-    SUBALLOCATION_CONTEXT: SUBALLOCATION_CONTEXT  // Exported for testing.
+    // All exports are for testing only.
+    SUBALLOCATION_CONTEXT: SUBALLOCATION_CONTEXT,
+    AllocatorDumpNameColumn: AllocatorDumpNameColumn,
+    EffectiveSizeColumn: EffectiveSizeColumn,
+    SizeColumn: SizeColumn
   };
 });
 </script>

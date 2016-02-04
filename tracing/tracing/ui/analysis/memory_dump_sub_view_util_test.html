@@ -6,9 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/units/unit.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/model/attribute.html">
 
@@ -29,12 +31,11 @@ tr.b.unittest.testSuite(function() {
   var StringAttribute = tr.model.StringAttribute;
   var ScalarAttribute = tr.model.ScalarAttribute;
   var UnknownAttribute = tr.model.UnknownAttribute;
-  var AttributeInfo = tr.model.AttributeInfo;
-  var AttributeInfoType = tr.model.AttributeInfoType;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var checkAttributes = tr.ui.analysis.checkAttributes;
   var createCells = tr.ui.analysis.createCells;
   var addAttributeIfDefined = tr.ui.analysis.addAttributeIfDefined;
+  var createWarningInfo = tr.ui.analysis.createWarningInfo;
 
   function checkPercent(string, expectedPercent) {
     assert.equal(Number(string.slice(0, -1)), expectedPercent);
@@ -157,6 +158,35 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(column.aggregationMode, expectedAggregationMode);
     assert.strictEqual(column.cell(testRow), expectedCell);
     assert.instanceOf(column, expectedType);
+  }
+
+  function checkCellValue(
+      test, value, expectedText, expectedColor, opt_expectedInfos) {
+    var expectedInfos = opt_expectedInfos || [];
+    assert.lengthOf(value.childNodes, 1 + expectedInfos.length);
+    assert.strictEqual(value.style.color, expectedColor);
+    if (typeof expectedText === 'string')
+      assert.strictEqual(value.childNodes[0].textContent, expectedText);
+    else
+      expectedText(value.childNodes[0]);
+    for (var i = 0; i < expectedInfos.length; i++) {
+      var expectedInfo = expectedInfos[i];
+      var infoEl = value.childNodes[i + 1];
+      assert.strictEqual(infoEl.textContent, expectedInfo.icon);
+      assert.strictEqual(infoEl.title, expectedInfo.message);
+      assert.strictEqual(infoEl.style.color, expectedInfo.color || '');
+    }
+    test.addHTMLOutput(value);
+  }
+
+  function sizeSpanMatcher(expectedValue, opt_expectedIsDelta) {
+    return function(element) {
+      assert.strictEqual(element.tagName, 'TR-UI-U-SCALAR-SPAN');
+      assert.strictEqual(element.value, expectedValue);
+      assert.strictEqual(element.unit, opt_expectedIsDelta ?
+          tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter :
+          tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
+    };
   }
 
   test('checkTitleColumn_value', function() {
@@ -474,6 +504,11 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
+    // Infos should be completely ignored.
+    c1.addInfos = c2.addInfos = function() {
+      throw new Error('This method should never be called');
+    };
+
     [c1, c2].forEach(function(c) {
       assert.equal(c.value({}), '');
       assert.equal(c.value({x: new MemoryCell(undefined)}), '');
@@ -488,71 +523,47 @@ tr.b.unittest.testSuite(function() {
 
   test('checkMemoryColumn_value_singleAttribute', function() {
     var c1 = new MemoryColumn('no_color', 'ms', fieldGetter('x'),
-        AggregationMode.MAX);
+        undefined /* aggregation mode */);
     var c2 = new MemoryColumn('color_string', 'ms', fieldGetter('x'),
-        AggregationMode.MAX);
+        AggregationMode.DIFF);
     c2.color = '#009999';
     var c3 = new MemoryColumn('color_function', 'ms', fieldGetter('x'),
         AggregationMode.MAX);
-    c3.color = function(attrs) {
-      return attrs[0].value > '0' ? 'green' : undefined;
+    c3.color = function(attrs, contexts) {
+      if (attrs[0].value < '0')
+        return 'green';
+      else if (contexts && contexts[0] % 2 === 0)
+        return 'red';
+      else
+        return undefined;
     };
 
-    // Without infos.
+    var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
+    var infos2 = [
+      { icon: '\u{1F649}', message: 'Start', color: 'cyan' },
+      { icon: '\u{1F64A}', message: 'Stop' }
+    ];
+    c1.addInfos = c2.addInfos = c3.addInfos = function(attrs, contexts, infos) {
+      if (attrs[0].value < '0')
+        infos.push.apply(infos, infos1);
+      else if (contexts && contexts[0] % 2 === 0)
+        infos.push.apply(infos, infos2);
+    };
+
     var row = {x: buildScalarCell('ms', [123])};
-    var value1 = c1.value(row);
-    assert.equal(value1, '123');
-    this.addHTMLOutput(tr.ui.b.createSpan({textContent: value1}));
-    var value2 = c2.value(row);
-    assert.equal(value2.textContent, '123');
-    assert.equal(value2.style.color, 'rgb(0, 153, 153)');
-    this.addHTMLOutput(value2);
-    var value3 = c3.value(row);
-    assert.equal(value3.textContent, '123');
-    assert.equal(value3.style.color, 'green');
-    this.addHTMLOutput(value3);
+    assert.strictEqual(c1.value(row), '123');
+    checkCellValue(this, c2.value(row), '123', 'rgb(0, 153, 153)');
+    assert.strictEqual(c3.value(row), '123');
 
-    var row = {x: buildScalarCell('ms', [-123])};
-    var value1 = c1.value(row);
-    assert.equal(value1, '-123');
-    this.addHTMLOutput(tr.ui.b.createSpan({textContent: value1}));
-    var value2 = c2.value(row);
-    assert.equal(value2.textContent, '-123');
-    assert.equal(value2.style.color, 'rgb(0, 153, 153)');
-    this.addHTMLOutput(value2);
-    var value3 = c3.value(row);
-    assert.equal(value3, '-123');
-    this.addHTMLOutput(tr.ui.b.createSpan({textContent: value3}));
+    var row = {x: buildScalarCell('ms', [-123]), contexts: [undefined]};
+    checkCellValue(this, c1.value(row), '-123', '', infos1);
+    checkCellValue(this, c2.value(row), '-123', 'rgb(0, 153, 153)', infos1);
+    checkCellValue(this, c3.value(row), '-123', 'green', infos1);
 
-    // With infos.
-    var checkCellValue = function(value, expectedText, expectedColor) {
-      assert.lengthOf(value.childNodes, 3);
-      assert.equal(value.style.color, expectedColor);
-      assert.equal(value.childNodes[0].textContent, expectedText);
-      assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
-      assert.equal(value.childNodes[1].title, 'This value is too cool');
-      assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
-      assert.equal(value.childNodes[2].title, 'Source: Test');
-      this.addHTMLOutput(value);
-    }.bind(this);
-
-    var cell = buildStringCell('ms', ['couple']);
-    cell.attrs[0].infos = [
-      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
-      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
-    ];
-    checkCellValue(c1.value({x: cell}), 'couple', '');
-    checkCellValue(c2.value({x: cell}), 'couple', 'rgb(0, 153, 153)');
-    checkCellValue(c3.value({x: cell}), 'couple', 'green');
-
-    var cell = buildStringCell('ms', ['-couple']);
-    cell.attrs[0].infos = [
-      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
-      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
-    ];
-    checkCellValue(c1.value({x: cell}), '-couple', '');
-    checkCellValue(c2.value({x: cell}), '-couple', 'rgb(0, 153, 153)');
-    checkCellValue(c3.value({x: cell}), '-couple', '');
+    var row = {x: buildScalarCell('ms', [123]), contexts: [42]};
+    checkCellValue(this, c1.value(row), '123', '', infos2);
+    checkCellValue(this, c2.value(row), '123', 'rgb(0, 153, 153)', infos2);
+    checkCellValue(this, c3.value(row), '123', 'red', infos2);
   });
 
   test('checkMemoryColumn_value_multipleAttributes', function() {
@@ -563,35 +574,51 @@ tr.b.unittest.testSuite(function() {
     c2.color = '#009999';
     var c3 = new MemoryColumn('test_column3', 'ms', fieldGetter('x'),
         AggregationMode.MAX);
-    c3.color = function(attrs) {
-      return attrs.length % 2 === 1 ? 'green' : undefined;
+    c3.color = function(attrs, contexts) {
+      if (attrs[0].value < '0')
+        return 'green';
+      else if (contexts && contexts[contexts.length - 1] % 2 === 0)
+        return 'red';
+      else
+        return undefined;
     };
 
-    var cell = buildStringCell('ms', ['old', 'new']);
-    var value1 = c1.value({x: cell});
-    assert.equal(value1.style.color, '');
-    assert.equal(value1.textContent, '(unsupported aggregation mode)');
-    this.addHTMLOutput(value1);
-    var value2 = c2.value({x: cell});
-    assert.equal(value2.style.color, 'rgb(0, 153, 153)');
-    assert.equal(value2.textContent, 'old \u2192 new');
-    this.addHTMLOutput(value2);
-    var value3 = c3.value({x: cell});
-    assert.equal(value3, 'old');
+    var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
+    var infos2 = [
+      { icon: '\u{1F649}', message: 'Start', color: 'cyan' },
+      { icon: '\u{1F64A}', message: 'Stop' }
+    ];
+    c1.addInfos = c2.addInfos = c3.addInfos = function(attrs, contexts, infos) {
+      if (attrs[0].value < '0')
+        infos.push.apply(infos, infos1);
+      else if (contexts && contexts[contexts.length - 1] % 2 === 0)
+        infos.push.apply(infos, infos2);
+    };
 
-    var cell = buildStringCell('ms', ['old', undefined, 'new']);
-    var value1 = c1.value({x: cell});
-    assert.equal(value1.style.color, '');
-    assert.equal(value1.textContent, '(unsupported aggregation mode)');
-    this.addHTMLOutput(value1);
-    var value2 = c2.value({x: cell});
-    assert.equal(value2.style.color, 'rgb(0, 153, 153)');
-    assert.equal(value2.textContent, 'old \u2192 new');
-    this.addHTMLOutput(value2);
-    var value3 = c3.value({x: cell});
-    assert.equal(value3.style.color, 'green');
-    assert.equal(value3.textContent, 'old');
-    this.addHTMLOutput(value3);
+    var row = {x: buildStringCell('ms', ['123', '456'])};
+    checkCellValue(this, c1.value(row), '(unsupported aggregation mode)', '');
+    checkCellValue(this, c2.value(row), '123 \u2192 456', 'rgb(0, 153, 153)');
+    assert.strictEqual(c3.value(row), '456');
+
+    var row = {
+      x: buildStringCell('ms', ['-123', undefined, '+123']),
+      contexts: [12, 14, undefined]
+    };
+    checkCellValue(this, c1.value(row), '(unsupported aggregation mode)', '',
+        infos1);
+    checkCellValue(this, c2.value(row), '-123 \u2192 +123', 'rgb(0, 153, 153)',
+        infos1);
+    checkCellValue(this, c3.value(row), '+123', 'green', infos1);
+
+    var row = {
+      x: buildStringCell('ms', ['123', undefined, '456']),
+      contexts: [31, 7, -2]
+    };
+    checkCellValue(this, c1.value(row), '(unsupported aggregation mode)', '',
+        infos2);
+    checkCellValue(this, c2.value(row), '123 \u2192 456', 'rgb(0, 153, 153)',
+        infos2);
+    checkCellValue(this, c3.value(row), '456', 'red', infos2);
   });
 
   test('checkMemoryColumn_formatSingleAttributeValue', function() {
@@ -737,26 +764,6 @@ tr.b.unittest.testSuite(function() {
         {x: buildStringCell('', ['comparing', 'multiple', 'values :-)'])}), 0);
   });
 
-  test('checkMemoryColumn_getInfos', function() {
-    var c = new MemoryColumn('test_column', 'ms', fieldGetter('x'),
-        AggregationMode.MAX);
-
-    var info = new AttributeInfo(AttributeInfoType.INFORMATION, 'interesting');
-    var warning = new AttributeInfo(AttributeInfoType.WARNING, 'thrilling');
-    var error = new AttributeInfo(AttributeInfoType.ERROR, 'inconceivable');
-
-    var attr1 = new ScalarAttribute('bytes', 64);
-    attr1.infos.push(info);
-    attr1.infos.push(warning);
-    var attr2 = new ScalarAttribute('bytes', 128);
-    var attr3 = new ScalarAttribute('bytes', 256);
-    attr3.infos.push(error);
-
-    assert.deepEqual(c.getInfos([attr1]), [info, warning]);
-    assert.deepEqual(c.getInfos([attr1, attr2]), []);
-    assert.deepEqual(c.getInfos([attr1, attr2, attr3]), []);
-  });
-
   test('checkMemoryColumn_getImportance', function() {
     var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'));
 
@@ -820,45 +827,28 @@ tr.b.unittest.testSuite(function() {
     var c = new ScalarMemoryColumn('test_column', 'bytes', fieldGetter('x'),
         AggregationMode.DIFF);
     c.color = '#009999';
+    var infos1 = [createWarningInfo('Attention!')];
+    c.addInfos = function(attrs, contexts, infos) {
+      infos.push.apply(infos, infos1);
+    };
 
     // Undefined attribute values.
-    var cell = buildScalarCell('bytes', [undefined, 1, undefined]);
-    var value = c.value({x: cell});
-    assert.equal(value, '');
+    var row = {x: buildScalarCell('bytes', [undefined, 1, undefined])};
+    assert.equal(c.value(row), '');
 
     // Single attribute value.
-    var cell = buildScalarCell('bytes', [5.4975581e13 /* 50 TiB */]);
-    cell.attrs[0].infos = [
-      new AttributeInfo(AttributeInfoType.WARNING, 'This value is too cool'),
-      new AttributeInfo(AttributeInfoType.LINK, 'Source: Test')
-    ];
-    var value = c.value({x: cell});
-    assert.lengthOf(value.childNodes, 3);
-    assert.equal(value.style.color, 'rgb(0, 153, 153)');
-    assert.equal(value.childNodes[0].tagName, 'TR-UI-U-SCALAR-SPAN');
-    assert.equal(value.childNodes[0].value, 5.4975581e13);
-    assert.equal(value.childNodes[0].unit,
-        tr.b.u.Unit.byName.sizeInBytes_smallerIsBetter);
-    assert.equal(value.childNodes[1].textContent, String.fromCharCode(9888));
-    assert.equal(value.childNodes[1].title, 'This value is too cool');
-    assert.equal(value.childNodes[2].textContent, String.fromCharCode(9903));
-    assert.equal(value.childNodes[2].title, 'Source: Test');
-    this.addHTMLOutput(value);
+    var row = {x: buildScalarCell('bytes', [5.4975581e13 /* 50 TiB */])};
+    checkCellValue(this, c.value(row), sizeSpanMatcher(5.4975581e13),
+        'rgb(0, 153, 153)', infos1);
 
     // Multiple attribute values.
-    var cell = buildScalarCell('bytes',
-        [5.4975581e13 /* 50 TiB */, undefined, 2.1990233e13 /* 20 TiB */]);
-    cell.attrs[0].infos = [
-      new AttributeInfo(AttributeInfoType.ERROR, 'This info is invisible')
-    ];
-    var value = c.value({x: cell});
-    assert.lengthOf(value.childNodes, 1);
-    assert.equal(value.style.color, 'rgb(0, 153, 153)');
-    assert.equal(value.childNodes[0].tagName, 'TR-UI-U-SCALAR-SPAN');
-    assert.equal(value.childNodes[0].value, -3.2985348e13);
-    assert.equal(value.childNodes[0].unit,
-        tr.b.u.Unit.byName.sizeInBytesDelta_smallerIsBetter);
-    this.addHTMLOutput(value);
+    var row = {
+      x: buildScalarCell('bytes',
+          [5.4975581e13 /* 50 TiB */, undefined, 2.1990233e13 /* 20 TiB */])
+    };
+    checkCellValue(this, c.value(row),
+        sizeSpanMatcher(-3.2985348e13, true /* opt_expectedIsDelta */),
+        'rgb(0, 153, 153)', infos1);
   });
 
   test('checkScalarMemoryColumn_formatSingleAttributeValue', function() {

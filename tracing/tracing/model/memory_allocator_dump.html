@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/attribute.html">
 
 <script>
@@ -29,6 +30,10 @@ tr.exportTo('tr.model', function() {
     // Ownership relationship between memory allocator dumps.
     this.owns = undefined;
     this.ownedBy = [];
+
+    // Map from sibling dumps (other children of this dump's parent) to the
+    // proportion of this dump's size which they (or their descendants) own.
+    this.ownedBySiblingSizes = new Map();
 
     // Retention relationship between memory allocator dumps.
     this.retains = [];
@@ -134,11 +139,36 @@ tr.exportTo('tr.model', function() {
     this.source = source;
     this.target = target;
     this.importance = opt_importance;
+    this.size = undefined;
   }
+
+  /**
+   * Types of size attribute information.
+   *
+   * @enum
+   */
+  var SizeAttributeInfoType = {
+    // The provided size of a MemoryAllocatorDump was less than the aggregated
+    // size of its children.
+    //
+    // Mandatory extra args:
+    //   * providedSize: The inconsistent provided size.
+    //   * dependencySize: The aggregated size of the children.
+    PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN: 0,
+
+    // The provided size of a MemoryAllocatorDump was less than the size of its
+    // largest owner.
+    //
+    // Mandatory extra args:
+    //   * providedSize: The inconsistent provided size.
+    //   * dependencySize: The size of the largest owner.
+    PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER: 1
+  };
 
   return {
     MemoryAllocatorDump: MemoryAllocatorDump,
-    MemoryAllocatorDumpLink: MemoryAllocatorDumpLink
+    MemoryAllocatorDumpLink: MemoryAllocatorDumpLink,
+    SizeAttributeInfoType: SizeAttributeInfoType
   };
 });
 </script>
