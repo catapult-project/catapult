@@ -48,6 +48,10 @@ class LogcatMonitor(object):
     self._record_thread = None
     self._stop_recording_event = threading.Event()
 
+  @property
+  def output_file(self):
+    return self._output_file
+
   @decorators.WithTimeoutAndRetriesDefaults(10, 0)
   def WaitFor(self, success_regex, failure_regex=None, timeout=None,
               retries=None):
