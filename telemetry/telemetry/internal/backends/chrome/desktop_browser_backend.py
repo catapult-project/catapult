@@ -606,3 +606,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._tmp_output_file:
       self._tmp_output_file.close()
       self._tmp_output_file = None
+
+    if self._tmp_minidump_dir:
+      shutil.rmtree(self._tmp_minidump_dir, ignore_errors=True)
+      self._tmp_minidump_dir = None

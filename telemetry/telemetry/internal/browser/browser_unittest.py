@@ -256,3 +256,21 @@ class ReferenceBrowserTest(unittest.TestCase):
       tab = ref_browser.tabs.New()
       tab.Navigate('about:blank')
       self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+
+
+class TestBrowserOperationDoNotLeakTempFiles(unittest.TestCase):
+
+  @decorators.Enabled('win', 'mac', 'linux')
+  @decorators.Isolated
+  def testBrowserNotLeakingTempFiles(self):
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
+    self.assertIsNotNone(browser_to_create)
+    before_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
+    with browser_to_create.Create(options) as browser:
+      tab = browser.tabs.New()
+      tab.Navigate('about:blank')
+      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+    after_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
+    self.assertEqual(before_browser_run_temp_dir_content,
+                     after_browser_run_temp_dir_content)
