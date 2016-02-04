@@ -25,6 +25,8 @@ def _GetPathsToPrepend(input_api):
   return [
       project_dir,
 
+      input_api.os_path.join(catapult_dir, 'dependency_manager'),
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
+      input_api.os_path.join(catapult_dir, 'third_party', 'mox'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
   ]

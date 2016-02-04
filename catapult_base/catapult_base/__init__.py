@@ -18,6 +18,7 @@ def _AddDirToPythonPath(*path_parts):
     # containing the script, so we add these extra paths to right after it.
     sys.path.insert(1, path)
 
+_AddDirToPythonPath(os.path.join(util.GetCatapultDir(), 'dependency_manager'))
 _AddDirToPythonPath(os.path.join(util.GetCatapultDir(), 'third_party', 'mock'))
 _AddDirToPythonPath(os.path.join(util.GetCatapultDir(), 'third_party', 'mox3'))
 _AddDirToPythonPath(
