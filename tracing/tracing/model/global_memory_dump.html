@@ -5,10 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/units/time_stamp.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/model/event_registry.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 
 <script>
@@ -29,9 +31,17 @@ tr.exportTo('tr.model', function() {
     this.processMemoryDumps = {};
   }
 
+  // Size attribute names.
   var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
   var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
       tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
+
+  // Size attribute info types.
+  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
+      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+  var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
+      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   // TODO(petrcermak): Move this to tracing/base/iteration_helpers.html.
   function inPlaceFilter(array, predicate, opt_this) {
@@ -64,11 +74,6 @@ tr.exportTo('tr.model', function() {
     if (value === undefined)
       return defaultValue;
     return value;
-  }
-
-  function ownershipToUserFriendlyString(dump, importance) {
-    return dump.quantifiedName + ' (importance: ' +
-        optional(importance, 0) + ')';
   }
 
   GlobalMemoryDump.prototype = {
@@ -216,26 +221,27 @@ tr.exportTo('tr.model', function() {
           SIZE_ATTRIBUTE_NAME, this.model);
       var size = 0;
       var infos = [];
-      var checkDependentSizeIsConsistent = function() { /* no-op */ };
+      var checkDependencySizeIsConsistent = function() { /* no-op */ };
       if (sizeAttribute !== undefined) {
         size = sizeAttribute.value;
         shouldDefineSize = true;
-        checkDependentSizeIsConsistent = function(dependentSize,
-            dependentName) {
-          if (size >= dependentSize)
+        checkDependencySizeIsConsistent = function(
+            dependencySize, dependencyInfoType, dependencyName) {
+          if (size >= dependencySize)
             return;
-          var messageSuffix = ' (' +
-              tr.b.u.Unit.byName.sizeInBytes.format(size) + ') is less than ' +
-              dependentName + ' (' +
-              tr.b.u.Unit.byName.sizeInBytes.format(dependentSize) + ').';
           this.model.importWarning({
             type: 'memory_dump_parse_error',
             message: 'Size provided by memory allocator dump \'' +
-                dump.fullName + '\'' + messageSuffix
+                dump.fullName + '\'' +
+                tr.b.u.Unit.byName.sizeInBytes.format(size) +
+                ') is less than ' + dependencyName + ' (' +
+                tr.b.u.Unit.byName.sizeInBytes.format(dependencySize) + ').'
           });
-          infos.push(new tr.model.AttributeInfo(
-              tr.model.AttributeInfoType.WARNING,
-              'Size provided by this memory allocator dump' + messageSuffix));
+          infos.push({
+            type: dependencyInfoType,
+            providedSize: size,
+            dependencySize: dependencySize
+          });
         }.bind(this);
       }
 
@@ -256,21 +262,18 @@ tr.exportTo('tr.model', function() {
             // of the the current dump (i.e. not childDump), then we remember
             // the ownership so that we could explain why the size of the
             // current dump is not equal to the sum of its children.
-            var ownedDescendantDump = ownedDumpLink.target;
-            var ownedChildDump = ownedDescendantDump;
+            var ownedChildDump = ownedDumpLink.target;
             while (ownedChildDump.parent !== dump)
               ownedChildDump = ownedChildDump.parent;
             if (childDump !== ownedChildDump) {
-              var overlap = getDependencySize(descendantDump);
-              if (overlap > 0) {
-                // Owner child dump -> total overlapping size.
-                var ownedChildOverlaps = allOverlaps[ownedChildDump.name];
-                if (ownedChildOverlaps === undefined)
-                  allOverlaps[ownedChildDump.name] = ownedChildOverlaps = {};
-                var previousTotalOverlap =
-                    ownedChildOverlaps[childDump.name] || 0;
-                var updatedTotalOverlap = previousTotalOverlap + overlap;
-                ownedChildOverlaps[childDump.name] = updatedTotalOverlap;
+              var ownedBySiblingSize = getDependencySize(descendantDump);
+              if (ownedBySiblingSize > 0) {
+                var previousTotalOwnedBySiblingSize =
+                    ownedChildDump.ownedBySiblingSizes.get(childDump) || 0;
+                var updatedTotalOwnedBySiblingSize =
+                    previousTotalOwnedBySiblingSize + ownedBySiblingSize;
+                ownedChildDump.ownedBySiblingSizes.set(
+                    childDump, updatedTotalOwnedBySiblingSize);
               }
             }
             return;
@@ -290,25 +293,10 @@ tr.exportTo('tr.model', function() {
         }
         aggregateDescendantDump(childDump);
       });
-      // If the size of the dump is not equal to the sum of its children, add
-      // infos to its children explaining the difference.
-      dump.children.forEach(function(childDump) {
-        var childOverlaps = allOverlaps[childDump.name];
-        if (childOverlaps === undefined)
-          return;
-
-        var message = tr.b.dictionaryValues(tr.b.mapItems(childOverlaps,
-            function(ownerChildName, overlap) {
-          return 'overlaps with its sibling \'' + ownerChildName + '\' (' +
-              tr.b.u.Unit.byName.sizeInBytes.format(overlap) + ')';
-        })).join(' ');
-
-        childDump.attributes[SIZE_ATTRIBUTE_NAME].infos.push(
-            new tr.model.AttributeInfo(
-                tr.model.AttributeInfoType.INFORMATION, message));
-      });
-      checkDependentSizeIsConsistent(
-          aggregatedChildrenSize, 'the aggregated size of its children');
+      checkDependencySizeIsConsistent(
+          aggregatedChildrenSize,
+          PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
+          'the aggregated size of its children');
 
       // 3. Calculate the largest owner size.
       var largestOwnerSize = 0;
@@ -317,8 +305,10 @@ tr.exportTo('tr.model', function() {
         var ownerSize = getDependencySize(owner);
         largestOwnerSize = Math.max(largestOwnerSize, ownerSize);
       });
-      checkDependentSizeIsConsistent(
-          largestOwnerSize, 'the size of its largest owner');
+      checkDependencySizeIsConsistent(
+          largestOwnerSize,
+          PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER,
+          'the size of its largest owner');
 
       // If neither the dump nor any of its dependencies (children and owners)
       // provide a size, do NOT add a zero size attribute.
@@ -706,43 +696,8 @@ tr.exportTo('tr.model', function() {
               childDump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME].value;
         });
       }
-      var attribute = new tr.model.ScalarAttribute('bytes', effectiveSize);
-      dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] = attribute;
-
-      // Add attribute infos regarding ownership (if applicable).
-      // TODO(petrcermak): This belongs to the corresponding analysis UI code.
-      if (dump.ownedBy.length > 0) {
-        var message = 'shared by:' +
-            dump.ownedBy.map(function(ownershipLink) {
-              return '\n  - ' + ownershipToUserFriendlyString(
-                  ownershipLink.source, ownershipLink.importance);
-            }).join();
-        attribute.infos.push(new tr.model.AttributeInfo(
-            tr.model.AttributeInfoType.MEMORY_OWNED, message));
-      }
-      if (dump.owns !== undefined) {
-        var target = dump.owns.target;
-        var message = 'shares ' +
-            ownershipToUserFriendlyString(target, dump.owns.importance) +
-            ' with';
-
-        var otherOwnershipLinks = target.ownedBy.filter(
-            function(ownershipLink) {
-          return ownershipLink.source !== dump;
-        });
-        if (otherOwnershipLinks.length > 0) {
-          message += ':';
-          message += otherOwnershipLinks.map(function(ownershipLink) {
-            return '\n  - ' + ownershipToUserFriendlyString(
-                ownershipLink.source, ownershipLink.importance);
-          }).join();
-        } else {
-          message += ' no other dumps';
-        }
-
-        attribute.infos.push(new tr.model.AttributeInfo(
-            tr.model.AttributeInfoType.MEMORY_OWNER, message));
-      }
+      dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] =
+          new tr.model.ScalarAttribute('bytes', effectiveSize);
     },
 
     aggregateAttributes: function() {

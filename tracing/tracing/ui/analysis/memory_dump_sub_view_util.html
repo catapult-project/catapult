@@ -335,57 +335,13 @@ tr.exportTo('tr.ui.analysis', function() {
     });
   };
 
-  MemoryColumn.iconFromAttributeInfoType = function(type) {
-    switch (type) {
-      case tr.model.AttributeInfoType.WARNING:
-        return {
-          symbol: String.fromCharCode(9888),  // Exclamation mark in a triangle.
-          color: 'red'
-        };
-      case tr.model.AttributeInfoType.LINK:
-        return {
-          symbol: String.fromCharCode(9903)  // Link symbol.
-          /* Don't modify the color. */
-        };
-      case tr.model.AttributeInfoType.MEMORY_OWNER:
-        return {
-          symbol: String.fromCharCode(8702),  // Right arrow.
-          color: 'green'
-        };
-      case tr.model.AttributeInfoType.MEMORY_OWNED:
-        return {
-          symbol: String.fromCharCode(8701),  // Left arrow.
-          color: 'green'
-        };
-      case tr.model.AttributeInfoType.OVERALL_VALUE:
-        return {
-          symbol: String.fromCharCode(8614)  // Right arrow with a bar.
-          /* Don't modify the color. */
-        };
-      case tr.model.AttributeInfoType.RECENT_VALUE:
-        return {
-          symbol: String.fromCharCode(8618)  // Right arrow with a hook.
-          /* Don't modify the color. */
-        };
-      case tr.model.AttributeInfoType.HAS_HEAP_DUMP:
-        return {
-          symbol: String.fromCharCode(9776)  // Trigram for heaven.
-          /* Don't modify the color. */
-        };
-      default:
-        return {
-          symbol: String.fromCharCode(9432),  // Circled small letter 'i'.
-          color: 'blue'
-        };
-    }
-    throw new Error('Unreachable');
-  };
-
   /** @enum */
   MemoryColumn.AggregationMode = {
     DIFF: 0,
     MAX: 1
   };
+
+  MemoryColumn.SOME_TIMESTAMPS_INFO_QUANTIFIER = 'at some selected timestamps';
 
   MemoryColumn.prototype = {
     get title() {
@@ -403,7 +359,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var attrs = this.attrs(row);
       if (this.hasAllRelevantAttrsUndefined(attrs))
         return '';
-      return this.formatAttributes(attrs);
+      return this.formatAttributes(attrs, row.contexts);
     },
 
     /**
@@ -433,19 +389,20 @@ tr.exportTo('tr.ui.analysis', function() {
      * intended to be overriden. At least one attribute relevant for the
      * current aggregation mode is guaranteed to be defined.
      */
-    formatAttributes: function(attrs) {
+    formatAttributes: function(attrs, contexts) {
       var formattedValue = this.formatAttributeValues(attrs);
 
       // Determine the color of the resulting element.
       var color;
       if (typeof this.color === 'function')
-        color = this.color(attrs);
+        color = this.color(attrs, contexts);
       else
         color = this.color;
 
       // If no color is specified and there are no infos, there is no need
       // to wrap the value in a span element.
-      var infos = this.getInfos(attrs);
+      var infos = [];
+      this.addInfos(attrs, contexts, infos);
       if ((color === undefined || formattedValue === '') && infos.length === 0)
         return formattedValue;
 
@@ -460,10 +417,9 @@ tr.exportTo('tr.ui.analysis', function() {
         infoEl.style.paddingLeft = '4px';
         infoEl.style.cursor = 'help';
         infoEl.style.fontWeight = 'bold';
-        var icon = MemoryColumn.iconFromAttributeInfoType(info.type);
-        infoEl.textContent = icon.symbol;
-        if (icon.color !== undefined)
-          infoEl.style.color = icon.color;
+        infoEl.textContent = info.icon;
+        if (info.color !== undefined)
+          infoEl.style.color = info.color;
         infoEl.title = info.message;
         attrEl.appendChild(infoEl);
       }, this);
@@ -694,14 +650,8 @@ tr.exportTo('tr.ui.analysis', function() {
       return COLLATOR.compare(String(attrValueA), String(attrValueB));
     },
 
-    getInfos: function(attrs) {
-      if (attrs.length !== 1) {
-        // Don't aggregate infos for multiple attributes (it is unclear how
-        // they should be aggregated in the first place).
-        return [];
-      }
-
-      return attrs[0].infos;
+    addInfos: function(attrs, contexts, infos) {
+      // No generic infos.
     },
 
     getImportance: function(importanceRules) {
@@ -927,6 +877,14 @@ tr.exportTo('tr.ui.analysis', function() {
       opt_addedCallback(attr);
   }
 
+  function createWarningInfo(message) {
+    return {
+      message: message,
+      icon: String.fromCharCode(9888),
+      color: 'red'
+    };
+  }
+
   return {
     TitleColumn: TitleColumn,
     MemoryColumn: MemoryColumn,
@@ -937,7 +895,8 @@ tr.exportTo('tr.ui.analysis', function() {
     aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
     aggregateTableRowCells: aggregateTableRowCells,
     createCells: createCells,
-    addAttributeIfDefined: addAttributeIfDefined
+    addAttributeIfDefined: addAttributeIfDefined,
+    createWarningInfo: createWarningInfo
   };
 });
 </script>

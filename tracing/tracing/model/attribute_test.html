@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
 
 <script>
@@ -16,8 +15,6 @@ tr.b.unittest.testSuite(function() {
   var ScalarAttribute = tr.model.ScalarAttribute;
   var StringAttribute = tr.model.StringAttribute;
   var UnknownAttribute = tr.model.UnknownAttribute;
-  var AttributeInfo = tr.model.AttributeInfo;
-  var AttributeInfoType = tr.model.AttributeInfoType;
 
   test('findCommonTraits', function() {
     // Empty list.
@@ -211,8 +208,7 @@ tr.b.unittest.testSuite(function() {
 
   test('scalar_clone', function() {
     var originalAttr = new ScalarAttribute('bytes', 1024);
-    originalAttr.infos.push(new AttributeInfo(
-        AttributeInfoType.WARNING, 'This attribute is too cool'));
+    originalAttr.infos.push({format: 'arbitrary'});
 
     var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
     assert.equal(clonedAttrWithoutInfos.value, 1024);
@@ -250,10 +246,8 @@ tr.b.unittest.testSuite(function() {
 
   test('string_clone', function() {
     var originalAttr = new StringAttribute('m/s', 'speed of sound');
-    originalAttr.infos.push(new AttributeInfo(
-        AttributeInfoType.INFO, 'This attribute is sort of ...'));
-    originalAttr.infos.push(new AttributeInfo(
-        AttributeInfoType.ERROR, '... boring'));
+    originalAttr.infos.push({type: 'first info', key: 'first value'});
+    originalAttr.infos.push({type: 'last info', key: 'last value'});
 
     var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
     assert.equal(clonedAttrWithoutInfos.value, 'speed of sound');
@@ -292,8 +286,7 @@ tr.b.unittest.testSuite(function() {
 
   test('unknown_clone', function() {
     var originalAttr = new UnknownAttribute('kcal', '10% RDA');
-    originalAttr.infos.push(new AttributeInfo(
-        AttributeInfoType.INFO, 'Known unknown'));
+    originalAttr.infos.push({type: 'some info', key: 'some value'});
 
     var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
     assert.equal(clonedAttrWithoutInfos.value, '10% RDA');
