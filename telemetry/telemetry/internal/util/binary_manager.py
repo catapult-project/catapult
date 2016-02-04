@@ -18,6 +18,10 @@ TELEMETRY_PROJECT_CONFIG = os.path.join(
     util.GetTelemetryDir(), 'telemetry', 'internal', 'binary_dependencies.json')
 
 
+CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'catapult_base',
+                                    'catapult_base', 'chrome_binaries.json')
+
+
 _dependency_manager = None
 
 
@@ -31,7 +35,8 @@ def InitDependencyManager(environment_config):
     raise exceptions.InitializationError(
         'Trying to re-initialize the binary manager with config %s'
         % environment_config)
-  configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG)]
+  configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG),
+             dependency_manager.BaseConfig(CHROME_BINARY_CONFIG)]
   if environment_config:
     configs.insert(0, dependency_manager.BaseConfig(environment_config))
   _dependency_manager = dependency_manager.DependencyManager(configs)
