@@ -10,6 +10,26 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+// In node, the script-src for gl-matrix-min above brings in glmatrix into
+// a module, instead of into the global scope. Whereas, Tracing code
+// assumes that glMatrix is in the global scope. So, in Node only, we
+// require() it in, and then take all its exports and shove them into the
+// global scope by hand.
+(function(global) {
+  if (tr.isNode) {
+    var glMatrixAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+        '/gl-matrix-min.js');
+    var glMatrixModule = require(glMatrixAbsPath);
+    for (var exportName in glMatrixModule) {
+      global[exportName] = glMatrixModule[exportName];
+    }
+  }
+})(this);
+</script>
+
+<script>
+'use strict';
+
 tr.exportTo('tr.b', function() {
   function clamp(x, lo, hi) {
     return Math.min(Math.max(x, lo), hi);
@@ -78,17 +98,17 @@ tr.exportTo('tr.b', function() {
 
   vec3.toString = function(a) {
     return 'vec3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ')';
-  }
+  };
 
   mat2d.translateXY = function(out, x, y) {
     vec2.set(tmp_vec2, x, y);
     mat2d.translate(out, out, tmp_vec2);
-  }
+  };
 
   mat2d.scaleXY = function(out, x, y) {
     vec2.set(tmp_vec2, x, y);
     mat2d.scale(out, out, tmp_vec2);
-  }
+  };
 
   vec4.unitize = function(out, a) {
     out[0] = a[0] / a[3];
@@ -96,12 +116,12 @@ tr.exportTo('tr.b', function() {
     out[2] = a[2] / a[3];
     out[3] = 1;
     return out;
-  }
+  };
 
   vec2.copyFromVec4 = function(out, a) {
     vec4.unitize(tmp_vec4, a);
     vec2.copy(out, tmp_vec4);
-  }
+  };
 
   return {
     clamp: clamp,
