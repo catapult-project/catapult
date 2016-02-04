@@ -13,18 +13,18 @@ import mock
 class BinaryManagerTest(unittest.TestCase):
   def setUp(self):
     # We need to preserve the real initialized dependecny_manager.
-    self.actual_dep_manager = binary_manager._dependency_manager
-    binary_manager._dependency_manager = None
+    self.actual_binary_manager = binary_manager._binary_manager
+    binary_manager._binary_manager = None
 
   def tearDown(self):
-    binary_manager._dependency_manager = self.actual_dep_manager
+    binary_manager._binary_manager = self.actual_binary_manager
 
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
   def testInitializationNoEnvironmentConfig(
-      self, base_config_mock, dep_manager_mock):
+      self, base_config_mock, binary_manager_mock):
     base_config_mock.side_effect = ['base_config_object1',
                                     'base_config_object2',
                                     'base_config_object3']
@@ -35,15 +35,15 @@ class BinaryManagerTest(unittest.TestCase):
         mock.call.base_config.BaseConfig(
             binary_manager.CHROME_BINARY_CONFIG)])
     self.assertEqual(2, base_config_mock.call_count)
-    dep_manager_mock.assert_called_once_with(['base_config_object1',
+    binary_manager_mock.assert_called_once_with(['base_config_object1',
                                               'base_config_object2'])
 
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
+      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
   def testInitializationWithEnvironmentConfig(
-      self, base_config_mock, dep_manager_mock):
+      self, base_config_mock, binary_manager_mock):
     base_config_mock.side_effect = ['base_config_object1',  # TELEMETRY_PROJECT
                                     'base_config_object2',  # CHROME_BINARY
                                     'base_config_object3']  # ENVIRONMENT
@@ -54,7 +54,7 @@ class BinaryManagerTest(unittest.TestCase):
                       mock.call(environment_config)]
     self.assertEqual(expected_calls, base_config_mock.call_args_list)
     # Make sure the environment config is passed first.
-    dep_manager_mock.assert_called_once_with(
+    binary_manager_mock.assert_called_once_with(
         ['base_config_object3', 'base_config_object1', 'base_config_object2'])
 
   def testReinitialization(self):
@@ -63,18 +63,18 @@ class BinaryManagerTest(unittest.TestCase):
                       binary_manager.InitDependencyManager, None)
 
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
-  def testFetchPathInitialized(self, base_config_mock, dep_manager_mock):
+      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  def testFetchPathInitialized(self, base_config_mock, binary_manager_mock):
     base_config_mock.return_value = 'base_config_object'
-    expected = [mock.call.dependency_manager.DependencyManager(
+    expected = [mock.call.binary_manager.BinaryManager(
                    ['base_config_object']),
-                mock.call.dependency_manager.DependencyManager().FetchPath(
+                mock.call.binary_manager.BinaryManager().FetchPath(
                     'dep', 'plat_arch')]
     binary_manager.InitDependencyManager(None)
     binary_manager.FetchPath('dep', 'plat', 'arch')
-    dep_manager_mock.assert_call_args(expected)
+    binary_manager_mock.assert_call_args(expected)
     base_config_mock.assert_has_calls([
         mock.call.base_config.BaseConfig(
             binary_manager.TELEMETRY_PROJECT_CONFIG),
@@ -87,18 +87,18 @@ class BinaryManagerTest(unittest.TestCase):
                       binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.DependencyManager') # pylint: disable=line-too-long
+      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
   @mock.patch(
-      'telemetry.internal.util.binary_manager.dependency_manager.BaseConfig')
-  def testLocalPathInitialized(self, base_config_mock, dep_manager_mock):
+      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  def testLocalPathInitialized(self, base_config_mock, binary_manager_mock):
     base_config_mock.return_value = 'base_config_object'
-    expected = [mock.call.dependency_manager.DependencyManager(
+    expected = [mock.call.binary_manager.BinaryManager(
                    ['base_config_object']),
-                mock.call.dependency_manager.DependencyManager().LocalPath(
+                mock.call.binary_manager.BinaryManager().LocalPath(
                     'dep', 'plat_arch')]
     binary_manager.InitDependencyManager(None)
     binary_manager.LocalPath('dep', 'plat', 'arch')
-    dep_manager_mock.assert_call_args(expected)
+    binary_manager_mock.assert_call_args(expected)
     base_config_mock.assert_has_calls([
         mock.call.base_config.BaseConfig(
             binary_manager.TELEMETRY_PROJECT_CONFIG),
