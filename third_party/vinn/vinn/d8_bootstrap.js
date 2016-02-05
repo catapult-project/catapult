@@ -173,14 +173,29 @@
 
   })();
 
+
+  // We deliberately call eval() on content of parse5.js instead of using load()
+  // because load() does not hoist the |global| variable in this method to
+  // parse5.js (which export its modules to |global|).
+  //
+  // This is because d8's load('xyz.js') does not hoist non global varibles in
+  // the caller's environment to xyz.js, no matter where load() is called.
+  global.path_to_js_parser = '<%js_parser_path%>';
+  eval(read(global.path_to_js_parser));
+
   // Bring in html_to_js_generator.
   global.path_to_js_parser = '<%js_parser_path%>';
   load('<%html_to_js_generator_js_path%>');
 
+  // Bring in html imports loader.
+  load('<%html_imports_loader_js_path%>');
+  global.HTMLImportsLoader.sourcePaths.push.apply(
+      global.HTMLImportsLoader.sourcePaths,
+      JSON.parse('<%source_paths%>'));
+
   // Bring in path utils.
   load('<%path_utils_js_path%>');
-
-  var d8_path_utils = new PathUtils(
+  var pathUtils = new PathUtils(
       {
         currentWorkingDirectory: '<%current_working_directory%>',
         exists: function(fileName) {
@@ -195,119 +210,6 @@
           }
         }
       });
+  global.HTMLImportsLoader.setPathUtils(pathUtils);
 
-  /**
-   * Strips the starting '/' in file_path if |file_path| is meant to be a
-   * relative path.
-   *
-   * @param {string} file_path path to some file, can be relative or absolute
-   * path.
-   * @return {string} the file_path with starting '/' removed if |file_path|
-   * does not exist or the original |file_path| otherwise.
-   */
-  function _stripStartingSlashIfNeeded(file_path) {
-    if (file_path.substring(0, 1) !== '/') {
-      return file_path;
-    }
-    if (d8_path_utils.exists(file_path))
-      return file_path;
-    return file_path.substring(1);
-  }
-
-  var sourcePaths = JSON.parse('<%source_paths%>');
-
-  global.hrefToAbsolutePath = function(href) {
-    var pathPart;
-    if (!d8_path_utils.isAbs(href)) {
-      throw new Error('Found a non absolute import and thats not supported: ' +
-                      href);
-    } else {
-      pathPart = href.substring(1);
-    }
-
-    var candidates = [];
-    for (var i = 0; i < sourcePaths.length; i++) {
-      var candidate = d8_path_utils.join(sourcePaths[i], pathPart);
-      if (d8_path_utils.exists(candidate))
-        candidates.push(candidate);
-    }
-    if (candidates.length > 1) {
-      throw new Error('Multiple candidates found for ' + href + ': ' +
-          candidates + '\nSource paths:\n' + sourcePaths.join(',\n'));
-    }
-    if (candidates.length === 0) {
-      throw new Error(href + ' not found!' +
-          '\nSource paths:\n' + sourcePaths.join(',\n'));
-    }
-    return candidates[0];
-  }
-
-  var loadedModulesByFilePath = {};
-
-  /**
-   * Load a HTML file, which absolute path or path relative to <%search-path%>.
-   * Unlike the native load() method of d8, variables declared in |file_path|
-   * will not be hoisted to the caller environment. For example:
-   *
-   * a.html:
-   * <script>
-   *   var x = 1;
-   * </script>
-   *
-   * test.js:
-   * loadHTML("a.html");
-   * print(x);  // <- ReferenceError is thrown because x is not defined.
-   *
-   * @param {string} file_path path to the HTML file to be loaded.
-   */
-  global.loadHTML = function(href) {
-    var absPath = global.hrefToAbsolutePath(href);
-    global.loadHTMLFile(absPath, href);
-  };
-
-  global.loadScript = function(href) {
-    var absPath = global.hrefToAbsolutePath(href);
-    global.loadFile(absPath, href);
-  };
-
-  global.loadHTMLFile = function(absPath, opt_href) {
-    var href = opt_href || absPath;
-    if (loadedModulesByFilePath[absPath])
-      return;
-    loadedModulesByFilePath[absPath] = true;
-    try {
-      var html_content = read(absPath);
-    } catch (err) {
-      throw new Error('Error in loading html file ' + href +
-          ': File does not exist');
-    }
-
-    try {
-      var stripped_js = generateJsFromHTML(html_content);
-    } catch (err) {
-      throw new Error('Error in loading html file ' + href + ': ' + err);
-    }
-
-    // If there is blank line at the beginning of generated js, we add
-    // "//@ sourceURL=|file_path|" to the beginning of generated source so
-    // the stack trace show the source file even in case of syntax error.
-    // If not, we add it to the end of generated source to preserve the line
-    // number.
-    if (stripped_js.startsWith('\n')) {
-      stripped_js = '//@ sourceURL=' + href + stripped_js;
-    } else {
-      stripped_js = stripped_js + '\n//@ sourceURL=' + href;
-    }
-    eval(stripped_js);
-  };
-
-  global.loadFile = function(absPath, opt_href) {
-    var href = opt_href || absPath;
-    var relPath = d8_path_utils.relPath(absPath);
-    try {
-      load(relPath);
-    } catch (err) {
-      throw new Error('Error in loading script file ' + href + ': ' + err);
-    }
-  };
 })(this, arguments);

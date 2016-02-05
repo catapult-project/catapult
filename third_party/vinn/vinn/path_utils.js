@@ -12,7 +12,6 @@
  * be included directly by the boostrap.
  */
 (function(global) {
-
   /**
    *  Class provides common operations on pathnames.
    *  @param {object} os_client An object that defines:

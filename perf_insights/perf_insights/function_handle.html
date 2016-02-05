@@ -20,7 +20,7 @@ tr.exportTo('pi', function() {
 
   FunctionRegistry.getFunction = function(name) {
     return this.allFunctionsByName_[name];
-  }
+  };
 
   FunctionRegistry.register = function(func) {
     if (func.name === '')
@@ -57,7 +57,7 @@ tr.exportTo('pi', function() {
 
   ModuleToLoad.fromDict = function(moduleDict) {
     return new ModuleToLoad(moduleDict.href, moduleDict.filename);
-  }
+  };
 
   function FunctionHandle(modulesToLoad, functionName) {
     if (!(modulesToLoad instanceof Array))
@@ -102,7 +102,7 @@ tr.exportTo('pi', function() {
       for (var module in this.modulesToLoad) {
         var filename = this.modulesToLoad[module].filename;
         try {
-          loadHTMLFile(filename);
+          HTMLImportsLoader.loadHTMLFile(filename);
         } catch (err) {
           err.name = 'FunctionLoadingError';
           throw err;
@@ -132,7 +132,7 @@ tr.exportTo('pi', function() {
   FunctionHandle.loadFromFilename_ = function(filename) {
     try {
       var numFunctionsBefore = FunctionRegistry.allFunctions.length;
-      loadHTMLFile(filename);
+      HTMLImportsLoader.loadHTMLFile(filename);
     } catch (err) {
       err.name = 'FunctionLoadingError';
       throw err;

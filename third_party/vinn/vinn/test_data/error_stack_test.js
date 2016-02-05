@@ -10,5 +10,5 @@
 this.throw_error = true;
 
 
-loadHTML('/load_simple_html.html');
+HTMLImportsLoader.loadHTML('/load_simple_html.html');
 maybeRaiseExceptionInFoo();
