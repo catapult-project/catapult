@@ -126,20 +126,17 @@ def CalculateWaitForRetry(retry_attempt, max_wait=60):
 
     Args:
       retry_attempt: Retry attempt counter.
-      max_wait: Upper bound for wait time.
+      max_wait: Upper bound for wait time [seconds].
 
     Returns:
-      Amount of time to wait before retrying request.
+      Number of seconds to wait before retrying request.
 
     """
 
     wait_time = 2 ** retry_attempt
-    # randrange requires a nonzero interval, so we want to drop it if
-    # the range is too small for jitter.
-    if retry_attempt:
-        max_jitter = (2 ** retry_attempt) / 2
-        wait_time += random.randrange(-max_jitter, max_jitter)
-    return min(wait_time, max_wait)
+    max_jitter = wait_time / 4.0
+    wait_time += random.uniform(-max_jitter, max_jitter)
+    return max(1, min(wait_time, max_wait))
 
 
 def AcceptableMimeType(accept_patterns, mime_type):

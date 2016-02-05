@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/value/value.html">
-<link rel="import" href="/perf_insights/value/run_info.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/mappers/startup_map_function.html">
 <link rel="import" href="/tracing/core/test_utils.html">
@@ -34,16 +33,16 @@ tr.b.unittest.testSuite(function() {
         start: 20, end: 30
       }));
 
-      var loadIr = new tr.e.rail.LoadInteractionRecord(m, 0, 10);
-      loadIr.name = 'Startup';
+      var loadIr = new tr.e.rail.LoadInteractionRecord(
+          m, tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP, 0, 10);
       m.interactionRecords.push(loadIr);
       loadIr.associatedEvents.push(t2_s1);
       loadIr.associatedEvents.push(t2_s2);
     });
 
     var results = new pi.r.Results();
-    var runInfo = new pi.v.RunInfo('my_test.json');
-    pi.m.startupMapFunctionForTest(results, runInfo, m);
+    var canonicalUrl = 'my_test.json';
+    pi.m.startupMapFunctionForTest(results, m);
   });
 });
 

@@ -23,7 +23,7 @@ class QuickLoggerTest(testing_common.TestCase):
   def testQuickLogger_LogSizeAndNumberAtSizeLimit(self):
     logger = quick_logger.QuickLogger('a_namespace', 'a_log_name')
     for i in xrange(quick_logger._MAX_NUM_RECORD):
-      logger.Log(str(i%2) * quick_logger._MAX_MSG_SIZE)
+      logger.Log(str(i % 2) * quick_logger._MAX_MSG_SIZE)
     logger.Save()
     logs = quick_logger.Get('a_namespace', 'a_log_name')
     self.assertEqual(len(logs), quick_logger._MAX_NUM_RECORD)

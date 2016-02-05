@@ -31,7 +31,7 @@ class GetLogsHandler(request_handler.RequestHandler):
       before_index: Get the logs before this index.
 
     Outputs:
-      JSON which contains a list of quick_loger.Log.
+      JSON which contains a list of quick_logger.Log.
     """
     log_namespace = self.request.get('namespace')
     log_name = self.request.get('name')

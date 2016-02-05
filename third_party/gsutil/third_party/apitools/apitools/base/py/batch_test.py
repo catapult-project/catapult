@@ -332,6 +332,8 @@ class BatchTest(unittest2.TestCase):
             'Content-Type: protocol/version',
             'MIME-Version: 1.0',
             'Host: ',
+            '',
+            '',
         ])
         batch_request = batch.BatchHttpRequest('https://www.example.com')
         self.assertEqual(expected_serialized_request,

@@ -10,3 +10,6 @@
 # directory but should not be committed for privacy reasons. This prevents
 # an accidental add.
 perf_insights/perf_insights/download_traces.py
+
+# devil's binary dependency download folder.
+/devil/bin/deps/

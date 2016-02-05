@@ -130,9 +130,9 @@ def _DegreesOfFreedom(stats1, stats2):
   df = math_utils.Divide(
       (stats1.var / stats1.size + stats2.var / stats2.size) ** 2,
       math_utils.Divide(stats1.var ** 2,
-                       (stats1.size ** 2) * (stats1.size - 1)) +
+                        (stats1.size ** 2) * (stats1.size - 1)) +
       math_utils.Divide(stats2.var ** 2,
-                       (stats2.size ** 2) * (stats2.size - 1)))
+                        (stats2.size ** 2) * (stats2.size - 1)))
   return max(1.0, df)
 
 

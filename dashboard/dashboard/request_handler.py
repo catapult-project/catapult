@@ -75,7 +75,8 @@ class RequestHandler(webapp2.RequestHandler):
     """
     logging.error(error_message)
     self.response.set_status(status)
-    self.response.out.write('%s\n' % error_message)
+    self.response.out.write('%s\nrequest_id:%s\n' %
+                            (error_message, utils.GetRequestId()))
 
   def ReportWarning(self, warning_message, status=200):
     """Reports a warning to the client and logs the warning.
@@ -86,7 +87,8 @@ class RequestHandler(webapp2.RequestHandler):
     """
     logging.warning(warning_message)
     self.response.set_status(status)
-    self.response.out.write('%s\n' % warning_message)
+    self.response.out.write('%s\nrequest_id:%s\n' %
+                            (warning_message, utils.GetRequestId()))
 
 
 class InvalidInputError(Exception):

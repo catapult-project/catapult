@@ -25,11 +25,18 @@ found in the LICENSE file.
     set selection(selection) {
       this.textContent = '';
       var realView = document.createElement('tr-ui-a-single-event-sub-view');
+      realView.addEventListener('customize-rows',
+          this.onCustomizeRows_.bind(this));
 
       this.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);
-
       this.currentSelection_ = selection;
+    },
+
+    onCustomizeRows_: function(event) {
+      var event2 = new tr.b.Event('customize-rows');
+      event2.rows = event.rows;
+      this.dispatchEvent(event2);
     },
 
     get relatedEventsToHighlight() {

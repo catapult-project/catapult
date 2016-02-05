@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/extras/measure/measure.html">
 <link rel="import" href="/tracing/importer/import.html">
 
 <script>
@@ -16,6 +17,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
   var ColorScheme = tr.b.ColorScheme;
+  var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -26,6 +28,26 @@ tr.b.unittest.testSuite(function() {
 
   function makeUnshiftedModel(events) {
     return makeModel(events, false);
+  }
+
+  function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles,
+      expectedObjectTypeName) {
+    assert.strictEqual(entry.heapDump, expectedDump);
+    assert.strictEqual(entry.size, expectedSize);
+    assert.strictEqual(entry.objectTypeName, expectedObjectTypeName);
+    if (expectedTitles === undefined) {
+      assert.isUndefined(entry.leafStackFrame);
+    } else {
+      assert.deepEqual(
+          entry.leafStackFrame.getUserFriendlyStackTrace(), expectedTitles);
+    }
+  }
+
+  function getFrame(heapEntry, distance) {
+    var frame = heapEntry.leafStackFrame;
+    for (; distance > 0; distance--)
+      frame = frame.parentFrame;
+    return frame;
   }
 
   test('canImportEmpty', function() {
@@ -3670,10 +3692,229 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.memoryAllocatorDumps.length, 1);
     var noCrashRoot = d.getMemoryAllocatorDumpByFullName('no_crash');
     assert.lengthOf(noCrashRoot.children, 0);
-    assert.deepEqual(noCrashRoot.attributes,
-        { size: undefined, effective_size: undefined });
+    assert.deepEqual(noCrashRoot.attributes, {});
     assert.isUndefined(noCrashRoot.parent);
     assert.isUndefined(noCrashRoot.guid);
+  });
+
+  test('importMemoryDumps_weakMemoryAllocatorDumps', function() {
+    var events = [
+      {
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0x0001',
+        args: {
+          dumps: {
+            allocators: {
+              // Sinks for ownership edges (to check that the correct ownership
+              // edges are removed).
+              'root_sink': { guid: '100', attrs: {} },
+              'root_sink/child_sink': { guid: '200', attrs: {} },
+              'root_sink/child_sink/descendant_sink': {
+                guid: '300', attrs: {}
+              },
+
+              // Note: 'removed' in the name of a dump means that the dump will
+              // be removed despite being non-weak (strong), e.g. due to one of
+              // its ancestors being weak.
+
+              // All descendants of a weak root dump should be removed.
+              'weak_root': { guid: '1', attrs: {}, flags: 1 },
+              'weak_root/removed_child': { guid: '2', attrs: {} },
+              'weak_root/inferred_removed_child/removed_descendant': {
+                guid: '3', attrs: {}, flags: 0
+              },
+
+              // A strong root should be kept even if all its descendants are
+              // weak.
+              'strong_root': { guid: '4', attrs: {}, flags: 0 },
+              'strong_root/weak_child': { guid: '5', attrs: {}, flags: 1 },
+              'strong_root/inferred_weak_child/weak_descendant': {
+                guid: '6', attrs: {}, flags: 1
+              },
+
+              // All inferred ancestors of a weak descendant should be marked
+              // weak and, consequently, removed (provided that they don't have
+              // any non-weak descendants).
+              'inferred_weak_root/inferred_weak_child/weak_descendant': {
+                guid: '7', attrs: {}, flags: 1
+              },
+
+              // An inferred dump should be marked non-weak if it has at least
+              // one strong descendant.
+              'inferred_strong_root/child1_weak': {
+                guid: '8', attrs: {}, flags: 1
+              },
+              'inferred_strong_root/child2_strong': {
+                guid: '9', attrs: {}
+              },
+              'inferred_strong_root/child3_weak': {
+                guid: '10', attrs: {}, flags: 1
+              },
+              'inferred_strong_root2/inferred_strong_child/desc1_strong': {
+                guid: '11', attrs: {}
+              },
+              'inferred_strong_root2/inferred_strong_child/desc2_weak': {
+                guid: '12', attrs: {}, flags: 1
+              },
+              'inferred_strong_root2/inferred_strong_child/desc3_strong': {
+                guid: '13', attrs: {}
+              },
+              'inferred_strong_root2/weak_child': {
+                guid: '14', attrs: {}, flags: 1
+              },
+
+              // A desdendant dump should be removed if it has a weak ancestor.
+              'strong_root2': { guid: '15', attrs: {} },
+              'strong_root2/weak_child': { guid: '16', attrs: {}, flags: 1 },
+              'strong_root2/weak_child/removed_descendant': {
+                guid: '17', attrs: {}
+              },
+
+              // Check that "weakness" also propagates across ownership edges.
+              'removed_root': { guid: '18', attrs: {} },
+              'removed_root/removed_child': {
+                guid: '19', attrs: {}
+              },
+              'inferred_strong_root3/removed_child': {
+                guid: '20', attrs: {}
+              },
+            },
+            allocators_graph: [
+              { source: '1', target: '100', type: 'ownership' },
+              { source: '2', target: '200', type: 'ownership' },
+              { source: '3', target: '300', type: 'ownership' },
+
+              { source: '4', target: '100', type: 'ownership' },  // Kept.
+              { source: '5', target: '200', type: 'ownership' },
+              { source: '6', target: '300', type: 'ownership' },
+
+              { source: '7', target: '300', type: 'ownership' },
+
+              { source: '8', target: '200', type: 'ownership' },
+              { source: '9', target: '200', type: 'ownership' },  // Kept.
+              { source: '10', target: '200', type: 'ownership' },
+              { source: '11', target: '300', type: 'ownership' },  // Kept.
+              { source: '12', target: '300', type: 'ownership' },
+              { source: '13', target: '300', type: 'ownership' },  // Kept.
+              { source: '14', target: '200', type: 'ownership' },
+
+              { source: '15', target: '100', type: 'ownership' },  // Kept.
+              { source: '16', target: '200', type: 'ownership' },
+              { source: '17', target: '300', type: 'ownership' },
+
+              { source: '18', target: '3' /* not a sink */, type: 'ownership' },
+              { source: '19', target: '200', type: 'ownership' },
+              { source: '20', target: '19' /* not a sink */, type: 'ownership' }
+            ]
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p = m.getProcess(42);
+    var d = p.memoryDumps[0];
+    var memoryAllocatorDumps = d.memoryAllocatorDumps;
+    assert.lengthOf(memoryAllocatorDumps, 6);
+
+    function checkDump(dump, expectedFullName, expectedGuid, expectedParent,
+        expectedChildCount, expectedOwnsLink, expectedOwnedByLinkCount) {
+      assert.strictEqual(dump.fullName, expectedFullName);
+      assert.strictEqual(dump.guid, expectedGuid);
+      assert.strictEqual(dump.parent, expectedParent);
+      assert.lengthOf(dump.children, expectedChildCount);
+      assert.strictEqual(dump.owns, expectedOwnsLink);
+      assert.lengthOf(dump.ownedBy, expectedOwnedByLinkCount);
+      assert.strictEqual(
+          d.getMemoryAllocatorDumpByFullName(expectedFullName), dump);
+    }
+
+    function checkOwnsLink(ownerDump, expectedTarget) {
+      assert.strictEqual(ownerDump.owns.source, ownerDump);
+      assert.strictEqual(ownerDump.owns.target, expectedTarget);
+    }
+
+    // Check root_sink/* dumps.
+    var rootSink = d.memoryAllocatorDumps[3];
+    checkDump(rootSink, 'root_sink', '100', undefined, 1, undefined, 2);
+    var childSink = rootSink.children[0];
+    checkDump(childSink, 'root_sink/child_sink', '200', rootSink, 1, undefined,
+        1);
+    var descendantSink = childSink.children[0];
+    checkDump(descendantSink, 'root_sink/child_sink/descendant_sink', '300',
+        childSink, 0, undefined, 2);
+
+    // Check strong_root/* dumps.
+    var strongRoot = d.memoryAllocatorDumps[4];
+    checkDump(strongRoot, 'strong_root', '4', undefined, 0, rootSink.ownedBy[0],
+        0);
+
+    // Check inferred_strong_root/* dumps.
+    var inferredStrongRoot = d.memoryAllocatorDumps[0];
+    checkDump(inferredStrongRoot, 'inferred_strong_root', undefined, undefined,
+        1, undefined, 0);
+    var child2Strong = inferredStrongRoot.children[0];
+    checkDump(child2Strong, 'inferred_strong_root/child2_strong', '9',
+        inferredStrongRoot, 0, childSink.ownedBy[0], 0);
+
+    // Check inferred_strong_root2/* dumps.
+    var inferredStrongRoot2 = d.memoryAllocatorDumps[1];
+    checkDump(inferredStrongRoot2, 'inferred_strong_root2', undefined,
+        undefined, 1, undefined, 0);
+    var inferredStrongChild = inferredStrongRoot2.children[0];
+    checkDump(inferredStrongChild,
+        'inferred_strong_root2/inferred_strong_child', undefined,
+        inferredStrongRoot2, 2, undefined, 0);
+    var desc1Strong = inferredStrongChild.children[0];
+    checkDump(desc1Strong,
+        'inferred_strong_root2/inferred_strong_child/desc1_strong', '11',
+        inferredStrongChild, 0, descendantSink.ownedBy[0], 0);
+    var desc3Strong = inferredStrongChild.children[1];
+    checkDump(desc3Strong,
+        'inferred_strong_root2/inferred_strong_child/desc3_strong', '13',
+        inferredStrongChild, 0, descendantSink.ownedBy[1], 0);
+
+    // Check strong_root2/* dumps.
+    var strongRoot2 = d.memoryAllocatorDumps[5];
+    checkDump(strongRoot2, 'strong_root2', '15', undefined, 0,
+        rootSink.ownedBy[1], 0);
+
+    // Check inferred_strong_root3/* dumps.
+    var inferredStrongRoot3 = d.memoryAllocatorDumps[2];
+    checkDump(inferredStrongRoot3, 'inferred_strong_root3', undefined,
+        undefined, 0, undefined, 0);
+
+    // Check the links.
+    checkOwnsLink(strongRoot, rootSink);
+    checkOwnsLink(child2Strong, childSink);
+    checkOwnsLink(desc1Strong, descendantSink);
+    checkOwnsLink(desc3Strong, descendantSink);
+    checkOwnsLink(strongRoot2, rootSink);
+
+    // Check that the removed weak dumps are not indexed.
+    [
+      'weak_root',
+      'weak_root/removed_child',
+      'weak_root/inferred_removed_child',
+      'weak_root/inferred_removed_child/removed_descendant',
+      'strong_root/weak_child',
+      'strong_root/inferred_weak_child/weak_descendant',
+      'inferred_weak_root',
+      'inferred_weak_root/inferred_weak_child',
+      'inferred_weak_root/inferred_weak_child/weak_descendant',
+      'inferred_strong_root/child1_weak',
+      'inferred_strong_root/child3_weak',
+      'inferred_strong_root2/inferred_strong_child/desc2_weak',
+      'inferred_strong_root2/weak_child',
+      'strong_root2/weak_child',
+      'strong_root2/removed_descendant',
+      'removed_root',
+      'removed_root/removed_child',
+      'inferred_strong_root3/removed_child'
+    ].forEach(function(fullName) {
+      assert.isUndefined(d.getMemoryAllocatorDumpByFullName(fullName));
+    });
   });
 
   test('importMemoryDumps_levelsOfDetail', function() {
@@ -3742,25 +3983,7 @@ tr.b.unittest.testSuite(function() {
         ['light', undefined]);
   });
 
-  test('importMemoryDumps_heapDumps', function() {
-    function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles) {
-      assert.strictEqual(entry.heapDump, expectedDump);
-      assert.strictEqual(entry.size, expectedSize);
-      if (expectedTitles === undefined) {
-        assert.isUndefined(entry.leafStackFrame);
-      } else {
-        assert.deepEqual(
-            entry.leafStackFrame.getUserFriendlyStackTrace(), expectedTitles);
-      }
-    }
-
-    function getFrame(entry, distance) {
-      var frame = entry.leafStackFrame;
-      while (distance-- > 0)
-        frame = frame.parentFrame;
-      return frame;
-    }
-
+  test('importMemoryDumps_heapDumps_oldFormat', function() {
     var events = [  // Intentionally shuffled.
       {
         pid: 21,
@@ -3797,6 +4020,23 @@ tr.b.unittest.testSuite(function() {
       },
       {
         pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // GCC.
+            '22': '[unknown]',
+            '23': 'testing::ManuallyAnnotatedMockClass',
+            '24': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'blink::Event]',
+            '25': 'blink::ContextLifecycleObserver*',
+            '26': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'blink::WebFrame*]'
+          }
+        }
+      },
+      {
+        pid: 42,
         ts: 10,
         ph: 'v',
         id: '0123',
@@ -3808,17 +4048,20 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
+                  { type: '24', size: '2e6fc8' },
                   { size: '5cdf91' },
-                  { size: 'abcde', type: '' /* entry should be ignored */ },
-                  { bt: '' /* empty stack trace */, size: '5b6cd6' },
+                  { type: '25', size: '1737e4' },
+                  { bt: '', size: '5b6cd6' },
                   { bt: '4', size: '18f0' },
                   { bt: '3', size: 'e3a8' }
                 ]
               },
               malloc: {
                 entries: [
+                  { size: '789' },
                   { bt: '0', size: '123' },
-                  { bt: '5', size: '456' }
+                  { bt: '5', size: '456' },
+                  { type: '25', size: 'cd' }
                 ]
               }
             }
@@ -3867,16 +4110,20 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
         {
-          'p21:': undefined /* root */,
           'p21:0': 'FrameView::layout',
+          'p21:0:self': '<self>',
           'p21:1': 'MessageLoop::RunTask',
-          'p42:': undefined /* root */,
+          'p42::self': '<self>',
           'p42:0': 'MessageLoop::RunTask',
+          'p42:0:self': '<self>',
           'p42:1': 'TimerBase::run',
           'p42:TWO': 'ScheduledAction::execute',
           'p42:3': 'FunctionCall',
+          'p42:3:self': '<self>',
           'p42:4': 'UpdateLayoutTree',
-          'p42:5': 'MessageLoop::JogTask'
+          'p42:4:self': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:5:self': '<self>'
         });
 
     // 1. Process 21, first dump.
@@ -3890,9 +4137,9 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries1 = partitionAllocDump1.entries;
     assert.lengthOf(partitionAllocEntries1, 2);
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
-        undefined);
+        undefined /* root */, undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
-        ['FrameView::layout', 'MessageLoop::RunTask', undefined]);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask']);
 
     // 2. Process 21, second dump.
     var pmd2 = p1.memoryDumps[1];
@@ -3905,13 +4152,14 @@ tr.b.unittest.testSuite(function() {
     var partitionAllocEntries2 = partitionAllocDump2.entries;
     assert.lengthOf(partitionAllocEntries2, 2);
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
-        undefined);
+        undefined /* root */, undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
-        ['FrameView::layout', 'MessageLoop::RunTask', undefined]);
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
 
     // All heap dumps in Process 21 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries2[1], 0),
+        getFrame(partitionAllocEntries1[1], 0),
         getFrame(partitionAllocEntries2[1], 0));
 
     // 3. Process 42.
@@ -3923,41 +4171,419 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
     assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
     var partitionAllocEntries3 = partitionAllocDump3.entries;
-    assert.lengthOf(partitionAllocEntries3, 4);
-    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
-        undefined);
-    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 5991638,
-        [undefined]);
-    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 6384,
-        ['UpdateLayoutTree', 'TimerBase::run', 'MessageLoop::RunTask',
-        undefined]);
-    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 58280,
-        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask', undefined]);
+    assert.lengthOf(partitionAllocEntries3, 6);
+    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 3043272,
+        undefined /* root */, 'blink::Event');
+    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 6086545,
+        undefined /* root */, undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 1521636,
+        undefined /* root */, 'blink::ContextLifecycleObserver*');
+    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
+        ['<self>'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 58280,
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
     assert.equal(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
-    assert.lengthOf(mallocEntries3, 2);
-    checkHeapEntry(mallocEntries3[0], mallocDump3, 291,
-        ['MessageLoop::RunTask', undefined]);
-    checkHeapEntry(mallocEntries3[1], mallocDump3, 1110,
-        ['MessageLoop::JogTask', undefined]);
+    assert.lengthOf(mallocEntries3, 4);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
+        undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[3], mallocDump3, 205, undefined /* root */,
+        'blink::ContextLifecycleObserver*');
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
-        getFrame(partitionAllocEntries3[2], 3),
-        getFrame(partitionAllocEntries3[1], 0));
-    assert.strictEqual(
-        getFrame(partitionAllocEntries3[3], 2),
-        getFrame(partitionAllocEntries3[2], 1));
-    assert.strictEqual(
-        getFrame(mallocEntries3[0], 0),
-        getFrame(partitionAllocEntries3[2], 2));
+        getFrame(partitionAllocEntries3[5], 3),
+        getFrame(partitionAllocEntries3[4], 2));
     assert.strictEqual(
         getFrame(mallocEntries3[1], 1),
-        getFrame(mallocEntries3[0], 1));
+        getFrame(partitionAllocEntries3[4], 3));
+  });
+
+  test('importMemoryDumps_heapDumps_newFormat', function() {
+    var events = [  // Intentionally shuffled.
+      {
+        pid: 21,
+        ts: 9,
+        ph: 'v',
+        id: '0123',
+        args: {
+          dumps: {
+            heaps: {
+              partition_alloc: {
+                entries: [
+                  { bt: '', type: '25', size: '1000' },
+                  { bt: 'A', size: 'abc' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 42,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '-1': { name: '<self>' },
+            '0': { name: 'MessageLoop::RunTask' },
+            '0.5': { name: '<self>', parent: '0' },
+            '1': { name: 'TimerBase::run', parent: '0' },
+            'TWO': { name: 'ScheduledAction::execute', 'parent': '1' },
+            '2.72': { name: '<self>', 'parent': 'TWO' },
+            '3': { name: 'FunctionCall', parent: 'TWO' },
+            '\u03C0': { name: '<self>', parent: '3' },
+            '4': { name: 'UpdateLayoutTree', parent: '1' },
+            'FOUR-AND-A-BIT': { name: '<self>', parent: '4' },
+            '5': { name: 'MessageLoop::JogTask' },
+            'NaN': { name: '<self>', parent: '5' }
+          }
+        }
+      },
+      {
+        pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // Clang.
+            '22': '[unknown]',
+            '23': 'testing::ManuallyAnnotatedMockClass',
+            '24': 'const char *WTF::getStringWithTypeName() [T = ' +
+                'blink::Event]',
+            '25': 'blink::ContextLifecycleObserver *',
+            '26': 'const char *WTF::getStringWithTypeName() [T = ' +
+                'blink::WebFrame *]'
+          }
+        }
+      },
+      {
+        pid: 42,
+        ts: 10,
+        ph: 'v',
+        id: '0123',
+        args: {
+          dumps: {
+            process_totals: {
+              resident_set_bytes: '0'
+            },
+            heaps: {
+              partition_alloc: {
+                entries: [
+                  { bt: '' /* root */, size: '5cdf91' },
+                  { bt: '' /* root */, type: '24', size: '2e6fc8' },
+                  { bt: '' /* root */, type: '25', size: '1737e4' },
+                  { bt: '-1', type: '22', size: '5b6cd6' },
+                  { bt: 'FOUR-AND-A-BIT', size: '18f0' },
+                  { bt: 'FOUR-AND-A-BIT', type: '26', size: 'c78' },
+                  { bt: '\u03C0', size: 'e3a8' }
+                ]
+              },
+              malloc: {
+                entries: [
+                  { bt: '', size: '789' },
+                  { bt: '0.5', size: '123' },
+                  { bt: 'NaN', size: '456' },
+                  { bt: '3', type: '25', size: 'cd' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            // Intentionally in reverse order.
+            'A': { name: '<self>', parent: '0' },
+            '0': { name: 'FrameView::layout', parent: '1' },
+            '1': { name: 'MessageLoop::RunTask' }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ts: 12,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              winheap: {
+                entries: []  // Intentionally empty.
+              },
+              partition_alloc: {
+                entries: [
+                  { bt: '', size: '2000' },
+                  { bt: 'A', type: '25', size: 'def' },
+                  { bt: '3' /* invalid */, size: 'aaa' },
+                  { bt: 'A', type: '24' /* invalid */, size: 'bbb' },
+                  { bt: '0', size: 'fff' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 21,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // Microsoft Visual C++.
+            '25': 'const char *__cdecl WTF::getStringWithTypeName<class ' +
+                'v8::FunctionCallbackInfo<class v8::Value>>(void)'
+          }
+        }
+      },
+      {
+        pid: 63,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {}  // Intentionally empty.
+        }
+      },
+      {
+        pid: 63,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {}  // Intentionally empty.
+        }
+      },
+      {
+        pid: 63,
+        ts: 13,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              winheap: {
+                entries: [
+                  { bt: '', size: '10000' }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        pid: 84,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '5': { name: 'MessageLoop::WalkTask' }
+          }
+        }
+      },
+      {
+        pid: 84,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            '0': '[unknown]',
+            '1': 'base::All',
+            '3': 'content::Manually',
+            '4': 'net::Annotated'
+          }
+        }
+      },
+      {
+        pid: 84,
+        ts: 14,
+        ph: 'v',
+        id: '0987',
+        args: {
+          dumps: {
+            heaps: {
+              malloc: {
+                entries: [
+                  { bt: '5', type: '3', size: 'abcd' }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ];
+    var m = makeModel(events);
+    var p1 = m.getProcess(21);
+    var p2 = m.getProcess(42);
+    var p3 = m.getProcess(63);
+    var p4 = m.getProcess(84);
+    assert.lengthOf(m.globalMemoryDumps, 2);
+    assert.lengthOf(p1.memoryDumps, 2);
+    assert.lengthOf(p2.memoryDumps, 1);
+    assert.lengthOf(p3.memoryDumps, 1);
+    assert.lengthOf(p4.memoryDumps, 1);
+
+    // Stack frames.
+    assert.deepEqual(
+        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
+        {
+          'p21:0': 'FrameView::layout',
+          'p21:A': '<self>',
+          'p21:1': 'MessageLoop::RunTask',
+          'p42:-1': '<self>',
+          'p42:0': 'MessageLoop::RunTask',
+          'p42:0.5': '<self>',
+          'p42:1': 'TimerBase::run',
+          'p42:TWO': 'ScheduledAction::execute',
+          'p42:2.72': '<self>',
+          'p42:3': 'FunctionCall',
+          'p42:\u03C0': '<self>',
+          'p42:4': 'UpdateLayoutTree',
+          'p42:FOUR-AND-A-BIT': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:NaN': '<self>',
+          'p84:5': 'MessageLoop::WalkTask'
+        });
+
+    // 1. Process 21, first dump.
+    var pmd1 = p1.memoryDumps[0];
+    var hds1 = pmd1.heapDumps;
+    assert.sameMembers(Object.keys(hds1), ['partition_alloc']);
+
+    var partitionAllocDump1 = hds1['partition_alloc'];
+    assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
+    assert.equal(partitionAllocDump1.allocatorName, 'partition_alloc');
+    var partitionAllocEntries1 = partitionAllocDump1.entries;
+    assert.lengthOf(partitionAllocEntries1, 2);
+    checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
+        undefined /* root */,
+        'class v8::FunctionCallbackInfo<class v8::Value>');
+    checkHeapEntry(partitionAllocEntries1[1], partitionAllocDump1, 2748,
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
+
+    // 2. Process 21, second dump.
+    var pmd2 = p1.memoryDumps[1];
+    var hds2 = pmd2.heapDumps;
+    assert.sameMembers(Object.keys(hds2), ['partition_alloc']);
+
+    var partitionAllocDump2 = hds2['partition_alloc'];
+    assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
+    assert.equal(partitionAllocDump2.allocatorName, 'partition_alloc');
+    var partitionAllocEntries2 = partitionAllocDump2.entries;
+    assert.lengthOf(partitionAllocEntries2, 3);
+    checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
+        undefined /* root */, undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries2[1], partitionAllocDump2, 3567,
+        ['<self>', 'FrameView::layout', 'MessageLoop::RunTask'],
+        'class v8::FunctionCallbackInfo<class v8::Value>');
+    checkHeapEntry(partitionAllocEntries2[2], partitionAllocDump2, 4095,
+        ['FrameView::layout', 'MessageLoop::RunTask'],
+        undefined /* sum over all types */);
+
+    // All heap dumps in Process 21 should use the same stack frames.
+    assert.strictEqual(
+        getFrame(partitionAllocEntries1[1], 0),
+        getFrame(partitionAllocEntries2[1], 0));
+    assert.strictEqual(
+        getFrame(partitionAllocEntries2[2], 0),
+        getFrame(partitionAllocEntries2[1], 1));
+
+    // 3. Process 42.
+    var pmd3 = p2.memoryDumps[0];
+    var hds3 = pmd3.heapDumps;
+    assert.sameMembers(Object.keys(hds3), ['partition_alloc', 'malloc']);
+
+    var partitionAllocDump3 = hds3['partition_alloc'];
+    assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
+    assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
+    var partitionAllocEntries3 = partitionAllocDump3.entries;
+    assert.lengthOf(partitionAllocEntries3, 7);
+    checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
+        undefined /* root */, undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[1], partitionAllocDump3, 3043272,
+        undefined /* root */, 'blink::Event');
+    checkHeapEntry(partitionAllocEntries3[2], partitionAllocDump3, 1521636,
+        undefined /* root */, 'blink::ContextLifecycleObserver *');
+    checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
+        ['<self>'], '[unknown]');
+    checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+            'MessageLoop::RunTask'], 'blink::WebFrame *');
+    checkHeapEntry(partitionAllocEntries3[6], partitionAllocDump3, 58280,
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask'], undefined /* sum over all types */);
+
+    var mallocDump3 = hds3['malloc'];
+    assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
+    assert.equal(mallocDump3.allocatorName, 'malloc');
+    var mallocEntries3 = mallocDump3.entries;
+    assert.lengthOf(mallocEntries3, 4);
+    checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
+        undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+    checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
+        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *');
+
+    // All heap dumps in Process 42 should use the same stack frames.
+    assert.strictEqual(
+        getFrame(partitionAllocEntries3[5], 0),
+        getFrame(partitionAllocEntries3[4], 0));
+    assert.strictEqual(
+        getFrame(partitionAllocEntries3[6], 3),
+        getFrame(partitionAllocEntries3[4], 2));
+    assert.strictEqual(
+        getFrame(mallocEntries3[1], 1),
+        getFrame(partitionAllocEntries3[4], 3));
+    assert.strictEqual(
+        getFrame(mallocEntries3[3], 0),
+        getFrame(partitionAllocEntries3[6], 1));
+
+    // 4. Process 63.
+    var pmd4 = p3.memoryDumps[0];
+    var hds4 = pmd4.heapDumps;
+    assert.sameMembers(Object.keys(hds4), ['winheap']);
+
+    var winheapDump = hds4['winheap'];
+    assert.strictEqual(winheapDump.processMemoryDump, pmd4);
+    assert.equal(winheapDump.allocatorName, 'winheap');
+    var winheapEntries = winheapDump.entries;
+    assert.lengthOf(winheapEntries, 1);
+    checkHeapEntry(winheapEntries[0], winheapDump, 65536,
+        undefined /* root */, undefined /* sum over all types */);
+
+    // 5. Process 84.
+    var pmd5 = p4.memoryDumps[0];
+    var hds5 = pmd5.heapDumps;
+    assert.sameMembers(Object.keys(hds5), ['malloc']);
+
+    var mallocDump4 = hds5['malloc'];
+    assert.strictEqual(mallocDump4.processMemoryDump, pmd5);
+    assert.equal(mallocDump4.allocatorName, 'malloc');
+    var mallocEntries4 = mallocDump4.entries;
+    assert.lengthOf(mallocEntries4, 1);
+    checkHeapEntry(mallocEntries4[0], mallocDump4, 43981,
+        ['MessageLoop::WalkTask'], 'content::Manually');
   });
 
   test('importMemoryDumps_composableDumps', function() {
@@ -3976,7 +4602,7 @@ tr.b.unittest.testSuite(function() {
             heaps: {
               partition_alloc: {
                 entries: [
-                  { size: '500' }
+                  { bt: '99', type: '888', size: '500' }
                 ]
               }
             }
@@ -4012,6 +4638,16 @@ tr.b.unittest.testSuite(function() {
                 type: 'ownership'
               }
             ]
+          }
+        }
+      },
+      {  // Stack frames (required for heap dumps).
+        pid: 42,
+        ph: 'M',
+        name: 'stackFrames',
+        args: {
+          stackFrames: {
+            '99': { name: 'MessageLoop::RunTask' }
           }
         }
       },
@@ -4123,6 +4759,18 @@ tr.b.unittest.testSuite(function() {
                 type: 'retention'
               }
             ]
+          }
+        }
+      },
+      {  // Object type names (required for heap dumps).
+        pid: 42,
+        ph: 'M',
+        name: 'typeNames',
+        args: {
+          typeNames: {
+            // GCC.
+            '888': 'const char* WTF::getStringWithTypeName() [with T = ' +
+                'cc::SurfaceFactory]'
           }
         }
       },
@@ -4245,14 +4893,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local1Dump.fullName, 'local1');
     assert.isUndefined(local1Dump.parent);
     assert.lengthOf(local1Dump.children, 0);
-    assert.sameMembers(Object.keys(local1Dump.attributes),
-        ['A', 'B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(local1Dump.attributes), ['A', 'B']);
     checkAttribute(local1Dump.attributes['A'], tr.model.StringAttribute, '',
         'blue');
     checkAttribute(local1Dump.attributes['B'], tr.model.StringAttribute, '',
         'red');
-    assert.isUndefined(local1Dump.attributes['size']);
-    assert.isUndefined(local1Dump.attributes['effective_size']);
     checkLinkCounts(local1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 
@@ -4261,12 +4906,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local2Dump.fullName, 'local2');
     assert.isUndefined(local2Dump.parent);
     assert.lengthOf(local2Dump.children, 0);
-    assert.sameMembers(Object.keys(local2Dump.attributes),
-        ['B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(local2Dump.attributes), ['B']);
     checkAttribute(local2Dump.attributes['B'], tr.model.StringAttribute, '',
         'yellow');
-    assert.isUndefined(local2Dump.attributes['size']);
-    assert.isUndefined(local2Dump.attributes['effective_size']);
     checkLinkCounts(local2Dump, false /* owns */, 0 /* owned by */,
         1 /* retains */, 0 /* retained by */);
 
@@ -4278,7 +4920,8 @@ tr.b.unittest.testSuite(function() {
     var entries = heapDump.entries;
     assert.lengthOf(entries, 1);
     assert.strictEqual(entries[0].heapDump, heapDump);
-    assert.isUndefined(entries[0].leafStackFrame);
+    assert.strictEqual(entries[0].leafStackFrame.title, 'MessageLoop::RunTask');
+    assert.strictEqual(entries[0].objectTypeName, 'cc::SurfaceFactory');
     assert.strictEqual(entries[0].size, 1280);
 
     // Check the other dumps.
@@ -4289,12 +4932,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherLocal1Dump, pmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherLocal1Dump.fullName, 'local1');
     assert.isUndefined(otherLocal1Dump.parent);
-    assert.sameMembers(Object.keys(otherLocal1Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(otherLocal1Dump.attributes), ['A']);
     checkAttribute(otherLocal1Dump.attributes['A'], tr.model.ScalarAttribute,
         'bytes', 2989);
-    assert.isUndefined(otherLocal1Dump.attributes['size']);
-    assert.isUndefined(otherLocal1Dump.attributes['effective_size']);
     assert.isUndefined(pmd2.heapDumps);
     checkLinkCounts(otherLocal1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
@@ -4317,26 +4957,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(shared1Dump, gmd1.memoryAllocatorDumps[0]);
     assert.strictEqual(shared1Dump.fullName, 'shared1');
     assert.isUndefined(shared1Dump.parent);
-    assert.sameMembers(Object.keys(shared1Dump.attributes),
-        ['A', 'B', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(shared1Dump.attributes), ['A', 'B']);
     checkAttribute(shared1Dump.attributes['A'], tr.model.StringAttribute, '',
         'purple');
     checkAttribute(shared1Dump.attributes['B'], tr.model.StringAttribute, '',
         'green');
-    assert.isUndefined(shared1Dump.attributes['size']);
-    assert.isUndefined(shared1Dump.attributes['effective_size']);
     checkLinkCounts(shared1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
     var shared2Dump = gmd1.getMemoryAllocatorDumpByFullName('shared2');
     assert.strictEqual(shared2Dump, gmd1.memoryAllocatorDumps[1]);
     assert.strictEqual(shared2Dump.fullName, 'shared2');
     assert.isUndefined(shared2Dump.parent);
-    assert.sameMembers(Object.keys(shared2Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(shared2Dump.attributes), ['A']);
     checkAttribute(shared2Dump.attributes['A'], tr.model.StringAttribute, '',
         'cyan');
-    assert.isUndefined(shared2Dump.attributes['size']);
-    assert.isUndefined(shared2Dump.attributes['effective_size']);
     checkLinkCounts(shared2Dump, false /* owns */, 0 /* owned by */,
         0 /* retains */, 1 /* retained by */);
 
@@ -4345,12 +4979,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherShared1Dump, gmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherShared1Dump.fullName, 'shared1');
     assert.isUndefined(otherShared1Dump.parent);
-    assert.sameMembers(Object.keys(otherShared1Dump.attributes),
-        ['A', 'size', 'effective_size']);
+    assert.sameMembers(Object.keys(otherShared1Dump.attributes), ['A']);
     checkAttribute(otherShared1Dump.attributes['A'], tr.model.StringAttribute,
         '', 'brown');
-    assert.isUndefined(otherShared1Dump.attributes['size']);
-    assert.isUndefined(otherShared1Dump.attributes['effective_size']);
     checkLinkCounts(otherShared1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 
@@ -4549,6 +5180,322 @@ tr.b.unittest.testSuite(function() {
     var s1 = t.sliceGroup.slices[1];
     assert.equal(s1.title, 'mark2');
     assert.equal(s1.start, .01);
+  });
+
+  test('createNestableAsyncSlicesForUserTimingWithoutArgs', function() {
+    /**
+     * Structure of this async slices
+     *
+     * Group A:
+     *
+     * |__________|
+     *      a1
+     *
+     * Group B:
+     *
+     *                                |______________________________|
+     *                                               b1
+     *                                           |__________||_|
+     *                                                b2      b4
+     *                                            |_|
+     *                                             b3
+     **/
+    var events = [
+      {
+        name: 'A:a1',
+        args: {params: ''},
+        pid: 1,
+        ts: 100,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 3,
+        ph: 'b'
+      },
+      {
+        name: 'A:a1',
+        args: {params: ''},
+        pid: 1,
+        ts: 110,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 3,
+        ph: 'e'
+      },
+      {
+        name: 'B:b1',
+        args: {params: ''},
+        pid: 1,
+        ts: 120,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 4,
+        ph: 'b'
+      },
+      {
+        name: 'B:b2',
+        args: {params: ''},
+        pid: 1,
+        ts: 130,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'b'
+      },
+      {
+        name: 'B:b3',
+        args: {params: ''},
+        pid: 1,
+        ts: 131,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'b'
+      },
+      {
+        name: 'B:b3',
+        args: {params: ''},
+        pid: 1,
+        ts: 132,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'e'
+      },
+      {
+        name: 'B:b2',
+        args: {params: ''},
+        pid: 1,
+        ts: 140,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'e'
+      },
+      {
+        name: 'B:b4',
+        args: {params: ''},
+        pid: 1,
+        ts: 141,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'b'
+      },
+      {
+        name: 'B:b4',
+        args: {params: ''},
+        pid: 1,
+        ts: 142,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 5,
+        ph: 'e'
+      },
+      {
+        name: 'B:b1',
+        args: {params: ''},
+        pid: 1,
+        ts: 150,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 4,
+        ph: 'e'
+      }
+    ];
+
+    var m = makeModel(events);
+    assert(m.numProcesses, 1);
+    var p = m.processes[1];
+    assert.isDefined(p);
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[2];
+    var asyncSliceGroup = t.asyncSliceGroup;
+    assert.equal(asyncSliceGroup.length, 2);
+    for (var i = 0; i < asyncSliceGroup.length; ++i) {
+      assert.isTrue(asyncSliceGroup.slices[i] instanceof MeasureAsyncSlice);
+    }
+
+    var groupA = asyncSliceGroup.slices[0];
+    assert.equal(groupA.viewSubGroupTitle, 'A');
+    assert.equal(groupA.title, 'a1');
+    assert.equal(groupA.subSlices.length, 0);
+    var groupB = asyncSliceGroup.slices[1];
+    assert.equal(groupB.viewSubGroupTitle, 'B');
+    assert.equal(groupB.title, 'b1');
+    assert.equal(groupB.subSlices.length, 2);
+    var groupBSubSlice1 = groupB.subSlices[0];
+    assert.equal(groupBSubSlice1.viewSubGroupTitle, 'B');
+    assert.equal(groupBSubSlice1.title, 'b2');
+    assert.equal(groupBSubSlice1.subSlices.length, 1);
+    assert.equal(groupBSubSlice1.subSlices[0].viewSubGroupTitle, 'B');
+    assert.equal(groupBSubSlice1.subSlices[0].title, 'b3');
+    assert.equal(groupBSubSlice1.subSlices[0].subSlices.length, 0);
+    var groupBSubSlice2 = groupB.subSlices[1];
+    assert.equal(groupBSubSlice2.viewSubGroupTitle, 'B');
+    assert.equal(groupBSubSlice2.title, 'b4');
+    assert.equal(groupBSubSlice2.subSlices.length, 0);
+  });
+
+  test('createNestableAsyncSlicesForUserTimingWithArgs', function() {
+    /**
+     * Structure of this async slices
+     *
+     * Group A:
+     *
+     * |__________|          |__________|
+     *      a1                    a2
+     *
+     * a1.args = {a: 1}
+     * a2.args = {a: 2, b: 2}
+     **/
+    var events = [
+      {
+        name: 'A:a1/eyJhIjoxfQ==',
+        args: {params: ''},
+        pid: 1,
+        ts: 100,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 3,
+        ph: 'b'
+      },
+      {
+        name: 'A:a1/eyJhIjoxfQ==',
+        args: {params: ''},
+        pid: 1,
+        ts: 110,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 3,
+        ph: 'e'
+      },
+      {
+        name: 'A:a2/eyJhIjoyLCJiIjoyfQ==',
+        args: {params: ''},
+        pid: 1,
+        ts: 120,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 4,
+        ph: 'b'
+      },
+      {
+        name: 'A:a2/eyJhIjoyLCJiIjoyfQ==',
+        args: {params: ''},
+        pid: 1,
+        ts: 130,
+        cat: 'blink.user_timing',
+        tid: 2,
+        id: 4,
+        ph: 'e'
+      }
+    ];
+
+    var m = makeModel(events);
+    assert(m.numProcesses, 1);
+    var p = m.processes[1];
+    assert.isDefined(p);
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[2];
+    var asyncSliceGroup = t.asyncSliceGroup;
+    assert.equal(asyncSliceGroup.length, 2);
+    for (var i = 0; i < asyncSliceGroup.length; ++i) {
+      assert.isTrue(asyncSliceGroup.slices[i] instanceof MeasureAsyncSlice);
+    }
+
+    var a1 = asyncSliceGroup.slices[0];
+    assert.equal(a1.viewSubGroupTitle, 'A');
+    assert.equal(a1.title, 'a1');
+    assert.equal(a1.subSlices.length, 0);
+    assert.deepEqual(a1.args, {a: 1});
+    var a2 = asyncSliceGroup.slices[1];
+    assert.equal(a2.viewSubGroupTitle, 'A');
+    assert.equal(a2.title, 'a2');
+    assert.equal(a2.subSlices.length, 0);
+    assert.deepEqual(a2.args, {a: 2, b: 2});
+  });
+
+  test('UserTimingAsyncSlicesWithNormalAsyncSlices', function() {
+    /**
+     * Structure of user timing async slices
+     *
+     * Group A:
+     *
+     * |__________|
+     *      a1
+     *  |__|
+     *   a2
+     *
+     * B
+     *         |__|
+     *          B
+     * C
+     *             |_|
+     *              C
+     **/
+    var events = [
+      {
+        name: 'A:a1', args: {params: ''}, pid: 1, ts: 1,
+        cat: 'blink.user_timing', tid: 2, id: 3, ph: 'b'
+      },
+      {
+        name: 'A:a1', args: {params: ''}, pid: 1, ts: 11,
+        cat: 'blink.user_timing', tid: 2, id: 3, ph: 'e'
+      },
+      {
+        name: 'A:a2', args: {params: ''}, pid: 1, ts: 2,
+        cat: 'blink.user_timing', tid: 2, id: 4, ph: 'b'
+      },
+      {
+        name: 'A:a2', args: {params: ''}, pid: 1, ts: 4,
+        cat: 'blink.user_timing', tid: 2, id: 4, ph: 'e'
+      },
+      {
+        name: 'B', args: {}, pid: 1, ts: 9, cat: 'foo',
+        tid: 2, ph: 'b', id: 5
+      },
+      {
+        name: 'B', args: {}, pid: 1, ts: 11, cat: 'foo',
+        tid: 2, ph: 'e', id: 5
+      },
+      {
+        name: 'C', args: {}, pid: 1, ts: 12, cat: 'foo',
+        tid: 2, ph: 'b', id: 6
+      },
+      {
+        name: 'C', args: {}, pid: 1, ts: 13, cat: 'foo',
+        tid: 2, ph: 'e', id: 6
+      }
+    ];
+
+    var m = makeModel(events);
+    assert(m.numProcesses, 1);
+    var p = m.processes[1];
+    assert.isDefined(p);
+    assert.equal(p.numThreads, 1);
+    var t = p.threads[2];
+    var asyncSliceGroup = t.asyncSliceGroup;
+    assert.equal(asyncSliceGroup.length, 3);
+    assert.isTrue(asyncSliceGroup.slices[0] instanceof MeasureAsyncSlice);
+    assert.isFalse(asyncSliceGroup.slices[1] instanceof MeasureAsyncSlice);
+    assert.isFalse(asyncSliceGroup.slices[2] instanceof MeasureAsyncSlice);
+
+    var a1 = asyncSliceGroup.slices[0];
+    assert.equal(a1.viewSubGroupTitle, 'A');
+    assert.equal(a1.title, 'a1');
+    assert.equal(a1.subSlices.length, 1);
+    var a2 = a1.subSlices[0];
+    assert.equal(a2.viewSubGroupTitle, 'A');
+    assert.equal(a2.title, 'a2');
+    assert.equal(a2.subSlices.length, 0);
+    var B = asyncSliceGroup.slices[1];
+    assert.equal(B.viewSubGroupTitle, 'B');
+    assert.equal(B.title, 'B');
+    assert.equal(B.subSlices.length, 0);
+    var C = asyncSliceGroup.slices[2];
+    assert.equal(C.viewSubGroupTitle, 'C');
+    assert.equal(C.title, 'C');
+    assert.equal(C.subSlices.length, 0);
   });
 
   // TODO(nduca): one slice, two threads

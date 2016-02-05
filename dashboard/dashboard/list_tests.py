@@ -190,6 +190,7 @@ def _MergeSubTestsDictEntry(a, b):
     entry['deprecated'] = True
   return entry
 
+
 def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   """Given a pattern, get the Test entities or keys which match.
 

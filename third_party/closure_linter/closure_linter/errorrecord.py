@@ -16,7 +16,7 @@
 
 """A simple, pickle-serializable class to represent a lint error."""
 
-
+__author__ = 'nnaze@google.com (Nathan Naze)'
 
 import gflags as flags
 
@@ -58,8 +58,9 @@ def MakeErrorRecord(path, error):
   new_error = error.code in errors.NEW_ERRORS
 
   if FLAGS.unix_mode:
-    error_string = erroroutput.GetUnixErrorOutput(path, error, new_error)
+    error_string = erroroutput.GetUnixErrorOutput(
+        path, error, new_error=new_error)
   else:
-    error_string = erroroutput.GetErrorOutput(error, new_error)
+    error_string = erroroutput.GetErrorOutput(error, new_error=new_error)
 
   return ErrorRecord(path, error_string, new_error)

@@ -13,11 +13,11 @@ import datetime
 import json
 import logging
 import re
-import urllib
 
 from google.appengine.ext import ndb
 
 from dashboard import alerts
+from dashboard import datastore_hooks
 from dashboard import list_tests
 from dashboard import request_handler
 from dashboard import utils
@@ -27,6 +27,10 @@ from dashboard.models import graph_data
 # Default number of points to fetch per test.
 # This can be overridden by specifying num_points or start_rev and end_rev.
 _DEFAULT_NUM_POINTS = 150
+
+# If data for more than this many tests is requested for unselected tests,
+# an empty response will be returned.
+_MAX_UNSELECTED_TESTS = 50
 
 # Dictionary mapping improvement directions constants to strings.
 _BETTER_DICT = {
@@ -82,17 +86,71 @@ class GraphJsonHandler(request_handler.RequestHandler):
 
     arguments = {
         'test_path_dict': graphs['test_path_dict'],
-        'rev': PositiveIntOrNone(graphs.get('rev')),
-        'num_points': (PositiveIntOrNone(graphs.get('num_points'))
+        'rev': _PositiveIntOrNone(graphs.get('rev')),
+        'num_points': (_PositiveIntOrNone(graphs.get('num_points'))
                        or _DEFAULT_NUM_POINTS),
         'is_selected': graphs.get('is_selected'),
-        'start_rev': PositiveIntOrNone(graphs.get('start_rev')),
-        'end_rev': PositiveIntOrNone(graphs.get('end_rev')),
+        'start_rev': _PositiveIntOrNone(graphs.get('start_rev')),
+        'end_rev': _PositiveIntOrNone(graphs.get('end_rev')),
     }
     return arguments
 
 
-def PositiveIntOrNone(input_str):
+def GetGraphJson(
+    test_path_dict, rev=None, num_points=None,
+    is_selected=True, start_rev=None, end_rev=None):
+  """Makes a JSON serialization of data for one chart with multiple series.
+
+  This function can return data for one chart (with multiple data series
+  plotted on it) with revisions on the x-axis, for a certain range of
+  revisions. The particular set of revisions to get data for can be specified
+  with the arguments rev, num_points, start_rev, and end_rev.
+
+  Args:
+    test_path_dict: Dictionary of test path to list of selected series.
+    rev: A revision number that the chart may be clamped relative to.
+    num_points: Number of points to plot.
+    is_selected: Whether this request is for selected or un-selected series.
+    start_rev: The lowest revision to get trace data for.
+    end_rev: The highest revision to get trace data for.
+
+  Returns:
+    JSON serialization of a dict with info that will be used to plot a chart.
+  """
+  # TODO(qyearsley): Parallelize queries if possible.
+
+  if is_selected:
+    test_paths = _GetTestPathFromDict(test_path_dict)
+  else:
+    test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
+
+  # If a particular test has a lot of children, then a request will be made
+  # for data for a lot of unselected series, which may be very slow and may
+  # time out. In this case, return nothing.
+  # TODO(qyearsley): Stop doing this when there's a better solution (#1876).
+  if not is_selected and len(test_paths) > _MAX_UNSELECTED_TESTS:
+    return json.dumps({'data': {}, 'annotations': {}, 'error_bars': {}})
+
+  test_keys = map(utils.TestKey, test_paths)
+  test_entities = ndb.get_multi(test_keys)
+  test_entities = [t for t in test_entities if t is not None]
+
+  # Filter out deprecated tests, but only if not all the tests are deprecated.
+  all_deprecated = all(t.deprecated for t in test_entities)
+  if not all_deprecated:
+    test_entities = [t for t in test_entities if not t.deprecated]
+  test_entities = [t for t in test_entities if t.has_rows]
+
+  revision_map = {}
+  num_points = num_points or _DEFAULT_NUM_POINTS
+  for test in test_entities:
+    _UpdateRevisionMap(revision_map, test, rev, num_points, start_rev, end_rev)
+  if not (start_rev and end_rev):
+    _ClampRevisionMap(revision_map, rev, num_points)
+  return _GetFlotJson(revision_map, test_entities)
+
+
+def _PositiveIntOrNone(input_str):
   """Parses a string as a positive int if possible, otherwise returns None."""
   if not input_str:
     return None
@@ -134,25 +192,27 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
     end_rev: End revision number (optional).
   """
   anomaly_annotation_map = _GetAnomalyAnnotationMap(parent_test.key)
+  assert(datastore_hooks.IsUnalteredQueryPermitted() or
+         not parent_test.internal_only)
 
   if start_rev and end_rev:
-    rows = _GetRowsForTestInRange(parent_test.key, start_rev, end_rev)
+    rows = _GetRowsForTestInRange(parent_test.key, start_rev, end_rev, True)
   elif rev:
     assert num_points
-    rows = _GetRowsForTestAroundRev(parent_test.key, rev, num_points)
+    rows = _GetRowsForTestAroundRev(parent_test.key, rev, num_points, True)
   else:
     assert num_points
-    rows = _GetLatestRowsForTest(parent_test.key, num_points)
+    rows = _GetLatestRowsForTest(parent_test.key, num_points, True)
 
   parent_test_key = parent_test.key.urlsafe()
   for row in rows:
     if row.revision not in revision_map:
       revision_map[row.revision] = {}
     revision_map[row.revision][parent_test_key] = _PointInfoDict(
-        row, parent_test, anomaly_annotation_map)
+        row, anomaly_annotation_map)
 
 
-def _PointInfoDict(row, parent_test, anomaly_annotation_map):
+def _PointInfoDict(row, anomaly_annotation_map):
   """Makes a dict of properties of one Row."""
   point_info = {
       'value': row.value,
@@ -162,11 +222,6 @@ def _PointInfoDict(row, parent_test, anomaly_annotation_map):
   tracing_uri = _GetTracingUri(row)
   if tracing_uri:
     point_info['a_tracing_uri'] = tracing_uri
-
-  old_stdio_uri = _GetOldStdioUri(row, parent_test)
-  if old_stdio_uri:
-    point_info.update(
-        _CreateLinkProperty('stdio_uri', 'Buildbot stdio', old_stdio_uri))
 
   if row.error is not None:
     point_info['error'] = row.error
@@ -197,61 +252,10 @@ def _CreateLinkProperty(name, label, url):
   return {'a_' + name: '[%s](%s)' % (label, url)}
 
 
-def _GetOldStdioUri(row, test):
-  """Gets or makes the URI string for the buildbot stdio link.
-
-  This is here to support the deprecated method way of creating
-  Buildbot stdio URI.
-
-  TODO(chrisphan): Remove this after sometime.
-
-  Args:
-    row: A Row entity.
-    test: The Test entity for the given Row.
-
-  Returns:
-    An URI string, or None if none can be made.
-  """
-  # A masterid and buildname are required to construct a valid URI.
-  if (not hasattr(test, 'masterid') or not hasattr(test, 'buildername')
-      or not hasattr(row, 'buildnumber')):
-    return None
-
-  buildbot_uri_prefix = _GetBuildbotUriPrefix(test, row=row)
-  if not buildbot_uri_prefix:
-    return None
-  return '%s/%s/builders/%s/builds/%s/steps/%s/logs/stdio' % (
-      buildbot_uri_prefix,
-      urllib.quote(test.masterid),
-      urllib.quote(test.buildername),
-      urllib.quote(str(getattr(row, 'buildnumber'))),
-      urllib.quote(test.suite_name))
-
-
-def _GetBuildbotUriPrefix(test, row=None):
-  """Gets the start of the buildbot stdio or builder status URI.
-
-  Gets the uri prefix from 'a_stdio_uri_prefix' property if exist or
-  the public uri prefix if test is not internal.
-
-  Args:
-    test: A Test entity.
-    row: A Row entity, optional.
-
-  Returns:
-    The protocol, hostname and start of the pathname for Buildbot builder
-    status or stdio links.
-  """
-  if row and hasattr(row, 'a_stdio_uri_prefix'):
-    return row.a_stdio_uri_prefix
-
-  if test.internal_only:
-    return None
-  return 'http://build.chromium.org/p'
-
-
-def _GetRowsForTestInRange(test_key, start_rev, end_rev):
+def _GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
   """Gets all the Row entities for a Test between a given start and end."""
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision >= start_rev,
@@ -259,17 +263,21 @@ def _GetRowsForTestInRange(test_key, start_rev, end_rev):
   return query.fetch(batch_size=100)
 
 
-def _GetRowsForTestAroundRev(test_key, rev, num_points):
+def _GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
   """Gets up to num_points Row entities for a Test centered on a revision."""
   num_rows_before = int(num_points / 2) + 1
   num_rows_after = int(num_points / 2)
 
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query_up_to_rev = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision <= rev)
   query_up_to_rev = query_up_to_rev.order(-graph_data.Row.revision)
   rows_up_to_rev = query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)
 
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query_after_rev = graph_data.Row.query(
       graph_data.Row.parent_test == test_key,
       graph_data.Row.revision > rev)
@@ -279,8 +287,10 @@ def _GetRowsForTestAroundRev(test_key, rev, num_points):
   return rows_up_to_rev + rows_after_rev
 
 
-def _GetLatestRowsForTest(test_key, num_points):
+def _GetLatestRowsForTest(test_key, num_points, privileged=False):
   """Gets the latest num_points Row entities for a Test."""
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
   query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
   query = query.order(-graph_data.Row.revision)
   return query.fetch(limit=num_points, batch_size=100)
@@ -346,7 +356,7 @@ def _GetTracingUri(point):
   """Gets the URI string for tracing in cloud storage, if available.
 
   Args:
-    point: A Row entitiy.
+    point: A Row entity.
 
   Returns:
     An URI string, or None if there is no trace available.
@@ -360,7 +370,7 @@ def _GetTracingRerunOptions(point):
   """Gets the trace rerun options, if available.
 
   Args:
-    point: A Row entitiy.
+    point: A Row entity.
 
   Returns:
     A dict of {description: params} strings, or None.
@@ -379,14 +389,14 @@ def _GetFlotJson(revision_map, tests):
 
   Returns:
     JSON serialization of a dict with line data, annotations, error range data,
-    (This data may not be passed exactly as-is to the Flot plot funciton, but
+    (This data may not be passed exactly as-is to the Flot plot function, but
     it will all be used when plotting.)
   """
   # TODO(qyearsley): Break this function into smaller functions.
 
   # Each entry in the following dict is one Flot series object. The actual
   # x-y values will be put into the 'data' properties for each object.
-  cols = {i: _FlotSeries(i) for i in  range(len(tests))}
+  cols = {i: _FlotSeries(i) for i in range(len(tests))}
 
   flot_annotations = {}
   flot_annotations['series'] = _GetSeriesAnnotations(tests)
@@ -600,51 +610,3 @@ def _GetSubTestTraces(test_parts, sub_test_tree):
     if value['has_rows']:
       traces.append(key)
   return traces
-
-
-def GetGraphJson(
-    test_path_dict, rev=None, num_points=None,
-    is_selected=True, start_rev=None, end_rev=None):
-  """Makes a JSON serialization of data for one chart with multiple series.
-
-  This function can return data for one chart (with multiple data series
-  plotted on it) with revisions on the x-axis, for a certain range of
-  revisions. The particular set of revisions to get data for can be specified
-  with the arguments rev, num_points, start_rev, and end_rev.
-
-  Args:
-    test_path_dict: Dictionary of test path to list of selected series.
-    rev: A revision number that the chart may be clamped relative to.
-    num_points: Number of points to plot.
-    is_selected: Whether this request is for selected or un-selected series.
-    start_rev: The lowest revision to get trace data for.
-    end_rev: The highest revision to get trace data for.
-
-  Returns:
-    JSON serialization of a dict with info that will be used to plot a chart.
-  """
-  # TODO(qyearsley): Parallelize queries if possible.
-
-  # Get a list of Test entities.
-  if is_selected:
-    test_paths = _GetTestPathFromDict(test_path_dict)
-  else:
-    test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
-
-  test_keys = map(utils.TestKey, test_paths)
-  test_entities = ndb.get_multi(test_keys)
-  test_entities = [t for t in test_entities if t is not None]
-
-  # Filter out deprecated tests, but only if not all the tests are deprecated.
-  all_deprecated = all(t.deprecated for t in test_entities)
-  if not all_deprecated:
-    test_entities = [t for t in test_entities if not t.deprecated]
-
-  test_entities = [t for t in test_entities if t.has_rows]
-  revision_map = {}
-  num_points = num_points or _DEFAULT_NUM_POINTS
-  for test in test_entities:
-    _UpdateRevisionMap(revision_map, test, rev, num_points, start_rev, end_rev)
-  if not (start_rev and end_rev):
-    _ClampRevisionMap(revision_map, rev, num_points)
-  return _GetFlotJson(revision_map, test_entities)

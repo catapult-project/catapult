@@ -16,7 +16,9 @@
 
 from __future__ import absolute_import
 
+from gslib.cloud_api import BucketNotFoundException
 from gslib.cloud_api import NotEmptyException
+from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import ServiceException
 from gslib.command import Command
 from gslib.command import GetFailureCount
@@ -139,14 +141,21 @@ def _RemoveExceptionHandler(cls, e):
   """Simple exception handler to allow post-completion status."""
   if not cls.continue_on_error:
     cls.logger.error(str(e))
-  cls.everything_removed_okay = False
+  # TODO: Use shared state to track missing bucket names when we get a
+  # BucketNotFoundException. Then improve bucket removal logic and exception
+  # messages.
+  if isinstance(e, BucketNotFoundException):
+    cls.bucket_not_found_count += 1
+    cls.logger.error(str(e))
+  else:
+    cls.op_failure_count += 1
 
 
 # pylint: disable=unused-argument
 def _RemoveFoldersExceptionHandler(cls, e):
   """When removing folders, we don't mind if none exist."""
   if (isinstance(e, CommandException.__class__) and
-      'No URLs matched' in e.message):
+      'No URLs matched' in e.message) or isinstance(e, NotFoundException):
     pass
   else:
     raise e
@@ -190,7 +199,7 @@ class RmCommand(Command):
     """Command entry point for the rm command."""
     # self.recursion_requested is initialized in command.py (so it can be
     # checked in parent class for all commands).
-    self.continue_on_error = False
+    self.continue_on_error = self.parallel_operations
     self.read_args_from_stdin = False
     self.all_versions = False
     if self.sub_opts:
@@ -215,6 +224,12 @@ class RmCommand(Command):
                                'least one URL.')
       url_strs = self.args
 
+    # Tracks if any deletes failed.
+    self.op_failure_count = 0
+
+    # Tracks if any buckets were missing.
+    self.bucket_not_found_count = 0
+
     bucket_urls_to_delete = []
     bucket_strings_to_delete = []
     if self.recursion_requested:
@@ -229,9 +244,6 @@ class RmCommand(Command):
 
     self.preconditions = PreconditionsFromHeaders(self.headers or {})
 
-    # Used to track if any files failed to be removed.
-    self.everything_removed_okay = True
-
     try:
       # Expand wildcards, dirs, buckets, and bucket subdirs in URLs.
       name_expansion_iterator = NameExpansionIterator(
@@ -245,7 +257,8 @@ class RmCommand(Command):
       # perform requests with sequential function calls in current process.
       self.Apply(_RemoveFuncWrapper, name_expansion_iterator,
                  _RemoveExceptionHandler,
-                 fail_on_error=(not self.continue_on_error))
+                 fail_on_error=(not self.continue_on_error),
+                 shared_attrs=['op_failure_count', 'bucket_not_found_count'])
 
     # Assuming the bucket has versioning enabled, url's that don't map to
     # objects should throw an error even with all_versions, since the prior
@@ -265,11 +278,16 @@ class RmCommand(Command):
         parts = str(e).split(msg)
         if len(parts) == 2 and parts[1] in bucket_strings_to_delete:
           ResetFailureCount()
+        else:
+          raise
     except ServiceException, e:
       if not self.continue_on_error:
         raise
 
-    if not self.everything_removed_okay and not self.continue_on_error:
+    if self.bucket_not_found_count:
+      raise CommandException('Encountered non-existent bucket during listing')
+
+    if self.op_failure_count and not self.continue_on_error:
       raise CommandException('Some files could not be removed.')
 
     # If this was a gsutil rm -r command covering any bucket subdirs,
@@ -311,6 +329,11 @@ class RmCommand(Command):
         self.gsutil_api.DeleteBucket(url.bucket_name, provider=url.scheme)
 
       BucketDeleteWithRetry()
+
+    if self.op_failure_count:
+      plural_str = 's' if self.op_failure_count else ''
+      raise CommandException('%d file%s/object%s could not be removed.' % (
+          self.op_failure_count, plural_str, plural_str))
 
     return 0
 

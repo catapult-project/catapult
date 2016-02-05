@@ -38,14 +38,16 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(dump.processMemoryDump, pmd);
     assert.lengthOf(dump.entries, 0);
 
-    var entry1 = dump.addEntry(childFrame, 1024);
+    var entry1 = dump.addEntry(childFrame, 'HTMLImportLoader', 1024);
     assert.strictEqual(entry1.heapDump, dump);
     assert.strictEqual(entry1.leafStackFrame, childFrame);
+    assert.strictEqual(entry1.objectTypeName, 'HTMLImportLoader');
     assert.equal(entry1.size, 1024);
 
-    var entry2 = dump.addEntry(undefined, 1048576);
+    var entry2 = dump.addEntry(undefined, undefined, 1048576);
     assert.strictEqual(entry2.heapDump, dump);
     assert.isUndefined(entry2.leafStackFrame);
+    assert.isUndefined(entry2.objectTypeName);
     assert.equal(entry2.size, 1048576);
 
     assert.deepEqual(dump.entries, [entry1, entry2]);

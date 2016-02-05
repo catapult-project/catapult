@@ -41,7 +41,8 @@ class TestHash(testcase.GsUtilUnitTestCase):
       self.RunCommand('hash', args=['non-existent-file'])
       self.fail('Did not get expected CommandException')
     except CommandException, e:
-      self.assertRaisesRegexp(e, r'No files matched')
+      # assertRaisesRegexp causes issues with python 2.6.
+      self.assertIn('No files matched', e.reason)
 
   def testHashCloudObject(self):
     try:

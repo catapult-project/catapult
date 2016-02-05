@@ -79,6 +79,87 @@ CHECK_HASH_IF_FAST_ELSE_SKIP = 'if_fast_else_skip'
 CHECK_HASH_ALWAYS = 'always'
 CHECK_HASH_NEVER = 'never'
 
+# Table storing polynomial values of x^(2^k) mod CASTAGNOLI_POLY for all k < 31,
+# where x^(2^k) and CASTAGNOLI_POLY are both considered polynomials. This is
+# sufficient since x^(2^31) mod CASTAGNOLI_POLY = x.
+X_POW_2K_TABLE = [2, 4, 16, 256, 65536, 517762881, 984302966,
+                  408362264, 1503875210, 2862076957, 3884826397, 1324787473,
+                  621200174, 1758783527, 1416537776, 1180494764, 648569364,
+                  2521473789, 994858823, 1728245375, 3498467999, 4059169852,
+                  3345064394, 2828422810, 2429203150, 3336788029, 860151998,
+                  2102628683, 1033187991, 4243778976, 1123580069]
+# Castagnoli polynomial and its degree.
+CASTAGNOLI_POLY = 4812730177
+DEGREE = 32
+
+
+def ConcatCrc32c(crc_a, crc_b, num_bytes_in_b):
+  """Computes CRC32C for concat(A, B) given crc(A), crc(B) and len(B).
+
+  An explanation of the algorithm can be found at
+  crcutil.googlecode.com/files/crc-doc.1.0.pdf.
+
+  Args:
+    crc_a: A 32-bit integer representing crc(A) with least-significant
+           coefficient first.
+    crc_b: Same as crc_a.
+    num_bytes_in_b: Length of B in bytes.
+
+  Returns:
+    CRC32C for concat(A, B)
+  """
+  if not num_bytes_in_b:
+    return crc_a
+
+  return _ExtendByZeros(crc_a, 8 * num_bytes_in_b) ^ crc_b
+
+
+def _CrcMultiply(p, q):
+  """Multiplies two polynomials together modulo CASTAGNOLI_POLY.
+
+  Args:
+    p: The first polynomial.
+    q: The second polynomial.
+
+  Returns:
+    Result of the multiplication.
+  """
+
+  result = 0
+  top_bit = 1 << DEGREE
+  for _ in range(DEGREE):
+    if p & 1:
+      result ^= q
+    q <<= 1
+    if q & top_bit:
+      q ^= CASTAGNOLI_POLY
+    p >>= 1
+  return result
+
+
+def _ExtendByZeros(crc, num_bits):
+  """Given crc representing polynomial P(x), compute P(x)*x^num_bits.
+
+  Args:
+    crc: crc respresenting polynomial P(x).
+    num_bits: number of bits in crc.
+
+  Returns:
+    P(x)*x^num_bits
+  """
+  def _ReverseBits32(crc):
+    return int('{0:032b}'.format(crc, width=32)[::-1], 2)
+  crc = _ReverseBits32(crc)
+  i = 0
+
+  while num_bits != 0:
+    if num_bits & 1:
+      crc = _CrcMultiply(crc, X_POW_2K_TABLE[i % len(X_POW_2K_TABLE)])
+    i += 1
+    num_bits >>= 1
+  crc = _ReverseBits32(crc)
+  return crc
+
 
 def _CalculateHashFromContents(fp, hash_alg):
   """Calculates a base64 digest of the contents of a seekable stream.
@@ -212,13 +293,13 @@ def GetUploadHashAlgs():
   return {'md5': md5}
 
 
-def GetDownloadHashAlgs(logger, src_has_md5=False, src_has_crc32c=False):
+def GetDownloadHashAlgs(logger, consider_md5=False, consider_crc32c=False):
   """Returns a dict of hash algorithms for validating an object.
 
   Args:
     logger: logging.Logger for outputting log messages.
-    src_has_md5: If True, source object has an md5 hash.
-    src_has_crc32c: If True, source object has a crc32c hash.
+    consider_md5: If True, consider using a md5 hash.
+    consider_crc32c: If True, consider using a crc32c hash.
 
   Returns:
     Dict of (string, hash algorithm).
@@ -233,9 +314,9 @@ def GetDownloadHashAlgs(logger, src_has_md5=False, src_has_crc32c=False):
     return {}
 
   hash_algs = {}
-  if src_has_md5:
+  if consider_md5:
     hash_algs['md5'] = md5
-  elif src_has_crc32c:
+  elif consider_crc32c:
     # If the cloud provider supplies a CRC, we'll compute a checksum to
     # validate if we're using a native crcmod installation and MD5 isn't
     # offered as an alternative.

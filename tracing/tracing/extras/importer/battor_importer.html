@@ -53,6 +53,10 @@ tr.exportTo('tr.e.importer.battor', function() {
   BattorImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'BattorImporter';
+    },
+
     get model() {
       return this.model_;
     },

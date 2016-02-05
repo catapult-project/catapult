@@ -5,7 +5,9 @@ import unittest
 
 from perf_insights.mre import threaded_work_queue
 
+
 class ThreadedWorkQueueTests(unittest.TestCase):
+
   def testSingleThreaded(self):
     wq = threaded_work_queue.ThreadedWorkQueue(num_threads=1)
     self._RunSimpleDecrementingTest(wq)
@@ -17,6 +19,7 @@ class ThreadedWorkQueueTests(unittest.TestCase):
   def _RunSimpleDecrementingTest(self, wq):
 
     remaining = [10]
+
     def Decrement():
       remaining[0] -= 1
       if remaining[0]:

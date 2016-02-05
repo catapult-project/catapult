@@ -105,7 +105,7 @@ class StorageUrl(object):
     raise NotImplementedError('versionless_url_string not overridden')
 
   def __eq__(self, other):
-    return self.url_string == other.url_string
+    return isinstance(other, StorageUrl) and self.url_string == other.url_string
 
   def __hash__(self):
     return hash(self.url_string)

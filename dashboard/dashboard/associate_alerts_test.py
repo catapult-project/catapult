@@ -127,7 +127,7 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   def testGet_WithBugId_AlertIsAssociatedWithBugId(self):
     # When the bug ID is given and the alerts overlap, then the Anomaly
-    # entities are updated and there is a resopnse indicating success.
+    # entities are updated and there is a response indicating success.
     key_map = self._AddAnomalies()
     response = self.testapp.get(
         '/associate_alerts?keys=%s,%s&bug_id=12345' % (

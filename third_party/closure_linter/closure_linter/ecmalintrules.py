@@ -23,24 +23,28 @@ __author__ = ('robbyw@google.com (Robert Walker)',
 
 import re
 
+import gflags as flags
+
 from closure_linter import checkerbase
 from closure_linter import ecmametadatapass
 from closure_linter import error_check
+from closure_linter import errorrules
 from closure_linter import errors
 from closure_linter import indentation
-from closure_linter import javascripttokens
 from closure_linter import javascripttokenizer
+from closure_linter import javascripttokens
 from closure_linter import statetracker
 from closure_linter import tokenutil
 from closure_linter.common import error
-from closure_linter.common import htmlutil
-from closure_linter.common import lintrunner
 from closure_linter.common import position
-from closure_linter.common import tokens
-import gflags as flags
+
 
 FLAGS = flags.FLAGS
 flags.DEFINE_list('custom_jsdoc_tags', '', 'Extra jsdoc tags to allow')
+# TODO(user): When flipping this to True, remove logic from unit tests
+# that overrides this flag.
+flags.DEFINE_boolean('dot_on_next_line', False, 'Require dots to be'
+                     'placed on the next line for wrapped expressions')
 
 # TODO(robbyw): Check for extra parens on return statements
 # TODO(robbyw): Check for 0px in strings
@@ -55,6 +59,7 @@ Position = position.Position
 Rule = error_check.Rule
 Type = javascripttokens.JavaScriptTokenType
 
+
 class EcmaScriptLintRules(checkerbase.LintRulesBase):
   """EmcaScript lint style checking rules.
 
@@ -67,14 +72,15 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
   language.
   """
 
-  # Static constants.
-  MAX_LINE_LENGTH = 80
+  # It will be initialized in constructor so the flags are initialized.
+  max_line_length = -1
 
+  # Static constants.
   MISSING_PARAMETER_SPACE = re.compile(r',\S')
 
-  EXTRA_SPACE = re.compile('(\(\s|\s\))')
+  EXTRA_SPACE = re.compile(r'(\(\s|\s\))')
 
-  ENDS_WITH_SPACE = re.compile('\s$')
+  ENDS_WITH_SPACE = re.compile(r'\s$')
 
   ILLEGAL_TAB = re.compile(r'\t')
 
@@ -85,12 +91,18 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
   AUTHOR_SPEC = re.compile(r'(\s*)[^\s]+@[^(\s]+(\s*)\(.+\)')
 
   # Acceptable tokens to remove for line too long testing.
-  LONG_LINE_IGNORE = frozenset(['*', '//', '@see'] +
+  LONG_LINE_IGNORE = frozenset(
+      ['*', '//', '@see'] +
       ['@%s' % tag for tag in statetracker.DocFlag.HAS_TYPE])
+
+  JSDOC_FLAGS_DESCRIPTION_NOT_REQUIRED = frozenset([
+      '@fileoverview', '@param', '@return', '@returns'])
 
   def __init__(self):
     """Initialize this lint rule object."""
     checkerbase.LintRulesBase.__init__(self)
+    if EcmaScriptLintRules.max_line_length == -1:
+      EcmaScriptLintRules.max_line_length = errorrules.GetMaxLineLength()
 
   def Initialize(self, checker, limited_doc_checks, is_html):
     """Initialize this lint rule object before parsing a new file."""
@@ -107,6 +119,7 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
 
     Args:
       last_token: The last token in the line.
+      state: parser_state object that indicates the current state in the page
     """
     # Start from the last token so that we have the flag object attached to
     # and DOC_FLAG tokens.
@@ -119,8 +132,8 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     while token and token.line_number == line_number:
       if state.IsTypeToken(token):
         line.insert(0, 'x' * len(token.string))
-      elif token.type in (Type.IDENTIFIER, Type.NORMAL):
-        # Dots are acceptable places to wrap.
+      elif token.type in (Type.IDENTIFIER, Type.OPERATOR):
+        # Dots are acceptable places to wrap (may be tokenized as identifiers).
         line.insert(0, token.string.replace('.', ' '))
       else:
         line.insert(0, token.string)
@@ -130,7 +143,7 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     line = line.rstrip('\n\r\f')
     try:
       length = len(unicode(line, 'utf-8'))
-    except:
+    except (LookupError, UnicodeDecodeError):
       # Unknown encoding. The line length may be wrong, as was originally the
       # case for utf-8 (see bug 1735846). For now just accept the default
       # length, but as we find problems we can either add test for other
@@ -138,7 +151,7 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
       # false positives at the cost of more false negatives.
       length = len(line)
 
-    if length > self.MAX_LINE_LENGTH:
+    if length > EcmaScriptLintRules.max_line_length:
 
       # If the line matches one of the exceptions, then it's ok.
       for long_line_regexp in self.GetLongLineExceptions():
@@ -150,44 +163,42 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
       parts = set(line.split())
 
       # We allow two "words" (type and name) when the line contains @param
-      max = 1
+      max_parts = 1
       if '@param' in parts:
-        max = 2
+        max_parts = 2
 
       # Custom tags like @requires may have url like descriptions, so ignore
       # the tag, similar to how we handle @see.
       custom_tags = set(['@%s' % f for f in FLAGS.custom_jsdoc_tags])
-      if (len(parts.difference(self.LONG_LINE_IGNORE | custom_tags)) > max):
-        self._HandleError(errors.LINE_TOO_LONG,
+      if (len(parts.difference(self.LONG_LINE_IGNORE | custom_tags))
+          > max_parts):
+        self._HandleError(
+            errors.LINE_TOO_LONG,
             'Line too long (%d characters).' % len(line), last_token)
 
-  def _CheckJsDocType(self, token):
+  def _CheckJsDocType(self, token, js_type):
     """Checks the given type for style errors.
 
     Args:
       token: The DOC_FLAG token for the flag whose type to check.
+      js_type: The flag's typeannotation.TypeAnnotation instance.
     """
-    flag = token.attached_object
-    type = flag.type
-    if type and type is not None and not type.isspace():
-      pieces = self.TYPE_SPLIT.split(type)
-      if len(pieces) == 1 and type.count('|') == 1 and (
-           type.endswith('|null') or type.startswith('null|')):
-         self._HandleError(errors.JSDOC_PREFER_QUESTION_TO_PIPE_NULL,
-             'Prefer "?Type" to "Type|null": "%s"' % type, token)
+    if not js_type: return
 
-      for p in pieces:
-        if p.count('|') and p.count('?'):
-          # TODO(robbyw): We should do actual parsing of JsDoc types.  As is,
-          # this won't report an error for {number|Array.<string>?}, etc.
-          self._HandleError(errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
-              'JsDoc types cannot contain both "?" and "|": "%s"' % p, token)
+    if js_type.type_group and len(js_type.sub_types) == 2:
+      identifiers = [t.identifier for t in js_type.sub_types]
+      if 'null' in identifiers:
+        # Don't warn if the identifier is a template type (e.g. {TYPE|null}.
+        if not identifiers[0].isupper() and not identifiers[1].isupper():
+          self._HandleError(
+              errors.JSDOC_PREFER_QUESTION_TO_PIPE_NULL,
+              'Prefer "?Type" to "Type|null": "%s"' % js_type, token)
 
-      if error_check.ShouldCheck(Rule.BRACES_AROUND_TYPE) and (
-          flag.type_start_token.type != Type.DOC_START_BRACE or
-          flag.type_end_token.type != Type.DOC_END_BRACE):
-        self._HandleError(errors.MISSING_BRACES_AROUND_TYPE,
-            'Type must always be surrounded by curly braces.', token)
+    # TODO(user): We should report an error for wrong usage of '?' and '|'
+    # e.g. {?number|string|null} etc.
+
+    for sub_type in js_type.IterTypes():
+      self._CheckJsDocType(token, sub_type)
 
   def _CheckForMissingSpaceBeforeToken(self, token):
     """Checks for a missing space at the beginning of a token.
@@ -207,7 +218,60 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
           errors.MISSING_SPACE,
           'Missing space before "%s"' % token.string,
           token,
-          Position.AtBeginning())
+          position=Position.AtBeginning())
+
+  def _CheckOperator(self, token):
+    """Checks an operator for spacing and line style.
+
+    Args:
+      token: The operator token.
+    """
+    last_code = token.metadata.last_code
+
+    if not self._ExpectSpaceBeforeOperator(token):
+      if (token.previous and token.previous.type == Type.WHITESPACE and
+          last_code and last_code.type in (Type.NORMAL, Type.IDENTIFIER) and
+          last_code.line_number == token.line_number):
+        self._HandleError(
+            errors.EXTRA_SPACE, 'Extra space before "%s"' % token.string,
+            token.previous, position=Position.All(token.previous.string))
+
+    elif (token.previous and
+          not token.previous.IsComment() and
+          not tokenutil.IsDot(token) and
+          token.previous.type in Type.EXPRESSION_ENDER_TYPES):
+      self._HandleError(errors.MISSING_SPACE,
+                        'Missing space before "%s"' % token.string, token,
+                        position=Position.AtBeginning())
+
+    # Check wrapping of operators.
+    next_code = tokenutil.GetNextCodeToken(token)
+
+    is_dot = tokenutil.IsDot(token)
+    wrapped_before = last_code and last_code.line_number != token.line_number
+    wrapped_after = next_code and next_code.line_number != token.line_number
+
+    if FLAGS.dot_on_next_line and is_dot and wrapped_after:
+      self._HandleError(
+          errors.LINE_ENDS_WITH_DOT,
+          '"." must go on the following line',
+          token)
+    if (not is_dot and wrapped_before and
+        not token.metadata.IsUnaryOperator()):
+      self._HandleError(
+          errors.LINE_STARTS_WITH_OPERATOR,
+          'Binary operator must go on previous line "%s"' % token.string,
+          token)
+
+  def _IsLabel(self, token):
+    # A ':' token is considered part of a label if it occurs in a case
+    # statement, a plain label, or an object literal, i.e. is not part of a
+    # ternary.
+
+    return (token.string == ':' and
+            token.metadata.context.type in (Context.LITERAL_ELEMENT,
+                                            Context.CASE_BLOCK,
+                                            Context.STATEMENT))
 
   def _ExpectSpaceBeforeOperator(self, token):
     """Returns whether a space should appear before the given operator token.
@@ -221,13 +285,13 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     if token.string == ',' or token.metadata.IsUnaryPostOperator():
       return False
 
+    if tokenutil.IsDot(token):
+      return False
+
     # Colons should appear in labels, object literals, the case of a switch
     # statement, and ternary operator. Only want a space in the case of the
     # ternary operator.
-    if (token.string == ':' and
-        token.metadata.context.type in (Context.LITERAL_ELEMENT,
-                                        Context.CASE_BLOCK,
-                                        Context.STATEMENT)):
+    if self._IsLabel(token):
       return False
 
     if token.metadata.IsUnaryOperator() and token.IsFirstInLine():
@@ -247,7 +311,7 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     last_in_line = token.IsLastInLine()
     last_non_space_token = state.GetLastNonSpaceToken()
 
-    type = token.type
+    token_type = token.type
 
     # Process the line change.
     if not self._is_html and error_check.ShouldCheck(Rule.INDENTATION):
@@ -259,11 +323,12 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     if last_in_line:
       self._CheckLineLength(token, state)
 
-    if type == Type.PARAMETERS:
+    if token_type == Type.PARAMETERS:
       # Find missing spaces in parameter lists.
       if self.MISSING_PARAMETER_SPACE.search(token.string):
+        fix_data = ', '.join([s.strip() for s in token.string.split(',')])
         self._HandleError(errors.MISSING_SPACE, 'Missing space after ","',
-            token)
+                          token, position=None, fix_data=fix_data.strip())
 
       # Find extra spaces at the beginning of parameter lists.  Make sure
       # we aren't at the beginning of a continuing multi-line list.
@@ -271,54 +336,57 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
         space_count = len(token.string) - len(token.string.lstrip())
         if space_count:
           self._HandleError(errors.EXTRA_SPACE, 'Extra space after "("',
-              token, Position(0, space_count))
+                            token, position=Position(0, space_count))
 
-    elif (type == Type.START_BLOCK and
+    elif (token_type == Type.START_BLOCK and
           token.metadata.context.type == Context.BLOCK):
       self._CheckForMissingSpaceBeforeToken(token)
 
-    elif type == Type.END_BLOCK:
-      # This check is for object literal end block tokens, but there is no need
-      # to test that condition since a comma at the end of any other kind of
-      # block is undoubtedly a parse error.
+    elif token_type == Type.END_BLOCK:
       last_code = token.metadata.last_code
-      if last_code.IsOperator(','):
-        self._HandleError(errors.COMMA_AT_END_OF_LITERAL,
-            'Illegal comma at end of object literal', last_code,
-            Position.All(last_code.string))
-
       if state.InFunction() and state.IsFunctionClose():
-        is_immediately_called = (token.next and
-                                 token.next.type == Type.START_PAREN)
         if state.InTopLevelFunction():
-          # When the function was top-level and not immediately called, check
-          # that it's terminated by a semi-colon.
-          if state.InAssignedFunction():
-            if not is_immediately_called and (last_in_line or
-                not token.next.type == Type.SEMICOLON):
-              self._HandleError(errors.MISSING_SEMICOLON_AFTER_FUNCTION,
-                  'Missing semicolon after function assigned to a variable',
-                  token, Position.AtEnd(token.string))
-          else:
+          # A semicolons should not be included at the end of a function
+          # declaration.
+          if not state.InAssignedFunction():
             if not last_in_line and token.next.type == Type.SEMICOLON:
-              self._HandleError(errors.ILLEGAL_SEMICOLON_AFTER_FUNCTION,
+              self._HandleError(
+                  errors.ILLEGAL_SEMICOLON_AFTER_FUNCTION,
                   'Illegal semicolon after function declaration',
-                  token.next, Position.All(token.next.string))
+                  token.next, position=Position.All(token.next.string))
 
-        if (state.InInterfaceMethod() and last_code.type != Type.START_BLOCK):
+        # A semicolon should be included at the end of a function expression
+        # that is not immediately called or used by a dot operator.
+        if (state.InAssignedFunction() and token.next
+            and token.next.type != Type.SEMICOLON):
+          next_token = tokenutil.GetNextCodeToken(token)
+          is_immediately_used = next_token and (
+              next_token.type == Type.START_PAREN or
+              tokenutil.IsDot(next_token))
+          if not is_immediately_used:
+            self._HandleError(
+                errors.MISSING_SEMICOLON_AFTER_FUNCTION,
+                'Missing semicolon after function assigned to a variable',
+                token, position=Position.AtEnd(token.string))
+
+        if state.InInterfaceMethod() and last_code.type != Type.START_BLOCK:
           self._HandleError(errors.INTERFACE_METHOD_CANNOT_HAVE_CODE,
-              'Interface methods cannot contain code', last_code)
+                            'Interface methods cannot contain code', last_code)
 
       elif (state.IsBlockClose() and
             token.next and token.next.type == Type.SEMICOLON):
-        self._HandleError(errors.REDUNDANT_SEMICOLON,
-            'No semicolon is required to end a code block',
-            token.next, Position.All(token.next.string))
+        if (last_code.metadata.context.parent.type != Context.OBJECT_LITERAL
+            and last_code.metadata.context.type != Context.OBJECT_LITERAL):
+          self._HandleError(
+              errors.REDUNDANT_SEMICOLON,
+              'No semicolon is required to end a code block',
+              token.next, position=Position.All(token.next.string))
 
-    elif type == Type.SEMICOLON:
+    elif token_type == Type.SEMICOLON:
       if token.previous and token.previous.type == Type.WHITESPACE:
-        self._HandleError(errors.EXTRA_SPACE, 'Extra space before ";"',
-            token.previous, Position.All(token.previous.string))
+        self._HandleError(
+            errors.EXTRA_SPACE, 'Extra space before ";"',
+            token.previous, position=Position.All(token.previous.string))
 
       if token.next and token.next.line_number == token.line_number:
         if token.metadata.context.type != Context.FOR_GROUP_BLOCK:
@@ -327,10 +395,11 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
 
         elif token.next.type not in (
             Type.WHITESPACE, Type.SEMICOLON, Type.END_PAREN):
-          self._HandleError(errors.MISSING_SPACE,
+          self._HandleError(
+              errors.MISSING_SPACE,
               'Missing space after ";" in for statement',
               token.next,
-              Position.AtBeginning())
+              position=Position.AtBeginning())
 
       last_code = token.metadata.last_code
       if last_code and last_code.type == Type.SEMICOLON:
@@ -339,7 +408,8 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
         # NOTE(user): This is not a perfect check, and will not throw an error
         # for cases like: for (var i = 0;; i < n; i++) {}, but then your code
         # probably won't work either.
-        for_token = tokenutil.CustomSearch(last_code,
+        for_token = tokenutil.CustomSearch(
+            last_code,
             lambda token: token.type == Type.KEYWORD and token.string == 'for',
             end_func=lambda token: token.type == Type.SEMICOLON,
             distance=None,
@@ -347,93 +417,83 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
 
         if not for_token:
           self._HandleError(errors.REDUNDANT_SEMICOLON, 'Redundant semicolon',
-              token, Position.All(token.string))
+                            token, position=Position.All(token.string))
 
-    elif type == Type.START_PAREN:
-      if token.previous and token.previous.type == Type.KEYWORD:
+    elif token_type == Type.START_PAREN:
+      # Ensure that opening parentheses have a space before any keyword
+      # that is not being invoked like a member function.
+      if (token.previous and token.previous.type == Type.KEYWORD and
+          (not token.previous.metadata or
+           not token.previous.metadata.last_code or
+           not token.previous.metadata.last_code.string or
+           token.previous.metadata.last_code.string[-1:] != '.')):
         self._HandleError(errors.MISSING_SPACE, 'Missing space before "("',
-            token, Position.AtBeginning())
+                          token, position=Position.AtBeginning())
       elif token.previous and token.previous.type == Type.WHITESPACE:
         before_space = token.previous.previous
+        # Ensure that there is no extra space before a function invocation,
+        # even if the function being invoked happens to be a keyword.
         if (before_space and before_space.line_number == token.line_number and
-            before_space.type == Type.IDENTIFIER):
-          self._HandleError(errors.EXTRA_SPACE, 'Extra space before "("',
-              token.previous, Position.All(token.previous.string))
+            before_space.type == Type.IDENTIFIER or
+            (before_space.type == Type.KEYWORD and before_space.metadata and
+             before_space.metadata.last_code and
+             before_space.metadata.last_code.string and
+             before_space.metadata.last_code.string[-1:] == '.')):
+          self._HandleError(
+              errors.EXTRA_SPACE, 'Extra space before "("',
+              token.previous, position=Position.All(token.previous.string))
 
-    elif type == Type.START_BRACKET:
+    elif token_type == Type.START_BRACKET:
       self._HandleStartBracket(token, last_non_space_token)
-    elif type in (Type.END_PAREN, Type.END_BRACKET):
+    elif token_type in (Type.END_PAREN, Type.END_BRACKET):
       # Ensure there is no space before closing parentheses, except when
       # it's in a for statement with an omitted section, or when it's at the
       # beginning of a line.
       if (token.previous and token.previous.type == Type.WHITESPACE and
           not token.previous.IsFirstInLine() and
           not (last_non_space_token and last_non_space_token.line_number ==
-                   token.line_number and
+               token.line_number and
                last_non_space_token.type == Type.SEMICOLON)):
-        self._HandleError(errors.EXTRA_SPACE, 'Extra space before "%s"' %
-            token.string, token.previous, Position.All(token.previous.string))
+        self._HandleError(
+            errors.EXTRA_SPACE, 'Extra space before "%s"' %
+            token.string, token.previous,
+            position=Position.All(token.previous.string))
 
-      if token.type == Type.END_BRACKET:
-        last_code = token.metadata.last_code
-        if last_code.IsOperator(','):
-          self._HandleError(errors.COMMA_AT_END_OF_LITERAL,
-              'Illegal comma at end of array literal', last_code,
-              Position.All(last_code.string))
-
-    elif type == Type.WHITESPACE:
+    elif token_type == Type.WHITESPACE:
       if self.ILLEGAL_TAB.search(token.string):
         if token.IsFirstInLine():
           if token.next:
-            self._HandleError(errors.ILLEGAL_TAB,
+            self._HandleError(
+                errors.ILLEGAL_TAB,
                 'Illegal tab in whitespace before "%s"' % token.next.string,
-                token, Position.All(token.string))
+                token, position=Position.All(token.string))
           else:
-            self._HandleError(errors.ILLEGAL_TAB,
+            self._HandleError(
+                errors.ILLEGAL_TAB,
                 'Illegal tab in whitespace',
-                token, Position.All(token.string))
+                token, position=Position.All(token.string))
         else:
-          self._HandleError(errors.ILLEGAL_TAB,
+          self._HandleError(
+              errors.ILLEGAL_TAB,
               'Illegal tab in whitespace after "%s"' % token.previous.string,
-              token, Position.All(token.string))
+              token, position=Position.All(token.string))
 
       # Check whitespace length if it's not the first token of the line and
       # if it's not immediately before a comment.
       if last_in_line:
         # Check for extra whitespace at the end of a line.
         self._HandleError(errors.EXTRA_SPACE, 'Extra space at end of line',
-            token, Position.All(token.string))
+                          token, position=Position.All(token.string))
       elif not first_in_line and not token.next.IsComment():
         if token.length > 1:
-          self._HandleError(errors.EXTRA_SPACE, 'Extra space after "%s"' %
+          self._HandleError(
+              errors.EXTRA_SPACE, 'Extra space after "%s"' %
               token.previous.string, token,
-              Position(1, len(token.string) - 1))
+              position=Position(1, len(token.string) - 1))
 
-    elif type == Type.OPERATOR:
-      last_code = token.metadata.last_code
-
-      if not self._ExpectSpaceBeforeOperator(token):
-        if (token.previous and token.previous.type == Type.WHITESPACE and
-            last_code and last_code.type in (Type.NORMAL, Type.IDENTIFIER)):
-          self._HandleError(errors.EXTRA_SPACE,
-              'Extra space before "%s"' % token.string, token.previous,
-              Position.All(token.previous.string))
-
-      elif (token.previous and
-            not token.previous.IsComment() and
-            token.previous.type in Type.EXPRESSION_ENDER_TYPES):
-        self._HandleError(errors.MISSING_SPACE,
-                          'Missing space before "%s"' % token.string, token,
-                          Position.AtBeginning())
-
-      # Check that binary operators are not used to start lines.
-      if ((not last_code or last_code.line_number != token.line_number) and
-          not token.metadata.IsUnaryOperator()):
-        self._HandleError(errors.LINE_STARTS_WITH_OPERATOR,
-            'Binary operator should go on previous line "%s"' % token.string,
-            token)
-
-    elif type == Type.DOC_FLAG:
+    elif token_type == Type.OPERATOR:
+      self._CheckOperator(token)
+    elif token_type == Type.DOC_FLAG:
       flag = token.attached_object
 
       if flag.flag_type == 'bug':
@@ -443,21 +503,22 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
 
         if not string.isdigit():
           self._HandleError(errors.NO_BUG_NUMBER_AFTER_BUG_TAG,
-              '@bug should be followed by a bug number', token)
+                            '@bug should be followed by a bug number', token)
 
       elif flag.flag_type == 'suppress':
         if flag.type is None:
           # A syntactically invalid suppress tag will get tokenized as a normal
           # flag, indicating an error.
-          self._HandleError(errors.INCORRECT_SUPPRESS_SYNTAX,
+          self._HandleError(
+              errors.INCORRECT_SUPPRESS_SYNTAX,
               'Invalid suppress syntax: should be @suppress {errortype}. '
               'Spaces matter.', token)
         else:
-          for suppress_type in flag.type.split('|'):
+          for suppress_type in flag.jstype.IterIdentifiers():
             if suppress_type not in state.GetDocFlag().SUPPRESS_TYPES:
-              self._HandleError(errors.INVALID_SUPPRESS_TYPE,
-                'Invalid suppression type: %s' % suppress_type,
-                token)
+              self._HandleError(
+                  errors.INVALID_SUPPRESS_TYPE,
+                  'Invalid suppression type: %s' % suppress_type, token)
 
       elif (error_check.ShouldCheck(Rule.WELL_FORMED_AUTHOR) and
             flag.flag_type == 'author'):
@@ -478,12 +539,12 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
           if num_spaces < 1:
             self._HandleError(errors.MISSING_SPACE,
                               'Missing space after email address',
-                              token.next, Position(result.start(2), 0))
+                              token.next, position=Position(result.start(2), 0))
           elif num_spaces > 1:
-            self._HandleError(errors.EXTRA_SPACE,
-                              'Extra space after email address',
-                              token.next,
-                              Position(result.start(2) + 1, num_spaces - 1))
+            self._HandleError(
+                errors.EXTRA_SPACE, 'Extra space after email address',
+                token.next,
+                position=Position(result.start(2) + 1, num_spaces - 1))
 
           # Check for extra spaces before email address. Can't be too few, if
           # not at least one we wouldn't match @author tag.
@@ -491,81 +552,61 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
           if num_spaces > 1:
             self._HandleError(errors.EXTRA_SPACE,
                               'Extra space before email address',
-                              token.next, Position(1, num_spaces - 1))
+                              token.next, position=Position(1, num_spaces - 1))
 
       elif (flag.flag_type in state.GetDocFlag().HAS_DESCRIPTION and
             not self._limited_doc_checks):
         if flag.flag_type == 'param':
           if flag.name is None:
             self._HandleError(errors.MISSING_JSDOC_PARAM_NAME,
-                'Missing name in @param tag', token)
+                              'Missing name in @param tag', token)
 
         if not flag.description or flag.description is None:
           flag_name = token.type
           if 'name' in token.values:
             flag_name = '@' + token.values['name']
-          self._HandleError(errors.MISSING_JSDOC_TAG_DESCRIPTION,
-              'Missing description in %s tag' % flag_name, token)
+
+          if flag_name not in self.JSDOC_FLAGS_DESCRIPTION_NOT_REQUIRED:
+            self._HandleError(
+                errors.MISSING_JSDOC_TAG_DESCRIPTION,
+                'Missing description in %s tag' % flag_name, token)
         else:
           self._CheckForMissingSpaceBeforeToken(flag.description_start_token)
 
-          # We want punctuation to be inside of any tags ending a description,
-          # so strip tags before checking description. See bug 1127192. Note
-          # that depending on how lines break, the real description end token
-          # may consist only of stripped html and the effective end token can
-          # be different.
-          end_token = flag.description_end_token
-          end_string = htmlutil.StripTags(end_token.string).strip()
-          while (end_string == '' and not
-                 end_token.type in Type.FLAG_ENDING_TYPES):
-            end_token = end_token.previous
-            if end_token.type in Type.FLAG_DESCRIPTION_TYPES:
-              end_string = htmlutil.StripTags(end_token.string).rstrip()
-
-          if not (end_string.endswith('.') or end_string.endswith('?') or
-              end_string.endswith('!')):
-            # Find the position for the missing punctuation, inside of any html
-            # tags.
-            desc_str = end_token.string.rstrip()
-            while desc_str.endswith('>'):
-              start_tag_index = desc_str.rfind('<')
-              if start_tag_index < 0:
-                break
-              desc_str = desc_str[:start_tag_index].rstrip()
-            end_position = Position(len(desc_str), 0)
-
-            self._HandleError(
-                errors.JSDOC_TAG_DESCRIPTION_ENDS_WITH_INVALID_CHARACTER,
-                ('%s descriptions must end with valid punctuation such as a '
-                 'period.' % token.string),
-                end_token, end_position)
-
-      if flag.flag_type in state.GetDocFlag().HAS_TYPE:
+      if flag.HasType():
         if flag.type_start_token is not None:
           self._CheckForMissingSpaceBeforeToken(
               token.attached_object.type_start_token)
 
-        if flag.type and flag.type != '' and not flag.type.isspace():
-          self._CheckJsDocType(token)
+        if flag.jstype and not flag.jstype.IsEmpty():
+          self._CheckJsDocType(token, flag.jstype)
 
-    if type in (Type.DOC_FLAG, Type.DOC_INLINE_FLAG):
-        if (token.values['name'] not in state.GetDocFlag().LEGAL_DOC and
-            token.values['name'] not in FLAGS.custom_jsdoc_tags):
-          self._HandleError(errors.INVALID_JSDOC_TAG,
-              'Invalid JsDoc tag: %s' % token.values['name'], token)
+          if error_check.ShouldCheck(Rule.BRACES_AROUND_TYPE) and (
+              flag.type_start_token.type != Type.DOC_START_BRACE or
+              flag.type_end_token.type != Type.DOC_END_BRACE):
+            self._HandleError(
+                errors.MISSING_BRACES_AROUND_TYPE,
+                'Type must always be surrounded by curly braces.', token)
 
-        if (error_check.ShouldCheck(Rule.NO_BRACES_AROUND_INHERIT_DOC) and
-            token.values['name'] == 'inheritDoc' and
-            type == Type.DOC_INLINE_FLAG):
-          self._HandleError(errors.UNNECESSARY_BRACES_AROUND_INHERIT_DOC,
-              'Unnecessary braces around @inheritDoc',
-              token)
+    if token_type in (Type.DOC_FLAG, Type.DOC_INLINE_FLAG):
+      if (token.values['name'] not in state.GetDocFlag().LEGAL_DOC and
+          token.values['name'] not in FLAGS.custom_jsdoc_tags):
+        self._HandleError(
+            errors.INVALID_JSDOC_TAG,
+            'Invalid JsDoc tag: %s' % token.values['name'], token)
 
-    elif type == Type.SIMPLE_LVALUE:
+      if (error_check.ShouldCheck(Rule.NO_BRACES_AROUND_INHERIT_DOC) and
+          token.values['name'] == 'inheritDoc' and
+          token_type == Type.DOC_INLINE_FLAG):
+        self._HandleError(errors.UNNECESSARY_BRACES_AROUND_INHERIT_DOC,
+                          'Unnecessary braces around @inheritDoc',
+                          token)
+
+    elif token_type == Type.SIMPLE_LVALUE:
       identifier = token.values['identifier']
 
       if ((not state.InFunction() or state.InConstructor()) and
-          not state.InParentheses() and not state.InObjectLiteralDescendant()):
+          state.InTopLevel() and not state.InObjectLiteralDescendant()):
         jsdoc = state.GetDocComment()
         if not state.HasDocComment(identifier):
           # Only test for documentation on identifiers with .s in them to
@@ -577,9 +618,10 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
               self._limited_doc_checks):
             comment = state.GetLastComment()
             if not (comment and comment.lower().count('jsdoc inherited')):
-              self._HandleError(errors.MISSING_MEMBER_DOCUMENTATION,
+              self._HandleError(
+                  errors.MISSING_MEMBER_DOCUMENTATION,
                   "No docs found for member '%s'" % identifier,
-                  token);
+                  token)
         elif jsdoc and (not state.InConstructor() or
                         identifier.startswith('this.')):
           # We are at the top level and the function/member is documented.
@@ -589,43 +631,49 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
             #
             # @inheritDoc is deprecated in favor of using @override, and they
             if (jsdoc.HasFlag('override') and not jsdoc.HasFlag('constructor')
-                and not ('accessControls' in jsdoc.suppressions)):
-              self._HandleError(errors.INVALID_OVERRIDE_PRIVATE,
+                and ('accessControls' not in jsdoc.suppressions)):
+              self._HandleError(
+                  errors.INVALID_OVERRIDE_PRIVATE,
                   '%s should not override a private member.' % identifier,
                   jsdoc.GetFlag('override').flag_token)
             if (jsdoc.HasFlag('inheritDoc') and not jsdoc.HasFlag('constructor')
-                and not ('accessControls' in jsdoc.suppressions)):
-              self._HandleError(errors.INVALID_INHERIT_DOC_PRIVATE,
+                and ('accessControls' not in jsdoc.suppressions)):
+              self._HandleError(
+                  errors.INVALID_INHERIT_DOC_PRIVATE,
                   '%s should not inherit from a private member.' % identifier,
                   jsdoc.GetFlag('inheritDoc').flag_token)
             if (not jsdoc.HasFlag('private') and
-                not ('underscore' in jsdoc.suppressions) and not
+                ('underscore' not in jsdoc.suppressions) and not
                 ((jsdoc.HasFlag('inheritDoc') or jsdoc.HasFlag('override')) and
                  ('accessControls' in jsdoc.suppressions))):
-              self._HandleError(errors.MISSING_PRIVATE,
+              self._HandleError(
+                  errors.MISSING_PRIVATE,
                   'Member "%s" must have @private JsDoc.' %
                   identifier, token)
             if jsdoc.HasFlag('private') and 'underscore' in jsdoc.suppressions:
-              self._HandleError(errors.UNNECESSARY_SUPPRESS,
+              self._HandleError(
+                  errors.UNNECESSARY_SUPPRESS,
                   '@suppress {underscore} is not necessary with @private',
                   jsdoc.suppressions['underscore'])
           elif (jsdoc.HasFlag('private') and
                 not self.InExplicitlyTypedLanguage()):
             # It is convention to hide public fields in some ECMA
             # implementations from documentation using the @private tag.
-            self._HandleError(errors.EXTRA_PRIVATE,
+            self._HandleError(
+                errors.EXTRA_PRIVATE,
                 'Member "%s" must not have @private JsDoc' %
                 identifier, token)
 
           # These flags are only legal on localizable message definitions;
           # such variables always begin with the prefix MSG_.
-          for f in ('desc', 'hidden', 'meaning'):
-            if (jsdoc.HasFlag(f)
-              and not identifier.startswith('MSG_')
-              and identifier.find('.MSG_') == -1):
-              self._HandleError(errors.INVALID_USE_OF_DESC_TAG,
-                  'Member "%s" should not have @%s JsDoc' % (identifier, f),
-                  token)
+          if not identifier.startswith('MSG_') and '.MSG_' not in identifier:
+            for f in ('desc', 'hidden', 'meaning'):
+              if jsdoc.HasFlag(f):
+                self._HandleError(
+                    errors.INVALID_USE_OF_DESC_TAG,
+                    'Member "%s" does not start with MSG_ and thus '
+                    'should not have @%s JsDoc' % (identifier, f),
+                    token)
 
       # Check for illegaly assigning live objects as prototype property values.
       index = identifier.find('.prototype.')
@@ -636,28 +684,30 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
         if next_code and (
             next_code.type in (Type.START_BRACKET, Type.START_BLOCK) or
             next_code.IsOperator('new')):
-          self._HandleError(errors.ILLEGAL_PROTOTYPE_MEMBER_VALUE,
+          self._HandleError(
+              errors.ILLEGAL_PROTOTYPE_MEMBER_VALUE,
               'Member %s cannot have a non-primitive value' % identifier,
               token)
 
-    elif type == Type.END_PARAMETERS:
+    elif token_type == Type.END_PARAMETERS:
       # Find extra space at the end of parameter lists.  We check the token
       # prior to the current one when it is a closing paren.
       if (token.previous and token.previous.type == Type.PARAMETERS
           and self.ENDS_WITH_SPACE.search(token.previous.string)):
         self._HandleError(errors.EXTRA_SPACE, 'Extra space before ")"',
-            token.previous)
+                          token.previous)
 
       jsdoc = state.GetDocComment()
       if state.GetFunction().is_interface:
         if token.previous and token.previous.type == Type.PARAMETERS:
-          self._HandleError(errors.INTERFACE_CONSTRUCTOR_CANNOT_HAVE_PARAMS,
+          self._HandleError(
+              errors.INTERFACE_CONSTRUCTOR_CANNOT_HAVE_PARAMS,
               'Interface constructor cannot have parameters',
               token.previous)
       elif (state.InTopLevel() and jsdoc and not jsdoc.HasFlag('see')
-          and not jsdoc.InheritsDocumentation()
-          and not state.InObjectLiteralDescendant() and not
-          jsdoc.IsInvalidated()):
+            and not jsdoc.InheritsDocumentation()
+            and not state.InObjectLiteralDescendant() and not
+            jsdoc.IsInvalidated()):
         distance, edit = jsdoc.CompareParameters(state.GetParams())
         if distance:
           params_iter = iter(state.GetParams())
@@ -678,12 +728,13 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
             elif op == 'D':
               # Deletion
               self._HandleError(errors.EXTRA_PARAMETER_DOCUMENTATION,
-                  'Found docs for non-existing parameter: "%s"' %
-                  docs_iter.next(), token)
+                                'Found docs for non-existing parameter: "%s"' %
+                                docs_iter.next(), token)
             elif op == 'S':
               # Substitution
               if not self._limited_doc_checks:
-                self._HandleError(errors.WRONG_PARAMETER_DOCUMENTATION,
+                self._HandleError(
+                    errors.WRONG_PARAMETER_DOCUMENTATION,
                     'Parameter mismatch: got "%s", expected "%s"' %
                     (params_iter.next(), docs_iter.next()), token)
 
@@ -692,32 +743,33 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
               params_iter.next()
               docs_iter.next()
 
-    elif type == Type.STRING_TEXT:
+    elif token_type == Type.STRING_TEXT:
       # If this is the first token after the start of the string, but it's at
       # the end of a line, we know we have a multi-line string.
-      if token.previous.type in (Type.SINGLE_QUOTE_STRING_START,
+      if token.previous.type in (
+          Type.SINGLE_QUOTE_STRING_START,
           Type.DOUBLE_QUOTE_STRING_START) and last_in_line:
         self._HandleError(errors.MULTI_LINE_STRING,
-            'Multi-line strings are not allowed', token)
-
+                          'Multi-line strings are not allowed', token)
 
     # This check is orthogonal to the ones above, and repeats some types, so
     # it is a plain if and not an elif.
     if token.type in Type.COMMENT_TYPES:
       if self.ILLEGAL_TAB.search(token.string):
         self._HandleError(errors.ILLEGAL_TAB,
-            'Illegal tab in comment "%s"' % token.string, token)
+                          'Illegal tab in comment "%s"' % token.string, token)
 
       trimmed = token.string.rstrip()
       if last_in_line and token.string != trimmed:
         # Check for extra whitespace at the end of a line.
-        self._HandleError(errors.EXTRA_SPACE, 'Extra space at end of line',
-            token, Position(len(trimmed), len(token.string) - len(trimmed)))
+        self._HandleError(
+            errors.EXTRA_SPACE, 'Extra space at end of line', token,
+            position=Position(len(trimmed), len(token.string) - len(trimmed)))
 
     # This check is also orthogonal since it is based on metadata.
     if token.metadata.is_implied_semicolon:
       self._HandleError(errors.MISSING_SEMICOLON,
-          'Missing semicolon at end of line', token)
+                        'Missing semicolon at end of line', token)
 
   def _HandleStartBracket(self, token, last_non_space_token):
     """Handles a token that is an open bracket.
@@ -729,8 +781,9 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     if (not token.IsFirstInLine() and token.previous.type == Type.WHITESPACE and
         last_non_space_token and
         last_non_space_token.type in Type.EXPRESSION_ENDER_TYPES):
-      self._HandleError(errors.EXTRA_SPACE, 'Extra space before "["',
-                        token.previous, Position.All(token.previous.string))
+      self._HandleError(
+          errors.EXTRA_SPACE, 'Extra space before "["',
+          token.previous, position=Position.All(token.previous.string))
     # If the [ token is the first token in a line we shouldn't complain
     # about a missing space before [.  This is because some Ecma script
     # languages allow syntax like:
@@ -746,27 +799,29 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
     # should trigger a proper indentation warning message as [ is not indented
     # by four spaces.
     elif (not token.IsFirstInLine() and token.previous and
-          not token.previous.type in (
+          token.previous.type not in (
               [Type.WHITESPACE, Type.START_PAREN, Type.START_BRACKET] +
               Type.EXPRESSION_ENDER_TYPES)):
       self._HandleError(errors.MISSING_SPACE, 'Missing space before "["',
-                        token, Position.AtBeginning())
+                        token, position=Position.AtBeginning())
 
-  def Finalize(self, state, tokenizer_mode):
+  def Finalize(self, state):
+    """Perform all checks that need to occur after all lines are processed.
+
+    Args:
+      state: State of the parser after parsing all tokens
+
+    Raises:
+      TypeError: If not overridden.
+    """
     last_non_space_token = state.GetLastNonSpaceToken()
     # Check last line for ending with newline.
-    if False and state.GetLastLine() and not (state.GetLastLine().isspace() or
+    if state.GetLastLine() and not (
+        state.GetLastLine().isspace() or
         state.GetLastLine().rstrip('\n\r\f') != state.GetLastLine()):
       self._HandleError(
           errors.FILE_MISSING_NEWLINE,
           'File does not end with new line.  (%s)' % state.GetLastLine(),
-          last_non_space_token)
-
-    # Check that the mode is not mid comment, argument list, etc.
-    if not tokenizer_mode == Modes.TEXT_MODE:
-      self._HandleError(
-          errors.FILE_IN_BLOCK,
-          'File ended in mode "%s".' % tokenizer_mode,
           last_non_space_token)
 
     try:
@@ -778,7 +833,11 @@ class EcmaScriptLintRules(checkerbase.LintRulesBase):
           last_non_space_token)
 
   def GetLongLineExceptions(self):
-    """Gets a list of regexps for lines which can be longer than the limit."""
+    """Gets a list of regexps for lines which can be longer than the limit.
+
+    Returns:
+      A list of regexps, used as matches (rather than searches).
+    """
     return []
 
   def InExplicitlyTypedLanguage(self):

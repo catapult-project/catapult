@@ -18,19 +18,21 @@ tr.exportTo('tr.model', function() {
    *
    * An entry specifies how much space (e.g. 19 MiB) was allocated in a
    * particular context, which consists of a codepath (e.g. drawQuad <- draw <-
-   * MessageLoop::RunTask).
+   * MessageLoop::RunTask) and an object type (e.g. HTMLImportLoader).
    *
    * @{constructor}
    */
-  function HeapEntry(heapDump, leafStackFrame, size) {
+  function HeapEntry(heapDump, leafStackFrame, objectTypeName, size) {
     this.heapDump = heapDump;
 
     // The leaf stack frame of the associated backtrace (e.g. drawQuad for the
     // drawQuad <- draw <- MessageLoop::RunTask backtrace). If undefined, the
-    // heap entry is a sum over all backtraces. On the other hand, an empty
-    // backtrace is represented by the root stack frame, which has an undefined
-    // name.
+    // backtrace is empty.
     this.leafStackFrame = leafStackFrame;
+
+    // The name of the allocated object type (e.g. 'HTMLImportLoader'). If
+    // undefined, the entry represents the sum over all object types.
+    this.objectTypeName = objectTypeName;
 
     this.size = size;
   }
@@ -48,8 +50,8 @@ tr.exportTo('tr.model', function() {
   }
 
   HeapDump.prototype = {
-    addEntry: function(leafStackFrame, size) {
-      var entry = new HeapEntry(this, leafStackFrame, size);
+    addEntry: function(leafStackFrame, objectTypeName, size) {
+      var entry = new HeapEntry(this, leafStackFrame, objectTypeName, size);
       this.entries.push(entry);
       return entry;
     }

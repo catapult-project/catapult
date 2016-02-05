@@ -26,10 +26,10 @@ the various rules for determining how these expansions are done.
 
 from __future__ import absolute_import
 
-import multiprocessing
 import os
 import sys
 
+import gslib
 from gslib.exception import CommandException
 from gslib.plurality_checkable_iterator import PluralityCheckableIterator
 import gslib.wildcard_iterator
@@ -70,7 +70,7 @@ class NameExpansionResult(object):
     self.expanded_storage_url = expanded_storage_url
 
   def __repr__(self):
-    return '%s' % self._expanded_storage_url
+    return '%s' % self.expanded_storage_url
 
 
 class _NameExpansionIterator(object):
@@ -355,7 +355,7 @@ class NameExpansionIteratorQueue(object):
   def __init__(self, name_expansion_iterator, final_value):
     self.name_expansion_iterator = name_expansion_iterator
     self.final_value = final_value
-    self.lock = multiprocessing.Manager().Lock()
+    self.lock = gslib.util.manager.Lock()
 
   def qsize(self):
     raise NotImplementedError(

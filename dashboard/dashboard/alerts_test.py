@@ -197,8 +197,23 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testGet_WithNoAlerts_HasImageAndNoAlertsTable(self):
+    sheriff.Sheriff(id='Chromium Perf Sheriff').put()
     response = self.testapp.get('/alerts')
     self.assertEqual(1, len(response.html('img')))
+    self.assertEqual(0, len(response.html('alerts-table')))
+
+  def testGet_WithBogusSheriff_HasErrorMessage(self):
+    response = self.testapp.get('/alerts?sheriff=Foo')
+    self.assertIn('class="error"', response.body)
+    self.assertEqual(0, len(response.html('img')))
+    self.assertEqual(0, len(response.html('alerts-table')))
+
+  def testGet_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
+    sheriff.Sheriff(id='Foo', internal_only=True).put()
+    self.assertFalse(utils.IsInternalUser())
+    response = self.testapp.get('/alerts?sheriff=Foo')
+    self.assertIn('class="error"', response.body)
+    self.assertEqual(0, len(response.html('img')))
     self.assertEqual(0, len(response.html('alerts-table')))
 
 

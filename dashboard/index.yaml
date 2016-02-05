@@ -1,43 +1,38 @@
 # Datastore Composite Index Configuration.
 # https://developers.google.com/appengine/docs/python/config/indexconfig
-# Note: To clear old indexes from production after deleting them here, you
-# can run appcfg.py vacuum_indexes.
-
-# Note about composite indexes with the "internal_only" property below:
-# All queries are filtered by internal_only == False when the user is not
-# logged in. Therefore, the composite indexes below are grouped into pairs;
-# the index that's used when the user is not logged in (which includes the
-# internal_only property), and the one used when the user is logged in.
-
-# General note about App Engine Datastore composite indexes:
-# Indexes must be made differently depending on how the properties are used.
-# There are three main ways to use properties in a query:
+#
+# Below, most indexes come in pairs; one with the internal_only property,
+# one without. This is because all queries when the user is not logged in
+# have the filter internal_only == False.
+#
+# Composite index properties must be listed differently depending on how the
+# properties are used. There are three main ways to use properties in a query:
 #   (1) In an equality filter.
 #   (2) In an inequality filter.
 #   (3) In a sort order.
 # The properties below must be listed in this order. The "direction" only needs
 # to be specified for properties used for sort order.
+#
+# To update the indexes in production after editing them here, you must run
+# appcfg.py vacuum_indexes or appcfg.py update_indexes.
 
 indexes:
 
-# Used in main.py when fetching top improvements/regressions in past days.
+# Used in main.py when fetching top improvements/regressions in past N days.
+- kind: Anomaly
+  properties:
+  - name: sheriff
+  - name: timestamp
 - kind: Anomaly
   properties:
   - name: internal_only
   - name: sheriff
   - name: timestamp
-    direction: asc
-- kind: Anomaly
-  properties:
-  - name: sheriff
-  - name: timestamp
-    direction: asc
 
 # Used in alerts.py for fetching recent un-triaged regressions for one sheriff.
 - kind: Anomaly
   properties:
   - name: bug_id
-  - name: internal_only
   - name: is_improvement
   - name: recovered
   - name: sheriff
@@ -45,6 +40,7 @@ indexes:
     direction: desc
 - kind: Anomaly
   properties:
+  - name: internal_only
   - name: bug_id
   - name: is_improvement
   - name: recovered
@@ -57,13 +53,13 @@ indexes:
 - kind: Anomaly
   properties:
   - name: bug_id
-  - name: internal_only
   - name: recovered
   - name: sheriff
   - name: timestamp
     direction: desc
 - kind: Anomaly
   properties:
+  - name: internal_only
   - name: bug_id
   - name: recovered
   - name: sheriff
@@ -74,13 +70,13 @@ indexes:
 # of triaged vs un-triaged status, i.e. when the triaged button is on.
 - kind: Anomaly
   properties:
-  - name: internal_only
   - name: is_improvement
   - name: sheriff
   - name: timestamp
     direction: desc
 - kind: Anomaly
   properties:
+  - name: internal_only
   - name: is_improvement
   - name: sheriff
   - name: timestamp
@@ -90,41 +86,41 @@ indexes:
 # improvements and triaged, i.e. both improvements and triaged buttons are on.
 - kind: Anomaly
   properties:
-  - name: internal_only
   - name: sheriff
   - name: timestamp
     direction: desc
 - kind: Anomaly
   properties:
+  - name: internal_only
   - name: sheriff
   - name: timestamp
     direction: desc
 
 # Used in group_report.py when querying for anomalies around a revision.
+# No composite index is required without internal_only because then the
+# query uses only one (indexed) property, end_revision.
 - kind: Anomaly
   properties:
   - name: internal_only
   - name: end_revision
-    direction: asc
 
-# This *might* be unused. It would be used for querying for non-internal-only
-# points for a particular test, filtering or sorting (in ascending order) by
-# revision.
+# Might be unused!
+# This index would enable querying for points for a particular test,
+# filtering or sorting by revision, and possibly doing a projection
+# query including value.
 - kind: Row
   properties:
-  - name: internal_only
   - name: parent_test
   - name: revision
+  - name: value
 
-# Used in graph_revisions.py to do a projection query for timestamp, revision
-# and value for points from a particular test, with filtering for only non-
-# internal-only points.
+# Used in find_anomalies.GetRowsToAnalyze when getting latest points,
+# with projection query for properties revision and value.
 - kind: Row
   properties:
-  - name: internal_only
   - name: parent_test
   - name: revision
-  - name: timestamp
+    direction: desc
   - name: value
 
 # Used in graph_revisions.py to do a projection query for timestamp, revision
@@ -136,95 +132,75 @@ indexes:
   - name: timestamp
   - name: value
 
-# This *might* be unused. It would be used for doing a projection query for
-# value or revision and value, filtering or sorting (in ascending order) by
-# revision, with filtering for only non-internal-only.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-  - name: value
-
-# Used in find_anomalies.GetRowsToAnalyze when getting latest points,
-# with projection query for revision and value, with filtering by internal_only
-# for non-logged-in users.
-# This *might* be unused if this type of query is only done in find_anomalies
-# and all requests to find_anomalies are authorized to fetch internal_only.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-    direction: desc
-  - name: value
-
-# This *might* be unused. It would be used for doing a projection query for
-# value or revision and value, filtering or sorting (in ascending order) by
-# revision.
-- kind: Row
-  properties:
-  - name: parent_test
-  - name: revision
-  - name: value
-
-# Used in several modules (graph_json.py, graph_csv.py, dump_graph_json.py)
-# to get the latest points for a test for users who aren't logged in.
-- kind: Row
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: revision
-    direction: desc
-
 # Used in several modules (graph_json.py and graph_csv.py) to fetch the latest
-# points for a test, without filtering by internal_only.
+# points for a test.
 - kind: Row
   properties:
   - name: parent_test
   - name: revision
     direction: desc
 
-# Useful for queries on the interactive console.
+# This composite index enables querying for points for a particular test,
+# filtering or sorting by revision. This may be unused, but it may be useful
+# for queries on the interactive console.
 - kind: Row
   properties:
   - name: parent_test
   - name: revision
 
-# Used in new_points.py to query newest points for all tests.
+# May be unused!
+# Likely used in new_points.py to query newest points for a particular test.
+# However listing the latest points for a test also works when not logged in
+# currently, although there appears to be no index in this file for that.
 - kind: Row
   properties:
-  - name: internal_only
+  - name: parent_test
   - name: timestamp
     direction: desc
-
-# Used in new_points.py to query newest points for test path.
-- kind: Row
-  properties:
-  - name: parent_test
-  - name: timestamp
-    direction: desc
-
-# Used in find_anomalies.GetRowsToAnalyze when getting latest points,
-# with projection query for properties revision and value.
-- kind: Row
-  properties:
-  - name: parent_test
-  - name: revision
-    direction: desc
-  - name: value
 
 # May be used in send_stoppage_alert_emails to fetch recent StoppageAlert
 # entities for a particular sheriff, for both internal-only and public alerts.
 - kind: StoppageAlert
   properties:
-  - name: internal_only
   - name: sheriff
   - name: mail_sent
 - kind: StoppageAlert
   properties:
+  - name: internal_only
   - name: sheriff
   - name: mail_sent
+
+# Used in alerts to fetch recent StoppageAlert entities for a particular
+# sheriff, for both internal and non-internal users.
+- kind: StoppageAlert
+  properties:
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+- kind: StoppageAlert
+  properties:
+  - name: internal_only
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+
+# Used in /alerts to query for stoppage alerts, for internal and external
+# sheriffs.
+- kind: StoppageAlert
+  properties:
+  - name: bug_id
+  - name: internal_only
+  - name: recovered
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+- kind: StoppageAlert
+  properties:
+  - name: bug_id
+  - name: recovered
+  - name: sheriff
+  - name: timestamp
+    direction: desc
 
 # Used in update_test_suites to query keys of test suites (parent_test == None)
 # with deprecated and description projection. Two separate lists of
@@ -257,7 +233,6 @@ indexes:
 # Used in list_tests.py to query Test by test path pattern.
 - kind: Test
   properties:
-  - name: internal_only
   - name: master_name
   - name: bot_name
   - name: suite_name
@@ -267,6 +242,7 @@ indexes:
   - name: test_part4_name
 - kind: Test
   properties:
+  - name: internal_only
   - name: master_name
   - name: bot_name
   - name: suite_name

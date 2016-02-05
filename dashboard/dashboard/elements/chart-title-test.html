@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  test('instantiate_ basic', function() {
+  test('instantiate basic', function() {
     var title = document.createElement('chart-title');
     title.seriesGroupList = [{
         'path': 'ChromiumPerf/win/dromaeo',
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(title);
   }, testOptions);
 
-  test('check_title', function() {
+  test('after update is called, suite descriptions are set', function() {
     var title = document.createElement('chart-title');
     title.seriesGroupList = [
     {

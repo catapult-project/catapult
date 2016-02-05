@@ -88,6 +88,8 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
+  var SUBALLOCATION_CONTEXT = true;
+
   /** @{constructor} */
   function AllocatorDumpNameColumn(title) {
     tr.ui.analysis.TitleColumn.call(this, title);
@@ -211,12 +213,6 @@ tr.exportTo('tr.ui.analysis', function() {
       var title = definedDump.name;
       var fullName = definedDump.fullName;
 
-      // Determine at which timestamps (indices of the current selection)
-      // the dump was provided.
-      var defined = dumps.map(function(dump) {
-        return dump !== undefined;
-      });
-
       // Transform a chronological list of memory allocator dumps into a
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its attribute).
@@ -263,7 +259,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var row = {
         title: title,
         fullName: fullName,
-        defined: defined,
+        contexts: dumps,
         cells: cells,
         suballocatedBy: suballocatedBy
       };
@@ -372,17 +368,18 @@ tr.exportTo('tr.ui.analysis', function() {
       // An internal row of the suballocation tree is assumed to be defined
       // at a given timestamp if at least one of its sub-rows is defined at
       // the timestamp.
-      var defined = new Array(subRows[0].defined.length);
+      var contexts = new Array(subRows[0].contexts.length);
       for (var i = 0; i < subRows.length; i++) {
-        subRows[i].defined.forEach(function(definedValue, index) {
-          defined[index] = defined[index] || definedValue;
+        subRows[i].contexts.forEach(function(subContext, index) {
+          if (subContext !== undefined)
+            contexts[index] = SUBALLOCATION_CONTEXT;
         });
       }
 
       return {
         title: name,
         suballocation: true,
-        defined: defined,
+        contexts: contexts,
         cells: {},
         subRows: subRows
       };
@@ -403,6 +400,8 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   });
 
-  return {};
+  return {
+    SUBALLOCATION_CONTEXT: SUBALLOCATION_CONTEXT  // Exported for testing.
+  };
 });
 </script>

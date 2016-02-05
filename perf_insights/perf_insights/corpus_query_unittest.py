@@ -7,7 +7,9 @@ import unittest
 
 from perf_insights import corpus_query
 
+
 class FilterTests(unittest.TestCase):
+
   def testEqNumber(self):
     f = corpus_query.Filter.FromString("a = 3")
 
@@ -20,18 +22,18 @@ class FilterTests(unittest.TestCase):
 
   def testInTuple(self):
     f = corpus_query.Filter.FromString("a IN (1, 2)")
-    self.assertEquals(f.a.fieldName, 'a');
-    self.assertEquals(f.op, corpus_query._InOp);
-    self.assertEquals(f.b.constant, (1, 2));
+    self.assertEquals(f.a.fieldName, 'a')
+    self.assertEquals(f.op, corpus_query._InOp)
+    self.assertEquals(f.b.constant, (1, 2))
 
     self.assertFalse(f.Eval({'a': 3}))
     self.assertTrue(f.Eval({'a': 1}))
 
   def testInTupleStr(self):
     f = corpus_query.Filter.FromString("a IN ('a', 'b')")
-    self.assertEquals(f.a.fieldName, 'a');
-    self.assertEquals(f.op, corpus_query._InOp);
-    self.assertEquals(f.b.constant, ('a', 'b'));
+    self.assertEquals(f.a.fieldName, 'a')
+    self.assertEquals(f.op, corpus_query._InOp)
+    self.assertEquals(f.b.constant, ('a', 'b'))
 
     self.assertFalse(f.Eval({'a': 'c'}))
     self.assertTrue(f.Eval({'a': 'a'}))
@@ -49,10 +51,10 @@ class FilterTests(unittest.TestCase):
   def testDateComparison(self):
     f = corpus_query.Filter.FromString(
         "date >= Date(2015-01-02 3:04:05.678)")
-    self.assertEquals(f.a.fieldName, 'date');
-    self.assertEquals(f.op, operator.ge);
+    self.assertEquals(f.a.fieldName, 'date')
+    self.assertEquals(f.op, operator.ge)
 
-    self.assertTrue(isinstance(f.b.constant, datetime.datetime));
+    self.assertTrue(isinstance(f.b.constant, datetime.datetime))
     at = datetime.datetime(2015, 1, 2, 3, 4, 5, 678000)
     self.assertEquals(f.b.constant, at)
 
@@ -65,6 +67,7 @@ class FilterTests(unittest.TestCase):
 
 
 class CorpusQueryTests(unittest.TestCase):
+
   def testSimple(self):
     q = corpus_query.CorpusQuery.FromString('')
     self.assertTrue(q.Eval({'a': 1}))
@@ -101,7 +104,7 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertFalse(f.Eval({'date': end}))
     self.assertFalse(f.Eval({'date': way_after}))
 
-  def testSimpleOp(self):
+  def testSimpleOpWithMaxTraceHandles(self):
     q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
     self.assertTrue(q.Eval({'a': 3}, 0))
     self.assertFalse(q.Eval({'a': 3}, 3))
@@ -121,7 +124,7 @@ class CorpusQueryTests(unittest.TestCase):
 
     (gql, args) = q.AsGQLWhereClause()
     self.assertEquals(gql, 'WHERE a = :1')
-    self.assertEquals(args[0], 1)
+    self.assertEquals(args[0], 3)
 
   def testMultipleFiltersOpQueryString(self):
     q = corpus_query.CorpusQuery.FromString(
@@ -146,7 +149,7 @@ class CorpusQueryTests(unittest.TestCase):
     self.assertEquals(args[0], datetime.datetime(2015, 01, 01, 0, 0, 0))
     self.assertEquals(args[1], datetime.datetime(2015, 02, 01, 0, 0, 0))
 
-  def testSimpleOpQueryString(self):
+  def testSimpleOpWithMaxTraceHandlesQueryString(self):
     q = corpus_query.CorpusQuery.FromString('a = 3 AND MAX_TRACE_HANDLES=3')
     self.assertEquals(q.AsQueryString(), 'a = 3 AND MAX_TRACE_HANDLES=3')
 

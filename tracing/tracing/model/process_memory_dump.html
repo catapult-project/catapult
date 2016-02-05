@@ -181,7 +181,7 @@ tr.exportTo('tr.model', function() {
       // Force rebuilding the memory allocator dump index (if we've just added
       // a new memory allocator dump).
       if (hasDiscountedFromAllocatorDumps)
-        this.memoryAllocatorDumps = this.memoryAllocatorDumps;
+        this.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
     },
 
     discountTracingOverheadFromVmRegions: function(opt_model) {
@@ -326,7 +326,7 @@ tr.exportTo('tr.model', function() {
         dict.sharedDirtyResident,
         dict.proportionalResident,
         dict.swapped);
-  }
+  };
 
   tr.model.EventRegistry.register(
       ProcessMemoryDump,

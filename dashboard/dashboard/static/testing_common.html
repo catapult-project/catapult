@@ -10,6 +10,7 @@ found in the LICENSE file.
 
 var testing_common = (function() {
 
+  var originalXMLHttpRequest = window.XMLHttpRequest;
   var fixture = null;
   var xhrMock = null;
 
@@ -54,8 +55,7 @@ var testing_common = (function() {
   };
 
   function clearXhrMock() {
-    // Reverts back to native XMLHttpRequest.
-    delete window.XMLHttpRequest;
+    window.XMLHttpRequest = originalXMLHttpRequest;
     xhrMock = null;
   };
 

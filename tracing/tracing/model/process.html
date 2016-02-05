@@ -126,8 +126,8 @@ tr.exportTo('tr.model', function() {
     },
 
     shiftTimestampsForward: function(amount) {
-      for (var id in this.instantEvents)
-        this.instantEvents[id].start += amount;
+      for (var i = 0; i < this.instantEvents.length; i++)
+        this.instantEvents[i].start += amount;
 
       for (var i = 0; i < this.frames.length; i++)
         this.frames[i].shiftTimestampsForward(amount);

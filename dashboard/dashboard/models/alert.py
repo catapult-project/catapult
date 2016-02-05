@@ -6,7 +6,6 @@
 
 from google.appengine.ext import ndb
 
-from dashboard.models import alert_group
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
 
@@ -82,10 +81,11 @@ class Alert(internal_only_model.InternalOnlyModel):
           alert_class.group == group.key).fetch()
       grouped_alerts.append(self)
 
-      # The alert has been assigned a real bug ID. Possibly move it to
-      # another group or update the bug ID of its current group.
-      if self.bug_id > 0:
-        self._UpdateGroupOnBugIdChanged(grouped_alerts)
+      # The alert has been assigned a real bug ID.
+      # Update the group bug ID if necessary.
+      if self.bug_id > 0 and group.bug_id != self.bug_id:
+        group.bug_id = self.bug_id
+        group.put()
 
       # The bug has been marked invalid/ignored. Kick it out of the group.
       elif self.bug_id < 0 and self.bug_id is not None:
@@ -122,40 +122,6 @@ class Alert(internal_only_model.InternalOnlyModel):
       return
     # Update minimum revision range for group.
     group.UpdateRevisionRange(grouped_alerts)
-
-  def _UpdateGroupOnBugIdChanged(self, grouped_alerts):
-    """Updates group and alert state when an alert's bug ID changes.
-
-    If an AnomalyGroup with the same bug_id is found, move this alert to
-    the new group by updating the properties of the new group and old group.
-
-    Otherwise update this group's bug_id. This requires self.bug_id to be a
-    positive integer.
-
-    Args:
-      grouped_alerts: The list of alerts in |group| used to calculate new
-          revision range; none are modified.
-    """
-    new_group = alert_group.AlertGroup.query(
-        alert_group.AlertGroup.bug_id == self.bug_id).get()
-
-    if new_group:
-      self._RemoveFromGroup(grouped_alerts)
-      if self.start_revision > new_group.start_revision:
-        # TODO(qyearsley): Add test to cover this branch.
-        new_group.start_revision = self.start_revision
-      if self.end_revision < new_group.end_revision:
-        new_group.end_revision = self.end_revision
-      test_suite = _GetTestSuiteFromKey(self.test)
-      if test_suite not in new_group.test_suites:
-        new_group.test_suites.append(test_suite)
-      new_group.put()
-      self.group = new_group.key
-    else:
-      group = self.group.get()
-      if group.bug_id is None or len(grouped_alerts) == 1:
-        group.bug_id = self.bug_id
-        group.put()
 
 
 def _GetTestSuiteFromKey(test_key):

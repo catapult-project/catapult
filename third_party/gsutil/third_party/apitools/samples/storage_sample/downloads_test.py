@@ -37,7 +37,9 @@ class DownloadsTest(unittest.TestCase):
             self.__buffer, auto_transfer=auto_transfer)
 
     def __GetTestdataFileContents(self, filename):
-        file_contents = open('testdata/%s' % filename).read()
+        file_path = os.path.join(
+            os.path.dirname(__file__), self._TESTDATA_PREFIX, filename)
+        file_contents = open(file_path).read()
         self.assertIsNotNone(
             file_contents, msg=('Could not read file %s' % filename))
         return file_contents

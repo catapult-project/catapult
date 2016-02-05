@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import
 
-import getopt
 import sys
 
 from apitools.base.py import encoding
@@ -90,16 +89,16 @@ _DESCRIPTION = """
 
   3. Configure the bucket to have website behavior using the command:
 
-       gsutil web set -m index.html -e 404.html gs://example.com
+       gsutil web set -m index.html -e 404.html gs://www.example.com
 
   4. Add a DNS CNAME record for example.com pointing to c.storage.googleapis.com
      (ask your DNS administrator for help with this).
 
-  Now if you open a browser and navigate to http://example.com, it will display
-  the main page instead of the default bucket listing. Note: It can take time
-  for DNS updates to propagate because of caching used by the DNS, so it may
-  take up to a day for the domain-named bucket website to work after you create
-  the CNAME DNS record.
+  Now if you open a browser and navigate to http://www.example.com, it will
+  display the main page instead of the default bucket listing. Note: It can
+  take time for DNS updates to propagate because of caching used by the DNS,
+  so it may take up to a day for the domain-named bucket website to work after
+  you create the CNAME DNS record.
 
   Additional notes:
 
@@ -109,14 +108,15 @@ _DESCRIPTION = """
 
   2. The main_page_suffix applies to each subdirectory of the bucket. For
      example, with the main_page_suffix configured to be index.html, a GET
-     request for http://example.com would retrieve
-     http://example.com/index.html, and a GET request for
-     http://example.com/photos would retrieve
-     http://example.com/photos/index.html.
+     request for http://www.example.com would retrieve
+     http://www.example.com/index.html, and a GET request for
+     http://www.example.com/photos would retrieve
+     http://www.example.com/photos/index.html.
 
   3. There is just one 404.html page: For example, a GET request for
-     http://example.com/photos/missing would retrieve
-     http://example.com/404.html, not http://example.com/photos/404.html.
+     http://www.example.com/photos/missing would retrieve
+     http://www.example.com/404.html, not
+     http://www.example.com/photos/404.html.
 
   4. For additional details see
      https://developers.google.com/storage/docs/website-configuration.

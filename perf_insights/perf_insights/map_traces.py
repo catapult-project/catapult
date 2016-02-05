@@ -2,11 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import argparse
-import os
 import sys
-import traceback
 
-import perf_insights
 from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
 from perf_insights import map_runner

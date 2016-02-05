@@ -315,6 +315,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   LinuxPerfImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'LinuxPerfImporter';
+    },
+
     get model() {
       return this.model_;
     },

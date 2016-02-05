@@ -137,5 +137,54 @@ tr.b.unittest.testSuite(function() {
         { visitedAllocatorDumps: visitedAllocatorDumps });
     assert.sameMembers(visitedAllocatorDumps, [oilpanDump, v8Dump]);
   });
+
+  test('forceRebuildingMemoryAllocatorDumpByFullNameIndex', function() {
+    var containerDump = new ContainerMemoryDump(42);
+
+    var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
+    var v8HeapsDump = new MemoryAllocatorDump(containerDump, 'v8/heaps');
+    var v8HeapSmallDump = new MemoryAllocatorDump(containerDump, 'v8/heaps/S');
+    setUpParentChildRelationship(v8Dump, v8HeapsDump);
+    setUpParentChildRelationship(v8HeapsDump, v8HeapSmallDump);
+
+    // Setting the memory allocator dumps should update the index properly.
+    containerDump.memoryAllocatorDumps = [v8Dump];
+    assert.strictEqual(
+        containerDump.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps'), v8HeapsDump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps/S'), v8HeapSmallDump);
+
+    // Add a second grandchild (v8/heaps/L).
+    var v8HeapLargeDump = new MemoryAllocatorDump(containerDump, 'v8/heaps/L');
+    setUpParentChildRelationship(v8HeapsDump, v8HeapLargeDump);
+
+    // Setting the memory allocator dumps again should update the index
+    // properly again.
+    containerDump.memoryAllocatorDumps = [v8Dump];
+    assert.strictEqual(
+        containerDump.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps'), v8HeapsDump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps/S'), v8HeapSmallDump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps/L'), v8HeapLargeDump);
+
+    // Remove the first grandchild (v8/heaps/S).
+    v8HeapsDump.children.splice(0, 1);
+
+    // Force rebuilding the index and check that it was updated properly.
+    containerDump.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
+    assert.strictEqual(
+        containerDump.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps'), v8HeapsDump);
+    assert.isUndefined(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps/S'));
+    assert.strictEqual(containerDump.getMemoryAllocatorDumpByFullName(
+        'v8/heaps/L'), v8HeapLargeDump);
+  });
 });
 </script>

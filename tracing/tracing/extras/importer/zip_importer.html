@@ -43,6 +43,10 @@ tr.exportTo('tr.e.importer', function() {
   ZipImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'ZipImporter';
+    },
+
     isTraceDataContainer: function() {
       return true;
     },

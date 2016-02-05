@@ -5,11 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/base/timing.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.b', function() {
+  var Timing = tr.b.Timing;
   /**
    * A task is a combination of a run callback, a set of subtasks, and an after
    * task.
@@ -46,6 +48,10 @@ tr.exportTo('tr.b', function() {
   }
 
   Task.prototype = {
+    get name() {
+      return this.runCb_.name;
+    },
+
     /*
      * See constructor documentation on semantics of subtasks.
      */
@@ -90,6 +96,42 @@ tr.exportTo('tr.b', function() {
         this.afterTask_ = cb;
       else
         this.afterTask_ = new Task(cb, thisArg);
+      return this.afterTask_;
+    },
+
+    /*
+     * See constructor documentation on semantics of after tasks.
+     * Note: timedAfter doesn't work when a task throws an exception.
+     * This is because task system doesn't support catching currently.
+     * At the time of writing, this is considered to be an acceptable tradeoff.
+     */
+    timedAfter: function(groupName, cb, thisArg, opt_args) {
+      if (cb.name === '')
+        throw new Error('Anonymous Task is not allowed');
+      return this.namedTimedAfter(groupName, cb.name, cb, thisArg, opt_args);
+    },
+
+    /*
+     * See constructor documentation on semantics of after tasks.
+     * Note: namedTimedAfter doesn't work when a task throws an exception.
+     * This is because task system doesn't support catching currently.
+     * At the time of writing, this is considered to be an acceptable tradeoff.
+     */
+    namedTimedAfter: function(groupName, name, cb, thisArg, opt_args) {
+      if (this.afterTask_)
+        throw new Error('Has an after task already');
+      var realTask;
+      if (cb instanceof Task)
+        realTask = cb;
+      else
+        realTask = new Task(cb, thisArg);
+      this.afterTask_ = new Task(function(task) {
+        var markedTask = Timing.mark(groupName, name, opt_args);
+        task.subTask(realTask, thisArg);
+        task.subTask(function() {
+          markedTask.end();
+        }, thisArg);
+      }, thisArg);
       return this.afterTask_;
     },
 

@@ -149,9 +149,11 @@ def _WriteFile(file_descriptor, package, version, proto_printer):
     proto_printer.PrintPreamble(package, version, file_descriptor)
     _PrintEnums(proto_printer, file_descriptor.enum_types)
     _PrintMessages(proto_printer, file_descriptor.message_types)
-    custom_json_mappings = _FetchCustomMappings(file_descriptor.enum_types)
+    custom_json_mappings = _FetchCustomMappings(
+        file_descriptor.enum_types, file_descriptor.package)
     custom_json_mappings.extend(
-        _FetchCustomMappings(file_descriptor.message_types))
+        _FetchCustomMappings(
+            file_descriptor.message_types, file_descriptor.package))
     for mapping in custom_json_mappings:
         proto_printer.PrintCustomJsonMapping(mapping)
 
@@ -183,29 +185,31 @@ def PrintIndentedDescriptions(printer, ls, name, prefix=''):
                         printer(line)
 
 
-def _FetchCustomMappings(descriptor_ls):
+def _FetchCustomMappings(descriptor_ls, package):
     """Find and return all custom mappings for descriptors in descriptor_ls."""
     custom_mappings = []
     for descriptor in descriptor_ls:
         if isinstance(descriptor, ExtendedEnumDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Enum', m, descriptor)
+                _FormatCustomJsonMapping('Enum', m, descriptor, package)
                 for m in descriptor.enum_mappings)
         elif isinstance(descriptor, ExtendedMessageDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Field', m, descriptor)
+                _FormatCustomJsonMapping('Field', m, descriptor, package)
                 for m in descriptor.field_mappings)
-            custom_mappings.extend(_FetchCustomMappings(descriptor.enum_types))
             custom_mappings.extend(
-                _FetchCustomMappings(descriptor.message_types))
+                _FetchCustomMappings(descriptor.enum_types, package))
+            custom_mappings.extend(
+                _FetchCustomMappings(descriptor.message_types, package))
     return custom_mappings
 
 
-def _FormatCustomJsonMapping(mapping_type, mapping, descriptor):
+def _FormatCustomJsonMapping(mapping_type, mapping, descriptor, package):
     return '\n'.join((
         'encoding.AddCustomJson%sMapping(' % mapping_type,
-        "    %s, '%s', '%s')" % (descriptor.full_name, mapping.python_name,
-                                 mapping.json_name)
+        "    %s, '%s', '%s'," % (descriptor.full_name, mapping.python_name,
+                                 mapping.json_name),
+        '    package=%r)' % package,
     ))
 
 
@@ -364,7 +368,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
         self.__printer('"""')
 
     def PrintEnum(self, enum_type):
-        self.__printer('class %s(messages.Enum):', enum_type.name)
+        self.__printer('class %s(_messages.Enum):', enum_type.name)
         with self.__printer.Indent():
             self.__PrintEnumDocstringLines(enum_type)
             enum_values = sorted(
@@ -440,7 +444,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
             return
         for decorator in message_type.decorators:
             self.__printer('@%s', decorator)
-        self.__printer('class %s(messages.Message):', message_type.name)
+        self.__printer('class %s(_messages.Message):', message_type.name)
         with self.__printer.Indent():
             self.__PrintMessageDocstringLines(message_type)
             _PrintEnums(self, message_type.enum_types)
@@ -476,7 +480,7 @@ def _PrintFields(fields, printer):
         field = extended_field.field_descriptor
         printed_field_info = {
             'name': field.name,
-            'module': 'messages',
+            'module': '_messages',
             'type_name': '',
             'type_format': '',
             'number': field.number,
@@ -487,7 +491,7 @@ def _PrintFields(fields, printer):
 
         message_field = _MESSAGE_FIELD_MAP.get(field.type_name)
         if message_field:
-            printed_field_info['module'] = 'message_types'
+            printed_field_info['module'] = '_message_types'
             field_type = message_field
         elif field.type_name == 'extra_types.DateField':
             printed_field_info['module'] = 'extra_types'
@@ -506,7 +510,7 @@ def _PrintFields(fields, printer):
 
         if field_type.DEFAULT_VARIANT != field.variant:
             printed_field_info['variant_format'] = (
-                ', variant=messages.Variant.%s' % field.variant)
+                ', variant=_messages.Variant.%s' % field.variant)
 
         if field.default_value:
             if field_type in [messages.BytesField, messages.StringField]:

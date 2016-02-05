@@ -30,14 +30,16 @@ def RunTests():
     js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
 
+
 def Main(argv):
   parser = argparse.ArgumentParser(
       description='Run d8 tests.')
   parser.add_argument(
-    '--no-install-hooks', dest='install_hooks', action='store_false')
+      '--no-install-hooks', dest='install_hooks', action='store_false')
   parser.set_defaults(install_hooks=True)
   args = parser.parse_args(argv[1:])
   if args.install_hooks:
     install.InstallHooks()
 
   sys.exit(RunTests())
+

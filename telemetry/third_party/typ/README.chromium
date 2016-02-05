@@ -1,0 +1,32 @@
+Name: typ
+URL: https://github.com/dpranke/typ.git
+Version: 0.9.4
+Revision: d4caf6b40658b9c43bbfc5794d37ae34d6ff0486
+Security Critical: no
+License: Apache 2.0
+License File: NOT_SHIPPED
+
+Description:
+
+typ is a simple wrapper around Python's unittest library that provides a
+somewhat nicer command-line interface, parallel test execution,
+code coverage support, and support for Chromium's JSON Results format.
+
+This code is not considered security critical since it is only to be linked
+into test binaries! This should never be linked into chrome or any production
+code.
+
+To update this copy of typ from the source repo (assuming you are in 
+src/third_party/typ):
+
+    # can just do "sed -n '/^   /p' README.chromium | bash -e"
+    cd ..
+    git clone https://github.com/dpranke/typ.git typ_new
+    revision=$(cd typ_new && git log -1 | head -1 | awk '{ print $2 }')
+    version=$(cd typ_new && python -m typ --version)
+    cp typ/OWNERS typ_new
+    cat typ/README.chromium | sed -e "s/^Version: .*/Version: $version/" \
+                                  -e "s/^Revision: .*/Revision: $revision/" \
+                                  > typ_new/README.chromium
+    rm -fr typ_new/.git typ_new/.gitignore typ/
+    mv typ_new typ

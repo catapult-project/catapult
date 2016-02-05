@@ -50,6 +50,8 @@ tr.b.unittest.testSuite(function() {
         new ScalarAttribute('objects', 3));
     oilpanBucket1Dump.addAttribute('inner_size',
         new ScalarAttribute('bytes', 256));
+    oilpanBucket1Dump.addAttribute('outer_size',
+        new ScalarAttribute('bytes', 1024));
 
     var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2');
 
@@ -60,25 +62,28 @@ tr.b.unittest.testSuite(function() {
         new ScalarAttribute('objects', 4));
     oilpanBucket2StringsDump.addAttribute('inner_size',
         new ScalarAttribute('bytes', 512));
+    oilpanBucket2StringsDump.addAttribute('outer_size',
+        new ScalarAttribute('bytes', 2048));
 
     oilpanDump.aggregateAttributes();
 
     // oilpan has *some* attributes aggregated.
+    assert.notProperty(oilpanDump.attributes, 'size');
     assert.equal(oilpanDump.attributes['objects_count'].value, 7);
     assert.equal(oilpanDump.attributes['inner_size'].value, 768);
-    assert.equal(oilpanDump.attributes['size'].value, 1024);
+    assert.equal(oilpanDump.attributes['outer_size'].value, 3072);
 
-    // oilpan/bucket2 has *all* attributes aggregated.
-    assert.equal(oilpanBucket2Dump.attributes['objects_count'].value,
-        4);
+    // oilpan/bucket2 has *all* attributes aggregated (except for size).
+    assert.notProperty(oilpanBucket2Dump.attributes, 'size');
+    assert.equal(oilpanBucket2Dump.attributes['objects_count'].value, 4);
     assert.equal(oilpanBucket2Dump.attributes['inner_size'].value, 512);
-    assert.equal(oilpanBucket2Dump.attributes['size'].value, 512);
+    assert.equal(oilpanBucket2Dump.attributes['outer_size'].value, 2048);
 
     // oilpan/bucket2/strings has *no* attributes aggregated.
-    assert.equal(oilpanBucket2StringsDump.attributes[
-        'objects_count'].value, 4);
-    assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
     assert.equal(oilpanBucket2StringsDump.attributes['size'].value, 512);
+    assert.equal(oilpanBucket2StringsDump.attributes['objects_count'].value, 4);
+    assert.equal(oilpanBucket2StringsDump.attributes['inner_size'].value, 512);
+    assert.equal(oilpanBucket2StringsDump.attributes['outer_size'].value, 2048);
   });
 
   test('memoryAllocatorDumps_isDescendantOf', function() {

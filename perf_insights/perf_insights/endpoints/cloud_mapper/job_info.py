@@ -17,4 +17,6 @@ class JobInfo(ndb.Model):
   corpus = ndb.StringProperty(indexed=True)
   revision = ndb.StringProperty(indexed=True)
 
+  running_tasks = ndb.StringProperty(repeated=True)
+
   results = ndb.StringProperty(indexed=True)

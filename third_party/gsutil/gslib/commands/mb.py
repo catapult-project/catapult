@@ -98,15 +98,15 @@ _DETAILED_HELP_TEXT = ("""
 
   If you specify the Durable Reduced Availability storage class (-c DRA), you
   can specify one of the continental locations above or one of the regional
-  locations below:
+  locations below: [1]_
 
   - ASIA-EAST1 (Eastern Asia-Pacific)
-  - US-EAST1 (Eastern United States) [1]_
-  - US-EAST2 (Eastern United States) [1]_
-  - US-EAST3 (Eastern United States) [1]_
-  - US-CENTRAL1 (Central United States) [1]_
-  - US-CENTRAL2 (Central United States) [1]_
-  - US-WEST1 (Western United States) [1]_
+  - US-EAST1 (Eastern United States)
+  - US-EAST2 (Eastern United States)
+  - US-EAST3 (Eastern United States)
+  - US-CENTRAL1 (Central United States)
+  - US-CENTRAL2 (Central United States)
+  - US-WEST1 (Western United States)
 
   Example:
     gsutil mb -c DRA -l US-CENTRAL1 gs://some-bucket

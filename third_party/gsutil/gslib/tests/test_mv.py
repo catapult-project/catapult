@@ -20,7 +20,7 @@ import os
 
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
-from gslib.tests.util import PerformsFileToObjectUpload
+from gslib.tests.util import SequentialAndParallelTransfer
 from gslib.util import Retry
 
 
@@ -77,7 +77,7 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['mv', dir_to_move, suri(bucket_uri)])
     self.AssertNObjectsInBucket(bucket_uri, 2)
 
-  @PerformsFileToObjectUpload
+  @SequentialAndParallelTransfer
   def test_stdin_args(self):
     """Tests mv with the -I option."""
     tmpdir = self.CreateTempDir()

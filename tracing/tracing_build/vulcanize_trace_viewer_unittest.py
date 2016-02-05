@@ -11,7 +11,8 @@ from tracing_build import vulcanize_trace_viewer
 
 
 class Trace2HTMLTests(unittest.TestCase):
-  def test_writeHTMLForTracesToFile(self):
+
+  def testWriteHTMLForTracesToFile(self):
     try:
       # Note: We can't use "with" when working with tempfile.NamedTemporaryFile
       # as that does not work on Windows. We use the longer, more clunky version

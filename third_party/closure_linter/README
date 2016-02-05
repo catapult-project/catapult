@@ -5,5 +5,5 @@ To install the application, run
 
 After installing, you get two helper applications installed into /usr/local/bin:
 
-   gjslint.py - runs the linter and checks for errors
-   fixjsstyle.py - tries to fix errors automatically
+   gjslint - runs the linter and checks for errors
+   fixjsstyle - tries to fix errors automatically

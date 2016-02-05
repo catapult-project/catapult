@@ -4,7 +4,6 @@
 
 import json
 import os
-import sys
 
 import dashboard_project
 
@@ -17,6 +16,7 @@ def _RelPathToUnixPath(p):
 
 
 class TestListHandler(webapp2.RequestHandler):
+
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     project = dashboard_project.DashboardProject()
     test_relpaths = ['/' + _RelPathToUnixPath(x)
@@ -29,6 +29,7 @@ class TestListHandler(webapp2.RequestHandler):
 
 
 class DashboardDevServerConfig(object):
+
   def __init__(self):
     self.project = dashboard_project.DashboardProject()
 

@@ -26,16 +26,15 @@ def CreateUriValidator(uri_regexp, content=''):
 class CredentialsLibTest(unittest2.TestCase):
 
     def _GetServiceCreds(self, service_account_name=None, scopes=None):
-        scopes = scopes or ['scope1']
         kwargs = {}
         if service_account_name is not None:
             kwargs['service_account_name'] = service_account_name
         service_account_name = service_account_name or 'default'
 
-        def MockMetadataCalls(request):
-            request_url = request.get_full_url()
+        def MockMetadataCalls(request_url):
+            default_scopes = scopes or ['scope1']
             if request_url.endswith('scopes'):
-                return six.StringIO(''.join(scopes))
+                return six.StringIO(''.join(default_scopes))
             elif request_url.endswith('service-accounts'):
                 return six.StringIO(service_account_name)
             elif request_url.endswith(
@@ -43,7 +42,7 @@ class CredentialsLibTest(unittest2.TestCase):
                 return six.StringIO('{"access_token": "token"}')
             self.fail('Unexpected HTTP request to %s' % request_url)
 
-        with mock.patch.object(credentials_lib, '_OpenNoProxy',
+        with mock.patch.object(credentials_lib, '_GceMetadataRequest',
                                side_effect=MockMetadataCalls,
                                autospec=True) as opener_mock:
             with mock.patch.object(util, 'DetectGce',
@@ -58,8 +57,11 @@ class CredentialsLibTest(unittest2.TestCase):
             self.assertEqual(3, opener_mock.call_count)
 
     def testGceServiceAccounts(self):
+        scopes = ['scope1']
         self._GetServiceCreds()
-        self._GetServiceCreds(service_account_name='my_service_account')
+        self._GetServiceCreds(scopes=scopes)
+        self._GetServiceCreds(service_account_name='my_service_account',
+                              scopes=scopes)
 
 
 class TestGetRunFlowFlags(unittest2.TestCase):

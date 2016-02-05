@@ -34,5 +34,15 @@ tr.b.unittest.testSuite(function() {
     var len = tr.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
     assert.equal(len, 5);
   });
+
+  test('Base64.atob', function() {
+    var output = tr.b.Base64.atob('aGVsbG8gd29ybGQ=');
+    assert.equal(output, 'hello world');
+  });
+
+  test('Base64.btoa', function() {
+    var output = tr.b.Base64.btoa('hello world');
+    assert.equal(output, 'aGVsbG8gd29ybGQ=');
+  });
 });
 </script>

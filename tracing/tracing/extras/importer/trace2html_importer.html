@@ -68,6 +68,10 @@ tr.exportTo('tr.e.importer', function() {
   Trace2HTMLImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'Trace2HTMLImporter';
+    },
+
     isTraceDataContainer: function() {
       return true;
     },

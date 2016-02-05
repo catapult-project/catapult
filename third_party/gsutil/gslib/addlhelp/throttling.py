@@ -23,7 +23,7 @@ _DETAILED_HELP_TEXT = ("""
   Particularly when used with the -m (multi-threading) option, gsutil can
   consume a significant amount of network bandwidth. In some cases this can
   cause problems, for example if you start a large rsync operation over a
-  network connection used by a number of other important production tasks.
+  network link that's also used by a number of other important jobs.
 
   While gsutil has no built-in support for throttling requests, there are
   various tools available on Linux and MacOS that can be used to throttle
@@ -43,7 +43,7 @@ _DETAILED_HELP_TEXT = ("""
   example, the following command would reduce I/O priority of gsutil so it
   doesn't monopolize your local disk:
 
-      ionice -c 2 -n 7 gsutil gsutil -m rsync -r ./dir gs://some bucket
+      ionice -c 2 -n 7 gsutil -m rsync -r ./dir gs://some bucket
 """)
 
 

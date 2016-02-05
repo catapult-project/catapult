@@ -7,9 +7,9 @@ import unittest
 from tracing_build import check_common
 
 
-class CheckCommonUnittTest(unittest.TestCase):
+class CheckCommonUnitTest(unittest.TestCase):
 
-  def test_filesSortedTest(self):
+  def testFilesSorted(self):
     error = check_common.CheckListedFilesSorted('foo.gyp', 'tracing_pdf_files',
                                                 ['/dir/file.pdf',
                                                  '/dir/another_file.pdf'])

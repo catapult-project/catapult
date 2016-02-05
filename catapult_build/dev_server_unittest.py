@@ -1,7 +1,6 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import argparse
 import json
 import os
 import unittest
@@ -16,8 +15,8 @@ class DevServerTests(unittest.TestCase):
 
   def setUp(self):
     self.pds = [
-      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
-      tracing_dev_server_config.TracingDevServerConfig(),
+        perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
+        tracing_dev_server_config.TracingDevServerConfig(),
     ]
 
     self.args = dev_server._AddCommandLineArguments(self.pds, [])

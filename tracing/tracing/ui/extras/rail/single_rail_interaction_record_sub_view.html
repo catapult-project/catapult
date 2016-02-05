@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
+
+<polymer-element name="tr-ui-a-single-rail-interaction-record-sub-view"
+    extends="tr-ui-a-sub-view">
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.currentSelection_ = undefined;
+      this.realView_ = undefined;
+    },
+
+    get selection() {
+      return this.currentSelection_;
+    },
+
+    set selection(selection) {
+      this.textContent = '';
+      this.realView_ = document.createElement(
+          'tr-ui-a-single-interaction-record-sub-view');
+      this.realView_.addEventListener('customize-rows',
+          this.onCustomizeRows_.bind(this));
+
+      this.appendChild(this.realView_);
+      this.currentSelection_ = selection;
+      this.realView_.selection = selection;
+    },
+
+    get relatedEventsToHighlight() {
+      if (!this.realView_)
+        return undefined;
+      return this.realView_.relatedEventsToHighlight;
+    },
+
+    onCustomizeRows_: function(event) {
+      var ir = this.selection[0];
+      event.rows.push({
+        name: 'RAIL Score',
+        value: tr.ui.b.toThreeDigitLocaleString(ir.railScore)
+      });
+      event.rows.push({
+        name: 'Comfort',
+        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedUserComfort)
+      });
+      event.rows.push({
+        name: 'Efficiency',
+        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedEfficiency)
+      });
+      event.rows.push({
+        name: 'CPU Efficiency',
+        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedCpuEfficiency)
+      });
+      if (ir.rawCpuMs) {
+        var cpuEl = document.createElement('tr-ui-u-time-duration-span');
+        cpuEl.duration = ir.rawCpuMs;
+        event.rows.push({name: 'Total CPU', value: cpuEl});
+      }
+    }
+  });
+  </script>
+</polymer-element>

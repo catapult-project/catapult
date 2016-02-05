@@ -5,7 +5,6 @@ import argparse
 import codecs
 import os
 import sys
-import traceback
 import json
 
 from perf_insights import corpus_driver_cmdline
@@ -13,9 +12,7 @@ from perf_insights import corpus_query
 from perf_insights import function_handle
 from perf_insights import map_runner
 from perf_insights import progress_reporter as progress_reporter_module
-from perf_insights.results import json_output_formatter
 from py_vulcanize import generate
-import perf_insights
 import perf_insights_project
 import bs4
 
@@ -92,7 +89,7 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
   results = _MapTraces(corpus_driver, map_function_handle, query, stop_on_error,
                        jobs, quiet)
   if stop_on_error and results.had_failures:
-    sys.stderr.write('There were mapping errors. Aborting.');
+    sys.stderr.write('There were mapping errors. Aborting.')
     return 255
 
   if json_output:

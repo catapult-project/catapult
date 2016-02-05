@@ -3,6 +3,19 @@ Changelog for six
 
 This file lists the changes in each six version.
 
+1.10.0
+------
+
+- Issue #122: Improve the performance of `six.int2byte` on Python 3.
+
+- Pull request #55 and issue #99: Don't add the `winreg` module to `six.moves`
+  on non-Windows platforms.
+
+- Pull request #60 and issue #108: Add `six.moves.getcwd` and
+  `six.moves.getcwdu`.
+
+- Pull request #64: Add `create_unbound_method` to create unbound methods.
+
 1.9.0
 -----
 
@@ -25,6 +38,9 @@ This file lists the changes in each six version.
 
 - Pull request #51: Add `six.view(keys|values|itmes)`, which provide dictionary
   views on Python 2.7+.
+
+- Issue #112: `six.moves.reload_module` now uses the importlib module on
+  Python 3.4+.
 
 1.8.0
 -----

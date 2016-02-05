@@ -88,11 +88,6 @@ def _Set(namespace, key, records):
 class QuickLog(ndb.Model):
   """Represents a log entity."""
 
-  # A pickled list of Record. (Deprecated)
-  # TODO(chrisphan): Remove this in the future.  Old version of quick_logger
-  # storing logs in this property and we don't want to delete them yet.
-  records = ndb.PickleProperty()
-
   # Namespace for identifying logs.
   namespace = ndb.StringProperty(indexed=True)
 
@@ -103,15 +98,6 @@ class QuickLog(ndb.Model):
   size = ndb.IntegerProperty(default=0)
 
   def GetRecords(self):
-    """Gets records for this log."""
-    # Move old data from old version to use multi-entities storage.
-    if self.records:
-      records_copy = self.records
-      self.records = None
-      self.SetRecords(self.key.string_id(), records_copy)
-    return self.GetMultiEntityRecords()
-
-  def GetMultiEntityRecords(self):
     """Gets records store in multiple entities.
 
     Combines and deserializes the data stored in QuickLogPart for this log.
@@ -126,7 +112,7 @@ class QuickLog(ndb.Model):
       return None
 
     string_id = self.key.string_id()
-    log_part_keys = [ndb.Key('QuickLog', string_id, 'QuickLogPart', i+1)
+    log_part_keys = [ndb.Key('QuickLog', string_id, 'QuickLogPart', i + 1)
                      for i in xrange(self.size)]
     log_parts = ndb.get_multi(log_part_keys)
     serialized = ''.join(l.value for l in log_parts if l is not None)
@@ -155,9 +141,9 @@ class QuickLog(ndb.Model):
 
     log_parts = []
     for i in xrange(0, length, chunk_size):
-      # +1 to start entitiy key at 1.
+      # +1 to start entity key at 1.
       part_id = i // chunk_size + 1
-      part_value = serialized[i:i+chunk_size]
+      part_value = serialized[i:i + chunk_size]
       parent_key = ndb.Key('QuickLog', key)
       log_part = QuickLogPart(id=part_id, parent=parent_key, value=part_value)
       log_parts.append(log_part)

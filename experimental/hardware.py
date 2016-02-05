@@ -7,6 +7,7 @@
 
 import csv
 import json
+import logging
 import sys
 import urllib2
 
@@ -33,6 +34,7 @@ _KEYS = [
     'android device 7',
 ]
 _EXCLUDED_KEYS = frozenset([
+    'architecture (userland)',
     'b directory',
     'last puppet run',
     'uptime',
@@ -46,7 +48,7 @@ def main():
 
   for master_name in _MASTERS:
     master_data = json.load(urllib2.urlopen(
-      'http://build.chromium.org/p/%s/json/slaves' % master_name))
+        'http://build.chromium.org/p/%s/json/slaves' % master_name))
 
     slaves = sorted(master_data.iteritems(), key=lambda x: x[1]['builders'])
     for slave_name, slave_data in slaves:
@@ -65,8 +67,6 @@ def main():
               if not line:
                 continue
               key, value = line.split(': ')
-              if key == 'osfamily':
-                key = 'os family'
               if key in _EXCLUDED_KEYS:
                 continue
               row[key] = value
@@ -74,7 +74,11 @@ def main():
         if 'product name' not in row and slave_name.startswith('slave'):
           row['product name'] = 'Google Compute Engine'
 
-        writer.writerow(row)
+        try:
+          writer.writerow(row)
+        except ValueError:
+          logging.error(row)
+          raise
 
 
 if __name__ == '__main__':

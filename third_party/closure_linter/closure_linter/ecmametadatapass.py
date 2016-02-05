@@ -115,18 +115,30 @@ class EcmaContext(object):
   BLOCK_TYPES = frozenset([
       ROOT, BLOCK, CASE_BLOCK, FOR_GROUP_BLOCK, IMPLIED_BLOCK])
 
-  def __init__(self, type, start_token, parent):
+  def __init__(self, context_type, start_token, parent=None):
     """Initializes the context object.
 
     Args:
-      type: The context type.
+      context_type: The context type.
       start_token: The token where this context starts.
       parent: The parent context.
+
+    Attributes:
+      type: The context type.
+      start_token: The token where this context starts.
+      end_token: The token where this context ends.
+      parent: The parent context.
+      children: The child contexts of this context, in order.
     """
-    self.type = type
+    self.type = context_type
     self.start_token = start_token
     self.end_token = None
-    self.parent = parent
+
+    self.parent = None
+    self.children = []
+
+    if parent:
+      parent.AddChild(self)
 
   def __repr__(self):
     """Returns a string representation of the context object."""
@@ -137,6 +149,32 @@ class EcmaContext(object):
       context = context.parent
     return 'Context(%s)' % ' > '.join(stack)
 
+  def AddChild(self, child):
+    """Adds a child to this context and sets child's parent to this context.
+
+    Args:
+      child: A child EcmaContext.  The child's parent will be set to this
+          context.
+    """
+
+    child.parent = self
+
+    self.children.append(child)
+    self.children.sort(EcmaContext._CompareContexts)
+
+  def GetRoot(self):
+    """Get the root context that contains this context, if any."""
+    context = self
+    while context:
+      if context.type is EcmaContext.ROOT:
+        return context
+      context = context.parent
+
+  @staticmethod
+  def _CompareContexts(context1, context2):
+    """Sorts contexts 1 and 2 by start token document position."""
+    return tokenutil.Compare(context1.start_token, context2.start_token)
+
 
 class EcmaMetaData(object):
   """Token metadata for EcmaScript languages.
@@ -146,6 +184,11 @@ class EcmaMetaData(object):
     context: The context this token appears in.
     operator_type: The operator type, will be one of the *_OPERATOR constants
         defined below.
+    aliased_symbol: The full symbol being identified, as a string (e.g. an
+        'XhrIo' alias for 'goog.net.XhrIo'). Only applicable to identifier
+        tokens. This is set in aliaspass.py and is a best guess.
+    is_alias_definition: True if the symbol is part of an alias definition.
+        If so, these symbols won't be counted towards goog.requires/provides.
   """
 
   UNARY_OPERATOR = 'unary'
@@ -164,6 +207,8 @@ class EcmaMetaData(object):
     self.is_implied_semicolon = False
     self.is_implied_block = False
     self.is_implied_block_close = False
+    self.aliased_symbol = None
+    self.is_alias_definition = False
 
   def __repr__(self):
     """Returns a string representation of the context object."""
@@ -172,6 +217,8 @@ class EcmaMetaData(object):
       parts.append('optype: %r' % self.operator_type)
     if self.is_implied_semicolon:
       parts.append('implied;')
+    if self.aliased_symbol:
+      parts.append('alias for: %s' % self.aliased_symbol)
     return 'MetaData(%s)' % ', '.join(parts)
 
   def IsUnaryOperator(self):
@@ -196,21 +243,21 @@ class EcmaMetaDataPass(object):
     self._AddContext(EcmaContext.ROOT)
     self._last_code = None
 
-  def _CreateContext(self, type):
+  def _CreateContext(self, context_type):
     """Overridable by subclasses to create the appropriate context type."""
-    return EcmaContext(type, self._token, self._context)
+    return EcmaContext(context_type, self._token, self._context)
 
   def _CreateMetaData(self):
     """Overridable by subclasses to create the appropriate metadata type."""
     return EcmaMetaData()
 
-  def _AddContext(self, type):
+  def _AddContext(self, context_type):
     """Adds a context of the given type to the context stack.
 
     Args:
-      type: The type of context to create
+      context_type: The type of context to create
     """
-    self._context  = self._CreateContext(type)
+    self._context = self._CreateContext(context_type)
 
   def _PopContext(self):
     """Moves up one level in the context stack.
@@ -233,7 +280,7 @@ class EcmaMetaDataPass(object):
     """Pops the context stack until a context of the given type is popped.
 
     Args:
-      stop_types: The types of context to pop to - stops at the first match.
+      *stop_types: The types of context to pop to - stops at the first match.
 
     Returns:
       The context object of the given type that was popped.
@@ -364,10 +411,14 @@ class EcmaMetaDataPass(object):
       self._AddContext(EcmaContext.SWITCH)
 
     elif (token_type == TokenType.KEYWORD and
-          token.string in ('case', 'default')):
+          token.string in ('case', 'default') and
+          self._context.type != EcmaContext.OBJECT_LITERAL):
       # Pop up to but not including the switch block.
       while self._context.parent.type != EcmaContext.SWITCH:
         self._PopContext()
+        if self._context.parent is None:
+          raise ParseError(token, 'Encountered case/default statement '
+                           'without switch statement')
 
     elif token.IsOperator('?'):
       self._AddContext(EcmaContext.TERNARY_TRUE)
@@ -386,9 +437,9 @@ class EcmaMetaDataPass(object):
       # ternary_false > ternary_true > statement > root
       elif (self._context.type == EcmaContext.TERNARY_FALSE and
             self._context.parent.type == EcmaContext.TERNARY_TRUE):
-           self._PopContext() # Leave current ternary false context.
-           self._PopContext() # Leave current parent ternary true
-           self._AddContext(EcmaContext.TERNARY_FALSE)
+        self._PopContext()  # Leave current ternary false context.
+        self._PopContext()  # Leave current parent ternary true
+        self._AddContext(EcmaContext.TERNARY_FALSE)
 
       elif self._context.parent.type == EcmaContext.SWITCH:
         self._AddContext(EcmaContext.CASE_BLOCK)
@@ -444,25 +495,27 @@ class EcmaMetaDataPass(object):
       is_implied_block = self._context == EcmaContext.IMPLIED_BLOCK
       is_last_code_in_line = token.IsCode() and (
           not next_code or next_code.line_number != token.line_number)
-      is_continued_identifier = (token.type == TokenType.IDENTIFIER and
-                                 token.string.endswith('.'))
       is_continued_operator = (token.type == TokenType.OPERATOR and
                                not token.metadata.IsUnaryPostOperator())
       is_continued_dot = token.string == '.'
       next_code_is_operator = next_code and next_code.type == TokenType.OPERATOR
-      next_code_is_dot = next_code and next_code.string == '.'
-      is_end_of_block = (token.type == TokenType.END_BLOCK and
+      is_end_of_block = (
+          token.type == TokenType.END_BLOCK and
           token.metadata.context.type != EcmaContext.OBJECT_LITERAL)
       is_multiline_string = token.type == TokenType.STRING_TEXT
+      is_continued_var_decl = (token.IsKeyword('var') and
+                               next_code and
+                               (next_code.type in [TokenType.IDENTIFIER,
+                                                   TokenType.SIMPLE_LVALUE]) and
+                               token.line_number < next_code.line_number)
       next_code_is_block = next_code and next_code.type == TokenType.START_BLOCK
       if (is_last_code_in_line and
           self._StatementCouldEndInContext() and
           not is_multiline_string and
           not is_end_of_block and
-          not is_continued_identifier and
+          not is_continued_var_decl and
           not is_continued_operator and
           not is_continued_dot and
-          not next_code_is_dot and
           not next_code_is_operator and
           not is_implied_block and
           not next_code_is_block):
@@ -470,7 +523,7 @@ class EcmaMetaDataPass(object):
         self._EndStatement()
 
   def _StatementCouldEndInContext(self):
-    """Returns whether the current statement (if any) may end in this context."""
+    """Returns if the current statement (if any) may end in this context."""
     # In the basic statement or variable declaration context, statement can
     # always end in this context.
     if self._context.type in (EcmaContext.STATEMENT, EcmaContext.VAR):

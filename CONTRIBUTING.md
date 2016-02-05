@@ -80,7 +80,7 @@ catapult folder (third_party/catapult):
 # Code style
 
 We follow the [Chromium style]
-(https://www.chromium.org/developers/coding-style). 
+(https://www.chromium.org/developers/coding-style).
 
 If you're contributing to Trace Viewer, refer to the [Trace Viewer style guide](https://docs.google.com/document/d/1MMOfywou2Oaho4jOttUk-ZSJcHVd5G5BTsD48rPrBtQ/edit).
 
@@ -95,8 +95,29 @@ automatically runs all tests. Run the tests before committing with the
 
 # Updating Chromium's about:tracing (rolling DEPS)
 
-To get your change to appear in Chrome's about:tracing or other
-third_party/catapult files, commit to catapult. Then check the [mirror]
+Chromium's DEPS file needs to be rolled to the catapult revision containing your
+change in order for it to appear in Chrome's about:tracing or other
+third_party/catapult files. This should happen automatically, but you may need
+to do it manually in rare cases. See below for more details.
+
+## Automatic rolls
+
+DEPS should be automatically rolled by the auto-roll bot at
+[catapult-roll.skia.org](https://catapult-roll.skia.org/).
+[catapult-sheriff@chromium.org](https://groups.google.com/a/chromium.org/forum/#!forum/catapult-sheriff)
+will be cc-ed on all reviews, and anyone who wants to join that list can
+subscribe. It's also the correct list to report a problem with the autoroll. If
+you need to stop the autoroll, either sign into that page with a google.com
+account, or contact catapult-sheriff@chromium.org.
+
+## Manual rolls
+
+In rare cases, you may need to make changes to chromium at the same time as you
+roll catapult DEPs. In this case you would need to do a manual roll. Here are
+instructions for rolling catapult DEPS, your CL would also include any other
+changes to chromium needed to complete the roll.
+
+First, commit to catapult. Then check the [mirror]
 (https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git)
 to find the git hash of your commit. (Note: it may take a few minutes to be
 mirrored).
@@ -114,3 +135,16 @@ a line like:
 Update the number to the git hash you want to roll to, and [contribute a
 codereview to chrome](http://www.chromium.org/developers/contributing-code)
 for your edit. If you are a Chromium committer, feel free to TBR this.
+
+# Adding contributors
+
+Admins (nduca, sullivan) can add contributors to the project. There are two
+steps:
+
+1.  Add the person's github account to the [catapult]
+(https://github.com/orgs/catapult-project/teams/catapult) team.
+2.  Add the person's email to the [commit queue list]
+(https://chrome-infra-auth.appspot.com/auth/groups#project-catapult-committers).
+
+Because there is no API to retrieve a person's GitHub ID from their email
+address or vice versa, we cannot automate this into one step.

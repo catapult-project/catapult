@@ -7,6 +7,7 @@
 import json
 import urllib
 
+from dashboard import datastore_hooks
 from dashboard import find_anomalies
 from dashboard import find_change_points
 from dashboard import request_handler
@@ -43,7 +44,8 @@ class DebugAlertHandler(request_handler.RequestHandler):
     try:
       test = self._GetTest()
       num_before, num_after = self._GetNumBeforeAfter()
-      config_name, config_dict = self._GetAnomalyConfigNameAndDict(test)
+      config_name = self._GetConfigName(test)
+      config_dict = anomaly_config.CleanConfigDict(self._GetConfigDict(test))
     except QueryParameterError as e:
       self.RenderHtml('debug_alert.html', {'error': e.message})
       return
@@ -52,7 +54,7 @@ class DebugAlertHandler(request_handler.RequestHandler):
     if revision:
       rows = _FetchRowsAroundRev(test.key, int(revision), num_before, num_after)
     else:
-      rows = _FetchLatestRows(test.key, num_before)
+      rows = _FetchLatestRows(test, num_before)
 
     chart_series = _ChartSeries(rows)
     lookup = _RevisionList(rows)
@@ -104,34 +106,23 @@ class DebugAlertHandler(request_handler.RequestHandler):
       raise QueryParameterError('Invalid "num_before" or "num_after".')
     return num_before, num_after
 
-  def _GetAnomalyConfigNameAndDict(self, test):
-    """Gets the anomaly threshold dict to use and its name.
-
-    Args:
-      test: A Test entity.
-
-    Returns:
-      A (name, config dict) pair.
-
-    Raises:
-      ValueError: The user-specified dict couldn't be parsed.
-    """
-    # Get the anomaly config name and config dict based on the test.
-    config_name = 'Default config'
+  def _GetConfigName(self, test):
+    """Gets the name of the custom anomaly threshold, just for display."""
     if test.overridden_anomaly_config:
-      config_name = test.overridden_anomaly_config.string_id()
-    config_dict = anomaly_config.GetAnomalyConfigDict(test)
+      return test.overridden_anomaly_config.string_id()
+    if self.request.get('config'):
+      return 'Custom config'
+    return 'Default config'
 
-    # If the user specified a config, then use that.
+  def _GetConfigDict(self, test):
+    """Gets the name of the anomaly threshold dict to use."""
     input_config_json = self.request.get('config')
-    if input_config_json:
-      try:
-        config_dict = json.loads(input_config_json)
-      except ValueError:
-        raise QueryParameterError('Invalid JSON.')
-      config_name = 'Custom config'
-
-    return config_name, config_dict
+    if not input_config_json:
+      return anomaly_config.GetAnomalyConfigDict(test)
+    try:
+      return json.loads(input_config_json)
+    except ValueError:
+      raise QueryParameterError('Invalid JSON.')
 
 
 def SimulateAlertProcessing(chart_series, **config_dict):
@@ -246,19 +237,21 @@ def _RevisionList(rows):
   return [r.revision for r in rows]
 
 
-def _FetchLatestRows(test_key, num_points):
+def _FetchLatestRows(test, num_points):
   """Does a query for the latest Row entities in the given test.
 
   Args:
-    test_key: A Test entity key to fetch Row entities for.
+    test: A Test entity to fetch Row entities for.
     num_points: Number of points to fetch.
 
   Returns:
     A list of Row entities, ordered by revision. The number to fetch is limited
     to the number that is expected to be processed at once by GASP.
   """
+  assert utils.IsInternalUser() or not test.internal_only
+  datastore_hooks.SetSinglePrivilegedRequest()
   q = graph_data.Row.query(projection=['revision', 'value'])
-  q = q.filter(graph_data.Row.parent_test == test_key)
+  q = q.filter(graph_data.Row.parent_test == test.key)
   q = q.order(-graph_data.Row.revision)
   rows = list(reversed(q.fetch(limit=num_points)))
   return rows
@@ -339,4 +332,3 @@ def _GetDisplayBugId(bug_id):
   """Returns a display string for the given bug ID property of an anomaly."""
   special_ids = {-1: 'INVALID', -2: 'IGNORE', None: 'NONE'}
   return special_ids.get(bug_id, str(bug_id))
-

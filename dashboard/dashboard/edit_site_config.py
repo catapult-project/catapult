@@ -115,4 +115,3 @@ def _FormatJson(obj):
   if not obj:
     return ''
   return json.dumps(obj, indent=2, sort_keys=True)
-

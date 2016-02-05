@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import sys
 import os
 
 from tracing_build import check_common
@@ -16,7 +15,7 @@ def GypiCheck():
   gyp = f.read()
   f.close()
 
-  data = eval(gyp)
+  data = eval(gyp)  # pylint: disable=eval-used
   listed_files = []
   error = ''
   for group in check_common.FILE_GROUPS:

@@ -67,23 +67,23 @@ _EXPERIMENTAL_FUNCTIONS = {
     'find_change_points_absolute_change_threshold':
         find_change_points_exp.FindChangePointsWithAbsoluteChangeThreshold,
     'segment_size_4': lambda(test, series):
-                      find_change_points_exp.RunFindChangePoints(
-                          test, series, min_segment_size=4),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, min_segment_size=4),
     'segment_size_8': lambda(test, series):
-                      find_change_points_exp.RunFindChangePoints(
-                          test, series, min_segment_size=8),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, min_segment_size=8),
     'steppiness_0_1': lambda(test, series):
-                      find_change_points_exp.RunFindChangePoints(
-                          test, series, min_steppiness=0.1),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, min_steppiness=0.1),
     'steppiness_0_5': lambda(test, series):
-                      find_change_points_exp.RunFindChangePoints(
-                          test, series, min_steppiness=0.5),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, min_steppiness=0.5),
     'std_dev_2': lambda(test, series):
-                 find_change_points_exp.RunFindChangePoints(
-                     test, series, multiple_of_std_dev=2.0),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, multiple_of_std_dev=2.0),
     'std_dev_3': lambda(test, series):
-                 find_change_points_exp.RunFindChangePoints(
-                     test, series, multiple_of_std_dev=3.0),
+    find_change_points_exp.RunFindChangePoints(
+        test, series, multiple_of_std_dev=3.0),
 }
 
 
@@ -323,7 +323,7 @@ class RunExperimentalChunkPipeline(pipeline.Pipeline):
     """Runs the experimental find_change_points on each TestBench entity.
 
     This runs SimulateAlertProcessing in parallel and returns a list of
-    the combinded results.
+    the combined results.
 
     Args:
       bench_name: A string bench name.
@@ -395,7 +395,7 @@ def BenchFindChangePoints(bench_name, description):
 
   Raises:
     ValueError: The input was not valid.
-    Exception: Not enough data valable.
+    Exception: Not enough data available.
   """
   if bench_name not in _EXPERIMENTAL_FUNCTIONS:
     raise ValueError('%s is not a valid find anomalies bench function.' %

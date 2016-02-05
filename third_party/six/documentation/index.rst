@@ -232,6 +232,13 @@ functions and methods is the stdlib :mod:`py3:inspect` module.
    requires the *obj*'s class to be passed.
 
 
+.. function:: create_unbound_method(func, cls)
+
+   Return an unbound method object wrapping *func*.  In Python 2, this will
+   return a :func:`py2:types.MethodType` object.  In Python 3, unbound methods
+   do not exist and this wrapper will simply return *func*.
+
+
 .. class:: Iterator
 
    A class for making portable iterators. The intention is that it be subclassed
@@ -383,7 +390,7 @@ string data in all Python versions.
    .. note::
 
       In Python 3.3, the ``u`` prefix has been reintroduced. Code that only
-      supports Python 3 versions greater than 3.3 thus does not need
+      supports Python 3 versions of 3.3 and higher thus does not need
       :func:`u`.
 
    .. note::
@@ -570,6 +577,10 @@ Supported renames:
 +------------------------------+-------------------------------------+-------------------------------------+
 | ``filterfalse``              | :func:`py2:itertools.ifilterfalse`  | :func:`py3:itertools.filterfalse`   |
 +------------------------------+-------------------------------------+-------------------------------------+
+| ``getcwd``                   | :func:`py2:os.getcwdu`              | :func:`py3:os.getcwd`               |
++------------------------------+-------------------------------------+-------------------------------------+
+| ``getcwdb``                  | :func:`py2:os.getcwd`               | :func:`py3:os.getcwdb`              |
++------------------------------+-------------------------------------+-------------------------------------+
 | ``http_cookiejar``           | :mod:`py2:cookielib`                | :mod:`py3:http.cookiejar`           |
 +------------------------------+-------------------------------------+-------------------------------------+
 | ``http_cookies``             | :mod:`py2:Cookie`                   | :mod:`py3:http.cookies`             |
@@ -598,7 +609,9 @@ Supported renames:
 +------------------------------+-------------------------------------+-------------------------------------+
 | ``reduce``                   | :func:`py2:reduce`                  | :func:`py3:functools.reduce`        |
 +------------------------------+-------------------------------------+-------------------------------------+
-| ``reload_module``            | :func:`py2:reload`                  | :func:`py3:imp.reload`              |
+| ``reload_module``            | :func:`py2:reload`                  | :func:`py3:imp.reload`,             |
+|                              |                                     | :func:`py3:importlib.reload`        |
+|                              |                                     | on Python 3.4+                      |
 +------------------------------+-------------------------------------+-------------------------------------+
 | ``reprlib``                  | :mod:`py2:repr`                     | :mod:`py3:reprlib`                  |
 +------------------------------+-------------------------------------+-------------------------------------+

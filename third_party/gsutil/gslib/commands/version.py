@@ -26,8 +26,8 @@ import boto
 import crcmod
 import gslib
 from gslib.command import Command
+from gslib.util import CheckMultiprocessingAvailableAndInit
 from gslib.util import GetConfigFilePath
-from gslib.util import MultiprocessingIsAvailable
 from gslib.util import UsingCrcmodExtension
 
 
@@ -120,7 +120,8 @@ class VersionCommand(Command):
           boto_version=boto.__version__,
           python_version=sys.version.replace('\n', ''),
           os_version='%s %s' % (platform.system(), platform.release()),
-          multiprocessing_available=MultiprocessingIsAvailable()[0],
+          multiprocessing_available=(
+              CheckMultiprocessingAvailableAndInit().is_available),
           cloud_sdk=(os.environ.get('CLOUDSDK_WRAPPER') == '1'),
           config_path=config_path,
           gsutil_path=gslib.GSUTIL_PATH,

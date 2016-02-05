@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/model/attribute.html">
+<link rel="import" href="/tracing/model/memory_allocator_dump.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview Helper functions for tests involving memory dumps.
+ */
+tr.exportTo('tr.model', function() {
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
+  var ScalarAttribute = tr.model.ScalarAttribute;
+
+  function MemoryDumpTestUtils() {
+    throw new Error('Static class');
+  }
+
+  MemoryDumpTestUtils.newChildDump = function(parentDump, name, opt_size) {
+    var childDump = new MemoryAllocatorDump(
+        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
+    childDump.parent = parentDump;
+    parentDump.children.push(childDump);
+    if (opt_size !== undefined)
+      childDump.addAttribute('size', new ScalarAttribute('bytes', opt_size));
+    return childDump;
+  };
+
+  MemoryDumpTestUtils.addOwnershipLink = function(
+      ownerDump, ownedDump, opt_importance) {
+    assert.isUndefined(ownerDump.owns);  // Sanity check.
+    var ownershipLink =
+        new MemoryAllocatorDumpLink(ownerDump, ownedDump, opt_importance);
+    ownedDump.owns = ownershipLink;
+    ownerDump.ownedBy.push(ownershipLink);
+    return ownershipLink;
+  };
+
+  return {
+    MemoryDumpTestUtils: MemoryDumpTestUtils
+  };
+});
+</script>

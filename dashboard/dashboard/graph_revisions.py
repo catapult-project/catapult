@@ -16,7 +16,6 @@ long time. This module also provides a function for updating the cache.
 
 import bisect
 import json
-import logging
 
 from dashboard import datastore_hooks
 from dashboard import namespaced_stored_object
@@ -78,10 +77,11 @@ def _UpdateCache(test_key):
   Returns:
     The list of triplets that was just fetched and set in the cache.
   """
-  if not test_key.get():
-    # The caching can actually proceed even if the Test entity doesn't exist,
-    # but a non-existent Test entity definitely indicates something is wrong.
-    logging.warn('Test not found: %s', utils.TestPath(test_key))
+  test = test_key.get()
+  if not test:
+    return []
+  assert utils.IsInternalUser() or not test.internal_only
+  datastore_hooks.SetSinglePrivilegedRequest()
 
   # A projection query queries just for the values of particular properties;
   # this is faster than querying for whole entities.
@@ -90,6 +90,9 @@ def _UpdateCache(test_key):
 
   # Using a large batch_size speeds up queries with > 1000 Rows.
   rows = map(_MakeTriplet, query.iter(batch_size=1000))
+  # Note: Unit tests do not call datastore_hooks with the above query, but
+  # it is called in production and with more recent SDK.
+  datastore_hooks.CancelSinglePrivilegedRequest()
   SetCache(utils.TestPath(test_key), rows)
   return rows
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#
 # Copyright 2007 The Closure Linter Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +25,7 @@ __author__ = ('robbyw@google.com (Robert Walker)',
 
 import re
 
+import gflags as flags
 import unittest as googletest
 from closure_linter.common import erroraccumulator
 
@@ -41,20 +41,26 @@ class AnnotatedFileTestCase(googletest.TestCase):
   _EXPECTED_RE = re.compile(r'\s*//\s*(?:(?P<line>[+-]?[0-9]+):)?'
                             r'\s*(?P<msgs>%(msg)s(?:,\s*%(msg)s)*)' % _MESSAGE)
 
-  def __init__(self, filename, runner, converter):
+  def __init__(self, filename, lint_callable, converter):
     """Create a single file lint test case.
 
     Args:
       filename: Filename to test.
-      runner: Object implementing the LintRunner interface that lints a file.
+      lint_callable: Callable that lints a file.  This is usually runner.Run().
       converter: Function taking an error string and returning an error code.
     """
 
     googletest.TestCase.__init__(self, 'runTest')
     self._filename = filename
     self._messages = []
-    self._runner = runner
+    self._lint_callable = lint_callable
     self._converter = converter
+
+  def setUp(self):
+    flags.FLAGS.dot_on_next_line = True
+
+  def tearDown(self):
+    flags.FLAGS.dot_on_next_line = False
 
   def shortDescription(self):
     """Provides a description for the test."""
@@ -65,7 +71,7 @@ class AnnotatedFileTestCase(googletest.TestCase):
     try:
       filename = self._filename
       stream = open(filename)
-    except IOError, ex:
+    except IOError as ex:
       raise IOError('Could not find testdata resource for %s: %s' %
                     (self._filename, ex))
 
@@ -96,13 +102,14 @@ class AnnotatedFileTestCase(googletest.TestCase):
     return messages
 
   def _ProcessFileAndGetMessages(self, filename):
-    """Trap gpylint's output parse it to get messages added."""
-    errors = erroraccumulator.ErrorAccumulator()
-    self._runner.Run([filename], errors)
+    """Trap gjslint's output parse it to get messages added."""
+    error_accumulator = erroraccumulator.ErrorAccumulator()
+    self._lint_callable(filename, error_accumulator)
 
-    errors = errors.GetErrors()
+    errors = error_accumulator.GetErrors()
 
     # Convert to expected tuple format.
+
     error_msgs = [(error.token.line_number, error.code) for error in errors]
     error_msgs.sort()
     return error_msgs

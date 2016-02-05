@@ -31,12 +31,12 @@ def Main():
   from catapult_build import temp_deployment_dir
 
   file_sets = [
-      ['app.yaml', 'dispatch.yaml', 'queue.yaml', 'index.yaml',
+      ['app.yaml', 'cron.yaml', 'dispatch.yaml', 'queue.yaml', 'index.yaml',
       'remote_worker.yaml']
   ]
   for cur_set in file_sets:
     with temp_deployment_dir.TempDeploymentDir(
-        paths, use_symlinks=True) as temp_dir:
+        paths, use_symlinks=False) as temp_dir:
       cmd = ['gcloud', 'preview', 'app', 'deploy']
       cmd += cur_set
       cmd += [

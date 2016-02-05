@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """A helper function that executes a series of List queries for many APIs."""
 
-import copy
+from apitools.base.py import encoding
 
 __all__ = [
     'YieldFromList',
@@ -41,7 +41,7 @@ def YieldFromList(
       protorpc.message.Message, The resources listed by the service.
 
     """
-    request = copy.deepcopy(request)
+    request = encoding.CopyProtoMessage(request)
     setattr(request, batch_size_attribute, batch_size)
     setattr(request, current_token_attribute, None)
     while limit is None or limit:

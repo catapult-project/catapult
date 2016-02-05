@@ -51,7 +51,7 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
   """
 
   # Useful patterns for JavaScript parsing.
-  IDENTIFIER_CHAR = r'A-Za-z0-9_$.'
+  IDENTIFIER_CHAR = r'A-Za-z0-9_$'
 
   # Number patterns based on:
   # http://www.mozilla.org/js/language/js20-2000-07/formal/lexer-grammar.html
@@ -92,6 +92,9 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
   # like in email addresses in the @author tag.
   DOC_COMMENT_TEXT = re.compile(r'([^*{}\s]@|[^*{}@]|\*(?!/))+')
   DOC_COMMENT_NO_SPACES_TEXT = re.compile(r'([^*{}\s]@|[^*{}@\s]|\*(?!/))+')
+  # Match anything that is allowed in a type definition, except for tokens
+  # needed to parse it (and the lookahead assertion for "*/").
+  DOC_COMMENT_TYPE_TEXT = re.compile(r'([^*|!?=<>(){}:,\s]|\*(?!/))+')
 
   # Match the prefix ' * ' that starts every line of jsdoc. Want to include
   # spaces after the '*', but nothing else that occurs after a '*', and don't
@@ -141,13 +144,25 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
   #   delete, in, instanceof, new, typeof - included as operators.
   #   this - included in identifiers.
   #   null, undefined - not included, should go in some "special constant" list.
-  KEYWORD_LIST = ['break', 'case', 'catch', 'continue', 'default', 'do', 'else',
-      'finally', 'for', 'if', 'return', 'switch', 'throw', 'try', 'var',
-      'while', 'with']
-  # Match a keyword string followed by a non-identifier character in order to
-  # not match something like doSomething as do + Something.
-  KEYWORD = re.compile('(%s)((?=[^%s])|$)' % (
-      '|'.join(KEYWORD_LIST), IDENTIFIER_CHAR))
+  KEYWORD_LIST = [
+      'break',
+      'case',
+      'catch',
+      'continue',
+      'default',
+      'do',
+      'else',
+      'finally',
+      'for',
+      'if',
+      'return',
+      'switch',
+      'throw',
+      'try',
+      'var',
+      'while',
+      'with',
+  ]
 
   # List of regular expressions to match as operators.  Some notes: for our
   # purposes, the comma behaves similarly enough to a normal operator that we
@@ -155,19 +170,62 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
   # characters - this may not match some very esoteric uses of the in operator.
   # Operators that are subsets of larger operators must come later in this list
   # for proper matching, e.g., '>>' must come AFTER '>>>'.
-  OPERATOR_LIST = [',', r'\+\+', '===', '!==', '>>>=', '>>>', '==', '>=', '<=',
-                   '!=', '<<=', '>>=', '<<', '>>', '>', '<', r'\+=', r'\+',
-                   '--', '\^=', '-=', '-', '/=', '/', r'\*=', r'\*', '%=', '%',
-                   '&&', r'\|\|', '&=', '&', r'\|=', r'\|', '=', '!', ':', '\?',
-                   r'\bdelete\b', r'\bin\b', r'\binstanceof\b', r'\bnew\b',
-                   r'\btypeof\b', r'\bvoid\b']
+  OPERATOR_LIST = [
+      ',',
+      r'\+\+',
+      '===',
+      '!==',
+      '>>>=',
+      '>>>',
+      '==',
+      '>=',
+      '<=',
+      '!=',
+      '<<=',
+      '>>=',
+      '<<',
+      '>>',
+      '=>',
+      '>',
+      '<',
+      r'\+=',
+      r'\+',
+      '--',
+      r'\^=',
+      '-=',
+      '-',
+      '/=',
+      '/',
+      r'\*=',
+      r'\*',
+      '%=',
+      '%',
+      '&&',
+      r'\|\|',
+      '&=',
+      '&',
+      r'\|=',
+      r'\|',
+      '=',
+      '!',
+      ':',
+      r'\?',
+      r'\^',
+      r'\bdelete\b',
+      r'\bin\b',
+      r'\binstanceof\b',
+      r'\bnew\b',
+      r'\btypeof\b',
+      r'\bvoid\b',
+      r'\.',
+  ]
   OPERATOR = re.compile('|'.join(OPERATOR_LIST))
 
   WHITESPACE = re.compile(r'\s+')
   SEMICOLON = re.compile(r';')
   # Technically JavaScript identifiers can't contain '.', but we treat a set of
-  # nested identifiers as a single identifier.
-  NESTED_IDENTIFIER = r'[a-zA-Z_$][%s.]*' % IDENTIFIER_CHAR
+  # nested identifiers as a single identifier, except for trailing dots.
+  NESTED_IDENTIFIER = r'[a-zA-Z_$]([%s]|\.[a-zA-Z_$])*' % IDENTIFIER_CHAR
   IDENTIFIER = re.compile(NESTED_IDENTIFIER)
 
   SIMPLE_LVALUE = re.compile(r"""
@@ -181,12 +239,34 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
   # beginning of the line, after whitespace, or after a '{'.  The look-behind
   # check is necessary to not match someone@google.com as a flag.
   DOC_FLAG = re.compile(r'(^|(?<=\s))@(?P<name>[a-zA-Z]+)')
-  # To properly parse parameter names, we need to tokenize whitespace into a
-  # token.
-  DOC_FLAG_LEX_SPACES = re.compile(r'(^|(?<=\s))@(?P<name>%s)\b' %
-                                     '|'.join(['param']))
+  # To properly parse parameter names and complex doctypes containing
+  # whitespace, we need to tokenize whitespace into a token after certain
+  # doctags. All statetracker.HAS_TYPE that are not listed here must not contain
+  # any whitespace in their types.
+  DOC_FLAG_LEX_SPACES = re.compile(
+      r'(^|(?<=\s))@(?P<name>%s)\b' %
+      '|'.join([
+          'const',
+          'enum',
+          'export',
+          'extends',
+          'final',
+          'implements',
+          'package',
+          'param',
+          'private',
+          'protected',
+          'public',
+          'return',
+          'type',
+          'typedef'
+      ]))
 
   DOC_INLINE_FLAG = re.compile(r'(?<={)@(?P<name>[a-zA-Z]+)')
+
+  DOC_TYPE_BLOCK_START = re.compile(r'[<(]')
+  DOC_TYPE_BLOCK_END = re.compile(r'[>)]')
+  DOC_TYPE_MODIFIERS = re.compile(r'[!?|,:=]')
 
   # Star followed by non-slash, i.e a star that does not end a comment.
   # This is used for TYPE_GROUP below.
@@ -208,136 +288,158 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
       # Tokenize braces so we can find types.
       Matcher(START_BLOCK, Type.DOC_START_BRACE),
       Matcher(END_BLOCK, Type.DOC_END_BRACE),
+
+      # And some more to parse types.
+      Matcher(DOC_TYPE_BLOCK_START, Type.DOC_TYPE_START_BLOCK),
+      Matcher(DOC_TYPE_BLOCK_END, Type.DOC_TYPE_END_BLOCK),
+
+      Matcher(DOC_TYPE_MODIFIERS, Type.DOC_TYPE_MODIFIER),
+      Matcher(DOC_COMMENT_TYPE_TEXT, Type.COMMENT),
+
       Matcher(DOC_PREFIX, Type.DOC_PREFIX, None, True)]
-
-
-  # The token matcher groups work as follows: it is an list of  Matcher objects.
-  # The matchers will be tried in this order, and the first to match will be
-  # returned.  Hence the order is important because the matchers that come first
-  # overrule the matchers that come later.
-  JAVASCRIPT_MATCHERS = {
-      # Matchers for basic text mode.
-      JavaScriptModes.TEXT_MODE: [
-        # Check a big group - strings, starting comments, and regexes - all
-        # of which could be intertwined.  'string with /regex/',
-        # /regex with 'string'/, /* comment with /regex/ and string */ (and so
-        # on)
-        Matcher(START_DOC_COMMENT, Type.START_DOC_COMMENT,
-                JavaScriptModes.DOC_COMMENT_MODE),
-        Matcher(START_BLOCK_COMMENT, Type.START_BLOCK_COMMENT,
-                JavaScriptModes.BLOCK_COMMENT_MODE),
-        Matcher(END_OF_LINE_SINGLE_LINE_COMMENT,
-                Type.START_SINGLE_LINE_COMMENT),
-        Matcher(START_SINGLE_LINE_COMMENT, Type.START_SINGLE_LINE_COMMENT,
-                JavaScriptModes.LINE_COMMENT_MODE),
-        Matcher(SINGLE_QUOTE, Type.SINGLE_QUOTE_STRING_START,
-                JavaScriptModes.SINGLE_QUOTE_STRING_MODE),
-        Matcher(DOUBLE_QUOTE, Type.DOUBLE_QUOTE_STRING_START,
-                JavaScriptModes.DOUBLE_QUOTE_STRING_MODE),
-        Matcher(REGEX, Type.REGEX),
-
-        # Next we check for start blocks appearing outside any of the items
-        # above.
-        Matcher(START_BLOCK, Type.START_BLOCK),
-        Matcher(END_BLOCK, Type.END_BLOCK),
-
-        # Then we search for function declarations.
-        Matcher(FUNCTION_DECLARATION, Type.FUNCTION_DECLARATION,
-                JavaScriptModes.FUNCTION_MODE),
-
-        # Next, we convert non-function related parens to tokens.
-        Matcher(OPENING_PAREN, Type.START_PAREN),
-        Matcher(CLOSING_PAREN, Type.END_PAREN),
-
-        # Next, we convert brackets to tokens.
-        Matcher(OPENING_BRACKET, Type.START_BRACKET),
-        Matcher(CLOSING_BRACKET, Type.END_BRACKET),
-
-        # Find numbers.  This has to happen before operators because scientific
-        # notation numbers can have + and - in them.
-        Matcher(NUMBER, Type.NUMBER),
-
-        # Find operators and simple assignments
-        Matcher(SIMPLE_LVALUE, Type.SIMPLE_LVALUE),
-        Matcher(OPERATOR, Type.OPERATOR),
-
-        # Find key words and whitespace.
-        Matcher(KEYWORD, Type.KEYWORD),
-        Matcher(WHITESPACE, Type.WHITESPACE),
-
-        # Find identifiers.
-        Matcher(IDENTIFIER, Type.IDENTIFIER),
-
-        # Finally, we convert semicolons to tokens.
-        Matcher(SEMICOLON, Type.SEMICOLON)],
-
-      # Matchers for single quote strings.
-      JavaScriptModes.SINGLE_QUOTE_STRING_MODE: [
-          Matcher(SINGLE_QUOTE_TEXT, Type.STRING_TEXT),
-          Matcher(SINGLE_QUOTE, Type.SINGLE_QUOTE_STRING_END,
-              JavaScriptModes.TEXT_MODE)],
-
-      # Matchers for double quote strings.
-      JavaScriptModes.DOUBLE_QUOTE_STRING_MODE: [
-          Matcher(DOUBLE_QUOTE_TEXT, Type.STRING_TEXT),
-          Matcher(DOUBLE_QUOTE, Type.DOUBLE_QUOTE_STRING_END,
-              JavaScriptModes.TEXT_MODE)],
-
-      # Matchers for block comments.
-      JavaScriptModes.BLOCK_COMMENT_MODE: [
-        # First we check for exiting a block comment.
-        Matcher(END_BLOCK_COMMENT, Type.END_BLOCK_COMMENT,
-                JavaScriptModes.TEXT_MODE),
-
-        # Match non-comment-ending text..
-        Matcher(BLOCK_COMMENT_TEXT, Type.COMMENT)],
-
-      # Matchers for doc comments.
-      JavaScriptModes.DOC_COMMENT_MODE: COMMON_DOC_MATCHERS + [
-        Matcher(DOC_COMMENT_TEXT, Type.COMMENT)],
-
-      JavaScriptModes.DOC_COMMENT_LEX_SPACES_MODE: COMMON_DOC_MATCHERS + [
-        Matcher(WHITESPACE, Type.COMMENT),
-        Matcher(DOC_COMMENT_NO_SPACES_TEXT, Type.COMMENT)],
-
-      # Matchers for single line comments.
-      JavaScriptModes.LINE_COMMENT_MODE: [
-        # We greedy match until the end of the line in line comment mode.
-        Matcher(ANYTHING, Type.COMMENT, JavaScriptModes.TEXT_MODE)],
-
-      # Matchers for code after the function keyword.
-      JavaScriptModes.FUNCTION_MODE: [
-        # Must match open paren before anything else and move into parameter
-        # mode, otherwise everything inside the parameter list is parsed
-        # incorrectly.
-        Matcher(OPENING_PAREN, Type.START_PARAMETERS,
-                JavaScriptModes.PARAMETER_MODE),
-        Matcher(WHITESPACE, Type.WHITESPACE),
-        Matcher(IDENTIFIER, Type.FUNCTION_NAME)],
-
-      # Matchers for function parameters
-      JavaScriptModes.PARAMETER_MODE: [
-        # When in function parameter mode, a closing paren is treated specially.
-        # Everything else is treated as lines of parameters.
-        Matcher(CLOSING_PAREN_WITH_SPACE, Type.END_PARAMETERS,
-                JavaScriptModes.TEXT_MODE),
-        Matcher(PARAMETERS, Type.PARAMETERS, JavaScriptModes.PARAMETER_MODE)]}
 
   # When text is not matched, it is given this default type based on mode.
   # If unspecified in this map, the default default is Type.NORMAL.
   JAVASCRIPT_DEFAULT_TYPES = {
-    JavaScriptModes.DOC_COMMENT_MODE: Type.COMMENT,
-    JavaScriptModes.DOC_COMMENT_LEX_SPACES_MODE: Type.COMMENT
+      JavaScriptModes.DOC_COMMENT_MODE: Type.COMMENT,
+      JavaScriptModes.DOC_COMMENT_LEX_SPACES_MODE: Type.COMMENT
   }
 
-  def __init__(self, parse_js_doc = True):
+  @classmethod
+  def BuildMatchers(cls):
+    """Builds the token matcher group.
+
+    The token matcher groups work as follows: it is a list of Matcher objects.
+    The matchers will be tried in this order, and the first to match will be
+    returned.  Hence the order is important because the matchers that come first
+    overrule the matchers that come later.
+
+    Returns:
+      The completed token matcher group.
+    """
+    # Match a keyword string followed by a non-identifier character in order to
+    # not match something like doSomething as do + Something.
+    keyword = re.compile('(%s)((?=[^%s])|$)' % (
+        '|'.join(cls.KEYWORD_LIST), cls.IDENTIFIER_CHAR))
+    return {
+
+        # Matchers for basic text mode.
+        JavaScriptModes.TEXT_MODE: [
+            # Check a big group - strings, starting comments, and regexes - all
+            # of which could be intertwined.  'string with /regex/',
+            # /regex with 'string'/, /* comment with /regex/ and string */ (and
+            # so on)
+            Matcher(cls.START_DOC_COMMENT, Type.START_DOC_COMMENT,
+                    JavaScriptModes.DOC_COMMENT_MODE),
+            Matcher(cls.START_BLOCK_COMMENT, Type.START_BLOCK_COMMENT,
+                    JavaScriptModes.BLOCK_COMMENT_MODE),
+            Matcher(cls.END_OF_LINE_SINGLE_LINE_COMMENT,
+                    Type.START_SINGLE_LINE_COMMENT),
+            Matcher(cls.START_SINGLE_LINE_COMMENT,
+                    Type.START_SINGLE_LINE_COMMENT,
+                    JavaScriptModes.LINE_COMMENT_MODE),
+            Matcher(cls.SINGLE_QUOTE, Type.SINGLE_QUOTE_STRING_START,
+                    JavaScriptModes.SINGLE_QUOTE_STRING_MODE),
+            Matcher(cls.DOUBLE_QUOTE, Type.DOUBLE_QUOTE_STRING_START,
+                    JavaScriptModes.DOUBLE_QUOTE_STRING_MODE),
+            Matcher(cls.REGEX, Type.REGEX),
+
+            # Next we check for start blocks appearing outside any of the items
+            # above.
+            Matcher(cls.START_BLOCK, Type.START_BLOCK),
+            Matcher(cls.END_BLOCK, Type.END_BLOCK),
+
+            # Then we search for function declarations.
+            Matcher(cls.FUNCTION_DECLARATION, Type.FUNCTION_DECLARATION,
+                    JavaScriptModes.FUNCTION_MODE),
+
+            # Next, we convert non-function related parens to tokens.
+            Matcher(cls.OPENING_PAREN, Type.START_PAREN),
+            Matcher(cls.CLOSING_PAREN, Type.END_PAREN),
+
+            # Next, we convert brackets to tokens.
+            Matcher(cls.OPENING_BRACKET, Type.START_BRACKET),
+            Matcher(cls.CLOSING_BRACKET, Type.END_BRACKET),
+
+            # Find numbers.  This has to happen before operators because
+            # scientific notation numbers can have + and - in them.
+            Matcher(cls.NUMBER, Type.NUMBER),
+
+            # Find operators and simple assignments
+            Matcher(cls.SIMPLE_LVALUE, Type.SIMPLE_LVALUE),
+            Matcher(cls.OPERATOR, Type.OPERATOR),
+
+            # Find key words and whitespace.
+            Matcher(keyword, Type.KEYWORD),
+            Matcher(cls.WHITESPACE, Type.WHITESPACE),
+
+            # Find identifiers.
+            Matcher(cls.IDENTIFIER, Type.IDENTIFIER),
+
+            # Finally, we convert semicolons to tokens.
+            Matcher(cls.SEMICOLON, Type.SEMICOLON)],
+
+        # Matchers for single quote strings.
+        JavaScriptModes.SINGLE_QUOTE_STRING_MODE: [
+            Matcher(cls.SINGLE_QUOTE_TEXT, Type.STRING_TEXT),
+            Matcher(cls.SINGLE_QUOTE, Type.SINGLE_QUOTE_STRING_END,
+                    JavaScriptModes.TEXT_MODE)],
+
+        # Matchers for double quote strings.
+        JavaScriptModes.DOUBLE_QUOTE_STRING_MODE: [
+            Matcher(cls.DOUBLE_QUOTE_TEXT, Type.STRING_TEXT),
+            Matcher(cls.DOUBLE_QUOTE, Type.DOUBLE_QUOTE_STRING_END,
+                    JavaScriptModes.TEXT_MODE)],
+
+        # Matchers for block comments.
+        JavaScriptModes.BLOCK_COMMENT_MODE: [
+            # First we check for exiting a block comment.
+            Matcher(cls.END_BLOCK_COMMENT, Type.END_BLOCK_COMMENT,
+                    JavaScriptModes.TEXT_MODE),
+
+            # Match non-comment-ending text..
+            Matcher(cls.BLOCK_COMMENT_TEXT, Type.COMMENT)],
+
+        # Matchers for doc comments.
+        JavaScriptModes.DOC_COMMENT_MODE: cls.COMMON_DOC_MATCHERS + [
+            Matcher(cls.DOC_COMMENT_TEXT, Type.COMMENT)],
+
+        JavaScriptModes.DOC_COMMENT_LEX_SPACES_MODE: cls.COMMON_DOC_MATCHERS + [
+            Matcher(cls.WHITESPACE, Type.COMMENT),
+            Matcher(cls.DOC_COMMENT_NO_SPACES_TEXT, Type.COMMENT)],
+
+        # Matchers for single line comments.
+        JavaScriptModes.LINE_COMMENT_MODE: [
+            # We greedy match until the end of the line in line comment mode.
+            Matcher(cls.ANYTHING, Type.COMMENT, JavaScriptModes.TEXT_MODE)],
+
+        # Matchers for code after the function keyword.
+        JavaScriptModes.FUNCTION_MODE: [
+            # Must match open paren before anything else and move into parameter
+            # mode, otherwise everything inside the parameter list is parsed
+            # incorrectly.
+            Matcher(cls.OPENING_PAREN, Type.START_PARAMETERS,
+                    JavaScriptModes.PARAMETER_MODE),
+            Matcher(cls.WHITESPACE, Type.WHITESPACE),
+            Matcher(cls.IDENTIFIER, Type.FUNCTION_NAME)],
+
+        # Matchers for function parameters
+        JavaScriptModes.PARAMETER_MODE: [
+            # When in function parameter mode, a closing paren is treated
+            # specially. Everything else is treated as lines of parameters.
+            Matcher(cls.CLOSING_PAREN_WITH_SPACE, Type.END_PARAMETERS,
+                    JavaScriptModes.TEXT_MODE),
+            Matcher(cls.PARAMETERS, Type.PARAMETERS,
+                    JavaScriptModes.PARAMETER_MODE)]}
+
+  def __init__(self, parse_js_doc=True):
     """Create a tokenizer object.
 
     Args:
       parse_js_doc: Whether to do detailed parsing of javascript doc comments,
           or simply treat them as normal comments.  Defaults to parsing JsDoc.
     """
-    matchers = self.JAVASCRIPT_MATCHERS
+    matchers = self.BuildMatchers()
     if not parse_js_doc:
       # Make a copy so the original doesn't get modified.
       matchers = copy.deepcopy(matchers)
@@ -360,4 +462,4 @@ class JavaScriptTokenizer(tokenizer.Tokenizer):
         name of the function.
     """
     return javascripttokens.JavaScriptToken(string, token_type, line,
-                                            line_number, values)
+                                            line_number, values, line_number)

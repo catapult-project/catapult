@@ -25,6 +25,7 @@ from mapreduce import operation as op
 
 from google.appengine.ext import ndb
 
+from dashboard import datastore_hooks
 from dashboard import layered_cache
 from dashboard import request_handler
 from dashboard.models import graph_data
@@ -94,6 +95,7 @@ def DeprecateTestsMapper(entity):
     return
 
   # Fetch the last row.
+  datastore_hooks.SetPrivilegedRequest()
   query = graph_data.Row.query(graph_data.Row.parent_test == entity.key)
   query = query.order(-graph_data.Row.timestamp)
   last_row = query.get()

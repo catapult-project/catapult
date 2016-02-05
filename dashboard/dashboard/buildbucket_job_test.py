@@ -13,6 +13,7 @@ class BuildbucketJobTest(testing_common.TestCase):
   def setUp(self):
     super(BuildbucketJobTest, self).setUp()
     self._args_base = {
+        'try_job_id': 1,
         'bisect_director': 'linux_perf_bisector',
         'recipe_tester_name': 'linux_perf_bisect',
         'good_revision': '1',

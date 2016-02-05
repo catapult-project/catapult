@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/extras/rail/idle_interaction_record.html">
 <link rel="import" href="/tracing/extras/rail/stub_rail_interaction_record.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -28,8 +29,11 @@ tr.b.unittest.testSuite(function() {
     });
 
     var modelHelper = new tr.e.audits.ChromeModelHelper(model);
-    var rir = new tr.e.rail.RAILInteractionRecord(
-        model, 'simple', 'rail_response', 0, 100);
+    var rir = new tr.e.rail.StubRAILInteractionRecord({
+        parentModel: model,
+        typeName: 'Idle',
+        start: 0, end: 100
+    });
     rir.associatedEvents.push(model.rendererMain.sliceGroup.slices[0]);
     rir.updateArgs();
 
@@ -40,7 +44,7 @@ tr.b.unittest.testSuite(function() {
   test('railScore', function() {
     var ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
-      railTypeName: 'rail_idle',
+      typeName: 'Idle',
       normalizedUserComfort: 0,
       normalizedEfficiency: 0
     });
@@ -48,7 +52,7 @@ tr.b.unittest.testSuite(function() {
 
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
-      railTypeName: 'rail_idle',
+      typeName: 'Idle',
       normalizedUserComfort: 1,
       normalizedEfficiency: 1
     });
@@ -56,7 +60,7 @@ tr.b.unittest.testSuite(function() {
 
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
-      railTypeName: 'rail_idle',
+      typeName: 'Idle',
       normalizedUserComfort: 1,
       normalizedEfficiency: 0
     });
@@ -64,27 +68,11 @@ tr.b.unittest.testSuite(function() {
 
     ir = new tr.e.rail.StubRAILInteractionRecord({
       start: 0, end: 100,
-      railTypeName: 'rail_idle',
+      typeName: 'Idle',
       normalizedUserComfort: 0,
       normalizedEfficiency: 1
     });
     assert.closeTo(0.15536, ir.railScore, 1e-5);
-  });
-
-  test('userFriendlyRailTypeName', function() {
-    // Invalid names shouldn't be modified.
-    var result = tr.e.rail.userFriendlyRailTypeName('not_a_rail_type_name');
-    assert.equal('not_a_rail_type_name', result);
-    result = tr.e.rail.userFriendlyRailTypeName('rail_');
-    assert.equal('rail_', result);
-
-    // Some valid things.
-    result = tr.e.rail.userFriendlyRailTypeName('rail_animate');
-    assert.equal('Animate', result);
-    result = tr.e.rail.userFriendlyRailTypeName('rail_b');
-    assert.equal('B', result);
-    result = tr.e.rail.userFriendlyRailTypeName('rail_123');
-    assert.equal('123', result);
   });
 });
 </script>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/model/model_stats.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ModelStats = tr.model.ModelStats;
+
+  test('getTraceEventStatsByCategory', function() {
+    var modelStats = new ModelStats();
+    modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
+    modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
+    modelStats.willProcessBasicTraceEvent('X', 'cat2', 'title3');
+
+    assert.equal(modelStats.allTraceEventStats.length, 2);
+    assert.equal(
+        modelStats.traceEventCountsByKey_.get('X/cat1/title1').numEvents,
+        2);
+    assert.equal(
+        modelStats.traceEventCountsByKey_.get('X/cat2/title3').numEvents,
+        1);
+  });
+
+});
+</script>

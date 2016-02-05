@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/etw/etw_importer.html">
 
@@ -12,6 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var Base64 = tr.b.Base64;
+
   test('canImport', function() {
     assert.isFalse(tr.e.importer.etw.EtwImporter.canImport('string'));
     assert.isFalse(tr.e.importer.etw.EtwImporter.canImport([]));
@@ -69,7 +72,8 @@ tr.b.unittest.testSuite(function() {
 
     // Try to parse a valid event.
     var valid_event = {
-      guid: 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0, 'payload': btoa('0')
+      guid: 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0,
+      'payload': Base64.btoa('0')
     };
     assert.isTrue(importer.parseEvent(valid_event));
     assert.isTrue(handler_called);

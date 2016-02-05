@@ -8,6 +8,7 @@ import base64
 import binascii
 import json
 import logging
+import os
 import re
 import time
 
@@ -278,3 +279,62 @@ def DownloadChromiumFile(path):
     logging.error('Failed to decode "%s" from "%s".', response.content, url)
     return None
   return plaintext_content
+
+
+def GetRequestId():
+  """Returns the request log ID which can be used to find a specific log."""
+  return os.environ.get('REQUEST_LOG_ID')
+
+
+def Validate(expected, actual):
+  """Generic validator for expected keys, values, and types.
+
+  Values are also considered equal if |actual| can be converted to |expected|'s
+  type.  For instance:
+    _Validate([3], '3')  # Returns True.
+
+  See utils_test.py for more examples.
+
+  Args:
+    expected: Either a list of expected values or a dictionary of expected
+        keys and type.  A dictionary can contain a list of expected values.
+    actual: A value.
+  """
+  def IsValidType(expected, actual):
+    if type(expected) is type and type(actual) is not expected:
+      try:
+        expected(actual)
+      except ValueError:
+        return False
+    return True
+
+  def IsInList(expected, actual):
+    for value in expected:
+      try:
+        if type(value)(actual) == value:
+          return True
+      except ValueError:
+        pass
+    return False
+
+  if not expected:
+    return
+  expected_type = type(expected)
+  actual_type = type(actual)
+  if expected_type is list:
+    if not IsInList(expected, actual):
+      raise ValueError('Invalid value. Expected one of the following: '
+                       '%s. Actual: %s.' % (','.join(expected), actual))
+  elif expected_type is dict:
+    if actual_type is not dict:
+      raise ValueError('Invalid type. Expected: %s. Actual: %s.'
+                       % (expected_type, actual_type))
+    missing = set(expected.keys()) - set(actual.keys())
+    if missing:
+      raise ValueError('Missing the following properties: %s'
+                       % ','.join(missing))
+    for key in expected:
+      Validate(expected[key], actual[key])
+  elif not IsValidType(expected, actual):
+    raise ValueError('Invalid type. Expected: %s. Actual: %s.' %
+                     (expected, actual_type))

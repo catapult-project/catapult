@@ -27,6 +27,7 @@ CLOUD_MAPPER_FILES = [
     'local_worker.yaml',
     'queue.yaml',
     'dispatch.yaml',
+    'cron.yaml',
     'index.yaml',
     'Dockerfile',
     'perf_insights',

@@ -14,39 +14,11 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.ui.b', function() {
 
-  Object.observe(Polymer.elements, clearPolymerElementCaches);
-
-  var elementsByName = undefined;
-  var elementsThatExtend = undefined;
-  var elementSubclasses = undefined;
-  function clearPolymerElementCaches() {
-    elementsByName = {};
-    elementsThatExtend = undefined;
-    elementSubclasses = {};
-  }
-
-  function buildElementMapsIfNeeded() {
-    if (elementsThatExtend !== undefined && elementsByName !== undefined)
-      return;
-    elementsByName = {};
-    elementsThatExtend = {};
-    Polymer.elements.forEach(function(element) {
-      if (elementsByName[element.name])
-        throw new Error('Something is strange: dupe polymer element names');
-
-      elementsByName[element.name] = element;
-
-      if (element.extends) {
-        if (elementsThatExtend[element.extends] === undefined)
-          elementsThatExtend[element.extends] = [];
-        elementsThatExtend[element.extends].push(element.name);
-      }
-    });
-  }
-
   function getPolymerElementNamed(tagName) {
-    buildElementMapsIfNeeded();
-    return elementsByName[tagName];
+    for (var i = 0; i < Polymer.elements.length; i++) {
+      if (Polymer.elements[i].name === tagName)
+        return Polymer.elements[i];
+    }
   }
 
   function getPolymerElementsThatSubclass(tagName) {
@@ -55,28 +27,38 @@ tr.exportTo('tr.ui.b', function() {
         'Wait until Polymer.whenReady');
     }
 
-    buildElementMapsIfNeeded();
+    var baseElement;
+    var elementsThatExtend = {};
+    Polymer.elements.forEach(function(element) {
+      if (element.name === tagName)
+        baseElement = element;
 
-    var element = getPolymerElementNamed(tagName);
-    if (!element)
+      if (element.extends) {
+        if (elementsThatExtend[element.extends] === undefined)
+          elementsThatExtend[element.extends] = [];
+        elementsThatExtend[element.extends].push(element.name);
+      }
+    });
+
+    if (!baseElement)
       throw new Error(tagName + ' is not a polymer element');
 
-    if (elementSubclasses === undefined)
-      elementSubclasses = {};
+    var allFoundSubElements = [];
+    var elementsNeedingChecking = [baseElement];
+    while (elementsNeedingChecking.length) {
+      var element = elementsNeedingChecking[0];
+      elementsNeedingChecking.splice(0, 1);
 
-    if (elementSubclasses[tagName] === undefined) {
+      if (element !== baseElement)
+        allFoundSubElements.push(element);
+
       var immediateSubElements = elementsThatExtend[element.name];
-      var allSubElements = [];
-      if (immediateSubElements !== undefined && immediateSubElements.length) {
-        immediateSubElements.forEach(function(subElement) {
-          allSubElements.push(subElement);
-          allSubElements.push.apply(
-            allSubElements, getPolymerElementsThatSubclass(subElement));
-        });
-      }
-      elementSubclasses[tagName] = allSubElements;
+      if (immediateSubElements === undefined)
+        continue;
+      elementsNeedingChecking.push.apply(elementsNeedingChecking,
+                                         immediateSubElements);
     }
-    return elementSubclasses[tagName];
+    return allFoundSubElements;
   }
 
   return {

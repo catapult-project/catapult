@@ -8,7 +8,6 @@ import difflib
 import hashlib
 import json
 import logging
-import re
 
 import httplib2
 
@@ -17,6 +16,7 @@ from google.appengine.api import app_identity
 
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
+from dashboard import can_bisect
 from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
@@ -38,7 +38,6 @@ diff --git a/%(filename_a)s b/%(filename_b)s
 index %(hash_a)s..%(hash_b)s 100644
 """
 
-_BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 _BOT_BROWSER_MAP_KEY = 'bot_browser_map'
 _INTERNAL_MASTERS_KEY = 'internal_masters'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
@@ -277,20 +276,15 @@ def GetBisectConfig(
     return {'error': 'Could not guess command for %r.' % suite}
 
   try:
-    if not _IsGitHash(good_revision):
-      good_revision = int(good_revision)
-    if not _IsGitHash(bad_revision):
-      bad_revision = int(bad_revision)
     repeat_count = int(repeat_count)
     max_time_minutes = int(max_time_minutes)
     bug_id = int(bug_id)
   except ValueError:
-    return {'error': ('repeat count and max time must be integers '
-                      'and revision as git hash or int.')}
+    return {'error': 'repeat count, max time and bug_id must be integers.'}
 
-  if not IsValidRevisionForBisect(good_revision):
+  if not can_bisect.IsValidRevisionForBisect(good_revision):
     return {'error': 'Invalid "good" revision "%s".' % good_revision}
-  if not IsValidRevisionForBisect(bad_revision):
+  if not can_bisect.IsValidRevisionForBisect(bad_revision):
     return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
@@ -359,9 +353,9 @@ def _GetPerfTryConfig(
   if not command:
     return {'error': 'Only Telemetry is supported at the moment.'}
 
-  if not IsValidRevisionForBisect(good_revision):
+  if not can_bisect.IsValidRevisionForBisect(good_revision):
     return {'error': 'Invalid "good" revision "%s".' % good_revision}
-  if not IsValidRevisionForBisect(bad_revision):
+  if not can_bisect.IsValidRevisionForBisect(bad_revision):
     return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
 
   config_dict = {
@@ -374,19 +368,9 @@ def _GetPerfTryConfig(
   return config_dict
 
 
-def IsValidRevisionForBisect(revision):
-  """Checks whether a revision looks like a valid revision for bisect."""
-  return _IsGitHash(revision) or re.match(r'^[0-9]{5,7}$', str(revision))
-
-
-def _IsGitHash(revision):
-  """Checks whether the input looks like a SHA1 hash."""
-  return re.match(r'[a-fA-F0-9]{40}$', str(revision))
-
-
 def _GetAvailableBisectBots(master_name):
   """Get all available bisect bots corresponding to a master name."""
-  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
   for master, platform_bot_pairs in bisect_bot_map.iteritems():
     if master_name.startswith(master):
       return sorted({bot for _, bot in platform_bot_pairs})
@@ -401,7 +385,7 @@ def _CanDownloadBuilds(master_name):
 def GuessBisectBot(master_name, bot_name):
   """Returns a bisect bot name based on |bot_name| (perf_id) string."""
   fallback = 'linux_perf_bisect'
-  bisect_bot_map = namespaced_stored_object.Get(_BISECT_BOT_MAP_KEY)
+  bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
   if not bisect_bot_map:
     return fallback
   bot_name = bot_name.lower()
@@ -554,33 +538,6 @@ def _HasChildTest(test_path):
   return bool(child)
 
 
-def _RewriteMetricName(metric):
-  """Rewrites a metric name for legacy bisect.
-
-  With the introduction of test names with interaction record labels coming
-  from Telemetry, it is necessary to rewrite names to the format described in
-  goo.gl/CXGyxT so that they can be interpreted by legacy bisect. Recipe bisect
-  does the rewriting itself.
-
-  For instance, foo/bar/baz would be rewritten as bar-foo/baz.
-
-  Args:
-    metric: The slash-separated metric name, generally from GuessMetric.
-
-  Returns:
-    The Buildbot output format-compatible metric name.
-  """
-  test_parts = metric.split('/')
-
-  if len(test_parts) == 3:
-    chart_name, interaction_record_name, trace_name = test_parts
-    return '%s-%s/%s' % (interaction_record_name,
-                         chart_name,
-                         trace_name)
-  else:
-    return metric
-
-
 def _CreatePatch(base_config, config_changes, config_path):
   """Takes the base config file and the changes and generates a patch.
 
@@ -646,6 +603,9 @@ def PerformBisect(bisect_job):
     the field "issue_id" and "issue_url", otherwise it contains "error".
   """
   assert bisect_job.bot and bisect_job.config
+  if not bisect_job.key:
+    bisect_job.put()
+
   if bisect_job.use_buildbucket:
     result = _PerformBuildbucketBisect(bisect_job)
   else:
@@ -657,14 +617,12 @@ def PerformBisect(bisect_job):
 
 
 def _PerformLegacyBisect(bisect_job):
-  config_dict = bisect_job.GetConfigDict()
-  config = bisect_job.config
   bot = bisect_job.bot
   email = bisect_job.email
   bug_id = bisect_job.bug_id
 
-  # We need to rewrite the metric name for legacy bisect.
-  config_dict['metric'] = _RewriteMetricName(config_dict['metric'])
+  config_dict = bisect_job.GetConfigDict()
+  config_dict['try_job_id'] = bisect_job.key.id()
   bisect_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
@@ -672,7 +630,7 @@ def _PerformLegacyBisect(bisect_job):
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, config, _BISECT_CONFIG_PATH)
+      base_config, bisect_job.config, _BISECT_CONFIG_PATH)
 
   # Check if bisect is for internal only tests.
   bisect_internal = _IsBisectInternalOnly(bisect_job)
@@ -746,16 +704,23 @@ def _PerformPerfTryJob(perf_job):
     the field "issue_id", otherwise it contains "error".
   """
   assert perf_job.bot and perf_job.config
-  config = perf_job.config
+
+  if not perf_job.key:
+    perf_job.put()
+
   bot = perf_job.bot
   email = perf_job.email
+
+  config_dict = perf_job.GetConfigDict()
+  config_dict['try_job_id'] = perf_job.key.id()
+  perf_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
   base_config = utils.DownloadChromiumFile(_PERF_CONFIG_PATH)
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, config, _PERF_CONFIG_PATH)
+      base_config, perf_job.config, _PERF_CONFIG_PATH)
 
   # Upload the patch to Rietveld.
   server = rietveld_service.RietveldService()
@@ -824,6 +789,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
   tester_name = config['recipe_tester_name']
 
   return buildbucket_job.BisectJob(
+      try_job_id=bisect_job.key.id(),
       bisect_director=GetBisectDirectorForTester(tester_name),
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],

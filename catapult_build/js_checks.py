@@ -43,7 +43,7 @@ class JSChecker(object):
           line_number,
           message,
           line,
-          self._ErrorHighlight(start, length))
+          _ErrorHighlight(start, length))
     return ''
 
   def ConstCheck(self, i, line):
@@ -54,13 +54,6 @@ class JSChecker(object):
 
     return self.RegexCheck(
         i, line, r'(?:^|\s|\()(const)\s', 'Use var instead of const.')
-
-  def _ErrorHighlight(self, start, length):
-    """Produces a row of '^'s to underline part of a string."""
-    return start * ' ' + length * '^'
-
-  def _MakeErrorOrWarning(self, output_api, error_text):
-    return output_api.PresubmitError(error_text)
 
   def RunChecks(self):
     """Checks for violations of the Chromium JavaScript style guide.
@@ -73,17 +66,17 @@ class JSChecker(object):
 
     try:
       base_path = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '..'))
+          os.path.dirname(__file__), '..'))
       closure_linter_path = os.path.join(
-        base_path, 'third_party', 'closure_linter')
+          base_path, 'third_party', 'closure_linter')
       gflags_path = os.path.join(
-        base_path, 'third_party', 'python_gflags')
+          base_path, 'third_party', 'python_gflags')
       sys.path.insert(0, closure_linter_path)
       sys.path.insert(0, gflags_path)
 
       warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-      from closure_linter import checker, errors
+      from closure_linter import runner, errors
       from closure_linter.common import errorhandler
 
     finally:
@@ -94,6 +87,7 @@ class JSChecker(object):
       """Filters out errors that don't apply to Chromium JavaScript code."""
 
       def __init__(self):
+        super(ErrorHandlerImpl, self).__init__()
         self._errors = []
         self._filename = None
 
@@ -116,23 +110,23 @@ class JSChecker(object):
 
         Most errors are valid, with a few exceptions which are listed here.
         """
-        is_grit_statement = bool(
-          re.search('</?(include|if)', error.token.line))
+        if re.search('</?(include|if)', error.token.line):
+          return False  # GRIT statement.
 
-        return not is_grit_statement and error.code not in [
+        if (error.code == errors.MISSING_SEMICOLON and
+            error.token.string == 'of'):
+          return False  # ES6 for...of statement.
+
+        return error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
-            errors.JSDOC_TAG_DESCRIPTION_ENDS_WITH_INVALID_CHARACTER,
             errors.MISSING_JSDOC_TAG_THIS,
         ]
 
     results = []
 
-    try:
-      affected_files = self.input_api.AffectedFiles(
-          file_filter=self.file_filter,
-          include_deletes=False)
-    except Exception:
-      affected_files = []
+    affected_files = self.input_api.AffectedFiles(
+        file_filter=self.file_filter,
+        include_deletes=False)
 
     def ShouldCheck(f):
       if f.LocalPath().endswith('.js'):
@@ -157,11 +151,10 @@ class JSChecker(object):
       import gflags as flags
       flags.FLAGS.strict = True
       error_handler = ErrorHandlerImpl()
-      js_checker = checker.JavaScriptStyleChecker(error_handler)
-      js_checker.Check(f.AbsoluteLocalPath())
+      runner.Run(f.AbsoluteLocalPath(), error_handler)
 
       for error in error_handler.GetErrors():
-        highlight = self._ErrorHighlight(
+        highlight = _ErrorHighlight(
             error.token.start_index, error.token.length)
         error_msg = '  line %d: E%04d: %s\n%s\n%s' % (
             error.token.line_number,
@@ -176,9 +169,18 @@ class JSChecker(object):
             'Found JavaScript style violations in %s:' %
             f.LocalPath()] + error_lines
         results.append(
-            self._MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
+            _MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
 
     return results
+
+
+def _ErrorHighlight(start, length):
+  """Produces a row of '^'s to underline part of a string."""
+  return start * ' ' + length * '^'
+
+
+def _MakeErrorOrWarning(output_api, error_text):
+  return output_api.PresubmitError(error_text)
 
 
 def CheckStrictMode(contents, is_html_file=False):
@@ -189,7 +191,7 @@ def CheckStrictMode(contents, is_html_file=False):
     statements_to_check.append(_FirstStatement(contents))
   error_lines = []
   for s in statements_to_check:
-    if s !=  "'use strict'":
+    if s != "'use strict'":
       error_lines.append('Expected "\'use strict\'" as first statement, '
                          'but found "%s" instead.' % s)
   return error_lines

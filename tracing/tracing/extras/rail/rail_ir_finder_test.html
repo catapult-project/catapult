@@ -57,11 +57,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 10, end: 20, eventCount: 4},
+      {title: 'Mouse Response', start: 10, end: 20, eventCount: 4},
       {title: 'Idle', start: 20, end: 70, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 70, end: 80, eventCount: 3},
+      {title: 'Mouse Response', start: 70, end: 80, eventCount: 3},
       {title: 'Idle', start: 80, end: 130, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 130, end: 140, eventCount: 3}
+      {title: 'Mouse Response', start: 130, end: 140, eventCount: 3}
     ];
     verifier.verify();
   });
@@ -82,10 +82,10 @@ tr.b.unittest.testSuite(function() {
       addFrameEventForInput(model, mouseMove);
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Mouse', start: 0, end: 50, eventCount: 3},
-      {title: 'Response', name: 'Mouse', start: 50, end: 100, eventCount: 3},
+      {title: 'Mouse Response', start: 0, end: 50, eventCount: 3},
+      {title: 'Mouse Response', start: 50, end: 100, eventCount: 3},
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 200, end: 250, eventCount: 3}
+      {title: 'Mouse Response', start: 200, end: 250, eventCount: 3}
     ];
     verifier.verify();
   });
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1},
-      {title: 'Load', name: 'Succeeded', start: 10, end: 30, eventCount: 4},
+      {title: 'Successful Load', start: 10, end: 30, eventCount: 4},
       {title: 'Idle', start: 30, end: 40, eventCount: 1}
     ];
     verifier.verify();
@@ -212,17 +212,17 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 0},
-      {title: 'Response', name: 'Scroll,Tap,Touch', start: 919, end: 1054,
+      {title: 'Scroll,Tap,Touch Response', start: 919, end: 1054,
           eventCount: 6},
-      {title: 'Animation', name: 'Scroll,Touch', start: 1054, end: 1068,
+      {title: 'Scroll,Touch Animation', start: 1054, end: 1068,
           eventCount: 8},
-      {title: 'Animation', name: 'Fling', start: 1054, end: 1432,
+      {title: 'Fling Animation', start: 1054, end: 1432,
           eventCount: 2},
-      {title: 'Response', name: 'Scroll,Touch', start: 1432, end: 2605,
+      {title: 'Scroll,Touch Response', start: 1432, end: 2605,
           eventCount: 5},
-      {title: 'Animation', name: 'Scroll', start: 1549, end: 2310,
+      {title: 'Scroll Animation', start: 1549, end: 2310,
           eventCount: 1},
-      {title: 'Animation', name: 'Fling', start: 2605, end: 3000,
+      {title: 'Fling Animation', start: 2605, end: 3000,
           eventCount: 1}
     ];
     verifier.verify();
@@ -237,7 +237,7 @@ tr.b.unittest.testSuite(function() {
           {start: 10, end: 50});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Keyboard', start: 0, end: 50, eventCount: 2}
+      {title: 'Keyboard Response', start: 0, end: 50, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -253,11 +253,11 @@ tr.b.unittest.testSuite(function() {
           {start: 400, end: 500});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Mouse', start: 0, end: 100, eventCount: 1},
+      {title: 'Mouse Response', start: 0, end: 100, eventCount: 1},
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 200, end: 300, eventCount: 1},
+      {title: 'Mouse Response', start: 200, end: 300, eventCount: 1},
       {title: 'Idle', start: 300, end: 400, eventCount: 0},
-      {title: 'Response', name: 'MouseWheel', start: 400, end: 500,
+      {title: 'MouseWheel Response', start: 400, end: 500,
           eventCount: 1}
     ];
     verifier.verify();
@@ -282,15 +282,15 @@ tr.b.unittest.testSuite(function() {
           {start: 182, end: 200});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'MouseWheel', start: 0, end: 20, eventCount: 1},
-      {title: 'Animation', name: 'MouseWheel', start: 20, end: 75,
+      {title: 'MouseWheel Response', start: 0, end: 20, eventCount: 1},
+      {title: 'MouseWheel Animation', start: 20, end: 75,
           eventCount: 2},
       {title: 'Idle', start: 75, end: 100, eventCount: 0},
-      {title: 'Response', name: 'MouseWheel', start: 100, end: 150,
+      {title: 'MouseWheel Response', start: 100, end: 150,
           eventCount: 1},
-      {title: 'Response', name: 'MouseWheel', start: 141, end: 191,
+      {title: 'MouseWheel Response', start: 141, end: 191,
           eventCount: 1},
-      {title: 'Response', name: 'MouseWheel', start: 182, end: 200,
+      {title: 'MouseWheel Response', start: 182, end: 200,
           eventCount: 1}
     ];
     verifier.verify();
@@ -306,7 +306,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 200, end: 210, eventCount: 2}
+      {title: 'Mouse Response', start: 200, end: 210, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -340,8 +340,8 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
-      {title: 'Response', name: 'Mouse', start: 200, end: 215, eventCount: 4},
-      {title: 'Animation', name: 'Mouse', start: 215, end: 240, eventCount: 6}
+      {title: 'Mouse Response', start: 200, end: 215, eventCount: 4},
+      {title: 'Mouse Animation', start: 215, end: 240, eventCount: 6}
     ];
     verifier.verify();
   });
@@ -375,11 +375,11 @@ tr.b.unittest.testSuite(function() {
           {start: 360, end: 500});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Scroll', start: 0, end: 100, eventCount: 2},
-      {title: 'Animation', name: 'Scroll', start: 100, end: 150, eventCount: 4},
+      {title: 'Scroll Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Scroll Animation', start: 100, end: 150, eventCount: 4},
       {title: 'Idle', start: 150, end: 300, eventCount: 0},
-      {title: 'Response', name: 'Scroll', start: 300, end: 400, eventCount: 2},
-      {title: 'Animation', name: 'Scroll', start: 400, end: 500, eventCount: 4}
+      {title: 'Scroll Response', start: 300, end: 400, eventCount: 2},
+      {title: 'Scroll Animation', start: 400, end: 500, eventCount: 4}
     ];
     verifier.verify();
   });
@@ -399,8 +399,8 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', name: 'CSS', start: 0, end: 200, eventCount: 2},
-      {title: 'Animation', name: 'Fling', start: 150, end: 300, eventCount: 1}
+      {title: 'CSS Animation', start: 0, end: 200, eventCount: 2},
+      {title: 'Fling Animation', start: 150, end: 300, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -414,7 +414,7 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', name: 'Fling', start: 32, end: 200, eventCount: 2},
+      {title: 'Fling Animation', start: 32, end: 200, eventCount: 2},
       {title: 'Idle', start: 200, end: 300, eventCount: 0}
     ];
     verifier.verify();
@@ -429,7 +429,7 @@ tr.b.unittest.testSuite(function() {
           {start: 105, end: 150});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', name: 'Fling', start: 32, end: 105, eventCount: 2},
+      {title: 'Fling Animation', start: 32, end: 105, eventCount: 2},
       {title: 'Idle', start: 105, end: 150, eventCount: 0}
     ];
     verifier.verify();
@@ -456,10 +456,10 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 230, end: 240});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', name: 'Fling', start: 0, end: 100, eventCount: 2},
-      {title: 'Response', name: 'Touch', start: 100, end: 140, eventCount: 2},
-      {title: 'Animation', name: 'Touch', start: 140, end: 210, eventCount: 2},
-      {title: 'Animation', name: 'Fling', start: 200, end: 240, eventCount: 1}
+      {title: 'Fling Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'Touch Response', start: 100, end: 140, eventCount: 2},
+      {title: 'Touch Animation', start: 140, end: 210, eventCount: 2},
+      {title: 'Fling Animation', start: 200, end: 240, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -476,7 +476,7 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 15, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', name: 'Succeeded', start: 0, end: 20, eventCount: 4}
+      {title: 'Successful Load', start: 0, end: 20, eventCount: 4}
     ];
     verifier.verify();
   });
@@ -490,7 +490,7 @@ tr.b.unittest.testSuite(function() {
           model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', name: 'Failed', start: 0, end: 20, eventCount: 2}
+      {title: 'Failed Load', start: 0, end: 20, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -505,7 +505,7 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Load', name: 'Startup', start: 2, end: 20, eventCount: 2},
+      {title: 'Startup Load', start: 2, end: 20, eventCount: 2},
       {title: 'Idle', start: 20, end: 30, eventCount: 0}
     ];
     verifier.verify();
@@ -547,7 +547,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 0},
-      {title: 'Load', name: 'Succeeded', start: 1, end: 4, eventCount: 4},
+      {title: 'Successful Load', start: 1, end: 4, eventCount: 4},
       {title: 'Idle', start: 4, end: 13, eventCount: 0}
     ];
     verifier.verify();
@@ -562,7 +562,7 @@ tr.b.unittest.testSuite(function() {
           {start: 200, end: 210});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Touch', start: 0, end: 210, eventCount: 2}
+      {title: 'Touch Response', start: 0, end: 210, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -580,8 +580,8 @@ tr.b.unittest.testSuite(function() {
           {start: 200, end: 300});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Touch', start: 0, end: 100, eventCount: 2},
-      {title: 'Animation', name: 'Touch', start: 100, end: 300, eventCount: 2}
+      {title: 'Touch Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Touch Animation', start: 100, end: 300, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -597,9 +597,9 @@ tr.b.unittest.testSuite(function() {
           {start: 320, end: 350});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Tap', start: 0, end: 50, eventCount: 1},
+      {title: 'Tap Response', start: 0, end: 50, eventCount: 1},
       {title: 'Idle', start: 50, end: 300, eventCount: 0},
-      {title: 'Response', name: 'Tap', start: 300, end: 350, eventCount: 2}
+      {title: 'Tap Response', start: 300, end: 350, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -613,9 +613,9 @@ tr.b.unittest.testSuite(function() {
           {start: 300, end: 350});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Tap', start: 0, end: 100, eventCount: 1},
+      {title: 'Tap Response', start: 0, end: 100, eventCount: 1},
       {title: 'Idle', start: 100, end: 300, eventCount: 0},
-      {title: 'Response', name: 'Tap', start: 300, end: 350, eventCount: 1}
+      {title: 'Tap Response', start: 300, end: 350, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -629,7 +629,7 @@ tr.b.unittest.testSuite(function() {
           {start: 150, end: 200});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Tap', start: 0, end: 200, eventCount: 2}
+      {title: 'Tap Response', start: 0, end: 200, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -656,10 +656,10 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 0},
-      {title: 'Response', name: 'Pinch', start: 100, end: 160, eventCount: 2},
-      {title: 'Animation', name: 'Pinch', start: 160, end: 220, eventCount: 3},
+      {title: 'Pinch Response', start: 100, end: 160, eventCount: 2},
+      {title: 'Pinch Animation', start: 160, end: 220, eventCount: 3},
       {title: 'Idle', start: 220, end: 421, eventCount: 0},
-      {title: 'Animation', name: 'Pinch', start: 421, end: 500, eventCount: 2}
+      {title: 'Pinch Animation', start: 421, end: 500, eventCount: 2}
     ];
     verifier.verify();
   });
@@ -680,9 +680,9 @@ tr.b.unittest.testSuite(function() {
           {start: 180, end: 200});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Touch', start: 0, end: 100, eventCount: 2},
-      {title: 'Response', name: 'Touch', start: 50, end: 150, eventCount: 2},
-      {title: 'Animation', name: 'Touch', start: 150, end: 200, eventCount: 1}
+      {title: 'Touch Response', start: 0, end: 100, eventCount: 2},
+      {title: 'Touch Response', start: 50, end: 150, eventCount: 2},
+      {title: 'Touch Animation', start: 150, end: 200, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -729,11 +729,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 0},
-      {title: 'Response', name: 'Pinch,Scroll,Tap,Touch', start: 20, end: 110,
+      {title: 'Pinch,Scroll,Tap,Touch Response', start: 20, end: 110,
           eventCount: 9},
-      {title: 'Animation', name: 'Scroll,Touch', start: 110, end: 210,
+      {title: 'Scroll,Touch Animation', start: 110, end: 210,
           eventCount: 6},
-      {title: 'Animation', name: 'Fling', start: 180, end: 220, eventCount: 1}
+      {title: 'Fling Animation', start: 180, end: 220, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -750,8 +750,8 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 190, end: 200});
     };
     verifier.expectedIRs = [
-      {title: 'Animation', name: 'Scroll', start: 0, end: 100, eventCount: 2},
-      {title: 'Animation', name: 'Fling', start: 80, end: 200, eventCount: 1}
+      {title: 'Scroll Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'Fling Animation', start: 80, end: 200, eventCount: 1}
     ];
     verifier.verify();
   });
@@ -805,11 +805,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1274, eventCount: 0},
-      {title: 'Response', name: 'Scroll,Tap,Touch', start: 1274, end: 1387,
+      {title: 'Scroll,Tap,Touch Response', start: 1274, end: 1387,
           eventCount: 6},
-      {title: 'Animation', name: 'Scroll,Touch', start: 1387, end: 1474,
+      {title: 'Scroll,Touch Animation', start: 1387, end: 1474,
           eventCount: 10},
-      {title: 'Animation', name: 'Fling', start: 1427, end: 2300,
+      {title: 'Fling Animation', start: 1427, end: 2300,
           eventCount: 2},
       {title: 'Idle', start: 2300, end: 3185, eventCount: 0}
     ];
@@ -829,7 +829,7 @@ tr.b.unittest.testSuite(function() {
           {start: 15, end: 100});
     };
     verifier.expectedIRs = [
-      {title: 'Response', name: 'Tap,Touch', start: 0, end: 100,
+      {title: 'Tap,Touch Response', start: 0, end: 100,
           eventCount: 4}
     ];
     verifier.verify();

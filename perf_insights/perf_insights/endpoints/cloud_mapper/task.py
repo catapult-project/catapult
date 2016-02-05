@@ -1,10 +1,10 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import datetime
 import json
 import logging
 import os
-import time
 import urllib
 import uuid
 import webapp2
@@ -15,15 +15,7 @@ from perf_insights.endpoints.cloud_mapper import cloud_helper
 from perf_insights.endpoints.cloud_mapper import job_info
 from perf_insights import cloud_config
 
-_STARTUP_SCRIPT = \
-"""#!/bin/bash
-cd /catapult
-git pull
-git checkout {revision}
-
-perf_insights/bin/gce_instance_map_job --jobs=32\
- {mapper} {path}{gcs} {path}{gcs}.result
-"""
+DEFAULT_TRACES_PER_INSTANCE = 64
 
 
 class TaskPage(webapp2.RequestHandler):
@@ -50,9 +42,9 @@ class TaskPage(webapp2.RequestHandler):
     def _slice_it(li, cols=2):
       start = 0
       for i in xrange(cols):
-          stop = start + len(li[i::cols])
-          yield li[start:stop]
-          start = stop
+        stop = start + len(li[i::cols])
+        yield li[start:stop]
+        start = stop
 
     # TODO(simonhatch): In the future it might be possibly to only specify a
     # reducer and no mapper. Revisit this.
@@ -84,10 +76,16 @@ class TaskPage(webapp2.RequestHandler):
           params=payload)
       tasks[task_id] = {'status': 'IN_PROGRESS'}
 
+    job.running_tasks = [task_id for task_id, _ in tasks.iteritems()]
+    job.put()
+
     # On production servers, we could just sit and wait for the results, but
     # dev_server is single threaded and won't run any other tasks until the
     # current one is finished. We'll just do the easy thing for now and
     # queue a task to check for the result.
+    timeout = (
+        datetime.datetime.now() + datetime.timedelta(minutes=10)).strftime(
+            '%Y-%m-%d %H:%M:%S')
     taskqueue.add(
         queue_name='default',
         url='/cloud_mapper/task',
@@ -95,13 +93,18 @@ class TaskPage(webapp2.RequestHandler):
         countdown=1,
         params={'jobid': job.key.id(),
                 'type': 'check',
-                'tasks': json.dumps(tasks)})
+                'tasks': json.dumps(tasks),
+                'timeout': timeout})
 
   def _GetVersion(self):
     version = os.environ['CURRENT_VERSION_ID'].split('.')[0]
     if cloud_config._is_devserver():
       version = taskqueue.DEFAULT_APP_VERSION
     return version
+
+  def _CancelTasks(self, tasks):
+    task_names = [task_id for task_id, _ in tasks.iteritems()]
+    taskqueue.Queue('mapper-queue').delete_tasks_by_name(task_names)
 
   def _CheckOnResults(self, job):
     tasks = json.loads(self.request.get('tasks'))
@@ -119,13 +122,22 @@ class TaskPage(webapp2.RequestHandler):
         results = task_results_path
 
     if not results:
+      timeout = datetime.datetime.strptime(
+          self.request.get('timeout'), '%Y-%m-%d %H:%M:%S')
+      if datetime.datetime.now() > timeout:
+        self._CancelTasks(tasks)
+        job.status = 'ERROR'
+        job.put()
+        logging.error('Task timed out waiting for results.')
+        return
       taskqueue.add(
           url='/cloud_mapper/task',
           target=self._GetVersion(),
           countdown=1,
           params={'jobid': job.key.id(),
                   'type': 'check',
-                  'tasks': json.dumps(tasks)})
+                  'tasks': json.dumps(tasks),
+                  'timeout': self.request.get('timeout')})
       return
 
     logging.info("Finished all tasks.")
@@ -134,12 +146,17 @@ class TaskPage(webapp2.RequestHandler):
     job.results = results
     job.put()
 
-  def _RunMappers(self, job):
-    # TODO(simonhatch): Figure out the optimal # of instances to spawn.
-    num_instances = 1
+  def _CalculateNumInstancesNeeded(self, num_traces):
+    return 1 + int(num_traces / DEFAULT_TRACES_PER_INSTANCE)
 
+  def _RunMappers(self, job):
     # Get all the traces to process
     traces = self._QueryForTraces(job.corpus, job.query)
+
+    # We can probably be smarter about this down the road, maybe breaking
+    # this into many smaller tasks and allowing each instance to run
+    # several tasks at once. For now we'll just break it into a few big ones.
+    num_instances = self._CalculateNumInstancesNeeded(len(traces))
 
     return self._DispatchTracesAndWaitForResult(job, traces, num_instances)
 

@@ -16,7 +16,6 @@ Datastore operations often time out after a few hundred puts(), so this task
 is split up using the task queue.
 """
 
-import logging
 import re
 
 from google.appengine.api import mail

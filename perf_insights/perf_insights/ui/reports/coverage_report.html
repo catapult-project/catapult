@@ -76,7 +76,7 @@ found in the LICENSE file.
         // TODO(vmpstr): Why is there no irCoverage here?
         if (!result.value.irCoverage) {
           allCoverageInfo.push({
-            title: result.runInfo.displayName + ' (no coverage)',
+            title: result.canonicalUrl + ' (no coverage)',
             coverage: {
               associatedEventsCount: 'N/A',
               unassociatedEventsCount: 'N/A',
@@ -89,7 +89,7 @@ found in the LICENSE file.
           return;
         }
         allCoverageInfo.push({
-          title: result.runInfo.displayName,
+          title: result.canonicalUrl,
           coverage: result.value.irCoverage
         });
       });

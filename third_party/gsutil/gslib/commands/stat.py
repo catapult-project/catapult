@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 
 import logging
+import sys
 
 from gslib.bucket_listing_ref import BucketListingObject
 from gslib.cloud_api import AccessDeniedException
@@ -138,14 +139,14 @@ class StatCommand(Command):
             if logging.getLogger().isEnabledFor(logging.INFO):
               PrintFullInfoAboutObject(blr, incl_acl=False)
       except AccessDeniedException:
-        logging.info('You aren\'t authorized to read %s - skipping', url_str)
+        sys.stderr.write('You aren\'t authorized to read %s - skipping' %
+                         url_str)
       except InvalidUrlError:
         raise
       except NotFoundException:
         pass
       if not arg_matches:
-        if logging.getLogger().isEnabledFor(logging.INFO):
-          logging.info('No URLs matched %s', url_str)
+        sys.stderr.write('No URLs matched %s' % url_str)
         found_nonmatching_arg = True
     if found_nonmatching_arg:
       return 1

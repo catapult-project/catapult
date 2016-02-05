@@ -8,6 +8,7 @@ import csv
 import logging
 import StringIO
 
+from dashboard import datastore_hooks
 from dashboard import request_handler
 from dashboard import utils
 from dashboard.models import graph_data
@@ -40,6 +41,10 @@ class GraphCsvHandler(request_handler.RequestHandler):
     logging.info('Got request to /graph_csv for test: "%s".', test_path)
 
     test_key = utils.TestKey(test_path)
+    test = test_key.get()
+    assert(datastore_hooks.IsUnalteredQueryPermitted() or
+           not test.internal_only)
+    datastore_hooks.SetSinglePrivilegedRequest()
     q = graph_data.Row.query()
     q = q.filter(graph_data.Row.parent_test == test_key)
     if rev:

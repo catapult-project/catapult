@@ -45,3 +45,7 @@ WARNING: Some changes to production may not be easily reversible; for
 example `appcfg.py ... vacuum_indexes` will remove datastore indexes that
 are not in your local index.yaml file, which may take more than 24 hours,
 and will disable any queries that depend on those indexes.
+
+## Debugging in production
+
+See [cloud-debugger.md](/dashboard/cloud-debugger.md).

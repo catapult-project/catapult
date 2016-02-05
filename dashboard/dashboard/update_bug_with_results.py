@@ -8,7 +8,6 @@ import datetime
 import json
 import logging
 import re
-import sys
 import traceback
 import urllib
 
@@ -20,6 +19,7 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_fyi
 from dashboard import buildbucket_service
+from dashboard import datastore_hooks
 from dashboard import email_template
 from dashboard import issue_tracker_service
 from dashboard import layered_cache
@@ -50,7 +50,7 @@ _BISECT_BOT_TIMEOUT = 12 * 60
 # Amount of time to pass before deleting a try job.
 _STALE_TRYJOB_DELTA = datetime.timedelta(days=7)
 
-# Amount of time pass before deleteing try jobs that use Buildbucket.
+# Amount of time pass before deleting try jobs that use Buildbucket.
 _STALE_TRYJOB_DELTA_BUILDBUCKET = datetime.timedelta(days=21)
 
 _BUG_COMMENT_TEMPLATE = """Bisect job status: %(status)s
@@ -95,6 +95,9 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
         rietveld_service.PROJECTHOSTING_SCOPE)
     issue_tracker = issue_tracker_service.IssueTrackerService(
         additional_credentials=credentials)
+
+    # Set privilege so we can also fetch internal try_job entities.
+    datastore_hooks.SetPrivilegedRequest()
 
     jobs_to_check = try_job.TryJob.query(
         try_job.TryJob.status == 'started').fetch()
@@ -224,7 +227,7 @@ def _GetPerfTryResults(job):
   """
   results = {}
   # Fetch bisect bot results from Rietveld server.
-  response = _FetchURL(_RietveldIssueJSONURL(job))
+  response = _FetchRietveldIssueJSON(job)
   issue_url = _RietveldIssueURL(job)
   try_job_info = _ValidateRietveldResponse(response)
 
@@ -268,7 +271,7 @@ def _CheckBisectJob(job, issue_tracker):
     return
   logging.info('Bisect job status: %s.', bisect_results['status'])
   if bisect_results['status'] == 'Completed':
-    _PostSucessfulResult(job, bisect_results, issue_tracker)
+    _PostSuccessfulResult(job, bisect_results, issue_tracker)
     job.SetCompleted()
   elif bisect_results['status'] == 'Failure with partial results':
     _PostFailedResult(
@@ -294,12 +297,12 @@ def _GetBisectResults(job):
   # Fetch bisect bot results from Rietveld server.
   if job.use_buildbucket:
     try_job_info = _ValidateAndConvertBuildbucketResponse(
-        buildbucket_service.GetJobStatus(job.buildbucket_job_id))
+        buildbucket_service.GetJobStatus(job.buildbucket_job_id), job)
     hostname = app_identity.get_default_version_hostname()
     job_id = job.buildbucket_job_id
     issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
   else:
-    response = _FetchURL(_RietveldIssueJSONURL(job))
+    response = _FetchRietveldIssueJSON(job)
     issue_url = _RietveldIssueURL(job)
     try_job_info = _ValidateRietveldResponse(response)
 
@@ -335,7 +338,7 @@ def _GetBisectResults(job):
   bisect_result = _BeautifyContent(str(response.content))
 
   # Bisect is considered success if result is provided.
-  # "BISECTION ABORTED" is added when a job is ealy aborted because the
+  # "BISECTION ABORTED" is added when a job is early aborted because the
   # associated issue was closed.
   # TODO(robertocn): Make sure we are outputting this string
   if ('BISECT JOB RESULTS' in bisect_result or
@@ -404,7 +407,7 @@ def _GetBotFailureInfo(build_data):
       total_build += 1
   message += 'Completed %s/%s builds.\n' % (num_success_build, total_build)
 
-  # Add run time messsage.
+  # Add run time message.
   run_time = build_data['times'][1] - build_data['times'][0]
   run_time = int(run_time / 60)  # Minutes.
   message += 'Run time: %s/%s minutes.\n' % (run_time, _BISECT_BOT_TIMEOUT)
@@ -469,7 +472,7 @@ def _PostFailedResult(
                job.bug_id, job.rietveld_issue_id)
 
 
-def _PostSucessfulResult(job, bisect_results, issue_tracker):
+def _PostSuccessfulResult(job, bisect_results, issue_tracker):
   """Posts successful bisect results on logger and issue tracker."""
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
@@ -479,9 +482,8 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   bug = ndb.Key('Bug', job.bug_id).get()
 
   commit_cache_key = _GetCommitHashCacheKey(bisect_results['results'])
-  result_is_positive = _BisectResultIsPositive(bisect_results['results'])
-  if bug and result_is_positive:
-    merge_issue = layered_cache.Get(commit_cache_key)
+  if bug and _BisectResultIsPositive(bisect_results['results']):
+    merge_issue = layered_cache.GetExternal(commit_cache_key)
     if not merge_issue:
       authors_to_cc = _GetAuthorsToCC(bisect_results['results'])
 
@@ -516,13 +518,14 @@ def _PostSucessfulResult(job, bisect_results, issue_tracker):
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
-  if commit_cache_key and not merge_issue and result_is_positive:
-    layered_cache.Set(commit_cache_key, str(job.bug_id), days_to_keep=30)
+  if commit_cache_key and not merge_issue:
+    layered_cache.SetExternal(commit_cache_key, str(job.bug_id),
+                              days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
 
 
-def _ValidateAndConvertBuildbucketResponse(job_info):
+def _ValidateAndConvertBuildbucketResponse(job_info, job=None):
   """Checks the response from the buildbucket service and converts it.
 
   The response is converted to a similar format to that used by Rietveld for
@@ -530,6 +533,7 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
 
   Args:
     job_info: A dictionary containing the response from the buildbucket service.
+    job: Bisect TryJob entity object.
 
   Returns:
     Try job info dict in the same format as _ValidateRietveldResponse; will
@@ -545,6 +549,24 @@ def _ValidateAndConvertBuildbucketResponse(job_info):
   if job_info.get('result') is None:
     raise UnexpectedJsonError('No "result" in try job results. '
                               'Buildbucket response: %s' % json_response)
+  # This is a case where the buildbucket job was triggered but never got
+  # scheduled on buildbot probably due to long pending job queue.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') == 'CANCELED' and
+      job_info.get('cancellation_reason') == 'TIMEOUT'):
+    job.SetFailed()
+    raise UnexpectedJsonError('Try job timed out before it got scheduled. '
+                              'Buildbucket response: %s' % json_response)
+
+  # This is a case where the buildbucket job failed due to invalid config.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') == 'FAILURE' and
+      job_info.get('failure_reason') == 'INVALID_BUILD_DEFINITION'):
+    job.SetFailed()
+    job.key.delete()
+    raise UnexpectedJsonError('Invalid job configuration. '
+                              'Buildbucket response: %s' % json_response)
+
   if job_info.get('url') is None:
     raise UnexpectedJsonError('No "url" in try job results. This could mean '
                               'that the job has not started. '
@@ -681,34 +703,27 @@ def _LogBisectInfraFailure(bug_id, failure_message, stdio_url):
   logger.Save()
 
 
-def _BisectResultIsPositive(results_output):
-  """Returns True if the bisect found a culprit with high confidence."""
-  return 'Status: Positive' in results_output
-
-
 def _GetCommitHashCacheKey(results_output):
   """Gets a commit hash cache key for the given bisect results output.
-
-  One commit hash key represents a set of culprit CLs. This information is
-  stored so in case one issue has the same set of culprit CLs as another,
-  in which case one can be marked as duplicate of the other.
 
   Args:
     results_output: The bisect results output.
 
   Returns:
-    A cache key, less than 500 characters long.
+    A string to use as a layered_cache key, or None if we don't want
+    to merge any bugs based on this bisect result.
   """
+  if not _BisectResultIsPositive(results_output):
+    return None
   commits_list = re.findall(r'Commit  : (.*)', results_output)
-  commit_hashes = sorted({commit.strip() for commit in commits_list})
-  # Generate a cache key by concatenating commit hashes found in bisect
-  # results and prepend it with commit_hash.
-  commit_cache_key = _COMMIT_HASH_CACHE_KEY % ''.join(commit_hashes)
-  # Datastore key name strings must be non-empty strings up to
-  # 500 bytes.
-  if sys.getsizeof(commit_cache_key) >= 500:
-    commit_cache_key = commit_cache_key[:400] + '...'
-  return commit_cache_key
+  if len(commits_list) != 1:
+    return None
+  return _COMMIT_HASH_CACHE_KEY % commits_list[0].strip()
+
+
+def _BisectResultIsPositive(results_output):
+  """Returns True if the bisect found a culprit with high confidence."""
+  return 'Status: Positive' in results_output
 
 
 def _GetAuthorsToCC(results_output):
@@ -761,7 +776,7 @@ def _GetReviewersFromBisectLog(results_output):
   revisions_links = {rev.strip() for rev in revisions_list}
   # Sometime revision page content consist of multiple "Review URL" strings
   # due to some reverted CLs, such CLs are prefixed with ">"(&gt;) symbols.
-  # Should only parse CL link correspoinding the revision found by the bisect.
+  # Should only parse CL link corresponding the revision found by the bisect.
   link_pattern = (r'(?<!&gt;\s)Review URL: <a href=[\'"]'
                   r'https://codereview.chromium.org/(\d+)[\'"].*>')
   for link in revisions_links:
@@ -826,11 +841,10 @@ def _FetchURL(request_url, skip_status_code=False):
   return response
 
 
-def _RietveldIssueJSONURL(job):
-  config = rietveld_service.GetDefaultRietveldConfig()
-  host = config.internal_server_url if job.internal_only else config.server_url
-  return '%s/api/%d/%d' % (
-      host, job.rietveld_issue_id, job.rietveld_patchset_id)
+def _FetchRietveldIssueJSON(job):
+  server = rietveld_service.RietveldService(internal_only=job.internal_only)
+  path = 'api/%d/%d' % (job.rietveld_issue_id, job.rietveld_patchset_id)
+  return server.MakeRequest(path, method='GET')
 
 
 def _RietveldIssueURL(job):
@@ -861,11 +875,14 @@ def _CheckFYIBisectJob(job, issue_tracker):
                job.job_name, bisect_results['status'])
   try:
     if bisect_results['status'] == 'Completed':
-      _PostSucessfulResult(job, bisect_results, issue_tracker)
+      _PostSuccessfulResult(job, bisect_results, issue_tracker)
       # Below in VerifyBisectFYIResults we verify whether the actual
       # results matches with the expectations; if they don't match then
       # bisect_results['status'] gets set to 'Failure'.
       bisect_fyi.VerifyBisectFYIResults(job, bisect_results)
+      # Verify whether the issue is updated with bisect results, if not
+      # then mark the results status='Failure'.
+      bisect_fyi.VerifyBugUpdate(job, issue_tracker, bisect_results)
     elif 'Failure' in bisect_results['status']:
       _PostFailedResult(
           job, bisect_results, issue_tracker, add_bug_comment=True)
@@ -890,8 +907,8 @@ def _SendFYIBisectEmail(job, results):
     logging.error('Failed to create "email_data" from results for %s.\n'
                   ' Results: %s', job.job_name, results)
     return
-  mail.send_mail(sender='auto-bisect-team@google.com',
-                 to='prasadv@google.com',
+  mail.send_mail(sender='gasper-alerts@google.com',
+                 to='auto-bisect-team@google.com',
                  subject=email_data['subject'],
                  body=email_data['body'],
                  html=email_data['html'])

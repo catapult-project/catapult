@@ -12,6 +12,7 @@ found in the LICENSE file.
 <script src="/components/webcomponentsjs/webcomponents.js"></script>
 
 <link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/ui/extras/full_config.html">
@@ -47,10 +48,12 @@ found in the LICENSE file.
   <script>
   'use strict';
 
+  var Timing = tr.b.Timing;
   var timelineViewEl;
   var selectEl;
 
   function loadTraces(filenames, onTracesLoaded) {
+    var loadTracesMakedTimer = Timing.mark('TraceImport', 'loadTraces');
     var traces = [];
     for (var i = 0; i < filenames.length; i++) {
       traces.push(undefined);
@@ -61,20 +64,30 @@ found in the LICENSE file.
       getAsync(filename, function(trace) {
         traces[i] = trace;
         numTracesPending--;
-        if (numTracesPending == 0)
+        if (numTracesPending == 0) {
+          loadTracesMakedTimer.end();
           onTracesLoaded(filenames, traces);
+        }
       });
     });
   }
 
 
   function getAsync(url, cb) {
-    tr.b.getAsync(url).then(cb);
+    return tr.b.getAsync(url).then(cb);
   }
 
   function createViewFromTraces(filenames, traces) {
+    var createViewFromTracesTimer = Timing.mark(
+        'TraceImport', 'createViewFromTraces');
     var m = new tr.Model();
-    var i = new tr.importer.Import(m);
+
+    var trackDetailedModelStatsEl =
+        tr.b.findDeepElementMatching(document.body,
+                                     '#track-detailed-model-stats');
+    var importOptions = new tr.importer.ImportOptions();
+    importOptions.trackDetailedModelStats = trackDetailedModelStatsEl.checked;
+    var i = new tr.importer.Import(m, importOptions);
     var p = i.importTracesWithProgressDialog(traces);
 
     p.then(
@@ -83,12 +96,14 @@ found in the LICENSE file.
         timelineViewEl.updateDocumentFavicon();
         timelineViewEl.globalMode = true;
         timelineViewEl.viewTitle = '';
+        createViewFromTracesTimer.end();
       },
       function(err) {
         var overlay = new tr.ui.b.Overlay();
         overlay.textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
+        createViewFromTracesTimer.end();
       });
   }
 
@@ -130,8 +145,10 @@ found in the LICENSE file.
   window.addEventListener('hashchange', onHashChange);
 
   function onLoad() {
+    var onLoadTimer = Timing.mark('TraceImport', 'onLoad');
     timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
+
 
     selectEl = document.createElement('select');
     timelineViewEl.leftControls.appendChild(selectEl);
@@ -153,8 +170,17 @@ found in the LICENSE file.
       } else {
         onHashChange();
       }
-    });
+    }).then(onLoadTimer.end.call(this));
+
+    var trackDetailedModelStatsEl = tr.ui.b.createCheckBox(
+        this, 'trackDetailedModelStats',
+        'traceViewer.trackDetailedModelStats', false,
+        'Detailed file size stats',
+        onHashChange);
+    trackDetailedModelStatsEl.id = 'track-detailed-model-stats';
+    timelineViewEl.leftControls.appendChild(trackDetailedModelStatsEl);
   }
+
   window.addEventListener('load', onLoad);
   </script>
 </body>

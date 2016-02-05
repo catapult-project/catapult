@@ -28,10 +28,16 @@ tr.b.unittest.testSuite(function() {
         'tr-ui-a-container-memory-dump-sub-view');
     if (opt_parentElement)
       opt_parentElement.appendChild(viewEl);
-    if (selection === undefined)
+    if (selection === undefined) {
       viewEl.selection = undefined;
-    else
-      viewEl.selection = new tr.model.EventSet(selection);
+    } else {
+      // Rotate the list of selected dumps to check that the sub-view sorts
+      // them properly.
+      var length = selection.length;
+      viewEl.selection = new tr.model.EventSet(
+          selection.slice(length / 2, length).concat(
+              selection.slice(0, length / 2)));
+    }
     return viewEl;
   }
 

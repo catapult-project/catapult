@@ -113,7 +113,7 @@ class MultipartEntity(ndb.Model):
     num_parts = len(serialized_parts)
     for i in xrange(num_parts):
       if serialized_parts[i] is not None:
-        part = PartEntity(id=i+1, parent=self.key, value=serialized_parts[i])
+        part = PartEntity(id=i + 1, parent=self.key, value=serialized_parts[i])
         part_list.append(part)
     self.size = num_parts
     ndb.put_multi(part_list + [self])
@@ -216,7 +216,7 @@ def _Serialize(value):
   length = len(serialized)
   values = []
   for i in xrange(0, length, _CHUNK_SIZE):
-    values.append(serialized[i:i+_CHUNK_SIZE])
+    values.append(serialized[i:i + _CHUNK_SIZE])
   for i in xrange(len(values), _MAX_NUM_PARTS):
     values.append(None)
   return values

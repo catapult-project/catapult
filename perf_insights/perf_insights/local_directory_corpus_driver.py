@@ -4,8 +4,7 @@
 import os
 
 from perf_insights import corpus_driver
-from perf_insights import local_file_trace_handle
-from perf_insights.value import run_info as run_info_module
+from perf_insights.mre import file_handle
 
 
 def _GetFilesIn(basedir):
@@ -26,6 +25,7 @@ def _GetFilesIn(basedir):
   data_files.sort()
   return data_files
 
+
 def _GetTagsForRelPath(relpath):
   # Tags.
   sub_dir = os.path.dirname(relpath)
@@ -33,6 +33,7 @@ def _GetTagsForRelPath(relpath):
     return []
   parts = sub_dir.split(os.sep)
   return [p for p in parts if len(p) > 0]
+
 
 def _GetMetadataForFilename(base_directory, filename):
   relpath = os.path.relpath(filename, base_directory)
@@ -43,10 +44,13 @@ def _GetMetadataForFilename(base_directory, filename):
   # TODO(nduca): Add modification time to metadata.
   return metadata
 
+
 def _DefaultUrlResover(abspath):
   return 'file:///%s' % abspath
 
+
 class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
+
   def __init__(self, trace_directory, url_resolver=_DefaultUrlResover):
     self.directory = trace_directory
     self.url_resolver = url_resolver
@@ -80,12 +84,8 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
       url = self.url_resolver(filename)
       if url is None:
         url = _DefaultUrlResover(filename)
-      run_info = run_info_module.RunInfo(
-          url=url,
-          display_name=rel_filename,
-          metadata=metadata)
 
-      th = local_file_trace_handle.LocalFileTraceHandle(run_info, filename)
+      th = file_handle.URLFileHandle(url, 'file://' + filename)
       trace_handles.append(th)
 
     return trace_handles

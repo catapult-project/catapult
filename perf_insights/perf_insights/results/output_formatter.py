@@ -4,7 +4,10 @@
 
 # Derived from telemetry OutputFormatter. Should stay close in architecture
 # to telemetry OutputFormatter.
+
+
 class OutputFormatter(object):
+
   def __init__(self, output_stream):
     self._output_stream = output_stream
 

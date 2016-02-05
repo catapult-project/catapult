@@ -4,7 +4,6 @@
 
 import json
 import os
-import sys
 
 import perf_insights_project
 
@@ -15,7 +14,6 @@ from perf_insights import local_directory_corpus_driver
 from perf_insights import corpus_query
 from perf_insights import map_runner
 from perf_insights import function_handle
-from perf_insights import progress_reporter
 from perf_insights.results import json_output_formatter
 
 
@@ -44,8 +42,8 @@ class RunMapFunctionHandler(webapp2.RequestHandler):
         self.app)
 
     corpus_driver = local_directory_corpus_driver.LocalDirectoryCorpusDriver(
-        trace_directory = kwargs.pop('_pi_data_dir'),
-        url_resolver = self.app.GetURLForAbsFilename)
+        trace_directory=kwargs.pop('_pi_data_dir'),
+        url_resolver=self.app.GetURLForAbsFilename)
 
     # TODO(nduca): pass self.request.params to the map function [maybe].
     query_string = self.request.get('corpus_query', 'True')

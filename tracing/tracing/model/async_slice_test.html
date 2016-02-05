@@ -11,6 +11,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var AsyncSlice = tr.model.AsyncSlice;
+  var Process = tr.model.Process;
+  var Thread = tr.model.Thread;
+  var newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
   var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
   var newFakeThread = tr.c.TestUtils.newFakeThread;
 
@@ -28,6 +32,26 @@ tr.b.unittest.testSuite(function() {
     assert.equal(group.stableId + '.0', sA.stableId);
     assert.equal(group.stableId + '.1', sB.stableId);
     assert.equal(group.stableId + '.2', sC.stableId);
+  });
+
+  test('setParentContainerForSubSlices', function() {
+    var model = new tr.Model();
+    var p1 = new Process(model, 1);
+    var t1 = new Thread(p1, 1);
+    var asyncSlice = newAsyncSlice(0, 10, t1, t1);
+    var subSlice1 = newAsyncSlice(1, 5, t1, t1);
+    var subSlice2 = newAsyncSlice(6, 9, t1, t1);
+    var subSlice3 = newAsyncSlice(2, 3, t1, t1);
+    subSlice1.subSlices.push(subSlice3);
+    asyncSlice.subSlices.push(subSlice1);
+    asyncSlice.subSlices.push(subSlice2);
+    asyncSlice.parentContainer = t1;
+    assert.equal(asyncSlice.subSlices.length, 2);
+    assert.equal(subSlice1.subSlices.length, 1);
+    assert.deepEqual(asyncSlice.parentContainer, t1);
+    assert.deepEqual(subSlice1.parentContainer, t1);
+    assert.deepEqual(subSlice2.parentContainer, t1);
+    assert.deepEqual(subSlice3.parentContainer, t1);
   });
 });
 </script>

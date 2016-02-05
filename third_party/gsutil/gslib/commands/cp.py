@@ -23,8 +23,6 @@ import traceback
 
 from gslib import copy_helper
 from gslib.cat_helper import CatHelper
-from gslib.cloud_api import AccessDeniedException
-from gslib.cloud_api import NotFoundException
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.commands.compose import MAX_COMPONENT_COUNT
@@ -209,12 +207,19 @@ _COPY_IN_CLOUD_TEXT = """
   option (see OPTIONS below).
 
   One additional note about copying in the cloud: If the destination bucket has
-  versioning enabled, gsutil cp will copy all versions of the source object(s).
-  For example:
+  versioning enabled, gsutil cp will by default copy only live versions of the
+  source object(s). For example:
 
     gsutil cp gs://bucket1/obj gs://bucket2
 
-  will cause all versions of gs://bucket1/obj to be copied to gs://bucket2.
+  will cause only the single live version of of gs://bucket1/obj to be copied
+  to gs://bucket2, even if there are archived versions of gs://bucket1/obj. To
+  also copy archived versions, use the -A flag:
+
+    gsutil cp -A gs://bucket1/obj gs://bucket2
+
+  The gsutil -m flag is disallowed when using the cp -A flag, to ensure that
+  version ordering is preserved.
 """
 
 _CHECKSUM_VALIDATION_TEXT = """
@@ -300,18 +305,11 @@ _RESUMABLE_TRANSFERS_TEXT = """
 
   Similarly, gsutil automatically performs resumable downloads (using HTTP
   standard Range GET operations) whenever you use the cp command, unless the
-  destination is a stream or null. In this case the partially downloaded file
-  will be visible as soon as it starts being written. Thus, before you attempt
-  to use any files downloaded by gsutil you should make sure the download
-  completed successfully, by checking the exit status from the gsutil command.
-  This can be done in a bash script, for example, by doing:
+  destination is a stream or null. In this case, a partially downloaded
+  temporary file will be visible in the destination directory. Upon completion,
+  the original file is deleted and overwritten with the downloaded contents.
 
-     gsutil cp gs://your-bucket/your-object ./local-file
-     if [ "$status" -ne "0" ] ; then
-       << Code that handles failures >>
-     fi
-
-  Resumable uploads and downloads store some state information in a file
+  Resumable uploads and downloads store some state information in a files
   in ~/.gsutil named by the destination object or file. If you attempt to
   resume a transfer from a machine with a different directory, the transfer
   will start over from scratch.
@@ -342,6 +340,31 @@ _STREAMING_TRANSFERS_TEXT = """
   transfers (which perform integrity checking automatically).
 """
 
+_SLICED_OBJECT_DOWNLOADS_TEXT = """
+<B>SLICED OBJECT DOWNLOADS</B>
+  gsutil automatically uses HTTP Range GET requests to perform "sliced"
+  downloads in parallel for downloads of large objects. This means that, if
+  enabled, disk space for the temporary download destination file will be
+  pre-allocated and byte ranges (slices) within the file will be downloaded in
+  parallel. Once all slices have completed downloading, the temporary file will
+  be renamed to the destination file. No additional local disk space is
+  required for this operation.
+
+  This feature is only available for Google Cloud Storage objects because it
+  requires a fast composable checksum that can be used to verify the data
+  integrity of the slices. Thus, using sliced object downloads also requires a
+  compiled crcmod (see "gsutil help crcmod") on the machine performing the
+  download. If compiled crcmod is not available, normal download will instead
+  be used.
+
+  Note: since sliced object downloads cause multiple writes to occur at various
+  locations on disk, this can degrade performance for disks with slow seek
+  times, especially for large numbers of slices. While the default number of
+  slices is small to avoid this, sliced object download can be completely
+  disabled by setting the "sliced_object_download_threshold" variable in the
+  .boto config file to 0.
+"""
+
 _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
 <B>PARALLEL COMPOSITE UPLOADS</B>
   gsutil can automatically use
@@ -363,6 +386,10 @@ _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
   disabled by default. Google is actively working with a number of the Linux
   distributions to get crcmod included with the stock distribution. Once that is
   done we will re-enable parallel composite uploads by default in gsutil.
+
+  Parallel composite uploads should not be used with NEARLINE storage
+  class buckets, as doing this would incur an early deletion charge for each
+  component object.
 
   To try parallel composite uploads you can run the command:
 
@@ -464,8 +491,13 @@ _CHANGING_TEMP_DIRECTORIES_TEXT = """
 
 _OPTIONS_TEXT = """
 <B>OPTIONS</B>
-  -a canned_acl   Sets named canned_acl when uploaded objects created. See
-                  'gsutil help acls' for further details.
+  -a canned_acl  Sets named canned_acl when uploaded objects created. See
+                 'gsutil help acls' for further details.
+
+  -A             Copy all source versions from a source buckets/folders.
+                 If not set, only the live version of each source object is
+                 copied. Note: this option is only useful when the destination
+                 bucket has versioning enabled.
 
   -c             If an error occurs, continue to attempt to copy the remaining
                  files. If any copies were unsuccessful, gsutil's exit status
@@ -573,7 +605,8 @@ _OPTIONS_TEXT = """
                  directory level, and skip any subdirectories.
 
   -U             Skip objects with unsupported object types instead of failing.
-                 Unsupported object types are s3 glacier objects.
+                 Unsupported object types are Amazon S3 Objects in the GLACIER
+                 storage class.
 
   -v             Requests that the version-specific URL for each uploaded object
                  be printed. Given this URL you can make future upload requests
@@ -626,12 +659,13 @@ _DETAILED_HELP_TEXT = '\n\n'.join([_SYNOPSIS_TEXT,
                                    _RETRY_HANDLING_TEXT,
                                    _RESUMABLE_TRANSFERS_TEXT,
                                    _STREAMING_TRANSFERS_TEXT,
+                                   _SLICED_OBJECT_DOWNLOADS_TEXT,
                                    _PARALLEL_COMPOSITE_UPLOADS_TEXT,
                                    _CHANGING_TEMP_DIRECTORIES_TEXT,
                                    _OPTIONS_TEXT])
 
 
-CP_SUB_ARGS = 'a:cDeIL:MNnprRtUvz:'
+CP_SUB_ARGS = 'a:AcDeIL:MNnprRtUvz:'
 
 
 def _CopyFuncWrapper(cls, args, thread_state=None):
@@ -732,10 +766,8 @@ class CpCommand(Command):
     # (e.g., trying to download an object called "mydata/" where the local
     # directory "mydata" exists).
     if IsCloudSubdirPlaceholder(exp_src_url):
-      self.logger.info('Skipping cloud sub-directory placeholder object (%s) '
-                       'because such objects aren\'t needed in (and would '
-                       'interfere with) directories in the local file system',
-                       exp_src_url)
+      # We used to output the message 'Skipping cloud sub-directory placeholder
+      # object...' but we no longer do so because it caused customer confusion.
       return
 
     if copy_helper_opts.use_manifest and self.manifest.WasSuccessful(
@@ -789,7 +821,7 @@ class CpCommand(Command):
               self.logger, exp_src_url, dst_url, gsutil_api,
               self, _CopyExceptionHandler, allow_splitting=True,
               headers=self.headers, manifest=self.manifest,
-              gzip_exts=self.gzip_exts, test_method=self.test_method))
+              gzip_exts=self.gzip_exts))
       if copy_helper_opts.use_manifest:
         if md5:
           self.manifest.Set(exp_src_url.url_string, 'md5', md5)
@@ -872,33 +904,11 @@ class CpCommand(Command):
         copy_helper.ExpandUrlToSingleBlr(self.args[-1], self.gsutil_api,
                                          self.debug, self.project_id))
 
-    # If the destination bucket has versioning enabled iterate with
-    # all_versions=True. That way we'll copy all versions if the source bucket
-    # is versioned; and by leaving all_versions=False if the destination bucket
-    # has versioning disabled we will avoid copying old versions all to the same
-    # un-versioned destination object.
-    all_versions = False
-    try:
-      bucket = self._GetBucketWithVersioningConfig(self.exp_dst_url)
-      if bucket and bucket.versioning and bucket.versioning.enabled:
-        all_versions = True
-    except AccessDeniedException:
-      # This happens (in the XML API only) if the user doesn't have OWNER access
-      # on the bucket (needed to check if versioning is enabled). In this case
-      # fall back to copying all versions (which can be inefficient for the
-      # reason noted in the comment above). We don't try to warn the user
-      # because that would result in false positive warnings (since we can't
-      # check if versioning is enabled on the destination bucket).
-      #
-      # For JSON, we will silently not return versioning if we don't have
-      # access.
-      all_versions = True
-
     name_expansion_iterator = NameExpansionIterator(
         self.command_name, self.debug,
         self.logger, self.gsutil_api, url_strs,
         self.recursion_requested or copy_helper_opts.perform_mv,
-        project_id=self.project_id, all_versions=all_versions,
+        project_id=self.project_id, all_versions=self.all_versions,
         continue_on_error=self.continue_on_error or self.parallel_operations)
 
     # Use a lock to ensure accurate statistics in the face of
@@ -948,7 +958,7 @@ class CpCommand(Command):
             self.total_bytes_transferred, self.total_elapsed_time,
             MakeHumanReadable(self.total_bytes_per_second))
     if self.op_failure_count:
-      plural_str = 's' if self.op_failure_count else ''
+      plural_str = 's' if self.op_failure_count > 1 else ''
       raise CommandException('%d file%s/object%s could not be transferred.' % (
           self.op_failure_count, plural_str, plural_str))
 
@@ -973,6 +983,8 @@ class CpCommand(Command):
     # Command class, so save in Command state rather than CopyHelperOpts.
     self.canned = None
 
+    self.all_versions = False
+
     self.skip_unsupported_objects = False
 
     # Files matching these extensions should be gzipped before uploading.
@@ -988,6 +1000,8 @@ class CpCommand(Command):
         if o == '-a':
           canned_acl = a
           self.canned = True
+        if o == '-A':
+          self.all_versions = True
         if o == '-c':
           self.continue_on_error = True
         elif o == '-D':
@@ -1024,6 +1038,11 @@ class CpCommand(Command):
     if preserve_acl and canned_acl:
       raise CommandException(
           'Specifying both the -p and -a options together is invalid.')
+    if self.all_versions and self.parallel_operations:
+      raise CommandException(
+          'The gsutil -m option is not supported with the cp -A flag, to '
+          'ensure that object version ordering is preserved. Please re-run '
+          'the command without the -m option.')
     return CreateCopyHelperOpts(
         perform_mv=perform_mv,
         no_clobber=no_clobber,
@@ -1035,33 +1054,3 @@ class CpCommand(Command):
         canned_acl=canned_acl,
         skip_unsupported_objects=self.skip_unsupported_objects,
         test_callback_file=test_callback_file)
-
-  def _GetBucketWithVersioningConfig(self, exp_dst_url):
-    """Gets versioning config for a bucket and ensures that it exists.
-
-    Args:
-      exp_dst_url: Wildcard-expanded destination StorageUrl.
-
-    Raises:
-      AccessDeniedException: if there was a permissions problem accessing the
-                             bucket or its versioning config.
-      CommandException: if URL refers to a cloud bucket that does not exist.
-
-    Returns:
-      apitools Bucket with versioning configuration.
-    """
-    bucket = None
-    if exp_dst_url.IsCloudUrl() and exp_dst_url.IsBucket():
-      try:
-        bucket = self.gsutil_api.GetBucket(
-            exp_dst_url.bucket_name, provider=exp_dst_url.scheme,
-            fields=['versioning'])
-      except AccessDeniedException, e:
-        raise
-      except NotFoundException, e:
-        raise CommandException('Destination bucket %s does not exist.' %
-                               exp_dst_url)
-      except Exception, e:
-        raise CommandException('Error retrieving destination bucket %s: %s' %
-                               (exp_dst_url, e.message))
-      return bucket

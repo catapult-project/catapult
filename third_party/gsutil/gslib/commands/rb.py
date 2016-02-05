@@ -102,10 +102,14 @@ class RbCommand(Command):
       # with -f option if a non-existent URL listed, permission denial happens
       # while listing, etc.
       try:
-        # Need to materialize iterator results into a list to catch exceptions.
+        # Materialize iterator results into a list to catch exceptions.
         # Since this is listing buckets this list shouldn't be too large to fit
         # in memory at once.
-        blrs = list(self.WildcardIterator(url_str).IterBuckets())
+        # Also, avoid listing all fields to avoid performing unnecessary bucket
+        # metadata GETs. These would also be problematic when billing is
+        # disabled, as deletes are allowed but GetBucket is not.
+        blrs = list(
+            self.WildcardIterator(url_str).IterBuckets(bucket_fields=['id']))
       except:  # pylint: disable=bare-except
         some_failed = True
         if self.continue_on_error:
@@ -118,6 +122,7 @@ class RbCommand(Command):
         try:
           self.gsutil_api.DeleteBucket(url.bucket_name, provider=url.scheme)
         except NotEmptyException as e:
+          some_failed = True
           if self.continue_on_error:
             continue
           elif 'VersionedBucketNotEmpty' in e.reason:
@@ -128,6 +133,7 @@ class RbCommand(Command):
           else:
             raise
         except:  # pylint: disable=bare-except
+          some_failed = True
           if not self.continue_on_error:
             raise
         did_some_work = True

@@ -14,21 +14,18 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.TestUtils.newSliceEx;
 
-  test('computeCoverage', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+  function createModel() {
+    return tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(2);
       var s0 = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's0', start: 0.0, duration: 1.0}));
-      s0.cpuDuration = 0.4;
       s0.isTopLevel = true;
       var unassociatedEvent = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's1', start: 6.0, duration: 1.0}));
-      unassociatedEvent.cpuDuration = 0.8;
       unassociatedEvent.isTopLevel = true;
       var s2 = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's2', start: 2.0, duration: 1.0}));
-      s2.cpuDuration = 0.4;
       s2.isTopLevel = true;
       var f0 = tr.c.TestUtils.newFlowEventEx({
         title: 'test1',
@@ -56,6 +53,17 @@ tr.b.unittest.testSuite(function() {
       ir.associatedEvents.push(f0);
       model.addInteractionRecord(ir);
     });
+  }
+
+  test('computeCoverage', function() {
+    var model = createModel();
+    model.iterateAllEvents(function(event) {
+      if (event.title === 's0' || event.title === 's2') {
+        event.cpuSelfTime = 0.4;
+      } else if (event.title === 's1') {
+        event.cpuSelfTime = 0.8;
+      }
+    });
 
     var coverage = tr.model.getIRCoverageFromModel(model);
     assert.equal(3, coverage.associatedEventsCount);
@@ -64,6 +72,17 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(0.8, coverage.associatedEventsCpuTimeMs, 1e-3);
     assert.closeTo(0.8, coverage.unassociatedEventsCpuTimeMs, 1e-3);
     assert.closeTo(0.5, coverage.coveredEventsCpuTimeRatio, 1e-3);
+  });
+
+  test('zeroCPU', function() {
+    var model = createModel();
+    var coverage = tr.model.getIRCoverageFromModel(model);
+    assert.equal(3, coverage.associatedEventsCount);
+    assert.equal(1, coverage.unassociatedEventsCount);
+    assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);
+    assert.closeTo(0.0, coverage.associatedEventsCpuTimeMs, 1e-3);
+    assert.closeTo(0.0, coverage.unassociatedEventsCpuTimeMs, 1e-3);
+    assert.equal(undefined, coverage.coveredEventsCpuTimeRatio, 1e-3);
   });
 });
 </script>

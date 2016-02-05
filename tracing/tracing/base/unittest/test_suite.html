@@ -23,6 +23,17 @@ tr.exportTo('tr.b.unittest', function() {
     this.tests_ = [];
     this.testNames_ = {}; // For dupe checking.
 
+    global.flakyTest = function(testCaseOrName, opt_testFn, opt_options) {
+      if (testCaseOrName instanceof TestCase) {
+        testCaseOrName.options['flaky'] = true;
+        test(testCaseOrName);
+      } else {
+        var options = opt_options || {};
+        options['flaky'] = true;
+        test(testCaseOrName, opt_testFn, options);
+      }
+    }.bind(this);
+
     global.test = function(testCaseOrName, opt_testFn, opt_options) {
       if (testCaseOrName instanceof TestCase) {
         if (opt_testFn !== undefined)

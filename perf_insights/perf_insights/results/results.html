@@ -13,43 +13,34 @@ found in the LICENSE file.
 tr.exportTo('pi.r', function() {
   function Results() {
     this.allValues = [];
-    this.runIdsThatHaveFailures_ = {};
+    this.canonicalUrlsThatHaveFailures_ = {};
   }
 
   Results.fromDict = function(dict) {
-    if (dict.runs === undefined)
-      throw new Error('Expected: runInfo');
+    if (dict.canonical_urls === undefined)
+      throw new Error('Expected: canonical_urls');
     if (dict.values === undefined)
-      throw new Error('Expected: runInfo');
-
-    var runInfosById = tr.b.mapItems(dict.runs, function(runId, dict) {
-      return pi.v.RunInfo.fromDict(dict);
-    });
+      throw new Error('Expected: values');
 
     var results = new Results();
     dict.values.forEach(function(valueDict) {
-      var runInfo = runInfosById[valueDict.run_id];
-      if (runInfo === undefined) {
-        debugger;
-        throw new Error('runInfo not found');
-      }
-      var value = pi.v.Value.fromDict(runInfo, valueDict);
+      var value = pi.v.Value.fromDict(valueDict);
       results.addValue(value);
     });
     return results;
-  }
+  };
 
   Results.prototype = {
-    willRun: function(runInfo) {
+    willRun: function(canonicalUrl) {
     },
 
     addValue: function(value) {
       if (value instanceof pi.v.FailureValue)
-        this.runIdsThatHaveFailures_[value.runInfo.runId] = true;
+        this.canonicalUrlsThatHaveFailures_[value.canonicalUrl] = true;
       this.allValues.push(value);
     },
 
-    didRun: function(runInfo) {
+    didRun: function(canonicalUrl) {
     },
 
     didFinishAllRuns: function() {
@@ -65,45 +56,45 @@ tr.exportTo('pi.r', function() {
       });
     },
 
-    get failedRunInfos() {
-      var failedRunInfos = [];
-      var hasAddedRunInfo = {};
+    get failedCanonicalUrls() {
+      var failedCanonicalUrls = [];
+      var hasAddedCanonicalUrl = {};
       this.failureValues.forEach(function(v) {
-        if (hasAddedRunInfo[v.runInfo.runId])
+        if (hasAddedCanonicalUrl[v.canonicalUrl])
           return;
-        hasAddedRunInfo[v.runInfo.runId] = true;
-        failedRunInfos.push(v.runInfo);
+        hasAddedCanonicalUrl[v.canonicalUrl] = true;
+        failedCanonicalUrls.push(v.canonicalUrl);
       });
-      return failedRunInfos;
+      return failedCanonicalUrls;
     },
 
-    get allRunInfos() {
-      var allRunInfos = [];
-      var hasAddedRunInfo = {};
+    get allCanonicalUrls() {
+      var allCanonicalUrls = [];
+      var hasAddedCanonicalUrl = {};
       this.allValues.forEach(function(v) {
-        if (hasAddedRunInfo[v.runInfo.runId])
+        if (hasAddedCanonicalUrl[v.canonicalUrl])
           return;
-        hasAddedRunInfo[v.runInfo.runId] = true;
-        allRunInfos.push(v.runInfo);
+        hasAddedCanonicalUrl[v.canonicalUrl] = true;
+        allCanonicalUrls.push(v.canonicalUrl);
       });
-      return allRunInfos;
+      return allCanonicalUrls;
     },
 
-    doesRunContainFailure: function(runInfo) {
-      return this.runIdsThatHaveFailures_[runInfo.runId] === true;
+    doesRunContainFailure: function(canonicalUrl) {
+      return this.canonicalUrlsThatHaveFailures_[canonicalUrl] === true;
     },
 
     get allValuesFromFailureFreeRuns() {
       return this.allValues.filter(function(x) {
-        if (this.doesRunContainFailure(x.runInfo))
+        if (this.doesRunContainFailure(x.canonicalUrl))
           return false;
         return true;
       }, this);
     },
 
-    getValuesForRunInfo: function(runInfo) {
+    getValuesForCanonicalUrl: function(canonicalUrl) {
       return this.allValues.filter(function(value) {
-        return value.runInfo === runInfo;
+        return value.canonicalUrl === canonicalUrl;
       });
     },
 

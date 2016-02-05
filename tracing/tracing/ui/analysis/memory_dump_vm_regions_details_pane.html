@@ -412,12 +412,6 @@ tr.exportTo('tr.ui.analysis', function() {
         // which don't change over time.
         var definedRegion = tr.b.findFirstInArray(timeToRegion);
 
-        // Determine at which timestamps (indices of the current selection)
-        // VM regions were provided.
-        var defined = timeToRegion.map(function(region) {
-          return region !== undefined;
-        });
-
         // Cells for VM region properties which DON'T change over time.
         var constantCells = tr.ui.analysis.createCells([definedRegion],
             function(region) {
@@ -461,7 +455,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return {
           title: definedRegion.mappedFile || '',
-          defined: defined,
+          contexts: timeToRegion,
           constantCells: constantCells,
           variableCells: variableCells
         };

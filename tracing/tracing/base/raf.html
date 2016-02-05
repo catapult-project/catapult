@@ -60,7 +60,9 @@ tr.exportTo('tr.b', function() {
       return;
     }
     idleWorkScheduled = true;
-    window.requestIdleCallback(processIdleWork);
+    window.requestIdleCallback(function(deadline, didTimeout) {
+      processIdleWork(false /* forceAllTasksToRun */, deadline);
+    });
   }
 
   function onAnimationFrameError(e, opt_stack) {

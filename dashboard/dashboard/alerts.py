@@ -37,6 +37,12 @@ class AlertsHandler(request_handler.RequestHandler):
     """
     sheriff_name = self.request.get('sheriff', 'Chromium Perf Sheriff')
     sheriff_key = ndb.Key('Sheriff', sheriff_name)
+    if not _SheriffIsFound(sheriff_key):
+      self.RenderHtml('alerts.html', {
+          'error': 'Sheriff "%s" not found.' % sheriff_name
+      })
+      return
+
     include_improvements = bool(self.request.get('improvements'))
     include_triaged = bool(self.request.get('triaged'))
 
@@ -53,6 +59,17 @@ class AlertsHandler(request_handler.RequestHandler):
         'sheriff_list': json.dumps(_GetSheriffList()),
         'num_anomalies': len(anomaly_keys),
     })
+
+
+def _SheriffIsFound(sheriff_key):
+  """Checks whether the sheriff can be found for the current user."""
+  try:
+    sheriff_entity = sheriff_key.get()
+  except AssertionError:
+    # This assertion is raised in InternalOnlyModel._post_get_hook,
+    # and indicates an internal-only Sheriff but an external user.
+    return False
+  return sheriff_entity is not None
 
 
 def _FetchAnomalyKeys(sheriff_key, include_improvements, include_triaged):

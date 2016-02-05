@@ -9,7 +9,6 @@ import gzip
 import json
 import os
 import StringIO
-import sys
 
 import tracing_project
 

@@ -4,7 +4,6 @@
 
 import sys
 import os
-import re
 
 
 def _AddToPathIfNeeded(path):

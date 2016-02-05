@@ -1,7 +1,20 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2016 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
+<!--
+  Most of this code is duplicated in bisect-form.
+  TODO(qyearsley): This should be resolved for better code health.
+  See https://github.com/catapult-project/catapult/issues/1905
+-->
+
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/trace-form.html">
-<link rel="import" href="/dashboard/static/bisect_utils.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <polymer-element name="trace-button" attributes="traceInfo bugId xsrfToken">
   <template>
@@ -62,9 +75,21 @@
             this.canTrace = false;
             return;
           }
-          var testPath = this.traceInfo.testPath;
-          var rev = this.traceInfo.badRev;
-          this.canTrace = bisect_utils.canBisect(testPath, rev);
+          this.canTrace = true;
+          var that = this;
+          simple_xhr.send(
+              '/can_bisect',
+              {
+                'test_path': this.traceInfo.testPath,
+                'start_revision': this.traceInfo.goodRev,
+                'end_revision': this.traceInfo.badRev,
+              },
+              function loadCallback(responseBool) {
+                that.canTrace = responseBool;
+              },
+              function errorCallback(message) {
+                console.warn('Request to /can_bisect failed.', message);
+              });
         },
 
         /**

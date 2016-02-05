@@ -142,9 +142,6 @@ tr.exportTo('tr.e.rail', function() {
   var CSS_ANIMATION_TITLE = 'Animation';
 
   // Strings used to name IRs.
-  var LOAD_STARTUP_IR_NAME = 'Startup';
-  var LOAD_SUCCEEDED_IR_NAME = 'Succeeded';
-  var LOAD_FAILED_IR_NAME = 'Failed';
   var KEYBOARD_IR_NAME = 'Keyboard';
   var MOUSE_IR_NAME = 'Mouse';
   var MOUSEWHEEL_IR_NAME = 'MouseWheel';
@@ -173,12 +170,6 @@ tr.exportTo('tr.e.rail', function() {
       rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
       this.collectUnassociatedEvents_(rirs);
       return rirs;
-    },
-
-    setIRNames_: function(name, irs) {
-      irs.forEach(function(ir) {
-        ir.name = name;
-      });
     },
 
     // Find all unassociated top-level ThreadSlices. If they start during an
@@ -285,7 +276,8 @@ tr.exportTo('tr.e.rail', function() {
     // Match every event in |openingEvents| to the first following event from
     // |closingEvents| and return an array containing a load interaction record
     // for each pair.
-    findLoadInteractionRecords_: function(openingEvents, closingEvents) {
+    findLoadInteractionRecords_: function(
+        subtypeName, openingEvents, closingEvents) {
       var lirs = [];
       var model = this.model;
       openingEvents.forEach(function(openingEvent) {
@@ -311,7 +303,7 @@ tr.exportTo('tr.e.rail', function() {
           openingEvent.closingEvent = closingEvent;
           closingEvent.openingEvent = openingEvent;
           var lir = new tr.e.rail.LoadInteractionRecord(
-              model, openingEvent.start,
+              model, subtypeName, openingEvent.start,
               closingEvent.end - openingEvent.start);
           lir.associatedEvents.push(openingEvent);
           lir.associatedEvents.push(closingEvent);
@@ -412,15 +404,14 @@ tr.exportTo('tr.e.rail', function() {
       var lirs = [];
 
       // Attach frame events to every startup events.
-      var startupLIRs = this.findLoadInteractionRecords_(startupEvents,
-          frameEvents);
-      this.setIRNames_(LOAD_STARTUP_IR_NAME, startupLIRs);
+      var startupLIRs = this.findLoadInteractionRecords_(
+          tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP, startupEvents, frameEvents);
       lirs.push.apply(lirs, startupLIRs);
 
       // Attach frame events to every commit load events.
-      var successfulLIRs = this.findLoadInteractionRecords_(commitLoadEvents,
-          frameEvents);
-      this.setIRNames_(LOAD_SUCCEEDED_IR_NAME, successfulLIRs);
+      var successfulLIRs = this.findLoadInteractionRecords_(
+          tr.e.rail.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
+          commitLoadEvents, frameEvents);
       successfulLIRs.forEach(function(lir) {
         // If a successful Load IR has a loadFinishedEvent, then it is a main
         // frame.
@@ -430,9 +421,8 @@ tr.exportTo('tr.e.rail', function() {
       });
 
       // Attach fail load events to every start load events.
-      var failedLIRs = this.findLoadInteractionRecords_(startLoadEvents,
-          failLoadEvents);
-      this.setIRNames_(LOAD_FAILED_IR_NAME, failedLIRs);
+      var failedLIRs = this.findLoadInteractionRecords_(
+          tr.e.rail.LOAD_SUBTYPE_NAMES.FAILED, startLoadEvents, failLoadEvents);
       failedLIRs.forEach(function(lir) {
         // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
         // Drop sub-frame Loads for now.

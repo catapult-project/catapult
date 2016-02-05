@@ -4,6 +4,10 @@
 
 """URL endpoint for a cron job to run bisects integration tests."""
 
+import datetime
+import logging
+import time
+
 from google.appengine.api import mail
 
 from dashboard import auto_bisect
@@ -32,10 +36,10 @@ class BisectFYIHandler(request_handler.RequestHandler):
   def post(self):
     """Runs auto bisects."""
     datastore_hooks.SetPrivilegedRequest()
-    _RunBisectIngrationTests()
+    _RunBisectIntegrationTests()
 
 
-def _RunBisectIngrationTests():
+def _RunBisectIntegrationTests():
   """Runs bisect jobs with pre determined configs."""
   errors_list = {}
   bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)
@@ -45,7 +49,7 @@ def _RunBisectIngrationTests():
       if 'error' in results:
         errors_list[test_name] = {
             'error': results['error'],
-            'info':config.get('bisect_config')}
+            'info': config.get('bisect_config')}
     else:
       errors_list[test_name] = {'error': 'Missing bisect config.'}
   if errors_list:
@@ -69,13 +73,13 @@ def _StartBisectFYIJob(test_name, bisect_config):
     bisect_job = _MakeBisectFYITryJob(test_name, bisect_config)
   except auto_bisect.NotBisectableError as e:
     return {'error': e.message}
-  bisect_job_key = bisect_job.put()
   try:
     bisect_result = start_try_job.PerformBisect(bisect_job)
   except request_handler.InvalidInputError as e:
     bisect_result = {'error': e.message}
   if 'error' in bisect_result:
-    bisect_job_key.delete()
+    if bisect_job.key:
+      bisect_job.key.delete()
   return bisect_result
 
 
@@ -103,7 +107,6 @@ def _MakeBisectFYITryJob(test_name, bisect_config):
       config=config_python_string,
       bug_id=bisect_config.get('bug_id', -1),
       master_name='ChromiumPerf',
-      internal_only=True,
       job_type='bisect-fyi',
       use_buildbucket=use_recipe,
       job_name=test_name)
@@ -121,7 +124,30 @@ def VerifyBisectFYIResults(job, bisect_results):
       if errors:
         bisect_results['status'] = 'Failure'
         bisect_results['errors'] = errors
+  return bisect_results
 
+
+def VerifyBugUpdate(job, issue_tracker, bisect_results):
+  """Verifies whether bug is updated with the bisect results."""
+  comment_info = issue_tracker.GetLastBugCommentsAndTimestamp(job.bug_id)
+  err_msg = 'Failed to update bug %s with bisect results.' % job.bug_id
+  if not comment_info:
+    bisect_results['status'] = 'Failure'
+    if bisect_results.get('errors'):
+      err_msg = '%s\n%s' % (bisect_results['errors'], err_msg)
+    bisect_results['errors'] = err_msg
+    return bisect_results
+
+  bug_update_timestamp = datetime.datetime.strptime(
+      comment_info['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+  try_job_timestamp = time.mktime(job.last_ran_timestamp.timetuple())
+  if bug_update_timestamp <= try_job_timestamp:
+    logging.info('Issue updated timestamp: %s', bug_update_timestamp)
+    logging.info('Try job timestamp: %s', try_job_timestamp)
+    bisect_results['status'] = 'Failure'
+    if bisect_results.get('errors'):
+      err_msg = '%s\n%s' % (bisect_results['errors'], err_msg)
+    bisect_results['errors'] = err_msg
   return bisect_results
 
 
@@ -143,7 +169,7 @@ def _TextBody(errors_list):
   for test_name, data in errors_list.iteritems():
     test_alerts.append(
         _TEST_FAILURE_TEMPLATE % {
-            'test_name':test_name,
+            'test_name': test_name,
             'error': data.get('error'),
             'info': data.get('info', '')
         }
@@ -154,7 +180,7 @@ def _TextBody(errors_list):
 def _SendEmailAlert(errors_list):
   """Sends email alert about bisect integration tests failures."""
   mail.send_mail(
-      sender='auto-bisect-team@google.com',
-      to='prasadv@google.com',
+      sender='gasper-alerts@google.com',
+      to='auto-bisect-team@google.com',
       subject='[Bisect FYI Alert]Failed to run bisect integration tests.',
       body=_TextBody(errors_list))

@@ -177,6 +177,17 @@ class DatastoreHooksTest(testing_common.TestCase):
     datastore_hooks.SetPrivilegedRequest()
     self._CheckQueryResults(True)
 
+  def testQuery_SinglePrivilegedRequest_InternalOnlyFetched(self):
+    self.UnsetCurrentUser()
+    datastore_hooks.SetSinglePrivilegedRequest()
+    # Not using _CheckQueryResults because this only affects a single query.
+    # First query has internal results.
+    rows = graph_data.Row.query().filter(graph_data.Row.value == 20).fetch()
+    self.assertEqual(2, len(rows))
+    # Second query does not.
+    rows = graph_data.Row.query().filter(graph_data.Row.value == 20).fetch()
+    self.assertEqual(1, len(rows))
+
   def _CheckGet(self, include_internal):
     m = ndb.Key('Master', 'ChromiumPerf').get()
     self.assertEqual(m.key.string_id(), 'ChromiumPerf')

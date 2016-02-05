@@ -112,6 +112,10 @@ tr.exportTo('tr.e.importer.ddms', function() {
   DdmsImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'DdmsImporter';
+    },
+
     get model() {
       return this.model_;
     },

@@ -114,7 +114,7 @@ def GetExternal(key):
   return None
 
 
-def Set(key, value, days_to_keep=None):
+def Set(key, value, days_to_keep=None, namespace=None):
   """Sets the value in the datastore.
 
   Args:
@@ -122,6 +122,8 @@ def Set(key, value, days_to_keep=None):
     value: The value to set.
     days_to_keep: Number of days to keep entity in datastore, default is None.
     Entity will not expire when this value is 0 or None.
+    namespace: Optional namespace, otherwise namespace will be retrieved
+        using datastore_hooks.GetNamespace().
   """
   # When number of days to keep is given, calculate expiration time for
   # the entity and store it in datastore.
@@ -130,7 +132,8 @@ def Set(key, value, days_to_keep=None):
   if days_to_keep:
     expire_time = datetime.datetime.now() + datetime.timedelta(
         days=days_to_keep)
-  namespaced_key = _NamespaceKey(key)
+  namespaced_key = _NamespaceKey(key, namespace)
+
   try:
     CachedPickledString(id=namespaced_key,
                         value=cPickle.dumps(value),
@@ -139,22 +142,19 @@ def Set(key, value, days_to_keep=None):
     logging.warning('BadRequestError for key %s: %s', key, e)
 
 
-def SetExternal(key, value):
+def SetExternal(key, value, days_to_keep=None):
   """Sets the value in the datastore for the externally namespaced key.
 
-  Needed for things like /add_point that update internal/exteral data at the
+  Needed for things like /add_point that update internal/external data at the
   same time.
 
   Args:
     key: The key name, which will be namespaced as externally_visible.
     value: The value to set.
+    days_to_keep: Number of days to keep entity in datastore, default is None.
+        Entity will not expire when this value is 0 or None.
   """
-  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
-  try:
-    CachedPickledString(id=namespaced_key,
-                        value=cPickle.dumps(value)).put()
-  except datastore_errors.BadRequestError as e:
-    logging.warning('BadRequestError for key %s: %s', key, e)
+  Set(key, value, days_to_keep, datastore_hooks.EXTERNAL)
 
 
 def Delete(key):

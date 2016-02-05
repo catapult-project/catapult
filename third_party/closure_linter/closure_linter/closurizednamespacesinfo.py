@@ -24,16 +24,45 @@ processed to determine if they constitute the creation or usage of a dependency.
 
 
 
+import re
+
 from closure_linter import javascripttokens
 from closure_linter import tokenutil
 
-# pylint: disable-msg=C6409
+# pylint: disable=g-bad-name
 TokenType = javascripttokens.JavaScriptTokenType
 
 DEFAULT_EXTRA_NAMESPACES = [
-  'goog.testing.asserts',
-  'goog.testing.jsunit',
+    'goog.testing.asserts',
+    'goog.testing.jsunit',
 ]
+
+
+class UsedNamespace(object):
+  """A type for information about a used namespace."""
+
+  def __init__(self, namespace, identifier, token, alias_definition):
+    """Initializes the instance.
+
+    Args:
+      namespace: the namespace of an identifier used in the file
+      identifier: the complete identifier
+      token: the token that uses the namespace
+      alias_definition: a boolean stating whether the namespace is only to used
+          for an alias definition and should not be required.
+    """
+    self.namespace = namespace
+    self.identifier = identifier
+    self.token = token
+    self.alias_definition = alias_definition
+
+  def GetLine(self):
+    return self.token.line_number
+
+  def __repr__(self):
+    return 'UsedNamespace(%s)' % ', '.join(
+        ['%s=%s' % (k, repr(v)) for k, v in self.__dict__.iteritems()])
+
 
 class ClosurizedNamespacesInfo(object):
   """Dependency information for closurized JavaScript files.
@@ -79,11 +108,11 @@ class ClosurizedNamespacesInfo(object):
     # two lists would only have to contain namespaces.
 
     # A list of tuples where the first element is the namespace of an identifier
-    # created in the file and the second is the identifier itself.
+    # created in the file, the second is the identifier itself and the third is
+    # the line number where it's created.
     self._created_namespaces = []
 
-    # A list of tuples where the first element is the namespace of an identifier
-    # used in the file and the second is the identifier itself.
+    # A list of UsedNamespace instances.
     self._used_namespaces = []
 
     # A list of seemingly-unnecessary namespaces that are goog.required() and
@@ -111,7 +140,7 @@ class ClosurizedNamespacesInfo(object):
       A list of strings where each string is a 'namespace' corresponding to an
       existing goog.provide statement in the file being checked.
     """
-    return list(self._provided_namespaces)
+    return set(self._provided_namespaces)
 
   def GetRequiredNamespaces(self):
     """Returns the namespaces which are already required by this file.
@@ -120,7 +149,7 @@ class ClosurizedNamespacesInfo(object):
       A list of strings where each string is a 'namespace' corresponding to an
       existing goog.require statement in the file being checked.
     """
-    return list(self._required_namespaces)
+    return set(self._required_namespaces)
 
   def IsExtraProvide(self, token):
     """Returns whether the given goog.provide token is unnecessary.
@@ -132,20 +161,16 @@ class ClosurizedNamespacesInfo(object):
       True if the given token corresponds to an unnecessary goog.provide
       statement, otherwise False.
     """
-    if self._scopified_file:
-      return False
+    namespace = tokenutil.GetStringAfterToken(token)
 
-    namespace = tokenutil.Search(token, TokenType.STRING_TEXT).string
-
-    base_namespace = namespace.split('.', 1)[0]
-    if base_namespace not in self._closurized_namespaces:
+    if self.GetClosurizedNamespace(namespace) is None:
       return False
 
     if token in self._duplicate_provide_tokens:
       return True
 
     # TODO(user): There's probably a faster way to compute this.
-    for created_namespace, created_identifier in self._created_namespaces:
+    for created_namespace, created_identifier, _ in self._created_namespaces:
       if namespace == created_namespace or namespace == created_identifier:
         return False
 
@@ -161,13 +186,9 @@ class ClosurizedNamespacesInfo(object):
       True if the given token corresponds to an unnecessary goog.require
       statement, otherwise False.
     """
-    if self._scopified_file:
-      return False
+    namespace = tokenutil.GetStringAfterToken(token)
 
-    namespace = tokenutil.Search(token, TokenType.STRING_TEXT).string
-
-    base_namespace = namespace.split('.', 1)[0]
-    if base_namespace not in self._closurized_namespaces:
+    if self.GetClosurizedNamespace(namespace) is None:
       return False
 
     if namespace in self._ignored_extra_namespaces:
@@ -186,34 +207,34 @@ class ClosurizedNamespacesInfo(object):
       return True
 
     # TODO(user): There's probably a faster way to compute this.
-    for used_namespace, used_identifier in self._used_namespaces:
-      if namespace == used_namespace or namespace == used_identifier:
+    for ns in self._used_namespaces:
+      if (not ns.alias_definition and (
+          namespace == ns.namespace or namespace == ns.identifier)):
         return False
 
     return True
 
   def GetMissingProvides(self):
-    """Returns the set of missing provided namespaces for the current file.
+    """Returns the dict of missing provided namespaces for the current file.
 
     Returns:
-      Returns a set of strings where each string is a namespace that should be
-      provided by this file, but is not.
+      Returns a dictionary of key as string and value as integer where each
+      string(key) is a namespace that should be provided by this file, but is
+      not and integer(value) is first line number where it's defined.
     """
-    if self._scopified_file:
-      return set()
-
-    missing_provides = set()
-    for namespace, identifier in self._created_namespaces:
+    missing_provides = dict()
+    for namespace, identifier, line_number in self._created_namespaces:
       if (not self._IsPrivateIdentifier(identifier) and
           namespace not in self._provided_namespaces and
           identifier not in self._provided_namespaces and
-          namespace not in self._required_namespaces):
-        missing_provides.add(namespace)
+          namespace not in self._required_namespaces and
+          namespace not in missing_provides):
+        missing_provides[namespace] = line_number
 
     return missing_provides
 
   def GetMissingRequires(self):
-    """Returns the set of missing required namespaces for the current file.
+    """Returns the dict of missing required namespaces for the current file.
 
     For each non-private identifier used in the file, find either a
     goog.require, goog.provide or a created identifier that satisfies it.
@@ -227,34 +248,82 @@ class ClosurizedNamespacesInfo(object):
     can't always detect the creation of the namespace.
 
     Returns:
-      Returns a set of strings where each string is a namespace that should be
-      required by this file, but is not.
+      Returns a dictionary of key as string and value integer where each
+      string(key) is a namespace that should be required by this file, but is
+      not and integer(value) is first line number where it's used.
     """
-    if self._scopified_file:
-      return set()
-
     external_dependencies = set(self._required_namespaces)
 
     # Assume goog namespace is always available.
     external_dependencies.add('goog')
+    # goog.module is treated as a builtin, too (for goog.module.get).
+    external_dependencies.add('goog.module')
 
     created_identifiers = set()
-    for namespace, identifier in self._created_namespaces:
+    for unused_namespace, identifier, unused_line_number in (
+        self._created_namespaces):
       created_identifiers.add(identifier)
 
-    missing_requires = set()
-    for namespace, identifier in self._used_namespaces:
-      if (not self._IsPrivateIdentifier(identifier) and
+    missing_requires = dict()
+    illegal_alias_statements = dict()
+
+    def ShouldRequireNamespace(namespace, identifier):
+      """Checks if a namespace would normally be required."""
+      return (
+          not self._IsPrivateIdentifier(identifier) and
           namespace not in external_dependencies and
           namespace not in self._provided_namespaces and
           identifier not in external_dependencies and
-          identifier not in created_identifiers):
-        missing_requires.add(namespace)
+          identifier not in created_identifiers and
+          namespace not in missing_requires)
 
-    return missing_requires
+    # First check all the used identifiers where we know that their namespace
+    # needs to be provided (unless they are optional).
+    for ns in self._used_namespaces:
+      namespace = ns.namespace
+      identifier = ns.identifier
+      if (not ns.alias_definition and
+          ShouldRequireNamespace(namespace, identifier)):
+        missing_requires[namespace] = ns.GetLine()
+
+    # Now that all required namespaces are known, we can check if the alias
+    # definitions (that are likely being used for typeannotations that don't
+    # need explicit goog.require statements) are already covered. If not
+    # the user shouldn't use the alias.
+    for ns in self._used_namespaces:
+      if (not ns.alias_definition or
+          not ShouldRequireNamespace(ns.namespace, ns.identifier)):
+        continue
+      if self._FindNamespace(ns.identifier, self._provided_namespaces,
+                             created_identifiers, external_dependencies,
+                             missing_requires):
+        continue
+      namespace = ns.identifier.rsplit('.', 1)[0]
+      illegal_alias_statements[namespace] = ns.token
+
+    return missing_requires, illegal_alias_statements
+
+  def _FindNamespace(self, identifier, *namespaces_list):
+    """Finds the namespace of an identifier given a list of other namespaces.
+
+    Args:
+      identifier: An identifier whose parent needs to be defined.
+          e.g. for goog.bar.foo we search something that provides
+          goog.bar.
+      *namespaces_list: var args of iterables of namespace identifiers
+    Returns:
+      The namespace that the given identifier is part of or None.
+    """
+    identifier = identifier.rsplit('.', 1)[0]
+    identifier_prefix = identifier + '.'
+    for namespaces in namespaces_list:
+      for namespace in namespaces:
+        if namespace == identifier or namespace.startswith(identifier_prefix):
+          return namespace
+    return None
 
   def _IsPrivateIdentifier(self, identifier):
-    """Returns whether the given identifer is private."""
+    """Returns whether the given identifier is private."""
     pieces = identifier.split('.')
     for piece in pieces:
       if piece.endswith('_'):
@@ -295,7 +364,7 @@ class ClosurizedNamespacesInfo(object):
 
     if token.type == TokenType.IDENTIFIER:
       # TODO(user): Consider saving the whole identifier in metadata.
-      whole_identifier_string = self._GetWholeIdentifierString(token)
+      whole_identifier_string = tokenutil.GetIdentifierForToken(token)
       if whole_identifier_string is None:
         # We only want to process the identifier one time. If the whole string
         # identifier is None, that means this token was part of a multi-token
@@ -306,7 +375,7 @@ class ClosurizedNamespacesInfo(object):
       # just ignore it (e.g. dynamic loading in test runners).
       if token.string == 'goog.require' and not state_tracker.InFunction():
         self._require_tokens.append(token)
-        namespace = tokenutil.Search(token, TokenType.STRING_TEXT).string
+        namespace = tokenutil.GetStringAfterToken(token)
         if namespace in self._required_namespaces:
           self._duplicate_require_tokens.append(token)
         else:
@@ -314,14 +383,13 @@ class ClosurizedNamespacesInfo(object):
 
         # If there is a suppression for the require, add a usage for it so it
         # gets treated as a regular goog.require (i.e. still gets sorted).
-        jsdoc = state_tracker.GetDocComment()
-        if jsdoc and ('extraRequire' in jsdoc.suppressions):
+        if self._HasSuppression(state_tracker, 'extraRequire'):
           self._suppressed_requires.append(namespace)
-          self._AddUsedNamespace(state_tracker, namespace)
+          self._AddUsedNamespace(state_tracker, namespace, token)
 
       elif token.string == 'goog.provide':
         self._provide_tokens.append(token)
-        namespace = tokenutil.Search(token, TokenType.STRING_TEXT).string
+        namespace = tokenutil.GetStringAfterToken(token)
         if namespace in self._provided_namespaces:
           self._duplicate_provide_tokens.append(token)
         else:
@@ -329,84 +397,88 @@ class ClosurizedNamespacesInfo(object):
 
         # If there is a suppression for the provide, add a creation for it so it
         # gets treated as a regular goog.provide (i.e. still gets sorted).
-        jsdoc = state_tracker.GetDocComment()
-        if jsdoc and ('extraProvide' in jsdoc.suppressions):
-          self._AddCreatedNamespace(state_tracker, namespace)
+        if self._HasSuppression(state_tracker, 'extraProvide'):
+          self._AddCreatedNamespace(state_tracker, namespace, token.line_number)
 
       elif token.string == 'goog.scope':
         self._scopified_file = True
 
+      elif token.string == 'goog.setTestOnly':
+
+        # Since the message is optional, we don't want to scan to later lines.
+        for t in tokenutil.GetAllTokensInSameLine(token):
+          if t.type == TokenType.STRING_TEXT:
+            message = t.string
+
+            if re.match(r'^\w+(\.\w+)+$', message):
+              # This looks like a namespace. If it's a Closurized namespace,
+              # consider it created.
+              base_namespace = message.split('.', 1)[0]
+              if base_namespace in self._closurized_namespaces:
+                self._AddCreatedNamespace(state_tracker, message,
+                                          token.line_number)
+
+            break
       else:
         jsdoc = state_tracker.GetDocComment()
+        if token.metadata and token.metadata.aliased_symbol:
+          whole_identifier_string = token.metadata.aliased_symbol
+        elif (token.string == 'goog.module.get' and
+              not self._HasSuppression(state_tracker, 'extraRequire')):
+          # Cannot use _AddUsedNamespace as this is not an identifier, but
+          # already the entire namespace that's required.
+          namespace = tokenutil.GetStringAfterToken(token)
+          namespace = UsedNamespace(namespace, namespace, token,
+                                    alias_definition=False)
+          self._used_namespaces.append(namespace)
         if jsdoc and jsdoc.HasFlag('typedef'):
           self._AddCreatedNamespace(state_tracker, whole_identifier_string,
-                                    self.GetClosurizedNamespace(
+                                    token.line_number,
+                                    namespace=self.GetClosurizedNamespace(
                                         whole_identifier_string))
         else:
-          self._AddUsedNamespace(state_tracker, whole_identifier_string)
+          is_alias_definition = (token.metadata and
+                                 token.metadata.is_alias_definition)
+          self._AddUsedNamespace(state_tracker, whole_identifier_string,
+                                 token, is_alias_definition)
 
     elif token.type == TokenType.SIMPLE_LVALUE:
       identifier = token.values['identifier']
-      namespace = self.GetClosurizedNamespace(identifier)
-      if state_tracker.InFunction():
-        self._AddUsedNamespace(state_tracker, identifier)
-      elif namespace and namespace != 'goog':
-        self._AddCreatedNamespace(state_tracker, identifier, namespace)
+      start_token = tokenutil.GetIdentifierStart(token)
+      if start_token and start_token != token:
+        # Multi-line identifier being assigned. Get the whole identifier.
+        identifier = tokenutil.GetIdentifierForToken(start_token)
+      else:
+        start_token = token
+      # If an alias is defined on the start_token, use it instead.
+      if (start_token and
+          start_token.metadata and
+          start_token.metadata.aliased_symbol and
+          not start_token.metadata.is_alias_definition):
+        identifier = start_token.metadata.aliased_symbol
+
+      if identifier:
+        namespace = self.GetClosurizedNamespace(identifier)
+        if state_tracker.InFunction():
+          self._AddUsedNamespace(state_tracker, identifier, token)
+        elif namespace and namespace != 'goog':
+          self._AddCreatedNamespace(state_tracker, identifier,
+                                    token.line_number, namespace=namespace)
 
     elif token.type == TokenType.DOC_FLAG:
-      flag_type = token.attached_object.flag_type
-      is_interface = state_tracker.GetDocComment().HasFlag('interface')
-      if flag_type == 'implements' or (flag_type == 'extends' and is_interface):
-        # Interfaces should be goog.require'd.
-        doc_start = tokenutil.Search(token, TokenType.DOC_START_BRACE)
-        interface = tokenutil.Search(doc_start, TokenType.COMMENT)
-        self._AddUsedNamespace(state_tracker, interface.string)
+      flag = token.attached_object
+      flag_type = flag.flag_type
+      if flag and flag.HasType() and flag.jstype:
+        is_interface = state_tracker.GetDocComment().HasFlag('interface')
+        if flag_type == 'implements' or (flag_type == 'extends'
+                                         and is_interface):
+          identifier = flag.jstype.alias or flag.jstype.identifier
+          self._AddUsedNamespace(state_tracker, identifier, token)
+          # Since we process doctypes only for implements and extends, the
+          # type is a simple one and we don't need any iteration for subtypes.
 
-
-  def _GetWholeIdentifierString(self, token):
-    """Returns the whole identifier string for the given token.
-
-    Checks the tokens after the current one to see if the token is one in a
-    sequence of tokens which are actually just one identifier (i.e. a line was
-    wrapped in the middle of an identifier).
-
-    Args:
-      token: The token to check.
-
-    Returns:
-      The whole identifier string or None if this token is not the first token
-      in a multi-token identifier.
-    """
-    result = ''
-
-    # Search backward to determine if this token is the first token of the
-    # identifier. If it is not the first token, return None to signal that this
-    # token should be ignored.
-    prev_token = token.previous
-    while prev_token:
-      if (prev_token.IsType(TokenType.IDENTIFIER) or
-          prev_token.IsType(TokenType.NORMAL) and prev_token.string == '.'):
-        return None
-      elif (not prev_token.IsType(TokenType.WHITESPACE) and
-            not prev_token.IsAnyType(TokenType.COMMENT_TYPES)):
-        break
-      prev_token = prev_token.previous
-
-    # Search forward to find other parts of this identifier separated by white
-    # space.
-    next_token = token
-    while next_token:
-      if (next_token.IsType(TokenType.IDENTIFIER) or
-          next_token.IsType(TokenType.NORMAL) and next_token.string == '.'):
-        result += next_token.string
-      elif (not next_token.IsType(TokenType.WHITESPACE) and
-            not next_token.IsAnyType(TokenType.COMMENT_TYPES)):
-        break
-      next_token = next_token.next
-
-    return result
-
-  def _AddCreatedNamespace(self, state_tracker, identifier, namespace=None):
+  def _AddCreatedNamespace(self, state_tracker, identifier, line_number,
+                           namespace=None):
     """Adds the namespace of an identifier to the list of created namespaces.
 
     If the identifier is annotated with a 'missingProvide' suppression, it is
@@ -415,19 +487,20 @@ class ClosurizedNamespacesInfo(object):
     Args:
       state_tracker: The JavaScriptStateTracker instance.
       identifier: The identifier to add.
+      line_number: Line number where namespace is created.
       namespace: The namespace of the identifier or None if the identifier is
           also the namespace.
     """
     if not namespace:
       namespace = identifier
 
-    jsdoc = state_tracker.GetDocComment()
-    if jsdoc and 'missingProvide' in jsdoc.suppressions:
+    if self._HasSuppression(state_tracker, 'missingProvide'):
       return
 
-    self._created_namespaces.append([namespace, identifier])
+    self._created_namespaces.append([namespace, identifier, line_number])
 
-  def _AddUsedNamespace(self, state_tracker, identifier):
+  def _AddUsedNamespace(self, state_tracker, identifier, token,
+                        is_alias_definition=False):
     """Adds the namespace of an identifier to the list of used namespaces.
 
     If the identifier is annotated with a 'missingRequire' suppression, it is
@@ -436,14 +509,32 @@ class ClosurizedNamespacesInfo(object):
     Args:
       state_tracker: The JavaScriptStateTracker instance.
       identifier: An identifier which has been used.
+      token: The token in which the namespace is used.
+      is_alias_definition: If the used namespace is part of an alias_definition.
+          Aliased symbols need their parent namespace to be available, if it is
+          not yet required through another symbol, an error will be thrown.
     """
-    jsdoc = state_tracker.GetDocComment()
-    if jsdoc and 'missingRequire' in jsdoc.suppressions:
+    if self._HasSuppression(state_tracker, 'missingRequire'):
       return
 
+    identifier = self._GetUsedIdentifier(identifier)
     namespace = self.GetClosurizedNamespace(identifier)
-    if namespace:
-      self._used_namespaces.append([namespace, identifier])
+    # b/5362203 If its a variable in scope then its not a required namespace.
+    if namespace and not state_tracker.IsVariableInScope(namespace):
+      namespace = UsedNamespace(namespace, identifier, token,
+                                is_alias_definition)
+      self._used_namespaces.append(namespace)
+
+  def _HasSuppression(self, state_tracker, suppression):
+    jsdoc = state_tracker.GetDocComment()
+    return jsdoc and suppression in jsdoc.suppressions
+
+  def _GetUsedIdentifier(self, identifier):
+    """Strips apply/call/inherit calls from the identifier."""
+    for suffix in ('.apply', '.call', '.inherit'):
+      if identifier.endswith(suffix):
+        return identifier[:-len(suffix)]
+    return identifier
 
   def GetClosurizedNamespace(self, identifier):
     """Given an identifier, returns the namespace that identifier is from.
@@ -463,11 +554,6 @@ class ClosurizedNamespacesInfo(object):
     for namespace in self._closurized_namespaces:
       if not identifier.startswith(namespace + '.'):
         continue
-
-      last_part = parts[-1]
-      if not last_part:
-        # TODO(robbyw): Handle this: it's a multi-line identifier.
-        return None
 
       # The namespace for a class is the shortest prefix ending in a class
       # name, which starts with a capital letter but is not a capitalized word.

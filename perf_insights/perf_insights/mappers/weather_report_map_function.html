@@ -17,6 +17,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/ir_coverage.html">
 
 <script>
+'use strict';
+
 tr.exportTo('pi.m', function() {
 
   function getWeatherReportFromModel(model) {
@@ -49,8 +51,8 @@ tr.exportTo('pi.m', function() {
         return;
       allIRs.push(ir);
       var path = [
-        tr.e.rail.userFriendlyRailTypeName(ir.railTypeName),
-        ir.name || 'Unnamed'
+        ir.stageTitle,
+        ir.initiatorTitle || 'Unnamed'
       ];
       addIRToNode(irTree, ir, path);
     });
@@ -76,8 +78,7 @@ tr.exportTo('pi.m', function() {
         // Unassociated events have already been assigned to a RTN.
         if (railTypeNameByGUID[event.guid] !== undefined)
           return;
-        railTypeNameByGUID[event.guid] = tr.e.rail.userFriendlyRailTypeName(
-            ir.railTypeName);
+        railTypeNameByGUID[event.guid] = ir.stageTitle;
       }, this);
     }, this);
 
@@ -89,9 +90,10 @@ tr.exportTo('pi.m', function() {
     return railTypeNameByGUID;
   }
 
-  function weatherReportMapFunction(results, runInfo, model) {
+  function weatherReportMapFunction(results, model) {
+    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var wr = pi.m.getWeatherReportFromModel(model);
-    results.addValue(new pi.v.DictValue(runInfo, 'wr', wr));
+    results.addValue(new pi.v.DictValue(canonicalUrl, 'wr', wr));
   }
   pi.FunctionRegistry.register(weatherReportMapFunction);
 

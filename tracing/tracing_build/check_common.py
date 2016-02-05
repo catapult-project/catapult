@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import sys
 import os
 
 import tracing_project
@@ -14,13 +13,13 @@ FILE_GROUPS = ["tracing_css_files",
 
 
 def GetFileGroupFromFileName(filename):
-   extension = os.path.splitext(filename)[1]
-   return {
-       '.css': 'tracing_css_files',
-       '.html': 'tracing_js_html_files',
-       '.js': 'tracing_js_html_files',
-       '.png': 'tracing_img_files'
-   }[extension]
+  extension = os.path.splitext(filename)[1]
+  return {
+      '.css': 'tracing_css_files',
+      '.html': 'tracing_js_html_files',
+      '.js': 'tracing_js_html_files',
+      '.png': 'tracing_img_files'
+  }[extension]
 
 
 def CheckListedFilesSorted(src_file, group_name, listed_files):

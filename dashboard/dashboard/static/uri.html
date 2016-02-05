@@ -45,8 +45,8 @@ var uri = (function() {
    * the event detail object.
    */
   Controller.prototype.load = function() {
-    var params = getAllParameters();
-    var sid = getParameter('sid');
+    var params = uri.getAllParameters();
+    var sid = uri.getParameter('sid');
     if (!params || !sid) {
       return;
     }
@@ -54,7 +54,7 @@ var uri = (function() {
     var request = new XMLHttpRequest();
     request.onload = function() {
       var pageState = JSON.parse(request.responseText);
-      var params = getAllParameters();
+      var params = uri.getAllParameters();
       var uriLoadEvent = new CustomEvent('uriload', {
         'detail': {
           'params': params,
@@ -110,7 +110,7 @@ var uri = (function() {
    * @param {Object} state Dictionary containing state data.
    */
   Controller.prototype.updateUri_ = function(state) {
-    var params = getAllParameters();
+    var params = uri.getAllParameters();
     if (!state || !state['params']) {
       params = {};
     } else {
@@ -124,7 +124,7 @@ var uri = (function() {
       }
     }
     var uri_str = getCurrentPathWithParams(params);
-    if (uri_str == window.location.pathname + window.location.search) {
+    if (uri_str == window.location.pathname + uri.getQueryString()) {
       return;
     }
     window.history.pushState(state, '', uri_str);
@@ -212,7 +212,7 @@ var uri = (function() {
   var getParameter = function(name, opt_default) {
     name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
     var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    var results = regex.exec(window.location.search);
+    var results = regex.exec(uri.getQueryString());
     if (results != null) {
       return decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
@@ -226,7 +226,7 @@ var uri = (function() {
    */
   var getAllParameters = function() {
     var params = {};
-    var queryString = window.location.search.replace(/^\?/, '');
+    var queryString = uri.getQueryString().replace(/^\?/, '');
     if (!queryString) {
       return {};
     }
@@ -236,10 +236,15 @@ var uri = (function() {
       if (pair.length == 1) {
         params[pair[0]] = '';
       } else {
-        params[pair[0]] = decodeURIComponent(pair[1]);
+        params[pair[0]] = decodeURIComponent(pair[1].replace(/\+/g, ' '));
       }
     }
     return params;
+  };
+
+  /** Gets the query string, including "?", in a mockable way. */
+  var getQueryString = function() {
+    return window.location.search;
   };
 
   /**
@@ -260,7 +265,8 @@ var uri = (function() {
     Controller: Controller,
     getParameter: getParameter,
     getAllParameters: getAllParameters,
-    getCurrentPathWithParams: getCurrentPathWithParams
+    getCurrentPathWithParams: getCurrentPathWithParams,
+    getQueryString: getQueryString
   };
 })();
 

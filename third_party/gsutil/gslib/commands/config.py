@@ -194,6 +194,9 @@ _DETAILED_HELP_TEXT = ("""
       json_api_version
       parallel_composite_upload_component_size
       parallel_composite_upload_threshold
+      sliced_object_download_component_size
+      sliced_object_download_max_components
+      sliced_object_download_threshold
       parallel_process_count
       parallel_thread_count
       prefer_api
@@ -298,6 +301,9 @@ else:
 # revert DEFAULT_PARALLEL_COMPOSITE_UPLOAD_THRESHOLD value to '150M'.
 DEFAULT_PARALLEL_COMPOSITE_UPLOAD_THRESHOLD = '0'
 DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE = '50M'
+DEFAULT_SLICED_OBJECT_DOWNLOAD_THRESHOLD = '150M'
+DEFAULT_SLICED_OBJECT_DOWNLOAD_COMPONENT_SIZE = '200M'
+DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS = 4
 
 CONFIG_BOTO_SECTION_CONTENT = """
 [Boto]
@@ -433,8 +439,22 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # Linux distributions to get crcmod included with the stock distribution. Once
 # that is done we will re-enable parallel composite uploads by default in
 # gsutil.
+#
+# Note: Parallel composite uploads should not be used with NEARLINE storage
+# class buckets, as doing this would incur an early deletion charge for each
+# component object.
 #parallel_composite_upload_threshold = %(parallel_composite_upload_threshold)s
 #parallel_composite_upload_component_size = %(parallel_composite_upload_component_size)s
+
+# 'sliced_object_download_threshold' and
+# 'sliced_object_download_component_size' have analogous functionality to
+# their respective parallel_composite_upload config values.
+# 'sliced_object_download_max_components' specifies the maximum number of 
+# slices to be used when performing a sliced object download. It is not
+# restricted by MAX_COMPONENT_COUNT.
+#sliced_object_download_threshold = %(sliced_object_download_threshold)s
+#sliced_object_download_component_size = %(sliced_object_download_component_size)s
+#sliced_object_download_max_components = %(sliced_object_download_max_components)s
 
 # 'use_magicfile' specifies if the 'file --mime-type <filename>' command should
 # be used to guess content types instead of the default filename extension-based
@@ -493,6 +513,12 @@ content_language = en
            DEFAULT_PARALLEL_COMPOSITE_UPLOAD_THRESHOLD),
        'parallel_composite_upload_component_size': (
            DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE),
+       'sliced_object_download_threshold': (
+           DEFAULT_PARALLEL_COMPOSITE_UPLOAD_THRESHOLD),
+       'sliced_object_download_component_size': (
+           DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE),
+       'sliced_object_download_max_components': (
+           DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS),
        'max_component_count': MAX_COMPONENT_COUNT}
 
 CONFIG_OAUTH2_CONFIG_CONTENT = """

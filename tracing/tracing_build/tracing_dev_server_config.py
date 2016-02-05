@@ -2,25 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import json
 import os
-import sys
 
 import tracing_project
-from hooks import install
 
-from paste import httpserver
-from paste import fileapp
 
 import webapp2
-from webapp2 import Route, RedirectHandler
+from webapp2 import Route
 
 
 def _RelPathToUnixPath(p):
   return p.replace(os.sep, '/')
 
+
 class TestListHandler(webapp2.RequestHandler):
+
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     project = tracing_project.TracingProject()
     test_relpaths = ['/' + _RelPathToUnixPath(x)
@@ -33,6 +30,7 @@ class TestListHandler(webapp2.RequestHandler):
 
 
 class TracingDevServerConfig(object):
+
   def __init__(self):
     self.project = tracing_project.TracingProject()
 
@@ -54,6 +52,6 @@ class TracingDevServerConfig(object):
 
   def GetTestDataPaths(self, args):  # pylint: disable=unused-argument
     return [
-      ('/tracing/test_data/', os.path.expanduser(args.data_dir)),
-      ('/tracing/skp_data/', os.path.expanduser(args.skp_data_dir)),
+        ('/tracing/test_data/', os.path.expanduser(args.data_dir)),
+        ('/tracing/skp_data/', os.path.expanduser(args.skp_data_dir)),
     ]

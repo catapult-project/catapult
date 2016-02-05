@@ -76,6 +76,10 @@ tr.exportTo('tr.e.importer.v8', function() {
 
     __proto__: tr.importer.Importer.prototype,
 
+    get importerName() {
+      return 'V8LogImporter';
+    },
+
     processTimerEvent_: function(name, start, length) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;

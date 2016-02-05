@@ -20,12 +20,13 @@ __author__ = ('robbyw@google.com (Robert Walker)',
               'ajp@google.com (Andy Perelson)')
 
 import copy
+import StringIO
 
-from closure_linter import javascripttokens
 from closure_linter.common import tokens
+from closure_linter.javascripttokens import JavaScriptToken
+from closure_linter.javascripttokens import JavaScriptTokenType
 
 # Shorthand
-JavaScriptToken = javascripttokens.JavaScriptToken
 Type = tokens.TokenType
 
 
@@ -214,6 +215,13 @@ def DeleteToken(token):
   Args:
     token: The token to delete
   """
+  # When deleting a token, we do not update the deleted token itself to make
+  # sure the previous and next pointers are still pointing to tokens which are
+  # not deleted.  Also it is very hard to keep track of all previously deleted
+  # tokens to update them when their pointers become invalid.  So we add this
+  # flag that any token linked list iteration logic can skip deleted node safely
+  # when its current token is deleted.
+  token.is_deleted = True
   if token.previous:
     token.previous.next = token.next
 
@@ -236,6 +244,47 @@ def DeleteTokens(token, token_count):
   for i in xrange(1, token_count):
     DeleteToken(token.next)
   DeleteToken(token)
+
+
+def InsertTokenBefore(new_token, token):
+  """Insert new_token before token.
+
+  Args:
+    new_token: A token to be added to the stream
+    token: A token already in the stream
+  """
+  new_token.next = token
+  new_token.previous = token.previous
+
+  new_token.metadata = copy.copy(token.metadata)
+
+  if new_token.IsCode():
+    old_last_code = token.metadata.last_code
+    following_token = token
+    while (following_token and
+           following_token.metadata.last_code == old_last_code):
+      following_token.metadata.last_code = new_token
+      following_token = following_token.next
+
+  token.previous = new_token
+  if new_token.previous:
+    new_token.previous.next = new_token
+
+  if new_token.start_index is None:
+    if new_token.line_number == token.line_number:
+      new_token.start_index = token.start_index
+    else:
+      previous_token = new_token.previous
+      if previous_token:
+        new_token.start_index = (previous_token.start_index +
+                                 len(previous_token.string))
+      else:
+        new_token.start_index = 0
+
+    iterator = new_token.next
+    while iterator and iterator.line_number == new_token.line_number:
+      iterator.start_index += len(new_token.string)
+      iterator = iterator.next
 
 
 def InsertTokenAfter(new_token, token):
@@ -372,3 +421,277 @@ def Compare(token1, token2):
     return token1.line_number - token2.line_number
   else:
     return token1.start_index - token2.start_index
+
+
+def GoogScopeOrNoneFromStartBlock(token):
+  """Determines if the given START_BLOCK is part of a goog.scope statement.
+
+  Args:
+    token: A token of type START_BLOCK.
+
+  Returns:
+    The goog.scope function call token, or None if such call doesn't exist.
+  """
+  if token.type != JavaScriptTokenType.START_BLOCK:
+    return None
+
+  # Search for a goog.scope statement, which will be 5 tokens before the
+  # block. Illustration of the tokens found prior to the start block:
+  # goog.scope(function() {
+  #      5    4    3   21 ^
+
+  maybe_goog_scope = token
+  for unused_i in xrange(5):
+    maybe_goog_scope = (maybe_goog_scope.previous if maybe_goog_scope and
+                        maybe_goog_scope.previous else None)
+  if maybe_goog_scope and maybe_goog_scope.string == 'goog.scope':
+    return maybe_goog_scope
+
+
+def GetTokenRange(start_token, end_token):
+  """Returns a list of tokens between the two given, inclusive.
+
+  Args:
+    start_token: Start token in the range.
+    end_token: End token in the range.
+
+  Returns:
+    A list of tokens, in order, from start_token to end_token (including start
+    and end).  Returns none if the tokens do not describe a valid range.
+  """
+
+  token_range = []
+  token = start_token
+
+  while token:
+    token_range.append(token)
+
+    if token == end_token:
+      return token_range
+
+    token = token.next
+
+
+def TokensToString(token_iterable):
+  """Convert a number of tokens into a string.
+
+  Newlines will be inserted whenever the line_number of two neighboring
+  strings differ.
+
+  Args:
+    token_iterable: The tokens to turn to a string.
+
+  Returns:
+    A string representation of the given tokens.
+  """
+
+  buf = StringIO.StringIO()
+  token_list = list(token_iterable)
+  if not token_list:
+    return ''
+
+  line_number = token_list[0].line_number
+
+  for token in token_list:
+
+    while line_number < token.line_number:
+      line_number += 1
+      buf.write('\n')
+
+    if line_number > token.line_number:
+      line_number = token.line_number
+      buf.write('\n')
+
+    buf.write(token.string)
+
+  return buf.getvalue()
+
+
+def GetPreviousCodeToken(token):
+  """Returns the code token before the specified token.
+
+  Args:
+    token: A token.
+
+  Returns:
+    The code token before the specified token or None if no such token
+    exists.
+  """
+
+  return CustomSearch(
+      token,
+      lambda t: t and t.type not in JavaScriptTokenType.NON_CODE_TYPES,
+      reverse=True)
+
+
+def GetNextCodeToken(token):
+  """Returns the next code token after the specified token.
+
+  Args:
+    token: A token.
+
+  Returns:
+    The next code token after the specified token or None if no such token
+    exists.
+  """
+
+  return CustomSearch(
+      token,
+      lambda t: t and t.type not in JavaScriptTokenType.NON_CODE_TYPES,
+      reverse=False)
+
+
+def GetIdentifierStart(token):
+  """Returns the first token in an identifier.
+
+  Given a token which is part of an identifier, returns the token at the start
+  of the identifier.
+
+  Args:
+    token: A token which is part of an identifier.
+
+  Returns:
+    The token at the start of the identifier or None if the identifier was not
+    of the form 'a.b.c' (e.g. "['a']['b'].c").
+  """
+
+  start_token = token
+  previous_code_token = GetPreviousCodeToken(token)
+
+  while (previous_code_token and (
+      previous_code_token.IsType(JavaScriptTokenType.IDENTIFIER) or
+      IsDot(previous_code_token))):
+    start_token = previous_code_token
+    previous_code_token = GetPreviousCodeToken(previous_code_token)
+
+  if IsDot(start_token):
+    return None
+
+  return start_token
+
+
+def GetIdentifierForToken(token):
+  """Get the symbol specified by a token.
+
+  Given a token, this function additionally concatenates any parts of an
+  identifying symbol being identified that are split by whitespace or a
+  newline.
+
+  The function will return None if the token is not the first token of an
+  identifier.
+
+  Args:
+    token: The first token of a symbol.
+
+  Returns:
+    The whole symbol, as a string.
+  """
+
+  # Search backward to determine if this token is the first token of the
+  # identifier. If it is not the first token, return None to signal that this
+  # token should be ignored.
+  prev_token = token.previous
+  while prev_token:
+    if (prev_token.IsType(JavaScriptTokenType.IDENTIFIER) or
+        IsDot(prev_token)):
+      return None
+
+    if (prev_token.IsType(tokens.TokenType.WHITESPACE) or
+        prev_token.IsAnyType(JavaScriptTokenType.COMMENT_TYPES)):
+      prev_token = prev_token.previous
+    else:
+      break
+
+  # A "function foo()" declaration.
+  if token.type is JavaScriptTokenType.FUNCTION_NAME:
+    return token.string
+
+  # A "var foo" declaration (if the previous token is 'var')
+  previous_code_token = GetPreviousCodeToken(token)
+
+  if previous_code_token and previous_code_token.IsKeyword('var'):
+    return token.string
+
+  # Otherwise, this is potentially a namespaced (goog.foo.bar) identifier that
+  # could span multiple lines or be broken up by whitespace.  We need
+  # to concatenate.
+  identifier_types = set([
+      JavaScriptTokenType.IDENTIFIER,
+      JavaScriptTokenType.SIMPLE_LVALUE
+      ])
+
+  assert token.type in identifier_types
+
+  # Start with the first token
+  symbol_tokens = [token]
+
+  if token.next:
+    for t in token.next:
+      last_symbol_token = symbol_tokens[-1]
+
+      # A dot is part of the previous symbol.
+      if IsDot(t):
+        symbol_tokens.append(t)
+        continue
+
+      # An identifier is part of the previous symbol if the previous one was a
+      # dot.
+      if t.type in identifier_types:
+        if IsDot(last_symbol_token):
+          symbol_tokens.append(t)
+          continue
+        else:
+          break
+
+      # Skip any whitespace
+      if t.type in JavaScriptTokenType.NON_CODE_TYPES:
+        continue
+
+      # This is the end of the identifier. Stop iterating.
+      break
+
+  if symbol_tokens:
+    return ''.join([t.string for t in symbol_tokens])
+
+
+def GetStringAfterToken(token):
+  """Get string after token.
+
+  Args:
+    token: Search will be done after this token.
+
+  Returns:
+    String if found after token else None (empty string will also
+    return None).
+
+  Search until end of string as in case of empty string Type.STRING_TEXT is not
+  present/found and don't want to return next string.
+  E.g.
+  a = '';
+  b = 'test';
+  When searching for string after 'a' if search is not limited by end of string
+  then it will return 'test' which is not desirable as there is a empty string
+  before that.
+
+  This will return None for cases where string is empty or no string found
+  as in both cases there is no Type.STRING_TEXT.
+  """
+  string_token = SearchUntil(token, JavaScriptTokenType.STRING_TEXT,
+                             [JavaScriptTokenType.SINGLE_QUOTE_STRING_END,
+                              JavaScriptTokenType.DOUBLE_QUOTE_STRING_END])
+  if string_token:
+    return string_token.string
+  else:
+    return None
+
+
+def IsDot(token):
+  """Whether the token represents a "dot" operator (foo.bar)."""
+  return token.type is JavaScriptTokenType.OPERATOR and token.string == '.'
+
+
+def IsIdentifierOrDot(token):
+  """Whether the token is either an identifier or a '.'."""
+  return (token.type in [JavaScriptTokenType.IDENTIFIER,
+                         JavaScriptTokenType.SIMPLE_LVALUE] or
+          IsDot(token))

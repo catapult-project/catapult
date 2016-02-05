@@ -321,11 +321,6 @@ class BatchHttpRequest(object):
         gen.flatten(msg, unixfrom=False)
         body = str_io.getvalue()
 
-        # Strip off the \n\n that the MIME lib tacks onto the end of the
-        # payload.
-        if request.body is None:
-            body = body[:-2]
-
         return status_line + body
 
     def _DeserializeResponse(self, payload):

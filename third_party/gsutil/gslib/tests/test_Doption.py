@@ -16,6 +16,8 @@
 
 from __future__ import absolute_import
 
+import platform
+
 import gslib
 from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as testcase
@@ -88,8 +90,9 @@ class TestDOption(testcase.GsUtilIntegrationTestCase):
       self.assertIn('header: x-goog-hash: md5=eB5eJF1ptWaXm4bijSPyxw==', stderr)
     elif self.test_api == ApiSelector.JSON:
       self.assertRegexpMatches(
-          stderr, '.*GET.*b/%s/o/%s.*user-agent:.*gsutil/%s' %
-          (key_uri.bucket_name, key_uri.object_name, gslib.VERSION))
+          stderr, '.*GET.*b/%s/o/%s.*user-agent:.*gsutil/%s.Python/%s' %
+          (key_uri.bucket_name, key_uri.object_name, gslib.VERSION,
+           platform.python_version()))
       self.assertIn(('header: Cache-Control: no-cache, no-store, max-age=0, '
                      'must-revalidate'), stderr)
       self.assertIn("md5Hash: u'eB5eJF1ptWaXm4bijSPyxw=='", stderr)

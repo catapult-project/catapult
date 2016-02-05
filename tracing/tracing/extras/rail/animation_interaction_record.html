@@ -32,15 +32,16 @@ tr.exportTo('tr.e.rail', function() {
   // greater than or equal to this:
   var MAX_DISCOMFORT_JANK = 0.3;
 
-  function AnimationInteractionRecord(parentModel, start, duration) {
+  function AnimationInteractionRecord(
+      parentModel, initiatorTitle, start, duration) {
     tr.e.rail.RAILInteractionRecord.call(
-        this, parentModel, 'Animation', 'rail_animate',
-        start, duration);
+        this, parentModel, initiatorTitle, start, duration);
     this.frameEvents_ = undefined;
   }
 
   AnimationInteractionRecord.prototype = {
     __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+    constructor: AnimationInteractionRecord,
 
     get frameEvents() {
       if (this.frameEvents_)
@@ -87,6 +88,11 @@ tr.exportTo('tr.e.rail', function() {
       return tr.b.clamp(normalizedComfort, 0, 1);
     }
   };
+
+  tr.e.rail.RAILInteractionRecord.register(AnimationInteractionRecord, {
+    stageTitle: 'Animation',
+    colorId: tr.b.ColorScheme.getColorIdForReservedName('rail_animation')
+  });
 
   return {
     AnimationInteractionRecord: AnimationInteractionRecord

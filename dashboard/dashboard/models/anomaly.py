@@ -85,4 +85,3 @@ class Anomaly(alert.Alert):
     # so when the test improvement direction is |UNKNOWN|, |self.is_improvement|
     # will be False.
     self.is_improvement = (self.direction == test.improvement_direction)
-

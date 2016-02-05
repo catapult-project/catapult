@@ -5,7 +5,6 @@
 import collections
 import os
 import re
-import sys
 
 import tracing_project
 from tracing_build import check_common
@@ -16,9 +15,9 @@ class _Token(object):
   def __init__(self, data, token_id=None):
     self.data = data
     if token_id:
-      self.id = token_id
+      self.token_id = token_id
     else:
-      self.id = 'plain'
+      self.token_id = 'plain'
 
 
 class BuildFile(object):
@@ -48,10 +47,10 @@ class BuildFile(object):
 
   def Update(self, files_by_group):
     for token in self._tokens:
-      if token.id in files_by_group:
+      if token.token_id in files_by_group:
         token.data = self._GetReplacementListAsString(
             token.data,
-            files_by_group[token.id])
+            files_by_group[token.token_id])
 
   def Write(self, f):
     for token in self._tokens:
@@ -85,7 +84,7 @@ class GypiFile(BuildFile):
     # In the match,
     # group 1 is : 'file_group_name'
     # group 2 is : """  'path/to/one/file.extension',\n  'another/file.ex',\n"""
-    regexp_str = "'(%s)': \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
+    regexp_str = r"'(%s)': \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
     return re.compile(regexp_str, re.MULTILINE | re.DOTALL)
 
   def _GetReplacementListAsString(self, existing_list_as_string, filelist):
@@ -95,10 +94,10 @@ class GypiFile(BuildFile):
                     for filename in filelist])
 
 
-def _GroupFiles(fileNameToGroupNameFunc, filenames):
+def _GroupFiles(file_name_to_group_name_func, filenames):
   file_groups = collections.defaultdict(lambda: [])
   for filename in filenames:
-    file_groups[fileNameToGroupNameFunc(filename)].append(filename)
+    file_groups[file_name_to_group_name_func(filename)].append(filename)
   for group in file_groups:
     file_groups[group].sort()
   return file_groups

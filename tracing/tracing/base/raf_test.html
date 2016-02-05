@@ -179,5 +179,69 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
+  function withFixedIdleTimeRemaining(idleTime, func) {
+    var oldRIC = window.requestIdleCallback;
+    try {
+      var pendingIdleCallbacks = [];
+      window.requestIdleCallback = function(callback) {
+        var deadline = {
+          timeRemaining: function() {
+            return idleTime;
+          }
+        };
+        pendingIdleCallbacks.push(function() {
+          callback(deadline, false /* didTimeout */);
+        });
+      };
+      func(pendingIdleCallbacks);
+    } finally {
+      window.requestIdleCallback = oldRIC;
+    }
+  }
+
+  test('idleCallbackWithIdletime', function() {
+    withFixedIdleTimeRemaining(1000, function(pendingIdleCallbacks) {
+      var idle1Ran = false;
+      var idle2Ran = false;
+      tr.b.requestIdleCallback(function() {
+        idle1Ran = true;
+      });
+      tr.b.requestIdleCallback(function() {
+        idle2Ran = true;
+      });
+      assert.lengthOf(pendingIdleCallbacks, 1);
+      pendingIdleCallbacks.shift()();
+
+      // Both callbacks should have run since there was idle time.
+      assert.isTrue(idle1Ran);
+      assert.isTrue(idle2Ran);
+    });
+  });
+
+  test('idleCallbackWithoutIdletime', function() {
+    withFixedIdleTimeRemaining(0, function(pendingIdleCallbacks) {
+      var idle1Ran = false;
+      var idle2Ran = false;
+      tr.b.requestIdleCallback(function() {
+        idle1Ran = true;
+      });
+      tr.b.requestIdleCallback(function() {
+        idle2Ran = true;
+      });
+      assert.lengthOf(pendingIdleCallbacks, 1);
+      pendingIdleCallbacks.shift()();
+
+      // Only the first idle callback should have run since there was no idle
+      // time left.
+      assert.isTrue(idle1Ran);
+      assert.isFalse(idle2Ran);
+
+      // Run the remaining idle task.
+      assert.lengthOf(pendingIdleCallbacks, 1);
+      pendingIdleCallbacks.shift()();
+      assert.isTrue(idle2Ran);
+    });
+  });
+
 });
 </script>

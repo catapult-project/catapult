@@ -24,6 +24,7 @@ tr.b.unittest.testSuite(function() {
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var convertToProcessMemoryDumps = tr.ui.analysis.convertToProcessMemoryDumps;
+  var extractProcessMemoryDumps = tr.ui.analysis.extractProcessMemoryDumps;
   var extractVmRegions = tr.ui.analysis.extractVmRegions;
   var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
@@ -68,7 +69,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkRow(columns, row, expectedTitle, expectedSizes,
-      expectedDefinedValues) {
+      expectedContexts) {
     // Check title.
     var formattedTitle = getTitleText(columns[0].formatTitle(row));
     assert.equal(formattedTitle, expectedTitle);
@@ -81,10 +82,10 @@ tr.b.unittest.testSuite(function() {
     // There should be no row nesting on the overview pane.
     assert.isUndefined(row.subRows);
 
-    if (expectedDefinedValues)
-      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
+    if (expectedContexts)
+      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
     else
-      assert.isUndefined(row.defined);
+      assert.isUndefined(row.contexts);
   }
 
   function checkRows(columns, actualRows, expectedRows) {
@@ -97,7 +98,7 @@ tr.b.unittest.testSuite(function() {
       var actualRow = actualRows[i];
       var expectedRow = expectedRows[i];
       checkRow(columns, actualRow, expectedRow.title, expectedRow.sizes,
-          expectedRow.defined);
+          expectedRow.contexts);
     }
   }
 
@@ -146,20 +147,20 @@ tr.b.unittest.testSuite(function() {
             title: 'Process 1',
             sizes: [[29884416], undefined, [9437184], [5767168], [0], undefined,
                 undefined, [7340032], undefined, undefined, [2097152]],
-            defined: [true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
             title: 'Process 2',
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [1048576], [1], [5242880], [1572864]],
-            defined: [true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
             title: 'Process 4',
             sizes: [undefined, [17825792], undefined, undefined, undefined,
                 undefined, undefined, undefined, undefined, undefined,
                 undefined],
-            defined: [true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
           }
         ],
         [  // Footer rows.
@@ -167,7 +168,7 @@ tr.b.unittest.testSuite(function() {
             title: 'Total',
             sizes: [[47710208], [57671680], [27787264], [5767168], [32],
                 [8912896], [7340032], [8388608], [1], [5242880], [3670016]],
-            defined: undefined
+            contexts: undefined
           }
         ],
         undefined /* no aggregation */);
@@ -186,7 +187,7 @@ tr.b.unittest.testSuite(function() {
                 [0, 0, undefined], undefined, undefined,
                 [undefined, 7340032, undefined], undefined, undefined,
                 [undefined, 2097152, undefined]],
-            defined: [true, true, undefined]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
             title: 'Process 2',
@@ -196,21 +197,21 @@ tr.b.unittest.testSuite(function() {
                 [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
                 [undefined, 1, undefined], [5242880, 5242880, 5767168],
                 [1048576, 1572864, 2097152]],
-            defined: [true, true, true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
             title: 'Process 3',
             sizes: [undefined, undefined, undefined, undefined, undefined,
                 undefined, undefined, undefined, [2147483648, undefined,
                 1073741824], [1073741824, undefined, 2147483648], undefined],
-            defined: [true, undefined, true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
           },
           {
             title: 'Process 4',
             sizes: [undefined, [undefined, 17825792, 17825792], undefined,
                 undefined, undefined, undefined, undefined, undefined,
                 undefined, undefined, undefined],
-            defined: [undefined, true, true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
           }
         ],
         [  // Footer rows.
@@ -222,7 +223,7 @@ tr.b.unittest.testSuite(function() {
                 [10485760, 8912896, 7340032], [undefined, 7340032, 6291456],
                 [2097152, 8388608, 786432], [2147483648, 1, 1073741824],
                 [1078984704, 5242880, 2153250816], [1048576, 3670016, 2097152]],
-            defined: undefined
+            contexts: undefined
           }
         ],
         AggregationMode.DIFF);
@@ -238,7 +239,7 @@ tr.b.unittest.testSuite(function() {
             title: 'Process 2',
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [1048576], [1], [5242880], [1572864]],
-            defined: [true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
         [] /* footer rows */,
@@ -259,7 +260,7 @@ tr.b.unittest.testSuite(function() {
                 [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
                 [undefined, 1, undefined], [5242880, 5242880, 5767168],
                 [1048576, 1572864, 2097152]],
-            defined: [true, true, true]
+            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
         [] /* footer rows */,

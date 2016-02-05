@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
       model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
         parentModel: model,
         start: 0, end: 100,
-        railTypeName: 'rail_idle',
+        typeName: 'Idle',
         normalizedEfficiency: 0.8,
         normalizedUserComfort: 0.0,
         associatedEvents: [
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
       model.ir2 = new tr.e.rail.StubRAILInteractionRecord({
         parentModel: model,
         start: 100, end: 200,
-        railTypeName: 'rail_response',
+        typeName: 'Response',
         normalizedEfficiency: 0.92935252939242,
         normalizedUserComfort: 0.24128432825823582,
         associatedEvents: [

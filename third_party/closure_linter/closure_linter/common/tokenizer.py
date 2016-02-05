@@ -90,7 +90,8 @@ class Tokenizer(object):
     Returns:
       The newly created Token object.
     """
-    return tokens.Token(string, token_type, line, line_number, values)
+    return tokens.Token(string, token_type, line, line_number, values,
+                        line_number)
 
   def __TokenizeLine(self, line):
     """Tokenizes the given line.

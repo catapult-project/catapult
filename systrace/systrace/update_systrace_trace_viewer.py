@@ -22,7 +22,8 @@ NO_AUTO_UPDATE_ = 'NO_AUTO_UPDATE'
 
 
 def create_catapult_rev_str_(revision):
-    return '<!--' + CATAPULT_REV_ + '=' + str(revision) + '-->'
+  return '<!--' + CATAPULT_REV_ + '=' + str(revision) + '-->'
+
 
 def get_catapult_rev_in_file_():
   assert os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE_)
@@ -32,9 +33,10 @@ def get_catapult_rev_in_file_():
     for line in lines[::-1]:
       if CATAPULT_REV_ in line:
         tokens = line.split(CATAPULT_REV_)
-        rev = re.sub('[=\->]', '', tokens[1]).strip()
+        rev = re.sub(r'[=\->]', '', tokens[1]).strip()
         break
   return rev
+
 
 def get_catapult_rev_in_git_():
   try:

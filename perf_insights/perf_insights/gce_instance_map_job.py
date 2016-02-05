@@ -1,24 +1,18 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import Queue as queue
 import argparse
 import json
 import logging
 import os
 import shutil
-import sys
 import tempfile
-import threading
-import traceback
 
-import perf_insights
 from perf_insights import cloud_storage
-from perf_insights import gcs_trace_handle
 from perf_insights import map_runner
 from perf_insights import function_handle
+from perf_insights.mre import file_handle as file_handle_module
 from perf_insights.results import json_output_formatter
-from perf_insights.value import run_info as run_info_module
 
 
 _DEFAULT_PARALLEL_DOWNLOADS = 16
@@ -59,12 +53,7 @@ def _DownloadTraceHandles(url, temp_directory):
 
   trace_handles = []
   for trace_url in trace_urls:
-    run_info = run_info_module.RunInfo(
-        url=trace_url,
-        display_name=trace_url,
-        run_id=trace_url)
-
-    th = gcs_trace_handle.GCSTraceHandle(run_info, temp_directory)
+    th = file_handle_module.GCSFileHandle(trace_url, temp_directory)
     trace_handles.append(th)
   return trace_handles
 

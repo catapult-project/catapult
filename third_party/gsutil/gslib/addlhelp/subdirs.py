@@ -33,13 +33,13 @@ _DETAILED_HELP_TEXT = ("""
   name space supported by the Google Cloud Storage service. To the service,
   the object gs://your-bucket/abc/def/ghi.txt is just an object that happens to
   have "/" characters in its name. There are no "abc" or "abc/def" directories;
-  just a single object with the given name. This
-  `diagram <https://cloud.google.com/storage/images/gsutil-subdirectories-thumb.png>`
+  just a single object with the given name. This diagram:
+  https://cloud.google.com/storage/images/gsutil-subdirectories-thumb.png
   illustrates how gsutil provides a hierarchical view of objects in a bucket.
 
   gsutil achieves the hierarchical file tree illusion by applying a variety of
   rules, to try to make naming work the way users would expect. For example, in
-  order to determine whether to treat a destination URI as an object name or the
+  order to determine whether to treat a destination URL as an object name or the
   root of a directory under which objects should be copied gsutil uses these
   rules:
 
@@ -48,7 +48,7 @@ _DETAILED_HELP_TEXT = ("""
 
        gsutil cp your-file gs://your-bucket/abc/
 
-     gsutil will create the object gs://your-bucket/abc/file.
+     gsutil will create the object gs://your-bucket/abc/your-file.
 
   2. If the destination object is XYZ and an object exists called XYZ_$folder$
      gsutil treats XYZ as a directory. For example, if you run the command:
@@ -56,16 +56,16 @@ _DETAILED_HELP_TEXT = ("""
        gsutil cp your-file gs://your-bucket/abc
 
      and there exists an object called abc_$folder$, gsutil will create the
-     object gs://your-bucket/abc/file.
+     object gs://your-bucket/abc/your-file.
 
-  3. If you attempt to copy multiple source files to a destination URI, gsutil
-     treats the destination URI as a directory. For example, if you run
+  3. If you attempt to copy multiple source files to a destination URL, gsutil
+     treats the destination URL as a directory. For example, if you run
      the command:
 
        gsutil cp -r your-dir gs://your-bucket/abc
 
      gsutil will create objects like gs://your-bucket/abc/your-dir/file1, etc.
-     (assuming file1 is a file under the source directory).
+     (assuming file1 is a file under the source directory your-dir).
 
   4. If none of the above rules applies, gsutil performs a bucket listing to
      determine if the target of the operation is a prefix match to the
@@ -79,8 +79,8 @@ _DETAILED_HELP_TEXT = ("""
      starts with gs://your-bucket/abc/, to determine whether to treat the target
      as an object name or a directory name. In turn this impacts the name of the
      object you create: If the above check indicates there is an "abc" directory
-     you will end up with the object gs://your-bucket/abc/file; otherwise you
-     will end up with the object gs://your-bucket/abc. (See
+     you will end up with the object gs://your-bucket/abc/your-file; otherwise
+     you will end up with the object gs://your-bucket/abc. (See
      "HOW NAMES ARE CONSTRUCTED" under "gsutil help cp" for more details.)
 
   This rule-based approach stands in contrast to the way many tools work, which

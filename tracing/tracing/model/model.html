@@ -22,6 +22,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/interaction_record.html">
 <link rel="import" href="/tracing/model/kernel.html">
 <link rel="import" href="/tracing/model/model_indices.html">
+<link rel="import" href="/tracing/model/model_stats.html">
 <link rel="import" href="/tracing/model/process.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/sample.html">
@@ -101,6 +102,8 @@ tr.exportTo('tr', function() {
 
     this.annotationsByGuid_ = {};
     this.modelIndices = undefined;
+
+    this.stats = new tr.model.ModelStats();
 
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
@@ -348,6 +351,10 @@ tr.exportTo('tr', function() {
       return namedThreads;
     },
 
+    get importOptions() {
+      return this.importOptions_;
+    },
+
     set importOptions(options) {
       this.importOptions_ = options;
     },
@@ -382,6 +389,23 @@ tr.exportTo('tr', function() {
       if (this.isTimeHighResolution_ !== undefined)
         throw new Error('isTimeHighResolution already set');
       this.isTimeHighResolution_ = value;
+    },
+
+    /**
+     * Returns a link to a trace data file that this model was imported from.
+     * This is NOT the URL of a site being traced, but instead an indicator of
+     * where the data is stored.
+     */
+    get canonicalUrlThatCreatedThisTrace() {
+      return this.canonicalUrlThatCreatedThisTrace_;
+    },
+
+    set canonicalUrlThatCreatedThisTrace(value) {
+      if (this.canonicalUrlThatCreatedThisTrace_ === value)
+        return;
+      if (this.canonicalUrlThatCreatedThisTrace_ !== undefined)
+        throw new Error('canonicalUrlThatCreatedThisTrace already set');
+      this.canonicalUrlThatCreatedThisTrace_ = value;
     },
 
     /**
@@ -494,9 +518,9 @@ tr.exportTo('tr', function() {
         this.processes[pid].sortMemoryDumps();
     },
 
-    calculateMemoryGraphAttributes: function() {
+    finalizeMemoryGraphs: function() {
       this.globalMemoryDumps.forEach(function(dump) {
-        dump.calculateGraphAttributes();
+        dump.finalizeGraph();
       });
     },
 

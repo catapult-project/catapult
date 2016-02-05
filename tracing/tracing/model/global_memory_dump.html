@@ -32,6 +32,22 @@ tr.exportTo('tr.model', function() {
   var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
       tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
 
+  // TODO(petrcermak): Move this to tracing/base/iteration_helpers.html.
+  function inPlaceFilter(array, predicate, opt_this) {
+    opt_this = opt_this || this;
+    var nextPosition = 0;
+    for (var i = 0; i < array.length; i++) {
+      if (!predicate.call(opt_this, array[i], i))
+        continue;
+      if (nextPosition < i)
+        array[nextPosition] = array[i];  // Move elements only if necessary.
+      nextPosition++;
+    }
+
+    if (nextPosition < array.length)
+      array.length = nextPosition;  // Truncate the array only if necessary.
+  }
+
   function getSize(dump) {
     var attr = dump.attributes[SIZE_ATTRIBUTE_NAME];
     if (attr === undefined)
@@ -65,32 +81,83 @@ tr.exportTo('tr.model', function() {
       return 'global space';
     },
 
-    calculateGraphAttributes: function() {
-      // 1. Add ownership links from tracing MADs to descendants of malloc or
+    finalizeGraph: function() {
+      // 1. Transitively remove weak memory allocator dumps and all their
+      // owners and descendants from the model. This must be performed before
+      // any other steps.
+      this.removeWeakDumps();
+
+      // 2. Add ownership links from tracing MADs to descendants of malloc or
       // winheap MADs so that tracing would be automatically discounted from
       // them later (step 3).
       this.setUpTracingOverheadOwnership();
 
-      // 2. Calculate the sizes of all memory allocator dumps (MADs). This step
+      // 3. Aggregate all other attributes of all MADs (*excluding* sizes and
+      // effective sizes) and propagate attributes from global MADs to their
+      // owners (*including* sizes and effective sizes). This step must be
+      // carried out before the sizes of all MADs are calculated (step 3).
+      // Otherwise, the propagated sizes of all MADs would not be aggregated.
+      this.aggregateAttributes();
+
+      // 4. Calculate the sizes of all memory allocator dumps (MADs). This step
       // requires that the memory allocator dump graph has been finalized (step
-      // 1). Subsequent modifications of the graph will most likely break the
+      // 1) and attributes were propagated from global MADs (step 2).
+      // Subsequent modifications of the graph will most likely break the
       // calculation invariants.
       this.calculateSizes();
 
-      // 3. Calculate the effective sizes of all MADs. This step requires that
-      // the sizes of all MADs have already been calculated (step 2).
+      // 5. Calculate the effective sizes of all MADs. This step requires that
+      // the sizes of all MADs have already been calculated (step 3).
       this.calculateEffectiveSizes();
 
-      // 4. Aggregate all other attributes of all MADs. This step must be
-      // carried out after the sizes of all MADs were calculated (step 2).
-      // Otherwise, the sizes of all MADs would be aggregated as direct sums
-      // of their children, which would most likely lead to double-counting.
-      this.aggregateAttributes();
-
-      // 5. Discount tracing from VM regions stats. This steps requires that
-      // sizes (step 2) and resident sizes (step 4) of the tracing MADs have
+      // 6. Discount tracing from VM regions stats. This steps requires that
+      // resident sizes (step 2) and sizes (step 3) of the tracing MADs have
       // already been calculated.
       this.discountTracingOverheadFromVmRegions();
+
+      // 7. The above steps (especially steps 1 and 3) can create new memory
+      // allocator dumps, so we force rebuilding the memory allocator dump
+      // indices of all container memory dumps.
+      this.forceRebuildingMemoryAllocatorDumpByFullNameIndices();
+    },
+
+    removeWeakDumps: function() {
+      // Mark all transitive owners and children of weak memory allocator dumps
+      // as weak.
+      this.traverseAllocatorDumpsInDepthFirstPreOrder(function(dump) {
+        if (dump.weak)
+          return;
+        if ((dump.owns !== undefined && dump.owns.target.weak) ||
+            (dump.parent !== undefined && dump.parent.weak)) {
+          dump.weak = true;
+        }
+      });
+
+      function removeWeakDumpsFromListRecursively(dumps) {
+        inPlaceFilter(dumps, function(dump) {
+          if (dump.weak) {
+            // The dump is weak, so remove it. This will implicitly remove all
+            // its descendants, which are also weak due to the initial marking
+            // step.
+            return false;
+          }
+
+          // This dump is non-weak, so keep it. Recursively remove its weak
+          // descendants and ownership links from weak dumps instead.
+          removeWeakDumpsFromListRecursively(dump.children);
+          inPlaceFilter(dump.ownedBy, function(ownershipLink) {
+            return !ownershipLink.source.weak;
+          });
+
+          return true;
+        });
+      }
+
+      this.iterateContainerDumps(function(containerDump) {
+        var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
+        if (memoryAllocatorDumps !== undefined)
+          removeWeakDumpsFromListRecursively(memoryAllocatorDumps);
+      });
     },
 
     /**
@@ -256,7 +323,7 @@ tr.exportTo('tr.model', function() {
       if (!shouldDefineSize) {
         // The rest of the pipeline relies on size being either a valid
         // ScalarAttribute, or undefined.
-        dump.attributes[SIZE_ATTRIBUTE_NAME] = undefined;
+        delete dump.attributes[SIZE_ATTRIBUTE_NAME];
         return;
       }
 
@@ -618,7 +685,7 @@ tr.exportTo('tr.model', function() {
       if (!hasSize(dump)) {
         // The rest of the pipeline relies on effective size being either a
         // valid ScalarAttribute, or undefined.
-        dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] = undefined;
+        delete dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME];
         return;
       }
 
@@ -696,13 +763,6 @@ tr.exportTo('tr.model', function() {
 
     propagateAttributesRecursively: function(globalAllocatorDump) {
       tr.b.iterItems(globalAllocatorDump.attributes, function(attrName, attr) {
-        if (attrName === SIZE_ATTRIBUTE_NAME ||
-            attrName === EFFECTIVE_SIZE_ATTRIBUTE_NAME) {
-          // We cannot propagate size and effective_size attributes because it
-          // would break the complex maths [see calculateSizes() and
-          // calculateEffectiveSizes()].
-          return;
-        }
         globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
           var processAllocatorDump = ownershipLink.source;
           if (processAllocatorDump.attributes[attrName] !== undefined) {
@@ -711,7 +771,7 @@ tr.exportTo('tr.model', function() {
             // allocator dumps.
             return;
           }
-          processAllocatorDump.attributes[attrName] = attr;
+          processAllocatorDump.attributes[attrName] = attr.cloneWithInfos();
         });
       });
       // Recursively propagate attributes from all child memory allocator dumps.
@@ -731,6 +791,12 @@ tr.exportTo('tr.model', function() {
       tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.discountTracingOverheadFromVmRegions(this.model);
       }, this);
+    },
+
+    forceRebuildingMemoryAllocatorDumpByFullNameIndices: function() {
+      this.iterateContainerDumps(function(containerDump) {
+        containerDump.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
+      });
     },
 
     iterateContainerDumps: function(fn) {

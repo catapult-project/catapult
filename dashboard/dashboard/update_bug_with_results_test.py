@@ -21,6 +21,10 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
 
+# TODO(qyearsley): Shorten this module.
+# See https://github.com/catapult-project/catapult/issues/1917
+# pylint: disable=too-many-lines
+
 # Bisect log with multiple potential culprits with different authors.
 _BISECT_LOG_MULTI_OWNER = """
 @@@STEP_CURSOR Results@@@
@@ -275,7 +279,7 @@ _ISSUE_RESPONSE = """
 _BISECT_LOG_INFRA_FAILURE = 'Failed to produce build'
 
 # Globals that are set in mock functions and then checked in tests.
-_TEST_RECEIEVED_EMAIL_RESULTS = None
+_TEST_RECEIVED_EMAIL_RESULTS = None
 _TEST_RECEIVED_EMAIL = None
 
 
@@ -391,7 +395,7 @@ def _MockFetch(url=None):
       ('http://build.chromium.org/builders/bb66666'
        '/steps/Results/logs/stdio/text'): [
            404, ''
-       ],
+      ],
       'http://build.chromium.org/json/builders/516': [
           200,
           json.dumps({'steps': [{'name': 'gclient', 'results': [2]}]})
@@ -452,9 +456,14 @@ def _MockFetch(url=None):
   return testing_common.FakeResponseObject(response_code, response)
 
 
+def _MockMakeRequest(path, method):  # pylint: disable=unused-argument
+  url = 'https://test-rietveld.appspot.com/' + path
+  return _MockFetch(url=url)
+
+
 def _MockSendPerfTryJobEmail(_, results):
-  global _TEST_RECEIEVED_EMAIL_RESULTS
-  _TEST_RECEIEVED_EMAIL_RESULTS = results
+  global _TEST_RECEIVED_EMAIL_RESULTS
+  _TEST_RECEIVED_EMAIL_RESULTS = results
 
 
 def _MockSendMail(**kwargs):
@@ -497,6 +506,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
@@ -541,6 +553,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   def testCreateTryJob_WithoutExistingBug(self):
@@ -558,6 +573,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock(return_value=False))
@@ -590,6 +608,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_BisectJobWithPartialResults(self, mock_update_bug):
@@ -611,6 +632,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -634,6 +658,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_MultipleCulpritsSameAuthor_AssignsAuthor(self, mock_update_bug):
@@ -656,6 +683,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -691,6 +721,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   def testGet_FailedRevisionResponse(self, mock_add_bug):
@@ -714,6 +747,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -766,7 +802,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_GetBisectResults',
       mock.MagicMock(return_value={
-          'results': 'Status: Positive\nCommit  : abcd123',
+          'results': ('Status: Positive\n'
+                      'Commit  : abcd123\n'
+                      'Author  : culprit@chromium.org\n'),
           'status': 'Completed',
           'bisect_bot': 'bar',
           'issue_url': 'bar',
@@ -777,7 +815,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
-    self.assertEqual('12345', layered_cache.Get('commit_hash_abcd123'))
+    self.assertEqual('12345', layered_cache.GetExternal('commit_hash_abcd123'))
 
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
@@ -785,18 +823,89 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_GetBisectResults',
       mock.MagicMock(return_value={
-          'results': 'Status: Negative\nCommit  : a121212',
+          'results': ('Status: Negative\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
           'status': 'Completed',
           'bisect_bot': 'bar',
           'issue_url': 'bar',
           'buildbot_log_url': 'bar',
       }))
-  def testGet_NegativeResult_StoresCommitHash(self):
+  def testGet_NegativeResult_DoesNotStoreCommitHash(self):
     try_job.TryJob(
         bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf').put()
     self.testapp.get('/update_bug_with_results')
-    self.assertIsNone(layered_cache.Get('commit_hash_a121212'))
+    self.assertIsNone(layered_cache.GetExternal('commit_hash_a121212'))
+
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Status: Positive\n'
+                      'Commit  : a12\n'
+                      'Commit  : b23\n'
+                      'Author  : culprit@chromium.org\n'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  def testGet_MultipleCommits_DoesNotStoreCommitHash(self):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    self.testapp.get('/update_bug_with_results')
+    self.assertIsNone(layered_cache.GetExternal('commit_hash_a12b23'))
+
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Status: Positive\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_PositiveResult_CCsAuthor(self, mock_update_bug):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    bug_data.Bug(id=12345).put()
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_with(
+        12345, mock.ANY, cc_list=['culprit@chromium.org'],
+        merge_issue=None, labels=None, owner='culprit@chromium.org')
+
+  @mock.patch.object(
+      update_bug_with_results, '_GetBisectResults',
+      mock.MagicMock(return_value={
+          'results': ('Status: Negative\n'
+                      'Commit  : a121212\n'
+                      'Author  : culprit@chromium.org\n'),
+          'status': 'Completed',
+          'bisect_bot': 'bar',
+          'issue_url': 'bar',
+          'buildbot_log_url': 'bar',
+      }))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_NegativeResult_DoesNotCCAuthor(self, mock_update_bug):
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200034, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    bug_data.Bug(id=12345).put()
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_with(
+        12345, mock.ANY, cc_list=[], merge_issue=None, labels=None, owner=None)
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
@@ -821,6 +930,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
   def testCheckBisectBotForInfraFailure_BotFailure(
       self, log_bisect_failure_mock):
@@ -839,6 +951,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(update_bug_with_results, '_LogBisectInfraFailure')
   def testCheckBisectBotForInfraFailure_BuildFailure(
       self, log_bisect_failure_mock):
@@ -857,6 +972,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -882,6 +1000,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results, '_SendPerfTryJobEmail',
       mock.MagicMock(side_effect=_MockSendPerfTryJobEmail))
   @mock.patch.object(
@@ -892,12 +1013,12 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         rietveld_issue_id=200034, rietveld_patchset_id=1,
         status='started', bot='win_perf', email='just@atestemail.com',
         job_type='perf-try', config=_PERF_TEST_CONFIG).put()
-    global _TEST_RECEIEVED_EMAIL_RESULTS
-    _TEST_RECEIEVED_EMAIL_RESULTS = None
+    global _TEST_RECEIVED_EMAIL_RESULTS
+    _TEST_RECEIVED_EMAIL_RESULTS = None
 
     self.testapp.get('/update_bug_with_results')
 
-    results = _TEST_RECEIEVED_EMAIL_RESULTS
+    results = _TEST_RECEIVED_EMAIL_RESULTS
     self.assertEqual('Completed', results['status'])
     self.assertEqual(2, len(results['profiler_results']))
     self.assertEqual(_PERF_LOG_EXPECTED_HTML_LINK,
@@ -916,6 +1037,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results, '_SendPerfTryJobEmail',
       mock.MagicMock(side_effect=_MockSendPerfTryJobEmail))
   @mock.patch.object(
@@ -926,12 +1050,12 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         rietveld_issue_id=200035, rietveld_patchset_id=1,
         status='started', bot='win_perf', email='just@atestemail.com',
         job_type='perf-try', config=_PERF_TEST_CONFIG).put()
-    global _TEST_RECEIEVED_EMAIL_RESULTS
-    _TEST_RECEIEVED_EMAIL_RESULTS = None
+    global _TEST_RECEIVED_EMAIL_RESULTS
+    _TEST_RECEIVED_EMAIL_RESULTS = None
 
     self.testapp.get('/update_bug_with_results')
 
-    results = _TEST_RECEIEVED_EMAIL_RESULTS
+    results = _TEST_RECEIVED_EMAIL_RESULTS
     self.assertEqual('Completed', results['status'])
     self.assertEqual(0, len(results['profiler_results']))
     self.assertEqual('', results['html_results'])
@@ -940,6 +1064,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -967,6 +1094,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -995,9 +1125,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
-      update_bug_with_results, '_RietveldIssueJSONURL',
-      mock.MagicMock(
-          return_value='https://test-rietveld.appspot.com/api/200037/1'))
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
@@ -1006,6 +1135,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     try_job.TryJob(
         bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
         status='started', bot='win_perf', internal_only=True).put()
+
     # Create bug.
     bug_data.Bug(id=12345).put()
     self.testapp.get('/update_bug_with_results')
@@ -1058,6 +1188,51 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(converted_response['result'],
                      update_bug_with_results.SUCCESS)
 
+  def testValidateAndConvertBuildbucketResponse_Canceled(self):
+    buildbucket_response_canceled = r"""{
+      "build": {
+        "status": "COMPLETED",
+        "cancellation_reason": "TIMEOUT",
+        "id": "9043278384371361584",
+        "result": "CANCELED"
+      }
+    }"""
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(1, len(pending_jobs))
+    # Create bug.
+    bug_data.Bug(id=12345).put()
+    with self.assertRaises(update_bug_with_results.UnexpectedJsonError):
+      update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), pending_jobs[0])
+    pending_jobs = try_job.TryJob.query(
+        try_job.TryJob.status == 'failed').fetch()
+    self.assertEqual(1, len(pending_jobs))
+
+  def testValidateAndConvertBuildbucketResponse_InvalidConfig(self):
+    buildbucket_response_canceled = r"""{
+      "build": {
+        "status": "COMPLETED",
+        "failure_reason": "INVALID_BUILD_DEFINITION",
+        "id": "9043278384371361584",
+        "result": "FAILURE"
+      }
+    }"""
+    try_job.TryJob(
+        bug_id=12345, rietveld_issue_id=200037, rietveld_patchset_id=1,
+        status='started', bot='win_perf').put()
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(1, len(pending_jobs))
+    # Create bug.
+    bug_data.Bug(id=12345).put()
+    with self.assertRaises(update_bug_with_results.UnexpectedJsonError):
+      update_bug_with_results._ValidateAndConvertBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), pending_jobs[0])
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(0, len(pending_jobs))
+
   @mock.patch('logging.error')
   def testValidateAndConvertBuildbucketResponse_NoTesterInConfig(
       self, mock_logging_error):
@@ -1094,6 +1269,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   @mock.patch.object(
@@ -1127,6 +1305,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -1161,16 +1342,19 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     _TEST_RECEIVED_EMAIL = None
 
     self.testapp.get('/update_bug_with_results')
-    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+    self.assertIn('<font color="red"><b>Bisect FYI Try Job Failed</b></font>',
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
-    self.assertIn('prasadv@google.com',
+    self.assertIn('auto-bisect-team@google.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
   @mock.patch(
       'google.appengine.api.mail.send_mail',
       mock.MagicMock(side_effect=_MockSendMail))
@@ -1203,11 +1387,11 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     _TEST_RECEIVED_EMAIL = None
 
     self.testapp.get('/update_bug_with_results')
-    self.assertIn('Bisect FYI Try Job Failed\n<br>',
+    self.assertIn('<font color="red"><b>Bisect FYI Try Job Failed</b></font>',
                   _TEST_RECEIVED_EMAIL.get('html'))
     self.assertIn('Bisect FYI Try Job Failed\n\n',
                   _TEST_RECEIVED_EMAIL.get('body'))
-    self.assertIn('prasadv@google.com',
+    self.assertIn('auto-bisect-team@google.com',
                   _TEST_RECEIVED_EMAIL.get('to'))
 
 

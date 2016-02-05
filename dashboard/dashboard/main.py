@@ -173,7 +173,7 @@ def _TopRegressions(recent_anomalies, num_to_show):
 
 
 def _TopBugsUrlFetch(days):
-  """Makes asychronous fetch for top bugs.
+  """Makes asynchronous fetch for top bugs.
 
   Args:
     days: Number of days, as an integer.

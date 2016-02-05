@@ -10,28 +10,35 @@ This is a tool for capturing a trace that includes data from both userland and
 the kernel.  It creates an HTML file for visualizing the trace.
 """
 
-import errno, optparse, os, select, subprocess, sys, time, zlib
+import optparse
+import os
+import select
+import subprocess
+import sys
+import zlib
 
 # This list is based on the tags in frameworks/native/include/utils/Trace.h.
 trace_tag_bits = {
-  'gfx':      1<<1,
-  'input':    1<<2,
-  'view':     1<<3,
-  'webview':  1<<4,
-  'wm':       1<<5,
-  'am':       1<<6,
-  'sync':     1<<7,
-  'audio':    1<<8,
-  'video':    1<<9,
-  'camera':   1<<10,
+  'gfx': 1 << 1,
+  'input': 1 << 2,
+  'view': 1 << 3,
+  'webview': 1 << 4,
+  'wm': 1 << 5,
+  'am': 1 << 6,
+  'sync': 1 << 7,
+  'audio': 1 << 8,
+  'video': 1 << 9,
+  'camera': 1 << 10,
 }
 
 flattened_html_file = 'systrace_trace_viewer.html'
+
 
 def add_adb_serial(command, serial):
   if serial != None:
     command.insert(1, serial)
     command.insert(1, '-s')
+
 
 def main():
   parser = optparse.OptionParser()
@@ -73,7 +80,7 @@ def main():
                     type='string', help='')
   parser.add_option('-e', '--serial', dest='device_serial', type='string',
                     help='adb device serial number')
-  options, unused_args = parser.parse_args() # pylint: disable=unused-variable
+  options, unused_args = parser.parse_args()  # pylint: disable=unused-variable
 
   if options.link_assets or options.asset_dir != 'trace-viewer':
     parser.error('--link-assets and --asset-dir is deprecated.')
@@ -165,7 +172,7 @@ def main():
           if line == 'TRACE:\n':
             sys.stdout.write("downloading trace...")
             sys.stdout.flush()
-            out = ''.join(lines[i+1:])
+            out = ''.join(lines[i + 1:])
             html_prefix = read_asset(script_dir, 'prefix.html')
             html_file = open(html_filename, 'w')
             html_file.write(
@@ -203,6 +210,7 @@ def main():
   else:
     print >> sys.stderr, ('An error occured while capturing the trace.  Output '
                           'file was not written.')
+
 
 def read_asset(src_dir, filename):
   return open(os.path.join(src_dir, filename)).read()

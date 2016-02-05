@@ -19,6 +19,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var HeapDump = tr.model.HeapDump;
+  var RowDimension = tr.ui.analysis.RowDimension;
+  var ROOT = RowDimension.ROOT;
+  var STACK_FRAME = RowDimension.STACK_FRAME;
+  var OBJECT_TYPE = RowDimension.OBJECT_TYPE;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
@@ -30,9 +34,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(1);
 
     function heapTrace(/* topStackFrame, ..., leafStackFrame */) {
-      var titles =
-          Array.prototype.concat.apply([undefined /* root */], arguments);
-      return tr.c.TestUtils.newStackTrace(model, titles);
+      return tr.c.TestUtils.newStackTrace(
+          model, Array.prototype.slice.call(arguments));
     }
 
     // First timestamp.
@@ -40,17 +43,79 @@ tr.b.unittest.testSuite(function() {
     var pmd1 = addProcessMemoryDump(gmd1, process, -11);
     var hd1 = new HeapDump(pmd1, 'partition_alloc');
 
-    hd1.addEntry(undefined /* sum over all traces */, 4194304 /* 4 MiB */);
+    hd1.addEntry(undefined /* sum over all traces */,
+        undefined /* sum over all types */, 4194304 /* 4 MiB */);
+    hd1.addEntry(undefined /* sum over all traces */, 'v8::Context',
+        1048576 /* 1 MiB */);
+    hd1.addEntry(undefined /* sum over all traces */, 'blink::Node',
+        331776 /* 324 KiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask'),
+        undefined /* sum over all types */, 4194304 /* 4 MiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask'), 'v8::Context',
+        1048576 /* 1 MiB */);
+
     hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
-        102400 /* 100 KiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'V8.Execute'), 1048576 /* 1 MiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'FunctionCall'), 204800 /* 200 KiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
-        'V8.Execute'), 2097152 /* 2 MiB */);
-    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute',
-        'FunctionCall'), 307200 /* 300 KiB */);
+        undefined /* sum over all types */, 1406976 /* 1.3 MiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        'blink::Node', 331776 /* 324 KiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        'v8::Context', 1024000 /* 1000 KiB */);
+    hd1.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall', '<self>'),
+        undefined /* sum over all types */, 102400 /* 100 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        'v8::Context', 716800 /* 700 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        undefined /* sum over all types */, 1048576 /* 1 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
+        undefined /* sum over all types */,
+        153600 /* 150 KiB, lower than the actual sum (should be ignored) */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
+        'v8::Context', 153600 /* 150 KiB */);
+
+    // The following entry should not appear in the tree-view because there is
+    // no entry for its parent stack frame.
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'MissingParent', 'FunctionCall'),
+        undefined /* sum over all types */, 10 /* 10 B */);
+
+    // The following entry should not appear in the tree-view because there is
+    // no sum over all types (for the given stack trace). However, it will lead
+    // to a visible increase of the (incorrectly provided) sum over all types
+    // of MessageLoop::RunTask -> FunctionCall -> FunctionCall by 50 KiB.
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall',
+            'FunctionCall'),
+        'MissingSumOverAllTypes', 51200 /* 50 KiB */);
+
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute'),
+        undefined /* sum over all types */, 2404352 /* 2.3 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        undefined /* sum over all types */, 2404352 /* 2.3 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        'v8::Context', 20480 /* 20 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            '<self>'),
+        'v8::Context', 15360 /* 15 KiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            'V8.Execute'),
+        undefined /* sum over all types */, 2097152 /* 2 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            'V8.Execute', 'V8.Execute'),
+        undefined /* sum over all types */, 2097152 /* 2 MiB */);
+    hd1.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            '<self>'),
+        undefined /* sum over all types */, 307200 /* 300 KiB */);
 
     // Second timestamp.
     var gmd2 = addGlobalMemoryDump(model, 10);
@@ -58,33 +123,83 @@ tr.b.unittest.testSuite(function() {
     var hd2 = new HeapDump(pmd2, 'partition_alloc');
 
     hd2.addEntry(undefined /* sum over all traces */,
+        undefined /* sum over all types */,
         3145728 /* 3 MiB, lower than the actual sum (should be ignored) */);
-    hd2.addEntry(heapTrace(/* empty trace */),
+    hd2.addEntry(undefined /* sum over all traces */,
+        'v8::Context', 1258291 /* 1.2 MiB */);
+    hd2.addEntry(undefined /* sum over all traces */,
+        'blink::Node', 1048576 /* 1 MiB */);
+    hd2.addEntry(heapTrace('<self>'), undefined /* sum over all types */,
         131072 /* 128 KiB */);
+    hd2.addEntry(heapTrace('<self>'), 'v8::Context', 131072 /* 128 KiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask'),
+        undefined /* sum over all types */, 4823449 /* 4.6 MiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask'), 'v8::Context',
+        1127219 /* 1.1 MiB */);
+
     hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
-        393216 /* 384 KiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'V8.Execute'), 1572864 /* 1.5 MiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
-        'V8.Execute'), 2621440 /* 2.5 MiB */);
-    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall',
-        'FunctionCall', 'FunctionCall'), 204800 /* 200 KiB */);
+        undefined /* sum over all types */, 2170880 /* 2.1 MiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        'v8::Context', 1024000 /* 1000 KiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall'),
+        'blink::Node', 819200 /* 800 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        undefined /* sum over all types */, 1572864 /* 1.5 MiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        'v8::Context', 614400 /* 600 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'),
+        'blink::Node', 819200 /* 800 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
+        undefined /* sum over all types */, 204800 /* 200 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'),
+        'v8::Context', 122880 /* 120 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'FunctionCall', 'FunctionCall',
+            'FunctionCall'),
+        undefined /* sum over all types */, 204800 /* 200 KiB */);
+    hd2.addEntry(heapTrace('MessageLoop::RunTask', 'FunctionCall', '<self>'),
+        undefined /* sum over all types */, 393216 /* 384 KiB */);
+
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute'),
+        undefined /* sum over all types */, 2621440 /* 2.5 MiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        undefined /* sum over all types */, 2621440 /* 2.5 MiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        'v8::Context', 20480 /* 20 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall'),
+        'WTF::StringImpl', 126362 /* 123.4 KiB */);
+    hd2.addEntry(
+        heapTrace('MessageLoop::RunTask', 'V8.Execute', 'FunctionCall',
+            'V8.Execute'),
+        undefined /* sum over all types */, 2516582 /* 2.4 MiB */);
 
     return [hd1, hd2];
   }
 
-  function checkTableAndViewModeSelectorDislayed(viewEl, displayed) {
-    assert.strictEqual(isElementDisplayed(viewEl.$.info_text), !displayed);
-    assert.strictEqual(isElementDisplayed(viewEl.$.table), displayed);
-    assert.strictEqual(
-        isElementDisplayed(viewEl.$.view_mode_container), displayed);
+  function checkDisplayedElements(viewEl, displayExpectations) {
+    assert.strictEqual(isElementDisplayed(viewEl.$.info_text),
+        displayExpectations.infoText);
+    assert.strictEqual(isElementDisplayed(viewEl.$.info_bar),
+        displayExpectations.infoBar);
+    assert.strictEqual(isElementDisplayed(viewEl.$.table),
+        displayExpectations.tableAndSelector);
+    assert.strictEqual(isElementDisplayed(viewEl.$.view_mode_container),
+        displayExpectations.tableAndSelector);
   }
 
   function checkColumns(columns, expectedAggregationMode) {
     var EXPECTED_COLUMN_NAMES = [
       'Stack frame',
-      'Total size',
-      'Self size'
+      'Size'
     ];
 
     // First column doesn't change value over time (no aggregation).
@@ -102,18 +217,33 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
-  function checkRow(columns, row, expectedTitle, expectedTotalSizes,
-      expectedSelfSizes, expectedDefinedValues) {
+  function checkRow(columns, row, expectedDimension, expectedTitle,
+      expectedSizes, expectedDefinedValues) {
     var formattedTitle = columns[0].formatTitle(row);
-    assert.equal(formattedTitle, expectedTitle);
+    switch (expectedDimension) {
+      case ROOT:
+        assert.equal(formattedTitle, expectedTitle);
+        break;
 
-    checkSizeAttributes(row, columns[1], expectedTotalSizes);
-    checkSizeAttributes(row, columns[2], expectedSelfSizes);
+      case STACK_FRAME:
+      case OBJECT_TYPE:
+        assert.lengthOf(formattedTitle.childNodes, 2);
+        assert.strictEqual(formattedTitle.childNodes[0].textContent,
+            expectedDimension === STACK_FRAME ? '\u0192' : '\u24C9');
+        assert.strictEqual(
+            formattedTitle.childNodes[1].textContent, expectedTitle);
+        break;
 
-    if (expectedDefinedValues)
-      assert.deepEqual(tr.b.asArray(row.defined), expectedDefinedValues);
-    else
-      assert.isUndefined(row.defined);
+      default:
+        throw new Error('Invalid expected dimension: ' + expectedDimension);
+    }
+
+    checkSizeAttributes(row, columns[1], expectedSizes);
+
+    var actualDefinedValues = new Array(row.contexts.length);
+    for (var i = 0; i < row.contexts.length; i++)
+      actualDefinedValues[i] = row.contexts[i] !== undefined;
+    assert.deepEqual(actualDefinedValues, expectedDefinedValues);
   }
 
   function checkRows(columns, rows, expectedStructure) {
@@ -131,15 +261,20 @@ tr.b.unittest.testSuite(function() {
     for (var i = 0; i < expectedStructure.length; i++) {
       var row = rows[i];
       var expectedRowStructure = expectedStructure[i];
-      checkRow(columns, row, expectedRowStructure.title,
-          expectedRowStructure.total, expectedRowStructure.self,
+      checkRow(columns, row, expectedRowStructure.dimension,
+          expectedRowStructure.title, expectedRowStructure.size,
           expectedRowStructure.defined);
       checkRows(columns, row.subRows, expectedRowStructure.children);
     }
   }
 
-  function checkTable(viewEl, expectedAggregationMode, expectedStructure) {
-    checkTableAndViewModeSelectorDislayed(viewEl, true);
+  function checkTable(viewEl, expectedAggregationMode, expectedInfoBarDisplayed,
+      expectedStructure) {
+    checkDisplayedElements(viewEl, {
+      infoText: false,
+      tableAndSelector: true,
+      infoBar: expectedInfoBarDisplayed
+    });
     var table = viewEl.$.table;
     var columns = table.tableColumns;
     var rows = table.tableRows;
@@ -147,8 +282,8 @@ tr.b.unittest.testSuite(function() {
     checkRows(columns, rows, expectedStructure);
   }
 
-  function changeView(viewEl, bottomUpView) {
-    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = bottomUpView;
+  function changeView(viewEl, heavyView) {
+    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = heavyView;
     viewEl.rebuild();
   }
 
@@ -157,7 +292,11 @@ tr.b.unittest.testSuite(function() {
         'tr-ui-a-memory-dump-heap-details-pane', 'heapDumps',
         function(viewEl) {
           // Check that the info text is shown.
-          checkTableAndViewModeSelectorDislayed(viewEl, false);
+          checkDisplayedElements(viewEl, {
+            infoText: true,
+            tableAndSelector: false,
+            infoBar: false
+          });
         });
   });
 
@@ -171,29 +310,31 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Top-down view.
-    checkTable(viewEl, undefined /* no aggregation */, [
-      {
-        title: 'partition_alloc',
-        total: [0],
-        self: [0],
-        defined: [true]
-      }
-    ]);
+    // Tree view.
+    checkTable(viewEl, undefined /* no aggregation */,
+        false /* hide info bar */, [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [0],
+            defined: [true]
+          }
+        ]);
 
-    changeView(viewEl, true /* bottom-up view */);
+    changeView(viewEl, true /* heavy view */);
 
-    // Bottom-up view.
-    checkTable(viewEl, undefined /* no aggregation */, [
-      {
-        title: 'partition_alloc',
-        total: [0],
-        self: [0],
-        defined: [true]
-      }
-    ]);
+    // Heavy view.
+    checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
+        [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [0],
+            defined: [true]
+          }
+        ]);
 
-    changeView(viewEl, false /* top-down view */);
+    changeView(viewEl, false /* tree view */);
   });
 
   test('instantiate_single', function() {
@@ -205,181 +346,1091 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Top-down view (default).
-    checkTable(viewEl, undefined /* no aggregation */, [
-      {
-        title: 'partition_alloc',
-        total: [4194304],
-        self: [0],
-        defined: [true],
-        children: [
+    // Tree view (default).
+    checkTable(viewEl, undefined /* no aggregation */,
+        false /* hide info bar */, [
           {
-            title: 'MessageLoop::RunTask',
-            total: [3760128],
-            self: [0],
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [4194304],
             defined: [true],
             children: [
               {
-                title: 'FunctionCall',
-                total: [1355776],
-                self: [102400],
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [4194304],
                 defined: [true],
                 children: [
                   {
-                    title: 'V8.Execute',
-                    total: [1048576],
-                    self: [1048576],
-                    defined: [true]
-                  },
-                  {
+                    dimension: STACK_FRAME,
                     title: 'FunctionCall',
-                    total: [204800],
-                    self: [204800],
-                    defined: [true]
-                  }
-                ]
-              },
-              {
-                title: 'V8.Execute',
-                total: [2404352],
-                self: [0],
-                defined: [true],
-                children: [
-                  {
-                    title: 'FunctionCall',
-                    total: [2404352],
-                    self: [307200],
+                    size: [1406976],
                     defined: [true],
                     children: [
                       {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [102400],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
                         title: 'V8.Execute',
-                        total: [2097152],
-                        self: [2097152],
-                        defined: [true]
+                        size: [1048576],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: '<other>',
+                            size: [331776],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600 + 51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [153600],
+                            defined: [true],
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: '<other>',
+                            size: [51200],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [51200],
+                        defined: [true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'blink::Node',
+                        size: [331776],
+                        defined: [true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<other>',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: '<other>',
+                        size: [51200],
+                        defined: [true],
                       }
                     ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            title: '<unspecified>',
-            total: [434176],
-            self: [434176],
-            defined: [true]
-          }
-        ]
-      }
-    ]);
-
-    changeView(viewEl, true /* bottom-up view */);
-    checkTable(viewEl, undefined /* no aggregation */, [
-      {
-        title: 'partition_alloc',
-        total: [4194304],
-        self: [0],
-        defined: [true],
-        children: [
-          {
-            title: 'MessageLoop::RunTask',
-            total: [3760128],
-            self: [0],
-            defined: [true]
-          },
-          {
-            title: 'FunctionCall',
-            total: [3760128],
-            self: [614400],
-            defined: [true],
-            children: [
-              {
-                title: 'MessageLoop::RunTask',
-                total: [1355776],
-                self: [102400],
-                defined: [true]
-              },
-              {
-                title: 'FunctionCall',
-                total: [204800],
-                self: [204800],
-                defined: [true],
-                children: [
-                  {
-                    title: 'MessageLoop::RunTask',
-                    total: [204800],
-                    self: [204800],
-                    defined: [true]
-                  }
-                ]
-              },
-              {
-                title: 'V8.Execute',
-                total: [2404352],
-                self: [307200],
-                defined: [true],
-                children: [
-                  {
-                    title: 'MessageLoop::RunTask',
-                    total: [2404352],
-                    self: [307200],
-                    defined: [true]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            title: 'V8.Execute',
-            total: [3452928],
-            self: [3145728],
-            defined: [true],
-            children: [
-              {
-                title: 'FunctionCall',
-                total: [3145728],
-                self: [3145728],
-                defined: [true],
-                children: [
-                  {
-                    title: 'MessageLoop::RunTask',
-                    total: [1048576],
-                    self: [1048576],
-                    defined: [true]
                   },
                   {
+                    dimension: STACK_FRAME,
                     title: 'V8.Execute',
-                    total: [2097152],
-                    self: [2097152],
+                    size: [2404352],
                     defined: [true],
                     children: [
                       {
-                        title: 'MessageLoop::RunTask',
-                        total: [2097152],
-                        self: [2097152],
-                        defined: [true]
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [2404352],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [307200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: 'v8::Context',
+                                size: [15360],
+                                defined: [true],
+                              },
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: '<other>',
+                                size: [291840],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'V8.Execute',
+                                size: [2097152],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [20480],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<self>',
+                                size: [15360],
+                                defined: [true],
+                              },
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<other>',
+                                size: [5120],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: '<other>',
+                            size: [2383872],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<other>',
+                    size: [382976],
+                    defined: [true],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1048576],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<other>',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [24576],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: '<other>',
+                    size: [3145728],
+                    defined: [true],
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1048576],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [1048576],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<other>',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [24576],
+                        defined: [true],
                       }
                     ]
                   }
                 ]
               },
               {
-                title: 'MessageLoop::RunTask',
-                total: [2404352],
-                self: [0],
-                defined: [true]
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [331776],
+                defined: [true],
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: '<other>',
+                size: [2813952],
+                defined: [true],
               }
             ]
-          },
-          {
-            title: '<unspecified>',
-            total: [434176],
-            self: [434176],
-            defined: [true]
           }
-        ]
-      }
-    ]);
+        ]);
+
+    changeView(viewEl, true /* heavy view */);
+    checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
+        [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [4194304],
+            defined: [true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [4194304],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1406976],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [102400],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [1048576],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [716800],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600 + 51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: 'MissingSumOverAllTypes',
+                                size: [51200],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [153600],
+                            defined: [true],
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'MissingSumOverAllTypes',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'FunctionCall',
+                                size: [51200],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'blink::Node',
+                        size: [331776],
+                        defined: [true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'FunctionCall',
+                                size: [51200],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MissingParent',
+                    size: [10],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [10],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2404352],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [2404352],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [307200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: 'v8::Context',
+                                size: [15360],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'V8.Execute',
+                                size: [2097152],
+                                defined: [true],
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [20480],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<self>',
+                                size: [15360],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [20480],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<self>',
+                                size: [15360],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1048576],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [20480],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<self>',
+                                size: [15360],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [331776],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'FunctionCall',
+                                size: [51200],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [1406976 + 10 + 2404352],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [102400 + 307200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [15360],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [1048576 + 2097152],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152],
+                        defined: [true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [716800],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [153600 + 51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'MissingSumOverAllTypes',
+                            size: [51200],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [153600],
+                        defined: [true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776],
+                    defined: [true],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1024000 + 20480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [15360],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: '<self>',
+                size: [102400 + 307200],
+                defined: [true],
+                children: [
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [15360],
+                    defined: [true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [1048576 + 2404352],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [2404352],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [307200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [15360],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2097152],
+                    defined: [true],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [716800 + 20480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'MissingParent',
+                size: [10],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [10],
+                    defined: [true],
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1048576],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [1048576],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [1024000],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [716800],
+                            defined: [true],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [153600],
+                            defined: [true],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [20480],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: '<self>',
+                                size: [15360],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1024000 + 20480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [15360],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800],
+                        defined: [true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [15360],
+                    defined: [true],
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [716800 + 20480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [331776],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [331776],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [331776],
+                        defined: [true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [331776],
+                    defined: [true],
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'MissingSumOverAllTypes',
+                size: [51200],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'FunctionCall',
+                                size: [51200],
+                                defined: [true],
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]);
   });
 
   test('instantiate_multipleDiff', function() {
@@ -392,199 +1443,1319 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    changeView(viewEl, true /* bottom-up view */);
-    checkTable(viewEl, AggregationMode.DIFF, [
+    changeView(viewEl, true /* heavy view */);
+    checkTable(viewEl, AggregationMode.DIFF, true /* show info bar */, [
       {
+        dimension: ROOT,
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4954521],
         defined: [true, true],
         children: [
           {
+            dimension: STACK_FRAME,
             title: 'MessageLoop::RunTask',
-            total: [3760128, 4792320],
-            self: [0, 0],
-            defined: [true, true]
-          },
-          {
-            title: 'FunctionCall',
-            total: [3760128, 4792320],
-            self: [614400, 598016],
+            size: [4194304, 4823449],
             defined: [true, true],
             children: [
               {
-                title: 'MessageLoop::RunTask',
-                total: [1355776, 2170880],
-                self: [102400, 393216],
-                defined: [true, true]
-              },
-              {
+                dimension: STACK_FRAME,
                 title: 'FunctionCall',
-                total: [204800, 204800],
-                self: [204800, 204800],
+                size: [1406976, 2170880],
                 defined: [true, true],
                 children: [
                   {
-                    title: 'MessageLoop::RunTask',
-                    total: [204800, 204800],
-                    self: [204800, 0],
-                    defined: [true, true]
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [102400, 393216],
+                    defined: [true, true],
                   },
                   {
-                    title: 'FunctionCall',
-                    total: [undefined, 204800],
-                    self: [undefined, 204800],
-                    defined: [undefined, true],
-                    children: [
-                      {
-                        title: 'MessageLoop::RunTask',
-                        total: [undefined, 204800],
-                        self: [undefined, 204800],
-                        defined: [undefined, true]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                title: 'V8.Execute',
-                total: [2404352, 2621440],
-                self: [307200, 0],
-                defined: [true, true],
-                children: [
-                  {
-                    title: 'MessageLoop::RunTask',
-                    total: [2404352, 2621440],
-                    self: [307200, 0],
-                    defined: [true, true]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            title: 'V8.Execute',
-            total: [3452928, 4194304],
-            self: [3145728, 4194304],
-            defined: [true, true],
-            children: [
-              {
-                title: 'FunctionCall',
-                total: [3145728, 4194304],
-                self: [3145728, 4194304],
-                defined: [true, true],
-                children: [
-                  {
-                    title: 'MessageLoop::RunTask',
-                    total: [1048576, 1572864],
-                    self: [1048576, 1572864],
-                    defined: [true, true]
-                  },
-                  {
+                    dimension: STACK_FRAME,
                     title: 'V8.Execute',
-                    total: [2097152, 2621440],
-                    self: [2097152, 2621440],
+                    size: [1048576, 1572864],
                     defined: [true, true],
                     children: [
                       {
-                        title: 'MessageLoop::RunTask',
-                        total: [2097152, 2621440],
-                        self: [2097152, 2621440],
-                        defined: [true, true]
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'blink::Node',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [204800, 204800],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, 204800],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'MissingSumOverAllTypes',
+                            size: [51200, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776, 819200],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1024000, 1024000],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200, undefined],
+                            defined: [true, false],
+                          }
+                        ]
                       }
                     ]
                   }
                 ]
               },
               {
-                title: 'MessageLoop::RunTask',
-                total: [2404352, 2621440],
-                self: [0, 0],
-                defined: [true, true]
+                dimension: STACK_FRAME,
+                title: 'MissingParent',
+                size: [10, undefined],
+                defined: [true, false],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [10, undefined],
+                    defined: [true, false],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [2404352, 2621440],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [2404352, 2621440],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [307200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152, 2516582],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480, 20480],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'WTF::StringImpl',
+                        size: [undefined, 126362],
+                        defined: [false, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [20480, 20480],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'WTF::StringImpl',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [undefined, 126362],
+                        defined: [false, true],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1048576, 1127219],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1024000, 1024000],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [20480, 20480],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [331776, 819200],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [331776, 819200],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'MissingSumOverAllTypes',
+                size: [51200, undefined],
+                defined: [true, false],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'WTF::StringImpl',
+                size: [undefined, 126362],
+                defined: [false, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [undefined, 126362],
+                        defined: [false, true],
+                      }
+                    ]
+                  }
+                ]
               }
             ]
           },
           {
-            title: '<unspecified>',
-            total: [434176, undefined],
-            self: [434176, undefined],
-            defined: [true, undefined]
+            dimension: STACK_FRAME,
+            title: 'FunctionCall',
+            size: [3811338, 4792320],
+            defined: [true, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: '<self>',
+                size: [409600, 393216],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [15360, undefined],
+                    defined: [true, false],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [3145728, 4089446],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2097152, undefined],
+                    defined: [true, false],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [716800, 614400],
+                    defined: [true, true],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [undefined, 819200],
+                    defined: [false, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [204800, 204800],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200, 204800],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [153600, 122880],
+                    defined: [true, true],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [331776, 819200],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [undefined, 819200],
+                    defined: [false, true],
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1044480, 1044480],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [15360, undefined],
+                    defined: [true, false],
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [716800, 614400],
+                    defined: [true, true],
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [153600, 122880],
+                    defined: [true, true],
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'MissingSumOverAllTypes',
+                size: [51200, undefined],
+                defined: [true, false],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'WTF::StringImpl',
+                size: [undefined, 126362],
+                defined: [false, true],
+              }
+            ]
+          },
+          {
+            dimension: STACK_FRAME,
+            title: '<self>',
+            size: [409600, 524288],
+            defined: [true, true],
+            children: [
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [15360, 131072],
+                defined: [true, true],
+              }
+            ]
+          },
+          {
+            dimension: STACK_FRAME,
+            title: 'V8.Execute',
+            size: [3452928, 4194304],
+            defined: [true, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [2404352, 2621440],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [307200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [15360, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2097152, 2516582],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [15360, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'WTF::StringImpl',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [2097152, undefined],
+                defined: [true, false],
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [737280, 634880],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [15360, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [undefined, 819200],
+                defined: [false, true],
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'WTF::StringImpl',
+                size: [undefined, 126362],
+                defined: [false, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            dimension: STACK_FRAME,
+            title: 'MissingParent',
+            size: [10, undefined],
+            defined: [true, false],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [10, undefined],
+                defined: [true, false],
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'v8::Context',
+            size: [1048576, 1258291],
+            defined: [true, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [1048576, 1127219],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1024000, 1024000],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [20480, 20480],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [1044480, 1044480],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [15360, undefined],
+                    defined: [true, false],
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [716800, 614400],
+                    defined: [true, true],
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [153600, 122880],
+                    defined: [true, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: '<self>',
+                size: [15360, 131072],
+                defined: [true, true],
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [737280, 634880],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [20480, 20480],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [15360, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'blink::Node',
+            size: [331776, 1048576],
+            defined: [true, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [331776, 819200],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [331776, 819200],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [331776, 819200],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [undefined, 819200],
+                    defined: [false, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [undefined, 819200],
+                defined: [false, true],
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'MissingSumOverAllTypes',
+            size: [51200, undefined],
+            defined: [true, false],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [51200, undefined],
+                defined: [true, false],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [51200, undefined],
+                defined: [true, false],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200, undefined],
+                        defined: [true, false],
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'WTF::StringImpl',
+            size: [undefined, 126362],
+            defined: [false, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [undefined, 126362],
+                defined: [false, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [undefined, 126362],
+                        defined: [false, true],
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [undefined, 126362],
+                defined: [false, true],
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [undefined, 126362],
+                defined: [false, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [undefined, 126362],
+                    defined: [false, true],
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
     ]);
 
-    changeView(viewEl, false /* top-down view */);
-    checkTable(viewEl, AggregationMode.DIFF, [
+    changeView(viewEl, false /* tree view */);
+    checkTable(viewEl, AggregationMode.DIFF, false /* hide info bar */, [
       {
+        dimension: ROOT,
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4954521],
         defined: [true, true],
         children: [
           {
+            dimension: STACK_FRAME,
             title: 'MessageLoop::RunTask',
-            total: [3760128, 4792320],
-            self: [0, 0],
+            size: [4194304, 4823449],
             defined: [true, true],
             children: [
               {
+                dimension: STACK_FRAME,
                 title: 'FunctionCall',
-                total: [1355776, 2170880],
-                self: [102400, 393216],
+                size: [1406976, 2170880],
                 defined: [true, true],
                 children: [
                   {
-                    title: 'V8.Execute',
-                    total: [1048576, 1572864],
-                    self: [1048576, 1572864],
-                    defined: [true, true]
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [102400, 393216],
+                    defined: [true, true],
                   },
                   {
-                    title: 'FunctionCall',
-                    total: [204800, 204800],
-                    self: [204800, 0],
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [1048576, 1572864],
                     defined: [true, true],
                     children: [
                       {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: '<other>',
+                        size: [331776, 139264],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'blink::Node',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [204800, 204800],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
                         title: 'FunctionCall',
-                        total: [undefined, 204800],
-                        self: [undefined, 204800],
-                        defined: [undefined, true]
+                        size: [undefined, 204800],
+                        defined: [false, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: '<other>',
+                        size: [51200, 81920],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<other>',
+                    size: [51200, undefined],
+                    defined: [true, false],
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776, 819200],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [undefined, 819200],
+                        defined: [false, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1024000, 1024000],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [153600, 286720],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: '<other>',
+                    size: [51200, 327680],
+                    defined: [true, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [2404352, 2621440],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [2404352, 2621440],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<self>',
+                        size: [307200, undefined],
+                        defined: [true, false],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: '<other>',
+                            size: [291840, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152, 2516582],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [undefined, 104858],
+                        defined: [false, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480, 20480],
+                        defined: [true, true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<self>',
+                            size: [15360, undefined],
+                            defined: [true, false],
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: '<other>',
+                            size: [5120, undefined],
+                            defined: [true, false],
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: '<other>',
+                        size: [2383872, 2474598],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'WTF::StringImpl',
+                        size: [undefined, 126362],
+                        defined: [false, true],
                       }
                     ]
                   }
                 ]
               },
               {
-                title: 'V8.Execute',
-                total: [2404352, 2621440],
-                self: [0, 0],
+                dimension: STACK_FRAME,
+                title: '<other>',
+                size: [382976, 31129],
+                defined: [true, true],
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1048576, 1127219],
                 defined: [true, true],
                 children: [
                   {
+                    dimension: STACK_FRAME,
                     title: 'FunctionCall',
-                    total: [2404352, 2621440],
-                    self: [307200, 0],
+                    size: [1024000, 1024000],
                     defined: [true, true],
                     children: [
                       {
+                        dimension: STACK_FRAME,
                         title: 'V8.Execute',
-                        total: [2097152, 2621440],
-                        self: [2097152, 2621440],
-                        defined: [true, true]
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [153600, 286720],
+                        defined: [true, true],
                       }
                     ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<other>',
+                    size: [24576, 103219],
+                    defined: [true, true],
                   }
                 ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: '<other>',
+                size: [3145728, 3696230],
+                defined: [true, true],
               }
             ]
           },
           {
-            title: '<unspecified>',
-            total: [434176, undefined],
-            self: [434176, undefined],
-            defined: [true, undefined]
+            dimension: STACK_FRAME,
+            title: '<self>',
+            size: [undefined, 131072],
+            defined: [false, true],
+            children: [
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [undefined, 131072],
+                defined: [false, true],
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'v8::Context',
+            size: [1048576, 1258291],
+            defined: [true, true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [1048576, 1127219],
+                defined: [true, true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1024000, 1024000],
+                    defined: [true, true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [716800, 614400],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600, 122880],
+                        defined: [true, true],
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: '<other>',
+                        size: [153600, 286720],
+                        defined: [true, true],
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<other>',
+                    size: [24576, 103219],
+                    defined: [true, true],
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: '<self>',
+                size: [undefined, 131072],
+                defined: [false, true],
+              }
+            ]
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: 'blink::Node',
+            size: [331776, 1048576],
+            defined: [true, true],
+          },
+          {
+            dimension: OBJECT_TYPE,
+            title: '<other>',
+            size: [2813952, 2647654],
+            defined: [true, true],
           }
         ]
       }
@@ -601,14 +2772,14 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    changeView(viewEl, true /* bottom-up view */);
-    checkTable(viewEl, AggregationMode.MAX, [
+    changeView(viewEl, true /* heavy view */);
+    checkTable(viewEl, AggregationMode.MAX, true /* show info bar */, [
       {
+        dimension: ROOT,
         title: 'partition_alloc',
-        total: [4194304, 4923392],
-        self: [0, 131072],
+        size: [4194304, 4954521],
         defined: [true, true],
-        children: 4  // No need to check the full structure again.
+        children: 9  // No need to check the full structure again.
       }
     ]);
   });
@@ -624,14 +2795,14 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Top-down view (default).
-    checkTable(viewEl, AggregationMode.DIFF, [
+    // Tree view (default).
+    checkTable(viewEl, AggregationMode.DIFF, false /* hide info bar */, [
       {
+        dimension: ROOT,
         title: 'partition_alloc',
-        total: [4194304, undefined, 4923392],
-        self: [0, undefined, 131072],
+        size: [4194304, undefined, 4954521],
         defined: [true, false, true],
-        children: 2  // No need to check the full structure again.
+        children: 5  // No need to check the full structure again.
       }
     ]);
   });

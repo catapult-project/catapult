@@ -23,6 +23,7 @@ class GraphRevisionsTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/graph_revisions', graph_revisions.GraphRevisionsHandler)])
     self.testapp = webtest.TestApp(app)
+    self.PatchDatastoreHooksRequest()
 
   def _AddMockData(self):
     """Adds mock data to the datastore, not updating stored_object."""

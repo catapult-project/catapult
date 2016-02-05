@@ -9,9 +9,7 @@ App Engine environment. See:
   https://cloud.google.com/appengine/docs/python/tools/appengineconfig
 """
 
-import logging
 import os
-import sys
 
 from google.appengine.ext import vendor
 

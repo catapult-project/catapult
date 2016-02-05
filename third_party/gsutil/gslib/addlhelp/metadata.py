@@ -85,7 +85,7 @@ _DETAILED_HELP_TEXT = ("""
   allowed to cache your objects. Cache-Control only applies to objects with
   a public-read ACL. Non-public data are not cacheable.
 
-  Here's an example of uploading an object set to allow caching:
+  Here's an example of uploading a set of objects to allow caching:
 
     gsutil -h "Cache-Control:public,max-age=3600" cp -a public-read \\
            -r html gs://bucket/html
@@ -98,7 +98,11 @@ _DETAILED_HELP_TEXT = ("""
   of objects after uploading a newer replacement object. Note also that because
   objects can be cached at various places on the Internet there is no way to
   force a cached object to expire globally (unlike the way you can force your
-  browser to refresh its cache).
+  browser to refresh its cache). If you want to prevent caching of publicly
+  readable objects you should set a Cache-Control:private header on the object.
+  You can do this with a command such as:
+
+    gsutil -h Cache-Control:private cp -a public-read file.png gs://your-bucket
 
   Another use of the Cache-Control header is through the "no-transform" value,
   which instructs Google Cloud Storage to not apply any content transformations
@@ -107,14 +111,6 @@ _DETAILED_HELP_TEXT = ("""
   respected by the XML API. The Google Cloud Storage JSON API respects only the
   no-cache and max-age Cache-Control parameters.
 
-  Note that if you upload an object with a public-read ACL and don't include a
-  Cache-Control header, it will be served with a Cache-Control header allowing
-  the object to be cached for 3600 seconds. This will not happen if the object
-  is uploaded with a non-public ACL and then changed to public. Moreover, if you
-  upload an object with a public-read ACL and later change the ACL not to be
-  public-read, the object will no longer be served with the default
-  Cache-Control header noted above (so will be served as not cacheable).
-  
   For details about how to set the Cache-Control header see
   "gsutil help setmeta".
 

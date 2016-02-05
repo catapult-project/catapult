@@ -17,7 +17,6 @@ from google.appengine.ext import ndb
 from dashboard import datastore_hooks
 from dashboard import math_utils
 from dashboard import post_data_handler
-from dashboard.models import anomaly
 from dashboard.models import graph_data
 
 _TASK_QUEUE_NAME = 'add-point-queue'
@@ -38,7 +37,7 @@ _MAX_NUM_COLUMNS = 30
 # Maximum length for a test path. This limit is required because the test path
 # used as the string ID for TestContainer (the parent in the datastore for Row
 # entities), and datastore imposes a maximum string ID length.
-_MAX_TESTPATH_LENGTH = 500
+_MAX_TEST_PATH_LENGTH = 500
 
 
 class BadRequestError(Exception):
@@ -142,7 +141,9 @@ class AddPointHandler(post_data_handler.PostDataHandler):
     try:
       if type(data) is dict:
         if data.get('chart_data'):
-          data = self._DashboardJsonToRawRows(data)
+          data = _DashboardJsonToRawRows(data)
+          if not data:
+            return  # No data to add, bail out.
         else:
           self.ReportError(
               'Data should be a list of rows or a Dashboard JSON v1.0 dict.',
@@ -151,98 +152,124 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       test_map = _ConstructTestPathMap(data)
       for row_dict in data:
         _ValidateRowDict(row_dict, test_map)
-      _AddTasksAsync(data)
+      _AddTasks(data)
     except BadRequestError as error:
       # If any of the data was invalid, abort immediately and return an error.
       self.ReportError(error.message, status=400)
 
-  def _DashboardJsonToRawRows(self, dash_json_dict):
-    """Formats a Dashboard JSON dict as a list of row dicts.
 
-    For the dashboard to begin accepting the Telemetry Dashboard JSON format
-    as per go/telemetry-json, this function chunks a Dashboard JSON literal
-    into rows and passes the resulting list to _AddTasksAsync.
+def _DashboardJsonToRawRows(dash_json_dict):
+  """Formats a Dashboard JSON dict as a list of row dicts.
 
-    Args:
-      dash_json_dict: A dashboard JSON v1.0 dict.
-
-    Returns:
-      A list of dicts, each of which represents a point.
-
-    Raises:
-      AssertionError: The given argument wasn't a dict.
-      BadRequestError: The content of the input wasn't valid.
-    """
-    assert type(dash_json_dict) is dict
-    # A Dashboard JSON dict should at least have all charts coming from the
-    # same master, bot and rev. It can contain multiple charts, however.
-    if not dash_json_dict.get('master'):
-      raise BadRequestError('No master name given.')
-    if not dash_json_dict.get('bot'):
-      raise BadRequestError('No bot name given.')
-    if not dash_json_dict.get('point_id'):
-      raise BadRequestError('No point_id number given.')
-    if not dash_json_dict.get('chart_data'):
-      self.ReportError('No chart data given.', status=400)
-      return None
-
-    charts = dash_json_dict['chart_data']['charts']
-    # Links to about:tracing traces are listed under 'trace'; if they
-    # exist copy them to a separate dictionary and delete from the chartjson
-    # so that we don't try to process them as data points.
-    tracing_links = None
-    if 'trace' in charts:
-      tracing_links = charts['trace'].copy()
-      del charts['trace']
-    row_template = _MakeRowTemplate(dash_json_dict)
-
-    benchmark_name = dash_json_dict['chart_data']['benchmark_name']
-    benchmark_description = dash_json_dict['chart_data'].get(
-        'benchmark_description', '')
-    trace_rerun_options = dash_json_dict['chart_data'].get(
-        'trace_rerun_options', [])
-    trace_rerun_options = dict((k, v) for (k, v) in trace_rerun_options)
-    is_ref = bool(dash_json_dict.get('is_ref'))
-    rows = []
-
-    for chart in charts:
-      for trace in charts[chart]:
-        # Need to do a deep copy here so we don't copy a_tracing_uri data.
-        row = copy.deepcopy(row_template)
-        specific_vals = _FlattenTrace(
-            benchmark_name, chart, trace, charts[chart][trace], is_ref,
-            tracing_links, benchmark_description)
-        # Telemetry may validly produce rows that represent a value of NaN. To
-        # avoid getting into messy situations with alerts, we do not add such
-        # rows to be processed.
-        if not (math.isnan(specific_vals['value']) or
-                math.isnan(specific_vals['error'])):
-          if specific_vals['tracing_uri']:
-            row['supplemental_columns']['a_tracing_uri'] = specific_vals[
-                'tracing_uri']
-          if trace_rerun_options:
-            row['supplemental_columns']['a_trace_rerun_options'] = (
-                trace_rerun_options)
-          row.update(specific_vals)
-          rows.append(row)
-
-    return rows
-
-
-def _AddTasksAsync(data):
-  """Puts tasks on queue for adding row and analyzing for anomalies.
+  For the dashboard to begin accepting the Telemetry Dashboard JSON format
+  as per go/telemetry-json, this function chunks a Dashboard JSON literal
+  into rows and passes the resulting list to _AddTasks.
 
   Args:
-    data: A list of dictionary each of which represents one point.
+    dash_json_dict: A dashboard JSON v1.0 dict.
+
+  Returns:
+    A list of dicts, each of which represents a point.
+
+  Raises:
+    AssertionError: The given argument wasn't a dict.
+    BadRequestError: The content of the input wasn't valid.
   """
-  queue = taskqueue.Queue(_TASK_QUEUE_NAME)
+  assert type(dash_json_dict) is dict
+  # A Dashboard JSON dict should at least have all charts coming from the
+  # same master, bot and rev. It can contain multiple charts, however.
+  if not dash_json_dict.get('master'):
+    raise BadRequestError('No master name given.')
+  if not dash_json_dict.get('bot'):
+    raise BadRequestError('No bot name given.')
+  if not dash_json_dict.get('point_id'):
+    raise BadRequestError('No point_id number given.')
+  if not dash_json_dict.get('chart_data'):
+    raise BadRequestError('No chart data given.')
+  test_suite_name = _TestSuiteName(dash_json_dict)
+
+  chart_data = dash_json_dict.get('chart_data', {})
+  charts = chart_data.get('charts', {})
+  if not charts:
+    return []  # No charts implies no data to add.
+
+  # Links to about:tracing traces are listed under 'trace'; if they
+  # exist copy them to a separate dictionary and delete from the chartjson
+  # so that we don't try to process them as data points.
+  tracing_links = None
+  if 'trace' in charts:
+    tracing_links = charts['trace'].copy()
+    del charts['trace']
+  row_template = _MakeRowTemplate(dash_json_dict)
+
+  benchmark_description = chart_data.get('benchmark_description', '')
+  trace_rerun_options = dict(chart_data.get('trace_rerun_options', []))
+  is_ref = bool(dash_json_dict.get('is_ref'))
+  rows = []
+
+  for chart in charts:
+    for trace in charts[chart]:
+      # Need to do a deep copy here so we don't copy a_tracing_uri data.
+      row = copy.deepcopy(row_template)
+      specific_vals = _FlattenTrace(
+          test_suite_name, chart, trace, charts[chart][trace], is_ref,
+          tracing_links, benchmark_description)
+      # Telemetry may validly produce rows that represent a value of NaN. To
+      # avoid getting into messy situations with alerts, we do not add such
+      # rows to be processed.
+      if not (math.isnan(specific_vals['value']) or
+              math.isnan(specific_vals['error'])):
+        if specific_vals['tracing_uri']:
+          row['supplemental_columns']['a_tracing_uri'] = specific_vals[
+              'tracing_uri']
+        if trace_rerun_options:
+          row['supplemental_columns']['a_trace_rerun_options'] = (
+              trace_rerun_options)
+        row.update(specific_vals)
+        rows.append(row)
+
+  return rows
+
+
+def _TestSuiteName(dash_json_dict):
+  """Extracts a test suite name from Dashboard JSON.
+
+  The dashboard JSON may contain a field "test_suite_name". If this is not
+  present or it is None, the dashboard will fall back to using "benchmark_name"
+  in the "chart_data" dict.
+  """
+  if dash_json_dict.get('test_suite_name'):
+    return dash_json_dict['test_suite_name']
+  try:
+    return dash_json_dict['chart_data']['benchmark_name']
+  except KeyError as e:
+    raise BadRequestError('Could not find test suite name. ' + e.message)
+
+
+def _AddTasks(data):
+  """Puts tasks on queue for adding data.
+
+  Args:
+    data: A list of dictionaries, each of which represents one point.
+  """
   task_list = []
-  for i in range(0, len(data), _TASK_QUEUE_SIZE):
-    data_chunk = data[i:i + _TASK_QUEUE_SIZE]
-    task = taskqueue.Task(url='/add_point_queue',
-                          params={'data': json.dumps(data_chunk)})
-    task_list.append(task)
-  queue.add_async(task_list).get_result()
+  for data_sublist in _Chunk(data, _TASK_QUEUE_SIZE):
+    task_list.append(taskqueue.Task(
+        url='/add_point_queue',
+        params={'data': json.dumps(data_sublist)}))
+  queue = taskqueue.Queue(_TASK_QUEUE_NAME)
+  for task_sublist in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD):
+    # Calling get_result waits for all tasks to be added. It's possible that
+    # this is different, and maybe faster, than just calling queue.add.
+    queue.add_async(task_sublist).get_result()
+
+
+def _Chunk(items, chunk_size):
+  """Breaks a long list into sub-lists of a particular size."""
+  chunks = []
+  for i in range(0, len(items), chunk_size):
+    chunks.append(items[i:i + chunk_size])
+  return chunks
 
 
 def _MakeRowTemplate(dash_json_dict):
@@ -481,7 +508,7 @@ def _ConstructTestPathMap(row_dicts):
     if not ('master' in row and 'bot' in row and 'test' in row):
       continue
     path = '%s/%s/%s' % (row['master'], row['bot'], row['test'].strip('/'))
-    if len(path) > _MAX_TESTPATH_LENGTH:
+    if len(path) > _MAX_TEST_PATH_LENGTH:
       continue
     last_added_revision_keys.append(ndb.Key('LastAddedRevision', path))
 
@@ -538,7 +565,7 @@ def _ValidateTestPath(test_path):
   """Checks whether all the parts of the test path are valid."""
   # A test with a test path length over the max key length shouldn't be
   # created, since the test path is used in TestContainer keys.
-  if len(test_path) > _MAX_TESTPATH_LENGTH:
+  if len(test_path) > _MAX_TEST_PATH_LENGTH:
     raise BadRequestError('Test path too long: %s' % test_path)
 
   # Stars are reserved for test path patterns, so they can't be used in names.

@@ -57,7 +57,7 @@ def ProcessTest(test_key):
     return
 
   # Get anomalies and check if they happen in ref build also.
-  change_points = _FindChangePointsForTest(rows, config)
+  change_points = FindChangePointsForTest(rows, config)
   change_points = _FilterAnomaliesFoundInRef(change_points, test_key, len(rows))
 
   anomalies = [_MakeAnomalyEntity(c, test, rows) for c in change_points]
@@ -148,7 +148,7 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
 
   ref_config = anomaly_config.GetAnomalyConfigDict(ref_test)
   ref_rows = GetRowsToAnalyze(ref_test, num_rows)
-  ref_change_points = _FindChangePointsForTest(ref_rows, ref_config)
+  ref_change_points = FindChangePointsForTest(ref_rows, ref_config)
   if not ref_change_points:
     return change_points[:]
 
@@ -253,7 +253,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
       internal_only=test.internal_only)
 
 
-def _FindChangePointsForTest(rows, config_dict):
+def FindChangePointsForTest(rows, config_dict):
   """Gets the anomaly data from the anomaly detection module.
 
   Args:

@@ -8,7 +8,6 @@
 
 import subprocess
 import sys
-import tempfile
 
 from catapult_build import module_finder
 from catapult_build import temp_deployment_dir

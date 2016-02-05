@@ -6,6 +6,7 @@
 
 import base64
 import json
+import mock
 import os
 import re
 import unittest
@@ -22,6 +23,22 @@ from dashboard.models import graph_data
 _QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir)
 
 
+class FakeRequestObject(object):
+  """Fake Request object which can be used by datastore_hooks mocks."""
+
+  def __init__(self, remote_addr=None):
+    self.registry = {}
+    self.remote_addr = remote_addr
+
+
+class FakeResponseObject(object):
+  """Fake Response Object which can be returned by urlfetch mocks."""
+
+  def __init__(self, status_code, content):
+    self.status_code = status_code
+    self.content = content
+
+
 class TestCase(unittest.TestCase):
   """Common base class for test cases."""
 
@@ -35,6 +52,7 @@ class TestCase(unittest.TestCase):
     self.testbed.init_taskqueue_stub(root_path=_QUEUE_YAML_DIR)
     self.testbed.init_user_stub()
     self.testbed.init_urlfetch_stub()
+    self.mock_get_request = None
 
   def tearDown(self):
     self.testbed.deactivate()
@@ -99,6 +117,18 @@ class TestCase(unittest.TestCase):
                     (var_name, javascript_value))
           return None
     return None
+
+  def PatchDatastoreHooksRequest(self, remote_addr=None):
+    """This patches the request object to allow IP address to be set.
+
+    It should be used by tests which check code that does IP address checking
+    through datastore_hooks.
+    """
+    get_request_patcher = mock.patch(
+        'webapp2.get_request',
+        mock.MagicMock(return_value=FakeRequestObject(remote_addr)))
+    self.mock_get_request = get_request_patcher.start()
+    self.addCleanup(get_request_patcher.stop)
 
 
 def AddTests(masters, bots, tests_dict):
@@ -175,14 +205,6 @@ def SetInternalDomain(domain):
 def SetSheriffDomains(domains):
   """Sets the domain that users who can access internal data belong to."""
   stored_object.Set(utils.SHERIFF_DOMAINS_KEY, domains)
-
-
-class FakeResponseObject(object):
-  """Fake Response Object which can be returned by urlfetch mocks."""
-
-  def __init__(self, status_code, content):
-    self.status_code = status_code
-    self.content = content
 
 
 def SetIpWhitelist(ip_addresses):

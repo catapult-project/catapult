@@ -27,7 +27,7 @@ class MockOAuth2Decorator(object):
 
   def http(self):
     # The body attribute is set after this is returned, so all we can do here
-    # is to save the previous one before it's overriden.
+    # is to save the previous one before it's overridden.
     MockOAuth2Decorator.past_bodies.append(HTTP_MOCK.body)
     return HTTP_MOCK
 

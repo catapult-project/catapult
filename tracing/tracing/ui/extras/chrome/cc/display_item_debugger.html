@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/extras/chrome/cc/picture.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
@@ -468,7 +469,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onExportSkPictureClicked_: function() {
-      var rawData = atob(this.picture_.getBase64SkpData());
+      var rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
       this.saveFile_(this.skpFilename_.value, rawData);
     }
   };

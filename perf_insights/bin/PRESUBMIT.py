@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
-import sys
 
 def CheckChange(input_api, output_api):
   init_py_path = os.path.join(input_api.PresubmitLocalPath(), '__init__.py')

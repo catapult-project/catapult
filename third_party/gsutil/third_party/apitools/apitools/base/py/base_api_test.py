@@ -1,8 +1,10 @@
+import base64
 import datetime
 import sys
 
 from protorpc import message_types
 from protorpc import messages
+import six
 from six.moves import urllib_parse
 import unittest2
 
@@ -13,6 +15,7 @@ from apitools.base.py import http_wrapper
 
 class SimpleMessage(messages.Message):
     field = messages.StringField(1)
+    bytes_field = messages.BytesField(2)
 
 
 class MessageWithTime(messages.Message):
@@ -40,6 +43,7 @@ class StandardQueryParameters(messages.Message):
     prettyPrint = messages.BooleanField(
         5, default=True)  # pylint: disable=invalid-name
     pp = messages.BooleanField(6, default=True)
+    nextPageToken = messages.BytesField(7)  # pylint:disable=invalid-name
 
 
 class FakeCredentials(object):
@@ -147,6 +151,37 @@ class BaseApiTest(unittest2.TestCase):
         self.assertTrue('prettyPrint=0' in http_request.url)
         self.assertTrue('pp=0' in http_request.url)
 
+    def testQueryBytesRequest(self):
+        method_config = base_api.ApiMethodInfo(
+            request_type_name='SimpleMessage', query_params=['bytes_field'])
+        service = FakeService()
+        non_unicode_message = b''.join((six.int2byte(100),
+                                        six.int2byte(200)))
+        request = SimpleMessage(bytes_field=non_unicode_message)
+        global_params = StandardQueryParameters()
+        http_request = service.PrepareHttpRequest(method_config, request,
+                                                  global_params=global_params)
+        want = urllib_parse.urlencode({
+            'bytes_field': base64.urlsafe_b64encode(non_unicode_message),
+        })
+        self.assertIn(want, http_request.url)
+
+    def testQueryBytesGlobalParams(self):
+        method_config = base_api.ApiMethodInfo(
+            request_type_name='SimpleMessage', query_params=['bytes_field'])
+        service = FakeService()
+        non_unicode_message = b''.join((six.int2byte(100),
+                                        six.int2byte(200)))
+        request = SimpleMessage()
+        global_params = StandardQueryParameters(
+            nextPageToken=non_unicode_message)
+        http_request = service.PrepareHttpRequest(method_config, request,
+                                                  global_params=global_params)
+        want = urllib_parse.urlencode({
+            'nextPageToken': base64.urlsafe_b64encode(non_unicode_message),
+        })
+        self.assertIn(want, http_request.url)
+
     def testQueryRemapping(self):
         method_config = base_api.ApiMethodInfo(
             request_type_name='MessageWithRemappings',
@@ -177,3 +212,13 @@ class BaseApiTest(unittest2.TestCase):
         expected_url = service.client.url + 'parameters/gonna/remap/ONE/TWO'
         http_request = service.PrepareHttpRequest(method_config, request)
         self.assertEqual(expected_url, http_request.url)
+
+    def testColonInRelativePath(self):
+        method_config = base_api.ApiMethodInfo(
+            relative_path='path:withJustColon',
+            request_type_name='SimpleMessage')
+        service = FakeService()
+        request = SimpleMessage()
+        http_request = service.PrepareHttpRequest(method_config, request)
+        self.assertEqual('http://www.example.com/path:withJustColon',
+                         http_request.url)

@@ -1,6 +1,7 @@
 import base64
 import datetime
 import json
+import sys
 
 from protorpc import message_types
 from protorpc import messages
@@ -9,6 +10,7 @@ import unittest2
 
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
+from apitools.base.py import extra_types
 
 
 class SimpleMessage(messages.Message):
@@ -31,6 +33,21 @@ class AdditionalPropertiesMessage(messages.Message):
     class AdditionalProperty(messages.Message):
         key = messages.StringField(1)
         value = messages.StringField(2)
+
+    additional_properties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additional_properties')
+class UnrecognizedEnumMessage(messages.Message):
+
+    class ThisEnum(messages.Enum):
+        VALUE_ONE = 1
+        VALUE_TWO = 2
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.EnumField('UnrecognizedEnumMessage.ThisEnum', 2)
 
     additional_properties = messages.MessageField(
         AdditionalProperty, 1, repeated=True)
@@ -83,6 +100,17 @@ class MessageWithRemappings(messages.Message):
     another_field = messages.StringField(3)
     repeated_enum = messages.EnumField(SomeEnum, 4, repeated=True)
     repeated_field = messages.StringField(5, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additional_properties')
+class RepeatedJsonValueMessage(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.MessageField(extra_types.JsonValue, 2, repeated=True)
+
+    additional_properties = messages.MessageField('AdditionalProperty', 1,
+                                                  repeated=True)
 
 
 encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
@@ -186,6 +214,14 @@ class EncodingTest(unittest2.TestCase):
             AdditionalMessagePropertiesMessage, json_msg)
         self.assertEqual(1, len(result.additional_properties))
         self.assertEqual(0, result.additional_properties[0].value.index)
+
+    def testUnrecognizedEnum(self):
+        json_msg = '{"input": "VALUE_ONE"}'
+        result = encoding.JsonToMessage(
+            UnrecognizedEnumMessage, json_msg)
+        self.assertEqual(1, len(result.additional_properties))
+        self.assertEqual(UnrecognizedEnumMessage.ThisEnum.VALUE_ONE,
+                         result.additional_properties[0].value)
 
     def testNestedFieldMapping(self):
         nested_msg = AdditionalPropertiesMessage()
@@ -342,3 +378,33 @@ class EncodingTest(unittest2.TestCase):
             'TimeMessage(\n    '
             'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
             'tzinfo=TimeZoneOffset(datetime.timedelta(0))),\n)')
+
+    def testPackageMappingsNoPackage(self):
+        this_module_name = util.get_package_for_module(__name__)
+        full_type_name = 'MessageWithEnum.ThisEnum'
+        full_key = '%s.%s' % (this_module_name, full_type_name)
+        self.assertEqual(full_key,
+                         encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
+
+    def testPackageMappingsWithPackage(self):
+        this_module_name = util.get_package_for_module(__name__)
+        full_type_name = 'MessageWithEnum.ThisEnum'
+        full_key = '%s.%s' % (this_module_name, full_type_name)
+        this_module = sys.modules[__name__]
+        new_package = 'new_package'
+        try:
+            setattr(this_module, 'package', new_package)
+            new_key = '%s.%s' % (new_package, full_type_name)
+            self.assertEqual(
+                new_key,
+                encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
+            self.assertEqual(
+                full_key,
+                encoding._GetTypeKey(MessageWithEnum.ThisEnum, new_package))
+        finally:
+            delattr(this_module, 'package')
+
+    def testRepeatedJsonValuesAsRepeatedProperty(self):
+        encoded_msg = '{"a": [{"one": 1}]}'
+        msg = encoding.JsonToMessage(RepeatedJsonValueMessage, encoded_msg)
+        self.assertEqual(encoded_msg, encoding.MessageToJson(msg))

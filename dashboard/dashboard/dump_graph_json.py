@@ -136,7 +136,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     return entities
 
   def _FetchRowsAsync(self, test_keys, num_points):
-    """Fetches recent Row asychronously across all 'test_keys'."""
+    """Fetches recent Row asynchronously across all 'test_keys'."""
     rows = []
     futures = []
     for test_key in test_keys:

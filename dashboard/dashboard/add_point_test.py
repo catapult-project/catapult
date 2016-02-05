@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import json
 import math
 import unittest
@@ -19,10 +20,15 @@ from dashboard import bot_whitelist
 from dashboard import layered_cache
 from dashboard import testing_common
 from dashboard import units_to_direction
+from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import sheriff
+
+# TODO(qyearsley): Shorten this module.
+# See https://github.com/catapult-project/catapult/issues/1917
+# pylint: disable=too-many-lines
 
 # A limit to the number of entities that can be fetched. This is just an
 # safe-guard to prevent possibly fetching too many entities.
@@ -42,6 +48,7 @@ _SAMPLE_DASHBOARD_JSON = {
     'master': 'ChromiumPerf',
     'bot': 'win7',
     'point_id': '12345',
+    'test_suite_name': 'my_test_suite',
     'supplemental': {
         'os': 'mavericks',
         'gpu_oem': 'intel'
@@ -51,7 +58,7 @@ _SAMPLE_DASHBOARD_JSON = {
         'blink': '234567'
     },
     'chart_data': {
-        'benchmark_name': 'my_test_suite',
+        'benchmark_name': 'my_benchmark',
         'benchmark_description': 'foo',
         'format_version': '1.0',
         'charts': {
@@ -72,6 +79,7 @@ _SAMPLE_DASHBOARD_JSON_WITH_TRACE = {
     'master': 'ChromiumPerf',
     'bot': 'win7',
     'point_id': '12345',
+    'test_suite_name': 'my_test_suite',
     'supplemental': {
         'os': 'mavericks',
         'gpu_oem': 'intel'
@@ -81,7 +89,7 @@ _SAMPLE_DASHBOARD_JSON_WITH_TRACE = {
         'blink': '234567'
     },
     'chart_data': {
-        'benchmark_name': 'my_test_suite',
+        'benchmark_name': 'my_benchmark',
         'benchmark_description': 'foo',
         'format_version': '1.0',
         'charts': {
@@ -253,7 +261,7 @@ class AddPointTest(testing_common.TestCase):
     """Tests that tests ending with _ref aren't analyze for anomalies."""
     sheriff.Sheriff(
         id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '1234/abcd_ref'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -267,7 +275,7 @@ class AddPointTest(testing_common.TestCase):
     """Tests that leaf tests named ref aren't added to the task queue."""
     sheriff.Sheriff(
         id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '1234/ref'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -280,7 +288,7 @@ class AddPointTest(testing_common.TestCase):
       self, mock_process_test):
     sheriff.Sheriff(
         id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '_ref/abcd'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -290,7 +298,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_TestPathTooLong_PointRejected(self):
     """Tests that an error is returned when the test path would be too long."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'long_test/%s' % ('x' * 490)
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
@@ -300,7 +308,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(0, len(tests))
 
   def testPost_TrailingSlash_Ignored(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'mach_ports_parent/mach_ports/'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -313,7 +321,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mach_ports_parent', tests[1].parent_test.id())
 
   def test_LeadingSlash_Ignored(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '/boot_time/pre_plugin_time'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -333,14 +341,14 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_BadGraphName_DataRejected(self):
     """Tests that an error is returned when the test name has too many parts."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'a/b/c/d/e/f/g/h/i/j/k'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
   def testPost_TestNameHasDoubleUnderscores_Rejected(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'my_test_suite/__my_test__'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
@@ -387,16 +395,16 @@ class AddPointTest(testing_common.TestCase):
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
   def testPost_InvalidRevision_Rejected(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 'I am not a valid revision number!'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.assertEqual(
+    self.assertIn(
         'Bad value for "revision", should be numerical.\n', response.body)
 
   def testPost_InvalidSupplementalRevision_DropsRevision(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {
         'r_one': '1234',
         'r_two': 'I am not a valid revision or version.',
@@ -549,10 +557,10 @@ class AddPointTest(testing_common.TestCase):
     if the Test matches the pattern of the AnomalyConfig.
     """
     anomaly_config1 = anomaly_config.AnomalyConfig(
-        id='modelset1', config='',
+        id='anomaly_config1', config='',
         patterns=['ChromiumPerf/*/dromaeo/jslib']).put()
     anomaly_config2 = anomaly_config.AnomalyConfig(
-        id='modelset2', config='',
+        id='anomaly_config2', config='',
         patterns=['*/*image_benchmark/*', '*/*/scrolling_benchmark/*']).put()
 
     data_param = json.dumps([
@@ -757,7 +765,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_GitHashSupplementalRevision_Accepted(self):
     """Tests that git hashes can be added as supplemental revision columns."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 123
     point['supplemental_columns'] = {
         'r_chromium_rev': '2eca27b067e3e57c70e40b8b95d0030c5d7c1a7f',
@@ -839,28 +847,28 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_NoValue_Rejected(self):
     """Tests the error returned when no "value" is given."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     del point['value']
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.assertEqual('No "value" given.\n', response.body)
+    self.assertIn('No "value" given.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
   def testPost_WithBadValue_Rejected(self):
     """Tests the error returned when an invalid "value" is given."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['value'] = 'hello'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    self.assertEqual(
+    self.assertIn(
         'Bad value for "value", should be numerical.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
   def testPost_WithBadPointErrorValue_ErrorValueDropped(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['error'] = 'not a number'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -871,7 +879,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_TooManyColumns_SomeColumnsDropped(self):
     """Tests that some columns are dropped if there are too many."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     supplemental_columns = {}
     for i in range(1, add_point._MAX_NUM_COLUMNS * 2):
       supplemental_columns['d_run_%d' % i] = i
@@ -887,7 +895,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertLessEqual(len(data_columns), add_point._MAX_NUM_COLUMNS)
 
   def testPost_BadSupplementalColumnName_ColumnDropped(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {'q_foo': 'bar'}
 
     self.testapp.post(
@@ -899,7 +907,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(hasattr(row, 'q_foo'))
 
   def testPost_LongSupplementalColumnName_ColumnDropped(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     key = 'a_' + ('a' * add_point._MAX_COLUMN_NAME_LENGTH)
     point['supplemental_columns'] = {
         key: '1234',
@@ -915,7 +923,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(hasattr(row, key))
 
   def testPost_LongSupplementalAnnotation_ColumnDropped(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {
         'a_one': 'z' * (add_point._STRING_COLUMN_MAX_LENGTH + 1),
         'a_two': 'hello',
@@ -931,7 +939,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_BadSupplementalDataColumn_ColumnDropped(self):
     """Tests that bad supplemental data columns are dropped."""
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {
         'd_run_1': 'hello',
         'd_run_2': 42.5,
@@ -949,7 +957,7 @@ class AddPointTest(testing_common.TestCase):
     # If a point's ID is much lower than the last one, it should be rejected
     # because this indicates that the revision type was accidentally changed.
     # First add one point; it's accepted because it's the first in the series.
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 1408479179
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -959,7 +967,7 @@ class AddPointTest(testing_common.TestCase):
     last_added_revision = ndb.Key('LastAddedRevision', test_path).get()
     self.assertEqual(1408479179, last_added_revision.revision)
 
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
@@ -969,14 +977,14 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_RevisionTooHigh_Rejected(self):
     # First add one point; it's accepted because it's the first in the series.
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 1408479179
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
@@ -985,17 +993,17 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(1, len(rows))
 
   def testPost_MultiplePointsWithCloseRevisions_Accepted(self):
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285200
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    point = _SAMPLE_POINT.copy()
+    point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285100
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
@@ -1024,8 +1032,30 @@ class AddPointTest(testing_common.TestCase):
         'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
     self.assertEqual('foo', test_suite.description)
 
+  def testPost_NoTestSuiteName_BenchmarkNameUsed(self):
+    sample = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    del sample['test_suite_name']
+    data_param = json.dumps(sample)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
+    self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
+
+  def testPost_TestSuiteNameIsNone_BenchmarkNameUsed(self):
+    sample = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    sample['test_suite_name'] = None
+    data_param = json.dumps(sample)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
+    self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
+
   def testPost_WithBenchmarkRerunOptions_AddsTraceRerunOptions(self):
-    sample_json = _SAMPLE_DASHBOARD_JSON.copy()
+    sample_json = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     sample_json['chart_data']['trace_rerun_options'] = [['foo', '--foo']]
     data_param = json.dumps(sample_json)
     self.testapp.post(
@@ -1057,7 +1087,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_FormatV1_BadMaster_Rejected(self):
     """Tests that attempting to post with no master name will error."""
-    chart = _SAMPLE_DASHBOARD_JSON.copy()
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     del chart['master']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
@@ -1065,7 +1095,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_FormatV1_BadBot_Rejected(self):
     """Tests that attempting to post with no bot name will error."""
-    chart = _SAMPLE_DASHBOARD_JSON.copy()
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     del chart['bot']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
@@ -1073,7 +1103,7 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_FormatV1_BadPointId_Rejected(self):
     """Tests that attempting to post a chart no point id will error."""
-    chart = _SAMPLE_DASHBOARD_JSON.copy()
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     del chart['point_id']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
@@ -1086,14 +1116,23 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps(chart)}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
+  def testPost_FormatV1_EmptyCharts_NothingAdded(self):
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    chart['chart_data']['charts'] = {}
+    self.testapp.post(
+        '/add_point', {'data': json.dumps(chart)},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    # Status is OK, but no rows are added.
+    self.assertIsNone(graph_data.Row.query().get())
+
 
 class FlattenTraceTest(testing_common.TestCase):
 
   def testDashboardJsonToRawRows_WithIsRef(self):
     """Tests that rows from a chart from a ref build have the correct name."""
-    chart = _SAMPLE_DASHBOARD_JSON.copy()
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     chart['is_ref'] = True
-    rows = add_point.AddPointHandler()._DashboardJsonToRawRows(chart)
+    rows = add_point._DashboardJsonToRawRows(chart)
     self.assertEqual('my_test_suite/my_test/ref', rows[0]['test'])
 
   def testFlattenTrace_PreservesUnits(self):

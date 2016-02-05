@@ -16,8 +16,9 @@
 
 from __future__ import absolute_import
 
-import os
 import re
+
+from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as case
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
@@ -68,20 +69,37 @@ class TestDefacl(case.GsUtilIntegrationTestCase):
                             return_stderr=True, expected_status=1)
     self.assertIn('WRITER cannot be set as a default object ACL', stderr)
 
-  def testChangeDefaultAclPrivate(self):
+  def testChangeDefaultAclEmpty(self):
+    """Tests adding and removing an entry from an empty default object ACL."""
+
     bucket = self.CreateBucket()
-    test_regex = self._MakeScopeRegex(
-        'READER', 'group', self.GROUP_TEST_ADDRESS)
+
+    # First, clear out the default object ACL on the bucket.
     self.RunGsUtil(self._defacl_set_prefix + ['private', suri(bucket)])
     json_text = self.RunGsUtil(self._defacl_get_prefix +
                                [suri(bucket)], return_stdout=True)
-    self.assertRegexpMatches(json_text, r'\[\]\s*')
+    empty_regex = r'\[\]\s*'
+    self.assertRegexpMatches(json_text, empty_regex)
 
+    group_regex = self._MakeScopeRegex(
+        'READER', 'group', self.GROUP_TEST_ADDRESS)
     self.RunGsUtil(self._defacl_ch_prefix +
                    ['-g', self.GROUP_TEST_ADDRESS+':READ', suri(bucket)])
     json_text2 = self.RunGsUtil(self._defacl_get_prefix +
                                 [suri(bucket)], return_stdout=True)
-    self.assertRegexpMatches(json_text2, test_regex)
+    self.assertRegexpMatches(json_text2, group_regex)
+
+    if self.test_api == ApiSelector.JSON:
+      # TODO: Enable when JSON service respects creating a private (no entries)
+      # default object ACL via PATCH. For now, only supported in XML.
+      return
+
+    # After adding and removing a group, the default object ACL should be empty.
+    self.RunGsUtil(self._defacl_ch_prefix +
+                   ['-d', self.GROUP_TEST_ADDRESS, suri(bucket)])
+    json_text3 = self.RunGsUtil(self._defacl_get_prefix +
+                                [suri(bucket)], return_stdout=True)
+    self.assertRegexpMatches(json_text3, empty_regex)
 
   def testChangeMultipleBuckets(self):
     """Tests defacl ch on multiple buckets."""

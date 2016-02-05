@@ -143,6 +143,58 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual((6, 14), utils.MinimumRange(
         [(3, 20), (5, 15), (6, 25), (3, 14)]))
 
+  def testValidate_StringNotInOptionList_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(
+          ['completed', 'pending', 'failed'], 'running')
+
+  def testValidate_InvalidType_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(int, 'a string')
+
+  def testValidate_MissingProperty_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(
+          {'status': str, 'try_job_id': int, 'required_property': int},
+          {'status': 'completed', 'try_job_id': 1234})
+
+  def testValidate_InvalidTypeInDict_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(
+          {'status': int, 'try_job_id': int},
+          {'status': 'completed', 'try_job_id': 1234})
+
+  def testValidate_StringNotInNestedOptionList_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(
+          {'values': {'nested_values': ['orange', 'banana']}},
+          {'values': {'nested_values': 'apple'}})
+
+  def testValidate_MissingPropertyInNestedDict_Fails(self):
+    with self.assertRaises(ValueError):
+      utils.Validate(
+          {'values': {'nested_values': ['orange', 'banana']}},
+          {'values': {}})
+
+  def testValidate_ExpectedValueIsNone_Passes(self):
+    utils.Validate(None, 'running')
+
+  def testValidate_StringInOptionList_Passes(self):
+    utils.Validate(str, 'a string')
+
+  def testValidate_HasExpectedProperties_Passes(self):
+    utils.Validate(
+        {'status': str, 'try_job_id': int},
+        {'status': 'completed', 'try_job_id': 1234})
+
+  def testValidate_StringInNestedOptionList_Passes(self):
+    utils.Validate(
+        {'values': {'nested_values': ['orange', 'banana']}},
+        {'values': {'nested_values': 'orange'}})
+
+  def testValidate_TypeConversion_Passes(self):
+    utils.Validate([1], '1')
+
 
 def _MakeMockFetch(base64_encoded=True, status=200):
   """Returns a mock fetch object that returns a canned response."""

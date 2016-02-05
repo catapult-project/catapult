@@ -187,6 +187,10 @@ _DETAILED_HELP_TEXT = ("""
   before sending this debug output to anyone during troubleshooting/tech support
   interactions.
 
+  If you run gsutil --trace-token (to send a trace directly to Google),
+  sensitive information like OAuth2 tokens and the contents of any files
+  accessed during the trace may be included in the content of the trace.
+
   The proxy configuration information in the .boto configuration is
   security-sensitive, especially if your proxy setup requires user and
   password information. Even if your proxy setup doesn't require user and

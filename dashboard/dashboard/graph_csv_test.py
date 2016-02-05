@@ -44,14 +44,16 @@ class GraphCsvTest(testing_common.TestCase):
       bot = graph_data.Bot(id=name, parent=master, internal_only=True).put()
       bots.append(bot)
       test = graph_data.Test(id='dromaeo', parent=bot, internal_only=True).put()
-      dom_test = graph_data.Test(id='dom', parent=test, has_rows=True).put()
+      dom_test = graph_data.Test(
+          id='dom', parent=test, has_rows=True, internal_only=True).put()
       test_container_key = utils.GetTestContainerKey(dom_test)
       for i in range(1, 50):
         graph_data.Row(
             parent=test_container_key, id=i, value=float(i * 2), error=(i + 10),
             internal_only=True).put()
 
-  def _CheckGet(self, result_query, expected_result, whitelisted_ip=''):
+  def _CheckGet(
+      self, result_query, expected_result, whitelisted_ip='', status=200):
     """Asserts that the given query has the given CSV result.
 
     Args:
@@ -61,7 +63,11 @@ class GraphCsvTest(testing_common.TestCase):
     """
     response_rows = []
     response = self.testapp.get(
-        result_query, extra_environ={'REMOTE_ADDR': whitelisted_ip})
+        result_query,
+        extra_environ={'REMOTE_ADDR': whitelisted_ip},
+        status=status)
+    if status != 200:
+      return
     for row in csv.reader(StringIO.StringIO(response.body)):
       response_rows.append(row)
     self.assertEqual(expected_result, response_rows)
@@ -145,9 +151,10 @@ class GraphCsvTest(testing_common.TestCase):
     testing_common.SetIpWhitelist(['123.45.67.89'])
     query = '/graph_csv?test_path=ChromiumPerf/win7/dromaeo/dom&num_points=3'
     expected = [['revision', 'value']]
-    self._CheckGet(query, expected)
+    self._CheckGet(query, expected, status=500)
 
   def testGet_WhitelistedIPOnly(self):
+    self.PatchDatastoreHooksRequest('123.45.67.89')
     self._AddMockInternalData()
     self.UnsetCurrentUser()
     datastore_hooks.InstallHooks()

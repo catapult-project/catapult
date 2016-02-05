@@ -38,16 +38,16 @@ BOOTTRACE_CATEGORIES = '/data/misc/boottrace/categories'
 # This list is based on the tags in frameworks/native/include/utils/Trace.h for
 # legacy platform.
 LEGACY_TRACE_TAG_BITS = (
-  ('gfx',       1<<1),
-  ('input',     1<<2),
-  ('view',      1<<3),
-  ('webview',   1<<4),
-  ('wm',        1<<5),
-  ('am',        1<<6),
-  ('sm',        1<<7),
-  ('audio',     1<<8),
-  ('video',     1<<9),
-  ('camera',    1<<10),
+    ('gfx', 1 << 1),
+    ('input', 1 << 2),
+    ('view', 1 << 3),
+    ('webview', 1 << 4),
+    ('wm', 1 << 5),
+    ('am', 1 << 6),
+    ('sm', 1 << 7),
+    ('audio', 1 << 8),
+    ('video', 1 << 9),
+    ('camera', 1 << 10),
 )
 
 
@@ -75,6 +75,7 @@ def try_create_agent(options, categories):
 
 
 class AtraceAgent(systrace_agent.SystraceAgent):
+
   def __init__(self, options, categories):
     super(AtraceAgent, self).__init__(options, categories)
     self._expect_trace = False
@@ -312,7 +313,9 @@ class AtraceAgent(systrace_agent.SystraceAgent):
 
     return trace_data
 
+
 class AtraceLegacyAgent(AtraceAgent):
+
   def _construct_list_categories_command(self):
     LEGACY_CATEGORIES = """       sched - CPU Scheduling
         freq - CPU Frequency
@@ -376,6 +379,7 @@ class AtraceLegacyAgent(AtraceAgent):
 
     return extra_args
 
+
 class BootAgent(AtraceAgent):
   """AtraceAgent that specializes in tracing the boot sequence."""
 
@@ -418,6 +422,7 @@ class BootAgent(AtraceAgent):
     return util.construct_adb_shell_command(
           atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
           self._options.device_serial)
+
 
 class FileReaderThread(threading.Thread):
   """Reads data from a file/pipe on a worker thread.
@@ -479,6 +484,7 @@ class FileReaderThread(threading.Thread):
     assert chunk_size > 0
     self._chunk_size = chunk_size
 
+
 def get_default_categories(device_serial):
   categories_output, return_code = util.run_adb_shell(LIST_CATEGORIES_ARGS,
                                                     device_serial)
@@ -512,7 +518,7 @@ def extract_thread_list(trace_text):
   """
 
   threads = {}
-  #start at line 1 to skip the top of the ps dump:
+  # start at line 1 to skip the top of the ps dump:
   text = trace_text.splitlines()
   for line in text[1:]:
     cols = line.split(None, 8)
@@ -522,6 +528,7 @@ def extract_thread_list(trace_text):
       threads[tid] = name
 
   return threads
+
 
 def extract_tgids(trace_text):
   """Removes the procfs dump from the given trace text
@@ -535,10 +542,11 @@ def extract_tgids(trace_text):
   for line in text:
     result = re.match('^/proc/([0-9]+)/task/([0-9]+)', line)
     if result:
-      parent_pid, tgid = result.group(1,2)
-      tgid_2pid[tgid] = parent_pid;
+      parent_pid, tgid = result.group(1, 2)
+      tgid_2pid[tgid] = parent_pid
 
   return tgid_2pid
+
 
 def strip_and_decompress_trace(trace_data):
   """Fixes new-lines and decompresses trace data.
@@ -570,7 +578,6 @@ def strip_and_decompress_trace(trace_data):
     trace_data = trace_data[1:]
 
   return trace_data
-
 
 
 def fix_thread_names(trace_data, thread_names):
@@ -615,9 +622,9 @@ def fix_missing_tgids(trace_data, pid2_tgid):
     tid = m.group(2)
     if (int(tid) > 0 and m.group(1) != '<idle>' and m.group(3) == '(-----)'
         and tid in pid2_tgid):
-          # returns Proc_name-PID (TGID)
-          # Binder_2-381 (-----) becomes Binder_2-381 (128)
-          return m.group(1) + '-' + m.group(2) + ' ( '+ pid2_tgid[tid]+ ')'
+      # returns Proc_name-PID (TGID)
+      # Binder_2-381 (-----) becomes Binder_2-381 (128)
+      return m.group(1) + '-' + m.group(2) + ' ( ' + pid2_tgid[tid] + ')'
 
     return m.group(0)
 
@@ -625,8 +632,7 @@ def fix_missing_tgids(trace_data, pid2_tgid):
   # Binder_2-895 (-----)
   trace_data = re.sub(r'^\s*(\S+)-(\d+)\s+(\(\S+\))', repl, trace_data,
                       flags=re.MULTILINE)
-  return trace_data;
-
+  return trace_data
 
 
 def fix_circular_traces(out):
@@ -665,6 +671,7 @@ def fix_circular_traces(out):
     out = out[:end_of_header] + out[start_of_full_trace:]
   return out
 
+
 def do_popen(args):
   try:
     adb = subprocess.Popen(args, stdout=subprocess.PIPE,
@@ -677,6 +684,7 @@ def do_popen(args):
     sys.exit(1)
 
   return adb
+
 
 def do_preprocess_adb_cmd(command, serial):
   args = [command]

@@ -16,6 +16,7 @@ from dashboard import bisect_stats
 from dashboard import bisect_fyi
 from dashboard import bot_whitelist
 from dashboard import buildbucket_job_status
+from dashboard import can_bisect
 from dashboard import change_internal_only
 from dashboard import debug_alert
 from dashboard import dump_graph_json
@@ -26,7 +27,6 @@ from dashboard import edit_sheriffs
 from dashboard import edit_site_config
 from dashboard import edit_test_owners
 from dashboard import email_summary
-from dashboard import embed
 from dashboard import file_bug
 from dashboard import get_logs
 from dashboard import graph_csv
@@ -47,7 +47,6 @@ from dashboard import report
 from dashboard import send_stoppage_alert_emails
 from dashboard import set_warning_message
 from dashboard import short_uri
-from dashboard import shrink_timestamp_revisions
 from dashboard import start_try_job
 from dashboard import stats
 from dashboard import test_buildbucket
@@ -67,6 +66,7 @@ _URL_MAPPING = [
     ('/bot_whitelist', bot_whitelist.BotWhitelistHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
+    ('/can_bisect', can_bisect.CanBisectHandler),
     ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities', layered_cache.DeleteExpiredEntitiesHandler),
@@ -78,7 +78,6 @@ _URL_MAPPING = [
     ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
     ('/edit_test_owners', edit_test_owners.EditTestOwnersHandler),
     ('/email_summary', email_summary.EmailSummaryHandler),
-    ('/embed', embed.EmbedHandler),
     ('/file_bug', file_bug.FileBugHandler),
     ('/get_logs', get_logs.GetLogsHandler),
     ('/graph_csv', graph_csv.GraphCsvHandler),
@@ -98,8 +97,6 @@ _URL_MAPPING = [
      send_stoppage_alert_emails.SendStoppageAlertEmailsHandler),
     ('/set_warning_message', set_warning_message.SetWarningMessageHandler),
     ('/short_uri', short_uri.ShortUriHandler),
-    ('/shrink_timestamp_revisions',
-     shrink_timestamp_revisions.ShrinkTimestampRevisionsHandler),
     ('/start_try_job', start_try_job.StartBisectHandler),
     ('/stats_around_revision', stats.StatsAroundRevisionHandler),
     ('/stats_for_alerts', stats.StatsForAlertsHandler),

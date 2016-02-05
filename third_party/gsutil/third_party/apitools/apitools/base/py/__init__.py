@@ -12,3 +12,9 @@ from apitools.base.py.http_wrapper import *
 from apitools.base.py.list_pager import *
 from apitools.base.py.transfer import *
 from apitools.base.py.util import *
+
+try:
+    # pylint:disable=no-name-in-module
+    from apitools.base.py.internal import *
+except ImportError:
+    pass
