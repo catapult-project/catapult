@@ -95,6 +95,7 @@ def _RestartBisect(bisect_job):
     return False
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot
+  bisect_job.use_buildbucket = new_bisect_job.use_buildbucket
   bisect_job.put()
   try:
     start_try_job.PerformBisect(bisect_job)
