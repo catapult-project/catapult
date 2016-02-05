@@ -17,7 +17,7 @@ import tempfile
 import time
 
 from catapult_base import cloud_storage  # pylint: disable=import-error
-
+import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
@@ -60,7 +60,14 @@ def GetSymbolBinaries(minidump, arch_name, os_name):
 
       # Filter out system binaries.
       if (binary_path.startswith('/usr/lib/') or
-          binary_path.startswith('/System/Library/')):
+          binary_path.startswith('/System/Library/') or
+          binary_path.startswith('/lib/')):
+        continue
+
+      # Filter out other binary file types which have no symbols.
+      if (binary_path.endswith('.pak') or
+          binary_path.endswith('.bin') or
+          binary_path.endswith('.dat')):
         continue
 
       symbol_binaries.append(binary_path)
@@ -353,9 +360,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _GetMostRecentCrashpadMinidump(self):
     os_name = self.browser.platform.GetOSName()
     arch_name = self.browser.platform.GetArchName()
-    crashpad_database_util = binary_manager.FetchPath(
-        'crashpad_database_util', arch_name, os_name)
-    if not crashpad_database_util:
+    try:
+      crashpad_database_util = binary_manager.FetchPath(
+          'crashpad_database_util', arch_name, os_name)
+      if not crashpad_database_util:
+        return None
+    except dependency_manager.NoPathFoundError:
       return None
 
     report_output = subprocess.check_output([
