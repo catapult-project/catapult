@@ -29,6 +29,9 @@ _BOOTSTRAP_JS_DIR = os.path.abspath(
 _PATH_UTILS_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
+_HTML_IMPORTS_LOADER_JS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'html_imports_loader.js'))
+
 _HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'html_to_js_generator.js'))
 
@@ -59,6 +62,8 @@ def _GetBootStrapJsContent(source_paths):
   bsc = bsc.replace('<%source_paths%>', source_path_string)
   bsc = bsc.replace('<%current_working_directory%>', os.getcwd())
   bsc = bsc.replace('<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
+  bsc = bsc.replace('<%html_imports_loader_js_path%>',
+                    _HTML_IMPORTS_LOADER_JS_DIR)
   bsc = bsc.replace('<%html_to_js_generator_js_path%>',
                     _HTML_TO_JS_GENERATOR_JS_DIR)
   bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
@@ -137,9 +142,9 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
     with open(temp_boostrap_file, 'w') as f:
       f.write(_GetBootStrapJsContent(source_paths))
       if extension == '.html':
-        f.write('\nloadHTMLFile("%s", "%s");' % (abs_file_path, abs_file_path))
+        f.write('\nHTMLImportsLoader.loadHTMLFile("%s", "%s");' % (abs_file_path, abs_file_path))
       else:
-        f.write('\nloadFile("%s");' % abs_file_path)
+        f.write('\nHTMLImportsLoader.loadFile("%s");' % abs_file_path)
     return _RunFileWithD8(temp_boostrap_file, js_args, v8_args, stdout, stdin)
   finally:
     shutil.rmtree(temp_dir)

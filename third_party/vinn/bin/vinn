@@ -7,8 +7,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from vinn import d8_runner
+from vinn import _vinn
 
 
 if __name__ == '__main__':
-  sys.exit(d8_runner.main())
+  sys.exit(_vinn.main())

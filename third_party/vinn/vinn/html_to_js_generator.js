@@ -6,17 +6,12 @@
 /**
  * @fileoverview Provides tools for parsing HTML to generate javascript, needed
  * for d8 bootstrapping process.
+ *
+ * This file depends on Parse5.js. It must be loaded into global before
+ * this file executes.
  */
 
 (function(global) {
-
-  // We deliberately call eval() on content of parse5.js instead of using load()
-  // because load() does not hoist the |global| variable in this method to
-  // parse5.js (which export its modules to |global|).
-  //
-  // This is because d8's load('xyz.js') does not hoist non global varibles in
-  // the caller's environment to xyz.js, no matter where load() is called.
-  eval(read(global.path_to_js_parser));
 
   var adapter = parse5.TreeAdapters.default;
   var parser = new parse5.Parser(adapter, {locationInfo: true});
@@ -115,7 +110,7 @@
       if (!is_import_link)
         return [];
       var chunk = this.createJsChunk(
-          'loadHTML(\'' + href + '\');',
+          'global.HTMLImportsLoader.loadHTML(\'' + href + '\');',
           this.startLocation(node),
           this.startLineNumber(node));
       return [chunk];
@@ -130,7 +125,7 @@
       if (!src)
         return [];
       var chunk = this.createJsChunk(
-          'loadScript(\'' + src + '\');',
+          'global.HTMLImportsLoader.loadScript(\'' + src + '\');',
           this.startLocation(node),
           this.startLineNumber(node));
       return [chunk];

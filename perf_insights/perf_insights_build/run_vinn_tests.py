@@ -23,7 +23,7 @@ def RunTests():
   d8_test_module_filenames.sort()
 
   cmd = """
-  loadHTML('/tracing/base/d8_tests.html');
+  HTMLImportsLoader.loadHTML('/tracing/base/d8_tests.html');
   """
   res = vinn.RunJsString(
     cmd, source_paths=list(project.source_paths),
