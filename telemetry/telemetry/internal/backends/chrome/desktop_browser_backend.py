@@ -5,7 +5,6 @@
 import datetime
 import glob
 import heapq
-import itertools
 import logging
 import os
 import os.path
@@ -36,65 +35,50 @@ def ParseCrashpadDateTime(date_time_str):
   return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
-def GetSymbolBinaries(executable, os_name):
+def GetSymbolBinaries(minidump, arch_name, os_name):
   # Returns binary file where symbols are located.
-  if os_name == 'mac':
-    executables = []
-    version_dir = os.path.abspath(os.path.join(os.path.dirname(executable),
-                                  '..',
-                                  'Versions'))
+  minidump_dump = binary_manager.FetchPath('minidump_dump', arch_name, os_name)
+  assert minidump_dump
 
-    # Add possible executable files.
-    for version_num in os.listdir(version_dir):
-      version_num_dir = os.path.join(version_dir, version_num)
-      possible_files = [os.path.join(version_num_dir,
-                                     'Chromium Framework.framework',
-                                     'Chromium Framework'),
-                        os.path.join(version_num_dir,
-                                     'Chromium Helper.app',
-                                     'Contents',
-                                     'MacOS',
-                                     'Chromium Helper')]
-      executables.extend([file_path
-                          for file_path in possible_files
-                          if os.path.isfile(file_path)])
+  symbol_binaries = []
 
-    # Add possible dynamic library files.
-    output_dir = os.path.abspath(os.path.join(version_dir, '..', '..', '..'))
-    executables.extend([os.path.join(output_dir, filename)
-                        for filename in os.listdir(output_dir)
-                        if filename.endswith('.dylib')])
+  minidump_cmd = [minidump_dump, minidump]
+  try:
+    with open(os.devnull, 'wb') as DEVNULL:
+      minidump_output = subprocess.check_output(minidump_cmd, stderr=DEVNULL)
+  except subprocess.CalledProcessError as e:
+    # For some reason minidump_dump always fails despite successful dumping.
+    minidump_output = e.output
 
-    # Sometimes dyld returns symbols for a different file. Emulate what it
-    # does here by using the same mechanism to find the binary file.
-    def GetDyldPath(file_path):
-      import fcntl
-      F_GETPATH = 50
-      with open(file_path, 'rb') as f:
-        path2 = fcntl.fcntl(f.fileno(), F_GETPATH, b'\0' * 1024).rstrip(b'\0')
-      if (os.path.basename(path2) != os.path.basename(file_path) and
-          os.path.isfile(path2)):
-        return [path2, file_path]
-      return [file_path]
+  minidump_binary_re = re.compile(r'\W+\(code_file\)\W+=\W\"(.*)\"')
+  for minidump_line in minidump_output.splitlines():
+    line_match = minidump_binary_re.match(minidump_line)
+    if line_match:
+      binary_path = line_match.group(1)
+      if not os.path.isfile(binary_path):
+        continue
 
-    file_list = [GetDyldPath(file_path) for file_path in executables]
-    return list(itertools.chain.from_iterable(file_list))
+      # Filter out system binaries.
+      if (binary_path.startswith('/usr/lib/') or
+          binary_path.startswith('/System/Library/')):
+        continue
 
-  return [executable]
+      symbol_binaries.append(binary_path)
+  return symbol_binaries
 
 
-def GenerateBreakpadSymbols(exec_name, arch, os_name, symbols_dir, browser_dir):
+def GenerateBreakpadSymbols(minidump, arch, os_name, symbols_dir, browser_dir):
   logging.info('Dumping breakpad symbols.')
   generate_breakpad_symbols_command = binary_manager.FetchPath(
       'generate_breakpad_symbols', arch, os_name)
   if generate_breakpad_symbols_command is None:
     return
 
-  for executable in GetSymbolBinaries(exec_name, os_name):
+  for binary_path in GetSymbolBinaries(minidump, arch, os_name):
     cmd = [
         sys.executable,
         generate_breakpad_symbols_command,
-        '--binary=%s' % executable,
+        '--binary=%s' % binary_path,
         '--symbols-dir=%s' % symbols_dir,
         '--build-dir=%s' % browser_dir,
         ]
@@ -515,7 +499,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self._executable))
         return
 
-      GenerateBreakpadSymbols(self._executable, arch_name, os_name,
+      GenerateBreakpadSymbols(minidump, arch_name, os_name,
                               symbols_path, self._browser_directory)
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],

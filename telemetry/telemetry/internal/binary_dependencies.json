@@ -229,6 +229,20 @@
         }
       }
     },
+    "minidump_dump": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "7e3711b77837f7851f0be5022ecf086f82225809",
+          "download_path": "bin/linux/x86_64/minidump_dump"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "c39bd7a3b9fa6279893b2d759045699d79ce4dcb",
+          "download_path": "bin/mac/x86_64/minidump_dump"
+        }
+      }
+    },
     "minidump_stackwalk": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
