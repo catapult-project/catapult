@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import time
+import timeit
 import unittest
 
 from telemetry import decorators
@@ -175,7 +175,7 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
     payload = ','.join(['{}'] * 5000)
     self._inspector_socket.AddAsyncResponse('IO.read', {'data': '[' + payload},
                                             mock_time)
-    startClock = time.clock()
+    startClock = timeit.default_timer()
 
     done = {'done': False}
     def mark_done(data):
@@ -194,11 +194,16 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
             {'data': payload + ']', 'eof': True}, mock_time)
       count -= 1
       self._inspector_socket.DispatchNotifications(10)
-    return time.clock() - startClock
+    return timeit.default_timer() - startClock
 
   def testReadTime(self):
-    t1k = self._MeasureReadTime(1000)
-    t10k = self._MeasureReadTime(10000)
+    n1 = 1000
+    while True:
+      t1 = self._MeasureReadTime(n1)
+      if t1 > 0.01:
+        break
+      n1 *= 5
+    t2 = self._MeasureReadTime(n1 * 10)
     # Time is an illusion, CPU time is doubly so, allow great deal of tolerance.
     toleranceFactor = 5
-    self.assertLess(t10k / t1k, 10000 / 1000 * toleranceFactor)
+    self.assertLess(t2, t1 * 10 * toleranceFactor)
