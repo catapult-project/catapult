@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import"
       href="/tracing/ui/extras/about_tracing/mock_tracing_controller_client.html">
 <link rel="import"
-      href="/tracing/ui/extras/about_tracing/record_and_capture_controller.html">
+      href="/tracing/ui/extras/about_tracing/record_controller.html">
 
 <script>
 'use strict';
@@ -59,51 +59,6 @@ tr.b.unittest.testSuite(function() {
           function(error) {
             reject('This should never be reached');
           });
-    });
-  });
-
-  test('monitoring', function() {
-    return new Promise(function(resolve, reject) {
-      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
-
-      mock.expectRequest('beginMonitoring', function(monitoringOptions) {
-        assert.typeOf(monitoringOptions.categoryFilter, 'string');
-        assert.typeOf(monitoringOptions.useSystemTracing, 'boolean');
-        assert.typeOf(monitoringOptions.useSampling, 'boolean');
-        assert.typeOf(monitoringOptions.tracingRecordMode, 'string');
-        setTimeout(function() {
-          var capturePromise = tr.ui.e.about_tracing.captureMonitoring(mock);
-          capturePromise.then(
-              function(data) {
-                var testDataString = JSON.stringify(testData);
-                assert.equal(data, testDataString);
-              },
-              function(error) {
-                reject();
-              });
-        }, 10);
-        return '';
-      });
-
-      mock.expectRequest('captureMonitoring', function(data) {
-        setTimeout(function() {
-          var endPromise = tr.ui.e.about_tracing.endMonitoring(mock);
-          endPromise.then(
-              function(data) {
-                mock.assertAllRequestsHandled();
-                resolve();
-              },
-              function(error) {
-                reject();
-              });
-        }, 10);
-        return JSON.stringify(testData);
-      });
-
-      mock.expectRequest('endMonitoring', function(data) {
-      });
-
-      tr.ui.e.about_tracing.beginMonitoring(mock);
     });
   });
 });

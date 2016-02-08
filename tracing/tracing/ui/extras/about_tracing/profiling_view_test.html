@@ -37,9 +37,6 @@ tr.b.unittest.testSuite(function() {
   test('recording', function() {
     var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
-    mock.expectRequest('getMonitoringStatus', function() {
-      return Base64.btoa(JSON.stringify(monitoringOptions));
-    });
     mock.expectRequest('endRecording', function() {
       return '';
     });
@@ -80,58 +77,6 @@ tr.b.unittest.testSuite(function() {
             didAbort = true;
             reject(err);
           });
-    });
-  });
-
-  test('monitoring', function() {
-    var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
-    mock.allowLooping = true;
-    mock.expectRequest('getMonitoringStatus', function() {
-      return Base64.btoa(JSON.stringify(monitoringOptions));
-    });
-    mock.expectRequest('beginMonitoring', function(data) {
-      return '';
-    });
-    mock.expectRequest('captureMonitoring', function(data) {
-      return JSON.stringify(testData);
-    });
-    mock.expectRequest('endMonitoring', function(data) {
-      return '';
-    });
-
-    var view = new ProfilingView(mock);
-    view.style.height = '400px';
-    view.style.border = '1px solid black';
-    this.addHTMLOutput(view);
-
-    return new Promise(function(resolve, reject) {
-      assert.isFalse(view.monitorCheckbox_.checked);
-
-      function beginMonitoring() {
-        // Since we don't fall back to TracingController when testing,
-        // we cannot rely on TracingController to invoke a callback to change
-        // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
-        view.onMonitoringStateChanged_(true);
-        assert.isTrue(view.monitorCheckbox_.checked);
-        setTimeout(captureMonitoring, 60);
-      }
-
-      function captureMonitoring() {
-        assert.isTrue(view.monitorCheckbox_.checked);
-        view.captureButton_.click();
-        setTimeout(endMonitoring, 60);
-      }
-
-      function endMonitoring() {
-        assert.isTrue(view.monitorCheckbox_.checked);
-        view.monitorCheckbox_.click();
-        assert.isFalse(view.monitorCheckbox_.checked);
-      }
-
-      var monitoringPromise = view.beginMonitoring();
-      setTimeout(beginMonitoring, 60);
-
-      monitoringPromise.then(resolve, reject);
     });
   });
 });
