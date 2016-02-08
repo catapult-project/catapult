@@ -47,12 +47,8 @@ tr.exportTo('tr.model', function() {
     __proto__: Object.prototype,
 
     get bounds() {
-      if (this.bounds_dirty_) {
-        this.bounds_.reset();
-        for (var i = 0; i < this.length_; i++)
-          this[i].addBoundsToRange(this.bounds_);
-        this.bounds_dirty_ = false;
-      }
+      if (this.bounds_dirty_)
+        this.resolveBounds_();
       return this.bounds_;
     },
 
@@ -75,6 +71,13 @@ tr.exportTo('tr.model', function() {
         delete this[i];
       this.length_ = 0;
       this.bounds_dirty_ = true;
+    },
+
+    resolveBounds_: function() {
+      this.bounds_.reset();
+      for (var i = 0; i < this.length_; i++)
+        this[i].addBoundsToRange(this.bounds_);
+      this.bounds_dirty_ = false;
     },
 
     // push pushes only unique events.
@@ -271,6 +274,19 @@ tr.exportTo('tr.model', function() {
       return {'events': stable_ids};
     }
   };
+
+  EventSet.IMMUTABLE_EMPTY_SET = (function() {
+    var s = new EventSet();
+    s.resolveBounds_();
+    s.push = function() {
+      throw new Error('Cannot push to an immutable event set');
+    };
+    s.addEventSet = function() {
+      throw new Error('Cannot add to an immutable event set');
+    };
+    Object.freeze(s);
+    return s;
+  })();
 
   return {
     EventSet: EventSet,

@@ -21,7 +21,7 @@ tr.exportTo('tr.model', function() {
     this.args = opt_args || {};
     this.associatedEvents = new tr.model.EventSet(opt_associatedEvents);
     this.associatedEvents.forEach(function(event) {
-      event.associatedAlerts.push(this);
+      event.addAssociatedAlert(this);
     }, this);
   }
 
