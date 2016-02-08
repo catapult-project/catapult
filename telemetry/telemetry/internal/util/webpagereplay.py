@@ -16,6 +16,7 @@ import urllib
 
 from telemetry.core import exceptions
 from telemetry.core import util
+from telemetry.internal import forwarders
 
 _REPLAY_DIR = os.path.join(
     util.GetTelemetryThirdPartyDir(), 'webpagereplay')
@@ -190,7 +191,7 @@ class ReplayServer(object):
     """Start Web Page Replay and verify that it started.
 
     Returns:
-      (HTTP_PORT, HTTPS_PORT, DNS_PORT)  # DNS_PORT is None if unused.
+      A forwarders.PortSet(http, https, dns) tuple; with dns None if unused.
     Raises:
       ReplayNotStartedError: if Replay start-up fails.
     """
@@ -204,7 +205,7 @@ class ReplayServer(object):
     try:
       util.WaitFor(self._IsStarted, 30)
       atexit.register(self.StopServer)
-      return (
+      return forwarders.PortSet(
           self._started_ports['http'],
           self._started_ports['https'],
           self._started_ports.get('dns'),  # None if unused

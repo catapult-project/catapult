@@ -6,7 +6,29 @@ import collections
 
 
 PortPair = collections.namedtuple('PortPair', ['local_port', 'remote_port'])
-PortPairs = collections.namedtuple('PortPairs', ['http', 'https', 'dns'])
+PortSet = collections.namedtuple('PortSet', ['http', 'https', 'dns'])
+
+class PortPairs(collections.namedtuple('PortPairs', ['http', 'https', 'dns'])):
+  __slots__ = ()
+
+  @classmethod
+  def Zip(cls, local_ports, remote_ports):
+    """Zip a pair of PortSet's into a single PortPairs object."""
+    with_dns = local_ports.dns is not None and remote_ports.dns is not None
+    return cls(
+      PortPair(local_ports.http, remote_ports.http),
+      PortPair(local_ports.https, remote_ports.https),
+      PortPair(local_ports.dns, remote_ports.dns) if with_dns else None)
+
+  @property
+  def local_ports(self):
+    """Return a tuple of local ports only."""
+    return PortSet(*[p.local_port if p is not None else None for p in self])
+
+  @property
+  def remote_ports(self):
+    """Return a tuple of remote ports only."""
+    return PortSet(*[p.remote_port if p is not None else None for p in self])
 
 
 class ForwarderFactory(object):
