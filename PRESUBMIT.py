@@ -36,6 +36,7 @@ _EXCLUDED_PATHS = (
     r'^tracing[\\/]tracing_examples[\\/]string_convert\.js$',
     r'^tracing[\\/]test_data[\\/].*',
     r'^tracing[\\/]third_party[\\/].*',
+    r'^telemetry[\\/]support[\\/]html_output[\\/]results-template.html',
 )
 
 
