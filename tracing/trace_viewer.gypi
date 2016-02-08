@@ -341,7 +341,7 @@
       'tracing/ui/extras/about_tracing/inspector_connection.html',
       'tracing/ui/extras/about_tracing/inspector_tracing_controller_client.html',
       'tracing/ui/extras/about_tracing/profiling_view.html',
-      'tracing/ui/extras/about_tracing/record_and_capture_controller.html',
+      'tracing/ui/extras/about_tracing/record_controller.html',
       'tracing/ui/extras/about_tracing/record_selection_dialog.html',
       'tracing/ui/extras/about_tracing/tracing_controller_client.html',
       'tracing/ui/extras/about_tracing/xhr_based_tracing_controller_client.html',

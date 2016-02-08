@@ -61,22 +61,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       assert.equal(this.requests.length, this.nextRequestIndex);
     },
 
-    beginMonitoring: function(monitoringOptions) {
-      return this._request('beginMonitoring', monitoringOptions);
-    },
-
-    endMonitoring: function() {
-      return this._request('endMonitoring');
-    },
-
-    captureMonitoring: function() {
-      return this._request('captureMonitoring');
-    },
-
-    getMonitoringStatus: function() {
-      return this._request('getMonitoringStatus');
-    },
-
     getCategories: function() {
       return this._request('getCategories');
     },

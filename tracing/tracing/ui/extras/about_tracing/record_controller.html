@@ -11,59 +11,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.about_tracing', function() {
-  function beginMonitoring(tracingControllerClient) {
-    var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolve, reject) {
-      finalPromiseResolver = {
-        resolve: resolve,
-        reject: reject
-      };
-    });
-
-    // TODO(haraken): Implement a configure dialog to set these options.
-    var monitoringOptions = {
-      categoryFilter: '*',
-      useSystemTracing: false,
-      tracingRecordMode: 'record-until-full',
-      useSampling: true
-    };
-
-
-    var beginMonitoringPromise = tracingControllerClient.beginMonitoring(
-        monitoringOptions);
-
-    beginMonitoringPromise.then(
-        function() {
-          finalPromiseResolver.resolve();
-        },
-        function(err) {
-          finalPromiseResolver.reject(err);
-        });
-
-    return finalPromise;
-  }
-
-  function endMonitoring(tracingControllerClient) {
-    var endMonitoringPromise = tracingControllerClient.endMonitoring();
-    return endMonitoringPromise.then(
-        function() {
-        },
-        function(err) {
-        });
-  }
-
-  function captureMonitoring(tracingControllerClient) {
-    var captureMonitoringPromise =
-        tracingControllerClient.captureMonitoring();
-    return captureMonitoringPromise;
-  }
-
-  function getMonitoringStatus(tracingControllerClient) {
-    var getMonitoringStatusPromise =
-        tracingControllerClient.getMonitoringStatus();
-    return getMonitoringStatusPromise;
-  }
-
   function beginRecording(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolve, reject) {
@@ -89,7 +36,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     // But just in case, bind onbeforeunload anyway.
     window.onbeforeunload = function(e) {
       endRecording(tracingControllerClient);
-    }
+    };
 
     // Step 1: Get categories.
     function getCategories() {
@@ -227,10 +174,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
   return {
     beginRecording: beginRecording,
-    beginMonitoring: beginMonitoring,
-    endMonitoring: endMonitoring,
-    captureMonitoring: captureMonitoring,
-    getMonitoringStatus: getMonitoringStatus,
     UserCancelledError: UserCancelledError,
     defaultTraceName: defaultTraceName
   };
