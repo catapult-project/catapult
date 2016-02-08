@@ -200,11 +200,6 @@ def Main(argv):
     tmpdir = None
     xvfb_process = None
 
-    # Skip canary channel temporarily
-    # https://github.com/catapult-project/catapult/issues/1939
-    if args.channel == 'canary':
-      return 0
-
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
     # TODO(anniesullie): Make OS selection of port work on Windows. See #1235.
