@@ -352,13 +352,11 @@ tr.exportTo('tr.importer', function() {
     },
 
     hasEventDataDecoder_: function(importers) {
-      if (importers.length === 0)
-        return false;
-
       for (var i = 0; i < importers.length; ++i) {
         if (!importers[i].isTraceDataContainer())
           return true;
       }
+
       return false;
     }
   };
