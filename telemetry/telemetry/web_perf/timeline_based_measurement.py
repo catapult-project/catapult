@@ -39,7 +39,7 @@ ALL_OVERHEAD_LEVELS = [
 ]
 
 
-def _GetAllTimelineBasedMetrics():
+def _GetAllLegacyTimelineBasedMetrics():
   # TODO(nednguyen): use discovery pattern to return all the instances of
   # all TimelineBasedMetrics class in web_perf/metrics/ folder.
   # This cannot be done until crbug.com/460208 is fixed.
@@ -157,7 +157,7 @@ class Options(object):
   Benchmark.CreateTimelineBasedMeasurementOptions.
 
   By default, all the timeline based metrics in telemetry/web_perf/metrics are
-  used (see _GetAllTimelineBasedMetrics above).
+  used (see _GetAllLegacyTimelineBasedMetrics above).
   To customize your metric needs, use SetTimelineBasedMetrics().
   """
 
@@ -189,7 +189,7 @@ class Options(object):
                       " or valid overhead level string."
                       " Given overhead level: %s" % overhead_level)
 
-    self._timeline_based_metrics = _GetAllTimelineBasedMetrics()
+    self._legacy_timeline_based_metrics = _GetAllLegacyTimelineBasedMetrics()
 
 
   def ExtendTraceCategoryFilter(self, filters):
@@ -206,13 +206,19 @@ class Options(object):
     return self._config
 
   def SetTimelineBasedMetrics(self, metrics):
+    self.SetLegacyTimelineBasedMetrics(metrics)
+
+  def GetTimelineBasedMetrics(self):
+    return self.GetLegacyTimelineBasedMetrics()
+
+  def SetLegacyTimelineBasedMetrics(self, metrics):
     assert isinstance(metrics, collections.Iterable)
     for m in metrics:
       assert isinstance(m, timeline_based_metric.TimelineBasedMetric)
-    self._timeline_based_metrics = metrics
+    self._legacy_timeline_based_metrics = metrics
 
-  def GetTimelineBasedMetrics(self):
-    return self._timeline_based_metrics
+  def GetLegacyTimelineBasedMetrics(self):
+    return self._legacy_timeline_based_metrics
 
 
 class TimelineBasedMeasurement(story_test.StoryTest):
@@ -268,7 +274,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
           ' failure or the tracing category specified doesn\'t include '
           'blink.console categories.')
 
-    all_metrics = self._tbm_options.GetTimelineBasedMetrics()
+    all_metrics = self._tbm_options.GetLegacyTimelineBasedMetrics()
 
     for renderer_thread, interaction_records in (
         threads_to_records_map.iteritems()):
