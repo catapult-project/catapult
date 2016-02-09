@@ -26,6 +26,9 @@ _JS_PARSER_DIR = os.path.abspath(
 _BOOTSTRAP_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'd8_bootstrap.js'))
 
+_BASE64_COMPAT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'base64_compat.js'))
+
 _PATH_UTILS_JS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
@@ -67,6 +70,8 @@ def _GetBootStrapJsContent(source_paths):
   bsc = bsc.replace('<%html_to_js_generator_js_path%>',
                     _HTML_TO_JS_GENERATOR_JS_DIR)
   bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
+  bsc = bsc.replace('<%base64_compat_path%>',
+                    _BASE64_COMPAT_DIR)
   bsc += '\n//@ sourceURL=%s\n' % _BOOTSTRAP_JS_DIR
   return bsc
 
