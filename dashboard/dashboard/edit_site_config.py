@@ -4,6 +4,7 @@
 
 """Provides the web interface for adding and editing sheriff rotations."""
 
+import difflib
 import json
 
 from google.appengine.api import app_identity
@@ -18,18 +19,17 @@ from dashboard import xsrf
 
 _NOTIFICATION_EMAIL_BODY = """
 The configuration of %(hostname)s was changed by %(user)s.
-Here are the new values:
 
 Key: %(key)s
 
-Non-namespaced value:
-%(value)s
+Non-namespaced value diff:
+%(value_diff)s
 
-Externally-visible value:
-%(external_value)s
+Externally-visible value diff:
+%(external_value_diff)s
 
-Internal-only value:
-%(internal_value)s
+Internal-only value diff:
+%(internal_value_diff)s
 """
 
 # TODO(qyearsley): Make this customizable by storing the value in datastore.
@@ -93,22 +93,51 @@ class EditSiteConfigHandler(request_handler.RequestHandler):
         namespaced_stored_object.Set(key, json.loads(internal_value))
     except ValueError:
       template_params['error'] = 'Invalid JSON in at least one field.'
+      self.RenderHtml('edit_site_config.html', template_params)
+      return
 
-    _SendNotificationEmail(key, template_params)
+    _SendNotificationEmail(template_params)
     self.RenderHtml('edit_site_config.html', template_params)
 
 
-def _SendNotificationEmail(key, email_body_params):
+def _SendNotificationEmail(template_params):
   user_email = users.get_current_user().email()
-  subject = 'Config "%s" changed by %s' % (key, user_email)
-  email_body_params.update({
-      'hostname': app_identity.get_default_version_hostname(),
-      'user': user_email,
-  })
-  body = _NOTIFICATION_EMAIL_BODY % email_body_params
+  subject = 'Config "%s" changed by %s' % (
+      template_params['key'], user_email)
   mail.send_mail(
-      sender=_SENDER_ADDRESS, to=_NOTIFICATION_ADDRESS,
-      subject=subject, body=body)
+      sender=_SENDER_ADDRESS,
+      to=_NOTIFICATION_ADDRESS,
+      subject=subject,
+      body=_NotificationEmailBody(template_params))
+
+
+def _NotificationEmailBody(template_params):
+  key = template_params['key']
+  value = template_params['value']
+  external_value = template_params['external_value']
+  internal_value = template_params['internal_value']
+  return _NOTIFICATION_EMAIL_BODY % {
+      'key': key,
+      'value_diff': _DiffJson(
+          stored_object.Get(key),
+          json.loads(value) if value else None),
+      'external_value_diff': _DiffJson(
+          namespaced_stored_object.Get(key),
+          json.loads(external_value) if external_value else None),
+      'internal_value_diff': _DiffJson(
+          namespaced_stored_object.GetExternal(key),
+          json.loads(internal_value) if internal_value else None),
+      'hostname': app_identity.get_default_version_hostname(),
+      'user': users.get_current_user().email(),
+  }
+
+
+def _DiffJson(obj1, obj2):
+  """Returns a string diff of two JSON-serializable objects."""
+  differ = difflib.Differ()
+  return '\n'.join(differ.compare(
+      _FormatJson(obj1).splitlines(),
+      _FormatJson(obj2).splitlines()))
 
 
 def _FormatJson(obj):
