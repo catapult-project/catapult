@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/tracing/extras/rail/proto_ir.html">
 
 <script>
@@ -125,7 +124,8 @@ tr.exportTo('tr.e.rail', function() {
 
   function causedFrame(event) {
     for (var i = 0; i < event.associatedEvents.length; ++i) {
-      if (event.associatedEvents[i].title === tr.e.audits.IMPL_RENDERING_STATS)
+      if (event.associatedEvents[i].title ===
+          tr.model.helpers.IMPL_RENDERING_STATS)
         return true;
     }
     return false;

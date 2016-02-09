@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/core/test_utils.html">
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var modelHelper = new tr.e.audits.ChromeModelHelper(m);
+    var modelHelper = new tr.model.helpers.ChromeModelHelper(m);
     var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
       m.bounds);
     assert.equal(latencyEvents.length, 1);
@@ -83,26 +83,27 @@ tr.b.unittest.testSuite(function() {
     }
 
     var m = tr.c.TestUtils.newModelWithEvents([events]);
-    var modelHelper = new tr.e.audits.ChromeModelHelper(m);
+    var modelHelper = new tr.model.helpers.ChromeModelHelper(m);
 
     // Testing browser impl and main rendering stats.
     var frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
-        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
-    var frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+        tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
+    var frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
+        frameEvents);
     assert.equal(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
       assert.equal(frametimeData[i].frametime, 16 + i % 2);
     }
     // No main rendering stats.
     frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
-        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
+        tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
     assert.equal(frameEvents.length, 0);
 
 
     // Testing renderer 3508 impl and main rendering stats.
     frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
-        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
-    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+        tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.equal(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
       assert.equal(frametimeData[i].frametime, 16 + i % 2);
@@ -110,22 +111,22 @@ tr.b.unittest.testSuite(function() {
 
     // No impl rendering stats.
     frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
-        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
+        tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
     assert.equal(frameEvents.length, 0);
 
 
     // Testing renderer 3509 impl and main rendering stats.
     frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
-        tr.e.audits.IMPL_FRAMETIME_TYPE, m.bounds);
-    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+        tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.equal(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
       assert.equal(frametimeData[i].frametime, 16 + i % 2);
     }
 
     frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
-        tr.e.audits.MAIN_FRAMETIME_TYPE, m.bounds);
-    frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+        tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
+    frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.equal(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
       assert.equal(frametimeData[i].frametime, 16 + i % 2);

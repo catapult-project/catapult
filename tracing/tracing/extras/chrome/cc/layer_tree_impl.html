@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
 <link rel="import" href="/tracing/extras/chrome/cc/layer_impl.html">
 <link rel="import" href="/tracing/model/object_instance.html">
@@ -49,13 +49,13 @@ tr.exportTo('tr.e.cc', function() {
 
         var ownProcess = this.objectInstance.parent;
         var model = ownProcess.model;
-        if (tr.e.audits.ChromeModelHelper.supportsModel(model))
+        if (tr.model.helpers.ChromeModelHelper.supportsModel(model))
           this._initializeTracedInputLatencies(model);
       }
     },
 
     _initializeTracedInputLatencies: function(model) {
-      var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+      var modelHelper = new tr.model.helpers.ChromeModelHelper(model);
       if (!modelHelper.browserHelper)
         return;
 

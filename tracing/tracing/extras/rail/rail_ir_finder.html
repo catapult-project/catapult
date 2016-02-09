@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/tracing/extras/rail/idle_interaction_record.html">
 <link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
 <link rel="import" href="/tracing/extras/rail/proto_ir.html">
@@ -115,11 +114,11 @@ tr.exportTo('tr.e.rail', function() {
       var frameEvents = [];
       frameEvents.push.apply(frameEvents,
           this.modelHelper.browserHelper.getFrameEventsInRange(
-              tr.e.audits.IMPL_FRAMETIME_TYPE, this.model.bounds));
+              tr.model.helpers.IMPL_FRAMETIME_TYPE, this.model.bounds));
 
       tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
         frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
-            tr.e.audits.IMPL_FRAMETIME_TYPE, this.model.bounds));
+            tr.model.helpers.IMPL_FRAMETIME_TYPE, this.model.bounds));
       }, this);
       return frameEvents.sort(tr.e.rail.compareEvents);
     },
@@ -347,7 +346,7 @@ tr.exportTo('tr.e.rail', function() {
       } else if (event.title ===
                  'InputHandlerProxy::HandleGestureFling::started') {
         modelLines.push('      audits.addFlingAnimationEvent(model,');
-      } else if (event.title === tr.e.audits.IMPL_RENDERING_STATS) {
+      } else if (event.title === tr.model.helpers.IMPL_RENDERING_STATS) {
         modelLines.push('      audits.addFrameEvent(model,');
       } else if (event.title === tr.e.rail.CSS_ANIMATION_TITLE) {
         modelLines.push('      audits.addEvent(model.rendererMain, {');
