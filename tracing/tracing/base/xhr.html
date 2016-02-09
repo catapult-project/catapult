@@ -18,13 +18,18 @@ tr.exportTo('tr.b', function() {
   function guessBinary(url) {
     return /[.]gz$/.test(url) || /[.]zip$/.test(url);
   }
-  function xhr(method, url, async, opt_data) {
+  function xhr(method, url, async, opt_data, force_binary) {
     var req = new XMLHttpRequest();
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.open(method, url, async);
-    var isBinary = guessBinary(url);
-    if (isBinary && async)
-      req.responseType = 'arraybuffer';
+
+    var isBinary = force_binary;
+
+    if (isBinary === undefined) {
+      guessBinary(url);
+      if (isBinary && async)
+        req.responseType = 'arraybuffer';
+    }
 
     var data = opt_data !== undefined ? opt_data : null;
 
@@ -120,6 +125,12 @@ tr.exportTo('tr.b', function() {
     if (tr.isHeadless)
       throw new Error('Only supported inside a browser');
     return xhr('POST', url, true, data);
+  }
+
+  function postTextAsync(url, data) {
+    if (tr.isHeadless)
+      throw new Error('Only supported inside a browser');
+    return xhr('POST', url, true, data, false);
   }
 
   return {
