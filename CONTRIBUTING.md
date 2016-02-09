@@ -84,6 +84,15 @@ We follow the [Chromium style]
 
 If you're contributing to Trace Viewer, refer to the [Trace Viewer style guide](https://docs.google.com/document/d/1MMOfywou2Oaho4jOttUk-ZSJcHVd5G5BTsD48rPrBtQ/edit).
 
+# Individual project documentation
+
+Look to individual project documentation for more info on getting started:
+   * [lighthouse](/lighthouse/README.md)
+   * [perf dashboard](/dashboard/README.md)
+   * [systrace](/systrace/README.md)
+   * [telemetry](/telemetry/README.md)
+   * [trace-viewer](/tracing/README.md)
+
 # Tests
 
 Check individual project documentation for instructions on how to run tests.
