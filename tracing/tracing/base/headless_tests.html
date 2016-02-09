@@ -15,6 +15,12 @@ tr.exportTo('tr.b.unittest', function() {
   if (!tr.isHeadless) {
     throw new Error('headless_tests.html only works in headless mode');
   }
+  function quit(errCode) {
+    if (tr.isVinn)
+      global.quit(errCode);
+    else
+      process.exit(errCode);
+  }
 
   function printSpacer() {
     console.log('\n\n------------------------------------------------------' +
