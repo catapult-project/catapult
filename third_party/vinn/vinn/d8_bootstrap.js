@@ -189,9 +189,7 @@
 
   // Bring in html imports loader.
   load('<%html_imports_loader_js_path%>');
-  global.HTMLImportsLoader.sourcePaths.push.apply(
-      global.HTMLImportsLoader.sourcePaths,
-      JSON.parse('<%source_paths%>'));
+  global.HTMLImportsLoader.addArrayToSourcePath(JSON.parse('<%source_paths%>'));
 
   // Bring in path utils.
   load('<%path_utils_js_path%>');

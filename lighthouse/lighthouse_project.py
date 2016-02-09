@@ -11,32 +11,14 @@ def _AddToPathIfNeeded(path):
     sys.path.insert(0, path)
 
 
-def _IsRunningInAppEngine():
-  # Cloud workers run on appengine but in a managed vm, which gives them full
-  # access to the filesystem. Since they manage their own checkout of catapult
-  # to do trace processing, they need the paths properly setup.
-  if 'PI_CLOUD_WORKER' in os.environ:
-    return False
-  if 'SERVER_SOFTWARE' not in os.environ:
-    return False
-  if os.environ['SERVER_SOFTWARE'].startswith('Google App Engine/'):
-    return True
-  if os.environ['SERVER_SOFTWARE'].startswith('Development/'):
-    return True
-  return False
-
-
 def UpdateSysPathIfNeeded():
   p = LighthouseProject()
 
   _AddToPathIfNeeded(p.lighthouse_third_party_path)
 
-  # TODO(fmeawad): We should add catapult projects even inside
-  # appengine, see issue #1246
-  if not _IsRunningInAppEngine():
-    _AddToPathIfNeeded(p.catapult_path)
-    _AddToPathIfNeeded(p.tracing_root_path)
-    _AddToPathIfNeeded(p.py_vulcanize_path)
+  _AddToPathIfNeeded(p.catapult_path)
+  _AddToPathIfNeeded(p.tracing_root_path)
+  _AddToPathIfNeeded(p.py_vulcanize_path)
 
   import tracing_project
   tracing_project.UpdateSysPathIfNeeded()
