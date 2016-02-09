@@ -74,7 +74,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var panel = document.createElement('tr-ui-e-s-system-health-side-panel');
+    var panel = document.createElement(
+        'tr-metrics-ui-sh-system-health-side-panel');
     panel.model = createModel();
     panel.style.height = '200px';
 

@@ -79,6 +79,7 @@ class TracingProject(object):
   mocha_path = os.path.join(tracing_third_party_path, 'mocha')
 
   value_ui_path = os.path.join(tracing_src_path, 'value', 'ui')
+  metrics_ui_path = os.path.join(tracing_src_path, 'metrics', 'ui')
 
   test_data_path = os.path.join(tracing_root_path, 'test_data')
   skp_data_path = os.path.join(tracing_root_path, 'skp_data')
@@ -107,6 +108,9 @@ class TracingProject(object):
       return False
 
     if filename.startswith(self.value_ui_path):
+      return False
+
+    if filename.startswith(self.metrics_ui_path):
       return False
 
     return True

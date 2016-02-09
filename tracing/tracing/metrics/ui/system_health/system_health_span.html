@@ -9,7 +9,7 @@ found in the LICENSE file.
     href="/tracing/metrics/system_health/system_health_metric.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 
-<polymer-element name="tr-ui-e-rail-rail-score-span">
+<polymer-element name="tr-metrics-ui-sh-system-health-span">
   <template>
   <style>
     :host {
@@ -29,7 +29,7 @@ found in the LICENSE file.
 
   Polymer({
     created: function() {
-      this.railScore_ = undefined;
+      this.model_ = undefined;
     },
 
     ready: function() {
