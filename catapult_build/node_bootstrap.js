@@ -30,6 +30,8 @@ function loadAndEval(fileName) {
 }
 
 function initialize() {
+  loadAndEval(path.join(vinnPath, 'vinn', 'base64_compat.js'));
+
   // First, we need to hand-load the HTML imports loader from Vinn,
   // plus a few of its supporting files. These all assume that 'this' is the
   // global object, so eval them with 'this' redirected.
