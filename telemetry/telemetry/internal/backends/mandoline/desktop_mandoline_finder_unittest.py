@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
+from telemetry.core import util
 from telemetry.internal.backends.mandoline import desktop_mandoline_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import desktop_device
@@ -25,12 +26,16 @@ class FindTestBase(unittest.TestCase):
                                             ['os', 'sys'])
     self._catapult_path_stubs = system_stub.Override(
         desktop_mandoline_finder.path.catapult_util, ['os', 'sys'])
-
+    self._util_stubs = system_stub.Override(util, ['os', 'sys'])
+    self._browser_finder_stubs = system_stub.Override(desktop_mandoline_finder,
+                                                      ['os', 'sys'])
 
   def tearDown(self):
     self._finder_stubs.Restore()
     self._path_stubs.Restore()
     self._catapult_path_stubs.Restore()
+    self._util_stubs.Restore()
+    self._browser_finder_stubs.Restore()
 
   @property
   def _files(self):
@@ -54,6 +59,8 @@ class LinuxFindTest(FindTestBase):
 
     self._finder_stubs.sys.platform = 'linux2'
     self._path_stubs.sys.platform = 'linux2'
+    self._util_stubs.sys.platform = 'linux2'
+    self._browser_finder_stubs.sys.platform = 'linux2'
     self._files.append('/foo/mandoline')
     self._files.append('../../../out/Release/mandoline')
     self._files.append('../../../out/Debug/mandoline')
@@ -95,6 +102,8 @@ class WinFindTest(FindTestBase):
 
     self._finder_stubs.sys.platform = 'win32'
     self._path_stubs.sys.platform = 'win32'
+    self._util_stubs.sys.platform = 'win32'
+    self._browser_finder_stubs.sys.platform = 'win32'
     self._files.append('c:\\tmp\\mandoline.exe')
     self._files.append('..\\..\\..\\out\\Release\\mandoline.exe')
     self._files.append('..\\..\\..\\out\\Debug\\mandoline.exe')

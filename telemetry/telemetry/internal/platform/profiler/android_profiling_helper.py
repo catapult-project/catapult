@@ -62,13 +62,11 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
         if host_md5 == device_md5:
           return stripped_host_lib
 
-  for build_dir, build_type in util.GetBuildDirectories():
-    out_path = os.path.join(build_dir, build_type)
+  out_path = None
+  for out_path in util.GetBuildDirectories():
     stripped_host_lib = FindMatchingStrippedLibrary(out_path)
     if stripped_host_lib:
       break
-  else:
-    return None
 
   # The corresponding unstripped library will be under out/Release/lib.
   unstripped_host_lib = os.path.join(out_path, 'lib', lib_base)

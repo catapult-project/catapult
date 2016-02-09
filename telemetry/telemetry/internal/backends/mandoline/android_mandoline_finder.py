@@ -97,12 +97,13 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   possible_browsers = []
 
   # Add local builds.
-  for build_dir, build_type in path.GetBuildDirectories():
-    build_path = os.path.join(finder_options.chrome_root, build_dir, build_type)
+  for build_path in path.GetBuildDirectories(finder_options.chrome_root):
     local_apk = os.path.join(build_path, 'apks', 'Mandoline.apk')
     if os.path.exists(local_apk):
+      # TODO(agrieve): Extract browser_type from args.gn's is_debug.
+      browser_type = os.path.basename(build_path).lower()
       possible_browsers.append(PossibleAndroidMandolineBrowser(
-          'android-mandoline-' + build_type.lower(), finder_options,
+          'android-mandoline-' + browser_type, finder_options,
           android_platform, build_path, local_apk))
 
   return possible_browsers

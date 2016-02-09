@@ -61,27 +61,17 @@ def _FindLocallyBuiltPath(binary_name):
   """Finds the most recently built |binary_name|."""
   command = None
   command_mtime = 0
-  chrome_root = util.GetChromiumSrcDir()
   required_mode = os.X_OK
   if binary_name.endswith('.apk'):
     required_mode = os.R_OK
-  for build_dir, build_type in util.GetBuildDirectories():
-    candidate = os.path.join(chrome_root, build_dir, build_type, binary_name)
+  for build_path in util.GetBuildDirectories():
+    candidate = os.path.join(build_path, binary_name)
     if os.path.isfile(candidate) and os.access(candidate, required_mode):
       candidate_mtime = os.stat(candidate).st_mtime
       if candidate_mtime > command_mtime:
         command = candidate
         command_mtime = candidate_mtime
   return command
-
-
-def _GetBuildTypeOfPath(path):
-  if not path:
-    return None
-  for build_dir, build_type in util.GetBuildDirectories():
-    if os.path.join(build_dir, build_type) in path:
-      return build_type
-  return None
 
 
 class AndroidPlatformBackend(
