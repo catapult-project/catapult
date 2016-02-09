@@ -77,6 +77,33 @@ tr.b.unittest.testSuite(function() {
     return m;
   };
 
+  test('helper', function() {
+    function Helper(model) {
+      this.model = model;
+    }
+    Helper.guid = tr.b.GUID.allocate();
+    Helper.supportsModel = function(model) {
+      return true;
+    };
+
+    var m = new tr.Model();
+    var h = m.getOrCreateHelper(Helper);
+    assert.isTrue(h instanceof Helper);
+    assert.isTrue(h === m.getOrCreateHelper(Helper));
+
+    function UnsupportedHelper(model) {
+      this.model = model;
+    }
+    UnsupportedHelper.guid = tr.b.GUID.allocate();
+    UnsupportedHelper.supportsModel = function(model) {
+      return false;
+    };
+
+    assert.isUndefined(m.getOrCreateHelper(UnsupportedHelper));
+    // Try again to test doesHelperGUIDSupportThisModel_ .
+    assert.isUndefined(m.getOrCreateHelper(UnsupportedHelper));
+  });
+
   test('modelBounds_EmptyModel', function() {
     var m = new tr.Model();
     m.updateBounds();
