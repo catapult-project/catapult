@@ -117,10 +117,33 @@ tr.exportTo('tr', function() {
     this.isTimeHighResolution_ = undefined;
 
     this.patchupsToApply_ = [];
+
+    this.doesHelperGUIDSupportThisModel_ = {};
+    this.helpersByConstructorGUID_ = {};
   }
 
   Model.prototype = {
     __proto__: tr.model.EventContainer.prototype,
+
+    getOrCreateHelper: function(constructor) {
+      if (!constructor.guid)
+        throw new Error('Helper constructors must have GUIDs');
+
+      if (this.helpersByConstructorGUID_[constructor.guid] === undefined) {
+        if (this.doesHelperGUIDSupportThisModel_[constructor.guid] ===
+            undefined) {
+          this.doesHelperGUIDSupportThisModel_[constructor.guid] =
+            constructor.supportsModel(this);
+        }
+
+        if (!this.doesHelperGUIDSupportThisModel_[constructor.guid])
+          return undefined;
+
+        this.helpersByConstructorGUID_[constructor.guid] = new constructor(
+            this);
+      }
+      return this.helpersByConstructorGUID_[constructor.guid];
+    },
 
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
