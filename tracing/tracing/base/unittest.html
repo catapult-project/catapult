@@ -12,7 +12,21 @@ found in the LICENSE file.
   /**
    * Alias chai assert to the global assert.
    */
-  global.assert = chai.assert;
+  if (tr.isNode) {
+    // In node, chai.js knows to act as a node module, whereas our HTML
+    // imports code expects chai to end up in the global scope. So, in Node,
+    // copy the chai exports into global.
+    var chaiAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+        '/chai/chai.js');
+    var chaiModule = require(chaiAbsPath);
+    for (var exportName in chaiModule)
+      global[exportName] = chaiModule[exportName];
+  } else {
+    /**
+     * Catapult presubmit wanted me to put a jsdoc here. So nduca did.
+     */
+    global.assert = chai.assert;
+  }
 </script>
 
 <link rel="import" href="/tracing/base/unittest/suite_loader.html">
