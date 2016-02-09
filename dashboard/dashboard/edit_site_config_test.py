@@ -90,12 +90,12 @@ class EditSiteConfigTest(testing_common.TestCase):
     self.assertEqual({'x': 'y'}, namespaced_stored_object.GetExternal('foo'))
 
   def testPost_SendsNotificationEmail(self):
-    namespaced_stored_object.Set('foo', {'x': 1})
-    namespaced_stored_object.SetExternal('foo', {'x': 1, 'a': 0})
+    namespaced_stored_object.SetExternal('foo', {'x': 10, 'y': 2})
+    namespaced_stored_object.Set('foo', {'z': 3, 'x': 1})
     self.testapp.post('/edit_site_config', {
         'key': 'foo',
         'external_value': '{"x": 1, "y": 2}',
-        'internal_value': '{"x": 1, "y": 2, "z": 3}',
+        'internal_value': '{"x": 1, "z": 3, "y": 2}',
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
     })
     messages = self.mail_stub.get_sent_messages()
@@ -105,24 +105,37 @@ class EditSiteConfigTest(testing_common.TestCase):
     self.assertEqual(
         'Config "foo" changed by foo@internal.org', messages[0].subject)
     self.assertIn(
-        'Non-namespaced value diff:\n\n\n'
+        'Non-namespaced value diff:\n'
+        '  null\n'
+        '\n'
         'Externally-visible value diff:\n'
         '  {\n'
-        '    "x": 1, \n'
-        '-   "y": 2, \n'
-        '?         --\n\n'
-        '+   "y": 2\n'
-        '-   "z": 3\n'
-        '  }\n\n'
+        '-   "x": 10, \n'
+        '?         -\n'
+        '\n'
+        '+   "x": 1, \n'
+        '    "y": 2\n'
+        '  }\n'
+        '\n'
         'Internal-only value diff:\n'
         '  {\n'
         '    "x": 1, \n'
-        '-   "y": 2\n'
         '+   "y": 2, \n'
-        '?         ++\n\n'
-        '+   "z": 3\n'
-        '  }',
+        '    "z": 3\n'
+        '  }\n',
         str(messages[0].body))
+
+
+class HelperFunctionTests(unittest.TestCase):
+
+  def testDiffJson_NoneToEmptyString(self):
+    self.assertEqual('- null\n+ ""', edit_site_config._DiffJson(None, ''))
+
+  def testDiffJson_AddListItem(self):
+    self.assertEqual(
+        '  [\n    1, \n+   2, \n    3\n  ]',
+        edit_site_config._DiffJson([1, 3], [1, 2, 3]))
+
 
 if __name__ == '__main__':
   unittest.main()
