@@ -137,17 +137,32 @@ def GetUnreservedAvailableLocalPort():
   return port
 
 
-def GetBuildDirectories():
+def GetBuildDirectories(chrome_root=None):
   """Yields all combination of Chromium build output directories."""
-  build_dirs = ['build',
-                os.path.basename(os.environ.get('CHROMIUM_OUT_DIR', 'out')),
-                'xcodebuild']
+  # chrome_root can be set to something else via --chrome-root.
+  if not chrome_root:
+    chrome_root = GetChromiumSrcDir()
 
-  build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64', 'Default']
+  # CHROMIUM_OUTPUT_DIR can be set by --chromium-output-directory.
+  output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
+  if output_dir:
+    yield os.path.join(chrome_root, output_dir)
+  elif os.path.exists('build.ninja'):
+    yield os.getcwd()
+  else:
+    out_dir = os.environ.get('CHROMIUM_OUT_DIR')
+    if out_dir:
+      build_dirs = [out_dir]
+    else:
+      build_dirs = ['build',
+                    'out',
+                    'xcodebuild']
 
-  for build_dir in build_dirs:
-    for build_type in build_types:
-      yield build_dir, build_type
+    build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64', 'Default']
+
+    for build_dir in build_dirs:
+      for build_type in build_types:
+        yield os.path.join(chrome_root, build_dir, build_type)
 
 
 def GetSequentialFileName(base_name):

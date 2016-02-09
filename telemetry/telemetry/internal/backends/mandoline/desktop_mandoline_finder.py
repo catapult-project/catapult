@@ -134,19 +134,19 @@ def FindAllAvailableBrowsers(finder_options, device):
                     'for madonline build in the chrome build directories.')
     return browsers
 
-  def AddIfFound(browser_type, build_dir, type_dir, app_name):
-    browser_directory = os.path.join(
-        finder_options.chrome_root, build_dir, type_dir)
-    app = os.path.join(browser_directory, app_name)
+  def AddIfFound(browser_type, build_path, app_name):
+    app = os.path.join(build_path, app_name)
     if path.IsExecutable(app):
       browsers.append(PossibleDesktopMandolineBrowser(
-          browser_type, finder_options, app, browser_directory))
+          browser_type, finder_options, app, build_path))
       return True
     return False
 
   # Add local builds.
-  for build_dir, build_type in path.GetBuildDirectories():
-    AddIfFound('mandoline-' + build_type.lower(), build_dir, build_type,
+  for build_path in path.GetBuildDirectories(finder_options.chrome_root):
+    # TODO(agrieve): Extract browser_type from args.gn's is_debug.
+    browser_type = os.path.basename(build_path).lower()
+    AddIfFound('mandoline-' + browser_type, build_path,
                mandoline_app_name)
 
   return browsers

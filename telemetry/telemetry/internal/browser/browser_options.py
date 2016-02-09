@@ -33,7 +33,8 @@ class BrowserFinderOptions(optparse.Values):
 
     self.browser_type = browser_type
     self.browser_executable = None
-    self.chrome_root = None
+    self.chrome_root = None  # Path to src/
+    self.chromium_output_dir = None  # E.g.: out/Debug
     self.device = None
     self.cros_ssh_identity = None
 
@@ -76,13 +77,19 @@ class BrowserFinderOptions(optparse.Values):
         help='The exact browser to run.')
     group.add_option('--chrome-root',
         dest='chrome_root',
-        help='Where to look for chrome builds.'
+        help='Where to look for chrome builds. '
              'Defaults to searching parent dirs by default.')
+    group.add_option('--chromium-output-directory',
+        dest='chromium_output_dir',
+        help='Where to look for build artifacts. '
+             'Can also be specified by setting environment variable '
+             'CHROMIUM_OUTPUT_DIR.')
     group.add_option('--device',
         dest='device',
-        help='The device ID to use.'
-             'If not specified, only 0 or 1 connected devices are supported. If'
-             'specified as "android", all available Android devices are used.')
+        help='The device ID to use. '
+             'If not specified, only 0 or 1 connected devices are supported. '
+             'If specified as "android", all available Android devices are '
+             'used.')
     group.add_option('--target-arch',
         dest='target_arch',
         help='The target architecture of the browser. Options available are: '
@@ -160,6 +167,9 @@ class BrowserFinderOptions(optparse.Values):
         logging.getLogger().setLevel(logging.INFO)
       else:
         logging.getLogger().setLevel(logging.WARNING)
+
+      if self.chromium_output_dir:
+        os.environ['CHROMIUM_OUTPUT_DIR'] = self.chromium_output_dir
 
       if self.device == 'list':
         if binary_manager.NeedsInit():

@@ -91,9 +91,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
           'Must specify Chromium source to use apk_name')
       chrome_root = finder_options.chrome_root
       candidate_apks = []
-      for build_dir, build_type in util.GetBuildDirectories():
-        apk_full_name = os.path.join(chrome_root, build_dir, build_type, 'apks',
-                                     apk_name)
+      for build_path in util.GetBuildDirectories(chrome_root):
+        apk_full_name = os.path.join(build_path, 'apks', apk_name)
         if os.path.exists(apk_full_name):
           last_changed = os.path.getmtime(apk_full_name)
           candidate_apks.append((last_changed, apk_full_name))
