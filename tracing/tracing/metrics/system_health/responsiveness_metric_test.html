@@ -6,9 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import"
-    href="/tracing/extras/rail/animation_interaction_record.html">
-<link rel="import" href="/tracing/extras/rail/response_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/animation_expectation.html">
+<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import"
     href="/tracing/metrics/system_health/responsiveness_metric.html">
 
@@ -17,40 +16,42 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('response', function() {
-    var responseIR = new tr.e.rail.ResponseInteractionRecord(
+    var responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 150);
-    assert.equal(1, tr.metrics.sh.ResponsivenessMetric.forIR(responseIR));
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    assert.equal(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
+        responseIR));
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 150.0001);
-    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 299.9999);
-    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 300.0001);
-    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 999.9999);
-    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 1000.0001);
-    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 4999.999);
-    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         responseIR), 1e-5);
-    responseIR = new tr.e.rail.ResponseInteractionRecord(
+    responseIR = new tr.model.um.ResponseExpectation(
         undefined, '', 0, 5000);
-    assert.equal(0, tr.metrics.sh.ResponsivenessMetric.forIR(responseIR));
+    assert.equal(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
+        responseIR));
   });
 
   test('animation_OneHundredFPS', function() {
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+    var animationIR = new tr.model.um.AnimationExpectation(
         undefined, 'subtype', 0, 100);
     for (var i = 1; i < 10; ++i) {
       animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
@@ -60,11 +61,11 @@ tr.b.unittest.testSuite(function() {
       }));
     }
 
-    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forIR(
+    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(1, tr.metrics.sh.AnimationThroughputMetric.forIR(
+    assert.closeTo(1, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         animationIR), 1e-3);
   });
 
@@ -72,7 +73,7 @@ tr.b.unittest.testSuite(function() {
     // Minimum comfort is when at least max(2, frameCount/10) frames are longer
     // than 50ms, and avgFPS <= 10.
     // One frame-per-second causes FPS comfort = 0.
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+    var animationIR = new tr.model.um.AnimationExpectation(
         undefined, 'subtype', 0, 2000);
     animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
       title: tr.model.helpers.IMPL_RENDERING_STATS,
@@ -90,16 +91,16 @@ tr.b.unittest.testSuite(function() {
       end: 2000
     }));
 
-    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forIR(
+    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forIR(
+    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(0.2689, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0.2689, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         animationIR), 1e-3);
   });
 
   test('animation_jank', function() {
-    var animationIR = new tr.e.rail.AnimationInteractionRecord(
+    var animationIR = new tr.model.um.AnimationExpectation(
         undefined, 'subtype', 0, 101000);
     var timestamp = 0;
     for (var i = 0; i < 100; ++i) {
@@ -117,11 +118,11 @@ tr.b.unittest.testSuite(function() {
       end: timestamp + 1
     }));
 
-    assert.closeTo(0, tr.metrics.sh.AnimationSmoothnessMetric.forIR(
+    assert.closeTo(0, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forIR(
+    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
         animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forIR(
+    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
         animationIR), 1e-4);
   });
 });

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/extras/rail/animation_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/animation_expectation.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 
 <script>
@@ -25,14 +25,14 @@ tr.exportTo('tr.metrics.sh', function() {
 
   AnimationSmoothnessMetric.forModel = function(model, opt_rangeOfInterest) {
     return tr.b.Statistics.weightedMean(
-        tr.metrics.sh.filterIRsByRange(
+        tr.metrics.sh.filterExpectationsByRange(
             model.interactionRecords, opt_rangeOfInterest),
         tr.metrics.sh.perceptualBlend,
-        AnimationSmoothnessMetric.forIR);
+        AnimationSmoothnessMetric.forExpectation);
   };
 
-  AnimationSmoothnessMetric.forIR = function(ir) {
-    if (!(ir instanceof tr.e.rail.AnimationInteractionRecord))
+  AnimationSmoothnessMetric.forExpectation = function(ir) {
+    if (!(ir instanceof tr.model.um.AnimationExpectation))
       return undefined;
 
     var frameTimestamps = ir.frameEvents.toArray().map(function(event) {

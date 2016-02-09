@@ -89,6 +89,10 @@ found in the LICENSE file.
 
   var FOOTER_ROW_STAGE_TITLE = 'Overall';
 
+  var ResponsivenessMetric = tr.metrics.sh.ResponsivenessMetric;
+  var SystemHealthMetric = tr.metrics.sh.SystemHealthMetric;
+  var EfficiencyMetric = tr.metrics.sh.EfficiencyMetric;
+
   Polymer('tr-metrics-ui-sh-system-health-side-panel', {
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
@@ -122,10 +126,10 @@ found in the LICENSE file.
           reason: 'Unknown tracing model'
         };
       }
-      if (tr.metrics.sh.SystemHealthMetric.forModel(m) === undefined) {
+      if (SystemHealthMetric.forModel(m) === undefined) {
         return {
           supported: false,
-          reason: 'No interactions found on the model'
+          reason: 'No expectations found on the model'
         };
       }
       return {
@@ -232,10 +236,10 @@ found in the LICENSE file.
           value: function(ir) {
             var efficiency;
             if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
-              efficiency = tr.metrics.sh.EfficiencyMetric.forModel(
+              efficiency = EfficiencyMetric.forModel(
                   this.model, this.effectiveRangeOfInterest);
             } else {
-              efficiency = tr.metrics.sh.EfficiencyMetric.forIR(ir);
+              efficiency = EfficiencyMetric.forExpectation(ir);
             }
 
             if (efficiency === undefined)
@@ -244,8 +248,8 @@ found in the LICENSE file.
           }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
-            return tr.metrics.sh.EfficiencyMetric.forIR(a) -
-                tr.metrics.sh.EfficiencyMetric.forIR(b);
+            return EfficiencyMetric.forExpectation(a) -
+                EfficiencyMetric.forExpectation(b);
           }
         },
         {
@@ -254,10 +258,10 @@ found in the LICENSE file.
           value: function(ir) {
             var responsiveness;
             if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
-              responsiveness = tr.metrics.sh.ResponsivenessMetric.forModel(
+              responsiveness = ResponsivenessMetric.forModel(
                   this.model, this.effectiveRangeOfInterest);
             } else {
-              responsiveness = tr.metrics.sh.ResponsivenessMetric.forIR(ir);
+              responsiveness = ResponsivenessMetric.forExpectation(ir);
             }
 
             if (responsiveness === undefined)
@@ -266,8 +270,8 @@ found in the LICENSE file.
           }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
-            return tr.metrics.sh.ResponsivenessMetric.forIR(a) -
-                tr.metrics.sh.ResponsivenessMetric.forIR(b);
+            return ResponsivenessMetric.forExpectation(a) -
+                ResponsivenessMetric.forExpectation(b);
           }
         },
         {
@@ -276,10 +280,10 @@ found in the LICENSE file.
           value: function(ir) {
             var sh;
             if (ir.stageTitle === FOOTER_ROW_STAGE_TITLE) {
-              sh = tr.metrics.sh.SystemHealthMetric.forModel(
+              sh = SystemHealthMetric.forModel(
                   this.model, this.effectiveRangeOfInterest);
             } else {
-              sh = tr.metrics.sh.SystemHealthMetric.forIR(ir);
+              sh = SystemHealthMetric.forExpectation(ir);
             }
 
             if (sh === undefined)
@@ -292,8 +296,8 @@ found in the LICENSE file.
           }.bind(this),
           textAlign: 'right',
           cmp: function(a, b) {
-            return tr.metrics.sh.SystemHealthMetric.forIR(a) -
-                tr.metrics.sh.SystemHealthMetric.forIR(b);
+            return SystemHealthMetric.forExpectation(a) -
+                SystemHealthMetric.forExpectation(b);
           }
         }
       ];

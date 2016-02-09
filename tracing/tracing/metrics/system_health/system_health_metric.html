@@ -18,15 +18,15 @@ tr.exportTo('tr.metrics.sh', function() {
 
   SystemHealthMetric.forModel = function(model, opt_rangeOfInterest) {
     return tr.b.Statistics.weightedMean(
-        tr.metrics.sh.filterIRsByRange(
+        tr.metrics.sh.filterExpectationsByRange(
             model.interactionRecords, opt_rangeOfInterest),
         tr.metrics.sh.perceptualBlend,
-        SystemHealthMetric.forIR);
+        SystemHealthMetric.forExpectation);
   };
 
-  SystemHealthMetric.forIR = function(ir) {
+  SystemHealthMetric.forExpectation = function(ir) {
     function getValue(metric) {
-      return metric.forIR(ir);
+      return metric.forExpectation(ir);
     }
     function getWeight(metric, index, score) {
       var weight = 1;

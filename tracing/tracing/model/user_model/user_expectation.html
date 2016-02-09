@@ -7,15 +7,14 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/base/range_utils.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.rail', function() {
-  function RAILInteractionRecord(parentModel, initiatorTitle, start, duration) {
+tr.exportTo('tr.model.um', function() {
+  function UserExpectation(parentModel, initiatorTitle, start, duration) {
     this.initiatorTitle_ = initiatorTitle;
     this.typeInfo_ = undefined;
 
@@ -23,36 +22,19 @@ tr.exportTo('tr.e.rail', function() {
         this, parentModel, -1, start, duration);
   }
 
-  RAILInteractionRecord.prototype = {
+  UserExpectation.prototype = {
     __proto__: tr.model.InteractionRecord.prototype,
-
-    updateArgs: function() {
-      var args = {};
-
-      var layoutSlices = this.associatedEvents.filter(function(event) {
-        return event.title === 'FrameView::layout';
-      });
-      var timeInLayout = tr.b.Statistics.sum(layoutSlices, function(event) {
-        return event.duration;
-      });
-
-      args['layoutInfo'] = {
-        'timeInLayout': timeInLayout
-      };
-
-      this.args = args;
-    },
 
     get typeInfo() {
       if (!this.typeInfo_)
-        this.typeInfo_ = RAILInteractionRecord.findTypeInfo(this.constructor);
+        this.typeInfo_ = UserExpectation.findTypeInfo(this.constructor);
 
       // If you set Subclass.prototype = {}, then you must explicitly specify
       // constructor in that prototype object!
       // http://javascript.info/tutorial/constructor
 
       if (!this.typeInfo_)
-        throw new Error('Unregistered RAILInteractionRecord');
+        throw new Error('Unregistered UserExpectation');
 
       return this.typeInfo_;
     },
@@ -90,34 +72,34 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
-  tr.b.decorateExtensionRegistry(RAILInteractionRecord, options);
+  tr.b.decorateExtensionRegistry(UserExpectation, options);
 
-  RAILInteractionRecord.addEventListener('will-register', function(e) {
+  UserExpectation.addEventListener('will-register', function(e) {
     var metadata = e.typeInfo.metadata;
 
     if (metadata.stageTitle === undefined) {
-      throw new Error('Registered RAILInteractionRecords must provide ' +
+      throw new Error('Registered UserExpectations must provide ' +
           'stageTitle');
     }
 
     if (metadata.colorId === undefined) {
-      throw new Error('Registered RAILInteractionRecords must provide ' +
+      throw new Error('Registered UserExpectations must provide ' +
           'colorId');
     }
   });
 
   tr.model.EventRegistry.register(
-      RAILInteractionRecord,
+      UserExpectation,
       {
-        name: 'rail-interaction',
-        pluralName: 'rail-interactions',
+        name: 'user-expectation',
+        pluralName: 'user-expectations',
         singleViewElementName:
           'tr-ui-a-single-rail-interaction-record-sub-view',
         multiViewElementName: 'tr-ui-a-multi-interaction-record-sub-view'
       });
 
   return {
-    RAILInteractionRecord: RAILInteractionRecord
+    UserExpectation: UserExpectation
   };
 });
 </script>
