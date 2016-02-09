@@ -692,8 +692,8 @@ function setUpSortClicks(runs)
 
 function TestTypeSelector(tests) {
     this.recognizers = {
-        'Time': function(test) { return test.isMemoryTest(); },
-        'Memory': function(test) { return !test.isMemoryTest(); }
+        'Time': function(test) { return !test.isMemoryTest(); },
+        'Memory': function(test) { return test.isMemoryTest(); }
     };
     this.testTypeNames = this.generateUsedTestTypeNames(tests);
     // Default to selecting the first test-type name in the list.
