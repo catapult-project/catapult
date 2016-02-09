@@ -18,7 +18,8 @@ tr.exportTo('pie', function() {
   // processed on the main thread.
   // See https://goo.gl/l7V5xg.
   function mapInputBlockers(results, canonicalUrl, model) {
-    var modelHelper = new tr.model.helpers.ChromeModelHelper(model);
+    var modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
     var rendererHelpers = modelHelper.rendererHelpers;
 
     if (!rendererHelpers) {

@@ -23,10 +23,10 @@ tr.exportTo('pi.m', function() {
       model.getAllThreads().forEach(function(thread) {
         this.groupNameForThreadGUID_[thread.guid] = 'Other';
       }, this);
+      var chromeHelper = model.getOrCreateHelper(
+          tr.model.helpers.ChromeModelHelper);
 
-      if (tr.model.helpers.ChromeModelHelper.supportsModel(model)) {
-        var chromeHelper = new tr.model.helpers.ChromeModelHelper(model);
-
+      if (chromeHelper) {
         var browserHelper = chromeHelper.browserHelper;
         this.addThreadsInProcessToGroup_(browserHelper.process, 'Browser');
 

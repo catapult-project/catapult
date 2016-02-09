@@ -33,14 +33,11 @@ tr.exportTo('tr.e.audits', function() {
   function ChromeAuditor(model) {
     Auditor.call(this, model);
 
-    if (tr.model.helpers.ChromeModelHelper.supportsModel(this.model)) {
-      var modelHelper = new tr.model.helpers.ChromeModelHelper(this.model);
-
+    var modelHelper = this.model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (modelHelper && modelHelper.browserHelper) {
       // Must be a browserHelper in order to do audits.
-      if (modelHelper.browserHelper === undefined)
-        this.modelHelper = undefined;
-      else
-        this.modelHelper = modelHelper;
+      this.modelHelper = modelHelper;
     } else {
       this.modelHelper = undefined;
     }

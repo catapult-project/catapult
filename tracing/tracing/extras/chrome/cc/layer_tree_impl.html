@@ -48,19 +48,16 @@ tr.exportTo('tr.e.cc', function() {
         this.tracedInputLatencies = [];
 
         var ownProcess = this.objectInstance.parent;
-        var model = ownProcess.model;
-        if (tr.model.helpers.ChromeModelHelper.supportsModel(model))
-          this._initializeTracedInputLatencies(model);
+        var modelHelper = ownProcess.model.getOrCreateHelper(
+            tr.model.helpers.ChromeModelHelper);
+        if (modelHelper)
+          this._initializeTracedInputLatencies(modelHelper);
       }
     },
 
-    _initializeTracedInputLatencies: function(model) {
-      var modelHelper = new tr.model.helpers.ChromeModelHelper(model);
-      if (!modelHelper.browserHelper)
-        return;
-
+    _initializeTracedInputLatencies: function(modelHelper) {
       var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
-          model.bounds);
+          modelHelper.model.bounds);
 
       // Convert all ids to InputLatency Async objects.
       latencyEvents.forEach(function(event) {

@@ -88,7 +88,7 @@ tr.exportTo('tr.e.audits', function() {
   function AndroidAuditor(model) {
     Auditor.call(this, model);
 
-    var helper = new AndroidModelHelper(model);
+    var helper = model.getOrCreateHelper(AndroidModelHelper);
     if (helper.apps.length || helper.surfaceFlinger)
       this.helper = helper;
   };
