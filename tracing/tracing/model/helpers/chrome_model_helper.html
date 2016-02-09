@@ -4,7 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/base.html">
+
+<link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_gpu_helper.html">
@@ -83,6 +84,8 @@ tr.exportTo('tr.model.helpers', function() {
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
   }
+
+  ChromeModelHelper.guid = tr.b.GUID.allocate();
 
   ChromeModelHelper.supportsModel = function(model) {
     if (findChromeBrowserProcess(model) !== undefined)

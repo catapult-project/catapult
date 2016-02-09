@@ -24,7 +24,8 @@ tr.exportTo('pie', function() {
   // as a ratio of the overall main thread utilization during that time.
   // See https://goo.gl/l7V5xg.
   function mapRenderingCost(results, canonicalUrl, model) {
-    var modelHelper = new tr.model.helpers.ChromeModelHelper(model);
+    var modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
     var browserHelper = modelHelper.browserHelper;
     var rendererHelpers = modelHelper.rendererHelpers;
 

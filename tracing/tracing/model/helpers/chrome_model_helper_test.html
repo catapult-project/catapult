@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var modelHelper = new tr.model.helpers.ChromeModelHelper(m);
+    var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
       m.bounds);
     assert.equal(latencyEvents.length, 1);
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     var m = tr.c.TestUtils.newModelWithEvents([events]);
-    var modelHelper = new tr.model.helpers.ChromeModelHelper(m);
+    var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
 
     // Testing browser impl and main rendering stats.
     var frameEvents = modelHelper.browserHelper.getFrameEventsInRange(

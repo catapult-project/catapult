@@ -160,7 +160,9 @@ tr.exportTo('tr.e.cc', function() {
 
     getRendererHelper: function(sourceSlices) {
       var traceModel = this.startThread.parent.model;
-      if (!tr.model.helpers.ChromeModelHelper.supportsModel(traceModel))
+      var modelHelper = traceModel.getOrCreateHelper(
+          tr.model.helpers.ChromeModelHelper);
+      if (!modelHelper)
         return undefined;
 
       var mainThread = undefined;
@@ -178,7 +180,6 @@ tr.exportTo('tr.e.cc', function() {
           break;
       }
 
-      var modelHelper = new tr.model.helpers.ChromeModelHelper(traceModel);
       var rendererHelpers = modelHelper.rendererHelpers;
 
       var pids = Object.keys(rendererHelpers);
