@@ -103,9 +103,10 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     write_: function(msg) {
-      if (!tr.isVinn)
-        throw new Error('Unsupported');
-      global.write(msg);
+      if (tr.isVinn)
+        global.write(msg);
+      else
+        console.log(msg);
     }
   };
 

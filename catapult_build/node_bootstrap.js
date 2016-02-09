@@ -18,7 +18,7 @@ var process = require('process');
 var child_process = require('child_process');
 
 var catapultPath = fs.realpathSync(path.join(__dirname, '..'));
-var cataputlBuildPath = path.join(catapultPath, 'catapult_build');
+var catapultBuildPath = path.join(catapultPath, 'catapult_build');
 
 var vinnPath = path.join(catapultPath, 'third_party', 'vinn');
 
@@ -58,8 +58,23 @@ function initialize() {
  */
 module.exports.getSourcePathsForProject = function(projectName) {
   var sourcePathsString = child_process.execFileSync(
-      path.join(cataputlBuildPath, 'print_source_paths_for_project'),
-      [projectName]);
+      path.join(catapultBuildPath, 'print_project_info'),
+      ['--source-paths', projectName]);
+  return JSON.parse(sourcePathsString);
+};
+
+
+/**
+ * Gets the headless test module filenames for a catapult project module.
+ *
+ * @param {String} projectName The project in question.
+ * @return {Array} A list of module filenames.
+ */
+module.exports.getHeadlessTestModuleFilenamesForProject =
+    function(projectName) {
+  var sourcePathsString = child_process.execFileSync(
+      path.join(catapultBuildPath, 'print_project_info'),
+      ['--headless-test-module-filenames', projectName]);
   return JSON.parse(sourcePathsString);
 };
 

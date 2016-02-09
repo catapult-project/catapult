@@ -26,10 +26,15 @@ def _ToUpperCamelCase(name):
     out_parts.append(out_part)
   return ''.join(out_parts)
 
+def _RelPathToUnixPath(p):
+  return p.replace(os.sep, '/')
+
 def Main(args):
   parser = argparse.ArgumentParser(
       usage='%(prog)s project_name',
       epilog='Prints the source paths for the provided catapult project\n')
+  parser.add_argument('--source-paths', action='store_true')
+  parser.add_argument('--headless-test-module-filenames', action='store_true')
   parser.add_argument('project_name', nargs=1)
   args = parser.parse_args(args)
 
@@ -60,7 +65,15 @@ def Main(args):
     return 1
 
   project = project_class()
-  print json.dumps(project.source_paths)
+
+  if args.source_paths:
+    print json.dumps(project.source_paths)
+
+  if args.headless_test_module_filenames:
+    headless_test_module_filenames = ['/' + _RelPathToUnixPath(x)
+                              for x in project.FindAllD8TestModuleRelPaths()]
+    headless_test_module_filenames.sort()
+    print json.dumps(headless_test_module_filenames)
 
 
 if __name__ == '__main__':

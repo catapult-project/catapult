@@ -61,10 +61,10 @@ tr.exportTo('tr.b.unittest', function() {
     }
   };
 
-  function D8ModuleLoader() {
+  function HeadlessModuleLoader() {
     this.currentlyExecutingModuleInfo_ = undefined;
   }
-  D8ModuleLoader.prototype = {
+  HeadlessModuleLoader.prototype = {
     loadModule: function(testRelpath, moduleName) {
       return Promise.resolve().then(function() {
         var moduleInfo = {
@@ -104,9 +104,7 @@ tr.exportTo('tr.b.unittest', function() {
     this.testSuites = [];
 
     if (tr.isHeadless) {
-      if (!tr.isVinn)
-        throw new Error('No module loader exists fro this platform');
-      this.currentModuleLoader_ = new D8ModuleLoader();
+      this.currentModuleLoader_ = new HeadlessModuleLoader();
     } else {
       this.currentModuleLoader_ = new HTMLImportsModuleLoader();
     }

@@ -18,16 +18,18 @@ def _RelPathToUnixPath(p):
 
 def RunTests():
   project = perf_insights_project.PerfInsightsProject()
-  d8_test_module_filenames = ['/' + _RelPathToUnixPath(x)
-                              for x in project.FindAllD8TestModuleRelPaths()]
-  d8_test_module_filenames.sort()
+  headless_test_module_filenames = [
+      '/' + _RelPathToUnixPath(x)
+      for x in project.FindAllD8TestModuleRelPaths()]
+  headless_test_module_filenames.sort()
 
   cmd = """
-  HTMLImportsLoader.loadHTML('/tracing/base/d8_tests.html');
+  HTMLImportsLoader.loadHTML('/tracing/base/headless_tests.html');
+  tr.b.unittest.loadAndRunTests(sys.argv.slice(1));
   """
   res = vinn.RunJsString(
     cmd, source_paths=list(project.source_paths),
-    js_args=d8_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
+    js_args=headless_test_module_filenames, stdout=sys.stdout, stdin=sys.stdin)
   return res.returncode
 
 
