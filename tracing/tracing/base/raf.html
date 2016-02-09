@@ -152,7 +152,7 @@ tr.exportTo('tr.b', function() {
   function requestPreAnimationFrame(callback, opt_this) {
     pendingPreAFs.push({
       callback: callback,
-      context: opt_this || window,
+      context: opt_this || global,
       stack: getStack_()});
     scheduleRAF();
   }
@@ -164,7 +164,7 @@ tr.exportTo('tr.b', function() {
     }
     currentRAFDispatchList.push({
       callback: callback,
-      context: opt_this || window,
+      context: opt_this || global,
       stack: getStack_()});
     return;
   }
@@ -172,7 +172,7 @@ tr.exportTo('tr.b', function() {
   function requestAnimationFrame(callback, opt_this) {
     pendingRAFs.push({
       callback: callback,
-      context: opt_this || window,
+      context: opt_this || global,
       stack: getStack_()});
     scheduleRAF();
   }
@@ -180,7 +180,7 @@ tr.exportTo('tr.b', function() {
   function requestIdleCallback(callback, opt_this) {
     pendingIdleCallbacks.push({
       callback: callback,
-      context: opt_this || window,
+      context: opt_this || global,
       stack: getStack_()});
     scheduleIdleWork();
   }
