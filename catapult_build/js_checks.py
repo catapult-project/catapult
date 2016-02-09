@@ -120,6 +120,7 @@ class JSChecker(object):
         return error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
             errors.MISSING_JSDOC_TAG_THIS,
+            errors.MISSING_MEMBER_DOCUMENTATION,
         ]
 
     results = []
