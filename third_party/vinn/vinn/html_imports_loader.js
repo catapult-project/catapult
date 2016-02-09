@@ -47,6 +47,14 @@
 
   var sourcePaths = [];
 
+  function addArrayToSourcePath(paths) {
+    for (var i = 0; i < paths.length; i++) {
+      if (sourcePaths.indexOf(paths[i]) !== -1)
+        continue;
+      sourcePaths.push(paths[i]);
+    }
+  }
+
   function hrefToAbsolutePath(href) {
     var pathPart;
     if (!pathUtils.isAbs(href)) {
@@ -150,6 +158,7 @@
   global.HTMLImportsLoader = {
     setPathUtils: setPathUtils,
     sourcePaths: sourcePaths,
+    addArrayToSourcePath: addArrayToSourcePath,
     hrefToAbsolutePath: hrefToAbsolutePath,
     loadHTML: loadHTML,
     loadScript: loadScript,
