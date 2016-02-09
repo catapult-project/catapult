@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/core/auditor.html">
-<link rel="import" href="/tracing/extras/rail/animation_interaction_record.html">
-<link rel="import" href="/tracing/extras/rail/response_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/animation_expectation.html">
+<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import" href="/tracing/model/event_info.html">
 
 <script>
@@ -63,9 +63,9 @@ tr.exportTo('tr.e.rail', function() {
     getIRConstructor: function() {
       switch (this.irType) {
         case ProtoIR.RESPONSE_TYPE:
-          return tr.e.rail.ResponseInteractionRecord;
+          return tr.model.um.ResponseExpectation;
         case ProtoIR.ANIMATION_TYPE:
-          return tr.e.rail.AnimationInteractionRecord;
+          return tr.model.um.AnimationExpectation;
       }
       return undefined;
     },

@@ -9,12 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/extras/rail/idle_interaction_record.html">
-<link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
+<link rel="import" href="/tracing/extras/rail/find_input_irs.html">
 <link rel="import" href="/tracing/extras/rail/proto_ir.html">
 <link rel="import" href="/tracing/model/event_info.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
-<link rel="import" href="/tracing/extras/rail/find_input_irs.html">
+<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
 
 <script>
 'use strict';
@@ -48,10 +48,10 @@ tr.exportTo('tr.e.rail', function() {
   RAILIRFinder.prototype = {
     findAllInteractionRecords: function() {
       var rirs = [];
-      rirs.push.apply(rirs, this.findLoadInteractionRecords());
+      rirs.push.apply(rirs, this.findLoadExpectations());
       rirs.push.apply(rirs, tr.e.rail.findInputIRs(this.modelHelper));
-      // findIdleInteractionRecords must be called last!
-      rirs.push.apply(rirs, this.findIdleInteractionRecords(rirs));
+      // findIdleExpectations must be called last!
+      rirs.push.apply(rirs, this.findIdleExpectations(rirs));
       this.collectUnassociatedEvents_(rirs);
       return rirs;
     },
@@ -61,8 +61,8 @@ tr.exportTo('tr.e.rail', function() {
     collectUnassociatedEvents_: function(rirs) {
       var vacuumIRs = [];
       rirs.forEach(function(ir) {
-        if (ir instanceof tr.e.rail.LoadInteractionRecord ||
-            ir instanceof tr.e.rail.IdleInteractionRecord)
+        if (ir instanceof tr.model.um.LoadExpectation ||
+            ir instanceof tr.model.um.IdleExpectation)
           vacuumIRs.push(ir);
       });
       if (vacuumIRs.length === 0)
@@ -92,7 +92,7 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // Fill in the empty space between IRs with IdleIRs.
-    findIdleInteractionRecords: function(otherIRs) {
+    findIdleExpectations: function(otherIRs) {
       if (this.model.bounds.isEmpty)
         return;
       var emptyRanges = tr.b.findEmptyRangesBetweenRanges(
@@ -104,7 +104,7 @@ tr.exportTo('tr.e.rail', function() {
         // Ignore insignificantly tiny idle ranges.
         if (range.max < (range.min + INSIGNIFICANT_MS))
           return;
-        irs.push(new tr.e.rail.IdleInteractionRecord(
+        irs.push(new tr.model.um.IdleExpectation(
             model, range.min, range.max - range.min));
       });
       return irs;
@@ -160,7 +160,7 @@ tr.exportTo('tr.e.rail', function() {
     // Match every event in |openingEvents| to the first following event from
     // |closingEvents| and return an array containing a load interaction record
     // for each pair.
-    findLoadInteractionRecords_: function(
+    findLoadExpectations_: function(
         subtypeName, openingEvents, closingEvents) {
       var lirs = [];
       var model = this.model;
@@ -186,7 +186,7 @@ tr.exportTo('tr.e.rail', function() {
           // This is the first closing event for this opening event, record it.
           openingEvent.closingEvent = closingEvent;
           closingEvent.openingEvent = openingEvent;
-          var lir = new tr.e.rail.LoadInteractionRecord(
+          var lir = new tr.model.um.LoadExpectation(
               model, subtypeName, openingEvent.start,
               closingEvent.end - openingEvent.start);
           lir.associatedEvents.push(openingEvent);
@@ -277,7 +277,7 @@ tr.exportTo('tr.e.rail', function() {
     },
 
     // Match up RenderFrameImpl events with frame render events.
-    findLoadInteractionRecords: function() {
+    findLoadExpectations: function() {
       var startupEvents = this.getStartupEvents();
       var commitLoadEvents =
           this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
@@ -288,13 +288,13 @@ tr.exportTo('tr.e.rail', function() {
       var lirs = [];
 
       // Attach frame events to every startup events.
-      var startupLIRs = this.findLoadInteractionRecords_(
-          tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP, startupEvents, frameEvents);
+      var startupLIRs = this.findLoadExpectations_(
+          tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP, startupEvents, frameEvents);
       lirs.push.apply(lirs, startupLIRs);
 
       // Attach frame events to every commit load events.
-      var successfulLIRs = this.findLoadInteractionRecords_(
-          tr.e.rail.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
+      var successfulLIRs = this.findLoadExpectations_(
+          tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
           commitLoadEvents, frameEvents);
       successfulLIRs.forEach(function(lir) {
         // If a successful Load IR has a loadFinishedEvent, then it is a main
@@ -305,8 +305,9 @@ tr.exportTo('tr.e.rail', function() {
       });
 
       // Attach fail load events to every start load events.
-      var failedLIRs = this.findLoadInteractionRecords_(
-          tr.e.rail.LOAD_SUBTYPE_NAMES.FAILED, startLoadEvents, failLoadEvents);
+      var failedLIRs = this.findLoadExpectations_(
+          tr.model.um.LOAD_SUBTYPE_NAMES.FAILED,
+          startLoadEvents, failLoadEvents);
       failedLIRs.forEach(function(lir) {
         // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
         // Drop sub-frame Loads for now.

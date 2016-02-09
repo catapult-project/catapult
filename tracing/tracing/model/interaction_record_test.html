@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/rail/stub_rail_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
         title: 'b', start: 20, end: 30
       }));
 
-      model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
+      model.ir1 = new tr.model.um.StubExpectation({
         parentModel: model,
         start: 100, end: 200,
         typeName: 'Response',

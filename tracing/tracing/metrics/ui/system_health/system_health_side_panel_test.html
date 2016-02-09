@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/rail/stub_rail_interaction_record.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 <link rel="import" href="/tracing/ui/extras/side_panel/system_health_side_panel.html">
 
 <script>
@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
         title: 'c', start: 30, end: 40
       }));
 
-      model.ir1 = new tr.e.rail.StubRAILInteractionRecord({
+      model.ir1 = new tr.model.um.StubExpectation({
         parentModel: model,
         start: 0, end: 100,
         typeName: 'Idle',
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
       model.addInteractionRecord(model.ir1);
       model.ir1.associatedEvents.push(model.s1);
 
-      model.ir2 = new tr.e.rail.StubRAILInteractionRecord({
+      model.ir2 = new tr.model.um.StubExpectation({
         parentModel: model,
         start: 100, end: 200,
         typeName: 'Response',

@@ -4,7 +4,7 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 
 <script>
 'use strict';
@@ -22,23 +22,22 @@ tr.exportTo('tr.metrics.sh', function() {
     return Math.exp(1 - score);
   }
 
-  function filterIRsByRange(irs, opt_range) {
-    var filteredIRs = [];
+  function filterExpectationsByRange(irs, opt_range) {
+    var filteredExpectations = [];
     irs.forEach(function(ir) {
-      // TODO(benjhayden) Remove this check when it's merged with the base.
-      if (!(ir instanceof tr.e.rail.RAILInteractionRecord))
+      if (!(ir instanceof tr.model.um.UserExpectation))
         return;
 
       if (!opt_range ||
           opt_range.intersectsExplicitRangeExclusive(ir.start, ir.end))
-        filteredIRs.push(ir);
+        filteredExpectations.push(ir);
     });
-    return filteredIRs;
+    return filteredExpectations;
   }
 
   return {
     perceptualBlend: perceptualBlend,
-    filterIRsByRange: filterIRsByRange
+    filterExpectationsByRange: filterExpectationsByRange
   };
 });
 </script>

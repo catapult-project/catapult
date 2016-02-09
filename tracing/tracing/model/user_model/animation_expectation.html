@@ -5,22 +5,22 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.e.rail', function() {
-  function AnimationInteractionRecord(
+tr.exportTo('tr.model.um', function() {
+  function AnimationExpectation(
       parentModel, initiatorTitle, start, duration) {
-    tr.e.rail.RAILInteractionRecord.call(
+    tr.model.um.UserExpectation.call(
         this, parentModel, initiatorTitle, start, duration);
     this.frameEvents_ = undefined;
   }
 
-  AnimationInteractionRecord.prototype = {
-    __proto__: tr.e.rail.RAILInteractionRecord.prototype,
-    constructor: AnimationInteractionRecord,
+  AnimationExpectation.prototype = {
+    __proto__: tr.model.um.UserExpectation.prototype,
+    constructor: AnimationExpectation,
 
     get frameEvents() {
       if (this.frameEvents_)
@@ -37,13 +37,13 @@ tr.exportTo('tr.e.rail', function() {
     }
   };
 
-  tr.e.rail.RAILInteractionRecord.register(AnimationInteractionRecord, {
+  tr.model.um.UserExpectation.register(AnimationExpectation, {
     stageTitle: 'Animation',
     colorId: tr.b.ColorScheme.getColorIdForReservedName('rail_animation')
   });
 
   return {
-    AnimationInteractionRecord: AnimationInteractionRecord
+    AnimationExpectation: AnimationExpectation
   };
 });
 </script>

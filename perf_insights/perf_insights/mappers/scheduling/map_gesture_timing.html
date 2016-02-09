@@ -16,7 +16,7 @@ tr.exportTo('pie', function() {
   // See https://goo.gl/l7V5xg.
   function mapGestureTiming(results, canonicalUrl, model) {
     var loadIRs = model.interactionRecords.filter(function(ir) {
-      return ir instanceof tr.e.rail.LoadInteractionRecord;
+      return ir instanceof tr.model.um.LoadExpectation;
     });
     var responseIRs = model.interactionRecords.filter(function(ir) {
       return ir.stageTitle === 'Response' &&

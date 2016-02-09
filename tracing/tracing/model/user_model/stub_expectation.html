@@ -6,16 +6,16 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 
 <script>
 'use strict';
 
 /**
- * @fileoverview Stub version of RAILInteractionRecord for testing.
+ * @fileoverview Stub version of UserExpectation for testing.
  */
-tr.exportTo('tr.e.rail', function() {
-  function StubRAILInteractionRecord(args) {
+tr.exportTo('tr.model.um', function() {
+  function StubExpectation(args) {
     this.stageTitle_ = args.stageTitle || 'Idle';
     this.initiatorTitle_ = args.initiatorTitle || '';
 
@@ -34,7 +34,7 @@ tr.exportTo('tr.e.rail', function() {
 
     var sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
 
-    tr.e.rail.RAILInteractionRecord.call(
+    tr.model.um.UserExpectation.call(
         this, args.parentModel, this.initiatorTitle, sd.start, sd.duration);
 
     // Must be set after base class call.
@@ -47,8 +47,8 @@ tr.exportTo('tr.e.rail', function() {
     }
   }
 
-  StubRAILInteractionRecord.prototype = {
-    __proto__: tr.e.rail.RAILInteractionRecord.prototype,
+  StubExpectation.prototype = {
+    __proto__: tr.model.um.UserExpectation.prototype,
 
     get colorId() {
       return this.colorId_;
@@ -76,7 +76,7 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   return {
-    StubRAILInteractionRecord: StubRAILInteractionRecord
+    StubExpectation: StubExpectation
   };
 });
 </script>

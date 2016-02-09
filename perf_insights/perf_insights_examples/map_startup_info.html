@@ -17,8 +17,8 @@ found in the LICENSE file.
 tr.exportTo('pie', function() {
   function mapStartupInfo(results, canonicalUrl, model) {
     var startupIRs = model.interactionRecords.filter(function(ir) {
-      return ir instanceof tr.e.rail.LoadInteractionRecord &&
-             ir.initiatorTitle === tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP;
+      return ir instanceof tr.model.um.LoadExpectation &&
+             ir.initiatorTitle === tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP;
     });
     // Find the Startup IRs in the browser and renderer processes.
     var ChromeBrowserHelper = tr.model.helpers.ChromeBrowserHelper;

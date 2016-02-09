@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/mappers/scheduling/map_gesture_timing.html">
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
-<link rel="import" href="/tracing/extras/rail/response_interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
+<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -18,19 +18,19 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('mapperTest', function() {
     var m = tr.c.TestUtils.newModel(function(m) {
-      var loadIr = new tr.e.rail.LoadInteractionRecord(
-          m, tr.e.rail.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 10);
+      var loadIr = new tr.model.um.LoadExpectation(
+          m, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 10);
       m.interactionRecords.push(loadIr);
 
-      var scrollIr = new tr.e.rail.ResponseInteractionRecord(
+      var scrollIr = new tr.model.um.ResponseExpectation(
           m, 'Scroll', 50, 10);
       m.interactionRecords.push(scrollIr);
 
-      var flingIr = new tr.e.rail.ResponseInteractionRecord(
+      var flingIr = new tr.model.um.ResponseExpectation(
           m, 'Fling', 60, 10);
       m.interactionRecords.push(flingIr);
 
-      var scrollIr2 = new tr.e.rail.ResponseInteractionRecord(
+      var scrollIr2 = new tr.model.um.ResponseExpectation(
           m, 'Scroll', 100, 20);
       m.interactionRecords.push(scrollIr2);
     });

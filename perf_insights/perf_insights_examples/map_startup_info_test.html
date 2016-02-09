@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights_examples/map_startup_info.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/rail/load_interaction_record.html">
 <link rel="import" href="/tracing/model/thread_slice.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -37,8 +37,8 @@ tr.b.unittest.testSuite(function() {
       t2_s2.parentContainer = t2;
       t2.sliceGroup.pushSlice(t2_s1);
       t2.sliceGroup.pushSlice(t2_s2);
-      var loadIr = new tr.e.rail.LoadInteractionRecord(
-          m, tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP, 15, 45);
+      var loadIr = new tr.model.um.LoadExpectation(
+          m, tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP, 15, 45);
       m.interactionRecords.push(loadIr);
       loadIr.associatedEvents.push(t2_s1);
       loadIr.associatedEvents.push(t2_s2);
