@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_browser_helper.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -24,7 +24,7 @@ tr.exportTo('pie', function() {
   // as a ratio of the overall main thread utilization during that time.
   // See https://goo.gl/l7V5xg.
   function mapRenderingCost(results, canonicalUrl, model) {
-    var modelHelper = new tr.e.audits.ChromeModelHelper(model);
+    var modelHelper = new tr.model.helpers.ChromeModelHelper(model);
     var browserHelper = modelHelper.browserHelper;
     var rendererHelpers = modelHelper.rendererHelpers;
 

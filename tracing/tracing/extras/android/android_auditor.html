@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/alert.html">
 <link rel="import" href="/tracing/model/frame.html">
 <link rel="import" href="/tracing/model/interaction_record.html">
-<link rel="import" href="/tracing/extras/android/android_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/android_model_helper.html">
 <link rel="import" href="/tracing/base/range_utils.html">
 
 <script>
@@ -24,7 +24,7 @@ found in the LICENSE file.
 tr.exportTo('tr.e.audits', function() {
   var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
   var Auditor = tr.c.Auditor;
-  var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
+  var AndroidModelHelper = tr.model.helpers.AndroidModelHelper;
   var ColorScheme = tr.b.ColorScheme;
   var Statistics = tr.b.Statistics;
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
@@ -50,9 +50,6 @@ tr.exportTo('tr.e.audits', function() {
     }
     return false;
   }
-
-  var Auditor = tr.c.Auditor;
-  var AndroidModelHelper = tr.e.audits.AndroidModelHelper;
 
   function frameMissedDeadline(frame) {
     return frame.args['deadline'] && frame.args['deadline'] < frame.end;
@@ -179,7 +176,7 @@ tr.exportTo('tr.e.audits', function() {
     events.push(frame);
     return new Alert(AndroidAuditor.pathAlertInfo_, start, events,
                      { 'Time spent': new TimeDuration(duration) });
-  }
+  };
 
 
   AndroidAuditor.uploadAlertInfo_ = new EventInfo(
@@ -209,7 +206,7 @@ tr.exportTo('tr.e.audits', function() {
                  'Time spent': new TimeDuration(duration) };
     events.push(frame);
     return new Alert(AndroidAuditor.uploadAlertInfo_, start, events, args);
-  }
+  };
 
   //////////////////////////////////////////////////////////////////////////////
   // UI responsiveness alerts
@@ -249,7 +246,7 @@ tr.exportTo('tr.e.audits', function() {
         AndroidAuditor.ListViewBindAlertInfo_;
     events.push(frame);
     return new Alert(eventInfo, start, events, args);
-  }
+  };
 
 
   AndroidAuditor.measureLayoutAlertInfo_ = new EventInfo(
@@ -271,7 +268,7 @@ tr.exportTo('tr.e.audits', function() {
     events.push(frame);
     return new Alert(AndroidAuditor.measureLayoutAlertInfo_, start, events,
                      { 'Time spent': new TimeDuration(duration) });
-  }
+  };
 
 
   AndroidAuditor.viewDrawAlertInfo_ = new EventInfo(
@@ -296,7 +293,7 @@ tr.exportTo('tr.e.audits', function() {
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
                      [slice, frame],
                      { 'Time spent': new TimeDuration(getCpuDuration(slice)) });
-  }
+  };
 
 
   //////////////////////////////////////////////////////////////////////////////
@@ -722,7 +719,7 @@ tr.exportTo('tr.e.audits', function() {
         return expectedParentNames.some(function(name) {
           return name in parentNames;
         });
-      }
+      };
 
 
       // Set EventInfo on the slice if it matches title, and parent.

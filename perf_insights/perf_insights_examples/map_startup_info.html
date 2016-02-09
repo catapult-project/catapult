@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_browser_helper.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_renderer_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -21,8 +21,8 @@ tr.exportTo('pie', function() {
              ir.initiatorTitle === tr.e.rail.LOAD_SUBTYPE_NAMES.STARTUP;
     });
     // Find the Startup IRs in the browser and renderer processes.
-    var ChromeBrowserHelper = tr.e.audits.ChromeBrowserHelper;
-    var ChromeRendererHelper = tr.e.audits.ChromeRendererHelper;
+    var ChromeBrowserHelper = tr.model.helpers.ChromeBrowserHelper;
+    var ChromeRendererHelper = tr.model.helpers.ChromeRendererHelper;
     var browser_startup = new tr.b.Range();
     var renderer_startup = new tr.b.Range();
     startupIRs.forEach(function(ir) {

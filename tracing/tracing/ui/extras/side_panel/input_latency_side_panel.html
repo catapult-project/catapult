@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/event_set.html">
-<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/line_chart.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 
 <polymer-element name='tr-ui-e-s-input-latency-side-panel'
     extends='tr-ui-side-panel'>
@@ -43,7 +43,7 @@ found in the LICENSE file.
   Polymer({
     ready: function() {
       this.rangeOfInterest_ = new tr.b.Range();
-      this.frametimeType_ = tr.e.audits.IMPL_FRAMETIME_TYPE;
+      this.frametimeType_ = tr.model.helpers.IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
       this.selectedProcessId_ = undefined;
@@ -58,7 +58,7 @@ found in the LICENSE file.
     set model(model) {
       this.model_ = model;
       if (this.model_)
-        this.modelHelper_ = new tr.e.audits.ChromeModelHelper(model);
+        this.modelHelper_ = new tr.model.helpers.ChromeModelHelper(model);
       else
         this.modelHelper_ = undefined;
 
@@ -123,7 +123,8 @@ found in the LICENSE file.
             latencySlices.push(event);
         });
       });
-      latencySlices = tr.e.audits.getSlicesIntersectingRange(r, latencySlices);
+      latencySlices = tr.model.helpers.getSlicesIntersectingRange(
+          r, latencySlices);
 
       var event = new tr.model.RequestSelectionChangeEvent();
       event.selection = new tr.model.EventSet(latencySlices);
@@ -176,9 +177,9 @@ found in the LICENSE file.
           this, 'frametimeType',
           'inputLatencySidePanel.frametimeType', this.frametimeType_,
           [{label: 'Main Thread Frame Times',
-            value: tr.e.audits.MAIN_FRAMETIME_TYPE},
+            value: tr.model.helpers.MAIN_FRAMETIME_TYPE},
            {label: 'Impl Thread Frame Times',
-            value: tr.e.audits.IMPL_FRAMETIME_TYPE}
+            value: tr.model.helpers.IMPL_FRAMETIME_TYPE}
           ]));
       toolbarEl.appendChild(tr.ui.b.createSelector(
           this, 'selectedProcessId',
@@ -227,7 +228,8 @@ found in the LICENSE file.
       var frameEvents = chromeProcess.getFrameEventsInRange(
           this.frametimeType, rangeOfInterest);
 
-      var frametimeData = tr.e.audits.getFrametimeDataFromEvents(frameEvents);
+      var frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
+          frameEvents);
       var averageFrametime = tr.b.Statistics.mean(frametimeData, function(d) {
         return d.frametime;
       });
@@ -295,14 +297,14 @@ found in the LICENSE file.
         };
       }
 
-      if (!tr.e.audits.ChromeModelHelper.supportsModel(m)) {
+      if (!tr.model.helpers.ChromeModelHelper.supportsModel(m)) {
         return {
           supported: false,
           reason: 'No Chrome browser or renderer process found'
         };
       }
 
-      var modelHelper = new tr.e.audits.ChromeModelHelper(m);
+      var modelHelper = new tr.model.helpers.ChromeModelHelper(m);
       if (modelHelper.browserHelper &&
         modelHelper.browserHelper.hasLatencyEvents) {
           return {

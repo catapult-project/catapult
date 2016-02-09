@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_process_helper.html">
 <link rel="import" href="/tracing/extras/rail/rail_interaction_record.html">
 
 <script>
@@ -31,7 +29,7 @@ tr.exportTo('tr.e.rail', function() {
       this.frameEvents_ = new tr.model.EventSet();
 
       this.associatedEvents.forEach(function(event) {
-        if (event.title === tr.e.audits.IMPL_RENDERING_STATS)
+        if (event.title === tr.model.helpers.IMPL_RENDERING_STATS)
           this.frameEvents_.push(event);
       }, this);
 

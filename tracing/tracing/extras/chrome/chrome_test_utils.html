@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_process_helper.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -37,13 +36,13 @@ tr.exportTo('tr.e.chrome', function() {
 
       customizeModelCallback(model);
     });
-  }
+  };
 
   ChromeTestUtils.addEvent = function(thread, dict) {
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     thread.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addInputEvent = function(model, typeName, dict) {
     dict.title = 'InputLatency::' + typeName;
@@ -52,14 +51,14 @@ tr.exportTo('tr.e.chrome', function() {
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.browserMain.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addFlingAnimationEvent = function(model, dict) {
     dict.title = 'InputHandlerProxy::HandleGestureFling::started';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererCompositor.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addRenderingEvent = function(model, dict) {
     dict.title = dict.title || 'DummyEvent';
@@ -67,22 +66,22 @@ tr.exportTo('tr.e.chrome', function() {
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addFrameEvent = function(model, dict) {
-    dict.title = tr.e.audits.IMPL_RENDERING_STATS;
+    dict.title = tr.model.helpers.IMPL_RENDERING_STATS;
     dict.type = tr.model.ThreadSlice;
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addLoadingEvent = function(model, dict) {
     dict.title = 'WebContentsImpl Loading';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addNetworkEvent = function(model, dict) {
     dict.cat = 'netlog';
@@ -90,56 +89,56 @@ tr.exportTo('tr.e.chrome', function() {
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.browserMain.asyncSliceGroup.push(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addCommitLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didCommitProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addCreateChildFrameEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::createChildFrame';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addStartProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didStartProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addFailProvisionalLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didFailProvisionalLoad';
     var slice = tr.c.TestUtils.newAsyncSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addFinishLoadEvent = function(model, dict) {
     dict.title = 'RenderFrameImpl::didFinishLoad';
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addLoadFinishedEvent = function(model, dict) {
     dict.title = 'LoadFinished';
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   ChromeTestUtils.addCreateThreadsEvent = function(model, dict) {
     dict.title = 'BrowserMainLoop::CreateThreads';
     var slice = tr.c.TestUtils.newSliceEx(dict);
     model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
-  }
+  };
 
   return {
     ChromeTestUtils: ChromeTestUtils

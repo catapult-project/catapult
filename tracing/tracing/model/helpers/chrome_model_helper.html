@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_browser_helper.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_gpu_helper.html">
-<link rel="import" href="/tracing/extras/chrome/chrome_renderer_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_gpu_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
 
 <script>
 'use strict';
@@ -16,11 +16,11 @@ found in the LICENSE file.
 /**
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
-tr.exportTo('tr.e.audits', function() {
+tr.exportTo('tr.model.helpers', function() {
   function findChromeBrowserProcess(model) {
     var browserProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (!tr.e.audits.ChromeBrowserHelper.isBrowserProcess(process))
+      if (!tr.model.helpers.ChromeBrowserHelper.isBrowserProcess(process))
         return;
       browserProcesses.push(process);
     }, this);
@@ -34,7 +34,7 @@ tr.exportTo('tr.e.audits', function() {
   function findChromeRenderProcesses(model) {
     var rendererProcesses = [];
     model.getAllProcesses().forEach(function(process) {
-      if (!tr.e.audits.ChromeRendererHelper.isRenderProcess(process))
+      if (!tr.model.helpers.ChromeRendererHelper.isRenderProcess(process))
         return;
       rendererProcesses.push(process);
     });
@@ -43,7 +43,7 @@ tr.exportTo('tr.e.audits', function() {
 
   function findChromeGpuProcess(model) {
     var gpuProcesses = model.getAllProcesses().filter(
-      tr.e.audits.ChromeGpuHelper.isGpuProcess);
+      tr.model.helpers.ChromeGpuHelper.isGpuProcess);
     if (gpuProcesses.length != 1)
       return undefined;
     return gpuProcesses[0];
@@ -58,7 +58,7 @@ tr.exportTo('tr.e.audits', function() {
     // Find browserHelper.
     this.browserProcess_ = findChromeBrowserProcess(model);
     if (this.browserProcess_) {
-      this.browserHelper_ = new tr.e.audits.ChromeBrowserHelper(
+      this.browserHelper_ = new tr.model.helpers.ChromeBrowserHelper(
           this, this.browserProcess_);
     } else {
       this.browserHelper_ = undefined;
@@ -67,7 +67,7 @@ tr.exportTo('tr.e.audits', function() {
     // Find gpuHelper.
     var gpuProcess = findChromeGpuProcess(model);
     if (gpuProcess) {
-      this.gpuHelper_ = new tr.e.audits.ChromeGpuHelper(
+      this.gpuHelper_ = new tr.model.helpers.ChromeGpuHelper(
           this, gpuProcess);
     } else {
       this.gpuHelper_ = undefined;
@@ -78,7 +78,7 @@ tr.exportTo('tr.e.audits', function() {
 
     this.rendererHelpers_ = {};
     rendererProcesses_.forEach(function(renderProcess) {
-      var rendererHelper = new tr.e.audits.ChromeRendererHelper(
+      var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
         this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
@@ -90,7 +90,7 @@ tr.exportTo('tr.e.audits', function() {
     if (findChromeRenderProcesses(model).length)
       return true;
     return false;
-  }
+  };
 
   ChromeModelHelper.prototype = {
     get pid() {
