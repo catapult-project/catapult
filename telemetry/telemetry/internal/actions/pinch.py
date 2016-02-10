@@ -37,12 +37,6 @@ class PinchAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Synthetic pinch not supported for this browser')
 
-    # TODO(dominikg): Remove once JS interface changes have rolled into stable.
-    if not tab.EvaluateJavaScript('chrome.gpuBenchmarking.newPinchInterface'):
-      raise page_action.PageActionNotSupported(
-          'This version of the browser doesn\'t support the new JS interface '
-          'for pinch gestures.')
-
     done_callback = 'function() { window.__pinchActionDone = true; }'
     tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
