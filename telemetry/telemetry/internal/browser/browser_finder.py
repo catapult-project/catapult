@@ -12,8 +12,6 @@ from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.backends.chrome import cros_browser_finder
 from telemetry.internal.backends.chrome import desktop_browser_finder
 from telemetry.internal.backends.chrome import ios_browser_finder
-from telemetry.internal.backends.mandoline import android_mandoline_finder
-from telemetry.internal.backends.mandoline import desktop_mandoline_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.platform import device_finder
 
@@ -22,8 +20,6 @@ BROWSER_FINDERS = [
   android_browser_finder,
   cros_browser_finder,
   ios_browser_finder,
-  desktop_mandoline_finder,
-  android_mandoline_finder,
   ]
 
 

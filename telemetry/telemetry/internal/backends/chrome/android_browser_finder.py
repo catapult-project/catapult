@@ -183,7 +183,7 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
                          if info[2] == apk_name), None)
 
     # It is okay if the APK name doesn't match any of known chrome browser APKs,
-    # since it may be of a different browser (say, mandoline).
+    # since it may be of a different browser.
     if package_info:
       normalized_path = os.path.expanduser(finder_options.browser_executable)
       exact_package = apk_helper.GetPackageName(normalized_path)

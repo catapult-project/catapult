@@ -225,8 +225,8 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
     self.assertNotIn('exact', self.DoFindAllTypes())
 
   def testNoErrorWithNonChromeExecutableName(self):
-    self.fs.CreateFile('/foo/mandoline')
-    self._finder_options.browser_executable = '/foo/mandoline'
+    self.fs.CreateFile('/foo/another_browser')
+    self._finder_options.browser_executable = '/foo/another_browser'
     self.assertNotIn('exact', self.DoFindAllTypes())
 
   def testFindAllWithInstalled(self):
@@ -300,6 +300,6 @@ class WinFindTest(FindTestBase):
     if not self.CanFindAvailableBrowsers():
       return
 
-    self._files.append('c:\\foo\\mandoline.exe')
-    self._finder_options.browser_dir = 'c:\\foo\\mandoline.exe'
+    self._files.append('c:\\foo\\another_browser.exe')
+    self._finder_options.browser_dir = 'c:\\foo\\another_browser.exe'
     self.assertNotIn('exact', self.DoFindAllTypes())

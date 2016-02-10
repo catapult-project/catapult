@@ -243,6 +243,4 @@ def _PlatformAttributes(possible_browser):
     attributes.append('has tabs')
   if 'content-shell' in possible_browser.browser_type:
     attributes.append('content-shell')
-  if 'mandoline' in possible_browser.browser_type:
-    attributes.append('mandoline')
   return attributes
